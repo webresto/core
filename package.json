@@ -25,7 +25,8 @@
   },
   "bundleDependencies": false,
   "dependencies": {
-    "lodash": "^4.17.10"
+    "lodash": "^4.17.10",
+    "sails-build-dictionary": "^0.10.1"
   },
   "deprecated": false,
   "description": "",
