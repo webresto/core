@@ -1,14 +1,42 @@
 {
-  "name": "sails-hook-webcore",
-  "version": "0.0.1",
+  "_from": "git+https://github.com/42Sails/sails-hook-webcore.git",
+  "_id": "sails-hook-webcore@0.0.1",
+  "_inBundle": false,
+  "_location": "/sails-hook-webcore",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "sails-hook-webcore@git+https://github.com/42Sails/sails-hook-webcore.git",
+    "name": "sails-hook-webcore",
+    "escapedName": "sails-hook-webcore",
+    "rawSpec": "git+https://github.com/42Sails/sails-hook-webcore.git",
+    "saveSpec": "git+https://github.com/42Sails/sails-hook-webcore.git",
+    "fetchSpec": "https://github.com/42Sails/sails-hook-webcore.git",
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git+https://github.com/42Sails/sails-hook-webcore.git#9ddb4cfccf376c41123d1f3c273a89cd58207984",
+  "_spec": "sails-hook-webcore@git+https://github.com/42Sails/sails-hook-webcore.git",
+  "_where": "D:\\Sites\\Cafe0.5",
+  "author": {
+    "name": "Ilya Dolmatov"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "lodash": "^4.17.10"
+  },
+  "deprecated": false,
   "description": "",
+  "license": "ISC",
   "main": "index.js",
+  "name": "sails-hook-webcore",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Ilya Dolmatov",
-  "license": "ISC",
-  "dependencies": {
-    "lodash": "^4.17.10"
+  "version": "0.0.1",
+  "sails": {
+    "isHook": true
   }
 }
