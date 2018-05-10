@@ -17,7 +17,7 @@
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git+https://github.com/42Sails/sails-hook-webcore.git#9ddb4cfccf376c41123d1f3c273a89cd58207984",
+  "_resolved": "git+https://github.com/42Sails/sails-hook-webcore.git#e81bc0de56f8dbc9d91f0bd092d47e51e2f79ad7",
   "_spec": "sails-hook-webcore@git+https://github.com/42Sails/sails-hook-webcore.git",
   "_where": "D:\\Sites\\Cafe0.5",
   "author": {
@@ -26,18 +26,18 @@
   "bundleDependencies": false,
   "dependencies": {
     "lodash": "^4.17.10",
-    "sails-build-dictionary": "^0.10.1"
+    "sails-util": "^0.11.0"
   },
   "deprecated": false,
   "description": "",
   "license": "ISC",
   "main": "index.js",
   "name": "sails-hook-webcore",
+  "sails": {
+    "isHook": true
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.0.1",
-  "sails": {
-    "isHook": true
-  }
+  "version": "0.0.1"
 }

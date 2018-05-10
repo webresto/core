@@ -1,5 +1,5 @@
 /**
- * Dish.js
+ * Groups.js
  *
  * @description :: A model definition.  Represents a database table/collection/etc.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -9,17 +9,19 @@ module.exports = {
 
   attributes: {
 
-    //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
-    //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
-    //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
-
     additionalInfo: {
       type: 'string',
       allowNull: true
     },
-    code: {type: 'string'},
-    description: {type: 'string'},
-    isDeleted: {type: 'string'},
+    code: {
+      type: 'number',
+      allowNull: true
+    },
+    description: {
+      type: 'string',
+      allowNull: true
+    },
+    isDeleted: {type: 'boolean'},
     name: {type: 'string'},
     seoDescription: {
       type: 'string',
@@ -38,35 +40,6 @@ module.exports = {
       allowNull: true
     },
     tags: {type: 'json'},
-    carbohydrateAmount: {type: 'number'},
-    carbohydrateFullAmount: {type: 'number'},
-    differentPricesOn: {type: 'json'},
-    doNotPrintInCheque: {type: 'boolean'},
-    energyAmount: {type: 'number'},
-    energyFullAmount: {type: 'number'},
-    fatAmount: {type: 'number'},
-    fatFullAmount: {type: 'number'},
-    fiberAmount: {type: 'number'},
-    fiberFullAmount: {type: 'number'},
-    groupId: {
-      type: 'string',
-      allowNull: true
-    },
-    groupModifiers: {type: 'json'},
-    measureUnit: {type: 'string'},
-    modifiers: {
-      //collection: 'dish'
-      type: 'json'
-    },
-    price: {type: 'number'},
-    productCategoryId: {
-      type: 'string',
-      allowNull: true
-    },
-    prohibitedToSaleOn: {type: 'json'},
-    type: {type: 'string'},
-    useBalanceForSell: {type: 'boolean'},
-    weight: {type: 'number'},
     images: {type: 'json'},
     isIncludedInMenu: {type: 'boolean'},
     order: {type: 'number'},
@@ -74,6 +47,11 @@ module.exports = {
       type: 'string',
       allowNull: true
     }
+
+    //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
+    //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
+    //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
+
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
@@ -87,3 +65,4 @@ module.exports = {
   },
 
 };
+
