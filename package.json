@@ -17,7 +17,7 @@
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git+https://github.com/42Sails/sails-hook-webcore.git#e81bc0de56f8dbc9d91f0bd092d47e51e2f79ad7",
+  "_resolved": "git+https://github.com/42Sails/sails-hook-webcore.git#e6f2b4283f30fbdb672d355756e7149e82b3d2e2",
   "_spec": "sails-hook-webcore@git+https://github.com/42Sails/sails-hook-webcore.git",
   "_where": "D:\\Sites\\Cafe0.5",
   "author": {
