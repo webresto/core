@@ -13,6 +13,10 @@ module.exports = {
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
+    id: {
+      type: 'string',
+      required: true
+    },
     additionalInfo: {
       type: 'string',
       allowNull: true
@@ -37,7 +41,10 @@ module.exports = {
       type: 'string',
       allowNull: true
     },
-    tags: {type: 'json'},
+    tags: {
+      collection: 'tags',
+      via: 'dishes'
+    },
     carbohydrateAmount: {type: 'number'},
     carbohydrateFullAmount: {type: 'number'},
     differentPricesOn: {type: 'json'},
@@ -54,10 +61,6 @@ module.exports = {
     },
     groupModifiers: {type: 'json'},
     measureUnit: {type: 'string'},
-    modifiers: {
-      //collection: 'dish'
-      type: 'json'
-    },
     price: {type: 'number'},
     productCategoryId: {
       type: 'string',
@@ -70,10 +73,7 @@ module.exports = {
     images: {type: 'json'},
     isIncludedInMenu: {type: 'boolean'},
     order: {type: 'number'},
-    parentGroup: {
-      type: 'string',
-      allowNull: true
-    }
+    isDeleted: {type: 'boolean'},
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
@@ -83,6 +83,12 @@ module.exports = {
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
+    modifiers: {
+      collection: 'dish'
+    },
+    parentGroup: {
+      model: 'group'
+    }
 
   },
 
