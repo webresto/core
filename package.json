@@ -27,8 +27,9 @@
   "dependencies": {
     "lodash": "^4.17.10",
     "sails-util": "^0.11.0",
-    "iiko-delivery": "latest",
-    "sails-build-dictionary": "^0.10.1"
+    "iiko-delivery": "git+https://github.com/pub42/iiko-delivery.git",
+    "sails-build-dictionary": "^0.10.1",
+    "jimp": "latest"
   },
   "deprecated": false,
   "description": "",
