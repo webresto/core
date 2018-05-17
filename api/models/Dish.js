@@ -41,10 +41,6 @@ module.exports = {
       type: 'string',
       allowNull: true
     },
-    tags: {
-      collection: 'tags',
-      via: 'dishes'
-    },
     carbohydrateAmount: {type: 'number'},
     carbohydrateFullAmount: {type: 'number'},
     differentPricesOn: {type: 'json'},
@@ -88,6 +84,10 @@ module.exports = {
     },
     parentGroup: {
       model: 'group'
+    },
+    tags: {
+      collection: 'tags',
+      via: 'dishes'
     }
 
   },

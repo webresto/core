@@ -1,5 +1,5 @@
 /**
- * Cart.js
+ * CartDish.js
  *
  * @description :: A model definition.  Represents a database table/collection/etc.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -16,8 +16,8 @@ module.exports = {
       type: 'number',
       autoIncrement: true
     },
-    userId: {
-      type: 'string'
+    amount: {
+      type: 'number'
     },
 
 
@@ -29,8 +29,14 @@ module.exports = {
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-    items: {
-      collection: 'cartDish'
+    dish: {
+      model: 'dish'
+    },
+    modifiers: {
+      collection: 'cartModifiers'
+    },
+    cart: {
+      model: 'cart'
     }
 
   },
