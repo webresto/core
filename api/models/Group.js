@@ -8,10 +8,10 @@
 module.exports = {
 
   attributes: {
-
     id: {
       type: 'string',
-      required: true
+      required: true,
+      primaryKey: true
     },
     additionalInfo: {
       type: 'string',
@@ -48,20 +48,6 @@ module.exports = {
     isIncludedInMenu: {type: 'boolean'},
     order: {type: 'number'},
     dishesTags: {collection: 'tags'},
-
-    //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
-    //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
-    //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
-
-
-    //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
-    //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
-    //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
-
-
-    //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
-    //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
-    //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
     dishes: {
       collection: 'dish',
       via: 'parentGroup'
@@ -72,7 +58,7 @@ module.exports = {
     childGroups: {
       collection: 'group',
       via: 'parentGroup'
-    }
+    },
 
   },
 

@@ -8,14 +8,10 @@
 module.exports = {
 
   attributes: {
-
-    //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
-    //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
-    //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
-
     id: {
       type: 'string',
-      required: true
+      required: true,
+      primaryKey: true
     },
     additionalInfo: {
       type: 'string',
@@ -70,15 +66,6 @@ module.exports = {
     isIncludedInMenu: {type: 'boolean'},
     order: {type: 'number'},
     isDeleted: {type: 'boolean'},
-
-    //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
-    //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
-    //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
-
-
-    //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
-    //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
-    //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
     modifiers: {
       collection: 'dish'
     },
@@ -88,7 +75,7 @@ module.exports = {
     tags: {
       collection: 'tags',
       via: 'dishes'
-    }
+    },
 
   },
 
