@@ -13,41 +13,22 @@ module.exports = {
       required: true,
       primaryKey: true
     },
-    additionalInfo: {
-      type: 'string',
-      allowNull: true
-    },
-    code: {
-      type: 'number',
-      allowNull: true
-    },
-    description: {
-      type: 'string',
-      allowNull: true
-    },
+    additionalInfo: {type: 'string'},
+    code: {type: 'float'},
+    description: {type: 'string'},
     isDeleted: {type: 'boolean'},
     name: {type: 'string'},
-    seoDescription: {
-      type: 'string',
-      allowNull: true
-    },
-    seoKeywords: {
-      type: 'string',
-      allowNull: true
-    },
-    seoText: {
-      type: 'string',
-      allowNull: true
-    },
-    seoTitle: {
-      type: 'string',
-      allowNull: true
-    },
+    seoDescription: {type: 'string'},
+    seoKeywords: {type: 'string'},
+    seoText: {type: 'string'},
+    seoTitle: {type: 'string'},
     tags: {collection: 'tags'},
     images: {type: 'json'},
     isIncludedInMenu: {type: 'boolean'},
-    order: {type: 'number'},
-    dishesTags: {collection: 'tags'},
+    order: {type: 'float'},
+    dishesTags: {
+      collection: 'tags'
+    },
     dishes: {
       collection: 'dish',
       via: 'parentGroup'

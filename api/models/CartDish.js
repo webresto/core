@@ -9,22 +9,28 @@ module.exports = {
 
   attributes: {
     id: {
-      type: 'number',
+      type: 'integer',
       autoIncrement: true,
       primaryKey: true
     },
     amount: {
-      type: 'number'
+      type: 'integer'
     },
     dish: {
-      model: 'dish'
+      model: 'Dish'
     },
     modifiers: {
-      collection: 'cartModifiers'
+      collection: 'CartDish',
+      via: 'parent'
     },
     cart: {
-      model: 'cart'
+      model: 'Cart',
+      via: 'items'
     },
+    parent: {
+      model: 'CartDish',
+      via: 'modifiers'
+    }
 
   },
 

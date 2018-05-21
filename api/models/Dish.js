@@ -13,58 +13,36 @@ module.exports = {
       required: true,
       primaryKey: true
     },
-    additionalInfo: {
-      type: 'string',
-      allowNull: true
-    },
+    additionalInfo: {type: 'string'},
     code: {type: 'string'},
     description: {type: 'string'},
-    isDeleted: {type: 'string'},
     name: {type: 'string'},
-    seoDescription: {
-      type: 'string',
-      allowNull: true
-    },
-    seoKeywords: {
-      type: 'string',
-      allowNull: true
-    },
-    seoText: {
-      type: 'string',
-      allowNull: true
-    },
-    seoTitle: {
-      type: 'string',
-      allowNull: true
-    },
-    carbohydrateAmount: {type: 'number'},
-    carbohydrateFullAmount: {type: 'number'},
+    seoDescription: {type: 'string'},
+    seoKeywords: {type: 'string'},
+    seoText: {type: 'string'},
+    seoTitle: {type: 'string'},
+    carbohydrateAmount: {type: 'float'},
+    carbohydrateFullAmount: {type: 'float'},
     differentPricesOn: {type: 'json'},
     doNotPrintInCheque: {type: 'boolean'},
-    energyAmount: {type: 'number'},
-    energyFullAmount: {type: 'number'},
-    fatAmount: {type: 'number'},
-    fatFullAmount: {type: 'number'},
-    fiberAmount: {type: 'number'},
-    fiberFullAmount: {type: 'number'},
-    groupId: {
-      type: 'string',
-      allowNull: true
-    },
+    energyAmount: {type: 'float'},
+    energyFullAmount: {type: 'float'},
+    fatAmount: {type: 'float'},
+    fatFullAmount: {type: 'float'},
+    fiberAmount: {type: 'float'},
+    fiberFullAmount: {type: 'float'},
+    groupId: {type: 'string'},
     groupModifiers: {type: 'json'},
     measureUnit: {type: 'string'},
-    price: {type: 'number'},
-    productCategoryId: {
-      type: 'string',
-      allowNull: true
-    },
+    price: {type: 'float'},
+    productCategoryId: {type: 'string'},
     prohibitedToSaleOn: {type: 'json'},
     type: {type: 'string'},
     useBalanceForSell: {type: 'boolean'},
-    weight: {type: 'number'},
+    weight: {type: 'float'},
     images: {type: 'json'},
     isIncludedInMenu: {type: 'boolean'},
-    order: {type: 'number'},
+    order: {type: 'float'},
     isDeleted: {type: 'boolean'},
     modifiers: {
       collection: 'dish'
