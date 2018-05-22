@@ -23,7 +23,7 @@ module.exports = {
     seoTitle: {type: 'string'},
     carbohydrateAmount: {type: 'float'},
     carbohydrateFullAmount: {type: 'float'},
-    differentPricesOn: {type: 'json'},
+    differentPricesOn: {type: 'array'},
     doNotPrintInCheque: {type: 'boolean'},
     energyAmount: {type: 'float'},
     energyFullAmount: {type: 'float'},
@@ -32,11 +32,11 @@ module.exports = {
     fiberAmount: {type: 'float'},
     fiberFullAmount: {type: 'float'},
     groupId: {type: 'string'},
-    groupModifiers: {type: 'json'},
+    groupModifiers: {type: 'array'},
     measureUnit: {type: 'string'},
     price: {type: 'float'},
     productCategoryId: {type: 'string'},
-    prohibitedToSaleOn: {type: 'json'},
+    prohibitedToSaleOn: {type: 'array'},
     type: {type: 'string'},
     useBalanceForSell: {type: 'boolean'},
     weight: {type: 'float'},
@@ -45,7 +45,8 @@ module.exports = {
     order: {type: 'float'},
     isDeleted: {type: 'boolean'},
     modifiers: {
-      collection: 'dish'
+      collection: 'dish',
+      via: 'parentDish'
     },
     parentGroup: {
       model: 'group'
@@ -54,6 +55,10 @@ module.exports = {
       collection: 'tags',
       via: 'dishes'
     },
+    parentDish: {
+      model: 'dish',
+      via: 'modifiers'
+    }
 
   },
 

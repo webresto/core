@@ -9,12 +9,12 @@ module.exports = {
 
   attributes: {
     id: {
-      type: 'number',
+      type: 'integer',
       autoIncrement: true,
       primaryKey: true
     },
     amount: {
-      type: 'number'
+      type: 'integer'
     },
     dish: {
       model: 'dish'
