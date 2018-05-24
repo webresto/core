@@ -2,10 +2,19 @@
 ### Add dish
 **Path**: /api/0.5/cart \
 **Method**: PUT \
-**Params**:
-- dishId: string, required
-- userId: string, required
-- amount: number, default 1
+**Request body**:
+```
+dishId: string,           (required)
+cartId: string,           (required)
+amount: number,           (required)
+modifiers: [
+  {
+    modifierId: string,   (required)
+    amount: number        (defauls 1)
+  },
+  {...}
+]
+```
 
 
 ### Delete dish
@@ -20,16 +29,24 @@
 ### Add dish modifier
 **Path**: /api/0.5/cart \
 **Method**: PUT \
-**Params**:
-- dishId: string, required
-- modifierId: string, required
-- userId: string, required
-- amount: number, default 1
+**Request body**:
+```
+dishId: string,           (required)
+cartId: string,           (required)
+modifiers: [
+  {
+    modifierId: string,   (required)
+    amount: number        (defauls 1)
+  },
+  {...}
+]
+```
+If add modifier to dish that not exists, dish will be created with amount 1
 
 
-### Add dish
+###Remove dish modifier
 **Path**: /api/0.5/cart \
-**Method**: PUT \
+**Method**: DELETE  \
 **Params**:
 - dishId: string, required
 - modifierId: string, required

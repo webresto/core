@@ -125,9 +125,27 @@ module.exports = {
             get = item;
         });
 
-        if (get) {
+        const that = this;
+
+        function createCartDishIfNeed(cartDish, cb) {
+          if (cartDish) {
+            cb(null, cartDish);
+          } else {
+            CartDish.create({cart: that.id, amount: 1, dish: dish}).exec((err, cartDish) => {
+              if (err) cb(err);
+
+              cb(null, cartDish);
+            });
+          }
+        }
+
+        createCartDishIfNeed(get, (err, get) => {
+          if (err) return cb({error: err});
+
           Dish.findOne({id: dish}).populate('modifiers').exec((err, dish) => {
             if (err) return cb({error: err});
+
+            sails.log.info(modifier.id);
 
             // check that dish has this modifier
             let get1 = null;
@@ -164,9 +182,7 @@ module.exports = {
               return cb({error: 404});
             }
           });
-        } else {
-          return cb({error: 404});
-        }
+        });
       });
     },
 
