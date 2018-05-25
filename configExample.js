@@ -1,4 +1,4 @@
-module.exports.webcore = {
+module.exports.restocore = {
   prefix: "",
   iiko: {
     host: "iiko.biz",
