@@ -65,12 +65,12 @@ module.exports = {
 
     /**
      * Remove dish from cart
-     * @param dish - dishId
+     * @param dishId
      * @param amount
      * @param cb
      * @return {error, cart}
      */
-    removeDish: function (dish, amount, cb) {
+    removeDish: function (dishId, amount, cb) {
       Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
         if (err) return cb({error: err});
 
@@ -79,7 +79,7 @@ module.exports = {
 
           let get = null;
           cartDishes.forEach(item => {
-            if (item.dish.id === dish)
+            if (item.dish.id === dishId)
               get = item;
           });
 
@@ -104,13 +104,13 @@ module.exports = {
 
     /**
      * Add modifier in dish in this cart
-     * @param dish - dishId
+     * @param dishId
      * @param modifier - modifier object
      * @param amount
      * @param cb
      * @return {error, cart}
      */
-    addModifier: function (dish, modifier, amount, cb) {
+    addModifier: function (dishId, modifier, amount, cb) {
       if (modifier.balance !== -1)
         if (amount > modifier.balance)
           return cb({error: 'There is no so mush dishes ' + modifier.id});
@@ -121,7 +121,7 @@ module.exports = {
         // dish that in cart and is required from user
         let get = null;
         cartDishes.forEach(item => {
-          if (item.dish.id === dish)
+          if (item.dish.id === dishId)
             get = item;
         });
 
@@ -131,7 +131,7 @@ module.exports = {
           if (cartDish) {
             cb(null, cartDish);
           } else {
-            CartDish.create({cart: that.id, amount: 1, dish: dish}).exec((err, cartDish) => {
+            CartDish.create({cart: that.id, amount: 1, dish: dishId}).exec((err, cartDish) => {
               if (err) cb(err);
 
               cb(null, cartDish);
@@ -142,7 +142,7 @@ module.exports = {
         createCartDishIfNeed(get, (err, get) => {
           if (err) return cb({error: err});
 
-          Dish.findOne({id: dish}).populate('modifiers').exec((err, dish) => {
+          Dish.findOne({id: dishId}).populate('modifiers').exec((err, dish) => {
             if (err) return cb({error: err});
 
             sails.log.info(modifier.id);
@@ -186,6 +186,14 @@ module.exports = {
       });
     },
 
+    /**
+     * Remove modifier from dish from this cart
+     * @param dish
+     * @param modifier
+     * @param amount
+     * @param cb
+     * @return {error, cart}
+     */
     removeModifier: function (dish, modifier, amount, cb) {
       CartDish.find({cart: this.id}).populate(['dish', 'modifiers']).exec((err, cartDishes) => {
         if (err) return cb({error: err});

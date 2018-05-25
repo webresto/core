@@ -62,40 +62,47 @@ module.exports = {
 
   },
 
-  getByGroupId: function (groupId) {
-    return new Promise((resolve, reject) => {
-      if (groupId) {
-        Group.findOne({id: groupId}).populate(['dishes', 'childGroups']).exec((err, group) => {
-          if (err) return reject({error: err});
-          if (!group) return reject({error: 'not found'});
+  getByGroupId: function (groupsId) {
+    if (Array.isArray(groupsId)) {
+      let result = [];
+      for (let i = 0; i < groupsId.leading; i++)
+        result.push(this.getByGroupId(groupsId[i]));
+      return result;
+    } else {
+      return new Promise((resolve, reject) => {
+        if (groupId) {
+          Group.findOne({id: groupId}).populate(['dishes', 'childGroups']).exec((err, group) => {
+            if (err) return reject({error: err});
+            if (!group) return reject({error: 'not found'});
 
-          return resolve(group);
-        });
-      } else {
-        let menu = {};
-        Group.find({parentGroup: null}).populate(['childGroups', 'dishes', 'dishesTags']).exec((err, groups) => {
-          if (err) return reject({error: err});
-
-          async.each(groups, (group, cb) => {
-            menu[group.id] = {};
-            menu[group.id].tags = group.dishesTags;
-            if (group.dishes.length === 0) {
-              menu[group.id].groups = group.childGroups;
-              cb();
-            }
-            else {
-              Dish.find({parentGroup: group.id, isDeleted: false}).populate('tags').exec((err, dishes) => {
-                if (err) return reject({error: err});
-
-                menu[group.id].dishes = dishes;
-                cb();
-              });
-            }
-          }, function () {
-            resolve(menu);
+            return resolve(group);
           });
-        });
-      }
-    });
+        } else {
+          let menu = {};
+          Group.find({parentGroup: null}).populate(['childGroups', 'dishes', 'dishesTags']).exec((err, groups) => {
+            if (err) return reject({error: err});
+
+            async.each(groups, (group, cb) => {
+              menu[group.id] = {};
+              menu[group.id].tags = group.dishesTags;
+              if (group.dishes.length === 0) {
+                menu[group.id].groups = group.childGroups;
+                cb();
+              }
+              else {
+                Dish.find({parentGroup: group.id, isDeleted: false}).populate('tags').exec((err, dishes) => {
+                  if (err) return reject({error: err});
+
+                  menu[group.id].dishes = dishes;
+                  cb();
+                });
+              }
+            }, function () {
+              resolve(menu);
+            });
+          });
+        }
+      });
+    }
   }
 };
