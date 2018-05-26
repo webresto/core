@@ -62,19 +62,26 @@ module.exports = {
 
   },
 
-  getByGroupId: function (groupsId) {
-    if (Array.isArray(groupsId)) {
-      let result = [];
-      for (let i = 0; i < groupsId.leading; i++)
-        result.push(this.getByGroupId(groupsId[i]));
-      return result;
-    } else {
-      return new Promise((resolve, reject) => {
-        if (groupId) {
-          Group.findOne({id: groupId}).populate(['dishes', 'childGroups']).exec((err, group) => {
+  getByGroupId: function (groupsId, cb) {
+    let result = [];
+    return new Promise((resolve, reject) => {
+      if (Array.isArray(groupsId)) {
+        let arr = [];
+        for (let i = 0; i < groupsId.length; i++)
+          arr.push(this.getByGroupId(groupsId[i]));
+        Promise.all(arr).then(data => {
+          resolve(data);
+        })
+      } else {
+        if (groupsId) {
+          Group.findOne({id: groupsId}).populate(['dishes', 'childGroups']).exec((err, group) => {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
 
+            if (cb) {
+              result.push(data);
+              cb();
+            }
             return resolve(group);
           });
         } else {
@@ -88,8 +95,7 @@ module.exports = {
               if (group.dishes.length === 0) {
                 menu[group.id].groups = group.childGroups;
                 cb();
-              }
-              else {
+              } else {
                 Dish.find({parentGroup: group.id, isDeleted: false}).populate('tags').exec((err, dishes) => {
                   if (err) return reject({error: err});
 
@@ -98,11 +104,15 @@ module.exports = {
                 });
               }
             }, function () {
+              if (cb) {
+                result.push(data);
+                cb();
+              }
               resolve(menu);
             });
           });
         }
-      });
-    }
+      }
+    });
   }
 };
