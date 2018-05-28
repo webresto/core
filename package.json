@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "iiko-delivery": "git+https://github.com/pub42/iiko-delivery.git",
+    "iiko-request": "git+https://github.com/pub42/iiko-request.git",
     "jimp": "latest",
     "lodash": "^4.17.10",
     "sails-build-dictionary": "^0.10.1",
