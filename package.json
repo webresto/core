@@ -1,46 +1,19 @@
 {
-  "_from": "git+http://Ilya56@git.42team.ru/iiko/sails-hook-iikowebcore.git",
-  "_id": "sails-hook-webcore@0.0.1",
-  "_inBundle": false,
-  "_location": "/sails-hook-webcore",
-  "_phantomChildren": {
-    "bignumber.js": "2.4.0",
-    "bmp-js": "0.0.3",
-    "es6-promise": "3.3.1",
-    "exif-parser": "0.1.12",
-    "file-type": "3.9.0",
-    "jpeg-js": "0.2.0",
-    "load-bmfont": "1.3.0",
-    "mime": "1.6.0",
-    "mkdirp": "0.5.1",
-    "pixelmatch": "4.0.2",
-    "pngjs": "3.3.3",
-    "read-chunk": "1.0.1",
-    "request": "2.86.0",
-    "stream-to-buffer": "0.1.0",
-    "tinycolor2": "1.4.1",
-    "url-regex": "3.2.0"
+  "name": "@sails-resto/core",
+  "version": "0.5.0",
+  "description": "sails resto core",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib"
   },
-  "_requested": {
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
     "type": "git",
-    "raw": "sails-hook-webcore@git+http://Ilya56@git.42team.ru/iiko/sails-hook-iikowebcore.git",
-    "name": "sails-hook-webcore",
-    "escapedName": "sails-hook-webcore",
-    "rawSpec": "git+http://Ilya56@git.42team.ru/iiko/sails-hook-iikowebcore.git",
-    "saveSpec": "git+http://Ilya56@git.42team.ru/iiko/sails-hook-iikowebcore.git",
-    "fetchSpec": "http://Ilya56@git.42team.ru/iiko/sails-hook-iikowebcore.git",
-    "gitCommittish": null
+    "url": "http://git.42team.ru/sails-resto/core.git"
   },
-  "_requiredBy": [
-    "/"
-  ],
-  "_resolved": "git+http://Ilya56@git.42team.ru/iiko/sails-hook-iikowebcore.git#d8bc07353195081f248b58ded4c7092189b6eb4f",
-  "_spec": "sails-hook-webcore@git+http://Ilya56@git.42team.ru/iiko/sails-hook-iikowebcore.git",
-  "_where": "D:\\Sites\\Cafe0.51",
-  "author": {
-    "name": "Ilya Dolmatov"
-  },
-  "bundleDependencies": [],
   "dependencies": {
     "iiko-delivery": "git+https://github.com/pub42/iiko-delivery.git",
     "jimp": "latest",
@@ -48,16 +21,12 @@
     "sails-build-dictionary": "^0.10.1",
     "sails-util": "^0.11.0"
   },
-  "deprecated": false,
-  "description": "",
-  "license": "ISC",
-  "main": "index.js",
-  "name": "sails-hook-webcore",
-  "sails": {
-    "isHook": true
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "version": "0.0.1"
+  "keywords": [
+    "iiko",
+    "sails",
+    "resto",
+    "core"
+  ],
+  "author": "42team",
+  "license": "ISC"
 }
