@@ -1,5 +1,5 @@
 {
-  "name": "@sails-resto/core",
+  "name": "@sails-resto/sails-hook-restocore",
   "version": "0.5.0",
   "description": "sails resto core",
   "main": "index.js",
@@ -21,9 +21,10 @@
     "sails-build-dictionary": "^0.10.1",
     "sails-util": "^0.11.0"
   },
-   "sails": {
-   "isHook": true
-  },
+    "sails": {
+      "isHook": true,
+      "hookName": "restocore"
+   },
   "keywords": [
     "iiko",
     "sails",
