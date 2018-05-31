@@ -45,8 +45,7 @@ module.exports = {
     order: {type: 'float'},
     isDeleted: {type: 'boolean'},
     modifiers: {
-      collection: 'dish',
-      via: 'parentDish'
+      collection: 'dish'
     },
     parentGroup: {
       model: 'group'
@@ -54,10 +53,6 @@ module.exports = {
     tags: {
       collection: 'tags',
       via: 'dishes'
-    },
-    parentDish: {
-      model: 'dish',
-      via: 'modifiers'
     }
 
   },
@@ -78,11 +73,15 @@ module.exports = {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
 
-            if (cb) {
-              result.push(data);
-              cb();
-            }
-            return resolve(group);
+            Dish.getDishes().then(dishes => {
+              group.dishes = dishes;
+
+              if (cb) {
+                result.push(data);
+                cb();
+              }
+              return resolve(group);
+            });
           });
         } else {
           let menu = {};
@@ -92,17 +91,13 @@ module.exports = {
             async.each(groups, (group, cb) => {
               menu[group.id] = {};
               menu[group.id].tags = group.dishesTags;
-              if (group.dishes.length === 0) {
-                menu[group.id].groups = group.childGroups;
-                cb();
-              } else {
-                Dish.find({parentGroup: group.id, isDeleted: false}).populate('tags').exec((err, dishes) => {
-                  if (err) return reject({error: err});
+              menu[group.id].groups = group.childGroups;
+              Dish.find({parentGroup: group.id, isDeleted: false}).populate('tags').exec((err, dishes) => {
+                if (err) return reject({error: err});
 
-                  menu[group.id].dishes = dishes;
-                  cb();
-                });
-              }
+                menu[group.id].dishes = dishes;
+                cb();
+              });
             }, function () {
               if (cb) {
                 result.push(data);
@@ -113,6 +108,16 @@ module.exports = {
           });
         }
       }
+    });
+  },
+
+  getDishes: function (criteria) {
+    new Promise((resolve, reject) => {
+      criteria.isDeleted = false;
+      Dish.find(criteria).exec((err, dishes) => {
+        if (err) reject(err);
+        resolve(dishes);
+      });
     });
   }
 };
