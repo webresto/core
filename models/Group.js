@@ -31,14 +31,14 @@ module.exports = {
     },
     dishes: {
       collection: 'dish',
-      via: 'parentGroup'
+      via: 'productCategoryId'
     },
     parentGroup: {
       model: 'group'
     },
     childGroups: {
       collection: 'group',
-      via: 'productCategoryId'
+      via: 'parentGroup'
     },
 
   },
