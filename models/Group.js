@@ -38,7 +38,7 @@ module.exports = {
     },
     childGroups: {
       collection: 'group',
-      via: 'parentGroup'
+      via: 'productCategoryId'
     },
 
   },
