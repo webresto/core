@@ -57,6 +57,12 @@ module.exports = {
 
   },
 
+  /**
+   * Get dishes by groups
+   * @param groupsId
+   * @param cb
+   * @return {Promise<any>}
+   */
   getByGroupId: function (groupsId, cb) {
     let result = [];
     return new Promise((resolve, reject) => {
@@ -109,8 +115,12 @@ module.exports = {
     });
   },
 
+  /**
+   * Get only not deleted dishes
+   * @param criteria
+   */
   getDishes: function (criteria) {
-    new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       criteria.isDeleted = false;
       Dish.find(criteria).exec((err, dishes) => {
         if (err) reject(err);
