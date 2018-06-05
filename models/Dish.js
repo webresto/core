@@ -89,9 +89,7 @@ module.exports = {
             if (err) return reject({error: err});
 
             async.each(groups, (group, cb) => {
-              menu[group.id] = {};
-              menu[group.id].tags = group.dishesTags;
-              menu[group.id].groups = group.childGroups;
+              menu[group.id] = group;
               Dish.find({parentGroup: group.id, isDeleted: false}).populate('tags').exec((err, dishes) => {
                 if (err) return reject({error: err});
 
