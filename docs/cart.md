@@ -32,7 +32,7 @@ Response for all requests is Cart object like that:
 ### Delete dish
 **Path**: /api/0.5/cart \
 **Method**: DELETE \
-**Params**:
+**Request body**:
 ~~~json
 {
   "dishId": "string, required",
@@ -64,7 +64,7 @@ If add modifier to dish that not exists, dish will be created with amount 1
 ### Remove dish modifier
 **Path**: /api/0.5/cart \
 **Method**: DELETE  \
-**Params**:
+**Request body**:
 ~~~json
 {
   "dishId": "string, required",

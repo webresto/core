@@ -6,10 +6,10 @@
 
 ~~~JSON
 {
-  "cartId": "string",       (required)
+  "cartId": "string, (required)",
   "comment": "string",
   "delivery": {
-    "type": "string"        ("self" or nothing)
+    "type": "string (self or nothing)"
   },
   "address": {
     "city": "string",
@@ -24,9 +24,9 @@
     "apartment": "string"
   },
   "customer": {
-    "phone": "string",      (required)
+    "phone": "string, required",
     "mail": "string",       
-    "name": "string"        (required)
+    "name": "string, required"
   }
 }
 ~~~
