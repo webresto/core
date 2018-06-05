@@ -61,7 +61,7 @@ module.exports = {
    * Get dishes by groups
    * @param groupsId
    * @param cb
-   * @return {Promise<any>}
+   * @return {Promise<>}
    */
   getByGroupId: function (groupsId, cb) {
     let result = [];
@@ -121,6 +121,8 @@ module.exports = {
    */
   getDishes: function (criteria) {
     return new Promise((resolve, reject) => {
+      if (!criteria)
+        criteria = {};
       criteria.isDeleted = false;
       Dish.find(criteria).exec((err, dishes) => {
         if (err) reject(err);
