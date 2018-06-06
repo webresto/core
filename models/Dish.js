@@ -100,7 +100,14 @@ module.exports = {
                 if (err) return reject({error: err});
 
                 menu[group.id].dishes = dishes;
-                cb();
+
+                if (dishes.length > 0)
+                  async.eachOf(dishes, (dish, i, cb) => {
+                    menu[group.id].dishes[i].tags = dish.tags;
+                    cb();
+                  }, cb);
+                else
+                  cb();
               });
             }, function () {
               if (cb) {
@@ -124,7 +131,7 @@ module.exports = {
       if (!criteria)
         criteria = {};
       criteria.isDeleted = false;
-      Dish.find(criteria).exec((err, dishes) => {
+      Dish.find(criteria).populate('tags').exec((err, dishes) => {
         if (err) reject(err);
         resolve(dishes);
       });
