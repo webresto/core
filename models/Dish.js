@@ -52,7 +52,8 @@ module.exports = {
     },
     tags: {
       collection: 'tags',
-      via: 'dishes'
+      via: 'dishes',
+      dominant: true
     }
 
   },
@@ -81,6 +82,10 @@ module.exports = {
 
             Dish.getDishes().then(dishes => {
               group.dishes = dishes;
+              async.eachOf(dishes, (dish, i, cb) => {
+                group.dishes[i].tagsList = dish.tags;
+                cb();
+              });
 
               if (cb) {
                 result.push(data);
@@ -96,19 +101,37 @@ module.exports = {
 
             async.each(groups, (group, cb) => {
               menu[group.id] = group;
-              Dish.find({parentGroup: group.id, isDeleted: false}).populate('tags').exec((err, dishes) => {
-                if (err) return reject({error: err});
 
-                menu[group.id].dishes = dishes;
+              const loadDishes = function (cb) {
+                Dish.find({parentGroup: group.id, isDeleted: false}).populate('tags').exec((err, dishes) => {
+                  if (err) return reject({error: err});
 
-                if (dishes.length > 0)
-                  async.eachOf(dishes, (dish, i, cb) => {
-                    menu[group.id].dishes[i].tags = dish.tags;
+                  menu[group.id].dishes = dishes;
+
+                  if (dishes.length > 0)
+                    async.eachOf(dishes, (dish, i, cb) => {
+                      menu[group.id].dishes[i].tagsList = dish.tags;
+                      cb();
+                    }, cb);
+                  else
                     cb();
-                  }, cb);
-                else
-                  cb();
-              });
+                });
+              };
+
+              if (group.childGroups) {
+                let childGroups = [];
+                async.each(group.childGroups, (cg, cb1) => {
+                  this.getByGroupId(cg.id).then(data => {
+                    childGroups.push(data);
+                    cb1();
+                  }, err => sails.log.error(err));
+                }, () => {
+                  delete menu[group.id].childGroups;
+                  menu[group.id].children = childGroups;
+                  loadDishes(cb);
+                });
+              } else
+                loadDishes(cb);
             }, function () {
               if (cb) {
                 result.push(data);
