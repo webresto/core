@@ -5,13 +5,13 @@ Response for all requests is Cart object like that:
 ~~~json
 {
   "id": "integer",
-  "userId": "string",
+  "cartId": "string",
   "dishes": "array of Dish objects"
 }
 ~~~
 
 ### Add dish
-**Path**: /api/0.5/cart \
+**Path**: /api/0.5/cart/add \
 **Method**: PUT \
 **Request body**:
 ~~~json
@@ -19,7 +19,7 @@ Response for all requests is Cart object like that:
   "dishId": "string, required",
   "cartId": "string, required",
   "amount": "number, required",
-  "modifiers": [
+  "modifiers (not required)": [
     {
       "modifierId": "string, required",
       "amount": "integer, defaults 1"
@@ -30,20 +30,20 @@ Response for all requests is Cart object like that:
 
 
 ### Delete dish
-**Path**: /api/0.5/cart \
-**Method**: DELETE \
+**Path**: /api/0.5/cart/remove \
+**Method**: PUT \
 **Request body**:
 ~~~json
 {
   "dishId": "string, required",
-  "userId": "string, required",
+  "cartId": "string, required",
   "amount": "number, default 1"
 }
 ~~~
 
 
 ### Add dish modifier
-**Path**: /api/0.5/cart \
+**Path**: /api/0.5/cart/add \
 **Method**: PUT \
 **Request body**:
 ~~~json
@@ -62,14 +62,14 @@ If add modifier to dish that not exists, dish will be created with amount 1
 
 
 ### Remove dish modifier
-**Path**: /api/0.5/cart \
-**Method**: DELETE  \
+**Path**: /api/0.5/cart/remove \
+**Method**: PUT  \
 **Request body**:
 ~~~json
 {
   "dishId": "string, required",
   "modifierId": "string, required",
-  "userId": "string, required",
+  "cartId": "string, required",
   "amount": "number, default 1"
 }
 ~~~

@@ -6,7 +6,6 @@
  */
 
 module.exports = {
-
   attributes: {
     id: {
       type: 'integer',
@@ -145,7 +144,7 @@ module.exports = {
           Dish.findOne({id: dishId}).populate('modifiers').exec((err, dish) => {
             if (err) return cb({error: err});
 
-            sails.log.info(modifier.id);
+            sails.log.debug(modifier.id);
 
             // check that dish has this modifier
             let get1 = null;
@@ -158,7 +157,6 @@ module.exports = {
               // modifier
               let get2 = null;
               get.modifiers.forEach(item => {
-                sails.log.info(modifier.id, item.dish);
                 if (modifier.id === item.dish)
                   get2 = item;
               });
@@ -204,7 +202,7 @@ module.exports = {
           if (item.dish.id === dish)
             get = item;
         });
-        sails.log.info('GET', get);
+        sails.log.debug('GET', get);
 
         if (get) {
           Dish.findOne({id: dish}).populate('modifiers').exec((err, dish) => {
@@ -221,11 +219,10 @@ module.exports = {
               // modifier
               let get2 = null;
               get.modifiers.forEach(item => {
-                sails.log.info(modifier.id, item.dish);
                 if (modifier.id === item.dish)
                   get2 = item;
               });
-              sails.log.info('GET2', get2);
+              sails.log.debug('GET2', get2);
 
               if (get2) {
                 get2.amount -= parseInt(amount);
