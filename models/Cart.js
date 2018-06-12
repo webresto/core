@@ -12,7 +12,7 @@ module.exports = {
       autoIncrement: true,
       primaryKey: true
     },
-    userId: {
+    cartId: {
       type: 'string'
     },
     dishes: {
