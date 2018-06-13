@@ -34,7 +34,7 @@ module.exports = {
     uniqueItems: {
       type: 'integer'
     },
-    totalItems: {
+    itemTotal: {
       type: 'integer'
     }
 

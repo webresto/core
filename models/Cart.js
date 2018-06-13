@@ -5,8 +5,6 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
-const _ = require('lodash');
-
 module.exports = {
   attributes: {
     id: {
@@ -274,7 +272,7 @@ module.exports = {
 };
 
 function count(values, next) {
-  CartDish.find({cart: values.id}).populate('modifiers').exec((err, dishes) => {
+  CartDish.find({cart: values.id}).populate('modifiers', 'dish').exec((err, dishes) => {
     if (err) {
       sails.log.error(err);
       return next();
@@ -285,12 +283,19 @@ function count(values, next) {
     let uniqueDishes = 0;
 
     async.each(dishes, (dish, cb) => {
-      if (dish.totalItems)
-        cartTotal += dish.totalItems;
-      cartTotal += dish.amount;
-      dishesCount += dish.amount;
-      uniqueDishes++;
-      cb();
+      Dish.findOne({id: dish.dish}).exec((err, dish1) => {
+        if (err) {
+          sails.log.error(err);
+          return next();
+        }
+
+        if (dish.itemTotal)
+          cartTotal += dish.itemTotal;
+        cartTotal += dish.amount * dish1.price;
+        dishesCount += dish.amount;
+        uniqueDishes++;
+        cb();
+      });
     }, () => {
       values.cartTotal = cartTotal;
       values.dishesCount = dishesCount;
@@ -307,19 +312,26 @@ function countDish(dish, next) {
       return next();
     }
 
-    if (!dish.uniqueItems)
-      dish.uniqueItems = 0;
-    if (!dish.totalItems)
-      dish.totalItems = 0;
+    CartDish.find({parent: dish.id}).populate('dish').exec((err, modifs) => {
+      if (err) {
+        sails.log.error(err);
+        return next();
+      }
 
-    async.each(dish.modifiers, (m, cb) => {
-      dish.uniqueItems += m.amount;
-      dish.totalItems++;
-      cb();
-    }, () => {
-      dish.save(err => {
-        if (err) sails.log.error(err);
-        next(dish);
+      if (!dish.uniqueItems)
+        dish.uniqueItems = 0;
+      if (!dish.itemTotal)
+        dish.itemTotal = 0;
+
+      async.each(modifs, (m, cb) => {
+        dish.uniqueItems += m.amount;
+        dish.itemTotal += m.amount * m.dish.price;
+        cb();
+      }, () => {
+        dish.save(err => {
+          if (err) sails.log.error(err);
+          next(dish);
+        });
       });
     });
   });
