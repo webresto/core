@@ -30,6 +30,12 @@ module.exports = {
     parent: {
       model: 'CartDish',
       via: 'modifiers'
+    },
+    uniqueItems: {
+      type: 'integer'
+    },
+    totalItems: {
+      type: 'integer'
     }
 
   },

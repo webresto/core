@@ -5,6 +5,8 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
+const _ = require('lodash');
+
 module.exports = {
   attributes: {
     id: {
@@ -18,6 +20,15 @@ module.exports = {
     dishes: {
       collection: 'cartDish',
       via: 'cart'
+    },
+    countDishes: {
+      type: 'integer'
+    },
+    uniqueDishes: {
+      type: 'integer'
+    },
+    cartTotal: {
+      type: 'integer'
     },
 
     /**
@@ -167,13 +178,17 @@ module.exports = {
                 CartDish.update({id: get2.id}, {amount: get2.amount}).exec((err) => {
                   if (err) return cb({error: err});
 
-                  return cb(null, this);
+                  countDish(get, function () {
+                    return cb(null, this);
+                  });
                 });
               } else {
                 CartDish.create({dish: modifier.id, amount: parseInt(amount), parent: get.id}).exec((err) => {
                   if (err) return cb({error: err});
 
-                  return cb(null, this);
+                  countDish(get, function () {
+                    return cb(null, this);
+                  });
                 });
               }
             } else {
@@ -231,7 +246,9 @@ module.exports = {
                   CartDish.update({id: get2.id}, {amount: get2.amount}).exec((err) => {
                     if (err) return cb({error: err});
 
-                    return cb(null, this);
+                    countDish(get, function () {
+                      return cb(null, this);
+                    });
                   });
                 } else {
                   get.destroy();
@@ -248,8 +265,62 @@ module.exports = {
           return cb({error: 404});
         }
       });
-    }
+    },
+
+    count: count
   },
 
+  beforeCreate: count
 };
 
+function count(values, next) {
+  CartDish.find({cart: values.id}).populate('modifiers').exec((err, dishes) => {
+    if (err) {
+      sails.log.error(err);
+      return next();
+    }
+
+    let cartTotal = 0;
+    let dishesCount = 0;
+    let uniqueDishes = 0;
+
+    async.each(dishes, (dish, cb) => {
+      if (dish.totalItems)
+        cartTotal += dish.totalItems;
+      cartTotal += dish.amount;
+      dishesCount += dish.amount;
+      uniqueDishes++;
+      cb();
+    }, () => {
+      values.cartTotal = cartTotal;
+      values.dishesCount = dishesCount;
+      values.uniqueDishes = uniqueDishes;
+      next();
+    });
+  });
+}
+
+function countDish(dish, next) {
+  CartDish.findOne({id: dish.id}).populate('modifiers').exec((err, dish) => {
+    if (err) {
+      sails.log.error(err);
+      return next();
+    }
+
+    if (!dish.uniqueItems)
+      dish.uniqueItems = 0;
+    if (!dish.totalItems)
+      dish.totalItems = 0;
+
+    async.each(dish.modifiers, (m, cb) => {
+      dish.uniqueItems += m.amount;
+      dish.totalItems++;
+      cb();
+    }, () => {
+      dish.save(err => {
+        if (err) sails.log.error(err);
+        next(dish);
+      });
+    });
+  });
+}
