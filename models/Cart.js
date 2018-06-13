@@ -1,3 +1,4 @@
+// noinspection JSUnusedGlobalSymbols
 /**
  * Cart.js
  *
