@@ -80,7 +80,7 @@ module.exports = {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
 
-            Dish.getDishes().then(dishes => {
+            Dish.getDishes({parentGroup: groupsId}).then(dishes => {
               group.dishes = dishes;
               async.eachOf(dishes, (dish, i, cb) => {
                 group.dishes[i].tagsList = dish.tags;
