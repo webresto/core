@@ -40,7 +40,6 @@ module.exports = {
     type: {type: 'string'},
     useBalanceForSell: {type: 'boolean'},
     weight: {type: 'float'},
-    images: {type: 'json'},
     isIncludedInMenu: {type: 'boolean'},
     order: {type: 'float'},
     isDeleted: {type: 'boolean'},
@@ -54,7 +53,15 @@ module.exports = {
       collection: 'tags',
       via: 'dishes',
       dominant: true
-    }
+    },
+    balance: {
+      type: 'integer',
+      defaultTo: -1
+    },
+    images: {
+      collection: 'image',
+      via: 'dish'
+    },
 
   },
 
@@ -80,19 +87,37 @@ module.exports = {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
 
-            Dish.getDishes({parentGroup: groupsId}).then(dishes => {
-              group.dishes = dishes;
-              async.eachOf(dishes, (dish, i, cb) => {
-                group.dishes[i].tagsList = dish.tags;
-                cb();
-              });
+            const loadDishes = cb => {
+              Dish.getDishes({parentGroup: groupsId}).then(dishes => {
+                group.dishesList = dishes;
+                async.eachOf(dishes, (dish, i, cb) => {
+                  group.dishesList[i].tagsList = dish.tags;
+                  group.dishesList[i].imagesList = dish.images;
+                  cb();
+                });
 
-              if (cb) {
-                result.push(data);
-                cb();
-              }
-              return resolve(group);
-            });
+                if (cb) {
+                  result.push(data);
+                  cb();
+                }
+                return resolve(group);
+              });
+            };
+
+            if (group.childGroups) {
+              let childGroups = [];
+              async.each(group.childGroups, (cg, cb1) => {
+                this.getByGroupId(cg.id).then(data => {
+                  childGroups.push(data);
+                  cb1();
+                }, err => sails.log.error(err));
+              }, () => {
+                delete group.childGroups;
+                group.children = childGroups;
+                loadDishes(cb);
+              });
+            } else
+              loadDishes(cb);
           });
         } else {
           let menu = {};
@@ -103,32 +128,39 @@ module.exports = {
               menu[group.id] = group;
 
               const loadDishes = function (cb) {
-                Dish.find({parentGroup: group.id, isDeleted: false}).populate('tags').exec((err, dishes) => {
-                  if (err) return reject({error: err});
-
-                  menu[group.id].dishes = dishes;
+                Dish.getDishes({parentGroup: group.id}).then(dishes => {
+                  menu[group.id].dishesList = dishes;
 
                   if (dishes.length > 0)
                     async.eachOf(dishes, (dish, i, cb) => {
-                      menu[group.id].dishes[i].tagsList = dish.tags;
+                      menu[group.id].dishesList[i].tagsList = dish.tags;
+                      menu[group.id].dishesList[i].imagesList = dish.images;
                       cb();
                     }, cb);
                   else
                     cb();
+                }, err => {
+                  return reject({error: err});
                 });
               };
 
               if (group.childGroups) {
                 let childGroups = [];
-                async.each(group.childGroups, (cg, cb1) => {
-                  this.getByGroupId(cg.id).then(data => {
-                    childGroups.push(data);
-                    cb1();
-                  }, err => sails.log.error(err));
-                }, () => {
-                  delete menu[group.id].childGroups;
-                  menu[group.id].children = childGroups;
-                  loadDishes(cb);
+                Group.find({id: group.childGroups.map(cg => cg.id)}).populate(['childGroups', 'dishes', 'dishesTags']).exec((err, cgs) => {
+                  if (err) return reject({error: err});
+
+                  async.each(cgs, (cg, cb1) => {
+                    this.getByGroupId(cg.id).then(data => {
+                      childGroups.push(data);
+                      cb1();
+                    }, err => sails.log.error(err));
+                  }, () => {
+                    delete menu[group.id].childGroups;
+                    menu[group.id].childGroups = null;
+                    sails.log.info(childGroups);
+                    menu[group.id].children = childGroups;
+                    loadDishes(cb);
+                  });
                 });
               } else
                 loadDishes(cb);
@@ -154,7 +186,7 @@ module.exports = {
       if (!criteria)
         criteria = {};
       criteria.isDeleted = false;
-      Dish.find(criteria).populate('tags').exec((err, dishes) => {
+      Dish.find(criteria).populate(['tags', 'images', 'modifiers']).exec((err, dishes) => {
         if (err) reject(err);
         resolve(dishes);
       });
