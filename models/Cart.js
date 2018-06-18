@@ -290,6 +290,11 @@ function count(values, next) {
           return next();
         }
 
+        if (!dish1) {
+          sails.log.error('Dish with id ' + dish.dish + ' not found!');
+          return next();
+        }
+
         if (dish.itemTotal)
           cartTotal += dish.itemTotal;
         cartTotal += dish.amount * dish1.price;

@@ -56,7 +56,7 @@ module.exports = {
     },
     balance: {
       type: 'integer',
-      defaultTo: -1
+      defaultsTo: -1
     },
     images: {
       collection: 'image',
