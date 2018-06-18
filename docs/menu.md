@@ -14,6 +14,7 @@ Dish object
 **Params**:
 - groupId (string)
 - nothing (return all groups)
+- dishId (string)
 
 **Response**:
 ~~~JSON
@@ -21,5 +22,11 @@ Dish object
   "groupId1": "Group object",
   "groupId2": "Group object",
   "...": "..."
+}
+~~~
+or
+~~~JSON
+{
+  "Dish object": "dish fields"
 }
 ~~~
