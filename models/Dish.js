@@ -157,7 +157,7 @@ module.exports = {
                   }, () => {
                     delete menu[group.id].childGroups;
                     menu[group.id].childGroups = null;
-                    sails.log.info(childGroups);
+                    //sails.log.info(childGroups);
                     menu[group.id].children = childGroups;
                     loadDishes(cb);
                   });
