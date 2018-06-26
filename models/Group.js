@@ -40,6 +40,10 @@ module.exports = {
       collection: 'group',
       via: 'parentGroup'
     },
+    images: {
+      collection: 'image',
+      via: 'dish'
+    },
 
   },
 

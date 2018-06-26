@@ -83,7 +83,7 @@ module.exports = {
         })
       } else {
         if (groupsId) {
-          Group.findOne({id: groupsId}).populate(['dishes', 'childGroups', 'dishesTags']).exec((err, group) => {
+          Group.findOne({id: groupsId}).populate(['dishes', 'childGroups', 'dishesTags', 'images']).exec((err, group) => {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
 
@@ -121,7 +121,7 @@ module.exports = {
           });
         } else {
           let menu = {};
-          Group.find({parentGroup: null}).populate(['childGroups', 'dishes', 'dishesTags']).exec((err, groups) => {
+          Group.find({parentGroup: null}).populate(['childGroups', 'dishes', 'dishesTags', 'images']).exec((err, groups) => {
             if (err) return reject({error: err});
 
             async.each(groups, (group, cb) => {
@@ -146,7 +146,7 @@ module.exports = {
 
               if (group.childGroups) {
                 let childGroups = [];
-                Group.find({id: group.childGroups.map(cg => cg.id)}).populate(['childGroups', 'dishes', 'dishesTags']).exec((err, cgs) => {
+                Group.find({id: group.childGroups.map(cg => cg.id)}).populate(['childGroups', 'dishes', 'dishesTags', 'images']).exec((err, cgs) => {
                   if (err) return reject({error: err});
 
                   async.each(cgs, (cg, cb1) => {
@@ -157,7 +157,7 @@ module.exports = {
                   }, () => {
                     delete menu[group.id].childGroups;
                     menu[group.id].childGroups = null;
-                    //sails.log.info(childGroups);
+                    sails.log.info(childGroups);
                     menu[group.id].children = childGroups;
                     loadDishes(cb);
                   });
