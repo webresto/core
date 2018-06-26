@@ -73,3 +73,29 @@ If add modifier to dish that not exists, dish will be created with amount 1
   "amount": "number, default 1"
 }
 ~~~
+
+### Set dish count
+**Path**: /api/0.5/cart/set \
+**Method**: POST  \
+**Request body**:
+~~~json
+{
+  "dishId": "string, required",
+  "cartId": "string, required",
+  "amount": "number"
+}
+~~~
+
+### Set modifier count
+**Path**: /api/0.5/cart/set \
+**Method**: POST  \
+**Request body**:
+~~~json
+{
+  "dishId": "string, required",
+  "modifierId": "string, required",
+  "cartId": "string, required",
+  "amount": "number"
+}
+~~~
+
