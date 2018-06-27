@@ -18,6 +18,10 @@ module.exports = {
     dish: {
       model: 'dish',
       via: 'images'
+    },
+    group: {
+      model: 'group',
+      via: 'images'
     }
   }
 };

@@ -23,7 +23,6 @@ module.exports = {
     seoText: {type: 'string'},
     seoTitle: {type: 'string'},
     tags: {collection: 'tags'},
-    images: {type: 'json'},
     isIncludedInMenu: {type: 'boolean'},
     order: {type: 'float'},
     dishesTags: {
@@ -42,7 +41,7 @@ module.exports = {
     },
     images: {
       collection: 'image',
-      via: 'dish'
+      via: 'group'
     },
 
   },
