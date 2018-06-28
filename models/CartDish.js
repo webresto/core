@@ -20,8 +20,7 @@ module.exports = {
       model: 'Dish'
     },
     modifiers: {
-      collection: 'CartDish',
-      via: 'parent'
+      type: 'json'
     },
     cart: {
       model: 'Cart',
@@ -40,5 +39,6 @@ module.exports = {
 
   },
 
-};
+}
+;
 

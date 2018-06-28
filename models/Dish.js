@@ -44,7 +44,8 @@ module.exports = {
     order: {type: 'float'},
     isDeleted: {type: 'boolean'},
     modifiers: {
-      collection: 'dish'
+      // collection: 'dish'
+      type: 'json'
     },
     parentGroup: {
       model: 'group'
@@ -157,7 +158,7 @@ module.exports = {
                   }, () => {
                     delete menu[group.id].childGroups;
                     menu[group.id].childGroups = null;
-                    sails.log.info(childGroups);
+                    // sails.log.info(childGroups);
                     menu[group.id].children = childGroups;
                     loadDishes(cb);
                   });
@@ -188,7 +189,36 @@ module.exports = {
       criteria.isDeleted = false;
       Dish.find(criteria).populate(['tags', 'images', 'modifiers']).exec((err, dishes) => {
         if (err) reject(err);
-        resolve(dishes);
+
+        async.each(dishes, (dish, cb) => {
+          async.eachOf(dish.modifiers, (modifier, key, cb) => {
+            if (modifier.childModifiers && modifier.childModifiers.length > 0) {
+              async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
+                Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                  if (err) cb(err);
+
+                  dish.modifiers[key].childModifiers[key1].dish = modifier1;
+                  return cb();
+                });
+              }, function (err) {
+                return cb(err);
+              });
+            } else {
+              Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                if (err) cb(err);
+
+                dish.modifiers[key].dish = modifier1;
+                return cb();
+              });
+            }
+          }, function (err) {
+            return cb(err);
+          });
+        }, function (err) {
+          if (err) reject(err);
+
+          resolve(dishes);
+        });
       });
     });
   }
