@@ -334,7 +334,7 @@ module.exports = {
             get = item;
         });
 
-        Dish.findOne({id: dishId}).populate('modifiers').exec((err, dish) => {
+        Dish.findOne({id: dishId})/*.populate('modifiers')*/.exec((err, dish) => {
           if (err) return cb({error: err});
 
           // check that dish has this modifier
