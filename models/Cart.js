@@ -393,15 +393,15 @@ function count(values, next) {
     let uniqueDishes = 0;
 
     async.each(dishes, (dish, cb) => {
-      Dish.findOne({id: dish.dish}).exec((err, dish1) => {
+      Dish.findOne({id: dish.dish.id}).exec((err, dish1) => {
         if (err) {
           sails.log.error(err);
-          return next();
+          return cb(err);
         }
 
         if (!dish1) {
-          sails.log.error('Dish with id ' + dish.dish + ' not found!');
-          return next();
+          sails.log.error('Dish with id ' + dish.dish.id + ' not found!');
+          return cb(err);
         }
 
         if (dish.itemTotal)
@@ -411,7 +411,9 @@ function count(values, next) {
         uniqueDishes++;
         cb();
       });
-    }, () => {
+    }, err => {
+      if (err)
+        return next();
       values.cartTotal = cartTotal;
       values.dishesCount = dishesCount;
       values.uniqueDishes = uniqueDishes;
