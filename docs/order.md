@@ -4,7 +4,7 @@
 **Method**: POST \
 **Request body**: 
 
-~~~JSON
+~~~json
 {
   "cartId": "string, (required)",
   "comment": "string",
@@ -13,9 +13,7 @@
   },
   "address": {
     "city": "string",
-    "street": "string",
     "streetId": "string",
-    "streetClassifierId": "string",
     "house": "string",
     "housing": "string",
     "index": "string",
