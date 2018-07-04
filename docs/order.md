@@ -6,15 +6,15 @@
 
 ~~~json
 {
-  "cartId": "string, (required)",
+  "cartId": "string, required",
   "comment": "string",
   "delivery": {
     "type": "string (self or nothing)"
   },
   "address": {
     "city": "string",
-    "streetId": "string",
-    "home": "string",
+    "streetId": "string, required",
+    "home": "string, required",
     "housing": "string",
     "index": "string",
     "entrance": "string",
