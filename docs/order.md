@@ -14,7 +14,7 @@
   "address": {
     "city": "string",
     "streetId": "string",
-    "house": "string",
+    "home": "string",
     "housing": "string",
     "index": "string",
     "entrance": "string",
