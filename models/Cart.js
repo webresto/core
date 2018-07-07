@@ -89,7 +89,7 @@ module.exports = {
 
         CartDish.find({cart: cart.id, id: dishId}).populate('dish').exec((err, cartDishes) => {
           if (err) return cb({error: err});
-          if (!cartDish) return cb({error: 404});
+          if (!cartDishes.length) return cb({error: 404});
 
           // let get = null;
           // cartDishes.forEach(item => {
