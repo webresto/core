@@ -87,9 +87,9 @@ module.exports = {
       Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
         if (err) return cb({error: err});
 
-        CartDish.find({cart: cart.id, id: dishId}).populate('dish').exec((err, cartDishes) => {
+        CartDish.findOne({cart: cart.id, id: dishId}).populate('dish').exec((err, cartDishes) => {
           if (err) return cb({error: err});
-          if (!cartDishes.length) return cb({error: 404});
+          if (!cartDishes) return cb({error: 404});
 
           // let get = null;
           // cartDishes.forEach(item => {
