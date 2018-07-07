@@ -1,5 +1,7 @@
 # Cart
 
+dishId - id of dish in cart (not guid from original dish)
+
 ### Response
 Response for all requests is Cart object like that:
 ~~~json
