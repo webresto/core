@@ -32,6 +32,9 @@ module.exports = {
     modifiers: {
       type: 'json'
     },
+    delivery: {
+      type: 'float'
+    },
 
     /**
      * Add dish in cart
