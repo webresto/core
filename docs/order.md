@@ -1,7 +1,10 @@
 # Order
 ###Checkout
-**Path**: /api/0.5/order \
-**Method**: POST \
+~~~
+/api/0.5/order 
+~~~
+**Method**: POST 
+
 **Request body**: 
 
 ~~~json
@@ -25,6 +28,7 @@
     "phone": "string, required",
     "mail": "string",       
     "name": "string, required"
-  }
+  },
+  "personsCount": "number, default 1"
 }
 ~~~
