@@ -134,6 +134,8 @@ module.exports = {
      * @return {error, cart}
      */
     setCount: function (dish, amount, cb) {
+      if (typeof amount !== 'number')
+        return cb({error: 'amount must be a number'});
       if (dish.balance !== -1)
         if (amount > dish.balance)
           return cb({error: 'There is no so mush dishes ' + dish.id});
