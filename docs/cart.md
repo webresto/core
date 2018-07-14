@@ -1,5 +1,7 @@
 # Cart
 
+dishId - id of dish in cart (not guid from original dish)
+
 ### Response
 Response for all requests is Cart object like that:
 ~~~json
@@ -16,6 +18,7 @@ Response for all requests is Cart object like that:
 /api/0.5/cart/add 
 ~~~
 **Method**: PUT 
+
 **Request body**:
 ~~~json
 {
@@ -34,8 +37,11 @@ Response for all requests is Cart object like that:
 
 
 ### Delete dish
-**Path**: /api/0.5/cart/remove \
-**Method**: PUT \
+~~~
+/api/0.5/cart/remove 
+~~~
+**Method**: PUT 
+
 **Request body**:
 ~~~json
 {
@@ -47,8 +53,12 @@ Response for all requests is Cart object like that:
 
 
 ### Set dish count
-**Path**: /api/0.5/cart/set \
-**Method**: POST  \
+~~~
+/api/0.5/cart/set 
+~~~
+
+**Method**: POST  
+
 **Request body**:
 ~~~json
 {
