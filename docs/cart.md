@@ -1,7 +1,5 @@
 # Cart
 
-dishId - id of dish in cart (not guid from original dish)
-
 ### Response
 Response for all requests is Cart object like that:
 ~~~json
@@ -14,8 +12,10 @@ Response for all requests is Cart object like that:
 ~~~
 
 ### Add dish
-**Path**: /api/0.5/cart/add \
-**Method**: PUT \
+~~~
+/api/0.5/cart/add 
+~~~
+**Method**: PUT 
 **Request body**:
 ~~~json
 {
@@ -24,9 +24,9 @@ Response for all requests is Cart object like that:
   "amount": "number, required",
   "modifiers (not required)": [
     {
-      "id": "string, required",
-      "amount": "integer, required",
-      "groupId": "string, required"
+      "id": "string (required)",
+      "amount": "integer (required)",
+      "groupId": "string (required for group modifiers)"
     }
   ]
 }

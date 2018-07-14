@@ -6,7 +6,7 @@
 
 ~~~json
 {
-  "cartId": "string, required",
+  "cartId": "string, (required)",
   "comment": "string",
   "delivery": {
     "type": "string (self or nothing)"
