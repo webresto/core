@@ -187,7 +187,7 @@ module.exports = {
       if (!criteria)
         criteria = {};
       criteria.isDeleted = false;
-      Dish.find(criteria).populate(['tags', 'images'/*, 'modifiers'*/]).exec((err, dishes) => {
+      Dish.find(criteria).populate(['tags', 'images']).exec((err, dishes) => {
         if (err) reject(err);
 
         async.each(dishes, (dish, cb) => {
