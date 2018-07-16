@@ -22,9 +22,9 @@ Response for all requests is Cart object like that:
 **Request body**:
 ~~~json
 {
-  "dishId": "string, required",
-  "cartId": "string, required",
-  "amount": "number, required",
+  "dishId": "string (required)",
+  "cartId": "string (required)",
+  "amount": "number (default 1)",
   "modifiers (not required)": [
     {
       "id": "string (required)",
@@ -45,9 +45,9 @@ Response for all requests is Cart object like that:
 **Request body**:
 ~~~json
 {
-  "dishId": "string, required",
-  "cartId": "string, required",
-  "amount": "number, default 1"
+  "dishId": "string (required)",
+  "cartId": "string (required)",
+  "amount": "number (default 1)"
 }
 ~~~
 
@@ -67,4 +67,3 @@ Response for all requests is Cart object like that:
   "amount": "number"
 }
 ~~~
-

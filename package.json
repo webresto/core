@@ -1,6 +1,6 @@
 {
   "name": "@sails-resto/core",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "sails resto core",
   "main": "index.js",
   "directories": {

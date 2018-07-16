@@ -1,5 +1,5 @@
 # Order
-###Checkout
+### Checkout
 ~~~
 /api/0.5/order 
 ~~~
