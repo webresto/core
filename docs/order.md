@@ -22,7 +22,8 @@
     "index": "string",
     "entrance": "string",
     "floor": "string",
-    "apartment": "string"
+    "apartment": "string",
+    "doorphone": "string"
   },
   "customer": {
     "phone": "string, required",
