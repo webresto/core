@@ -193,15 +193,20 @@ module.exports = {
         async.each(dishes, (dish, cb) => {
           async.eachOf(dish.modifiers, (modifier, key, cb) => {
             if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-              async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
-                Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                  if (err) cb(err);
+              Group.findOne({id: modifier.modifierId}).exec((err, group) => {
+                if (err) cb(err);
+                dish.modifiers[key].group = group;
 
-                  dish.modifiers[key].childModifiers[key1].dish = modifier1;
-                  return cb();
+                async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
+                  Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                    if (err) cb(err);
+
+                    dish.modifiers[key].childModifiers[key1].dish = modifier1;
+                    return cb();
+                  });
+                }, function (err) {
+                  return cb(err);
                 });
-              }, function (err) {
-                return cb(err);
               });
             } else {
               Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
