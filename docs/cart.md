@@ -9,7 +9,27 @@ Response for all requests is Cart object like that:
   "id": "integer",
   "cartId": "string",
   "dishes": "array of Dish objects",
-  "modifiers": "array of modifiers"
+  "modifiers": [
+    {
+      "--for--": "modifiers", 
+      "modifierId": "string",
+      "maxAmount": "number",
+      "minAmount": "number",
+      "required": "boolean",
+      "defaultAmount": "number",
+      "hideIfDefaultAmount": "boolean",
+      "dish": "Dish object for this modifier"
+    },
+    {
+      "--for--": "group modifiers",
+      "maxAmount": "number",
+      "minAmount": "number",
+      "modifierId": "string",
+      "required": "boolean",
+      "childModifiers": "array of modifiers",
+      "group": "Group object for this group of modifiers"
+    }
+  ]
 }
 ~~~
 
