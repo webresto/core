@@ -54,31 +54,16 @@ module.exports = {
       Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
         if (err) return cb({error: err});
 
-        // CartDish.find({cart: cart.id}).populate('dish').exec((err, cartDishes) => {
-        //   if (err) return cb({error: err});
-
-        // let get = null;
-        // cartDishes.forEach(item => {
-        //   if (item.dish.id === dish.id)
-        //     get = item;
-        // });
-
-        // if (get) {
-        //   get.amount += parseInt(amount);
-        //   CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
-        //     if (err) return cb({error: err});
-        //
-        //     cb(null, cart);
-        //   });
-        // } else {
         CartDish.create({dish: dish.id, cart: this.id, amount: parseInt(amount), modifiers: modifiers}).exec((err) => {
           if (err) return cb({error: err});
 
-          cb(null, cart);
+          cart.next('CART').then(() => {
+            cb(null, cart);
+          }, err => {
+            cb(err);
+          });
         });
-        // }
       });
-      // });
     },
 
     /**
@@ -98,28 +83,26 @@ module.exports = {
           if (err) return cb({error: err});
           if (!cartDishes) return cb({error: 404});
 
-          // let get = null;
-          // cartDishes.forEach(item => {
-          //   if (item.dish.id === dishId)
-          //     get = item;
-          // });
-
           const get = cartDishes;
-          // if (get) {
           get.amount -= parseInt(amount);
           if (get.amount > 0) {
             CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
               if (err) return cb({error: err});
 
-              return cb(null, cart);
+              cart.next('CART').then(() => {
+                cb(null, cart);
+              }, err => {
+                cb(err);
+              });
             });
           } else {
             get.destroy();
-            return cb(null, cart);
+            cart.next('CART').then(() => {
+              cb(null, cart);
+            }, err => {
+              cb(err);
+            });
           }
-          // } else {
-          //   return cb({error: 404});
-          // }
         });
       });
     },
@@ -157,7 +140,11 @@ module.exports = {
             CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
               if (err) return cb({error: err});
 
-              cb(null, cart);
+              cart.next('CART').then(() => {
+                cb(null, cart);
+              }, err => {
+                cb(err);
+              });
             });
           } else {
             return cb({error: 404});
