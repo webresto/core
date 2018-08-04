@@ -33,3 +33,15 @@
   "personsCount": "number, default 1"
 }
 ~~~
+
+**Response**:
+~~~json
+{
+  "cart": "Cart object",
+  "message": {
+    "type": "",
+    "title": "",
+    "body": ""
+  }
+}
+~~~
