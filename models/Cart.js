@@ -35,6 +35,9 @@ module.exports = {
     delivery: {
       type: 'float'
     },
+    deliveryStatus: {
+      type: 'integer'
+    },
 
     /**
      * Add dish in cart
