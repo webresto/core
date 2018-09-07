@@ -46,5 +46,23 @@ module.exports = {
 
   },
 
+  createOrUpdate: function (values) {
+    return {
+      exec: function (cb) {
+        Group.findOne({id: values.id}).exec((err, group) => {
+          if (err) return cb(err);
+          if (!group) {
+            Group.create(values).exec((err, group) => {
+              if (err) return cb(err);
+            });
+          } else {
+            Group.update({id: values.id}, values).exec((err, group) => {
+              if (err) return cb(err);
+            });
+          }
+        });
+      }
+    }
+  }
 };
 
