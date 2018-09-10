@@ -63,6 +63,7 @@ module.exports = {
       collection: 'image',
       via: 'dish'
     },
+    itemTotal: 'integer'
 
   },
 
