@@ -151,9 +151,20 @@ module.exports = {
 
           if (get) {
             get.amount = parseInt(amount);
-            CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
-              if (err) return cb({error: err});
+            if (get.amount > 0) {
+              CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
+                if (err) return cb({error: err});
 
+                cart.next('CART').then(() => {
+                  count(cart, () => {
+                    cb(null, cart);
+                  });
+                }, err => {
+                  cb(err);
+                });
+              });
+            } else {
+              get.destroy();
               cart.next('CART').then(() => {
                 count(cart, () => {
                   cb(null, cart);
@@ -161,7 +172,7 @@ module.exports = {
               }, err => {
                 cb(err);
               });
-            });
+            }
           } else {
             return cb({error: 404});
           }
@@ -277,6 +288,7 @@ function count(values, next) {
       values.cartTotal = cartTotal;
       values.dishesCount = dishesCount;
       values.uniqueDishes = uniqueDishes;
+
       next();
     });
   });
@@ -290,15 +302,11 @@ function countDish(dish, next) {
     }
 
     const modifs = dish.modifiers;
-    sails.log.info('modifs', modifs);
 
-    if (!dish.uniqueItems)
-      dish.uniqueItems = 0;
-    if (!dish.itemTotal)
-      dish.itemTotal = 0;
+    dish.uniqueItems = 0;
+    dish.itemTotal = 0;
 
     async.each(modifs, (m, cb) => {
-      sails.log.info('4');
       dish.uniqueItems += m.amount;
       Dish.findOne({id: m.id}).exec((err, m1) => {
         if (err) {
@@ -311,9 +319,7 @@ function countDish(dish, next) {
           return next();
         }
 
-        sails.log.info(m.amount, m1.price);
-        dish.itemTotal += m.amount * m1.price;
-        sails.log.info('itemTotal', dish.itemTotal);
+        dish.itemTotal += m.amount * m1.price * dish.amount;
         cb();
       });
     }, () => {
@@ -324,3 +330,4 @@ function countDish(dish, next) {
     });
   });
 }
+
