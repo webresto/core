@@ -218,6 +218,8 @@ module.exports = {
               });
             }
           }, function (err) {
+            dish.images.reverse();
+
             return cb(err);
           });
         }, function (err) {
@@ -227,5 +229,26 @@ module.exports = {
         });
       });
     });
+  },
+
+  createOrUpdate: function (values) {
+    return {
+      exec: function (cb) {
+        Dish.findOne({id: values.id}).exec((err, dish) => {
+          if (err) return cb(err);
+          if (!dish) {
+            Dish.create(values).exec((err, dish) => {
+              if (err) return cb(err);
+              return cb(dish);
+            });
+          } else {
+            Dish.update({id: values.id}, values).exec((err, dish) => {
+              if (err) return cb(err);
+              return cb(dish);
+            });
+          }
+        });
+      }
+    }
   }
 };
