@@ -234,17 +234,21 @@ module.exports = {
   createOrUpdate: function (values) {
     return {
       exec: function (cb) {
-        Dish.findOne({id: values.id}).exec((err, dish) => {
+        Dish.findOne({id: values.id}).populate('tags').exec((err, dish) => {
           if (err) return cb(err);
           if (!dish) {
-            Dish.create(values).exec((err, dish) => {
+            Dish.create(values).populate('tags').exec((err, dish) => {
               if (err) return cb(err);
-              return cb(dish);
+              return cb(null, dish);
             });
           } else {
-            Dish.update({id: values.id}, values).exec((err, dish) => {
+            Dish.update({id: values.id}, values).exec(err => {
               if (err) return cb(err);
-              return cb(dish);
+              Dish.findOne({id: values.id}).populate('tags').exec((err, dish) => {
+                if (err) return cb(err);
+
+                return cb(null, dish);
+              });
             });
           }
         });
