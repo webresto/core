@@ -63,7 +63,11 @@ module.exports = {
       collection: 'image',
       via: 'dish'
     },
-    itemTotal: 'integer'
+    itemTotal: 'integer',
+    slug: {
+      type: 'slug',
+      from: 'name'
+    }
 
   },
 
@@ -231,6 +235,11 @@ module.exports = {
     });
   },
 
+  /**
+   * create dish or update exists
+   * @param values
+   * @return {{exec: exec}}
+   */
   createOrUpdate: function (values) {
     return {
       exec: function (cb) {

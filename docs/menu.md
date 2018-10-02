@@ -4,8 +4,10 @@
 
 **Method**: GET 
 
-**Params**:
+**Params**(one of two): 
 - dishId (string)
+- slug (string)
+
 
 **Response**:
 Dish object
