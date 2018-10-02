@@ -31,7 +31,8 @@
     "lodash": "^4.17.10",
     "sails-build-dictionary": "^0.10.1",
     "sails-util": "^0.11.0",
-    "imagemagick": "^0.1.3"
+    "imagemagick": "^0.1.3",
+    "shelljs": "^0.8.2"
   },
   "deprecated": false,
   "description": "sails resto core",
