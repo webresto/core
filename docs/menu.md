@@ -1,26 +1,28 @@
 # Menu
 ### Get dish
-**Path**: /api/0.5/menu 
+~~~
+/api/0.5/menu 
+~~~
 
 **Method**: GET 
 
-**Params**(one of two): 
+**Params**(one of three): 
 - dishId (string)
 - slug (string)
-
 
 **Response**:
 Dish object
 
 ### Get dishes by group id
-**Path**: /api/0.5/menu 
+~~~
+/api/0.5/menu 
+~~~
 
 **Method**: GET 
 
 **Params**:
 - groupId (string)
 - nothing (return all groups)
-- dishId (string)
 
 **Response**:
 ~~~JSON
@@ -34,5 +36,24 @@ or
 ~~~JSON
 {
   "Dish object": "dish fields"
+}
+~~~
+
+### Get groups without objects
+~~~
+/api/0.5/groups 
+~~~
+**Method**: GET 
+
+**Params**:
+- groupId (string)
+- nothing (return all groups)
+
+**Response**:
+~~~JSON
+{
+  "groupId1": "Group object",
+  "groupId2": "Group object",
+  "...": "..."
 }
 ~~~
