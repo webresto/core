@@ -30,7 +30,8 @@
     "mail": "string",       
     "name": "string, required"
   },
-  "personsCount": "number, default 1"
+  "personsCount": "number, default 1",
+  "customData": "string"
 }
 ~~~
 
