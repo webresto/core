@@ -57,3 +57,17 @@ or
   "...": "..."
 }
 ~~~
+
+# Stop list
+### Get stop list from iiko
+~~~
+/api/0.5/stoplist
+~~~
+**Method**: GET
+
+**Response**:
+~~~JSON
+{
+  "StopList": "from IIKO"
+}
+~~~

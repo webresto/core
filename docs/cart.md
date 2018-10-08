@@ -8,7 +8,18 @@ Response for all requests is Cart object like that:
 {
   "id": "integer",
   "cartId": "string",
-  "dishes": "array of Dish objects",
+  "dishes": [
+    {
+      "amount": "integer",
+      "dish": "Dish object",
+      "modifiers": "json (current modifiers for this dish)",
+      "cart": "integer",
+      "parent": "integer (if it is modifier)",
+      "uniqueItems": "integer",
+      "itemTotal": "integer"
+    },
+    {"...": ""}
+  ],
   "modifiers": [
     {
       "--for--": "modifiers", 
