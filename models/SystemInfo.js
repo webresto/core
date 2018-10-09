@@ -14,7 +14,8 @@ module.exports = {
       primaryKey: true
     },
     revision: 'string',
-    revisionStopList: 'string'
+    revisionStopList: 'string',
+    revisionOrders: 'string'
   }
 };
 
