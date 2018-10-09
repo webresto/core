@@ -1,9 +1,28 @@
 // noinspection JSUnusedGlobalSymbols
 /**
- * Cart.js
+ * @api {API} Cart Cart
+ * @apiGroup Models
+ * @apiDescription Модель корзины. Имеет в себе список блюд, данные про них, методы для добавления/удаления блюд
  *
- * @description :: A model definition.  Represents a database table/collection/etc.
- * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
+ * @apiParam {Integer} id ID корзины в БД
+ * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
+ * @apiParam {[CartDish]} dishes Массив блюд в текущей корзине. Смотри CartDish
+ * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
+ * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
+ * @apiParam {Integer} cartTotal Полная стоимость корзины
+ * @apiParam {Float} delivery Стоимость доставки
+ */
+
+/*
+ * @api {API}
+ * @apiGroup
+ * @apiDescription
+ *
+ * @apiParam {}
+ * @apiParam {}
+ * @apiParam {}
+ * @apiParam {}
+ * @apiParam {}
  */
 
 module.exports = {
@@ -37,7 +56,7 @@ module.exports = {
     },
 
     /**
-     * Add dish in cart
+     * @description Add dish in cart
      * @param dish - dish object
      * @param amount
      * @param modifiers - json
@@ -79,7 +98,7 @@ module.exports = {
     },
 
     /**
-     * Remove dish from cart
+     * @description Remove dish from cart
      * @param dishId
      * @param amount
      * @param cb

@@ -1,12 +1,15 @@
 /**
- * Tags.js
+ * @api {API} Tags Tags
+ * @apiGroup Models
+ * @apiDescription Тэги
  *
- * @description :: A model definition.  Represents a database table/collection/etc.
- * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
+ * @apiParam {Integer} id ID
+ * @apiParam {String} name Название тэга
+ * @apiParam {[Dish]} dishes Блюда, которые содержат этот тэг
+ *
  */
 
 module.exports = {
-
   attributes: {
     id: {
       type: 'integer',
@@ -19,9 +22,7 @@ module.exports = {
     dishes: {
       collection: 'dish',
       via: 'tags'
-    },
-
-  },
-
+    }
+  }
 };
 

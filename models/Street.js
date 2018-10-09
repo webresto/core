@@ -1,12 +1,15 @@
 /**
- * CartDish.js
+ * @api {API} Street Street
+ * @apiGroup Models
+ * @apiDescription Модель улицы
  *
- * @description :: A model definition. Represents a database table/collection/etc.
- * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
+ * @apiParam {String} id ID улицы
+ * @apiParam {String} name Название улицы
+ * @apiParam {String} classifierId Идентификатор улицы в классификаторе, например, КЛАДР.
+ *
  */
 
 module.exports = {
-
   attributes: {
     id: {
       type: 'string',
@@ -19,8 +22,6 @@ module.exports = {
     classifierId: {
       type: 'string'
     }
-
-  },
-
+  }
 };
 

@@ -1,9 +1,13 @@
-// noinspection JSUnusedGlobalSymbols
 /**
- * Cart.js
+ * @api {API} SystemInfo SystemInfo
+ * @apiGroup Models
+ * @apiDescription Системная информация (в данный момент ревизия)
  *
- * @description :: A model definition.  Represents a database table/collection/etc.
- * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
+ * @apiParam {Integer} id ID
+ * @apiParam {String} revision Ревизия меню
+ * @apiParam {String} revisionStopList Ревизия стоп списка
+ * @apiParam {String} revisionOrders Ревизия заказов
+ * 
  */
 
 module.exports = {

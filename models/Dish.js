@@ -1,8 +1,50 @@
 /**
- * Dish.js
+ * @api {API} Dish Dish
+ * @apiGroup Models
+ * @apiDescription Модель блюда
  *
- * @description :: A model definition.  Represents a database table/collection/etc.
- * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
+ * @apiParam {String} id Уникальный идентификатор
+ * @apiParam {String} additionalInfo Дополнительная информация
+ * @apiParam {String} code Артикул
+ * @apiParam {String} description Описание
+ * @apiParam {String} name Название
+ * @apiParam {String} seoDescription SEO-описание для клиента
+ * @apiParam {String} seoKeywords SEO-ключевые слова
+ * @apiParam {String} seoText SEO-текст для роботов
+ * @apiParam {String} seoTitle SEO-заголовок
+ * @apiParam {Float} carbohydrateAmount Количество углеводов на 100 г блюда
+ * @apiParam {Float} carbohydrateFullAmount Количество углеводов в блюде
+ * @apiParam {Array} differentPricesOn Список терминалов, на которых цена продукта отличается от стандартной и цен на них
+ * @apiParam {Boolean} doNotPrintInCheque Блюдо не нужно печатать на чеке. Актуально только для модификаторов
+ * @apiParam {Float} energyAmount Энергетическая ценность на 100 г блюда
+ * @apiParam {Float} energyFullAmount Энергетическая ценность в блюде
+ * @apiParam {Float} fatAmount Количество жиров на 100 г блюда
+ * @apiParam {Float} fatFullAmount Количество жиров в блюде
+ * @apiParam {Float} fiberAmount Количество белков на 100 г блюда
+ * @apiParam {Float} fiberFullAmount Количество белков в блюде
+ * @apiParam {String} groupId Идентификатор группы
+ * @apiParam {Array} groupModifiers Групповые модификаторы (не используется в пользу modifiers)
+ * @apiParam {String} measureUnit Единица измерения товара ( кг, л, шт, порц.)
+ * @apiParam {Float} price Цена
+ * @apiParam {Group} productCategoryId Идентификатор категории продукта
+ * @apiParam {Array} prohibitedToSaleOn Список ID терминалов, на которых продукт запрещен к продаже
+ * @apiParam {String} type Тип:
+ dish - блюдо
+ good - товар
+ modifier - модификатор
+ * @apiParam {Boolean} useBalanceForSell Товар продается на вес
+ * @apiParam {Float} weight Вес одной единицы в кг
+ * @apiParam {Boolean} isIncludedInMenu Нужно ли продукт отображать в дереве номенклатуры
+ * @apiParam {Float} order Порядок отображения
+ * @apiParam {Boolean} isDeleted Удалён ли продукт в меню, отдаваемого клиенту
+ * @apiParam {JSON} modifiers Модификаторы доступные для данного блюда
+ * @apiParam {Group} parentGroup Группа, к которой принадлежит блюдо
+ * @apiParam {[Tags]} tags Тэги
+ * @apiParam {Integer} balance Количество оставшихся блюд. -1 - бесконечно
+ * @apiParam {[Image]} images Картинки блюда
+ * @apiParam {Integer} itemTotal
+ * @apiParam {String} slug Текстовое название блюда в транслите
+ *
  */
 
 module.exports = {
@@ -13,36 +55,36 @@ module.exports = {
       required: true,
       primaryKey: true
     },
-    additionalInfo: {type: 'string'},
-    code: {type: 'string'},
-    description: {type: 'string'},
-    name: {type: 'string'},
-    seoDescription: {type: 'string'},
-    seoKeywords: {type: 'string'},
-    seoText: {type: 'string'},
-    seoTitle: {type: 'string'},
-    carbohydrateAmount: {type: 'float'},
-    carbohydrateFullAmount: {type: 'float'},
-    differentPricesOn: {type: 'array'},
-    doNotPrintInCheque: {type: 'boolean'},
-    energyAmount: {type: 'float'},
-    energyFullAmount: {type: 'float'},
-    fatAmount: {type: 'float'},
-    fatFullAmount: {type: 'float'},
-    fiberAmount: {type: 'float'},
-    fiberFullAmount: {type: 'float'},
-    groupId: {type: 'string'},
-    groupModifiers: {type: 'array'},
-    measureUnit: {type: 'string'},
-    price: {type: 'float'},
-    productCategoryId: {model: 'group'},
-    prohibitedToSaleOn: {type: 'array'},
-    type: {type: 'string'},
-    useBalanceForSell: {type: 'boolean'},
-    weight: {type: 'float'},
-    isIncludedInMenu: {type: 'boolean'},
-    order: {type: 'float'},
-    isDeleted: {type: 'boolean'},
+    additionalInfo: 'string',
+    code: 'string',
+    description: 'string',
+    name: 'string',
+    seoDescription: 'string',
+    seoKeywords: 'string',
+    seoText: 'string',
+    seoTitle: 'string',
+    carbohydrateAmount: 'float',
+    carbohydrateFullAmount: 'float',
+    differentPricesOn: 'array',
+    doNotPrintInCheque: 'boolean',
+    energyAmount: 'float',
+    energyFullAmount: 'float',
+    fatAmount: 'float',
+    fatFullAmount: 'float',
+    fiberAmount: 'float',
+    fiberFullAmount: 'float',
+    groupId: 'string',
+    groupModifiers: 'array',
+    measureUnit: 'string',
+    price: 'float',
+    productCategoryId: 'group',
+    prohibitedToSaleOn: 'array',
+    type: 'string',
+    useBalanceForSell: 'boolean',
+    weight: 'float',
+    isIncludedInMenu: 'boolean',
+    order: 'float',
+    isDeleted: 'boolean',
     modifiers: {
       // collection: 'dish'
       type: 'json'

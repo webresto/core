@@ -1,8 +1,23 @@
 /**
- * CartDish.js
+ * @api {API} CartDish CartDish
+ * @apiGroup Models
+ * @apiDescription Модель блюда в корзине. Содержит информацию о количестве данного блюда в коризне и его модификаторы
  *
- * @description :: A model definition.  Represents a database table/collection/etc.
- * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
+ * @apiParam {Integer} id ID данного блюда в корзине. Все операции с блюдом в корзине проводить с этим ID
+ * @apiParam {Integer} amountКоличество данного блюда с его модификаторами в корзине
+ * @apiParam {Dish} dish Само блюдо, которое содержится в корзине
+ * @apiParam {JSON} modifiers Модификаторы для текущего блюда
+ * @apiParam {Cart} cart Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии
+ * @apiParam {CartDish} parent Родительское блюдо (для модификаторов)
+ * @apiParam {Integer} uniqueItems Количество уникальных блюд для текущего блюда (учитывая модификаторы)
+ * @apiParam {Integer} itemTotal Стоимсть данного блюда с модификаторами
+ *
+ * @apiParamExample {JSON} Модификаторы:
+ *  {
+      "id": "string",
+      "amount": "integer",
+      "groupId": "string"
+ *  }
  */
 
 module.exports = {
@@ -36,9 +51,6 @@ module.exports = {
     itemTotal: {
       type: 'integer'
     }
-
-  },
-
-}
-;
+  }
+};
 
