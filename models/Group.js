@@ -16,11 +16,11 @@
  * @apiParam {Tags} tags Тэги
  * @apiParam {Boolean} isIncludedInMenu Нужно ли продукт отображать в дереве номенклатуры
  * @apiParam {Float} order Порядок отображения
- * @apiParam {[Tags]} dishesTags Тэги всех блюд, что есть в этой группе
- * @apiParam {[Dish]} dishes Блюда, содержашиеся в этой группе
+ * @apiParam {Tags[]} dishesTags Тэги всех блюд, что есть в этой группе
+ * @apiParam {Dish[]} dishes Блюда, содержашиеся в этой группе
  * @apiParam {Group} parentGroup Родительская группа
- * @apiParam {[Group]} childGroups Дочерние группы
- * @apiParam {[Image]} images Картинки группы
+ * @apiParam {Group[]} childGroups Дочерние группы
+ * @apiParam {Image[]} images Картинки группы
  *
  */
 

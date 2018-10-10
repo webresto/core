@@ -39,9 +39,9 @@
  * @apiParam {Boolean} isDeleted Удалён ли продукт в меню, отдаваемого клиенту
  * @apiParam {JSON} modifiers Модификаторы доступные для данного блюда
  * @apiParam {Group} parentGroup Группа, к которой принадлежит блюдо
- * @apiParam {[Tags]} tags Тэги
+ * @apiParam {Tags[]} tags Тэги
  * @apiParam {Integer} balance Количество оставшихся блюд. -1 - бесконечно
- * @apiParam {[Image]} images Картинки блюда
+ * @apiParam {Image[]} images Картинки блюда
  * @apiParam {Integer} itemTotal
  * @apiParam {String} slug Текстовое название блюда в транслите
  *

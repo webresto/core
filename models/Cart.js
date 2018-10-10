@@ -6,7 +6,7 @@
  *
  * @apiParam {Integer} id ID корзины в БД
  * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
- * @apiParam {[CartDish]} dishes Массив блюд в текущей корзине. Смотри CartDish
+ * @apiParam {CartDish[]} dishes Массив блюд в текущей корзине. Смотри CartDish
  * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
  * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
  * @apiParam {Integer} cartTotal Полная стоимость корзины
