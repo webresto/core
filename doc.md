@@ -9,6 +9,9 @@ Sails hook for any cafe based on IIKO
 	- [Удаление блюда из корзины](#удаление-блюда-из-корзины)
 	- [Установить кол-во порций](#установить-кол-во-порций)
 	
+- [Config](#config)
+	- [Конфигурация](#конфигурация)
+	
 - [Controller](#controller)
 	- [Request directly to IIKO api](#request-directly-to-iiko-api)
 	- [Получение улиц](#получение-улиц)
@@ -382,6 +385,96 @@ NotFound 404
      "body": "Method not found: GET"
 }
 ```
+# <a name='config'></a> Config
+
+## <a name='конфигурация'></a> Конфигурация
+[Back to top](#top)
+
+<p>Описание конфигураций</p>
+
+	CONFIG restocore.js
+
+
+
+
+
+### Parameter Parameters
+
+| Name     | Type       | Description                           |
+|:---------|:-----------|:--------------------------------------|
+|  timeSyncBalance | Number | <p>Время цикла проверки стоп списка в секундах (например, каждые timeSyncBalance: 30 секунд)</p>|
+|  timeSyncMenu | Number | <p>Время цикла синхронизации номенклатуры в секундах</p>|
+|  timeSyncStreets | Number | <p>Время цикла синхронизации улиц в часах</p>|
+|  development | Boolean | <p>Является ли приложение в разработке (позволяет образаться к /api/0.5/api/...)</p>|
+|  masterKey | String | <p>Если приложение не в разработке, то для доступа к /api/0.5/api/... требуется этот параметр</p>|
+|  city | String | <p>Название города, в котором находтся кафе</p>|
+|  defaultName | String | **optional**<p>Имя пользоваьеля, что используется при проверки осуществляемости заказа</p>|
+|  defaultPhone | String | **optional**<p>Телефон, аналогично предыдущему</p>|
+|  iiko | JSON | <p>Параметры для сервера IIKO</p>|
+|  images | JSON | **optional**<p>Параметр для обработки картинок. Если его нет, то картнки от IIKO не обрабатываются вовсе. В размерах один из параметров (width или height) обязательный.</p>|
+
+### Param Examples
+
+(json)
+iiko types
+
+```
+{
+  host: string,
+  port: string,
+  login: string,
+  password: string,
+  organization: string,
+  deliveryTerminalId: string
+}
+```
+(json)
+iiko example
+
+```
+{
+  host: "iiko.biz",
+  port: "9900",
+  login: "Cafe",
+  password: "ldfkgREKn456",
+  organization: "e1c2da5e-810b-e1ef-0159-4ae27e1a299a",
+  deliveryTerminalId: "e464c693-4a57-11e5-80c1-d8d385655247"
+}
+```
+(json)
+image types
+
+```
+{
+  path: string,
+  "name of size": {
+    [width]: number,
+    [height]: number
+  },
+  ...
+}
+```
+(json)
+image example
+
+```
+{
+  path: "/images",
+  small: {
+    width: 200,
+    height: 200
+  },
+  large: {
+    width: 900
+  },
+  forPreview: {
+    height: 500
+  }
+}
+```
+
+
+
 # <a name='controller'></a> Controller
 
 ## <a name='request-directly-to-iiko-api'></a> Request directly to IIKO api
@@ -737,10 +830,10 @@ images:
 
 ```
 "images": {
-    "origin": "/images/a0f39d7d-75ac-4af1-8e91-d94b442874eb/2039649a-50f9-4785-a7a9-c5f86d637f27/origin.jpg",
-    "small": "/images/a0f39d7d-75ac-4af1-8e91-d94b442874eb/2039649a-50f9-4785-a7a9-c5f86d637f27/small.jpg",
-    "large": "/images/a0f39d7d-75ac-4af1-8e91-d94b442874eb/2039649a-50f9-4785-a7a9-c5f86d637f27/large.jpg"
-}
+       "origin": "/images/a0f39d7d-75ac-4af1-8e91-d94b442874eb/2039649a-50f9-4785-a7a9-c5f86d637f27/origin.jpg",
+       "small": "/images/a0f39d7d-75ac-4af1-8e91-d94b442874eb/2039649a-50f9-4785-a7a9-c5f86d637f27/small.jpg",
+       "large": "/images/a0f39d7d-75ac-4af1-8e91-d94b442874eb/2039649a-50f9-4785-a7a9-c5f86d637f27/large.jpg"
+   }
 ```
 
 
