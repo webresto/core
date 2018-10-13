@@ -77,7 +77,7 @@ module.exports = {
     groupModifiers: 'array',
     measureUnit: 'string',
     price: 'float',
-    productCategoryId: 'group',
+    productCategoryId: 'string',
     prohibitedToSaleOn: 'array',
     type: 'string',
     useBalanceForSell: 'boolean',

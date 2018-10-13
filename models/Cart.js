@@ -4,7 +4,7 @@
  * @apiGroup Models
  * @apiDescription Модель корзины. Имеет в себе список блюд, данные про них, методы для добавления/удаления блюд
  *
- * @apiParam {Integer} id ID корзины в БД
+ * @apiParam {Integer} id Уникальный идентификатор
  * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
  * @apiParam {CartDish[]} dishes Массив блюд в текущей корзине. Смотри CartDish
  * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)

@@ -89,7 +89,7 @@ Message:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  message | JSON | <p>Сообщение от сервера</p>|
-|  cart | JSON | <p>Cart model</p>|
+|  cart | Cart | <p>Cart model</p>|
 
 ### Error Response
 
@@ -170,7 +170,7 @@ Message:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  message | JSON | <p>Сообщение от сервера</p>|
-|  cart | JSON | <p>Cart model</p>|
+|  cart | Cart | <p>Cart model</p>|
 
 ### Error Response
 
@@ -253,7 +253,7 @@ Message:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  message | JSON | <p>Сообщение от сервера</p>|
-|  cart | JSON | <p>Cart model</p>|
+|  cart | Cart | <p>Cart model</p>|
 
 ### Error Response
 
@@ -336,7 +336,7 @@ Message:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  message | JSON | <p>Сообщение от сервера</p>|
-|  cart | JSON | <p>Cart model</p>|
+|  cart | Cart | <p>Cart model</p>|
 
 ### Error Response
 
@@ -427,7 +427,7 @@ NotFound 404
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  ArrayStreets | Street[] | <p>Массив улиц</p>|
+|  Array | Street[] | <p>Массив улиц</p>|
 
 ## <a name='системная-информация'></a> Системная информация
 [Back to top](#top)
@@ -485,7 +485,7 @@ NotFound 404
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  ArrayGroups | Group[] | <p>Список групп, которые не имеют родительских</p>|
+|  Array | Group[] | <p>Список групп, которые не имеют родительских</p>|
 
 ## <a name='получение-отдельного-блюда'></a> Получение отдельного блюда
 [Back to top](#top)
@@ -529,7 +529,7 @@ NotFound 404
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  JSON | JSON | <p>Список гланых групп (которые не имеют родительских групп) с полной иехрархией всех дочерних групп и блюд</p>|
+|  Array | Street[] | <p>Список гланых групп (которые не имеют родительских групп) с полной иехрархией всех дочерних групп и блюд</p>|
 
 ## <a name='полное-меню'></a> Полное меню
 [Back to top](#top)
@@ -566,7 +566,7 @@ NotFound 404
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  id | Integer | <p>ID корзины в БД</p>|
+|  id | Integer | <p>Уникальный идентификатор</p>|
 |  cartId | String | <p>ID корзины, по которой к ней обращается внешнее апи</p>|
 |  dishes | CartDish[] | <p>Массив блюд в текущей корзине. Смотри CartDish</p>|
 |  countDishes | Integer | <p>Общее количество блюд в корзине (с модификаторами)</p>|

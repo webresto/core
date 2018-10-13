@@ -62,5 +62,5 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o doc.md"
   },
-  "version": "0.5.2"
+  "version": "0.5.3"
 }
