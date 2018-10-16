@@ -293,13 +293,14 @@ module.exports = {
               return cb(null, dish);
             });
           } else {
-            Dish.update({id: values.id}, values).exec(err => {
+            Dish.update({id: values.id}, values).exec((err, dish) => {
               if (err) return cb(err);
-              Dish.findOne({id: values.id}).populate('tags').exec((err, dish) => {
-                if (err) return cb(err);
-
-                return cb(null, dish);
-              });
+              // Dish.findOne({id: values.id}).populate('tags').exec((err, dish) => {
+              //   if (err) return cb(err);
+              //
+              //   return cb(null, dish);
+              // });
+              return cb(null, dish[0]);
             });
           }
         });

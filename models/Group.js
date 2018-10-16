@@ -31,18 +31,18 @@ module.exports = {
       required: true,
       primaryKey: true
     },
-    additionalInfo: {type: 'string'},
-    code: {type: 'float'},
-    description: {type: 'string'},
-    isDeleted: {type: 'boolean'},
-    name: {type: 'string'},
-    seoDescription: {type: 'string'},
-    seoKeywords: {type: 'string'},
-    seoText: {type: 'string'},
-    seoTitle: {type: 'string'},
+    additionalInfo: 'string',
+    code: 'float',
+    description: 'string',
+    isDeleted: 'boolean',
+    name: 'string',
+    seoDescription: 'string',
+    seoKeywords: 'string',
+    seoText: 'string',
+    seoTitle: 'string',
     tags: {collection: 'tags'},
-    isIncludedInMenu: {type: 'boolean'},
-    order: {type: 'float'},
+    isIncludedInMenu: 'boolean',
+    order: 'float',
     dishesTags: {
       collection: 'tags'
     },
@@ -60,9 +60,15 @@ module.exports = {
     images: {
       collection: 'image',
       via: 'group'
-    }
+    },
+    isDeleted: 'boolean'
   },
 
+  /**
+   * create group or update exists
+   * @param values
+   * @return {{exec: exec}}
+   */
   createOrUpdate: function (values) {
     return {
       exec: function (cb) {
@@ -71,10 +77,12 @@ module.exports = {
           if (!group) {
             Group.create(values).exec((err, group) => {
               if (err) return cb(err);
+              return cb(null, group);
             });
           } else {
             Group.update({id: values.id}, values).exec((err, group) => {
               if (err) return cb(err);
+              return cb(null, group[0]);
             });
           }
         });
