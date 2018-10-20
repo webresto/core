@@ -109,7 +109,8 @@ module.exports = {
     slug: {
       type: 'slug',
       from: 'name'
-    }
+    },
+    hash: 'string'
 
   },
 
@@ -287,21 +288,21 @@ module.exports = {
       exec: function (cb) {
         Dish.findOne({id: values.id}).populate('tags').exec((err, dish) => {
           if (err) return cb(err);
+
           if (!dish) {
             Dish.create(values).populate('tags').exec((err, dish) => {
               if (err) return cb(err);
               return cb(null, dish);
             });
           } else {
-            Dish.update({id: values.id}, values).exec((err, dish) => {
-              if (err) return cb(err);
-              // Dish.findOne({id: values.id}).populate('tags').exec((err, dish) => {
-              //   if (err) return cb(err);
-              //
-              //   return cb(null, dish);
-              // });
-              return cb(null, dish[0]);
-            });
+            if (JSON.stringify(values) === dish.hash) {
+              cb(null, dish);
+            } else {
+              Dish.update({id: values.id}, values).exec((err, dish) => {
+                if (err) return cb(err);
+                return cb(null, dish[0]);
+              });
+            }
           }
         });
       }
