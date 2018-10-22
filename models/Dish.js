@@ -132,7 +132,7 @@ module.exports = {
         })
       } else {
         if (groupsId) {
-          Group.findOne({id: groupsId}).populate(['dishes', 'childGroups', 'dishesTags', 'images']).exec((err, group) => {
+          Group.findOne({id: groupsId}).populate(['images', 'dishes', 'childGroups', 'dishesTags']).exec((err, group) => {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
 
