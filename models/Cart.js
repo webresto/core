@@ -54,6 +54,13 @@ module.exports = {
     delivery: {
       type: 'float'
     },
+    customer: 'json',
+    address: 'json',
+    comment: 'string',
+    personsCount: 'integer',
+    problem: 'boolean',
+    sendToIiko: 'boolean',
+    iikoId: 'integer',
 
     /**
      * @description Add dish in cart

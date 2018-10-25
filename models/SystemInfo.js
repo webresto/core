@@ -7,7 +7,7 @@
  * @apiParam {String} revision Ревизия меню
  * @apiParam {String} revisionStopList Ревизия стоп списка
  * @apiParam {String} revisionOrders Ревизия заказов
- * 
+ *
  */
 
 module.exports = {
@@ -19,7 +19,10 @@ module.exports = {
     },
     revision: 'string',
     revisionStopList: 'string',
-    revisionOrders: 'string'
+    revisionOrders: 'string',
+    email: 'json',
+    checkProblem: 'string',
+    orderProblem: 'string'
   }
 };
 
