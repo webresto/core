@@ -10,6 +10,7 @@
  * @apiParam {Boolean} development Является ли приложение в разработке (позволяет образаться к /api/0.5/api/...)
  * @apiParam {String} masterKey Если приложение не в разработке, то для доступа к /api/0.5/api/... требуется этот параметр
  * @apiParam {String} city Название города, в котором находтся кафе
+ * @apiParam {JSON} email Отправка письма на почту независимо от результата работы IIKO
  * @apiParam {String} [defaultName] Имя пользоваьеля, что используется при проверки осуществляемости заказа
  * @apiParam {String} [defaultPhone] Телефон, аналогично предыдущему
  * @apiParam {JSON} iiko Параметры для сервера IIKO
@@ -59,6 +60,28 @@
  *    forPreview: {
  *      height: 500
  *    }
+ *  }
+ *
+ * @apiParamExample email types
+ *  {
+ *    server: {
+ *      user: "string",
+ *      password: "string",
+ *      host: "string",
+ *      ssl: "boolean"
+ *    },
+ *    template: "string"
+ *  }
+ *
+ *  @apiParamExample email example
+ *  {
+ *    server: {
+ *      user: "order@restocore",
+ *      password: "password",
+ *      host: "smtp.example.com",
+ *      ssl: true
+ *    },
+ *    template: "/views/email.ejs"
  *  }
  */
 

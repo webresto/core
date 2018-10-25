@@ -408,6 +408,7 @@ NotFound 404
 |  development | Boolean | <p>Является ли приложение в разработке (позволяет образаться к /api/0.5/api/...)</p>|
 |  masterKey | String | <p>Если приложение не в разработке, то для доступа к /api/0.5/api/... требуется этот параметр</p>|
 |  city | String | <p>Название города, в котором находтся кафе</p>|
+|  email | JSON | <p>Отправка письма на почту независимо от результата работы IIKO</p>|
 |  defaultName | String | **optional**<p>Имя пользоваьеля, что используется при проверки осуществляемости заказа</p>|
 |  defaultPhone | String | **optional**<p>Телефон, аналогично предыдущему</p>|
 |  iiko | JSON | <p>Параметры для сервера IIKO</p>|
@@ -470,6 +471,34 @@ image example
   forPreview: {
     height: 500
   }
+}
+```
+(json)
+email types
+
+```
+{
+  server: {
+    user: "string",
+    password: "string",
+    host: "string",
+    ssl: "boolean"
+  },
+  template: "string"
+}
+```
+(json)
+email example
+
+```
+{
+  server: {
+    user: "order@restocore",
+    password: "password",
+    host: "smtp.example.com",
+    ssl: true
+  },
+  template: "/views/email.ejs"
 }
 ```
 
