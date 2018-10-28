@@ -58,8 +58,14 @@ module.exports = {
     address: 'json',
     comment: 'string',
     personsCount: 'integer',
-    problem: 'boolean',
-    sendToIiko: 'boolean',
+    problem: {
+      type: 'boolean',
+      defaultsTo: false
+    },
+    sendToIiko: {
+      type: 'boolean',
+      defaultsTo: false
+    },
     iikoId: 'integer',
 
     /**

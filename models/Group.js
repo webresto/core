@@ -40,11 +40,15 @@ module.exports = {
     seoKeywords: 'string',
     seoText: 'string',
     seoTitle: 'string',
-    tags: {collection: 'tags'},
+    tags: {
+      // collection: 'tags'
+      type: 'json'
+    },
     isIncludedInMenu: 'boolean',
     order: 'float',
     dishesTags: {
-      collection: 'tags'
+      // collection: 'tags'
+      type: 'json'
     },
     dishes: {
       collection: 'dish',

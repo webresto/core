@@ -7,7 +7,7 @@
  * @apiParam {String} revision Ревизия меню
  * @apiParam {String} revisionStopList Ревизия стоп списка
  * @apiParam {String} revisionOrders Ревизия заказов
- *
+ * 
  */
 
 module.exports = {

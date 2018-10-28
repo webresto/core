@@ -93,9 +93,10 @@ module.exports = {
       model: 'group'
     },
     tags: {
-      collection: 'tags',
-      via: 'dishes',
-      dominant: true
+      type: 'json'
+      // collection: 'tags',
+      // via: 'dishes',
+      // dominant: true
     },
     balance: {
       type: 'integer',
@@ -132,7 +133,7 @@ module.exports = {
         })
       } else {
         if (groupsId) {
-          Group.findOne({id: groupsId}).populate(['images', 'dishes', 'childGroups', 'dishesTags']).exec((err, group) => {
+          Group.findOne({id: groupsId}).populate(['images', 'dishes', 'childGroups'/*, 'dishesTags'*/]).exec((err, group) => {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
 
@@ -170,7 +171,7 @@ module.exports = {
           });
         } else {
           let menu = {};
-          Group.find({parentGroup: null}).populate(['childGroups', 'dishes', 'dishesTags', 'images']).exec((err, groups) => {
+          Group.find({parentGroup: null}).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, groups) => {
             if (err) return reject({error: err});
 
             async.each(groups, (group, cb) => {
@@ -195,7 +196,7 @@ module.exports = {
 
               if (group.childGroups) {
                 let childGroups = [];
-                Group.find({id: group.childGroups.map(cg => cg.id)}).populate(['childGroups', 'dishes', 'dishesTags', 'images']).exec((err, cgs) => {
+                Group.find({id: group.childGroups.map(cg => cg.id)}).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, cgs) => {
                   if (err) return reject({error: err});
 
                   async.each(cgs, (cg, cb1) => {
@@ -235,7 +236,7 @@ module.exports = {
       if (!criteria)
         criteria = {};
       criteria.isDeleted = false;
-      Dish.find(criteria).populate(['tags', 'images']).exec((err, dishes) => {
+      Dish.find(criteria).populate([/*'tags',*/ 'images']).exec((err, dishes) => {
         if (err) reject(err);
 
         async.each(dishes, (dish, cb) => {
@@ -272,6 +273,7 @@ module.exports = {
         }, function (err) {
           if (err) reject(err);
 
+          dishes.sort((a, b) => a.order - b.order);
           resolve(dishes);
         });
       });
@@ -286,11 +288,11 @@ module.exports = {
   createOrUpdate: function (values) {
     return {
       exec: function (cb) {
-        Dish.findOne({id: values.id}).populate('tags').exec((err, dish) => {
+        Dish.findOne({id: values.id})/*.populate('tags')*/.exec((err, dish) => {
           if (err) return cb(err);
 
           if (!dish) {
-            Dish.create(values).populate('tags').exec((err, dish) => {
+            Dish.create(values)/*.populate('tags')*/.exec((err, dish) => {
               if (err) return cb(err);
               return cb(null, dish);
             });
