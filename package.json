@@ -25,16 +25,17 @@
   },
   "bundleDependencies": false,
   "dependencies": {
+    "emailjs": "^2.2.0",
     "iiko-delivery": "git+https://github.com/pub42/iiko-delivery.git",
     "iiko-request": "git+https://github.com/pub42/iiko-request.git",
+    "imagemagick": "^0.1.3",
     "jimp": "latest",
     "lodash": "^4.17.10",
     "sails-build-dictionary": "^0.10.1",
-    "sails-util": "^0.11.0",
-    "imagemagick": "^0.1.3",
-    "shelljs": "^0.8.2",
     "sails-hook-slugs": "^2.1.0",
-    "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git"
+    "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
+    "sails-util": "^0.11.0",
+    "shelljs": "^0.8.2"
   },
   "deprecated": false,
   "description": "sails resto core",

@@ -65,7 +65,11 @@ module.exports = {
       collection: 'image',
       via: 'group'
     },
-    isDeleted: 'boolean'
+    isDeleted: 'boolean',
+    slug: {
+      type: 'slug',
+      from: 'name'
+    }
   },
 
   /**
