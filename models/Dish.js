@@ -266,7 +266,9 @@ module.exports = {
               });
             }
           }, function (err) {
-            dish.images.reverse();
+            // dish.images.reverse();
+            if (dish.images.length >= 2)
+              dish.images.sort((a, b) => (b.uploadDate.localeCompare(a.uploadDate)));
 
             return cb(err);
           });
