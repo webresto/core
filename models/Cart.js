@@ -32,16 +32,12 @@ module.exports = {
       autoIncrement: true,
       primaryKey: true
     },
-    cartId: {
-      type: 'string'
-    },
+    cartId: 'string',
     dishes: {
       collection: 'cartDish',
       via: 'cart'
     },
-    countDishes: {
-      type: 'integer'
-    },
+    dishesCount: 'integer',
     uniqueDishes: {
       type: 'integer'
     },
