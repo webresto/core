@@ -33,7 +33,8 @@ module.exports = {
     group: {
       model: 'group',
       via: 'images'
-    }
+    },
+    uploadDate: 'string'
   }
 };
 

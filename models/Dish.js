@@ -267,8 +267,12 @@ module.exports = {
             }
           }, function (err) {
             // dish.images.reverse();
-            if (dish.images.length >= 2)
-              dish.images.sort((a, b) => (b.uploadDate.localeCompare(a.uploadDate)));
+            try {
+              if (dish.images.length >= 2)
+                dish.images.sort((a, b) => (b.uploadDate.localeCompare(a.uploadDate)));
+            } catch (e) {
+              sails.log.error('err32', e, dish.images);
+            }
 
             return cb(err);
           });
