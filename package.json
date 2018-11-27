@@ -1,6 +1,6 @@
 {
   "_from": "git+http://git.42team.ru/sails-resto/core.git",
-  "_id": "@sails-resto/core@0.5.2",
+  "_id": "@sails-resto/core@0.5.3",
   "_inBundle": false,
   "_integrity": "",
   "_location": "/@sails-resto/core",
@@ -17,9 +17,9 @@
     "#USER",
     "/"
   ],
-  "_resolved": "git+http://git.42team.ru/sails-resto/core.git#1dc234869e88db7b5318bbb7af25a11c940723a8",
+  "_resolved": "git+http://git.42team.ru/sails-resto/core.git#0e6bf19a383071dc3bd25e4a42aa510b00b1d9f3",
   "_spec": "git+http://git.42team.ru/sails-resto/core.git",
-  "_where": "/home/yroot/test-for-restocore",
+  "_where": "/var/www/avtotreid/data/backend/call-center",
   "author": {
     "name": "42team"
   },
@@ -61,8 +61,8 @@
     "hookName": "resto-core"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o doc.md"
+    "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o doc.md",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "version": "0.5.3"
 }

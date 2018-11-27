@@ -62,7 +62,7 @@ module.exports = {
       type: 'boolean',
       defaultsTo: false
     },
-    iikoId: 'integer',
+    iikoId: 'string',
 
     /**
      * @description Add dish in cart
