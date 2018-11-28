@@ -95,7 +95,7 @@ module.exports = {
           }).exec((err) => {
             if (err) return cb({error: err});
 
-            sails.log.info(modifiers);
+            // sails.log.info(modifiers);
             cart.next('CART').then(() => {
               cb(null, cart);
             }, err => {
