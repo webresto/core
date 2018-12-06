@@ -20,6 +20,7 @@ module.exports = {
     revision: 'string',
     revisionStopList: 'string',
     revisionOrders: 'string',
+    data: 'json',
     email: 'string',
     checkProblem: 'string',
     orderProblem: 'string'

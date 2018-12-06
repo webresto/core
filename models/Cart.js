@@ -63,6 +63,7 @@ module.exports = {
       defaultsTo: false
     },
     iikoId: 'string',
+    deliveryStatus: 'string',
 
     /**
      * @description Add dish in cart
