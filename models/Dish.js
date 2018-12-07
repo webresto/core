@@ -47,6 +47,8 @@
  *
  */
 
+const checkExpression = require('../lib/checkExpression');
+
 module.exports = {
 
   attributes: {
@@ -244,42 +246,46 @@ module.exports = {
         if (err) reject(err);
 
         async.each(dishes, (dish, cb) => {
-          async.eachOf(dish.modifiers, (modifier, key, cb) => {
-            if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-              Group.findOne({id: modifier.modifierId}).exec((err, group) => {
-                if (err) cb(err);
-                dish.modifiers[key].group = group;
+          if (checkExpression(dish)) {
+            async.eachOf(dish.modifiers, (modifier, key, cb) => {
+              if (modifier.childModifiers && modifier.childModifiers.length > 0) {
+                Group.findOne({id: modifier.modifierId}).exec((err, group) => {
+                  if (err) cb(err);
+                  dish.modifiers[key].group = group;
 
-                async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
-                  Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                    if (err) cb(err);
+                  async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
+                    Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                      if (err) cb(err);
 
-                    dish.modifiers[key].childModifiers[key1].dish = modifier1;
-                    return cb();
+                      dish.modifiers[key].childModifiers[key1].dish = modifier1;
+                      return cb();
+                    });
+                  }, function (err) {
+                    return cb(err);
                   });
-                }, function (err) {
-                  return cb(err);
                 });
-              });
-            } else {
-              Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                if (err) cb(err);
+              } else {
+                Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                  if (err) cb(err);
 
-                dish.modifiers[key].dish = modifier1;
-                return cb();
-              });
-            }
-          }, function (err) {
-            // dish.images.reverse();
-            try {
-              if (dish.images.length >= 2)
-                dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
-            } catch (e) {
-              sails.log.error('err32', e, dish.images);
-            }
+                  dish.modifiers[key].dish = modifier1;
+                  return cb();
+                });
+              }
+            }, function (err) {
+              // dish.images.reverse();
+              try {
+                if (dish.images.length >= 2)
+                  dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
+              } catch (e) {
+                sails.log.error('err32', e, dish.images);
+              }
 
-            return cb(err);
-          });
+              return cb(err);
+            });
+          } else {
+            cb();
+          }
         }, function (err) {
           if (err) reject(err);
 
