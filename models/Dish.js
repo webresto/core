@@ -130,7 +130,7 @@ module.exports = {
           arr.push(this.getByGroupId(groupsId[i]));
         Promise.all(arr).then(data => {
           resolve(data);
-        })
+        });
       } else {
         if (groupsId) {
           Group.findOne({id: groupsId}).populate(['images', 'dishes', 'childGroups'/*, 'dishesTags'*/]).exec((err, group) => {
@@ -164,6 +164,8 @@ module.exports = {
               }, () => {
                 delete group.childGroups;
                 group.children = childGroups;
+                if (group.children.length > 1)
+                  group.children.sort((a, b) => a.order - b.order);
                 loadDishes(cb);
               });
             } else
@@ -209,6 +211,8 @@ module.exports = {
                     menu[group.id].childGroups = null;
                     // sails.log.info(childGroups);
                     menu[group.id].children = childGroups;
+                    if (menu[group.id].children.length > 1)
+                      menu[group.id].children.sort((a, b) => a.order - b.order);
                     loadDishes(cb);
                   });
                 });
@@ -269,7 +273,7 @@ module.exports = {
             // dish.images.reverse();
             try {
               if (dish.images.length >= 2)
-                dish.images.sort((a, b) => (b.uploadDate.localeCompare(a.uploadDate)));
+                dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
             } catch (e) {
               sails.log.error('err32', e, dish.images);
             }
