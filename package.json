@@ -1,25 +1,4 @@
 {
-  "_from": "git+http://git.42team.ru/sails-resto/core.git",
-  "_id": "@sails-resto/core@0.5.3",
-  "_inBundle": false,
-  "_integrity": "",
-  "_location": "/@sails-resto/core",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "git",
-    "raw": "git+http://git.42team.ru/sails-resto/core.git",
-    "rawSpec": "git+http://git.42team.ru/sails-resto/core.git",
-    "saveSpec": "git+http://git.42team.ru/sails-resto/core.git",
-    "fetchSpec": "http://git.42team.ru/sails-resto/core.git",
-    "gitCommittish": null
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_resolved": "git+http://git.42team.ru/sails-resto/core.git#0e6bf19a383071dc3bd25e4a42aa510b00b1d9f3",
-  "_spec": "git+http://git.42team.ru/sails-resto/core.git",
-  "_where": "/var/www/avtotreid/data/backend/call-center",
   "author": {
     "name": "42team"
   },
@@ -51,10 +30,10 @@
   ],
   "license": "ISC",
   "main": "index.js",
-  "name": "@sails-resto/core",
+  "name": "@webresto/core",
   "repository": {
     "type": "git",
-    "url": "http://git.42team.ru/sails-resto/core.git"
+    "url": "http://git.42team.ru/webresto/core.git"
   },
   "sails": {
     "isHook": true,
