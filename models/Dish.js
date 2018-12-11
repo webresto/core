@@ -138,6 +138,7 @@ module.exports = {
           Group.findOne({id: groupsId}).populate(['images', 'dishes', 'childGroups'/*, 'dishesTags'*/]).exec((err, group) => {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
+            if (!checkExpression(group)) return resolve();
 
             const loadDishes = cb => {
               Dish.getDishes({parentGroup: groupsId}).then(dishes => {
@@ -179,47 +180,51 @@ module.exports = {
             if (err) return reject({error: err});
 
             async.each(groups, (group, cb) => {
-              menu[group.id] = group;
+              if (checkExpression(group)) {
+                menu[group.id] = group;
 
-              const loadDishes = function (cb) {
-                Dish.getDishes({parentGroup: group.id}).then(dishes => {
-                  menu[group.id].dishesList = dishes;
+                const loadDishes = function (cb) {
+                  Dish.getDishes({parentGroup: group.id}).then(dishes => {
+                    menu[group.id].dishesList = dishes;
 
-                  if (dishes.length > 0)
-                    async.eachOf(dishes, (dish, i, cb) => {
-                      menu[group.id].dishesList[i].tagsList = dish.tags;
-                      menu[group.id].dishesList[i].imagesList = dish.images;
+                    if (dishes.length > 0)
+                      async.eachOf(dishes, (dish, i, cb) => {
+                        menu[group.id].dishesList[i].tagsList = dish.tags;
+                        menu[group.id].dishesList[i].imagesList = dish.images;
+                        cb();
+                      }, cb);
+                    else
                       cb();
-                    }, cb);
-                  else
-                    cb();
-                }, err => {
-                  return reject({error: err});
-                });
-              };
-
-              if (group.childGroups) {
-                let childGroups = [];
-                Group.find({id: group.childGroups.map(cg => cg.id)}).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, cgs) => {
-                  if (err) return reject({error: err});
-
-                  async.each(cgs, (cg, cb1) => {
-                    this.getByGroupId(cg.id).then(data => {
-                      childGroups.push(data);
-                      cb1();
-                    }, err => sails.log.error(err));
-                  }, () => {
-                    delete menu[group.id].childGroups;
-                    menu[group.id].childGroups = null;
-                    // sails.log.info(childGroups);
-                    menu[group.id].children = childGroups;
-                    if (menu[group.id].children.length > 1)
-                      menu[group.id].children.sort((a, b) => a.order - b.order);
-                    loadDishes(cb);
+                  }, err => {
+                    return reject({error: err});
                   });
-                });
-              } else
-                loadDishes(cb);
+                };
+
+                if (group.childGroups) {
+                  let childGroups = [];
+                  Group.find({id: group.childGroups.map(cg => cg.id)}).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, cgs) => {
+                    if (err) return reject({error: err});
+
+                    async.each(cgs, (cg, cb1) => {
+                      this.getByGroupId(cg.id).then(data => {
+                        childGroups.push(data);
+                        cb1();
+                      }, err => sails.log.error(err));
+                    }, () => {
+                      delete menu[group.id].childGroups;
+                      menu[group.id].childGroups = null;
+                      // sails.log.info(childGroups);
+                      menu[group.id].children = childGroups;
+                      if (menu[group.id].children.length > 1)
+                        menu[group.id].children.sort((a, b) => a.order - b.order);
+                      loadDishes(cb);
+                    });
+                  });
+                } else
+                  loadDishes(cb);
+              } else {
+                cb();
+              }
             }, function () {
               if (cb) {
                 result.push(data);
