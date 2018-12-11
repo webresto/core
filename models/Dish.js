@@ -161,7 +161,8 @@ module.exports = {
               let childGroups = [];
               async.each(group.childGroups, (cg, cb1) => {
                 this.getByGroupId(cg.id).then(data => {
-                  childGroups.push(data);
+                  if (data)
+                    childGroups.push(data);
                   cb1();
                 }, err => sails.log.error(err));
               }, () => {
@@ -207,7 +208,8 @@ module.exports = {
 
                     async.each(cgs, (cg, cb1) => {
                       this.getByGroupId(cg.id).then(data => {
-                        childGroups.push(data);
+                        if (data)
+                          childGroups.push(data);
                         cb1();
                       }, err => sails.log.error(err));
                     }, () => {
