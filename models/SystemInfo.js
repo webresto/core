@@ -7,7 +7,7 @@
  * @apiParam {String} revision Ревизия меню
  * @apiParam {String} revisionStopList Ревизия стоп списка
  * @apiParam {String} revisionOrders Ревизия заказов
- * 
+ *
  */
 
 module.exports = {
@@ -17,13 +17,16 @@ module.exports = {
       autoIncrement: true,
       primaryKey: true
     },
-    revision: 'string',
+    key: 'string',
+    value: 'string',
+    section: 'string'
+    /*revision: 'string',
     revisionStopList: 'string',
     revisionOrders: 'string',
     data: 'json',
     email: 'string',
     checkProblem: 'string',
-    orderProblem: 'string'
+    orderProblem: 'string'*/
   }
 };
 
