@@ -291,6 +291,7 @@ module.exports = {
               return cb(err);
             });
           } else {
+            dishes.splice(dishes.indexOf(dish), 1);
             cb();
           }
         }, function (err) {
