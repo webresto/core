@@ -173,38 +173,38 @@ module.exports = {
           if (err) return cb({error: err});
 
           let get = null;
-          cartDishes.forEach(item => {
+            async.each(cartDishes, item => {
             if (item.dish.id === dish.id)
               get = item;
-          });
+            }, () => {
+                if (get) {
+                    get.amount = parseInt(amount);
+                    if (get.amount > 0) {
+                        CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
+                            if (err) return cb({error: err});
 
-          if (get) {
-            get.amount = parseInt(amount);
-            if (get.amount > 0) {
-              CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
-                if (err) return cb({error: err});
-
-                cart.next('CART').then(() => {
-                  count(cart, () => {
-                    cb(null, cart);
-                  });
-                }, err => {
-                  cb(err);
-                });
-              });
-            } else {
-              get.destroy();
-              cart.next('CART').then(() => {
-                count(cart, () => {
-                  cb(null, cart);
-                });
-              }, err => {
-                cb(err);
-              });
-            }
-          } else {
-            return cb({error: 404});
-          }
+                            cart.next('CART').then(() => {
+                                count(cart, () => {
+                                    cb(null, cart);
+                                });
+                            }, err => {
+                                cb(err);
+                            });
+                        });
+                    } else {
+                        get.destroy();
+                        cart.next('CART').then(() => {
+                            count(cart, () => {
+                                cb(null, cart);
+                            });
+                        }, err => {
+                            cb(err);
+                        });
+                    }
+                } else {
+                    return cb({error: 404});
+                }
+            });
         });
       });
     },

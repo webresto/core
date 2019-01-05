@@ -39,7 +39,7 @@ module.exports = {
     },
     cart: {
       model: 'Cart',
-      via: 'items'
+        via: 'dishes'
     },
     parent: {
       model: 'CartDish',
