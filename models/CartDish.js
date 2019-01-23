@@ -11,6 +11,7 @@
  * @apiParam {CartDish} parent Родительское блюдо (для модификаторов)
  * @apiParam {Integer} uniqueItems Количество уникальных блюд для текущего блюда (учитывая модификаторы)
  * @apiParam {Integer} itemTotal Стоимсть данного блюда с модификаторами
+ * @apiParam {String} comment Комментарий к блюду
  *
  * @apiParamExample {JSON} Модификаторы:
  *  {
@@ -50,7 +51,8 @@ module.exports = {
     },
     itemTotal: {
       type: 'integer'
-    }
+    },
+      comment: 'string'
   }
 };
 

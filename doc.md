@@ -7,6 +7,7 @@ Sails hook for any cafe based on IIKO
 	- [Добавить блюдо в корзину](#добавить-блюдо-в-корзину)
 	- [Получение корзины](#получение-корзины)
 	- [Удаление блюда из корзины](#удаление-блюда-из-корзины)
+	- [Поменять комментарий](#поменять-комментарий)
 	- [Установить кол-во порций](#установить-кол-во-порций)
 	
 - [Config](#config)
@@ -61,6 +62,7 @@ Sails hook for any cafe based on IIKO
 |  amount | Integer | **optional**<p>Количество порций</p>_Default value: 1_<br>|
 |  modifiers | JSON | **optional**<p>JSON модификаторов для блюда</p>|
 |  dishId | String | <p>ID блюда, которое добавляется в корзину. Тут dishId - id из CartDish</p>|
+|  comment | String | **optional**<p>Комментарий к блюду</p>|
 
 ### Param Examples
 
@@ -237,6 +239,89 @@ NotFound 404
 |  cartId | String | <p>ID корзины из которой удаляется блюдо</p>|
 |  amount | Integer | **optional**<p>количество удаляемых порций</p>_Default value: 1_<br>|
 |  dishId | String | <p>Блюдо, которому меняется количество порций. Тут dishId - id из CartDish</p>|
+
+
+### Success Response
+
+Message:
+
+```
+{
+  "type": "info",
+  "title": "ok",
+  "body": ""
+}
+```
+
+### Success 200
+
+| Name     | Type       | Description                           |
+|:---------|:-----------|:--------------------------------------|
+|  message | JSON | <p>Сообщение от сервера</p>|
+|  cart | Cart | <p>Cart model</p>|
+
+### Error Response
+
+BadRequest 400
+
+```
+{
+     "type": "error",
+     "title": "bad request",
+     "body": {
+       "error": "dishId is required"
+     }
+}
+```
+ServerError 500
+
+```
+{
+     "type": "error",
+     "title": "server error",
+     "body": {
+       "invalidAttributes": {
+         "...": "..."
+       },
+       "model": "User",
+       "_e": { },
+       "rawStack": "...",
+       "reason": "...",
+       "code": "E_VALIDATION",
+       "status": 500,
+       "details": "...",
+       "message": "...",
+       "stack": "..."
+     }
+}
+```
+NotFound 404
+
+```
+{
+     "type": "error",
+     "title": "not found",
+     "body": "Method not found: GET"
+}
+```
+## <a name='поменять-комментарий'></a> Поменять комментарий
+[Back to top](#top)
+
+<p>Установка комментария для блюда в корзине</p>
+
+	POST /api/0.5/cart/setcomment
+
+
+
+
+
+### Parameter Parameters
+
+| Name     | Type       | Description                           |
+|:---------|:-----------|:--------------------------------------|
+|  dishId | String | <p>ID блюда, которому меняет комментарий</p>|
+|  cartId | String | **optional**<p>ID корзины в которую меняется блюдо. Если не задано, то создаётся новая корзина</p>|
+|  comment | String | **optional**<p>Комментарий</p>|
 
 
 ### Success Response
@@ -695,6 +780,7 @@ email example
 |  uniqueDishes | Integer | <p>Количество уникальных блюд в корзине</p>|
 |  cartTotal | Integer | <p>Полная стоимость корзины</p>|
 |  delivery | Float | <p>Стоимость доставки</p>|
+|  problem | Boolean | <p>Есть ли проблема с отправкой на IIKO</p>|
 
 
 
@@ -722,6 +808,7 @@ email example
 |  parent | CartDish | <p>Родительское блюдо (для модификаторов)</p>|
 |  uniqueItems | Integer | <p>Количество уникальных блюд для текущего блюда (учитывая модификаторы)</p>|
 |  itemTotal | Integer | <p>Стоимсть данного блюда с модификаторами</p>|
+|  comment | String | <p>Комментарий к блюду</p>|
 
 ### Param Examples
 

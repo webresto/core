@@ -11,6 +11,7 @@
  * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
  * @apiParam {Integer} cartTotal Полная стоимость корзины
  * @apiParam {Float} delivery Стоимость доставки
+ * @apiParam {Boolean} problem Есть ли проблема с отправкой на IIKO
  */
 
 /*
@@ -73,7 +74,7 @@ module.exports = {
      * @param cb
      * @returns {error, cart}
      */
-    addDish: function (dish, amount, modifiers, cb) {
+    addDish: function (dish, amount, modifiers, comment, cb) {
       if (typeof amount !== 'number')
         return cb({error: 'amount must be a number'});
       if (dish.balance !== -1)
@@ -92,7 +93,8 @@ module.exports = {
             dish: dish.id,
             cart: this.id,
             amount: parseInt(amount),
-            modifiers: modifiers
+              modifiers: modifiers,
+              comment: comment
           }).exec((err) => {
             if (err) return cb({error: err});
 
@@ -269,6 +271,38 @@ module.exports = {
       });
     }
   },
+
+    setComment: function (dish, comment, cb) {
+        Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
+            if (err) return cb({error: err});
+
+            CartDish.find({cart: cart.id}).populate('dish').exec((err, cartDishes) => {
+                if (err) return cb({error: err});
+
+                let get = null;
+                async.each(cartDishes, item => {
+                    if (item.dish.id === dish.id)
+                        get = item;
+                }, () => {
+                    if (get) {
+                        CartDish.update({id: get.id}, {comment: comment}).exec((err) => {
+                            if (err) return cb({error: err});
+
+                            cart.next('CART').then(() => {
+                                count(cart, () => {
+                                    cb(null, cart);
+                                });
+                            }, err => {
+                                cb(err);
+                            });
+                        });
+                    } else {
+                        return cb({error: 404});
+                    }
+                });
+            });
+        });
+    },
 
   beforeCreate: count
 };
