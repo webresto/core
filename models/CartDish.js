@@ -40,7 +40,7 @@ module.exports = {
     },
     cart: {
       model: 'Cart',
-        via: 'dishes'
+      via: 'dishes'
     },
     parent: {
       model: 'CartDish',
@@ -52,7 +52,7 @@ module.exports = {
     itemTotal: {
       type: 'integer'
     },
-      comment: 'string'
+    comment: 'string'
   }
 };
 

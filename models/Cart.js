@@ -71,6 +71,7 @@ module.exports = {
      * @param dish - dish object
      * @param amount
      * @param modifiers - json
+     * @param comment
      * @param cb
      * @returns {error, cart}
      */
@@ -175,9 +176,10 @@ module.exports = {
           if (err) return cb({error: err});
 
           let get = null;
-            async.each(cartDishes, item => {
+            async.each(cartDishes, (item, cb) => {
             if (item.dish.id === dish.id)
               get = item;
+                cb();
             }, () => {
                 if (get) {
                     get.amount = parseInt(amount);
@@ -269,8 +271,7 @@ module.exports = {
           }
         });
       });
-    }
-  },
+    },
 
     setComment: function (dish, comment, cb) {
         Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
@@ -280,9 +281,10 @@ module.exports = {
                 if (err) return cb({error: err});
 
                 let get = null;
-                async.each(cartDishes, item => {
+                async.each(cartDishes, (item, cb) => {
                     if (item.dish.id === dish.id)
                         get = item;
+                    cb();
                 }, () => {
                     if (get) {
                         CartDish.update({id: get.id}, {comment: comment}).exec((err) => {
@@ -303,6 +305,7 @@ module.exports = {
             });
         });
     },
+  },
 
   beforeCreate: count
 };
