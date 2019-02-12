@@ -43,7 +43,7 @@ module.exports = {
       type: 'integer'
     },
     cartTotal: {
-      type: 'integer'
+        type: 'float'
     },
     modifiers: {
       type: 'json'
@@ -176,27 +176,17 @@ module.exports = {
           if (err) return cb({error: err});
 
           let get = null;
-            async.each(cartDishes, (item, cb) => {
+            cartDishes.forEach(item => {
             if (item.dish.id === dish.id)
               get = item;
-                cb();
-            }, () => {
-                if (get) {
-                    get.amount = parseInt(amount);
-                    if (get.amount > 0) {
-                        CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
-                            if (err) return cb({error: err});
+            });
 
-                            cart.next('CART').then(() => {
-                                count(cart, () => {
-                                    cb(null, cart);
-                                });
-                            }, err => {
-                                cb(err);
-                            });
-                        });
-                    } else {
-                        get.destroy();
+            if (get) {
+                get.amount = parseInt(amount);
+                if (get.amount > 0) {
+                    CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
+                        if (err) return cb({error: err});
+
                         cart.next('CART').then(() => {
                             count(cart, () => {
                                 cb(null, cart);
@@ -204,11 +194,20 @@ module.exports = {
                         }, err => {
                             cb(err);
                         });
-                    }
+                    });
                 } else {
-                    return cb({error: 404});
+                    get.destroy();
+                    cart.next('CART').then(() => {
+                        count(cart, () => {
+                            cb(null, cart);
+                        });
+                    }, err => {
+                        cb(err);
+                    });
                 }
-            });
+            } else {
+                return cb({error: 404});
+            }
         });
       });
     },
@@ -304,10 +303,95 @@ module.exports = {
                 });
             });
         });
-    },
+    }
   },
 
-  beforeCreate: count
+    beforeCreate: count,
+
+    returnFullCart: function (res, cart, msg) {
+        Cart.findOne({id: cart.id}).populate('dishes').exec((err, cart) => {
+            if (err) return res.serverError(err);
+            cart.count(cart, () => {
+
+                CartDish.find({cart: cart.id}).populate('dish').exec((err, dishes) => {
+                    if (err) return res.serverError(err);
+
+                    async.each(cart.dishes, (cartDish, cb) => {
+                        async.each(dishes, (dish, cb) => {
+                            const origDish = dish.dish;
+
+                            if (cartDish.id === dish.id) {
+                                cartDish.dish = origDish;
+                                async.eachOf(origDish.modifiers, (modifier, key, cb) => {
+                                    if (modifier.childModifiers && modifier.childModifiers.length > 0) {
+                                        Group.findOne({id: modifier.modifierId}).exec((err, group) => {
+                                            if (err) cb(err);
+                                            origDish.modifiers[key].group = group;
+
+                                            async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
+                                                Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                                                    if (err) cb(err);
+
+                                                    origDish.modifiers[key].childModifiers[key1].dish = modifier1;
+                                                    return cb();
+                                                });
+                                            }, function (err) {
+                                                cartDish.dish = origDish;
+                                                return cb(err);
+                                            });
+                                        });
+                                    } else {
+                                        Dish.findOne({id: modifier.id}).exec((err, modifier1) => {
+                                            if (err) cb(err);
+
+                                            origDish.modifiers[key].dish = modifier1;
+                                            return cb();
+                                        });
+                                    }
+                                }, function (err) {
+                                    cartDish.modifiers = dish.modifiers;
+                                    return cb(err);
+                                });
+                            } else {
+                                return cb();
+                            }
+                        }, function (err) {
+                            if (err) return cb(err);
+                            if (Array.isArray(cartDish.modifiers)) {
+                                async.each(cartDish.modifiers, (modifier, cb) => {
+                                    Dish.findOne({id: modifier.id}).exec((err, dish) => {
+                                        if (err) return cb(err);
+
+                                        modifier.dish = dish;
+                    cb();
+                                    });
+                                }, function (err) {
+                                    cb(err);
+                                });
+                            } else {
+                                if (cartDish.modifiers) {
+                                    Dish.findOne({id: cartDish.modifiers.id}).exec((err, dish) => {
+                                        if (err) return cb(err);
+
+                                        cartDish.modifiers.dish = dish;
+                                        cb();
+                                    });
+                                } else {
+                                    cb();
+                                }
+                            }
+                        });
+                    }, function (err) {
+                        if (err) return res.serverError(err);
+                        msg = msg || {type: 'info', title: 'ok', body: ""};
+                        if (msg.type === 'error')
+                            res.status(500);
+                        return res.json({cart: cart, message: msg});
+                    });
+        });
+            });
+        });
+    }
 };
 
 /**
