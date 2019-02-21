@@ -252,8 +252,13 @@ module.exports = {
       Dish.find(criteria).populate([/*'tags',*/ 'images']).exec((err, dishes) => {
         if (err) reject(err);
 
-        async.each(dishes, (dish, cb) => {
+          async.eachOf(dishes, (dish, i, cb) => {
           if (checkExpression(dish)) {
+              if (dish === undefined) {
+                  // sails.log.info('DISHES', dishes, dishes.length);
+                  // sails.log.info('DISH', dish, i);
+              }
+
             async.eachOf(dish.modifiers, (modifier, key, cb) => {
               if (modifier.childModifiers && modifier.childModifiers.length > 0) {
                 Group.findOne({id: modifier.modifierId}).exec((err, group) => {
@@ -273,7 +278,7 @@ module.exports = {
                 });
               } else {
                 Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                  if (err) cb(err);
+                    if (err) cb(err);
 
                   dish.modifiers[key].dish = modifier1;
                   return cb();
@@ -285,7 +290,7 @@ module.exports = {
                 if (dish.images.length >= 2)
                   dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
               } catch (e) {
-                sails.log.error('err32', e, dish.images);
+                  // sails.log.error('err32', e, dish.images);
               }
 
               return cb(err);

@@ -176,11 +176,11 @@ module.exports = {
           if (err) return cb({error: err});
 
           let get = null;
-            cartDishes.forEach(item => {
+            async.each(cartDishes, (item, cb) => {
             if (item.dish.id === dish.id)
               get = item;
-            });
-
+                cb();
+            }, () => {
             if (get) {
                 get.amount = parseInt(amount);
                 if (get.amount > 0) {
@@ -208,6 +208,7 @@ module.exports = {
             } else {
                 return cb({error: 404});
             }
+            });
         });
       });
     },
@@ -303,7 +304,7 @@ module.exports = {
                 });
             });
         });
-    }
+    },
   },
 
     beforeCreate: count,
