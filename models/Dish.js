@@ -257,6 +257,7 @@ module.exports = {
               if (dish === undefined) {
                   // sails.log.info('DISHES', dishes, dishes.length);
                   // sails.log.info('DISH', dish, i);
+                  return cb();
               }
 
             async.eachOf(dish.modifiers, (modifier, key, cb) => {
