@@ -29,16 +29,20 @@ Sails hook for any cafe based on IIKO
 - [Models](#models)
 	- [Cart](#cart)
 	- [CartDish](#cartdish)
+	- [Condition](#condition)
 	- [Dish](#dish)
 	- [Group](#group)
 	- [Image](#image)
 	- [Street](#street)
 	- [SystemInfo](#systeminfo)
 	- [Tags](#tags)
+	- [Zone](#zone)
 	
 - [Order](#order)
+	- [Нахождение зоны и исполнение условий](#нахождение-зоны-и-исполнение-условий)
 	- [Проверка заказа](#проверка-заказа)
 	- [Создание заказа](#создание-заказа)
+	- [Нахождение зоны](#нахождение-зоны)
 	
 
 
@@ -852,6 +856,31 @@ email example
 
 
 
+## <a name='condition'></a> Condition
+[Back to top](#top)
+
+<p>Модель условия</p>
+
+	API Condition
+
+
+
+
+
+### Parameter Parameters
+
+| Name     | Type       | Description                           |
+|:---------|:-----------|:--------------------------------------|
+|  name | String | <p>Название условия-действия</p>|
+|  description | String | <p>Описание условия</p>|
+|  enable | Boolean | <p>Включено ли данное условие</p>|
+|  weight | Integer | <p>Вес условия, чем больше, тем приоритетнее</p>|
+|  causes | JSON | <p>Объект условий, которым необходимо выполниться</p>|
+|  actions | JSON | <p>Объект действий, которые выполняются при выполнении всех условий</p>|
+
+
+
+
 ## <a name='dish'></a> Dish
 [Back to top](#top)
 
@@ -1048,7 +1077,69 @@ images:
 
 
 
+## <a name='zone'></a> Zone
+[Back to top](#top)
+
+<p>Модель зоны. Связана с условиями</p>
+
+	API Zone
+
+
+
+
+
+### Parameter Parameters
+
+| Name     | Type       | Description                           |
+|:---------|:-----------|:--------------------------------------|
+|  name | String | <p>Название</p>|
+|  description | String | <p>Описание</p>|
+|  polygons | JSON | <p>Массив точек полигона</p>|
+|  conditions | Condition[] | <p>Условия</p>|
+
+
+
+
 # <a name='order'></a> Order
+
+## <a name='нахождение-зоны-и-исполнение-условий'></a> Нахождение зоны и исполнение условий
+[Back to top](#top)
+
+<p>Нахождение зоны, в которую входит адресс и исполнение всех условий, что к ней привязаны</p>
+
+	POST /api/0.5/ccheck
+
+
+
+
+
+### Parameter Parameters
+
+| Name     | Type       | Description                           |
+|:---------|:-----------|:--------------------------------------|
+|  street | String | <p>Улица доставки</p>|
+|  home | Integer | <p>Дом доставки</p>|
+|  cartId | UUID | <p>ID корзины для которой выполнять действия доставки</p>|
+
+
+### Success Response
+
+Message:
+
+```
+{
+     type: 'info',
+     title: 'ok',
+     body: 'success'
+}
+```
+
+### Success 200
+
+| Name     | Type       | Description                           |
+|:---------|:-----------|:--------------------------------------|
+|  cart | Cart | <p>Коризна с заполненым поле delivery. Если delivery 0, то доставка бесплатная</p>|
+|  message | JSON | <p>Сообщение</p>|
 
 ## <a name='проверка-заказа'></a> Проверка заказа
 [Back to top](#top)
@@ -1242,3 +1333,29 @@ Gone 410
      }
 }
 ```
+## <a name='нахождение-зоны'></a> Нахождение зоны
+[Back to top](#top)
+
+<p>Нахождение зоны, в которую входит адресс</p>
+
+	POST /api/0.5/delivery
+
+
+
+
+
+### Parameter Parameters
+
+| Name     | Type       | Description                           |
+|:---------|:-----------|:--------------------------------------|
+|  street | String | <p>Улица доставки</p>|
+|  home | Integer | <p>Дом доставки</p>|
+
+
+
+### Success 200
+
+| Name     | Type       | Description                           |
+|:---------|:-----------|:--------------------------------------|
+|  Array | String[] | <p>Список описаний условий, что принадлежат этой зоне</p>|
+
