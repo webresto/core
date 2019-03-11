@@ -13,17 +13,14 @@ module.exports = {
   attributes: {
     name: 'string',
     description: 'string',
-    polygons: 'json',
-    conditions: {
-      collection: 'condition'
-    }
+    polygons: 'json'
   },
 
   getDeliveryCoast: async function (street, home) {
     const config = sails.config.restocore.map;
     const adapterGeo = Zone.getMapAdapter(config, 'geocode');
     const geo = await adapterGeo.getGeocode(street, home);
-    const zones = await Zone.find().populate('conditions');
+    const zones = await Zone.find();
 
     const adapterCDIP = Zone.getMapAdapter(config, 'check');
     let searched = null;
@@ -36,7 +33,9 @@ module.exports = {
       }
     }
 
-    searched.conditions = searched.conditions.sort((a, b) => a.weight > b.weight);
+    if (!searched) {
+      throw 'zone not found';
+    }
 
     return searched;
   },

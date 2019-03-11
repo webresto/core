@@ -27,6 +27,9 @@ module.exports = {
     },
     causes: 'json',
     actions: 'json',
+    zones: {
+      collection: 'zone'
+    },
 
     check: function (cart) {
       return new Promise(async (resolve, reject) => {
@@ -58,12 +61,14 @@ module.exports = {
             params.cartId = cart.id;
             sails.log.info(action, params);
             await Condition.action(action, params);
+            sails.log.info('after action');
             return cb();
           } catch (e) {
             cb(e);
           }
         }, err => {
           if (err) return reject(err);
+          sails.log.info('return exec');
           resolve();
         })
       });
