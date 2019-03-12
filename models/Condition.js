@@ -58,32 +58,28 @@ module.exports = {
       return new Promise((resolve, reject) => {
         async.eachOf(that.actions, async (params, action, cb) => {
           try {
-            params.cartId = cart.id;
+            params.cartId = cart.cartId;
             sails.log.info(action, params);
             await Condition.action(action, params);
-            sails.log.info('after action');
             return cb();
           } catch (e) {
             cb(e);
           }
         }, err => {
           if (err) return reject(err);
-          sails.log.info('return exec');
           resolve();
         })
       });
     }
   },
 
-  action: function (actionName, params) {
-    return new Promise(async (resolve, reject) => {
-      const action = deliveryActions[actionName];
-      if (!action) {
-        return reject('action not found')
-      }
+  action: async function (actionName, params) {
+    const action = deliveryActions[actionName];
+    if (!action) {
+      throw 'action not found'
+    }
 
-      resolve(await action(params));
-    });
+    return await action(params);
   }
 };
 
@@ -93,9 +89,23 @@ function checkTime(timeArray) {
 
   const weekday = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
+  const date = new Date();
+
   function checkHours(start, stop) {
-    const date = new Date();
-    return between(start, stop, date.getHours());
+    try {
+      start = start.split(':');
+    } catch (e) {
+    }
+    try {
+      stop = stop.split(':');
+    } catch (e) {
+    }
+    const sh = start ? start[0] : start;
+    const sm = start ? start[1] : start;
+    const eh = stop ? stop[0] : stop;
+    const em = stop ? stop[1] : stop;
+    sails.log.info(between(sh * 60 + sm, eh * 60 + em, date.getHours() * 60 + date.getMinutes()));
+    return between(sh * 60 + sm, eh * 60 + em, date.getHours() * 60 + date.getMinutes());
   }
 
   try {
