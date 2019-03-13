@@ -16,12 +16,9 @@ module.exports = {
       required: true,
       primaryKey: true
     },
-    name: {
-      type: 'string'
-    },
-    classifierId: {
-      type: 'string'
-    }
+    name: 'string',
+    classifierId: 'string',
+    isDeleted: 'boolean'
   }
 };
 
