@@ -39,18 +39,10 @@ module.exports = {
       via: 'cart'
     },
     dishesCount: 'integer',
-    uniqueDishes: {
-      type: 'integer'
-    },
-    cartTotal: {
-        type: 'float'
-    },
-    modifiers: {
-      type: 'json'
-    },
-    delivery: {
-      type: 'float'
-    },
+    uniqueDishes: 'integer',
+    cartTotal: 'float',
+    modifiers: 'json',
+    delivery: 'float',
     customer: 'json',
     address: 'json',
     comment: 'string',
@@ -65,6 +57,10 @@ module.exports = {
     },
     iikoId: 'string',
     deliveryStatus: 'string',
+    selfDelivery: {
+      type: 'boolean',
+      defaultsTo: false
+    },
 
     /**
      * @description Add dish in cart

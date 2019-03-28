@@ -12,6 +12,7 @@
  * @apiParam {Integer} uniqueItems Количество уникальных блюд для текущего блюда (учитывая модификаторы)
  * @apiParam {Integer} itemTotal Стоимсть данного блюда с модификаторами
  * @apiParam {String} comment Комментарий к блюду
+ * @apiParam {String} addedBy Указывает каким образом блюдо попало в корзину
  *
  * @apiParamExample {JSON} Модификаторы:
  *  {
@@ -52,7 +53,11 @@ module.exports = {
     itemTotal: {
       type: 'integer'
     },
-    comment: 'string'
+    comment: 'string',
+    addedBy: {
+      type: 'string',
+      defaultsTo: 'user'
+    }
   }
 };
 
