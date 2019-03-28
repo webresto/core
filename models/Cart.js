@@ -68,10 +68,11 @@ module.exports = {
      * @param amount
      * @param modifiers - json
      * @param comment
+     * @param from
      * @param cb
      * @returns {error, cart}
      */
-    addDish: function (dish, amount, modifiers, comment, cb) {
+    addDish: function (dish, amount, modifiers, comment, cb, from) {
       if (typeof amount !== 'number')
         return cb({error: 'amount must be a number'});
       if (dish.balance !== -1)
@@ -90,8 +91,9 @@ module.exports = {
             dish: dish.id,
             cart: this.id,
             amount: parseInt(amount),
-              modifiers: modifiers,
-              comment: comment
+            modifiers: modifiers,
+            comment: comment,
+            addedBy: from
           }).exec((err) => {
             if (err) return cb({error: err});
 
@@ -172,39 +174,39 @@ module.exports = {
           if (err) return cb({error: err});
 
           let get = null;
-            async.each(cartDishes, (item, cb) => {
+          async.each(cartDishes, (item, cb) => {
             if (item.dish.id === dish.id)
               get = item;
-                cb();
-            }, () => {
+            cb();
+          }, () => {
             if (get) {
-                get.amount = parseInt(amount);
-                if (get.amount > 0) {
-                    CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
-                        if (err) return cb({error: err});
+              get.amount = parseInt(amount);
+              if (get.amount > 0) {
+                CartDish.update({id: get.id}, {amount: get.amount}).exec((err) => {
+                  if (err) return cb({error: err});
 
-                        cart.next('CART').then(() => {
-                            count(cart, () => {
-                                cb(null, cart);
-                            });
-                        }, err => {
-                            cb(err);
-                        });
+                  cart.next('CART').then(() => {
+                    count(cart, () => {
+                      cb(null, cart);
                     });
-                } else {
-                    get.destroy();
-                    cart.next('CART').then(() => {
-                        count(cart, () => {
-                            cb(null, cart);
-                        });
-                    }, err => {
-                        cb(err);
-                    });
-                }
+                  }, err => {
+                    cb(err);
+                  });
+                });
+              } else {
+                get.destroy();
+                cart.next('CART').then(() => {
+                  count(cart, () => {
+                    cb(null, cart);
+                  });
+                }, err => {
+                  cb(err);
+                });
+              }
             } else {
-                return cb({error: 404});
+              return cb({error: 404});
             }
-            });
+          });
         });
       });
     },
@@ -270,125 +272,125 @@ module.exports = {
     },
 
     setComment: function (dish, comment, cb) {
-        Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
-            if (err) return cb({error: err});
+      Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
+        if (err) return cb({error: err});
 
-            CartDish.find({cart: cart.id}).populate('dish').exec((err, cartDishes) => {
+        CartDish.find({cart: cart.id}).populate('dish').exec((err, cartDishes) => {
+          if (err) return cb({error: err});
+
+          let get = null;
+          async.each(cartDishes, (item, cb) => {
+            if (item.dish.id === dish.id)
+              get = item;
+            cb();
+          }, () => {
+            if (get) {
+              CartDish.update({id: get.id}, {comment: comment}).exec((err) => {
                 if (err) return cb({error: err});
 
-                let get = null;
-                async.each(cartDishes, (item, cb) => {
-                    if (item.dish.id === dish.id)
-                        get = item;
-                    cb();
-                }, () => {
-                    if (get) {
-                        CartDish.update({id: get.id}, {comment: comment}).exec((err) => {
-                            if (err) return cb({error: err});
-
-                            cart.next('CART').then(() => {
-                                count(cart, () => {
-                                    cb(null, cart);
-                                });
-                            }, err => {
-                                cb(err);
-                            });
-                        });
-                    } else {
-                        return cb({error: 404});
-                    }
+                cart.next('CART').then(() => {
+                  count(cart, () => {
+                    cb(null, cart);
+                  });
+                }, err => {
+                  cb(err);
                 });
-            });
+              });
+            } else {
+              return cb({error: 404});
+            }
+          });
         });
+      });
     },
   },
 
-    beforeCreate: count,
+  beforeCreate: count,
 
-    returnFullCart: function (res, cart, msg) {
-        Cart.findOne({id: cart.id}).populate('dishes').exec((err, cart) => {
-            if (err) return res.serverError(err);
-            cart.count(cart, () => {
+  returnFullCart: function (res, cart, msg) {
+    Cart.findOne({id: cart.id}).populate('dishes').exec((err, cart) => {
+      if (err) return res.serverError(err);
+      cart.count(cart, () => {
 
-                CartDish.find({cart: cart.id}).populate('dish').exec((err, dishes) => {
-                    if (err) return res.serverError(err);
+        CartDish.find({cart: cart.id}).populate('dish').exec((err, dishes) => {
+          if (err) return res.serverError(err);
 
-                    async.each(cart.dishes, (cartDish, cb) => {
-                        async.each(dishes, (dish, cb) => {
-                            const origDish = dish.dish;
+          async.each(cart.dishes, (cartDish, cb) => {
+            async.each(dishes, (dish, cb) => {
+              const origDish = dish.dish;
 
-                            if (cartDish.id === dish.id) {
-                                cartDish.dish = origDish;
-                                async.eachOf(origDish.modifiers, (modifier, key, cb) => {
-                                    if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-                                        Group.findOne({id: modifier.modifierId}).exec((err, group) => {
-                                            if (err) cb(err);
-                                            origDish.modifiers[key].group = group;
+              if (cartDish.id === dish.id) {
+                cartDish.dish = origDish;
+                async.eachOf(origDish.modifiers, (modifier, key, cb) => {
+                  if (modifier.childModifiers && modifier.childModifiers.length > 0) {
+                    Group.findOne({id: modifier.modifierId}).exec((err, group) => {
+                      if (err) cb(err);
+                      origDish.modifiers[key].group = group;
 
-                                            async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
-                                                Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                                                    if (err) cb(err);
+                      async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
+                        Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                          if (err) cb(err);
 
-                                                    origDish.modifiers[key].childModifiers[key1].dish = modifier1;
-                                                    return cb();
-                                                });
-                                            }, function (err) {
-                                                cartDish.dish = origDish;
-                                                return cb(err);
-                                            });
-                                        });
-                                    } else {
-                                        Dish.findOne({id: modifier.id}).exec((err, modifier1) => {
-                                            if (err) cb(err);
-
-                                            origDish.modifiers[key].dish = modifier1;
-                                            return cb();
-                                        });
-                                    }
-                                }, function (err) {
-                                    cartDish.modifiers = dish.modifiers;
-                                    return cb(err);
-                                });
-                            } else {
-                                return cb();
-                            }
-                        }, function (err) {
-                            if (err) return cb(err);
-                            if (Array.isArray(cartDish.modifiers)) {
-                                async.each(cartDish.modifiers, (modifier, cb) => {
-                                    Dish.findOne({id: modifier.id}).exec((err, dish) => {
-                                        if (err) return cb(err);
-
-                                        modifier.dish = dish;
-                    cb();
-                                    });
-                                }, function (err) {
-                                    cb(err);
-                                });
-                            } else {
-                                if (cartDish.modifiers) {
-                                    Dish.findOne({id: cartDish.modifiers.id}).exec((err, dish) => {
-                                        if (err) return cb(err);
-
-                                        cartDish.modifiers.dish = dish;
-                                        cb();
-                                    });
-                                } else {
-                                    cb();
-                                }
-                            }
+                          origDish.modifiers[key].childModifiers[key1].dish = modifier1;
+                          return cb();
                         });
-                    }, function (err) {
-                        if (err) return res.serverError(err);
-                        msg = msg || {type: 'info', title: 'ok', body: ""};
-                        if (msg.type === 'error')
-                            res.status(500);
-                        return res.json({cart: cart, message: msg});
+                      }, function (err) {
+                        cartDish.dish = origDish;
+                        return cb(err);
+                      });
                     });
-        });
+                  } else {
+                    Dish.findOne({id: modifier.id}).exec((err, modifier1) => {
+                      if (err) cb(err);
+
+                      origDish.modifiers[key].dish = modifier1;
+                      return cb();
+                    });
+                  }
+                }, function (err) {
+                  cartDish.modifiers = dish.modifiers;
+                  return cb(err);
+                });
+              } else {
+                return cb();
+              }
+            }, function (err) {
+              if (err) return cb(err);
+              if (Array.isArray(cartDish.modifiers)) {
+                async.each(cartDish.modifiers, (modifier, cb) => {
+                  Dish.findOne({id: modifier.id}).exec((err, dish) => {
+                    if (err) return cb(err);
+
+                    modifier.dish = dish;
+                    cb();
+                  });
+                }, function (err) {
+                  cb(err);
+                });
+              } else {
+                if (cartDish.modifiers) {
+                  Dish.findOne({id: cartDish.modifiers.id}).exec((err, dish) => {
+                    if (err) return cb(err);
+
+                    cartDish.modifiers.dish = dish;
+                    cb();
+                  });
+                } else {
+                  cb();
+                }
+              }
             });
+          }, function (err) {
+            if (err) return res.serverError(err);
+            msg = msg || {type: 'info', title: 'ok', body: ""};
+            if (msg.type === 'error')
+              res.status(500);
+            return res.json({cart: cart, message: msg});
+          });
         });
-    }
+      });
+    });
+  }
 };
 
 /**

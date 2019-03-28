@@ -9,8 +9,10 @@ class Map extends MapInterface {
 
   async getGeocode(street, home) {
     street = street.replace(' ', '+');
+    street = street.replace('(', '');
+    street = street.replace(')', '');
     const link = 'https://geocode-maps.yandex.ru/1.x?format=json&apikey=' + this.config.api + '&geocode=' +
-      encodeURIComponent('Тюмень+' + street + '+' + home);
+      encodeURIComponent(sails.config.restocore.city + '+' + street + '+' + home);
     const result = JSON.parse(await request(link));
     // const geo = result.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos.split(' ');
     // return geo[1] + ' ' + geo[0];
