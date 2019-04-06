@@ -1,4 +1,25 @@
 {
+  "_from": "git+http://git.42team.ru/webresto/core.git",
+  "_id": "@webresto/core@0.5.3",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/@webresto/core",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "git+http://git.42team.ru/webresto/core.git",
+    "rawSpec": "git+http://git.42team.ru/webresto/core.git",
+    "saveSpec": "git+http://git.42team.ru/webresto/core.git",
+    "fetchSpec": "http://git.42team.ru/webresto/core.git",
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "git+http://git.42team.ru/webresto/core.git#f2cd22b034fed0992e8529d711bd4b64d8b5300e",
+  "_spec": "git+http://git.42team.ru/webresto/core.git",
+  "_where": "/home/yroot/gfcafe",
   "author": {
     "name": "42team"
   },
@@ -14,7 +35,11 @@
     "sails-hook-slugs": "^2.1.0",
     "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
     "sails-util": "^0.11.0",
-    "shelljs": "^0.8.2"
+    "shelljs": "^0.8.2",
+    "@google/maps": "^0.5.5",
+    "request-promise": "^4.2.4",
+    "point-in-polygon": "^1.0.1",
+    "uuid": "^3.3.2"
   },
   "deprecated": false,
   "description": "sails resto core",

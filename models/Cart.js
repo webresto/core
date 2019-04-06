@@ -307,85 +307,89 @@ module.exports = {
 
   beforeCreate: count,
 
-  returnFullCart: function (res, cart, msg) {
-    Cart.findOne({id: cart.id}).populate('dishes').exec((err, cart) => {
-      if (err) return res.serverError(err);
-      cart.count(cart, () => {
+  returnFullCart: function (cart) {
+    return new Promise((resolve, reject) => {
+      Cart.findOne({id: cart.id}).populate('dishes').exec((err, cart) => {
+        if (err) return reject(err);
+        cart.count(cart, () => {
 
-        CartDish.find({cart: cart.id}).populate('dish').exec((err, dishes) => {
-          if (err) return res.serverError(err);
+          CartDish.find({cart: cart.id}).populate('dish').exec((err, dishes) => {
+            if (err) return reject(err);
 
-          async.each(cart.dishes, (cartDish, cb) => {
-            async.each(dishes, (dish, cb) => {
-              const origDish = dish.dish;
+            async.each(cart.dishes, (cartDish, cb) => {
+              async.each(dishes, (dish, cb) => {
+                const origDish = dish.dish;
 
-              if (cartDish.id === dish.id) {
-                cartDish.dish = origDish;
-                async.eachOf(origDish.modifiers, (modifier, key, cb) => {
-                  if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-                    Group.findOne({id: modifier.modifierId}).exec((err, group) => {
-                      if (err) cb(err);
-                      origDish.modifiers[key].group = group;
+                if (cartDish.id === dish.id) {
+                  cartDish.dish = origDish;
+                  async.eachOf(origDish.modifiers, (modifier, key, cb) => {
+                    if (modifier.childModifiers && modifier.childModifiers.length > 0) {
+                      Group.findOne({id: modifier.modifierId}).exec((err, group) => {
+                        if (err) cb(err);
+                        origDish.modifiers[key].group = group;
 
-                      async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
-                        Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                          if (err) cb(err);
+                        async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
+                          Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                            if (err) cb(err);
 
-                          origDish.modifiers[key].childModifiers[key1].dish = modifier1;
-                          return cb();
+                            origDish.modifiers[key].childModifiers[key1].dish = modifier1;
+                            return cb();
+                          });
+                        }, function (err) {
+                          cartDish.dish = origDish;
+                          return cb(err);
                         });
-                      }, function (err) {
-                        cartDish.dish = origDish;
-                        return cb(err);
                       });
-                    });
-                  } else {
-                    Dish.findOne({id: modifier.id}).exec((err, modifier1) => {
-                      if (err) cb(err);
+                    } else {
+                      Dish.findOne({id: modifier.id}).exec((err, modifier1) => {
+                        if (err) cb(err);
 
-                      origDish.modifiers[key].dish = modifier1;
-                      return cb();
-                    });
-                  }
-                }, function (err) {
-                  cartDish.modifiers = dish.modifiers;
-                  return cb(err);
-                });
-              } else {
-                return cb();
-              }
-            }, function (err) {
-              if (err) return cb(err);
-              if (Array.isArray(cartDish.modifiers)) {
-                async.each(cartDish.modifiers, (modifier, cb) => {
-                  Dish.findOne({id: modifier.id}).exec((err, dish) => {
-                    if (err) return cb(err);
-
-                    modifier.dish = dish;
-                    cb();
-                  });
-                }, function (err) {
-                  cb(err);
-                });
-              } else {
-                if (cartDish.modifiers) {
-                  Dish.findOne({id: cartDish.modifiers.id}).exec((err, dish) => {
-                    if (err) return cb(err);
-
-                    cartDish.modifiers.dish = dish;
-                    cb();
+                        origDish.modifiers[key].dish = modifier1;
+                        return cb();
+                      });
+                    }
+                  }, function (err) {
+                    cartDish.modifiers = dish.modifiers;
+                    return cb(err);
                   });
                 } else {
-                  cb();
+                  return cb();
                 }
-              }
+              }, function (err) {
+                if (err) return cb(err);
+                if (Array.isArray(cartDish.modifiers)) {
+                  async.each(cartDish.modifiers, (modifier, cb) => {
+                    Dish.findOne({id: modifier.id}).exec((err, dish) => {
+                      if (err) return cb(err);
+
+                      modifier.dish = dish;
+                      cb();
+                    });
+                  }, function (err) {
+                    cb(err);
+                  });
+                } else {
+                  if (cartDish.modifiers) {
+                    Dish.findOne({id: cartDish.modifiers.id}).exec((err, dish) => {
+                      if (err) return cb(err);
+
+                      cartDish.modifiers.dish = dish;
+                      cb();
+                    });
+                  } else {
+                    cb();
+                  }
+                }
+              });
+            }, function (err) {
+              if (err) return reject(err);
+              // msg = msg || {type: 'info', title: 'ok', body: ""};
+              // if (msg.type === 'error')
+              //   res.status(500);
+              // // sails.log('r ', new Date().getTime());
+              // return res.json({cart: cart, message: msg});
+              return resolve(cart);
             });
-          }, function (err) {
-            if (err) return res.serverError(err);
-            msg = msg || {type: 'info', title: 'ok', body: ""};
-            if (msg.type === 'error')
-              res.status(500);
-            return res.json({cart: cart, message: msg});
           });
         });
       });
@@ -479,4 +483,3 @@ function countDish(dish, next) {
     });
   });
 }
-
