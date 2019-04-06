@@ -318,7 +318,7 @@ module.exports = {
   createOrUpdate: function (values) {
     return {
       exec: function (cb) {
-        Dish.findOne({id: values.id, parentGroup: values.parentGroup})/*.populate('tags')*/.exec((err, dish) => {
+        Dish.findOne({id: values.id})/*.populate('tags')*/.exec((err, dish) => {
           if (err) return cb(err);
 
           if (!dish) {

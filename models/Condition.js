@@ -33,7 +33,7 @@ module.exports = {
     },
 
     check: async function (cart) {
-      return await causes(this, cart);
+      return await causes(cart);
     },
 
     exec: function (cart) {
