@@ -57,6 +57,10 @@ module.exports = {
       required: true,
       primaryKey: true
     },
+    rmsId: {
+      type: 'string',
+      required: true
+    },
     additionalInfo: 'string',
     code: 'string',
     description: 'string',
@@ -113,7 +117,7 @@ module.exports = {
       type: 'slug',
       from: 'name'
     },
-    hash: 'string'
+    hash: 'integer'
 
   },
 
@@ -268,7 +272,7 @@ module.exports = {
 
                   async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
                     Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                      if (err) cb(err);
+                      if (err) return cb(err);
 
                       dish.modifiers[key].childModifiers[key1].dish = modifier1;
                       return cb();
@@ -279,7 +283,7 @@ module.exports = {
                 });
               } else {
                 Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                    if (err) cb(err);
+                  if (err) return cb(err);
 
                   dish.modifiers[key].dish = modifier1;
                   return cb();
