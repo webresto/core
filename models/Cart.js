@@ -61,6 +61,10 @@ module.exports = {
       type: 'boolean',
       defaultsTo: false
     },
+    deliveryDescription: {
+      type: 'string',
+      defaultsTo: ""
+    },
 
     /**
      * @description Add dish in cart
@@ -82,11 +86,13 @@ module.exports = {
       Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
         if (err) return cb({error: err});
 
+        // sails.log('1 ', new Date().getTime());
         async.each(modifiers, (m, cb) => {
           if (!m.amount)
             m.amount = 1;
           cb();
         }, () => {
+          // sails.log('2 ', new Date().getTime());
           CartDish.create({
             dish: dish.id,
             cart: this.id,
@@ -98,7 +104,10 @@ module.exports = {
             if (err) return cb({error: err});
 
             // sails.log.info(modifiers);
+
+            // sails.log('25', new Date().getTime());
             cart.next('CART').then(() => {
+              // sails.log('3 ', new Date().getTime());
               cb(null, cart);
             }, err => {
               cb(err);
@@ -311,12 +320,16 @@ module.exports = {
     return new Promise((resolve, reject) => {
       Cart.findOne({id: cart.id}).populate('dishes').exec((err, cart) => {
         if (err) return reject(err);
+        // sails.log('4 ', new Date().getTime());
         cart.count(cart, () => {
+          // sails.log('5 ', new Date().getTime());
 
           CartDish.find({cart: cart.id}).populate('dish').exec((err, dishes) => {
             if (err) return reject(err);
 
+            // sails.log('6 ', new Date().getTime());
             async.each(cart.dishes, (cartDish, cb) => {
+              // sails.log('a-', new Date().getTime());
               async.each(dishes, (dish, cb) => {
                 const origDish = dish.dish;
 
@@ -383,11 +396,7 @@ module.exports = {
               });
             }, function (err) {
               if (err) return reject(err);
-              // msg = msg || {type: 'info', title: 'ok', body: ""};
-              // if (msg.type === 'error')
-              //   res.status(500);
-              // // sails.log('r ', new Date().getTime());
-              // return res.json({cart: cart, message: msg});
+
               return resolve(cart);
             });
           });
@@ -412,6 +421,8 @@ function count(values, next) {
     let cartTotal = 0;
     let dishesCount = 0;
     let uniqueDishes = 0;
+
+    // sails.log.info(dishes);
 
     async.each(dishes, (dish, cb) => {
       Dish.findOne({id: dish.dish.id}).exec((err, dish1) => {

@@ -18,7 +18,8 @@
     "@google/maps": "^0.5.5",
     "request-promise": "^4.2.4",
     "point-in-polygon": "^1.0.1",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "moment-timezone": "^0.5.23"
   },
   "deprecated": false,
   "description": "sails resto core",

@@ -42,7 +42,7 @@ module.exports = {
         async.eachOf(that.actions, async (params, action, cb) => {
           try {
             params.cartId = cart.cartId;
-            sails.log.info(action, params);
+            // sails.log.info(action, params);
             await Condition.action(action, params);
             return cb();
           } catch (e) {
