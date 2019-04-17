@@ -5,3 +5,5 @@ module.exports = function (sails) {
     initialize: require('./lib/initialize')(sails)
   };
 };
+
+module.exports.iikoApi = require('./lib/iiko-api');
