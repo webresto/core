@@ -1,5 +1,5 @@
 <a name="top"></a>
-# Restocore v0.5.2
+# Restocore v0.5.7
 
 Sails hook for any cafe based on IIKO
 

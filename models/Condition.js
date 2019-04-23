@@ -41,6 +41,9 @@ module.exports = {
       return new Promise((resolve, reject) => {
         async.eachOf(that.actions, async (params, action, cb) => {
           try {
+            if (typeof params === 'boolean') {
+              params = {};
+            }
             params.cartId = cart.cartId;
             // sails.log.info(action, params);
             await Condition.action(action, params);

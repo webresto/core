@@ -65,6 +65,7 @@ module.exports = {
       type: 'string',
       defaultsTo: ""
     },
+    message: 'string',
 
     /**
      * @description Add dish in cart
@@ -414,7 +415,7 @@ module.exports = {
 function count(values, next) {
   CartDish.find({cart: values.id}).populate('dish').exec((err, dishes) => {
     if (err) {
-      sails.log.error(err);
+      sails.log.error('err count1', err);
       return next();
     }
 
@@ -427,7 +428,7 @@ function count(values, next) {
     async.each(dishes, (dish, cb) => {
       Dish.findOne({id: dish.dish.id}).exec((err, dish1) => {
         if (err) {
-          sails.log.error(err);
+          sails.log.error('err count2', err);
           return cb(err);
         }
 
@@ -461,7 +462,7 @@ function count(values, next) {
 function countDish(dish, next) {
   CartDish.findOne({id: dish.id}).exec((err, dish) => {
     if (err) {
-      sails.log.error(err);
+      sails.log.error('err count3', (err));
       return next();
     }
 
@@ -474,7 +475,7 @@ function countDish(dish, next) {
       dish.uniqueItems += m.amount;
       Dish.findOne({id: m.id}).exec((err, m1) => {
         if (err) {
-          sails.log.error(err);
+          sails.log.error('err count4', err);
           return next();
         }
 
@@ -488,7 +489,7 @@ function countDish(dish, next) {
       });
     }, () => {
       dish.save(err => {
-        if (err) sails.log.error(err);
+        if (err) sails.log.error('err count5', err);
         next(dish);
       });
     });
