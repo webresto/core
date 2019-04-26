@@ -39,27 +39,28 @@ module.exports = {
     exec: function (cart) {
       const that = this;
       return new Promise((resolve, reject) => {
-        async.eachOf(that.actions, async (params, action, cb) => {
+        let cartRes;
+        async.eachOfSeries(that.actions, async (params, action, cb) => {
           try {
             if (typeof params === 'boolean') {
               params = {};
             }
             params.cartId = cart.cartId;
             // sails.log.info(action, params);
-            await Condition.action(action, params);
+            cartRes = await Condition.action(action, params);
             return cb();
           } catch (e) {
             cb(e);
           }
         }, err => {
           if (err) return reject(err);
-          resolve();
+          resolve(cartRes);
         })
       });
     },
 
     hasReturn: function () {
-      return this.causes.return;
+      return this.actions.return;
     }
   },
 
