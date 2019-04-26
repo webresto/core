@@ -332,43 +332,50 @@ module.exports = {
             async.each(cart.dishes, (cartDish, cb) => {
               // sails.log('a-', new Date().getTime());
               async.each(dishes, (dish, cb) => {
-                const origDish = dish.dish;
+                Dish.findOne({id: dish.dish.id}).populate('images').exec((err, origDish) => {
+                  if (err) return cb(err);
+                  // const origDish = dish.dish;
 
-                if (cartDish.id === dish.id) {
-                  cartDish.dish = origDish;
-                  async.eachOf(origDish.modifiers, (modifier, key, cb) => {
-                    if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-                      Group.findOne({id: modifier.modifierId}).exec((err, group) => {
-                        if (err) cb(err);
-                        origDish.modifiers[key].group = group;
+                  if (origDish) {
+                    if (cartDish.id === dish.id) {
+                      cartDish.dish = origDish;
+                      async.eachOf(origDish.modifiers, (modifier, key, cb) => {
+                        if (modifier.childModifiers && modifier.childModifiers.length > 0) {
+                          Group.findOne({id: modifier.modifierId}).exec((err, group) => {
+                            if (err) cb(err);
+                            origDish.modifiers[key].group = group;
 
-                        async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
-                          Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                            async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
+                              Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
+                                if (err) cb(err);
+
+                                origDish.modifiers[key].childModifiers[key1].dish = modifier1;
+                                return cb();
+                              });
+                            }, function (err) {
+                              cartDish.dish = origDish;
+                              return cb(err);
+                            });
+                          });
+                        } else {
+                          Dish.findOne({id: modifier.id}).exec((err, modifier1) => {
                             if (err) cb(err);
 
-                            origDish.modifiers[key].childModifiers[key1].dish = modifier1;
+                            origDish.modifiers[key].dish = modifier1;
                             return cb();
                           });
-                        }, function (err) {
-                          cartDish.dish = origDish;
-                          return cb(err);
-                        });
+                        }
+                      }, function (err) {
+                        cartDish.modifiers = dish.modifiers;
+                        return cb(err);
                       });
                     } else {
-                      Dish.findOne({id: modifier.id}).exec((err, modifier1) => {
-                        if (err) cb(err);
-
-                        origDish.modifiers[key].dish = modifier1;
-                        return cb();
-                      });
+                      return cb();
                     }
-                  }, function (err) {
-                    cartDish.modifiers = dish.modifiers;
-                    return cb(err);
-                  });
-                } else {
-                  return cb();
-                }
+                  } else {
+                    return cb();
+                  }
+                });
               }, function (err) {
                 if (err) return cb(err);
                 if (Array.isArray(cartDish.modifiers)) {
@@ -426,27 +433,31 @@ function count(values, next) {
     // sails.log.info(dishes);
 
     async.each(dishes, (dish, cb) => {
-      Dish.findOne({id: dish.dish.id}).exec((err, dish1) => {
-        if (err) {
-          sails.log.error('err count2', err);
-          return cb(err);
-        }
+      if (dish.dish) {
+        Dish.findOne({id: dish.dish.id}).exec((err, dish1) => {
+          if (err) {
+            sails.log.error('err count2', err);
+            return cb(err);
+          }
 
-        if (!dish1) {
-          sails.log.error('Dish with id ' + dish.dish.id + ' not found!');
-          return cb(err);
-        }
+          if (!dish1) {
+            sails.log.error('Dish with id ' + dish.dish.id + ' not found!');
+            return cb(err);
+          }
 
-        countDish(dish, dish => {
-          if (dish.itemTotal)
-            cartTotal += dish.itemTotal;
-          cartTotal += dish.amount * dish1.price;
-          dishesCount += dish.amount;
-          uniqueDishes++;
-          cb();
+          countDish(dish, dish => {
+            if (dish.itemTotal)
+              cartTotal += dish.itemTotal;
+            cartTotal += dish.amount * dish1.price;
+            dishesCount += dish.amount;
+            uniqueDishes++;
+            cb();
+          });
+
         });
-
-      });
+      } else {
+        cb();
+      }
     }, err => {
       if (err)
         return next();

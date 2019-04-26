@@ -322,16 +322,16 @@ module.exports = {
   createOrUpdate: function (values) {
     return {
       exec: function (cb) {
-        Dish.findOne({id: values.id, parentGroup: values.parentGroup})/*.populate('tags')*/.exec((err, dish) => {
+        Dish.findOne({id: values.id}).exec((err, dish) => {
           if (err) return cb(err);
 
           if (!dish) {
-            Dish.create(values)/*.populate('tags')*/.exec((err, dish) => {
+            Dish.create(values).exec((err, dish) => {
               if (err) return cb(err);
               return cb(null, dish);
             });
           } else {
-            if (JSON.stringify(values) === dish.hash) {
+            if (hashCode(JSON.stringify(values)) === dish.hash) {
               cb(null, dish);
             } else {
               Dish.update({id: values.id}, values).exec((err, dish) => {
@@ -345,3 +345,14 @@ module.exports = {
     }
   }
 };
+
+function hashCode(str) {
+  let hash = 0;
+  if (str.length === 0) return hash;
+  for (let i = 0; i < str.length; i++) {
+    const chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0;
+  }
+  return hash;
+}
