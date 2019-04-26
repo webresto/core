@@ -56,6 +56,10 @@ module.exports = {
           resolve();
         })
       });
+    },
+
+    hasReturn: function () {
+      return this.causes.return;
     }
   },
 
