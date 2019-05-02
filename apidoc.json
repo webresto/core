@@ -1,5 +1,5 @@
 {
-  "name": "Restocore",
-  "version": "0.5.2",
+  "name": "Webresto/core",
+  "version": "0.6.0",
   "description": "Sails hook for any cafe based on IIKO"
 }

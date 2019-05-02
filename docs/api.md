@@ -1,5 +1,5 @@
 <a name="top"></a>
-# Restocore v0.5.7
+# Webresto/core v0.6.0
 
 Sails hook for any cafe based on IIKO
 
@@ -39,7 +39,6 @@ Sails hook for any cafe based on IIKO
 	- [Zone](#zone)
 	
 - [Order](#order)
-	- [Нахождение зоны и исполнение условий](#нахождение-зоны-и-исполнение-условий)
 	- [Проверка заказа](#проверка-заказа)
 	- [Создание заказа](#создание-заказа)
 	- [Нахождение зоны](#нахождение-зоны)
@@ -109,9 +108,7 @@ BadRequest 400
 {
      "type": "error",
      "title": "bad request",
-     "body": {
-       "error": "dishId is required"
-     }
+     "body": "dishId is required"
 }
 ```
 ServerError 500
@@ -190,9 +187,7 @@ BadRequest 400
 {
      "type": "error",
      "title": "bad request",
-     "body": {
-       "error": "dishId is required"
-     }
+     "body": "dishId is required"
 }
 ```
 ServerError 500
@@ -273,9 +268,7 @@ BadRequest 400
 {
      "type": "error",
      "title": "bad request",
-     "body": {
-       "error": "dishId is required"
-     }
+     "body": "dishId is required"
 }
 ```
 ServerError 500
@@ -356,9 +349,7 @@ BadRequest 400
 {
      "type": "error",
      "title": "bad request",
-     "body": {
-       "error": "dishId is required"
-     }
+     "body": "dishId is required"
 }
 ```
 ServerError 500
@@ -439,9 +430,7 @@ BadRequest 400
 {
      "type": "error",
      "title": "bad request",
-     "body": {
-       "error": "dishId is required"
-     }
+     "body": "dishId is required"
 }
 ```
 ServerError 500
@@ -777,7 +766,7 @@ email example
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  groupId | String | <p>ID группы для получения</p>|
-|  groupSlug | String | <p>Slug группы</p>|
+|  groupSlug | String | <p>Slug группы для получения</p>|
 
 
 
@@ -812,6 +801,16 @@ email example
 |  cartTotal | Integer | <p>Полная стоимость корзины</p>|
 |  delivery | Float | <p>Стоимость доставки</p>|
 |  problem | Boolean | <p>Есть ли проблема с отправкой на IIKO</p>|
+|  customer | JSON | <p>Данные о заказчике</p>|
+|  address | JSON | <p>Данные о адресе доставки</p>|
+|  comment | String | <p>Комментарий к заказу</p>|
+|  personsCount | Integer | <p>Количество персон</p>|
+|  sendToIiko | Boolean | <p>Был ли отправлен заказ IIKO</p>|
+|  iikoId | String | <p>ID заказа, который пришёл от IIKO</p>|
+|  deliveryStatus | String | <p>Статус состояния доставки (0 успешно расчитана)</p>|
+|  selfDelivery | Boolean | <p>Признак самовывоза</p>|
+|  deliveryDescription | String | <p>Строка дополнительной информации о доставке</p>|
+|  message | String | <p>Сообщение, что отправляется с корзиной</p>|
 
 
 
@@ -840,6 +839,7 @@ email example
 |  uniqueItems | Integer | <p>Количество уникальных блюд для текущего блюда (учитывая модификаторы)</p>|
 |  itemTotal | Integer | <p>Стоимсть данного блюда с модификаторами</p>|
 |  comment | String | <p>Комментарий к блюду</p>|
+|  addedBy | String | <p>Указывает каким образом блюдо попало в корзину</p>|
 
 ### Param Examples
 
@@ -877,7 +877,51 @@ email example
 |  weight | Integer | <p>Вес условия, чем больше, тем приоритетнее</p>|
 |  causes | JSON | <p>Объект условий, которым необходимо выполниться</p>|
 |  actions | JSON | <p>Объект действий, которые выполняются при выполнении всех условий</p>|
+|  zones | Zone | <p>Зоны, к которым применяется данное условие</p>|
 
+### Param Examples
+
+(JSON)
+{
+
+```
+{
+  workTime: [
+   {
+    dayOfWeek: 'monday',
+    start: '8:00',
+    end: '18:00'
+   },
+  ],
+ cartAmount: {
+   valueFrom: 100,
+   valueTo: 1000
+ },
+ dishes: ['some dish id', 'other dish id', ...],
+ groups: ['some group id', 'other groups id', ...]
+}
+```
+(JSON)
+{
+
+```
+{
+  addDish: {
+    dishesId: ['dish id', ...]
+  },
+  delivery: {
+    deliveryCost: 100.00
+  },
+  setDeliveryDescription: {
+    description: 'some string'
+  },
+  reject: true, (отказ доставки)
+  setMessage: {
+    message: 'string'
+  },
+  return: true (условия, вес которых ниже даного, игнорируются)
+}
+```
 
 
 
@@ -929,11 +973,12 @@ email example
 |  isDeleted | Boolean | <p>Удалён ли продукт в меню, отдаваемого клиенту</p>|
 |  modifiers | JSON | <p>Модификаторы доступные для данного блюда</p>|
 |  parentGroup | Group | <p>Группа, к которой принадлежит блюдо</p>|
-|  tags | Tags[] | <p>Тэги</p>|
+|  tags | JSON | <p>Тэги</p>|
 |  balance | Integer | <p>Количество оставшихся блюд. -1 - бесконечно</p>|
 |  images | Image[] | <p>Картинки блюда</p>|
 |  itemTotal | Integer | |
-|  slug | String | <p>Текстовое название блюда в транслите</p>|
+|  slug | String | <p>Текстовое названия блюда в транслите</p>|
+|  hash | Integer | <p>Хеш данного состояния блюда</p>|
 
 
 
@@ -971,6 +1016,7 @@ email example
 |  parentGroup | Group | <p>Родительская группа</p>|
 |  childGroups | Group[] | <p>Дочерние группы</p>|
 |  images | Image[] | <p>Картинки группы</p>|
+|  slug | String | <p>Текстовое названия группы в транслите</p>|
 
 
 
@@ -1028,6 +1074,7 @@ images:
 |  id | String | <p>ID улицы</p>|
 |  name | String | <p>Название улицы</p>|
 |  classifierId | String | <p>Идентификатор улицы в классификаторе, например, КЛАДР.</p>|
+|  isDeleted | Boolean | <p>Удалена ли улица</p>|
 
 
 
@@ -1048,9 +1095,9 @@ images:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  id | Integer | <p>ID</p>|
-|  revision | String | <p>Ревизия меню</p>|
-|  revisionStopList | String | <p>Ревизия стоп списка</p>|
-|  revisionOrders | String | <p>Ревизия заказов</p>|
+|  key | String | <p>Ключ доступа к свойству</p>|
+|  value | String | <p>Значение свойства</p>|
+|  section | String | <p>Секция, к которой относится свойство</p>|
 
 
 
@@ -1095,51 +1142,11 @@ images:
 |  name | String | <p>Название</p>|
 |  description | String | <p>Описание</p>|
 |  polygons | JSON | <p>Массив точек полигона</p>|
-|  conditions | Condition[] | <p>Условия</p>|
 
 
 
 
 # <a name='order'></a> Order
-
-## <a name='нахождение-зоны-и-исполнение-условий'></a> Нахождение зоны и исполнение условий
-[Back to top](#top)
-
-<p>Нахождение зоны, в которую входит адресс и исполнение всех условий, что к ней привязаны</p>
-
-	POST /api/0.5/ccheck
-
-
-
-
-
-### Parameter Parameters
-
-| Name     | Type       | Description                           |
-|:---------|:-----------|:--------------------------------------|
-|  street | String | <p>Улица доставки</p>|
-|  home | Integer | <p>Дом доставки</p>|
-|  cartId | UUID | <p>ID корзины для которой выполнять действия доставки</p>|
-
-
-### Success Response
-
-Message:
-
-```
-{
-     type: 'info',
-     title: 'ok',
-     body: 'success'
-}
-```
-
-### Success 200
-
-| Name     | Type       | Description                           |
-|:---------|:-----------|:--------------------------------------|
-|  cart | Cart | <p>Коризна с заполненым поле delivery. Если delivery 0, то доставка бесплатная</p>|
-|  message | JSON | <p>Сообщение</p>|
 
 ## <a name='проверка-заказа'></a> Проверка заказа
 [Back to top](#top)
