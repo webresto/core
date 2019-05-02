@@ -21,6 +21,7 @@
  * @apiParam {Group} parentGroup Родительская группа
  * @apiParam {Group[]} childGroups Дочерние группы
  * @apiParam {Image[]} images Картинки группы
+ * @apiParam {String} slug Текстовое названия группы в транслите
  *
  */
 
@@ -65,7 +66,6 @@ module.exports = {
       collection: 'image',
       via: 'group'
     },
-    isDeleted: 'boolean',
     slug: {
       type: 'slug',
       from: 'name'

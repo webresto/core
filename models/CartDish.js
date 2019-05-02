@@ -4,7 +4,7 @@
  * @apiDescription Модель блюда в корзине. Содержит информацию о количестве данного блюда в коризне и его модификаторы
  *
  * @apiParam {Integer} id ID данного блюда в корзине. Все операции с блюдом в корзине проводить с этим ID
- * @apiParam {Integer} amountКоличество данного блюда с его модификаторами в корзине
+ * @apiParam {Integer} amount Количество данного блюда с его модификаторами в корзине
  * @apiParam {Dish} dish Само блюдо, которое содержится в корзине
  * @apiParam {JSON} modifiers Модификаторы для текущего блюда
  * @apiParam {Cart} cart Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии
@@ -50,9 +50,7 @@ module.exports = {
     uniqueItems: {
       type: 'integer'
     },
-    itemTotal: {
-      type: 'integer'
-    },
+    itemTotal: 'float',
     comment: 'string',
     addedBy: {
       type: 'string',

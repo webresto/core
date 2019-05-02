@@ -4,9 +4,9 @@
  * @apiDescription Системная информация (в данный момент ревизия)
  *
  * @apiParam {Integer} id ID
- * @apiParam {String} revision Ревизия меню
- * @apiParam {String} revisionStopList Ревизия стоп списка
- * @apiParam {String} revisionOrders Ревизия заказов
+ * @apiParam {String} key Ключ доступа к свойству
+ * @apiParam {String} value Значение свойства
+ * @apiParam {String} section Секция, к которой относится свойство
  *
  */
 

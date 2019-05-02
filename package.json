@@ -49,7 +49,7 @@
     "hookName": "resto-core"
   },
   "scripts": {
-    "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o doc.md",
+    "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o docs/api.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "version": "0.5.3"

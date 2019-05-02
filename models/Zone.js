@@ -6,7 +6,6 @@
  * @apiParam {String} name Название
  * @apiParam {String} description Описание
  * @apiParam {JSON} polygons Массив точек полигона
- * @apiParam {Condition[]} conditions Условия
  */
 
 module.exports = {
@@ -31,10 +30,6 @@ module.exports = {
           break;
         }
       }
-    }
-
-    if (!searched) {
-      throw 'zone not found';
     }
 
     return searched;

@@ -39,11 +39,12 @@
  * @apiParam {Boolean} isDeleted Удалён ли продукт в меню, отдаваемого клиенту
  * @apiParam {JSON} modifiers Модификаторы доступные для данного блюда
  * @apiParam {Group} parentGroup Группа, к которой принадлежит блюдо
- * @apiParam {Tags[]} tags Тэги
+ * @apiParam {JSON} tags Тэги
  * @apiParam {Integer} balance Количество оставшихся блюд. -1 - бесконечно
  * @apiParam {Image[]} images Картинки блюда
  * @apiParam {Integer} itemTotal
- * @apiParam {String} slug Текстовое название блюда в транслите
+ * @apiParam {String} slug Текстовое названия блюда в транслите
+ * @apiParam {Integer} hash Хеш данного состояния блюда
  *
  */
 
@@ -112,7 +113,6 @@ module.exports = {
       collection: 'image',
       via: 'dish'
     },
-    itemTotal: 'integer',
     slug: {
       type: 'slug',
       from: 'name'
@@ -142,7 +142,8 @@ module.exports = {
           Group.findOne({id: groupsId}).populate(['images', 'dishes', 'childGroups'/*, 'dishesTags'*/]).exec((err, group) => {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
-            if (!checkExpression(group)) return resolve();
+            const reason = checkExpression(group);
+            if (reason) return reject(reason);
 
             const loadDishes = cb => {
               Dish.getDishes({parentGroup: groupsId}).then(dishes => {
@@ -185,7 +186,8 @@ module.exports = {
             if (err) return reject({error: err});
 
             async.each(groups, (group, cb) => {
-              if (checkExpression(group)) {
+              const reason = checkExpression(group);
+              if (!reason) {
                 menu[group.id] = group;
 
                 const loadDishes = function (cb) {
@@ -257,7 +259,8 @@ module.exports = {
         if (err) reject(err);
 
         async.eachOf(dishes, (dish, i, cb) => {
-          if (checkExpression(dish)) {
+          const reason = checkExpression(dish);
+          if (!reason) {
             if (dish === undefined) {
               // sails.log.info('DISHES', dishes, dishes.length);
               // sails.log.info('DISH', dish, i);

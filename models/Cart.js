@@ -12,6 +12,16 @@
  * @apiParam {Integer} cartTotal Полная стоимость корзины
  * @apiParam {Float} delivery Стоимость доставки
  * @apiParam {Boolean} problem Есть ли проблема с отправкой на IIKO
+ * @apiParam {JSON} customer Данные о заказчике
+ * @apiParam {JSON} address Данные о адресе доставки
+ * @apiParam {String} comment Комментарий к заказу
+ * @apiParam {Integer} personsCount Количество персон
+ * @apiParam {Boolean} sendToIiko Был ли отправлен заказ IIKO
+ * @apiParam {String} iikoId ID заказа, который пришёл от IIKO
+ * @apiParam {String} deliveryStatus Статус состояния доставки (0 успешно расчитана)
+ * @apiParam {Boolean} selfDelivery Признак самовывоза
+ * @apiParam {String} deliveryDescription Строка дополнительной информации о доставке
+ * @apiParam {String} message Сообщение, что отправляется с корзиной
  */
 
 /*
@@ -36,7 +46,7 @@ module.exports = {
     cartId: 'string',
     dishes: {
       collection: 'cartDish',
-      via: 'cart'
+      via: 'docs.old.cart'
     },
     dishesCount: 'integer',
     uniqueDishes: 'integer',
@@ -470,8 +480,8 @@ function count(values, next) {
   });
 }
 
-function countDish(dish, next) {
-  CartDish.findOne({id: dish.id}).exec((err, dish) => {
+function countDish(dishOrig, next) {
+  CartDish.findOne({id: dishOrig.id}).exec((err, dish) => {
     if (err) {
       sails.log.error('err count3', (err));
       return next();
@@ -499,6 +509,7 @@ function countDish(dish, next) {
         cb();
       });
     }, () => {
+      dish.itemTotal += dishOrig.price;
       dish.save(err => {
         if (err) sails.log.error('err count5', err);
         next(dish);
