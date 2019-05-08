@@ -36,6 +36,8 @@
  * @apiParam {}
  */
 
+const checkExpression = require('../lib/checkExpression');
+
 module.exports = {
   attributes: {
     id: {
@@ -46,7 +48,7 @@ module.exports = {
     cartId: 'string',
     dishes: {
       collection: 'cartDish',
-      via: 'docs.old.cart'
+      via: 'cart'
     },
     dishesCount: 'integer',
     uniqueDishes: 'integer',
@@ -76,6 +78,7 @@ module.exports = {
       defaultsTo: ""
     },
     message: 'string',
+    deliveryItem: 'string',
 
     /**
      * @description Add dish in cart
@@ -92,7 +95,7 @@ module.exports = {
         return cb({error: 'amount must be a number'});
       if (dish.balance !== -1)
         if (amount > dish.balance)
-          return cb({error: 'There is no so mush dishes ' + dish.id});
+          return cb({error: 'There is no so mush dishes ' + dish.id, code: 1});
 
       Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
         if (err) return cb({error: err});
@@ -331,22 +334,21 @@ module.exports = {
     return new Promise((resolve, reject) => {
       Cart.findOne({id: cart.id}).populate('dishes').exec((err, cart) => {
         if (err) return reject(err);
-        // sails.log('4 ', new Date().getTime());
-        cart.count(cart, () => {
-          // sails.log('5 ', new Date().getTime());
 
-          CartDish.find({cart: cart.id}).populate('dish').exec((err, dishes) => {
-            if (err) return reject(err);
+        CartDish.find({cart: cart.id}).populate('dish').exec((err, dishes) => {
+          if (err) return reject(err);
 
-            // sails.log('6 ', new Date().getTime());
-            async.each(cart.dishes, (cartDish, cb) => {
-              // sails.log('a-', new Date().getTime());
-              async.each(dishes, (dish, cb) => {
-                Dish.findOne({id: dish.dish.id}).populate('images').exec((err, origDish) => {
+          async.each(cart.dishes, (cartDish, cb) => {
+            let deleted = false;
+            async.eachSeries(dishes, (dish, cb) => {
+              if (!deleted) {
+                Dish.findOne({
+                  id: dish.dish.id,
+                  isDeleted: false
+                }).populate(['images', 'parentGroup']).exec((err, origDish) => {
                   if (err) return cb(err);
-                  // const origDish = dish.dish;
 
-                  if (origDish) {
+                  if (origDish && origDish.parentGroup && !checkExpression(origDish.parentGroup)) {
                     if (cartDish.id === dish.id) {
                       cartDish.dish = origDish;
                       async.eachOf(origDish.modifiers, (modifier, key, cb) => {
@@ -383,11 +385,23 @@ module.exports = {
                       return cb();
                     }
                   } else {
-                    return cb();
+                    sails.log.info('destroy', dish.id);
+                    CartDish.destroy(dish).exec((err) => {
+                      cart.dishes.remove(cartDish.id);
+                      delete cart.dishes[cart.dishes.indexOf(cartDish)];
+                      deleted = true;
+                      cart.save(err1 => {
+                        return cb(err || err1);
+                      });
+                    });
                   }
                 });
-              }, function (err) {
-                if (err) return cb(err);
+              } else {
+                cb();
+              }
+            }, function (err) {
+              if (err) return cb(err);
+              if (!deleted) {
                 if (Array.isArray(cartDish.modifiers)) {
                   async.each(cartDish.modifiers, (modifier, cb) => {
                     Dish.findOne({id: modifier.id}).exec((err, dish) => {
@@ -411,10 +425,14 @@ module.exports = {
                     cb();
                   }
                 }
-              });
-            }, function (err) {
-              if (err) return reject(err);
+              } else {
+                cb();
+              }
+            });
+          }, function (err) {
+            if (err) return reject(err);
 
+            cart.count(cart, () => {
               return resolve(cart);
             });
           });
@@ -485,6 +503,10 @@ function countDish(dishOrig, next) {
     if (err) {
       sails.log.error('err count3', (err));
       return next();
+    }
+
+    if (!dish) {
+      next();
     }
 
     const modifs = dish.modifiers;

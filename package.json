@@ -19,11 +19,7 @@
     "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
     "sails-util": "^0.11.0",
     "shelljs": "^0.8.2",
-    "@google/maps": "^0.5.5",
-    "request-promise": "^4.2.4",
-    "point-in-polygon": "^1.0.1",
-    "uuid": "^3.3.2",
-    "moment-timezone": "^0.5.23"
+    "uuid": "^3.3.2"
   },
   "deprecated": false,
   "description": "sails resto core",
@@ -52,5 +48,5 @@
     "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o docs/api.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.5.7"
+  "version": "0.6.0"
 }

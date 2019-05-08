@@ -980,6 +980,25 @@ email example
 |  slug | String | <p>Текстовое названия блюда в транслите</p>|
 |  hash | Integer | <p>Хеш данного состояния блюда</p>|
 
+### Param Examples
+
+(JSON)
+{
+
+```
+{
+  workTime: [
+   {
+    dayOfWeek: 'monday',
+    start: '8:00',
+    end: '18:00'
+   },
+  ],
+  visible: true|false,
+  promo: true|false,
+  modifiers: true|false
+}
+```
 
 
 
@@ -1018,6 +1037,25 @@ email example
 |  images | Image[] | <p>Картинки группы</p>|
 |  slug | String | <p>Текстовое названия группы в транслите</p>|
 
+### Param Examples
+
+(JSON)
+{
+
+```
+{
+  workTime: [
+   {
+    dayOfWeek: 'monday',
+    start: '8:00',
+    end: '18:00'
+   },
+  ],
+  visible: true|false,
+  promo: true|false,
+  modifiers: true|false
+}
+```
 
 
 

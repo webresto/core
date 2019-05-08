@@ -5,6 +5,19 @@
  *
  * @apiParam {String} id Уникальный идентификатор
  * @apiParam {String} additionalInfo Дополнительная информация
+ * @apiParamExample {JSON}
+ * {
+ *   workTime: [
+ *    {
+ *     dayOfWeek: 'monday',
+ *     start: '8:00',
+ *     end: '18:00'
+ *    },
+ *   ],
+ *   visible: true|false,
+ *   promo: true|false,
+ *   modifiers: true|false
+ * }
  * @apiParam {Float} code Артикул
  * @apiParam {String} description Описание
  * @apiParam {Boolean} isDeleted Удалён ли продукт в меню, отдаваемого клиенту

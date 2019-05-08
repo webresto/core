@@ -5,6 +5,19 @@
  *
  * @apiParam {String} id Уникальный идентификатор
  * @apiParam {String} additionalInfo Дополнительная информация
+ * @apiParamExample {JSON}
+ * {
+ *   workTime: [
+ *    {
+ *     dayOfWeek: 'monday',
+ *     start: '8:00',
+ *     end: '18:00'
+ *    },
+ *   ],
+ *   visible: true|false,
+ *   promo: true|false,
+ *   modifiers: true|false
+ * }
  * @apiParam {String} code Артикул
  * @apiParam {String} description Описание
  * @apiParam {String} name Название
@@ -128,6 +141,7 @@ module.exports = {
    * @return {Promise<>}
    */
   getByGroupId: function (groupsId, cb) {
+    let groups = {};
     let result = [];
     return new Promise((resolve, reject) => {
       if (Array.isArray(groupsId)) {
@@ -164,12 +178,16 @@ module.exports = {
 
             if (group.childGroups) {
               let childGroups = [];
+
               async.each(group.childGroups, (cg, cb1) => {
                 this.getByGroupId(cg.id).then(data => {
                   if (data)
                     childGroups.push(data);
                   cb1();
-                }, err => sails.log.error(err));
+                }, err => {
+                  // sails.log.error(err);
+                  cb1();
+                });
               }, () => {
                 delete group.childGroups;
                 group.children = childGroups;
@@ -217,7 +235,10 @@ module.exports = {
                         if (data)
                           childGroups.push(data);
                         cb1();
-                      }, err => sails.log.error(err));
+                      }, err => {
+                        // sails.log.error(err);
+                        cb1();
+                      });
                     }, () => {
                       delete menu[group.id].childGroups;
                       menu[group.id].childGroups = null;
@@ -255,6 +276,7 @@ module.exports = {
       if (!criteria)
         criteria = {};
       criteria.isDeleted = false;
+      criteria.balance = {'!': 0};
       Dish.find(criteria).populate([/*'tags',*/ 'images']).exec((err, dishes) => {
         if (err) reject(err);
 
