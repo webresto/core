@@ -19,8 +19,6 @@ Sails hook for any cafe based on IIKO
 	- [Системная информация](#системная-информация)
 	
 - [Menu](#menu)
-	- [Получение группы](#получение-группы)
-	- [Получение групп](#получение-групп)
 	- [Получение отдельного блюда](#получение-отдельного-блюда)
 	- [Стоп список](#стоп-список)
 	- [Полное меню](#полное-меню)
@@ -65,7 +63,7 @@ Sails hook for any cafe based on IIKO
 |  cartId | String | **optional**<p>ID корзины в которую добавляют блюдо. Если не задано, то создаётся новая корзина</p>|
 |  amount | Integer | **optional**<p>Количество порций</p>_Default value: 1_<br>|
 |  modifiers | JSON | **optional**<p>JSON модификаторов для блюда</p>|
-|  dishId | String | <p>ID блюда, которое добавляется в корзину. Тут dishId - id из CartDish</p>|
+|  dishId | String | <p>ID блюда, которое добавляется в корзину (параметр dishId - поле id из модели <a href="#api-Models-ApiCartdish">CartDish</a>)</p>|
 |  comment | String | **optional**<p>Комментарий к блюду</p>|
 
 ### Param Examples
@@ -98,7 +96,7 @@ Message:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  message | JSON | <p>Сообщение от сервера</p>|
-|  cart | Cart | <p>Cart model</p>|
+|  cart | <a href="#api-Models-ApiCart">Cart</a> | <p>Cart model</p>|
 
 ### Error Response
 
@@ -177,7 +175,7 @@ Message:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  message | JSON | <p>Сообщение от сервера</p>|
-|  cart | Cart | <p>Cart model</p>|
+|  cart | <a href="#api-Models-ApiCart">Cart</a> | <p>Cart model</p>|
 
 ### Error Response
 
@@ -238,7 +236,7 @@ NotFound 404
 |:---------|:-----------|:--------------------------------------|
 |  cartId | String | <p>ID корзины из которой удаляется блюдо</p>|
 |  amount | Integer | **optional**<p>количество удаляемых порций</p>_Default value: 1_<br>|
-|  dishId | String | <p>Блюдо, которому меняется количество порций. Тут dishId - id из CartDish</p>|
+|  dishId | String | <p>Блюдо, которому меняется количество порций (параметр dishId - поле id из модели <a href="#api-Models-ApiCartdish">CartDish</a>)</p>|
 
 
 ### Success Response
@@ -258,7 +256,7 @@ Message:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  message | JSON | <p>Сообщение от сервера</p>|
-|  cart | Cart | <p>Cart model</p>|
+|  cart | <a href="#api-Models-ApiCart">Cart</a> | <p>Cart model</p>|
 
 ### Error Response
 
@@ -339,7 +337,7 @@ Message:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  message | JSON | <p>Сообщение от сервера</p>|
-|  cart | Cart | <p>Cart model</p>|
+|  cart | <a href="#api-Models-ApiCart">Cart</a> | <p>Cart model</p>|
 
 ### Error Response
 
@@ -420,7 +418,7 @@ Message:
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
 |  message | JSON | <p>Сообщение от сервера</p>|
-|  cart | Cart | <p>Cart model</p>|
+|  cart | <a href="#api-Models-ApiCart">Cart</a> | <p>Cart model</p>|
 
 ### Error Response
 
@@ -487,11 +485,21 @@ NotFound 404
 |  development | Boolean | <p>Является ли приложение в разработке (позволяет образаться к /api/0.5/api/...)</p>|
 |  masterKey | String | <p>Если приложение не в разработке, то для доступа к /api/0.5/api/... требуется этот параметр</p>|
 |  city | String | <p>Название города, в котором находтся кафе</p>|
-|  email | JSON | <p>Отправка письма на почту независимо от результата работы IIKO</p>|
+|  email | JSON | <p>Настройка e-mail сервера</p>|
 |  defaultName | String | **optional**<p>Имя пользоваьеля, что используется при проверки осуществляемости заказа</p>|
 |  defaultPhone | String | **optional**<p>Телефон, аналогично предыдущему</p>|
 |  iiko | JSON | <p>Параметры для сервера IIKO</p>|
-|  images | JSON | **optional**<p>Параметр для обработки картинок. Если его нет, то картнки от IIKO не обрабатываются вовсе. В размерах один из параметров (width или height) обязательный.</p>|
+|  images | JSON | **optional**<p>Параметр для обработки картинок блюд. Если его нет, то картнки от IIKO не обрабатываются вовсе. В размерах один из параметров (width или height) обязательный.</p>|
+|  dishImagesCount | Number | **optional**<p>Сколько картинок в блюде хранить</p>|
+|  groupImages | JSON | **optional**<p>Параметр для обработки картинок групп</p>|
+|  groupImagesCount | Number | **optional**<p>Сколько картинок в группе хранить</p>|
+|  requireCheckOnRMS | JSON | **optional**<p>Обязательно ли выполнять проверку доставки на RMS-сервере. Если нет, то поставить false, если да, то устанавливается количество попыток проверки</p>|
+|  requireSendOnRMS | JSON | **optional**<p>Запрещать оформление заказа без доставки на RMS-сервер. Если нет, то поставить false, если да, то устанавливается количество попыток проверки</p>|
+|  checkType | String | **optional**<p>Говорит о том каким образом проверять стоимость доставки (rms - с помощью IIKO, native - встроенной функцией, тогда требуется настройка поля map)</p>|
+|  map | JSON | **optional**<p>Настройка для карт если использовать нативную проверку</p>|
+|  zoneDontWork | String | **optional**<p>Сообщение в случае, если зона доставки не работает</p>_Default value: Доставка не может быть расчитана_<br>|
+|  zoneNotFound | String | **optional**<p>Сообщение в случае, если зона доставки не была найдена</p>_Default value: Улица не входит в зону доставки_<br>|
+|  timezone | String | **optional**<p>Временная зона кафе, записывается строкой</p>|
 
 ### Param Examples
 
@@ -580,6 +588,14 @@ email example
   template: "/views/email.ejs"
 }
 ```
+(json)
+requireCheckOnRMS|requireSendOnRMS
+
+```
+{
+  attempts: 10
+}
+```
 
 
 
@@ -628,7 +644,7 @@ email example
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  Array | Street[] | <p>Массив улиц</p>|
+|  Array | <a href="l#api-Models-ApiStreet">Street</a>[] | <p>Массив улиц</p>|
 
 ## <a name='системная-информация'></a> Системная информация
 [Back to top](#top)
@@ -651,42 +667,6 @@ email example
 |  data | Array | <p>Информация о организации, содержащаяся на сервере IIKO</p>|
 
 # <a name='menu'></a> Menu
-
-## <a name='получение-группы'></a> Получение группы
-[Back to top](#top)
-
-<p>Получение группы без блюд но с иерархией дочерных групп по её ID</p>
-
-	GET /api/0.5/groups
-
-
-
-
-
-
-### Success 200
-
-| Name     | Type       | Description                           |
-|:---------|:-----------|:--------------------------------------|
-|  group | Group | <p>Запрашиваемая группа</p>|
-
-## <a name='получение-групп'></a> Получение групп
-[Back to top](#top)
-
-<p>Получение групп без блюд но с иерархией дочерных групп</p>
-
-	GET /api/0.5/groups
-
-
-
-
-
-
-### Success 200
-
-| Name     | Type       | Description                           |
-|:---------|:-----------|:--------------------------------------|
-|  Array | Group[] | <p>Список групп, которые не имеют родительских</p>|
 
 ## <a name='получение-отдельного-блюда'></a> Получение отдельного блюда
 [Back to top](#top)
@@ -712,7 +692,7 @@ email example
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  DishObject | Dish | <p>Запрашиваемое блюдо</p>|
+|  DishObject | <a href="#api-Models-ApiDish">Dish</a> | <p>Запрашиваемое блюдо</p>|
 
 ## <a name='стоп-список'></a> Стоп список
 [Back to top](#top)
@@ -730,7 +710,7 @@ email example
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  Array | Street[] | <p>Список гланых групп (которые не имеют родительских групп) с полной иехрархией всех дочерних групп и блюд</p>|
+|  Array | <a href="#api-Models-ApiDish">Dish</a>[] | <p>Список гланых групп (которые не имеют родительских групп) с полной иехрархией всех дочерних групп и блюд</p>|
 
 ## <a name='полное-меню'></a> Полное меню
 [Back to top](#top)
@@ -748,7 +728,7 @@ email example
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  GroupObjectArray | Group[] | <p>Список главных групп (которые не имеют родительских групп) с полной иехрархией всех дочерних групп и блюд</p>|
+|  GroupObjectArray | <a href="#api-Models-ApiGroup">Group</a>[] | <p>Список главных групп (которые не имеют родительских групп) с полной иехрархией всех дочерних групп и блюд</p>|
 
 ## <a name='получение-блюд-из-группы'></a> Получение блюд из группы
 [Back to top](#top)
@@ -774,7 +754,7 @@ email example
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  GroupObject | Group | <p>Запрашиваемая группа</p>|
+|  GroupObject | <a href="#api-Models-ApiGroup">Group</a> | <p>Запрашиваемая группа</p>|
 
 # <a name='models'></a> Models
 
@@ -795,7 +775,7 @@ email example
 |:---------|:-----------|:--------------------------------------|
 |  id | Integer | <p>Уникальный идентификатор</p>|
 |  cartId | String | <p>ID корзины, по которой к ней обращается внешнее апи</p>|
-|  dishes | CartDish[] | <p>Массив блюд в текущей корзине. Смотри CartDish</p>|
+|  dishes | <a href="#api-Models-ApiCartdish">CartDish</a>[] | <p>Массив блюд в текущей корзине. Смотри <a href="#api-Models-ApiCartdish">CartDish</a></p>|
 |  countDishes | Integer | <p>Общее количество блюд в корзине (с модификаторами)</p>|
 |  uniqueDishes | Integer | <p>Количество уникальных блюд в корзине</p>|
 |  cartTotal | Integer | <p>Полная стоимость корзины</p>|
@@ -832,10 +812,10 @@ email example
 |:---------|:-----------|:--------------------------------------|
 |  id | Integer | <p>ID данного блюда в корзине. Все операции с блюдом в корзине проводить с этим ID</p>|
 |  amount | Integer | <p>Количество данного блюда с его модификаторами в корзине</p>|
-|  dish | Dish | <p>Само блюдо, которое содержится в корзине</p>|
+|  dish | <a href="#api-Models-ApiDish">Dish</a> | <p>Само блюдо, которое содержится в корзине</p>|
 |  modifiers | JSON | <p>Модификаторы для текущего блюда</p>|
-|  cart | Cart | <p>Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии</p>|
-|  parent | CartDish | <p>Родительское блюдо (для модификаторов)</p>|
+|  cart | <a href="#api-Models-ApiCart">Cart</a> | <p>Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии</p>|
+|  parent | <a href="#api-Models-ApiCartdish">CartDish</a> | <p>Родительское блюдо (для модификаторов)</p>|
 |  uniqueItems | Integer | <p>Количество уникальных блюд для текущего блюда (учитывая модификаторы)</p>|
 |  itemTotal | Integer | <p>Стоимсть данного блюда с модификаторами</p>|
 |  comment | String | <p>Комментарий к блюду</p>|
@@ -877,12 +857,12 @@ email example
 |  weight | Integer | <p>Вес условия, чем больше, тем приоритетнее</p>|
 |  causes | JSON | <p>Объект условий, которым необходимо выполниться</p>|
 |  actions | JSON | <p>Объект действий, которые выполняются при выполнении всех условий</p>|
-|  zones | Zone | <p>Зоны, к которым применяется данное условие</p>|
+|  zones | <a href="#api-Models-ApiZone">Zone</a> | <p>Зоны, к которым применяется данное условие</p>|
 
 ### Param Examples
 
-(JSON)
-{
+(json)
+causes
 
 ```
 {
@@ -901,8 +881,8 @@ email example
  groups: ['some group id', 'other groups id', ...]
 }
 ```
-(JSON)
-{
+(json)
+actions
 
 ```
 {
@@ -910,7 +890,8 @@ email example
     dishesId: ['dish id', ...]
   },
   delivery: {
-    deliveryCost: 100.00
+    deliveryCost: 100.00,
+    deliveryItem: 'string'
   },
   setDeliveryDescription: {
     description: 'some string'
@@ -963,7 +944,7 @@ email example
 |  groupModifiers | Array | <p>Групповые модификаторы (не используется в пользу modifiers)</p>|
 |  measureUnit | String | <p>Единица измерения товара ( кг, л, шт, порц.)</p>|
 |  price | Float | <p>Цена</p>|
-|  productCategoryId | Group | <p>Идентификатор категории продукта</p>|
+|  productCategoryId | <a href="#api-Models-ApiGroup">Group</a> | <p>Идентификатор категории продукта</p>|
 |  prohibitedToSaleOn | Array | <p>Список ID терминалов, на которых продукт запрещен к продаже</p>|
 |  type | String | <p>Тип: dish - блюдо good - товар modifier - модификатор</p>|
 |  useBalanceForSell | Boolean | <p>Товар продается на вес</p>|
@@ -972,10 +953,10 @@ email example
 |  order | Float | <p>Порядок отображения</p>|
 |  isDeleted | Boolean | <p>Удалён ли продукт в меню, отдаваемого клиенту</p>|
 |  modifiers | JSON | <p>Модификаторы доступные для данного блюда</p>|
-|  parentGroup | Group | <p>Группа, к которой принадлежит блюдо</p>|
+|  parentGroup | <a href="#api-Models-ApiGroup">Group</a> | <p>Группа, к которой принадлежит блюдо</p>|
 |  tags | JSON | <p>Тэги</p>|
 |  balance | Integer | <p>Количество оставшихся блюд. -1 - бесконечно</p>|
-|  images | Image[] | <p>Картинки блюда</p>|
+|  images | <a href="#api-Models-ApiImage">Image</a>[] | <p>Картинки блюда</p>|
 |  itemTotal | Integer | |
 |  slug | String | <p>Текстовое названия блюда в транслите</p>|
 |  hash | Integer | <p>Хеш данного состояния блюда</p>|
@@ -983,7 +964,7 @@ email example
 ### Param Examples
 
 (JSON)
-{
+additionalInfo
 
 ```
 {
@@ -996,7 +977,7 @@ email example
   ],
   visible: true|false,
   promo: true|false,
-  modifiers: true|false
+  modifier: true|false
 }
 ```
 
@@ -1031,16 +1012,16 @@ email example
 |  isIncludedInMenu | Boolean | <p>Нужно ли продукт отображать в дереве номенклатуры</p>|
 |  order | Float | <p>Порядок отображения</p>|
 |  dishesTags | Tags[] | <p>Тэги всех блюд, что есть в этой группе</p>|
-|  dishes | Dish[] | <p>Блюда, содержашиеся в этой группе</p>|
-|  parentGroup | Group | <p>Родительская группа</p>|
-|  childGroups | Group[] | <p>Дочерние группы</p>|
-|  images | Image[] | <p>Картинки группы</p>|
+|  dishes | <a href="#api-Models-ApiDish">Dish</a>[] | <p>Блюда, содержашиеся в этой группе</p>|
+|  parentGroup | <a href="#api-Models-ApiGroup">Group</a> | <p>Родительская группа</p>|
+|  childGroups | <a href="#api-Models-ApiGroup">Group</a>[] | <p>Дочерние группы</p>|
+|  images | <a href="#api-Models-ApiImage">Image</a>[] | <p>Картинки группы</p>|
 |  slug | String | <p>Текстовое названия группы в транслите</p>|
 
 ### Param Examples
 
 (JSON)
-{
+additionalInfo
 
 ```
 {
@@ -1053,7 +1034,7 @@ email example
   ],
   visible: true|false,
   promo: true|false,
-  modifiers: true|false
+  modifier: true|false
 }
 ```
 
@@ -1076,8 +1057,8 @@ email example
 |:---------|:-----------|:--------------------------------------|
 |  id | String | <p>ID картинки</p>|
 |  images | JSON | <p>Данные о картинках, что содержит данная модель</p>|
-|  dish | Dish | <p>Блюдо, которому принадлежит картинка (не показывается во избежание рекурсии)</p>|
-|  group | Group | <p>Группа, которой принажлежит картинка (не показывается во избежание рекурсии)</p>|
+|  dish | <a href="#api-Models-ApiDish">Dish</a> | <p>Блюдо, которому принадлежит картинка (не показывается во избежание рекурсии)</p>|
+|  group | <a href="#api-Models-ApiGroup">Group</a> | <p>Группа, которой принажлежит картинка (не показывается во избежание рекурсии)</p>|
 
 ### Param Examples
 
@@ -1157,7 +1138,7 @@ images:
 |:---------|:-----------|:--------------------------------------|
 |  id | Integer | <p>ID</p>|
 |  name | String | <p>Название тэга</p>|
-|  dishes | Dish[] | <p>Блюда, которые содержат этот тэг</p>|
+|  dishes | <a href="#api-Models-ApiDish">Dish</a>[] | <p>Блюда, которые содержат этот тэг</p>|
 
 
 
@@ -1234,7 +1215,7 @@ Message:
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  cart | Cart | <p>Коризна с заполненым поле delivery. Если delivery 0, то доставка бесплатная</p>|
+|  cart | <a href="#api-Models-ApiCart">Cart</a> | <p>Коризна с заполненым поле delivery. Если delivery 0, то доставка бесплатная</p>|
 |  message | JSON | <p>Сообщение</p>|
 
 ### Error Response
@@ -1341,7 +1322,7 @@ Message:
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  cart | Cart | <p>Новая пустая корзина</p>|
+|  cart | <a href="#api-Models-ApiCart">Cart</a> | <p>Новая пустая корзина</p>|
 |  message | JSON | <p>Сообщение</p>|
 
 ### Error Response
@@ -1393,7 +1374,7 @@ Gone 410
 
 | Name     | Type       | Description                           |
 |:---------|:-----------|:--------------------------------------|
-|  street | String | <p>Улица доставки</p>|
+|  streetId | String | <p>Улица доставки</p>|
 |  home | Integer | <p>Дом доставки</p>|
 
 

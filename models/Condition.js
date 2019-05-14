@@ -8,7 +8,7 @@
  * @apiParam {Boolean} enable Включено ли данное условие
  * @apiParam {Integer} weight Вес условия, чем больше, тем приоритетнее
  * @apiParam {JSON} causes Объект условий, которым необходимо выполниться
- * @apiParamExample {JSON}
+ * @apiParamExample causes
  * {
  *   workTime: [
  *    {
@@ -25,13 +25,14 @@
  *  groups: ['some group id', 'other groups id', ...]
  * }
  * @apiParam {JSON} actions Объект действий, которые выполняются при выполнении всех условий
- * @apiParamExample {JSON}
+ * @apiParamExample actions
  * {
  *   addDish: {
  *     dishesId: ['dish id', ...]
  *   },
  *   delivery: {
- *     deliveryCost: 100.00
+ *     deliveryCost: 100.00,
+ *     deliveryItem: 'string'
  *   },
  *   setDeliveryDescription: {
  *     description: 'some string'
@@ -42,7 +43,7 @@
  *   },
  *   return: true (условия, вес которых ниже даного, игнорируются)
  * }
- * @apiParam {Zone} zones Зоны, к которым применяется данное условие
+ * @apiParam {[Zone](#api-Models-ApiZone)} zones Зоны, к которым применяется данное условие
  */
 
 const actions = require('../lib/actions');

@@ -5,7 +5,7 @@
  *
  * @apiParam {String} id Уникальный идентификатор
  * @apiParam {String} additionalInfo Дополнительная информация
- * @apiParamExample {JSON}
+ * @apiParamExample {JSON} additionalInfo
  * {
  *   workTime: [
  *    {
@@ -16,7 +16,7 @@
  *   ],
  *   visible: true|false,
  *   promo: true|false,
- *   modifiers: true|false
+ *   modifier: true|false
  * }
  * @apiParam {Float} code Артикул
  * @apiParam {String} description Описание
@@ -30,10 +30,10 @@
  * @apiParam {Boolean} isIncludedInMenu Нужно ли продукт отображать в дереве номенклатуры
  * @apiParam {Float} order Порядок отображения
  * @apiParam {Tags[]} dishesTags Тэги всех блюд, что есть в этой группе
- * @apiParam {Dish[]} dishes Блюда, содержашиеся в этой группе
- * @apiParam {Group} parentGroup Родительская группа
- * @apiParam {Group[]} childGroups Дочерние группы
- * @apiParam {Image[]} images Картинки группы
+ * @apiParam {[Dish](#api-Models-ApiDish)[]} dishes Блюда, содержашиеся в этой группе
+ * @apiParam {[Group](#api-Models-ApiGroup)} parentGroup Родительская группа
+ * @apiParam {[Group](#api-Models-ApiGroup)[]} childGroups Дочерние группы
+ * @apiParam {[Image](#api-Models-ApiImage)[]} images Картинки группы
  * @apiParam {String} slug Текстовое названия группы в транслите
  *
  */

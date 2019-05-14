@@ -6,7 +6,7 @@
  *
  * @apiParam {Integer} id Уникальный идентификатор
  * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
- * @apiParam {CartDish[]} dishes Массив блюд в текущей корзине. Смотри CartDish
+ * @apiParam {[CartDish](#api-Models-ApiCartdish)[]} dishes Массив блюд в текущей корзине. Смотри [CartDish](#api-Models-ApiCartdish)
  * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
  * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
  * @apiParam {Integer} cartTotal Полная стоимость корзины
@@ -86,9 +86,9 @@ module.exports = {
      * @param amount
      * @param modifiers - json
      * @param comment
-     * @param from
      * @param cb
-     * @returns {error, cart}
+     * @param from
+     * @returns function
      */
     addDish: function (dish, amount, modifiers, comment, cb, from) {
       if (typeof amount !== 'number')
@@ -99,6 +99,15 @@ module.exports = {
 
       Cart.findOne({id: this.id}).populate('dishes').exec((err, cart) => {
         if (err) return cb({error: err});
+
+        const reason = checkExpression(dish);
+        if (reason) {
+          if (reason !== 'promo') {
+            cart.next('CART').then(() => {
+              return cb(null, cart);
+            });
+          }
+        }
 
         // sails.log('1 ', new Date().getTime());
         async.each(modifiers, (m, cb) => {
@@ -136,7 +145,7 @@ module.exports = {
      * @param dishId
      * @param amount
      * @param cb
-     * @return {error, cart}
+     * @return function
      */
     removeDish: function (dishId, amount, cb) {
       if (typeof amount !== 'number')

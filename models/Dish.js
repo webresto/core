@@ -5,7 +5,7 @@
  *
  * @apiParam {String} id Уникальный идентификатор
  * @apiParam {String} additionalInfo Дополнительная информация
- * @apiParamExample {JSON}
+ * @apiParamExample {JSON} additionalInfo
  * {
  *   workTime: [
  *    {
@@ -16,7 +16,7 @@
  *   ],
  *   visible: true|false,
  *   promo: true|false,
- *   modifiers: true|false
+ *   modifier: true|false
  * }
  * @apiParam {String} code Артикул
  * @apiParam {String} description Описание
@@ -39,7 +39,7 @@
  * @apiParam {Array} groupModifiers Групповые модификаторы (не используется в пользу modifiers)
  * @apiParam {String} measureUnit Единица измерения товара ( кг, л, шт, порц.)
  * @apiParam {Float} price Цена
- * @apiParam {Group} productCategoryId Идентификатор категории продукта
+ * @apiParam {[Group](#api-Models-ApiGroup)} productCategoryId Идентификатор категории продукта
  * @apiParam {Array} prohibitedToSaleOn Список ID терминалов, на которых продукт запрещен к продаже
  * @apiParam {String} type Тип:
  dish - блюдо
@@ -51,10 +51,10 @@
  * @apiParam {Float} order Порядок отображения
  * @apiParam {Boolean} isDeleted Удалён ли продукт в меню, отдаваемого клиенту
  * @apiParam {JSON} modifiers Модификаторы доступные для данного блюда
- * @apiParam {Group} parentGroup Группа, к которой принадлежит блюдо
+ * @apiParam {[Group](#api-Models-ApiGroup)} parentGroup Группа, к которой принадлежит блюдо
  * @apiParam {JSON} tags Тэги
  * @apiParam {Integer} balance Количество оставшихся блюд. -1 - бесконечно
- * @apiParam {Image[]} images Картинки блюда
+ * @apiParam {[Image](#api-Models-ApiImage)[]} images Картинки блюда
  * @apiParam {Integer} itemTotal
  * @apiParam {String} slug Текстовое названия блюда в транслите
  * @apiParam {Integer} hash Хеш данного состояния блюда
