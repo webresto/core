@@ -153,7 +153,10 @@ module.exports = {
         });
       } else {
         if (groupsId) {
-          Group.findOne({id: groupsId}).populate(['images', 'dishes', 'childGroups'/*, 'dishesTags'*/]).exec((err, group) => {
+          Group.findOne({
+            id: groupsId,
+            isDeleted: false
+          }).populate(['images', 'dishes', 'childGroups'/*, 'dishesTags'*/]).exec((err, group) => {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
             const reason = checkExpression(group);
@@ -200,7 +203,10 @@ module.exports = {
           });
         } else {
           let menu = {};
-          Group.find({parentGroup: null}).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, groups) => {
+          Group.find({
+            parentGroup: null,
+            isDeleted: false
+          }).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, groups) => {
             if (err) return reject({error: err});
 
             async.each(groups, (group, cb) => {
