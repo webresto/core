@@ -278,7 +278,7 @@ module.exports = {
       criteria.isDeleted = false;
       criteria.balance = {'!': 0};
       Dish.find(criteria).populate([/*'tags',*/ 'images']).exec((err, dishes) => {
-        if (err) reject(err);
+        if (err) return reject(err);
 
         async.eachOf(dishes, (dish, i, cb) => {
           const reason = checkExpression(dish);
