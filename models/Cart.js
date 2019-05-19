@@ -469,7 +469,7 @@ function count(values, next) {
 
     // sails.log.info(dishes);
 
-    async.eachOf(dishes, (dish, index, cb) => {
+    async.each(dishes, (dish, cb) => {
       if (dish.dish) {
         Dish.findOne({id: dish.dish.id}).exec((err, dish1) => {
           if (err) {
@@ -485,12 +485,9 @@ function count(values, next) {
           countDish(dish, dish => {
             if (dish.itemTotal)
               cartTotal += dish.itemTotal;
-            cartTotal += dish.amount * dish1.price;
+            // cartTotal += dish.amount * dish1.price;
             dishesCount += dish.amount;
             uniqueDishes++;
-
-            dishes[index] = dish;
-
             cb();
           });
 
@@ -504,7 +501,6 @@ function count(values, next) {
       values.cartTotal = cartTotal;
       values.dishesCount = dishesCount;
       values.uniqueDishes = uniqueDishes;
-      values.dishes = dishes;
 
       next();
     });
@@ -519,7 +515,6 @@ function countDish(dishOrig, next) {
     }
 
     if (!dish) {
-      sails.log.error('dish with id', dishOrig.id, 'not found');
       next();
     }
 
@@ -541,19 +536,15 @@ function countDish(dishOrig, next) {
           return next();
         }
 
-        dish.itemTotal += m.amount * m1.price * dish.amount;
+        dish.itemTotal += m.amount * m1.price;
         cb();
       });
     }, () => {
       dish.itemTotal += dishOrig.dish.price;
-
-      dish.save(async err => {
+      dish.itemTotal *= dish.amount;
+      dish.save(err => {
         if (err) sails.log.error('err count5', err);
-
-        dishOrig.itemTotal = dish.itemTotal;
-        dishOrig.uniqueItems = dish.uniqueItems;
-
-        next(dishOrig);
+        next(dish);
       });
     });
   });
