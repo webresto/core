@@ -38,7 +38,7 @@
   "name": "@webresto/core",
   "repository": {
     "type": "git",
-    "url": "http://git.42team.ru/webresto/core.git"
+    "url": "http://git.42team.org/webresto/core.git"
   },
   "sails": {
     "isHook": true,
