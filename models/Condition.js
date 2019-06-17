@@ -95,7 +95,7 @@ module.exports = {
     },
 
     hasReturn: function () {
-      return this.actions.return;
+        return this.actions.return || this.actions.reject;
     }
   },
 

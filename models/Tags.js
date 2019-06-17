@@ -16,13 +16,13 @@ module.exports = {
       autoIncrement: true,
       primaryKey: true
     },
-    name: {
-      type: 'string'
-    },
-    dishes: {
-      collection: 'dish',
-      via: 'tags'
-    }
+      // name: {
+      //   type: 'string'
+      // },
+      // dishes: {
+      //   collection: 'dish',
+      //   via: 'tags'
+      // }
   }
 };
 

@@ -79,6 +79,7 @@ module.exports = {
     },
     message: 'string',
     deliveryItem: 'string',
+      totalWeight: 'float',
 
     /**
      * @description Add dish in cart
@@ -442,6 +443,9 @@ module.exports = {
             if (err) return reject(err);
 
             cart.count(cart, () => {
+
+                //TODO
+
               return resolve(cart);
             });
           });
@@ -466,6 +470,7 @@ function count(values, next) {
     let cartTotal = 0;
     let dishesCount = 0;
     let uniqueDishes = 0;
+      let totalWeight = 0;
 
     // sails.log.info(dishes);
 
@@ -488,6 +493,7 @@ function count(values, next) {
             // cartTotal += dish.amount * dish1.price;
             dishesCount += dish.amount;
             uniqueDishes++;
+              totalWeight += dish.weight;
             cb();
           });
 
@@ -501,6 +507,7 @@ function count(values, next) {
       values.cartTotal = cartTotal;
       values.dishesCount = dishesCount;
       values.uniqueDishes = uniqueDishes;
+        values.totalWeight = totalWeight;
 
       next();
     });

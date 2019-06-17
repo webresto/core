@@ -487,7 +487,7 @@ NotFound 404
 |  city | String | <p>Название города, в котором находтся кафе</p>|
 |  email | JSON | <p>Настройка e-mail сервера</p>|
 |  defaultName | String | **optional**<p>Имя пользоваьеля, что используется при проверки осуществляемости заказа</p>|
-|  defaultPhone | String | **optional**<p>Телефон, аналогично предыдущему</p>|
+|  defaultNumber | String | **optional**<p>Телефон, аналогично предыдущему</p>|
 |  iiko | JSON | <p>Параметры для сервера IIKO</p>|
 |  images | JSON | **optional**<p>Параметр для обработки картинок блюд. Если его нет, то картнки от IIKO не обрабатываются вовсе. В размерах один из параметров (width или height) обязательный.</p>|
 |  dishImagesCount | Number | **optional**<p>Сколько картинок в блюде хранить</p>|
@@ -500,6 +500,8 @@ NotFound 404
 |  zoneDontWork | String | **optional**<p>Сообщение в случае, если зона доставки не работает</p>_Default value: Доставка не может быть расчитана_<br>|
 |  zoneNotFound | String | **optional**<p>Сообщение в случае, если зона доставки не была найдена</p>_Default value: Улица не входит в зону доставки_<br>|
 |  timezone | String | **optional**<p>Временная зона кафе, записывается строкой</p>|
+|  timeSyncMap | Number | **optional**<p>Время цикла синхронизации карты зон доставки. Указывается в секундах</p>_Default value: 900_<br>|
+|  deliveryWorkTime | JSON | **optional**<p>Время работы сайта (когда не работает, все ссылки @WebResto не работают)</p>|
 
 ### Param Examples
 
@@ -595,6 +597,31 @@ requireCheckOnRMS|requireSendOnRMS
 {
   attempts: 10
 }
+```
+(json)
+map
+
+```
+ {
+   geocode: 'yandex',
+   customMaps: 'google',
+   check: 'google',
+   api: 'api string',
+   customMap: 'url like https://www.google.com/maps/d/u/0/kml?mid=1Fv9JHTrN-IyFc82VQ2h6MEN7z6efwbPb&forcekml=1'
+}
+```
+(json)
+deliveryWorkTime
+
+```
+[
+ {
+    dayOfWeek: 'sunday|monday|tuesday|wednesday|thursday|friday|saturday|all',
+    start: '8:00',
+    stop: '22:00'
+ },
+ ...
+]
 ```
 
 

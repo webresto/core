@@ -12,7 +12,7 @@
  * @apiParam {String} city Название города, в котором находтся кафе
  * @apiParam {JSON} email Настройка e-mail сервера
  * @apiParam {String} [defaultName] Имя пользоваьеля, что используется при проверки осуществляемости заказа
- * @apiParam {String} [defaultPhone] Телефон, аналогично предыдущему
+ * @apiParam {String} [defaultNumber] Телефон, аналогично предыдущему
  * @apiParam {JSON} iiko Параметры для сервера IIKO
  * @apiParam {JSON} [images] Параметр для обработки картинок блюд. Если его нет, то картнки от IIKO не обрабатываются вовсе. В размерах один из параметров (width или height) обязательный.
  * @apiParam {Number} [dishImagesCount] Сколько картинок в блюде хранить
@@ -25,6 +25,8 @@
  * @apiParam {String} [zoneDontWork='Доставка не может быть расчитана'] Сообщение в случае, если зона доставки не работает
  * @apiParam {String} [zoneNotFound='Улица не входит в зону доставки'] Сообщение в случае, если зона доставки не была найдена
  * @apiParam {String} [timezone] Временная зона кафе, записывается строкой
+ * @apiParam {Number} [timeSyncMap=900] Время цикла синхронизации карты зон доставки. Указывается в секундах
+ * @apiParam {JSON} [deliveryWorkTime] Время работы сайта (когда не работает, все ссылки @WebResto не работают)
  *
  * @apiParamExample iiko types
  *  {
@@ -91,10 +93,30 @@
  *    },
  *    template: "/views/email.ejs"
  *  }
+ *
  *  @apiParamExample requireCheckOnRMS|requireSendOnRMS
  *  {
  *    attempts: 10
  *  }
+ *
+ *  @apiParamExample map
+ *  {
+ *    geocode: 'yandex',
+ *    customMaps: 'google',
+ *    check: 'google',
+ *    api: 'api string',
+ *    customMap: 'url like https://www.google.com/maps/d/u/0/kml?mid=1Fv9JHTrN-IyFc82VQ2h6MEN7z6efwbPb&forcekml=1'
+ * }
+ *
+ * @apiParamExample deliveryWorkTime
+ * [
+ *  {
+ *     dayOfWeek: 'sunday|monday|tuesday|wednesday|thursday|friday|saturday|all',
+ *     start: '8:00',
+ *     stop: '22:00'
+ *  },
+ *  ...
+ * ]
  */
 
 module.exports.restocore = {

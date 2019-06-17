@@ -141,8 +141,6 @@ module.exports = {
    * @return {Promise<>}
    */
   getByGroupId: function (groupsId, cb) {
-    let groups = {};
-    let result = [];
     return new Promise((resolve, reject) => {
       if (Array.isArray(groupsId)) {
         let arr = [];
@@ -172,7 +170,6 @@ module.exports = {
                 });
 
                 if (cb) {
-                  result.push(data);
                   cb();
                 }
                 return resolve(group);
@@ -262,7 +259,6 @@ module.exports = {
               }
             }, function () {
               if (cb) {
-                result.push(data);
                 cb();
               }
               resolve(menu);
@@ -287,6 +283,8 @@ module.exports = {
         if (err) return reject(err);
 
         async.eachOf(dishes, (dish, i, cb) => {
+            // if (dish && dish.images && dish.images.length)
+            //   sails.log.info('IMAGES', dish.images);
           const reason = checkExpression(dish);
           if (!reason) {
             if (dish === undefined) {
