@@ -23,14 +23,14 @@ module.exports = {
   attributes: {
     id: {
       type: 'string',
-        required: true,
+      required: true,
       primaryKey: true
     },
     images: {
       type: 'json'
     },
     dish: {
-        collection: 'dish',
+      collection: 'dish',
       via: 'images'
     },
     group: {
