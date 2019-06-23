@@ -55,7 +55,9 @@ module.exports = {
     addedBy: {
       type: 'string',
       defaultsTo: 'user'
-    }
+    },
+    weight: 'float',
+    totalWeight: 'float'
   }
 };
 
