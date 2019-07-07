@@ -502,6 +502,7 @@ NotFound 404
 |  timezone | String | **optional**<p>Временная зона кафе, записывается строкой</p>|
 |  timeSyncMap | Number | **optional**<p>Время цикла синхронизации карты зон доставки. Указывается в секундах</p>_Default value: 900_<br>|
 |  deliveryWorkTime | JSON | **optional**<p>Время работы сайта (когда не работает, все ссылки @WebResto не работают)</p>|
+|  groupShift | String | **optional**<p>Группа, которую следует загружать во время синхронизации (загружаются они и все их дочерние группы рекурсивно)</p>|
 
 ### Param Examples
 

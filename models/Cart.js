@@ -395,7 +395,7 @@ module.exports = {
                       return cb();
                     }
                   } else {
-                    sails.log.info('destroy', dish.id);
+                    sails.log.debug('destroy', dish.id);
                     CartDish.destroy(dish).exec((err) => {
                       cart.dishes.remove(cartDish.id);
                       delete cart.dishes[cart.dishes.indexOf(cartDish)];
@@ -443,9 +443,6 @@ module.exports = {
             if (err) return reject(err);
 
             cart.count(cart, () => {
-
-              //TODO
-
               return resolve(cart);
             });
           });
@@ -494,7 +491,6 @@ function count(values, next) {
             dishesCount += dish.amount;
             uniqueDishes++;
             totalWeight += dish.totalWeight;
-            values.dishes[i] = dish;
             cb();
           });
 
@@ -528,13 +524,13 @@ function countDish(dishOrig, next) {
 
     const modifs = dish.modifiers;
 
-    dish.uniqueItems = 0;
-    dish.itemTotal = 0;
-    dish.weight = dish.dish.weight;
-    dish.totalWeight = 0;
+    dishOrig.uniqueItems = 0;
+    dishOrig.itemTotal = 0;
+    dishOrig.weight = dish.dish.weight;
+    dishOrig.totalWeight = 0;
 
     async.each(modifs, (m, cb) => {
-      dish.uniqueItems += m.amount;
+      dishOrig.uniqueItems += m.amount;
       Dish.findOne({id: m.id}).exec((err, m1) => {
         if (err) {
           sails.log.error('err count4', err);
@@ -546,15 +542,14 @@ function countDish(dishOrig, next) {
           return next();
         }
 
-        dish.itemTotal += m.amount * m1.price;
-        dish.weight += m.weight;
+        dishOrig.itemTotal += m.amount * m1.price;
+        dishOrig.weight += m1.weight;
         cb();
       });
     }, () => {
-      dish.totalWeight = dish.weight * dish.amount;
-      dish.itemTotal += dishOrig.dish.price;
-      dish.itemTotal *= dish.amount;
-      sails.log.info(dish.weight, dish.totalWeight);
+      dishOrig.totalWeight = dish.weight * dish.amount;
+      dishOrig.itemTotal += dishOrig.dish.price;
+      dishOrig.itemTotal *= dish.amount;
       dish.save(err => {
         if (err) sails.log.error('err count5', err);
         next(dish);

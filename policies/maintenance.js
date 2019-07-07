@@ -8,7 +8,7 @@ module.exports = async function (req, res, next) {
     if (!maints.length) {
       return next();
     }
-    sails.log.info(maints);
+    // sails.log.info(maints);
     maints = maints.filter(s => {
       let start, stop;
       if (s.startDate)
@@ -19,7 +19,7 @@ module.exports = async function (req, res, next) {
       const now = moment().valueOf();
       return between(start, stop, now);
     });
-    sails.log.info(maints);
+    // sails.log.info(maints);
 
     const maint = maints[0];
     if (maints.length) {
