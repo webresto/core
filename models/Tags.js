@@ -5,7 +5,7 @@
  *
  * @apiParam {Integer} id ID
  * @apiParam {String} name Название тэга
- * @apiParam {Dish[]} dishes Блюда, которые содержат этот тэг
+ * @apiParam {[Dish](#api-Models-ApiDish)[]} dishes Блюда, которые содержат этот тэг
  *
  */
 
@@ -16,13 +16,13 @@ module.exports = {
       autoIncrement: true,
       primaryKey: true
     },
-    name: {
-      type: 'string'
-    },
-    dishes: {
-      collection: 'dish',
-      via: 'tags'
-    }
+      // name: {
+      //   type: 'string'
+      // },
+      // dishes: {
+      //   collection: 'dish',
+      //   via: 'tags'
+      // }
   }
 };
 

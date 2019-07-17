@@ -6,6 +6,7 @@
  * @apiParam {String} id ID улицы
  * @apiParam {String} name Название улицы
  * @apiParam {String} classifierId Идентификатор улицы в классификаторе, например, КЛАДР.
+ * @apiParam {Boolean} isDeleted Удалена ли улица
  *
  */
 

@@ -10,13 +10,25 @@
  * @apiParam {Boolean} development Является ли приложение в разработке (позволяет образаться к /api/0.5/api/...)
  * @apiParam {String} masterKey Если приложение не в разработке, то для доступа к /api/0.5/api/... требуется этот параметр
  * @apiParam {String} city Название города, в котором находтся кафе
- * @apiParam {JSON} email Отправка письма на почту независимо от результата работы IIKO
+ * @apiParam {JSON} email Настройка e-mail сервера
  * @apiParam {String} [defaultName] Имя пользоваьеля, что используется при проверки осуществляемости заказа
- * @apiParam {String} [defaultPhone] Телефон, аналогично предыдущему
+ * @apiParam {String} [defaultNumber] Телефон, аналогично предыдущему
  * @apiParam {JSON} iiko Параметры для сервера IIKO
- * @apiParam {JSON} [images] Параметр для обработки картинок.
- * Если его нет, то картнки от IIKO не обрабатываются вовсе.
- * В размерах один из параметров (width или height) обязательный.
+ * @apiParam {JSON} [images] Параметр для обработки картинок блюд. Если его нет, то картнки от IIKO не обрабатываются вовсе. В размерах один из параметров (width или height) обязательный.
+ * @apiParam {Number} [dishImagesCount] Сколько картинок в блюде хранить
+ * @apiParam {JSON} [groupImages] Параметр для обработки картинок групп
+ * @apiParam {Number} [groupImagesCount] Сколько картинок в группе хранить
+ * @apiParam {JSON} [requireCheckOnRMS] Обязательно ли выполнять проверку доставки на RMS-сервере. Если нет, то поставить false, если да, то устанавливается количество попыток проверки
+ * @apiParam {JSON} [requireSendOnRMS] Запрещать оформление заказа без доставки на RMS-сервер. Если нет, то поставить false, если да, то устанавливается количество попыток проверки
+ * @apiParam {String} [checkType] Говорит о том каким образом проверять стоимость доставки (rms - с помощью IIKO, native - встроенной функцией, тогда требуется настройка поля map)
+ * @apiParam {JSON} [map] Настройка для карт если использовать нативную проверку
+ * @apiParam {String} [zoneDontWork='Доставка не может быть расчитана'] Сообщение в случае, если зона доставки не работает
+ * @apiParam {String} [zoneNotFound='Улица не входит в зону доставки'] Сообщение в случае, если зона доставки не была найдена
+ * @apiParam {String} [timezone] Временная зона кафе, записывается строкой
+ * @apiParam {Number} [timeSyncMap=900] Время цикла синхронизации карты зон доставки. Указывается в секундах
+ * @apiParam {JSON} [deliveryWorkTime] Время работы сайта (когда не работает, все ссылки @WebResto не работают)
+ * @apiParam {String} [groupShift] Группа, которую следует загружать во время синхронизации (загружаются они и все их дочерние группы рекурсивно)
+ * @apiParam {Array} [groupShift] Группы, которые следует загружать во время синхронизации (загружаются они и все их дочерние группы рекурсивно)
  *
  * @apiParamExample iiko types
  *  {
@@ -83,6 +95,30 @@
  *    },
  *    template: "/views/email.ejs"
  *  }
+ *
+ *  @apiParamExample requireCheckOnRMS|requireSendOnRMS
+ *  {
+ *    attempts: 10
+ *  }
+ *
+ *  @apiParamExample map
+ *  {
+ *    geocode: 'yandex',
+ *    customMaps: 'google',
+ *    check: 'google',
+ *    api: 'api string',
+ *    customMap: 'url like https://www.google.com/maps/d/u/0/kml?mid=1Fv9JHTrN-IyFc82VQ2h6MEN7z6efwbPb&forcekml=1'
+ * }
+ *
+ * @apiParamExample deliveryWorkTime
+ * [
+ *  {
+ *     dayOfWeek: 'sunday|monday|tuesday|wednesday|thursday|friday|saturday|all',
+ *     start: '8:00',
+ *     stop: '22:00'
+ *  },
+ *  ...
+ * ]
  */
 
 module.exports.restocore = {

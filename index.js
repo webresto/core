@@ -10,5 +10,6 @@ module.exports = _.merge(module.exports, {
   iikoApi: require('./lib/iiko-api'),
   email: require('./lib/email'),
   generateGUID: require('./lib/generateGUID'),
-  actions: require('./lib/actions')
+  actions: require('./lib/actions'),
+  between: require('./lib/causes').between
 });

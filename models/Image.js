@@ -5,8 +5,8 @@
  *
  * @apiParam {String} id ID картинки
  * @apiParam {JSON} images Данные о картинках, что содержит данная модель
- * @apiParam {Dish} dish Блюдо, которому принадлежит картинка (не показывается во избежание рекурсии)
- * @apiParam {Group} group Группа, которой принажлежит картинка (не показывается во избежание рекурсии)
+ * @apiParam {[Dish](#api-Models-ApiDish)} dish Блюдо, которому принадлежит картинка (не показывается во избежание рекурсии)
+ * @apiParam {[Group](#api-Models-ApiGroup)} group Группа, которой принажлежит картинка (не показывается во избежание рекурсии)
  *
  * @apiParamExample {JSON} images:
  "images": {
@@ -16,18 +16,21 @@
     }
  */
 
+//TODO: проверить нужны ли вообще связи из картинки к блюду и группе, если что удалить
+
 module.exports = {
 
   attributes: {
     id: {
       type: 'string',
+      required: true,
       primaryKey: true
     },
     images: {
       type: 'json'
     },
     dish: {
-      model: 'dish',
+      collection: 'dish',
       via: 'images'
     },
     group: {

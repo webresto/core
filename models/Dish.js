@@ -5,6 +5,19 @@
  *
  * @apiParam {String} id Уникальный идентификатор
  * @apiParam {String} additionalInfo Дополнительная информация
+ * @apiParamExample {JSON} additionalInfo
+ * {
+ *   workTime: [
+ *    {
+ *     dayOfWeek: 'monday',
+ *     start: '8:00',
+ *     end: '18:00'
+ *    },
+ *   ],
+ *   visible: true|false,
+ *   promo: true|false,
+ *   modifier: true|false
+ * }
  * @apiParam {String} code Артикул
  * @apiParam {String} description Описание
  * @apiParam {String} name Название
@@ -26,7 +39,7 @@
  * @apiParam {Array} groupModifiers Групповые модификаторы (не используется в пользу modifiers)
  * @apiParam {String} measureUnit Единица измерения товара ( кг, л, шт, порц.)
  * @apiParam {Float} price Цена
- * @apiParam {Group} productCategoryId Идентификатор категории продукта
+ * @apiParam {[Group](#api-Models-ApiGroup)} productCategoryId Идентификатор категории продукта
  * @apiParam {Array} prohibitedToSaleOn Список ID терминалов, на которых продукт запрещен к продаже
  * @apiParam {String} type Тип:
  dish - блюдо
@@ -38,12 +51,13 @@
  * @apiParam {Float} order Порядок отображения
  * @apiParam {Boolean} isDeleted Удалён ли продукт в меню, отдаваемого клиенту
  * @apiParam {JSON} modifiers Модификаторы доступные для данного блюда
- * @apiParam {Group} parentGroup Группа, к которой принадлежит блюдо
- * @apiParam {Tags[]} tags Тэги
+ * @apiParam {[Group](#api-Models-ApiGroup)} parentGroup Группа, к которой принадлежит блюдо
+ * @apiParam {JSON} tags Тэги
  * @apiParam {Integer} balance Количество оставшихся блюд. -1 - бесконечно
- * @apiParam {Image[]} images Картинки блюда
+ * @apiParam {[Image](#api-Models-ApiImage)[]} images Картинки блюда
  * @apiParam {Integer} itemTotal
- * @apiParam {String} slug Текстовое название блюда в транслите
+ * @apiParam {String} slug Текстовое названия блюда в транслите
+ * @apiParam {Integer} hash Хеш данного состояния блюда
  *
  */
 
@@ -56,6 +70,10 @@ module.exports = {
       type: 'string',
       required: true,
       primaryKey: true
+    },
+    rmsId: {
+      type: 'string',
+      required: true
     },
     additionalInfo: 'string',
     code: 'string',
@@ -108,12 +126,11 @@ module.exports = {
       collection: 'image',
       via: 'dish'
     },
-    itemTotal: 'integer',
     slug: {
       type: 'slug',
       from: 'name'
     },
-    hash: 'string'
+    hash: 'integer'
 
   },
 
@@ -124,7 +141,6 @@ module.exports = {
    * @return {Promise<>}
    */
   getByGroupId: function (groupsId, cb) {
-    let result = [];
     return new Promise((resolve, reject) => {
       if (Array.isArray(groupsId)) {
         let arr = [];
@@ -135,10 +151,14 @@ module.exports = {
         });
       } else {
         if (groupsId) {
-          Group.findOne({id: groupsId}).populate(['images', 'dishes', 'childGroups'/*, 'dishesTags'*/]).exec((err, group) => {
+          Group.findOne({
+            id: groupsId,
+            isDeleted: false
+          }).populate(['images', 'dishes', 'childGroups'/*, 'dishesTags'*/]).exec((err, group) => {
             if (err) return reject({error: err});
             if (!group) return reject({error: 'not found'});
-            if (!checkExpression(group)) return resolve();
+            const reason = checkExpression(group);
+            if (reason) return reject(reason);
 
             const loadDishes = cb => {
               Dish.getDishes({parentGroup: groupsId}).then(dishes => {
@@ -150,7 +170,6 @@ module.exports = {
                 });
 
                 if (cb) {
-                  result.push(data);
                   cb();
                 }
                 return resolve(group);
@@ -159,12 +178,16 @@ module.exports = {
 
             if (group.childGroups) {
               let childGroups = [];
+
               async.each(group.childGroups, (cg, cb1) => {
                 this.getByGroupId(cg.id).then(data => {
                   if (data)
                     childGroups.push(data);
                   cb1();
-                }, err => sails.log.error(err));
+                }, err => {
+                  // sails.log.error(err);
+                  cb1();
+                });
               }, () => {
                 delete group.childGroups;
                 group.children = childGroups;
@@ -177,11 +200,15 @@ module.exports = {
           });
         } else {
           let menu = {};
-          Group.find({parentGroup: null}).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, groups) => {
+          Group.find({
+            parentGroup: null,
+            isDeleted: false
+          }).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, groups) => {
             if (err) return reject({error: err});
 
             async.each(groups, (group, cb) => {
-              if (checkExpression(group)) {
+              const reason = checkExpression(group);
+              if (!reason) {
                 menu[group.id] = group;
 
                 const loadDishes = function (cb) {
@@ -211,7 +238,10 @@ module.exports = {
                         if (data)
                           childGroups.push(data);
                         cb1();
-                      }, err => sails.log.error(err));
+                      }, err => {
+                        // sails.log.error(err);
+                        cb1();
+                      });
                     }, () => {
                       delete menu[group.id].childGroups;
                       menu[group.id].childGroups = null;
@@ -229,7 +259,6 @@ module.exports = {
               }
             }, function () {
               if (cb) {
-                result.push(data);
                 cb();
               }
               resolve(menu);
@@ -249,16 +278,20 @@ module.exports = {
       if (!criteria)
         criteria = {};
       criteria.isDeleted = false;
+      criteria.balance = {'!': 0};
       Dish.find(criteria).populate([/*'tags',*/ 'images']).exec((err, dishes) => {
-        if (err) reject(err);
+        if (err) return reject(err);
 
-          async.eachOf(dishes, (dish, i, cb) => {
-          if (checkExpression(dish)) {
-              if (dish === undefined) {
-                  // sails.log.info('DISHES', dishes, dishes.length);
-                  // sails.log.info('DISH', dish, i);
-                  return cb();
-              }
+        async.eachOf(dishes, (dish, i, cb) => {
+            // if (dish && dish.images && dish.images.length)
+            //   sails.log.info('IMAGES', dish.images);
+          const reason = checkExpression(dish);
+          if (!reason) {
+            if (dish === undefined) {
+              // sails.log.info('DISHES', dishes, dishes.length);
+              // sails.log.info('DISH', dish, i);
+              return cb();
+            }
 
             async.eachOf(dish.modifiers, (modifier, key, cb) => {
               if (modifier.childModifiers && modifier.childModifiers.length > 0) {
@@ -268,7 +301,7 @@ module.exports = {
 
                   async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
                     Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                      if (err) cb(err);
+                      if (err) return cb(err);
 
                       dish.modifiers[key].childModifiers[key1].dish = modifier1;
                       return cb();
@@ -279,7 +312,7 @@ module.exports = {
                 });
               } else {
                 Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                    if (err) cb(err);
+                  if (err) return cb(err);
 
                   dish.modifiers[key].dish = modifier1;
                   return cb();
@@ -291,7 +324,7 @@ module.exports = {
                 if (dish.images.length >= 2)
                   dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
               } catch (e) {
-                  // sails.log.error('err32', e, dish.images);
+                // sails.log.error('err32', e, dish.images);
               }
 
               return cb(err);
@@ -318,16 +351,16 @@ module.exports = {
   createOrUpdate: function (values) {
     return {
       exec: function (cb) {
-        Dish.findOne({id: values.id})/*.populate('tags')*/.exec((err, dish) => {
+        Dish.findOne({id: values.id}).exec((err, dish) => {
           if (err) return cb(err);
 
           if (!dish) {
-            Dish.create(values)/*.populate('tags')*/.exec((err, dish) => {
+            Dish.create(values).exec((err, dish) => {
               if (err) return cb(err);
               return cb(null, dish);
             });
           } else {
-            if (JSON.stringify(values) === dish.hash) {
+            if (hashCode(JSON.stringify(values)) === dish.hash) {
               cb(null, dish);
             } else {
               Dish.update({id: values.id}, values).exec((err, dish) => {
@@ -341,3 +374,14 @@ module.exports = {
     }
   }
 };
+
+function hashCode(str) {
+  let hash = 0;
+  if (str.length === 0) return hash;
+  for (let i = 0; i < str.length; i++) {
+    const chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0;
+  }
+  return hash;
+}
