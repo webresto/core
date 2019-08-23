@@ -109,6 +109,15 @@ module.exports = {
         });
       }
     }
+  },
+
+  createOrUpdate2: async function (values) {
+    const group = await Group.findOne({id: values.id});
+    if (!group) {
+      return await Group.create(values);
+    } else {
+      return (await Group.update({id: values.id}, values))[0];
+    }
   }
 };
 

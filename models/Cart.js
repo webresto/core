@@ -41,11 +41,9 @@ const checkExpression = require('../lib/checkExpression');
 module.exports = {
   attributes: {
     id: {
-      type: 'integer',
-      autoIncrement: true,
+      type: 'string',
       primaryKey: true
     },
-    cartId: 'string',
     dishes: {
       collection: 'cartDish',
       via: 'cart'
@@ -352,6 +350,10 @@ module.exports = {
             let deleted = false;
             async.eachSeries(dishes, (dish, cb) => {
               if (!deleted) {
+                if (!dish.dish) {
+                  sails.log.error('cartDish', dish.id, 'has not dish');
+                  return cb();
+                }
                 Dish.findOne({
                   id: dish.dish.id,
                   isDeleted: false
@@ -395,7 +397,7 @@ module.exports = {
                       return cb();
                     }
                   } else {
-                    sails.log.debug('destroy', dish.id);
+                    sails.log.info('destroy', dish.id);
                     CartDish.destroy(dish).exec((err) => {
                       cart.dishes.remove(cartDish.id);
                       delete cart.dishes[cart.dishes.indexOf(cartDish)];
@@ -442,6 +444,8 @@ module.exports = {
           }, function (err) {
             if (err) return reject(err);
 
+            cart.cartId = cart.id;
+
             cart.count(cart, () => {
               return resolve(cart);
             });
@@ -484,7 +488,7 @@ function count(values, next) {
             return cb(err);
           }
 
-          countDish(dish, dish => {
+          countDish(dish, () => {
             if (dish.itemTotal)
               cartTotal += dish.itemTotal;
             // cartTotal += dish.amount * dish1.price;
@@ -550,9 +554,9 @@ function countDish(dishOrig, next) {
       dishOrig.totalWeight = dish.weight * dish.amount;
       dishOrig.itemTotal += dishOrig.dish.price;
       dishOrig.itemTotal *= dish.amount;
-      dish.save(err => {
+      dishOrig.save(err => {
         if (err) sails.log.error('err count5', err);
-        next(dish);
+        next(dishOrig);
       });
     });
   });

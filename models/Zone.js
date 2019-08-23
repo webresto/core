@@ -7,6 +7,7 @@
  * @apiParam {String} description Описание
  * @apiParam {JSON} polygons Массив точек полигона
  */
+const MapAdapter = require('../adapter/index').Map;
 
 module.exports = {
   attributes: {
@@ -37,20 +38,6 @@ module.exports = {
 
   getMapAdapter: function (config, key) {
     const type = config[key].toLowerCase();
-    const adapterName = type[0].toUpperCase() + type.substr(1, type.length - 1);
-    const Adapter = require('../adapter/map/' + adapterName + 'MapAdapter');
-    return new Adapter(config);
+    return new (MapAdapter.getAdapter(type))(config);
   }
 };
-
-// sails.on('lifted', async () => {
-//   try {
-//     sails.log.info('start');
-//     const res = await Zone.getDeliveryCoast('Республики', '30');
-//     sails.log.info('end', res);
-//   } catch (e) {
-//     sails.log.error('err100', e);
-//   } finally {
-//     sails.lower();
-//   }
-// });

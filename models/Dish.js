@@ -237,6 +237,7 @@ module.exports = {
                       this.getByGroupId(cg.id).then(data => {
                         if (data)
                           childGroups.push(data);
+                        // sails.log.info(cg.name);
                         cb1();
                       }, err => {
                         // sails.log.error(err);
@@ -283,8 +284,8 @@ module.exports = {
         if (err) return reject(err);
 
         async.eachOf(dishes, (dish, i, cb) => {
-            // if (dish && dish.images && dish.images.length)
-            //   sails.log.info('IMAGES', dish.images);
+          // if (dish && dish.images && dish.images.length)
+          //   sails.log.info('IMAGES', dish.images);
           const reason = checkExpression(dish);
           if (!reason) {
             if (dish === undefined) {
@@ -371,6 +372,18 @@ module.exports = {
           }
         });
       }
+    }
+  },
+
+  createOrUpdate2: async function (values) {
+    const dish = await Dish.findOne({id: values.id});
+    if (!dish) {
+      return await Dish.create(values);
+    } else {
+      if (hashCode(JSON.stringify(values)) === dish.hash) {
+        return dish;
+      }
+      return (await Dish.update({id: values.id}, values))[0];
     }
   }
 };

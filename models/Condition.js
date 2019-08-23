@@ -68,7 +68,7 @@ module.exports = {
     },
 
     check: async function (cart) {
-      return await causes(cart);
+      return await causes(this, cart);
     },
 
     exec: function (cart) {
