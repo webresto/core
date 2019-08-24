@@ -19,7 +19,8 @@
     "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
     "sails-util": "^0.11.0",
     "shelljs": "^0.8.2",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "await-event-emitter": "^1.2.0"
   },
   "deprecated": false,
   "description": "sails resto core",
@@ -48,5 +49,5 @@
     "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o docs/api.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.6.0"
+  "version": "0.6.1"
 }
