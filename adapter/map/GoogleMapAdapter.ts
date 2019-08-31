@@ -63,4 +63,8 @@ export default class GoogleMapAdapter extends MapAdapter {
       return inside([point.x, point.y], polygon2);
     }
   }
+
+  getDistance(dot1: Point, dot2: Point): number {
+    return 0;
+  }
 }

@@ -3,6 +3,7 @@ import Polygon from "@webresto/core/adapter/map/core/Polygon";
 import Point from "@webresto/core/adapter/map/core/Point";
 
 const request = require('request-promise');
+const Geopoint = require('geopoint');
 
 declare const sails;
 
@@ -30,5 +31,12 @@ export default class YandexMapAdapter extends MapAdapter {
 
   async getPolygons(): Promise<Polygon[]> {
     return undefined;
+  }
+
+  getDistance(dot1: Point, dot2: Point): number {
+    const p1 = new Geopoint(dot1.x, dot1.y);
+    const p2 = new Geopoint(dot2.x, dot2.y);
+    sails.log.info(dot1, dot2);
+    return p1.distanceTo(p2, true);
   }
 }

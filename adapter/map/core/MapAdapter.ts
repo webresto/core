@@ -14,4 +14,6 @@ export default abstract class MapInterface {
   public abstract async getPolygons(): Promise<Polygon[]>;
 
   public abstract checkDotInPolygon(dot: Point, polygon: Polygon): boolean;
+
+  public abstract getDistance(dot1: Point, dot2: Point): number;
 }

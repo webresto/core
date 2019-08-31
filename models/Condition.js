@@ -66,6 +66,10 @@ module.exports = {
     zones: {
       collection: 'zone'
     },
+    needy: {
+      type: 'boolean',
+      defaultsTo: false
+    },
 
     check: async function (cart) {
       return await causes(this, cart);
