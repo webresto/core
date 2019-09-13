@@ -21,12 +21,10 @@ export class Map {
       const adapter = require('./map/' + adapterFind);
       return adapter.default;
     } catch (e) {
-      throw new Error('Module ' + adapterName + ' not found');
+      throw new Error('Module ' + adapterFind + ' not found ' + e);
     }
   }
 }
-
-declare const sails;
 
 export class ImageA {
   public static getAdapter(adapterName: string): ImageAdapter {
