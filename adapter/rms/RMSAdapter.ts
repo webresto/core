@@ -1,5 +1,6 @@
-import Cart from "@webresto/core/adapter/rms/Cart";
 import OrderResponse from "@webresto/core/adapter/rms/OrderResponse";
+import OrderData from "@webresto/core/adapter/rms/OrderData";
+import Cart from "@webresto/core/models/Cart";
 
 export default abstract class RMSAdapter {
   protected readonly syncMenuTime: number;
@@ -24,5 +25,9 @@ export default abstract class RMSAdapter {
 
   public abstract async getSystemData(): Promise<any>;
 
-  public abstract async api(method: string, params: any): Promise<any>
+  public abstract async api(method: string, params: any): Promise<any>;
+
+  static getInstance(...params): RMSAdapter {
+    return RMSAdapter.prototype
+  };
 }

@@ -1,8 +1,8 @@
-import MapConfig from "@webresto/core/adapter/map/core/MapConfig";
-import Point from "@webresto/core/adapter/map/core/Point";
-import Polygon from "@webresto/core/adapter/map/core/Polygon";
+import MapConfig from "@webresto/core/adapter/map/MapConfig";
+import Point from "@webresto/core/adapter/map/Point";
+import Polygon from "@webresto/core/adapter/map/Polygon";
 
-export default abstract class MapInterface {
+export default abstract class MapAdapter {
   protected readonly config: MapConfig;
 
   protected constructor(config: MapConfig) {

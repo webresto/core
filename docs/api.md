@@ -913,7 +913,7 @@ actions
 
 ```
 {
-  addDish: {
+  addDishAndReturnCart: {
     dishesId: ['dish id', ...]
   },
   delivery: {

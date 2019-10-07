@@ -1,7 +1,7 @@
 module.exports = {
   attributes: {
     id: {
-      type: 'integer',
+      type: 'string',
       primaryKey: true,
       autoIncrement: true
     },
@@ -12,6 +12,15 @@ module.exports = {
       defaultsTo: true
     },
     startDate: 'date',
-    stopDate: 'date',
+    stopDate: 'date'
   }
 };
+
+export default interface Maintenance {
+  id: number;
+  title: string;
+  description: string;
+  enable: boolean;
+  startDate: string;
+  stopDate: string;
+}

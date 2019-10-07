@@ -5,6 +5,7 @@
   "bundleDependencies": false,
   "dependencies": {
     "@google/maps": "^0.5.5",
+    "await-event-emitter": "^1.2.0",
     "emailjs": "^2.2.0",
     "iiko-delivery": "git+https://github.com/pub42/iiko-delivery.git",
     "iiko-request": "git+https://github.com/Ilya56/iiko-request.git",
@@ -19,8 +20,7 @@
     "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
     "sails-util": "^0.11.0",
     "shelljs": "^0.8.2",
-    "uuid": "^3.3.2",
-    "await-event-emitter": "^1.2.0"
+    "uuid": "^3.3.2"
   },
   "deprecated": false,
   "description": "sails resto core",

@@ -7,9 +7,7 @@ module.exports = function (sails) {
 };
 
 module.exports = _.merge(module.exports, {
-  iikoApi: require('./lib/iiko-api'),
-  email: require('./lib/email'),
-  generateGUID: require('./lib/generateGUID'),
-  actions: require('./lib/actions'),
-  between: require('./lib/causes').between
+  actions: require('./lib/actions').default,
+  between: require('./lib/causes').between,
+  hookTools: require('./lib/hookTools')
 });

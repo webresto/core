@@ -1,4 +1,4 @@
-import Point from "@webresto/core/adapter/map/core/Point";
+import Point from "@webresto/core/adapter/map/Point";
 
 export default class Polygon {
   private readonly _name: string;
