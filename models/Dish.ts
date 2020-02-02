@@ -64,19 +64,14 @@
 
 import Modifier from "@webresto/core/modelsHelp/Modifier";
 import Group from "@webresto/core/models/Group";
-import checkExpression from "@webresto/core/lib/checkExpression";
+import checkExpression, {AdditionalInfo} from "../../../@webresto/core/lib/checkExpression";
 import Image from "@webresto/core/models/Image";
-import hashCode from "@webresto/core/lib/hashCode";
-import Emitter from "@webresto/core/lib/emmiter";
-
-// @ts-ignore
-const Promise = require('bluebird');
-
-declare const Dish;
-declare const Group;
+import hashCode from "../../../@webresto/core/lib/hashCode";
+import getEmitter from "../../../@webresto/core/lib/getEmitter";
+import ORMModel from "@webresto/core/modelsHelp/ORMModel";
+import ORM from "@webresto/core/modelsHelp/ORM";
 
 module.exports = {
-
   attributes: {
     id: {
       type: 'string',
@@ -126,9 +121,6 @@ module.exports = {
     },
     tags: {
       type: 'json'
-      // collection: 'tags',
-      // via: 'dishes',
-      // dominant: true
     },
     balance: {
       type: 'integer',
@@ -143,22 +135,26 @@ module.exports = {
       from: 'name'
     },
     hash: 'integer',
-    composition: 'string'
+    composition: 'string',
+    visible: 'boolean',
+    modifier: 'boolean',
+    promo: 'boolean',
+    workTime: 'json'
   },
 
   /**
-   * Get only not deleted dishes
-   * @param criteria
+   * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
+   * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.
+   * @param criteria - критерии поиска
+   * @return найденные блюда
    */
-  async getDishes(criteria): Promise<Dish[]> {
-    if (!criteria)
-      criteria = {};
+  async getDishes(criteria: any = {}): Promise<Dish[]> {
     criteria.isDeleted = false;
     criteria.balance = {'!': 0};
 
-    const dishes = <Dish[]>await Dish.find(criteria).populate('images');
+    const dishes = await Dish.find(criteria).populate('images');
 
-    await Promise.each(dishes, async (dish: Dish) => {
+    await Promise.each(dishes, async (dish) => {
       const reason = checkExpression(dish);
       if (!reason) {
         await Dish.getDishModifiers(dish);
@@ -171,28 +167,40 @@ module.exports = {
 
     dishes.sort((a, b) => a.order - b.order);
 
-    await Emitter.emit('core-dish-get-dishes', dishes);
+    await getEmitter().emit('core-dish-get-dishes', dishes);
 
     return dishes;
   },
 
+  /**
+   * Популяризирует модификаторы блюда, то есть всем груповым модификаторам дописывает группу и блюда, которые им соответствуют,
+   * а обычным модификаторам дописывает их блюдо.
+   * @param dish
+   */
   async getDishModifiers(dish: Dish) {
-    await Promise.map(dish.modifiers, async (modifier: Modifier, index) => {
+    await Promise.map(dish.modifiers, async (modifier, index) => {
       if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-        dish.modifiers[index].group = <Group>await Group.findOne({id: modifier.modifierId});
-        await Promise.map(modifier.childModifiers, async (modifier: Modifier, index1) => {
-          dish.modifiers[index].childModifiers[index1].dish = <Dish>await Dish.findOne({id: modifier.modifierId});
+        dish.modifiers[index].group = await Group.findOne({id: modifier.modifierId});
+        await Promise.map(modifier.childModifiers, async (modifier, index1) => {
+          dish.modifiers[index].childModifiers[index1].dish = await Dish.findOne({id: modifier.modifierId});
         });
       } else {
-        dish.modifiers[index].dish = <Dish>await Dish.findOne({id: modifier.id});
+        dish.modifiers[index].dish = await Dish.findOne({id: modifier.id});
       }
     });
   },
 
+  /**
+   * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
+   * хеш существующего блюда и новых данных, если они идентифны, то сразу же отдаёт блюда, если нет, то обновляет его данные
+   * на новые
+   * @param values
+   * @return обновлённое или созданное блюдо
+   */
   async createOrUpdate(values: Dish): Promise<Dish> {
     const dish = await Dish.findOne({id: values.id});
     if (!dish) {
-      return await Dish.create(values);
+      return Dish.create(values);
     } else {
       if (hashCode(JSON.stringify(values)) === dish.hash) {
         return dish;
@@ -202,7 +210,10 @@ module.exports = {
   }
 };
 
-export default interface Dish {
+/**
+ * Описывает блюдо
+ */
+export default interface Dish extends ORM, AdditionalInfo {
   id: string;
   additionalInfo: string;
   balance: number;
@@ -211,7 +222,45 @@ export default interface Dish {
   weight: number;
   price: number;
   order: number;
-  images: Image[];
+  images: Association<Image>;
   name: string;
   composition: string;
+  hash: number;
+  rmsId: string;
+  code: string;
+  tags: { name: string }[];
+  isDeleted: boolean;
+}
+
+/**
+ * Описывает класс Dish, содержит статические методы, используется для ORM
+ */
+export interface DishModel extends ORMModel<Dish> {
+  /**
+   * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
+   * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.
+   * @param criteria - критерии поиска
+   * @return найденные блюда
+   */
+  getDishes(criteria): Promise<Dish[]>;
+
+  /**
+   * Популяризирует модификаторы блюда, то есть всем груповым модификаторам дописывает группу и блюда, которые им соответствуют,
+   * а обычным модификаторам дописывает их блюдо.
+   * @param dish
+   */
+  getDishModifiers(dish: Dish);
+
+  /**
+   * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
+   * хеш существующего блюда и новых данных, если они совпали, то сразу же отдаёт блюда, если нет, то обновляет его данные
+   * на новые
+   * @param values
+   * @return обновлённое или созданное блюдо
+   */
+  createOrUpdate(values: Dish): Promise<Dish>;
+}
+
+declare global {
+  const Dish: DishModel;
 }

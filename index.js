@@ -2,12 +2,6 @@
 
 module.exports = function (sails) {
   return {
-    initialize: require('./lib/initialize')(sails)
+    initialize: require('@webresto/core/lib/initialize').default(sails)
   };
 };
-
-module.exports = _.merge(module.exports, {
-  actions: require('./lib/actions').default,
-  between: require('./lib/causes').between,
-  hookTools: require('./lib/hookTools')
-});

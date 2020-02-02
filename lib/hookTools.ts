@@ -1,14 +1,27 @@
 import * as path from "path";
+import * as _ from "lodash";
+import {readdirSync} from "fs";
 
 const buildDictionary = require('sails-build-dictionary');
-const Promise = require('bluebird');
 
-declare const sails;
-declare const _;
+/**
+ * Type for functions that is controllers
+ */
+export type Action = (req: ReqType, res: ResType) => Promise<any>;
 
+/**
+ * Provide tools for hooks. Has only static methods.
+ */
 export default class HookTools {
-  static policies: any;
+  /**
+   * Policies array is one for all project. It not assigned with sails policies
+   */
+  private static policies: any;
 
+  /**
+   * Bind models from folder. Folder must be full path.
+   * @param folder - path to models
+   */
   public static async bindModels(folder: string): Promise<void> {
     return new Promise((resolve, reject) => {
       buildDictionary.optional({
@@ -39,13 +52,23 @@ export default class HookTools {
     });
   }
 
+  /**
+   * Check that config with name key exists in sails.config
+   * @param key - name of config to check
+   * @return true if config exists
+   */
   public static checkConfig(key: string): boolean {
     return sails.config[key];
   }
 
-  public static waitForHooks(selfName: string, hooks: string[], cb: Function): void {
-    let eventsToWaitFor = [];
-    eventsToWaitFor.push('router:after');
+  /**
+   * Start cb function after given names of hooks. Call error with selfName if one of hooks not found
+   * @param selfName - name of hook. Uses for debugging
+   * @param hooks - array of names hooks to wait for
+   * @param cb - function
+   */
+  public static waitForHooks(selfName: string, hooks: string[], cb: (...args) => any): void {
+    let eventsToWaitFor = ['router:after'];
 
     _.forEach(hooks, function (hook) {
       if (!sails.hooks[hook]) {
@@ -57,7 +80,13 @@ export default class HookTools {
     sails.after(eventsToWaitFor, cb);
   }
 
-  public static bindRouter(path: string, action: Function, method?: string): void {
+  /**
+   * Bind function `action` to router `path` with method `method`. Use policies binding from this module.
+   * @param path - /path/to/bind
+   * @param action - function with Action type
+   * @param method - GET or POST ot etc.
+   */
+  public static bindRouter(path: string, action: Action, method?: string): void {
     if (!path || !action) {
       throw 'Cannot bind undefined path to undefined action';
     }
@@ -80,7 +109,7 @@ export default class HookTools {
     sails.router.bind(path, this.bindPolicy(path, action), method);
   }
 
-  private static bindPolicy(path: string, action: Function): any[] {
+  private static bindPolicy(path: string, action: Action): any[] {
     if (!path || !action) {
       throw 'Cannot bind undefined path to undefined action';
     }
@@ -106,11 +135,26 @@ export default class HookTools {
     return result;
   }
 
-  public static loadPolicies(dirname: string, folder: string) {
-    const normalizedPath = require("path").join(dirname, folder);
+  /**
+   * Load policies from given folder.
+   * Folder must contain index.js file that contain object with {'path/to/': policyName}, where /path/to/ is router or '*'
+   * and policyName is one of others file name.
+   * For example
+   * |
+   * * - index.js > module.exports = {
+   * |                '/index': 'policy'
+   * |              }
+   * |
+   * * - policy.js > module.exports = function (req, res, next) {
+   *                    return next();
+   *                 }
+   * @param folder - folder where policies load
+   */
+  public static loadPolicies(folder: string) {
+    const normalizedPath = path.normalize(folder);
 
     const policies = {};
-    require("fs").readdirSync(normalizedPath).forEach(function (file) {
+    readdirSync(normalizedPath).forEach(function (file) {
       policies[file.split('.').slice(0, -1).join('.')] = require(normalizedPath + "/" + file);
     });
 

@@ -20,8 +20,8 @@
  * @apiParam {Number} [groupImagesCount] Сколько картинок в группе хранить
  * @apiParam {JSON} [requireCheckOnRMS] Обязательно ли выполнять проверку доставки на RMS-сервере. Если нет, то поставить false, если да, то устанавливается количество попыток проверки
  * @apiParam {JSON} [requireSendOnRMS] Запрещать оформление заказа без доставки на RMS-сервер. Если нет, то поставить false, если да, то устанавливается количество попыток проверки
- * @apiParam {String} [checkType] Говорит о том каким образом проверять стоимость доставки (rms - с помощью IIKO, native - встроенной функцией, тогда требуется настройка поля map)
- * @apiParam {JSON} [map] Настройка для карт если использовать нативную проверку
+ * @apiParam {String} [checkType] Говорит о том каким образом проверять стоимость доставки (rms - с помощью IIKO, native - встроенной функцией, тогда требуется настройка поля GeocodeConfig)
+ * @apiParam {JSON} [GeocodeConfig] Настройка для карт если использовать нативную проверку
  * @apiParam {String} [zoneDontWork='Доставка не может быть расчитана'] Сообщение в случае, если зона доставки не работает
  * @apiParam {String} [zoneNotFound='Улица не входит в зону доставки'] Сообщение в случае, если зона доставки не была найдена
  * @apiParam {String} [timezone] Временная зона кафе, записывается строкой
@@ -101,7 +101,7 @@
  *    attempts: 10
  *  }
  *
- *  @apiParamExample map
+ *  @apiParamExample GeocodeConfig
  *  {
  *    geocode: 'yandex',
  *    customMaps: 'google',

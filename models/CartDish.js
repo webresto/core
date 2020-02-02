@@ -1,3 +1,4 @@
+"use strict";
 /**
  * @api {API} CartDish CartDish
  * @apiGroup Models
@@ -21,43 +22,35 @@
       "groupId": "string"
  *  }
  */
-
+Object.defineProperty(exports, "__esModule", { value: true });
 module.exports = {
-
-  attributes: {
-    id: {
-      type: 'integer',
-      autoIncrement: true,
-      primaryKey: true
-    },
-    amount: {
-      type: 'integer'
-    },
-    dish: {
-      model: 'Dish'
-    },
-    modifiers: {
-      type: 'json'
-    },
-    cart: {
-      model: 'Cart',
-      via: 'dishes'
-    },
-    parent: {
-      model: 'CartDish',
-      via: 'modifiers'
-    },
-    uniqueItems: {
-      type: 'integer'
-    },
-    itemTotal: 'float',
-    comment: 'string',
-    addedBy: {
-      type: 'string',
-      defaultsTo: 'user'
-    },
-    weight: 'float',
-    totalWeight: 'float'
-  }
+    attributes: {
+        id: {
+            type: 'integer',
+            autoIncrement: true,
+            primaryKey: true
+        },
+        amount: 'integer',
+        dish: {
+            model: 'Dish'
+        },
+        modifiers: 'json',
+        cart: {
+            model: 'Cart',
+            via: 'dishes'
+        },
+        parent: {
+            model: 'CartDish',
+            via: 'modifiers'
+        },
+        uniqueItems: 'integer',
+        itemTotal: 'float',
+        comment: 'string',
+        addedBy: {
+            type: 'string',
+            defaultsTo: 'user'
+        },
+        weight: 'float',
+        totalWeight: 'float'
+    }
 };
-

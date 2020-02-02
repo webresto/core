@@ -1,7 +1,9 @@
 import OrderResponse from "@webresto/core/adapter/rms/OrderResponse";
-import OrderData from "@webresto/core/adapter/rms/OrderData";
 import Cart from "@webresto/core/models/Cart";
 
+/**
+ * Абстрактный класс RMS адаптера. Используется для создания новых адаптеров RMS.
+ */
 export default abstract class RMSAdapter {
   protected readonly syncMenuTime: number;
   protected readonly syncBalanceTime: number;
@@ -13,20 +15,53 @@ export default abstract class RMSAdapter {
     this.syncStreetsTime = streetsTime;
   }
 
+  /**
+   * Синхронизация данных с RMS системы
+   */
   protected abstract async sync(): Promise<void>;
 
+  /**
+   * Синхронизация улиц с RMS системы
+   */
   protected abstract async syncStreets(): Promise<void>;
 
+  /**
+   * Синхронизация баланса блюд с RMS адаптера
+   */
   protected abstract async syncBalance(): Promise<void>;
 
-  public abstract async createOrder(orderData: Cart, selfService: boolean): Promise<OrderResponse>;
+  /**
+   * Создание заказа
+   * @param orderData - корзина, которую заказывают
+   * @return Результат работы функции, тело ответа и код результата
+   */
+  public abstract async createOrder(orderData: Cart): Promise<OrderResponse>;
 
-  public abstract async checkOrder(orderData: Cart, selfService: boolean): Promise<OrderResponse>;
+  /**
+   * Проверка заказа
+   * @param orderData - корзина для проверки
+   * @return результат работы функции, тело ответа и код результата
+   */
+  public abstract async checkOrder(orderData: Cart): Promise<OrderResponse>;
 
+  /**
+   * Получение системной информации
+   * @return системная информация RMS
+   */
   public abstract async getSystemData(): Promise<any>;
 
+  /**
+   * Прямой запрос к API RMS
+   * @param method - к какому методу обращаться
+   * @param params - какие параметры передавать
+   * @return ответ API
+   */
   public abstract async api(method: string, params: any): Promise<any>;
 
+  /**
+   * Метод для создания и получения уже существующего RMS адаптера
+   * @param params - параметры для инициализации
+   */
   static getInstance(...params): RMSAdapter {
     return RMSAdapter.prototype
   };

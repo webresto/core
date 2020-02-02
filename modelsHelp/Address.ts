@@ -1,12 +1,12 @@
-import Street from "@webresto/core/models/Street";
-
+/**
+ * Описывает адресс получателя для доставки
+ */
 export default interface Address {
-  streetId: string;
+  streetId?: string;
   home: number;
   comment: string;
   city: string;
-  street: Street;
-  streetClassifierId: string;
+  street: string;
   housing?: string;
   index?: string;
   entrance?: string;

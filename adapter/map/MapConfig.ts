@@ -4,4 +4,5 @@ export default interface MapConfig {
   check: string;
   api: any;
   customMap: string
+  distance?: string
 }

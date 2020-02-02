@@ -1,3 +1,4 @@
+"use strict";
 /**
  * @api {API} Image Image
  * @apiGroup Models
@@ -15,29 +16,23 @@
         "large": "/images/a0f39d7d-75ac-4af1-8e91-d94b442874eb/2039649a-50f9-4785-a7a9-c5f86d637f27/large.jpg"
     }
  */
-
-//TODO: проверить нужны ли вообще связи из картинки к блюду и группе, если что удалить
-
+Object.defineProperty(exports, "__esModule", { value: true });
 module.exports = {
-
-  attributes: {
-    id: {
-      type: 'string',
-      required: true,
-      primaryKey: true
-    },
-    images: {
-      type: 'json'
-    },
-    dish: {
-      collection: 'dish',
-      via: 'images'
-    },
-    group: {
-      model: 'group',
-      via: 'images'
-    },
-    uploadDate: 'string'
-  }
+    attributes: {
+        id: {
+            type: 'string',
+            required: true,
+            primaryKey: true
+        },
+        images: 'json',
+        dish: {
+            collection: 'dish',
+            via: 'images'
+        },
+        group: {
+            model: 'group',
+            via: 'images'
+        },
+        uploadDate: 'string'
+    }
 };
-

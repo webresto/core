@@ -1,53 +1,46 @@
 {
   "author": {
-    "name": "42team"
+    "name": "Webresto team"
   },
-  "bundleDependencies": false,
+  "contributors": [
+    {
+      "name": "Ilya Dolmatov",
+      "email": "dolmatoffilya@gmail.com"
+    }
+  ],
+  "bundleDependencies": [],
   "dependencies": {
-    "@google/maps": "^0.5.5",
-    "await-event-emitter": "^1.2.0",
-    "emailjs": "^2.2.0",
-    "iiko-delivery": "git+https://github.com/pub42/iiko-delivery.git",
-    "iiko-request": "git+https://github.com/Ilya56/iiko-request.git",
-    "imagemagick": "^0.1.3",
-    "jimp": "latest",
     "lodash": "^4.17.10",
     "moment-timezone": "^0.5.23",
     "point-in-polygon": "^1.0.1",
     "request-promise": "^4.2.4",
     "sails-build-dictionary": "^0.10.1",
-    "sails-hook-slugs": "^2.1.0",
+    "sails-hook-slugs": "git+https://github.com/webresto/sails-hook-slugs",
     "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
     "sails-util": "^0.11.0",
-    "shelljs": "^0.8.2",
     "uuid": "^3.3.2"
   },
   "deprecated": false,
-  "description": "sails resto core",
-  "directories": {
-    "doc": "docs",
-    "lib": "lib"
-  },
+  "description": "webresto core",
   "keywords": [
-    "iiko",
-    "sails",
-    "resto",
-    "core"
+    "webresto",
+    "sails"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "main": "index.js",
   "name": "@webresto/core",
   "repository": {
     "type": "git",
-    "url": "http://git.42team.org/webresto/core.git"
+    "url": "http://github.com/webresto/core.git"
   },
+  "homepage": "http://webresto.org/",
   "sails": {
     "isHook": true,
-    "hookName": "resto-core"
+    "hookName": "webresto-core"
   },
   "scripts": {
     "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o docs/api.md",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
-  "version": "0.6.1"
+  "version": "0.7.0-rc1"
 }

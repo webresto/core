@@ -1,3 +1,4 @@
+"use strict";
 /**
  * @api {API} Dish Dish
  * @apiGroup Models
@@ -58,343 +59,143 @@
  * @apiParam {Integer} itemTotal
  * @apiParam {String} slug Текстовое названия блюда в транслите
  * @apiParam {Integer} hash Хеш данного состояния блюда
+ * @apiParam {String} composition Состав блюда
  *
  */
-
-const checkExpression = require('../lib/checkExpression');
-
+Object.defineProperty(exports, "__esModule", { value: true });
+const checkExpression_1 = require("../../../@webresto/core/lib/checkExpression");
+const hashCode_1 = require("../../../@webresto/core/lib/hashCode");
+const getEmitter_1 = require("../../../@webresto/core/lib/getEmitter");
 module.exports = {
-
-  attributes: {
-    id: {
-      type: 'string',
-      required: true,
-      primaryKey: true
+    attributes: {
+        id: {
+            type: 'string',
+            required: true,
+            primaryKey: true
+        },
+        rmsId: {
+            type: 'string',
+            required: true
+        },
+        additionalInfo: 'string',
+        code: 'string',
+        description: 'string',
+        name: 'string',
+        seoDescription: 'string',
+        seoKeywords: 'string',
+        seoText: 'string',
+        seoTitle: 'string',
+        carbohydrateAmount: 'float',
+        carbohydrateFullAmount: 'float',
+        differentPricesOn: 'array',
+        doNotPrintInCheque: 'boolean',
+        energyAmount: 'float',
+        energyFullAmount: 'float',
+        fatAmount: 'float',
+        fatFullAmount: 'float',
+        fiberAmount: 'float',
+        fiberFullAmount: 'float',
+        groupId: 'string',
+        groupModifiers: 'array',
+        measureUnit: 'string',
+        price: 'float',
+        productCategoryId: 'string',
+        prohibitedToSaleOn: 'array',
+        type: 'string',
+        useBalanceForSell: 'boolean',
+        weight: 'float',
+        isIncludedInMenu: 'boolean',
+        order: 'float',
+        isDeleted: 'boolean',
+        modifiers: {
+            // collection: 'dish'
+            type: 'json'
+        },
+        parentGroup: {
+            model: 'group'
+        },
+        tags: {
+            type: 'json'
+        },
+        balance: {
+            type: 'integer',
+            defaultsTo: -1
+        },
+        images: {
+            collection: 'image',
+            via: 'dish'
+        },
+        slug: {
+            type: 'slug',
+            from: 'name'
+        },
+        hash: 'integer',
+        composition: 'string',
+        visible: 'boolean',
+        modifier: 'boolean',
+        promo: 'boolean',
+        workTime: 'json'
     },
-    rmsId: {
-      type: 'string',
-      required: true
-    },
-    additionalInfo: 'string',
-    code: 'string',
-    description: 'string',
-    name: 'string',
-    seoDescription: 'string',
-    seoKeywords: 'string',
-    seoText: 'string',
-    seoTitle: 'string',
-    carbohydrateAmount: 'float',
-    carbohydrateFullAmount: 'float',
-    differentPricesOn: 'array',
-    doNotPrintInCheque: 'boolean',
-    energyAmount: 'float',
-    energyFullAmount: 'float',
-    fatAmount: 'float',
-    fatFullAmount: 'float',
-    fiberAmount: 'float',
-    fiberFullAmount: 'float',
-    groupId: 'string',
-    groupModifiers: 'array',
-    measureUnit: 'string',
-    price: 'float',
-    productCategoryId: 'string',
-    prohibitedToSaleOn: 'array',
-    type: 'string',
-    useBalanceForSell: 'boolean',
-    weight: 'float',
-    isIncludedInMenu: 'boolean',
-    order: 'float',
-    isDeleted: 'boolean',
-    modifiers: {
-      // collection: 'dish'
-      type: 'json'
-    },
-    parentGroup: {
-      model: 'group'
-    },
-    tags: {
-      type: 'json'
-      // collection: 'tags',
-      // via: 'dishes',
-      // dominant: true
-    },
-    balance: {
-      type: 'integer',
-      defaultsTo: -1
-    },
-    images: {
-      collection: 'image',
-      via: 'dish'
-    },
-    slug: {
-      type: 'slug',
-      from: 'name'
-    },
-    hash: 'integer'
-
-  },
-
-  /**
-   * Get dishes by groups
-   * @param groupsId
-   * @param cb
-   * @return {Promise<>}
-   */
-  getByGroupId: function (groupsId, cb) {
-    return new Promise((resolve, reject) => {
-      if (Array.isArray(groupsId)) {
-        let arr = [];
-        for (let i = 0; i < groupsId.length; i++)
-          arr.push(this.getByGroupId(groupsId[i]));
-        Promise.all(arr).then(data => {
-          resolve(data);
-        });
-      } else {
-        if (groupsId) {
-          Group.findOne({
-            id: groupsId,
-            isDeleted: false
-          }).populate(['images', 'dishes', 'childGroups'/*, 'dishesTags'*/]).exec((err, group) => {
-            if (err) return reject({error: err});
-            if (!group) return reject({error: 'not found'});
-            const reason = checkExpression(group);
-            if (reason) return reject(reason);
-
-            const loadDishes = cb => {
-              Dish.getDishes({parentGroup: groupsId}).then(dishes => {
-                group.dishesList = dishes;
-                async.eachOf(dishes, (dish, i, cb) => {
-                  group.dishesList[i].tagsList = dish.tags;
-                  group.dishesList[i].imagesList = dish.images;
-                  cb();
-                });
-
-                if (cb) {
-                  cb();
-                }
-                return resolve(group);
-              });
-            };
-
-            if (group.childGroups) {
-              let childGroups = [];
-
-              async.each(group.childGroups, (cg, cb1) => {
-                this.getByGroupId(cg.id).then(data => {
-                  if (data)
-                    childGroups.push(data);
-                  cb1();
-                }, err => {
-                  // sails.log.error(err);
-                  cb1();
-                });
-              }, () => {
-                delete group.childGroups;
-                group.children = childGroups;
-                if (group.children.length > 1)
-                  group.children.sort((a, b) => a.order - b.order);
-                loadDishes(cb);
-              });
-            } else
-              loadDishes(cb);
-          });
-        } else {
-          let menu = {};
-          Group.find({
-            parentGroup: null,
-            isDeleted: false
-          }).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, groups) => {
-            if (err) return reject({error: err});
-
-            async.each(groups, (group, cb) => {
-              const reason = checkExpression(group);
-              if (!reason) {
-                menu[group.id] = group;
-
-                const loadDishes = function (cb) {
-                  Dish.getDishes({parentGroup: group.id}).then(dishes => {
-                    menu[group.id].dishesList = dishes;
-
-                    if (dishes.length > 0)
-                      async.eachOf(dishes, (dish, i, cb) => {
-                        menu[group.id].dishesList[i].tagsList = dish.tags;
-                        menu[group.id].dishesList[i].imagesList = dish.images;
-                        cb();
-                      }, cb);
-                    else
-                      cb();
-                  }, err => {
-                    return reject({error: err});
-                  });
-                };
-
-                if (group.childGroups) {
-                  let childGroups = [];
-                  Group.find({id: group.childGroups.map(cg => cg.id)}).populate(['childGroups', 'dishes', /*'dishesTags',*/ 'images']).exec((err, cgs) => {
-                    if (err) return reject({error: err});
-
-                    async.each(cgs, (cg, cb1) => {
-                      this.getByGroupId(cg.id).then(data => {
-                        if (data)
-                          childGroups.push(data);
-                        // sails.log.info(cg.name);
-                        cb1();
-                      }, err => {
-                        // sails.log.error(err);
-                        cb1();
-                      });
-                    }, () => {
-                      delete menu[group.id].childGroups;
-                      menu[group.id].childGroups = null;
-                      // sails.log.info(childGroups);
-                      menu[group.id].children = childGroups;
-                      if (menu[group.id].children.length > 1)
-                        menu[group.id].children.sort((a, b) => a.order - b.order);
-                      loadDishes(cb);
-                    });
-                  });
-                } else
-                  loadDishes(cb);
-              } else {
-                cb();
-              }
-            }, function () {
-              if (cb) {
-                cb();
-              }
-              resolve(menu);
-            });
-          });
-        }
-      }
-    });
-  },
-
-  /**
-   * Get only not deleted dishes
-   * @param criteria
-   */
-  getDishes: function (criteria) {
-    return new Promise((resolve, reject) => {
-      if (!criteria)
-        criteria = {};
-      criteria.isDeleted = false;
-      criteria.balance = {'!': 0};
-      Dish.find(criteria).populate([/*'tags',*/ 'images']).exec((err, dishes) => {
-        if (err) return reject(err);
-
-        async.eachOf(dishes, (dish, i, cb) => {
-          // if (dish && dish.images && dish.images.length)
-          //   sails.log.info('IMAGES', dish.images);
-          const reason = checkExpression(dish);
-          if (!reason) {
-            if (dish === undefined) {
-              // sails.log.info('DISHES', dishes, dishes.length);
-              // sails.log.info('DISH', dish, i);
-              return cb();
-            }
-
-            async.eachOf(dish.modifiers, (modifier, key, cb) => {
-              if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-                Group.findOne({id: modifier.modifierId}).exec((err, group) => {
-                  if (err) cb(err);
-                  dish.modifiers[key].group = group;
-
-                  async.eachOf(modifier.childModifiers, function (modifier, key1, cb) {
-                    Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                      if (err) return cb(err);
-
-                      dish.modifiers[key].childModifiers[key1].dish = modifier1;
-                      return cb();
-                    });
-                  }, function (err) {
-                    return cb(err);
-                  });
-                });
-              } else {
-                Dish.findOne({id: modifier.modifierId}).exec((err, modifier1) => {
-                  if (err) return cb(err);
-
-                  dish.modifiers[key].dish = modifier1;
-                  return cb();
-                });
-              }
-            }, function (err) {
-              // dish.images.reverse();
-              try {
+    /**
+     * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
+     * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.
+     * @param criteria - критерии поиска
+     * @return найденные блюда
+     */
+    async getDishes(criteria = {}) {
+        criteria.isDeleted = false;
+        criteria.balance = { '!': 0 };
+        const dishes = await Dish.find(criteria).populate('images');
+        await Promise.each(dishes, async (dish) => {
+            const reason = checkExpression_1.default(dish);
+            if (!reason) {
+                await Dish.getDishModifiers(dish);
                 if (dish.images.length >= 2)
-                  dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
-              } catch (e) {
-                // sails.log.error('err32', e, dish.images);
-              }
-
-              return cb(err);
-            });
-          } else {
-            dishes.splice(dishes.indexOf(dish), 1);
-            cb();
-          }
-        }, function (err) {
-          if (err) reject(err);
-
-          dishes.sort((a, b) => a.order - b.order);
-          resolve(dishes);
-        });
-      });
-    });
-  },
-
-  /**
-   * create dish or update exists
-   * @param values
-   * @return {{exec: exec}}
-   */
-  createOrUpdate: function (values) {
-    return {
-      exec: function (cb) {
-        Dish.findOne({id: values.id}).exec((err, dish) => {
-          if (err) return cb(err);
-
-          if (!dish) {
-            Dish.create(values).exec((err, dish) => {
-              if (err) return cb(err);
-              return cb(null, dish);
-            });
-          } else {
-            if (hashCode(JSON.stringify(values)) === dish.hash) {
-              cb(null, dish);
-            } else {
-              Dish.update({id: values.id}, values).exec((err, dish) => {
-                if (err) return cb(err);
-                return cb(null, dish[0]);
-              });
+                    dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
             }
-          }
+            else {
+                dishes.splice(dishes.indexOf(dish), 1);
+            }
         });
-      }
+        dishes.sort((a, b) => a.order - b.order);
+        await getEmitter_1.default().emit('core-dish-get-dishes', dishes);
+        return dishes;
+    },
+    /**
+     * Популяризирует модификаторы блюда, то есть всем груповым модификаторам дописывает группу и блюда, которые им соответствуют,
+     * а обычным модификаторам дописывает их блюдо.
+     * @param dish
+     */
+    async getDishModifiers(dish) {
+        await Promise.map(dish.modifiers, async (modifier, index) => {
+            if (modifier.childModifiers && modifier.childModifiers.length > 0) {
+                dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
+                await Promise.map(modifier.childModifiers, async (modifier, index1) => {
+                    dish.modifiers[index].childModifiers[index1].dish = await Dish.findOne({ id: modifier.modifierId });
+                });
+            }
+            else {
+                dish.modifiers[index].dish = await Dish.findOne({ id: modifier.id });
+            }
+        });
+    },
+    /**
+     * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
+     * хеш существующего блюда и новых данных, если они идентифны, то сразу же отдаёт блюда, если нет, то обновляет его данные
+     * на новые
+     * @param values
+     * @return обновлённое или созданное блюдо
+     */
+    async createOrUpdate(values) {
+        const dish = await Dish.findOne({ id: values.id });
+        if (!dish) {
+            return Dish.create(values);
+        }
+        else {
+            if (hashCode_1.default(JSON.stringify(values)) === dish.hash) {
+                return dish;
+            }
+            return (await Dish.update({ id: values.id }, values))[0];
+        }
     }
-  },
-
-  createOrUpdate2: async function (values) {
-    const dish = await Dish.findOne({id: values.id});
-    if (!dish) {
-      return await Dish.create(values);
-    } else {
-      if (hashCode(JSON.stringify(values)) === dish.hash) {
-        return dish;
-      }
-      return (await Dish.update({id: values.id}, values))[0];
-    }
-  }
 };
-
-function hashCode(str) {
-  let hash = 0;
-  if (str.length === 0) return hash;
-  for (let i = 0; i < str.length; i++) {
-    const chr = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + chr;
-    hash |= 0;
-  }
-  return hash;
-}

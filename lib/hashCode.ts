@@ -1,3 +1,7 @@
+/**
+ * Отдаёт хеш строки
+ * @param str - строка для хеширования
+ */
 export default function hashCode(str: string): number {
   let hash = 0;
   if (str.length === 0) return hash;

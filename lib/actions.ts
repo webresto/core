@@ -1,16 +1,53 @@
 import Cart from "@webresto/core/models/Cart";
 import Dish from "@webresto/core/models/Dish";
-import Modifier from "@webresto/core/modelsHelp/Modifier";
 import CartDish from "@webresto/core/models/CartDish";
+import Actions, {
+  ActionParams,
+  AddDishParams,
+  DeliveryDescriptionParams,
+  DeliveryParams, MessageParams
+} from "@webresto/core/modelsHelp/Actions";
 
-// @ts-ignore
-const Promise = require('bluebird');
-
-declare const Cart;
-declare const Dish;
-declare const CartDish;
-
-export default {
+/**
+ * Object with functions to action
+ * If you wanna add new actions just call addAction('newActionName', function newActionFunction(...) {...}); Also in this
+ * way you need to extends Actions interface and cast actions variable to new extended interface.
+ *
+ * For example:
+ *
+ * 1. Add new function doStuff
+ * ```
+ * addAction('doStuff', function(params: ActionParams): Promise<Cart> {
+ *   const cartId = params.cartId;
+ *
+ *   if (!cartId)
+ *     throw 'cartId (string) is required as first element of params';
+ *
+ *   const cart = await Cart.findOne(cartId);
+ *   if (!cart)
+ *     throw 'cart with id ' + cartId + ' not found';
+ *
+ *   sails.log.info('DO STUFF WITH CART', cart);
+ *
+ *   return cart;
+ * });
+ * ```
+ *
+ * 2. Create new Actions interface
+ * ```
+ * interface NewActions extends Actions {
+ *   doStuff(params: ActionParams): Promise<Cart>;
+ * }
+ * ```
+ *
+ * 3. Export actions variable
+ * ```
+ * import actions from "@webresto/core/lib/actions";
+ * import NewActions from "<module>/NewActions";
+ * const newActions = <NewActions>actions;
+ * ```
+ */
+const actions = {
   /**
    * Add dish in cart
    * @param params(cartId, dishesId)
@@ -26,12 +63,12 @@ export default {
     if (!dishesId || !dishesId.length)
       throw 'dishIds (array of strings) is required as second element of params';
 
-    const cart = <Cart>await Cart.findOne(cartId);
+    const cart = await Cart.findOne(cartId);
     if (!cart)
       throw 'cart with id ' + cartId + ' not found';
 
-    await Promise.each(dishesId, async (dishId: string) => {
-      const dish = <Dish>await Dish.findOne(dishId);
+    await Promise.each(dishesId, async (dishId) => {
+      const dish = await Dish.findOne(dishId);
       await cart.addDish(dish, params.amount, params.modifiers, params.comment, 'delivery');
     });
 
@@ -60,13 +97,13 @@ export default {
     if (deliveryItem && typeof deliveryItem !== 'string')
       throw 'deliveryCost (string) is required as second element of params';
 
-    const cart = <Cart>await Cart.findOne(cartId);
+    const cart = await Cart.findOne(cartId);
 
     if (!cart)
       throw 'cart with id ' + cartId + ' not found';
 
     if (deliveryItem) {
-      const item = <Dish>await Dish.findOne({rmsId: deliveryItem});
+      const item = await Dish.findOne({rmsId: deliveryItem});
       if (!item)
         throw 'deliveryItem with rmsId ' + deliveryItem + ' not found';
 
@@ -77,7 +114,7 @@ export default {
     }
 
     cart.deliveryStatus = 0;
-    if (cart.state === 'CART')
+    if (cart.state !== 'CHECKOUT')
       await cart.next();
 
     await cart.save();
@@ -94,7 +131,7 @@ export default {
     if (!cartId)
       throw 'cartId (string) is required as first element of params';
 
-    const cart = <Cart>await Cart.findOne(cartId);
+    const cart = await Cart.findOne(cartId);
 
     if (!cart)
       throw 'cart with id ' + cartId + ' not found';
@@ -105,7 +142,7 @@ export default {
     cart.message = "";
     await cart.next('CART');
 
-    const removeDishes = <CartDish[]>await CartDish.find({cart: cart.id, addedBy: 'delivery'});
+    const removeDishes = await CartDish.find({cart: cart.id, addedBy: 'delivery'});
     await Promise.each(removeDishes, (dish: CartDish) => {
       cart.removeDish(dish, 100000);
     });
@@ -114,7 +151,7 @@ export default {
   },
 
   /**
-   * add delivery description in cart
+   * Add delivery description in cart
    * @param params(cartId, description)
    * @return Promise<Cart>
    */
@@ -129,7 +166,7 @@ export default {
       throw 'description (string) is required as second element of params';
     }
 
-    const cart = <Cart>await Cart.findOne(cartId);
+    const cart = await Cart.findOne(cartId);
 
     if (!cart)
       throw 'cart with id ' + cartId + ' not found';
@@ -141,13 +178,13 @@ export default {
     return cart;
   },
 
-  async reject(params: ActionParams) {
+  async reject(params: ActionParams): Promise<Cart> {
     const cartId = params.cartId;
 
     if (!cartId)
       throw 'cartId (string) is required as first element of params';
 
-    const cart = <Cart>await Cart.findOne(cartId);
+    const cart = await Cart.findOne(cartId);
     if (!cart) {
       throw 'cart with id ' + cartId + ' not found';
     }
@@ -156,10 +193,9 @@ export default {
     await cart.next('CART');
 
     return cart;
-
   },
 
-  async setMessage(params: MessageParams) {
+  async setMessage(params: MessageParams): Promise<Cart> {
     const cartId = params.cartId;
     const message = params.message;
 
@@ -169,7 +205,7 @@ export default {
     if (!message)
       throw 'description (string) is required as second element of params';
 
-    const cart = <Cart>await Cart.findOne(cartId);
+    const cart = await Cart.findOne(cartId);
     if (!cart)
       throw 'cart with id ' + cartId + ' not found';
 
@@ -179,31 +215,26 @@ export default {
     return cart;
   },
 
-  return() {
+  return(): number {
     return 0;
   }
-};
+} as Actions;
 
-export interface ActionParams {
-  cartId: string
+export default actions;
+
+type actionFunc1 = (params?: ActionParams, ...args: any) => Promise<Cart>;
+type actionFunc2 = (...args: any) => Promise<Cart>;
+type actionFunc = actionFunc1 | actionFunc2;
+
+/**
+ * Add new action in actions
+ * @param name - new action name
+ * @param fn - action function
+ */
+export function addAction(name: string, fn: actionFunc): void {
+  actions[name] = fn;
 }
 
-interface AddDishParams extends ActionParams {
-  dishesId: string[];
-  amount?: number;
-  modifiers?: Modifier[];
-  comment?: string;
-}
-
-interface DeliveryParams extends ActionParams {
-  deliveryCost?: number;
-  deliveryItem?: string;
-}
-
-interface DeliveryDescriptionParams extends ActionParams {
-  description: string;
-}
-
-interface MessageParams extends ActionParams {
-  message: string;
+export function getAllActionsName(): string[] {
+  return Object.keys(actions);
 }
