@@ -228,7 +228,7 @@ export default interface Dish extends ORM, AdditionalInfo {
   hash: number;
   rmsId: string;
   code: string;
-  tags: { name: string }[];
+  tags: {name: string}[];
   isDeleted: boolean;
 }
 

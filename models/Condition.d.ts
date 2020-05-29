@@ -49,65 +49,57 @@ import Cart from "@webresto/core/models/Cart";
 import Cause from "@webresto/core/modelsHelp/Cause";
 import ORMModel from "@webresto/core/modelsHelp/ORMModel";
 import ORM from "@webresto/core/modelsHelp/ORM";
-import {ActionParams} from "@webresto/core/modelsHelp/Actions";
+import { ActionParams } from "@webresto/core/modelsHelp/Actions";
 import Zone from "@webresto/native-check/models/Zone";
-
 /**
  * Описывает одно условие с его условиями и действиями для выполнения
  */
 export default interface Condition extends ORM {
-  name: string;
-  description: string;
-  enable: boolean;
-  weight: number;
-  causes: Cause;
-  actions: any;
-  zones: Zone[];
-  needy: boolean;
-
-  /**
-   * Проверяет что заданная корзина проходит условия causes текущего Condition
-   * @param cart
-   */
-  check(cart: Cart): Promise<boolean>;
-
-  /**
-   * Выполняет все actions текущего условия для заданной корзины
-   * @param cart
-   */
-  exec(cart: Cart): Promise<Cart>;
-
-  /**
-   * @return Возвращает true, если в actions указано return: true или reject: true
-   */
-  hasReturn(): boolean;
+    name: string;
+    description: string;
+    enable: boolean;
+    weight: number;
+    causes: Cause;
+    actions: any;
+    zones: Zone[];
+    needy: boolean;
+    /**
+     * Проверяет что заданная корзина проходит условия causes текущего Condition
+     * @param cart
+     */
+    check(cart: Cart): Promise<boolean>;
+    /**
+     * Выполняет все actions текущего условия для заданной корзины
+     * @param cart
+     */
+    exec(cart: Cart): Promise<Cart>;
+    /**
+     * @return Возвращает true, если в actions указано return: true или reject: true
+     */
+    hasReturn(): boolean;
 }
-
 /**
  * Описывает класс Condition, используется для ORM
  */
 export interface ConditionModel extends ORMModel<Condition> {
-  /**
-   * Выполняет действие actionName с параметрами params и возвращает результат его выполнения -- новую корзину
-   * @param actionName - название action
-   * @param params - параметры
-   */
-  action(actionName: string, params: ActionParams): Promise<any>;
-
-  /**
-   * @return возвращает наличие условий в проекте. Если условий нет, то false
-   */
-  checkConditionsExists(cart: Cart): Promise<boolean>;
-
-  /**
-   * Возвращает все условия, которые привязаны в зоне, в которую входят заданные улица-дом
-   * @param street - улица
-   * @param home - дом
-   * @return массив условий, которые следует проверять для заданных улицы и дома
-   */
-  getConditions(street: string, home: number): Promise<Condition[]>;
+    /**
+     * Выполняет действие actionName с параметрами params и возвращает результат его выполнения -- новую корзину
+     * @param actionName - название action
+     * @param params - параметры
+     */
+    action(actionName: string, params: ActionParams): Promise<any>;
+    /**
+     * @return возвращает наличие условий в проекте. Если условий нет, то false
+     */
+    checkConditionsExists(cart: Cart): Promise<boolean>;
+    /**
+     * Возвращает все условия, которые привязаны в зоне, в которую входят заданные улица-дом
+     * @param street - улица
+     * @param home - дом
+     * @return массив условий, которые следует проверять для заданных улицы и дома
+     */
+    getConditions(street: string, home: number): Promise<Condition[]>;
 }
-
 declare global {
-  const Condition: ConditionModel;
+    const Condition: ConditionModel;
 }

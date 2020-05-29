@@ -1,6 +1,5 @@
 import Cart from "@webresto/core/models/Cart";
-import Actions, {ActionParams} from "@webresto/core/modelsHelp/Actions";
-
+import Actions, { ActionParams } from "@webresto/core/modelsHelp/Actions";
 /**
  * Object with functions to action
  * If you wanna add new actions just call addAction('newActionName', function newActionFunction(...) {...}); Also in this
@@ -45,12 +44,10 @@ export default actions;
 declare type actionFunc1 = (params?: ActionParams, ...args: any) => Promise<Cart>;
 declare type actionFunc2 = (...args: any) => Promise<Cart>;
 declare type actionFunc = actionFunc1 | actionFunc2;
-
 /**
  * Add new action in actions
  * @param name - new action name
  * @param fn - action function
  */
 export declare function addAction(name: string, fn: actionFunc): void;
-
 export declare function getAllActionsName(): string[];

@@ -34,8 +34,7 @@ export default interface Maintenance extends ORM {
 /**
  * Описывает класс Maintenance, используется для ORM
  */
-export interface MaintenanceModel extends ORMModel<Maintenance> {
-}
+export interface MaintenanceModel extends ORMModel<Maintenance> {}
 
 declare global {
   const Maintenance: MaintenanceModel;

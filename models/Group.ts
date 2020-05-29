@@ -109,7 +109,7 @@ module.exports = {
    * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[], errors: {} }> {
-    let menu = {} as { [x: string]: GroupWithAdditionalFields };
+    let menu = {} as {[x: string]: GroupWithAdditionalFields};
     const groups = await Group.find({
       id: groupsId,
       isDeleted: false
@@ -210,7 +210,7 @@ module.exports = {
 /**
  * Описывает группу блюд в момент получения её популяризированной версии, дополнительные поля являются ошибкой фреймворка
  */
-export interface GroupWithAdditionalFields extends Group {
+export interface GroupWithAdditionalFields extends Group{
   children: Group[];
   dishesList: Dish[];
 }
@@ -224,7 +224,7 @@ export default interface Group extends ORM, AdditionalInfo {
   childGroups: Group[];
   parentGroup: Group;
   name: string;
-  tags: { name: string }[];
+  tags: {name: string}[];
   images: Association<Image>;
   isDeleted: boolean;
 
@@ -236,7 +236,7 @@ export default interface Group extends ORM, AdditionalInfo {
   seoTitle: string;
   isIncludedInMenu: boolean;
   order: number;
-  dishesTags: { name: string }[];
+  dishesTags: {name: string}[];
   dishes: Dish[];
   slug: string;
 }

@@ -63,64 +63,59 @@
  */
 import Modifier from "@webresto/core/modelsHelp/Modifier";
 import Group from "@webresto/core/models/Group";
-import {AdditionalInfo} from "../../../@webresto/core/lib/checkExpression";
+import { AdditionalInfo } from "../../../@webresto/core/lib/checkExpression";
 import Image from "@webresto/core/models/Image";
 import ORMModel from "@webresto/core/modelsHelp/ORMModel";
 import ORM from "@webresto/core/modelsHelp/ORM";
-
 /**
  * Описывает блюдо
  */
 export default interface Dish extends ORM, AdditionalInfo {
-  id: string;
-  additionalInfo: string;
-  balance: number;
-  modifiers: Modifier[];
-  parentGroup: Group;
-  weight: number;
-  price: number;
-  order: number;
-  images: Association<Image>;
-  name: string;
-  composition: string;
-  hash: number;
-  rmsId: string;
-  code: string;
-  tags: {
+    id: string;
+    additionalInfo: string;
+    balance: number;
+    modifiers: Modifier[];
+    parentGroup: Group;
+    weight: number;
+    price: number;
+    order: number;
+    images: Association<Image>;
     name: string;
-  }[];
-  isDeleted: boolean;
+    composition: string;
+    hash: number;
+    rmsId: string;
+    code: string;
+    tags: {
+        name: string;
+    }[];
+    isDeleted: boolean;
 }
-
 /**
  * Описывает класс Dish, содержит статические методы, используется для ORM
  */
 export interface DishModel extends ORMModel<Dish> {
-  /**
-   * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
-   * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.
-   * @param criteria - критерии поиска
-   * @return найденные блюда
-   */
-  getDishes(criteria: any): Promise<Dish[]>;
-
-  /**
-   * Популяризирует модификаторы блюда, то есть всем груповым модификаторам дописывает группу и блюда, которые им соответствуют,
-   * а обычным модификаторам дописывает их блюдо.
-   * @param dish
-   */
-  getDishModifiers(dish: Dish): any;
-
-  /**
-   * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
-   * хеш существующего блюда и новых данных, если они совпали, то сразу же отдаёт блюда, если нет, то обновляет его данные
-   * на новые
-   * @param values
-   * @return обновлённое или созданное блюдо
-   */
-  createOrUpdate(values: Dish): Promise<Dish>;
+    /**
+     * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
+     * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.
+     * @param criteria - критерии поиска
+     * @return найденные блюда
+     */
+    getDishes(criteria: any): Promise<Dish[]>;
+    /**
+     * Популяризирует модификаторы блюда, то есть всем груповым модификаторам дописывает группу и блюда, которые им соответствуют,
+     * а обычным модификаторам дописывает их блюдо.
+     * @param dish
+     */
+    getDishModifiers(dish: Dish): any;
+    /**
+     * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
+     * хеш существующего блюда и новых данных, если они совпали, то сразу же отдаёт блюда, если нет, то обновляет его данные
+     * на новые
+     * @param values
+     * @return обновлённое или созданное блюдо
+     */
+    createOrUpdate(values: Dish): Promise<Dish>;
 }
-
 declare global {
-  const Dish: DishModel;
+    const Dish: DishModel;
 }

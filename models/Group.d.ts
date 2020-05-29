@@ -37,98 +37,91 @@
  * @apiParam {String} slug Текстовое названия группы в транслите
  *
  */
-import {AdditionalInfo} from "../../../@webresto/core/lib/checkExpression";
+import { AdditionalInfo } from "../../../@webresto/core/lib/checkExpression";
 import ORMModel from "@webresto/core/modelsHelp/ORMModel";
 import ORM from "@webresto/core/modelsHelp/ORM";
 import Image from "@webresto/core/models/Image";
 import Dish from "@webresto/core/models/Dish";
-
 /**
  * Описывает группу блюд в момент получения её популяризированной версии, дополнительные поля являются ошибкой фреймворка
  */
 export interface GroupWithAdditionalFields extends Group {
-  children: Group[];
-  dishesList: Dish[];
+    children: Group[];
+    dishesList: Dish[];
 }
-
 /**
  * Описывает группу блюд
  */
 export default interface Group extends ORM, AdditionalInfo {
-  id: string;
-  additionalInfo: string;
-  childGroups: Group[];
-  parentGroup: Group;
-  name: string;
-  tags: {
+    id: string;
+    additionalInfo: string;
+    childGroups: Group[];
+    parentGroup: Group;
     name: string;
-  }[];
-  images: Association<Image>;
-  isDeleted: boolean;
-  code: number;
-  description: string;
-  seoDescription: string;
-  seoKeywords: string;
-  seoText: string;
-  seoTitle: string;
-  isIncludedInMenu: boolean;
-  order: number;
-  dishesTags: {
-    name: string;
-  }[];
-  dishes: Dish[];
-  slug: string;
+    tags: {
+        name: string;
+    }[];
+    images: Association<Image>;
+    isDeleted: boolean;
+    code: number;
+    description: string;
+    seoDescription: string;
+    seoKeywords: string;
+    seoText: string;
+    seoTitle: string;
+    isIncludedInMenu: boolean;
+    order: number;
+    dishesTags: {
+        name: string;
+    }[];
+    dishes: Dish[];
+    slug: string;
 }
-
 /**
  * Описывает класс Group, содержит статические методы, используется для ORM
  */
 export interface GroupModel extends ORMModel<Group> {
-  /**
-   * Возвращает объект с группами и ошибками получения этих самых групп.
-   * @param groupsId - массив id групп, которые следует получить
-   * @return Object {
-   *   groups: [],
-   *   errors: {}
-   * }
-   * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
-   * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
-   * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
-   */
-  getGroups(groupsId: string[]): Promise<{
-    groups: {};
-    errors: {};
-  }>;
-
-  /**
-   * Возвращает группу с заданным id
-   * @param groupId - id группы
-   * @return запрашиваемая группа
-   * @throws ошибка получения группы
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
-   */
-  getGroup(groupId: string): Promise<Group>;
-
-  /**
-   * Возвращает группу с заданным slug'ом
-   * @param groupSlug - slug группы
-   * @return запрашиваемая группа
-   * @throws ошибка получения группы
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
-   */
-  getGroupBySlug(groupSlug: string): Promise<Group>;
-
-  /**
-   * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её. Если существует, то сверяет
-   * хеш существующей группы и новых данных, если они совпали, то сразу же отдаёт группу, если нет, то обновляет её данные
-   * на новые
-   * @param values
-   * @return обновлённая или созданная группа
-   */
-  createOrUpdate(values: Group): Promise<Group>;
+    /**
+     * Возвращает объект с группами и ошибками получения этих самых групп.
+     * @param groupsId - массив id групп, которые следует получить
+     * @return Object {
+     *   groups: [],
+     *   errors: {}
+     * }
+     * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
+     * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
+     * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
+     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     */
+    getGroups(groupsId: string[]): Promise<{
+        groups: {};
+        errors: {};
+    }>;
+    /**
+     * Возвращает группу с заданным id
+     * @param groupId - id группы
+     * @return запрашиваемая группа
+     * @throws ошибка получения группы
+     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     */
+    getGroup(groupId: string): Promise<Group>;
+    /**
+     * Возвращает группу с заданным slug'ом
+     * @param groupSlug - slug группы
+     * @return запрашиваемая группа
+     * @throws ошибка получения группы
+     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     */
+    getGroupBySlug(groupSlug: string): Promise<Group>;
+    /**
+     * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её. Если существует, то сверяет
+     * хеш существующей группы и новых данных, если они совпали, то сразу же отдаёт группу, если нет, то обновляет её данные
+     * на новые
+     * @param values
+     * @return обновлённая или созданная группа
+     */
+    createOrUpdate(values: Group): Promise<Group>;
 }
-
 declare global {
-  const Group: GroupModel;
+    const Group: GroupModel;
 }

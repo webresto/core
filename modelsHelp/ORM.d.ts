@@ -2,11 +2,8 @@
  * Описывает экземпляр класса
  */
 export default interface ORM {
-  destroy(): Promise<void>;
-
-  save(): Promise<void>;
-
-  remove(): any;
-
-  add(): any;
+    destroy(): Promise<void>;
+    save(): Promise<void>;
+    remove(): any;
+    add(): any;
 }

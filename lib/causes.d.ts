@@ -1,7 +1,6 @@
 import Cart from "@webresto/core/models/Cart";
-import {DirectDistance, Time} from "@webresto/core/modelsHelp/Cause";
+import { DirectDistance, Time } from "@webresto/core/modelsHelp/Cause";
 import Condition from "@webresto/core/models/Condition";
-
 declare type customCause = {
     name: string;
     needCart: boolean;
@@ -15,7 +14,6 @@ declare type causeFunc = (condition: Condition, cart?: Cart) => boolean | Promis
  * @returns {Promise<boolean>}
  */
 export default function causes(condition: Condition, cart: Cart): Promise<boolean>;
-
 /**
  * Add new cause in custom causes
  * @param name - cause name
@@ -23,13 +21,11 @@ export default function causes(condition: Condition, cart: Cart): Promise<boolea
  * @param fn - call back to check cause in condition and cart
  */
 export declare function addCauseByFields(name: string, needCart: boolean, fn: causeFunc): void;
-
 /**
  * Add new cause in custom causes
  * @param cause - new cause object
  */
 export declare function addCause(cause: customCause): void;
-
 /**
  * Check that current time is in time of paras
  * @param {array} timeArray
@@ -45,7 +41,6 @@ export declare function addCause(cause: customCause): void;
  * @returns {boolean}
  */
 export declare function checkTime(timeArray: Time[]): boolean;
-
 /**
  * Check that in (a,b,c) c is between a and b
  * @param {number} [from] is a
@@ -54,14 +49,12 @@ export declare function checkTime(timeArray: Time[]): boolean;
  * @returns {boolean}
  */
 export declare function between(from: number, to: number, a: number): boolean;
-
 /**
  * Check distance between cart address and data DirectDistance info
  * @param cart
  * @param data
  */
 export declare function checkDistance(cart: Cart, data: DirectDistance): Promise<boolean>;
-
 export declare enum Weekdays {
     'sunday' = 0,
     'monday' = 1,
@@ -71,5 +64,4 @@ export declare enum Weekdays {
     'friday' = 5,
     'saturday' = 6
 }
-
 export {};

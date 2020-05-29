@@ -57,8 +57,7 @@ export default interface Image extends ORM {
 /**
  * Описывает класс Image, используется для ORM
  */
-export interface ImageModel extends ORMModel<Image> {
-}
+export interface ImageModel extends ORMModel<Image> {}
 
 declare global {
   const Image: ImageModel;

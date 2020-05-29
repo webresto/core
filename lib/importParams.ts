@@ -23,8 +23,7 @@ export default async function (obj: Dish | Group): Promise<void> {
     let ai;
     try {
       ai = <AdditionalInfo>JSON.parse(obj.additionalInfo);
-    } catch (e) {
-    }
+    } catch (e) {}
     if (!ai)
       return;
     const keys = ['visible', 'workTime', 'promo', 'modifier'];

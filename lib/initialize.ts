@@ -7,7 +7,6 @@ import afterHook from "@webresto/core/lib/afterHook";
  * Use @types/bluebird-global in devDep
  */
 import * as Promise from 'bluebird'
-
 global.Promise = Promise;
 
 const State = require('sails-hook-stateflow').State;

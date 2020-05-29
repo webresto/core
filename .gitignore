@@ -1,1 +1,39 @@
-/apidoc/
+############################
+# sails / node.js / npm
+############################
+node_modules
+.tmp
+npm-debug.log
+package-lock.json
+.waterline
+.node_history
+
+############################
+# editor & OS files
+############################
+*.swo
+*.swp
+*.swn
+*.swm
+*.seed
+*.log
+*.out
+*.pid
+lib-cov
+.DS_STORE
+*#
+*\#
+.\#*
+*~
+#.idea
+.netbeans
+nbproject
+
+############################
+# misc
+############################
+dump.rdb
+
+#/apidoc/
+#/docs/
+

@@ -90,7 +90,6 @@ export interface SystemInfoModel extends ORMModel<SystemInfo> {
    * @return найденное значение или 0, если значение не было найдено.
    */
   use<T extends keyof Config>(key: T): Promise<PropType<Config, T>>;
-
   /**
    * Отдаёт запрашиваемый ключ из запрашиваемого конфига. Если ключ, который запрашивается, отсуствует в базе, то данные
    * будут взяты из sails.config[config][key] и записаны в базу. При последующих запросах того же ключа будут возвращаться данные
@@ -100,7 +99,6 @@ export interface SystemInfoModel extends ORMModel<SystemInfo> {
    * @return найденное значение или 0, если значение не было найдено.
    */
   use<T extends keyof config[U], U extends keyof config>(config: U, key: T): Promise<PropType<config[U], T>>
-
   use(key: string): Promise<any>;
 }
 

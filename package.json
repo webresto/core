@@ -20,6 +20,10 @@
     "sails-util": "^0.11.0",
     "uuid": "^3.3.2"
   },
+  "devDependencies": {
+    "typedoc": "^0.15.8",
+    "typedoc-plugin-markdown": "^2.2.16"
+  },
   "deprecated": false,
   "description": "webresto core",
   "keywords": [
@@ -39,7 +43,7 @@
     "hookName": "webresto-core"
   },
   "scripts": {
-    "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o docs/api.md",
+    "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o api.md",
     "build": "tsc"
   },
   "version": "0.7.0-rc1"

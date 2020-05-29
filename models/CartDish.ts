@@ -78,8 +78,7 @@ export default interface CartDish extends ORM {
 /**
  * Описывает класс CartDish, используется для ORM
  */
-export interface CartDishModel extends ORMModel<CartDish> {
-}
+export interface CartDishModel extends ORMModel<CartDish> {}
 
 declare global {
   const CartDish: CartDishModel;
