@@ -100,6 +100,7 @@ export interface SystemInfoModel extends ORMModel<SystemInfo> {
    */
   use<T extends keyof config[U], U extends keyof config>(config: U, key: T): Promise<PropType<config[U], T>>
   use(key: string): Promise<any>;
+  use(config: string, key: string): Promise<any>
 }
 
 declare global {
