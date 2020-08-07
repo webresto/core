@@ -1,4 +1,4 @@
-import ImageConfig from "@webresto/core/adapter/image/ImageConfig";
+import ImageConfig from "./ImageConfig";
 
 export default abstract class ImageAdapter {
   protected readonly config: ImageConfig;

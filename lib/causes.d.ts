@@ -1,6 +1,6 @@
-import Cart from "@webresto/core/models/Cart";
-import { DirectDistance, Time } from "@webresto/core/modelsHelp/Cause";
-import Condition from "@webresto/core/models/Condition";
+import Cart from "../models/Cart";
+import { DirectDistance, Time } from "../modelsHelp/Cause";
+import Condition from "../models/Condition";
 declare type customCause = {
     name: string;
     needCart: boolean;

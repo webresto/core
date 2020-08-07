@@ -8,10 +8,10 @@
  * @apiParam {String} value Значение свойства
  * @apiParam {String} section Секция, к которой относится свойство
  */
-import ORM from "@webresto/core/modelsHelp/ORM";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import defaultConfig from "../../../@webresto/core/config/defaultConfig";
-import Config from "@webresto/core/modelsHelp/Config";
+import ORM from "../modelsHelp/ORM";
+import ORMModel from "../modelsHelp/ORMModel";
+import defaultConfig from "../config/defaultConfig";
+import Config from "../modelsHelp/Config";
 
 module.exports = {
   migrate: 'drop',

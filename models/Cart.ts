@@ -83,17 +83,17 @@
  * 3. 'core-cart-after-check', self, customer, isSelfService, address
  */
 
-import Modifier from "@webresto/core/modelsHelp/Modifier";
-import Address from "@webresto/core/modelsHelp/Address";
-import Customer from "@webresto/core/modelsHelp/Customer";
-import CartDish from "@webresto/core/models/CartDish";
-import checkExpression from "../../../@webresto/core/lib/checkExpression";
-import StateFlow from "@webresto/core/modelsHelp/StateFlow";
-import actions from "../../../@webresto/core/lib/actions";
-import getEmitter from "../../../@webresto/core/lib/getEmitter";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import ORM from "@webresto/core/modelsHelp/ORM";
-import Dish from "@webresto/core/models/Dish";
+import Modifier from "../modelsHelp/Modifier";
+import Address from "../modelsHelp/Address";
+import Customer from "../modelsHelp/Customer";
+import CartDish from "../models/CartDish";
+import checkExpression from "../lib/checkExpression";
+import StateFlow from "../modelsHelp/StateFlow";
+import actions from "../lib/actions";
+import getEmitter from "../lib/getEmitter";
+import ORMModel from "../modelsHelp/ORMModel";
+import ORM from "../modelsHelp/ORM";
+import Dish from "./Dish";
 import * as _ from "lodash";
 
 module.exports = {
@@ -101,8 +101,8 @@ module.exports = {
     id: {
       type: 'string',
       primaryKey: true
-    },
-    cartId: 'string', //DELETE IN FUTURE
+    }, 
+    cartId: 'string', // TODO: DELETE IN FUTURE
     dishes: {
       collection: 'CartDish',
       via: 'cart'
@@ -120,7 +120,7 @@ module.exports = {
       type: 'boolean',
       defaultsTo: false
     },
-    sendToIiko: {
+    sendToIiko: { // TODO: move to iiko rms adapter
       type: 'boolean',
       defaultsTo: false
     },

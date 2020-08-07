@@ -1,5 +1,5 @@
 import * as sailsParent from 'typed-sails';
-import Config from "@webresto/core/modelsHelp/Config";
+import Config from "../modelsHelp/Config";
 declare type sailsConfig = typeof sailsParent.sails.config;
 interface A<T> extends Array<T> {
     add(id: any): void;

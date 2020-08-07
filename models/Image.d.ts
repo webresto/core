@@ -16,10 +16,10 @@
     }
  */
 /// <reference no-default-lib="true"/>
-import Dish from "@webresto/core/models/Dish";
-import Group from "@webresto/core/models/Group";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import ORM from "@webresto/core/modelsHelp/ORM";
+import Dish from "../models/Dish";
+import Group from "../models/Group";
+import ORMModel from "../modelsHelp/ORMModel";
+import ORM from "../modelsHelp/ORM";
 /**
  * Описывает картинки блюд и групп
  */

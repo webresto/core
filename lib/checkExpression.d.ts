@@ -1,4 +1,4 @@
-import { Time } from "@webresto/core/modelsHelp/Cause";
+import { Time } from "../modelsHelp/Cause";
 /**
  * Check additionalInfo. Return empty string if success or reject reason string
  * @param obj

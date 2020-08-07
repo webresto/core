@@ -1,12 +1,12 @@
-import Cart from "@webresto/core/models/Cart";
-import Dish from "@webresto/core/models/Dish";
-import CartDish from "@webresto/core/models/CartDish";
+import Cart from "../models/Cart";
+import Dish from "../models/Dish";
+import CartDish from "../models/CartDish";
 import Actions, {
   ActionParams,
   AddDishParams,
   DeliveryDescriptionParams,
   DeliveryParams, MessageParams
-} from "@webresto/core/modelsHelp/Actions";
+} from "../modelsHelp/Actions";
 
 /**
  * Object with functions to action
@@ -42,7 +42,7 @@ import Actions, {
  *
  * 3. Export actions variable
  * ```
- * import actions from "@webresto/core/lib/actions";
+ * import actions from "./lib/actions";
  * import NewActions from "<module>/NewActions";
  * const newActions = <NewActions>actions;
  * ```

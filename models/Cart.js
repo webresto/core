@@ -25,9 +25,9 @@
  * @apiParam {String} message Сообщение, что отправляется с корзиной
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../../../@webresto/core/lib/checkExpression");
-const actions_1 = require("../../../@webresto/core/lib/actions");
-const getEmitter_1 = require("../../../@webresto/core/lib/getEmitter");
+const checkExpression_1 = require("../lib/checkExpression");
+const actions_1 = require("../lib/actions");
+const getEmitter_1 = require("../lib/getEmitter");
 const _ = require("lodash");
 module.exports = {
     attributes: {

@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const defaultConfig_1 = require("../../../@webresto/core/config/defaultConfig");
+const defaultConfig_1 = require("../config/defaultConfig");
 module.exports = {
-    // migrate: 'drop',
+    migrate: 'drop',
     attributes: {
         id: {
             type: 'integer',

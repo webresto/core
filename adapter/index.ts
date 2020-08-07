@@ -1,6 +1,6 @@
-import RMSAdapter from '@webresto/core/adapter/rms/RMSAdapter';
-import MapAdapter from '@webresto/core/adapter/map/MapAdapter';
-import ImageAdapter from "@webresto/core/adapter/image/ImageAdapter";
+import RMSAdapter from './rms/RMSAdapter';
+import MapAdapter from './map/MapAdapter';
+import ImageAdapter from "./image/ImageAdapter";
 
 /**
  * Отдаёт запрашиваемый RMS-адаптер

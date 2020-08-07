@@ -46,14 +46,14 @@
  * @apiParam {[Zone](#api-Models-ApiZone)} zones Зоны, к которым применяется данное условие
  */
 
-import Cart from "@webresto/core/models/Cart";
-import Cause from "@webresto/core/modelsHelp/Cause";
-import causes from "../../../@webresto/core/lib/causes";
-import actions from "../../../@webresto/core/lib/actions";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import ORM from "@webresto/core/modelsHelp/ORM";
-import {ActionParams} from "@webresto/core/modelsHelp/Actions";
-import Zone from "@webresto/native-check/models/Zone";
+import Cart from "../models/Cart";
+import Cause from "../modelsHelp/Cause";
+import causes from "../lib/causes";
+import actions from "../lib/actions";
+import ORMModel from "../modelsHelp/ORMModel";
+import ORM from "../modelsHelp/ORM";
+import {ActionParams} from "../modelsHelp/Actions";
+import Zone from "@webresto/native-check/models/Zone"; // TODO: move to native-check
 
 module.exports = {
   attributes: {
@@ -70,7 +70,7 @@ module.exports = {
     causes: 'json',
     actions: 'json',
     zones: {
-      collection: 'zone'
+      //collection: 'zone'
     },
     needy: {
       type: 'boolean',

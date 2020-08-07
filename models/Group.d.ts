@@ -37,11 +37,11 @@
  * @apiParam {String} slug Текстовое названия группы в транслите
  *
  */
-import { AdditionalInfo } from "../../../@webresto/core/lib/checkExpression";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import ORM from "@webresto/core/modelsHelp/ORM";
-import Image from "@webresto/core/models/Image";
-import Dish from "@webresto/core/models/Dish";
+import { AdditionalInfo } from "../lib/checkExpression";
+import ORMModel from "../modelsHelp/ORMModel";
+import ORM from "../modelsHelp/ORM";
+import Image from "../models/Image";
+import Dish from "../models/Dish";
 /**
  * Описывает группу блюд в момент получения её популяризированной версии, дополнительные поля являются ошибкой фреймворка
  */

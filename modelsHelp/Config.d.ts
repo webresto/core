@@ -38,8 +38,8 @@
       notRequired: boolean - проверка считается успешной даже если НЕ ОДНА система не ответила успешно, игнорируется, если requireAll = true
     }
  */
-import ImageConfig from "../../../@webresto/core/adapter/image/ImageConfig";
-import { Time } from "@webresto/core/modelsHelp/Cause";
+import ImageConfig from "../adapter/image/ImageConfig";
+import { Time } from "../modelsHelp/Cause";
 export default interface Config {
     prefix: string;
     timeSyncBalance: number;

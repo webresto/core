@@ -1,4 +1,4 @@
-import Config from "@webresto/core/modelsHelp/Config";
+import Config from "../modelsHelp/Config";
 
 export default {
   prefix: "",

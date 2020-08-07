@@ -21,10 +21,10 @@
       "groupId": "string"
  *  }
  */
-import ORM from "@webresto/core/modelsHelp/ORM";
-import Dish from "@webresto/core/models/Dish";
-import Modifier from "@webresto/core/modelsHelp/Modifier";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
+import ORM from "../modelsHelp/ORM";
+import Dish from "../models/Dish";
+import Modifier from "../modelsHelp/Modifier";
+import ORMModel from "../modelsHelp/ORMModel";
 /**
  * Описывает екзмепляр CartDish, то есть блюда в корзине, имеет связь с корзиной, внутри которой находится и с блюдом,
  * которое описывает

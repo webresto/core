@@ -1,5 +1,5 @@
-import Group from "../../../@webresto/core/models/Group";
-import Dish from "../../../@webresto/core/models/Dish";
+import Group from "../models/Group";
+import Dish from "../models/Dish";
 /**
  * Описывает модификатор внутри CartDish
  */

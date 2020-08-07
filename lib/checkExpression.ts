@@ -1,5 +1,5 @@
-import {checkTime} from "@webresto/core/lib/causes";
-import {Time} from "@webresto/core/modelsHelp/Cause";
+import {checkTime} from "./causes";
+import {Time} from "../modelsHelp/Cause";
 
 /**
  * Check additionalInfo. Return empty string if success or reject reason string

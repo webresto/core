@@ -1,4 +1,4 @@
-import AwaitEmitter from "@webresto/core/lib/AwaitEmitter";
+import AwaitEmitter from "./AwaitEmitter";
 /**
  * Получение эмиттера ядра
  */

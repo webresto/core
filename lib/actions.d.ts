@@ -1,5 +1,5 @@
-import Cart from "@webresto/core/models/Cart";
-import Actions, { ActionParams } from "@webresto/core/modelsHelp/Actions";
+import Cart from "../models/Cart";
+import Actions, { ActionParams } from "../modelsHelp/Actions";
 /**
  * Object with functions to action
  * If you wanna add new actions just call addAction('newActionName', function newActionFunction(...) {...}); Also in this
@@ -34,7 +34,7 @@ import Actions, { ActionParams } from "@webresto/core/modelsHelp/Actions";
  *
  * 3. Export actions variable
  * ```
- * import actions from "@webresto/core/lib/actions";
+ * import actions from "./lib/actions";
  * import NewActions from "<module>/NewActions";
  * const newActions = <NewActions>actions;
  * ```

@@ -45,11 +45,11 @@
  * }
  * @apiParam {[Zone](#api-Models-ApiZone)} zones Зоны, к которым применяется данное условие
  */
-import Cart from "@webresto/core/models/Cart";
-import Cause from "@webresto/core/modelsHelp/Cause";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import ORM from "@webresto/core/modelsHelp/ORM";
-import { ActionParams } from "@webresto/core/modelsHelp/Actions";
+import Cart from "../models/Cart";
+import Cause from "../modelsHelp/Cause";
+import ORMModel from "../modelsHelp/ORMModel";
+import ORM from "../modelsHelp/ORM";
+import { ActionParams } from "../modelsHelp/Actions";
 import Zone from "@webresto/native-check/models/Zone";
 /**
  * Описывает одно условие с его условиями и действиями для выполнения

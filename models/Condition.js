@@ -47,8 +47,8 @@
  * @apiParam {[Zone](#api-Models-ApiZone)} zones Зоны, к которым применяется данное условие
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-const causes_1 = require("../../../@webresto/core/lib/causes");
-const actions_1 = require("../../../@webresto/core/lib/actions");
+const causes_1 = require("../lib/causes");
+const actions_1 = require("../lib/actions");
 module.exports = {
     attributes: {
         name: 'string',
@@ -64,7 +64,7 @@ module.exports = {
         causes: 'json',
         actions: 'json',
         zones: {
-            collection: 'zone'
+            //collection: 'zone'
         },
         needy: {
             type: 'boolean',

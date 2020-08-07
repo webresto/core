@@ -1,5 +1,5 @@
-import Modifier from "@webresto/core/modelsHelp/Modifier";
-import Cart from "../../../@webresto/core/models/Cart";
+import Modifier from "../modelsHelp/Modifier";
+import Cart from "../models/Cart";
 /**
  * Описывает возможные дейтсвия с корзиной
  */

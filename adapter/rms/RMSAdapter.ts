@@ -1,5 +1,5 @@
-import OrderResponse from "@webresto/core/adapter/rms/OrderResponse";
-import Cart from "@webresto/core/models/Cart";
+import OrderResponse from "./OrderResponse";
+import Cart from "../../models/Cart";
 
 /**
  * Абстрактный класс RMS адаптера. Используется для создания новых адаптеров RMS.

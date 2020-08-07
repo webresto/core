@@ -1,4 +1,4 @@
-import {RMS} from "@webresto/core/adapter";
+import {RMS} from "../adapter";
 import moment = require("moment-timezone");
 
 /**

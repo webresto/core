@@ -39,8 +39,8 @@
  *
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../../../@webresto/core/lib/checkExpression");
-const getEmitter_1 = require("../../../@webresto/core/lib/getEmitter");
+const checkExpression_1 = require("../lib/checkExpression");
+const getEmitter_1 = require("../lib/getEmitter");
 module.exports = {
     attributes: {
         id: {

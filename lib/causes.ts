@@ -1,10 +1,10 @@
-import Cart from "@webresto/core/models/Cart";
-import {DirectDistance, Time} from "@webresto/core/modelsHelp/Cause";
-import Group from "@webresto/core/models/Group";
+import Cart from "../models/Cart";
+import {DirectDistance, Time} from "../modelsHelp/Cause";
+import Group from "../models/Group";
 import * as moment from "moment";
-import {Map} from "@webresto/core/adapter";
-import Point from "../../../@webresto/core/adapter/map/Point";
-import Condition from "@webresto/core/models/Condition";
+import {Map} from "../adapter";
+import Point from "../adapter/map/Point";
+import Condition from "../models/Condition";
 
 type customCause = {
   name: string;

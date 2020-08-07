@@ -62,14 +62,14 @@
  *
  */
 
-import Modifier from "@webresto/core/modelsHelp/Modifier";
-import Group from "@webresto/core/models/Group";
-import checkExpression, {AdditionalInfo} from "../../../@webresto/core/lib/checkExpression";
-import Image from "@webresto/core/models/Image";
-import hashCode from "../../../@webresto/core/lib/hashCode";
-import getEmitter from "../../../@webresto/core/lib/getEmitter";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import ORM from "@webresto/core/modelsHelp/ORM";
+import Modifier from "../modelsHelp/Modifier";
+import Group from "./Group";
+import checkExpression, {AdditionalInfo} from "../lib/checkExpression";
+import Image from "./Image";
+import hashCode from "../lib/hashCode";
+import getEmitter from "../lib/getEmitter";
+import ORMModel from "../modelsHelp/ORMModel";
+import ORM from "../modelsHelp/ORM";
 
 module.exports = {
   attributes: {

@@ -1,6 +1,6 @@
-import {AdditionalInfo} from "@webresto/core/lib/checkExpression";
-import Dish from "@webresto/core/models/Dish";
-import Group from "@webresto/core/models/Group";
+import {AdditionalInfo} from "./checkExpression";
+import Dish from "../models/Dish";
+import Group from "../models/Group";
 
 type importParamFunction = (obj: Dish | Group) => Promise<void>;
 type importParamObject = {

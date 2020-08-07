@@ -39,8 +39,8 @@
     }
  */
 
-import ImageConfig from "../../../@webresto/core/adapter/image/ImageConfig";
-import {Time} from "@webresto/core/modelsHelp/Cause";
+import ImageConfig from "../adapter/image/ImageConfig";
+import {Time} from "../modelsHelp/Cause";
 
 export default interface Config {
   prefix: string;

@@ -1,8 +1,16 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "ES6",
-    "sourceMap": true,
+    "target": "es2019",
+    "lib": [
+      "dom"
+    ],
+    "types": [
+      "bluebird-global",
+      "mocha",
+      "node"
+    ],
+    "sourceMap": false,
     "declaration": true
   },
   "exclude": [

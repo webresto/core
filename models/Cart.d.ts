@@ -81,14 +81,14 @@
  * 2. 'core-cart-check', self, customer, isSelfService, address
  * 3. 'core-cart-after-check', self, customer, isSelfService, address
  */
-import Modifier from "@webresto/core/modelsHelp/Modifier";
-import Address from "@webresto/core/modelsHelp/Address";
-import Customer from "@webresto/core/modelsHelp/Customer";
-import CartDish from "@webresto/core/models/CartDish";
-import StateFlow from "@webresto/core/modelsHelp/StateFlow";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import ORM from "@webresto/core/modelsHelp/ORM";
-import Dish from "@webresto/core/models/Dish";
+import Modifier from "../modelsHelp/Modifier";
+import Address from "../modelsHelp/Address";
+import Customer from "../modelsHelp/Customer";
+import CartDish from "../models/CartDish";
+import StateFlow from "../modelsHelp/StateFlow";
+import ORMModel from "../modelsHelp/ORMModel";
+import ORM from "../modelsHelp/ORM";
+import Dish from "./Dish";
 /**
  * Описывает модель корзины. Содержит в себе блюда и данных о них, данные о заказчике и месте доставки.
  * Имеет состояние state, которое указывает в каком моменте жизненного цикла сейчас находится корзина.

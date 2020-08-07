@@ -1,13 +1,13 @@
-import HookTools from "@webresto/core/lib/hookTools";
+import HookTools from "./hookTools";
 import {resolve} from "path";
-import afterHook from "@webresto/core/lib/afterHook";
+import afterHook from "./afterHook";
 
 /**
  * SET BLUEBIRD AS GLOBAL PROMISE
  * Use @types/bluebird-global in devDep
  */
-import * as Promise from 'bluebird'
-global.Promise = Promise;
+import * as Bluebird from 'bluebird'
+global.Promise = <any>Bluebird;
 
 const State = require('sails-hook-stateflow').State;
 

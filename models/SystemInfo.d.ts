@@ -8,9 +8,9 @@
  * @apiParam {String} value Значение свойства
  * @apiParam {String} section Секция, к которой относится свойство
  */
-import ORM from "@webresto/core/modelsHelp/ORM";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import Config from "@webresto/core/modelsHelp/Config";
+import ORM from "../modelsHelp/ORM";
+import ORMModel from "../modelsHelp/ORMModel";
+import Config from "../modelsHelp/Config";
 /**
  * Описывает одно поле конфига, его значение, ключ и откуда оно было взято
  */
@@ -43,6 +43,7 @@ export interface SystemInfoModel extends ORMModel<SystemInfo> {
      */
     use<T extends keyof config[U], U extends keyof config>(config: U, key: T): Promise<PropType<config[U], T>>;
     use(key: string): Promise<any>;
+    use(config: string, key: string): Promise<any>;
 }
 declare global {
     const SystemInfo: SystemInfoModel;

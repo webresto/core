@@ -38,12 +38,12 @@
  *
  */
 
-import checkExpression, {AdditionalInfo} from "../../../@webresto/core/lib/checkExpression";
-import getEmitter from "../../../@webresto/core/lib/getEmitter";
-import ORMModel from "@webresto/core/modelsHelp/ORMModel";
-import ORM from "@webresto/core/modelsHelp/ORM";
-import Image from "@webresto/core/models/Image";
-import Dish from "@webresto/core/models/Dish";
+import checkExpression, {AdditionalInfo} from "../lib/checkExpression";
+import getEmitter from "../lib/getEmitter";
+import ORMModel from "../modelsHelp/ORMModel";
+import ORM from "../modelsHelp/ORM";
+import Image from "../models/Image";
+import Dish from "../models/Dish";
 
 module.exports = {
   attributes: {
