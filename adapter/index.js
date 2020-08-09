@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ImageA = exports.Map = exports.RMS = void 0;
+exports.Payment = exports.ImageA = exports.Map = exports.RMS = void 0;
 /**
  * Отдаёт запрашиваемый RMS-адаптер
  */
@@ -49,3 +49,19 @@ class ImageA {
     }
 }
 exports.ImageA = ImageA;
+/**
+* Отдаёт запрашиваемый Payment-адаптер
+*/
+class Payment {
+    static getAdapter(adapterName) {
+        adapterName = '@webresto/' + adapterName.toLowerCase() + '-payment-adapter';
+        try {
+            const adapter = require(adapterName);
+            return adapter.PaymentAdapter.default;
+        }
+        catch (e) {
+            throw new Error('Module ' + adapterName + ' not found');
+        }
+    }
+}
+exports.Payment = Payment;

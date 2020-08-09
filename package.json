@@ -23,9 +23,28 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
+    "@types/bluebird": "^3.5.32",
+    "@types/bluebird-global": "^3.5.12",
+    "@types/body-parser": "^1.19.0",
+    "@types/chai": "^4.2.11",
+    "@types/express": "^4.17.7",
+    "@types/lodash": "^4.14.157",
+    "@types/moment": "^2.13.0",
+    "@types/moment-timezone": "^0.5.13",
+    "@types/node": "^14.0.24",
+    "@types/uuid": "^8.0.0",
+    "@types/waterline": "^0.13.0",
+    "@types/mocha": "^8.0.1",
+    "typed-sails": "git+https://github.com/42Sails/typed-sails.git",
     "rc": "^1.2.8",
     "typedoc": "^0.15.8",
-    "typedoc-plugin-markdown": "^2.2.16"
+    "typedoc-plugin-markdown": "^2.2.16",
+    "chai": "^4.2.0",
+    "is-promise": "^4.0.0",
+    "mocha": "^8.1.1",
+    "sails": "^0.12.14",
+    "sails-postgresql": "^0.12.2",
+    "ts-node": "^8.10.2"
   },
   "deprecated": false,
   "description": "webresto core",
@@ -47,9 +66,9 @@
   },
   "scripts": {
     "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o api.md",
-    "testts": "mocha --globals sails -r ts-node/register test/bootstrap.ts test/unit/*.test.ts",
-    "testjs": "mocha test/bootstrap.test.js test/unit/*.test.js",
-    "pretestjs1": "cd ./test/fixtures/v0.12-app && npm i --no-package-lock --prefix ./ && cd -",
+    "test": "mocha --globals sails -r ts-node/register test/bootstrap.ts '{,**/}*.test.ts'",
+    "testjs": "mocha test/bootstrap.js test/**/*.test.js",
+    "test-init": "cd ./test/fixtures/v0.12-app && npm i --no-package-lock --prefix ./ && cd -",
     "build": "tsc"
   },
   "version": "0.7.1"

@@ -7,6 +7,8 @@
  * @apiParam {Integer} id Уникальный идентификатор
  * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
  * @apiParam {[CartDish](#api-Models-ApiCartdish)[]} dishes Массив блюд в текущей корзине. Смотри [CartDish](#api-Models-ApiCartdish)
+ * @apiParam {[PaymentMethod](#api-Models-PaymentMethod)[]} Способ оплаты
+ * @apiParam {Boolean} Признак того что корзина оплачена
  * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
  * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
  * @apiParam {Integer} cartTotal Стоимость корзины без доставки
@@ -39,6 +41,14 @@ module.exports = {
         dishes: {
             collection: 'CartDish',
             via: 'cart'
+        },
+        paymentMethod: {
+            collection: 'PaymentMethod',
+            via: 'id'
+        },
+        paid: {
+            type: 'boolean',
+            defaultsTo: false
         },
         dishesCount: 'integer',
         uniqueDishes: 'integer',
@@ -302,8 +312,8 @@ module.exports = {
             await actions_1.default.reset(this.id);
             self.selfDelivery = selfService;
             await self.save();
-            if (self.getState() === 'CART')
-                await self.next();
+            // if (self.getState() === 'CART')
+            //   await self.next(); // TODO: непонятно зачем тут делать next, нужно проверить!!!
         },
         /**
          * Проверяет ваидность customer. Проверка проходит на наличие полей и их валидность соответсвенно nameRegex и phoneRegex
@@ -313,7 +323,7 @@ module.exports = {
          * @param customer - данные заказчика
          * @param isSelfService - является ли самовывозов
          * @param address - адресс, обязательный, если это самовывоз
-         * @return Результат проверки. Если проверка данных заказчика или адресса в случае самомвывоза дали ошибку, то false. Иначе,
+         * @return Результат проверки. Если проверка данных заказчика или адресса в случае не самомвывоза дали ошибку, то false. Иначе,
          * если в конфиге checkConfig.requireAll==true, то успех функции только в случае, если все подписки `core-cart-check` вернули положительный результат работы.
          * Если в конфгие checkConfig.notRequired==true, то независимо от результата всех подписчиков `core-cart-check` будет положительный ответ.
          * Иначе если хотя бы один подписчик `core-cart-check` ответил успешно, то вся функция считается успешной.
@@ -324,17 +334,19 @@ module.exports = {
          * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
          * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
          */
-        check: async function (customer, isSelfService, address) {
+        check: async function (customer, isSelfService, address, paymentMethod) {
             const self = this;
             getEmitter_1.default().emit('core-cart-before-check', self, customer, isSelfService, address);
             sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
             await checkCustomerInfo(customer);
+            checkPaymentMethod(paymentMethod);
             self.customer = customer;
             await self.save();
             if (isSelfService) {
                 getEmitter_1.default().emit('core-cart-check-self-service', self, customer, isSelfService, address);
                 sails.log.verbose('Cart > check > is self delivery');
                 await self.setSelfDelivery(true);
+                await self.next();
                 return true;
             }
             getEmitter_1.default().emit('core-cart-check-delivery', self, customer, isSelfService, address);
@@ -358,15 +370,16 @@ module.exports = {
                     }
                     return resultsCount === successCount;
                 }
+                // TODO это не выполнится никогда?
                 if (checkConfig.notRequired) {
-                    if (self.getState() === 'CHECKOUT') {
+                    if (self.getState() === 'CHECKOUT') { // TODO это не выполнится никогда?
                         await self.next();
                     }
                     return true;
                 }
             }
             if (successCount > 0) {
-                if (self.getState() === 'CHECKOUT') {
+                if (self.getState() === 'CHECKOUT') { // TODO это не выполнится никогда?
                     await self.next();
                 }
             }
@@ -431,6 +444,15 @@ module.exports = {
     beforeCreate: function (values, next) {
         getEmitter_1.default().emit('core-cart-before-create', values).then(() => {
             this.countCart(values).then(next, next);
+        });
+    },
+    afterUpdate: async function (values, next) {
+        getEmitter_1.default().emit('core-cart-after-update', values).then(() => {
+            const self = this;
+            sails.log.verbose('Cart > afterUpdate > ', values);
+            if (self.paid && self.getState() === 'PAYMENT')
+                self.order();
+            next();
         });
     },
     /**
@@ -614,6 +636,14 @@ function checkAddress(address) {
         throw {
             code: 7,
             error: 'address.city is required'
+        };
+    }
+}
+function checkPaymentMethod(paymentMethod) {
+    if (paymentMethod) {
+        throw {
+            code: 8,
+            error: 'paymentMethod is required'
         };
     }
 }

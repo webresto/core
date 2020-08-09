@@ -6,6 +6,8 @@
  * @apiParam {Integer} id Уникальный идентификатор
  * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
  * @apiParam {[CartDish](#api-Models-ApiCartdish)[]} dishes Массив блюд в текущей корзине. Смотри [CartDish](#api-Models-ApiCartdish)
+ * @apiParam {[PaymentMethod](#api-Models-PaymentMethod)[]} Способ оплаты
+ * @apiParam {Boolean} Признак того что корзина оплачена
  * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
  * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
  * @apiParam {Integer} cartTotal Стоимость корзины без доставки
@@ -64,6 +66,9 @@
  * beforeCreate:
  * 1. 'core-cart-before-create', values
  *
+ * afterUpdate:
+ * 1. 'core-cart-after-update', values
+ *
  * returnFullCart:
  * 1. 'core-cart-before-return-full-cart', cart
  * 2. 'core-cart-return-full-cart-destroy-cartdish', dish, cart
@@ -85,6 +90,7 @@ import Modifier from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
 import CartDish from "../models/CartDish";
+import PaymentMethod from "../models/PaymentMethod";
 import StateFlow from "../modelsHelp/StateFlow";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
@@ -93,12 +99,14 @@ import Dish from "./Dish";
  * Описывает модель корзины. Содержит в себе блюда и данных о них, данные о заказчике и месте доставки.
  * Имеет состояние state, которое указывает в каком моменте жизненного цикла сейчас находится корзина.
  * Схематически цикл переходов выглядить так
- * -> CART <-> CHECKOUT  -> COMPLETE
+ * -> CART <-> CHECKOUT  -> ORDER
  */
 export default interface Cart extends ORM, StateFlow {
     id: string;
     cartId: string;
     dishes: Association<CartDish>;
+    paymentMethod: Association<PaymentMethod>;
+    paid: "boolean";
     dishesCount: number;
     uniqueDishes: number;
     cartTotal: number;

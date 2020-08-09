@@ -6,6 +6,8 @@
  * @apiParam {Integer} id Уникальный идентификатор
  * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
  * @apiParam {[CartDish](#api-Models-ApiCartdish)[]} dishes Массив блюд в текущей корзине. Смотри [CartDish](#api-Models-ApiCartdish)
+ * @apiParam {[PaymentMethod](#api-Models-PaymentMethod)[]} Способ оплаты 
+ * @apiParam {Boolean} Признак того что корзина оплачена
  * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
  * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
  * @apiParam {Integer} cartTotal Стоимость корзины без доставки
@@ -64,6 +66,9 @@
  *
  * beforeCreate:
  * 1. 'core-cart-before-create', values
+ * 
+ * afterUpdate:
+ * 1. 'core-cart-after-update', values
  *
  * returnFullCart:
  * 1. 'core-cart-before-return-full-cart', cart
@@ -87,6 +92,7 @@ import Modifier from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
 import CartDish from "../models/CartDish";
+import PaymentMethod from "../models/PaymentMethod";
 import checkExpression from "../lib/checkExpression";
 import StateFlow from "../modelsHelp/StateFlow";
 import actions from "../lib/actions";
@@ -106,6 +112,14 @@ module.exports = {
     dishes: {
       collection: 'CartDish',
       via: 'cart'
+    },
+    paymentMethod: {
+      collection: 'PaymentMethod',
+      via: 'id'
+    },
+    paid: {
+      type: 'boolean',
+      defaultsTo: false
     },
     dishesCount: 'integer',
     uniqueDishes: 'integer',
@@ -409,9 +423,8 @@ module.exports = {
 
       self.selfDelivery = selfService;
       await self.save();
-
-      if (self.getState() === 'CART')
-        await self.next();
+      // if (self.getState() === 'CART')
+      //   await self.next(); // TODO: непонятно зачем тут делать next, нужно проверить!!!
     },
 
     /**
@@ -422,7 +435,7 @@ module.exports = {
      * @param customer - данные заказчика
      * @param isSelfService - является ли самовывозов
      * @param address - адресс, обязательный, если это самовывоз
-     * @return Результат проверки. Если проверка данных заказчика или адресса в случае самомвывоза дали ошибку, то false. Иначе,
+     * @return Результат проверки. Если проверка данных заказчика или адресса в случае не самомвывоза дали ошибку, то false. Иначе,
      * если в конфиге checkConfig.requireAll==true, то успех функции только в случае, если все подписки `core-cart-check` вернули положительный результат работы.
      * Если в конфгие checkConfig.notRequired==true, то независимо от результата всех подписчиков `core-cart-check` будет положительный ответ.
      * Иначе если хотя бы один подписчик `core-cart-check` ответил успешно, то вся функция считается успешной.
@@ -433,13 +446,13 @@ module.exports = {
      * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
      * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
      */
-    check: async function (customer: Customer, isSelfService: boolean, address?: Address): Promise<boolean> {
+    check: async function (customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: PaymentMethod): Promise<boolean> {
       const self: Cart = this;
       getEmitter().emit('core-cart-before-check', self, customer, isSelfService, address);
       sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
 
       await checkCustomerInfo(customer);
-
+      checkPaymentMethod(paymentMethod);
       self.customer = customer;
       await self.save();
 
@@ -447,6 +460,7 @@ module.exports = {
         getEmitter().emit('core-cart-check-self-service', self, customer, isSelfService, address);
         sails.log.verbose('Cart > check > is self delivery');
         await self.setSelfDelivery(true);
+        await self.next();
         return true;
       }
 
@@ -477,15 +491,16 @@ module.exports = {
           }
           return resultsCount === successCount;
         }
-        if (checkConfig.notRequired) {
-          if (self.getState() === 'CHECKOUT') {
+        // TODO это не выполнится никогда?
+        if (checkConfig.notRequired) { 
+          if (self.getState() === 'CHECKOUT') {  // TODO это не выполнится никогда?
             await self.next();
           }
           return true;
         }
       }
       if (successCount > 0) {
-        if (self.getState() === 'CHECKOUT') {
+        if (self.getState() === 'CHECKOUT') {  // TODO это не выполнится никогда?
           await self.next();
         }
       }
@@ -506,6 +521,8 @@ module.exports = {
      * @fires cart:core-cart-after-order - вызывается сразу после попытки оформить заказ.
      */
     order: async function (): Promise<number> {
+
+      
       const self: Cart = this;
       getEmitter().emit('core-cart-before-order', self);
       sails.log.verbose('Cart > order > before order >', self.customer, self.selfDelivery, self.address);
@@ -554,6 +571,17 @@ module.exports = {
       this.countCart(values).then(next, next);
     });
   },
+
+  afterUpdate: async function (values, next) {
+    getEmitter().emit('core-cart-after-update', values).then(() => {
+      const self: Cart = this;
+      sails.log.verbose('Cart > afterUpdate > ', values);
+      if (self.paid && self.getState() === 'PAYMENT')
+       self.order();
+      next();
+    });
+  },
+
 
   /**
    * Возвращает корзину со всем популярищациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
@@ -768,16 +796,27 @@ function checkAddress(address) {
   }
 }
 
+function checkPaymentMethod(paymentMethod) {
+  if (paymentMethod) {
+    throw {
+      code: 8,
+      error: 'paymentMethod is required'
+    }
+  }
+}
+
 /**
  * Описывает модель корзины. Содержит в себе блюда и данных о них, данные о заказчике и месте доставки.
  * Имеет состояние state, которое указывает в каком моменте жизненного цикла сейчас находится корзина.
  * Схематически цикл переходов выглядить так
- * -> CART <-> CHECKOUT  -> COMPLETE
+ * -> CART <-> CHECKOUT  -> ORDER
  */
 export default interface Cart extends ORM, StateFlow {
   id: string;
   cartId: string; // DELETE IN FUTURE
   dishes: Association<CartDish>;
+  paymentMethod: Association<PaymentMethod>;
+  paid: "boolean",
   dishesCount: number;
   uniqueDishes: number;
   cartTotal: number;

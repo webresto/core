@@ -49,10 +49,22 @@ export default function ToInitialize(sails) {
       new State('CART', ['CHECKOUT'], function (cb) {
         cb(null, true);
       }),
-      new State('CHECKOUT', ['COMPLETE', 'CART'], function (cb) {
+      new State('CHECKOUT', ['ORDER', 'PAYMENT', 'CART'], function (cb) {
+        /**
+         * CHECKOUT -> ORDER если тип платежной "promise", или отсутствует
+         * CHECKOUT -> CART  В любой момент (без условий)
+         * CHECKOUT -> PAYMENT  Если тип платежной системы "ixternal" || "internal". 
+         */
         cb(null, true);
       }),
-      new State('COMPLETE', [], function (cb) {
+      new State('PAYMENT', ['ORDER', 'CHECKOUT'], function (cb) {
+        /**
+         * PAYMENT -> ORDER при успешной оплате.
+         * PAYMENT -> CHECKOUT при неуспешной оплате
+         */
+        cb(null, true);
+      }),
+      new State('ORDER', [], function (cb) {
         cb(null, true);
       })
     ];

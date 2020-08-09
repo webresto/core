@@ -1,0 +1,18 @@
+{
+  //"extends": "../tslint",
+  "globals": {
+    "describe": true,
+    "context": true,
+    "it": true,
+    "xit": true,
+    "beforeEach": true,
+    "afterEach": true,
+    "before": true,
+    "after": true,
+    "sandbox": true,
+    "expect": true,
+    "moment": true,
+    "Promise": true,
+    "sails": true
+  }
+}

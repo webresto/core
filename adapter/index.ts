@@ -1,6 +1,7 @@
 import RMSAdapter from './rms/RMSAdapter';
 import MapAdapter from './map/MapAdapter';
 import ImageAdapter from "./image/ImageAdapter";
+import PaymentAdapter from './payment/PaymentAdapter';
 
 /**
  * Отдаёт запрашиваемый RMS-адаптер
@@ -41,6 +42,20 @@ export class ImageA {
     try {
       const adapter = require(adapterName);
       return adapter.ImageAdapter.default;
+    } catch (e) {
+      throw new Error('Module ' + adapterName + ' not found');
+    }
+  }
+}
+  /**
+ * Отдаёт запрашиваемый Payment-адаптер
+ */
+export class Payment {
+  public static getAdapter(adapterName: string): PaymentAdapter {
+    adapterName = '@webresto/' + adapterName.toLowerCase() + '-payment-adapter';
+    try {
+      const adapter = require(adapterName);
+      return adapter.PaymentAdapter.default;
     } catch (e) {
       throw new Error('Module ' + adapterName + ' not found');
     }

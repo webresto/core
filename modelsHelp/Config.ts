@@ -43,12 +43,22 @@ import ImageConfig from "../adapter/image/ImageConfig";
 import {Time} from "../modelsHelp/Cause";
 
 export default interface Config {
-  prefix: string;
+  project: string;
+  city: string;
+  timezone: string;
+  project_slug: string;  
+  websiteDomain: string;
+  orderPage: string;
   timeSyncBalance: number; // seconds
   timeSyncMenu: number; // seconds
   timeSyncStreets: number; // hours
+  checkType: string;
+  groupShift: string;
+  rmsAdapter: string;
+
   images: ImageConfig;
-  city: string;
+
+  prefix: string; //TODO: Move to @W/API module
   email?: {
     server: {
       user: string;
@@ -58,7 +68,7 @@ export default interface Config {
     },
     template: string;
   },
-  timezone: string;
+
   map: {
     geocode: string;
     customMaps: string,
@@ -68,11 +78,9 @@ export default interface Config {
     distance: string;
   },
   timeSyncMap: number;
-  checkType: string;
+  
   zoneDontWork?: string;
   deliveryWorkTime: Time[];
-  groupShift: string;
-  rmsAdapter: string;
   phoneRegex?: string;
   nameRegex?: string;
   check: {
