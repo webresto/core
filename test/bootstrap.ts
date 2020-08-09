@@ -1,6 +1,7 @@
 import 'mocha';
 import assert = require('assert');
 import * as _ from '@sailshq/lodash';
+require('dotenv').config()
 var Sails = require('./fixtures/v0.12-app/node_modules/sails').Sails;
 
   before(function (done) {

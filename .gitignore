@@ -7,7 +7,7 @@ npm-debug.log
 package-lock.json
 .waterline
 .node_history
-
+.env
 ############################
 # editor & OS files
 ############################
