@@ -33,13 +33,13 @@ module.exports = {
    * @param paymentMethod
    * @return
    */
-    async alive(paymentMethod) {
-        let knownPaymentMethod = await PaymentMethod.findOne({ adapter: paymentMethod.adapter });
+    async alive(initPaymentMethod) {
+        let knownPaymentMethod = await PaymentMethod.findOne({ adapter: initPaymentMethod.adapter });
         if (!knownPaymentMethod) {
-            knownPaymentMethod = await PaymentMethod.create(paymentMethod);
+            knownPaymentMethod = await PaymentMethod.create(initPaymentMethod);
         }
         if (knownPaymentMethod.enable === true) {
-            alivedPaymentMethods.push(paymentMethod.adapter);
+            alivedPaymentMethods.push(initPaymentMethod.adapter);
         }
         return;
     },

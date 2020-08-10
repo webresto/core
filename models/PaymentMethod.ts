@@ -35,13 +35,13 @@ module.exports = {
  * @param paymentMethod 
  * @return 
  */
-  async alive(paymentMethod: PaymentMethod): Promise<string[]> {
-    let knownPaymentMethod = await PaymentMethod.findOne({adapter: paymentMethod.adapter});
+  async alive(initPaymentMethod: InitPaymentAdapter): Promise<string[]> {
+    let knownPaymentMethod = await PaymentMethod.findOne({adapter: initPaymentMethod.adapter});
     if (!knownPaymentMethod) {
-      knownPaymentMethod = await PaymentMethod.create(paymentMethod);
+      knownPaymentMethod = await PaymentMethod.create(initPaymentMethod);
     }
     if (knownPaymentMethod.enable === true){
-      alivedPaymentMethods.push(paymentMethod.adapter);
+      alivedPaymentMethods.push(initPaymentMethod.adapter);
     }
     return
   },
@@ -56,16 +56,33 @@ module.exports = {
   }
 };
 
+// /**
+//  * Типы платежей, internal - внутренние (когда не требуется запрос во внешнюю систему)
+//  * external - Когда надо ожидать подтверждение платежа во внешней системе
+//  * promise - Типы оплат при получении
+//  */
+// export enum PaymentType {
+//   internal="internal",
+//   external="external",
+//   promise="promise"
+// }
+
 /**
  * Описывает модель "Способ оплаты"
  */
-export default interface PaymentMethod extends ORM {
-  id: string;
+export default interface PaymentMethod extends ORM, InitPaymentAdapter  {
+  id?: string;
+  enable?: boolean;
+}
+
+/**
+ * Описывает инит обеькт для регистрации "Способ оплаты"
+ */
+export interface InitPaymentAdapter {
   title: string;
   type: string;
   adapter: string;
   description?: string;
-  enable?: boolean;
 }
 
 /**
@@ -77,7 +94,7 @@ export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
    * @param paymentMethod - ключ
    * @return .
    */
-  alive(paymentMethod: PaymentMethod): Promise<PaymentMethod[]>;
+  alive(paymentMethod: InitPaymentAdapter): Promise<PaymentMethod[]>;
 }
 
 declare global {

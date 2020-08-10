@@ -67,8 +67,8 @@
   },
   "scripts": {
     "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o api.md",
-    "test": "mocha --globals sails -r ts-node/register test/bootstrap.ts '{,**/}*.test.ts'",
-    "testjs": "mocha test/bootstrap.js test/**/*.test.js",
+    "test": "mocha -r ts-node/register test/bootstrap.ts '{,**/}*.test.ts'",
+    "testjs": "mocha test/_bootstrap.js test/**/*.test.js",
     "test-init": "cd ./test/fixtures/v0.12-app && npm i --no-package-lock --prefix ./ && cd -",
     "build": "tsc"
   },

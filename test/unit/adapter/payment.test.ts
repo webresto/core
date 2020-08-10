@@ -1,5 +1,24 @@
-describe('PaymentAdapter', function () {
-  it('empty', () => true);
+
+
+//import TestPaymentSystem from './TestPaymentSystem'
+import Payment from "../../../modelsHelp/Payment"
+import generate_payment from './payment.generator'
+import { PaymentA } from "../../../adapter";
+//let Sails: Sails = global.sails
+describe('PaymentAdapter testing', function () {
+  it('should save without error', async function(done){ 
+    //let payment: Payment = generate_payment();
+    //const paymentAdapter = PaymentA.getAdapter('test');
+   // const result = await paymentAdapter.getInstance().createPayment(payment , "test");
+    
+    console.log(">>>>>>>>>>>>>",PaymentA);
+    done();
+  });
+
+
+
+
+
 });
  /**
   * 1. тест создания платежа

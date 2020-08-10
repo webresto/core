@@ -7,8 +7,8 @@
 export default interface Payment {
   total: number;
   id: string;
-  is_core_payment: boolean;
-  origin: string;
+  isCorePayment: boolean;
+  originModel: string;
   data?: any;
   comment?: string;
 }

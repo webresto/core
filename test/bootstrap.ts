@@ -10,6 +10,7 @@ var Sails = require('./fixtures/v0.12-app/node_modules/sails').Sails;
     Sails().lift(rc, function (err: any, _sails: any) {
       if (err) return done(err);
       global.sails = _sails;
+      console.log(_sails);
       return done();
     });
 

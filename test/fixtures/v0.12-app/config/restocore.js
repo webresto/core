@@ -33,4 +33,7 @@ module.exports.restocore = {
   timeSyncMap: 15 * 60, //seconds
   checkType: 'native', //'rms',
   groupShift: '',
+  rmsAdapter: '',
+  prefix: '/api/0.5/'
+
 };

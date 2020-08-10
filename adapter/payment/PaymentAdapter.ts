@@ -1,24 +1,17 @@
-import PaymentMethod from "../../models/PaymentMethod";
-import Cart from "../../models/Cart";
+
 import Payment from "../../modelsHelp/Payment"
+import { InitPaymentAdapter }   from "../../models/PaymentMethod";
 
 /**
  * Абстрактный класс Payment адаптера. Используется для создания новых адаптеров платежных систем.
  */
 
-
-/** 
- * 
- * 
- */
-
-
 export default abstract class PaymentAdapter {
-  
-  
-  protected constructor(paymentMethod: PaymentMethod) {
-    paymentMethod.type = 'external'; // указывает на то что платежный адапетр явдяется внешним
-    PaymentMethod.alive(paymentMethod);
+  protected readonly InitPaymentAdapter: InitPaymentAdapter;
+
+  protected constructor(InitPaymentAdapter: InitPaymentAdapter) {
+    this.InitPaymentAdapter = InitPaymentAdapter;
+    PaymentMethod.alive(this.InitPaymentAdapter);
   }
 
 
@@ -27,14 +20,14 @@ export default abstract class PaymentAdapter {
    * @param Payment - Платежный документ
    * @return Результат работы функции, тело ответа и код результата
    */
-  public abstract async createPayment(payment: Payment, backLink: string):  Promise<{redirectLink:string, payment: Payment, error?:any}>;
+  public abstract async createPayment(payment: Payment, backLink: string):  Promise<CreatePaymentReturn>;
 
   /**
    * Проверка Оплаты
    * @param Payment - Платежный документ
    * @return результат работы функции, тело ответа и код результата
    */
-  public abstract async checkPayment(payment: Payment): Promise<{paid: boolean, payment: Payment, error?:any }>;
+  public abstract async checkPayment(payment: Payment): Promise<CheckPaymentReturn>;
 
   /**
    * Метод для создания и получения уже существующего Payment адаптера
@@ -42,3 +35,19 @@ export default abstract class PaymentAdapter {
    */
   static getInstance(...params): PaymentAdapter {return PaymentAdapter.prototype};
 }
+
+export interface CreatePaymentReturn extends PaymentReturn
+ {
+  redirectLink:string, 
+ }
+
+export interface CheckPaymentReturn extends PaymentReturn
+ {
+  paid: boolean 
+ }
+
+interface PaymentReturn
+ {
+  payment: Payment, 
+  error?:any
+ }
