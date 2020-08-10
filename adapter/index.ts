@@ -8,12 +8,12 @@ import PaymentAdapter from './payment/PaymentAdapter';
  */
 export class RMS {
   public static getAdapter(adapterName: string): typeof RMSAdapter {
-    adapterName = '@webresto/' + adapterName.toLowerCase() + '-rms-adapter';
+    const adapterFind = '@webresto/' + adapterName.toLowerCase() + '-rms-adapter';
     try {
-      const adapter = require(adapterName);
+      const adapter = require(adapterFind);
       return adapter.RMS[adapterName.toUpperCase()];
     } catch (e) {
-      throw new Error('Module ' + adapterName + ' not found');
+      throw new Error('Module ' + adapterFind + ' not found');
     }
   }
 }
@@ -50,16 +50,14 @@ export class ImageA {
   /**
  * Отдаёт запрашиваемый Payment-адаптер
  */
-  export class PaymentA {
-    public static getAdapter(adapterName: string): typeof PaymentAdapter {
-      if (adapterName.split('/').length === 1)
-        adapterName = '@webresto/' + adapterName.toLowerCase() + '-payment-adapter';
-      try {
-        const adapter = require(adapterName);
-        return adapter.PaymentAdapter[adapterName.toUpperCase()];
-      } catch (e) {
-        throw new Error('Module ' + adapterName + ' not found');
-      }
+export class Payment {
+  public static getAdapter(adapterName: string): PaymentAdapter {
+    adapterName = '@webresto/' + adapterName.toLowerCase() + '-payment-adapter';
+    try {
+      const adapter = require(adapterName);
+      return adapter.PaymentAdapter[adapterName.toUpperCase()];
+    } catch (e) {
+      throw new Error('Module ' + adapterName + ' not found');
     }
   }
 }

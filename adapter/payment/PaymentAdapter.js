@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 class PaymentAdapter {
     constructor(InitPaymentAdapter) {
         this.InitPaymentAdapter = InitPaymentAdapter;
-        sails.models.paymentmethod.alive(this.InitPaymentAdapter);
+        PaymentMethod.alive(this.InitPaymentAdapter);
     }
     /**
      * Метод для создания и получения уже существующего Payment адаптера

@@ -16,8 +16,10 @@ export default async function () {
     const timeSyncBalance = await SystemInfo.use('timeSyncBalance');
     const timeSyncStreets = await SystemInfo.use('timeSyncStreets');
 
-    const rmsAdapter = RMS.getAdapter(rmsAdapterName);
-    rmsAdapter.getInstance(rmsAdapterConfig, imagesConfig, timeSyncMenu, timeSyncBalance, timeSyncStreets);
+    if(rmsAdapterName) {
+      const rmsAdapter = RMS.getAdapter(rmsAdapterName);
+      rmsAdapter.getInstance(rmsAdapterConfig, imagesConfig, timeSyncMenu, timeSyncBalance, timeSyncStreets);
+    }
 
     /**
      * TIMEZONE

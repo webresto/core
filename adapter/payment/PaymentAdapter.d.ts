@@ -8,7 +8,7 @@ export default abstract class PaymentAdapter {
     protected constructor(InitPaymentAdapter: InitPaymentAdapter);
     /**
      * Создание Оплаты
-     * @param Payment - Платежный tscдокумент
+     * @param Payment - Платежный документ
      * @return Результат работы функции, тело ответа и код результата
      */
     abstract createPayment(payment: Payment, backLink: string): Promise<CreatePaymentReturn>;

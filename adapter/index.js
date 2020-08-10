@@ -57,7 +57,7 @@ class Payment {
         adapterName = '@webresto/' + adapterName.toLowerCase() + '-payment-adapter';
         try {
             const adapter = require(adapterName);
-            return adapter.PaymentAdapter.default;
+            return adapter.PaymentAdapter[adapterName.toUpperCase()];
         }
         catch (e) {
             throw new Error('Module ' + adapterName + ' not found');

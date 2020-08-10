@@ -2,6 +2,9 @@ import PaymentAdapter from '../../../adapter/payment/PaymentAdapter';
 import {CreatePaymentReturn, CheckPaymentReturn} from '../../../adapter/payment/PaymentAdapter';
 // import { PaymentType } from '../../../models/PaymentMethod'
 import Payment from '../../../modelsHelp/Payment'
+
+
+
 export default class TestPaymentSystem extends PaymentAdapter {
   private static instance: TestPaymentSystem;
 

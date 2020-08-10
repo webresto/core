@@ -2,12 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const TestPaymentSystem_1 = require("./TestPaymentSystem");
 const payment_generator_1 = require("./payment.generator");
+//import { PaymentA } from "../../../adapter";
 //let Sails: Sails = global.sails
 describe('PaymentAdapter testing', function () {
     it('should save without error', async function (done) {
         let payment = payment_generator_1.default();
+        //const paymentAdapter = PaymentA.getAdapter('test');
         const result = await TestPaymentSystem_1.default.getInstance().createPayment(payment, "test");
-        console.log(result);
+        console.log(">>>>>>>>>>>>>", result);
         done();
     });
 });
