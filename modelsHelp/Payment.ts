@@ -4,11 +4,18 @@
 
 
 
-export default interface Payment {
+export interface Payment {
+  paid?: boolean 
   total: number;
   id: string;
-  isCorePayment: boolean;
+  isCartPayment?: boolean;
   originModel: string;
+  paymentAdapter: string;
   data?: any;
   comment?: string;
+  error?:any
+}
+
+export interface PaymentResponse extends Payment {
+  redirectLink: string 
 }

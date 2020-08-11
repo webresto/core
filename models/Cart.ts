@@ -448,6 +448,10 @@ module.exports = {
      */
     check: async function (customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: PaymentMethod): Promise<boolean> {
       const self: Cart = this;
+
+      if(self.paid)
+        return false
+
       getEmitter().emit('core-cart-before-check', self, customer, isSelfService, address);
       sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
 
@@ -568,6 +572,7 @@ module.exports = {
 
   beforeCreate: function (values, next) {
     getEmitter().emit('core-cart-before-create', values).then(() => {
+      
       this.countCart(values).then(next, next);
     });
   },

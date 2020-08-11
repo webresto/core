@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Payment = exports.ImageA = exports.Map = exports.RMS = void 0;
 /**
  * Отдаёт запрашиваемый RMS-адаптер
  */

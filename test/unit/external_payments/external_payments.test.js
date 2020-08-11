@@ -1,0 +1,60 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const TestPaymentSystem_1 = require("./TestPaymentSystem");
+const payment_generator_1 = require("./payment.generator");
+const chai_1 = require("chai");
+describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
+    this.timeout(31000);
+    var test_payment = payment_generator_1.default();
+    /**
+     * 1. Тест регистрации платежной системы
+     */
+    it('Payment regtest', async () => {
+        const result = await TestPaymentSystem_1.default.getInstance();
+        chai_1.expect(result['InitPaymentAdapter'].adapter).to.equal("test-payment-system");
+    });
+    /**
+    * 2. тест создания платежа
+    */
+    it('Create payment test', async () => {
+        const result = await TestPaymentSystem_1.default.getInstance().createPayment(test_payment, "http://back_url.com", "delay_3_sec");
+        chai_1.expect(result.redirectLink).to.equal("http://redirect_link.com");
+    });
+    /**
+    * 3. Проверка оплаты (преждевременная)
+    */
+    it('Testigt, not yet payment check', async () => {
+        const result = await TestPaymentSystem_1.default.getInstance().checkPayment(test_payment);
+        chai_1.expect(result.paid).to.equal(false);
+        // тут нужно тестировать корзину там где вызывается создание платежа
+    });
+    /**
+    * 4. Проверка оплаты (уже оплачено)
+    */
+    it('Check done payment', async () => {
+        setTimeout(async () => {
+            const result = await TestPaymentSystem_1.default.getInstance().checkPayment(test_payment);
+            chai_1.expect(result.paid).to.equal(true);
+        }, 3000);
+    });
+    // /**
+    // * 4. Одновременная оплата  с разными задержками
+    // */
+    // it('Several payments in one time', async () => { 
+    //   
+    //   // тут нужно тестировать корзину там где вызывается создание платежа
+    //   const params = ['delay_15', 'delay_5', 'delay_1', 'delay_3']
+    //   params.forEach(param => {
+    //     let payment: Payment = generate_payment();
+    //     TestPaymentSystem.getInstance().createPayment(payment , "test", param);
+    //   });
+    //   const result = await TestPaymentSystem.getInstance().createPayment(payment , "test");
+    //   expect(result.redirectLink).to.equal("http://test.webresto.dev");
+    // });
+    /**
+    *
+    */
+    it('Exit on timeout', async () => {
+        // тут нужно тестировать корзину там где вызывается создание платежа
+    });
+});

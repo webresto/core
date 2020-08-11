@@ -336,6 +336,8 @@ module.exports = {
          */
         check: async function (customer, isSelfService, address, paymentMethod) {
             const self = this;
+            if (self.paid)
+                return false;
             getEmitter_1.default().emit('core-cart-before-check', self, customer, isSelfService, address);
             sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
             await checkCustomerInfo(customer);
