@@ -6,8 +6,8 @@
  * @apiParam {Integer} id Уникальный идентификатор
  * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
  * @apiParam {[CartDish](#api-Models-ApiCartdish)[]} dishes Массив блюд в текущей корзине. Смотри [CartDish](#api-Models-ApiCartdish)
- * @apiParam {[PaymentMethod](#api-Models-PaymentMethod)[]} Способ оплаты 
- * @apiParam {Boolean} Признак того что корзина оплачена
+ * @apiParam {[PaymentMethod](#api-Models-PaymentMethod)[]} paymentMethod Способ оплаты 
+ * @apiParam {Boolean} paids Признак того что корзина оплачена
  * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
  * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
  * @apiParam {Integer} cartTotal Стоимость корзины без доставки
