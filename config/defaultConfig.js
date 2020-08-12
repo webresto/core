@@ -1,6 +1,6 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = {
+exports.__esModule = true;
+exports["default"] = {
     prefix: "/api/0.5",
     orderPage: "/order/",
     timeSyncBalance: 30,

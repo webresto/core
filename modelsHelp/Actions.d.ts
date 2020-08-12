@@ -1,8 +1,5 @@
 import Modifier from "../modelsHelp/Modifier";
 import Cart from "../models/Cart";
-/**
- * Описывает возможные дейтсвия с корзиной
- */
 export default interface Actions {
     addDish(params: AddDishParams): Promise<Cart>;
     delivery(params: DeliveryParams): Promise<Cart>;
@@ -12,9 +9,6 @@ export default interface Actions {
     setMessage(params: MessageParams): Promise<Cart>;
     return(): number;
 }
-/**
- * Базовый параметр для действий Condition
- */
 export interface ActionParams {
     cartId: string;
 }

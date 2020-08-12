@@ -21,6 +21,7 @@ module.exports = {
       unique: true,
       required: true
     },
+
     description: 'string',
     enable: {
       type: 'boolean',

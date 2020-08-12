@@ -1,66 +1,67 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Отдаёт запрашиваемый RMS-адаптер
- */
-class RMS {
-    static getAdapter(adapterName) {
-        const adapterFind = '@webresto/' + adapterName.toLowerCase() + '-rms-adapter';
+exports.__esModule = true;
+exports.Payment = exports.ImageA = exports.Map = exports.RMS = void 0;
+var RMS = (function () {
+    function RMS() {
+    }
+    RMS.getAdapter = function (adapterName) {
+        var adapterFind = '@webresto/' + adapterName.toLowerCase() + '-rms-adapter';
         try {
-            const adapter = require(adapterFind);
+            var adapter = require(adapterFind);
             return adapter.RMS[adapterName.toUpperCase()];
         }
         catch (e) {
             throw new Error('Module ' + adapterFind + ' not found');
         }
-    }
-}
+    };
+    return RMS;
+}());
 exports.RMS = RMS;
-/**
- * Отдаёт запрашиваемый Map-адаптер
- */
-class Map {
-    static getAdapter(adapterName) {
+var Map = (function () {
+    function Map() {
+    }
+    Map.getAdapter = function (adapterName) {
         adapterName = '@webresto/' + adapterName.toLowerCase() + '-map-adapter';
         try {
-            const adapter = require(adapterName);
-            return adapter.MapAdapter.default;
+            var adapter = require(adapterName);
+            return adapter.MapAdapter["default"];
         }
         catch (e) {
             throw new Error('Module ' + adapterName + ' not found');
         }
-    }
-}
+    };
+    return Map;
+}());
 exports.Map = Map;
-/**
- * Отдаёт запрашиваемый Image-адаптер
- */
-class ImageA {
-    static getAdapter(adapterName) {
+var ImageA = (function () {
+    function ImageA() {
+    }
+    ImageA.getAdapter = function (adapterName) {
         adapterName = '@webresto/' + adapterName.toLowerCase() + '-image-adapter';
         try {
-            const adapter = require(adapterName);
-            return adapter.ImageAdapter.default;
+            var adapter = require(adapterName);
+            return adapter.ImageAdapter["default"];
         }
         catch (e) {
             throw new Error('Module ' + adapterName + ' not found');
         }
-    }
-}
+    };
+    return ImageA;
+}());
 exports.ImageA = ImageA;
-/**
-* Отдаёт запрашиваемый Payment-адаптер
-*/
-class Payment {
-    static getAdapter(adapterName) {
+var Payment = (function () {
+    function Payment() {
+    }
+    Payment.getAdapter = function (adapterName) {
         adapterName = '@webresto/' + adapterName.toLowerCase() + '-payment-adapter';
         try {
-            const adapter = require(adapterName);
+            var adapter = require(adapterName);
             return adapter.PaymentAdapter[adapterName.toUpperCase()];
         }
         catch (e) {
             throw new Error('Module ' + adapterName + ' not found');
         }
-    }
-}
+    };
+    return Payment;
+}());
 exports.Payment = Payment;

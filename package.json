@@ -23,13 +23,14 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
+    "@mangm/ts-mock-generator": "^0.10.0",
     "@types/bluebird": "^3.5.32",
     "@types/bluebird-global": "^3.5.12",
     "@types/body-parser": "^1.19.0",
     "@types/chai": "^4.2.11",
     "@types/express": "^4.17.7",
     "@types/lodash": "^4.14.157",
-    "@types/mocha": "^8.0.1",
+    "@types/mocha": "^8.0.2",
     "@types/moment": "^2.13.0",
     "@types/moment-timezone": "^0.5.13",
     "@types/node": "^14.0.24",
@@ -70,7 +71,8 @@
     "test": "tsc && mocha -r ts-node/register test/bootstrap.ts '{,**/}*.test.ts'",
     "test:js": "mocha test/_bootstrap.js test/**/*.test.js",
     "test:init": "cd ./test/fixtures/v0.12-app && npm i --no-package-lock --prefix ./ && cd -",
-    "build": "tsc"
+    "build": "tsc",
+    "prepublish": "javascript-obfuscator . --output .  --exclude=\"node_modules\""
   },
   "version": "0.7.1"
 }

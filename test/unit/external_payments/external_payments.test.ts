@@ -1,8 +1,8 @@
 
 
-import TestPaymentSystem from './TestPaymentSystem'
-import { PaymentResponse, Payment }  from "../../../modelsHelp/Payment"
-import generate_payment from './payment.generator'
+import TestPaymentSystem from './ExternalTestPaymentSystem'
+import { Payment }  from "../../../modelsHelp/Payment"
+import generate_payment from '../../generators/payment.generator'
 import { expect } from 'chai';
 
 describe('TestPaymentSystem & PaymentAdapter basic testing', function () {

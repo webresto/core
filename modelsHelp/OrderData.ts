@@ -10,6 +10,7 @@ export default interface OrderData {
   delivery?: {
     type: string
   },
+  paymentMethodId?: string,
   address: Address,
   comment: string,
   selfDelivery: boolean;

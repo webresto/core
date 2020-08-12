@@ -1,22 +1,35 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-class Polygon {
-    constructor(name, description, points) {
+exports.__esModule = true;
+var Polygon = (function () {
+    function Polygon(name, description, points) {
         this._name = name;
         this._description = description;
         this._points = points;
     }
-    get points() {
-        return this._points;
-    }
-    get name() {
-        return this._name;
-    }
-    get asArray() {
-        return this._points.map(point => [point.x, point.y]);
-    }
-    toString() {
+    Object.defineProperty(Polygon.prototype, "points", {
+        get: function () {
+            return this._points;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Polygon.prototype, "name", {
+        get: function () {
+            return this._name;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Polygon.prototype, "asArray", {
+        get: function () {
+            return this._points.map(function (point) { return [point.x, point.y]; });
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Polygon.prototype.toString = function () {
         return this._points.toString();
-    }
-}
-exports.default = Polygon;
+    };
+    return Polygon;
+}());
+exports["default"] = Polygon;

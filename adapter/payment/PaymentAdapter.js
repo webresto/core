@@ -1,18 +1,18 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Абстрактный класс Payment адаптера. Используется для создания новых адаптеров платежных систем.
- */
-class PaymentAdapter {
-    constructor(InitPaymentAdapter) {
+exports.__esModule = true;
+var PaymentAdapter = (function () {
+    function PaymentAdapter(InitPaymentAdapter) {
         this.InitPaymentAdapter = InitPaymentAdapter;
         PaymentMethod.alive(this.InitPaymentAdapter);
     }
-    /**
-     * Метод для создания и получения уже существующего Payment адаптера
-     * @param params - параметры для инициализации
-     */
-    static getInstance(...params) { return PaymentAdapter.prototype; }
+    PaymentAdapter.getInstance = function () {
+        var params = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            params[_i] = arguments[_i];
+        }
+        return PaymentAdapter.prototype;
+    };
     ;
-}
-exports.default = PaymentAdapter;
+    return PaymentAdapter;
+}());
+exports["default"] = PaymentAdapter;

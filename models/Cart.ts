@@ -236,13 +236,18 @@ module.exports = {
      *  @fires cart:core-cart-remove-dish-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
      *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
      */
-    removeDish: async function (dish: CartDish, amount: number): Promise<void> {
+    removeDish: async function (dish: CartDish, amount: number, stack: boolean): Promise<void> {
       const emitter = getEmitter();
       await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
 
       const cart = await Cart.findOne({id: this.id}).populate('dishes');
+      var cartDish: CartDish;
+      if (stack){
+        cartDish = await CartDish.findOne({where:{cart: cart.id, dish: dish.id}, sort: 'createdAt ASC'}).populate('dish');
+      } else {
+        cartDish = await CartDish.findOne({cart: cart.id, id: dish.id}).populate('dish');
+      }
 
-      const cartDish = await CartDish.findOne({cart: cart.id, id: dish.id}).populate('dish');
       if (!cartDish) {
         await emitter.emit.apply(emitter, ['core-cart-remove-dish-reject-no-cartdish', ...arguments]);
         throw {body: `CartDish with id ${dish.id} in cart with id ${this.id} not found`, code: 1};
@@ -434,6 +439,7 @@ module.exports = {
      * @param customer - данные заказчика
      * @param isSelfService - является ли самовывозов
      * @param address - адресс, обязательный, если это самовывоз
+     * @param paymentMethod - платежная система
      * @return Результат проверки. Если проверка данных заказчика или адресса в случае не самомвывоза дали ошибку, то false. Иначе,
      * если в конфиге checkConfig.requireAll==true, то успех функции только в случае, если все подписки `core-cart-check` вернули положительный результат работы.
      * Если в конфгие checkConfig.notRequired==true, то независимо от результата всех подписчиков `core-cart-check` будет положительный ответ.
@@ -445,15 +451,23 @@ module.exports = {
      * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
      * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
      */
-    check: async function (customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: PaymentMethod): Promise<boolean> {
+    check: async function (customer: Customer, isSelfService: boolean, address?: Address, paymentMethodId?: string): Promise<boolean> {
       const self: Cart = this;
-
       if(self.paid)
         return false
 
+      if (paymentMethodId) {
+        var paymentMethod = await PaymentMethod.findOne(paymentMethodId);
+        if (!paymentMethod || !paymentMethod.enable) {
+          return false
+        } else {
+          sails.log.verbose('Check > PaymentMethod > ', paymentMethod)
+        }
+      }
+
+      //if ()
       /**
-       * // PAYMENT CartCheck Тут надо проверять какой тип оплаты выбран и доступен ли этот тип оплаты
-       * возможно надо добавить параметр ВремяЖизниЧека
+       *  // IDEA Возможно надо добавить параметр Время Жизни  для чека
        */
 
       getEmitter().emit('core-cart-before-check', self, customer, isSelfService, address);
@@ -465,6 +479,7 @@ module.exports = {
       await self.save();
 
       if (isSelfService) {
+        // TODO непонятно почему тут не вызывается ожтдающий эммитер
         getEmitter().emit('core-cart-check-self-service', self, customer, isSelfService, address);
         sails.log.verbose('Cart > check > is self delivery');
         await self.setSelfDelivery(true);
@@ -509,7 +524,7 @@ module.exports = {
       }
       if (successCount > 0) {
         if (self.getState() === 'CHECKOUT') {        // if (self.getState() === 'CART')
-        //   await self.next(); // TODO: непонятно зачем тут делать next, нужно проверить!!!// TODO это не выполнится никогда?
+        //   await self.next(); // TODO: непонятно зачем тут делать next, нужно проверить!!! возможно это не выполнится никогда?
           await self.next();
         }
       }
@@ -601,11 +616,14 @@ module.exports = {
    */
 
    /**
-    *  // PAYMENT cartPayment тут происходит перевключение в Оплату. Тикер и прочие весчи связанные с оплатой. 
+    *  // PAYMENT cartPayment тут происходит перевключение в Оплату. Тикер и прочие весчи с 
     */
-  payment: async function (): Promise<boolean> {
+  payment: async function (): Promise<string> {
     const self: Cart = this;
-      return true
+    if (!self.paymentMethod) {
+      return false
+    }
+    return true
   },
 
 
@@ -919,7 +937,7 @@ export default interface Cart extends ORM, StateFlow {
    *  @fires cart:core-cart-remove-dish-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
    *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
    */
-  removeDish(dish: CartDish, amount: number): Promise<void>;
+  removeDish(dish: CartDish, amount: number, stack: boolean): Promise<void>;
 
   /**
    * Устанавливает заданное количество для заданного блюда в текущей корзине. Если количество меньше 0, то блюдо будет
@@ -1005,7 +1023,7 @@ export default interface Cart extends ORM, StateFlow {
    * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
    * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
    */
-  check(customer: Customer, isSelfService: boolean, address?: Address): Promise<boolean>;
+  check(customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: PaymentMethod): Promise<boolean>;
 
   /**
    * Вызывет core-cart-order. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция

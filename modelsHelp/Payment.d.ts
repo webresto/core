@@ -1,6 +1,3 @@
-/**
- * Описывает платежный документ
- */
 export interface Payment {
     paid?: boolean;
     total: number;

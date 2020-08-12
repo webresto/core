@@ -1,10 +1,10 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 require("mocha");
 require('dotenv').config();
 var Sails = require('./fixtures/v0.12-app/node_modules/sails').Sails;
 before(function (done) {
-    let rc = require('./fixtures/v0.12-app/app').rc;
+    var rc = require('./fixtures/v0.12-app/app').rc;
     this.timeout(50000);
     Sails().lift(rc, function (err, _sails) {
         if (err)

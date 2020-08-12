@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es2019",
+    "target": "ES3",
     "lib": [
       "dom"
     ],
@@ -12,7 +12,8 @@
       "chai"
     ],
     "sourceMap": false,
-    "declaration": true
+    "declaration": true,
+    "removeComments": true
   },
   "exclude": [
     "node_modules"

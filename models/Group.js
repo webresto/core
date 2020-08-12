@@ -1,46 +1,43 @@
 "use strict";
-/**
- * @api {API} Group Group
- * @apiGroup Models
- * @apiDescription Группы. Содержат в себе блюда и другие группы
- *
- * @apiParam {String} id Уникальный идентификатор
- * @apiParam {String} additionalInfo Дополнительная информация
- * @apiParamExample {JSON} additionalInfo
- * {
- *   workTime: [
- *    {
- *     dayOfWeek: 'monday',
- *     start: '8:00',
- *     end: '18:00'
- *    },
- *   ],
- *   visible: true|false,
- *   promo: true|false,
- *   modifier: true|false
- * }
- * @apiParam {Float} code Артикул
- * @apiParam {String} description Описание
- * @apiParam {Boolean} isDeleted Удалён ли продукт в меню, отдаваемого клиенту
- * @apiParam {String} name Название
- * @apiParam {String} seoDescription SEO-описание для клиента
- * @apiParam {String} seoKeywords SEO-ключевые слова
- * @apiParam {String} seoText SEO-текст для роботов
- * @apiParam {String} seoTitle SEO-заголовок
- * @apiParam {Tags} tags Тэги
- * @apiParam {Boolean} isIncludedInMenu Нужно ли продукт отображать в дереве номенклатуры
- * @apiParam {Float} order Порядок отображения
- * @apiParam {Tags[]} dishesTags Тэги всех блюд, что есть в этой группе
- * @apiParam {[Dish](#api-Models-ApiDish)[]} dishes Блюда, содержашиеся в этой группе
- * @apiParam {[Group](#api-Models-ApiGroup)} parentGroup Родительская группа
- * @apiParam {[Group](#api-Models-ApiGroup)[]} childGroups Дочерние группы
- * @apiParam {[Image](#api-Models-ApiImage)[]} images Картинки группы
- * @apiParam {String} slug Текстовое названия группы в транслите
- *
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../lib/checkExpression");
-const getEmitter_1 = require("../lib/getEmitter");
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+exports.__esModule = true;
+var checkExpression_1 = require("../lib/checkExpression");
+var getEmitter_1 = require("../lib/getEmitter");
 module.exports = {
     attributes: {
         id: {
@@ -58,13 +55,11 @@ module.exports = {
         seoText: 'string',
         seoTitle: 'string',
         tags: {
-            // collection: 'tags'
             type: 'json'
         },
         isIncludedInMenu: 'boolean',
         order: 'float',
         dishesTags: {
-            // collection: 'tags'
             type: 'json'
         },
         dishes: {
@@ -91,106 +86,141 @@ module.exports = {
         promo: 'boolean',
         workTime: 'json'
     },
-    /**
-     * Возвращает объект с группами и ошибками получения этих самых групп.
-     * @param groupsId - массив id групп, которые следует получить
-     * @return Object {
-     *   groups: [],
-     *   errors: {}
-     * }
-     * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
-     * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
-     * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
-     */
-    async getGroups(groupsId) {
-        let menu = {};
-        const groups = await Group.find({
-            id: groupsId,
-            isDeleted: false
-        }).populate('childGroups')
-            .populate('dishes')
-            .populate('images');
-        const errors = {};
-        await Promise.each(groups, async (group) => {
-            const reason = checkExpression_1.default(group);
-            if (!reason) {
-                menu[group.id] = group;
-                if (group.childGroups) {
-                    let childGroups = [];
-                    const cgs = await Group.find({ id: group.childGroups.map(cg => cg.id) })
-                        .populate('childGroups')
-                        .populate('dishes')
-                        .populate('images');
-                    await Promise.each(cgs, async (cg) => {
-                        try {
-                            const data = await Group.getGroup(cg.id);
-                            if (data)
-                                childGroups.push(data);
-                        }
-                        catch (e) {
-                        }
-                    });
-                    delete menu[group.id].childGroups;
-                    menu[group.id].children = childGroups;
-                    if (menu[group.id].children.length > 1)
-                        menu[group.id].children.sort((a, b) => a.order - b.order);
+    getGroups: function (groupsId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var menu, groups, errors, res;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        menu = {};
+                        return [4, Group.find({
+                                id: groupsId,
+                                isDeleted: false
+                            }).populate('childGroups')
+                                .populate('dishes')
+                                .populate('images')];
+                    case 1:
+                        groups = _a.sent();
+                        errors = {};
+                        return [4, Promise.each(groups, function (group) { return __awaiter(_this, void 0, void 0, function () {
+                                var reason, childGroups_1, cgs, _a;
+                                var _this = this;
+                                return __generator(this, function (_b) {
+                                    switch (_b.label) {
+                                        case 0:
+                                            reason = checkExpression_1["default"](group);
+                                            if (!!reason) return [3, 5];
+                                            menu[group.id] = group;
+                                            if (!group.childGroups) return [3, 3];
+                                            childGroups_1 = [];
+                                            return [4, Group.find({ id: group.childGroups.map(function (cg) { return cg.id; }) })
+                                                    .populate('childGroups')
+                                                    .populate('dishes')
+                                                    .populate('images')];
+                                        case 1:
+                                            cgs = _b.sent();
+                                            return [4, Promise.each(cgs, function (cg) { return __awaiter(_this, void 0, void 0, function () {
+                                                    var data, e_1;
+                                                    return __generator(this, function (_a) {
+                                                        switch (_a.label) {
+                                                            case 0:
+                                                                _a.trys.push([0, 2, , 3]);
+                                                                return [4, Group.getGroup(cg.id)];
+                                                            case 1:
+                                                                data = _a.sent();
+                                                                if (data)
+                                                                    childGroups_1.push(data);
+                                                                return [3, 3];
+                                                            case 2:
+                                                                e_1 = _a.sent();
+                                                                return [3, 3];
+                                                            case 3: return [2];
+                                                        }
+                                                    });
+                                                }); })];
+                                        case 2:
+                                            _b.sent();
+                                            delete menu[group.id].childGroups;
+                                            menu[group.id].children = childGroups_1;
+                                            if (menu[group.id].children.length > 1)
+                                                menu[group.id].children.sort(function (a, b) { return a.order - b.order; });
+                                            _b.label = 3;
+                                        case 3:
+                                            _a = menu[group.id];
+                                            return [4, Dish.getDishes({ parentGroup: group.id })];
+                                        case 4:
+                                            _a.dishesList = _b.sent();
+                                            return [3, 6];
+                                        case 5:
+                                            errors[group.id] = reason;
+                                            _b.label = 6;
+                                        case 6: return [2];
+                                    }
+                                });
+                            }); })];
+                    case 2:
+                        _a.sent();
+                        return [4, getEmitter_1["default"]().emit('core-group-get-groups', menu, errors)];
+                    case 3:
+                        _a.sent();
+                        res = Object.values(menu);
+                        return [2, { groups: res, errors: errors }];
                 }
-                menu[group.id].dishesList = await Dish.getDishes({ parentGroup: group.id });
-            }
-            else {
-                errors[group.id] = reason;
-            }
+            });
         });
-        await getEmitter_1.default().emit('core-group-get-groups', menu, errors);
-        const res = Object.values(menu);
-        return { groups: res, errors: errors };
     },
-    /**
-     * Возвращает группу с заданным id
-     * @param groupId - id группы
-     * @return запрашиваемая группа
-     * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
-     */
-    async getGroup(groupId) {
-        const result = await this.getGroups([groupId]);
-        if (result.errors[0]) {
-            throw result.errors[0];
-        }
-        const group = result.groups;
-        return group[0] ? group[0] : null;
+    getGroup: function (groupId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var result, group;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.getGroups([groupId])];
+                    case 1:
+                        result = _a.sent();
+                        if (result.errors[0]) {
+                            throw result.errors[0];
+                        }
+                        group = result.groups;
+                        return [2, group[0] ? group[0] : null];
+                }
+            });
+        });
     },
-    /**
-     * Возвращает группу с заданным slug'ом
-     * @param groupSlug - slug группы
-     * @return запрашиваемая группа
-     * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
-     */
-    async getGroupBySlug(groupSlug) {
-        const groupObj = await Group.findOne({ slug: groupSlug });
-        const result = await this.getGroups([groupObj.id]);
-        if (result.errors[0]) {
-            throw result.errors[0];
-        }
-        const group = result.groups;
-        return group[0] ? group[0] : null;
+    getGroupBySlug: function (groupSlug) {
+        return __awaiter(this, void 0, void 0, function () {
+            var groupObj, result, group;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, Group.findOne({ slug: groupSlug })];
+                    case 1:
+                        groupObj = _a.sent();
+                        return [4, this.getGroups([groupObj.id])];
+                    case 2:
+                        result = _a.sent();
+                        if (result.errors[0]) {
+                            throw result.errors[0];
+                        }
+                        group = result.groups;
+                        return [2, group[0] ? group[0] : null];
+                }
+            });
+        });
     },
-    /**
-     * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её. Если существует, то сверяет
-     * хеш существующей группы и новых данных, если они совпали, то сразу же отдаёт группу, если нет, то обновляет её данные
-     * на новые
-     * @param values
-     * @return обновлённая или созданная группа
-     */
-    async createOrUpdate(values) {
-        const group = await Group.findOne({ id: values.id });
-        if (!group) {
-            return Group.create(values);
-        }
-        else {
-            return (await Group.update({ id: values.id }, values))[0];
-        }
+    createOrUpdate: function (values) {
+        return __awaiter(this, void 0, void 0, function () {
+            var group;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, Group.findOne({ id: values.id })];
+                    case 1:
+                        group = _a.sent();
+                        if (!!group) return [3, 2];
+                        return [2, Group.create(values)];
+                    case 2: return [4, Group.update({ id: values.id }, values)];
+                    case 3: return [2, (_a.sent())[0]];
+                }
+            });
+        });
     }
 };

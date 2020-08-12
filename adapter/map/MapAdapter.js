@@ -1,8 +1,9 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-class MapAdapter {
-    constructor(config) {
+exports.__esModule = true;
+var MapAdapter = (function () {
+    function MapAdapter(config) {
         this.config = config;
     }
-}
-exports.default = MapAdapter;
+    return MapAdapter;
+}());
+exports["default"] = MapAdapter;

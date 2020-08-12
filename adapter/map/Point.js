@@ -1,12 +1,13 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-class Point {
-    constructor(x, y) {
+exports.__esModule = true;
+var Point = (function () {
+    function Point(x, y) {
         this.x = x;
         this.y = y;
     }
-    toString() {
+    Point.prototype.toString = function () {
         return this.x + ' ' + this.y + ', ';
-    }
-}
-exports.default = Point;
+    };
+    return Point;
+}());
+exports["default"] = Point;

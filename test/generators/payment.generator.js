@@ -1,6 +1,6 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const uuid = require('uuid/v4');
+exports.__esModule = true;
+var uuid = require('uuid/v4');
 function generate_payment() {
     return {
         total: Math.floor(Math.random() * 9999) + 1000,
@@ -12,4 +12,4 @@ function generate_payment() {
         comment: "testing"
     };
 }
-exports.default = generate_payment;
+exports["default"] = generate_payment;

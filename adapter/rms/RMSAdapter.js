@@ -1,19 +1,19 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Абстрактный класс RMS адаптера. Используется для создания новых адаптеров RMS.
- */
-class RMSAdapter {
-    constructor(menuTime, balanceTime, streetsTime) {
+exports.__esModule = true;
+var RMSAdapter = (function () {
+    function RMSAdapter(menuTime, balanceTime, streetsTime) {
         this.syncMenuTime = menuTime;
         this.syncBalanceTime = balanceTime;
         this.syncStreetsTime = streetsTime;
     }
-    /**
-     * Метод для создания и получения уже существующего RMS адаптера
-     * @param params - параметры для инициализации
-     */
-    static getInstance(...params) { return RMSAdapter.prototype; }
+    RMSAdapter.getInstance = function () {
+        var params = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            params[_i] = arguments[_i];
+        }
+        return RMSAdapter.prototype;
+    };
     ;
-}
-exports.default = RMSAdapter;
+    return RMSAdapter;
+}());
+exports["default"] = RMSAdapter;
