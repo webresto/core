@@ -107,6 +107,7 @@ module.exports = {
     id: {
       type: 'string',
       primaryKey: true
+      // TODO: перенести UUID создание сюда
     }, 
     cartId: 'string', // TODO: DELETE IN FUTURE
     dishes: {
@@ -423,8 +424,6 @@ module.exports = {
 
       self.selfDelivery = selfService;
       await self.save();
-      // if (self.getState() === 'CART')
-      //   await self.next(); // TODO: непонятно зачем тут делать next, нужно проверить!!!
     },
 
     /**
@@ -451,6 +450,11 @@ module.exports = {
 
       if(self.paid)
         return false
+
+      /**
+       * // PAYMENT CartCheck Тут надо проверять какой тип оплаты выбран и доступен ли этот тип оплаты
+       * возможно надо добавить параметр ВремяЖизниЧека
+       */
 
       getEmitter().emit('core-cart-before-check', self, customer, isSelfService, address);
       sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
@@ -504,7 +508,8 @@ module.exports = {
         }
       }
       if (successCount > 0) {
-        if (self.getState() === 'CHECKOUT') {  // TODO это не выполнится никогда?
+        if (self.getState() === 'CHECKOUT') {        // if (self.getState() === 'CART')
+        //   await self.next(); // TODO: непонятно зачем тут делать next, нужно проверить!!!// TODO это не выполнится никогда?
           await self.next();
         }
       }
@@ -518,6 +523,7 @@ module.exports = {
      *  - 0 - успешно проведённый заказ от всех слушателей.
      *  - 1 - ни один слушатель не смог успешно сделать заказ.
      *  - 2 - по крайней мере один слушатель успешно выполнил заказ.
+     *  - 3 - ошибка состояний
      * @fires cart:core-cart-before-order - вызывается перед началом функции. Результат подписок игнорируется.
      * @fires cart:core-cart-order-self-service - вызывается, если совершается заказ с самовывозом.
      * @fires cart:core-cart-order-delivery - вызывается, если заказ без самовывоза
@@ -525,9 +531,17 @@ module.exports = {
      * @fires cart:core-cart-after-order - вызывается сразу после попытки оформить заказ.
      */
     order: async function (): Promise<number> {
-
-      
       const self: Cart = this;
+
+      /**  
+       * // PAYMENT CartOrder если оплачено и выбран тип оплаты внеший или внутренний то все ок проходим дальше
+       * Если выбран тип promise и оплачено то ошибка состояний
+       * Если выбран тип оплаты внеший или внутренний и неоплачено то не даем перевести в это стостояние, ошибка оплаты
+       * 
+       */ 
+      if( self.paid)
+        return 3
+      
       getEmitter().emit('core-cart-before-order', self);
       sails.log.verbose('Cart > order > before order >', self.customer, self.selfDelivery, self.address);
 
@@ -570,9 +584,34 @@ module.exports = {
     }
   },
 
+ 
+  /**
+   * Вызывет core-cart-payment. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
+   * отдаёт успешность заказа.
+   * @return код результата:
+   *  - 0 - успешно проведённый заказ от всех слушателей.
+   *  - 1 - ни один слушатель не смог успешно сделать заказ.
+   *  - 2 - по крайней мере один слушатель успешно выполнил заказ.
+   *  - 3 - ошибка состояний
+   * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
+   * @fires cart:core-cart-payment-self-service - вызывается, если совершается заказ с самовывозом.
+   * @fires cart:core-cart-payment-delivery - вызывается, если заказ без самовывоза
+   * @fires cart:core-cart-payment - событие заказа. Каждый слушатель этого события влияет на результат события.
+   * @fires cart:core-cart-after-payment - вызывается сразу после попытки оформить заказ.
+   */
+
+   /**
+    *  // PAYMENT cartPayment тут происходит перевключение в Оплату. Тикер и прочие весчи связанные с оплатой. 
+    */
+  payment: async function (): Promise<boolean> {
+    const self: Cart = this;
+      return true
+  },
+
+
+
   beforeCreate: function (values, next) {
     getEmitter().emit('core-cart-before-create', values).then(() => {
-      
       this.countCart(values).then(next, next);
     });
   },
