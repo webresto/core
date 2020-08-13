@@ -6,6 +6,10 @@
     {
       "name": "Ilya Dolmatov",
       "email": "dolmatoffilya@gmail.com"
+    },
+    {
+      "name": "Siziy Ivan",
+      "email": "xziy88@gmail.com"
     }
   ],
   "bundleDependencies": [],
@@ -20,10 +24,10 @@
     "sails-hook-slugs": "git+https://github.com/webresto/sails-hook-slugs",
     "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
     "sails-util": "^0.11.0",
+    "typescript": "^3.9.7",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@mangm/ts-mock-generator": "^0.10.0",
     "@types/bluebird": "^3.5.32",
     "@types/bluebird-global": "^3.5.12",
     "@types/body-parser": "^1.19.0",
@@ -38,6 +42,7 @@
     "@types/waterline": "^0.13.0",
     "chai": "^4.2.0",
     "dotenv": "^8.2.0",
+    "intermock": "^0.2.2",
     "is-promise": "^4.0.0",
     "mocha": "^8.1.1",
     "rc": "^1.2.8",
@@ -72,7 +77,7 @@
     "test:js": "mocha test/_bootstrap.js test/**/*.test.js",
     "test:init": "cd ./test/fixtures/v0.12-app && npm i --no-package-lock --prefix ./ && cd -",
     "build": "tsc",
-    "prepublish": "javascript-obfuscator . --output .  --exclude=\"node_modules\""
+    "prepublish!": "javascript-obfuscator . --output .  --exclude=\"node_modules\""
   },
   "version": "0.7.1"
 }

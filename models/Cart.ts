@@ -224,8 +224,9 @@ module.exports = {
 
     /**
      * Уменьшает количество заданного блюда на amount. Переводит корзину в состояние CART.
-     * @param dish - Блюдо для изменения количества блюд
+     * @param dish - Блюдо для изменения количества, dish_id {number} или dish_id {string}  если выбран режим стек.
      * @param amount - насколько меньше сделать количество
+     * @param stack  - Признак того что удаление блюд происходит в режиме стека
      * @throws Object {
      *   body: string,
      *   code: number
@@ -236,7 +237,7 @@ module.exports = {
      *  @fires cart:core-cart-remove-dish-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
      *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
      */
-    removeDish: async function (dish: CartDish, amount: number, stack: boolean): Promise<void> {
+    removeDish: async function (dish: CartDish, amount: number, stack?: boolean): Promise<void> {
       const emitter = getEmitter();
       await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
 
@@ -618,7 +619,7 @@ module.exports = {
    /**
     *  // PAYMENT cartPayment тут происходит перевключение в Оплату. Тикер и прочие весчи с 
     */
-  payment: async function (): Promise<string> {
+  payment: async function (): Promise<boolean> {
     const self: Cart = this;
     if (!self.paymentMethod) {
       return false
@@ -937,7 +938,7 @@ export default interface Cart extends ORM, StateFlow {
    *  @fires cart:core-cart-remove-dish-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
    *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
    */
-  removeDish(dish: CartDish, amount: number, stack: boolean): Promise<void>;
+  removeDish(dish: CartDish, amount: number, stack?: boolean): Promise<void>;
 
   /**
    * Устанавливает заданное количество для заданного блюда в текущей корзине. Если количество меньше 0, то блюдо будет

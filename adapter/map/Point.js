@@ -1,13 +1,12 @@
 "use strict";
-exports.__esModule = true;
-var Point = (function () {
-    function Point(x, y) {
+Object.defineProperty(exports, "__esModule", { value: true });
+class Point {
+    constructor(x, y) {
         this.x = x;
         this.y = y;
     }
-    Point.prototype.toString = function () {
+    toString() {
         return this.x + ' ' + this.y + ', ';
-    };
-    return Point;
-}());
-exports["default"] = Point;
+    }
+}
+exports.default = Point;

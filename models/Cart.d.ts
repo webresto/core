@@ -33,7 +33,7 @@ export default interface Cart extends ORM, StateFlow {
     totalWeight: number;
     total: number;
     addDish(dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string): Promise<void>;
-    removeDish(dish: CartDish, amount: number, stack: boolean): Promise<void>;
+    removeDish(dish: CartDish, amount: number, stack?: boolean): Promise<void>;
     setCount(dish: CartDish, amount: number): Promise<void>;
     setModifierCount(dish: CartDish, modifier: Dish, amount: number): Promise<void>;
     setComment(dish: CartDish, comment: string): Promise<void>;

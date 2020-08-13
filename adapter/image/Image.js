@@ -1,11 +1,10 @@
 "use strict";
-exports.__esModule = true;
-var Image = (function () {
-    function Image(url, name, key) {
+Object.defineProperty(exports, "__esModule", { value: true });
+class Image {
+    constructor(url, name, key) {
         this.url = url;
         this.name = name;
         this.key = key;
     }
-    return Image;
-}());
-exports["default"] = Image;
+}
+exports.default = Image;

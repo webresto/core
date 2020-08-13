@@ -1,3 +1,3 @@
 describe('Cart', function () {
-    it('empty', function () { return true; });
+    it('empty', () => true);
 });
