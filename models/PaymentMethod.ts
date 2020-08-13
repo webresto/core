@@ -1,5 +1,6 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
+const uuid = require('uuid/v4');
 var alivedPaymentMethods: string[] = [];
 
 module.exports = {
@@ -7,7 +8,8 @@ module.exports = {
     id: {
       type: 'string',
       primaryKey: true,
-      autoIncrement: true
+      autoIncrement: true,
+      defaultsTo: uuid()
     },
     title: 'string',
     type: {
@@ -21,7 +23,7 @@ module.exports = {
       unique: true,
       required: true
     },
-
+    order: 'integer',
     description: 'string',
     enable: {
       type: 'boolean',
@@ -48,13 +50,69 @@ module.exports = {
   },
  
   /**
- * Возвращает массив с возможными на текущий момент способами оплаты
+ * Возвращает массив с возможными на текущий момент способами оплаты отсортированный по order
  * @param  нету
  * @return массив типов оплат
  */
-  async paymentMethods(): Promise<PaymentMethod[]> {
-    return await PaymentMethod.find({or: [{adapter: alivedPaymentMethods}, {type:'promise', enable: true} ]});
-  }
+  async getAvailable(): Promise<PaymentMethod[]> {
+    return await PaymentMethod.find({
+      where: {
+        or: [{
+              adapter: alivedPaymentMethods
+            }, 
+            {
+              type:'promise', 
+              enable: true,
+            }]
+          },
+      sort: 'order ASC'
+      });
+  },
+    /**
+   * Проверяет платежную систему на доступность, и включенность,
+   *  для пейментПромис систем только включенность.
+   * @param paymentMethodId 
+   * @return 
+   */
+  async checkAailable(paymentMethodId: string): Promise<boolean> {
+    const chekingPaymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
+
+    if (!chekingPaymentMethod) {
+      return false
+    }
+
+    if (chekingPaymentMethod.type !== 'promise' && 
+        alivedPaymentMethods.indexOf(paymentMethodId) != -1){
+          return false
+    } 
+
+    if (chekingPaymentMethod.enable === true && 
+        chekingPaymentMethod.type !== 'promise' && 
+        alivedPaymentMethods.indexOf(paymentMethodId) >= 0 ){
+          return true
+    }
+
+
+    if (chekingPaymentMethod.enable === true && 
+      chekingPaymentMethod.type === 'promise' ){
+        return true
+    }
+
+    return false
+  },
+    /**
+   * Возвращает true если платежный метод является обещанием платежа
+   * @param  paymentMethodId
+   * @return 
+   */
+  async isPaymentPromise(paymentMethodId: string): Promise<boolean> {
+    const chekingPaymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
+    if (chekingPaymentMethod.type === 'promise'){
+      return true;
+    } 
+    return false;
+  },
+
 };
 
 // /**
@@ -96,6 +154,21 @@ export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
    * @return .
    */
   alive(paymentMethod: InitPaymentAdapter): Promise<PaymentMethod[]>;
+
+  /**
+  * Возврашает доступные для оплаты платежные методы
+  */
+  getAvailable(): Promise<PaymentMethod[]>;
+  
+  /**
+  * Проверяет платежную систему
+  */
+  checkAvailable(paymentMethodId: string): Promise<boolean>;
+  
+  /**
+  * Проверяет платежное обещание
+  */
+  isPaymentPromise(paymentMethodId: string): Promise<boolean>;
 }
 
 declare global {

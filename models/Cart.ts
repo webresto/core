@@ -101,7 +101,7 @@ import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import Dish from "./Dish";
 import * as _ from "lodash";
-
+import { PaymentResponse } from "../modelsHelp/Payment"
 module.exports = {
   attributes: {
     id: {
@@ -619,12 +619,16 @@ module.exports = {
    /**
     *  // PAYMENT cartPayment тут происходит перевключение в Оплату. Тикер и прочие весчи с 
     */
-  payment: async function (): Promise<boolean> {
+  payment: async function (): Promise<PaymentResponse> {
     const self: Cart = this;
-    if (!self.paymentMethod) {
-      return false
-    }
-    return true
+    
+    return {
+      redirectLink: "___", 
+      total: 123, 
+      id: "____", 
+      originModel: "____", 
+      paymentAdapter:"____"
+    } 
   },
 
 

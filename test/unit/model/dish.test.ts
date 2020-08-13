@@ -6,7 +6,7 @@ describe('Dish', function () {
       try {
         var result =  groupGenerator({name: "test"});
       } catch (error) {
-        
+    
       }
       console.log(result);
       

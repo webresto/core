@@ -12,6 +12,9 @@ export interface InitPaymentAdapter {
 }
 export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
     alive(paymentMethod: InitPaymentAdapter): Promise<PaymentMethod[]>;
+    getAvailable(): Promise<PaymentMethod[]>;
+    checkAvailable(paymentMethodId: string): Promise<boolean>;
+    isPaymentPromise(paymentMethodId: string): Promise<boolean>;
 }
 declare global {
     const PaymentMethod: PaymentMethodModel;
