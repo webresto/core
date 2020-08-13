@@ -1,15 +1,12 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
-const uuid = require('uuid/v4');
 var alivedPaymentMethods: string[] = [];
 
 module.exports = {
   attributes: {
     id: {
       type: 'string',
-      primaryKey: true,
-      autoIncrement: true,
-      defaultsTo: uuid()
+      primaryKey: true
     },
     title: 'string',
     type: {
