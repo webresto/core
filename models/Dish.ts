@@ -214,6 +214,7 @@ module.exports = {
  * Описывает блюдо
  */
 export default interface Dish extends ORM, AdditionalInfo {
+
   id: string;
   additionalInfo: string;
   balance: number;

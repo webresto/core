@@ -27,8 +27,9 @@ class MockSet {
         const mocks = await intermock_1.mock({
             output: 'object',
             files: this.fileData,
-            isFixedMode: false,
+            isFixedMode: true,
             interfaces: interfaces,
+            isOptionalAlwaysEnabled: true
         });
         return mocks;
     }

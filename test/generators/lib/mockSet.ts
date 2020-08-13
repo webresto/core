@@ -49,8 +49,9 @@ export class MockSet {
     const mocks = await mock({
       output: 'object',
       files: this.fileData,
-      isFixedMode: false,
+      isFixedMode: true,
       interfaces: interfaces,
+      isOptionalAlwaysEnabled: true
     });
     //if (!isRecord(mocks)) throw new Error('unable to generate mocks');
     return mocks;

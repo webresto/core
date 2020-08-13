@@ -228,7 +228,7 @@ export default interface Group extends ORM, AdditionalInfo {
   images: Association<Image>;
   isDeleted: boolean;
 
-  code: number
+  code: number // TODO change ro string + same in dish
   description: string;
   seoDescription: string;
   seoKeywords: string;
