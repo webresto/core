@@ -1,9 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Payment = exports.ImageA = exports.Map = exports.RMS = void 0;
-/**
- * Отдаёт запрашиваемый RMS-адаптер
- */
 class RMS {
     static getAdapter(adapterName) {
         const adapterFind = '@webresto/' + adapterName.toLowerCase() + '-rms-adapter';
@@ -17,9 +14,6 @@ class RMS {
     }
 }
 exports.RMS = RMS;
-/**
- * Отдаёт запрашиваемый Map-адаптер
- */
 class Map {
     static getAdapter(adapterName) {
         adapterName = '@webresto/' + adapterName.toLowerCase() + '-map-adapter';
@@ -33,9 +27,6 @@ class Map {
     }
 }
 exports.Map = Map;
-/**
- * Отдаёт запрашиваемый Image-адаптер
- */
 class ImageA {
     static getAdapter(adapterName) {
         adapterName = '@webresto/' + adapterName.toLowerCase() + '-image-adapter';
@@ -49,9 +40,6 @@ class ImageA {
     }
 }
 exports.ImageA = ImageA;
-/**
-* Отдаёт запрашиваемый Payment-адаптер
-*/
 class Payment {
     static getAdapter(adapterName) {
         adapterName = '@webresto/' + adapterName.toLowerCase() + '-payment-adapter';

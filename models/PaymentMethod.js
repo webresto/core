@@ -32,12 +32,6 @@ module.exports = {
         paymentMethod.id = uuid();
         next();
     },
-    /**
-   * Добавляет в список возможных к использованию платежные адаптеры при старте.
-   * Если  платежный метод не сушетсвует в базе то создает его
-   * @param paymentMethod
-   * @return
-   */
     async alive(initPaymentMethod) {
         let knownPaymentMethod = await PaymentMethod.findOne({ adapter: initPaymentMethod.adapter });
         if (!knownPaymentMethod) {
@@ -48,11 +42,6 @@ module.exports = {
         }
         return;
     },
-    /**
-   * Возвращает массив с возможными на текущий момент способами оплаты отсортированный по order
-   * @param  нету
-   * @return массив типов оплат
-   */
     async getAvailable() {
         return await PaymentMethod.find({
             where: {
@@ -67,12 +56,6 @@ module.exports = {
             sort: 'order ASC'
         });
     },
-    /**
-   * Проверяет платежную систему на доступность, и включенность,
-   *  для пейментПромис систем только включенность.
-   * @param paymentMethodId
-   * @return
-   */
     async checkAvailable(paymentMethodId) {
         const chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
         if (!chekingPaymentMethod) {
@@ -93,11 +76,6 @@ module.exports = {
         }
         return false;
     },
-    /**
-   * Возвращает true если платежный метод является обещанием платежа
-   * @param  paymentMethodId
-   * @return
-   */
     async isPaymentPromise(paymentMethodId) {
         const chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
         if (chekingPaymentMethod.type === 'promise') {
