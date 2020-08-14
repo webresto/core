@@ -214,7 +214,9 @@ module.exports = {
             getEmitter_1.default().emit('core-cart-before-check', self, customer, isSelfService, address);
             sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
             await checkCustomerInfo(customer);
-            checkPaymentMethod(paymentMethod);
+            if (paymentMethodId) {
+                await checkPaymentMethod(paymentMethodId);
+            }
             self.customer = customer;
             await self.save();
             if (isSelfService) {
@@ -498,11 +500,11 @@ function checkAddress(address) {
         };
     }
 }
-function checkPaymentMethod(paymentMethod) {
-    if (paymentMethod) {
+async function checkPaymentMethod(paymentMethodId) {
+    if (!await PaymentMethod.checkAvailable(paymentMethodId)) {
         throw {
             code: 8,
-            error: 'paymentMethod is required'
+            error: 'paymentMethod not available'
         };
     }
 }

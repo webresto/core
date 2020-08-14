@@ -475,7 +475,11 @@ module.exports = {
       sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
 
       await checkCustomerInfo(customer);
-      checkPaymentMethod(paymentMethod);
+      if (paymentMethodId){
+        await checkPaymentMethod(paymentMethodId);
+      }
+      
+      
       self.customer = customer;
       await self.save();
 
@@ -863,11 +867,11 @@ function checkAddress(address) {
   }
 }
 
-function checkPaymentMethod(paymentMethod) {
-  if (paymentMethod) {
+async function checkPaymentMethod(paymentMethodId) {
+  if (! await PaymentMethod.checkAvailable(paymentMethodId)) {
     throw {
       code: 8,
-      error: 'paymentMethod is required'
+      error: 'paymentMethod not available'
     }
   }
 }
@@ -1028,7 +1032,7 @@ export default interface Cart extends ORM, StateFlow {
    * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
    * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
    */
-  check(customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: PaymentMethod): Promise<boolean>;
+  check(customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: string): Promise<boolean>;
 
   /**
    * Вызывет core-cart-order. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
