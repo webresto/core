@@ -77,7 +77,7 @@ module.exports = {
    * @param paymentMethodId 
    * @return 
    */
-  async checkAailable(paymentMethodId: string): Promise<boolean> {
+  async checkAvailable(paymentMethodId: string): Promise<boolean> {
     const chekingPaymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
 
     if (!chekingPaymentMethod) {

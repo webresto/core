@@ -56,7 +56,7 @@ module.exports = {
             sort: 'order ASC'
         });
     },
-    async checkAailable(paymentMethodId) {
+    async checkAvailable(paymentMethodId) {
         const chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
         if (!chekingPaymentMethod) {
             return false;
