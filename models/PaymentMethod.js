@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const uuid = require("uuid/v4");
 var alivedPaymentMethods = [];
 module.exports = {
     attributes: {
@@ -26,6 +27,10 @@ module.exports = {
             defaultsTo: true,
             required: true
         }
+    },
+    beforeCreate: function (paymentMethod, next) {
+        paymentMethod.id = uuid();
+        next();
     },
     async alive(initPaymentMethod) {
         let knownPaymentMethod = await PaymentMethod.findOne({ adapter: initPaymentMethod.adapter });

@@ -1,5 +1,6 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
+import uuid = require('uuid/v4');
 var alivedPaymentMethods: string[] = [];
 
 module.exports = {
@@ -27,6 +28,11 @@ module.exports = {
       defaultsTo: true,
       required: true
     }
+  },
+
+  beforeCreate: function (paymentMethod, next) {
+    paymentMethod.id = uuid();
+    next();
   },
 
   /**
