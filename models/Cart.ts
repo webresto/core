@@ -457,14 +457,6 @@ module.exports = {
       if(self.paid)
         return false
 
-      if (paymentMethodId) {
-        var paymentMethod = await PaymentMethod.findOne(paymentMethodId);
-        if (!paymentMethod || !paymentMethod.enable) {
-          return false
-        } else {
-          sails.log.verbose('Check > PaymentMethod > ', paymentMethod)
-        }
-      }
 
       //if ()
       /**
@@ -845,7 +837,7 @@ async function checkCustomerInfo(customer) {
 }
 
 function checkAddress(address) {
-  if (!address.street) {
+  if (!address.streetId) {
     throw {
       code: 5,
       error: 'address.streetId is required'

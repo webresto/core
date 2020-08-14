@@ -1,4 +1,31 @@
 "use strict";
+/**
+ * @api {API} Cart Cart
+ * @apiGroup Models
+ * @apiDescription Модель корзины. Имеет в себе список блюд, данные про них, методы для добавления/удаления блюд
+ *
+ * @apiParam {Integer} id Уникальный идентификатор
+ * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
+ * @apiParam {[CartDish](#api-Models-ApiCartdish)[]} dishes Массив блюд в текущей корзине. Смотри [CartDish](#api-Models-ApiCartdish)
+ * @apiParam {[PaymentMethod](#api-Models-PaymentMethod)[]} paymentMethod Способ оплаты
+ * @apiParam {Boolean} paids Признак того что корзина оплачена
+ * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
+ * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
+ * @apiParam {Integer} cartTotal Стоимость корзины без доставки
+ * @apiParam {Integer} total Стоимость корзины с доставкой
+ * @apiParam {Float} delivery Стоимость доставки
+ * @apiParam {Boolean} problem Есть ли проблема с отправкой на IIKO
+ * @apiParam {JSON} customer Данные о заказчике
+ * @apiParam {JSON} address Данные о адресе доставки
+ * @apiParam {String} comment Комментарий к заказу
+ * @apiParam {Integer} personsCount Количество персон
+ * @apiParam {Boolean} sendToIiko Был ли отправлен заказ IIKO
+ * @apiParam {String} rmsId ID заказа, который пришёл от IIKO
+ * @apiParam {String} deliveryStatus Статус состояния доставки (0 успешно расчитана)
+ * @apiParam {Boolean} selfDelivery Признак самовывоза
+ * @apiParam {String} deliveryDescription Строка дополнительной информации о доставке
+ * @apiParam {String} message Сообщение, что отправляется с корзиной
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../lib/checkExpression");
 const actions_1 = require("../lib/actions");
@@ -9,6 +36,7 @@ module.exports = {
         id: {
             type: 'string',
             primaryKey: true
+            // TODO: перенести UUID создание сюда
         },
         cartId: 'string',
         dishes: {
@@ -54,6 +82,28 @@ module.exports = {
         deliveryItem: 'string',
         totalWeight: 'float',
         total: 'float',
+        /**
+         * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
+         * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
+         * Переводит корзину в состояние CART, если она ещё не в нём.
+         * @param dish - Блюдо для добавления, может быть объект или id блюда
+         * @param amount - количетво
+         * @param modifiers - модификаторы, которые следует применить к текущему блюду
+         * @param comment - комментарий к блюду
+         * @param from - указатель откуда было добавлено блюдо (например, от пользователя или от системы акций)
+         * @throws Object {
+         *   body: string,
+         *   code: number
+         * }
+         * where codes:
+         *  1 - не достаточно блюд
+         *  2 - заданное блюдо не найдено
+         * @fires cart:core-cart-before-add-dish - вызывается перед началом функции. Результат подписок игнорируется.
+         * @fires cart:core-cart-add-dish-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
+         * @fires cart:core-cart-add-dish-before-create-cartdish - вызывается, если все проверки прошли успешно и корзина намеряна
+         * добавить блюдо. Результат подписок игнорируется.
+         * @fires cart:core-cart-after-add-dish - вызывается после успешного добавления блюда. Результат подписок игнорируется.
+         */
         addDish: async function (dish, amount, modifiers, comment, from) {
             const emitter = getEmitter_1.default();
             await emitter.emit.apply(emitter, ['core-cart-before-add-dish', ...arguments]);
@@ -91,6 +141,21 @@ module.exports = {
             await cart.next('CART');
             await emitter.emit.apply(emitter, ['core-cart-after-add-dish', cartDish, ...arguments]);
         },
+        /**
+         * Уменьшает количество заданного блюда на amount. Переводит корзину в состояние CART.
+         * @param dish - Блюдо для изменения количества, dish_id {number} или dish_id {string}  если выбран режим стек.
+         * @param amount - насколько меньше сделать количество
+         * @param stack  - Признак того что удаление блюд происходит в режиме стека
+         * @throws Object {
+         *   body: string,
+         *   code: number
+         * }
+         * where codes:
+         *  1 - заданный CartDish не найден в текущей корзине
+         *  @fires cart:core-cart-before-remove-dish - вызывается перед началом фунции. Результат подписок игнорируется.
+         *  @fires cart:core-cart-remove-dish-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
+         *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
+         */
         removeDish: async function (dish, amount, stack) {
             const emitter = getEmitter_1.default();
             await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
@@ -117,6 +182,23 @@ module.exports = {
             await cart.next('CART');
             await emitter.emit.apply(emitter, ['core-cart-after-remove-dish', ...arguments]);
         },
+        /**
+         * Устанавливает заданное количество для заданного блюда в текущей корзине. Если количество меньше 0, то блюдо будет
+         * удалено из корзины.
+         * @param dish - какому блюду измениять количество
+         * @param amount - новое количество
+         * @throws Object {
+         *   body: string,
+         *   code: number
+         * }
+         * where codes:
+         *  1 - нет такого количества блюд
+         *  2 - заданный CartDish не найден
+         * @fires cart:core-cart-before-set-count - вызывается перед началом фунции. Результат подписок игнорируется.
+         * @fires cart:core-cart-set-count-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
+         * @fires cart:core-cart-after-set-count - вызывается после успешной работы функции. Результат подписок игнорируется.
+         * @fires cart:core-cart-set-count-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
+         */
         setCount: async function (dish, amount) {
             const emitter = getEmitter_1.default();
             await emitter.emit.apply(emitter, ['core-cart-before-set-count', ...arguments]);
@@ -145,6 +227,28 @@ module.exports = {
                 throw { body: `CartDish dish id ${dish.id} not found`, code: 2 };
             }
         },
+        /**
+         * Устанавливает заданному модификатору в заданом блюде в текузей заданное количество.
+         * В случае успешной работы изменяет состояние корзины в CART
+         * @param dish - блюдо, модификатор которого изменять
+         * @param modifier - id блюда, которое привязано к модификатору, количество которого менять
+         * @param amount - новое количество
+         * @throws Object {
+         *   body: string,
+         *   code: number
+         * }
+         * where codes:
+         * 1 - нет достаточного количества блюд
+         * 2 - dish не найден в текущей корзине
+         * 3 - блюдо modifier не найден как модификатор блюда dish
+         * 4 - блюдо dish в текущей корзине не содержит модификатора modifier
+         * @fires cart:core-cart-before-set-modifier-count - вызывается перед началом фунции. Результат подписок игнорируется.
+         * @fires cart:core-cart-set-modifier-count-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
+         * @fires cart:core-cart-set-modifier-count-reject-no-cartdish - вызывается перед ошибкой с кодом 2. Результат подписок игнорируется.
+         * @fires cart:core-cart-set-modifier-count-reject-no-modifier-dish - вызывается перед ошибкой с кодом 3. Результат подписок игнорируется.
+         * @fires cart:core-cart-set-modifier-count-reject-no-modifier-in-dish - вызывается перед ошибкой с кодом 4. Результат подписок игнорируется.
+         * @fires cart:core-cart-after-set-modifier-count - вызывается после успешной работы функции. Результат подписок игнорируется.
+         */
         setModifierCount: async function (dish, modifier, amount) {
             const emitter = getEmitter_1.default();
             await emitter.emit.apply(emitter, ['core-cart-before-set-modifier-count', ...arguments]);
@@ -160,6 +264,7 @@ module.exports = {
                 throw { body: `CartDish dish id ${dish.id} not found`, code: 2 };
             }
             const dish1 = await Dish.findOne({ id: dish.id });
+            // check that dish has this modifier
             const getModif = dish1.modifiers.find(item => item.id === modifier.id);
             if (!getModif) {
                 await emitter.emit.apply(emitter, ['core-cart-set-modifier-count-reject-no-modifier-dish', ...arguments]);
@@ -175,6 +280,20 @@ module.exports = {
             await this.next('CART');
             await emitter.emit.apply(emitter, ['core-cart-after-set-modifier-count', ...arguments]);
         },
+        /**
+         * Меняет комментарий заданного блюда в текущей корзине
+         * @param dish - какому блюду менять комментарий
+         * @param comment - новый комментарий
+         * @throws Object {
+         *   body: string,
+         *   error: number
+         * }
+         * where codes:
+         * 1 - блюдо dish не найдено в текущей корзине
+         * @fires cart:core-cart-before-set-comment - вызывается перед началом фунции. Результат подписок игнорируется.
+         * @fires cart:core-cart-set-comment-reject-no-cartdish - вызывается перед ошибкой о том, что блюдо не найдено. Результат подписок игнорируется.
+         * @fires cart:core-cart-after-set-comment - вызывается после успешной работы функции. Результат подписок игнорируется.
+         */
         setComment: async function (dish, comment) {
             const emitter = getEmitter_1.default();
             await emitter.emit.apply(emitter, ['core-cart-before-set-comment', ...arguments]);
@@ -191,6 +310,10 @@ module.exports = {
                 throw { body: `CartDish with id ${dish.id} not found`, code: 1 };
             }
         },
+        /**
+         * Set cart selfDelivery field. Use this method to change selfDelivery.
+         * @param selfService
+         */
         setSelfDelivery: async function (selfService) {
             const self = this;
             sails.log.verbose('Cart > setSelfDelivery >', selfService);
@@ -198,6 +321,26 @@ module.exports = {
             self.selfDelivery = selfService;
             await self.save();
         },
+        /**
+         * Проверяет ваидность customer. Проверка проходит на наличие полей и их валидность соответсвенно nameRegex и phoneRegex
+         * из конфига. Если указан isSelfService: false, то так же проверяется валидность address на наличие полей и вызывается
+         * `core-cart-check` событие. Каждый подписанный елемент влияет на результат проверки. В зависимости от настроек функция
+         * отдаёт успешность проверки.
+         * @param customer - данные заказчика
+         * @param isSelfService - является ли самовывозов
+         * @param address - адресс, обязательный, если это самовывоз
+         * @param paymentMethod - платежная система
+         * @return Результат проверки. Если проверка данных заказчика или адресса в случае не самомвывоза дали ошибку, то false. Иначе,
+         * если в конфиге checkConfig.requireAll==true, то успех функции только в случае, если все подписки `core-cart-check` вернули положительный результат работы.
+         * Если в конфгие checkConfig.notRequired==true, то независимо от результата всех подписчиков `core-cart-check` будет положительный ответ.
+         * Иначе если хотя бы один подписчик `core-cart-check` ответил успешно, то вся функция считается успешной.
+         * Если результат был успешен, то корзина переходит из состояния CART в CHECKOUT.
+         * @fires cart:cart-before-check - вызывается перед началом функции. Результат подписок игнорируется.
+         * @fires cart:core-cart-check-self-service - вызывается если isSelfService==true перед начало логики изменения корзины. Результат подписок игнорируется.
+         * @fires cart:core-cart-check-delivery - вызывается после проверки customer если isSelfService==false. Результат подписок игнорируется.
+         * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
+         * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
+         */
         check: async function (customer, isSelfService, address, paymentMethodId) {
             const self = this;
             if (self.paid)
@@ -211,6 +354,10 @@ module.exports = {
                     sails.log.verbose('Check > PaymentMethod > ', paymentMethod);
                 }
             }
+            //if ()
+            /**
+             *  // IDEA Возможно надо добавить параметр Время Жизни  для чека
+             */
             getEmitter_1.default().emit('core-cart-before-check', self, customer, isSelfService, address);
             sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
             await checkCustomerInfo(customer);
@@ -220,6 +367,7 @@ module.exports = {
             self.customer = customer;
             await self.save();
             if (isSelfService) {
+                // TODO непонятно почему тут не вызывается ожтдающий эммитер
                 getEmitter_1.default().emit('core-cart-check-self-service', self, customer, isSelfService, address);
                 sails.log.verbose('Cart > check > is self delivery');
                 await self.setSelfDelivery(true);
@@ -247,22 +395,44 @@ module.exports = {
                     }
                     return resultsCount === successCount;
                 }
+                // TODO это не выполнится никогда?
                 if (checkConfig.notRequired) {
-                    if (self.getState() === 'CHECKOUT') {
+                    if (self.getState() === 'CHECKOUT') { // TODO это не выполнится никогда?
                         await self.next();
                     }
                     return true;
                 }
             }
             if (successCount > 0) {
-                if (self.getState() === 'CHECKOUT') {
+                if (self.getState() === 'CHECKOUT') { // if (self.getState() === 'CART')
+                    //   await self.next(); // TODO: непонятно зачем тут делать next, нужно проверить!!! возможно это не выполнится никогда?
                     await self.next();
                 }
             }
             return successCount > 0;
         },
+        /**
+         * Вызывет core-cart-order. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
+         * отдаёт успешность заказа.
+         * @return код результата:
+         *  - 0 - успешно проведённый заказ от всех слушателей.
+         *  - 1 - ни один слушатель не смог успешно сделать заказ.
+         *  - 2 - по крайней мере один слушатель успешно выполнил заказ.
+         *  - 3 - ошибка состояний
+         * @fires cart:core-cart-before-order - вызывается перед началом функции. Результат подписок игнорируется.
+         * @fires cart:core-cart-order-self-service - вызывается, если совершается заказ с самовывозом.
+         * @fires cart:core-cart-order-delivery - вызывается, если заказ без самовывоза
+         * @fires cart:core-cart-order - событие заказа. Каждый слушатель этого события влияет на результат события.
+         * @fires cart:core-cart-after-order - вызывается сразу после попытки оформить заказ.
+         */
         order: async function () {
             const self = this;
+            /**
+             * // PAYMENT CartOrder если оплачено и выбран тип оплаты внеший или внутренний то все ок проходим дальше
+             * Если выбран тип promise и оплачено то ошибка состояний
+             * Если выбран тип оплаты внеший или внутренний и неоплачено то не даем перевести в это стостояние, ошибка оплаты
+             *
+             */
             if (self.paid)
                 return 3;
             getEmitter_1.default().emit('core-cart-before-order', self);
@@ -306,6 +476,23 @@ module.exports = {
             }
         }
     },
+    /**
+     * Вызывет core-cart-payment. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
+     * отдаёт успешность заказа.
+     * @return код результата:
+     *  - 0 - успешно проведённый заказ от всех слушателей.
+     *  - 1 - ни один слушатель не смог успешно сделать заказ.
+     *  - 2 - по крайней мере один слушатель успешно выполнил заказ.
+     *  - 3 - ошибка состояний
+     * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
+     * @fires cart:core-cart-payment-self-service - вызывается, если совершается заказ с самовывозом.
+     * @fires cart:core-cart-payment-delivery - вызывается, если заказ без самовывоза
+     * @fires cart:core-cart-payment - событие заказа. Каждый слушатель этого события влияет на результат события.
+     * @fires cart:core-cart-after-payment - вызывается сразу после попытки оформить заказ.
+     */
+    /**
+     *  // PAYMENT cartPayment тут происходит перевключение в Оплату. Тикер и прочие весчи с
+     */
     payment: async function () {
         const self = this;
         return {
@@ -330,11 +517,18 @@ module.exports = {
             next();
         });
     },
+    /**
+     * Возвращает корзину со всем популярищациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
+     * содержит в себе свои картинки, каждый модификатор внутри cart.dishes и каждого dish содержит группу модификаторов и
+     * самоблюдо модификатора и тд.
+     * @param cart
+     */
     returnFullCart: async function (cart) {
         getEmitter_1.default().emit('core-cart-before-return-full-cart', cart);
         const cart2 = await Cart.findOne({ id: cart.id }).populate('dishes');
         const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish').sort('createdAt');
         for (let cartDish of cartDishes) {
+            // sails.log.info('rfc', cartDish.id);
             if (!cartDish.dish) {
                 sails.log.error('cartDish', cartDish.id, 'has not dish');
                 continue;
@@ -354,6 +548,7 @@ module.exports = {
             if (dish && dish.parentGroup && reasonBool && (dish.balance === -1 ? true : dish.balance >= cartDish.amount)) {
                 await Dish.getDishModifiers(dish);
                 cartDish.dish = dish;
+                // sails.log.info('CARTDISH DISH MODIFIERS', dish.modifiers);
             }
             else {
                 sails.log.info('destroy', dish.id);
@@ -366,6 +561,7 @@ module.exports = {
             }
         }
         cart2.dishes = cartDishes;
+        // sails.log.info(cart);
         await this.countCart(cart2);
         for (let cartDish of cartDishes) {
             if (cartDish.modifiers) {
@@ -378,6 +574,10 @@ module.exports = {
         cart2.cartId = cart2.id;
         return cart2;
     },
+    /**
+     * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
+     * @param cart
+     */
     countCart: async function (cart) {
         getEmitter_1.default().emit('core-cart-before-count', cart);
         const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish');
@@ -387,6 +587,7 @@ module.exports = {
         let dishesCount = 0;
         let uniqueDishes = 0;
         let totalWeight = 0;
+        // sails.log.info(dishes);
         await Promise.map(cartDishes, async (cartDish) => {
             try {
                 if (cartDish.dish) {
@@ -439,7 +640,7 @@ module.exports = {
                 if (!cartDish)
                     continue;
                 cartDish.dish = cartDishesClone[cartDish.id].dish;
-                cart.dishes[cd] = cartDish;
+                cart.dishes[cd] = cartDish; // <-- PROBLEM CODE
             }
         }
         if (cart.delivery) {
