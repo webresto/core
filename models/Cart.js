@@ -288,7 +288,7 @@ module.exports = {
                     return 0;
                 }
             }
-            if (successCount > 0) {
+            if (true || false) {
                 await self.next();
                 return 0;
             }

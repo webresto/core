@@ -91,7 +91,7 @@ module.exports = {
 
     if (chekingPaymentMethod.enable === true && 
         chekingPaymentMethod.type !== 'promise' && 
-        alivedPaymentMethods.indexOf(paymentMethodId) >= 0 ){
+        alivedPaymentMethods.indexOf(chekingPaymentMethod.adapter) >= 0 ){
           return true
     }
 
@@ -100,7 +100,6 @@ module.exports = {
       chekingPaymentMethod.type === 'promise' ){
         return true
     }
-
     return false
   },
     /**
