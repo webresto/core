@@ -1,12 +1,13 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
+import uuid = require('uuid/v4');
+
 
 module.exports = {
   attributes: {
     id: {
       type: 'string',
-      primaryKey: true,
-      autoIncrement: true
+      primaryKey: true
     },
     title: 'string',
     description: 'string',
@@ -16,6 +17,10 @@ module.exports = {
     },
     startDate: 'date',
     stopDate: 'date'
+  },
+  beforeCreate: function (paymentMethod, next) {
+    paymentMethod.id = uuid();
+    next();
   }
 };
 
