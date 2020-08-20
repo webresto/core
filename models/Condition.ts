@@ -70,7 +70,7 @@ module.exports = {
     causes: 'json',
     actions: 'json',
     zones: {
-      //collection: 'zone'
+      collection: 'zone'
     },
     needy: {
       type: 'boolean',

@@ -16,7 +16,9 @@ module.exports = {
         },
         causes: 'json',
         actions: 'json',
-        zones: {},
+        zones: {
+            collection: 'zone'
+        },
         needy: {
             type: 'boolean',
             defaultsTo: false
