@@ -41,6 +41,8 @@ module.exports = {
             defaultsTo: false
         },
         rmsId: 'string',
+        rmsOrderNumber: 'string',
+        rmsOrderData: 'json',
         deliveryStatus: 'string',
         selfDelivery: {
             type: 'boolean',

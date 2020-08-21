@@ -25,6 +25,8 @@ export default interface Cart extends ORM, StateFlow {
     problem: boolean;
     sendToIiko: boolean;
     rmsId: string;
+    rmsOrderNumber: string;
+    rmsOrderData: any;
     deliveryStatus: number;
     selfDelivery: boolean;
     deliveryDescription: string;

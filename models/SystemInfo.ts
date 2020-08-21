@@ -44,6 +44,7 @@ module.exports = {
     let obj = await SystemInfo.findOne({key: key, from: config});
     if (!obj) {
       let value = sails.config[config][key] || defaultConfig[key] || 0;
+      
       value = JSON.stringify(value);
       try {
         obj = await SystemInfo.create({
