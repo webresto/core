@@ -139,11 +139,10 @@ module.exports = {
             }
           });
           delete menu[group.id].childGroups;
-          menu[group.id].children = childGroups;
+          menu[group.id].children = [];
           if (menu[group.id].children.length > 1)
             menu[group.id].children.sort((a, b) => a.order - b.order);
         }
-
         menu[group.id].dishesList = await Dish.getDishes({parentGroup: group.id});
       } else {
         errors[group.id] = reason;
@@ -153,7 +152,7 @@ module.exports = {
     await getEmitter().emit('core-group-get-groups', menu, errors);
 
     const res = Object.values(menu);
-
+    
     return {groups: res, errors: errors};
   },
 
