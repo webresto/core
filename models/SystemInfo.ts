@@ -21,7 +21,10 @@ module.exports = {
       autoIncrement: true,
       primaryKey: true
     },
-    key: 'string',
+    key:  {
+      type: 'string',
+      unique: true
+    },
     value: 'string',
     section: 'string',
     from: 'string'
@@ -36,6 +39,7 @@ module.exports = {
    * @return найденное значение или 0, если значение не было найдено.
    */
   async use(config: string, key: string): Promise<any> {
+    sails.log.verbose("CORE > SystemInfo > use: ",key, config);
     if (!key) {
       key = config;
       config = 'restocore';
@@ -47,11 +51,7 @@ module.exports = {
       
       value = JSON.stringify(value);
       try {
-        obj = await SystemInfo.create({
-          key: key,
-          value: value,
-          from: config
-        });
+        obj = await SystemInfo.set(key, value, config);
       } catch (e) {
         sails.log.error(key, value, config, e);
         obj = await SystemInfo.findOne({key: key, from: config});
@@ -63,6 +63,29 @@ module.exports = {
       value = JSON.parse(obj.value);
     } finally {
       return value;
+    }
+  },
+
+  /**
+ * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
+ * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
+ * @param values
+ * @return обновлённое или созданное блюдо
+ */
+  async set(key: string, value: string, config?: string): Promise<any> {
+    try {
+      const propety = await SystemInfo.findOne({key: key});
+      if (!propety) {
+        return SystemInfo.create({
+          key: key,
+          value: value,
+          from: config
+        });
+      } else {
+        return (await SystemInfo.update({key: key}, {value: value}))[0];
+      }
+    } catch (e) {
+      sails.log.error("CORE > SystemInfo > set: ",key, value, config, e);
     }
   }
 };
@@ -90,6 +113,7 @@ export interface SystemInfoModel extends ORMModel<SystemInfo> {
    * @param key - ключ
    * @return найденное значение или 0, если значение не было найдено.
    */
+  
   use<T extends keyof Config>(key: T): Promise<PropType<Config, T>>;
   /**
    * Отдаёт запрашиваемый ключ из запрашиваемого конфига. Если ключ, который запрашивается, отсуствует в базе, то данные
@@ -102,6 +126,15 @@ export interface SystemInfoModel extends ORMModel<SystemInfo> {
   use<T extends keyof config[U], U extends keyof config>(config: U, key: T): Promise<PropType<config[U], T>>
   use(key: string): Promise<any>;
   use(config: string, key: string): Promise<any>
+
+    /**
+   * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
+   * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
+   * @param values
+   * @return обновлённое или созданное блюдо
+   */
+  set(key: string, value: string, config?: string): Promise<any>
+
 }
 
 declare global {

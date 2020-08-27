@@ -216,7 +216,7 @@ module.exports = {
                 getEmitter_1.default().emit('core-cart-check-self-service', self, customer, isSelfService, address);
                 sails.log.verbose('Cart > check > is self delivery');
                 await self.setSelfDelivery(true);
-                await self.next();
+                await self.next('CHECKOUT');
                 return true;
             }
             getEmitter_1.default().emit('core-cart-check-delivery', self, customer, isSelfService, address);
@@ -235,21 +235,21 @@ module.exports = {
                 if (checkConfig.requireAll) {
                     if (resultsCount === successCount) {
                         if (self.getState() !== 'CHECKOUT') {
-                            await self.next();
+                            await self.next('CHECKOUT');
                         }
                     }
                     return resultsCount === successCount;
                 }
                 if (checkConfig.notRequired) {
-                    if (self.getState() === 'CHECKOUT') {
-                        await self.next();
+                    if (self.getState() !== 'CHECKOUT') {
+                        await self.next('CHECKOUT');
                     }
                     return true;
                 }
             }
             if (successCount > 0) {
-                if (self.getState() === 'CHECKOUT') {
-                    await self.next();
+                if (self.getState() === 'CART') {
+                    await self.next('CHECKOUT');
                 }
             }
             return successCount > 0;
@@ -325,7 +325,7 @@ module.exports = {
     },
     returnFullCart: async function (cart) {
         getEmitter_1.default().emit('core-cart-before-return-full-cart', cart);
-        const cart2 = await Cart.findOne({ id: cart.id }).populate('dishes');
+        let cart2 = await Cart.findOne({ id: cart.id }).populate('dishes');
         const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish').sort('createdAt');
         for (let cartDish of cartDishes) {
             if (!cartDish.dish) {
@@ -367,8 +367,11 @@ module.exports = {
                 }
             }
         }
-        getEmitter_1.default().emit('core-cart-after-return-full-cart', cart2);
         cart2.cartId = cart2.id;
+        let emit_results = await getEmitter_1.default().emit('core-cart-after-return-full-cart', cart2);
+        emit_results.forEach(emit => {
+            cart2 = _.merge({}, cart2, emit.result);
+        });
         return cart2;
     },
     countCart: async function (cart) {
