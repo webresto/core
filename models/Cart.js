@@ -372,6 +372,10 @@ module.exports = {
         }
         cart2.orderDateLimit = await getOrderDateLimit();
         cart2.cartId = cart2.id;
+        let emit_results = await getEmitter_1.default().emit('core-cart-after-return-full-cart', cart2);
+        emit_results.forEach(emit => {
+            cart2 = _.merge(cart2, emit.result);
+        });
         return cart2;
     },
     countCart: async function (cart) {

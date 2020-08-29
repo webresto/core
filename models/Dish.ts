@@ -70,6 +70,7 @@ import hashCode from "../lib/hashCode";
 import getEmitter from "../lib/getEmitter";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
+import * as _ from "lodash";
 
 module.exports = {
   attributes: {
@@ -150,9 +151,13 @@ module.exports = {
    */
   async getDishes(criteria: any = {}): Promise<Dish[]> {
     criteria.isDeleted = false;
-    criteria.balance = {'!': 0};
 
-    const dishes = await Dish.find(criteria).populate('images');
+    if (! await SystemInfo.use('ShowUnavailableDishes')) {
+      criteria.balance = {'!': 0};
+    }
+      
+
+    let dishes = await Dish.find(criteria).populate('images');
 
     await Promise.each(dishes, async (dish) => {
       const reason = checkExpression(dish);
@@ -167,7 +172,11 @@ module.exports = {
 
     dishes.sort((a, b) => a.order - b.order);
 
-    await getEmitter().emit('core-dish-get-dishes', dishes);
+    let emit_results = await getEmitter().emit('core-dish-get-dishes', dishes);
+    // TODO: emit_results refactor
+    emit_results.forEach(emit => {
+      dishes = _.merge(dishes, emit.result)
+    });
 
     return dishes;
   },

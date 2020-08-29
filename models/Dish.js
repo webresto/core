@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../lib/checkExpression");
 const hashCode_1 = require("../lib/hashCode");
 const getEmitter_1 = require("../lib/getEmitter");
+const _ = require("lodash");
 module.exports = {
     attributes: {
         id: {
@@ -74,8 +75,10 @@ module.exports = {
     },
     async getDishes(criteria = {}) {
         criteria.isDeleted = false;
-        criteria.balance = { '!': 0 };
-        const dishes = await Dish.find(criteria).populate('images');
+        if (!await SystemInfo.use('ShowUnavailableDishes')) {
+            criteria.balance = { '!': 0 };
+        }
+        let dishes = await Dish.find(criteria).populate('images');
         await Promise.each(dishes, async (dish) => {
             const reason = checkExpression_1.default(dish);
             if (!reason) {
@@ -88,7 +91,10 @@ module.exports = {
             }
         });
         dishes.sort((a, b) => a.order - b.order);
-        await getEmitter_1.default().emit('core-dish-get-dishes', dishes);
+        let emit_results = await getEmitter_1.default().emit('core-dish-get-dishes', dishes);
+        emit_results.forEach(emit => {
+            dishes = _.merge(dishes, emit.result);
+        });
         return dishes;
     },
     async getDishModifiers(dish) {
