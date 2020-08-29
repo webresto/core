@@ -12,7 +12,7 @@ export default interface Cart extends ORM, StateFlow {
     cartId: string;
     dishes: Association<CartDish>;
     paymentMethod: Association<PaymentMethod>;
-    paid: "boolean";
+    paid: boolean;
     dishesCount: number;
     uniqueDishes: number;
     cartTotal: number;
@@ -22,6 +22,8 @@ export default interface Cart extends ORM, StateFlow {
     address: Address;
     comment: string;
     personsCount: number;
+    orderDateLimit?: string;
+    date: string;
     problem: boolean;
     sendToIiko: boolean;
     rmsId: string;

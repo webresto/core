@@ -102,6 +102,7 @@ import ORM from "../modelsHelp/ORM";
 import Dish from "./Dish";
 import * as _ from "lodash";
 import { PaymentResponse } from "../modelsHelp/Payment"
+import * as moment from "moment";
 module.exports = {
   attributes: {
     id: {
@@ -131,6 +132,7 @@ module.exports = {
     address: 'json',
     comment: 'string',
     personsCount: 'integer',
+    date: 'string',
     problem: {
       type: 'boolean',
       defaultsTo: false
@@ -462,13 +464,15 @@ module.exports = {
 
       //if ()
       /**
-       *  // IDEA Возможно надо добавить параметр Время Жизни  для чека
+       *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
        */
 
       getEmitter().emit('core-cart-before-check', self, customer, isSelfService, address);
       sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
 
       await checkCustomerInfo(customer);
+      await checkDate(self);
+
       if (paymentMethodId){
         await checkPaymentMethod(paymentMethodId);
       }
@@ -708,6 +712,7 @@ module.exports = {
       }
     }
 
+    cart2.orderDateLimit = await getOrderDateLimit();
     cart2.cartId = cart2.id;
 
     let emit_results = await  getEmitter().emit('core-cart-after-return-full-cart', cart2); 
@@ -873,6 +878,46 @@ async function checkPaymentMethod(paymentMethodId) {
   }
 }
 
+async function checkDate(cart: Cart) {
+  
+
+  if (cart.date) {
+    const date = moment(cart.date, "YYYY-MM-DD HH:mm:ss");
+    if (!date.isValid()){
+      throw {
+        code: 9,
+        error: 'date is not valid'
+      }
+    }
+    
+    const possibleDatetime = await getOrderDateLimit();
+    const momentDateLimit = moment(possibleDatetime);
+    if (!date.isBefore(momentDateLimit)) {
+      throw {
+        code: 10,
+        error: 'delivery far, far away! allowed not after' + possibleDatetime
+      }    
+    } 
+  }
+}
+
+/**
+ * Возвратит максимальное дату и время доставки 
+ * (по умолчанию 14 дней) 
+ */
+async function getOrderDateLimit(): Promise<string>  {
+  console.log("await>>>>>>>>>>");
+
+  let periodPossibleForOrder = await SystemInfo.use('PeriodPossibleForOrder')
+  if (periodPossibleForOrder === 0 || periodPossibleForOrder === undefined  || periodPossibleForOrder === null ){
+    periodPossibleForOrder = "20160";
+  }  
+  console.log("await>>>>>>>>>>",periodPossibleForOrder);
+
+
+  return moment().add(periodPossibleForOrder, 'minutes').format("YYYY-MM-DD HH:mm:ss");
+}
+
 /**
  * Описывает модель корзины. Содержит в себе блюда и данных о них, данные о заказчике и месте доставки.
  * Имеет состояние state, которое указывает в каком моменте жизненного цикла сейчас находится корзина.
@@ -884,7 +929,7 @@ export default interface Cart extends ORM, StateFlow {
   cartId: string; // DELETE IN FUTURE
   dishes: Association<CartDish>;
   paymentMethod: Association<PaymentMethod>;
-  paid: "boolean",
+  paid: boolean;
   dishesCount: number;
   uniqueDishes: number;
   cartTotal: number;
@@ -894,6 +939,8 @@ export default interface Cart extends ORM, StateFlow {
   address: Address;
   comment: string;
   personsCount: number;
+  orderDateLimit?: string;
+  date: string;
   problem: boolean;
   sendToIiko: boolean;
   rmsId: string;

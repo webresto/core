@@ -35,7 +35,7 @@ module.exports = {
       primaryKey: true
     },
     amount: 'integer',
-    dish: {
+    dish: { // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
       model: 'Dish'
     },
     modifiers: 'json',
