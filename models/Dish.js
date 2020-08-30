@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../lib/checkExpression");
 const hashCode_1 = require("../lib/hashCode");
 const getEmitter_1 = require("../lib/getEmitter");
-const _ = require("lodash");
 module.exports = {
     attributes: {
         id: {
@@ -91,10 +90,7 @@ module.exports = {
             }
         });
         dishes.sort((a, b) => a.order - b.order);
-        let emit_results = await getEmitter_1.default().emit('core-dish-get-dishes', dishes);
-        emit_results.forEach(emit => {
-            dishes = _.merge(dishes, emit.result);
-        });
+        await getEmitter_1.default().emit('core-dish-get-dishes', dishes);
         return dishes;
     },
     async getDishModifiers(dish) {

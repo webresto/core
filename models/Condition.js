@@ -5,6 +5,10 @@ const actions_1 = require("../lib/actions");
 module.exports = {
     attributes: {
         name: 'string',
+        slug: {
+            type: 'slug',
+            from: 'name'
+        },
         description: 'string',
         enable: {
             type: 'boolean',

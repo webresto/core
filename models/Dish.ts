@@ -172,12 +172,7 @@ module.exports = {
 
     dishes.sort((a, b) => a.order - b.order);
 
-    let emit_results = await getEmitter().emit('core-dish-get-dishes', dishes);
-    // TODO: emit_results refactor
-    emit_results.forEach(emit => {
-      dishes = _.merge(dishes, emit.result)
-    });
-
+    await getEmitter().emit('core-dish-get-dishes', dishes);
     return dishes;
   },
 

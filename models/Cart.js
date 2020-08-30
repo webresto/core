@@ -226,7 +226,7 @@ module.exports = {
             checkAddress(address);
             self.address = address;
             await self.save();
-            const results = await getEmitter_1.default().emit('core-cart-check', self, customer, isSelfService, address);
+            const results = await getEmitter_1.default().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
             sails.log.verbose('Cart > check > after wait general emitter', results);
             const resultsCount = results.length;
             const successCount = results.filter(r => r.state === "success").length;
@@ -372,10 +372,7 @@ module.exports = {
         }
         cart2.orderDateLimit = await getOrderDateLimit();
         cart2.cartId = cart2.id;
-        let emit_results = await getEmitter_1.default().emit('core-cart-after-return-full-cart', cart2);
-        emit_results.forEach(emit => {
-            cart2 = _.merge(cart2, emit.result);
-        });
+        await getEmitter_1.default().emit('core-cart-after-return-full-cart', cart2);
         return cart2;
     },
     countCart: async function (cart) {
@@ -528,11 +525,9 @@ async function checkDate(cart) {
     }
 }
 async function getOrderDateLimit() {
-    console.log("await>>>>>>>>>>");
     let periodPossibleForOrder = await SystemInfo.use('PeriodPossibleForOrder');
     if (periodPossibleForOrder === 0 || periodPossibleForOrder === undefined || periodPossibleForOrder === null) {
         periodPossibleForOrder = "20160";
     }
-    console.log("await>>>>>>>>>>", periodPossibleForOrder);
     return moment().add(periodPossibleForOrder, 'minutes').format("YYYY-MM-DD HH:mm:ss");
 }

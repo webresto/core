@@ -58,6 +58,10 @@ import Zone from "@webresto/native-check/models/Zone"; // TODO: move to native-c
 module.exports = {
   attributes: {
     name: 'string',
+    slug: {
+      type: 'slug',
+      from: 'name'
+    },
     description: 'string',
     enable: {
       type: 'boolean',

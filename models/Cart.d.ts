@@ -42,7 +42,7 @@ export default interface Cart extends ORM, StateFlow {
     setModifierCount(dish: CartDish, modifier: Dish, amount: number): Promise<void>;
     setComment(dish: CartDish, comment: string): Promise<void>;
     setSelfDelivery(selfService: boolean): Promise<void>;
-    check(customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: string): Promise<boolean>;
+    check(customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: string, rejectReason?: string): Promise<boolean>;
     order(): Promise<number>;
 }
 export interface CartModel extends ORMModel<Cart> {
