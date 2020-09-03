@@ -95,6 +95,7 @@ import StateFlow from "../modelsHelp/StateFlow";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import Dish from "./Dish";
+import { PaymentResponse } from "../modelsHelp/Payment";
 /**
  * Описывает модель корзины. Содержит в себе блюда и данных о них, данные о заказчике и месте доставки.
  * Имеет состояние state, которое указывает в каком моменте жизненного цикла сейчас находится корзина.
@@ -276,7 +277,7 @@ export default interface Cart extends ORM, StateFlow {
     * @fires cart:core-cart-payment - событие оплаты. Каждый слушатель этого события влияет на результат события.
     * @fires cart:core-cart-after-order - вызывается сразу после попытки провести оплату.
     */
-    payment(): Promise<number>;
+    payment(): Promise<PaymentResponse>;
 }
 /**
  * Описывает класс Cart, содержит статические методы, используется для ORM

@@ -486,29 +486,14 @@ module.exports = {
      * @fires cart:core-cart-payment - событие заказа. Каждый слушатель этого события влияет на результат события.
      * @fires cart:core-cart-after-payment - вызывается сразу после попытки оформить заказ.
      */
-    /**
-     * Вызывет core-cart-order. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
-     * отдаёт успешность заказа.
-     * @return код результата:
-     *  - 0 - успешно проведённый заказ от всех слушателей.
-     *  - 1 - ни один слушатель не смог успешно сделать заказ.
-     *  - 2 - по крайней мере один слушатель успешно выполнил заказ.
-     * @fires cart:core-cart-before-order - вызывается перед началом функции. Результат подписок игнорируется.
-     * @fires cart:core-cart-order-self-service - вызывается, если совершается заказ с самовывозом.
-     * @fires cart:core-cart-order-delivery - вызывается, если заказ без самовывоза
-     * @fires cart:core-cart-order - событие заказа. Каждый слушатель этого события влияет на результат события.
-     * @fires cart:core-cart-after-order - вызывается сразу после попытки оформить заказ.
-     */
     payment: async function () {
+        // PAYMENT cart payment
         const self = this;
-        PaymentDocument.register();
-        return {
-            redirectLink: "___",
-            total: 123,
-            id: "____",
-            originModel: "____",
-            paymentAdapter: "____"
-        };
+        let backLinkSuxess = (await SystemInfo.use('FrontendOrderPage')) + self.id;
+        let backLinkFail = await SystemInfo.use('FrontendCheckoutPage');
+        //@ts-ignore for Associations
+        return PaymentDocument.register(self.id, 'cart', self.total, self.paymentMethod, backLinkSuxess, backLinkFail, JSON.stringify(self));
+        // PTODO: расставить евенты
     },
     beforeCreate: function (values, next) {
         getEmitter_1.default().emit('core-cart-before-create', values).then(() => {

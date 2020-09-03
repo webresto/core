@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const PaymentAdapter_1 = require("../../../adapter/payment/PaymentAdapter");
 var database = {};
 class TestPaymentSystem extends PaymentAdapter_1.default {
-    async createPayment(payment, backLink, testing) {
+    async createPayment(payment, backLinkSuxess, backLinkFail, testing) {
         let paid_latency;
         switch (testing) {
             case "delay_1_sec":
@@ -36,7 +36,7 @@ class TestPaymentSystem extends PaymentAdapter_1.default {
         response.redirectLink = "http://redirect_link.com";
         return new Promise((resolve) => {
             setTimeout(() => {
-                database[payment.id] = payment;
+                database[payment.paymentId] = payment;
                 this.paid(payment, paid_latency);
                 resolve(response);
             }, latency);
@@ -46,7 +46,7 @@ class TestPaymentSystem extends PaymentAdapter_1.default {
         let latency = Math.floor(Math.random() * 1200) + 1;
         return new Promise((resolve) => {
             setTimeout(() => {
-                let response = database[payment.id];
+                let response = database[payment.paymentId];
                 resolve(response);
             }, latency);
         });
@@ -64,7 +64,7 @@ class TestPaymentSystem extends PaymentAdapter_1.default {
     paid(payment, latency) {
         setTimeout(() => {
             console.log("paid", latency);
-            database[payment.id].paid = true;
+            database[payment.paymentId].paid = true;
         }, latency);
         return;
     }

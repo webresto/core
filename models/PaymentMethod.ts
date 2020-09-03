@@ -42,13 +42,14 @@ module.exports = {
  * @return 
  */
   async alive(paymentAdapter: PaymentAdapter): Promise<string[]> {
-
-    let knownPaymentMethod = await PaymentMethod.findOne({adapter: paymentAdapter.InitPaymentAdapter.adapter});
+    //@ts-ignore
+    let knownPaymentMethod = await PaymentMethod.findOne({adapter: paymentAdapter.adapter});
     if (!knownPaymentMethod) {
-      knownPaymentMethod = await PaymentMethod.create(paymentAdapter.InitPaymentAdapter);
+      knownPaymentMethod = await PaymentMethod.create(paymentAdapter);
     }
     if (knownPaymentMethod.enable === true){
-      alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter.InitPaymentAdapter;
+          //@ts-ignore
+      alivedPaymentMethods[paymentAdapter.adapter] = paymentAdapter;
     }
     return
   },

@@ -39,12 +39,14 @@ module.exports = {
    * @return
    */
     async alive(paymentAdapter) {
-        let knownPaymentMethod = await PaymentMethod.findOne({ adapter: paymentAdapter.InitPaymentAdapter.adapter });
+        //@ts-ignore
+        let knownPaymentMethod = await PaymentMethod.findOne({ adapter: paymentAdapter.adapter });
         if (!knownPaymentMethod) {
-            knownPaymentMethod = await PaymentMethod.create(paymentAdapter.InitPaymentAdapter);
+            knownPaymentMethod = await PaymentMethod.create(paymentAdapter);
         }
         if (knownPaymentMethod.enable === true) {
-            alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter.InitPaymentAdapter;
+            //@ts-ignore
+            alivedPaymentMethods[paymentAdapter.adapter] = paymentAdapter;
         }
         return;
     },
@@ -99,7 +101,13 @@ module.exports = {
    * @return
    */
     async isPaymentPromise(paymentMethodId) {
-        const chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
+        var chekingPaymentMethod;
+        if (!paymentMethodId) {
+            chekingPaymentMethod = this;
+        }
+        else {
+            chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
+        }
         if (chekingPaymentMethod.type === 'promise') {
             return true;
         }
@@ -108,14 +116,21 @@ module.exports = {
     /**
    * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
    * @param  paymentMethodId
-   * @return
+   * @return PaymentAdapter
+   * @throws
    */
     async getAdapterById(paymentMethodId) {
-        try {
+        const paymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
+        //@ts-ignore 
+        if (paymentMethod.isPaymentPromise()) {
+            return undefined;
         }
-        catch (error) {
+        if (alivedPaymentMethods[paymentMethod.adapter] !== undefined) {
+            return alivedPaymentMethods[paymentMethod.adapter];
         }
-        return alivedPaymentMethods[paymentMethod.adapter];
+        else {
+            return undefined;
+        }
     },
     /**
     * Возвращает инстанс платежного адаптера по известному названию адаптера
@@ -123,6 +138,22 @@ module.exports = {
     * @return
     */
     async getAdapter(adapter) {
-        return alivedPaymentMethods[adapter];
+        var paymentMethod;
+        if (!adapter) {
+            paymentMethod = this;
+        }
+        else {
+            paymentMethod = await PaymentMethod.findOne({ adapter: adapter });
+        }
+        //@ts-ignore 
+        if (paymentMethod.isPaymentPromise()) {
+            return undefined;
+        }
+        if (alivedPaymentMethods[paymentMethod.adapter] !== undefined) {
+            return alivedPaymentMethods[paymentMethod.adapter];
+        }
+        else {
+            return undefined;
+        }
     },
 };

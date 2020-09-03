@@ -32,28 +32,8 @@ module.exports = {
         paymentDocument.status = "NEW";
         next();
     },
-    /**
-    * Регистрирует новый платежный документ
-    * @param paymentId - UUID Идентификатор соответсвующий записи в моделе из originModel
-    * @param originModel - Модель в которой иницировалась оплата
-    * @param amount -  Сумма платежа
-    * @param paymentAdapter - Адаптер платежей
-    * @param comment - Комментарий
-    * @throws Object {
-    *   body: string,
-    *   error: number
-    * }
-    * where codes:
-    * 1 - некорректный paymentId или originModel
-    * 2 - amount не указан или плохой тип
-    * 4 - paymentAdapter не существует или недоступен
-    * 5 - произошла ошибка в выбранном paymentAdapter
-    * 6 - произошла ошибка при создании платежного документа
-    * @fires paymentdocument:core-payment-document-before-create - вызывается перед началом фунции. Результат подписок игнорируется.
-    * @fires cart:core-cart-set-comment-reject-no-cartdish - вызывается перед ошибкой о том, что блюдо не найдено. Результат подписок игнорируется.
-    * @fires cart:core-cart-after-set-comment - вызывается после успешной работы функции. Результат подписок игнорируется.
-    */
-    register: async function (paymentId, originModel, amount, paymentMethodId, comment) {
+    // PAYMENT payment document/ register
+    register: async function (paymentId, originModel, amount, paymentMethodId, backLinkSuxess, backLinkFail, comment) {
         checkAmount(amount);
         await checkOrigin(originModel, paymentId);
         await checkPaymentMethod(paymentMethodId);
@@ -69,8 +49,9 @@ module.exports = {
                 error: 'PaymentDocument not created'
             };
         }
-        // PAYMENT: do register
-        await PaymentMethod.getAdapter(paymentMethodId);
+        let paymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
+        return await paymentAdapter.createPayment(payment, backLinkSuxess, backLinkFail);
+        // PTODO: тут надо обрабоать ошибки
     },
 };
 async function checkOrigin(originModel, paymentId) {

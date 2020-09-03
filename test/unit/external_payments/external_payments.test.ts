@@ -20,8 +20,9 @@ describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
   /**
   * 2. тест создания платежа
   */
+
   it('Create payment test', async () => { 
-    const result = await TestPaymentSystem.getInstance().createPayment(test_payment , "http://back_url.com", "delay_3_sec");
+    const result = await TestPaymentSystem.getInstance().createPayment(test_payment , "http://back_url.com", "http://back_url.com", "delay_3_sec");
     expect(result.redirectLink).to.equal("http://redirect_link.com");
   });
 

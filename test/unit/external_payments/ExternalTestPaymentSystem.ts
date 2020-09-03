@@ -6,7 +6,7 @@ var database: any = {};
 export default class TestPaymentSystem extends PaymentAdapter {
   private static instance: TestPaymentSystem;
 
-  public async createPayment(payment: Payment, backLink: string, testing?: string): Promise<PaymentResponse> {
+  public async createPayment(payment: Payment, backLinkSuxess: string, backLinkFail: string, testing?: string): Promise<PaymentResponse> {
     let paid_latency;
     switch (testing) {
       case "delay_1_sec":
@@ -46,7 +46,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
     return new Promise((resolve) => {
       setTimeout(() => {
 
-        database[payment.id] = payment;
+        database[payment.paymentId] = payment;
         this.paid(payment ,paid_latency);
         resolve(response);
       }, latency);
@@ -57,7 +57,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
     let latency = Math.floor(Math.random() * 1200) + 1;
     return new Promise((resolve) => {
       setTimeout(() => {
-        let response = database[payment.id];
+        let response = database[payment.paymentId];
         resolve(response);
       }, latency);
     });
@@ -77,7 +77,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
   private paid(payment: Payment, latency:number) {
     setTimeout(() => {
       console.log("paid", latency);
-      database[payment.id].paid = true;
+      database[payment.paymentId].paid = true;
     }, latency);
     return;
   }

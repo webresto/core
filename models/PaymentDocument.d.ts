@@ -1,6 +1,5 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
-import { Payment } from "../modelsHelp/Payment";
 import PaymentMethod from "../models/PaymentMethod";
 /** На примере корзины (Cart):
  * 1. Модель проводящяя оплату internal/external (например: Cart) создает PaymentDocument
@@ -57,11 +56,30 @@ export default interface PaymentDocument extends ORM {
  */
 export interface PaymentDocumentModel extends ORMModel<PaymentDocument> {
     /**
-     * Выключает все
-     * @param paymentMethod - ключ
-     * @return .
-     */
-    register(payment: Payment): Promise<PaymentDocument>;
+   * Регистрирует новый платежный документ
+   * @param paymentId - UUID Идентификатор соответсвующий записи в моделе из originModel
+   * @param originModel - Модель в которой иницировалась оплата
+   * @param amount -  Сумма платежа
+   * @param paymentMethodId - Адаптер платежей
+   * @param backLinkSuxess - Сслыка для возврата успешная
+   * @param backLinkFail - Сслыка для возврата не успешная
+   * @param comment - Комментарий
+   * @throws Object {
+   *   body: string,
+   *   error: number
+   * }
+   * where codes:
+   * 1 - некорректный paymentId или originModel
+   * 2 - amount не указан или плохой тип
+   * 4 - paymentAdapter не существует или недоступен
+   * 5 - произошла ошибка в выбранном paymentAdapter
+   * 6 - произошла ошибка при создании платежного документа
+   * @fires paymentdocument:core-payment-document-before-create - вызывается перед началом фунции. Результат подписок игнорируется.
+   * @fires paymentdocument:core-payment-document-created - вызывается когда документ был создан. Результат подписок игнорируется.
+   * @fires paymentdocument:core-payment-before-exec - вызывается перед выполнением оплаты. Результат подписок ожидается.
+   * @fires paymentdocument:core-payment-document-redirect-link - вызывается после получения ссылки для редиректа. Результат подписок игнорируется.
+   */
+    register(paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuxess: string, backLinkFail: string, comment: string): Promise<PaymentDocument>;
     /**
     * Возврашает статус платежа
     */

@@ -1,0 +1,11 @@
+*
+!api
+!/api/**/*
+!config
+!/config/**/*
+!views
+!/views/**/*
+!.sailsrc
+!app.js
+!package.json
+!.gitignore

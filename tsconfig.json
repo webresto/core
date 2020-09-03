@@ -13,7 +13,7 @@
     ],
     "sourceMap": false,
     "declaration": true,
-    "removeComments": true
+    "removeComments": false,
   },
   "exclude": [
     "node_modules"

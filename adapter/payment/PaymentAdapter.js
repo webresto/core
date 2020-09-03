@@ -8,5 +8,11 @@ class PaymentAdapter {
         this.InitPaymentAdapter = InitPaymentAdapter;
         PaymentMethod.alive(this.InitPaymentAdapter);
     }
+    /**
+     * Метод для создания и получения уже существующего Payment адаптера
+     * @param params - параметры для инициализации
+     */
+    static getInstance(...params) { return PaymentAdapter.prototype; }
+    ;
 }
 exports.default = PaymentAdapter;

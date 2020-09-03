@@ -38,11 +38,15 @@ export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
     /**
     * Проверяет платежное обещание
     */
-    isPaymentPromise(paymentMethodId: string): Promise<boolean>;
+    isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
     /**
-  * Возврашает екземпляр платежного адаптера
-  */
-    getAdapter(): Promise<PaymentAdapter>;
+    * Возврашает екземпляр платежного адаптера по paymentMethodId
+    */
+    getAdapterById(paymentMethodId: string): any;
+    /**
+    * Возврашает екземпляр платежного адаптера от this или по названию адаптера
+    */
+    getAdapter(adapter?: string): Promise<PaymentAdapter>;
 }
 declare global {
     const PaymentMethod: PaymentMethodModel;

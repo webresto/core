@@ -17,7 +17,7 @@ describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
     * 2. тест создания платежа
     */
     it('Create payment test', async () => {
-        const result = await ExternalTestPaymentSystem_1.default.getInstance().createPayment(test_payment, "http://back_url.com", "delay_3_sec");
+        const result = await ExternalTestPaymentSystem_1.default.getInstance().createPayment(test_payment, "http://back_url.com", "http://back_url.com", "delay_3_sec");
         chai_1.expect(result.redirectLink).to.equal("http://redirect_link.com");
     });
     /**
