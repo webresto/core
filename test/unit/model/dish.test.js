@@ -11,5 +11,6 @@ describe('Dish', function () {
             }
             console.log(result);
         }
+        //expect(result['InitPaymentAdapter'].adapter).to.equal("test-payment-system");
     });
 });

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const defaultConfig_1 = require("../config/defaultConfig");
 module.exports = {
+    //migrate: 'drop',
     attributes: {
         id: {
             type: 'integer',
@@ -16,6 +17,14 @@ module.exports = {
         section: 'string',
         from: 'string'
     },
+    /**
+     * Отдаёт запрашиваемый ключ из запрашиваемого конфига. Если ключ, который запрашивается, отсуствует в базе, то данные
+     * будут взяты из sails.config[config][key] и записаны в базу. При последующих запросах того же ключа будут возвращаться данные
+     * из базы данных. Если указать только один параметр ключ, то данные будут доставаться из sails.config.restocore[key].
+     * @param config - конфиг откуда доставать ключ
+     * @param key - ключ, если не указывать второй параметр, то первый будет считаться за ключ
+     * @return найденное значение или 0, если значение не было найдено.
+     */
     async use(config, key) {
         sails.log.verbose("CORE > SystemInfo > use: ", key, config);
         if (!key) {
@@ -42,6 +51,12 @@ module.exports = {
             return value;
         }
     },
+    /**
+   * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
+   * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
+   * @param values
+   * @return обновлённое или созданное блюдо
+   */
     async set(key, value, config) {
         try {
             const propety = await SystemInfo.findOne({ key: key });

@@ -1,3 +1,6 @@
+/**
+ *
+ */
 export default class Image {
     url: string;
     name: {

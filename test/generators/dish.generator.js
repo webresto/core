@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const faker = require("faker");
+//import Dish from "../../models/Dish"
 var autoincrement = 0;
 function dishGenerator(config) {
     autoincrement++;

@@ -229,8 +229,8 @@ module.exports = {
     /**
      * Уменьшает количество заданного блюда на amount. Переводит корзину в состояние CART.
      * @param dish - Блюдо для изменения количества, dish_id {number} или dish_id {string}  если выбран режим стек.
-     * @param amount - насколько меньше сделать количество
-     * @param stack  - Признак того что удаление блюд происходит в режиме стека
+     * @param amount - насколько меньше сделать количество (не работает в режиме стека)
+     * @param stack  - Признак того что удаление блюд происходит в обратном хронологическом порядке (удаляет только по одному). 
      * @throws Object {
      *   body: string,
      *   code: number
@@ -242,12 +242,14 @@ module.exports = {
      *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
      */
     removeDish: async function (dish: CartDish, amount: number, stack?: boolean): Promise<void> {
+
       const emitter = getEmitter();
       await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
 
       const cart = await Cart.findOne({id: this.id}).populate('dishes');
       var cartDish: CartDish;
       if (stack){
+        amount = 1;
         cartDish = await CartDish.findOne({where:{cart: cart.id, dish: dish.id}, sort: 'createdAt ASC'}).populate('dish');
       } else {
         cartDish = await CartDish.findOne({cart: cart.id, id: dish.id}).populate('dish');
@@ -547,17 +549,22 @@ module.exports = {
      * @fires cart:core-cart-order - событие заказа. Каждый слушатель этого события влияет на результат события.
      * @fires cart:core-cart-after-order - вызывается сразу после попытки оформить заказ.
      */
+
     order: async function (): Promise<number> {
       const self: Cart = this;
+     
+      if (self.paymentMethod) {
+        console.log("Удоли: это для проверки что пеймент метод задался");
+        //@ts-ignore Associations worked not good need research
+        let isPaymentPromise = await PaymentMethod.isPaymentPromise(self.paymentMethod)
+        
+        if( isPaymentPromise && self.paid)
+          return 3
+      
+        if( !isPaymentPromise && !self.paid)
+          return 3
+      }
 
-      /**  
-       * // PAYMENT CartOrder если оплачено и выбран тип оплаты внеший или внутренний то все ок проходим дальше
-       * Если выбран тип promise и оплачено то ошибка состояний
-       * Если выбран тип оплаты внеший или внутренний и неоплачено то не даем перевести в это стостояние, ошибка оплаты
-       * 
-       */ 
-      if( self.paid)
-        return 3
       
       getEmitter().emit('core-cart-before-order', self);
       sails.log.verbose('Cart > order > before order >', self.customer, self.selfDelivery, self.address);
@@ -602,8 +609,7 @@ module.exports = {
   },
 
   /**
-   * Вызывет core-cart-payment. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
-   * отдаёт успешность заказа.
+   * Вызывет core-cart-payment. 
    * @return код результата:
    *  - 0 - успешно проведённый заказ от всех слушателей.
    *  - 1 - ни один слушатель не смог успешно сделать заказ.
@@ -616,22 +622,15 @@ module.exports = {
    * @fires cart:core-cart-after-payment - вызывается сразу после попытки оформить заказ.
    */
 
-   /**
-    *  // PAYMENT cartPayment тут происходит перевключение в Оплату. Тикер и прочие весчи с 
-    */
   payment: async function (): Promise<PaymentResponse> {
+    // PAYMENT cart payment
     const self: Cart = this;
-    
-    return {
-      redirectLink: "___", 
-      total: 123, 
-      id: "____", 
-      originModel: "____", 
-      paymentAdapter:"____"
-    } 
+    let backLinkSuxess: string = (await SystemInfo.use('FrontendOrderPage')) + self.id;
+    let backLinkFail: string = await SystemInfo.use('FrontendCheckoutPage');
+    //@ts-ignore for Associations
+    return PaymentDocument.register(self.id, 'cart', self.total, self.paymentMethod, backLinkSuxess, backLinkFail, JSON.stringify(self))
+    // PTODO: расставить евенты
   },
-
-
 
   beforeCreate: function (values, next) {
     getEmitter().emit('core-cart-before-create', values).then(() => {
@@ -973,6 +972,7 @@ export default interface Cart extends ORM, StateFlow {
    * Уменьшает количество заданного блюда на amount. Переводит корзину в состояние CART.
    * @param dish - Блюдо для изменения количества блюд
    * @param amount - насколько меньше сделать количество
+   * @param stack - параметр позволяющий удалять в обратном хрогологическом порядке
    * @throws Object {
    *   body: string,
    *   code: number
@@ -1085,14 +1085,29 @@ export default interface Cart extends ORM, StateFlow {
    * @fires cart:core-cart-after-order - вызывается сразу после попытки оформить заказ.
    */
   order(): Promise<number>;
+
+   /**
+   * Создает платежный документ от модели Cart.
+   * @return код результата:
+   *  - 0 - успешно создан платежный документ
+   *  - 1 - во время создания платежного документа произошла ошибка валидации
+   *  - 2 - 
+   * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
+   * @fires cart:core-cart-external-payment - вызывается, если совершается внешняя оплата
+   * @fires cart:core-cart-internal-payment - вызывается, если совершается внутренняя оплата
+   * @fires cart:core-cart-payment - событие оплаты. Каждый слушатель этого события влияет на результат события.
+   * @fires cart:core-cart-after-order - вызывается сразу после попытки провести оплату.
+   */
+  payment(): Promise<PaymentResponse>;
 }
+
 
 /**
  * Описывает класс Cart, содержит статические методы, используется для ORM
  */
 export interface CartModel extends ORMModel<Cart> {
   /**
-   * Возвращает корзину со всем популярищациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
+   * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
    * содержит в себе свои картинки, каждый модификатор внутри cart.dishes и каждого dish содержит группу модификаторов и
    * самоблюдо модификатора и тд.
    * @param cart

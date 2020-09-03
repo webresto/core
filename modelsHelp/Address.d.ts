@@ -1,3 +1,6 @@
+/**
+ * Описывает адресс получателя для доставки
+ */
 export default interface Address {
     streetId?: string;
     home: number;

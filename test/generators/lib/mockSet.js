@@ -14,6 +14,7 @@ class MockSet {
     constructor() {
         this.declarationPaths = ["../../../models/", "../../../modelsHelp/", "../../../adapter/", "../../../config/", "../../../lib/"];
         this.extension = '.d.ts';
+        //this.interfaces = options.interfaces;
     }
     static getInstance() {
         if (!MockSet.instance) {
@@ -31,6 +32,7 @@ class MockSet {
             interfaces: interfaces,
             isOptionalAlwaysEnabled: true
         });
+        //if (!isRecord(mocks)) throw new Error('unable to generate mocks');
         return mocks;
     }
     async getAllFiles(paths) {

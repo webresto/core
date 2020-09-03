@@ -1,5 +1,8 @@
 /// <reference types="node" />
 import { QueryBuilder, WaterlinePromise } from "waterline";
+/**
+ * Описывает ORM представление
+ */
 export default interface ORMModel<T> {
     create(params: any): WaterlinePromise<T>;
     create(params: any[]): WaterlinePromise<T[]>;
