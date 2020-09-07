@@ -12,17 +12,15 @@ export default abstract class PaymentAdapter {
 
   protected constructor(InitPaymentAdapter: InitPaymentAdapter) {
     this.InitPaymentAdapter = InitPaymentAdapter;
-    PaymentMethod.alive(this.InitPaymentAdapter);
-    
+    PaymentMethod.alive(this);
   }
-
 
   /**
    * Создание Оплаты
    * @param Payment - Платежный документ
    * @return Результат работы функции, тело ответа и код результата
    */
-  public abstract async createPayment(payment: Payment, backLinkSuxess: string, backLinkFail: string):  Promise<PaymentResponse>;
+  public abstract async createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string):  Promise<PaymentResponse>;
 
   /**
    * Проверка Оплаты

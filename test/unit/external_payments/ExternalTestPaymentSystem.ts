@@ -6,7 +6,7 @@ var database: any = {};
 export default class TestPaymentSystem extends PaymentAdapter {
   private static instance: TestPaymentSystem;
 
-  public async createPayment(payment: Payment, backLinkSuxess: string, backLinkFail: string, testing?: string): Promise<PaymentResponse> {
+  public async createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string, testing?: string): Promise<PaymentResponse> {
     let paid_latency;
     switch (testing) {
       case "delay_1_sec":

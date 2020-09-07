@@ -5,8 +5,17 @@ import PaymentAdapter from "../adapter/payment/PaymentAdapter";
  * Описывает модель "Способ оплаты"
  */
 export default interface PaymentMethod extends ORM, InitPaymentAdapter {
-    id?: string;
-    enable?: boolean;
+    id: string;
+    enable: boolean;
+    title: string;
+    type: string;
+    adapter: string;
+    order: number;
+    description: string;
+    /**
+    * Возврашает екземпляр платежного адаптера от this или по названию адаптера
+    */
+    getAdapter(adapter?: string): Promise<PaymentAdapter>;
 }
 /**
  * Описывает инит обеькт для регистрации "Способ оплаты"
@@ -26,7 +35,7 @@ export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
      * @param paymentMethod - ключ
      * @return .
      */
-    alive(paymentMethod: InitPaymentAdapter): Promise<PaymentMethod[]>;
+    alive(paymentMethod: PaymentAdapter): Promise<PaymentMethod[]>;
     /**
     * Возврашает доступные для оплаты платежные методы
     */
@@ -36,17 +45,13 @@ export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
     */
     checkAvailable(paymentMethodId: string): Promise<boolean>;
     /**
-    * Проверяет платежное обещание
-    */
-    isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
-    /**
     * Возврашает екземпляр платежного адаптера по paymentMethodId
     */
-    getAdapterById(paymentMethodId: string): any;
+    getAdapterById(paymentMethodId?: string): any;
     /**
-    * Возврашает екземпляр платежного адаптера от this или по названию адаптера
-    */
-    getAdapter(adapter?: string): Promise<PaymentAdapter>;
+  * Проверяет платежное обещание
+  */
+    isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
 }
 declare global {
     const PaymentMethod: PaymentMethodModel;

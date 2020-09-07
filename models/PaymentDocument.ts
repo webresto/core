@@ -73,30 +73,49 @@ module.exports = {
     error: 'string',
   },
 
-  beforeCreate: function (paymentDocument, next) {
-    paymentDocument.id = uuid();
+  beforeCreate: function (paymentDocument: any, next: any) {
+    if (!paymentDocument.id) {
+      let id: string = uuid();
+      paymentDocument.id = id.substr(id.length - 8).toUpperCase();
+    }
+    
     paymentDocument.status = "NEW";
     next();
   },
-     // PAYMENT payment document/ register
-  register: async function (paymentId: string, originModel: string, amount: number, paymentMethodId: string,  backLinkSuxess: string, backLinkFail: string, comment: string): Promise<PaymentResponse> {
+
+  register: async function (paymentId: string, originModel: string, amount: number, paymentMethodId: string,  backLinkSuccess: string, backLinkFail: string, comment: string, data: any): Promise<PaymentResponse> {
     checkAmount(amount);
     await checkOrigin(originModel, paymentId);
     await checkPaymentMethod(paymentMethodId);
-    let payment: Payment = {paymentId: paymentId, originModel: originModel, PaymentMethod: paymentMethodId, amount:amount }
-    const emitter = getEmitter();
+    var id: string = uuid(); id = id.substr(id.length - 8).toUpperCase();
+    let payment: Payment = { id: id, paymentId: paymentId, originModel: originModel, paymentMethod: paymentMethodId, amount:amount, comment: comment, data: data }
+    
     getEmitter().emit('core-payment-document-before-create', payment); 
     try {
         let paymentDocument = await PaymentDocument.create(payment)
-    } catch (error) {
+    } catch (e) { 
+      getEmitter().emit('error',"PaymentDocument > register:", e); 
+      sails.log.error("Error in paymentAdapter.createPayment :", e);
       throw {
-        code: 6,
-        error: 'PaymentDocument not created'
+        code: 3,
+        error: 'PaymentDocument not created: ' + e
       }
     }
+    
     let paymentAdapter: PaymentAdapter  = await PaymentMethod.getAdapterById(paymentMethodId);
-    return await paymentAdapter.createPayment(payment, backLinkSuxess, backLinkFail)
-    // PTODO: тут надо обрабоать ошибки
+    sails.log.info("PaymentDocumnet > register [paymentAdapter]",paymentMethodId, paymentAdapter);
+    try {
+        sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
+        let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail)
+        return paymentResponse
+    } catch (e) {
+      getEmitter().emit('error',"PaymentDocument > register:", e);
+      sails.log.error("Error in paymentAdapter.createPayment :",e);
+      throw {
+        code: 4,
+        error: 'Error in paymentAdapter.createPayment :' + e
+      }
+    }
   },
 };
 
@@ -163,7 +182,7 @@ export interface PaymentDocumentModel extends ORMModel<PaymentDocument> {
    * @param originModel - Модель в которой иницировалась оплата
    * @param amount -  Сумма платежа
    * @param paymentMethodId - Адаптер платежей
-   * @param backLinkSuxess - Сслыка для возврата успешная
+   * @param backLinkSuccess - Сслыка для возврата успешная
    * @param backLinkFail - Сслыка для возврата не успешная
    * @param comment - Комментарий
    * @throws Object {
@@ -181,12 +200,14 @@ export interface PaymentDocumentModel extends ORMModel<PaymentDocument> {
    * @fires paymentdocument:core-payment-before-exec - вызывается перед выполнением оплаты. Результат подписок ожидается.
    * @fires paymentdocument:core-payment-document-redirect-link - вызывается после получения ссылки для редиректа. Результат подписок игнорируется.
    */
-  register( paymentId: string, originModel: string, amount: number, paymentMethodId: string,  backLinkSuxess: string, backLinkFail: string, comment: string): Promise<PaymentDocument>;
+  register( paymentId: string, originModel: string, amount: number, paymentMethodId: string,  backLinkSuccess: string, backLinkFail: string, comment: string, data: any): Promise<PaymentResponse>;
 
   /**
   * Возврашает статус платежа
   */
   status(paymentId: string): Promise<string>;
+
+
 }
 
 declare global {

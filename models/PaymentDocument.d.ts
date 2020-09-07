@@ -1,5 +1,6 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
+import { PaymentResponse } from "../modelsHelp/Payment";
 import PaymentMethod from "../models/PaymentMethod";
 /** На примере корзины (Cart):
  * 1. Модель проводящяя оплату internal/external (например: Cart) создает PaymentDocument
@@ -61,7 +62,7 @@ export interface PaymentDocumentModel extends ORMModel<PaymentDocument> {
    * @param originModel - Модель в которой иницировалась оплата
    * @param amount -  Сумма платежа
    * @param paymentMethodId - Адаптер платежей
-   * @param backLinkSuxess - Сслыка для возврата успешная
+   * @param backLinkSuccess - Сслыка для возврата успешная
    * @param backLinkFail - Сслыка для возврата не успешная
    * @param comment - Комментарий
    * @throws Object {
@@ -79,7 +80,7 @@ export interface PaymentDocumentModel extends ORMModel<PaymentDocument> {
    * @fires paymentdocument:core-payment-before-exec - вызывается перед выполнением оплаты. Результат подписок ожидается.
    * @fires paymentdocument:core-payment-document-redirect-link - вызывается после получения ссылки для редиректа. Результат подписок игнорируется.
    */
-    register(paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuxess: string, backLinkFail: string, comment: string): Promise<PaymentDocument>;
+    register(paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any): Promise<PaymentResponse>;
     /**
     * Возврашает статус платежа
     */

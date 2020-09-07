@@ -9,14 +9,16 @@
  * error?
  */
 export interface Payment {
+    id: string;
     paid?: boolean;
     amount: number;
     paymentId: string;
     originModel: string;
-    PaymentMethod: string;
+    paymentMethod: string;
     comment?: string;
     error?: any;
+    data?: any;
 }
 export interface PaymentResponse extends Payment {
-    redirectLink: string;
+    redirectLink?: string;
 }

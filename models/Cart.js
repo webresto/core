@@ -18,7 +18,7 @@
  * @apiParam {JSON} customer Данные о заказчике
  * @apiParam {JSON} address Данные о адресе доставки
  * @apiParam {String} comment Комментарий к заказу
- * @apiParam {Integer} personsCount Количество персон
+ * @apiParam {String} personsCount Количество персон
  * @apiParam {Boolean} sendToIiko Был ли отправлен заказ IIKO
  * @apiParam {String} rmsId ID заказа, который пришёл от IIKO
  * @apiParam {String} deliveryStatus Статус состояния доставки (0 успешно расчитана)
@@ -45,12 +45,16 @@ module.exports = {
             via: 'cart'
         },
         paymentMethod: {
-            collection: 'PaymentMethod',
+            model: 'PaymentMethod',
             via: 'id'
         },
         paid: {
             type: 'boolean',
             defaultsTo: false
+        },
+        isPaymentPromise: {
+            type: 'boolean',
+            defaultsTo: true
         },
         dishesCount: 'integer',
         uniqueDishes: 'integer',
@@ -60,7 +64,7 @@ module.exports = {
         customer: 'json',
         address: 'json',
         comment: 'string',
-        personsCount: 'integer',
+        personsCount: 'string',
         date: 'string',
         problem: {
             type: 'boolean',
@@ -86,6 +90,30 @@ module.exports = {
         deliveryItem: 'string',
         totalWeight: 'float',
         total: 'float',
+        orderDate: 'datetime'
+        /**
+         * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
+         * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
+         * Переводит корзину в состояние CART, если она ещё не в нём.
+         * @param dish - Блюдо для добавления, может быть объект или id блюда
+         * @param amount - количетво
+         * @param modifiers - модификаторы, которые следует применить к текущему блюду
+         * @param comment - комментарий к блюду
+         * @param from - указатель откуда было добавлено блюдо (например, от пользователя или от системы акций)
+         * @throws Object {
+         *   body: string,
+         *   code: number
+         * }
+         * where codes:
+         *  1 - не достаточно блюд
+         *  2 - заданное блюдо не найдено
+         * @fires cart:core-cart-before-add-dish - вызывается перед началом функции. Результат подписок игнорируется.
+         * @fires cart:core-cart-add-dish-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
+         * @fires cart:core-cart-add-dish-before-create-cartdish - вызывается, если все проверки прошли успешно и корзина намеряна
+         * добавить блюдо. Результат подписок игнорируется.
+         * @fires cart:core-cart-after-add-dish - вызывается после успешного добавления блюда. Результат подписок игнорируется.
+         */
+        ,
         /**
          * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
          * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
@@ -350,7 +378,6 @@ module.exports = {
             const self = this;
             if (self.paid)
                 return false;
-            //if ()
             /**
              *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
              */
@@ -358,9 +385,11 @@ module.exports = {
             sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
             await checkCustomerInfo(customer);
             await checkDate(self);
-            if (paymentMethodId) {
+            if (paymentMethodId)
                 await checkPaymentMethod(paymentMethodId);
-            }
+            self.paymentMethod = paymentMethodId;
+            self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
+            self.isPaymentPromise = false;
             self.customer = customer;
             await self.save();
             if (isSelfService) {
@@ -423,15 +452,9 @@ module.exports = {
          */
         order: async function () {
             const self = this;
-            if (self.paymentMethod) {
-                console.log("Удоли: это для проверки что пеймент метод задался");
-                //@ts-ignore Associations worked not good need research
-                let isPaymentPromise = await PaymentMethod.isPaymentPromise(self.paymentMethod);
-                if (isPaymentPromise && self.paid)
-                    return 3;
-                if (!isPaymentPromise && !self.paid)
-                    return 3;
-            }
+            // PTODO: проверка эта нужна
+            // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
+            //   return 3
             getEmitter_1.default().emit('core-cart-before-order', self);
             sails.log.verbose('Cart > order > before order >', self.customer, self.selfDelivery, self.address);
             if (this.selfDelivery) {
@@ -471,46 +494,71 @@ module.exports = {
             else {
                 return 1;
             }
+        },
+        /**
+         * Вызывет core-cart-payment.
+         * @return код результата:
+         *  - 0 - успешно проведённый заказ от всех слушателей.
+         *  - 1 - ни один слушатель не смог успешно сделать заказ.
+         *  - 2 - по крайней мере один слушатель успешно выполнил заказ.
+         *  - 3 - ошибка состояний
+         * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
+         * @fires cart:core-cart-payment-self-service - вызывается, если совершается заказ с самовывозом.
+         * @fires cart:core-cart-payment-delivery - вызывается, если заказ без самовывоза
+         * @fires cart:core-cart-payment - событие заказа. Каждый слушатель этого события влияет на результат события.
+         * @fires cart:core-cart-after-payment - вызывается сразу после попытки оформить заказ.
+         */
+        payment: async function () {
+            const self = this;
+            var paymentResponse;
+            let comment = "";
+            var backLinkSuccess = (await SystemInfo.use('FrontendOrderPage')) + self.id;
+            var backLinkFail = await SystemInfo.use('FrontendCheckoutPage');
+            let paymentMethodId = await self.paymentMethodId();
+            sails.log.verbose('Cart > payment > before payment register', self);
+            var params = {
+                backLinkSuccess: backLinkSuccess,
+                backLinkFail: backLinkFail,
+                comment: comment
+            };
+            await getEmitter_1.default().emit('core-cart-payment', self, params);
+            console.log("params>>>>>>>>>>>>", params);
+            try {
+                paymentResponse = await PaymentDocument.register(self.id, 'cart', self.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, self);
+            }
+            catch (e) {
+                getEmitter_1.default().emit('error', 'cart>payment', e);
+                sails.log.error('Cart > payment: ', e);
+            }
+            return paymentResponse;
+        },
+        paymentMethodId: async function (cart) {
+            if (!cart)
+                cart = this;
+            //@ts-ignore
+            let populatedCart = await Cart.findOne({ id: cart.id }).populate('paymentMethod');
+            //@ts-ignore
+            return populatedCart.paymentMethod.id;
+        },
+        beforeCreate: function (values, next) {
+            getEmitter_1.default().emit('core-cart-before-create', values).then(() => {
+                this.countCart(values).then(next, next);
+            });
+        },
+        afterUpdate: async function (values, next) {
+            getEmitter_1.default().emit('core-cart-after-update', values).then(() => {
+                const self = this;
+                sails.log.verbose('Cart > afterUpdate > ', values);
+                if (self.paid && self.getState() === 'PAYMENT')
+                    self.order();
+                next();
+            });
         }
     },
+    self, : .orderDate = moment(cart.date, "YYYY-MM-DD HH:mm:ss"),
+    await, self, : .save(),
     /**
-     * Вызывет core-cart-payment.
-     * @return код результата:
-     *  - 0 - успешно проведённый заказ от всех слушателей.
-     *  - 1 - ни один слушатель не смог успешно сделать заказ.
-     *  - 2 - по крайней мере один слушатель успешно выполнил заказ.
-     *  - 3 - ошибка состояний
-     * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
-     * @fires cart:core-cart-payment-self-service - вызывается, если совершается заказ с самовывозом.
-     * @fires cart:core-cart-payment-delivery - вызывается, если заказ без самовывоза
-     * @fires cart:core-cart-payment - событие заказа. Каждый слушатель этого события влияет на результат события.
-     * @fires cart:core-cart-after-payment - вызывается сразу после попытки оформить заказ.
-     */
-    payment: async function () {
-        // PAYMENT cart payment
-        const self = this;
-        let backLinkSuxess = (await SystemInfo.use('FrontendOrderPage')) + self.id;
-        let backLinkFail = await SystemInfo.use('FrontendCheckoutPage');
-        //@ts-ignore for Associations
-        return PaymentDocument.register(self.id, 'cart', self.total, self.paymentMethod, backLinkSuxess, backLinkFail, JSON.stringify(self));
-        // PTODO: расставить евенты
-    },
-    beforeCreate: function (values, next) {
-        getEmitter_1.default().emit('core-cart-before-create', values).then(() => {
-            this.countCart(values).then(next, next);
-        });
-    },
-    afterUpdate: async function (values, next) {
-        getEmitter_1.default().emit('core-cart-after-update', values).then(() => {
-            const self = this;
-            sails.log.verbose('Cart > afterUpdate > ', values);
-            if (self.paid && self.getState() === 'PAYMENT')
-                self.order();
-            next();
-        });
-    },
-    /**
-     * Возвращает корзину со всем популярищациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
+     * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
      * содержит в себе свои картинки, каждый модификатор внутри cart.dishes и каждого dish содержит группу модификаторов и
      * самоблюдо модификатора и тд.
      * @param cart
@@ -639,6 +687,13 @@ module.exports = {
         if (cart.delivery) {
             cart.total += cart.delivery;
         }
+        await Cart.update({ id: cart.id }, {
+            cartTotal: cartTotal,
+            dishesCount: dishesCount,
+            uniqueDishes: uniqueDishes,
+            totalWeight: totalWeight,
+            total: cartTotal
+        });
         getEmitter_1.default().emit('core-cart-after-count', cart);
     }
 };

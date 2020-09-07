@@ -27,6 +27,31 @@ module.exports = {
       type: 'boolean',
       defaultsTo: true,
       required: true
+    },
+
+
+
+      /**
+     * Возвращает инстанс платежного адаптера по известному названию адаптера
+     * @param  paymentMethodId
+     * @return 
+     */
+    async getAdapter(adapter?: string): Promise<PaymentAdapter> {
+        var paymentMethod: PaymentMethod
+        if (!adapter) {
+          paymentMethod = this;
+        } else {
+          paymentMethod = await PaymentMethod.findOne({adapter: adapter});
+        }
+        //@ts-ignore 
+        if (paymentMethod.isPaymentPromise()){
+          return undefined
+        }
+        if (alivedPaymentMethods[paymentMethod.adapter] !== undefined){
+          return alivedPaymentMethods[paymentMethod.adapter]
+        } else {
+          return undefined
+        }
     }
   },
 
@@ -34,7 +59,25 @@ module.exports = {
     paymentMethod.id = uuid();
     next();
   },
+    /**
+     * Возвращает true если платежный метод является обещанием платежа
+     * @param  paymentMethodId
+     * @return 
+     */
+    async isPaymentPromise(paymentMethodId?: string): Promise<boolean> {
+      var chekingPaymentMethod: PaymentMethod;
+      
+      if (!paymentMethodId) {
+        chekingPaymentMethod = this;
+      } else {
+        chekingPaymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
+      }
 
+      if (chekingPaymentMethod.type === 'promise'){
+        return true;
+      } 
+      return false;
+    },
   /**
  * Добавляет в список возможных к использованию платежные адаптеры при их старте.
  * Если  платежный метод не сушетсвует в базе то создает его
@@ -42,15 +85,15 @@ module.exports = {
  * @return 
  */
   async alive(paymentAdapter: PaymentAdapter): Promise<string[]> {
-    //@ts-ignore
-    let knownPaymentMethod = await PaymentMethod.findOne({adapter: paymentAdapter.adapter});
+
+    let knownPaymentMethod = await PaymentMethod.findOne({adapter: paymentAdapter.InitPaymentAdapter.adapter});
     if (!knownPaymentMethod) {
-      knownPaymentMethod = await PaymentMethod.create(paymentAdapter);
+      knownPaymentMethod = await PaymentMethod.create(paymentAdapter.InitPaymentAdapter);
     }
     if (knownPaymentMethod.enable === true){
-          //@ts-ignore
-      alivedPaymentMethods[paymentAdapter.adapter] = paymentAdapter;
+      alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
     }
+    sails.log.info("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
     return
   },
  
@@ -63,7 +106,7 @@ module.exports = {
     return await PaymentMethod.find({
       where: {
         or: [{
-              adapter: alivedPaymentMethods
+              adapter: Object.keys(alivedPaymentMethods)
             }, 
             {
               type:'promise', 
@@ -105,65 +148,28 @@ module.exports = {
     return false
   },
     /**
-   * Возвращает true если платежный метод является обещанием платежа
-   * @param  paymentMethodId
-   * @return 
-   */
-  async isPaymentPromise(paymentMethodId?: string): Promise<boolean> {
-    var chekingPaymentMethod: PaymentMethod;
-
-    if (!paymentMethodId) {
-      chekingPaymentMethod = this;
-    } else {
-      chekingPaymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
-    }
-
-    if (chekingPaymentMethod.type === 'promise'){
-      return true;
-    } 
-    return false;
-  },
-    /**
    * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
    * @param  paymentMethodId
    * @return PaymentAdapter
    * @throws 
    */
   async getAdapterById(paymentMethodId: string): Promise<PaymentAdapter> {
-      const paymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
-      //@ts-ignore 
-      if (paymentMethod.isPaymentPromise()){
-        return undefined
-      }
-      if (alivedPaymentMethods[paymentMethod.adapter] !== undefined){
-        return alivedPaymentMethods[paymentMethod.adapter]
-      } else {
-        return undefined
-      }
+    
+    const paymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
+    //@ts-ignore 
+    
+    if (await PaymentMethod.isPaymentPromise(paymentMethod.id)){
+      return undefined
+    }
 
-  },
-   /**
-   * Возвращает инстанс платежного адаптера по известному названию адаптера
-   * @param  paymentMethodId
-   * @return 
-   */
-  async getAdapter(adapter: string): Promise<PaymentAdapter> {
-      var paymentMethod: PaymentMethod
-      if (!adapter) {
-        paymentMethod = this;
-      } else {
-        paymentMethod = await PaymentMethod.findOne({adapter: adapter});
-      }
-      //@ts-ignore 
-      if (paymentMethod.isPaymentPromise()){
-        return undefined
-      }
-      if (alivedPaymentMethods[paymentMethod.adapter] !== undefined){
-        return alivedPaymentMethods[paymentMethod.adapter]
-      } else {
-        return undefined
-      }
-  },
+    if (alivedPaymentMethods[paymentMethod.adapter]){
+      sails.log.verbose("Core > PaymentMethod > getAdapterById", alivedPaymentMethods[paymentMethod.adapter]);
+      return alivedPaymentMethods[paymentMethod.adapter]
+    } else {
+      console.log("undefined,undefined");
+      return undefined
+    }
+  },  
 };
 
 // /**
@@ -181,8 +187,19 @@ module.exports = {
  * Описывает модель "Способ оплаты"
  */
 export default interface PaymentMethod extends ORM, InitPaymentAdapter  {
-  id?: string;
-  enable?: boolean;
+  id: string;
+  enable: boolean;
+  title: string;
+  type: string;
+  adapter: string;
+  order: number;
+  description: string;
+  /**
+  * Возврашает екземпляр платежного адаптера от this или по названию адаптера
+  */
+  getAdapter(adapter?: string): Promise<PaymentAdapter>;
+
+
 }
 
 /**
@@ -204,7 +221,7 @@ export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
    * @param paymentMethod - ключ
    * @return .
    */
-  alive(paymentMethod: InitPaymentAdapter): Promise<PaymentMethod[]>;
+  alive(paymentMethod: PaymentAdapter): Promise<PaymentMethod[]>;
 
   /**
   * Возврашает доступные для оплаты платежные методы
@@ -215,22 +232,17 @@ export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
   * Проверяет платежную систему
   */
   checkAvailable(paymentMethodId: string): Promise<boolean>;
-  
-  /**
-  * Проверяет платежное обещание
-  */
-  isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
-  
+    
   /**
   * Возврашает екземпляр платежного адаптера по paymentMethodId
   */
   
-  getAdapterById(paymentMethodId: string)
+  getAdapterById(paymentMethodId?: string)
   
-  /**
-  * Возврашает екземпляр платежного адаптера от this или по названию адаптера
+    /**
+  * Проверяет платежное обещание
   */
-  getAdapter(adapter?: string): Promise<PaymentAdapter>;
+ isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
 }
 
 declare global {

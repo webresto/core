@@ -15,11 +15,11 @@ module.exports = {
       type: 'boolean',
       defaultsTo: true
     },
-    startDate: 'date',
-    stopDate: 'date'
+    startDate: 'datetime',
+    stopDate: 'datetime'
   },
   beforeCreate: function (paymentMethod, next) {
-    paymentMethod.id = uuid();
+    paymentMethod.id = uuid(); 
     next();
   }
 };

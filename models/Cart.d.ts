@@ -17,7 +17,7 @@
  * @apiParam {JSON} customer Данные о заказчике
  * @apiParam {JSON} address Данные о адресе доставки
  * @apiParam {String} comment Комментарий к заказу
- * @apiParam {Integer} personsCount Количество персон
+ * @apiParam {String} personsCount Количество персон
  * @apiParam {Boolean} sendToIiko Был ли отправлен заказ IIKO
  * @apiParam {String} rmsId ID заказа, который пришёл от IIKO
  * @apiParam {String} deliveryStatus Статус состояния доставки (0 успешно расчитана)
@@ -90,7 +90,6 @@ import Modifier from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
 import CartDish from "../models/CartDish";
-import PaymentMethod from "../models/PaymentMethod";
 import StateFlow from "../modelsHelp/StateFlow";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
@@ -106,8 +105,9 @@ export default interface Cart extends ORM, StateFlow {
     id: string;
     cartId: string;
     dishes: Association<CartDish>;
-    paymentMethod: Association<PaymentMethod>;
+    paymentMethod: string;
     paid: boolean;
+    isPaymentPromise: boolean;
     dishesCount: number;
     uniqueDishes: number;
     cartTotal: number;
@@ -116,7 +116,7 @@ export default interface Cart extends ORM, StateFlow {
     customer: Customer;
     address: Address;
     comment: string;
-    personsCount: number;
+    personsCount: string;
     orderDateLimit?: string;
     date: string;
     problem: boolean;
@@ -131,6 +131,7 @@ export default interface Cart extends ORM, StateFlow {
     deliveryItem: string;
     totalWeight: number;
     total: number;
+    orderDate: string;
     /**
      * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
      * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
@@ -250,7 +251,7 @@ export default interface Cart extends ORM, StateFlow {
      * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
      * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
      */
-    check(customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: string, rejectReason?: string): Promise<boolean>;
+    check(customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: string): Promise<boolean>;
     /**
      * Вызывет core-cart-order. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
      * отдаёт успешность заказа.
@@ -278,6 +279,13 @@ export default interface Cart extends ORM, StateFlow {
     * @fires cart:core-cart-after-order - вызывается сразу после попытки провести оплату.
     */
     payment(): Promise<PaymentResponse>;
+    /**
+    * Возвращает paymentMethodId текущей корзины
+    * @param cart
+    *
+    * @return paymentMethodId
+    */
+    paymentMethodId(cart?: string): Promise<string>;
 }
 /**
  * Описывает класс Cart, содержит статические методы, используется для ORM

@@ -13,5 +13,8 @@ export default interface OrderData {
   paymentMethodId?: string,
   address: Address,
   comment: string,
+  date: string;
+  personsCount: string;
   selfDelivery: boolean;
+  customInfo: any;
 }

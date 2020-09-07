@@ -26,11 +26,53 @@ module.exports = {
             type: 'boolean',
             defaultsTo: true,
             required: true
+        },
+        /**
+       * Возвращает инстанс платежного адаптера по известному названию адаптера
+       * @param  paymentMethodId
+       * @return
+       */
+        async getAdapter(adapter) {
+            var paymentMethod;
+            if (!adapter) {
+                paymentMethod = this;
+            }
+            else {
+                paymentMethod = await PaymentMethod.findOne({ adapter: adapter });
+            }
+            //@ts-ignore 
+            if (paymentMethod.isPaymentPromise()) {
+                return undefined;
+            }
+            if (alivedPaymentMethods[paymentMethod.adapter] !== undefined) {
+                return alivedPaymentMethods[paymentMethod.adapter];
+            }
+            else {
+                return undefined;
+            }
         }
     },
     beforeCreate: function (paymentMethod, next) {
         paymentMethod.id = uuid();
         next();
+    },
+    /**
+     * Возвращает true если платежный метод является обещанием платежа
+     * @param  paymentMethodId
+     * @return
+     */
+    async isPaymentPromise(paymentMethodId) {
+        var chekingPaymentMethod;
+        if (!paymentMethodId) {
+            chekingPaymentMethod = this;
+        }
+        else {
+            chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
+        }
+        if (chekingPaymentMethod.type === 'promise') {
+            return true;
+        }
+        return false;
     },
     /**
    * Добавляет в список возможных к использованию платежные адаптеры при их старте.
@@ -39,15 +81,14 @@ module.exports = {
    * @return
    */
     async alive(paymentAdapter) {
-        //@ts-ignore
-        let knownPaymentMethod = await PaymentMethod.findOne({ adapter: paymentAdapter.adapter });
+        let knownPaymentMethod = await PaymentMethod.findOne({ adapter: paymentAdapter.InitPaymentAdapter.adapter });
         if (!knownPaymentMethod) {
-            knownPaymentMethod = await PaymentMethod.create(paymentAdapter);
+            knownPaymentMethod = await PaymentMethod.create(paymentAdapter.InitPaymentAdapter);
         }
         if (knownPaymentMethod.enable === true) {
-            //@ts-ignore
-            alivedPaymentMethods[paymentAdapter.adapter] = paymentAdapter;
+            alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
         }
+        sails.log.info("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
         return;
     },
     /**
@@ -59,7 +100,7 @@ module.exports = {
         return await PaymentMethod.find({
             where: {
                 or: [{
-                        adapter: alivedPaymentMethods
+                        adapter: Object.keys(alivedPaymentMethods)
                     },
                     {
                         type: 'promise',
@@ -96,24 +137,6 @@ module.exports = {
         return false;
     },
     /**
-   * Возвращает true если платежный метод является обещанием платежа
-   * @param  paymentMethodId
-   * @return
-   */
-    async isPaymentPromise(paymentMethodId) {
-        var chekingPaymentMethod;
-        if (!paymentMethodId) {
-            chekingPaymentMethod = this;
-        }
-        else {
-            chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
-        }
-        if (chekingPaymentMethod.type === 'promise') {
-            return true;
-        }
-        return false;
-    },
-    /**
    * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
    * @param  paymentMethodId
    * @return PaymentAdapter
@@ -122,37 +145,15 @@ module.exports = {
     async getAdapterById(paymentMethodId) {
         const paymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
         //@ts-ignore 
-        if (paymentMethod.isPaymentPromise()) {
+        if (await PaymentMethod.isPaymentPromise(paymentMethod.id)) {
             return undefined;
         }
-        if (alivedPaymentMethods[paymentMethod.adapter] !== undefined) {
+        if (alivedPaymentMethods[paymentMethod.adapter]) {
+            sails.log.verbose("Core > PaymentMethod > getAdapterById", alivedPaymentMethods[paymentMethod.adapter]);
             return alivedPaymentMethods[paymentMethod.adapter];
         }
         else {
-            return undefined;
-        }
-    },
-    /**
-    * Возвращает инстанс платежного адаптера по известному названию адаптера
-    * @param  paymentMethodId
-    * @return
-    */
-    async getAdapter(adapter) {
-        var paymentMethod;
-        if (!adapter) {
-            paymentMethod = this;
-        }
-        else {
-            paymentMethod = await PaymentMethod.findOne({ adapter: adapter });
-        }
-        //@ts-ignore 
-        if (paymentMethod.isPaymentPromise()) {
-            return undefined;
-        }
-        if (alivedPaymentMethods[paymentMethod.adapter] !== undefined) {
-            return alivedPaymentMethods[paymentMethod.adapter];
-        }
-        else {
+            console.log("undefined,undefined");
             return undefined;
         }
     },

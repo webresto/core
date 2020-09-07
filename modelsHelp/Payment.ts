@@ -12,15 +12,17 @@
 
 
 export interface Payment {
-  paid?: boolean 
+  id: string;
+  paid?: boolean; 
   amount: number;
   paymentId: string;
   originModel: string;
-  PaymentMethod: string;
+  paymentMethod: string;
   comment?: string;
-  error?:any
+  error?:any;
+  data?: any;
 }
 
 export interface PaymentResponse extends Payment {
-  redirectLink: string 
+  redirectLink?: string 
 }

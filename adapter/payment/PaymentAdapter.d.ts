@@ -11,7 +11,7 @@ export default abstract class PaymentAdapter {
      * @param Payment - Платежный документ
      * @return Результат работы функции, тело ответа и код результата
      */
-    abstract createPayment(payment: Payment, backLinkSuxess: string, backLinkFail: string): Promise<PaymentResponse>;
+    abstract createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string): Promise<PaymentResponse>;
     /**
      * Проверка Оплаты
      * @param Payment - Платежный документ

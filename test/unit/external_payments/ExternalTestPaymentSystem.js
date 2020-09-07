@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const PaymentAdapter_1 = require("../../../adapter/payment/PaymentAdapter");
 var database = {};
 class TestPaymentSystem extends PaymentAdapter_1.default {
-    async createPayment(payment, backLinkSuxess, backLinkFail, testing) {
+    async createPayment(payment, backLinkSuccess, backLinkFail, testing) {
         let paid_latency;
         switch (testing) {
             case "delay_1_sec":

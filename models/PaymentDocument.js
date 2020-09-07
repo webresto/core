@@ -28,30 +28,47 @@ module.exports = {
         error: 'string',
     },
     beforeCreate: function (paymentDocument, next) {
-        paymentDocument.id = uuid();
+        if (!paymentDocument.id) {
+            let id = uuid();
+            paymentDocument.id = id.substr(id.length - 8).toUpperCase();
+        }
         paymentDocument.status = "NEW";
         next();
     },
-    // PAYMENT payment document/ register
-    register: async function (paymentId, originModel, amount, paymentMethodId, backLinkSuxess, backLinkFail, comment) {
+    register: async function (paymentId, originModel, amount, paymentMethodId, backLinkSuccess, backLinkFail, comment, data) {
         checkAmount(amount);
         await checkOrigin(originModel, paymentId);
         await checkPaymentMethod(paymentMethodId);
-        let payment = { paymentId: paymentId, originModel: originModel, PaymentMethod: paymentMethodId, amount: amount };
-        const emitter = getEmitter_1.default();
+        var id = uuid();
+        id = id.substr(id.length - 8).toUpperCase();
+        let payment = { id: id, paymentId: paymentId, originModel: originModel, paymentMethod: paymentMethodId, amount: amount, comment: comment, data: data };
         getEmitter_1.default().emit('core-payment-document-before-create', payment);
         try {
             let paymentDocument = await PaymentDocument.create(payment);
         }
-        catch (error) {
+        catch (e) {
+            getEmitter_1.default().emit('error', "PaymentDocument > register:", e);
+            sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
-                code: 6,
-                error: 'PaymentDocument not created'
+                code: 3,
+                error: 'PaymentDocument not created: ' + e
             };
         }
         let paymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
-        return await paymentAdapter.createPayment(payment, backLinkSuxess, backLinkFail);
-        // PTODO: тут надо обрабоать ошибки
+        sails.log.info("PaymentDocumnet > register [paymentAdapter]", paymentMethodId, paymentAdapter);
+        try {
+            sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
+            let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
+            return paymentResponse;
+        }
+        catch (e) {
+            getEmitter_1.default().emit('error', "PaymentDocument > register:", e);
+            sails.log.error("Error in paymentAdapter.createPayment :", e);
+            throw {
+                code: 4,
+                error: 'Error in paymentAdapter.createPayment :' + e
+            };
+        }
     },
 };
 async function checkOrigin(originModel, paymentId) {
