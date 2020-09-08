@@ -70,13 +70,14 @@ module.exports = {
             type: 'boolean',
             defaultsTo: false
         },
-        sendToIiko: {
+        rmsDeliveried: {
             type: 'boolean',
             defaultsTo: false
         },
         rmsId: 'string',
         rmsOrderNumber: 'string',
         rmsOrderData: 'json',
+        rmsDeliveryDate: 'string',
         deliveryStatus: 'string',
         selfDelivery: {
             type: 'boolean',
@@ -90,30 +91,7 @@ module.exports = {
         deliveryItem: 'string',
         totalWeight: 'float',
         total: 'float',
-        orderDate: 'datetime'
-        /**
-         * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
-         * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
-         * Переводит корзину в состояние CART, если она ещё не в нём.
-         * @param dish - Блюдо для добавления, может быть объект или id блюда
-         * @param amount - количетво
-         * @param modifiers - модификаторы, которые следует применить к текущему блюду
-         * @param comment - комментарий к блюду
-         * @param from - указатель откуда было добавлено блюдо (например, от пользователя или от системы акций)
-         * @throws Object {
-         *   body: string,
-         *   code: number
-         * }
-         * where codes:
-         *  1 - не достаточно блюд
-         *  2 - заданное блюдо не найдено
-         * @fires cart:core-cart-before-add-dish - вызывается перед началом функции. Результат подписок игнорируется.
-         * @fires cart:core-cart-add-dish-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
-         * @fires cart:core-cart-add-dish-before-create-cartdish - вызывается, если все проверки прошли успешно и корзина намеряна
-         * добавить блюдо. Результат подписок игнорируется.
-         * @fires cart:core-cart-after-add-dish - вызывается после успешного добавления блюда. Результат подписок игнорируется.
-         */
-        ,
+        orderTime: 'datetime',
         /**
          * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
          * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
@@ -389,9 +367,7 @@ module.exports = {
                 await checkPaymentMethod(paymentMethodId);
             self.paymentMethod = paymentMethodId;
             self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
-            self.isPaymentPromise = false;
             self.customer = customer;
-            await self.save();
             if (isSelfService) {
                 // TODO непонятно почему тут не вызывается ожтдающий эммитер
                 getEmitter_1.default().emit('core-cart-check-self-service', self, customer, isSelfService, address);
@@ -452,6 +428,9 @@ module.exports = {
          */
         order: async function () {
             const self = this;
+            // //@ts-ignore
+            // self.orderDate = moment(cart.date, "YYYY-MM-DD HH:mm:ss");
+            // await self.save();
             // PTODO: проверка эта нужна
             // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
             //   return 3
@@ -467,6 +446,7 @@ module.exports = {
             sails.log.verbose('Cart > order > after wait general emitter', results);
             const resultsCount = results.length;
             const successCount = results.filter(r => r.state === "success").length;
+            await self.save();
             getEmitter_1.default().emit('core-cart-after-order', self);
             const orderConfig = await SystemInfo.use('order');
             if (orderConfig) {
@@ -555,8 +535,6 @@ module.exports = {
             });
         }
     },
-    self, : .orderDate = moment(cart.date, "YYYY-MM-DD HH:mm:ss"),
-    await, self, : .save(),
     /**
      * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
      * содержит в себе свои картинки, каждый модификатор внутри cart.dishes и каждого dish содержит группу модификаторов и

@@ -120,10 +120,11 @@ export default interface Cart extends ORM, StateFlow {
     orderDateLimit?: string;
     date: string;
     problem: boolean;
-    sendToIiko: boolean;
+    rmsDeliveried: boolean;
     rmsId: string;
     rmsOrderNumber: string;
     rmsOrderData: any;
+    rmsDeliveryDate: string;
     deliveryStatus: number;
     selfDelivery: boolean;
     deliveryDescription: string;

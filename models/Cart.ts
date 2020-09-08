@@ -141,13 +141,14 @@ module.exports = {
       type: 'boolean',
       defaultsTo: false
     },
-    sendToIiko: { // TODO: move to iiko rms adapter
+    rmsDeliveried: {
       type: 'boolean',
       defaultsTo: false
     },
     rmsId: 'string',
     rmsOrderNumber: 'string',
     rmsOrderData: 'json',
+    rmsDeliveryDate: 'string',
     deliveryStatus: 'string',
     selfDelivery: {
       type: 'boolean',
@@ -161,7 +162,8 @@ module.exports = {
     deliveryItem: 'string',
     totalWeight: 'float',
     total: 'float',
-    orderDate: 'datetime'
+    orderTime: 'datetime',
+
     /**
      * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
      * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
@@ -481,16 +483,10 @@ module.exports = {
       if (paymentMethodId)
         await checkPaymentMethod(paymentMethodId);
       
-      
       self.paymentMethod = paymentMethodId;
-
       self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId)
-
-        
-      self.isPaymentPromise = false;
       self.customer = customer;
-      
-      await self.save();
+    
 
       if (isSelfService) {
         // TODO непонятно почему тут не вызывается ожтдающий эммитер
@@ -562,6 +558,9 @@ module.exports = {
       order: async function (): Promise<number> {
         const self: Cart = this;
         
+        // //@ts-ignore
+        // self.orderDate = moment(cart.date, "YYYY-MM-DD HH:mm:ss");
+        // await self.save();
         // PTODO: проверка эта нужна
         // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
         //   return 3
@@ -579,7 +578,7 @@ module.exports = {
         sails.log.verbose('Cart > order > after wait general emitter', results);
         const resultsCount = results.length;
         const successCount = results.filter(r => r.state === "success").length;
-
+        await self.save();
         getEmitter().emit('core-cart-after-order', self);
 
         const orderConfig = await SystemInfo.use('order');
@@ -672,8 +671,7 @@ module.exports = {
     }
   },
 
-  self.orderDate = moment(cart.date, "YYYY-MM-DD HH:mm:ss");
-  await self.save();
+
 
 
   
@@ -970,10 +968,11 @@ export default interface Cart extends ORM, StateFlow {
   orderDateLimit?: string;
   date: string;
   problem: boolean;
-  sendToIiko: boolean;
+  rmsDeliveried: boolean;
   rmsId: string;
   rmsOrderNumber: string;
   rmsOrderData: any;
+  rmsDeliveryDate: string;
   deliveryStatus: number;
   selfDelivery: boolean;
   deliveryDescription: string;
