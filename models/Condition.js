@@ -49,6 +49,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const causes_1 = require("../lib/causes");
 const actions_1 = require("../lib/actions");
+//import Zone from "@webresto/native-check/models/Zone"; // TODO: move to native-check
 module.exports = {
     attributes: {
         name: 'string',
@@ -67,9 +68,9 @@ module.exports = {
         },
         causes: 'json',
         actions: 'json',
-        zones: {
-            collection: 'zone'
-        },
+        // zones: {
+        //   collection: 'zone'
+        // },
         needy: {
             type: 'boolean',
             defaultsTo: false

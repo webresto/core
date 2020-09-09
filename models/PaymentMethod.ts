@@ -156,8 +156,8 @@ module.exports = {
   async getAdapterById(paymentMethodId: string): Promise<PaymentAdapter> {
     
     const paymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
+
     //@ts-ignore 
-    
     if (await PaymentMethod.isPaymentPromise(paymentMethod.id)){
       return undefined
     }
@@ -166,7 +166,6 @@ module.exports = {
       sails.log.verbose("Core > PaymentMethod > getAdapterById", alivedPaymentMethods[paymentMethod.adapter]);
       return alivedPaymentMethods[paymentMethod.adapter]
     } else {
-      console.log("undefined,undefined");
       return undefined
     }
   },  

@@ -76,8 +76,8 @@ const actions = {
   },
 
   /**
-   * Set delivery coast
-   * @param params(cartId, deliveryCoast)
+   * Set delivery cost
+   * @param params(cartId, deliveryCost)
    * @returns {Promise<>}
    */
   async delivery(params: DeliveryParams): Promise<Cart> {

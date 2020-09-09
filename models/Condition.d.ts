@@ -50,7 +50,6 @@ import Cause from "../modelsHelp/Cause";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import { ActionParams } from "../modelsHelp/Actions";
-import Zone from "@webresto/native-check/models/Zone";
 /**
  * Описывает одно условие с его условиями и действиями для выполнения
  */
@@ -61,7 +60,6 @@ export default interface Condition extends ORM {
     weight: number;
     causes: Cause;
     actions: any;
-    zones: Zone[];
     needy: boolean;
     /**
      * Проверяет что заданная корзина проходит условия causes текущего Condition

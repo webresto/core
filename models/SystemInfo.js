@@ -31,9 +31,14 @@ module.exports = {
             key = config;
             config = 'restocore';
         }
-        let obj = await SystemInfo.findOne({ key: key, from: config });
+        let obj = await SystemInfo.findOne({ key: key });
+        sails.log.info("CORE > SystemInfo > findOne: ", key, obj);
         if (!obj) {
-            let value = sails.config[config][key] || defaultConfig_1.default[key] || 0;
+            // if (!sails.config[config][key] || !defaultConfig[key]){
+            //   sails.log.error("CORE > SystemInfo > key ", key, "not found" );
+            //   throw undefined
+            // }
+            let value = sails.config[config][key] || defaultConfig_1.default[key] || null;
             value = JSON.stringify(value);
             try {
                 obj = await SystemInfo.set(key, value, config);

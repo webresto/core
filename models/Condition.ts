@@ -53,7 +53,7 @@ import actions from "../lib/actions";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import {ActionParams} from "../modelsHelp/Actions";
-import Zone from "@webresto/native-check/models/Zone"; // TODO: move to native-check
+//import Zone from "@webresto/native-check/models/Zone"; // TODO: move to native-check
 
 module.exports = {
   attributes: {
@@ -73,9 +73,9 @@ module.exports = {
     },
     causes: 'json',
     actions: 'json',
-    zones: {
-      collection: 'zone'
-    },
+    // zones: {
+    //   collection: 'zone'
+    // },
     needy: {
       type: 'boolean',
       defaultsTo: false
@@ -178,7 +178,7 @@ export default interface Condition extends ORM {
   weight: number;
   causes: Cause;
   actions: any;
-  zones: Zone[];
+  //zones: Zone[];
   needy: boolean;
 
   /**

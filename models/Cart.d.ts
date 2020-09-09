@@ -106,6 +106,7 @@ export default interface Cart extends ORM, StateFlow {
     cartId: string;
     dishes: Association<CartDish>;
     paymentMethod: string;
+    paymentMethodTitle: string;
     paid: boolean;
     isPaymentPromise: boolean;
     dishesCount: number;

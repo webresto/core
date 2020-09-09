@@ -48,6 +48,7 @@ module.exports = {
             model: 'PaymentMethod',
             via: 'id'
         },
+        paymentMethodTitle: 'string',
         paid: {
             type: 'boolean',
             defaultsTo: false
@@ -91,7 +92,7 @@ module.exports = {
         deliveryItem: 'string',
         totalWeight: 'float',
         total: 'float',
-        orderTime: 'datetime',
+        orderDate: 'datetime',
         /**
          * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
          * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
@@ -366,6 +367,7 @@ module.exports = {
             if (paymentMethodId)
                 await checkPaymentMethod(paymentMethodId);
             self.paymentMethod = paymentMethodId;
+            self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
             self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
             self.customer = customer;
             if (isSelfService) {
@@ -379,8 +381,8 @@ module.exports = {
             getEmitter_1.default().emit('core-cart-check-delivery', self, customer, isSelfService, address);
             checkAddress(address);
             self.address = address;
-            await self.save();
             const results = await getEmitter_1.default().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
+            await self.save();
             sails.log.verbose('Cart > check > after wait general emitter', results);
             const resultsCount = results.length;
             const successCount = results.filter(r => r.state === "success").length;
@@ -428,8 +430,6 @@ module.exports = {
          */
         order: async function () {
             const self = this;
-            // //@ts-ignore
-            // self.orderDate = moment(cart.date, "YYYY-MM-DD HH:mm:ss");
             // await self.save();
             // PTODO: проверка эта нужна
             // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
@@ -446,6 +446,7 @@ module.exports = {
             sails.log.verbose('Cart > order > after wait general emitter', results);
             const resultsCount = results.length;
             const successCount = results.filter(r => r.state === "success").length;
+            self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss");
             await self.save();
             getEmitter_1.default().emit('core-cart-after-order', self);
             const orderConfig = await SystemInfo.use('order');

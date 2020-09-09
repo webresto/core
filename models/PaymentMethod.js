@@ -153,7 +153,6 @@ module.exports = {
             return alivedPaymentMethods[paymentMethod.adapter];
         }
         else {
-            console.log("undefined,undefined");
             return undefined;
         }
     },
