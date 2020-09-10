@@ -46,7 +46,7 @@ module.exports = {
     }
 
     let obj = await SystemInfo.findOne({key: key});
-    sails.log.info("CORE > SystemInfo > findOne: ", key, obj);
+    sails.log.verbose("CORE > SystemInfo > findOne: ", key, obj);
   
     if (!obj) {
 
