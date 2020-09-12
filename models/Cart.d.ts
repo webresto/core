@@ -104,6 +104,7 @@ import { PaymentResponse } from "../modelsHelp/Payment";
 export default interface Cart extends ORM, StateFlow {
     id: string;
     cartId: string;
+    shortId: string;
     dishes: Association<CartDish>;
     paymentMethod: string;
     paymentMethodTitle: string;
@@ -126,6 +127,8 @@ export default interface Cart extends ORM, StateFlow {
     rmsOrderNumber: string;
     rmsOrderData: any;
     rmsDeliveryDate: string;
+    rmsErrorMessage: string;
+    rmsErrorCode: string;
     deliveryStatus: number;
     selfDelivery: boolean;
     deliveryDescription: string;

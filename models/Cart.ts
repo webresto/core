@@ -103,14 +103,22 @@ import Dish from "./Dish";
 import * as _ from "lodash";
 import { PaymentResponse } from "../modelsHelp/Payment"
 import * as moment from "moment";
+import uuid = require('uuid/v4');
+
 module.exports = {
+  autoPK: false,
   attributes: {
     id: {
       type: 'string',
-      primaryKey: true
-      // TODO: перенести UUID создание сюда
+      primaryKey: true,
+      defaultsTo: function (){ return uuid(); },
+      uuidv4: true
     }, 
     cartId: 'string', // TODO: DELETE IN FUTURE
+    shortId:{
+      type: 'string',
+      defaultsTo: function (){ return this.id.substr(this.id.length - 8).toUpperCase() },
+    },
     dishes: {
       collection: 'CartDish',
       via: 'cart'
@@ -150,6 +158,8 @@ module.exports = {
     rmsOrderNumber: 'string',
     rmsOrderData: 'json',
     rmsDeliveryDate: 'string',
+    rmsErrorMessage: 'string',
+    rmsErrorCode: 'string',
     deliveryStatus: 'string',
     selfDelivery: {
       type: 'boolean',
@@ -578,11 +588,14 @@ module.exports = {
         }
 
         const results = await getEmitter().emit('core-cart-order', self);
-        sails.log.verbose('Cart > order > after wait general emitter', results);
+        sails.log.verbose('Cart > order > after wait general emitter results: ', results);
         const resultsCount = results.length;
         const successCount = results.filter(r => r.state === "success").length;
+        let tz  = await SystemInfo.use('timezone');
+        self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
 
-        self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss");
+        sails.log.info('Cart > order > before save cart', self)
+
         await self.save();
         getEmitter().emit('core-cart-after-order', self);
 
@@ -590,7 +603,7 @@ module.exports = {
         if (orderConfig) {
           if (orderConfig.requireAll) {
             if (resultsCount === successCount) {
-              await self.next();
+              await self.next('ORDER');
               return 0;
             } else if (successCount === 0) {
               return 1;
@@ -599,12 +612,12 @@ module.exports = {
             }
           }
           if (orderConfig.notRequired) {
-            await self.next();
+            await self.next('ORDER');
             return 0;
           }
         } 
-        if (true || false) { // Если ничего выше не сработало то заказ офорляем по умолчанию (философия доставочной пушки)
-          await self.next();
+        if (true || false) { // философия доставочной пушки
+          await self.next('ORDER');
           return 0;
         } else {
           return 1;
@@ -659,24 +672,18 @@ module.exports = {
       let populatedCart = await Cart.findOne({id: cart.id}).populate('paymentMethod')
       //@ts-ignore
       return populatedCart.paymentMethod.id;
-    },
-    beforeCreate: function (values, next) {
-      getEmitter().emit('core-cart-before-create', values).then(() => {
-        this.countCart(values).then(next, next);
-      });
-    },
-    afterUpdate: async function (values, next) {
-      getEmitter().emit('core-cart-after-update', values).then(() => {
-        const self: Cart = this;
-        sails.log.verbose('Cart > afterUpdate > ', values);
-        if (self.paid && self.getState() === 'PAYMENT')
-          self.order();
-        next();
-      });
     }
   },
 
-
+  afterUpdate: async function (values, next) {
+    getEmitter().emit('core-cart-after-update', values).then(() => {
+      const self: Cart = this;
+      sails.log.verbose('Cart > afterUpdate > ', values);
+      if (self.paid && self.getState() === 'PAYMENT')
+        self.order();
+      next();
+    });
+  },
 
 
   
@@ -688,12 +695,11 @@ module.exports = {
    */
   returnFullCart: async function (cart: Cart): Promise<Cart> {
     getEmitter().emit('core-cart-before-return-full-cart', cart);
-
+    sails.log.verbose('Cart > returnFullCart > input cart', cart)
     let cart2 = await Cart.findOne({id: cart.id}).populate('dishes');
 
     const cartDishes = await CartDish.find({cart: cart.id}).populate('dish').sort('createdAt');
     for (let cartDish of cartDishes) {
-      // sails.log.info('rfc', cartDish.id);
       if (!cartDish.dish) {
         sails.log.error('cartDish', cartDish.id, 'has not dish');
         continue;
@@ -957,6 +963,7 @@ async function getOrderDateLimit(): Promise<string>  {
 export default interface Cart extends ORM, StateFlow {
   id: string;
   cartId: string; // DELETE IN FUTURE
+  shortId: string; 
   dishes: Association<CartDish>;
   paymentMethod: string;
   paymentMethodTitle: string;
@@ -979,6 +986,8 @@ export default interface Cart extends ORM, StateFlow {
   rmsOrderNumber: string;
   rmsOrderData: any;
   rmsDeliveryDate: string;
+  rmsErrorMessage: string;
+  rmsErrorCode: string;
   deliveryStatus: number;
   selfDelivery: boolean;
   deliveryDescription: string;

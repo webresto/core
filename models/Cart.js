@@ -32,14 +32,21 @@ const actions_1 = require("../lib/actions");
 const getEmitter_1 = require("../lib/getEmitter");
 const _ = require("lodash");
 const moment = require("moment");
+const uuid = require("uuid/v4");
 module.exports = {
+    autoPK: false,
     attributes: {
         id: {
             type: 'string',
-            primaryKey: true
-            // TODO: перенести UUID создание сюда
+            primaryKey: true,
+            defaultsTo: function () { return uuid(); },
+            uuidv4: true
         },
         cartId: 'string',
+        shortId: {
+            type: 'string',
+            defaultsTo: function () { return this.id.substr(this.id.length - 8).toUpperCase(); },
+        },
         dishes: {
             collection: 'CartDish',
             via: 'cart'
@@ -79,6 +86,8 @@ module.exports = {
         rmsOrderNumber: 'string',
         rmsOrderData: 'json',
         rmsDeliveryDate: 'string',
+        rmsErrorMessage: 'string',
+        rmsErrorCode: 'string',
         deliveryStatus: 'string',
         selfDelivery: {
             type: 'boolean',
@@ -443,17 +452,21 @@ module.exports = {
                 getEmitter_1.default().emit('core-cart-order-delivery', self);
             }
             const results = await getEmitter_1.default().emit('core-cart-order', self);
-            sails.log.verbose('Cart > order > after wait general emitter', results);
+            sails.log.verbose('Cart > order > after wait general emitter results: ', results);
             const resultsCount = results.length;
             const successCount = results.filter(r => r.state === "success").length;
-            self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss");
+            let tz = await SystemInfo.use('timezone');
+            self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
+            sails.log.info('Cart > order > before save cart', self);
             await self.save();
+            const cart42 = await Cart.findOne({ or: [{ id: self.id }, { rmsOrderNumber: self.rmsOrderNumber }] });
+            console.log("cart42", cart42);
             getEmitter_1.default().emit('core-cart-after-order', self);
             const orderConfig = await SystemInfo.use('order');
             if (orderConfig) {
                 if (orderConfig.requireAll) {
                     if (resultsCount === successCount) {
-                        await self.next();
+                        await self.next('ORDER');
                         return 0;
                     }
                     else if (successCount === 0) {
@@ -464,12 +477,12 @@ module.exports = {
                     }
                 }
                 if (orderConfig.notRequired) {
-                    await self.next();
+                    await self.next('ORDER');
                     return 0;
                 }
             }
-            if (true || false) { // Если ничего выше не сработало то заказ офорляем по умолчанию (философия доставочной пушки)
-                await self.next();
+            if (true || false) { // философия доставочной пушки
+                await self.next('ORDER');
                 return 0;
             }
             else {
@@ -520,21 +533,16 @@ module.exports = {
             let populatedCart = await Cart.findOne({ id: cart.id }).populate('paymentMethod');
             //@ts-ignore
             return populatedCart.paymentMethod.id;
-        },
-        beforeCreate: function (values, next) {
-            getEmitter_1.default().emit('core-cart-before-create', values).then(() => {
-                this.countCart(values).then(next, next);
-            });
-        },
-        afterUpdate: async function (values, next) {
-            getEmitter_1.default().emit('core-cart-after-update', values).then(() => {
-                const self = this;
-                sails.log.verbose('Cart > afterUpdate > ', values);
-                if (self.paid && self.getState() === 'PAYMENT')
-                    self.order();
-                next();
-            });
         }
+    },
+    afterUpdate: async function (values, next) {
+        getEmitter_1.default().emit('core-cart-after-update', values).then(() => {
+            const self = this;
+            sails.log.verbose('Cart > afterUpdate > ', values);
+            if (self.paid && self.getState() === 'PAYMENT')
+                self.order();
+            next();
+        });
     },
     /**
      * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
@@ -544,10 +552,10 @@ module.exports = {
      */
     returnFullCart: async function (cart) {
         getEmitter_1.default().emit('core-cart-before-return-full-cart', cart);
+        sails.log.verbose('Cart > returnFullCart > input cart', cart);
         let cart2 = await Cart.findOne({ id: cart.id }).populate('dishes');
         const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish').sort('createdAt');
         for (let cartDish of cartDishes) {
-            // sails.log.info('rfc', cartDish.id);
             if (!cartDish.dish) {
                 sails.log.error('cartDish', cartDish.id, 'has not dish');
                 continue;

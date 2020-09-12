@@ -3,10 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid = require("uuid/v4");
 const getEmitter_1 = require("../lib/getEmitter");
 module.exports = {
+    autoPK: false,
     attributes: {
         id: {
             type: 'string',
-            primaryKey: true
+            primaryKey: true,
+            defaultsTo: function () { return uuid(); },
+            uuidv4: true
         },
         paymentId: 'string',
         originModel: 'string',
@@ -21,19 +24,12 @@ module.exports = {
         },
         status: {
             type: 'string',
-            enum: ['NEW', 'REGISTRED', 'PAID', 'CANCEL', 'REFUND', 'DECLINE']
+            enum: ['NEW', 'REGISTRED', 'PAID', 'CANCEL', 'REFUND', 'DECLINE'],
+            defaultsTo: 'NEW'
         },
         comment: 'string',
         redirectLink: 'string',
         error: 'string',
-    },
-    beforeCreate: function (paymentDocument, next) {
-        if (!paymentDocument.id) {
-            let id = uuid();
-            paymentDocument.id = id.substr(id.length - 8).toUpperCase();
-        }
-        paymentDocument.status = "NEW";
-        next();
     },
     register: async function (paymentId, originModel, amount, paymentMethodId, backLinkSuccess, backLinkFail, comment, data) {
         checkAmount(amount);

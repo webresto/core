@@ -18,6 +18,7 @@
     "lodash": "^4.17.10",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.23",
+    "node-uuid": "^1.4.8",
     "point-in-polygon": "^1.0.1",
     "request-promise": "^4.2.4",
     "sails-build-dictionary": "^0.10.1",

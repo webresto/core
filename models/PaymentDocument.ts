@@ -48,11 +48,14 @@ import getEmitter from "../lib/getEmitter";
 type Status = 'NEW'|'REGISTRED'|'PAID'|'CANCEL'|'REFUND'|'DECLINE';
 
 module.exports = {
+  autoPK: false,
   attributes: {
     id: {
       type: 'string',
-      primaryKey: true
-    },
+      primaryKey: true,
+      defaultsTo: function (){ return uuid(); },
+      uuidv4: true
+    }, 
     paymentId: 'string',
     originModel: 'string',
     PaymentMethod: {
@@ -66,21 +69,12 @@ module.exports = {
     },
     status: {
       type:'string', 
-      enum: ['NEW','REGISTRED', 'PAID', 'CANCEL','REFUND', 'DECLINE']
+      enum: ['NEW','REGISTRED', 'PAID', 'CANCEL','REFUND', 'DECLINE'],
+      defaultsTo: 'NEW'
     },
     comment: 'string',
     redirectLink: 'string',
     error: 'string',
-  },
-
-  beforeCreate: function (paymentDocument: any, next: any) {
-    if (!paymentDocument.id) {
-      let id: string = uuid();
-      paymentDocument.id = id.substr(id.length - 8).toUpperCase();
-    }
-    
-    paymentDocument.status = "NEW";
-    next();
   },
 
   register: async function (paymentId: string, originModel: string, amount: number, paymentMethodId: string,  backLinkSuccess: string, backLinkFail: string, comment: string, data: any): Promise<PaymentResponse> {
