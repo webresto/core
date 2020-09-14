@@ -22,7 +22,7 @@
  * @apiParam {Boolean} sendToIiko Был ли отправлен заказ IIKO
  * @apiParam {String} rmsId ID заказа, который пришёл от IIKO
  * @apiParam {String} deliveryStatus Статус состояния доставки (0 успешно расчитана)
- * @apiParam {Boolean} selfDelivery Признак самовывоза
+ * @apiParam {Boolean} selfService Признак самовывоза
  * @apiParam {String} deliveryDescription Строка дополнительной информации о доставке
  * @apiParam {String} message Сообщение, что отправляется с корзиной
  */
@@ -68,7 +68,6 @@ module.exports = {
         uniqueDishes: 'integer',
         cartTotal: 'float',
         modifiers: 'json',
-        delivery: 'float',
         customer: 'json',
         address: 'json',
         comment: 'string',
@@ -89,7 +88,7 @@ module.exports = {
         rmsErrorMessage: 'string',
         rmsErrorCode: 'string',
         deliveryStatus: 'string',
-        selfDelivery: {
+        selfService: {
             type: 'boolean',
             defaultsTo: false
         },
@@ -99,6 +98,7 @@ module.exports = {
         },
         message: 'string',
         deliveryItem: 'string',
+        deliveryTotal: 'float',
         totalWeight: 'float',
         total: 'float',
         orderDate: 'datetime',
@@ -332,14 +332,14 @@ module.exports = {
             }
         },
         /**
-         * Set cart selfDelivery field. Use this method to change selfDelivery.
+         * Set cart selfService field. Use this method to change selfService.
          * @param selfService
          */
-        setSelfDelivery: async function (selfService) {
+        setSelfService: async function (selfService) {
             const self = this;
-            sails.log.verbose('Cart > setSelfDelivery >', selfService);
+            sails.log.verbose('Cart > setSelfService >', selfService);
             await actions_1.default.reset(this.id);
-            self.selfDelivery = selfService;
+            self.selfService = selfService;
             await self.save();
         },
         /**
@@ -383,7 +383,7 @@ module.exports = {
                 // TODO непонятно почему тут не вызывается ожтдающий эммитер
                 getEmitter_1.default().emit('core-cart-check-self-service', self, customer, isSelfService, address);
                 sails.log.verbose('Cart > check > is self delivery');
-                await self.setSelfDelivery(true);
+                await self.setSelfService(true);
                 await self.next('CHECKOUT');
                 return true;
             }
@@ -444,8 +444,8 @@ module.exports = {
             // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
             //   return 3
             getEmitter_1.default().emit('core-cart-before-order', self);
-            sails.log.verbose('Cart > order > before order >', self.customer, self.selfDelivery, self.address);
-            if (this.selfDelivery) {
+            sails.log.verbose('Cart > order > before order >', self.customer, self.selfService, self.address);
+            if (this.selfService) {
                 getEmitter_1.default().emit('core-cart-order-self-service', self);
             }
             else {
@@ -459,8 +459,6 @@ module.exports = {
             self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
             sails.log.info('Cart > order > before save cart', self);
             await self.save();
-            const cart42 = await Cart.findOne({ or: [{ id: self.id }, { rmsOrderNumber: self.rmsOrderNumber }] });
-            console.log("cart42", cart42);
             getEmitter_1.default().emit('core-cart-after-order', self);
             const orderConfig = await SystemInfo.use('order');
             if (orderConfig) {

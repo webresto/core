@@ -21,7 +21,7 @@
  * @apiParam {Boolean} sendToIiko Был ли отправлен заказ IIKO
  * @apiParam {String} rmsId ID заказа, который пришёл от IIKO
  * @apiParam {String} deliveryStatus Статус состояния доставки (0 успешно расчитана)
- * @apiParam {Boolean} selfDelivery Признак самовывоза
+ * @apiParam {Boolean} selfService Признак самовывоза
  * @apiParam {String} deliveryDescription Строка дополнительной информации о доставке
  * @apiParam {String} message Сообщение, что отправляется с корзиной
  */
@@ -130,7 +130,7 @@ export default interface Cart extends ORM, StateFlow {
     rmsErrorMessage: string;
     rmsErrorCode: string;
     deliveryStatus: number;
-    selfDelivery: boolean;
+    selfService: boolean;
     deliveryDescription: string;
     message: string;
     deliveryItem: string;
@@ -233,10 +233,10 @@ export default interface Cart extends ORM, StateFlow {
      */
     setComment(dish: CartDish, comment: string): Promise<void>;
     /**
-     * Меняет поле корзины selfDelivery на заданное. Используйте только этот метод для изменения параметра selfDelivery.
+     * Меняет поле корзины selfService на заданное. Используйте только этот метод для изменения параметра selfService.
      * @param selfService
      */
-    setSelfDelivery(selfService: boolean): Promise<void>;
+    setSelfService(selfService: boolean): Promise<void>;
     /**
      * Проверяет ваидность customer. Проверка проходит на наличие полей и их валидность соответсвенно nameRegex и phoneRegex
      * из конфига. Если указан isSelfService: false, то так же проверяется валидность address на наличие полей и вызывается

@@ -14,6 +14,6 @@ export default interface OrderData {
     comment: string;
     date: string;
     personsCount: string;
-    selfDelivery: boolean;
+    selfService: boolean;
     customInfo: any;
 }

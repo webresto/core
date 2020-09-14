@@ -21,7 +21,7 @@
  * @apiParam {Boolean} sendToIiko Был ли отправлен заказ IIKO
  * @apiParam {String} rmsId ID заказа, который пришёл от IIKO
  * @apiParam {String} deliveryStatus Статус состояния доставки (0 успешно расчитана)
- * @apiParam {Boolean} selfDelivery Признак самовывоза
+ * @apiParam {Boolean} selfService Признак самовывоза
  * @apiParam {String} deliveryDescription Строка дополнительной информации о доставке
  * @apiParam {String} message Сообщение, что отправляется с корзиной
  */
@@ -140,7 +140,6 @@ module.exports = {
     uniqueDishes: 'integer',
     cartTotal: 'float',
     modifiers: 'json',
-    delivery: 'float',
     customer: 'json',
     address: 'json',
     comment: 'string',
@@ -161,7 +160,7 @@ module.exports = {
     rmsErrorMessage: 'string',
     rmsErrorCode: 'string',
     deliveryStatus: 'string',
-    selfDelivery: {
+    selfService: {
       type: 'boolean',
       defaultsTo: false
     },
@@ -169,8 +168,9 @@ module.exports = {
       type: 'string',
       defaultsTo: ""
     },
-    message: 'string',
+    message: 'string', // deprecated
     deliveryItem: 'string',
+    deliveryTotal: 'float', // rename to deliveryCost
     totalWeight: 'float',
     total: 'float',
     orderDate: 'datetime',
@@ -441,17 +441,17 @@ module.exports = {
     },
 
     /**
-     * Set cart selfDelivery field. Use this method to change selfDelivery.
+     * Set cart selfService field. Use this method to change selfService.
      * @param selfService
      */
-    setSelfDelivery: async function (selfService: boolean): Promise<void> {
+    setSelfService: async function (selfService: boolean): Promise<void> {
       const self: Cart = this;
 
-      sails.log.verbose('Cart > setSelfDelivery >', selfService);
+      sails.log.verbose('Cart > setSelfService >', selfService);
 
       await actions.reset(this.id);
 
-      self.selfDelivery = selfService;
+      self.selfService = selfService;
       await self.save();
     },
 
@@ -506,7 +506,7 @@ module.exports = {
         // TODO непонятно почему тут не вызывается ожтдающий эммитер
         getEmitter().emit('core-cart-check-self-service', self, customer, isSelfService, address);
         sails.log.verbose('Cart > check > is self delivery');
-        await self.setSelfDelivery(true);
+        await self.setSelfService(true);
         await self.next('CHECKOUT');
         return true;
       }
@@ -579,9 +579,9 @@ module.exports = {
         //   return 3
 
         getEmitter().emit('core-cart-before-order', self);
-        sails.log.verbose('Cart > order > before order >', self.customer, self.selfDelivery, self.address);
+        sails.log.verbose('Cart > order > before order >', self.customer, self.selfService, self.address);
 
-        if (this.selfDelivery) {
+        if (this.selfService) {
           getEmitter().emit('core-cart-order-self-service', self);
         } else {
           getEmitter().emit('core-cart-order-delivery', self);
@@ -989,7 +989,7 @@ export default interface Cart extends ORM, StateFlow {
   rmsErrorMessage: string;
   rmsErrorCode: string;
   deliveryStatus: number;
-  selfDelivery: boolean;
+  selfService: boolean;
   deliveryDescription: string;
   message: string;
   deliveryItem: string;
@@ -1098,10 +1098,10 @@ export default interface Cart extends ORM, StateFlow {
   setComment(dish: CartDish, comment: string): Promise<void>;
 
   /**
-   * Меняет поле корзины selfDelivery на заданное. Используйте только этот метод для изменения параметра selfDelivery.
+   * Меняет поле корзины selfService на заданное. Используйте только этот метод для изменения параметра selfService.
    * @param selfService
    */
-  setSelfDelivery(selfService: boolean): Promise<void>;
+  setSelfService(selfService: boolean): Promise<void>;
 
   /**
    * Проверяет ваидность customer. Проверка проходит на наличие полей и их валидность соответсвенно nameRegex и phoneRegex
