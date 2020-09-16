@@ -197,7 +197,7 @@ module.exports = {
      * добавить блюдо. Результат подписок игнорируется.
      * @fires cart:core-cart-after-add-dish - вызывается после успешного добавления блюда. Результат подписок игнорируется.
      */
-    addDish: async function (dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string): Promise<void> {
+    addDish: async function (dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number) : Promise<void> {
       const emitter = getEmitter();
       await emitter.emit.apply(emitter, ['core-cart-before-add-dish', ...arguments]);
 
@@ -229,14 +229,25 @@ module.exports = {
 
       await emitter.emit.apply(emitter, ['core-cart-add-dish-before-create-cartdish', ...arguments]);
 
-      const cartDish = await CartDish.create({
-        dish: dishObj.id,
-        cart: this.id,
-        amount: amount,
-        modifiers: modifiers || [],
-        comment: comment,
-        addedBy: from
-      });
+      if(replace) {
+        const cartDish = await CartDish.update({id: cartDishId},{
+          dish: dishObj.id,
+          cart: this.id,
+          amount: amount,
+          modifiers: modifiers || [],
+          comment: comment,
+          addedBy: from
+        });
+      }else{
+        const cartDish = await CartDish.create({
+          dish: dishObj.id,
+          cart: this.id,
+          amount: amount,
+          modifiers: modifiers || [],
+          comment: comment,
+          addedBy: from
+        });  
+      }
 
       await cart.next('CART');
 
