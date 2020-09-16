@@ -364,8 +364,10 @@ module.exports = {
          */
         check: async function (customer, isSelfService, address, paymentMethodId) {
             const self = this;
-            if (self.paid)
+            if (self.paid) {
+                sails.log.error("CART > Check > error", self.id, "cart is paid");
                 return false;
+            }
             /**
              *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
              */
@@ -387,10 +389,12 @@ module.exports = {
                 await self.next('CHECKOUT');
                 return true;
             }
+            console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,");
             getEmitter_1.default().emit('core-cart-check-delivery', self, customer, isSelfService, address);
             checkAddress(address);
             self.address = address;
             const results = await getEmitter_1.default().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
+            sails.log.info("Cart > check > getEmitter results: ", results);
             await self.save();
             sails.log.verbose('Cart > check > after wait general emitter', results);
             const resultsCount = results.length;
@@ -416,8 +420,7 @@ module.exports = {
                 }
             }
             if (successCount > 0) {
-                if (self.getState() === 'CART') { // if (self.getState() === 'CART')
-                    //   await self.next(); // TODO: непонятно зачем тут делать next, нужно проверить!!! возможно это не выполнится никогда?
+                if (self.getState() === 'CART') {
                     await self.next('CHECKOUT');
                 }
             }
@@ -464,10 +467,12 @@ module.exports = {
                 if (orderConfig.requireAll) {
                     if (resultsCount === successCount) {
                         await self.next('ORDER');
+                        /**Если данные в модель сохранить раньше смены статуса то будет рекурсия, в ufterUpdate при внешнем платеже */
                         await self.save();
                         return 0;
                     }
                     else if (successCount === 0) {
+                        k;
                         return 1;
                     }
                     else {
@@ -538,7 +543,7 @@ module.exports = {
         }
     },
     afterUpdate: async function (values, next) {
-        sails.log.info('Cart > afterUpdate > ', values);
+        sails.log.verbose('Cart > afterUpdate > ', values);
         if (values.paid && values.state === 'PAYMENT') {
             let cart = await Cart.findOne(values.id);
             await cart.order();
