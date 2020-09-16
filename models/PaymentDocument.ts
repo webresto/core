@@ -53,14 +53,13 @@ module.exports = {
     id: {
       type: 'string',
       primaryKey: true,
-      defaultsTo: function (){ return uuid(); },
-      uuidv4: true
+      defaultsTo: function (){ return uuid();}
     }, 
     paymentId: 'string',
+    externalId: 'string',
     originModel: 'string',
-    PaymentMethod: {
-      collection: 'PaymentMethod',
-      via: 'id'
+    paymentMethod: {
+      model: 'PaymentMethod',
     },
     amount: 'integer',
     paid: {
@@ -75,6 +74,15 @@ module.exports = {
     comment: 'string',
     redirectLink: 'string',
     error: 'string',
+
+    doPaid: async function (): Promise<PaymentDocument> {
+      const self: PaymentDocument = this;   
+      getEmitter().emit('core-payment-document-paid', self); 
+      self.status = "PAID";
+      self.paid = true;
+      await self.save();
+      return self;
+    }
   },
 
   register: async function (paymentId: string, originModel: string, amount: number, paymentMethodId: string,  backLinkSuccess: string, backLinkFail: string, comment: string, data: any): Promise<PaymentResponse> {
@@ -82,7 +90,7 @@ module.exports = {
     await checkOrigin(originModel, paymentId);
     await checkPaymentMethod(paymentMethodId);
     var id: string = uuid(); id = id.substr(id.length - 8).toUpperCase();
-    let payment: Payment = { id: id, paymentId: paymentId, originModel: originModel, paymentMethod: paymentMethodId, amount:amount, comment: comment, data: data }
+    let payment: Payment = { id: id, paymentId: paymentId, originModel: originModel, paymentMethod: paymentMethodId, amount:amount, comment: comment, data: data}
     
     getEmitter().emit('core-payment-document-before-create', payment); 
     try {
@@ -101,6 +109,11 @@ module.exports = {
     try {
         sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
         let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail)
+        await PaymentDocument.update({id: paymentResponse.id}, {
+          status: 'REGISTRED', 
+          externalId: paymentResponse.externalId,
+          redirectLink: paymentResponse.redirectLink
+        });
         return paymentResponse
     } catch (e) {
       getEmitter().emit('error',"PaymentDocument > register:", e);
@@ -111,6 +124,19 @@ module.exports = {
       }
     }
   },
+  afterUpdate: async function (values, next) {
+    sails.log.info('PaymentDocument > afterUpdate > ', values);
+    if (values.paid && values.status === 'PAID') { 
+      try {
+        console.log("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",values.originModel);
+        await sails.models[values.originModel].update({id: values.paymentId}, {paid: true})
+      } catch (e) {
+        sails.log.error("Error in PaymentDocument.afterUpdate :", e);
+      }
+    }
+    next();
+  },
+
 };
 
 async function checkOrigin(originModel: string,  paymentId: string) {
@@ -151,16 +177,46 @@ async function checkPaymentMethod(paymentMethodId) {
  * Описывает модель "Платежный документ"
  */
 export default interface PaymentDocument extends ORM  {
+
+  /** Уникальный id в моделе PaymentDocument */
   id?: string;
+
+  /** соответсвует id из модели originModel */
   paymentId: string;
+
+  /** ID во внешней системе */
+  externalId?: string;
+  
+  /** Модель из которой делается платеж */
   originModel: string;
-  paymentAdapter: Association<PaymentMethod>;
+  
+  /** Платежный метод */
+  paymentMethod: string;
+
+  /** Сумма к оплате */
   amount: number;
-  isCartPayment: boolean;
-  paid: boolean;
-  status: Status;
-  comment: string;
-  error: string;
+
+  /** Признак того что платеж совершается из модели корзины */
+  isCartPayment?: boolean;
+
+  /** Флаг установлен что оплата произведена */
+  paid?: boolean;
+
+  /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
+  status?: Status;
+
+  /** Комментари для платежной системы */
+  comment?: string;
+
+  /**Ошибка во время платежа */
+  error?: string;
+
+  /**
+   * Проводит оплату по платежного документу
+   * @param payment - Платежный документ
+   */
+  doPaid(): Promise<PaymentDocument>;
+
 }
 
 

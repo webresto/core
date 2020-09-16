@@ -9,6 +9,8 @@ export default abstract class RMSAdapter {
   protected readonly syncBalanceTime: number;
   protected readonly syncStreetsTime: number;
 
+
+  // TODO: надо убрать от сюда настройки синхронизации
   protected constructor(menuTime: number, balanceTime: number, streetsTime: number) {
     this.syncMenuTime = menuTime;
     this.syncBalanceTime = balanceTime;

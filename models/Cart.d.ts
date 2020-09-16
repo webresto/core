@@ -134,8 +134,10 @@ export default interface Cart extends ORM, StateFlow {
     deliveryDescription: string;
     message: string;
     deliveryItem: string;
+    deliveryTotal: number;
     totalWeight: number;
     total: number;
+    orderTotal: number;
     orderDate: string;
     /**
      * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.

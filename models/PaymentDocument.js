@@ -8,14 +8,13 @@ module.exports = {
         id: {
             type: 'string',
             primaryKey: true,
-            defaultsTo: function () { return uuid(); },
-            uuidv4: true
+            defaultsTo: function () { return uuid(); }
         },
         paymentId: 'string',
+        externalId: 'string',
         originModel: 'string',
-        PaymentMethod: {
-            collection: 'PaymentMethod',
-            via: 'id'
+        paymentMethod: {
+            model: 'PaymentMethod',
         },
         amount: 'integer',
         paid: {
@@ -30,6 +29,14 @@ module.exports = {
         comment: 'string',
         redirectLink: 'string',
         error: 'string',
+        doPaid: async function () {
+            const self = this;
+            getEmitter_1.default().emit('core-payment-document-paid', self);
+            self.status = "PAID";
+            self.paid = true;
+            await self.save();
+            return self;
+        }
     },
     register: async function (paymentId, originModel, amount, paymentMethodId, backLinkSuccess, backLinkFail, comment, data) {
         checkAmount(amount);
@@ -55,6 +62,11 @@ module.exports = {
         try {
             sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
             let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
+            await PaymentDocument.update({ id: paymentResponse.id }, {
+                status: 'REGISTRED',
+                externalId: paymentResponse.externalId,
+                redirectLink: paymentResponse.redirectLink
+            });
             return paymentResponse;
         }
         catch (e) {
@@ -65,6 +77,19 @@ module.exports = {
                 error: 'Error in paymentAdapter.createPayment :' + e
             };
         }
+    },
+    afterUpdate: async function (values, next) {
+        sails.log.info('PaymentDocument > afterUpdate > ', values);
+        if (values.paid && values.status === 'PAID') {
+            try {
+                console.log("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM", values.originModel);
+                await sails.models[values.originModel].update({ id: values.paymentId }, { paid: true });
+            }
+            catch (e) {
+                sails.log.error("Error in PaymentDocument.afterUpdate :", e);
+            }
+        }
+        next();
     },
 };
 async function checkOrigin(originModel, paymentId) {

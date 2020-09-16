@@ -111,8 +111,7 @@ module.exports = {
     id: {
       type: 'string',
       primaryKey: true,
-      defaultsTo: function (){ return uuid(); },
-      uuidv4: true
+      defaultsTo: function (){ return uuid(); }
     }, 
     cartId: 'string', // TODO: DELETE IN FUTURE
     shortId:{
@@ -138,7 +137,6 @@ module.exports = {
     },
     dishesCount: 'integer',
     uniqueDishes: 'integer',
-    cartTotal: 'float',
     modifiers: 'json',
     customer: 'json',
     address: 'json',
@@ -173,6 +171,8 @@ module.exports = {
     deliveryTotal: 'float', // rename to deliveryCost
     totalWeight: 'float',
     total: 'float',
+    orderTotal: 'float',
+    cartTotal: 'float',
     orderDate: 'datetime',
 
     /**
@@ -515,7 +515,6 @@ module.exports = {
 
       checkAddress(address);
       self.address = address;
-
       const results = await getEmitter().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
       await self.save();
 
@@ -596,7 +595,7 @@ module.exports = {
 
         sails.log.info('Cart > order > before save cart', self)
 
-        await self.save();
+        
         getEmitter().emit('core-cart-after-order', self);
 
         const orderConfig = await SystemInfo.use('order');
@@ -604,8 +603,10 @@ module.exports = {
           if (orderConfig.requireAll) {
             if (resultsCount === successCount) {
               await self.next('ORDER');
+              /**Если данные в модель сохранить раньше смены статуса то будет рекурсия, в ufterUpdate при внешнем платеже */
+              await self.save();
               return 0;
-            } else if (successCount === 0) {
+            } else if (successCount === 0) {k
               return 1;
             } else {
               return 2;
@@ -613,11 +614,13 @@ module.exports = {
           }
           if (orderConfig.notRequired) {
             await self.next('ORDER');
+            await self.save();
             return 0;
           }
         } 
         if (true || false) { // философия доставочной пушки
           await self.next('ORDER');
+          await self.save();
           return 0;
         } else {
           return 1;
@@ -653,15 +656,16 @@ module.exports = {
         backLinkFail: backLinkFail,
         comment: comment
       };
-      
+      await Cart.countCart(self);
       await getEmitter().emit('core-cart-payment', self, params);
-      console.log("params>>>>>>>>>>>>",params);
+      sails.log.info("Cart > payment > self before register:", self);
       try {
-       paymentResponse = await PaymentDocument.register(self.id, 'cart', self.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, self)
+       paymentResponse = await PaymentDocument.register(self.id, 'cart', self.cartTotal, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, self)
       } catch (e) {
         getEmitter().emit('error', 'cart>payment', e);
         sails.log.error('Cart > payment: ', e);
       }
+      await self.next('PAYMENT');
       return paymentResponse;
     },
     
@@ -676,13 +680,12 @@ module.exports = {
   },
 
   afterUpdate: async function (values, next) {
-    getEmitter().emit('core-cart-after-update', values).then(() => {
-      const self: Cart = this;
-      sails.log.verbose('Cart > afterUpdate > ', values);
-      if (self.paid && self.getState() === 'PAYMENT')
-        self.order();
-      next();
-    });
+    sails.log.info('Cart > afterUpdate > ', values);
+    if (values.paid && values.state === 'PAYMENT'){
+      let cart: Cart = await Cart.findOne(values.id);
+      await cart.order();
+    }
+    next();
   },
 
 
@@ -766,6 +769,7 @@ module.exports = {
     const cartDishesClone = {};
     cart.dishes.map(cd => cartDishesClone[cd.id] = _.cloneDeep(cd));
 
+    let orderTotal = 0;
     let cartTotal = 0;
     let dishesCount = 0;
     let uniqueDishes = 0;
@@ -812,7 +816,7 @@ module.exports = {
         }
 
         if (cartDish.itemTotal)
-          cartTotal += cartDish.itemTotal;
+        orderTotal += cartDish.itemTotal;
         dishesCount += cartDish.amount;
         uniqueDishes++;
         totalWeight += cartDish.totalWeight;
@@ -821,11 +825,19 @@ module.exports = {
       }
     });
 
-    cart.cartTotal = cartTotal;
+    let deliveryTotal: number;
+    if (cart.deliveryTotal){
+      deliveryTotal = cart.deliveryTotal
+    } else {
+      deliveryTotal = 0
+    }
+
     cart.dishesCount = dishesCount;
     cart.uniqueDishes = uniqueDishes;
     cart.totalWeight = totalWeight;
-    cart.total = cartTotal;
+    cart.total = orderTotal;
+    cart.orderTotal = orderTotal;
+    cart.cartTotal = orderTotal + deliveryTotal;
 
     for (let cd in cart.dishes) {
       if (cart.dishes.hasOwnProperty(cd)) {
@@ -841,6 +853,8 @@ module.exports = {
       cart.total += cart.delivery;
     }
 
+
+    // TODO возможно тут этого делать не надо. а нужно перенсти в функции вызывающие эту функцию
     await Cart.update({id:cart.id}, {
         cartTotal:cartTotal,
         dishesCount: dishesCount,
@@ -993,8 +1007,10 @@ export default interface Cart extends ORM, StateFlow {
   deliveryDescription: string;
   message: string;
   deliveryItem: string;
+  deliveryTotal: number;
   totalWeight: number;
   total: number;
+  orderTotal: number;
   orderDate: string;
 
   /**

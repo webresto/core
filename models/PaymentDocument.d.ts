@@ -1,7 +1,6 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import { PaymentResponse } from "../modelsHelp/Payment";
-import PaymentMethod from "../models/PaymentMethod";
 /** На примере корзины (Cart):
  * 1. Модель проводящяя оплату internal/external (например: Cart) создает PaymentDocument
  *
@@ -41,16 +40,33 @@ declare type Status = 'NEW' | 'REGISTRED' | 'PAID' | 'CANCEL' | 'REFUND' | 'DECL
  * Описывает модель "Платежный документ"
  */
 export default interface PaymentDocument extends ORM {
+    /** Уникальный id в моделе PaymentDocument */
     id?: string;
+    /** соответсвует id из модели originModel */
     paymentId: string;
+    /** ID во внешней системе */
+    externalId?: string;
+    /** Модель из которой делается платеж */
     originModel: string;
-    paymentAdapter: Association<PaymentMethod>;
+    /** Платежный метод */
+    paymentMethod: string;
+    /** Сумма к оплате */
     amount: number;
-    isCartPayment: boolean;
-    paid: boolean;
-    status: Status;
-    comment: string;
-    error: string;
+    /** Признак того что платеж совершается из модели корзины */
+    isCartPayment?: boolean;
+    /** Флаг установлен что оплата произведена */
+    paid?: boolean;
+    /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
+    status?: Status;
+    /** Комментари для платежной системы */
+    comment?: string;
+    /**Ошибка во время платежа */
+    error?: string;
+    /**
+     * Проводит оплату по платежного документу
+     * @param payment - Платежный документ
+     */
+    doPaid(): Promise<PaymentDocument>;
 }
 /**
  * Описывает класс PaymentDocument, используется для ORM

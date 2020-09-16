@@ -1,5 +1,6 @@
 import { Payment, PaymentResponse } from "../../modelsHelp/Payment";
 import { InitPaymentAdapter } from "../../models/PaymentMethod";
+import PaymentDocument from "../../models/PaymentDocument";
 /**
  * Абстрактный класс Payment адаптера. Используется для создания новых адаптеров платежных систем.
  */
@@ -14,10 +15,10 @@ export default abstract class PaymentAdapter {
     abstract createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string): Promise<PaymentResponse>;
     /**
      * Проверка Оплаты
-     * @param Payment - Платежный документ
+     * @param paymentDocument - Платежный документ
      * @return результат работы функции, тело ответа и код результата
      */
-    abstract checkPayment(payment: Payment): Promise<Payment>;
+    abstract checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
     /**
      * Метод для создания и получения уже существующего Payment адаптера
      * @param params - параметры для инициализации
