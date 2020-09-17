@@ -150,8 +150,9 @@ module.exports = {
                 });
             }
             await emitter.emit.apply(emitter, ['core-cart-add-dish-before-create-cartdish', ...arguments]);
+            let cartDish;
             if (replace) {
-                const cartDish = await CartDish.update({ id: cartDishId }, {
+                cartDish = await CartDish.update({ id: cartDishId }, {
                     dish: dishObj.id,
                     cart: this.id,
                     amount: amount,
@@ -161,7 +162,7 @@ module.exports = {
                 });
             }
             else {
-                const cartDish = await CartDish.create({
+                cartDish = await CartDish.create({
                     dish: dishObj.id,
                     cart: this.id,
                     amount: amount,
