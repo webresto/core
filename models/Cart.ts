@@ -524,14 +524,13 @@ module.exports = {
         await self.next('CHECKOUT');
         return true;
       }
-      console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,");
 
       getEmitter().emit('core-cart-check-delivery', self, customer, isSelfService, address);
 
       checkAddress(address);
       self.address = address;
       const results = await getEmitter().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
-      sails.log.info("Cart > check > getEmitter results: ",results)
+      sails.log.verbose("Cart > check > getEmitter results: ",results)
       await self.save();
 
       sails.log.verbose('Cart > check > after wait general emitter', results);
@@ -600,26 +599,24 @@ module.exports = {
         } else {
           getEmitter().emit('core-cart-order-delivery', self);
         }
-
+        await Cart.countCart(self); 
         const results = await getEmitter().emit('core-cart-order', self);
+        
         sails.log.verbose('Cart > order > after wait general emitter results: ', results);
         const resultsCount = results.length;
         const successCount = results.filter(r => r.state === "success").length;
-        let tz  = await SystemInfo.use('timezone');
+
         self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
 
         sails.log.info('Cart > order > before save cart', self)
 
         
-        getEmitter().emit('core-cart-after-order', self);
 
         const orderConfig = await SystemInfo.use('order');
         if (orderConfig) {
           if (orderConfig.requireAll) {
             if (resultsCount === successCount) {
-              await self.next('ORDER');
-              /**Если данные в модель сохранить раньше смены статуса то будет рекурсия, в ufterUpdate при внешнем платеже */
-              await self.save();
+              order();
               return 0;
             } else if (successCount === 0) {k
               return 1;
@@ -628,17 +625,24 @@ module.exports = {
             }
           }
           if (orderConfig.notRequired) {
-            await self.next('ORDER');
-            await self.save();
+            order();
             return 0;
           }
         } 
         if (true || false) { // философия доставочной пушки
-          await self.next('ORDER');
-          await self.save();
+          order();
           return 0;
         } else {
           return 1;
+        }
+
+        
+        async function order(){
+          await self.next('ORDER');
+
+          /** Если сохранние модели вызвать до next то будет бесконечный цикл */
+          await self.save();
+          getEmitter().emit('core-cart-after-order', self);
         }
       },
 
@@ -869,14 +873,14 @@ module.exports = {
     }
 
 
-    // TODO возможно тут этого делать не надо. а нужно перенсти в функции вызывающие эту функцию
-    await Cart.update({id:cart.id}, {
-        cartTotal:cartTotal,
-        dishesCount: dishesCount,
-        uniqueDishes: uniqueDishes,
-        totalWeight: totalWeight,
-        total: cartTotal
-      });
+    // // TODO возможно тут этого делать не надо. а нужно перенсти в функции вызывающие эту функцию
+    // await Cart.update({id:cart.id}, {
+    //     cartTotal:cartTotal,
+    //     dishesCount: dishesCount,
+    //     uniqueDishes: uniqueDishes,
+    //     totalWeight: totalWeight,
+    //     total: cartTotal
+    //   });
       
     getEmitter().emit('core-cart-after-count', cart);
   }
@@ -917,10 +921,10 @@ async function checkCustomerInfo(customer) {
 }
 
 function checkAddress(address) {
-  if (!address.streetId) {
+  if (!address.street) {
     throw {
       code: 5,
-      error: 'address.streetId is required'
+      error: 'address.street is required'
     }
   }
 
