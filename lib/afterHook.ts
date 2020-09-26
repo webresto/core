@@ -16,6 +16,9 @@ export default async function () {
     const timeSyncBalance = await SystemInfo.use('timeSyncBalance');
     const timeSyncStreets = await SystemInfo.use('timeSyncStreets');
 
+    /**
+     * run instance RMSadapter
+     */
     if(rmsAdapterName) {
       const rmsAdapter = RMS.getAdapter(rmsAdapterName);
       rmsAdapter.getInstance(rmsAdapterConfig, imagesConfig, timeSyncMenu, timeSyncBalance, timeSyncStreets);

@@ -55,15 +55,22 @@ module.exports = {
       //   throw undefined
       // }
 
+      let value: string;
+      if (!sails.config[config]){
+        value = defaultConfig[key];
+      } else{
+        if (sails.config[config][key]) {
+          value = sails.config[config][key];
+        } else {
+          return undefined
+        }
+      }
 
-      let value = sails.config[config][key] || defaultConfig[key] || null;
-      
       value = JSON.stringify(value);
       try {
         obj = await SystemInfo.set(key, value, config);
       } catch (e) {
         sails.log.error(key, value, config, e);
-        obj = await SystemInfo.findOne({key: key, from: config});
       }
     }
 

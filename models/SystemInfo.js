@@ -38,14 +38,24 @@ module.exports = {
             //   sails.log.error("CORE > SystemInfo > key ", key, "not found" );
             //   throw undefined
             // }
-            let value = sails.config[config][key] || defaultConfig_1.default[key] || null;
+            let value;
+            if (!sails.config[config]) {
+                value = defaultConfig_1.default[key];
+            }
+            else {
+                if (sails.config[config][key]) {
+                    value = sails.config[config][key];
+                }
+                else {
+                    return undefined;
+                }
+            }
             value = JSON.stringify(value);
             try {
                 obj = await SystemInfo.set(key, value, config);
             }
             catch (e) {
                 sails.log.error(key, value, config, e);
-                obj = await SystemInfo.findOne({ key: key, from: config });
             }
         }
         let value = obj.value;
