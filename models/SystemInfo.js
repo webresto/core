@@ -13,6 +13,7 @@ module.exports = {
             type: 'string',
             unique: true
         },
+        description: 'string',
         value: 'string',
         section: 'string',
         from: 'string'
