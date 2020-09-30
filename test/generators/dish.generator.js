@@ -5,7 +5,6 @@ const faker = require("faker");
 var autoincrement = 0;
 function dishGenerator(config) {
     autoincrement++;
-    console.log(">>>>", config);
     return {
         id: faker.random.uuid(),
         additionalInfo: config.additionalInfo || null,

@@ -29,7 +29,6 @@ export default async function () {
      */
     const timezone = await SystemInfo.use('timezone');
     process.env.TZ = timezone;
-    console.log("timezone",timezone);
     if (timezone)
       moment.tz.setDefault(timezone);
   } catch (e) {

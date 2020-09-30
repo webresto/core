@@ -24,7 +24,6 @@ interface DishData  {
 
 export default function dishGenerator(config?: DishData): DishData{
   autoincrement++;
-  console.log(">>>>",config);
   return {
     id: faker.random.uuid(),
     additionalInfo: config.additionalInfo || null,

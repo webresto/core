@@ -63,7 +63,6 @@ class TestPaymentSystem extends PaymentAdapter_1.default {
     }
     paid(payment, latency) {
         setTimeout(() => {
-            console.log("paid", latency);
             database[payment.paymentId].paid = true;
         }, latency);
         return;
