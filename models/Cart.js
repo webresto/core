@@ -75,7 +75,7 @@ module.exports = {
             type: 'boolean',
             defaultsTo: false
         },
-        rmsDeliveried: {
+        rmsDelivered: {
             type: 'boolean',
             defaultsTo: false
         },
@@ -85,6 +85,7 @@ module.exports = {
         rmsDeliveryDate: 'string',
         rmsErrorMessage: 'string',
         rmsErrorCode: 'string',
+        rmsStatusCode: 'string',
         deliveryStatus: 'string',
         selfService: {
             type: 'boolean',

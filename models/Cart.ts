@@ -92,7 +92,6 @@ import Modifier from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
 import CartDish from "../models/CartDish";
-import PaymentMethod from "../models/PaymentMethod";
 import checkExpression from "../lib/checkExpression";
 import StateFlow from "../modelsHelp/StateFlow";
 import actions from "../lib/actions";
@@ -147,7 +146,7 @@ module.exports = {
       type: 'boolean',
       defaultsTo: false
     },
-    rmsDeliveried: {
+    rmsDelivered: {
       type: 'boolean',
       defaultsTo: false
     },
@@ -157,6 +156,7 @@ module.exports = {
     rmsDeliveryDate: 'string',
     rmsErrorMessage: 'string',
     rmsErrorCode: 'string',
+    rmsStatusCode: 'string',
     deliveryStatus: 'string',
     selfService: {
       type: 'boolean',
@@ -1014,14 +1014,15 @@ export default interface Cart extends ORM, StateFlow {
   orderDateLimit?: string;
   date: string;
   problem: boolean;
-  rmsDeliveried: boolean;
+  rmsDelivered: boolean;
   rmsId: string;
   rmsOrderNumber: string;
   rmsOrderData: any;
   rmsDeliveryDate: string;
   rmsErrorMessage: string;
   rmsErrorCode: string;
-  deliveryStatus: number;
+  rmsStatusCode: string;
+  deliveryStatus: string;
   selfService: boolean;
   deliveryDescription: string;
   message: string;
