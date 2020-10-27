@@ -132,7 +132,7 @@ module.exports = {
                         }
                     });
                     delete menu[group.id].childGroups;
-                    menu[group.id].children = [];
+                    menu[group.id].children = childGroups;
                     if (menu[group.id].children.length > 1)
                         menu[group.id].children.sort((a, b) => a.order - b.order);
                 }
