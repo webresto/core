@@ -85,9 +85,7 @@ module.exports = {
         if (!knownPaymentMethod) {
             knownPaymentMethod = await PaymentMethod.create(paymentAdapter.InitPaymentAdapter);
         }
-        if (knownPaymentMethod.enable === true) {
-            alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
-        }
+        alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
         sails.log.verbose("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
         return;
     },
@@ -100,11 +98,12 @@ module.exports = {
         return await PaymentMethod.find({
             where: {
                 or: [{
-                        adapter: Object.keys(alivedPaymentMethods)
+                        adapter: Object.keys(alivedPaymentMethods),
+                        enable: true
                     },
                     {
                         type: 'promise',
-                        enable: true,
+                        enable: true
                     }]
             },
             sort: 'order ASC'
