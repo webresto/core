@@ -74,15 +74,32 @@ module.exports = {
     comment: 'string',
     redirectLink: 'string',
     error: 'string',
-
     doPaid: async function (): Promise<PaymentDocument> {
       const self: PaymentDocument = this;   
-      getEmitter().emit('core-payment-document-paid', self); 
-      self.status = "PAID";
-      self.paid = true;
-      await self.save();
+      
+      if (self.status === "PAID" && self.paid !== true){
+        self.status = "PAID";
+        self.paid = true;
+        getEmitter().emit('core-payment-document-paid', self); 
+        await self.save();
+      }
       return self;
-    }
+    },
+    doCheck: async function (): Promise<PaymentDocument> {
+      const self: PaymentDocument = this;   
+      getEmitter().emit('core-payment-document-check', self); 
+      try {
+        let paymentAdapter: PaymentAdapter  = await PaymentMethod.getAdapterById(self.paymentMethod);
+        let checkedPaymentDocument: PaymentDocument = await paymentAdapter.checkPayment(self);   
+        if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true){
+          await checkedPaymentDocument.doPaid();
+        }
+        getEmitter().emit('core-payment-document-checked-document', checkedPaymentDocument); 
+        return checkedPaymentDocument;
+      } catch (e) {
+        sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
+      }
+    },
   },
 
   register: async function (paymentId: string, originModel: string, amount: number, paymentMethodId: string,  backLinkSuccess: string, backLinkFail: string, comment: string, data: any): Promise<PaymentResponse> {
@@ -136,7 +153,20 @@ module.exports = {
     next();
   },
 
+  /** Цикл проверки платежей */
+  processor: async function(timeout: number) {
+    setTimeout(async () => {
+      let actualTime =  new Date();
+      actualTime.setHours( actualTime.getHours() - 1 );
+      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({status: "REGISTRED", createdAt: { '>=':   actualTime }});
+      for await (let actualPaymentDocument of actualPaymentDocuments) {
+        await actualPaymentDocument.doCheck();
+      }
+    }, timeout || 120000);
+  }
 };
+
+
 
 async function checkOrigin(originModel: string,  paymentId: string) {
   //@ts-ignore
@@ -216,6 +246,11 @@ export default interface PaymentDocument extends ORM  {
    */
   doPaid(): Promise<PaymentDocument>;
 
+    /**
+   * Проверяет оплату
+   * @param payment - Платежный документ
+   */
+  doCheck(): Promise<PaymentDocument>;
 }
 
 
@@ -256,6 +291,8 @@ export interface PaymentDocumentModel extends ORMModel<PaymentDocument> {
   */
   status(paymentId: string): Promise<string>;
 
+  /** Цикл проверки платежей */
+  processor(timeout: number); 
 
 }
 

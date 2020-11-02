@@ -16,7 +16,7 @@ export default abstract class PaymentAdapter {
     /**
      * Проверка Оплаты
      * @param paymentDocument - Платежный документ
-     * @return результат работы функции, тело ответа и код результата
+     * @return результат работы функции, тело ответа и код результата (сохранять модель не нужно)
      */
     abstract checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
     /**

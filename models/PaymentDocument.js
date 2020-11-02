@@ -31,12 +31,30 @@ module.exports = {
         error: 'string',
         doPaid: async function () {
             const self = this;
-            getEmitter_1.default().emit('core-payment-document-paid', self);
-            self.status = "PAID";
-            self.paid = true;
-            await self.save();
+            if (self.status === "PAID" && self.paid !== true) {
+                self.status = "PAID";
+                self.paid = true;
+                getEmitter_1.default().emit('core-payment-document-paid', self);
+                await self.save();
+            }
             return self;
-        }
+        },
+        doCheck: async function () {
+            const self = this;
+            getEmitter_1.default().emit('core-payment-document-check', self);
+            try {
+                let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
+                let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
+                if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true) {
+                    await checkedPaymentDocument.doPaid();
+                }
+                getEmitter_1.default().emit('core-payment-document-checked-document', checkedPaymentDocument);
+                return checkedPaymentDocument;
+            }
+            catch (e) {
+                sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
+            }
+        },
     },
     register: async function (paymentId, originModel, amount, paymentMethodId, backLinkSuccess, backLinkFail, comment, data) {
         checkAmount(amount);
@@ -90,6 +108,17 @@ module.exports = {
         }
         next();
     },
+    /** Цикл проверки платежей */
+    processor: async function (timeout) {
+        setTimeout(async () => {
+            let actualTime = new Date();
+            actualTime.setHours(actualTime.getHours() - 1);
+            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED", createdAt: { '>=': actualTime } });
+            for await (let actualPaymentDocument of actualPaymentDocuments) {
+                await actualPaymentDocument.doCheck();
+            }
+        }, timeout || 120000);
+    }
 };
 async function checkOrigin(originModel, paymentId) {
     //@ts-ignore

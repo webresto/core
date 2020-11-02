@@ -15,7 +15,7 @@ export default async function () {
     const timeSyncMenu = await SystemInfo.use('timeSyncMenu');
     const timeSyncBalance = await SystemInfo.use('timeSyncBalance');
     const timeSyncStreets = await SystemInfo.use('timeSyncStreets');
-
+    const timeSyncPayments = await SystemInfo.use('timeSyncPayments');
     /**
      * run instance RMSadapter
      */
@@ -31,6 +31,8 @@ export default async function () {
     process.env.TZ = timezone;
     if (timezone)
       moment.tz.setDefault(timezone);
+     
+    PaymentDocument.processor(timeSyncPayments);
   } catch (e) {
     sails.log.error('core > afterHook > error1', e);
   }

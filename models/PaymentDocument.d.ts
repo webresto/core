@@ -67,6 +67,11 @@ export default interface PaymentDocument extends ORM {
      * @param payment - Платежный документ
      */
     doPaid(): Promise<PaymentDocument>;
+    /**
+   * Проверяет оплату
+   * @param payment - Платежный документ
+   */
+    doCheck(): Promise<PaymentDocument>;
 }
 /**
  * Описывает класс PaymentDocument, используется для ORM
@@ -101,6 +106,8 @@ export interface PaymentDocumentModel extends ORMModel<PaymentDocument> {
     * Возврашает статус платежа
     */
     status(paymentId: string): Promise<string>;
+    /** Цикл проверки платежей */
+    processor(timeout: number): any;
 }
 declare global {
     const PaymentDocument: PaymentDocumentModel;
