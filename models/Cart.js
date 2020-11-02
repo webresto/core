@@ -389,12 +389,13 @@ module.exports = {
             sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
             await checkCustomerInfo(customer);
             await checkDate(self);
-            if (paymentMethodId)
+            if (paymentMethodId) {
                 await checkPaymentMethod(paymentMethodId);
-            self.paymentMethod = paymentMethodId;
-            self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
-            self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
-            self.customer = customer;
+                self.paymentMethod = paymentMethodId;
+                self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
+                self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
+                self.customer = customer;
+            }
             if (isSelfService) {
                 // TODO непонятно почему тут не вызывается ожтдающий эммитер
                 getEmitter_1.default().emit('core-cart-check-self-service', self, customer, isSelfService, address);

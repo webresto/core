@@ -5,7 +5,7 @@ import { PaymentResponse, Payment }  from "../modelsHelp/Payment"
 import PaymentMethod from "../models/PaymentMethod";
 import PaymentAdapter from "../adapter/payment/PaymentAdapter";
 import getEmitter from "../lib/getEmitter";
-
+import * as moment from "moment";
 
 /** На примере корзины (Cart):
  * 1. Модель проводящяя оплату internal/external (например: Cart) создает PaymentDocument
@@ -91,6 +91,7 @@ module.exports = {
       try {
         let paymentAdapter: PaymentAdapter  = await PaymentMethod.getAdapterById(self.paymentMethod);
         let checkedPaymentDocument: PaymentDocument = await paymentAdapter.checkPayment(self);   
+        console.log("checkedPaymentDocument",checkedPaymentDocument);
         if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true){
           await checkedPaymentDocument.doPaid();
         }
@@ -145,7 +146,7 @@ module.exports = {
     sails.log.info('PaymentDocument > afterUpdate > ', values);
     if (values.paid && values.status === 'PAID') { 
       try {
-        await sails.models[values.originModel].update({id: values.paymentId}, {paid: true})
+        await sails.models[values.originModel].update({id: values.paymentId}, { paid: true, paymentMethod: values.paymentMethod })
       } catch (e) {
         sails.log.error("Error in PaymentDocument.afterUpdate :", e);
       }
@@ -155,14 +156,17 @@ module.exports = {
 
   /** Цикл проверки платежей */
   processor: async function(timeout: number) {
+    sails.log.verbose("PAYMENTDOCUMENT > processor started");
     setTimeout(async () => {
-      let actualTime =  new Date();
-      actualTime.setHours( actualTime.getHours() - 1 );
+      
+      let actualTime =  moment().subtract(60, 'minutes').format();
+      console.log("actualTime",actualTime);
       let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({status: "REGISTRED", createdAt: { '>=':   actualTime }});
+      sails.log.info("PAYMENTDOCUMENT > actualPaymentDocuments: ", actualPaymentDocuments);
       for await (let actualPaymentDocument of actualPaymentDocuments) {
         await actualPaymentDocument.doCheck();
       }
-    }, timeout || 120000);
+    }, timeout || 20000);
   }
 };
 
