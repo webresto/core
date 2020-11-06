@@ -505,16 +505,13 @@ module.exports = {
       await checkCustomerInfo(customer);
       await checkDate(self);
 
-      if (paymentMethodId) {
+      if (paymentMethodId)
         await checkPaymentMethod(paymentMethodId);
-        self.paymentMethod = paymentMethodId;
-        self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
-        self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId)
-        self.customer = customer;
-      }
-        
       
-
+      self.paymentMethod = paymentMethodId;
+      self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
+      self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId)
+      self.customer = customer;
       
 
 

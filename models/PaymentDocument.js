@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid = require("uuid/v4");
 const getEmitter_1 = require("../lib/getEmitter");
-const moment = require("moment");
 module.exports = {
     autoPK: false,
     attributes: {
@@ -46,7 +45,6 @@ module.exports = {
             try {
                 let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
                 let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
-                console.log("checkedPaymentDocument", checkedPaymentDocument);
                 if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true) {
                     await checkedPaymentDocument.doPaid();
                 }
@@ -102,7 +100,7 @@ module.exports = {
         sails.log.info('PaymentDocument > afterUpdate > ', values);
         if (values.paid && values.status === 'PAID') {
             try {
-                await sails.models[values.originModel].update({ id: values.paymentId }, { paid: true, paymentMethod: values.paymentMethod });
+                await sails.models[values.originModel].update({ id: values.paymentId }, { paid: true });
             }
             catch (e) {
                 sails.log.error("Error in PaymentDocument.afterUpdate :", e);
@@ -112,16 +110,14 @@ module.exports = {
     },
     /** Цикл проверки платежей */
     processor: async function (timeout) {
-        sails.log.verbose("PAYMENTDOCUMENT > processor started");
         setTimeout(async () => {
-            let actualTime = moment().subtract(60, 'minutes').format();
-            console.log("actualTime", actualTime);
+            let actualTime = new Date();
+            actualTime.setHours(actualTime.getHours() - 1);
             let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED", createdAt: { '>=': actualTime } });
-            sails.log.info("PAYMENTDOCUMENT > actualPaymentDocuments: ", actualPaymentDocuments);
             for await (let actualPaymentDocument of actualPaymentDocuments) {
                 await actualPaymentDocument.doCheck();
             }
-        }, timeout || 20000);
+        }, timeout || 120000);
     }
 };
 async function checkOrigin(originModel, paymentId) {
