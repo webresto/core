@@ -12,4 +12,4 @@ export default abstract class ImageAdapter {
   }
 
   public async abstract load(url: string, key: 'dish' | 'group'): Promise<{ origin: string }>;
-}
+  public async abstract uploadImage(uploadFile: any, key: string): Promise<any>;

@@ -5,4 +5,5 @@ export default abstract class ImageAdapter {
     abstract load(url: string, key: 'dish' | 'group'): Promise<{
         origin: string;
     }>;
+    abstract uploadImage(uploadFile: any, key: string): Promise<any>;
 }
