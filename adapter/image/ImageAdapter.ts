@@ -11,5 +11,7 @@ export default abstract class ImageAdapter {
     this.config = config;
   }
 
-  public async abstract load(url: string, key: 'dish' | 'group'): Promise<{ origin: string }>;
+  public async abstract load(url: string, key: string): Promise<{ origin: string }>;
   public async abstract uploadImage(uploadFile: any, key: string): Promise<any>;
+  public async abstract uploadBase64Image(base64: string, filetype: string, key: string ): Promise<any>;
+}
