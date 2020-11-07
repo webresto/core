@@ -114,6 +114,7 @@ module.exports = {
             let actualTime = new Date();
             actualTime.setHours(actualTime.getHours() - 1);
             let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED", createdAt: { '>=': actualTime } });
+            sails.log.verbose("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments);
             for await (let actualPaymentDocument of actualPaymentDocuments) {
                 await actualPaymentDocument.doCheck();
             }
