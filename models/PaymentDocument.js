@@ -110,7 +110,7 @@ module.exports = {
     },
     /** Цикл проверки платежей */
     processor: async function (timeout) {
-        setTimeout(async () => {
+        setInterval(async () => {
             let actualTime = new Date();
             actualTime.setHours(actualTime.getHours() - 1);
             let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED", createdAt: { '>=': actualTime } });
