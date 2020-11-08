@@ -173,11 +173,11 @@ module.exports = {
             if (modifier.childModifiers && modifier.childModifiers.length > 0) {
                 dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
                 await Promise.map(modifier.childModifiers, async (modifier, index1) => {
-                    dish.modifiers[index].childModifiers[index1].dish = await Dish.findOne({ id: modifier.modifierId });
+                    dish.modifiers[index].childModifiers[index1].dish = await Dish.findOne({ id: modifier.modifierId }).populate('images');
                 });
             }
             else {
-                dish.modifiers[index].dish = await Dish.findOne({ id: modifier.id });
+                dish.modifiers[index].dish = await Dish.findOne({ id: modifier.id }).populate('images');
             }
         });
     },
