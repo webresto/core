@@ -169,7 +169,10 @@ module.exports = {
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     async getGroupBySlug(groupSlug) {
-        const groupObj = await Group.findOne({ slug: groupSlug });
+        const groupObj = (await Group.find({ or: [{ slug: groupSlug }, { slug: { contains: groupSlug } }] }).sort('createdAt DESC'))[0] || undefined;
+        if (!groupObj) {
+            throw "group with slug " + groupSlug + " not found";
+        }
         const result = await this.getGroups([groupObj.id]);
         if (result.errors[0]) {
             throw result.errors[0];
