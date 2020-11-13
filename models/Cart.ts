@@ -500,20 +500,26 @@ module.exports = {
        */
 
       getEmitter().emit('core-cart-before-check', self, customer, isSelfService, address);
-      sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
+      sails.log.verbose('Cart > check > before check >', customer, isSelfService, address, paymentMethodId);
 
       await checkCustomerInfo(customer);
       await checkDate(self);
 
+      console.log(">>>>>>>>>>>>>>>>!!!!!");
       if (paymentMethodId)
         await checkPaymentMethod(paymentMethodId);
+        console.log(">>>>>>>>>>>>>>>>!!!!1");
       
-      self.paymentMethod = paymentMethodId;
-      self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
-      self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId)
+        
+      if(paymentMethodId) {
+        self.paymentMethod = paymentMethodId;
+        self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
+        self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId)
+      } 
+      console.log(">>>>>>>>>>>>>>>>!!!!!2");
+      
       self.customer = customer;
       
-
 
 
       if (isSelfService) {
@@ -529,6 +535,7 @@ module.exports = {
 
       checkAddress(address);
       self.address = address;
+
       const results = await getEmitter().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
       sails.log.verbose("Cart > check > getEmitter results: ",results)
       await self.save();
@@ -921,10 +928,10 @@ async function checkCustomerInfo(customer) {
 }
 
 function checkAddress(address) {
-  if (!address.street) {
+  if (!address.streetId && !address.street ) {
     throw {
       code: 5,
-      error: 'address.street is required'
+      error: 'address.streetId is required'
     }
   }
 

@@ -386,14 +386,19 @@ module.exports = {
              *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
              */
             getEmitter_1.default().emit('core-cart-before-check', self, customer, isSelfService, address);
-            sails.log.verbose('Cart > check > before check >', customer, isSelfService, address);
+            sails.log.verbose('Cart > check > before check >', customer, isSelfService, address, paymentMethodId);
             await checkCustomerInfo(customer);
             await checkDate(self);
+            console.log(">>>>>>>>>>>>>>>>!!!!!");
             if (paymentMethodId)
                 await checkPaymentMethod(paymentMethodId);
-            self.paymentMethod = paymentMethodId;
-            self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
-            self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
+            console.log(">>>>>>>>>>>>>>>>!!!!1");
+            if (paymentMethodId) {
+                self.paymentMethod = paymentMethodId;
+                self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
+                self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
+            }
+            console.log(">>>>>>>>>>>>>>>>!!!!!2");
             self.customer = customer;
             if (isSelfService) {
                 // TODO непонятно почему тут не вызывается ожтдающий эммитер
@@ -747,10 +752,10 @@ async function checkCustomerInfo(customer) {
     }
 }
 function checkAddress(address) {
-    if (!address.street) {
+    if (!address.streetId && !address.street) {
         throw {
             code: 5,
-            error: 'address.street is required'
+            error: 'address.streetId is required'
         };
     }
     if (!address.home) {
