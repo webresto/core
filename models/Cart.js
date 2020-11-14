@@ -594,7 +594,8 @@ module.exports = {
                 isDeleted: false
             }).populate('images').populate('parentGroup');
             const reason = checkExpression_1.default(dish);
-            const reasonG = checkExpression_1.default(dish.parentGroup);
+            if (dish && dish.parentGroup)
+                var reasonG = checkExpression_1.default(dish.parentGroup);
             const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
                 reasonG === 'visible' || !reasonG;
             if (dish && dish.parentGroup && reasonBool && (dish.balance === -1 ? true : dish.balance >= cartDish.amount)) {

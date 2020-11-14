@@ -745,7 +745,10 @@ module.exports = {
       }).populate('images').populate('parentGroup');
 
       const reason = checkExpression(dish);
-      const reasonG = checkExpression(dish.parentGroup);
+
+      if (dish && dish.parentGroup)      
+        var reasonG = checkExpression(dish.parentGroup);
+
       const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
         reasonG === 'visible' || !reasonG;
 
