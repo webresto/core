@@ -5,7 +5,7 @@ function generate_payment() {
     return {
         amount: Math.floor(Math.random() * 9999) + 1000,
         paymentId: uuid(),
-        PaymentMethod: "TestPaymentSystem",
+        paymentMethod: "TestPaymentSystem",
         originModel: "Cart",
         comment: "testing"
     };

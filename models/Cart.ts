@@ -157,7 +157,7 @@ module.exports = {
     rmsErrorMessage: 'string',
     rmsErrorCode: 'string',
     rmsStatusCode: 'string',
-    deliveryStatus: 'string',
+    deliveryStatus: 'integer',
     selfService: {
       type: 'boolean',
       defaultsTo: false
@@ -230,14 +230,14 @@ module.exports = {
       await emitter.emit.apply(emitter, ['core-cart-add-dish-before-create-cartdish', ...arguments]);
       let cartDish: CartDish;
       if(replace) {
-        cartDish = await CartDish.update({id: cartDishId},{
+        cartDish = (await CartDish.update({id: cartDishId},{
           dish: dishObj.id,
           cart: this.id,
           amount: amount,
           modifiers: modifiers || [],
           comment: comment,
           addedBy: from
-        });
+        }))[0];
       }else{
         cartDish = await CartDish.create({
           dish: dishObj.id,
@@ -625,7 +625,7 @@ module.exports = {
             if (resultsCount === successCount) {
               order();
               return 0;
-            } else if (successCount === 0) {k
+            } else if (successCount === 0) {
               return 1;
             } else {
               return 2;
@@ -1032,7 +1032,7 @@ export default interface Cart extends ORM, StateFlow {
   rmsErrorMessage: string;
   rmsErrorCode: string;
   rmsStatusCode: string;
-  deliveryStatus: string;
+  deliveryStatus: string | number;
   selfService: boolean;
   deliveryDescription: string;
   message: string;
