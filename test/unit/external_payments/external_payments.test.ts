@@ -4,6 +4,9 @@ import TestPaymentSystem from './ExternalTestPaymentSystem'
 import { Payment }  from "../../../modelsHelp/Payment"
 import generate_payment from '../../generators/payment.generator'
 import { expect } from 'chai';
+import PaymentDocument from '../../../models/PaymentDocument';
+
+var paymentDocument: PaymentDocument;
 
 describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
   this.timeout(31000);
@@ -23,6 +26,7 @@ describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
 
   it('Create payment test', async () => { 
     const result = await TestPaymentSystem.getInstance().createPayment(test_payment , "http://back_url.com", "http://back_url.com", "delay_3_sec");
+    paymentDocument = result as PaymentDocument;
     expect(result.redirectLink).to.equal("http://redirect_link.com");
   });
 
@@ -30,7 +34,7 @@ describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
   * 3. Проверка оплаты (преждевременная)
   */
   it('Testigt, not yet payment check', async () => { 
-    const result = await TestPaymentSystem.getInstance().checkPayment(test_payment);
+    const result = await TestPaymentSystem.getInstance().checkPayment(paymentDocument);
     expect(result.paid).to.equal(false);
     // тут нужно тестировать корзину там где вызывается создание платежа
   });
@@ -40,7 +44,7 @@ describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
   */
   it('Check done payment', async () => { 
     setTimeout(async () => {
-      const result = await TestPaymentSystem.getInstance().checkPayment(test_payment);
+      const result = await TestPaymentSystem.getInstance().checkPayment(paymentDocument);
       expect(result.paid).to.equal(true);
     }, 3000);
   });

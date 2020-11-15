@@ -1,5 +1,6 @@
 import PaymentAdapter from '../../../adapter/payment/PaymentAdapter';
-import { PaymentResponse, Payment }  from "../../../modelsHelp/Payment"
+import { PaymentResponse, Payment }  from "../../../modelsHelp/Payment";
+import PaymentDocument from "../../../models/PaymentDocument";
 
 var database: any = {}; 
 
@@ -53,7 +54,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
     });
   }
 
-  public async checkPayment(payment: Payment): Promise<Payment> {
+  public async checkPayment(payment: PaymentDocument): Promise<PaymentDocument> {
     let latency = Math.floor(Math.random() * 1200) + 1;
     return new Promise((resolve) => {
       setTimeout(() => {

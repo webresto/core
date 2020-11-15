@@ -146,11 +146,13 @@ module.exports = {
 
     const needy = conditions.filter(c => c.needy);
 
+    // @ts-ignore
     const zones = await Zone.count();
     if (!zones) {
       return needy;
     }
 
+    // @ts-ignore
     const zone = await Zone.getDeliveryCoast(street, home);
 
     if (!zone) {
@@ -160,6 +162,7 @@ module.exports = {
       }
     }
 
+    // @ts-ignore
     conditions = conditions.filter(c => !c.zones || c.zones.filter(z => z.id === zone.id).length);
     conditions = conditions.concat(needy);
     conditions.sort((a, b) => b.weight - a.weight);
