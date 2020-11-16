@@ -22,7 +22,7 @@
     "point-in-polygon": "^1.0.1",
     "request-promise": "^4.2.4",
     "sails-build-dictionary": "^0.10.1",
-    "sails-hook-slugs": "git+https://github.com/webresto/sails-hook-slugs",
+    "sails-hook-slugs": "^2.1.0",
     "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
     "sails-util": "^0.11.0",
     "typescript": "^3.9.7",
