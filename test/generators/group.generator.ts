@@ -22,7 +22,7 @@ interface GroupData  {
 
 }
 
-export default function groupGenerator(config: GroupData): GroupData{
+export default function groupGenerator(config: GroupData = {}): GroupData{
   autoincrement++;
   return {
     id: faker.random.uuid(),

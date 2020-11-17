@@ -18,5 +18,5 @@ interface GroupData {
     dishes?: [];
     slug?: string;
 }
-export default function groupGenerator(config: GroupData): GroupData;
+export default function groupGenerator(config?: GroupData): GroupData;
 export {};

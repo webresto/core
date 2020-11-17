@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const faker = require("faker");
 //import Group from "../../models/Group"
 var autoincrement = 0;
-function groupGenerator(config) {
+function groupGenerator(config = {}) {
     autoincrement++;
     return {
         id: faker.random.uuid(),

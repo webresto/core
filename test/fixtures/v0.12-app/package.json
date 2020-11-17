@@ -6,14 +6,15 @@
   "keywords": [],
   "dependencies": {
     "@webresto/core": "file:../../..",
-    "request-promise": "^4.2.4",
     "ejs": "^2.3.4",
     "include-all": "^1.0.8",
     "jade": "^1.11.0",
     "rc": "^1.0.1",
     "request": "^2.88.2",
+    "request-promise": "^4.2.4",
     "sails": "^0.12.14",
     "sails-hook-orm": "^1.0.9",
+    "sails-hook-slugs": "^2.1.0",
     "sails-memory": "^0.10.7",
     "sails-postgresql": "^0.12.2"
   },
