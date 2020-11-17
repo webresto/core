@@ -86,7 +86,7 @@ module.exports = {
         rmsErrorMessage: 'string',
         rmsErrorCode: 'string',
         rmsStatusCode: 'string',
-        deliveryStatus: 'integer',
+        deliveryStatus: 'string',
         selfService: {
             type: 'boolean',
             defaultsTo: false

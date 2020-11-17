@@ -130,7 +130,7 @@ export default interface Cart extends ORM, StateFlow {
     rmsErrorMessage: string;
     rmsErrorCode: string;
     rmsStatusCode: string;
-    deliveryStatus: string | number;
+    deliveryStatus: string;
     selfService: boolean;
     deliveryDescription: string;
     message: string;
