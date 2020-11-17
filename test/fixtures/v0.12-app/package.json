@@ -6,8 +6,6 @@
   "keywords": [],
   "dependencies": {
     "@webresto/core": "file:../../..",
-    "@webresto/native-check": "git+ssh://git@git.hm:webresto/checkout.git#0.7-gf",
-    "@webresto/street-tips": "git+ssh://git@git.hm:webresto/street-tips.git#0.7-gf",
     "request-promise": "^4.2.4",
     "ejs": "^2.3.4",
     "include-all": "^1.0.8",

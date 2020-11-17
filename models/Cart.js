@@ -86,7 +86,7 @@ module.exports = {
         rmsErrorMessage: 'string',
         rmsErrorCode: 'string',
         rmsStatusCode: 'string',
-        deliveryStatus: 'string',
+        deliveryStatus: 'integer',
         selfService: {
             type: 'boolean',
             defaultsTo: false
@@ -153,14 +153,14 @@ module.exports = {
             await emitter.emit.apply(emitter, ['core-cart-add-dish-before-create-cartdish', ...arguments]);
             let cartDish;
             if (replace) {
-                cartDish = await CartDish.update({ id: cartDishId }, {
+                cartDish = (await CartDish.update({ id: cartDishId }, {
                     dish: dishObj.id,
                     cart: this.id,
                     amount: amount,
                     modifiers: modifiers || [],
                     comment: comment,
                     addedBy: from
-                });
+                }))[0];
             }
             else {
                 cartDish = await CartDish.create({
@@ -487,7 +487,6 @@ module.exports = {
                         return 0;
                     }
                     else if (successCount === 0) {
-                        k;
                         return 1;
                     }
                     else {

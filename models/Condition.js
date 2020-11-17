@@ -132,10 +132,12 @@ module.exports = {
     async getConditions(street, home) {
         let conditions = await Condition.find().populate('zones');
         const needy = conditions.filter(c => c.needy);
+        // @ts-ignore
         const zones = await Zone.count();
         if (!zones) {
             return needy;
         }
+        // @ts-ignore
         const zone = await Zone.getDeliveryCoast(street, home);
         if (!zone) {
             throw {
@@ -143,6 +145,7 @@ module.exports = {
                 message: "zone not found"
             };
         }
+        // @ts-ignore
         conditions = conditions.filter(c => !c.zones || c.zones.filter(z => z.id === zone.id).length);
         conditions = conditions.concat(needy);
         conditions.sort((a, b) => b.weight - a.weight);
