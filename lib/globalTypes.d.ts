@@ -1,12 +1,12 @@
-import * as sailsParent from 'typed-sails';
+import * as sails from 'typed-sails';
 import Config from "../modelsHelp/Config";
-declare type sailsConfig = typeof sailsParent.sails.config;
+declare type sailsConfig = typeof sails.config;
 interface A<T> extends Array<T> {
     add(id: any): void;
     remove(id: any): void;
 }
 declare global {
-    interface Sails extends sailsParent.sails.Sails {
+    interface Sails extends sails.Sails {
         config: SailsConfig;
         iikoFail: boolean;
     }
@@ -14,8 +14,8 @@ declare global {
         restocore: Config;
     }
     const sails: Sails;
-    type ReqType = sailsParent.sails.Request;
-    type ResType = sailsParent.sails.Response;
+    type ReqType = sails.Request;
+    type ResType = sails.Response;
     type Association<T> = A<T>;
     type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
 }
