@@ -387,19 +387,38 @@ module.exports = {
              */
             getEmitter_1.default().emit('core-cart-before-check', self, customer, isSelfService, address);
             sails.log.verbose('Cart > check > before check >', customer, isSelfService, address, paymentMethodId);
-            await checkCustomerInfo(customer);
+            if (customer) {
+                await checkCustomerInfo(customer);
+                self.customer = customer;
+            }
+            else {
+                if (self.customer === undefined) {
+                    throw {
+                        code: 2,
+                        error: 'customer is required'
+                    };
+                }
+            }
+            if (address) {
+                checkAddress(address);
+                self.address = address;
+            }
+            else {
+                if (self.address === undefined) {
+                    throw {
+                        code: 2,
+                        error: 'address is required'
+                    };
+                }
+            }
             await checkDate(self);
-            console.log(">>>>>>>>>>>>>>>>!!!!!");
-            if (paymentMethodId)
-                await checkPaymentMethod(paymentMethodId);
-            console.log(">>>>>>>>>>>>>>>>!!!!1");
             if (paymentMethodId) {
+                await checkPaymentMethod(paymentMethodId);
                 self.paymentMethod = paymentMethodId;
                 self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
                 self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
             }
-            console.log(">>>>>>>>>>>>>>>>!!!!!2");
-            self.customer = customer;
+            isSelfService = isSelfService === undefined ? false : isSelfService;
             if (isSelfService) {
                 // TODO непонятно почему тут не вызывается ожтдающий эммитер
                 getEmitter_1.default().emit('core-cart-check-self-service', self, customer, isSelfService, address);
@@ -409,8 +428,6 @@ module.exports = {
                 return true;
             }
             getEmitter_1.default().emit('core-cart-check-delivery', self, customer, isSelfService, address);
-            checkAddress(address);
-            self.address = address;
             const results = await getEmitter_1.default().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
             sails.log.verbose("Cart > check > getEmitter results: ", results);
             await self.save();
