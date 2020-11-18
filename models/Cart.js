@@ -331,13 +331,14 @@ module.exports = {
          */
         setComment: async function (dish, comment) {
             const emitter = getEmitter_1.default();
+            const self = this;
             await emitter.emit.apply(emitter, ['core-cart-before-set-comment', ...arguments]);
             const cart = await Cart.findOne(this.id).populate('dishes');
             const cartDish = await CartDish.findOne({ cart: cart.id, id: dish.id }).populate('dish');
             if (cartDish) {
                 await CartDish.update(cartDish.id, { comment: comment });
                 await cart.next('CART');
-                await this.countCart(cart);
+                await Cart.countCart(self);
                 await emitter.emit.apply(emitter, ['core-cart-after-set-comment', ...arguments]);
             }
             else {

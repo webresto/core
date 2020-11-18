@@ -432,6 +432,7 @@ module.exports = {
      */
     setComment: async function (dish: CartDish, comment: string): Promise<void> {
       const emitter = getEmitter();
+      const self: Cart = this;
       await emitter.emit.apply(emitter, ['core-cart-before-set-comment', ...arguments]);
 
       const cart = await Cart.findOne(this.id).populate('dishes');
@@ -442,7 +443,7 @@ module.exports = {
         await CartDish.update(cartDish.id, {comment: comment});
 
         await cart.next('CART');
-        await this.countCart(cart);
+        await Cart.countCart(self);
 
         await emitter.emit.apply(emitter, ['core-cart-after-set-comment', ...arguments]);
       } else {
