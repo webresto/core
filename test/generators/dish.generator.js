@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const faker = require("faker");
 //import Dish from "../../models/Dish"
 var autoincrement = 0;
-function dishGenerator(config) {
+function dishGenerator(config = {}) {
     autoincrement++;
     return {
         id: faker.random.uuid(),
@@ -17,7 +17,7 @@ function dishGenerator(config) {
         images: config.images || null,
         name: faker.commerce.productName(),
         composition: faker.random.words(25),
-        rmsId: null,
+        rmsId: 'none',
         code: null,
         tags: null,
         isDeleted: config.isDeleted || false
