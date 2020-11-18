@@ -113,7 +113,8 @@ const actions = {
       cart.delivery = deliveryCost;
     }
 
-    cart.deliveryStatus = 0;
+    // вероятно тут ошибка, так как деливери статус это текст о том какой статус....из РМС
+    cart.deliveryStatus = "0";
     if (cart.state !== 'CHECKOUT')
       await cart.next();
 
