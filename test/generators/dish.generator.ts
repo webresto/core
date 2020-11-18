@@ -22,7 +22,7 @@ interface DishData  {
   isDeleted?: boolean;
 }
 
-export default function dishGenerator(config?: DishData): DishData{
+export default function dishGenerator(config: DishData = {}): DishData{
   autoincrement++;
   return {
     id: faker.random.uuid(),
@@ -36,7 +36,7 @@ export default function dishGenerator(config?: DishData): DishData{
     images: config.images || null,
     name: faker.commerce.productName(),
     composition: faker.random.words(25),
-    rmsId: null,
+    rmsId: 'none',
     code: null,
     tags: null,
     isDeleted: config.isDeleted || false
