@@ -55,13 +55,13 @@ describe('Cart', function () {
         cart = await Cart.create({});
         let res = await Cart.returnFullCart(cart);
     });
-    it('addDish 20', async function () {
-        cart = await Cart.create({});
-        for (let i = 0; i < 20; i++) {
-            cart.addDish(dishes[i], 3, [], '', '');
-        }
-    });
-    it('addDish 21th', async function () {
-        cart.addDish(dishes[21], 3, [], '', '');
-    });
+    // it('addDish 20', async function(){
+    //   cart = await Cart.create({});
+    //   for(let i = 0; i < 20; i++){
+    //     cart.addDish(dishes[i], 3, [], '', '');
+    //   }
+    // });
+    // it('addDish 21th', async function(){
+    //   cart.addDish(dishes[21], 3, [], '', '');
+    // });
 });

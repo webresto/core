@@ -2,10 +2,10 @@
  * Описывает адресс получателя для доставки
  */
 export default interface Address {
-    streetId?: string;
+    streetId: string;
     home: number;
-    comment: string;
-    city: string;
+    comment?: string;
+    city?: string;
     street: string;
     housing?: string;
     index?: string;

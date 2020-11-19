@@ -4,7 +4,7 @@ import Group from "../models/Group";
 import * as moment from "moment";
 import {Map} from "../adapter";
 import Point from "../adapter/map/Point";
-import Condition from "../models/Condition";
+import Condition from "../../checkout/models/Condition";
 
 type customCause = {
   name: string;
@@ -23,18 +23,32 @@ const customCauses: customCause[] = [];
  * @returns {Promise<boolean>}
  */
 export default async function causes(condition: Condition, cart: Cart): Promise<boolean> {
-  if (!condition.enable)
+  sails.log.verbose("##########################################");
+  sails.log.verbose("start check causes for:", condition, cart);
+  if (!condition.enable){
+    sails.log.verbose("Condition "+ condition.name+" has not enabled");
     return false;
+  }
+    
 
-  if (!condition.causes)
-    return true;
-
-  if (!checkTime(condition.causes.workTime))
+  if (!condition.causes){
+    sails.log.verbose("Condition "+ condition.name+" not have causes");
     return false;
+  }
+    
 
-  if (condition.causes.directDistance)
-    if (!await checkDistance(cart, condition.causes.directDistance))
+  if (!checkTime(condition.causes.workTime)){
+    sails.log.verbose("Condition "+ condition.name+" do not work now");
+    return false;
+  }
+
+
+  if (condition.causes.directDistance) {
+    if (!await checkDistance(cart, condition.causes.directDistance)){
+      sails.log.verbose("Condition "+ condition.name+" not in distance");
       return false;
+    }
+  }
 
   const customCausesWithoutCart = customCauses.filter(c => !c.needCart);
   for (let cause of customCausesWithoutCart) {
@@ -48,13 +62,19 @@ export default async function causes(condition: Condition, cart: Cart): Promise<
     await Cart.count(cart);
 
     if (condition.causes.cartAmount)
-      if (!between(condition.causes.cartAmount.valueFrom, condition.causes.cartAmount.valueTo, cart.cartTotal))
+      if (!between(condition.causes.cartAmount.valueFrom, condition.causes.cartAmount.valueTo, cart.cartTotal)){
+        sails.log.verbose("Condition "+ condition.name+" not in betwen from:" + condition.causes.cartAmount.valueFrom+" to:"+ condition.causes.cartAmount.valueTo+ " cart:" + cart.cartTotal);
         return false;
+      }
+        
 
     if (condition.causes.dishes) {
       const dishes = cart.dishes.filter(d => condition.causes.dishes.includes(d.id));
-      if (dishes.length === 0)
+      if (dishes.length === 0){
+        sails.log.verbose("Condition "+ condition.name+" empty cart check. Count:"+ dishes.length);
         return false;
+      }
+        
     }
     if (condition.causes.groups) {
       const groups1 = new Set<string>();
@@ -81,8 +101,11 @@ export default async function causes(condition: Condition, cart: Cart): Promise<
       }
 
       const groups = dishGroups.filter(g => condition.causes.groups.includes(g));
-      if (groups.length === 0)
+      if (groups.length === 0){
+        sails.log.verbose("Condition "+ condition.name+" not have dishes from groups", dishGroups);
         return false;
+      }
+
     }
 
     const customCausesWithCart = customCauses.filter(c => c.needCart);

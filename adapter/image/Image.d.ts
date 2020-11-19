@@ -6,8 +6,8 @@ export default class Image {
     name: {
         origin: string;
     };
-    key: 'dish' | 'group';
+    key: string;
     constructor(url: string, name: {
         origin: string;
-    }, key: 'dish' | 'group');
+    }, key: string);
 }

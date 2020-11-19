@@ -6,9 +6,9 @@ export default class Image {
   name: {
     origin: string;
   };
-  key: 'dish' | 'group';
+  key: string;
 
-  constructor(url: string, name: { origin: string }, key: 'dish' | 'group') {
+  constructor(url: string, name: { origin: string }, key: string) {
     this.url = url;
     this.name = name;
     this.key = key;

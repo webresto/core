@@ -53,7 +53,7 @@ const actions = {
    * @param params(cartId, dishesId)
    * @return Promise<Cart>
    */
-  async addDish(params: AddDishParams): Promise<Cart> {
+  async addDish(cart: Cart, params: AddDishParams): Promise<Cart> {
     const cartId = params.cartId;
     const dishesId = params.dishesId;
 
@@ -63,7 +63,7 @@ const actions = {
     if (!dishesId || !dishesId.length)
       throw 'dishIds (array of strings) is required as second element of params';
 
-    const cart = await Cart.findOne(cartId);
+    //const cart = await Cart.findOne(cartId);
     if (!cart)
       throw 'cart with id ' + cartId + ' not found';
 
@@ -80,7 +80,7 @@ const actions = {
    * @param params(cartId, deliveryCost)
    * @returns {Promise<>}
    */
-  async delivery(params: DeliveryParams): Promise<Cart> {
+  async delivery(cart: Cart, params: DeliveryParams): Promise<Cart> {
     const cartId = params.cartId;
     const deliveryCost = params.deliveryCost;
     const deliveryItem = params.deliveryItem;
@@ -97,7 +97,7 @@ const actions = {
     if (deliveryItem && typeof deliveryItem !== 'string')
       throw 'deliveryCost (string) is required as second element of params';
 
-    const cart = await Cart.findOne(cartId);
+    //const cart = await Cart.findOne(cartId);
 
     if (!cart)
       throw 'cart with id ' + cartId + ' not found';
@@ -128,7 +128,7 @@ const actions = {
    * @param cartId
    * @returns {Promise<>}
    */
-  async reset(cartId: string): Promise<Cart> {
+  async reset(cart: Cart, cartId: string): Promise<Cart> {
     if (!cartId)
       throw 'cartId (string) is required as first element of params';
 
@@ -156,7 +156,7 @@ const actions = {
    * @param params(cartId, description)
    * @return Promise<Cart>
    */
-  async setDeliveryDescription(params: DeliveryDescriptionParams): Promise<Cart> {
+  async setDeliveryDescription(cart: Cart, params: DeliveryDescriptionParams): Promise<Cart> {
     const cartId = params.cartId;
     const description = params.description;
 
@@ -167,7 +167,7 @@ const actions = {
       throw 'description (string) is required as second element of params';
     }
 
-    const cart = await Cart.findOne(cartId);
+    //const cart = await Cart.findOne(cartId);
 
     if (!cart)
       throw 'cart with id ' + cartId + ' not found';
@@ -179,13 +179,13 @@ const actions = {
     return cart;
   },
 
-  async reject(params: ActionParams): Promise<Cart> {
+  async reject(cart: Cart, params: ActionParams): Promise<Cart> {
     const cartId = params.cartId;
 
     if (!cartId)
       throw 'cartId (string) is required as first element of params';
 
-    const cart = await Cart.findOne(cartId);
+    //const cart = await Cart.findOne(cartId);
     if (!cart) {
       throw 'cart with id ' + cartId + ' not found';
     }
@@ -196,7 +196,8 @@ const actions = {
     return cart;
   },
 
-  async setMessage(params: MessageParams): Promise<Cart> {
+  async setMessage(cart: Cart, params: MessageParams): Promise<Cart> {
+    sails.log.info("CORE > actions > setMessage", params);
     const cartId = params.cartId;
     const message = params.message;
 
@@ -206,7 +207,7 @@ const actions = {
     if (!message)
       throw 'description (string) is required as second element of params';
 
-    const cart = await Cart.findOne(cartId);
+    //const cart = await Cart.findOne(cartId);
     if (!cart)
       throw 'cart with id ' + cartId + ' not found';
 

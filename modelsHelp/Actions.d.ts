@@ -4,12 +4,13 @@ import Cart from "../models/Cart";
  * Описывает возможные дейтсвия с корзиной
  */
 export default interface Actions {
-    addDish(params: AddDishParams): Promise<Cart>;
-    delivery(params: DeliveryParams): Promise<Cart>;
-    reset(cartId: string): Promise<Cart>;
-    setDeliveryDescription(params: DeliveryDescriptionParams): Promise<Cart>;
-    reject(params: ActionParams): Promise<Cart>;
-    setMessage(params: MessageParams): Promise<Cart>;
+    addDish(cart: Cart, params: AddDishParams): Promise<Cart>;
+    delivery(cart: Cart, params: DeliveryParams): Promise<Cart>;
+    /** Reset all cart action  */
+    reset(cart: Cart, cartId: string): Promise<Cart>;
+    setDeliveryDescription(cart: Cart, params: DeliveryDescriptionParams): Promise<Cart>;
+    reject(cart: Cart, params: ActionParams): Promise<Cart>;
+    setMessage(cart: Cart, params: MessageParams): Promise<Cart>;
     return(): number;
 }
 /**

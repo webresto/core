@@ -549,8 +549,6 @@ module.exports = {
 
       getEmitter().emit('core-cart-check-delivery', self, customer, isSelfService, address);
 
-
-
       const results = await getEmitter().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
       sails.log.verbose("Cart > check > getEmitter results: ",results)
       await self.save();
@@ -946,10 +944,10 @@ async function checkCustomerInfo(customer) {
 }
 
 function checkAddress(address) {
-  if (!address.streetId && !address.street ) {
+  if (!address.streetId || !address.street ) {
     throw {
       code: 5,
-      error: 'address.streetId is required'
+      error: 'address.streetId & address.street  is required'
     }
   }
 

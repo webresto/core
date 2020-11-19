@@ -68,15 +68,23 @@ export default class HookTools {
    * @param cb - function
    */
   public static waitForHooks(selfName: string, hooks: string[], cb: (...args) => any): void {
-    let eventsToWaitFor = ['router:after'];
-
-    _.forEach(hooks, function (hook) {
-      if (!sails.hooks[hook]) {
-        throw new Error('Cannot use `' + selfName + '` hook without the `' + hook + '` hook.');
-      }
-      eventsToWaitFor.push('hook:' + hook + ':loaded');
-    });
-
+    var eventsToWaitFor = [];
+    eventsToWaitFor.push('router:after');
+    try {
+        /**
+         * Check hooks availability
+         */
+        _.forEach(hooks, function (hook) {
+            if (!sails.hooks[hook]) {
+              throw new Error('Cannot use `' + selfName + '` hook without the `' + hook + '` hook.');
+            }
+            eventsToWaitFor.push('hook:' + hook + ':loaded');
+        });
+    } catch(err) {
+        if (err) {
+            return cb(err);
+        }
+    }
     sails.after(eventsToWaitFor, cb);
   }
 

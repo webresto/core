@@ -770,10 +770,10 @@ async function checkCustomerInfo(customer) {
     }
 }
 function checkAddress(address) {
-    if (!address.streetId && !address.street) {
+    if (!address.streetId || !address.street) {
         throw {
             code: 5,
-            error: 'address.streetId is required'
+            error: 'address.streetId & address.street  is required'
         };
     }
     if (!address.home) {

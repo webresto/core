@@ -72,7 +72,7 @@
   "homepage": "http://webresto.org/",
   "sails": {
     "isHook": true,
-    "hookName": "webresto-core"
+    "hookName": "restocore"
   },
   "scripts": {
     "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o api.md",

@@ -1,6 +1,6 @@
 import Cart from "../models/Cart";
 import { DirectDistance, Time } from "../modelsHelp/Cause";
-import Condition from "../models/Condition";
+import Condition from "../../checkout/models/Condition";
 declare type customCause = {
     name: string;
     needCart: boolean;
