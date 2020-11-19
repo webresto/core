@@ -128,14 +128,9 @@ const actions = {
    * @param cartId
    * @returns {Promise<>}
    */
-  async reset(cart: Cart, cartId: string): Promise<Cart> {
-    if (!cartId)
-      throw 'cartId (string) is required as first element of params';
-
-    const cart = await Cart.findOne(cartId);
-
+  async reset(cart: Cart): Promise<Cart> {
     if (!cart)
-      throw 'cart with id ' + cartId + ' not found';
+      throw 'cart is required';
 
     cart.delivery = 0;
     cart.deliveryStatus = null;
@@ -160,8 +155,8 @@ const actions = {
     const cartId = params.cartId;
     const description = params.description;
 
-    if (!cartId)
-      throw 'cartId (string) is required as first element of params';
+    if (!cart)
+      throw 'cart is required';
 
     if (!description) {
       throw 'description (string) is required as second element of params';
@@ -180,20 +175,11 @@ const actions = {
   },
 
   async reject(cart: Cart, params: ActionParams): Promise<Cart> {
-    const cartId = params.cartId;
-
-    if (!cartId)
-      throw 'cartId (string) is required as first element of params';
-
-    //const cart = await Cart.findOne(cartId);
-    if (!cart) {
-      throw 'cart with id ' + cartId + ' not found';
-    }
+    if (!cart)
+      throw 'cart is required';
 
     cart.deliveryStatus = null;
     await cart.next('CART');
-
-    return cart;
   },
 
   async setMessage(cart: Cart, params: MessageParams): Promise<Cart> {
@@ -201,8 +187,8 @@ const actions = {
     const cartId = params.cartId;
     const message = params.message;
 
-    if (!cartId)
-      throw 'cartId (string) is required as first element of params';
+    if (!cart)
+      throw 'cart is required';
 
     if (!message)
       throw 'description (string) is required as second element of params';

@@ -7,7 +7,7 @@ export default interface Actions {
     addDish(cart: Cart, params: AddDishParams): Promise<Cart>;
     delivery(cart: Cart, params: DeliveryParams): Promise<Cart>;
     /** Reset all cart action  */
-    reset(cart: Cart, cartId: string): Promise<Cart>;
+    reset(cart: Cart): Promise<Cart>;
     setDeliveryDescription(cart: Cart, params: DeliveryDescriptionParams): Promise<Cart>;
     reject(cart: Cart, params: ActionParams): Promise<Cart>;
     setMessage(cart: Cart, params: MessageParams): Promise<Cart>;

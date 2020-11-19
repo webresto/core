@@ -259,7 +259,7 @@ export default interface Cart extends ORM, StateFlow {
      * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
      * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
      */
-    check(customer: Customer, isSelfService: boolean, address?: Address, paymentMethod?: string): Promise<boolean>;
+    check(customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethod?: string): Promise<boolean>;
     /**
      * Вызывет core-cart-order. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
      * отдаёт успешность заказа.

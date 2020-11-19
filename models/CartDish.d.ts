@@ -39,6 +39,7 @@ export default interface CartDish extends ORM {
     weight: number;
     totalWeight: number;
     comment: string;
+    addedBy?: string;
 }
 /**
  * Описывает класс CartDish, используется для ORM
