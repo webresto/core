@@ -73,6 +73,7 @@ export default interface CartDish extends ORM {
   weight: number;
   totalWeight: number;
   comment: string;
+  addedBy?: string;
 }
 
 /**
