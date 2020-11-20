@@ -125,7 +125,6 @@ const actions = {
     if (!cart)
       throw 'cart is required';
 
-    cart.delivery = 0;
     cart.deliveryStatus = null;
     cart.deliveryDescription = "";
     cart.message = "";
