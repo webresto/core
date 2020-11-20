@@ -550,10 +550,9 @@ module.exports = {
       getEmitter().emit('core-cart-check-delivery', self, customer, isSelfService, address);
 
       const results = await getEmitter().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
-      sails.log.verbose("Cart > check > getEmitter results: ",results)
       await self.save();
 
-      sails.log.verbose('Cart > check > after wait general emitter', results);
+      sails.log.info('Cart > check > after wait general emitter', self, results);
       const resultsCount = results.length;
       const successCount = results.filter(r => r.state === "success").length;
 
@@ -563,6 +562,7 @@ module.exports = {
         return true;
 
       const checkConfig = await SystemInfo.use('check');
+      
       if (checkConfig) {
         if (checkConfig.requireAll) {
           if (resultsCount === successCount) {
