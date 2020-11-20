@@ -23,29 +23,30 @@ const customCauses: customCause[] = [];
  * @returns {Promise<boolean>}
  */
 export default async function causes(condition: Condition, cart: Cart): Promise<boolean> {
-  sails.log.verbose("##########################################");
-  sails.log.verbose("start check causes for:", condition, cart);
+  sails.log.debug("##########################################");
+  sails.log.debug("start check causes for:", condition.name, cart.id);
+  sails.log.info("causes INFO:", JSON.stringify(condition));
   if (!condition.enable){
-    sails.log.verbose("Condition "+ condition.name+" has not enabled");
+    sails.log.debug("Condition "+ condition.name+" has not enabled");
     return false;
   }
     
 
   if (!condition.causes){
-    sails.log.verbose("Condition "+ condition.name+" not have causes");
+    sails.log.debug("Condition "+ condition.name+" not have causes");
     return false;
   }
     
 
   if (!checkTime(condition.causes.workTime)){
-    sails.log.verbose("Condition "+ condition.name+" do not work now");
+    sails.log.debug("Condition "+ condition.name+" do not work now");
     return false;
   }
 
 
   if (condition.causes.directDistance) {
     if (!await checkDistance(cart, condition.causes.directDistance)){
-      sails.log.verbose("Condition "+ condition.name+" not in distance");
+      sails.log.debug("Condition "+ condition.name+" not in distance");
       return false;
     }
   }
@@ -60,22 +61,23 @@ export default async function causes(condition: Condition, cart: Cart): Promise<
 
   if (cart) {
     await Cart.count(cart);
-
-    if (condition.causes.cartAmount)
+    sails.log.debug("Condition "+ condition.name+" check for cart");
+    if (condition.causes.cartAmount) {
       if (!between(condition.causes.cartAmount.valueFrom, condition.causes.cartAmount.valueTo, cart.cartTotal)){
-        sails.log.verbose("Condition "+ condition.name+" not in betwen from:" + condition.causes.cartAmount.valueFrom+" to:"+ condition.causes.cartAmount.valueTo+ " cart:" + cart.cartTotal);
+        sails.log.debug("Condition "+ condition.name+" not in betwen from:" + condition.causes.cartAmount.valueFrom+" to:"+ condition.causes.cartAmount.valueTo+ " cart:" + cart.cartTotal);
         return false;
       }
-        
+      sails.log.debug("Condition "+ condition.name+" not in between",condition.causes.cartAmount)
+    }
 
     if (condition.causes.dishes) {
       const dishes = cart.dishes.filter(d => condition.causes.dishes.includes(d.id));
       if (dishes.length === 0){
-        sails.log.verbose("Condition "+ condition.name+" empty cart check. Count:"+ dishes.length);
+        sails.log.debug("Condition "+ condition.name+" empty cart check. Count:"+ dishes.length);
         return false;
       }
-        
     }
+
     if (condition.causes.groups) {
       const groups1 = new Set<string>();
 
@@ -102,7 +104,7 @@ export default async function causes(condition: Condition, cart: Cart): Promise<
 
       const groups = dishGroups.filter(g => condition.causes.groups.includes(g));
       if (groups.length === 0){
-        sails.log.verbose("Condition "+ condition.name+" not have dishes from groups", dishGroups);
+        sails.log.debug("Condition "+ condition.name+" not have dishes from groups", dishGroups);
         return false;
       }
 
@@ -116,6 +118,8 @@ export default async function causes(condition: Condition, cart: Cart): Promise<
       }
     }
 
+    sails.log.debug("finish check causes for:", condition.name, JSON.stringify(cart));
+    sails.log.debug("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
     return true;
   } else {
     return true;

@@ -168,7 +168,7 @@ module.exports = {
     },
     message: 'string', // deprecated
     deliveryItem: 'string',
-    deliveryTotal: 'float', // rename to deliveryCost
+    deliveryCost: 'float', // rename to deliveryCost
     totalWeight: 'float',
     total: 'float',
     orderTotal: 'float',
@@ -488,9 +488,8 @@ module.exports = {
      * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
      */
     check: async function (customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<boolean> {
-      const self: Cart = this;
-
-
+      const self: Cart  = await Cart.returnFullCart(this);
+      //const self: Cart = this;
       if(self.paid) {
         sails.log.error("CART > Check > error", self.id, "cart is paid");
         return false
@@ -867,11 +866,11 @@ module.exports = {
       }
     });
 
-    let deliveryTotal: number;
-    if (cart.deliveryTotal){
-      deliveryTotal = cart.deliveryTotal
+    let deliveryCost: number;
+    if (cart.deliveryCost){
+      deliveryCost = cart.deliveryCost
     } else {
-      deliveryTotal = 0
+      deliveryCost = 0
     }
 
     cart.dishesCount = dishesCount;
@@ -879,7 +878,7 @@ module.exports = {
     cart.totalWeight = totalWeight;
     cart.total = orderTotal;
     cart.orderTotal = orderTotal;
-    cart.cartTotal = orderTotal + deliveryTotal;
+    cart.cartTotal = orderTotal + deliveryCost;
 
     for (let cd in cart.dishes) {
       if (cart.dishes.hasOwnProperty(cd)) {
@@ -1050,7 +1049,7 @@ export default interface Cart extends ORM, StateFlow {
   deliveryDescription: string;
   message: string;
   deliveryItem: string;
-  deliveryTotal: number;
+  deliveryCost: number;
   totalWeight: number;
   total: number;
   orderTotal: number;

@@ -97,7 +97,7 @@ module.exports = {
         },
         message: 'string',
         deliveryItem: 'string',
-        deliveryTotal: 'float',
+        deliveryCost: 'float',
         totalWeight: 'float',
         total: 'float',
         orderTotal: 'float',
@@ -378,7 +378,8 @@ module.exports = {
          * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
          */
         check: async function (customer, isSelfService, address, paymentMethodId) {
-            const self = this;
+            const self = await Cart.returnFullCart(this);
+            //const self: Cart = this;
             if (self.paid) {
                 sails.log.error("CART > Check > error", self.id, "cart is paid");
                 return false;
@@ -700,19 +701,19 @@ module.exports = {
                 sails.log.error('Cart > count > error3', e);
             }
         });
-        let deliveryTotal;
-        if (cart.deliveryTotal) {
-            deliveryTotal = cart.deliveryTotal;
+        let deliveryCost;
+        if (cart.deliveryCost) {
+            deliveryCost = cart.deliveryCost;
         }
         else {
-            deliveryTotal = 0;
+            deliveryCost = 0;
         }
         cart.dishesCount = dishesCount;
         cart.uniqueDishes = uniqueDishes;
         cart.totalWeight = totalWeight;
         cart.total = orderTotal;
         cart.orderTotal = orderTotal;
-        cart.cartTotal = orderTotal + deliveryTotal;
+        cart.cartTotal = orderTotal + deliveryCost;
         for (let cd in cart.dishes) {
             if (cart.dishes.hasOwnProperty(cd)) {
                 const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);

@@ -135,7 +135,7 @@ export default interface Cart extends ORM, StateFlow {
     deliveryDescription: string;
     message: string;
     deliveryItem: string;
-    deliveryTotal: number;
+    deliveryCost: number;
     totalWeight: number;
     total: number;
     orderTotal: number;
