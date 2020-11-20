@@ -814,7 +814,7 @@ deliveryWorkTime
 |  personsCount | Integer | <p>Количество персон</p>|
 |  sendToIiko | Boolean | <p>Был ли отправлен заказ IIKO</p>|
 |  iikoId | String | <p>ID заказа, который пришёл от IIKO</p>|
-|  deliveryStatus | String | <p>Статус состояния доставки (0 успешно расчитана)</p>|
+|  deliveryStatus | String | <p>Статус состояния доставки человеко-читаемый</p>|
 |  selfService | Boolean | <p>Признак самовывоза</p>|
 |  deliveryDescription | String | <p>Строка дополнительной информации о доставке</p>|
 |  message | String | <p>Сообщение, что отправляется с корзиной</p>|

@@ -125,7 +125,6 @@ const actions = {
     if (!cart)
       throw 'cart is required';
 
-    cart.deliveryStatus = null;
     cart.deliveryDescription = "";
     cart.message = "";
     await cart.next('CART');
@@ -170,7 +169,6 @@ const actions = {
     if (!cart)
       throw 'cart is required';
 
-    cart.deliveryStatus = null;
     await cart.next('CART');
   },
 
