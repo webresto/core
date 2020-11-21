@@ -461,7 +461,7 @@ module.exports = {
 
       sails.log.verbose('Cart > setSelfService >', selfService);
 
-      await actions.reset(this.id);
+      await actions.reset(this);
 
       self.selfService = selfService;
       await self.save();

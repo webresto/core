@@ -353,7 +353,7 @@ module.exports = {
         setSelfService: async function (selfService) {
             const self = this;
             sails.log.verbose('Cart > setSelfService >', selfService);
-            await actions_1.default.reset(this.id);
+            await actions_1.default.reset(this);
             self.selfService = selfService;
             await self.save();
         },
