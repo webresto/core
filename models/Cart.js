@@ -103,21 +103,6 @@ module.exports = {
         orderTotal: 'float',
         cartTotal: 'float',
         orderDate: 'datetime',
-        //
-        doPaid: async function (paymentId, paymentMethod) {
-            try {
-                let paymentMethodTitle = (await PaymentMethod.findOne(paymentMethod)).title;
-                await this.update({ id: paymentId }, { paid: true, paymentMethod: paymentMethod, paymentMethodTitle: paymentMethodTitle, });
-                if (this.state !== 'PAYMENT') {
-                    sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', this);
-                    await this.next('PAYMENT');
-                }
-            }
-            catch (e) {
-                sails.log.error('Cart > doPaid error: ', e);
-                throw e;
-            }
-        },
         /**
          * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
          * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
@@ -159,6 +144,8 @@ module.exports = {
                     throw { body: `There is no so mush dishes with id ${dishObj.id}`, code: 1 };
                 }
             const cart = await Cart.findOne({ id: this.id }).populate('dishes');
+            if (cart.state === "ORDER")
+                throw "cart with cartId " + cart.id + "in state ORDER";
             if (modifiers && modifiers.length) {
                 modifiers.forEach((m) => {
                     if (!m.amount)
@@ -209,6 +196,8 @@ module.exports = {
             const emitter = getEmitter_1.default();
             await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
             const cart = await Cart.findOne({ id: this.id }).populate('dishes');
+            if (cart.state === "ORDER")
+                throw "cart with cartId " + cart.id + "in state ORDER";
             var cartDish;
             if (stack) {
                 amount = 1;
@@ -258,6 +247,8 @@ module.exports = {
                     throw { body: `There is no so mush dishes with id ${dish.dish.id}`, code: 1 };
                 }
             const cart = await Cart.findOne(this.id).populate('dishes');
+            if (cart.state === "ORDER")
+                throw "cart with cartId " + cart.id + "in state ORDER";
             const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish');
             const get = cartDishes.find(item => item.id === dish.id);
             if (get) {
@@ -278,59 +269,6 @@ module.exports = {
             }
         },
         /**
-         * Устанавливает заданному модификатору в заданом блюде в текузей заданное количество.
-         * В случае успешной работы изменяет состояние корзины в CART
-         * @param dish - блюдо, модификатор которого изменять
-         * @param modifier - id блюда, которое привязано к модификатору, количество которого менять
-         * @param amount - новое количество
-         * @throws Object {
-         *   body: string,
-         *   code: number
-         * }
-         * where codes:
-         * 1 - нет достаточного количества блюд
-         * 2 - dish не найден в текущей корзине
-         * 3 - блюдо modifier не найден как модификатор блюда dish
-         * 4 - блюдо dish в текущей корзине не содержит модификатора modifier
-         * @fires cart:core-cart-before-set-modifier-count - вызывается перед началом фунции. Результат подписок игнорируется.
-         * @fires cart:core-cart-set-modifier-count-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
-         * @fires cart:core-cart-set-modifier-count-reject-no-cartdish - вызывается перед ошибкой с кодом 2. Результат подписок игнорируется.
-         * @fires cart:core-cart-set-modifier-count-reject-no-modifier-dish - вызывается перед ошибкой с кодом 3. Результат подписок игнорируется.
-         * @fires cart:core-cart-set-modifier-count-reject-no-modifier-in-dish - вызывается перед ошибкой с кодом 4. Результат подписок игнорируется.
-         * @fires cart:core-cart-after-set-modifier-count - вызывается после успешной работы функции. Результат подписок игнорируется.
-         */
-        setModifierCount: async function (dish, modifier, amount) {
-            const emitter = getEmitter_1.default();
-            await emitter.emit.apply(emitter, ['core-cart-before-set-modifier-count', ...arguments]);
-            if (modifier.balance !== -1)
-                if (amount > modifier.balance) {
-                    await emitter.emit.apply(emitter, ['core-cart-set-modifier-count-reject-amount', ...arguments]);
-                    throw { body: `There is no so mush dishes with id ${modifier.id}`, code: 1 };
-                }
-            const cartDishes = await CartDish.find({ cart: this.id }).populate('dish').populate('modifiers');
-            const get = cartDishes.filter(item => item.dish.id === dish.id)[0];
-            if (!get) {
-                await emitter.emit.apply(emitter, ['core-cart-set-modifier-count-reject-no-cartdish', ...arguments]);
-                throw { body: `CartDish dish id ${dish.id} not found`, code: 2 };
-            }
-            const dish1 = await Dish.findOne({ id: dish.id });
-            // check that dish has this modifier
-            const getModif = dish1.modifiers.find(item => item.id === modifier.id);
-            if (!getModif) {
-                await emitter.emit.apply(emitter, ['core-cart-set-modifier-count-reject-no-modifier-dish', ...arguments]);
-                throw { body: `Dish dish id ${getModif.id} not found`, code: 3 };
-            }
-            let getMofifFromDish = get.modifiers.filter(item => modifier.id === item.dish.id)[0];
-            if (!getMofifFromDish) {
-                await emitter.emit.apply(emitter, ['core-cart-set-modifier-count-reject-no-modifier-in-dish', ...arguments]);
-                throw { body: `Modifier ${modifier.id} in dish id ${dish.id} not found`, code: 4 };
-            }
-            getMofifFromDish.amount = amount;
-            await CartDish.update({ id: getMofifFromDish.id }, { amount: getMofifFromDish.amount });
-            await this.next('CART');
-            await emitter.emit.apply(emitter, ['core-cart-after-set-modifier-count', ...arguments]);
-        },
-        /**
          * Меняет комментарий заданного блюда в текущей корзине
          * @param dish - какому блюду менять комментарий
          * @param comment - новый комментарий
@@ -349,6 +287,8 @@ module.exports = {
             const self = this;
             await emitter.emit.apply(emitter, ['core-cart-before-set-comment', ...arguments]);
             const cart = await Cart.findOne(this.id).populate('dishes');
+            if (cart.state === "ORDER")
+                throw "cart with cartId " + cart.id + "in state ORDER";
             const cartDish = await CartDish.findOne({ cart: cart.id, id: dish.id }).populate('dish');
             if (cartDish) {
                 await CartDish.update(cartDish.id, { comment: comment });
@@ -394,6 +334,8 @@ module.exports = {
          */
         check: async function (customer, isSelfService, address, paymentMethodId) {
             const self = await Cart.returnFullCart(this);
+            if (self.state === "ORDER")
+                throw "cart with cartId " + self.id + "in state ORDER";
             //const self: Cart = this;
             if (self.paid) {
                 sails.log.error("CART > Check > error", self.id, "cart is paid");
@@ -492,6 +434,8 @@ module.exports = {
          */
         order: async function () {
             const self = this;
+            if (self.state === "ORDER")
+                throw "cart with cartId " + self.id + "in state ORDER";
             // await self.save();
             // PTODO: проверка эта нужна
             // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
@@ -559,6 +503,8 @@ module.exports = {
          */
         payment: async function () {
             const self = this;
+            if (self.state === "ORDER")
+                throw "cart with cartId " + self.id + "in state ORDER";
             var paymentResponse;
             let comment = "";
             var backLinkSuccess = (await SystemInfo.use('FrontendOrderPage')) + self.id;
@@ -600,6 +546,28 @@ module.exports = {
             await cart.order();
         }
         next();
+    },
+    //
+    // Нужно отправлять платежный документ
+    doPaid: async function (paymentDocument) {
+        let cart = await Cart.findOne(paymentDocument.paymentId);
+        try {
+            let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
+            await Cart.update({ id: paymentDocument.paymentId }, { paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle });
+            if (cart.state !== 'PAYMENT') {
+                if (cart.cartTotal !== paymentDocument.amount) {
+                    sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);
+                    cart.problem = true;
+                    cart.comment = cart.comment + " !!! ВНИМАНИЕ, у заказа измениласть стомость, в на счет в банк поступило :" + paymentDocument.amount + " рублей 🤪";
+                }
+                await cart.save();
+                await cart.next('PAYMENT');
+            }
+        }
+        catch (e) {
+            sails.log.error('Cart > doPaid error: ', e);
+            throw e;
+        }
     },
     /**
      * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish

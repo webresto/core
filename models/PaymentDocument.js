@@ -100,7 +100,11 @@ module.exports = {
         sails.log.info('PaymentDocument > afterUpdate > ', values);
         if (values.paid && values.status === 'PAID') {
             try {
-                await sails.models[values.originModel].doPaid(values.paymentId, values.paymentMethod);
+                if (!values.amount || !values.paymentMethod || !values.paymentId) {
+                    sails.log.error("PaymentDocument > afterUpdate, not have requried fields :", values);
+                    throw "PaymentDocument > afterUpdate, not have requried fields";
+                }
+                await sails.models[values.originModel].doPaid(values);
             }
             catch (e) {
                 sails.log.error("Error in PaymentDocument.afterUpdate :", e);
@@ -123,7 +127,7 @@ module.exports = {
 };
 async function checkOrigin(originModel, paymentId) {
     //@ts-ignore
-    if (!await sails.models[originModel].findOne(paymentId)) {
+    if (!await sails.models[originModel].findOne({ id: paymentId })) {
         throw {
             code: 1,
             error: 'incorrect paymentId or originModel'
