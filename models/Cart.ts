@@ -255,7 +255,8 @@ module.exports = {
       }
 
       await cart.next('CART');
-
+      await Cart.countCart(cart);
+      cart.save();
       await emitter.emit.apply(emitter, ['core-cart-after-add-dish', cartDish, ...arguments]);
     },
 
@@ -306,7 +307,8 @@ module.exports = {
       }
 
       await cart.next('CART');
-
+      await Cart.countCart(cart);
+      cart.save();
       await emitter.emit.apply(emitter, ['core-cart-after-remove-dish', ...arguments]);
     },
 
@@ -354,7 +356,8 @@ module.exports = {
         }
 
         await cart.next('CART');
-
+        await Cart.countCart(cart);
+        cart.save();
         await emitter.emit.apply(emitter, ['core-cart-after-set-count', ...arguments]);
       } else {
         await emitter.emit.apply(emitter, ['core-cart-set-count-reject-no-cartdish', ...arguments]);
@@ -392,7 +395,7 @@ module.exports = {
 
         await cart.next('CART');
         await Cart.countCart(self);
-
+        cart.save();
         await emitter.emit.apply(emitter, ['core-cart-after-set-comment', ...arguments]);
       } else {
         await emitter.emit.apply(emitter, ['core-cart-set-comment-reject-no-cartdish', ...arguments]);
@@ -581,7 +584,6 @@ module.exports = {
 
         self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
 
-        sails.log.info('Cart > order > before save cart', self)
 
         
 
@@ -613,7 +615,9 @@ module.exports = {
         async function order(){
           await self.next('ORDER');
 
+
           /** Если сохранние модели вызвать до next то будет бесконечный цикл */
+          sails.log.info('Cart > order > before save cart', self)
           await self.save();
           getEmitter().emit('core-cart-after-order', self);
         }
@@ -674,34 +678,27 @@ module.exports = {
     }
   },
 
-  afterUpdate: async function (values, next) {
-    // It palced here because we need support global change
-    sails.log.verbose('Cart > afterUpdate > ', values);
-    if (values.paid && values.state !== 'ORDER'){
-      let cart = await Cart.findOne(values.id);
-      await cart.order();
-    }
-    next();
-  },
-
-
-    //
- // Нужно отправлять платежный документ
-
  doPaid: async function (paymentDocument: PaymentDocument) {
   let cart: Cart = await Cart.findOne(paymentDocument.paymentId);
+  Cart.countCart(cart);
   try {
     let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
     await Cart.update({id: paymentDocument.paymentId}, {paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle});
-    if(cart.state !== 'PAYMENT'){
-      if(cart.cartTotal !== paymentDocument.amount){
-        sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);
-        cart.problem = true;
-        cart.comment = cart.comment + " !!! ВНИМАНИЕ, у заказа измениласть стомость, в на счет в банк поступило :" + paymentDocument.amount + " рублей 🤪"         
-      }
-      await cart.save();
-      await cart.next('PAYMENT');
+    
+    console.log(">>>>>>",cart);
+    console.log(">>>>>>",cart.state, cart.cartTotal, paymentDocument.amount );
+
+    if(cart.state !== "PAYMENT"){ 
+      sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);
+
     }
+
+    if(cart.cartTotal !== paymentDocument.amount){
+      cart.problem = true;
+      cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!"
+    }
+      
+    await cart.order();
   } catch (e) {
     sails.log.error('Cart > doPaid error: ', e);
     throw e
