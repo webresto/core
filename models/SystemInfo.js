@@ -27,13 +27,13 @@ module.exports = {
      * @return найденное значение или 0, если значение не было найдено.
      */
     async use(config, key) {
-        sails.log.verbose("CORE > SystemInfo > use: ", key, config);
+        sails.log.silly("CORE > SystemInfo > use: ", key, config);
         if (!key) {
             key = config;
             config = 'restocore';
         }
         let obj = await SystemInfo.findOne({ key: key });
-        sails.log.verbose("CORE > SystemInfo > findOne: ", key, obj);
+        sails.log.silly("CORE > SystemInfo > findOne: ", key, obj);
         if (!obj) {
             // if (!sails.config[config][key] || !defaultConfig[key]){
             //   sails.log.error("CORE > SystemInfo > key ", key, "not found" );

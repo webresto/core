@@ -140,6 +140,8 @@ export default interface Cart extends ORM, StateFlow {
     total: number;
     orderTotal: number;
     orderDate: string;
+    /** Выполняет оплату в моделе */
+    doPaid(paymentId: string, paymentMethod: string): Promise<void>;
     /**
      * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
      * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.

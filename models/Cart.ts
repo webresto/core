@@ -175,6 +175,22 @@ module.exports = {
     cartTotal: 'float',
     orderDate: 'datetime',
 
+    //
+
+    doPaid: async function (paymentId: string, paymentMethod: string) {
+      try {
+        let paymentMethodTitle = (await PaymentMethod.findOne(paymentMethod)).title;
+        await this.update({id: paymentId}, {paid: true, paymentMethod: paymentMethod, paymentMethodTitle: paymentMethodTitle,  });
+        if(this.state !== 'PAYMENT'){
+          sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', this);
+          await this.next('PAYMENT');
+        }
+      } catch (e) {
+        sails.log.error('Cart > doPaid error: ', e);
+        throw e
+      }
+    },
+
     /**
      * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
      * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
@@ -462,7 +478,7 @@ module.exports = {
 
       sails.log.verbose('Cart > setSelfService >', selfService);
 
-      await actions.reset(self);
+      await actions.reset(this);
 
       self.selfService = selfService;
       await self.save();
@@ -516,17 +532,6 @@ module.exports = {
         }
       }
 
-      if (address){
-          checkAddress(address);
-          self.address = address;
-      } else {
-        if(self.address === undefined){
-          throw {
-            code: 2,
-            error: 'address is required'
-          }
-        }
-      }
 
       await checkDate(self);
 
@@ -539,12 +544,23 @@ module.exports = {
 
       isSelfService = isSelfService === undefined ? false : isSelfService;
       if (isSelfService) {
-        // TODO непонятно почему тут не вызывается ожтдающий эммитер
         getEmitter().emit('core-cart-check-self-service', self, customer, isSelfService, address);
         sails.log.verbose('Cart > check > is self delivery');
         await self.setSelfService(true);
         await self.next('CHECKOUT');
         return true;
+      }
+      
+      if (address){
+          checkAddress(address);
+          self.address = address;
+      } else {
+        if(self.address === undefined){
+          throw {
+            code: 2,
+            error: 'address is required'
+          }
+        }
       }
 
       getEmitter().emit('core-cart-check-delivery', self, customer, isSelfService, address);
@@ -719,16 +735,15 @@ module.exports = {
   },
 
   afterUpdate: async function (values, next) {
+    // It palced here because we need support global change
     sails.log.verbose('Cart > afterUpdate > ', values);
-    if (values.paid && values.state === 'PAYMENT'){
+    if (values.paid && values.state !== 'ORDER'){
       let cart: Cart = await Cart.findOne(values.id);
       await cart.order();
     }
     next();
   },
 
-
-  
   /**
    * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
    * содержит в себе свои картинки, каждый модификатор внутри cart.dishes и каждого dish содержит группу модификаторов и
@@ -943,10 +958,10 @@ async function checkCustomerInfo(customer) {
 }
 
 function checkAddress(address) {
-  if (!address.streetId || !address.street ) {
+  if (!address.street ) {
     throw {
       code: 5,
-      error: 'address.streetId & address.street  is required'
+      error: 'address.street  is required'
     }
   }
 
@@ -1054,6 +1069,9 @@ export default interface Cart extends ORM, StateFlow {
   total: number;
   orderTotal: number;
   orderDate: string;
+
+  /** Выполняет оплату в моделе */
+  doPaid(paymentId: string, paymentMethod: string): Promise<void>;
 
   /**
    * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.

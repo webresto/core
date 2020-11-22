@@ -54,18 +54,13 @@ const actions = {
    * @return Promise<Cart>
    */
   async addDish(cart: Cart, params: AddDishParams): Promise<Cart> {
-    const cartId = params.cartId;
     const dishesId = params.dishesId;
 
-    if (!cartId)
-      throw 'cartId (string) is required as first element of params';
+    if (!cart && !cart.id)
+      throw 'cart is required';
 
     if (!dishesId || !dishesId.length)
       throw 'dishIds (array of strings) is required as second element of params';
-
-    //const cart = await Cart.findOne(cartId);
-    if (!cart)
-      throw 'cart with id ' + cartId + ' not found';
 
     await Promise.each(dishesId, async (dishId) => {
       const dish = await Dish.findOne(dishId);
@@ -84,7 +79,7 @@ const actions = {
     sails.log.debug(">>> action > delivery");
     sails.log.debug("cart", JSON.stringify(cart));
 
-    if (!cart)
+    if (!cart && !cart.id)
       throw 'cart is required';
 
     const deliveryCost = params.deliveryCost;
@@ -122,7 +117,7 @@ const actions = {
    * @returns {Promise<>}
    */
   async reset(cart: Cart): Promise<Cart> {
-    if (!cart)
+    if (!cart && !cart.id)
       throw 'cart is required';
 
     cart.deliveryDescription = "";
@@ -146,7 +141,7 @@ const actions = {
     const cartId = params.cartId;
     const description = params.description;
 
-    if (!cart)
+    if (!cart && !cart.id)
       throw 'cart is required';
 
     if (!description) {
@@ -166,8 +161,8 @@ const actions = {
   },
 
   async reject(cart: Cart, params: ActionParams): Promise<Cart> {
-    if (!cart)
-      throw 'cart is required';
+    if (!cart && !cart.id)
+      throw 'cart is required';;
 
     await cart.next('CART');
     return cart;
@@ -178,7 +173,7 @@ const actions = {
     const cartId = params.cartId;
     const message = params.message;
 
-    if (!cart)
+    if (!cart && !cart.id)
       throw 'cart is required';
 
     if (!message)

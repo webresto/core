@@ -103,6 +103,21 @@ module.exports = {
         orderTotal: 'float',
         cartTotal: 'float',
         orderDate: 'datetime',
+        //
+        doPaid: async function (paymentId, paymentMethod) {
+            try {
+                let paymentMethodTitle = (await PaymentMethod.findOne(paymentMethod)).title;
+                await this.update({ id: paymentId }, { paid: true, paymentMethod: paymentMethod, paymentMethodTitle: paymentMethodTitle, });
+                if (this.state !== 'PAYMENT') {
+                    sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', this);
+                    await this.next('PAYMENT');
+                }
+            }
+            catch (e) {
+                sails.log.error('Cart > doPaid error: ', e);
+                throw e;
+            }
+        },
         /**
          * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
          * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
@@ -355,7 +370,7 @@ module.exports = {
         setSelfService: async function (selfService) {
             const self = this;
             sails.log.verbose('Cart > setSelfService >', selfService);
-            await actions_1.default.reset(self);
+            await actions_1.default.reset(this);
             self.selfService = selfService;
             await self.save();
         },
@@ -403,6 +418,21 @@ module.exports = {
                     };
                 }
             }
+            await checkDate(self);
+            if (paymentMethodId) {
+                await checkPaymentMethod(paymentMethodId);
+                self.paymentMethod = paymentMethodId;
+                self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
+                self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
+            }
+            isSelfService = isSelfService === undefined ? false : isSelfService;
+            if (isSelfService) {
+                getEmitter_1.default().emit('core-cart-check-self-service', self, customer, isSelfService, address);
+                sails.log.verbose('Cart > check > is self delivery');
+                await self.setSelfService(true);
+                await self.next('CHECKOUT');
+                return true;
+            }
             if (address) {
                 checkAddress(address);
                 self.address = address;
@@ -414,22 +444,6 @@ module.exports = {
                         error: 'address is required'
                     };
                 }
-            }
-            await checkDate(self);
-            if (paymentMethodId) {
-                await checkPaymentMethod(paymentMethodId);
-                self.paymentMethod = paymentMethodId;
-                self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
-                self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
-            }
-            isSelfService = isSelfService === undefined ? false : isSelfService;
-            if (isSelfService) {
-                // TODO непонятно почему тут не вызывается ожтдающий эммитер
-                getEmitter_1.default().emit('core-cart-check-self-service', self, customer, isSelfService, address);
-                sails.log.verbose('Cart > check > is self delivery');
-                await self.setSelfService(true);
-                await self.next('CHECKOUT');
-                return true;
             }
             getEmitter_1.default().emit('core-cart-check-delivery', self, customer, isSelfService, address);
             const results = await getEmitter_1.default().emit('core-cart-check', self, customer, isSelfService, address, paymentMethodId);
@@ -581,8 +595,9 @@ module.exports = {
         }
     },
     afterUpdate: async function (values, next) {
+        // It palced here because we need support global change
         sails.log.verbose('Cart > afterUpdate > ', values);
-        if (values.paid && values.state === 'PAYMENT') {
+        if (values.paid && values.state !== 'ORDER') {
             let cart = await Cart.findOne(values.id);
             await cart.order();
         }
@@ -772,10 +787,10 @@ async function checkCustomerInfo(customer) {
     }
 }
 function checkAddress(address) {
-    if (!address.streetId || !address.street) {
+    if (!address.street) {
         throw {
             code: 5,
-            error: 'address.streetId & address.street  is required'
+            error: 'address.street  is required'
         };
     }
     if (!address.home) {

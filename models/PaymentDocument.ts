@@ -145,7 +145,7 @@ module.exports = {
     sails.log.info('PaymentDocument > afterUpdate > ', values);
     if (values.paid && values.status === 'PAID') { 
       try {
-        await sails.models[values.originModel].update({id: values.paymentId}, {paid: true})
+        await sails.models[values.originModel].doPaid(values.paymentId, values.paymentMethod)
       } catch (e) {
         sails.log.error("Error in PaymentDocument.afterUpdate :", e);
       }
