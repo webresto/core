@@ -170,6 +170,7 @@ const actions = {
       throw 'cart is required';
 
     await cart.next('CART');
+    return cart;
   },
 
   async setMessage(cart: Cart, params: MessageParams): Promise<Cart> {

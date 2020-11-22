@@ -7,6 +7,7 @@ import Customer from "../../../modelsHelp/Customer";
 import generate_payment from '../../generators/payment.generator';
 import { Payment } from "../../../modelsHelp/Payment";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
+import getEmitter from "../../../lib/getEmitter";
 
 describe('Cart',function () {
   let cart: Cart;
@@ -90,7 +91,17 @@ describe('Cart',function () {
 
   it('returnFullCart', async function(){
     cart = await Cart.create({});
+    await cart.addDish(dishes[0], 5, [], '', '');
+    await cart.addDish(dishes[1], 3, [], '', '');
+    await cart.addDish(dishes[2], 8, [], '', '');
+    // let changedCart = await Cart.findOne(cart.id);
+    // console.log('cart in test ', cart);
     let res = await Cart.returnFullCart(cart);   
+    try {
+      
+    } catch (error) {
+      console.log(error);
+    }
   }); 
 
   it('addDish 20', async function(){
@@ -120,12 +131,26 @@ describe('Cart',function () {
     expect(changedCart.selfService).to.equal(false);
   });
 
+  it('emit test', async function(){
+    
+  });
+
   it('check', async function(){
+    // let cust
+    // getEmitter().on('core-cart-before-check', (cart, customer2, isSelfService, address)=>{
+    //   cust = customer2;
+    // });
+
+    // expect(cust).to.equal(customer);
+    
+
     let customer: Customer = {
       phone: '+79998881212',
       name: 'Freeman Morgan'
     }
+    // @ts-ignore
     let address: Address = {
+      streetId: 'sdfsf',
       city: 'New York',
       street: 'Green Road',
       home: 77,
@@ -160,6 +185,7 @@ describe('Cart',function () {
     expect(error).to.be.an('object');
     
     // expect(async function (){await cart.check(customerWrong, false)}).to.throw();
+
   });
 
   // it('countCart', async function(){
@@ -179,3 +205,16 @@ describe('Cart',function () {
   // });
 
 });
+
+/**
+ * create and return new Cart with few dishes
+ * @param dishes - array of dishes
+ */
+async function getNewCart(dishes: Dish[]): Promise<Cart>{
+  let cart = await Cart.create({});
+  await cart.addDish(dishes[0], 5, [], '', '');
+  await cart.addDish(dishes[1], 3, [], '', '');
+  await cart.addDish(dishes[2], 8, [], '', '');
+  cart = await Cart.findOne(cart.id);
+  return cart;
+}

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const ExternalTestPaymentSystem_1 = require("../external_payments/ExternalTestPaymentSystem");
+const getEmitter_1 = require("../../../lib/getEmitter");
 describe('Cart', function () {
     let cart;
     let dishes;
@@ -66,7 +67,17 @@ describe('Cart', function () {
     });
     it('returnFullCart', async function () {
         cart = await Cart.create({});
+        await cart.addDish(dishes[0], 5, [], '', '');
+        await cart.addDish(dishes[1], 3, [], '', '');
+        await cart.addDish(dishes[2], 8, [], '', '');
+        // let changedCart = await Cart.findOne(cart.id);
+        // console.log('cart in test ', cart);
         let res = await Cart.returnFullCart(cart);
+        try {
+        }
+        catch (error) {
+            console.log(error);
+        }
     });
     it('addDish 20', async function () {
         cart = await Cart.create({});
@@ -89,12 +100,20 @@ describe('Cart', function () {
         changedCart = await Cart.findOne(cart.id);
         chai_1.expect(changedCart.selfService).to.equal(false);
     });
+    it('emit test', async function () {
+    });
     it('check', async function () {
+        let cust;
+        getEmitter_1.default().on('core-cart-before-check', (cart, customer2, isSelfService, address) => {
+            cust = customer2;
+        });
         let customer = {
             phone: '+79998881212',
             name: 'Freeman Morgan'
         };
+        // @ts-ignore
         let address = {
+            streetId: 'sdfsf',
             city: 'New York',
             street: 'Green Road',
             home: 77,
@@ -112,7 +131,7 @@ describe('Cart', function () {
         let customerWrong = {
             phone: 'wrongphone'
         };
-        result = await cart.check(null, null, null, paymentSystem.id);
+        result = await cart.check(customer, null, null, paymentSystem.id);
         chai_1.expect(result).to.equal(true);
         // error promise test
         let error = null;
@@ -124,6 +143,7 @@ describe('Cart', function () {
         }
         chai_1.expect(error).to.be.an('object');
         // expect(async function (){await cart.check(customerWrong, false)}).to.throw();
+        chai_1.expect(cust).to.equal(customer);
     });
     // it('countCart', async function(){
     //   let cart = await Cart.create({});
@@ -140,3 +160,15 @@ describe('Cart', function () {
     //   expect(changedCart.dishesCount).to.equal(5 + 3 + 8);
     // });
 });
+/**
+ * create and return new Cart with few dishes
+ * @param dishes - array of dishes
+ */
+async function getNewCart(dishes) {
+    let cart = await Cart.create({});
+    await cart.addDish(dishes[0], 5, [], '', '');
+    await cart.addDish(dishes[1], 3, [], '', '');
+    await cart.addDish(dishes[2], 8, [], '', '');
+    cart = await Cart.findOne(cart.id);
+    return cart;
+}

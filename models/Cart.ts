@@ -136,7 +136,7 @@ module.exports = {
     },
     dishesCount: 'integer',
     uniqueDishes: 'integer',
-    modifiers: 'json',
+    modifiers: 'json', //maybe dont needed here
     customer: 'json',
     address: 'json',
     comment: 'string',
@@ -170,8 +170,8 @@ module.exports = {
     deliveryItem: 'string',
     deliveryCost: 'float', // rename to deliveryCost
     totalWeight: 'float',
-    total: 'float',
-    orderTotal: 'float',
+    total: 'float', // total = cartTotal
+    orderTotal: 'float', // orderTotal = total - deliveryCost
     cartTotal: 'float',
     orderDate: 'datetime',
 
@@ -270,7 +270,7 @@ module.exports = {
      *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
      */
     removeDish: async function (dish: CartDish, amount: number, stack?: boolean): Promise<void> {
-
+      // TODO: удалить стек
       const emitter = getEmitter();
       await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
 
@@ -373,6 +373,7 @@ module.exports = {
      * @fires cart:core-cart-after-set-modifier-count - вызывается после успешной работы функции. Результат подписок игнорируется.
      */
     setModifierCount: async function (dish: CartDish, modifier: Dish, amount: number): Promise<void> {
+      // TODO: maybe need delete this
       const emitter = getEmitter();
       await emitter.emit.apply(emitter, ['core-cart-before-set-modifier-count', ...arguments]);
 
@@ -461,7 +462,7 @@ module.exports = {
 
       sails.log.verbose('Cart > setSelfService >', selfService);
 
-      await actions.reset(this.id);
+      await actions.reset(self);
 
       self.selfService = selfService;
       await self.save();
@@ -755,7 +756,6 @@ module.exports = {
         id: cartDish.dish.id,
         isDeleted: false
       }).populate('images').populate('parentGroup');
-
       const reason = checkExpression(dish);
 
       if (dish && dish.parentGroup)      
@@ -982,7 +982,7 @@ async function checkDate(cart: Cart) {
     if (!date.isValid()){
       throw {
         code: 9,
-        error: 'date is not valid'
+        error: 'date is not valid, required (YYYY-MM-DD HH:mm:ss)'
       }
     }
     

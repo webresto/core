@@ -191,6 +191,7 @@ module.exports = {
          *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
          */
         removeDish: async function (dish, amount, stack) {
+            // TODO: удалить стек
             const emitter = getEmitter_1.default();
             await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
             const cart = await Cart.findOne({ id: this.id }).populate('dishes');
@@ -285,6 +286,7 @@ module.exports = {
          * @fires cart:core-cart-after-set-modifier-count - вызывается после успешной работы функции. Результат подписок игнорируется.
          */
         setModifierCount: async function (dish, modifier, amount) {
+            // TODO: maybe need delete this
             const emitter = getEmitter_1.default();
             await emitter.emit.apply(emitter, ['core-cart-before-set-modifier-count', ...arguments]);
             if (modifier.balance !== -1)
@@ -353,7 +355,7 @@ module.exports = {
         setSelfService: async function (selfService) {
             const self = this;
             sails.log.verbose('Cart > setSelfService >', selfService);
-            await actions_1.default.reset(this.id);
+            await actions_1.default.reset(self);
             self.selfService = selfService;
             await self.save();
         },
@@ -803,7 +805,7 @@ async function checkDate(cart) {
         if (!date.isValid()) {
             throw {
                 code: 9,
-                error: 'date is not valid'
+                error: 'date is not valid, required (YYYY-MM-DD HH:mm:ss)'
             };
         }
         const possibleDatetime = await getOrderDateLimit();
