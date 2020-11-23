@@ -84,5 +84,5 @@
     "build": "tsc",
     "prepublish!": "javascript-obfuscator . --output .  --exclude=\"node_modules\""
   },
-  "version": "0.8.0"
+  "version": "0.8.1"
 }

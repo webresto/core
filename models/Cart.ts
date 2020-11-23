@@ -93,6 +93,7 @@ import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
 import CartDish from "../models/CartDish";
 import checkExpression from "../lib/checkExpression";
+import PaymentDocument from "./PaymentDocument"
 import StateFlow from "../modelsHelp/StateFlow";
 import actions from "../lib/actions";
 import getEmitter from "../lib/getEmitter";
@@ -175,21 +176,7 @@ module.exports = {
     cartTotal: 'float',
     orderDate: 'datetime',
 
-    //
 
-    doPaid: async function (paymentId: string, paymentMethod: string) {
-      try {
-        let paymentMethodTitle = (await PaymentMethod.findOne(paymentMethod)).title;
-        await this.update({id: paymentId}, {paid: true, paymentMethod: paymentMethod, paymentMethodTitle: paymentMethodTitle,  });
-        if(this.state !== 'PAYMENT'){
-          sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', this);
-          await this.next('PAYMENT');
-        }
-      } catch (e) {
-        sails.log.error('Cart > doPaid error: ', e);
-        throw e
-      }
-    },
 
     /**
      * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
@@ -235,6 +222,8 @@ module.exports = {
         }
 
       const cart = await Cart.findOne({id: this.id}).populate('dishes');
+      if (cart.state === "ORDER")
+        throw "cart with cartId "+ cart.id + "in state ORDER"
 
       if (modifiers && modifiers.length) {
         modifiers.forEach((m: Modifier) => {
@@ -266,7 +255,8 @@ module.exports = {
       }
 
       await cart.next('CART');
-
+      await Cart.countCart(cart);
+      cart.save();
       await emitter.emit.apply(emitter, ['core-cart-after-add-dish', cartDish, ...arguments]);
     },
 
@@ -291,6 +281,10 @@ module.exports = {
       await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
 
       const cart = await Cart.findOne({id: this.id}).populate('dishes');
+
+      if (cart.state === "ORDER")
+        throw "cart with cartId "+ cart.id + "in state ORDER"
+
       var cartDish: CartDish;
       if (stack){
         amount = 1;
@@ -313,7 +307,8 @@ module.exports = {
       }
 
       await cart.next('CART');
-
+      await Cart.countCart(cart);
+      cart.save();
       await emitter.emit.apply(emitter, ['core-cart-after-remove-dish', ...arguments]);
     },
 
@@ -345,6 +340,9 @@ module.exports = {
         }
 
       const cart = await Cart.findOne(this.id).populate('dishes');
+      if (cart.state === "ORDER")
+        throw "cart with cartId "+ cart.id + "in state ORDER"
+
       const cartDishes = await CartDish.find({cart: cart.id}).populate('dish');
       const get = cartDishes.find(item => item.id === dish.id);
 
@@ -358,79 +356,13 @@ module.exports = {
         }
 
         await cart.next('CART');
-
+        await Cart.countCart(cart);
+        cart.save();
         await emitter.emit.apply(emitter, ['core-cart-after-set-count', ...arguments]);
       } else {
         await emitter.emit.apply(emitter, ['core-cart-set-count-reject-no-cartdish', ...arguments]);
         throw {body: `CartDish dish id ${dish.id} not found`, code: 2};
       }
-    },
-
-    /**
-     * Устанавливает заданному модификатору в заданом блюде в текузей заданное количество.
-     * В случае успешной работы изменяет состояние корзины в CART
-     * @param dish - блюдо, модификатор которого изменять
-     * @param modifier - id блюда, которое привязано к модификатору, количество которого менять
-     * @param amount - новое количество
-     * @throws Object {
-     *   body: string,
-     *   code: number
-     * }
-     * where codes:
-     * 1 - нет достаточного количества блюд
-     * 2 - dish не найден в текущей корзине
-     * 3 - блюдо modifier не найден как модификатор блюда dish
-     * 4 - блюдо dish в текущей корзине не содержит модификатора modifier
-     * @fires cart:core-cart-before-set-modifier-count - вызывается перед началом фунции. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-modifier-count-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-modifier-count-reject-no-cartdish - вызывается перед ошибкой с кодом 2. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-modifier-count-reject-no-modifier-dish - вызывается перед ошибкой с кодом 3. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-modifier-count-reject-no-modifier-in-dish - вызывается перед ошибкой с кодом 4. Результат подписок игнорируется.
-     * @fires cart:core-cart-after-set-modifier-count - вызывается после успешной работы функции. Результат подписок игнорируется.
-     */
-    setModifierCount: async function (dish: CartDish, modifier: Dish, amount: number): Promise<void> {
-      // TODO: maybe need delete this
-      const emitter = getEmitter();
-      await emitter.emit.apply(emitter, ['core-cart-before-set-modifier-count', ...arguments]);
-
-      if (modifier.balance !== -1)
-        if (amount > modifier.balance) {
-          await emitter.emit.apply(emitter, ['core-cart-set-modifier-count-reject-amount', ...arguments]);
-          throw {body: `There is no so mush dishes with id ${modifier.id}`, code: 1};
-        }
-
-      const cartDishes = await CartDish.find({cart: this.id}).populate('dish').populate('modifiers');
-      const get = cartDishes.filter(item => item.dish.id === dish.id)[0];
-
-      if (!get) {
-        await emitter.emit.apply(emitter, ['core-cart-set-modifier-count-reject-no-cartdish', ...arguments]);
-        throw {body: `CartDish dish id ${dish.id} not found`, code: 2};
-      }
-
-      const dish1 = await Dish.findOne({id: dish.id});
-
-      // check that dish has this modifier
-      const getModif = dish1.modifiers.find(item => item.id === modifier.id);
-
-      if (!getModif) {
-        await emitter.emit.apply(emitter, ['core-cart-set-modifier-count-reject-no-modifier-dish', ...arguments]);
-        throw {body: `Dish dish id ${getModif.id} not found`, code: 3};
-      }
-
-      let getMofifFromDish = get.modifiers.filter(item => modifier.id === item.dish.id)[0];
-
-      if (!getMofifFromDish) {
-        await emitter.emit.apply(emitter, ['core-cart-set-modifier-count-reject-no-modifier-in-dish', ...arguments]);
-        throw {body: `Modifier ${modifier.id} in dish id ${dish.id} not found`, code: 4};
-      }
-
-      getMofifFromDish.amount = amount;
-
-      await CartDish.update({id: getMofifFromDish.id}, {amount: getMofifFromDish.amount});
-
-      await this.next('CART');
-
-      await emitter.emit.apply(emitter, ['core-cart-after-set-modifier-count', ...arguments]);
     },
 
     /**
@@ -453,6 +385,8 @@ module.exports = {
       await emitter.emit.apply(emitter, ['core-cart-before-set-comment', ...arguments]);
 
       const cart = await Cart.findOne(this.id).populate('dishes');
+      if (cart.state === "ORDER")
+        throw "cart with cartId "+ cart.id + "in state ORDER"
 
       const cartDish = await CartDish.findOne({cart: cart.id, id: dish.id}).populate('dish');
 
@@ -461,7 +395,7 @@ module.exports = {
 
         await cart.next('CART');
         await Cart.countCart(self);
-
+        cart.save();
         await emitter.emit.apply(emitter, ['core-cart-after-set-comment', ...arguments]);
       } else {
         await emitter.emit.apply(emitter, ['core-cart-set-comment-reject-no-cartdish', ...arguments]);
@@ -506,6 +440,10 @@ module.exports = {
      */
     check: async function (customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<boolean> {
       const self: Cart  = await Cart.returnFullCart(this);
+
+      if (self.state === "ORDER")
+        throw "cart with cartId "+ self.id + "in state ORDER"
+
       //const self: Cart = this;
       if(self.paid) {
         sails.log.error("CART > Check > error", self.id, "cart is paid");
@@ -620,7 +558,9 @@ module.exports = {
 
       order: async function (): Promise<number> {
         const self: Cart = this;
-        
+
+        if (self.state === "ORDER")
+          throw "cart with cartId "+ self.id + "in state ORDER"      
 
         // await self.save();
         // PTODO: проверка эта нужна
@@ -644,7 +584,6 @@ module.exports = {
 
         self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
 
-        sails.log.info('Cart > order > before save cart', self)
 
         
 
@@ -676,7 +615,9 @@ module.exports = {
         async function order(){
           await self.next('ORDER');
 
+
           /** Если сохранние модели вызвать до next то будет бесконечный цикл */
+          sails.log.info('Cart > order > before save cart', self)
           await self.save();
           getEmitter().emit('core-cart-after-order', self);
         }
@@ -699,6 +640,9 @@ module.exports = {
 
     payment: async function (): Promise<PaymentResponse> {
       const self: Cart = this;
+      if (self.state === "ORDER")
+        throw "cart with cartId "+ self.id + "in state ORDER"
+
       var paymentResponse: PaymentResponse;
       let comment: string = "";
       var backLinkSuccess: string = (await SystemInfo.use('FrontendOrderPage')) + self.id;
@@ -734,15 +678,32 @@ module.exports = {
     }
   },
 
-  afterUpdate: async function (values, next) {
-    // It palced here because we need support global change
-    sails.log.verbose('Cart > afterUpdate > ', values);
-    if (values.paid && values.state !== 'ORDER'){
-      let cart: Cart = await Cart.findOne(values.id);
-      await cart.order();
+ doPaid: async function (paymentDocument: PaymentDocument) {
+  let cart: Cart = await Cart.findOne(paymentDocument.paymentId);
+  Cart.countCart(cart);
+  try {
+    let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
+    await Cart.update({id: paymentDocument.paymentId}, {paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle});
+    
+    console.log(">>>>>>",cart);
+    console.log(">>>>>>",cart.state, cart.cartTotal, paymentDocument.amount );
+
+    if(cart.state !== "PAYMENT"){ 
+      sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);
+
     }
-    next();
-  },
+
+    if(cart.cartTotal !== paymentDocument.amount){
+      cart.problem = true;
+      cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!"
+    }
+      
+    await cart.order();
+  } catch (e) {
+    sails.log.error('Cart > doPaid error: ', e);
+    throw e
+  }
+},
 
   /**
    * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
@@ -1070,8 +1031,7 @@ export default interface Cart extends ORM, StateFlow {
   orderTotal: number;
   orderDate: string;
 
-  /** Выполняет оплату в моделе */
-  doPaid(paymentId: string, paymentMethod: string): Promise<void>;
+
 
   /**
    * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
@@ -1259,6 +1219,9 @@ export interface CartModel extends ORMModel<Cart> {
    * @param cart
    */
   countCart(cart: Cart);
+
+    /** Выполняет оплату в моделе */
+  doPaid(paymentDocument: PaymentDocument): Promise<void>;
 }
 
 declare global {

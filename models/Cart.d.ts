@@ -90,6 +90,7 @@ import Modifier from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
 import CartDish from "../models/CartDish";
+import PaymentDocument from "./PaymentDocument";
 import StateFlow from "../modelsHelp/StateFlow";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
@@ -140,8 +141,6 @@ export default interface Cart extends ORM, StateFlow {
     total: number;
     orderTotal: number;
     orderDate: string;
-    /** Выполняет оплату в моделе */
-    doPaid(paymentId: string, paymentMethod: string): Promise<void>;
     /**
      * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
      * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
@@ -313,6 +312,8 @@ export interface CartModel extends ORMModel<Cart> {
      * @param cart
      */
     countCart(cart: Cart): any;
+    /** Выполняет оплату в моделе */
+    doPaid(paymentDocument: PaymentDocument): Promise<void>;
 }
 declare global {
     const Cart: CartModel;

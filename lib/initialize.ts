@@ -44,6 +44,7 @@ export default function ToInitialize(sails) {
 
     /**
      * Set cart states in sails-hook-stateflow
+     * Эта штука не работает =) Дало заказать  
      */
     sails.stateflow = [
       new State('CART', ['CHECKOUT'], function (cb) {
