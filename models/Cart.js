@@ -359,7 +359,7 @@ module.exports = {
                 self.customer = customer;
             }
             else {
-                if (self.customer === undefined) {
+                if (self.customer === null) {
                     throw {
                         code: 2,
                         error: 'customer is required'
@@ -386,7 +386,7 @@ module.exports = {
                 self.address = address;
             }
             else {
-                if (self.address === undefined) {
+                if (isSelfService && self.address === null) {
                     throw {
                         code: 2,
                         error: 'address is required'
