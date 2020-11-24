@@ -87,8 +87,8 @@ module.exports = {
             const propety = await SystemInfo.findOne({ key: key });
             if (!propety) {
                 return SystemInfo.create({
-                    key: JSON.stringify(key),
-                    value: value,
+                    key: key,
+                    value: JSON.stringify(value),
                     from: config
                 });
             }
