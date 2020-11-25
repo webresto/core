@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
+const getEmitter_1 = require("../../../lib/getEmitter");
 const ExternalTestPaymentSystem_1 = require("../external_payments/ExternalTestPaymentSystem");
 describe('Cart.check()', function () {
     this.timeout(10000);
@@ -8,6 +9,13 @@ describe('Cart.check()', function () {
     let customer = {
         phone: '+79998881212',
         name: 'Freeman Morgan'
+    };
+    let address = {
+        streetId: 'sdfsf',
+        city: 'New York',
+        street: 'Green Road',
+        home: 77,
+        comment: ''
     };
     it('new cart', async function () {
         cart = await Cart.create({});
@@ -154,5 +162,43 @@ describe('Cart.check()', function () {
         }
         chai_1.expect(error.code).to.equal(8);
         chai_1.expect(error.error).to.be.an('string');
+    });
+    it('getEmitter test', async function () {
+        let count1 = 0;
+        let count3 = 0;
+        let count4 = 0;
+        let count5 = 0;
+        getEmitter_1.default().on('core-cart-before-check', function () {
+            count1++;
+        });
+        getEmitter_1.default().on('core-cart-check-delivery', function () {
+            count3++;
+        });
+        getEmitter_1.default().on('core-cart-check', function () {
+            count4++;
+        });
+        getEmitter_1.default().on('core-cart-after-check', function () {
+            count5++;
+        });
+        await cart.check(customer);
+        chai_1.expect(count1).to.equal(1);
+        chai_1.expect(count3).to.equal(1);
+        chai_1.expect(count4).to.equal(1);
+        chai_1.expect(count5).to.equal(1);
+        let count2 = 0;
+        let emitCustomer;
+        let emitSelfService;
+        let emitAddress;
+        getEmitter_1.default().on('core-cart-check-self-service', function (self, cust, serv, addr) {
+            count2++;
+            emitCustomer = cust;
+            emitSelfService = serv;
+            emitAddress = addr;
+        });
+        await cart.check(customer, true, address);
+        chai_1.expect(count2).to.equal(1);
+        chai_1.expect(emitCustomer).to.equal(customer);
+        chai_1.expect(emitSelfService).to.equal(true);
+        chai_1.expect(emitAddress).to.equal(address);
     });
 });

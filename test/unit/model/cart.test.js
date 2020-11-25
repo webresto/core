@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
+const getEmitter_1 = require("../../../lib/getEmitter");
 describe('Cart', function () {
     this.timeout(10000);
     let cart;
@@ -63,14 +64,8 @@ describe('Cart', function () {
         await cart.addDish(dishes[0], 5, [], '', '');
         await cart.addDish(dishes[1], 3, [], '', '');
         await cart.addDish(dishes[2], 8, [], '', '');
-        // let changedCart = await Cart.findOne(cart.id);
-        // console.log('cart in test ', cart);
         let res = await Cart.returnFullCart(cart);
-        try {
-        }
-        catch (error) {
-            console.log(error);
-        }
+        chai_1.expect(res).to.be.an('object');
     });
     it('addDish 20', async function () {
         cart = await Cart.create({});
@@ -108,6 +103,43 @@ describe('Cart', function () {
         chai_1.expect(changedCart.totalWeight).to.equal(totalWeight);
         chai_1.expect(changedCart.uniqueDishes).to.equal(3);
         chai_1.expect(changedCart.dishesCount).to.equal(5 + 3 + 8);
+    });
+    it('order', async function () {
+        let count1 = 0;
+        let count2 = 0;
+        let count3 = 0;
+        let count4 = 0;
+        getEmitter_1.default().on('core-cart-before-order', function () {
+            count1++;
+        });
+        getEmitter_1.default().on('core-cart-order-self-service', function () {
+            count2++;
+        });
+        getEmitter_1.default().on('core-cart-order', function () {
+            count3++;
+        });
+        // getEmitter().on('core-cart-after-order', function(){
+        //   count4++;
+        // });
+        await cart.setSelfService(true);
+        await cart.order();
+        chai_1.expect(count1).to.equal(1);
+        chai_1.expect(count2).to.equal(1);
+        chai_1.expect(count3).to.equal(1);
+        // expect(count4).to.equal(1);
+        // console.log('CART', cart);
+        let error = null;
+        try {
+            await cart.order();
+        }
+        catch (e) {
+            error = e;
+        }
+        chai_1.expect(error).to.not.equal(null);
+        console.log(error);
+        getEmitter_1.default().on('core-cart-order-delivery', function () {
+            // count1++;
+        });
     });
 });
 /**

@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import getEmitter from "../../../lib/getEmitter";
 import Cart from "../../../models/Cart";
 import Dish from "../../../models/Dish";
 import Address from "../../../modelsHelp/Address";
@@ -12,6 +13,14 @@ describe('Cart.check()', function(){
         phone: '+79998881212',
         name: 'Freeman Morgan'
     };
+    let address: Address = {
+        streetId: 'sdfsf',
+        city: 'New York',
+        street: 'Green Road',
+        home: 77,
+        comment: ''
+    }
+
     it('new cart', async function(){
         cart = await Cart.create({});
         // console.log('>>> Blank cart ------\n', cart);
@@ -171,5 +180,49 @@ describe('Cart.check()', function(){
         expect(error.code).to.equal(8);
         expect(error.error).to.be.an('string');
             
+    });
+
+    it('getEmitter test', async function(){
+        let count1 = 0;
+        let count3 = 0;
+        let count4 = 0;
+        let count5 = 0;
+
+        getEmitter().on('core-cart-before-check', function(){
+            count1++;
+        });
+        getEmitter().on('core-cart-check-delivery', function(){
+            count3++;
+        });
+        getEmitter().on('core-cart-check', function(){
+            count4++;
+        });
+        getEmitter().on('core-cart-after-check', function(){
+            count5++;
+        });
+        await cart.check(customer);
+        expect(count1).to.equal(1);
+        expect(count3).to.equal(1);
+        expect(count4).to.equal(1);
+        expect(count5).to.equal(1);
+
+        let count2 = 0;
+        let emitCustomer;
+        let emitSelfService;
+        let emitAddress;
+        getEmitter().on('core-cart-check-self-service', function(self, cust, serv, addr){
+            count2++;
+            emitCustomer = cust;
+            emitSelfService = serv;
+            emitAddress = addr;
+        });
+        await cart.check(customer, true, address);
+        expect(count2).to.equal(1);
+        expect(emitCustomer).to.equal(customer);
+        expect(emitSelfService).to.equal(true);
+        expect(emitAddress).to.equal(address);
+
+        
+        
     });
 });
