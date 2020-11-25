@@ -32,6 +32,15 @@ module.exports = {
             key = config;
             config = 'restocore';
         }
+        /** ENV variable is important*/
+        if (process.env[key] !== undefined) {
+            try {
+                return JSON.parse(process.env[key]);
+            }
+            catch (e) {
+                sails.log.error("CORE > SystemInfo > use ENV parse error: ", e);
+            }
+        }
         let obj = await SystemInfo.findOne({ key: key });
         sails.log.silly("CORE > SystemInfo > findOne: ", key, obj);
         if (!obj) {

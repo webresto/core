@@ -46,6 +46,15 @@ module.exports = {
       config = 'restocore';
     }
 
+    /** ENV variable is important*/  
+    if(process.env[key] !== undefined){
+      try {
+        return JSON.parse(process.env[key])
+      } catch (e) {
+        sails.log.error("CORE > SystemInfo > use ENV parse error: ",e);
+      }
+    } 
+    
     let obj = await SystemInfo.findOne({key: key});
     sails.log.silly("CORE > SystemInfo > findOne: ", key, obj);
   
@@ -150,7 +159,7 @@ export interface SystemInfoModel extends ORMModel<SystemInfo> {
    * @param values
    * @return обновлённое или созданное блюдо
    */
-  set(key: string, value: string, config?: string): Promise<any>
+  set(key: string, value: string|number|boolean, config?: string): Promise<any>
 
 }
 
