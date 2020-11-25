@@ -104,7 +104,7 @@ module.exports = {
       if (!propety) {
         return SystemInfo.create({
           key: key,
-          value: JSON.stringify(value),
+          value: value,
           from: config
         });
       } else {
