@@ -4,7 +4,7 @@ interface GroupData {
     code?: string;
     description?: string;
     parentGroup?: string;
-    images?: string;
+    images?: string[];
     order?: number;
     name?: string;
     tags?: {
@@ -15,7 +15,7 @@ interface GroupData {
         name: string;
     }[];
     isIncludedInMenu?: boolean;
-    dishes?: [];
+    dishes?: any[];
     slug?: string;
 }
 export default function groupGenerator(config?: GroupData): GroupData;

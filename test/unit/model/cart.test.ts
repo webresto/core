@@ -178,6 +178,42 @@ describe('Cart',function () {
     });
   });
 
+  it('payment', async function(){
+    let cart = await Cart.create({});
+    await cart.next('ORDER');
+    let error = null;
+    try{
+      await cart.payment();
+    }catch(e){
+      error = e;
+    }
+    expect(error).to.not.equal(null);
+
+    let testPaymentSystem = await TestPaymentSystem.getInstance();
+    let paymentSystem = (await PaymentMethod.find())[0];
+    cart.paymentMethod = paymentSystem.id;
+
+    await cart.next('CHECKOUT');
+    let result = await cart.payment();
+    // expect(result).to.be.an('object');
+
+    let state = await cart.getState();
+    expect(state).to.equal('PAYMENT');
+  });
+  it('paymentMethodId', async function(){
+    let cart = await Cart.create({});
+    let testPaymentSystem = await TestPaymentSystem.getInstance();
+    let paymentSystem = (await PaymentMethod.find())[0];
+    cart.paymentMethod = paymentSystem.id;
+    await cart.save();
+
+    let result = await cart.paymentMethodId();
+    expect(result).to.equal(paymentSystem.id);
+  });
+  it('doPaid TODO', async function(){
+
+  });
+
 });
 
 /**

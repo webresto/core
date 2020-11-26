@@ -5,6 +5,7 @@ import Dish from "../../../models/Dish";
 import Address from "../../../modelsHelp/Address";
 import Customer from "../../../modelsHelp/Customer";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
+import SystemInfo from '../../../models/SystemInfo';
 
 describe('Cart.check()', function(){
     this.timeout(10000);
@@ -25,6 +26,7 @@ describe('Cart.check()', function(){
         cart = await Cart.create({});
         // console.log('>>> Blank cart ------\n', cart);
     });
+    
 
     
     describe('check Customer', function(){
@@ -33,16 +35,13 @@ describe('Cart.check()', function(){
         //     cart = await Cart.create({});
         // });
         it('good customer', async function(){
+            cart = await Cart.create({});
             let customer: Customer = {
                 phone: '+79998881212',
                 name: 'Freeman Morgan'
             }
-            // @ts-ignore
-            let badCustomer: Customer = {
-                name: "Bad Man"
-            }
     
-            let result = await cart.check(customer, false);
+            let result = await cart.check(customer, true);
         
             expect(result).to.equal(true);
         });
@@ -98,6 +97,7 @@ describe('Cart.check()', function(){
 
     describe('check Address', function(){
         it('good address', async function(){
+            cart = await Cart.create({});
             let address: Address = {
                 streetId: 'sdfsf',
                 city: 'New York',
@@ -221,8 +221,27 @@ describe('Cart.check()', function(){
         expect(emitCustomer).to.equal(customer);
         expect(emitSelfService).to.equal(true);
         expect(emitAddress).to.equal(address);
-
-        
-        
+       
     });
+
+    it('throw if state ORDER', async function(){
+        await cart.next('ORDER');
+        let error = null;
+        try{
+            await cart.check(customer);
+        }catch(e){
+            error = e;
+        }
+        expect(error).to.not.equal(null);
+    });
+    it('checkConfig', async function(){
+        cart = await Cart.create({});
+        await SystemInfo.set('check', JSON.stringify({requireAll: true}));
+        let result = await cart.check(customer, true);
+        expect(result).to.equal(true);
+
+        await SystemInfo.set('check', JSON.stringify({notRequired: true}));
+        result = await cart.check(customer, true);
+        expect(result).to.equal(true);
+    })
 });

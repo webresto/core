@@ -10,14 +10,14 @@ interface GroupData  {
   code?: string;
   description?: string;
   parentGroup?: string;
-  images?: string;
+  images?: string[];
   order?: number;
   name?: string;
   tags?: {name: string}[];
   isDeleted?: boolean;
   dishesTags?: {name: string}[];
   isIncludedInMenu?: boolean;
-  dishes?: [];
+  dishes?: any[];
   slug?: string;
 
 }
@@ -31,14 +31,14 @@ export default function groupGenerator(config: GroupData = {}): GroupData{
     description: faker.random.words(25),
     parentGroup: config.parentGroup || null,
     order: autoincrement,
-    images: config.images || null,
+    images: config.images || [],
     name: config.name || faker.commerce.productName(),
-    tags: null,
+    tags: [],
     isDeleted: config.isDeleted || false,
-    dishesTags: config.dishesTags || null,
+    dishesTags: config.dishesTags || [],
     isIncludedInMenu: config.isDeleted || true,
-    dishes: config.dishes || null,
-    slug: faker.random.uuid()
+    dishes: config.dishes || [],
+    // slug: faker.random.uuid()
   }
 }
 

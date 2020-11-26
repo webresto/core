@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
+const ExternalTestPaymentSystem_1 = require("../external_payments/ExternalTestPaymentSystem");
 const getEmitter_1 = require("../../../lib/getEmitter");
 describe('Cart', function () {
     this.timeout(10000);
@@ -127,7 +128,6 @@ describe('Cart', function () {
         chai_1.expect(count2).to.equal(1);
         chai_1.expect(count3).to.equal(1);
         // expect(count4).to.equal(1);
-        // console.log('CART', cart);
         let error = null;
         try {
             await cart.order();
@@ -136,10 +136,40 @@ describe('Cart', function () {
             error = e;
         }
         chai_1.expect(error).to.not.equal(null);
-        console.log(error);
         getEmitter_1.default().on('core-cart-order-delivery', function () {
             // count1++;
         });
+    });
+    it('payment', async function () {
+        let cart = await Cart.create({});
+        await cart.next('ORDER');
+        let error = null;
+        try {
+            await cart.payment();
+        }
+        catch (e) {
+            error = e;
+        }
+        chai_1.expect(error).to.not.equal(null);
+        let testPaymentSystem = await ExternalTestPaymentSystem_1.default.getInstance();
+        let paymentSystem = (await PaymentMethod.find())[0];
+        cart.paymentMethod = paymentSystem.id;
+        await cart.next('CHECKOUT');
+        let result = await cart.payment();
+        // expect(result).to.be.an('object');
+        let state = await cart.getState();
+        chai_1.expect(state).to.equal('PAYMENT');
+    });
+    it('paymentMethodId', async function () {
+        let cart = await Cart.create({});
+        let testPaymentSystem = await ExternalTestPaymentSystem_1.default.getInstance();
+        let paymentSystem = (await PaymentMethod.find())[0];
+        cart.paymentMethod = paymentSystem.id;
+        await cart.save();
+        let result = await cart.paymentMethodId();
+        chai_1.expect(result).to.equal(paymentSystem.id);
+    });
+    it('doPaid TODO', async function () {
     });
 });
 /**

@@ -6,7 +6,7 @@ interface DishData {
     parentGroup?: string;
     weight?: number;
     price?: number;
-    images?: string;
+    images?: string[];
     order?: number;
     name?: string;
     composition?: string;

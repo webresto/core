@@ -27,15 +27,12 @@ describe('Cart.check()', function () {
         //     cart = await Cart.create({});
         // });
         it('good customer', async function () {
+            cart = await Cart.create({});
             let customer = {
                 phone: '+79998881212',
                 name: 'Freeman Morgan'
             };
-            // @ts-ignore
-            let badCustomer = {
-                name: "Bad Man"
-            };
-            let result = await cart.check(customer, false);
+            let result = await cart.check(customer, true);
             chai_1.expect(result).to.equal(true);
         });
         it('bad customer', async function () {
@@ -88,6 +85,7 @@ describe('Cart.check()', function () {
     });
     describe('check Address', function () {
         it('good address', async function () {
+            cart = await Cart.create({});
             let address = {
                 streetId: 'sdfsf',
                 city: 'New York',
@@ -200,5 +198,25 @@ describe('Cart.check()', function () {
         chai_1.expect(emitCustomer).to.equal(customer);
         chai_1.expect(emitSelfService).to.equal(true);
         chai_1.expect(emitAddress).to.equal(address);
+    });
+    it('throw if state ORDER', async function () {
+        await cart.next('ORDER');
+        let error = null;
+        try {
+            await cart.check(customer);
+        }
+        catch (e) {
+            error = e;
+        }
+        chai_1.expect(error).to.not.equal(null);
+    });
+    it('checkConfig', async function () {
+        cart = await Cart.create({});
+        await SystemInfo.set('check', JSON.stringify({ requireAll: true }));
+        let result = await cart.check(customer, true);
+        chai_1.expect(result).to.equal(true);
+        await SystemInfo.set('check', JSON.stringify({ notRequired: true }));
+        result = await cart.check(customer, true);
+        chai_1.expect(result).to.equal(true);
     });
 });
