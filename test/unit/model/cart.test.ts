@@ -128,7 +128,7 @@ describe('Cart',function () {
     let address: Address = {
       city: 'New York',
       street: 'Green Road',
-      home: 77,
+      home: "77",
       comment: ''
     }
     let result = await cart.check(customer, false);
