@@ -195,6 +195,7 @@ module.exports = {
          *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
          */
         removeDish: async function (dish, amount, stack) {
+            // TODO: удалить стек
             const emitter = getEmitter_1.default();
             await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
             const cart = await Cart.findOne({ id: this.id }).populate('dishes');
@@ -358,7 +359,7 @@ module.exports = {
                 self.customer = customer;
             }
             else {
-                if (self.customer === undefined) {
+                if (self.customer === null) {
                     throw {
                         code: 2,
                         error: 'customer is required'
@@ -385,7 +386,7 @@ module.exports = {
                 self.address = address;
             }
             else {
-                if (self.address === undefined) {
+                if (isSelfService && self.address === null) {
                     throw {
                         code: 2,
                         error: 'address is required'
@@ -784,7 +785,7 @@ async function checkDate(cart) {
         if (!date.isValid()) {
             throw {
                 code: 9,
-                error: 'date is not valid'
+                error: 'date is not valid, required (YYYY-MM-DD HH:mm:ss)'
             };
         }
         const possibleDatetime = await getOrderDateLimit();

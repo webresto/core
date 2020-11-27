@@ -9,17 +9,17 @@ function dishGenerator(config = {}) {
         id: faker.random.uuid(),
         additionalInfo: config.additionalInfo || null,
         balance: config.balance || -1,
-        modifiers: config.modifiers || null,
+        modifiers: config.modifiers || [],
         parentGroup: config.parentGroup || null,
         weight: 100,
         price: config.price || faker.random.number(500),
         order: autoincrement,
-        images: config.images || null,
+        images: config.images || [],
         name: faker.commerce.productName(),
         composition: faker.random.words(25),
         rmsId: 'none',
         code: null,
-        tags: null,
+        tags: [],
         isDeleted: config.isDeleted || false
     };
 }

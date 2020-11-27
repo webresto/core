@@ -137,7 +137,7 @@ module.exports = {
     },
     dishesCount: 'integer',
     uniqueDishes: 'integer',
-    modifiers: 'json',
+    modifiers: 'json', //maybe dont needed here
     customer: 'json',
     address: 'json',
     comment: 'string',
@@ -171,8 +171,8 @@ module.exports = {
     deliveryItem: 'string',
     deliveryCost: 'float', // rename to deliveryCost
     totalWeight: 'float',
-    total: 'float',
-    orderTotal: 'float',
+    total: 'float', // total = cartTotal
+    orderTotal: 'float', // orderTotal = total - deliveryCost
     cartTotal: 'float',
     orderDate: 'datetime',
 
@@ -276,7 +276,7 @@ module.exports = {
      *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
      */
     removeDish: async function (dish: CartDish, amount: number, stack?: boolean): Promise<void> {
-
+      // TODO: удалить стек
       const emitter = getEmitter();
       await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
 
@@ -462,7 +462,7 @@ module.exports = {
           await checkCustomerInfo(customer);
           self.customer = customer;
       } else {
-        if(self.customer === undefined){
+        if(self.customer === null){
           throw {
             code: 2,
             error: 'customer is required'
@@ -493,7 +493,7 @@ module.exports = {
           checkAddress(address);
           self.address = address;
       } else {
-        if(self.address === undefined){
+        if(isSelfService && self.address === null){
           throw {
             code: 2,
             error: 'address is required'
@@ -732,7 +732,6 @@ module.exports = {
         id: cartDish.dish.id,
         isDeleted: false
       }).populate('images').populate('parentGroup');
-
       const reason = checkExpression(dish);
 
       if (dish && dish.parentGroup)      
@@ -959,7 +958,7 @@ async function checkDate(cart: Cart) {
     if (!date.isValid()){
       throw {
         code: 9,
-        error: 'date is not valid'
+        error: 'date is not valid, required (YYYY-MM-DD HH:mm:ss)'
       }
     }
     
