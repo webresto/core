@@ -12,14 +12,13 @@ function groupGenerator(config = {}) {
         description: faker.random.words(25),
         parentGroup: config.parentGroup || null,
         order: autoincrement,
-        images: config.images || null,
+        images: config.images || [],
         name: config.name || faker.commerce.productName(),
-        tags: null,
+        tags: [],
         isDeleted: config.isDeleted || false,
-        dishesTags: config.dishesTags || null,
+        dishesTags: config.dishesTags || [],
         isIncludedInMenu: config.isDeleted || true,
-        dishes: config.dishes || null,
-        slug: faker.random.uuid()
+        dishes: config.dishes || [],
     };
 }
 exports.default = groupGenerator;

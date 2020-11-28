@@ -3,7 +3,7 @@
  */
 export default interface Address {
   streetId?: string;
-  home: number;
+  home: string;
   comment?: string;
   city?: string;
   street: string;

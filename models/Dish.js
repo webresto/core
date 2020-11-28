@@ -169,17 +169,19 @@ module.exports = {
      * @param dish
      */
     async getDishModifiers(dish) {
-        await Promise.map(dish.modifiers, async (modifier, index) => {
-            if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-                dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
-                await Promise.map(modifier.childModifiers, async (modifier, index1) => {
-                    dish.modifiers[index].childModifiers[index1].dish = await Dish.findOne({ id: modifier.modifierId }).populate('images');
-                });
-            }
-            else {
-                dish.modifiers[index].dish = await Dish.findOne({ id: modifier.id }).populate('images');
-            }
-        });
+        if (dish.modifiers) {
+            await Promise.map(dish.modifiers, async (modifier, index) => {
+                if (modifier.childModifiers && modifier.childModifiers.length > 0) {
+                    dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
+                    await Promise.map(modifier.childModifiers, async (modifier, index1) => {
+                        dish.modifiers[index].childModifiers[index1].dish = await Dish.findOne({ id: modifier.modifierId }).populate('images');
+                    });
+                }
+                else {
+                    dish.modifiers[index].dish = await Dish.findOne({ id: modifier.id }).populate('images');
+                }
+            });
+        }
     },
     /**
      * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет

@@ -50,7 +50,7 @@ export interface SystemInfoModel extends ORMModel<SystemInfo> {
    * @param values
    * @return обновлённое или созданное блюдо
    */
-    set(key: string, value: string, config?: string): Promise<any>;
+    set(key: string, value: string | number | boolean, config?: string): Promise<any>;
 }
 declare global {
     const SystemInfo: SystemInfoModel;

@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const ExternalTestPaymentSystem_1 = require("../external_payments/ExternalTestPaymentSystem");
+const getEmitter_1 = require("../../../lib/getEmitter");
 describe('Cart', function () {
+    this.timeout(10000);
     let cart;
     let dishes;
     let fullCart;
@@ -19,17 +21,19 @@ describe('Cart', function () {
         chai_1.expect(cart).to.be.an('object');
     });
     it('addDish', async function () {
+        cart = await Cart.create({});
         await cart.addDish(dishes[0], 1, [], '', 'test');
         await cart.addDish(dishes[1], 5, [], 'test comment', 'test');
         let result = await Cart.findOne(cart.id).populate('dishes');
         chai_1.expect(result.dishes.length).to.equal(2);
-        let cartDishes = await CartDish.find({ cart: cart.id }).sort('createdAt');
-        chai_1.expect(cartDishes[0].amount).to.equal(1);
-        chai_1.expect(cartDishes[0].comment).to.equal('');
-        chai_1.expect(cartDishes[0].addedBy).to.equal('test');
-        chai_1.expect(cartDishes[1].amount).to.equal(5);
-        chai_1.expect(cartDishes[1].comment).to.equal('test comment');
-        chai_1.expect(cartDishes[1].addedBy).to.equal('test');
+        let cartDish = await CartDish.find({ cart: cart.id, dish: dishes[0].id }).sort('createdAt ASC');
+        chai_1.expect(cartDish[0].amount).to.equal(1);
+        chai_1.expect(cartDish[0].comment).to.equal('');
+        chai_1.expect(cartDish[0].addedBy).to.equal('test');
+        cartDish = await CartDish.find({ cart: cart.id, dish: dishes[1].id }).sort('createdAt ASC');
+        chai_1.expect(cartDish[0].amount).to.equal(5);
+        chai_1.expect(cartDish[0].comment).to.equal('test comment');
+        chai_1.expect(cartDish[0].addedBy).to.equal('test');
     });
     it('removeDish', async function () {
         let dish = (await Cart.findOne(cart.id).populate('dishes')).dishes[1];
@@ -38,14 +42,6 @@ describe('Cart', function () {
         let changedDish = await CartDish.findOne(dish.id);
         chai_1.expect(changedDish.amount).to.equal(dish.amount - 1);
     });
-    // it('removeDish stack', async function(){
-    //   await cart.addDish(dishes[2], 10, [], '', 'test');
-    //   let dishId = (await Cart.findOne(cart.id).populate('dishes')).dishes[2].id;
-    //   let lastDish = await CartDish.findOne(dishId);
-    //   await cart.removeDish(lastDish, 0, true);
-    //   let changedDish = await CartDish.findOne(dishId);
-    //   expect(changedDish.amount).to.equal(9);
-    // });
     it('setCount', async function () {
         let dish = (await Cart.findOne({ id: cart.id }).populate('dishes')).dishes[0];
         dish = await CartDish.findOne(dish.id);
@@ -66,7 +62,11 @@ describe('Cart', function () {
     });
     it('returnFullCart', async function () {
         cart = await Cart.create({});
+        await cart.addDish(dishes[0], 5, [], '', '');
+        await cart.addDish(dishes[1], 3, [], '', '');
+        await cart.addDish(dishes[2], 8, [], '', '');
         let res = await Cart.returnFullCart(cart);
+        chai_1.expect(res).to.be.an('object');
     });
     it('addDish 20', async function () {
         cart = await Cart.create({});
@@ -89,54 +89,98 @@ describe('Cart', function () {
         changedCart = await Cart.findOne(cart.id);
         chai_1.expect(changedCart.selfService).to.equal(false);
     });
-    it('check', async function () {
-        let customer = {
-            phone: '+79998881212',
-            name: 'Freeman Morgan'
-        };
-        let address = {
-            city: 'New York',
-            street: 'Green Road',
-            home: 77,
-            comment: ''
-        };
-        let result = await cart.check(customer, false);
-        chai_1.expect(result).to.equal(true);
-        result = await cart.check(customer, true, address);
-        chai_1.expect(result).to.equal(true);
-        let testPaymentSystem = await ExternalTestPaymentSystem_1.default.getInstance();
-        let paymentSystem = (await PaymentMethod.find())[0];
-        result = await cart.check(customer, false, address, paymentSystem.id);
-        chai_1.expect(result).to.equal(true);
-        // @ts-ignore
-        let customerWrong = {
-            phone: 'wrongphone'
-        };
-        result = await cart.check(null, null, null, paymentSystem.id);
-        chai_1.expect(result).to.equal(true);
-        // error promise test
+    // it('emit test', async function(){
+    // });
+    it('countCart', async function () {
+        let cart = await Cart.create({});
+        let totalWeight = 0;
+        await cart.addDish(dishes[0], 5, [], '', '');
+        await cart.addDish(dishes[1], 3, [], '', '');
+        await cart.addDish(dishes[2], 8, [], '', '');
+        totalWeight = dishes[0].weight * 5 + dishes[1].weight * 3 + dishes[2].weight * 8;
+        cart = await Cart.findOne(cart.id);
+        await Cart.countCart(cart);
+        let changedCart = await Cart.findOne(cart.id);
+        chai_1.expect(changedCart.totalWeight).to.equal(totalWeight);
+        chai_1.expect(changedCart.uniqueDishes).to.equal(3);
+        chai_1.expect(changedCart.dishesCount).to.equal(5 + 3 + 8);
+    });
+    it('order', async function () {
+        let count1 = 0;
+        let count2 = 0;
+        let count3 = 0;
+        let count4 = 0;
+        getEmitter_1.default().on('core-cart-before-order', function () {
+            count1++;
+        });
+        getEmitter_1.default().on('core-cart-order-self-service', function () {
+            count2++;
+        });
+        getEmitter_1.default().on('core-cart-order', function () {
+            count3++;
+        });
+        // getEmitter().on('core-cart-after-order', function(){
+        //   count4++;
+        // });
+        await cart.setSelfService(true);
+        await cart.order();
+        chai_1.expect(count1).to.equal(1);
+        chai_1.expect(count2).to.equal(1);
+        chai_1.expect(count3).to.equal(1);
+        // expect(count4).to.equal(1);
         let error = null;
         try {
-            await cart.check(customerWrong, false);
+            await cart.order();
         }
         catch (e) {
             error = e;
         }
-        chai_1.expect(error).to.be.an('object');
-        // expect(async function (){await cart.check(customerWrong, false)}).to.throw();
+        chai_1.expect(error).to.not.equal(null);
+        getEmitter_1.default().on('core-cart-order-delivery', function () {
+            // count1++;
+        });
     });
-    // it('countCart', async function(){
-    //   let cart = await Cart.create({});
-    //   let totalWeight = 0;
-    //   await cart.addDish(dishes[0], 5, [], '', '');
-    //   await cart.addDish(dishes[1], 3, [], '', '');
-    //   await cart.addDish(dishes[2], 8, [], '', '');
-    //   totalWeight = dishes[0].weight * 5 + dishes[1].weight * 3 + dishes[2].weight * 8;
-    //   cart = await Cart.findOne(cart.id);
-    //   await Cart.countCart(cart);
-    //   let changedCart = await Cart.findOne(cart.id);
-    //   expect(changedCart.totalWeight).to.equal(totalWeight);
-    //   expect(changedCart.uniqueDishes).to.equal(3);
-    //   expect(changedCart.dishesCount).to.equal(5 + 3 + 8);
-    // });
+    it('payment', async function () {
+        let cart = await Cart.create({});
+        await cart.next('ORDER');
+        let error = null;
+        try {
+            await cart.payment();
+        }
+        catch (e) {
+            error = e;
+        }
+        chai_1.expect(error).to.not.equal(null);
+        let testPaymentSystem = await ExternalTestPaymentSystem_1.default.getInstance();
+        let paymentSystem = (await PaymentMethod.find())[0];
+        cart.paymentMethod = paymentSystem.id;
+        await cart.next('CHECKOUT');
+        let result = await cart.payment();
+        // expect(result).to.be.an('object');
+        let state = await cart.getState();
+        chai_1.expect(state).to.equal('PAYMENT');
+    });
+    it('paymentMethodId', async function () {
+        let cart = await Cart.create({});
+        let testPaymentSystem = await ExternalTestPaymentSystem_1.default.getInstance();
+        let paymentSystem = (await PaymentMethod.find())[0];
+        cart.paymentMethod = paymentSystem.id;
+        await cart.save();
+        let result = await cart.paymentMethodId();
+        chai_1.expect(result).to.equal(paymentSystem.id);
+    });
+    it('doPaid TODO', async function () {
+    });
 });
+/**
+ * create and return new Cart with few dishes
+ * @param dishes - array of dishes
+ */
+async function getNewCart(dishes) {
+    let cart = await Cart.create({});
+    await cart.addDish(dishes[0], 5, [], '', '');
+    await cart.addDish(dishes[1], 3, [], '', '');
+    await cart.addDish(dishes[2], 8, [], '', '');
+    cart = await Cart.findOne(cart.id);
+    return cart;
+}
