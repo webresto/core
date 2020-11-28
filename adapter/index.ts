@@ -13,6 +13,7 @@ export class RMS {
       const adapter = require(adapterFind);
       return adapter.RMS[adapterName.toUpperCase()];
     } catch (e) {
+      sails.log.error("CORE > getAdapter RMS > error; ", e);
       throw new Error('Module ' + adapterFind + ' not found');
     }
   }
@@ -28,6 +29,7 @@ export class Map {
       const adapter: { MapAdapter: { default: new (config) => MapAdapter } } = require(adapterName);
       return adapter.MapAdapter.default;
     } catch (e) {
+      sails.log.error("CORE > getAdapter Map > error; ", e);
       throw new Error('Module ' + adapterName + ' not found');
     }
   }
@@ -43,6 +45,7 @@ export class ImageA {
       const adapter = require(adapterName);
       return adapter.ImageAdapter.default;
     } catch (e) {
+      sails.log.error("CORE > getAdapter ImageA > error; ", e);
       throw new Error('Module ' + adapterName + ' not found');
     }
   }
@@ -57,6 +60,7 @@ export class Payment {
       const adapter = require(adapterName);
       return adapter.PaymentAdapter[adapterName.toUpperCase()];
     } catch (e) {
+      sails.log.error("CORE > getAdapter Payment > error; ", e);
       throw new Error('Module ' + adapterName + ' not found');
     }
   }

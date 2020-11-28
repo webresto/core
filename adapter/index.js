@@ -12,6 +12,7 @@ class RMS {
             return adapter.RMS[adapterName.toUpperCase()];
         }
         catch (e) {
+            sails.log.error("CORE > getAdapter RMS > error; ", e);
             throw new Error('Module ' + adapterFind + ' not found');
         }
     }
@@ -28,6 +29,7 @@ class Map {
             return adapter.MapAdapter.default;
         }
         catch (e) {
+            sails.log.error("CORE > getAdapter Map > error; ", e);
             throw new Error('Module ' + adapterName + ' not found');
         }
     }
@@ -44,6 +46,7 @@ class ImageA {
             return adapter.ImageAdapter.default;
         }
         catch (e) {
+            sails.log.error("CORE > getAdapter ImageA > error; ", e);
             throw new Error('Module ' + adapterName + ' not found');
         }
     }
@@ -60,6 +63,7 @@ class Payment {
             return adapter.PaymentAdapter[adapterName.toUpperCase()];
         }
         catch (e) {
+            sails.log.error("CORE > getAdapter Payment > error; ", e);
             throw new Error('Module ' + adapterName + ' not found');
         }
     }
