@@ -1,6 +1,6 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
-import uuid = require('uuid/v4');
+import { v4 as uuid } from 'uuid';
 import { PaymentResponse, Payment }  from "../modelsHelp/Payment"
 import PaymentMethod from "../models/PaymentMethod";
 import PaymentAdapter from "../adapter/payment/PaymentAdapter";

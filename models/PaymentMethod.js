@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const uuid = require("uuid/v4");
+const uuid_1 = require("uuid");
 var alivedPaymentMethods = {};
 module.exports = {
     attributes: {
@@ -53,7 +53,7 @@ module.exports = {
         }
     },
     beforeCreate: function (paymentMethod, next) {
-        paymentMethod.id = uuid();
+        paymentMethod.id = uuid_1.v4();
         next();
     },
     /**

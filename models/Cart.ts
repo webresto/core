@@ -103,7 +103,7 @@ import Dish from "./Dish";
 import * as _ from "lodash";
 import { PaymentResponse } from "../modelsHelp/Payment"
 import * as moment from "moment";
-import uuid = require('uuid/v4');
+import { v4 as uuid } from 'uuid';
 
 module.exports = {
   autoPK: false,
@@ -455,7 +455,7 @@ module.exports = {
        */
 
       getEmitter().emit('core-cart-before-check', self, customer, isSelfService, address);
-      sails.log.verbose('Cart > check > before check >', customer, isSelfService, address, paymentMethodId);
+      sails.log.debug('Cart > check > before check >', customer, isSelfService, address, paymentMethodId);
 
 
       if (customer){

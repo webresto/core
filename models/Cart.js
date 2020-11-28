@@ -32,14 +32,14 @@ const actions_1 = require("../lib/actions");
 const getEmitter_1 = require("../lib/getEmitter");
 const _ = require("lodash");
 const moment = require("moment");
-const uuid = require("uuid/v4");
+const uuid_1 = require("uuid");
 module.exports = {
     autoPK: false,
     attributes: {
         id: {
             type: 'string',
             primaryKey: true,
-            defaultsTo: function () { return uuid(); }
+            defaultsTo: function () { return uuid_1.v4(); }
         },
         cartId: 'string',
         shortId: {
@@ -352,7 +352,7 @@ module.exports = {
              *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
              */
             getEmitter_1.default().emit('core-cart-before-check', self, customer, isSelfService, address);
-            sails.log.verbose('Cart > check > before check >', customer, isSelfService, address, paymentMethodId);
+            sails.log.debug('Cart > check > before check >', customer, isSelfService, address, paymentMethodId);
             if (customer) {
                 await checkCustomerInfo(customer);
                 self.customer = customer;

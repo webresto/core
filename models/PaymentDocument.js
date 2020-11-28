@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const uuid = require("uuid/v4");
+const uuid_1 = require("uuid");
 const getEmitter_1 = require("../lib/getEmitter");
 module.exports = {
     autoPK: false,
@@ -8,7 +8,7 @@ module.exports = {
         id: {
             type: 'string',
             primaryKey: true,
-            defaultsTo: function () { return uuid(); }
+            defaultsTo: function () { return uuid_1.v4(); }
         },
         paymentId: 'string',
         externalId: 'string',
@@ -60,7 +60,7 @@ module.exports = {
         checkAmount(amount);
         await checkOrigin(originModel, paymentId);
         await checkPaymentMethod(paymentMethodId);
-        var id = uuid();
+        var id = uuid_1.v4();
         id = id.substr(id.length - 8).toUpperCase();
         let payment = { id: id, paymentId: paymentId, originModel: originModel, paymentMethod: paymentMethodId, amount: amount, comment: comment, data: data };
         getEmitter_1.default().emit('core-payment-document-before-create', payment);
