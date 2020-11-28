@@ -14,7 +14,6 @@ import defaultConfig from "../config/defaultConfig";
 import Config from "../modelsHelp/Config";
 
 module.exports = {
-  //migrate: 'drop',
   attributes: {
     id: {
       type: 'integer',

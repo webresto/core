@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const defaultConfig_1 = require("../config/defaultConfig");
 module.exports = {
-    //migrate: 'drop',
     attributes: {
         id: {
             type: 'integer',
