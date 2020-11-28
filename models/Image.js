@@ -17,12 +17,13 @@
     }
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+const uuid_1 = require("uuid");
 module.exports = {
     attributes: {
         id: {
             type: 'string',
-            required: true,
-            primaryKey: true
+            primaryKey: true,
+            defaultsTo: function () { return uuid_1.v4(); }
         },
         images: 'json',
         dish: {

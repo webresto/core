@@ -22,14 +22,15 @@ import Dish from "../models/Dish";
 import Group from "../models/Group";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
+import { v4 as uuid } from 'uuid';
 
 module.exports = {
   attributes: {
     id: {
       type: 'string',
-      required: true,
-      primaryKey: true
-    },
+      primaryKey: true,
+      defaultsTo: function (){ return uuid(); }
+    }, 
     images: 'json',
     dish: {
       collection: 'dish',
