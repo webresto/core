@@ -50,6 +50,7 @@ module.exports = {
             collection: 'CartDish',
             via: 'cart'
         },
+        discount: 'json',
         paymentMethod: {
             model: 'PaymentMethod',
             via: 'id'
@@ -386,7 +387,7 @@ module.exports = {
                 self.address = address;
             }
             else {
-                if (isSelfService && self.address === null) {
+                if (!isSelfService && self.address === null) {
                     throw {
                         code: 2,
                         error: 'address is required'
@@ -456,7 +457,7 @@ module.exports = {
             else {
                 getEmitter_1.default().emit('core-cart-order-delivery', self);
             }
-            await Cart.countCart(self);
+            await Cart.returnFullCart(self);
             const results = await getEmitter_1.default().emit('core-cart-order', self);
             sails.log.verbose('Cart > order > after wait general emitter results: ', results);
             const resultsCount = results.length;
@@ -524,7 +525,7 @@ module.exports = {
                 backLinkFail: backLinkFail,
                 comment: comment
             };
-            await Cart.countCart(self);
+            await Cart.returnFullCart(self);
             await getEmitter_1.default().emit('core-cart-payment', self, params);
             sails.log.info("Cart > payment > self before register:", self);
             try {
@@ -548,7 +549,7 @@ module.exports = {
     },
     doPaid: async function (paymentDocument) {
         let cart = await Cart.findOne(paymentDocument.paymentId);
-        Cart.countCart(cart);
+        Cart.returnFullCart(cart);
         try {
             let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
             await Cart.update({ id: paymentDocument.paymentId }, { paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle });
@@ -614,7 +615,6 @@ module.exports = {
         }
         cart2.dishes = cartDishes;
         // sails.log.info(cart);
-        await this.countCart(cart2);
         for (let cartDish of cartDishes) {
             if (cartDish.modifiers) {
                 for (let modifier of cartDish.modifiers) {
@@ -624,6 +624,8 @@ module.exports = {
         }
         cart2.orderDateLimit = await getOrderDateLimit();
         cart2.cartId = cart2.id;
+        await getEmitter_1.default().emit('core-cart-after-return-full-cart-discount', cart2);
+        await this.countCart(cart2);
         await getEmitter_1.default().emit('core-cart-after-return-full-cart', cart2);
         return cart2;
     },
@@ -693,9 +695,12 @@ module.exports = {
         cart.dishesCount = dishesCount;
         cart.uniqueDishes = uniqueDishes;
         cart.totalWeight = totalWeight;
-        cart.total = orderTotal;
-        cart.orderTotal = orderTotal;
-        cart.cartTotal = orderTotal + deliveryCost;
+        if (!cart.discountTotal) {
+            cart.discountTotal = 0;
+        }
+        cart.total = orderTotal - cart.discountTotal;
+        cart.orderTotal = orderTotal - cart.discountTotal;
+        cart.cartTotal = orderTotal + deliveryCost - cart.discountTotal;
         for (let cd in cart.dishes) {
             if (cart.dishes.hasOwnProperty(cd)) {
                 const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);

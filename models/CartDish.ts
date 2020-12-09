@@ -43,12 +43,14 @@ module.exports = {
       model: 'Cart',
       via: 'dishes'
     },
+    discount: 'json',
     parent: {
       model: 'CartDish',
       via: 'modifiers'
     },
     uniqueItems: 'integer',
     itemTotal: 'float',
+    discountTotal: 'float',
     comment: 'string',
     addedBy: {
       type: 'string',
