@@ -747,7 +747,6 @@ module.exports = {
         cartDish.dish = dish;
         // sails.log.info('CARTDISH DISH MODIFIERS', dish.modifiers);
       } else {
-        sails.log.info('destroy', dish.id);
         getEmitter().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
         await CartDish.destroy(dish);
         cart2.dishes.remove(cartDish.id);
@@ -762,7 +761,7 @@ module.exports = {
     // sails.log.info(cart);
     
     for (let cartDish of cartDishes) {
-      if (cartDish.modifiers) {
+      if (cartDish.modifiers !== undefined) {
         for (let modifier of cartDish.modifiers) {
           modifier.dish = await Dish.findOne(modifier.id);
         }
