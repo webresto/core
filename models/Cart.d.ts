@@ -3,20 +3,39 @@ import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
 import CartDish from "../models/CartDish";
 import PaymentDocument from "./PaymentDocument";
-import StateFlow from "../modelsHelp/StateFlow";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import Dish from "./Dish";
 import { PaymentResponse } from "../modelsHelp/Payment";
+declare global {
+    const Cart: CartModel;
+}
 /**
- * Описывает модель корзины. Содержит в себе блюда и данных о них, данные о заказчике и месте доставки.
- * Имеет состояние state, которое указывает в каком моменте жизненного цикла сейчас находится корзина.
- * Схематически цикл переходов выглядить так
- * -> CART <-> CHECKOUT  -> ORDER
+ * Описывает класс Cart, содержит статические методы, используется для ORM
  */
-export default interface Cart extends ORM, StateFlow {
+export interface CartModel extends ORMModel<Cart> {
+    /**
+     * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
+     * содержит в себе свои картинки, каждый модификатор внутри cart.dishes и каждого dish содержит группу модификаторов и
+     * самоблюдо модификатора и тд.
+     * @param cart
+     */
+    returnFullCart(cart: Cart): Promise<Cart>;
+    /**
+     * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
+     * @param cart
+     */
+    countCart(cart: Cart): any;
+    /** Выполняет оплату в моделе */
+    doPaid(paymentDocument: PaymentDocument): Promise<void>;
+}
+/**
+ * Описывает IIKO  cart
+ */
+export interface Cart extends ORM {
     id: string;
     cartId: string;
+    state: string;
     shortId: string;
     dishes: Association<CartDish>;
     paymentMethod: string;
@@ -75,7 +94,7 @@ export default interface Cart extends ORM, StateFlow {
      * добавить блюдо. Результат подписок игнорируется.
      * @fires cart:core-cart-after-add-dish - вызывается после успешного добавления блюда. Результат подписок игнорируется.
      */
-    addDish(dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string): Promise<void>;
+    addDish(dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number): Promise<void>;
     /**
      * Уменьшает количество заданного блюда на amount. Переводит корзину в состояние CART.
      * @param dish - Блюдо для изменения количества блюд
@@ -203,30 +222,16 @@ export default interface Cart extends ORM, StateFlow {
     /**
     * Возвращает paymentMethodId текущей корзины
     * @param cart
-    *
     * @return paymentMethodId
     */
-    paymentMethodId(cart?: string): Promise<string>;
-}
-/**
- * Описывает класс Cart, содержит статические методы, используется для ORM
- */
-export interface CartModel extends ORMModel<Cart> {
+    paymentMethodId(cart?: Cart): Promise<string>;
     /**
-     * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
-     * содержит в себе свои картинки, каждый модификатор внутри cart.dishes и каждого dish содержит группу модификаторов и
-     * самоблюдо модификатора и тд.
-     * @param cart
+     * Попытка переключить state корзины
+     * @param state Новый стейт
      */
-    returnFullCart(cart: Cart): Promise<Cart>;
+    next(state?: string): Promise<void>;
     /**
-     * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
-     * @param cart
+     * Вернет стейт корзны
      */
-    countCart(cart: Cart): any;
-    /** Выполняет оплату в моделе */
-    doPaid(paymentDocument: PaymentDocument): Promise<void>;
-}
-declare global {
-    const Cart: CartModel;
+    getState(): string;
 }
