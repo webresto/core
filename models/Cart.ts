@@ -1,92 +1,3 @@
-/**
- * @api {API} Cart Cart
- * @apiGroup Models
- * @apiDescription Модель корзины. Имеет в себе список блюд, данные про них, методы для добавления/удаления блюд
- *
- * @apiParam {Integer} id Уникальный идентификатор
- * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
- * @apiParam {[CartDish](#api-Models-ApiCartdish)[]} dishes Массив блюд в текущей корзине. Смотри [CartDish](#api-Models-ApiCartdish)
- * @apiParam {[PaymentMethod](#api-Models-PaymentMethod)[]} paymentMethod Способ оплаты 
- * @apiParam {Boolean} paids Признак того что корзина оплачена
- * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
- * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
- * @apiParam {Integer} cartTotal Стоимость корзины без доставки
- * @apiParam {Integer} total Стоимость корзины с доставкой
- * @apiParam {Float} delivery Стоимость доставки
- * @apiParam {Boolean} problem Есть ли проблема с отправкой на IIKO
- * @apiParam {JSON} customer Данные о заказчике
- * @apiParam {JSON} address Данные о адресе доставки
- * @apiParam {String} comment Комментарий к заказу
- * @apiParam {String} personsCount Количество персон
- * @apiParam {Boolean} sendToIiko Был ли отправлен заказ IIKO
- * @apiParam {String} rmsId ID заказа, который пришёл от IIKO
- * @apiParam {String} deliveryStatus Статус состояния доставки (0 успешно расчитана)
- * @apiParam {Boolean} selfService Признак самовывоза
- * @apiParam {String} deliveryDescription Строка дополнительной информации о доставке
- * @apiParam {String} message Сообщение, что отправляется с корзиной
- */
-
-/**
- * arguments - arguments of function that call emitter
- *
- * addDish:
- * 1. ['core-cart-before-add-dish', ...arguments]
- * 2. ['core-cart-add-dish-before-create-cartdish', ...arguments]
- * 3. ['core-cart-after-add-dish', cartDish, ...arguments]
- * errors:
- * - ['core-cart-add-dish-reject-amount', ...arguments]
- *
- * removeDish:
- * 1. ['core-cart-before-remove-dish', ...arguments]
- * 2. ['core-cart-after-remove-dish', ...arguments]
- * errors:
- * - ['core-cart-remove-dish-reject-no-cartdish', ...arguments]
- *
- * setCount:
- * 1. ['core-cart-before-set-count', ...arguments]
- * 2. ['core-cart-after-set-count', ...arguments]
- * errors:
- * - ['core-cart-set-count-reject-amount', ...arguments]
- * - ['core-cart-set-count-reject-no-cartdish', ...arguments]
- *
- * setModifierCount:
- * 1. ['core-cart-before-set-modifier-count', ...arguments]
- * 2. ['core-cart-after-set-modifier-count', ...arguments]
- * errors:
- * - ['core-cart-set-modifier-count-reject-amount', ...arguments]
- * - ['core-cart-set-modifier-count-reject-no-cartdish', ...arguments]
- * - ['core-cart-set-modifier-count-reject-no-modifier-dish', ...arguments]
- * - ['core-cart-set-modifier-count-reject-no-modifier-in-dish', ...arguments]
- *
- * setComment:
- * 1. ['core-cart-before-set-comment', ...arguments]
- * 2. ['core-cart-after-set-comment', ...arguments]
- * errors:
- * - ['core-cart-set-comment-reject-no-cartdish', ...arguments]
- *
- * beforeCreate:
- * 1. 'core-cart-before-create', values
- * 
- * afterUpdate:
- * 1. 'core-cart-after-update', values
- *
- * returnFullCart:
- * 1. 'core-cart-before-return-full-cart', cart
- * 2. 'core-cart-return-full-cart-destroy-cartdish', dish, cart
- * 3. 'core-cart-after-return-full-cart', cart
- *
- * count:
- * 1. 'core-cart-before-count', cart
- * 2. 'core-cart-after-count', cart
- * errors:
- * - 'core-cart-count-reject-no-dish', cartDish, cart
- * - 'core-cart-count-reject-no-modifier-dish', modifier, cart
- *
- * check:
- * 1. 'core-cart-before-check', self, customer, isSelfService, address
- * 2. 'core-cart-check', self, customer, isSelfService, address
- * 3. 'core-cart-after-check', self, customer, isSelfService, address
- */
 
 import Modifier from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
@@ -770,8 +681,7 @@ module.exports = {
     
     cart2.orderDateLimit = await getOrderDateLimit();
     cart2.cartId = cart2.id;
-    
-    await getEmitter().emit('core-cart-after-return-full-cart-discount', cart2); 
+     
     await this.countCart(cart2);
 
 
@@ -798,7 +708,7 @@ module.exports = {
 
     // sails.log.info(dishes);
 
-    await Promise.map(cartDishes, async (cartDish: CartDish) => {
+    for await(let cartDish of cartDishes){
       try {
         if (cartDish.dish) {
           const dish = await Dish.findOne(cartDish.dish.id);
@@ -844,7 +754,19 @@ module.exports = {
       } catch (e) {
         sails.log.error('Cart > count > error3', e);
       }
-    });
+    }
+
+    for (let cd in cart.dishes) {
+      if (cart.dishes.hasOwnProperty(cd)) {
+        const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
+        if (!cartDish)
+          continue;
+        cartDish.dish = cartDishesClone[cartDish.id].dish;
+        cart.dishes[cd] = cartDish; 
+      }
+    }
+    // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
+    await getEmitter().emit('core-cart-count-discount-apply', cart);
 
     let deliveryCost: number;
     if (cart.deliveryCost){
@@ -865,15 +787,6 @@ module.exports = {
     cart.orderTotal = orderTotal - cart.discountTotal;
     cart.cartTotal = orderTotal + deliveryCost - cart.discountTotal;
 
-    for (let cd in cart.dishes) {
-      if (cart.dishes.hasOwnProperty(cd)) {
-        const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
-        if (!cartDish)
-          continue;
-        cartDish.dish = cartDishesClone[cartDish.id].dish;
-        cart.dishes[cd] = cartDish; // <-- PROBLEM CODE
-      }
-    }
 
     if (cart.delivery) {
       cart.total += cart.delivery;

@@ -1,31 +1,4 @@
 "use strict";
-/**
- * @api {API} Cart Cart
- * @apiGroup Models
- * @apiDescription Модель корзины. Имеет в себе список блюд, данные про них, методы для добавления/удаления блюд
- *
- * @apiParam {Integer} id Уникальный идентификатор
- * @apiParam {String} cartId ID корзины, по которой к ней обращается внешнее апи
- * @apiParam {[CartDish](#api-Models-ApiCartdish)[]} dishes Массив блюд в текущей корзине. Смотри [CartDish](#api-Models-ApiCartdish)
- * @apiParam {[PaymentMethod](#api-Models-PaymentMethod)[]} paymentMethod Способ оплаты
- * @apiParam {Boolean} paids Признак того что корзина оплачена
- * @apiParam {Integer} countDishes Общее количество блюд в корзине (с модификаторами)
- * @apiParam {Integer} uniqueDishes Количество уникальных блюд в корзине
- * @apiParam {Integer} cartTotal Стоимость корзины без доставки
- * @apiParam {Integer} total Стоимость корзины с доставкой
- * @apiParam {Float} delivery Стоимость доставки
- * @apiParam {Boolean} problem Есть ли проблема с отправкой на IIKO
- * @apiParam {JSON} customer Данные о заказчике
- * @apiParam {JSON} address Данные о адресе доставки
- * @apiParam {String} comment Комментарий к заказу
- * @apiParam {String} personsCount Количество персон
- * @apiParam {Boolean} sendToIiko Был ли отправлен заказ IIKO
- * @apiParam {String} rmsId ID заказа, который пришёл от IIKO
- * @apiParam {String} deliveryStatus Статус состояния доставки (0 успешно расчитана)
- * @apiParam {Boolean} selfService Признак самовывоза
- * @apiParam {String} deliveryDescription Строка дополнительной информации о доставке
- * @apiParam {String} message Сообщение, что отправляется с корзиной
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../lib/checkExpression");
 const actions_1 = require("../lib/actions");
@@ -103,6 +76,7 @@ module.exports = {
         total: 'float',
         orderTotal: 'float',
         cartTotal: 'float',
+        discountTotal: 'float',
         orderDate: 'datetime',
         /**
          * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
@@ -604,7 +578,6 @@ module.exports = {
                 // sails.log.info('CARTDISH DISH MODIFIERS', dish.modifiers);
             }
             else {
-                sails.log.info('destroy', dish.id);
                 getEmitter_1.default().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
                 await CartDish.destroy(dish);
                 cart2.dishes.remove(cartDish.id);
@@ -616,7 +589,7 @@ module.exports = {
         cart2.dishes = cartDishes;
         // sails.log.info(cart);
         for (let cartDish of cartDishes) {
-            if (cartDish.modifiers) {
+            if (cartDish.modifiers !== undefined) {
                 for (let modifier of cartDish.modifiers) {
                     modifier.dish = await Dish.findOne(modifier.id);
                 }
@@ -624,7 +597,6 @@ module.exports = {
         }
         cart2.orderDateLimit = await getOrderDateLimit();
         cart2.cartId = cart2.id;
-        await getEmitter_1.default().emit('core-cart-after-return-full-cart-discount', cart2);
         await this.countCart(cart2);
         await getEmitter_1.default().emit('core-cart-after-return-full-cart', cart2);
         return cart2;
@@ -644,7 +616,7 @@ module.exports = {
         let uniqueDishes = 0;
         let totalWeight = 0;
         // sails.log.info(dishes);
-        await Promise.map(cartDishes, async (cartDish) => {
+        for await (let cartDish of cartDishes) {
             try {
                 if (cartDish.dish) {
                     const dish = await Dish.findOne(cartDish.dish.id);
@@ -684,7 +656,18 @@ module.exports = {
             catch (e) {
                 sails.log.error('Cart > count > error3', e);
             }
-        });
+        }
+        for (let cd in cart.dishes) {
+            if (cart.dishes.hasOwnProperty(cd)) {
+                const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
+                if (!cartDish)
+                    continue;
+                cartDish.dish = cartDishesClone[cartDish.id].dish;
+                cart.dishes[cd] = cartDish;
+            }
+        }
+        // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
+        await getEmitter_1.default().emit('core-cart-count-discount-apply', cart);
         let deliveryCost;
         if (cart.deliveryCost) {
             deliveryCost = cart.deliveryCost;
@@ -701,15 +684,6 @@ module.exports = {
         cart.total = orderTotal - cart.discountTotal;
         cart.orderTotal = orderTotal - cart.discountTotal;
         cart.cartTotal = orderTotal + deliveryCost - cart.discountTotal;
-        for (let cd in cart.dishes) {
-            if (cart.dishes.hasOwnProperty(cd)) {
-                const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
-                if (!cartDish)
-                    continue;
-                cartDish.dish = cartDishesClone[cartDish.id].dish;
-                cart.dishes[cd] = cartDish; // <-- PROBLEM CODE
-            }
-        }
         if (cart.delivery) {
             cart.total += cart.delivery;
         }
