@@ -107,6 +107,7 @@ module.exports = {
         isIncludedInMenu: 'boolean',
         order: 'float',
         isDeleted: 'boolean',
+        isModificable: 'boolean',
         modifiers: {
             // collection: 'dish'
             type: 'json'

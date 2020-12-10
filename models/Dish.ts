@@ -113,6 +113,7 @@ module.exports = {
     isIncludedInMenu: 'boolean',
     order: 'float',
     isDeleted: 'boolean',
+    isModificable: 'boolean',
     modifiers: {
       // collection: 'dish'
       type: 'json'
@@ -224,6 +225,7 @@ export default interface Dish extends ORM, AdditionalInfo {
   id: string;
   additionalInfo: string;
   balance: number;
+  isModificable:  boolean;
   modifiers: Modifier[];
   parentGroup: Group;
   weight: number;
