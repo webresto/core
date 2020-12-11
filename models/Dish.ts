@@ -184,16 +184,35 @@ module.exports = {
    */
   async getDishModifiers(dish: Dish) {
     if(dish.modifiers){
-      await Promise.map(dish.modifiers, async (modifier, index) => {
+      let index = 0;
+      for await(let  modifier of dish.modifiers){
+        // group modofiers
         if (modifier.childModifiers && modifier.childModifiers.length > 0) {
           dish.modifiers[index].group = await Group.findOne({id: modifier.modifierId});
-          await Promise.map(modifier.childModifiers, async (modifier, index1) => {
-            dish.modifiers[index].childModifiers[index1].dish = await Dish.findOne({id: modifier.modifierId}).populate('images');
-          });
+          let childIndex=0
+          for await(let  childModifier of modifier.childModifiers){
+            let childModifierDish = await Dish.findOne({id: childModifier.modifierId}).populate('images')
+            if (!childModifierDish || childModifierDish.balance === 0){
+              // delete if dish not found
+              dish.modifiers.splice(childIndex, 1);
+              sails.log.error("DISH > getDishModifiers: Modifier "+ childModifier.modifierId +" from dish:"+dish.name+" not found")
+            } else {
+              dish.modifiers[index].childModifiers[childIndex].dish = childModifierDish;
+            }
+            childIndex++;
+          }
         } else {
-          dish.modifiers[index].dish = await Dish.findOne({id: modifier.id}).populate('images');
+          // single modifiers
+          let singileModifierDish = await Dish.findOne({id: modifier.id}).populate('images')
+          if (!singileModifierDish || singileModifierDish.balance === 0){
+            dish.modifiers.splice(index, 1);
+            sails.log.error("DISH > getDishModifiers: Modifier "+ modifier.id +" from dish:"+ dish.name+" not found")
+          } else {
+            dish.modifiers[index].dish = singileModifierDish;
+          }
         }
-      });
+        index++;
+      }
     }
   },
 
