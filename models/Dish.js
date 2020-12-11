@@ -185,7 +185,12 @@ module.exports = {
                             sails.log.error("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
                         }
                         else {
-                            dish.modifiers[index].childModifiers[childIndex].dish = childModifierDish;
+                            try {
+                                dish.modifiers[index].childModifiers[childIndex].dish = childModifierDish;
+                            }
+                            catch (error) {
+                                sails.log.error("DISH > getDishModifiers: problem with: " + childModifier.modifierId + " in dish:" + dish.name);
+                            }
                         }
                         childIndex++;
                     }

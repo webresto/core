@@ -1,4 +1,5 @@
 
+"use strict"
 import * as Waterline from "waterline";
 import Modifier from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
@@ -17,7 +18,6 @@ import * as moment from "moment";
 import { v4 as uuid } from 'uuid';
 
 let cartCollection: Waterline.Collection = {
-  attributes: {
     //@ts-ignore
     autoPK: false,
     attributes: {
@@ -26,7 +26,7 @@ let cartCollection: Waterline.Collection = {
         primaryKey: true,
         defaultsTo: function (){ return uuid(); }
       }, 
-      cartId: 'string', // TODO: DELETE IN FUTURE
+      cartId: 'string',
       shortId:{
         type: 'string',
         defaultsTo: function (){ return this.id.substr(this.id.length - 8).toUpperCase() },
@@ -93,7 +93,6 @@ let cartCollection: Waterline.Collection = {
       orderDate: 'datetime'
     }
   }
-}
 
 
 
@@ -118,7 +117,7 @@ let cartInstance: Cart = {
         await emitter.emit.apply(emitter, ['core-cart-add-dish-reject-amount', ...arguments]);
         throw {body: `There is no so mush dishes with id ${dishObj.id}`, code: 1};
       }
-
+    console.dir(this);
     const cart = await Cart.findOne({id: this.id}).populate('dishes');
     if (cart.state === "ORDER")
       throw "cart with cartId "+ cart.id + "in state ORDER"
@@ -669,14 +668,7 @@ let cartModel: CartModel = {
 
 
 
-// JavaScript merge cart model
-cartCollection.attributes = _.merge(cartCollection.attributes, cartInstance);
-const finalModel = _.merge(cartCollection, cartModel);
-module.exports = finalModel;
 
-declare global {
-  const Cart: CartModel;
-}
 
 /**
  * Описывает класс Cart, содержит статические методы, используется для ORM
@@ -1021,3 +1013,15 @@ async function getOrderDateLimit(): Promise<string>  {
   }  
   return moment().add(periodPossibleForOrder, 'minutes').format("YYYY-MM-DD HH:mm:ss");
 }
+
+// JavaScript merge cart model
+cartCollection.attributes = _.merge(cartCollection.attributes, cartInstance);
+const finalModel = _.merge(cartCollection, cartModel);
+console.dir(finalModel);
+module.exports = finalModel;
+
+declare global {
+  const Cart: CartModel;
+}
+
+

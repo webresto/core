@@ -7,81 +7,79 @@ const _ = require("lodash");
 const moment = require("moment");
 const uuid_1 = require("uuid");
 let cartCollection = {
+    //@ts-ignore
+    autoPK: false,
     attributes: {
-        //@ts-ignore
-        autoPK: false,
-        attributes: {
-            id: {
-                type: 'string',
-                primaryKey: true,
-                defaultsTo: function () { return uuid_1.v4(); }
-            },
-            cartId: 'string',
-            shortId: {
-                type: 'string',
-                defaultsTo: function () { return this.id.substr(this.id.length - 8).toUpperCase(); },
-            },
-            dishes: {
-                collection: 'CartDish',
-                via: 'cart'
-            },
-            discount: 'json',
-            paymentMethod: {
-                model: 'PaymentMethod',
-                via: 'id'
-            },
-            paymentMethodTitle: 'string',
-            paid: {
-                type: 'boolean',
-                defaultsTo: false
-            },
-            isPaymentPromise: {
-                type: 'boolean',
-                defaultsTo: true
-            },
-            dishesCount: 'integer',
-            uniqueDishes: 'integer',
-            modifiers: 'json',
-            customer: 'json',
-            address: 'json',
-            comment: 'string',
-            personsCount: 'string',
-            //@ts-ignore Я думаю там гдето типизация для даты на ватерлайн типизации
-            date: 'string',
-            problem: {
-                type: 'boolean',
-                defaultsTo: false
-            },
-            rmsDelivered: {
-                type: 'boolean',
-                defaultsTo: false
-            },
-            rmsId: 'string',
-            rmsOrderNumber: 'string',
-            rmsOrderData: 'json',
-            rmsDeliveryDate: 'string',
-            rmsErrorMessage: 'string',
-            rmsErrorCode: 'string',
-            rmsStatusCode: 'string',
-            deliveryStatus: 'string',
-            selfService: {
-                type: 'boolean',
-                defaultsTo: false
-            },
-            deliveryDescription: {
-                type: 'string',
-                defaultsTo: ""
-            },
-            message: 'string',
-            deliveryItem: 'string',
-            deliveryCost: 'float',
-            totalWeight: 'float',
-            total: 'float',
-            orderTotal: 'float',
-            cartTotal: 'float',
-            discountTotal: 'float',
-            orderDate: 'datetime'
-        }
+        id: {
+            type: 'string',
+            primaryKey: true,
+            defaultsTo: function () { return uuid_1.v4(); }
+        },
+        cartId: 'string',
+        shortId: {
+            type: 'string',
+            defaultsTo: function () { return this.id.substr(this.id.length - 8).toUpperCase(); },
+        },
+        dishes: {
+            collection: 'CartDish',
+            via: 'cart'
+        },
+        discount: 'json',
+        paymentMethod: {
+            model: 'PaymentMethod',
+            via: 'id'
+        },
+        paymentMethodTitle: 'string',
+        paid: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        isPaymentPromise: {
+            type: 'boolean',
+            defaultsTo: true
+        },
+        dishesCount: 'integer',
+        uniqueDishes: 'integer',
+        modifiers: 'json',
+        customer: 'json',
+        address: 'json',
+        comment: 'string',
+        personsCount: 'string',
+        //@ts-ignore Я думаю там гдето типизация для даты на ватерлайн типизации
+        date: 'string',
+        problem: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        rmsDelivered: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        rmsId: 'string',
+        rmsOrderNumber: 'string',
+        rmsOrderData: 'json',
+        rmsDeliveryDate: 'string',
+        rmsErrorMessage: 'string',
+        rmsErrorCode: 'string',
+        rmsStatusCode: 'string',
+        deliveryStatus: 'string',
+        selfService: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        deliveryDescription: {
+            type: 'string',
+            defaultsTo: ""
+        },
+        message: 'string',
+        deliveryItem: 'string',
+        deliveryCost: 'float',
+        totalWeight: 'float',
+        total: 'float',
+        orderTotal: 'float',
+        cartTotal: 'float',
+        discountTotal: 'float',
+        orderDate: 'datetime'
     }
 };
 let cartInstance = {
@@ -103,6 +101,7 @@ let cartInstance = {
                 await emitter.emit.apply(emitter, ['core-cart-add-dish-reject-amount', ...arguments]);
                 throw { body: `There is no so mush dishes with id ${dishObj.id}`, code: 1 };
             }
+        console.dir(this);
         const cart = await Cart.findOne({ id: this.id }).populate('dishes');
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
@@ -569,10 +568,6 @@ let cartModel = {
         getEmitter_1.default().emit('core-cart-after-count', cart);
     }
 };
-// JavaScript merge cart model
-cartCollection.attributes = _.merge(cartCollection.attributes, cartInstance);
-const finalModel = _.merge(cartCollection, cartModel);
-module.exports = finalModel;
 async function checkCustomerInfo(customer) {
     if (!customer.name) {
         throw {
@@ -663,3 +658,8 @@ async function getOrderDateLimit() {
     }
     return moment().add(periodPossibleForOrder, 'minutes').format("YYYY-MM-DD HH:mm:ss");
 }
+// JavaScript merge cart model
+cartCollection.attributes = _.merge(cartCollection.attributes, cartInstance);
+const finalModel = _.merge(cartCollection, cartModel);
+console.dir(finalModel);
+module.exports = finalModel;

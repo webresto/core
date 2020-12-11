@@ -7,9 +7,6 @@ import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import Dish from "./Dish";
 import { PaymentResponse } from "../modelsHelp/Payment";
-declare global {
-    const Cart: CartModel;
-}
 /**
  * Описывает класс Cart, содержит статические методы, используется для ORM
  */
@@ -234,4 +231,7 @@ export default interface Cart extends ORM {
      * Вернет стейт корзны
      */
     getState(): string;
+}
+declare global {
+    const Cart: CartModel;
 }
