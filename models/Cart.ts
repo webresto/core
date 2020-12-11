@@ -704,7 +704,7 @@ export interface CartModel extends ORMModel<Cart> {
 /**
  * Описывает IIKO  cart
  */
-export interface Cart extends ORM {
+export default interface Cart extends ORM {
   id: string;
   cartId: string; 
   state: string;

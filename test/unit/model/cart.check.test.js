@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const getEmitter_1 = require("../../../lib/getEmitter");
-const Cart_1 = require("../../../models/Cart");
 const ExternalTestPaymentSystem_1 = require("../external_payments/ExternalTestPaymentSystem");
 describe('Cart.check()', function () {
     this.timeout(10000);
@@ -19,7 +18,7 @@ describe('Cart.check()', function () {
         comment: ''
     };
     it('new cart', async function () {
-        cart = await Cart_1.default.create({});
+        cart = await Cart.create({});
         // console.log('>>> Blank cart ------\n', cart);
     });
     describe('check Customer', function () {
@@ -28,7 +27,7 @@ describe('Cart.check()', function () {
         //     cart = await Cart.create({});
         // });
         it('good customer', async function () {
-            cart = await Cart_1.default.create({});
+            cart = await Cart.create({});
             let customer = {
                 phone: '+79998881212',
                 name: 'Freeman Morgan'
@@ -86,7 +85,7 @@ describe('Cart.check()', function () {
     });
     describe('check Address', function () {
         it('good address', async function () {
-            cart = await Cart_1.default.create({});
+            cart = await Cart.create({});
             let address = {
                 streetId: 'sdfsf',
                 city: 'New York',
@@ -212,7 +211,7 @@ describe('Cart.check()', function () {
         chai_1.expect(error).to.not.equal(null);
     });
     it('checkConfig', async function () {
-        cart = await Cart_1.default.create({});
+        cart = await Cart.create({});
         await SystemInfo.set('check', JSON.stringify({ requireAll: true }));
         let result = await cart.check(customer, true);
         chai_1.expect(result).to.equal(true);
