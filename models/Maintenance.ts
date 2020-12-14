@@ -1,7 +1,8 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import { v4 as uuid } from 'uuid';
-
+import  {between}  from "../lib/causes"
+const moment = require('moment');
 
 module.exports = {
   attributes: {
@@ -21,6 +22,31 @@ module.exports = {
   beforeCreate: function (paymentMethod, next) {
     paymentMethod.id = uuid(); 
     next();
+  },
+  
+  siteIsOff: async function(){
+    let maints = await Maintenance.find({enable: true});
+    if (!maints.length) {
+      false
+    }
+
+    maints = maints.filter(s => {
+      let start: number, stop: number;
+      if (s.startDate){
+        //@ts-ignore
+        start = s.startDate.getTime();
+      }
+        
+      if (s.stopDate){
+        //@ts-ignore
+        stop = s.stopDate.getTime();
+      }
+
+      const now = moment().valueOf();
+      return between(start, stop, now);
+    });
+
+    return maints.length ? true : false;
   }
 };
 
