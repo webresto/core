@@ -302,8 +302,14 @@ let cartInstance = {
                     if (self.getState() !== 'CHECKOUT') {
                         await self.next('CHECKOUT');
                     }
+                    return true;
                 }
-                return resultsCount === successCount;
+                else {
+                    throw {
+                        code: 10,
+                        error: 'one or more results from core-cart-check was not sucessed'
+                    };
+                }
             }
             if (checkConfig.notRequired) {
                 if (self.getState() !== 'CHECKOUT') {
@@ -313,7 +319,7 @@ let cartInstance = {
             }
         }
         if (successCount > 0) {
-            if (self.getState() === 'CART') {
+            if (self.getState() !== 'CHECKOUT') {
                 await self.next('CHECKOUT');
             }
         }

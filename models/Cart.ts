@@ -349,20 +349,25 @@ let cartInstance: Cart = {
         if (resultsCount === successCount) {
           if (self.getState() !== 'CHECKOUT') {
             await self.next('CHECKOUT');
+          } 
+          return true;
+        } else {
+          throw {
+            code: 10,
+            error: 'one or more results from core-cart-check was not sucessed'
           }
         }
-        return resultsCount === successCount;
       }
       if (checkConfig.notRequired) { 
         if (self.getState() !== 'CHECKOUT') {  
           await self.next('CHECKOUT');
-        }
+        } 
         return true;
       }
     }
     if (successCount > 0) {
-      if (self.getState() === 'CART') {
-      await self.next('CHECKOUT');
+      if (self.getState() !== 'CHECKOUT') {
+        await self.next('CHECKOUT');
       }
     }
     return successCount > 0;
