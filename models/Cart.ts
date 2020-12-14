@@ -1,5 +1,3 @@
-
-"use strict"
 import * as Waterline from "waterline";
 import Modifier from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
@@ -487,7 +485,7 @@ let cartModel: CartModel = {
   returnFullCart: async function (cart: Cart): Promise<Cart> {
     getEmitter().emit('core-cart-before-return-full-cart', cart);
     sails.log.verbose('Cart > returnFullCart > input cart', cart)
-    let cart2 = await Cart.findOne({id: cart.id}).populate('dishes');
+    let fullCart = await Cart.findOne({id: cart.id}).populate('dishes');
 
     const cartDishes = await CartDish.find({cart: cart.id}).populate('dish').sort('createdAt');
     for (let cartDish of cartDishes) {
@@ -496,7 +494,7 @@ let cartModel: CartModel = {
         continue;
       }
 
-      if (!cart2.dishes.filter(d => d.id === cartDish.id).length) {
+      if (!fullCart.dishes.filter(d => d.id === cartDish.id).length) {
         sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
         continue;
       }
@@ -520,14 +518,14 @@ let cartModel: CartModel = {
       } else {
         getEmitter().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
         await CartDish.destroy(dish);
-        cart2.dishes.remove(cartDish.id);
-        delete cart2.dishes[cart.dishes.indexOf(cartDish)];
+        fullCart.dishes.remove(cartDish.id);
+        delete fullCart.dishes[cart.dishes.indexOf(cartDish)];
         delete cartDishes[cartDishes.indexOf(cartDish)];
-        await cart2.save();
+        await fullCart.save();
       }
     }
 
-    cart2.dishes = cartDishes as Association<CartDish>;
+    fullCart.dishes = cartDishes as Association<CartDish>;
     
     // sails.log.info(cart);
     
@@ -539,14 +537,14 @@ let cartModel: CartModel = {
       }
     }
     
-    cart2.orderDateLimit = await getOrderDateLimit();
-    cart2.cartId = cart2.id;
+    fullCart.orderDateLimit = await getOrderDateLimit();
+    fullCart.cartId = fullCart.id;
      
-    await this.countCart(cart2);
+    await this.countCart(fullCart);
 
 
-    await  getEmitter().emit('core-cart-after-return-full-cart', cart2); 
-    return cart2;
+    await  getEmitter().emit('core-cart-after-return-full-cart', fullCart); 
+    return fullCart;
   },
 
   /**
@@ -741,7 +739,7 @@ export default interface Cart extends ORM {
   total: number;
   orderTotal: number;
   orderDate: string;
-
+  discountTotal:number
   /**
    * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
    * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
