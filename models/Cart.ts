@@ -115,7 +115,6 @@ let cartInstance: Cart = {
         await emitter.emit.apply(emitter, ['core-cart-add-dish-reject-amount', ...arguments]);
         throw {body: `There is no so mush dishes with id ${dishObj.id}`, code: 1};
       }
-    console.dir(this);
     const cart = await Cart.findOne({id: this.id}).populate('dishes');
     if (cart.state === "ORDER")
       throw "cart with cartId "+ cart.id + "in state ORDER"
@@ -1020,7 +1019,6 @@ async function getOrderDateLimit(): Promise<string>  {
 // JavaScript merge cart model
 cartCollection.attributes = _.merge(cartCollection.attributes, cartInstance);
 const finalModel = _.merge(cartCollection, cartModel);
-console.dir(finalModel);
 module.exports = finalModel;
 
 declare global {
