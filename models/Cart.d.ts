@@ -69,6 +69,7 @@ export default interface Cart extends ORM {
     total: number;
     orderTotal: number;
     orderDate: string;
+    discountTotal: number;
     /**
      * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
      * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.

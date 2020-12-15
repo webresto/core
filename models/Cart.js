@@ -101,7 +101,6 @@ let cartInstance = {
                 await emitter.emit.apply(emitter, ['core-cart-add-dish-reject-amount', ...arguments]);
                 throw { body: `There is no so mush dishes with id ${dishObj.id}`, code: 1 };
             }
-        console.dir(this);
         const cart = await Cart.findOne({ id: this.id }).populate('dishes');
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
@@ -428,54 +427,60 @@ let cartModel = {
     returnFullCart: async function (cart) {
         getEmitter_1.default().emit('core-cart-before-return-full-cart', cart);
         sails.log.verbose('Cart > returnFullCart > input cart', cart);
-        let cart2 = await Cart.findOne({ id: cart.id }).populate('dishes');
-        const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish').sort('createdAt');
-        for (let cartDish of cartDishes) {
-            if (!cartDish.dish) {
-                sails.log.error('cartDish', cartDish.id, 'has not dish');
-                continue;
-            }
-            if (!cart2.dishes.filter(d => d.id === cartDish.id).length) {
-                sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
-                continue;
-            }
-            const dish = await Dish.findOne({
-                id: cartDish.dish.id,
-                isDeleted: false
-            }).populate('images').populate('parentGroup');
-            const reason = checkExpression_1.default(dish);
-            if (dish && dish.parentGroup)
-                var reasonG = checkExpression_1.default(dish.parentGroup);
-            const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
-                reasonG === 'visible' || !reasonG;
-            if (dish && dish.parentGroup && reasonBool && (dish.balance === -1 ? true : dish.balance >= cartDish.amount)) {
-                await Dish.getDishModifiers(dish);
-                cartDish.dish = dish;
-                // sails.log.info('CARTDISH DISH MODIFIERS', dish.modifiers);
-            }
-            else {
-                getEmitter_1.default().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
-                await CartDish.destroy(dish);
-                cart2.dishes.remove(cartDish.id);
-                delete cart2.dishes[cart.dishes.indexOf(cartDish)];
-                delete cartDishes[cartDishes.indexOf(cartDish)];
-                await cart2.save();
-            }
-        }
-        cart2.dishes = cartDishes;
-        // sails.log.info(cart);
-        for (let cartDish of cartDishes) {
-            if (cartDish.modifiers !== undefined) {
-                for (let modifier of cartDish.modifiers) {
-                    modifier.dish = await Dish.findOne(modifier.id);
+        let fullCart;
+        try {
+            fullCart = await Cart.findOne({ id: cart.id }).populate('dishes');
+            const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish').sort('createdAt');
+            for (let cartDish of cartDishes) {
+                if (!cartDish.dish) {
+                    sails.log.error('cartDish', cartDish.id, 'has not dish');
+                    continue;
+                }
+                if (!fullCart.dishes.filter(d => d.id === cartDish.id).length) {
+                    sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
+                    continue;
+                }
+                const dish = await Dish.findOne({
+                    id: cartDish.dish.id,
+                    isDeleted: false
+                }).populate('images').populate('parentGroup');
+                const reason = checkExpression_1.default(dish);
+                if (dish && dish.parentGroup)
+                    var reasonG = checkExpression_1.default(dish.parentGroup);
+                const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
+                    reasonG === 'visible' || !reasonG;
+                if (dish && dish.parentGroup && reasonBool && (dish.balance === -1 ? true : dish.balance >= cartDish.amount)) {
+                    await Dish.getDishModifiers(dish);
+                    cartDish.dish = dish;
+                    // sails.log.info('CARTDISH DISH MODIFIERS', dish.modifiers);
+                }
+                else {
+                    getEmitter_1.default().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
+                    await CartDish.destroy(dish);
+                    fullCart.dishes.remove(cartDish.id);
+                    delete fullCart.dishes[cart.dishes.indexOf(cartDish)];
+                    delete cartDishes[cartDishes.indexOf(cartDish)];
+                    await fullCart.save();
                 }
             }
+            fullCart.dishes = cartDishes;
+            // sails.log.info(cart);
+            for (let cartDish of cartDishes) {
+                if (cartDish.modifiers !== undefined) {
+                    for (let modifier of cartDish.modifiers) {
+                        modifier.dish = await Dish.findOne(modifier.id);
+                    }
+                }
+            }
+            fullCart.orderDateLimit = await getOrderDateLimit();
+            fullCart.cartId = fullCart.id;
+            await this.countCart(fullCart);
         }
-        cart2.orderDateLimit = await getOrderDateLimit();
-        cart2.cartId = cart2.id;
-        await this.countCart(cart2);
-        await getEmitter_1.default().emit('core-cart-after-return-full-cart', cart2);
-        return cart2;
+        catch (e) {
+            sails.log.error('CART > fullCart error', e);
+        }
+        await getEmitter_1.default().emit('core-cart-after-return-full-cart', fullCart);
+        return fullCart;
     },
     /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
@@ -667,5 +672,4 @@ async function getOrderDateLimit() {
 // JavaScript merge cart model
 cartCollection.attributes = _.merge(cartCollection.attributes, cartInstance);
 const finalModel = _.merge(cartCollection, cartModel);
-console.dir(finalModel);
 module.exports = finalModel;

@@ -40,8 +40,7 @@ module.exports = {
     },
     modifiers: 'json',
     cart: {
-      model: 'Cart',
-      via: 'dishes'
+      model: 'Cart'
     },
     discount: 'json',
     parent: {
