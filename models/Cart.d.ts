@@ -1,4 +1,4 @@
-import Modifier from "../modelsHelp/Modifier";
+import { Modifier, GroupModifier } from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
 import CartDish from "../models/CartDish";
@@ -42,7 +42,7 @@ export default interface Cart extends ORM {
     dishesCount: number;
     uniqueDishes: number;
     cartTotal: number;
-    modifiers: Modifier[];
+    modifiers: GroupModifier[];
     delivery: number;
     customer: Customer;
     address: Address;
@@ -92,7 +92,7 @@ export default interface Cart extends ORM {
      * добавить блюдо. Результат подписок игнорируется.
      * @fires cart:core-cart-after-add-dish - вызывается после успешного добавления блюда. Результат подписок игнорируется.
      */
-    addDish(dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number): Promise<void>;
+    addDish(dish: Dish | string, amount: number, modifiers?: Modifier[], comment?: string, from?: string, replace?: boolean, cartDishId?: number): Promise<void>;
     /**
      * Уменьшает количество заданного блюда на amount. Переводит корзину в состояние CART.
      * @param dish - Блюдо для изменения количества блюд

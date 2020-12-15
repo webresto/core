@@ -19,14 +19,14 @@ export default abstract class PaymentAdapter {
    * @param Payment - Платежный документ
    * @return Результат работы функции, тело ответа и код результата
    */
-  public abstract async createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string):  Promise<PaymentResponse>;
+  public abstract createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string):  Promise<PaymentResponse>;
 
   /**
    * Проверка Оплаты
    * @param paymentDocument - Платежный документ
    * @return результат работы функции, тело ответа и код результата (сохранять модель не нужно)
    */
-  public abstract async checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
+  public abstract checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
 
   /**
    * Метод для создания и получения уже существующего Payment адаптера

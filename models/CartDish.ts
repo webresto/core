@@ -24,7 +24,7 @@
 
 import ORM from "../modelsHelp/ORM";
 import Dish from "../models/Dish";
-import Modifier from "../modelsHelp/Modifier";
+import {Modifier} from "../modelsHelp/Modifier";
 import ORMModel from "../modelsHelp/ORMModel";
 
 module.exports = {

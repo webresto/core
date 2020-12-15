@@ -23,7 +23,7 @@
  */
 import ORM from "../modelsHelp/ORM";
 import Dish from "../models/Dish";
-import Modifier from "../modelsHelp/Modifier";
+import { Modifier } from "../modelsHelp/Modifier";
 import ORMModel from "../modelsHelp/ORMModel";
 /**
  * Описывает екзмепляр CartDish, то есть блюда в корзине, имеет связь с корзиной, внутри которой находится и с блюдом,

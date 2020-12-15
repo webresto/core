@@ -175,7 +175,9 @@ module.exports = {
             for await (let modifier of dish.modifiers) {
                 // group modofiers
                 if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-                    dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
+                    if (dish.modifiers[index].group === undefined) {
+                        dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
+                    }
                     let childIndex = 0;
                     for await (let childModifier of modifier.childModifiers) {
                         let childModifierDish = await Dish.findOne({ id: childModifier.modifierId }).populate('images');
@@ -196,15 +198,7 @@ module.exports = {
                     }
                 }
                 else {
-                    // single modifiers
-                    let singileModifierDish = await Dish.findOne({ id: modifier.modifierId }).populate('images');
-                    if (!singileModifierDish || singileModifierDish.balance === 0) {
-                        dish.modifiers.splice(index, 1);
-                        sails.log.error("DISH > getDishModifiers: Modifier " + modifier.id + " from dish:" + dish.name + " not found");
-                    }
-                    else {
-                        dish.modifiers[index].dish = singileModifierDish;
-                    }
+                    sails.log.error("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
                 }
                 index++;
             }

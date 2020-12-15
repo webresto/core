@@ -18,7 +18,7 @@ describe('Cart.check()', function(){
         streetId: 'sdfsf',
         city: 'New York',
         street: 'Green Road',
-        home: 77,
+        home: "42",
         comment: ''
     }
 
@@ -102,7 +102,7 @@ describe('Cart.check()', function(){
                 streetId: 'sdfsf',
                 city: 'New York',
                 street: 'Green Road',
-                home: 77,
+                home: "42",
                 comment: ''
             }
                        
@@ -114,7 +114,7 @@ describe('Cart.check()', function(){
             let badAddress: Address = {
                 city: 'New York',
                 // street: 'Green Road',
-                home: 77,
+                home: "42",
                 comment: ''
             }     
 
@@ -159,7 +159,7 @@ describe('Cart.check()', function(){
           streetId: 'sdfsf',
           city: 'New York',
           street: 'Green Road',
-          home: 77,
+          home: "42",
           comment: ''
         }
             

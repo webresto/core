@@ -20,37 +20,37 @@ export default abstract class RMSAdapter {
   /**
    * Синхронизация данных с RMS системы
    */
-  protected abstract async sync(): Promise<void>;
+  protected abstract sync(): Promise<void>;
 
   /**
    * Синхронизация улиц с RMS системы
    */
-  protected abstract async syncStreets(): Promise<void>;
+  protected abstract syncStreets(): Promise<void>;
 
   /**
    * Синхронизация баланса блюд с RMS адаптера
    */
-  protected abstract async syncBalance(): Promise<void>;
+  protected abstract syncBalance(): Promise<void>;
 
   /**
    * Создание заказа
    * @param orderData - корзина, которую заказывают
    * @return Результат работы функции, тело ответа и код результата
    */
-  public abstract async createOrder(orderData: Cart): Promise<OrderResponse>;
+  public abstract createOrder(orderData: Cart): Promise<OrderResponse>;
 
   /**
    * Проверка заказа
    * @param orderData - корзина для проверки
    * @return результат работы функции, тело ответа и код результата
    */
-  public abstract async checkOrder(orderData: Cart): Promise<OrderResponse>;
+  public abstract checkOrder(orderData: Cart): Promise<OrderResponse>;
 
   /**
    * Получение системной информации
    * @return системная информация RMS
    */
-  public abstract async getSystemData(): Promise<any>;
+  public abstract getSystemData(): Promise<any>;
 
   /**
    * Прямой запрос к API RMS
@@ -58,7 +58,7 @@ export default abstract class RMSAdapter {
    * @param params - какие параметры передавать
    * @return ответ API
    */
-  public abstract async api(method: string, params: any): Promise<any>;
+  public abstract api(method: string, params: any): Promise<any>;
 
   /**
    * Метод для создания и получения уже существующего RMS адаптера

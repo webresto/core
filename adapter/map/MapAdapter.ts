@@ -9,9 +9,9 @@ export default abstract class MapAdapter {
     this.config = config;
   }
 
-  public abstract async getGeocode(street: string, home: number): Promise<Point>;
+  public abstract getGeocode(street: string, home: string): Promise<Point>;
 
-  public abstract async getPolygons(): Promise<Polygon[]>;
+  public abstract getPolygons(): Promise<Polygon[]>;
 
   public abstract checkDotInPolygon(dot: Point, polygon: Polygon): boolean;
 

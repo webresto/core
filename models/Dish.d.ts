@@ -61,7 +61,7 @@
  * @apiParam {String} composition Состав блюда
  *
  */
-import Modifier from "../modelsHelp/Modifier";
+import { GroupModifier } from "../modelsHelp/Modifier";
 import Group from "./Group";
 import { AdditionalInfo } from "../lib/checkExpression";
 import Image from "./Image";
@@ -75,7 +75,7 @@ export default interface Dish extends ORM, AdditionalInfo {
     additionalInfo: string;
     balance: number;
     isModificable: boolean;
-    modifiers: Modifier[];
+    modifiers: GroupModifier[];
     parentGroup: Group;
     weight: number;
     price: number;

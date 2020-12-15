@@ -1,4 +1,4 @@
-import Modifier from "../modelsHelp/Modifier";
+import {Modifier} from "../modelsHelp/Modifier";
 import Cart from "../models/Cart";
 
 /**
