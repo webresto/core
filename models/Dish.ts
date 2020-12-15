@@ -207,7 +207,7 @@ module.exports = {
           }
         } else {
           // single modifiers
-          let singileModifierDish = await Dish.findOne({id: modifier.id}).populate('images')
+          let singileModifierDish = await Dish.findOne({id: modifier.modifierId}).populate('images')
           if (!singileModifierDish || singileModifierDish.balance === 0){
             dish.modifiers.splice(index, 1);
             sails.log.error("DISH > getDishModifiers: Modifier "+ modifier.id +" from dish:"+ dish.name+" not found")
