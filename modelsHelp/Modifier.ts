@@ -9,7 +9,7 @@ export interface Modifier {
   id: string;
   modifierId: string;
   amount?: number;
-  childModifiers: Modifier[];
+  //childModifiers: Modifier[];
   dish?: Dish;
   group?: Group;
   groupId?: string;
@@ -17,7 +17,7 @@ export interface Modifier {
 
 export interface GroupModifier {
   id?: string;
-  modifierId: string;
+  modifierId?: string;
   childModifiers: Modifier[];
   group?: Group | any; 
   groupId?: string;

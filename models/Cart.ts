@@ -95,7 +95,7 @@ let cartCollection: Waterline.Collection = {
 
 
 let cartInstance: Cart = {
-  addDish: async function (dish: Dish | string, amount: number, modifiers: GroupModifier[], comment: string, from: string, replace: boolean, cartDishId: number) : Promise<void> {
+  addDish: async function (dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number) : Promise<void> {
     const emitter = getEmitter();
     await emitter.emit.apply(emitter, ['core-cart-before-add-dish', ...arguments]);
 
