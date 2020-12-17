@@ -24,7 +24,7 @@
 
 import ORM from "../modelsHelp/ORM";
 import Dish from "../models/Dish";
-import Modifier from "../modelsHelp/Modifier";
+import {Modifier} from "../modelsHelp/Modifier";
 import ORMModel from "../modelsHelp/ORMModel";
 
 module.exports = {
@@ -40,15 +40,16 @@ module.exports = {
     },
     modifiers: 'json',
     cart: {
-      model: 'Cart',
-      via: 'dishes'
+      model: 'Cart'
     },
+    discount: 'json',
     parent: {
       model: 'CartDish',
       via: 'modifiers'
     },
     uniqueItems: 'integer',
     itemTotal: 'float',
+    discountTotal: 'float',
     comment: 'string',
     addedBy: {
       type: 'string',

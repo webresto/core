@@ -107,6 +107,7 @@ module.exports = {
         isIncludedInMenu: 'boolean',
         order: 'float',
         isDeleted: 'boolean',
+        isModificable: 'boolean',
         modifiers: {
             // collection: 'dish'
             type: 'json'
@@ -170,17 +171,37 @@ module.exports = {
      */
     async getDishModifiers(dish) {
         if (dish.modifiers) {
-            await Promise.map(dish.modifiers, async (modifier, index) => {
+            let index = 0;
+            for await (let modifier of dish.modifiers) {
+                // group modofiers
                 if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-                    dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
-                    await Promise.map(modifier.childModifiers, async (modifier, index1) => {
-                        dish.modifiers[index].childModifiers[index1].dish = await Dish.findOne({ id: modifier.modifierId }).populate('images');
-                    });
+                    if (dish.modifiers[index].modifierId !== undefined) {
+                        dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
+                    }
+                    let childIndex = 0;
+                    for await (let childModifier of modifier.childModifiers) {
+                        let childModifierDish = await Dish.findOne({ id: childModifier.modifierId }).populate('images');
+                        if (!childModifierDish || childModifierDish.balance === 0) {
+                            // delete if dish not found
+                            dish.modifiers.splice(childIndex, 1);
+                            sails.log.error("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
+                        }
+                        else {
+                            try {
+                                dish.modifiers[index].childModifiers[childIndex].dish = childModifierDish;
+                            }
+                            catch (error) {
+                                sails.log.error("DISH > getDishModifiers: problem with: " + childModifier.modifierId + " in dish:" + dish.name);
+                            }
+                        }
+                        childIndex++;
+                    }
                 }
                 else {
-                    dish.modifiers[index].dish = await Dish.findOne({ id: modifier.id }).populate('images');
+                    sails.log.error("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
                 }
-            });
+                index++;
+            }
         }
     },
     /**

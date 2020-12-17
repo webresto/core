@@ -14,7 +14,7 @@ describe('Cart.check()', function () {
         streetId: 'sdfsf',
         city: 'New York',
         street: 'Green Road',
-        home: 77,
+        home: "42",
         comment: ''
     };
     it('new cart', async function () {
@@ -90,7 +90,7 @@ describe('Cart.check()', function () {
                 streetId: 'sdfsf',
                 city: 'New York',
                 street: 'Green Road',
-                home: 77,
+                home: "42",
                 comment: ''
             };
             let result = await cart.check(customer, null, address);
@@ -101,7 +101,7 @@ describe('Cart.check()', function () {
             let badAddress = {
                 city: 'New York',
                 // street: 'Green Road',
-                home: 77,
+                home: "42",
                 comment: ''
             };
             let error = null;
@@ -142,7 +142,7 @@ describe('Cart.check()', function () {
             streetId: 'sdfsf',
             city: 'New York',
             street: 'Green Road',
-            home: 77,
+            home: "42",
             comment: ''
         };
         let testPaymentSystem = await ExternalTestPaymentSystem_1.default.getInstance();
