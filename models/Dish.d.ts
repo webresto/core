@@ -90,6 +90,7 @@ export default interface Dish extends ORM, AdditionalInfo {
         name: string;
     }[];
     isDeleted: boolean;
+    groupModifiers: GroupModifier[];
 }
 /**
  * Описывает класс Dish, содержит статические методы, используется для ORM

@@ -187,7 +187,9 @@ module.exports = {
       let index = 0;
       for await(let  modifier of dish.modifiers){
         // group modofiers
+        console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..",modifier);
         if (modifier.childModifiers && modifier.childModifiers.length > 0) {
+          
           if (dish.modifiers[index].modifierId !== undefined){
             dish.modifiers[index].group = await Group.findOne({id: modifier.modifierId});
           }
@@ -209,10 +211,12 @@ module.exports = {
           }
         } else {
           sails.log.error("DISH > getDishModifiers: GroupModifier "+ modifier.id +" from dish:"+ dish.name+" not have modifiers")
+          dish.modifiers[index].dish = await Dish.findOne({id: modifier.id}).populate('images');
         }
         index++;
       }
     }
+    dish.groupModifiers=null;
   },
 
   /**
@@ -257,6 +261,7 @@ export default interface Dish extends ORM, AdditionalInfo {
   code: string;
   tags: {name: string}[];
   isDeleted: boolean;
+  groupModifiers: GroupModifier[];
 }
 
 /**

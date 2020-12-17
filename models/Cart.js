@@ -425,6 +425,7 @@ let cartModel = {
     * @param cart
     */
     returnFullCart: async function (cart) {
+        cart = await Cart.findOne({ id: cart.id });
         getEmitter_1.default().emit('core-cart-before-return-full-cart', cart);
         sails.log.verbose('Cart > returnFullCart > input cart', cart);
         let fullCart;
@@ -449,6 +450,7 @@ let cartModel = {
                     var reasonG = checkExpression_1.default(dish.parentGroup);
                 const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
                     reasonG === 'visible' || !reasonG;
+                // Проверяет что блюдо доступно к продаже
                 if (dish && dish.parentGroup && reasonBool && (dish.balance === -1 ? true : dish.balance >= cartDish.amount)) {
                     await Dish.getDishModifiers(dish);
                     cartDish.dish = dish;
@@ -461,17 +463,15 @@ let cartModel = {
                     delete fullCart.dishes[cart.dishes.indexOf(cartDish)];
                     delete cartDishes[cartDishes.indexOf(cartDish)];
                     await fullCart.save();
+                    continue;
                 }
-            }
-            fullCart.dishes = cartDishes;
-            // sails.log.info(cart);
-            for (let cartDish of cartDishes) {
                 if (cartDish.modifiers !== undefined) {
-                    for (let modifier of cartDish.modifiers) {
+                    for await (let modifier of cartDish.modifiers) {
                         modifier.dish = await Dish.findOne(modifier.id);
                     }
                 }
             }
+            fullCart.dishes = cartDishes;
             fullCart.orderDateLimit = await getOrderDateLimit();
             fullCart.cartId = fullCart.id;
             await this.countCart(fullCart);
@@ -544,7 +544,7 @@ let cartModel = {
                 if (!cartDish)
                     continue;
                 cartDish.dish = cartDishesClone[cartDish.id].dish;
-                cart.dishes[cd] = cartDish;
+                //cart.dishes[cd] = cartDish; 
             }
         }
         // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
