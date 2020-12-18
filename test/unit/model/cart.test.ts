@@ -84,12 +84,63 @@ describe('Cart',function () {
 
   it('returnFullCart', async function(){
     cart = await Cart.create({});
+    const amount = [5, 3, 8, 1];
+    let totalWeight = 0;
+    let total0 = dishes[0].price * 5;
+    totalWeight += dishes[0].weight * amount[0];
     await cart.addDish(dishes[0], 5, [], '', '');
+    let total1 = dishes[1].price * 3;
+    totalWeight += dishes[1].weight * amount[1];
     await cart.addDish(dishes[1], 3, [], '', '');
+    let total2 = dishes[2].price * 8;
+    totalWeight += dishes[2].weight * amount[2];
     await cart.addDish(dishes[2], 8, [], '', '');
+    let total3 = dishes[3].price + dishes[10].price;
+    totalWeight += dishes[3].weight * amount[3] + dishes[10].weight;
+    let modifier = {id: dishes[10].id, modifierId: dishes[10].id};
+    await cart.addDish(dishes[3], 1, [modifier], '', '');
+
+    // console.log('mod price / dish price', dishes[10].price, dishes[0].price);
+    
+    let total = total0 + total1 + total2 + total3;
     
     let res = await Cart.returnFullCart(cart);   
-    expect(res).to.be.an('object');   
+    // console.log('full cart > ', JSON.stringify(res));
+    
+    let cartDish = res.dishes.find(d => d.dish.id == dishes[3].id);
+    // console.log('dishModifier > ', cartDish.modifiers);
+    // modifiers check
+    expect(cartDish.modifiers[0].dish.id).to.equals(dishes[10].id);
+    expect(cartDish.modifiers[0].dish.price).to.equals(dishes[10].price);
+    expect(cartDish.modifiers[0].dish.weight).to.equals(dishes[10].weight);
+    // dish check
+    let cartDish0 = res.dishes.find(d => d.dish.id === dishes[0].id);
+    expect(cartDish0.dish.price).to.equals(dishes[0].price);
+    expect(cartDish0.amount).to.equals(amount[0]);
+    expect(cartDish0.itemTotal).to.equals(total0);
+    let cartDish1 = res.dishes.find(d => d.dish.id === dishes[1].id);
+    expect(cartDish1.dish.price).to.equals(dishes[1].price);
+    expect(cartDish1.amount).to.equals(amount[1]);
+    expect(cartDish1.itemTotal).to.equals(total1);
+    let cartDish2 = res.dishes.find(d => d.dish.id === dishes[2].id);
+    expect(cartDish2.dish.price).to.equals(dishes[2].price);
+    expect(cartDish2.amount).to.equals(amount[2]);
+    expect(cartDish2.itemTotal).to.equals(total2);
+
+    expect(res).to.be.an('object'); 
+
+    expect(res.cartTotal).to.equals(total);  
+    expect(res.orderTotal).to.equals(total);  
+    expect(res.total).to.equals(total);
+    expect(res.totalWeight).to.equals(totalWeight);
+    expect(res.uniqueDishes).to.equals(4);
+    expect(res.dishesCount).to.equals(17);
+    
+    let modifier2 = {id: dishes[11].id, modifierId: dishes[11].id};
+    await cart.addDish(dishes[3], 1, [modifier2], '', '');
+    res = await Cart.returnFullCart(cart);
+    
+    expect(res.total).to.equals(total + dishes[11].price + dishes[3].price);
   }); 
 
   it('addDish 20', async function(){
