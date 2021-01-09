@@ -577,7 +577,29 @@ let cartModel = {
         //     total: cartTotal
         //   });
         getEmitter_1.default().emit('core-cart-after-count', cart);
-    }
+    },
+    doPaid: async function (paymentDocument) {
+        let cart = await Cart.findOne(paymentDocument.paymentId);
+        Cart.countCart(cart);
+        try {
+            let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
+            await Cart.update({ id: paymentDocument.paymentId }, { paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle });
+            console.log(">>>>>>", cart);
+            console.log(">>>>>>", cart.state, cart.cartTotal, paymentDocument.amount);
+            if (cart.state !== "PAYMENT") {
+                sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);
+            }
+            if (cart.cartTotal !== paymentDocument.amount) {
+                cart.problem = true;
+                cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!";
+            }
+            await cart.order();
+        }
+        catch (e) {
+            sails.log.error('Cart > doPaid error: ', e);
+            throw e;
+        }
+    },
 };
 async function checkCustomerInfo(customer) {
     if (!customer.name) {
