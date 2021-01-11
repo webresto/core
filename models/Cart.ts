@@ -95,7 +95,7 @@ let cartCollection: Waterline.Collection = {
 
 
 let cartInstance: Cart = {
-  addDish: async function (dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number) : Promise<void> {
+  addDish: async function (dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number, ) : Promise<void> {
     const emitter = getEmitter();
     await emitter.emit.apply(emitter, ['core-cart-before-add-dish', ...arguments]);
 
@@ -662,8 +662,32 @@ let cartModel: CartModel = {
     //   });
       
     getEmitter().emit('core-cart-after-count', cart);
-  }
+  },
 
+  doPaid: async function (paymentDocument: PaymentDocument) {
+    let cart: Cart = await Cart.findOne(paymentDocument.paymentId);
+    Cart.countCart(cart);
+    try {
+      let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
+      await Cart.update({id: paymentDocument.paymentId}, {paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle});
+      
+      console.log(">>>>>>",cart);
+      console.log(">>>>>>",cart.state, cart.cartTotal, paymentDocument.amount );
+  
+      if(cart.state !== "PAYMENT"){ 
+        sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);
+      }
+  
+      if(cart.cartTotal !== paymentDocument.amount){
+        cart.problem = true;
+        cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!"
+      }
+      await cart.order();
+    } catch (e) {
+      sails.log.error('Cart > doPaid error: ', e);
+      throw e
+    }
+  },
 } as CartModel;
 
 
