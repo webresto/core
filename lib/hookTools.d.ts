@@ -22,6 +22,11 @@ export default class HookTools {
      */
     static checkConfig(key: string): boolean;
     /**
+     * Bind config from folder. Folder must be full path.
+     * @param folder - path to models
+     */
+    static bindConfig(folder: string): Promise<void>;
+    /**
      * Start cb function after given names of hooks. Call error with selfName if one of hooks not found
      * @param selfName - name of hook. Uses for debugging
      * @param hooks - array of names hooks to wait for
