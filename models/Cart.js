@@ -6,6 +6,7 @@ const getEmitter_1 = require("../lib/getEmitter");
 const _ = require("lodash");
 const moment = require("moment");
 const uuid_1 = require("uuid");
+// TODO: предлагаю переименовать и корзины в ордер.
 let cartCollection = {
     //@ts-ignore
     autoPK: false,

@@ -15,6 +15,8 @@ import { PaymentResponse } from "../modelsHelp/Payment"
 import * as moment from "moment";
 import { v4 as uuid } from 'uuid';
 
+
+// TODO: предлагаю переименовать и корзины в ордер.
 let cartCollection: Waterline.Collection = {
     //@ts-ignore
     autoPK: false,
@@ -85,7 +87,7 @@ let cartCollection: Waterline.Collection = {
       deliveryCost: 'float', // rename to deliveryCost
       totalWeight: 'float',
       total: 'float', // total = cartTotal
-      orderTotal: 'float', // orderTotal = total - deliveryCost
+      orderTotal: 'float', // orderTotal = total + deliveryCost - discountTotal - bonusesTotal
       cartTotal: 'float',
       discountTotal: 'float',
       orderDate: 'datetime'
