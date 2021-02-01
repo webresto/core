@@ -62,6 +62,24 @@ export default class HookTools {
   }
 
   /**
+   * Bind config from folder. Folder must be full path.
+   * @param folder - path to models
+   */
+  public static async bindConfig(folder: string): Promise<void> {
+    buildDictionary.aggregate({
+      dirname: path.resolve(__dirname, folder),
+      exclude: ['locales', 'local.js', 'local.json', 'local.coffee', 'local.litcoffee'],
+      excludeDirs: /(locales|env)$/,
+      filter: /(.+)\.(js|json|coffee|litcoffee)$/,
+      identity: false
+    }, function (err, configs) {
+      console.log(configs, sails.config)
+      //@ts-ignore
+      sails.config = sails.util.merge(configs, sails.config);
+    });
+  }
+
+  /**
    * Start cb function after given names of hooks. Call error with selfName if one of hooks not found
    * @param selfName - name of hook. Uses for debugging
    * @param hooks - array of names hooks to wait for

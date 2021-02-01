@@ -174,7 +174,6 @@ module.exports = {
             let index = 0;
             for await (let modifier of dish.modifiers) {
                 // group modofiers
-                console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..", modifier);
                 if (modifier.childModifiers && modifier.childModifiers.length > 0) {
                     if (dish.modifiers[index].modifierId !== undefined) {
                         dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
