@@ -113,6 +113,23 @@ describe('Cart',function () {
     // console.log('dishes > ', cartDishes);
     expect(cartDishes.length).to.equals(1);
     expect(cartDishes[0].amount).to.equals(6);
+
+    cart = await Cart.create({});
+    await cart.addDish(dishes[0], 1, [{id: dishes[1].id, modifierId: dishes[1].id}], '', 'mod');
+    await cart.addDish(dishes[0], 1, null, '', 'test');
+    await cart.addDish(dishes[0], 2, null, '', 'test');
+    cartDishes = await CartDish.find({cart: cart.id, dish: dishes[0].id});
+    console.log(cartDishes);
+    expect(cartDishes.length).to.equals(2);
+    for(let dish of cartDishes){
+      if(dish.modifiers.length == 1){
+        expect(dish.amount).to.equals(1);
+      }else{
+        expect(dish.amount).to.equals(3);
+      }
+    }
+    
+    
   });
 
   it('setCount', async function(){

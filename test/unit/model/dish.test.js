@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const dish_generator_1 = require("../../generators/dish.generator");
+const chai_1 = require("chai");
 const dishExample = {
     "images": [
         {
@@ -93,5 +94,9 @@ describe('Dish', function () {
             }
         }
         //expect(result['InitPaymentAdapter'].adapter).to.equal("test-payment-system");
+    });
+    it('getDishes', function () {
+        // it's planned implement after connect @webresto/worktime
+        chai_1.expect(Dish.getDishes).to.not.equals(undefined);
     });
 });

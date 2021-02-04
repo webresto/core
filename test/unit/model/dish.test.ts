@@ -1,4 +1,5 @@
-import  groupGenerator   from "../../generators/dish.generator"
+import  groupGenerator   from "../../generators/dish.generator";
+import { expect } from "chai";
 
 const dishExample = {
     "images": [
@@ -94,4 +95,9 @@ describe('Dish', function () {
     } 
     //expect(result['InitPaymentAdapter'].adapter).to.equal("test-payment-system");
   });  
+
+  it('getDishes', function(){
+    // it's planned implement after connect @webresto/worktime
+    expect(Dish.getDishes).to.not.equals(undefined);
+  });
 });
