@@ -59,7 +59,7 @@ describe('Cart', function () {
         await cart.addDish(dishes[0], 1, null, '', 'test');
         await cart.addDish(dishes[0], 2, null, '', 'test');
         cartDishes = await CartDish.find({ cart: cart.id, dish: dishes[0].id });
-        console.log(cartDishes);
+        // console.log(cartDishes);
         chai_1.expect(cartDishes.length).to.equals(2);
         for (let dish of cartDishes) {
             if (dish.modifiers.length == 1) {

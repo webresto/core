@@ -99,4 +99,24 @@ describe('Dish', function () {
         // it's planned implement after connect @webresto/worktime
         chai_1.expect(Dish.getDishes).to.not.equals(undefined);
     });
+    it('getDishModifiers', async function () {
+        chai_1.expect(Dish.getDishModifiers).to.not.equals(undefined);
+        // TODO: test group modifiers
+        let dishes = await Dish.find({});
+        // @ts-ignore
+        let dish = await Dish.createOrUpdate(dish_generator_1.default({ name: "test dish modifiers", modifiers: [{ id: dishes[0].id }] }));
+        await Dish.getDishModifiers(dish);
+        // console.log(JSON.stringify(dish, null, '  '));
+        chai_1.expect(dish.modifiers.length).to.equal(1);
+        chai_1.expect(dish.modifiers[0].id).to.equal(dishes[0].id);
+    });
+    it('createOrUpdate', async function () {
+        // @ts-ignore
+        let dish = await Dish.createOrUpdate(dish_generator_1.default({ name: "test dish" }));
+        dish.name = 'New Dish Name';
+        let updatedDish = await Dish.createOrUpdate(dish);
+        chai_1.expect(updatedDish.name).to.equals('New Dish Name');
+        chai_1.expect(updatedDish.id).to.equal(dish.id);
+        // expect(updatedDish.hash).to.not.equal(dish.hash);
+    });
 });

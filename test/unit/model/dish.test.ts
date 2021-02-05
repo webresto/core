@@ -1,4 +1,4 @@
-import  groupGenerator   from "../../generators/dish.generator";
+import  dishGenerator   from "../../generators/dish.generator";
 import { expect } from "chai";
 
 const dishExample = {
@@ -88,7 +88,7 @@ describe('Dish', function () {
   it('Test DishGenerator', async () => {
     for (let index = 0; index < 3; index++) {
       try {
-        var result =  groupGenerator({name: "test"});
+        var result =  dishGenerator({name: "test"});
       } catch (error) {
     
       }
@@ -99,5 +99,27 @@ describe('Dish', function () {
   it('getDishes', function(){
     // it's planned implement after connect @webresto/worktime
     expect(Dish.getDishes).to.not.equals(undefined);
+  });
+  it('getDishModifiers', async function(){
+    expect(Dish.getDishModifiers).to.not.equals(undefined);
+    // TODO: test group modifiers
+    let dishes = await Dish.find({});
+    // @ts-ignore
+    let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: [{id: dishes[0].id}] }) );
+    await Dish.getDishModifiers(dish);
+    // console.log(JSON.stringify(dish, null, '  '));
+    expect(dish.modifiers.length).to.equal(1);
+    expect(dish.modifiers[0].id).to.equal(dishes[0].id);
+  });
+  it('createOrUpdate', async function(){
+    // @ts-ignore
+    let dish = await Dish.createOrUpdate(dishGenerator({name: "test dish"}));
+
+    dish.name = 'New Dish Name';
+    let updatedDish = await Dish.createOrUpdate(dish);
+
+    expect(updatedDish.name).to.equals('New Dish Name');
+    expect(updatedDish.id).to.equal(dish.id);
+    // expect(updatedDish.hash).to.not.equal(dish.hash);
   });
 });
