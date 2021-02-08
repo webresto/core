@@ -94,7 +94,57 @@ describe('Dish', function () {
       }
     } 
     //expect(result['InitPaymentAdapter'].adapter).to.equal("test-payment-system");
-  });  
+  });
+  
+  it('Dish Model attributes', async () => {
+    let dish = (await Dish.find({}).limit(1))[0];
+    expect(dish).to.include.all.keys(
+    'id',
+    'rmsId',
+    'additionalInfo',
+    'code',
+    'description',
+    'name',
+    'seoDescription',
+    'seoKeywords',
+    'seoText',
+    'seoTitle',
+    'carbohydrateAmount',
+    'carbohydrateFullAmount',
+    'differentPricesOn',
+    'doNotPrintInCheque',
+    'energyAmount',
+    'energyFullAmount',
+    'fatAmount',
+    'fatFullAmount',
+    'fiberAmount',
+    'fiberFullAmount',
+    'groupId',
+    'groupModifiers',
+    'measureUnit',
+    'price',
+    'productCategoryId',
+    'prohibitedToSaleOn',
+    'type',
+    'useBalanceForSell',
+    'weight',
+    'isIncludedInMenu',
+    'order',
+    'isDeleted',
+    'isModificable',
+    'modifiers',
+    'parentGroup',
+    'tags',
+    'balance',
+    'images',
+    'slug',
+    'hash',
+    'composition',
+    'visible',
+    'modifier',
+    'promo',
+    'workTime')
+  });
 
   it('getDishes', function(){
     // it's planned implement after connect @webresto/worktime
@@ -102,7 +152,7 @@ describe('Dish', function () {
   });
   it('getDishModifiers', async function(){
     expect(Dish.getDishModifiers).to.not.equals(undefined);
-    // TODO: test group modifiers
+
     let dishes = await Dish.find({});
     // @ts-ignore
     let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: [{id: dishes[0].id}] }) );
@@ -110,8 +160,20 @@ describe('Dish', function () {
     // console.log(JSON.stringify(dish, null, '  '));
     expect(dish.modifiers.length).to.equal(1);
     expect(dish.modifiers[0].id).to.equal(dishes[0].id);
+
+    let group = (await Group.find({}).limit(1))[0];
+    // @ts-ignor
+    dish.modifiers = [{modifierId: group.id, childModifiers: [{id: dishes[0].id, modifierId: dishes[0].id}]}];
+    dish = await Dish.createOrUpdate(dish);
+    await Dish.getDishModifiers(dish);
+    // console.log(JSON.stringify(dish, null, '  '));
+    expect(dish.modifiers.length).to.equal(1);
+    expect(dish.modifiers[0].childModifiers[0].dish.id).to.equal(dishes[0].id);
+    expect(dish.modifiers[0].group.id).to.equal(group.id);
+    
   });
   it('createOrUpdate', async function(){
+    expect(Dish.createOrUpdate).to.not.equals(undefined);
     // @ts-ignore
     let dish = await Dish.createOrUpdate(dishGenerator({name: "test dish"}));
 
@@ -120,6 +182,5 @@ describe('Dish', function () {
 
     expect(updatedDish.name).to.equals('New Dish Name');
     expect(updatedDish.id).to.equal(dish.id);
-    // expect(updatedDish.hash).to.not.equal(dish.hash);
   });
 });
