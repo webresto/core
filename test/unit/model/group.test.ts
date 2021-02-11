@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import groupGenerator from "../../generators/group.generator";
+import { groupFields } from "../../generators/group.generator";
 import dishGenerator from "../../generators/dish.generator";
+import { dishFields } from "../../generators/dish.generator";
 import Group from "../../../models/Group";
 import { isArray } from "lodash";
 
@@ -84,20 +86,7 @@ describe('Group', function(){
   }
   function compareGroup(exampleGroup: Group, group): void{
     let keys = Object.keys(exampleGroup);
-    const testGroupFields = [
-      'id',
-      'additionalInfo',
-      'code',
-      'description',
-      'order',
-      'images',
-      'name',
-      'tags',
-      'isDeleted',
-      'dishesTags',
-      'isIncludedInMenu',
-      'dishes',
-    ];
+    const testGroupFields = groupFields;
     for(let key of keys){
       if(!testGroupFields.includes(key)){
         continue;
@@ -116,22 +105,7 @@ describe('Group', function(){
     // compareDishes(exampleGroup.dishes, group.dishesList);
   }
   function compareDishes(exampleDishes, dishes){    
-    const testDishFields = [
-      'id',
-      'additionalInfo',
-      'balance',
-      'modifiers',
-      'weight',
-      'price',
-      'order',
-      'images',
-      'name',
-      'composition',
-      'rmsId',
-      'code',
-      'tags',
-      'isDeleted'
-    ];
+    const testDishFields = dishFields;
     for(let exampleDish of exampleDishes){
       let dish = dishes.find(d => d.id === exampleDish.id);
       expect(dish).to.be.an('object');

@@ -42,4 +42,20 @@ export default function groupGenerator(config: GroupData = {}): GroupData{
   }
 }
 
+export let groupFields = [
+  'id',
+  'additionalInfo',
+  'code',
+  'description',
+  'order',
+  'images',
+  'name',
+  'tags',
+  'isDeleted',
+  'dishesTags',
+  'isIncludedInMenu',
+  'dishes',
+];
+
+
  

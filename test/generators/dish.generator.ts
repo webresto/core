@@ -43,3 +43,20 @@ export default function dishGenerator(config: DishData = {}): DishData{
   }
 }
 
+export let dishFields = [
+  'id',
+  'additionalInfo',
+  'balance',
+  'modifiers',
+  'weight',
+  'price',
+  'order',
+  'images',
+  'name',
+  'composition',
+  'rmsId',
+  'code',
+  'tags',
+  'isDeleted'
+];
+

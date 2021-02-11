@@ -2,9 +2,6 @@ import { expect } from "chai";
 
 describe('Maintenance', function(){
     it('siteIsOff TODO', async function(){
-
-    })
-    it('TODO', async function(){
-        //TODO
+        // нужно создать запись maintenance, проверить выполнение логики метода.
     })
 })
