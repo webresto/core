@@ -130,5 +130,25 @@ describe('Dish', function () {
         let updatedDish = await Dish.createOrUpdate(dish);
         chai_1.expect(updatedDish.name).to.equals('New Dish Name');
         chai_1.expect(updatedDish.id).to.equal(dish.id);
+        // TODO: протестировать работу hash при обновлении, и удостовериться что в модели не обновилась запись, если данные одни и теже
+        let dishExampel = {};
+        let d = dish_generator_1.default();
+        // @ts-ignore
+        let dish1 = await Dish.createOrUpdate(d);
+        await delay(1000);
+        // @ts-ignore
+        let dish2 = await Dish.createOrUpdate(d);
+        // @ts-ignore
+        console.dir(dish1);
+        console.dir(dish2);
+        chai_1.expect(dish1.hash).to.equal(dish2.hash);
+        // waterline 0.12 return updatedAt string when create and return class Date when find
+        // @ts-ignore
+        chai_1.expect(dish1.updatedAt).to.equal((dish2.updatedAt).toISOString());
     });
 });
+function delay(ms) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms);
+    });
+}

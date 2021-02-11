@@ -182,5 +182,24 @@ describe('Dish', function () {
 
     expect(updatedDish.name).to.equals('New Dish Name');
     expect(updatedDish.id).to.equal(dish.id);
+
+    let d = dishGenerator();
+    // @ts-ignore
+    let dish1 = await Dish.createOrUpdate(d);
+    await delay(1000);
+    // @ts-ignore
+    let dish2 = await Dish.createOrUpdate(d);
+    // @ts-ignore
+    expect(dish1.hash).to.equal(dish2.hash);
+    // waterline 0.12 return updatedAt string when create and return class Date when find
+    // @ts-ignore
+    expect(dish1.updatedAt).to.equal((dish2.updatedAt).toISOString());
+  
   });
 });
+
+function delay(ms){
+  return new Promise((resolve, reject) => {
+      setTimeout(resolve, ms)
+  });
+}

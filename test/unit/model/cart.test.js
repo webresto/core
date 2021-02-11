@@ -109,6 +109,7 @@ describe('Cart', function () {
         let res = await Cart.returnFullCart(cart);
         let cartDish = res.dishes.find(d => d.dish.id == dishes[3].id);
         // modifiers check
+        // TODO: test GroupModifiers
         chai_1.expect(cartDish.modifiers[0].dish.id).to.equals(dishes[10].id);
         chai_1.expect(cartDish.modifiers[0].dish.price).to.equals(dishes[10].price);
         chai_1.expect(cartDish.modifiers[0].dish.weight).to.equals(dishes[10].weight);

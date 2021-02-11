@@ -191,6 +191,7 @@ function checkAmount(amount: number) {
       error: 'incorrect amount'
     }
   }
+  // TODO: разобраться зачем это нужно, для сбербанка
   if (!(amount % 1 === 0)){
     throw {
       code: 2,
