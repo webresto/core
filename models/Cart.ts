@@ -484,7 +484,12 @@ let cartModel: CartModel = {
    * @param cart
    */
   returnFullCart: async function (cart: Cart): Promise<Cart> {
-    cart = await Cart.findOne({id: cart.id});
+    if (typeof cart === 'string' || cart instanceof String){
+      cart = await Cart.findOne({id: cart});
+    } else {
+      cart = await Cart.findOne({id: cart.id});
+    }
+    
     getEmitter().emit('core-cart-before-return-full-cart', cart);
     sails.log.verbose('Cart > returnFullCart > input cart', cart)
     let fullCart: Cart;
