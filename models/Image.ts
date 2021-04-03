@@ -37,7 +37,7 @@ module.exports = {
       via: 'images'
     },
     group: {
-      model: 'group',
+      collection: 'group',
       via: 'images'
     },
     uploadDate: 'string'
