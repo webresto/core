@@ -49,6 +49,7 @@ export default interface Cart extends ORM {
     comment: string;
     personsCount: string;
     orderDateLimit?: string;
+    /** Желаемая дата и время доставки */
     date: string;
     problem: boolean;
     rmsDelivered: boolean;

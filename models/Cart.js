@@ -103,6 +103,8 @@ let cartInstance = {
                 throw { body: `There is no so mush dishes with id ${dishObj.id}`, code: 1 };
             }
         const cart = await Cart.findOne({ id: this.id }).populate('dishes');
+        if (cart.dishes.length > 99)
+            throw "99 max dishes amount";
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
         if (modifiers && modifiers.length) {
@@ -427,10 +429,10 @@ let cartModel = {
     */
     returnFullCart: async function (cart) {
         if (typeof cart === 'string' || cart instanceof String) {
-            cart = await Cart.findOne({ id: cart });
+            cart = await Cart.findOrCreate({ id: cart });
         }
         else {
-            cart = await Cart.findOne({ id: cart.id });
+            cart = await Cart.findOrCreate({ id: cart.id });
         }
         getEmitter_1.default().emit('core-cart-before-return-full-cart', cart);
         sails.log.verbose('Cart > returnFullCart > input cart', cart);

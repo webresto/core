@@ -177,6 +177,9 @@ export default class HookTools {
    *                 }
    * @param folder - folder where policies load
    */
+
+  // TODO: Проблема в том что система полиси совсем не предназначена для хуков, нельзя сделать хук который будет добавлять чтото в полиси, можно сделать только полностью замеяющий хук сейчас
+
   public static loadPolicies(folder: string) {
     const normalizedPath = path.normalize(folder);
 
