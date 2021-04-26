@@ -18,6 +18,7 @@ const State = require('sails-hook-stateflow').State;
  * @constructor
  */
 export default function ToInitialize(sails) {
+
   /**
    * List of hooks that required
    */
@@ -29,6 +30,17 @@ export default function ToInitialize(sails) {
   ];
 
   return function initialize(cb) {
+    /**
+     * Small security fixes
+     */
+    if (process.env.BLUEPRINTS_SECURITY_OFF !== "TRUE") {
+      sails.log.info("Security > blueprints rest/shortcuts is OFF ");
+      //@ts-ignore
+      sails.config.blueprints.shortcuts = false;
+      //@ts-ignore
+      sails.config.blueprints.rest = false;
+    }
+    
     /**
      * CONFIG
      */
