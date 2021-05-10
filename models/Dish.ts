@@ -144,6 +144,11 @@ module.exports = {
     workTime: 'json'
   },
 
+  afterUpdate: function (record, proceed) {
+    getEmitter().emit('core-dish-after-update', record);
+    return proceed();
+  },
+
   /**
    * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
    * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.

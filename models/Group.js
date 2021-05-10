@@ -144,6 +144,7 @@ module.exports = {
         });
         await getEmitter_1.default().emit('core-group-get-groups', menu, errors);
         const res = Object.values(menu);
+        //TODO: rewrite with throw
         return { groups: res, errors: errors };
     },
     /**

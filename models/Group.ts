@@ -153,6 +153,7 @@ module.exports = {
 
     const res = Object.values(menu);
     
+    //TODO: rewrite with throw
     return {groups: res, errors: errors};
   },
 
