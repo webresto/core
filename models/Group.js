@@ -69,7 +69,7 @@ module.exports = {
         },
         dishes: {
             collection: 'dish',
-            via: 'productCategoryId'
+            via: 'parentGroup'
         },
         parentGroup: {
             model: 'group'

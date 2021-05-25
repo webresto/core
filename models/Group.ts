@@ -73,7 +73,7 @@ module.exports = {
     },
     dishes: {
       collection: 'dish',
-      via: 'productCategoryId'
+      via: 'parentGroup'
     },
     parentGroup: {
       model: 'group'
@@ -152,7 +152,7 @@ module.exports = {
     await getEmitter().emit('core-group-get-groups', menu, errors);
 
     const res = Object.values(menu);
-    
+
     //TODO: rewrite with throw
     return {groups: res, errors: errors};
   },
@@ -182,7 +182,7 @@ module.exports = {
    */
   async getGroupBySlug(groupSlug: string): Promise<Group> {
     const groupObj = (await Group.findOne({slug: groupSlug}));
-    
+
     if (!groupObj){
       throw "group with slug " + groupSlug + " not found"
     }
