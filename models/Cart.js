@@ -74,12 +74,30 @@ let cartCollection = {
         },
         message: 'string',
         deliveryItem: 'string',
-        deliveryCost: 'float',
-        totalWeight: 'float',
-        total: 'float',
-        orderTotal: 'float',
-        cartTotal: 'float',
-        discountTotal: 'float',
+        deliveryCost: {
+            type: 'float',
+            defaultsTo: 0
+        },
+        totalWeight: {
+            type: 'float',
+            defaultsTo: 0
+        },
+        total: {
+            type: 'float',
+            defaultsTo: 0
+        },
+        orderTotal: {
+            type: 'float',
+            defaultsTo: 0
+        },
+        cartTotal: {
+            type: 'float',
+            defaultsTo: 0
+        },
+        discountTotal: {
+            type: 'float',
+            defaultsTo: 0
+        },
         orderDate: 'datetime'
     }
 };
@@ -441,18 +459,18 @@ let cartModel = {
             fullCart = await Cart.findOne({ id: cart.id }).populate('dishes');
             const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish').sort('createdAt');
             for (let cartDish of cartDishes) {
-                if (!cartDish.dish) {
-                    sails.log.error('cartDish', cartDish.id, 'has not dish');
-                    continue;
-                }
-                if (!fullCart.dishes.filter(d => d.id === cartDish.id).length) {
-                    sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
-                    continue;
-                }
+                // if (!cartDish.dish) {
+                //   sails.log.error('cartDish', cartDish.id, 'has not dish');
+                //   continue;
+                // }
+                // if (!fullCart.dishes.filter(d => d.id === cartDish.id).length) {
+                //   sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
+                //   continue;
+                // }
                 const dish = await Dish.findOne({
                     id: cartDish.dish.id,
                     isDeleted: false
-                }).populate('images').populate('parentGroup');
+                }).populate('parentGroup');
                 const reason = checkExpression_1.default(dish);
                 if (dish && dish.parentGroup)
                     var reasonG = checkExpression_1.default(dish.parentGroup);
@@ -465,22 +483,13 @@ let cartModel = {
                     // sails.log.info('CARTDISH DISH MODIFIERS', dish.modifiers);
                 }
                 else {
-                    getEmitter_1.default().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
+                    // getEmitter().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
                     await CartDish.destroy(dish);
-                    fullCart.dishes.remove(cartDish.id);
-                    delete fullCart.dishes[cart.dishes.indexOf(cartDish)];
-                    delete cartDishes[cartDishes.indexOf(cartDish)];
-                    await fullCart.save();
                     continue;
-                }
-                if (cartDish.modifiers !== undefined) {
-                    for await (let modifier of cartDish.modifiers) {
-                        modifier.dish = await Dish.findOne(modifier.id);
-                    }
                 }
             }
             fullCart.dishes = cartDishes;
-            fullCart.orderDateLimit = await getOrderDateLimit();
+            // fullCart.orderDateLimit = await getOrderDateLimit();
             fullCart.cartId = fullCart.id;
             await this.countCart(fullCart);
         }
@@ -496,23 +505,34 @@ let cartModel = {
      */
     countCart: async function (cart) {
         getEmitter_1.default().emit('core-cart-before-count', cart);
+        if (typeof cart === 'string' || cart instanceof String) {
+            cart = await Cart.findOne({ id: cart });
+        }
+        else {
+            cart = await Cart.findOne({ id: cart.id });
+        }
         const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish');
-        const cartDishesClone = {};
-        cart.dishes.map(cd => cartDishesClone[cd.id] = _.cloneDeep(cd));
+        // const cartDishesClone = {};
+        // cart.dishes.map(cd => cartDishesClone[cd.id] = _.cloneDeep(cd));
         let orderTotal = 0;
-        let cartTotal = 0;
         let dishesCount = 0;
         let uniqueDishes = 0;
         let totalWeight = 0;
-        // sails.log.info(dishes);
         for await (let cartDish of cartDishes) {
             try {
                 if (cartDish.dish) {
                     const dish = await Dish.findOne(cartDish.dish.id);
+                    // Проверяет что блюдо доступно к продаже
                     if (!dish) {
                         sails.log.error('Dish with id ' + cartDish.dish.id + ' not found!');
-                        getEmitter_1.default().emit('core-cart-count-reject-no-dish', cartDish, cart);
-                        return sails.log.error('Cart > count > error1', 'Dish with id ' + cartDish.dish.id + ' not found!');
+                        getEmitter_1.default().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
+                        await CartDish.destroy({ id: cartDish.dish.id });
+                        continue;
+                    }
+                    if (dish.balance === -1 ? false : dish.balance < cartDish.amount) {
+                        cartDish.amount = dish.balance;
+                        getEmitter_1.default().emit('core-cartdish-change-amount', cartDish);
+                        sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
                     }
                     cartDish.uniqueItems = 1;
                     cartDish.itemTotal = 0;
@@ -523,8 +543,7 @@ let cartModel = {
                             const modifierObj = await Dish.findOne(modifier.id);
                             if (!modifierObj) {
                                 sails.log.error('Dish with id ' + modifier.id + ' not found!');
-                                getEmitter_1.default().emit('core-cart-count-reject-no-modifier-dish', modifier, cart);
-                                return sails.log.error('Cart > count > error2', 'Dish with id ' + modifier.id + ' not found!');
+                                continue;
                             }
                             cartDish.uniqueItems++;
                             cartDish.itemTotal += modifier.amount * modifierObj.price;
@@ -534,57 +553,41 @@ let cartModel = {
                     cartDish.totalWeight = cartDish.weight * cartDish.amount;
                     cartDish.itemTotal += cartDish.dish.price;
                     cartDish.itemTotal *= cartDish.amount;
-                    await cartDish.save();
+                    await CartDish.update({ id: cartDish.id }, cartDish);
                 }
-                if (cartDish.itemTotal)
-                    orderTotal += cartDish.itemTotal;
+                orderTotal += cartDish.itemTotal;
                 dishesCount += cartDish.amount;
                 uniqueDishes++;
                 totalWeight += cartDish.totalWeight;
             }
             catch (e) {
-                sails.log.error('Cart > count > error3', e);
+                sails.log.error('Cart > count > iterate cartDish error', e);
             }
         }
-        for (let cd in cart.dishes) {
-            if (cart.dishes.hasOwnProperty(cd)) {
-                const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
-                if (!cartDish)
-                    continue;
-                cartDish.dish = cartDishesClone[cartDish.id].dish;
-                //cart.dishes[cd] = cartDish; 
-            }
-        }
+        // for (let cd in cart.dishes) {
+        //   if (cart.dishes.hasOwnProperty(cd)) {
+        //     const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
+        //     if (!cartDish)
+        //       continue;
+        //     cartDish.dish = cartDishesClone[cartDish.id].dish;
+        //     //cart.dishes[cd] = cartDish;
+        //   }
+        // }
         // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
         await getEmitter_1.default().emit('core-cart-count-discount-apply', cart);
-        let deliveryCost;
-        if (cart.deliveryCost) {
-            deliveryCost = cart.deliveryCost;
-        }
-        else {
-            deliveryCost = 0;
-        }
         cart.dishesCount = dishesCount;
         cart.uniqueDishes = uniqueDishes;
         cart.totalWeight = totalWeight;
-        if (!cart.discountTotal) {
-            cart.discountTotal = 0;
-        }
         cart.total = orderTotal - cart.discountTotal;
         cart.orderTotal = orderTotal - cart.discountTotal;
-        cart.cartTotal = orderTotal + deliveryCost - cart.discountTotal;
+        cart.cartTotal = orderTotal + cart.deliveryCost - cart.discountTotal;
         if (cart.delivery) {
             cart.total += cart.delivery;
         }
         // // TODO возможно тут этого делать не надо. а нужно перенсти в функции вызывающие эту функцию
-        // await Cart.update({id:cart.id}, {
-        //     cartTotal:cartTotal,
-        //     dishesCount: dishesCount,
-        //     uniqueDishes: uniqueDishes,
-        //     totalWeight: totalWeight,
-        //     total: cartTotal
-        //   });
+        const result = await Cart.update({ id: cart.id }, cart);
         getEmitter_1.default().emit('core-cart-after-count', cart);
+        return result;
     },
     doPaid: async function (paymentDocument) {
         let cart = await Cart.findOne(paymentDocument.paymentId);
