@@ -535,13 +535,11 @@ let cartModel = {
         if (cart.delivery) {
             cart.total += cart.delivery;
         }
-        // cart.dishes = await CartDish.find({cart: cart.id});
-        delete (cart.dishes);
-        // // TODO возможно тут этого делать не надо. а нужно перенсти в функции вызывающие эту функцию
-        const result = (await Cart.update({ id: cart.id }, cart))[0];
-        cart.dishes = await CartDish.find({ cart: cart.id });
+        const resultCartDishes = await CartDish.find({ cart: cart.id });
+        cart.dishes = resultCartDishes;
+        await Cart.update({ id: cart.id }, cart);
         getEmitter_1.default().emit('core-cart-after-count', cart);
-        return result;
+        return cart;
     },
     doPaid: async function (paymentDocument) {
         let cart = await Cart.findOne(paymentDocument.paymentId);

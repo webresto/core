@@ -554,8 +554,6 @@ let cartModel: CartModel = {
             sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
           }
 
-
-
           cartDish.uniqueItems = 1;
           cartDish.itemTotal = 0;
           cartDish.weight = cartDish.dish.weight;
@@ -618,18 +616,14 @@ let cartModel: CartModel = {
       cart.total += cart.delivery;
     }
 
+    const resultCartDishes = await CartDish.find({cart: cart.id}) as Association<CartDish>;
+    cart.dishes = resultCartDishes;
 
-    // cart.dishes = await CartDish.find({cart: cart.id});
-    delete(cart.dishes);
-
-    // // TODO возможно тут этого делать не надо. а нужно перенсти в функции вызывающие эту функцию
-    const result = (await Cart.update({id: cart.id}, cart))[0];
-
-    cart.dishes = await CartDish.find({cart: cart.id}) as Association<CartDish>;
+    await Cart.update({id: cart.id}, cart);
 
     getEmitter().emit('core-cart-after-count', cart);
 
-    return result;
+    return cart;
   },
 
   doPaid: async function (paymentDocument: PaymentDocument) {

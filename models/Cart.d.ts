@@ -12,13 +12,6 @@ import { PaymentResponse } from "../modelsHelp/Payment";
  */
 export interface CartModel extends ORMModel<Cart> {
     /**
-     * Возвращает корзину со всем популяризациями, то есть каждый CartDish в заданой cart имеет dish и modifiers, каждый dish
-     * содержит в себе свои картинки, каждый модификатор внутри cart.dishes и каждого dish содержит группу модификаторов и
-     * самоблюдо модификатора и тд.
-     * @param cart
-     */
-    returnFullCart(cart: Cart): Promise<Cart>;
-    /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
      * @param cart
      */
