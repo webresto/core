@@ -606,7 +606,6 @@ let cartModel: CartModel = {
     for await(let cartDish of cartDishes){
       try {
 
-
         if (cartDish.dish) {
           const dish = await Dish.findOne(cartDish.dish.id);
 
@@ -689,8 +688,11 @@ let cartModel: CartModel = {
     }
 
 
+    // cart.dishes = await CartDish.find({cart: cart.id});
+    delete(cart.dishes);
+
     // // TODO возможно тут этого делать не надо. а нужно перенсти в функции вызывающие эту функцию
-    const result = await Cart.update({id:cart.id}, cart);
+    const result = (await Cart.update({id:cart.id}, cart))[0];
 
     getEmitter().emit('core-cart-after-count', cart);
 
