@@ -6,3 +6,4 @@ bootstrap.js
 ./unit/**/*.js
 ./generators/*.js
 ./generators/lib/*.js
+unit/**/*.js
