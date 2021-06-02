@@ -130,7 +130,7 @@ module.exports = {
             type: 'slug',
             from: 'name'
         },
-        hash: 'integer',
+        hash: 'string',
         composition: 'string',
         visible: 'boolean',
         modifier: 'boolean',
@@ -218,15 +218,17 @@ module.exports = {
      * @return обновлённое или созданное блюдо
      */
     async createOrUpdate(values) {
+        let hash = hashCode_1.default(JSON.stringify(values));
         const dish = await Dish.findOne({ id: values.id });
         if (!dish) {
-            return Dish.create(values);
+            return Dish.create({ hash, ...values });
         }
         else {
-            if (hashCode_1.default(JSON.stringify(values)) === dish.hash) {
+            console.log(hash, dish.hash, hash === dish.hash);
+            if (hash === dish.hash) {
                 return dish;
             }
-            return (await Dish.update({ id: values.id }, values))[0];
+            return (await Dish.update({ id: values.id }, { hash, ...values }))[0];
         }
     }
 };

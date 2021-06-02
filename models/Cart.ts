@@ -134,6 +134,19 @@ let cartInstance: Cart = {
 
     await emitter.emit.apply(emitter, ['core-cart-add-dish-before-create-cartdish', ...arguments]);
     let cartDish: CartDish;
+
+    // auto replace and increase amount if same dishes without modifiers
+    if(!replace && (!modifiers || (modifiers && modifiers.length === 0)) ){
+      let sameCartDishArray = await CartDish.find({cart: this.id, dish: dishObj.id});
+      for(let sameCartDish of sameCartDishArray){
+        if(sameCartDish && sameCartDish.modifiers && sameCartDish.modifiers.length === 0){
+          cartDishId = Number(sameCartDish.id);
+          amount = amount + sameCartDish.amount;
+          replace = true;
+          break;
+        }
+      }
+    }
     if(replace) {
       cartDish = (await CartDish.update({id: cartDishId},{
         dish: dishObj.id,

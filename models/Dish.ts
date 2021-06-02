@@ -136,7 +136,7 @@ module.exports = {
       type: 'slug',
       from: 'name'
     },
-    hash: 'integer',
+    hash: 'string',
     composition: 'string',
     visible: 'boolean',
     modifier: 'boolean',
@@ -231,14 +231,15 @@ module.exports = {
    * @return обновлённое или созданное блюдо
    */
   async createOrUpdate(values: Dish): Promise<Dish> {
+    let hash = hashCode(JSON.stringify(values));
     const dish = await Dish.findOne({id: values.id});
     if (!dish) {
-      return Dish.create(values);
+      return Dish.create({hash, ...values});
     } else {
-      if (hashCode(JSON.stringify(values)) === dish.hash) {
+      if (hash === dish.hash) {
         return dish;
       }
-      return (await Dish.update({id: values.id}, values))[0];
+      return (await Dish.update({id: values.id}, {hash, ...values}))[0];
     }
   }
 };

@@ -159,6 +159,7 @@ module.exports = {
 
   /** Цикл проверки платежей */
   processor: async function(timeout: number) {
+    //TODO: добавить тестировочный флаг что бы игнорировать setInterval
     setInterval(async () => {
       
       let actualTime =  new Date();
@@ -191,6 +192,7 @@ function checkAmount(amount: number) {
       error: 'incorrect amount'
     }
   }
+  // TODO: разобраться зачем это нужно, для сбербанка
   if (!(amount % 1 === 0)){
     throw {
       code: 2,
