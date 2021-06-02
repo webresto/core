@@ -37,3 +37,4 @@ dump.rdb
 #/apidoc/
 #/docs/
 *.js.map
+*.test.js
