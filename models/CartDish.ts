@@ -43,10 +43,6 @@ module.exports = {
       model: 'Cart'
     },
     discount: 'json',
-    parent: {
-      model: 'CartDish',
-      via: 'modifiers'
-    },
     uniqueItems: 'integer',
     itemTotal: 'float',
     discountTotal: 'float',

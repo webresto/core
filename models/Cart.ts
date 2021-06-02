@@ -25,7 +25,7 @@ let cartCollection: Waterline.Collection = {
         type: 'string',
         primaryKey: true,
         defaultsTo: function (){ return uuid(); }
-      }, 
+      },
       cartId: 'string',
       shortId:{
         type: 'string',
@@ -84,12 +84,30 @@ let cartCollection: Waterline.Collection = {
       },
       message: 'string', // deprecated
       deliveryItem: 'string',
-      deliveryCost: 'float', // rename to deliveryCost
-      totalWeight: 'float',
-      total: 'float', // total = cartTotal
-      orderTotal: 'float', // orderTotal = total + deliveryCost - discountTotal - bonusesTotal
-      cartTotal: 'float',
-      discountTotal: 'float',
+      deliveryCost: {
+        type: 'float',
+        defaultsTo: 0
+      }, // rename to deliveryCost
+      totalWeight: {
+        type: 'float',
+        defaultsTo: 0
+      },
+      total: {
+        type: 'float',
+        defaultsTo: 0
+      }, // total = cartTotal
+      orderTotal: {
+        type: 'float',
+        defaultsTo: 0
+      }, // orderTotal = total + deliveryCost - discountTotal - bonusesTotal
+      cartTotal: {
+        type: 'float',
+        defaultsTo: 0
+      },
+      discountTotal: {
+        type: 'float',
+        defaultsTo: 0
+      },
       orderDate: 'datetime'
     }
   }
@@ -118,7 +136,7 @@ let cartInstance: Cart = {
         throw {body: `There is no so mush dishes with id ${dishObj.id}`, code: 1};
       }
     const cart = await Cart.findOne({id: this.id}).populate('dishes');
-    
+
     if (cart.dishes.length > 99)
       throw "99 max dishes amount"
 
@@ -164,7 +182,7 @@ let cartInstance: Cart = {
         modifiers: modifiers || [],
         comment: comment,
         addedBy: from
-      });  
+      });
     }
 
     await cart.next('CART');
@@ -292,7 +310,7 @@ let cartInstance: Cart = {
       sails.log.error("CART > Check > error", self.id, "cart is paid");
       return false
     }
-      
+
     /**
      *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
      */
@@ -321,7 +339,7 @@ let cartInstance: Cart = {
       self.paymentMethod = paymentMethodId;
       self.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
       self.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId)
-    } 
+    }
 
     isSelfService = isSelfService === undefined ? false : isSelfService;
     if (isSelfService) {
@@ -331,7 +349,7 @@ let cartInstance: Cart = {
       await self.next('CHECKOUT');
       return true;
     }
-    
+
     if (address){
         checkAddress(address);
         self.address = address;
@@ -359,13 +377,13 @@ let cartInstance: Cart = {
       return true;
 
     const checkConfig = await SystemInfo.use('check');
-    
+
     if (checkConfig) {
       if (checkConfig.requireAll) {
         if (resultsCount === successCount) {
           if (self.getState() !== 'CHECKOUT') {
             await self.next('CHECKOUT');
-          } 
+          }
           return true;
         } else {
           throw {
@@ -374,10 +392,10 @@ let cartInstance: Cart = {
           }
         }
       }
-      if (checkConfig.notRequired) { 
-        if (self.getState() !== 'CHECKOUT') {  
+      if (checkConfig.notRequired) {
+        if (self.getState() !== 'CHECKOUT') {
           await self.next('CHECKOUT');
-        } 
+        }
         return true;
       }
     }
@@ -392,7 +410,7 @@ let cartInstance: Cart = {
     const self: Cart = this;
 
     if (self.state === "ORDER")
-      throw "cart with cartId "+ self.id + "in state ORDER"      
+      throw "cart with cartId "+ self.id + "in state ORDER"
 
     // await self.save();
     // PTODO: проверка эта нужна
@@ -407,9 +425,9 @@ let cartInstance: Cart = {
     } else {
       getEmitter().emit('core-cart-order-delivery', self);
     }
-    await Cart.returnFullCart(self); 
+    await Cart.returnFullCart(self);
     const results = await getEmitter().emit('core-cart-order', self);
-    
+
     sails.log.verbose('Cart > order > after wait general emitter results: ', results);
     const resultsCount = results.length;
     const successCount = results.filter(r => r.state === "success").length;
@@ -417,7 +435,7 @@ let cartInstance: Cart = {
     self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
 
 
-    
+
 
     const orderConfig = await SystemInfo.use('order');
     if (orderConfig) {
@@ -435,7 +453,7 @@ let cartInstance: Cart = {
         order();
         return 0;
       }
-    } 
+    }
     if (true || false) { // философия доставочной пушки
       order();
       return 0;
@@ -443,7 +461,7 @@ let cartInstance: Cart = {
       return 1;
     }
 
-    
+
     async function order(){
       await self.next('ORDER');
 
@@ -483,8 +501,8 @@ let cartInstance: Cart = {
     await self.next('PAYMENT');
     return paymentResponse;
   },
-  paymentMethodId: async function (cart?: Cart): Promise<string> { 
-    if (!cart) 
+  paymentMethodId: async function (cart?: Cart): Promise<string> {
+    if (!cart)
       cart = this
     //@ts-ignore
     let populatedCart = await Cart.findOne({id: cart.id}).populate('paymentMethod')
@@ -513,62 +531,53 @@ let cartModel: CartModel = {
     try {
       fullCart = await Cart.findOne({id: cart.id}).populate('dishes');
       const cartDishes = await CartDish.find({cart: cart.id}).populate('dish').sort('createdAt');
-      
+
       for (let cartDish of cartDishes) {
-        
-        if (!cartDish.dish) {
-          sails.log.error('cartDish', cartDish.id, 'has not dish');
-          continue;
-        }
-  
-        if (!fullCart.dishes.filter(d => d.id === cartDish.id).length) {
-          sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
-          continue;
-        }
-  
+
+        // if (!cartDish.dish) {
+        //   sails.log.error('cartDish', cartDish.id, 'has not dish');
+        //   continue;
+        // }
+
+        // if (!fullCart.dishes.filter(d => d.id === cartDish.id).length) {
+        //   sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
+        //   continue;
+        // }
+
         const dish = await Dish.findOne({
           id: cartDish.dish.id,
           isDeleted: false
-        }).populate('images').populate('parentGroup');
+        }).populate('parentGroup');
         const reason = checkExpression(dish);
-  
-        if (dish && dish.parentGroup)      
+
+        if (dish && dish.parentGroup)
           var reasonG = checkExpression(dish.parentGroup);
-  
+
         const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
           reasonG === 'visible' || !reasonG;
-  
+
         // Проверяет что блюдо доступно к продаже
         if (dish && dish.parentGroup && reasonBool && (dish.balance === -1 ? true : dish.balance >= cartDish.amount)) {
           await Dish.getDishModifiers(dish);
           cartDish.dish = dish;
           // sails.log.info('CARTDISH DISH MODIFIERS', dish.modifiers);
         } else {
-          getEmitter().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
+          // getEmitter().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
           await CartDish.destroy(dish);
-          fullCart.dishes.remove(cartDish.id);
-          delete fullCart.dishes[cart.dishes.indexOf(cartDish)];
-          delete cartDishes[cartDishes.indexOf(cartDish)];
-          await fullCart.save();
           continue;
         }
 
-        if (cartDish.modifiers !== undefined) {
-          for await(let modifier of cartDish.modifiers) {
-            modifier.dish = await Dish.findOne(modifier.id);
-          }
-        }
       }
-      fullCart.dishes = cartDishes as Association<CartDish>;  
+      fullCart.dishes = cartDishes as Association<CartDish>;
 
-      fullCart.orderDateLimit = await getOrderDateLimit();
+      // fullCart.orderDateLimit = await getOrderDateLimit();
       fullCart.cartId = fullCart.id;
       await this.countCart(fullCart);
     } catch (e) {
       sails.log.error('CART > fullCart error', e);
     }
 
-    await  getEmitter().emit('core-cart-after-return-full-cart', fullCart); 
+    await  getEmitter().emit('core-cart-after-return-full-cart', fullCart);
     return fullCart;
   },
 
@@ -579,28 +588,43 @@ let cartModel: CartModel = {
   countCart: async function (cart: Cart) {
     getEmitter().emit('core-cart-before-count', cart);
 
+    if (typeof cart === 'string' || cart instanceof String){
+      cart = await Cart.findOne({id: cart});
+    } else {
+      cart = await Cart.findOne({id: cart.id});
+    }
+
     const cartDishes = await CartDish.find({cart: cart.id}).populate('dish');
-    const cartDishesClone = {};
-    cart.dishes.map(cd => cartDishesClone[cd.id] = _.cloneDeep(cd));
+    // const cartDishesClone = {};
+    // cart.dishes.map(cd => cartDishesClone[cd.id] = _.cloneDeep(cd));
 
     let orderTotal = 0;
-    let cartTotal = 0;
     let dishesCount = 0;
     let uniqueDishes = 0;
     let totalWeight = 0;
 
-    // sails.log.info(dishes);
-
     for await(let cartDish of cartDishes){
       try {
+
+
         if (cartDish.dish) {
           const dish = await Dish.findOne(cartDish.dish.id);
 
+          // Проверяет что блюдо доступно к продаже
           if (!dish) {
             sails.log.error('Dish with id ' + cartDish.dish.id + ' not found!');
-            getEmitter().emit('core-cart-count-reject-no-dish', cartDish, cart);
-            return sails.log.error('Cart > count > error1', 'Dish with id ' + cartDish.dish.id + ' not found!');
+            getEmitter().emit('core-cart-return-full-cart-destroy-cartdish', dish, cart);
+            await CartDish.destroy({id: cartDish.dish.id});
+            continue;
           }
+
+          if (dish.balance === -1 ? false : dish.balance < cartDish.amount) {
+            cartDish.amount = dish.balance;
+            getEmitter().emit('core-cartdish-change-amount', cartDish);
+            sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
+          }
+
+
 
           cartDish.uniqueItems = 1;
           cartDish.itemTotal = 0;
@@ -613,8 +637,7 @@ let cartModel: CartModel = {
 
               if (!modifierObj) {
                 sails.log.error('Dish with id ' + modifier.id + ' not found!');
-                getEmitter().emit('core-cart-count-reject-no-modifier-dish', modifier, cart);
-                return sails.log.error('Cart > count > error2', 'Dish with id ' + modifier.id + ' not found!');
+                continue;
               }
 
               cartDish.uniqueItems++;
@@ -626,50 +649,40 @@ let cartModel: CartModel = {
           cartDish.totalWeight = cartDish.weight * cartDish.amount;
           cartDish.itemTotal += cartDish.dish.price;
           cartDish.itemTotal *= cartDish.amount;
-          await cartDish.save();
+          await CartDish.update({id: cartDish.id}, cartDish);
         }
 
-        if (cartDish.itemTotal)
+
         orderTotal += cartDish.itemTotal;
         dishesCount += cartDish.amount;
         uniqueDishes++;
         totalWeight += cartDish.totalWeight;
       } catch (e) {
-        sails.log.error('Cart > count > error3', e);
+        sails.log.error('Cart > count > iterate cartDish error', e);
       }
     }
 
-    for (let cd in cart.dishes) {
-      if (cart.dishes.hasOwnProperty(cd)) {
-        const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
-        if (!cartDish)
-          continue;
-        cartDish.dish = cartDishesClone[cartDish.id].dish;
-        //cart.dishes[cd] = cartDish; 
-      }
-    }
+    // for (let cd in cart.dishes) {
+    //   if (cart.dishes.hasOwnProperty(cd)) {
+    //     const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
+    //     if (!cartDish)
+    //       continue;
+    //     cartDish.dish = cartDishesClone[cartDish.id].dish;
+    //     //cart.dishes[cd] = cartDish;
+    //   }
+    // }
+
+
     // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
     await getEmitter().emit('core-cart-count-discount-apply', cart);
-
-    let deliveryCost: number;
-    if (cart.deliveryCost){
-      deliveryCost = cart.deliveryCost
-    } else {
-      deliveryCost = 0
-    }
 
     cart.dishesCount = dishesCount;
     cart.uniqueDishes = uniqueDishes;
     cart.totalWeight = totalWeight;
-   
-    if(!cart.discountTotal){
-      cart.discountTotal = 0;
-    }
 
     cart.total = orderTotal - cart.discountTotal;
     cart.orderTotal = orderTotal - cart.discountTotal;
-    cart.cartTotal = orderTotal + deliveryCost - cart.discountTotal;
-
+    cart.cartTotal = orderTotal + cart.deliveryCost - cart.discountTotal;
 
     if (cart.delivery) {
       cart.total += cart.delivery;
@@ -677,15 +690,11 @@ let cartModel: CartModel = {
 
 
     // // TODO возможно тут этого делать не надо. а нужно перенсти в функции вызывающие эту функцию
-    // await Cart.update({id:cart.id}, {
-    //     cartTotal:cartTotal,
-    //     dishesCount: dishesCount,
-    //     uniqueDishes: uniqueDishes,
-    //     totalWeight: totalWeight,
-    //     total: cartTotal
-    //   });
-      
+    const result = await Cart.update({id:cart.id}, cart);
+
     getEmitter().emit('core-cart-after-count', cart);
+
+    return result;
   },
 
   doPaid: async function (paymentDocument: PaymentDocument) {
@@ -694,14 +703,14 @@ let cartModel: CartModel = {
     try {
       let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
       await Cart.update({id: paymentDocument.paymentId}, {paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle});
-      
+
       console.log(">>>>>>",cart);
       console.log(">>>>>>",cart.state, cart.cartTotal, paymentDocument.amount );
-  
-      if(cart.state !== "PAYMENT"){ 
+
+      if(cart.state !== "PAYMENT"){
         sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);
       }
-  
+
       if(cart.cartTotal !== paymentDocument.amount){
         cart.problem = true;
         cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!"
@@ -750,9 +759,9 @@ export interface CartModel extends ORMModel<Cart> {
  */
 export default interface Cart extends ORM {
   id: string;
-  cartId: string; 
+  cartId: string;
   state: string;
-  shortId: string; 
+  shortId: string;
   dishes: Association<CartDish>;
   paymentMethod: string;
   paymentMethodTitle: string;
@@ -768,10 +777,10 @@ export default interface Cart extends ORM {
   comment: string;
   personsCount: string;
   orderDateLimit?: string;
-  
+
   /** Желаемая дата и время доставки */
   date: string;
-  
+
   problem: boolean;
   rmsDelivered: boolean;
   rmsId: string;
@@ -939,7 +948,7 @@ export default interface Cart extends ORM {
    * @return код результата:
    *  - 0 - успешно создан платежный документ
    *  - 1 - во время создания платежного документа произошла ошибка валидации
-   *  - 2 - 
+   *  - 2 -
    * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
    * @fires cart:core-cart-external-payment - вызывается, если совершается внешняя оплата
    * @fires cart:core-cart-internal-payment - вызывается, если совершается внутренняя оплата
@@ -1035,7 +1044,7 @@ async function checkPaymentMethod(paymentMethodId) {
 }
 
 async function checkDate(cart: Cart) {
-  
+
 
   if (cart.date) {
     const date = moment(cart.date, "YYYY-MM-DD HH:mm:ss");
@@ -1045,27 +1054,27 @@ async function checkDate(cart: Cart) {
         error: 'date is not valid, required (YYYY-MM-DD HH:mm:ss)'
       }
     }
-    
+
     const possibleDatetime = await getOrderDateLimit();
     const momentDateLimit = moment(possibleDatetime);
     if (!date.isBefore(momentDateLimit)) {
       throw {
         code: 10,
         error: 'delivery far, far away! allowed not after' + possibleDatetime
-      }    
-    } 
+      }
+    }
   }
 }
 
 /**
- * Возвратит максимальное дату и время доставки 
- * (по умолчанию 14 дней) 
+ * Возвратит максимальное дату и время доставки
+ * (по умолчанию 14 дней)
  */
 async function getOrderDateLimit(): Promise<string>  {
   let periodPossibleForOrder = await SystemInfo.use('PeriodPossibleForOrder')
   if (periodPossibleForOrder === 0 || periodPossibleForOrder === undefined  || periodPossibleForOrder === null ){
     periodPossibleForOrder = "20160";
-  }  
+  }
   return moment().add(periodPossibleForOrder, 'minutes').format("YYYY-MM-DD HH:mm:ss");
 }
 
