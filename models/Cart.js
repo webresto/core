@@ -266,7 +266,7 @@ let cartInstance = {
         await self.save();
     },
     check: async function (customer, isSelfService, address, paymentMethodId) {
-        const self = await Cart.returnFullCart(this);
+        const self = await Cart.countCart(this);
         if (self.state === "ORDER")
             throw "cart with cartId " + self.id + "in state ORDER";
         //const self: Cart = this;
@@ -373,7 +373,7 @@ let cartInstance = {
         else {
             getEmitter_1.default().emit('core-cart-order-delivery', self);
         }
-        await Cart.returnFullCart(self);
+        await Cart.countCart(self);
         const results = await getEmitter_1.default().emit('core-cart-order', self);
         sails.log.verbose('Cart > order > after wait general emitter results: ', results);
         const resultsCount = results.length;
@@ -428,7 +428,7 @@ let cartInstance = {
             backLinkFail: backLinkFail,
             comment: comment
         };
-        await Cart.returnFullCart(self);
+        await Cart.countCart(self);
         await getEmitter_1.default().emit('core-cart-payment', self, params);
         sails.log.info("Cart > payment > self before register:", self);
         try {
