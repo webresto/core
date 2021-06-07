@@ -83,7 +83,9 @@ let cartCollection: Waterline.Collection = {
         defaultsTo: ""
       },
       message: 'string', // deprecated
-      deliveryItem: 'string',
+      deliveryItem: {
+        model: 'Dish'
+      },
       deliveryCost: {
         type: 'float',
         defaultsTo: 0
@@ -108,7 +110,8 @@ let cartCollection: Waterline.Collection = {
         type: 'float',
         defaultsTo: 0
       },
-      orderDate: 'datetime'
+      orderDate: 'datetime',
+      customData: 'json'
     }
   }
 

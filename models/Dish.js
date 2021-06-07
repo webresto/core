@@ -224,7 +224,6 @@ module.exports = {
             return Dish.create({ hash, ...values });
         }
         else {
-            console.log(hash, dish.hash, hash === dish.hash);
             if (hash === dish.hash) {
                 return dish;
             }

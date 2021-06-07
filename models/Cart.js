@@ -72,7 +72,9 @@ let cartCollection = {
             defaultsTo: ""
         },
         message: 'string',
-        deliveryItem: 'string',
+        deliveryItem: {
+            model: 'Dish'
+        },
         deliveryCost: {
             type: 'float',
             defaultsTo: 0
@@ -97,7 +99,8 @@ let cartCollection = {
             type: 'float',
             defaultsTo: 0
         },
-        orderDate: 'datetime'
+        orderDate: 'datetime',
+        customData: 'json'
     }
 };
 let cartInstance = {

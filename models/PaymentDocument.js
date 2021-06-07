@@ -114,6 +114,7 @@ module.exports = {
     },
     /** Цикл проверки платежей */
     processor: async function (timeout) {
+        //TODO: добавить тестировочный флаг что бы игнорировать setInterval
         setInterval(async () => {
             let actualTime = new Date();
             actualTime.setHours(actualTime.getHours() - 1);
