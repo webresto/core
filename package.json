@@ -25,7 +25,8 @@
     "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
     "sails-util": "^0.11.0",
     "typescript": "^3.9.7",
-    "uuid": "latest"
+    "uuid": "latest",
+    "@webresto/worktime": "git+https://github.com/webresto/worktime.git#backend_support"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.32",
@@ -83,5 +84,5 @@
     "build": "tsc",
     "prepublish!": "javascript-obfuscator . --output .  --exclude=\"node_modules\""
   },
-  "version": "0.8.1"
+  "version": "0.9.0"
 }
