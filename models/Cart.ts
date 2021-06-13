@@ -302,7 +302,7 @@ let cartInstance: Cart = {
     self.selfService = selfService;
     await self.save();
   },
-  check: async function (customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<boolean> {
+  check: async function (customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<any> {
     const self: Cart  = await Cart.countCart(this);
 
     if (self.state === "ORDER")
@@ -311,7 +311,10 @@ let cartInstance: Cart = {
     //const self: Cart = this;
     if(self.paid) {
       sails.log.error("CART > Check > error", self.id, "cart is paid");
-      return false
+      throw {
+        code: 12,
+        error: "cart is paid"
+      }
     }
 
     /**
@@ -350,7 +353,7 @@ let cartInstance: Cart = {
       sails.log.verbose('Cart > check > is self delivery');
       await self.setSelfService(true);
       await self.next('CHECKOUT');
-      return true;
+      return
     }
 
     if (address){
@@ -377,7 +380,7 @@ let cartInstance: Cart = {
     getEmitter().emit('core-cart-after-check', self, customer, isSelfService, address);
 
     if (resultsCount === 0)
-      return true;
+      return
 
     const checkConfig = await SystemInfo.use('check');
 
@@ -387,7 +390,7 @@ let cartInstance: Cart = {
           if (self.getState() !== 'CHECKOUT') {
             await self.next('CHECKOUT');
           }
-          return true;
+          return
         } else {
           throw {
             code: 10,
@@ -399,15 +402,22 @@ let cartInstance: Cart = {
         if (self.getState() !== 'CHECKOUT') {
           await self.next('CHECKOUT');
         }
-        return true;
+        return
       }
     }
+    // если не настроен конфиг то нужен хотябы один положительный ответ(заказ в пустоту бесполезен)
     if (successCount > 0) {
       if (self.getState() !== 'CHECKOUT') {
         await self.next('CHECKOUT');
       }
+      return
+    } else {
+      throw {
+        code: 11,
+        error: 'successCount <= 0'
+      }
     }
-    return successCount > 0;
+
   },
   order: async function (): Promise<number> {
     const self: Cart = this;
@@ -435,43 +445,43 @@ let cartInstance: Cart = {
     const resultsCount = results.length;
     const successCount = results.filter(r => r.state === "success").length;
 
-    self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
-
-
-
 
     const orderConfig = await SystemInfo.use('order');
     if (orderConfig) {
       if (orderConfig.requireAll) {
         if (resultsCount === successCount) {
-          order();
-          return 0;
-        } else if (successCount === 0) {
-          return 1;
+          await order();
+          return
         } else {
-          return 2;
+          throw 'по крайней мере один слушатель не выполнил заказ.'
         }
       }
-      if (orderConfig.notRequired) {
-        order();
-        return 0;
+      if (orderConfig.justOne) {
+        if (successCount > 0) {
+          await order();
+          return
+        } else {
+          throw 'ни один слушатель не выполнил заказ'
+        }
       }
-    }
-    if (true || false) { // философия доставочной пушки
-      order();
-      return 0;
-    } else {
-      return 1;
+
+      throw 'Bad orderConfig';
     }
 
+    await order();
+    return
 
     async function order(){
-      await self.next('ORDER');
-
+      // await self.next('ORDER');
+      // TODO: переписать на stateFlow
+      let data: any = {};
+      data.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
+      data.state = 'ORDER';
 
       /** Если сохранние модели вызвать до next то будет бесконечный цикл */
       sails.log.info('Cart > order > before save cart', self)
-      await self.save();
+      // await self.save();
+      await Cart.update({id: self.id}, data);
       getEmitter().emit('core-cart-after-order', self);
     }
   },
@@ -527,6 +537,9 @@ let cartModel: CartModel = {
     } else {
       cart = await Cart.findOne({id: cart.id});
     }
+
+    if (cart.state === "ORDER")
+      throw "cart with cartId "+ cart.id + "in state ORDER"
 
     const cartDishes = await CartDish.find({cart: cart.id}).populate('dish');
     // const cartDishesClone = {};
