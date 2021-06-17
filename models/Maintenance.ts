@@ -1,7 +1,8 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import { v4 as uuid } from 'uuid';
-import  {between}  from "../lib/causes"
+import  {between}  from "../lib/causes";
+import getEmitter from "../lib/getEmitter";
 const moment = require('moment');
 
 module.exports = {
@@ -16,14 +17,27 @@ module.exports = {
       type: 'boolean',
       defaultsTo: true
     },
+    reason: 'string',
+    section: {
+      type: 'string',
+      enum: ['dostavka', 'samovivoz', 'bron_stola'],
+    },
     startDate: 'datetime',
     stopDate: 'datetime'
   },
   beforeCreate: function (paymentMethod, next) {
-    paymentMethod.id = uuid(); 
+    paymentMethod.id = uuid();
     next();
   },
-  
+  afterUpdate: function (record, next) {
+    getEmitter().emit('core-maintenance-changed', record);
+    next();
+  },
+  afterCreate: function (record, next) {
+    getEmitter().emit('core-maintenance-changed', record);
+    next();
+  },
+
   siteIsOff: async function(){
     let maints = await Maintenance.find({enable: true});
     if (!maints.length) {
@@ -36,7 +50,7 @@ module.exports = {
         //@ts-ignore
         start = s.startDate.getTime();
       }
-        
+
       if (s.stopDate){
         //@ts-ignore
         stop = s.stopDate.getTime();

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const causes_1 = require("../lib/causes");
+const getEmitter_1 = require("../lib/getEmitter");
 const moment = require('moment');
 module.exports = {
     attributes: {
@@ -15,11 +16,24 @@ module.exports = {
             type: 'boolean',
             defaultsTo: true
         },
+        reason: 'string',
+        section: {
+            type: 'string',
+            enum: ['dostavka', 'samovivoz', 'bron_stola'],
+        },
         startDate: 'datetime',
         stopDate: 'datetime'
     },
     beforeCreate: function (paymentMethod, next) {
         paymentMethod.id = uuid_1.v4();
+        next();
+    },
+    afterUpdate: function (record, next) {
+        getEmitter_1.default().emit('core-maintenance-changed', record);
+        next();
+    },
+    afterCreate: function (record, next) {
+        getEmitter_1.default().emit('core-maintenance-changed', record);
         next();
     },
     siteIsOff: async function () {
