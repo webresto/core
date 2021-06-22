@@ -2,8 +2,20 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const causes_1 = require("../lib/causes");
-// import getEmitter from "../lib/getEmitter";
+const getEmitter_1 = require("../lib/getEmitter");
 const moment = require('moment');
+const CHECK_INTERVAL = 60000;
+sails.on('lifted', function () {
+    setInterval(async function () {
+        const maintenance = await Maintenance.getActiveMaintenance();
+        if (maintenance) {
+            getEmitter_1.default().emit('core-maintenance-enabled', maintenance);
+        }
+        else {
+            getEmitter_1.default().emit('core-maintenance-disabled');
+        }
+    }, CHECK_INTERVAL);
+});
 module.exports = {
     attributes: {
         id: {
@@ -24,23 +36,22 @@ module.exports = {
         next();
     },
     siteIsOff: async function () {
-        let maints = await Maintenance.find({ enable: true });
-        if (!maints.length) {
-            false;
-        }
-        maints = maints.filter(s => {
+        const maintenances = await Maintenance.getActiveMaintenance();
+        return maintenances ? true : false;
+    },
+    getActiveMaintenance: async function () {
+        let maintenances = await Maintenance.find({ enable: true });
+        maintenances = maintenances.filter(s => {
             let start, stop;
             if (s.startDate) {
-                //@ts-ignore
                 start = s.startDate.getTime();
             }
             if (s.stopDate) {
-                //@ts-ignore
                 stop = s.stopDate.getTime();
             }
             const now = moment().valueOf();
             return causes_1.between(start, stop, now);
         });
-        return maints.length ? true : false;
+        return maintenances[0];
     }
 };
