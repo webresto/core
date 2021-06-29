@@ -101,7 +101,7 @@ module.exports = {
         }
     },
     afterUpdate: async function (values, next) {
-        sails.log.debug('PaymentDocument > afterUpdate > ', JSON.stringify(values));
+        sails.log.silly('PaymentDocument > afterUpdate > ', JSON.stringify(values));
         if (values.paid && values.status === 'PAID') {
             try {
                 if (!values.amount || !values.paymentMethod || !values.paymentId) {
@@ -121,16 +121,19 @@ module.exports = {
         sails.log.info("PaymentDocument.processor > started with timeout: " + timeout);
         return payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
+            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED" });
+            /** Если дата создания платежногоДокумента больше чем час назад ставим статус просрочено*/
             actualTime.setHours(actualTime.getHours() - 1);
-            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED", createdAt: { '<': actualTime } });
-            // For testing timezone
-            if (actualPaymentDocuments[0])
-                console.log(actualPaymentDocuments[0].createdAt, "<", actualPaymentDocuments[0].createdAt < actualTime, actualTime);
-            sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments.map(a => a.id), ">>", actualTime);
             for await (let actualPaymentDocument of actualPaymentDocuments) {
-                await actualPaymentDocument.doCheck();
+                if (actualPaymentDocument.createdAt < actualTime) {
+                    await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" });
+                }
+                else {
+                    sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
+                    await actualPaymentDocument.doCheck();
+                }
             }
-        }, timeout || 120000);
+        }, timeout || 15000);
     }
 };
 async function checkOrigin(originModel, paymentId) {

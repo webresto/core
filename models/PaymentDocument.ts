@@ -147,7 +147,7 @@ module.exports = {
     }
   },
   afterUpdate: async function (values: PaymentDocument, next) {
-    sails.log.debug('PaymentDocument > afterUpdate > ', JSON.stringify(values));
+    sails.log.silly('PaymentDocument > afterUpdate > ', JSON.stringify(values));
     if (values.paid && values.status === 'PAID') { 
       try {
         if(!values.amount || !values.paymentMethod || !values.paymentId){
@@ -169,19 +169,20 @@ module.exports = {
     return payment_processor_interval = setInterval(async () => {
       
       let actualTime = new Date();
-      actualTime.setHours( actualTime.getHours() - 1 );
 
-      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({status: "REGISTRED", createdAt: { '<':   actualTime }});
+      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({status: "REGISTRED"});
       
-      // For testing timezone
-      if (actualPaymentDocuments[0])
-        console.log(actualPaymentDocuments[0].createdAt, "<",actualPaymentDocuments[0].createdAt < actualTime, actualTime);
-  
-      sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments.map(a => a.id), ">>",actualTime);
-      for await (let actualPaymentDocument of actualPaymentDocuments) {
-        await actualPaymentDocument.doCheck();
+      /** Если дата создания платежногоДокумента больше чем час назад ставим статус просрочено*/
+      actualTime.setHours( actualTime.getHours() - 1 );
+      for await ( let actualPaymentDocument of actualPaymentDocuments) {
+        if (actualPaymentDocument.createdAt < actualTime) {
+          await PaymentDocument.update({id: actualPaymentDocument.id},{status: "DECLINE"})
+        } else {
+          sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:" ,actualTime);
+          await actualPaymentDocument.doCheck();
+        }
       }
-    }, timeout || 120000);
+    }, timeout || 15000);
     
   }
 };
