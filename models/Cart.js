@@ -345,7 +345,7 @@ let cartInstance = {
         }
         await Cart.returnFullCart(self);
         const results = await getEmitter_1.default().emit('core-cart-order', self);
-        sails.log.verbose('Cart > order > after wait general emitter results: ', results);
+        sails.log.silly('Cart > order > after wait general emitter results: ', results);
         const resultsCount = results.length;
         const successCount = results.filter(r => r.state === "success").length;
         self.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
