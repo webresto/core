@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const getEmitter_1 = require("../lib/getEmitter");
+let payment_processor_interval;
 module.exports = {
     autoPK: false,
     attributes: {
@@ -114,11 +115,11 @@ module.exports = {
     },
     /** Цикл проверки платежей */
     processor: async function (timeout) {
-        setInterval(async () => {
+        return payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
             actualTime.setHours(actualTime.getHours() - 1);
             let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED", createdAt: { '>=': actualTime } });
-            sails.log.verbose("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments);
+            sails.log.debug("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments);
             for await (let actualPaymentDocument of actualPaymentDocuments) {
                 await actualPaymentDocument.doCheck();
             }

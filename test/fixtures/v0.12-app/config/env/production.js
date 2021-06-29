@@ -1,8 +1,8 @@
 module.exports = {
-  models: {
-    connection: 'postgres',
-    migrate: 'safe'
-  },
+  // models: {
+  //   connection: 'postgres',
+  //   migrate: 'safe'
+  // },
   adminpanel:{
     auth: true
   },

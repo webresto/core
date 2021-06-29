@@ -10,7 +10,7 @@ describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
     /**
      * 1. Тест регистрации платежной системы
      */
-    it('Payment regtest', async () => {
+    it('PaymentSystem registration', async () => {
         const result = await ExternalTestPaymentSystem_1.default.getInstance();
         chai_1.expect(result['InitPaymentAdapter'].adapter).to.equal("test-payment-system");
     });
@@ -28,7 +28,6 @@ describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
     it('Testigt, not yet payment check', async () => {
         const result = await ExternalTestPaymentSystem_1.default.getInstance().checkPayment(paymentDocument);
         chai_1.expect(result.paid).to.equal(false);
-        // тут нужно тестировать корзину там где вызывается создание платежа
     });
     /**
     * 4. Проверка оплаты (уже оплачено)
@@ -56,7 +55,4 @@ describe('TestPaymentSystem & PaymentAdapter basic testing', function () {
     /**
     *
     */
-    it('Exit on timeout', async () => {
-        // тут нужно тестировать корзину там где вызывается создание платежа
-    });
 });

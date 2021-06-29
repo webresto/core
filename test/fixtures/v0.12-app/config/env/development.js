@@ -1,8 +1,8 @@
 module.exports = {
-  models: {
-   connection: 'postgres'
+  // models: {
+  //  connection: 'postgres'
    
-  },
+  // },
   port: process.env.PORT === undefined ? 42772 : process.env.PORT,
   log: {
     level: process.env.LOG_LEVEL === undefined ? 'silent' : process.env.PORT

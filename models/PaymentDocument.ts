@@ -5,6 +5,7 @@ import { PaymentResponse, Payment }  from "../modelsHelp/Payment"
 import PaymentMethod from "../models/PaymentMethod";
 import PaymentAdapter from "../adapter/payment/PaymentAdapter";
 import getEmitter from "../lib/getEmitter";
+import { NetworkInterfaceInfoIPv4 } from "os";
 
 
 /** На примере корзины (Cart):
@@ -46,6 +47,8 @@ import getEmitter from "../lib/getEmitter";
   DECLINE - авторизация отклонена.
 */     
 type Status = 'NEW'|'REGISTRED'|'PAID'|'CANCEL'|'REFUND'|'DECLINE';
+
+let payment_processor_interval: ReturnType<typeof setInterval>;
 
 module.exports = {
   autoPK: false,
@@ -157,18 +160,20 @@ module.exports = {
     next();
   },
 
+
   /** Цикл проверки платежей */
   processor: async function(timeout: number) {
-    setInterval(async () => {
+    return payment_processor_interval = setInterval(async () => {
       
       let actualTime =  new Date();
       actualTime.setHours( actualTime.getHours() - 1 );
       let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({status: "REGISTRED", createdAt: { '>=':   actualTime }});
-      sails.log.verbose("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments);
+      sails.log.debug("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments);
       for await (let actualPaymentDocument of actualPaymentDocuments) {
         await actualPaymentDocument.doCheck();
       }
     }, timeout || 120000);
+    
   }
 };
 
