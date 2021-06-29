@@ -182,7 +182,7 @@ module.exports = {
           await actualPaymentDocument.doCheck();
         }
       }
-    }, timeout || 15000);
+    }, timeout || 120000);
     
   }
 };
