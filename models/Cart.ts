@@ -431,7 +431,7 @@ let cartInstance: Cart = {
     //   return 3
 
     getEmitter().emit('core-cart-before-order', self);
-    sails.log.verbose('Cart > order > before order >', self.customer, self.selfService, self.address);
+    sails.log.silly('Cart > order > before order >', self.customer, self.selfService, self.address);
 
     if (this.selfService) {
       getEmitter().emit('core-cart-order-self-service', self);
@@ -441,7 +441,7 @@ let cartInstance: Cart = {
     await Cart.countCart(self);
     const results = await getEmitter().emit('core-cart-order', self);
 
-    sails.log.verbose('Cart > order > after wait general emitter results: ', results);
+    sails.log.silly('Cart > order > after wait general emitter results: ', results);
     const resultsCount = results.length;
     const successCount = results.filter(r => r.state === "success").length;
 
@@ -650,13 +650,10 @@ let cartModel: CartModel = {
     try {
       let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
       await Cart.update({id: paymentDocument.paymentId}, {paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle});
-
-      getEmitter().emit('core-cart-after-dopaid', cart);
-
-      console.log(">>>>>>",cart);
-      console.log(">>>>>>",cart.state, cart.cartTotal, paymentDocument.amount );
-
-      if(cart.state !== "PAYMENT"){
+      
+      sails.log.info("Cart > doPaid: ", cart.id, cart.state, cart.cartTotal, paymentDocument.amount );
+  
+      if(cart.state !== "PAYMENT"){ 
         sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);
       }
 

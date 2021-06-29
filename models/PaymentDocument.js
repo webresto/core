@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const getEmitter_1 = require("../lib/getEmitter");
+let payment_processor_interval;
 module.exports = {
     autoPK: false,
     attributes: {
@@ -48,6 +49,9 @@ module.exports = {
                 if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true) {
                     await checkedPaymentDocument.doPaid();
                 }
+                else {
+                    await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status });
+                }
                 getEmitter_1.default().emit('core-payment-document-checked-document', checkedPaymentDocument);
                 return checkedPaymentDocument;
             }
@@ -65,7 +69,7 @@ module.exports = {
         let payment = { id: id, paymentId: paymentId, originModel: originModel, paymentMethod: paymentMethodId, amount: amount, comment: comment, data: data };
         getEmitter_1.default().emit('core-payment-document-before-create', payment);
         try {
-            let paymentDocument = await PaymentDocument.create(payment);
+            await PaymentDocument.create(payment);
         }
         catch (e) {
             getEmitter_1.default().emit('error', "PaymentDocument > register:", e);
@@ -76,7 +80,7 @@ module.exports = {
             };
         }
         let paymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
-        sails.log.info("PaymentDocumnet > register [paymentAdapter]", paymentMethodId, paymentAdapter);
+        sails.log.debug("PaymentDocumnet > register [paymentAdapter]", paymentMethodId, paymentAdapter);
         try {
             sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
             let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
@@ -97,7 +101,7 @@ module.exports = {
         }
     },
     afterUpdate: async function (values, next) {
-        sails.log.info('PaymentDocument > afterUpdate > ', values);
+        sails.log.silly('PaymentDocument > afterUpdate > ', JSON.stringify(values));
         if (values.paid && values.status === 'PAID') {
             try {
                 if (!values.amount || !values.paymentMethod || !values.paymentId) {
@@ -114,16 +118,22 @@ module.exports = {
     },
     /** Цикл проверки платежей */
     processor: async function (timeout) {
-        //TODO: добавить тестировочный флаг что бы игнорировать setInterval
-        setInterval(async () => {
+        sails.log.info("PaymentDocument.processor > started with timeout: " + timeout);
+        return payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
+            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED" });
+            /** Если дата создания платежногоДокумента больше чем час назад ставим статус просрочено*/
             actualTime.setHours(actualTime.getHours() - 1);
-            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED", createdAt: { '>=': actualTime } });
-            sails.log.verbose("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments);
             for await (let actualPaymentDocument of actualPaymentDocuments) {
-                await actualPaymentDocument.doCheck();
+                if (actualPaymentDocument.createdAt < actualTime) {
+                    await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" });
+                }
+                else {
+                    sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
+                    await actualPaymentDocument.doCheck();
+                }
             }
-        }, timeout || 120000);
+        }, timeout || 15000);
     }
 };
 async function checkOrigin(originModel, paymentId) {
