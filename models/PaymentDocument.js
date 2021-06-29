@@ -124,6 +124,7 @@ module.exports = {
             let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED" });
             /** Если дата создания платежногоДокумента больше чем час назад ставим статус просрочено*/
             actualTime.setHours(actualTime.getHours() - 1);
+            console.log(">>", actualPaymentDocuments);
             for await (let actualPaymentDocument of actualPaymentDocuments) {
                 if (actualPaymentDocument.createdAt < actualTime) {
                     await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" });
@@ -133,7 +134,7 @@ module.exports = {
                     await actualPaymentDocument.doCheck();
                 }
             }
-        }, timeout || 15000);
+        }, timeout || 120000);
     }
 };
 async function checkOrigin(originModel, paymentId) {

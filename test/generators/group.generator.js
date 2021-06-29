@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.groupFields = void 0;
 const faker = require("faker");
 //import Group from "../../models/Group"
 var autoincrement = 0;
@@ -19,7 +20,20 @@ function groupGenerator(config = {}) {
         dishesTags: config.dishesTags || [],
         isIncludedInMenu: config.isDeleted || true,
         dishes: config.dishes || [],
-        // slug: faker.random.uuid()
     };
 }
 exports.default = groupGenerator;
+exports.groupFields = [
+    'id',
+    'additionalInfo',
+    'code',
+    'description',
+    'order',
+    'images',
+    'name',
+    'tags',
+    'isDeleted',
+    'dishesTags',
+    'isIncludedInMenu',
+    'dishes',
+];
