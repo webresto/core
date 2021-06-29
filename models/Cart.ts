@@ -682,8 +682,7 @@ let cartModel: CartModel = {
       let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
       await Cart.update({id: paymentDocument.paymentId}, {paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle});
       
-      console.log(">>>>>>",cart);
-      console.log(">>>>>>",cart.state, cart.cartTotal, paymentDocument.amount );
+      sails.log.info("Cart > doPaid: ", cart.id, cart.state, cart.cartTotal, paymentDocument.amount );
   
       if(cart.state !== "PAYMENT"){ 
         sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);

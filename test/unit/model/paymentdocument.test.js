@@ -19,9 +19,8 @@ describe('PaymentDocument', function () {
         });
         let cart = await Cart.create({});
         let paymentMethod = await PaymentMethod.findOne({ adapter: "test-payment-system" });
-        let paymentDocument = await PaymentDocument.register(cart.id, "cart", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
-        let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED" }); //createdAt: { '<':   actualTime }
-        let payment_processor_interval = PaymentDocument.processor(3000);
+        await PaymentDocument.register(cart.id, "cart", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
+        PaymentDocument.processor(3000);
         await sleep(5000);
         // back to 120 sec payment processor
         PaymentDocument.processor(120000);

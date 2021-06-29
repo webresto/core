@@ -49,6 +49,9 @@ module.exports = {
                 if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true) {
                     await checkedPaymentDocument.doPaid();
                 }
+                else {
+                    await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status });
+                }
                 getEmitter_1.default().emit('core-payment-document-checked-document', checkedPaymentDocument);
                 return checkedPaymentDocument;
             }
@@ -66,7 +69,7 @@ module.exports = {
         let payment = { id: id, paymentId: paymentId, originModel: originModel, paymentMethod: paymentMethodId, amount: amount, comment: comment, data: data };
         getEmitter_1.default().emit('core-payment-document-before-create', payment);
         try {
-            let paymentDocument = await PaymentDocument.create(payment);
+            await PaymentDocument.create(payment);
         }
         catch (e) {
             getEmitter_1.default().emit('error', "PaymentDocument > register:", e);
@@ -77,7 +80,7 @@ module.exports = {
             };
         }
         let paymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
-        sails.log.info("PaymentDocumnet > register [paymentAdapter]", paymentMethodId, paymentAdapter);
+        sails.log.debug("PaymentDocumnet > register [paymentAdapter]", paymentMethodId, paymentAdapter);
         try {
             sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
             let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
@@ -98,7 +101,7 @@ module.exports = {
         }
     },
     afterUpdate: async function (values, next) {
-        sails.log.info('PaymentDocument > afterUpdate > ', values);
+        sails.log.debug('PaymentDocument > afterUpdate > ', JSON.stringify(values));
         if (values.paid && values.status === 'PAID') {
             try {
                 if (!values.amount || !values.paymentMethod || !values.paymentId) {
@@ -115,11 +118,15 @@ module.exports = {
     },
     /** Цикл проверки платежей */
     processor: async function (timeout) {
+        sails.log.info("PaymentDocument.processor > started with timeout: " + timeout);
         return payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
             actualTime.setHours(actualTime.getHours() - 1);
-            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED", createdAt: { '>=': actualTime } });
-            sails.log.debug("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments);
+            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED", createdAt: { '<': actualTime } });
+            // For testing timezone
+            if (actualPaymentDocuments[0])
+                console.log(actualPaymentDocuments[0].createdAt, "<", actualPaymentDocuments[0].createdAt < actualTime, actualTime);
+            sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocuments.map(a => a.id), ">>", actualTime);
             for await (let actualPaymentDocument of actualPaymentDocuments) {
                 await actualPaymentDocument.doCheck();
             }
