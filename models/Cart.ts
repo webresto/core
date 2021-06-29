@@ -584,6 +584,8 @@ let cartModel: CartModel = {
                 continue;
               }
 
+              await getEmitter().emit('core-cart-countcart-before-calc-modifier', modifier, modifierObj);
+
               cartDish.uniqueItems++;
               cartDish.itemTotal += modifier.amount * modifierObj.price;
               cartDish.weight += modifierObj.weight;
