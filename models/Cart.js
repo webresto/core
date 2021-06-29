@@ -565,6 +565,7 @@ let cartModel = {
         try {
             let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
             await Cart.update({ id: paymentDocument.paymentId }, { paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle });
+            getEmitter_1.default().emit('core-cart-after-dopaid', cart);
             console.log(">>>>>>", cart);
             console.log(">>>>>>", cart.state, cart.cartTotal, paymentDocument.amount);
             if (cart.state !== "PAYMENT") {
