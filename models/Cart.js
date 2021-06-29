@@ -336,7 +336,7 @@ let cartInstance = {
         // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
         //   return 3
         getEmitter_1.default().emit('core-cart-before-order', self);
-        sails.log.verbose('Cart > order > before order >', self.customer, self.selfService, self.address);
+        sails.log.silly('Cart > order > before order >', self.customer, self.selfService, self.address);
         if (this.selfService) {
             getEmitter_1.default().emit('core-cart-order-self-service', self);
         }

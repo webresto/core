@@ -387,7 +387,7 @@ let cartInstance: Cart = {
     //   return 3
 
     getEmitter().emit('core-cart-before-order', self);
-    sails.log.verbose('Cart > order > before order >', self.customer, self.selfService, self.address);
+    sails.log.silly('Cart > order > before order >', self.customer, self.selfService, self.address);
 
     if (this.selfService) {
       getEmitter().emit('core-cart-order-self-service', self);
