@@ -13,4 +13,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: test
-      run: npm i && npm run test:init && npm run test
+      run: npm i && npm run test

@@ -75,14 +75,11 @@
     "hookName": "restocore"
   },
   "scripts": {
-    "gendoc": "apidoc -o apidoc/ && apidoc-markdown2 -p apidoc -o api.md",
-    "fix1": "cp -R ./test/fixtures/v0.12-app/node_modules/@webresto ./node_modules && rf -rf ./node_modules/@webresto/code && ln -s . ./node_modules/@webresto/core",
-    "fix": "ln -s '../test/fixtures/v0.12-app/node_modules/@webresto' './node_modules/'",
-    "test": "tsc ; mocha -r ts-node/register test/bootstrap.ts '{,**/}*.test.ts'",
-    "test:js": "mocha test/_bootstrap.js test/**/*.test.js",
-    "test:init": "cd ./test/fixtures/v0.12-app && npm i --no-package-lock --prefix ./ && cd -",
-    "build": "tsc",
-    "prepublish!": "javascript-obfuscator . --output .  --exclude=\"node_modules\""
+    "test": "npm run test:init && tsc ; mocha -r ts-node/register test/bootstrap.ts '{,**/}*.test.ts'",
+    "test:js": "npm run test:init && mocha test/_bootstrap.js test/**/*.test.js",
+    "preinstall": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
+    "test:init": "[ ! -d \"test/fixtures/v0.12-app/node_modules\" ] &&  cd ./test/fixtures/v0.12-app && npm i --no-package-lock --prefix ./ ",
+    "build": "tsc"
   },
   "version": "0.9.0"
 }
