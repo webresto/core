@@ -1,4 +1,4 @@
-{
+{{
   "author": {
     "name": "Webresto team"
   },
@@ -10,6 +10,10 @@
     {
       "name": "Siziy Ivan",
       "email": "xziy88@gmail.com"
+    },
+    {
+      "name": "Pavel Riabov",
+      "email": "raz200804@ya.ru"
     }
   ],
   "bundleDependencies": [],
@@ -43,6 +47,47 @@
     "@types/uuid": "^8.0.0",
     "@types/waterline": "^0.13.0",
     "chai": "^4.2.0",
+    "dotenv": "^8.2.0",
+    "faker": "^4.1.0",
+    "intermock": "^0.2.2",
+    "is-promise": "^4.0.0",
+    "mocha": "^8.1.1",
+    "rc": "^1.2.8",
+    "sails": "^0.12.14",
+    "sails-postgresql": "^0.12.2",
+    "ts-node": "^8.10.2",
+    "typed-sails": "git+https://github.com/42Sails/typed-sails.git",
+    "typedoc": "^0.15.8",
+    "typedoc-plugin-markdown": "^2.2.16"
+  },
+  "deprecated": false,
+  "description": "webresto core",
+  "keywords": [
+    "webresto",
+    "sails"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "@webresto/core",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/webresto/core.git"
+  },
+  "homepage": "http://webresto.org/",
+  "sails": {
+    "isHook": true,
+    "hookName": "restocore"
+  },
+  "scripts": {
+    "test": "npm run test:init && tsc ; mocha -r ts-node/register test/bootstrap.ts '{,**/}*.test.ts'",
+    "test:js": "npm run test:init && mocha test/_bootstrap.js test/**/*.test.js",
+    "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
+    "test:init": "[ ! -d \"test/fixtures/v0.12-app/node_modules\" ] &&  cd ./test/fixtures/v0.12-app && npm i --no-package-lock --prefix ./ ",
+    "build": "tsc"
+  },
+  "version": "0.9.0"
+}
+
     "dotenv": "^8.2.0",
     "faker": "^4.1.0",
     "intermock": "^0.2.2",
