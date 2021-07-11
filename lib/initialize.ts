@@ -46,7 +46,7 @@ export default function ToInitialize(sails) {
      */
     // If disabled. Do not load anything
     if (!HookTools.checkConfig('restocore')) {
-      return cb();
+      // return cb();
     }
 
     /**
