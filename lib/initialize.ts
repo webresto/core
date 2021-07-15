@@ -40,14 +40,6 @@ export default function ToInitialize(sails) {
       //@ts-ignore
       sails.config.blueprints.rest = false;
     }
-    
-    /**
-     * CONFIG
-     */
-    // If disabled. Do not load anything
-    if (!HookTools.checkConfig('restocore')) {
-      return cb();
-    }
 
     /**
      * AFTER OTHERS HOOKS
