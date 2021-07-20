@@ -1,7 +1,7 @@
-import RMSAdapter from './rms/RMSAdapter';
-import MapAdapter from './map/MapAdapter';
+import RMSAdapter from "./rms/RMSAdapter";
+import MapAdapter from "./map/MapAdapter";
 import ImageAdapter from "./image/ImageAdapter";
-import PaymentAdapter from './payment/PaymentAdapter';
+import PaymentAdapter from "./payment/PaymentAdapter";
 /**
  * Отдаёт запрашиваемый RMS-адаптер
  */
@@ -21,8 +21,8 @@ export declare class ImageA {
     static getAdapter(adapterName: string): ImageAdapter;
 }
 /**
-* Отдаёт запрашиваемый Payment-адаптер
-*/
+ * Отдаёт запрашиваемый Payment-адаптер
+ */
 export declare class Payment {
     static getAdapter(adapterName: string): PaymentAdapter;
 }
