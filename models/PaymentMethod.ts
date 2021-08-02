@@ -12,7 +12,7 @@ module.exports = {
     title: 'string',
     type: {
       type: 'string',
-      enum: ['promise', 'external', 'internal'],
+      enum: ['promise', 'external', 'internal', 'dummy'],
       defaultsTo: 'promise',
       required: true
     },
@@ -34,7 +34,7 @@ module.exports = {
       /**
      * Возвращает инстанс платежного адаптера по известному названию адаптера
      * @param  paymentMethodId
-     * @return 
+     * @return
      */
     async getAdapter(adapter?: string): Promise<PaymentAdapter> {
         var paymentMethod: PaymentMethod
@@ -43,7 +43,7 @@ module.exports = {
         } else {
           paymentMethod = await PaymentMethod.findOne({adapter: adapter});
         }
-        //@ts-ignore 
+        //@ts-ignore
         if (PaymentMethod.isPaymentPromise(paymentMethod.id)){
           return undefined
         }
@@ -62,11 +62,11 @@ module.exports = {
     /**
      * Возвращает true если платежный метод является обещанием платежа
      * @param  paymentMethodId
-     * @return 
+     * @return
      */
     async isPaymentPromise(paymentMethodId?: string): Promise<boolean> {
       var chekingPaymentMethod: PaymentMethod;
-      
+
       if (!paymentMethodId) {
         chekingPaymentMethod = this;
       } else {
@@ -75,14 +75,14 @@ module.exports = {
 
       if (chekingPaymentMethod.type === 'promise'){
         return true;
-      } 
+      }
       return false;
     },
   /**
  * Добавляет в список возможных к использованию платежные адаптеры при их старте.
  * Если  платежный метод не сушетсвует в базе то создает его
- * @param paymentMethod 
- * @return 
+ * @param paymentMethod
+ * @return
  */
   async alive(paymentAdapter: PaymentAdapter): Promise<string[]> {
 
@@ -94,7 +94,7 @@ module.exports = {
     sails.log.verbose("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
     return
   },
- 
+
   /**
  * Возвращает массив с возможными на текущий момент способами оплаты отсортированный по order
  * @param  нету
@@ -104,11 +104,11 @@ module.exports = {
     return await PaymentMethod.find({
       where: {
         or: [{
-              adapter: Object.keys(alivedPaymentMethods), 
+              adapter: Object.keys(alivedPaymentMethods),
               enable: true
-            }, 
+            },
             {
-              type:'promise', 
+              type: ['promise', 'dummy'],
               enable: true
             }]
           },
@@ -118,8 +118,8 @@ module.exports = {
     /**
    * Проверяет платежную систему на доступность, и включенность,
    *  для пейментПромис систем только включенность.
-   * @param paymentMethodId 
-   * @return 
+   * @param paymentMethodId
+   * @return
    */
   async checkAvailable(paymentMethodId: string): Promise<boolean> {
     const chekingPaymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
@@ -128,19 +128,19 @@ module.exports = {
       return false
     }
 
-    if (chekingPaymentMethod.type !== 'promise' && 
+    if (chekingPaymentMethod.type !== 'promise' &&
       alivedPaymentMethods[chekingPaymentMethod.adapter] === undefined){
       return false
-    } 
+    }
 
-    if (chekingPaymentMethod.enable === true && 
-        chekingPaymentMethod.type !== 'promise' && 
+    if (chekingPaymentMethod.enable === true &&
+        chekingPaymentMethod.type !== 'promise' &&
         alivedPaymentMethods[chekingPaymentMethod.adapter] !== undefined ){
         return true
     }
 
 
-    if (chekingPaymentMethod.enable === true && 
+    if (chekingPaymentMethod.enable === true &&
       chekingPaymentMethod.type === 'promise' ){
         return true
     }
@@ -150,13 +150,13 @@ module.exports = {
    * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
    * @param  paymentMethodId
    * @return PaymentAdapter
-   * @throws 
+   * @throws
    */
   async getAdapterById(paymentMethodId: string): Promise<PaymentAdapter> {
-    
+
     const paymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
 
-    //@ts-ignore 
+    //@ts-ignore
     if (await PaymentMethod.isPaymentPromise(paymentMethod.id)){
       return undefined
     }
@@ -167,7 +167,7 @@ module.exports = {
     } else {
       return undefined
     }
-  },  
+  },
 };
 
 // /**
@@ -179,6 +179,7 @@ module.exports = {
 //   internal="internal",
 //   external="external",
 //   promise="promise"
+//
 // }
 
 /**
@@ -215,7 +216,7 @@ export interface InitPaymentAdapter {
  */
 export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
   /**
-   * Выключает все 
+   * Выключает все
    * @param paymentMethod - ключ
    * @return .
    */
@@ -225,18 +226,18 @@ export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
   * Возврашает доступные для оплаты платежные методы
   */
   getAvailable(): Promise<PaymentMethod[]>;
-  
+
   /**
   * Проверяет платежную систему
   */
   checkAvailable(paymentMethodId: string): Promise<boolean>;
-    
+
   /**
   * Возврашает екземпляр платежного адаптера по paymentMethodId
   */
-  
+
   getAdapterById(paymentMethodId?: string)
-  
+
     /**
   * Проверяет платежное обещание
   */
