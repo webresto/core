@@ -6,3 +6,5 @@ module.exports = function (sails) {
     initialize: require('./lib/initialize').default(sails)
   };
 };
+
+module.exports.HookTools = require("./lib/hookTools");
