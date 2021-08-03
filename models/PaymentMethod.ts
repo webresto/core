@@ -123,25 +123,26 @@ module.exports = {
    */
   async checkAvailable(paymentMethodId: string): Promise<boolean> {
     const chekingPaymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
+    const noAdapterTypes = ['promise', 'dummy'];
 
     if (!chekingPaymentMethod) {
       return false
     }
 
-    if (chekingPaymentMethod.type !== 'promise' &&
+    if (!noAdapterTypes.includes(chekingPaymentMethod.type) &&
       alivedPaymentMethods[chekingPaymentMethod.adapter] === undefined){
       return false
     }
 
     if (chekingPaymentMethod.enable === true &&
-        chekingPaymentMethod.type !== 'promise' &&
+        !noAdapterTypes.includes(chekingPaymentMethod.type) &&
         alivedPaymentMethods[chekingPaymentMethod.adapter] !== undefined ){
         return true
     }
 
 
     if (chekingPaymentMethod.enable === true &&
-      chekingPaymentMethod.type === 'promise' ){
+        noAdapterTypes.includes(chekingPaymentMethod.type)){
         return true
     }
     return false
