@@ -5,6 +5,7 @@ import moment = require("moment-timezone");
  * Initial RMS and set timezone if it given
  */
 export default async function () {
+  return
   try {
     /**
      * rmsAdapter

@@ -22,6 +22,7 @@ export default function ToInitialize(sails) {
   /**
    * List of hooks that required
    */
+  return
   const requiredHooks = [
     'blueprints',
     'http',
