@@ -11,7 +11,7 @@ module.exports = {
         title: 'string',
         type: {
             type: 'string',
-            enum: ['promise', 'external', 'internal'],
+            enum: ['promise', 'external', 'internal', 'dummy'],
             defaultsTo: 'promise',
             required: true
         },
@@ -40,7 +40,7 @@ module.exports = {
             else {
                 paymentMethod = await PaymentMethod.findOne({ adapter: adapter });
             }
-            //@ts-ignore 
+            //@ts-ignore
             if (PaymentMethod.isPaymentPromise(paymentMethod.id)) {
                 return undefined;
             }
@@ -102,7 +102,7 @@ module.exports = {
                         enable: true
                     },
                     {
-                        type: 'promise',
+                        type: ['promise', 'dummy'],
                         enable: true
                     }]
             },
@@ -117,20 +117,21 @@ module.exports = {
    */
     async checkAvailable(paymentMethodId) {
         const chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
+        const noAdapterTypes = ['promise', 'dummy'];
         if (!chekingPaymentMethod) {
             return false;
         }
-        if (chekingPaymentMethod.type !== 'promise' &&
+        if (!noAdapterTypes.includes(chekingPaymentMethod.type) &&
             alivedPaymentMethods[chekingPaymentMethod.adapter] === undefined) {
             return false;
         }
         if (chekingPaymentMethod.enable === true &&
-            chekingPaymentMethod.type !== 'promise' &&
+            !noAdapterTypes.includes(chekingPaymentMethod.type) &&
             alivedPaymentMethods[chekingPaymentMethod.adapter] !== undefined) {
             return true;
         }
         if (chekingPaymentMethod.enable === true &&
-            chekingPaymentMethod.type === 'promise') {
+            noAdapterTypes.includes(chekingPaymentMethod.type)) {
             return true;
         }
         return false;
@@ -143,7 +144,7 @@ module.exports = {
    */
     async getAdapterById(paymentMethodId) {
         const paymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
-        //@ts-ignore 
+        //@ts-ignore
         if (await PaymentMethod.isPaymentPromise(paymentMethod.id)) {
             return undefined;
         }
