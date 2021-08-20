@@ -19,6 +19,7 @@ export interface GroupModifier {
   id?: string;
   modifierId?: string;
   childModifiers: Modifier[];
+  dish?: Dish;
   group?: Group | any; 
   groupId?: string;
   isSingleModifierGroupWrapper?: boolean;

@@ -1,0 +1,9 @@
+./**/*.js.map
+*.test.js
+*.d.ts
+*.generator.js
+bootstrap.js
+./unit/**/*.js
+./generators/*.js
+./generators/lib/*.js
+unit/**/*.js

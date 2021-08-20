@@ -41,7 +41,7 @@ module.exports = {
                 paymentMethod = await PaymentMethod.findOne({ adapter: adapter });
             }
             //@ts-ignore 
-            if (paymentMethod.isPaymentPromise()) {
+            if (PaymentMethod.isPaymentPromise(paymentMethod.id)) {
                 return undefined;
             }
             if (alivedPaymentMethods[paymentMethod.adapter] !== undefined) {

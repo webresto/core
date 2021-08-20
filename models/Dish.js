@@ -130,12 +130,16 @@ module.exports = {
             type: 'slug',
             from: 'name'
         },
-        hash: 'integer',
+        hash: 'string',
         composition: 'string',
         visible: 'boolean',
         modifier: 'boolean',
         promo: 'boolean',
         workTime: 'json'
+    },
+    afterUpdate: function (record, proceed) {
+        getEmitter_1.default().emit('core-dish-after-update', record);
+        return proceed();
     },
     /**
      * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
@@ -214,15 +218,16 @@ module.exports = {
      * @return обновлённое или созданное блюдо
      */
     async createOrUpdate(values) {
+        let hash = hashCode_1.default(JSON.stringify(values));
         const dish = await Dish.findOne({ id: values.id });
         if (!dish) {
-            return Dish.create(values);
+            return Dish.create({ hash, ...values });
         }
         else {
-            if (hashCode_1.default(JSON.stringify(values)) === dish.hash) {
+            if (hash === dish.hash) {
                 return dish;
             }
-            return (await Dish.update({ id: values.id }, values))[0];
+            return (await Dish.update({ id: values.id }, { hash, ...values }))[0];
         }
     }
 };

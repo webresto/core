@@ -1,8 +1,22 @@
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import { v4 as uuid } from 'uuid';
-import  {between}  from "../lib/causes"
+import  {between}  from "../lib/causes";
+import getEmitter from "../lib/getEmitter";
 const moment = require('moment');
+
+const CHECK_INTERVAL = 60000;
+
+sails.on('lifted', function () {
+  setInterval(async function () {
+    const maintenance = await Maintenance.getActiveMaintenance();
+    if (maintenance) {
+      getEmitter().emit('core-maintenance-enabled', maintenance)
+    } else {
+      getEmitter().emit('core-maintenance-disabled')
+    }
+  }, CHECK_INTERVAL)
+});
 
 module.exports = {
   attributes: {
@@ -20,33 +34,31 @@ module.exports = {
     stopDate: 'datetime'
   },
   beforeCreate: function (paymentMethod, next) {
-    paymentMethod.id = uuid(); 
+    paymentMethod.id = uuid();
     next();
   },
-  
-  siteIsOff: async function(){
-    let maints = await Maintenance.find({enable: true});
-    if (!maints.length) {
-      false
-    }
 
-    maints = maints.filter(s => {
+  siteIsOff: async function(){
+    const maintenances = await Maintenance.getActiveMaintenance();
+    return maintenances ? true : false;
+  },
+
+  getActiveMaintenance: async function() {
+    let maintenances = await Maintenance.find({enable: true});
+
+    maintenances = maintenances.filter(s => {
       let start: number, stop: number;
       if (s.startDate){
-        //@ts-ignore
         start = s.startDate.getTime();
       }
-        
       if (s.stopDate){
-        //@ts-ignore
         stop = s.stopDate.getTime();
       }
-
       const now = moment().valueOf();
       return between(start, stop, now);
     });
 
-    return maints.length ? true : false;
+    return maintenances[0];
   }
 };
 

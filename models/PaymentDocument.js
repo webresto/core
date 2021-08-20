@@ -133,7 +133,7 @@ module.exports = {
                     await actualPaymentDocument.doCheck();
                 }
             }
-        }, timeout || 15000);
+        }, timeout || 120000);
     }
 };
 async function checkOrigin(originModel, paymentId) {
@@ -152,6 +152,7 @@ function checkAmount(amount) {
             error: 'incorrect amount'
         };
     }
+    // TODO: разобраться зачем это нужно, для сбербанка
     if (!(amount % 1 === 0)) {
         throw {
             code: 2,

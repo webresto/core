@@ -73,7 +73,7 @@ module.exports = {
     },
     dishes: {
       collection: 'dish',
-      via: 'productCategoryId'
+      via: 'parentGroup'
     },
     parentGroup: {
       model: 'group'
@@ -152,7 +152,8 @@ module.exports = {
     await getEmitter().emit('core-group-get-groups', menu, errors);
 
     const res = Object.values(menu);
-    
+
+    //TODO: rewrite with throw
     return {groups: res, errors: errors};
   },
 
@@ -181,7 +182,7 @@ module.exports = {
    */
   async getGroupBySlug(groupSlug: string): Promise<Group> {
     const groupObj = (await Group.findOne({slug: groupSlug}));
-    
+
     if (!groupObj){
       throw "group with slug " + groupSlug + " not found"
     }
@@ -195,9 +196,7 @@ module.exports = {
   },
 
   /**
-   * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её. Если существует, то сверяет
-   * хеш существующей группы и новых данных, если они совпали, то сразу же отдаёт группу, если нет, то обновляет её данные
-   * на новые
+   * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.
    * @param values
    * @return обновлённая или созданная группа
    */
