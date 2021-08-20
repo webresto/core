@@ -1,7 +1,7 @@
 import { Modifier, GroupModifier } from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
-import CartDish from "../models/CartDish";
+import CartDish from "./CartDish";
 import PaymentDocument from "./PaymentDocument";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";

@@ -2,7 +2,7 @@ import * as Waterline from "waterline";
 import {Modifier, GroupModifier}  from "../modelsHelp/Modifier";
 import Address from "../modelsHelp/Address";
 import Customer from "../modelsHelp/Customer";
-import CartDish from "../models/CartDish";
+import CartDish from "./CartDish";
 import checkExpression from "../lib/checkExpression";
 import PaymentDocument from "./PaymentDocument"
 import actions from "../lib/actions";
@@ -16,7 +16,6 @@ import * as moment from "moment";
 import { v4 as uuid } from 'uuid';
 
 
-// TODO: предлагаю переименовать и корзины в ордер.
 let cartCollection: Waterline.Collection = {
     //@ts-ignore
     autoPK: false,
