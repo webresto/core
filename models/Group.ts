@@ -46,11 +46,12 @@ import Image from "../models/Image";
 import Dish from "../models/Dish";
 
 module.exports = {
+  primaryKey: 'id',
   attributes: {
     id: {
       type: 'string',
       required: true,
-      primaryKey: true
+      
     },
     additionalInfo: 'string',
     code: 'number',

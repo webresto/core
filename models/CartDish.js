@@ -24,11 +24,11 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 module.exports = {
+    primaryKey: 'id',
     attributes: {
         id: {
             type: 'number',
-            autoIncrement: true,
-            primaryKey: true
+            autoIncrement: true
         },
         amount: 'number',
         dish: {
@@ -45,7 +45,6 @@ module.exports = {
         comment: 'string',
         addedBy: {
             type: 'string',
-            defaultsTo: 'user'
         },
         weight: 'number',
         totalWeight: 'number'

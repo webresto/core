@@ -14,11 +14,12 @@ import defaultConfig from "../config/defaultConfig";
 import Config from "../modelsHelp/Config";
 
 module.exports = {
+  primaryKey: 'id',
   attributes: {
     id: {
       type: 'number',
       autoIncrement: true,
-      primaryKey: true
+      
     },
     key:  {
       type: 'string',

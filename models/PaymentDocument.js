@@ -4,12 +4,11 @@ const uuid_1 = require("uuid");
 const getEmitter_1 = require("../lib/getEmitter");
 let payment_processor_interval;
 module.exports = {
-    autoPK: false,
+    primaryKey: 'id',
     attributes: {
         id: {
-            type: 'string',
-            primaryKey: true,
-            defaultsTo: function () { return uuid_1.v4(); }
+            type: 'string'
+            //defaultsTo: function (){ return uuid();}
         },
         paymentId: 'string',
         externalId: 'string',
@@ -20,12 +19,10 @@ module.exports = {
         amount: 'number',
         paid: {
             type: 'boolean',
-            defaultsTo: false
         },
         status: {
             type: 'string',
             enum: ['NEW', 'REGISTRED', 'PAID', 'CANCEL', 'REFUND', 'DECLINE'],
-            defaultsTo: 'NEW'
         },
         comment: 'string',
         redirectLink: 'string',

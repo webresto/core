@@ -2,11 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const defaultConfig_1 = require("../config/defaultConfig");
 module.exports = {
+    primaryKey: 'id',
     attributes: {
         id: {
             type: 'number',
             autoIncrement: true,
-            primaryKey: true
         },
         key: {
             type: 'string',

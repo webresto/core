@@ -3,16 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 var alivedPaymentMethods = {};
 module.exports = {
+    primaryKey: 'id',
     attributes: {
         id: {
             type: 'string',
-            primaryKey: true
         },
         title: 'string',
         type: {
             type: 'string',
             enum: ['promise', 'external', 'internal', 'dummy'],
-            defaultsTo: 'promise',
+            //defaultsTo: 'promise',
             required: true
         },
         adapter: {
@@ -24,7 +24,7 @@ module.exports = {
         description: 'string',
         enable: {
             type: 'boolean',
-            defaultsTo: true,
+            //defaultsTo: true,
             required: true
         },
         /**

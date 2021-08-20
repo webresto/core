@@ -42,11 +42,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../lib/checkExpression");
 const getEmitter_1 = require("../lib/getEmitter");
 module.exports = {
+    primaryKey: 'id',
     attributes: {
         id: {
             type: 'string',
             required: true,
-            primaryKey: true
         },
         additionalInfo: 'string',
         code: 'number',

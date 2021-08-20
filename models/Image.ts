@@ -25,11 +25,11 @@ import ORM from "../modelsHelp/ORM";
 import { v4 as uuid } from 'uuid';
 
 module.exports = {
+  primaryKey: 'id',
   attributes: {
     id: {
-      type: 'string',
-      primaryKey: true,
-      defaultsTo: function (){ return uuid(); }
+      type: 'string'
+      //defaultsTo: function (){ return uuid(); }
     }, 
     images: 'json',
     dish: {

@@ -67,11 +67,11 @@ const checkExpression_1 = require("../lib/checkExpression");
 const hashCode_1 = require("../lib/hashCode");
 const getEmitter_1 = require("../lib/getEmitter");
 module.exports = {
+    primaryKey: 'id',
     attributes: {
         id: {
             type: 'string',
             required: true,
-            primaryKey: true
         },
         rmsId: {
             type: 'string',
@@ -87,7 +87,7 @@ module.exports = {
         seoTitle: 'string',
         carbohydrateAmount: 'number',
         carbohydrateFullAmount: 'number',
-        differentPricesOn: 'array',
+        differentPricesOn: 'json',
         doNotPrintInCheque: 'boolean',
         energyAmount: 'number',
         energyFullAmount: 'number',
@@ -96,11 +96,11 @@ module.exports = {
         fiberAmount: 'number',
         fiberFullAmount: 'number',
         groupId: 'string',
-        groupModifiers: 'array',
+        groupModifiers: 'json',
         measureUnit: 'string',
         price: 'number',
         productCategoryId: 'string',
-        prohibitedToSaleOn: 'array',
+        prohibitedToSaleOn: 'json',
         type: 'string',
         useBalanceForSell: 'boolean',
         weight: 'number',
@@ -120,7 +120,6 @@ module.exports = {
         },
         balance: {
             type: 'number',
-            defaultsTo: -1
         },
         images: {
             collection: 'image',

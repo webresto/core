@@ -19,16 +19,17 @@ sails.on('lifted', function () {
 });
 
 module.exports = {
+  primaryKey: 'id',
   attributes: {
     id: {
       type: 'string',
-      primaryKey: true
+      
     },
     title: 'string',
     description: 'string',
     enable: {
       type: 'boolean',
-      defaultsTo: true
+      //defaultsTo: true
     },
     startDate: 'string',
     stopDate: 'string'

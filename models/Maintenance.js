@@ -17,16 +17,15 @@ sails.on('lifted', function () {
     }, CHECK_INTERVAL);
 });
 module.exports = {
+    primaryKey: 'id',
     attributes: {
         id: {
             type: 'string',
-            primaryKey: true
         },
         title: 'string',
         description: 'string',
         enable: {
             type: 'boolean',
-            defaultsTo: true
         },
         startDate: 'string',
         stopDate: 'string'

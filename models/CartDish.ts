@@ -28,11 +28,11 @@ import {Modifier} from "../modelsHelp/Modifier";
 import ORMModel from "../modelsHelp/ORMModel";
 
 module.exports = {
+  primaryKey: 'id',
   attributes: {
     id: {
       type: 'number',
-      autoIncrement: true,
-      primaryKey: true
+      autoIncrement: true
     },
     amount: 'number',
     dish: { // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
@@ -49,7 +49,7 @@ module.exports = {
     comment: 'string',
     addedBy: {
       type: 'string',
-      defaultsTo: 'user'
+      //defaultsTo: 'user'
     },
     weight: 'number',
     totalWeight: 'number'

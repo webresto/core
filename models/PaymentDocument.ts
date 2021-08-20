@@ -51,12 +51,11 @@ type Status = 'NEW'|'REGISTRED'|'PAID'|'CANCEL'|'REFUND'|'DECLINE';
 let payment_processor_interval: ReturnType<typeof setInterval>;
 
 module.exports = {
-  autoPK: false,
+  primaryKey: 'id',
   attributes: {
     id: {
-      type: 'string',
-      primaryKey: true,
-      defaultsTo: function (){ return uuid();}
+      type: 'string'
+      //defaultsTo: function (){ return uuid();}
     }, 
     paymentId: 'string',
     externalId: 'string',
@@ -67,12 +66,12 @@ module.exports = {
     amount: 'number',
     paid: {
       type: 'boolean',
-      defaultsTo: false
+      //defaultsTo: false
     },
     status: {
       type:'string', 
       enum: ['NEW','REGISTRED', 'PAID', 'CANCEL','REFUND', 'DECLINE'],
-      defaultsTo: 'NEW'
+      //defaultsTo: 'NEW'
     },
     comment: 'string',
     redirectLink: 'string',
