@@ -30,11 +30,11 @@ import ORMModel from "../modelsHelp/ORMModel";
 module.exports = {
   attributes: {
     id: {
-      type: 'integer',
+      type: 'number',
       autoIncrement: true,
       primaryKey: true
     },
-    amount: 'integer',
+    amount: 'number',
     dish: { // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
       model: 'Dish'
     },
@@ -43,16 +43,16 @@ module.exports = {
       model: 'Cart'
     },
     discount: 'json',
-    uniqueItems: 'integer',
-    itemTotal: 'float',
-    discountTotal: 'float',
+    uniqueItems: 'number',
+    itemTotal: 'number',
+    discountTotal: 'number',
     comment: 'string',
     addedBy: {
       type: 'string',
       defaultsTo: 'user'
     },
-    weight: 'float',
-    totalWeight: 'float'
+    weight: 'number',
+    totalWeight: 'number'
   }
 };
 

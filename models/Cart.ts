@@ -49,8 +49,8 @@ let cartCollection: Waterline.Collection = {
         type: 'boolean',
         defaultsTo: true
       },
-      dishesCount: 'integer',
-      uniqueDishes: 'integer',
+      dishesCount: 'number',
+      uniqueDishes: 'number',
       modifiers: 'json', //maybe dont needed here
       customer: 'json',
       address: 'json',
@@ -87,30 +87,30 @@ let cartCollection: Waterline.Collection = {
         model: 'Dish'
       },
       deliveryCost: {
-        type: 'float',
+        type: 'number',
         defaultsTo: 0
       }, // rename to deliveryCost
       totalWeight: {
-        type: 'float',
+        type: 'number',
         defaultsTo: 0
       },
       total: {
-        type: 'float',
+        type: 'number',
         defaultsTo: 0
       }, // total = cartTotal
       orderTotal: {
-        type: 'float',
+        type: 'number',
         defaultsTo: 0
       }, // orderTotal = total + deliveryCost - discountTotal - bonusesTotal
       cartTotal: {
-        type: 'float',
+        type: 'number',
         defaultsTo: 0
       },
       discountTotal: {
-        type: 'float',
+        type: 'number',
         defaultsTo: 0
       },
-      orderDate: 'datetime',
+      orderDate: 'string',
       customData: 'json'
     }
   }

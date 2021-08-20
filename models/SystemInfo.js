@@ -4,7 +4,7 @@ const defaultConfig_1 = require("../config/defaultConfig");
 module.exports = {
     attributes: {
         id: {
-            type: 'integer',
+            type: 'number',
             autoIncrement: true,
             primaryKey: true
         },

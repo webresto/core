@@ -38,8 +38,8 @@ let cartCollection = {
             type: 'boolean',
             defaultsTo: true
         },
-        dishesCount: 'integer',
-        uniqueDishes: 'integer',
+        dishesCount: 'number',
+        uniqueDishes: 'number',
         modifiers: 'json',
         customer: 'json',
         address: 'json',
@@ -76,30 +76,30 @@ let cartCollection = {
             model: 'Dish'
         },
         deliveryCost: {
-            type: 'float',
+            type: 'number',
             defaultsTo: 0
         },
         totalWeight: {
-            type: 'float',
+            type: 'number',
             defaultsTo: 0
         },
         total: {
-            type: 'float',
+            type: 'number',
             defaultsTo: 0
         },
         orderTotal: {
-            type: 'float',
+            type: 'number',
             defaultsTo: 0
         },
         cartTotal: {
-            type: 'float',
+            type: 'number',
             defaultsTo: 0
         },
         discountTotal: {
-            type: 'float',
+            type: 'number',
             defaultsTo: 0
         },
-        orderDate: 'datetime',
+        orderDate: 'string',
         customData: 'json'
     }
 };

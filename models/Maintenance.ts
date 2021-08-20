@@ -30,8 +30,8 @@ module.exports = {
       type: 'boolean',
       defaultsTo: true
     },
-    startDate: 'datetime',
-    stopDate: 'datetime'
+    startDate: 'string',
+    stopDate: 'string'
   },
   beforeCreate: function (paymentMethod, next) {
     paymentMethod.id = uuid();

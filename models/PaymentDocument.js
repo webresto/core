@@ -17,7 +17,7 @@ module.exports = {
         paymentMethod: {
             model: 'PaymentMethod',
         },
-        amount: 'integer',
+        amount: 'number',
         paid: {
             type: 'boolean',
             defaultsTo: false

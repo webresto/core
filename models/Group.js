@@ -49,7 +49,7 @@ module.exports = {
             primaryKey: true
         },
         additionalInfo: 'string',
-        code: 'float',
+        code: 'number',
         description: 'string',
         isDeleted: 'boolean',
         name: 'string',
@@ -62,7 +62,7 @@ module.exports = {
             type: 'json'
         },
         isIncludedInMenu: 'boolean',
-        order: 'float',
+        order: 'number',
         dishesTags: {
             // collection: 'tags'
             type: 'json'

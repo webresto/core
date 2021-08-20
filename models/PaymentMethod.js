@@ -20,7 +20,7 @@ module.exports = {
             unique: true,
             required: true
         },
-        order: 'integer',
+        order: 'number',
         description: 'string',
         enable: {
             type: 'boolean',

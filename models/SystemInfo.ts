@@ -16,7 +16,7 @@ import Config from "../modelsHelp/Config";
 module.exports = {
   attributes: {
     id: {
-      type: 'integer',
+      type: 'number',
       autoIncrement: true,
       primaryKey: true
     },
