@@ -19,16 +19,13 @@
   "bundleDependencies": [],
   "dependencies": {
     "lodash": "^4.17.10",
-    "point-in-polygon": "^1.0.1",
-    "request-promise": "^4.2.4",
     "sails-build-dictionary": "^0.10.1",
     "sails-hook-slugs": "^2.1.0",
-    "sails-util": "^0.11.0",
-    "typescript": "^3.9.7",
     "uuid": "latest",
-    "@webresto/worktime": "git+https://github.com/webresto/worktime.git#backend_support"
+    "@webresto/worktime": "latest"
   },
   "devDependencies": {
+    "typescript": "^3.9.7",
     "@types/bluebird": "^3.5.32",
     "@types/bluebird-global": "^3.5.12",
     "@types/body-parser": "^1.19.0",
@@ -57,7 +54,8 @@
   "description": "webresto core",
   "keywords": [
     "webresto",
-    "sails"
+    "sails",
+    "restocore"
   ],
   "license": "MIT",
   "main": "index.js",
