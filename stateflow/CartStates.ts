@@ -1,5 +1,5 @@
 module.exports = {
-
+  
   /**
    * This is a first state, here only raw cart.
    * Any modification of cart prssible only in this state.
