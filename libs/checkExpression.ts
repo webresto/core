@@ -1,4 +1,3 @@
-import {checkTime} from "./causes";
 import {Time} from "../interfaces/Cause";
 
 /**
@@ -38,4 +37,9 @@ export interface AdditionalInfo {
   workTime: Time[];
   promo: boolean;
   modifier: boolean;
+}
+
+
+function checkTime(timeArray: Time[]): boolean {
+  return true;
 }

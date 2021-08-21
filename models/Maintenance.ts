@@ -1,8 +1,7 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from 'uuid';
-import  {between}  from "../lib/causes";
-import getEmitter from "../lib/getEmitter";
+import getEmitter from "../libs/getEmitter";
 
 const CHECK_INTERVAL = 60000;
 
@@ -82,3 +81,8 @@ export interface MaintenanceModel extends ORMModel<Maintenance> {}
 declare global {
   const Maintenance: MaintenanceModel;
 }
+
+function between(from: number, to: number, a: number): boolean {
+  return ((!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a));
+}
+
