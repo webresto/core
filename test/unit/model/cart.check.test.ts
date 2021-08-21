@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import getEmitter from "../../../lib/getEmitter";
+import getEmitter from "../../../libs/getEmitter";
 import Cart from "../../../models/Cart";
 import Dish from "../../../models/Dish";
 import Address from "../../../interfaces/Address";

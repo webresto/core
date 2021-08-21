@@ -3,10 +3,10 @@ import {Modifier, GroupModifier}  from "../interfaces/Modifier";
 import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import CartDish from "./CartDish";
-import checkExpression from "../lib/checkExpression";
+import checkExpression from "../libs/checkExpression";
 import PaymentDocument from "./PaymentDocument"
-import actions from "../lib/actions";
-import getEmitter from "../lib/getEmitter";
+import actions from "../libs/actions";
+import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import Dish from "./Dish";

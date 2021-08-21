@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import getEmitter from "../../../lib/getEmitter";
+import getEmitter from "../../../libs/getEmitter";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
 import { Payment }  from "../../../interfaces/Payment"
 import generate_payment from '../../generators/payment.generator'

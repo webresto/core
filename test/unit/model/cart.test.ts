@@ -7,7 +7,7 @@ import Customer from "../../../interfaces/Customer";
 import generate_payment from '../../generators/payment.generator';
 import { Payment } from "../../../interfaces/Payment";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
-import getEmitter from "../../../lib/getEmitter";
+import getEmitter from "../../../libs/getEmitter";
 import PaymentDocument from "../../../models/PaymentDocument";
 
 describe('Cart',function () {
