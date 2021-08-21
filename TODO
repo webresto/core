@@ -9,4 +9,5 @@ https://github.com/building5/sails-db-migrate
 7. Change 404, 500 midleware, maybe midleware order repacker
 8. database migration agregator
 9. System allerts, notify array
-10.  
+10. RMS-adapter managment from core
+11. adapter for causes, import params, 
