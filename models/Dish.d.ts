@@ -63,7 +63,7 @@
  */
 import { GroupModifier } from "../interfaces/Modifier";
 import Group from "./Group";
-import { AdditionalInfo } from "../lib/checkExpression";
+import { AdditionalInfo } from "../libs/checkExpression";
 import Image from "./Image";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";

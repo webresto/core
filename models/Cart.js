@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const actions_1 = require("../lib/actions");
-const getEmitter_1 = require("../lib/getEmitter");
+const actions_1 = require("../libs/actions");
+const getEmitter_1 = require("../libs/getEmitter");
 const _ = require("lodash");
 let cartCollection = {
     //@ts-ignore
@@ -314,7 +314,7 @@ let cartInstance = {
         getEmitter_1.default().emit('core-cart-after-check', self, customer, isSelfService, address);
         if (resultsCount === 0)
             return;
-        const checkConfig = await SystemInfo.use('check');
+        const checkConfig = await Settings.use('check');
         if (checkConfig) {
             if (checkConfig.requireAll) {
                 if (resultsCount === successCount) {
@@ -372,7 +372,7 @@ let cartInstance = {
         sails.log.silly('Cart > order > after wait general emitter results: ', results);
         const resultsCount = results.length;
         const successCount = results.filter(r => r.state === "success").length;
-        const orderConfig = await SystemInfo.use('order');
+        const orderConfig = await Settings.use('order');
         if (orderConfig) {
             if (orderConfig.requireAll) {
                 if (resultsCount === successCount) {
@@ -415,8 +415,8 @@ let cartInstance = {
             throw "cart with cartId " + self.id + "in state ORDER";
         var paymentResponse;
         let comment = "";
-        var backLinkSuccess = (await SystemInfo.use('FrontendOrderPage')) + self.id;
-        var backLinkFail = await SystemInfo.use('FrontendCheckoutPage');
+        var backLinkSuccess = (await Settings.use('FrontendOrderPage')) + self.id;
+        var backLinkFail = await Settings.use('FrontendCheckoutPage');
         let paymentMethodId = await self.paymentMethodId();
         sails.log.verbose('Cart > payment > before payment register', self);
         var params = {
@@ -576,8 +576,8 @@ async function checkCustomerInfo(customer) {
             error: 'customer.phone is required'
         };
     }
-    const nameRegex = await SystemInfo.use('nameRegex');
-    const phoneRegex = await SystemInfo.use('phoneRegex');
+    const nameRegex = await Settings.use('nameRegex');
+    const phoneRegex = await Settings.use('phoneRegex');
     if (nameRegex) {
         if (!nameRegex.match(customer.name)) {
             throw {
@@ -647,7 +647,7 @@ async function checkDate(cart) {
  * (по умолчанию 14 дней)
  */
 async function getOrderDateLimit() {
-    let periodPossibleForOrder = await SystemInfo.use('PeriodPossibleForOrder');
+    let periodPossibleForOrder = await Settings.use('PeriodPossibleForOrder');
     if (periodPossibleForOrder === 0 || periodPossibleForOrder === undefined || periodPossibleForOrder === null) {
         periodPossibleForOrder = "20160";
     }

@@ -37,7 +37,7 @@
  * @apiParam {String} slug Текстовое названия группы в транслите
  *
  */
-import { AdditionalInfo } from "../lib/checkExpression";
+import { AdditionalInfo } from "../libs/checkExpression";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import Image from "../models/Image";

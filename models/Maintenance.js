@@ -1,9 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const causes_1 = require("../lib/causes");
-const getEmitter_1 = require("../lib/getEmitter");
-const moment = require('moment');
+const getEmitter_1 = require("../libs/getEmitter");
 const CHECK_INTERVAL = 60000;
 sails.on('lifted', function () {
     setInterval(async function () {
@@ -49,8 +47,11 @@ module.exports = {
                 stop = s.stopDate.getTime();
             }
             const now = moment().valueOf();
-            return causes_1.between(start, stop, now);
+            return between(start, stop, now);
         });
         return maintenances[0];
     }
 };
+function between(from, to, a) {
+    return ((!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a));
+}

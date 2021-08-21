@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const getEmitter_1 = require("../lib/getEmitter");
+const getEmitter_1 = require("../libs/getEmitter");
 let payment_processor_interval;
 module.exports = {
     primaryKey: 'id',

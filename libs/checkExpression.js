@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const causes_1 = require("./causes");
 /**
  * Check additionalInfo. Return empty string if success or reject reason string
  * @param obj
@@ -14,7 +13,7 @@ function default_1(obj) {
         if (obj.visible === false)
             return 'visible';
         if (obj.workTime) {
-            if (!causes_1.checkTime(obj.workTime)) {
+            if (!checkTime(obj.workTime)) {
                 return 'time';
             }
         }
@@ -30,3 +29,6 @@ function default_1(obj) {
 }
 exports.default = default_1;
 ;
+function checkTime(timeArray) {
+    return true;
+}

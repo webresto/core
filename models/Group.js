@@ -39,8 +39,8 @@
  *
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../lib/checkExpression");
-const getEmitter_1 = require("../lib/getEmitter");
+const checkExpression_1 = require("../libs/checkExpression");
+const getEmitter_1 = require("../libs/getEmitter");
 module.exports = {
     primaryKey: 'id',
     attributes: {

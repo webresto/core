@@ -5,7 +5,8 @@
   "description": "Sails test application",
   "keywords": [],
   "dependencies": {
-    "@webresto/core": "file:../../..",
+    "@webresto/core": "file:../..",
+    "@types/waterline": "^0.13.4",
     "include-all": "^1.0.8",
     "jade": "^1.11.0",
     "rc": "^1.0.1",
@@ -14,7 +15,7 @@
     "sails-hook-orm": "^2.1.1",
     "sails-hook-stateflow": "latest",
     "sails-memory": "^0.10.7",
-    "sails-postgresql": "^1.0.2",
+    "sails-postgresql": "^1.0.2"
   },
   "scripts": {
     "debug": "node debug app.js",

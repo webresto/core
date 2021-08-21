@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const isPromise = require('is-promise');
 const sleep = require('util').promisify(setTimeout);
 /**
  * Класс, позволяющий создавать события и ожидать исполнения их подписок, будь то синхронная функция или функция, возвращающая
@@ -51,7 +50,8 @@ class AwaitEmitter {
         const executor = event.fns.map(f => async function () {
             try {
                 const r = f.fn.apply(that, args);
-                if (isPromise(r)) {
+                // from isPromise
+                if (!!r && (typeof r === 'object' || typeof r === 'function') && typeof r.then === 'function') {
                     let timeoutEnd = false;
                     let successEnd = false;
                     const timeout = async function () {

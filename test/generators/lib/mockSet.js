@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MockSet = void 0;
 const intermock_1 = require("intermock");
-const read_files_1 = require("intermock/build/src/lib/read-files");
+const read_files_1 = require("intermock/build/src/libs/read-files");
 const fs_1 = require("fs");
 const util_1 = require("util");
 const listFiles = util_1.promisify(fs_1.readdir);
@@ -12,7 +12,7 @@ const isRecord = (o) => o != null &&
     Object.keys(o).reduce((result, key) => result && typeof key === 'string', true);
 class MockSet {
     constructor() {
-        this.declarationPaths = ["../../../models/", "../../../interfaces/", "../../../adapter/", "../../../config/", "../../../lib/"];
+        this.declarationPaths = ["../../../models/", "../../../interfaces/", "../../../adapter/", "../../../config/", "../../../libs/"];
         this.extension = '.d.ts';
         //this.interfaces = options.interfaces;
     }

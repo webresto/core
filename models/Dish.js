@@ -63,9 +63,9 @@
  *
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../lib/checkExpression");
-const hashCode_1 = require("../lib/hashCode");
-const getEmitter_1 = require("../lib/getEmitter");
+const checkExpression_1 = require("../libs/checkExpression");
+const hashCode_1 = require("../libs/hashCode");
+const getEmitter_1 = require("../libs/getEmitter");
 module.exports = {
     primaryKey: 'id',
     attributes: {
@@ -148,7 +148,7 @@ module.exports = {
      */
     async getDishes(criteria = {}) {
         criteria.isDeleted = false;
-        if (!await SystemInfo.use('ShowUnavailableDishes')) {
+        if (!await Settings.use('ShowUnavailableDishes')) {
             criteria.balance = { '!': 0 };
         }
         let dishes = await Dish.find(criteria).populate('images');
