@@ -1,7 +1,6 @@
 import Cart from "../models/Cart";
 import {DirectDistance, Time} from "../interfaces/Cause";
 import Group from "../models/Group";
-import * as moment from "moment";
 import {Map} from "../adapter";
 import Point from "../adapter/map/Point";
 import Condition from "../../checkout/models/Condition";

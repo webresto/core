@@ -3,7 +3,6 @@ import ORM from "../interfaces/ORM";
 import { v4 as uuid } from 'uuid';
 import  {between}  from "../lib/causes";
 import getEmitter from "../lib/getEmitter";
-const moment = require('moment');
 
 const CHECK_INTERVAL = 60000;
 
