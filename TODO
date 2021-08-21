@@ -1,1 +1,12 @@
 https://github.com/building5/sails-db-migrate
+
+1. Add model for places, PointOfSale, Stoks, PointOfMade, 
+2. Add street model + maybe need. addreses adapter
+3. We need thinking about separate stopLists for separate category. 
+4. Custom menu unbounded from RMS data. 
+5. Validation modifier
+6. Import worktime module
+7. Change 404, 500 midleware, maybe midleware order repacker
+8. database migration agregator
+9. System allerts, notify array
+10.  
