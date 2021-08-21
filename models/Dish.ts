@@ -159,7 +159,7 @@ module.exports = {
   async getDishes(criteria: any = {}): Promise<Dish[]> {
     criteria.isDeleted = false;
 
-    if (! await SystemInfo.use('ShowUnavailableDishes')) {
+    if (! await Settings.use('ShowUnavailableDishes')) {
       criteria.balance = {'!': 0};
     }
       

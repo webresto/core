@@ -380,7 +380,7 @@ let cartInstance: Cart = {
     if (resultsCount === 0)
       return
 
-    const checkConfig = await SystemInfo.use('check');
+    const checkConfig = await Settings.use('check');
 
     if (checkConfig) {
       if (checkConfig.requireAll) {
@@ -444,7 +444,7 @@ let cartInstance: Cart = {
     const successCount = results.filter(r => r.state === "success").length;
 
 
-    const orderConfig = await SystemInfo.use('order');
+    const orderConfig = await Settings.use('order');
     if (orderConfig) {
       if (orderConfig.requireAll) {
         if (resultsCount === successCount) {
@@ -490,8 +490,8 @@ let cartInstance: Cart = {
 
     var paymentResponse: PaymentResponse;
     let comment: string = "";
-    var backLinkSuccess: string = (await SystemInfo.use('FrontendOrderPage')) + self.id;
-    var backLinkFail: string = await SystemInfo.use('FrontendCheckoutPage');
+    var backLinkSuccess: string = (await Settings.use('FrontendOrderPage')) + self.id;
+    var backLinkFail: string = await Settings.use('FrontendCheckoutPage');
     let paymentMethodId =  await self.paymentMethodId()
     sails.log.verbose('Cart > payment > before payment register', self);
 
@@ -927,8 +927,8 @@ async function checkCustomerInfo(customer) {
       error: 'customer.phone is required'
     }
   }
-  const nameRegex = await SystemInfo.use('nameRegex');
-  const phoneRegex = await SystemInfo.use('phoneRegex');
+  const nameRegex = await Settings.use('nameRegex');
+  const phoneRegex = await Settings.use('phoneRegex');
   if (nameRegex) {
     if (!nameRegex.match(customer.name)) {
       throw {
@@ -1007,7 +1007,7 @@ async function checkDate(cart: Cart) {
  * (по умолчанию 14 дней)
  */
 async function getOrderDateLimit(): Promise<string>  {
-  let periodPossibleForOrder = await SystemInfo.use('PeriodPossibleForOrder')
+  let periodPossibleForOrder = await Settings.use('PeriodPossibleForOrder')
   if (periodPossibleForOrder === 0 || periodPossibleForOrder === undefined  || periodPossibleForOrder === null ){
     periodPossibleForOrder = "20160";
   }

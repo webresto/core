@@ -5,7 +5,7 @@ import Dish from "../../../models/Dish";
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
-import SystemInfo from '../../../models/SystemInfo';
+import Settings from '../../../models/Settings';
 
 describe('Cart.check()', function(){
     this.timeout(10000);
@@ -236,11 +236,11 @@ describe('Cart.check()', function(){
     });
     it('checkConfig', async function(){
         cart = await Cart.create({});
-        await SystemInfo.set('check', JSON.stringify({requireAll: true}));
+        await Settings.set('check', JSON.stringify({requireAll: true}));
         let result = await cart.check(customer, true);
         expect(result).to.equal(true);
 
-        await SystemInfo.set('check', JSON.stringify({notRequired: true}));
+        await Settings.set('check', JSON.stringify({notRequired: true}));
         result = await cart.check(customer, true);
         expect(result).to.equal(true);
     })

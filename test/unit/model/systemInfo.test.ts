@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-describe('SystemInfo', function(){
+describe('Settings', function(){
     it('use TODO', async function(){
         //static
     })
