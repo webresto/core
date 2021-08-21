@@ -10,25 +10,23 @@
  */
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
-import defaultConfig from "../config/defaultConfig";
 import Config from "../interfaces/Config";
 
 module.exports = {
-  primaryKey: 'id',
+  primaryKey: "id",
   attributes: {
     id: {
-      type: 'number',
+      type: "number",
       autoIncrement: true,
-      
     },
-    key:  {
-      type: 'string',
-      unique: true
+    key: {
+      type: "string",
+      unique: true,
     },
-    description: 'string',
-    value: 'string',
-    section: 'string',
-    from: 'string'
+    description: "string",
+    value: "string",
+    section: "string",
+    from: "string",
   },
 
   /**
@@ -40,40 +38,31 @@ module.exports = {
    * @return найденное значение или 0, если значение не было найдено.
    */
   async use(config: string, key: string): Promise<any> {
-    sails.log.silly("CORE > Settings > use: ",key, config);
+    sails.log.silly("CORE > Settings > use: ", key, config);
     if (!key) {
       key = config;
-      config = 'restocore';
+      config = "restocore";
     }
 
-    /** ENV variable is important*/  
-    if(process.env[key] !== undefined){
+    /** ENV variable is important*/
+    if (process.env[key] !== undefined) {
       try {
-        return JSON.parse(process.env[key])
+        return JSON.parse(process.env[key]);
       } catch (e) {
-        sails.log.error("CORE > Settings > use ENV parse error: ",e);
+        sails.log.error("CORE > Settings > use ENV parse error: ", e);
       }
-    } 
-    
-    let obj = await Settings.findOne({key: key});
+    }
+
+    let obj = await Settings.findOne({ key: key });
     sails.log.silly("CORE > Settings > findOne: ", key, obj);
-  
+
     if (!obj) {
-
-      // if (!sails.config[config][key] || !defaultConfig[key]){
-      //   sails.log.error("CORE > Settings > key ", key, "not found" );
-      //   throw undefined
-      // }
-
       let value: string;
-      if (!sails.config[config]){
-        value = defaultConfig[key];
-      } else{
-        if (sails.config[config][key]) {
-          value = sails.config[config][key];
-        } else {
-          return undefined
-        }
+
+      if (sails.config[config][key]) {
+        value = sails.config[config][key];
+      } else {
+        return undefined;
       }
 
       value = JSON.stringify(value);
@@ -93,27 +82,27 @@ module.exports = {
   },
 
   /**
- * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
- * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
- * @param values
- * @return обновлённое или созданное блюдо
- */
+   * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
+   * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
+   * @param values
+   * @return обновлённое или созданное блюдо
+   */
   async set(key: string, value: string, config?: string): Promise<any> {
     try {
-      const propety = await Settings.findOne({key: key});
+      const propety = await Settings.findOne({ key: key });
       if (!propety) {
         return Settings.create({
           key: key,
           value: value,
-          from: config
+          from: config,
         });
       } else {
-        return (await Settings.update({key: key}, {value: value}))[0];
+        return (await Settings.update({ key: key }, { value: value }))[0];
       }
     } catch (e) {
-      sails.log.error("CORE > Settings > set: ",key, value, config, e);
+      sails.log.error("CORE > Settings > set: ", key, value, config, e);
     }
-  }
+  },
 };
 
 /**
@@ -139,7 +128,7 @@ export interface SettingsModel extends ORMModel<Settings> {
    * @param key - ключ
    * @return найденное значение или 0, если значение не было найдено.
    */
-  
+
   use<T extends keyof Config>(key: T): Promise<PropType<Config, T>>;
   /**
    * Отдаёт запрашиваемый ключ из запрашиваемого конфига. Если ключ, который запрашивается, отсуствует в базе, то данные
@@ -149,18 +138,24 @@ export interface SettingsModel extends ORMModel<Settings> {
    * @param key - ключ, если не указывать второй параметр, то первый будет считаться за ключ
    * @return найденное значение или 0, если значение не было найдено.
    */
-  use<T extends keyof config[U], U extends keyof config>(config: U, key: T): Promise<PropType<config[U], T>>
+  use<T extends keyof config[U], U extends keyof config>(
+    config: U,
+    key: T
+  ): Promise<PropType<config[U], T>>;
   use(key: string): Promise<any>;
-  use(config: string, key: string): Promise<any>
+  use(config: string, key: string): Promise<any>;
 
-    /**
+  /**
    * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
    * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
    * @param values
    * @return обновлённое или созданное блюдо
    */
-  set(key: string, value: string|number|boolean, config?: string): Promise<any>
-
+  set(
+    key: string,
+    value: string | number | boolean,
+    config?: string
+  ): Promise<any>;
 }
 
 declare global {
