@@ -8,9 +8,9 @@
  * @apiParam {String} value Значение свойства
  * @apiParam {String} section Секция, к которой относится свойство
  */
-import ORM from "../modelsHelp/ORM";
-import ORMModel from "../modelsHelp/ORMModel";
-import Config from "../modelsHelp/Config";
+import ORM from "../interfaces/ORM";
+import ORMModel from "../interfaces/ORMModel";
+import Config from "../interfaces/Config";
 /**
  * Описывает одно поле конфига, его значение, ключ и откуда оно было взято
  */

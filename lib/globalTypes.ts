@@ -1,5 +1,5 @@
 import * as sails from 'typed-sails';
-import Config from "../modelsHelp/Config";
+import Config from "../interfaces/Config";
 
 type sailsConfig = typeof sails.config;
 

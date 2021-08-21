@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import getEmitter from "../../../lib/getEmitter";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
-import { Payment }  from "../../../modelsHelp/Payment"
+import { Payment }  from "../../../interfaces/Payment"
 import generate_payment from '../../generators/payment.generator'
 import PaymentDocument from '../../../models/PaymentDocument';
 //import Cart from '../../../models/Cart';

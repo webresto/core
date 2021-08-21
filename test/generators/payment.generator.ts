@@ -1,4 +1,4 @@
-import {Payment} from "../../modelsHelp/Payment"
+import {Payment} from "../../interfaces/Payment"
 const { v4: uuid } = require('uuid');
 
 export default function generate_payment(): Payment{

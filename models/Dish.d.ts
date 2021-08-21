@@ -61,12 +61,12 @@
  * @apiParam {String} composition Состав блюда
  *
  */
-import { GroupModifier } from "../modelsHelp/Modifier";
+import { GroupModifier } from "../interfaces/Modifier";
 import Group from "./Group";
 import { AdditionalInfo } from "../lib/checkExpression";
 import Image from "./Image";
-import ORMModel from "../modelsHelp/ORMModel";
-import ORM from "../modelsHelp/ORM";
+import ORMModel from "../interfaces/ORMModel";
+import ORM from "../interfaces/ORM";
 /**
  * Описывает блюдо
  */

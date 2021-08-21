@@ -2,8 +2,8 @@ import { expect } from "chai";
 import getEmitter from "../../../lib/getEmitter";
 import Cart from "../../../models/Cart";
 import Dish from "../../../models/Dish";
-import Address from "../../../modelsHelp/Address";
-import Customer from "../../../modelsHelp/Customer";
+import Address from "../../../interfaces/Address";
+import Customer from "../../../interfaces/Customer";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
 import SystemInfo from '../../../models/SystemInfo';
 

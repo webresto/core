@@ -1,7 +1,7 @@
-import ORMModel from "../modelsHelp/ORMModel";
-import ORM from "../modelsHelp/ORM";
+import ORMModel from "../interfaces/ORMModel";
+import ORM from "../interfaces/ORM";
 import { v4 as uuid } from 'uuid';
-import { PaymentResponse, Payment }  from "../modelsHelp/Payment"
+import { PaymentResponse, Payment }  from "../interfaces/Payment"
 import PaymentMethod from "../models/PaymentMethod";
 import PaymentAdapter from "../adapter/payment/PaymentAdapter";
 import getEmitter from "../lib/getEmitter";

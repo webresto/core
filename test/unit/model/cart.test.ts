@@ -1,11 +1,11 @@
 import { expect } from "chai";
-import Address from "../../../modelsHelp/Address";
+import Address from "../../../interfaces/Address";
 import { name } from "faker";
 import Cart from "../../../models/Cart";
 import Dish from "../../../models/Dish";
-import Customer from "../../../modelsHelp/Customer";
+import Customer from "../../../interfaces/Customer";
 import generate_payment from '../../generators/payment.generator';
-import { Payment } from "../../../modelsHelp/Payment";
+import { Payment } from "../../../interfaces/Payment";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
 import getEmitter from "../../../lib/getEmitter";
 import PaymentDocument from "../../../models/PaymentDocument";

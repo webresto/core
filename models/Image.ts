@@ -20,8 +20,8 @@
 
 import Dish from "../models/Dish";
 import Group from "../models/Group";
-import ORMModel from "../modelsHelp/ORMModel";
-import ORM from "../modelsHelp/ORM";
+import ORMModel from "../interfaces/ORMModel";
+import ORM from "../interfaces/ORM";
 import { v4 as uuid } from 'uuid';
 
 module.exports = {

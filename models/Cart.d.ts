@@ -1,12 +1,12 @@
-import { Modifier, GroupModifier } from "../modelsHelp/Modifier";
-import Address from "../modelsHelp/Address";
-import Customer from "../modelsHelp/Customer";
+import { Modifier, GroupModifier } from "../interfaces/Modifier";
+import Address from "../interfaces/Address";
+import Customer from "../interfaces/Customer";
 import CartDish from "./CartDish";
 import PaymentDocument from "./PaymentDocument";
-import ORMModel from "../modelsHelp/ORMModel";
-import ORM from "../modelsHelp/ORM";
+import ORMModel from "../interfaces/ORMModel";
+import ORM from "../interfaces/ORM";
 import Dish from "./Dish";
-import { PaymentResponse } from "../modelsHelp/Payment";
+import { PaymentResponse } from "../interfaces/Payment";
 /**
  * Описывает класс Cart, содержит статические методы, используется для ORM
  */

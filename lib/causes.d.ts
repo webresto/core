@@ -1,5 +1,5 @@
 import Cart from "../models/Cart";
-import { DirectDistance, Time } from "../modelsHelp/Cause";
+import { DirectDistance, Time } from "../interfaces/Cause";
 import Condition from "../../checkout/models/Condition";
 declare type customCause = {
     name: string;

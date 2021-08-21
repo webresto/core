@@ -1,5 +1,5 @@
-import Customer from "../modelsHelp/Customer";
-import Address from "../modelsHelp/Address";
+import Customer from "./Customer";
+import Address from "./Address";
 
 /**
  * Описывает данные, которые необходимы для проврки и оформления заказа

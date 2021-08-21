@@ -18,8 +18,8 @@
 /// <reference no-default-lib="true"/>
 import Dish from "../models/Dish";
 import Group from "../models/Group";
-import ORMModel from "../modelsHelp/ORMModel";
-import ORM from "../modelsHelp/ORM";
+import ORMModel from "../interfaces/ORMModel";
+import ORM from "../interfaces/ORM";
 /**
  * Описывает картинки блюд и групп
  */

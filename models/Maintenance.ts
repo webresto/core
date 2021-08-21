@@ -1,5 +1,5 @@
-import ORMModel from "../modelsHelp/ORMModel";
-import ORM from "../modelsHelp/ORM";
+import ORMModel from "../interfaces/ORMModel";
+import ORM from "../interfaces/ORM";
 import { v4 as uuid } from 'uuid';
 import  {between}  from "../lib/causes";
 import getEmitter from "../lib/getEmitter";

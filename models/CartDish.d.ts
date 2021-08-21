@@ -21,10 +21,10 @@
       "groupId": "string"
  *  }
  */
-import ORM from "../modelsHelp/ORM";
+import ORM from "../interfaces/ORM";
 import Dish from "../models/Dish";
-import { Modifier } from "../modelsHelp/Modifier";
-import ORMModel from "../modelsHelp/ORMModel";
+import { Modifier } from "../interfaces/Modifier";
+import ORMModel from "../interfaces/ORMModel";
 /**
  * Описывает екзмепляр CartDish, то есть блюда в корзине, имеет связь с корзиной, внутри которой находится и с блюдом,
  * которое описывает

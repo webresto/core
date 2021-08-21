@@ -1,5 +1,5 @@
 import Cart from "../models/Cart";
-import Actions, { ActionParams } from "../modelsHelp/Actions";
+import Actions, { ActionParams } from "../interfaces/Actions";
 /**
  * Object with functions to action
  * If you wanna add new actions just call addAction('newActionName', function newActionFunction(...) {...}); Also in this

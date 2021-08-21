@@ -12,7 +12,7 @@ const isRecord = (o) => o != null &&
     Object.keys(o).reduce((result, key) => result && typeof key === 'string', true);
 class MockSet {
     constructor() {
-        this.declarationPaths = ["../../../models/", "../../../modelsHelp/", "../../../adapter/", "../../../config/", "../../../lib/"];
+        this.declarationPaths = ["../../../models/", "../../../interfaces/", "../../../adapter/", "../../../config/", "../../../lib/"];
         this.extension = '.d.ts';
         //this.interfaces = options.interfaces;
     }

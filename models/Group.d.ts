@@ -38,8 +38,8 @@
  *
  */
 import { AdditionalInfo } from "../lib/checkExpression";
-import ORMModel from "../modelsHelp/ORMModel";
-import ORM from "../modelsHelp/ORM";
+import ORMModel from "../interfaces/ORMModel";
+import ORM from "../interfaces/ORM";
 import Image from "../models/Image";
 import Dish from "../models/Dish";
 /**

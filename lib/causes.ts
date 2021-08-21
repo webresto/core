@@ -1,5 +1,5 @@
 import Cart from "../models/Cart";
-import {DirectDistance, Time} from "../modelsHelp/Cause";
+import {DirectDistance, Time} from "../interfaces/Cause";
 import Group from "../models/Group";
 import * as moment from "moment";
 import {Map} from "../adapter";

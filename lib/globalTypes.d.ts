@@ -1,5 +1,5 @@
 import * as sails from 'typed-sails';
-import Config from "../modelsHelp/Config";
+import Config from "../interfaces/Config";
 declare type sailsConfig = typeof sails.config;
 interface A<T> extends Array<T> {
     add(id: any): void;

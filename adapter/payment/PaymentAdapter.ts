@@ -1,5 +1,5 @@
 
-import { Payment, PaymentResponse } from "../../modelsHelp/Payment"
+import { Payment, PaymentResponse } from "../../interfaces/Payment"
 import { InitPaymentAdapter }   from "../../models/PaymentMethod";
 import PaymentDocument from "../../models/PaymentDocument"
 /**

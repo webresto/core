@@ -1,17 +1,17 @@
 import * as Waterline from "waterline";
-import {Modifier, GroupModifier}  from "../modelsHelp/Modifier";
-import Address from "../modelsHelp/Address";
-import Customer from "../modelsHelp/Customer";
+import {Modifier, GroupModifier}  from "../interfaces/Modifier";
+import Address from "../interfaces/Address";
+import Customer from "../interfaces/Customer";
 import CartDish from "./CartDish";
 import checkExpression from "../lib/checkExpression";
 import PaymentDocument from "./PaymentDocument"
 import actions from "../lib/actions";
 import getEmitter from "../lib/getEmitter";
-import ORMModel from "../modelsHelp/ORMModel";
-import ORM from "../modelsHelp/ORM";
+import ORMModel from "../interfaces/ORMModel";
+import ORM from "../interfaces/ORM";
 import Dish from "./Dish";
 import * as _ from "lodash";
-import { PaymentResponse } from "../modelsHelp/Payment"
+import { PaymentResponse } from "../interfaces/Payment"
 import * as moment from "moment";
 import { v4 as uuid } from 'uuid';
 

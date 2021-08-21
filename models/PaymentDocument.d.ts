@@ -1,6 +1,6 @@
-import ORMModel from "../modelsHelp/ORMModel";
-import ORM from "../modelsHelp/ORM";
-import { PaymentResponse } from "../modelsHelp/Payment";
+import ORMModel from "../interfaces/ORMModel";
+import ORM from "../interfaces/ORM";
+import { PaymentResponse } from "../interfaces/Payment";
 /** На примере корзины (Cart):
  * 1. Модель проводящяя оплату internal/external (например: Cart) создает PaymentDocument
  *

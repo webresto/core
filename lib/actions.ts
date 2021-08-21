@@ -6,7 +6,7 @@ import Actions, {
   AddDishParams,
   DeliveryDescriptionParams,
   DeliveryParams, MessageParams
-} from "../modelsHelp/Actions";
+} from "../interfaces/Actions";
 
 /**
  * Object with functions to action

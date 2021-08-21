@@ -1,4 +1,4 @@
-import Config from "../modelsHelp/Config";
+import Config from "../interfaces/Config";
 
 export default {
   prefix: "/api/0.5/",
