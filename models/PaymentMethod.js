@@ -7,6 +7,7 @@ module.exports = {
     attributes: {
         id: {
             type: 'string',
+            required: true
         },
         title: 'string',
         type: {
@@ -27,29 +28,29 @@ module.exports = {
             //defaultsTo: true,
             required: true
         },
-        /**
-       * Возвращает инстанс платежного адаптера по известному названию адаптера
-       * @param  paymentMethodId
-       * @return
-       */
-        async getAdapter(adapter) {
-            var paymentMethod;
-            if (!adapter) {
-                paymentMethod = this;
-            }
-            else {
-                paymentMethod = await PaymentMethod.findOne({ adapter: adapter });
-            }
-            //@ts-ignore
-            if (PaymentMethod.isPaymentPromise(paymentMethod.id)) {
-                return undefined;
-            }
-            if (alivedPaymentMethods[paymentMethod.adapter] !== undefined) {
-                return alivedPaymentMethods[paymentMethod.adapter];
-            }
-            else {
-                return undefined;
-            }
+    },
+    /**
+   * Возвращает инстанс платежного адаптера по известному названию адаптера
+   * @param  paymentMethodId
+   * @return
+   */
+    async getAdapter(adapter) {
+        var paymentMethod;
+        if (!adapter) {
+            paymentMethod = this;
+        }
+        else {
+            paymentMethod = await PaymentMethod.findOne({ adapter: adapter });
+        }
+        //@ts-ignore
+        if (PaymentMethod.isPaymentPromise(paymentMethod.id)) {
+            return undefined;
+        }
+        if (alivedPaymentMethods[paymentMethod.adapter] !== undefined) {
+            return alivedPaymentMethods[paymentMethod.adapter];
+        }
+        else {
+            return undefined;
         }
     },
     beforeCreate: function (paymentMethod, next) {

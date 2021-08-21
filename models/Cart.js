@@ -9,6 +9,8 @@ let cartCollection = {
     attributes: {
         id: {
             type: 'string',
+            required: true
+            //defaultsTo: function (){ return uuid(); 
         }
     },
     cartId: 'string',

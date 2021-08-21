@@ -1,14 +1,14 @@
 import { expect } from "chai";
-import Address from "../../../interfaces/Address";
+import Address from "../../interfaces/Address";
 import { name } from "faker";
-import Cart from "../../../models/Cart";
-import Dish from "../../../models/Dish";
-import Customer from "../../../interfaces/Customer";
+import Cart from "../../models/Cart";
+import Dish from "../../models/Dish";
+import Customer from "../../interfaces/Customer";
 import generate_payment from '../../generators/payment.generator';
-import { Payment } from "../../../interfaces/Payment";
+import { Payment } from "../../interfaces/Payment";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
-import getEmitter from "../../../libs/getEmitter";
-import PaymentDocument from "../../../models/PaymentDocument";
+import getEmitter from "../../libs/getEmitter";
+import PaymentDocument from "../../models/PaymentDocument";
 
 describe('Cart',function () {
   this.timeout(10000);

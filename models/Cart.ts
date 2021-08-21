@@ -21,6 +21,8 @@ let cartCollection: Waterline.Collection = {
     attributes: {
       id: {
         type: 'string',
+        required: true
+
         //defaultsTo: function (){ return uuid(); 
         }
       },

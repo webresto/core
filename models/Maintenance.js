@@ -19,6 +19,7 @@ module.exports = {
     attributes: {
         id: {
             type: 'string',
+            required: true
         },
         title: 'string',
         description: 'string',

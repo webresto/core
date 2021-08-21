@@ -6,6 +6,8 @@ module.exports = {
   attributes: {
     id: {
       type: "string",
+      required: true
+
     },
     isKitchen: 'boolean',
     isPointOfSale: 'boolean',

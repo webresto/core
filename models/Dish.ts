@@ -77,15 +77,20 @@ module.exports = {
   attributes: {
     id: {
       type: 'string',
-      required: true,
-      
+      required: true
     },
     rmsId: {
       type: 'string',
       required: true
     },
-    additionalInfo: 'string',
-    code: 'string',
+    additionalInfo: {
+      type: 'string',
+      allowNull: true
+    },
+    code: {
+      type: 'string',
+      allowNull: true
+    },
     description: 'string',
     name: 'string',
     seoDescription: 'string',

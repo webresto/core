@@ -8,7 +8,8 @@ module.exports = {
   attributes: {
     id: {
       type: 'string',
-      
+      required: true
+
     },
     title: 'string',
     type: {
@@ -29,6 +30,7 @@ module.exports = {
       //defaultsTo: true,
       required: true
     },
+  },
 
 
 
@@ -54,7 +56,6 @@ module.exports = {
           return undefined
         }
     }
-  },
 
   beforeCreate: function (paymentMethod, next) {
     paymentMethod.id = uuid();

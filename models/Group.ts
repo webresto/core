@@ -53,8 +53,14 @@ module.exports = {
       required: true,
       
     },
-    additionalInfo: 'string',
-    code: 'number',
+    additionalInfo: {
+      type: 'string',
+      allowNull: true
+    },
+    code: {
+      type: 'string',
+      allowNull: true
+    },
     description: 'string',
     isDeleted: 'boolean',
     name: 'string',

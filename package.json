@@ -71,7 +71,7 @@
   },
   "scripts": {
     "test": "npm run test:init && tsc ; mocha -r ts-node/register test/bootstrap.ts '{,**/}*.test.ts'",
-    "test:js": "npm run test:init && mocha test/_bootstrap.js test/**/*.test.js",
+    "test:js": "mocha test/_bootstrap.js test/**/*.test.js",
     "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
     "test:init": "[ ! -d \"test/fixture/node_modules\" ] &&  cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
     "build": "tsc"

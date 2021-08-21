@@ -1,11 +1,11 @@
 import { expect } from "chai";
-import getEmitter from "../../../libs/getEmitter";
-import Cart from "../../../models/Cart";
-import Dish from "../../../models/Dish";
-import Address from "../../../interfaces/Address";
-import Customer from "../../../interfaces/Customer";
+import getEmitter from "../../libs/getEmitter";
+import Cart from "../../models/Cart";
+import Dish from "../../models/Dish";
+import Address from "../../interfaces/Address";
+import Customer from "../../interfaces/Customer";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
-import Settings from '../../../models/Settings';
+import Settings from '../../models/Settings';
 
 describe('Cart.check()', function(){
     this.timeout(10000);

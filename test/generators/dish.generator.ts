@@ -26,7 +26,7 @@ export default function dishGenerator(config: DishData = {}): DishData{
   autoincrement++;
   return {
     id: faker.random.uuid(),
-    additionalInfo: config.additionalInfo || null,
+    additionalInfo: config.additionalInfo || "null",
     balance:  config.balance || -1,
     modifiers: config.modifiers || [],
     parentGroup: config.parentGroup || null,

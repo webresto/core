@@ -28,7 +28,9 @@ module.exports = {
   primaryKey: 'id',
   attributes: {
     id: {
-      type: 'string'
+      type: 'string',
+      required: true
+
       //defaultsTo: function (){ return uuid(); }
     }, 
     images: 'json',

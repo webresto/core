@@ -4,58 +4,60 @@ const uuid_1 = require("uuid");
 const getEmitter_1 = require("../libs/getEmitter");
 let payment_processor_interval;
 module.exports = {
-    primaryKey: 'id',
+    primaryKey: "id",
     attributes: {
         id: {
-            type: 'string'
+            type: "string",
+            required: true
             //defaultsTo: function (){ return uuid();}
         },
-        paymentId: 'string',
-        externalId: 'string',
-        originModel: 'string',
+        paymentId: "string",
+        externalId: "string",
+        originModel: "string",
         paymentMethod: {
-            model: 'PaymentMethod',
+            model: "PaymentMethod",
         },
-        amount: 'number',
+        amount: "number",
         paid: {
-            type: 'boolean',
+            type: "boolean",
         },
         status: {
-            type: 'string',
-            enum: ['NEW', 'REGISTRED', 'PAID', 'CANCEL', 'REFUND', 'DECLINE'],
+            type: "string",
+            enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
         },
-        comment: 'string',
-        redirectLink: 'string',
-        error: 'string',
-        doPaid: async function () {
-            const self = this;
-            if (self.status === "PAID" && self.paid !== true) {
-                self.status = "PAID";
-                self.paid = true;
-                getEmitter_1.default().emit('core-payment-document-paid', self);
-                await self.save();
+        comment: "string",
+        redirectLink: "string",
+        error: "string",
+    },
+    doPaid: async function () {
+        const self = this;
+        if (self.status === "PAID" && self.paid !== true) {
+            self.status = "PAID";
+            self.paid = true;
+            getEmitter_1.default().emit("core-payment-document-paid", self);
+            await self.save();
+        }
+        return self;
+    },
+    doCheck: async function () {
+        const self = this;
+        getEmitter_1.default().emit("core-payment-document-check", self);
+        try {
+            let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
+            let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
+            if (checkedPaymentDocument.status === "PAID" &&
+                checkedPaymentDocument.paid !== true) {
+                await checkedPaymentDocument.doPaid();
             }
-            return self;
-        },
-        doCheck: async function () {
-            const self = this;
-            getEmitter_1.default().emit('core-payment-document-check', self);
-            try {
-                let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
-                let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
-                if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true) {
-                    await checkedPaymentDocument.doPaid();
-                }
-                else {
-                    await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status });
-                }
-                getEmitter_1.default().emit('core-payment-document-checked-document', checkedPaymentDocument);
-                return checkedPaymentDocument;
+            else {
+                await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status });
             }
-            catch (e) {
-                sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
-            }
-        },
+            getEmitter_1.default().emit("core-payment-document-checked-document", checkedPaymentDocument);
+            return checkedPaymentDocument;
+        }
+        catch (e) {
+            sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
+        }
     },
     register: async function (paymentId, originModel, amount, paymentMethodId, backLinkSuccess, backLinkFail, comment, data) {
         checkAmount(amount);
@@ -63,17 +65,25 @@ module.exports = {
         await checkPaymentMethod(paymentMethodId);
         var id = uuid_1.v4();
         id = id.substr(id.length - 8).toUpperCase();
-        let payment = { id: id, paymentId: paymentId, originModel: originModel, paymentMethod: paymentMethodId, amount: amount, comment: comment, data: data };
-        getEmitter_1.default().emit('core-payment-document-before-create', payment);
+        let payment = {
+            id: id,
+            paymentId: paymentId,
+            originModel: originModel,
+            paymentMethod: paymentMethodId,
+            amount: amount,
+            comment: comment,
+            data: data,
+        };
+        getEmitter_1.default().emit("core-payment-document-before-create", payment);
         try {
             await PaymentDocument.create(payment);
         }
         catch (e) {
-            getEmitter_1.default().emit('error', "PaymentDocument > register:", e);
+            getEmitter_1.default().emit("error", "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 3,
-                error: 'PaymentDocument not created: ' + e
+                error: "PaymentDocument not created: " + e,
             };
         }
         let paymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
@@ -82,24 +92,24 @@ module.exports = {
             sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
             let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
             await PaymentDocument.update({ id: paymentResponse.id }, {
-                status: 'REGISTRED',
+                status: "REGISTRED",
                 externalId: paymentResponse.externalId,
-                redirectLink: paymentResponse.redirectLink
+                redirectLink: paymentResponse.redirectLink,
             });
             return paymentResponse;
         }
         catch (e) {
-            getEmitter_1.default().emit('error', "PaymentDocument > register:", e);
+            getEmitter_1.default().emit("error", "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 4,
-                error: 'Error in paymentAdapter.createPayment :' + e
+                error: "Error in paymentAdapter.createPayment :" + e,
             };
         }
     },
     afterUpdate: async function (values, next) {
-        sails.log.silly('PaymentDocument > afterUpdate > ', JSON.stringify(values));
-        if (values.paid && values.status === 'PAID') {
+        sails.log.silly("PaymentDocument > afterUpdate > ", JSON.stringify(values));
+        if (values.paid && values.status === "PAID") {
             try {
                 if (!values.amount || !values.paymentMethod || !values.paymentId) {
                     sails.log.error("PaymentDocument > afterUpdate, not have requried fields :", values);
@@ -116,7 +126,7 @@ module.exports = {
     /** Цикл проверки платежей */
     processor: async function (timeout) {
         sails.log.info("PaymentDocument.processor > started with timeout: " + timeout);
-        return payment_processor_interval = setInterval(async () => {
+        return (payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
             let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED" });
             /** Если дата создания платежногоДокумента больше чем час назад ставим статус просрочено*/
@@ -130,15 +140,15 @@ module.exports = {
                     await actualPaymentDocument.doCheck();
                 }
             }
-        }, timeout || 120000);
-    }
+        }, timeout || 120000));
+    },
 };
 async function checkOrigin(originModel, paymentId) {
     //@ts-ignore
-    if (!await sails.models[originModel].findOne({ id: paymentId })) {
+    if (!(await sails.models[originModel].findOne({ id: paymentId }))) {
         throw {
             code: 1,
-            error: 'incorrect paymentId or originModel'
+            error: "incorrect paymentId or originModel",
         };
     }
 }
@@ -146,22 +156,22 @@ function checkAmount(amount) {
     if (!amount || amount <= 0) {
         throw {
             code: 2,
-            error: 'incorrect amount'
+            error: "incorrect amount",
         };
     }
     // TODO: разобраться зачем это нужно, для сбербанка
     if (!(amount % 1 === 0)) {
         throw {
             code: 2,
-            error: 'incorrect amount'
+            error: "incorrect amount",
         };
     }
 }
 async function checkPaymentMethod(paymentMethodId) {
-    if (!await PaymentMethod.checkAvailable(paymentMethodId)) {
+    if (!(await PaymentMethod.checkAvailable(paymentMethodId))) {
         throw {
             code: 4,
-            error: 'paymentAdapter not available'
+            error: "paymentAdapter not available",
         };
     }
 }

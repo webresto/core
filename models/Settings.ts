@@ -22,6 +22,7 @@ module.exports = {
     key: {
       type: "string",
       unique: true,
+      required: true
     },
     description: "string",
     value: "string",

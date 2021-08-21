@@ -10,7 +10,6 @@ before(function (done) {
         if (err)
             return done(err);
         global.sails = _sails;
-        console.log(_sails);
         return done();
     });
 });
