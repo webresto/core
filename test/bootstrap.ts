@@ -2,10 +2,10 @@ import 'mocha';
 import assert = require('assert');
 import * as _ from '@sailshq/lodash';
 require('dotenv').config()
-var Sails = require('./fixtures/v0.12-app/node_modules/sails').Sails;
+var Sails = require('./fixture/node_modules/sails').Sails;
 
   before(function (done) {
-    let rc: void = require('./fixtures/v0.12-app/app').rc;
+    let rc: void = require('./fixture/app').rc;
     this.timeout(50000);
     Sails().lift(rc, function (err: any, _sails: any) {
       if (err) return done(err);

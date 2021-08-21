@@ -1,23 +1,20 @@
 {
-  "name": "app",
+  "name": "test-app",
   "private": true,
   "version": "0.0.0",
-  "description": "a Sails application",
+  "description": "Sails test application",
   "keywords": [],
   "dependencies": {
     "@webresto/core": "file:../../..",
-    "ejs": "^2.3.4",
     "include-all": "^1.0.8",
     "jade": "^1.11.0",
     "rc": "^1.0.1",
     "request": "^2.88.2",
-    "request-promise": "^4.2.4",
-    "sails": "^0.12.14",
-    "sails-hook-orm": "^1.0.9",
-    "sails-hook-slugs": "^2.1.0",
-    "sails-hook-stateflow": "git+https://github.com/pub42/sails-hook-stateflow.git",
+    "sails": "^1.4.4",
+    "sails-hook-orm": "^2.1.1",
+    "sails-hook-stateflow": "latest",
     "sails-memory": "^0.10.7",
-    "sails-postgresql": "^0.12.2"
+    "sails-postgresql": "^1.0.2",
   },
   "scripts": {
     "debug": "node debug app.js",
@@ -29,5 +26,5 @@
     "url": "git://github.com/webresto/app.git"
   },
   "author": "webresto",
-  "license": ""
+  "license": "MIT"
 }
