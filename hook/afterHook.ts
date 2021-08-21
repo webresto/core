@@ -1,11 +1,10 @@
 import {RMS} from "../adapter";
-import moment = require("moment-timezone");
 
 /**
  * Initial RMS and set timezone if it given
  */
 export default async function () {
-  return
+
   try {
     /**
      * rmsAdapter
@@ -30,8 +29,6 @@ export default async function () {
      */
     const timezone = await SystemInfo.use('timezone');
     process.env.TZ = timezone;
-    if (timezone)
-      moment.tz.setDefault(timezone);
      
     PaymentDocument.processor(timeSyncPayments);
   } catch (e) {

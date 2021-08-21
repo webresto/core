@@ -1,5 +1,5 @@
-import Customer from "../interfaces/Customer";
-import Address from "../interfaces/Address";
+import Customer from "./Customer";
+import Address from "./Address";
 /**
  * Описывает данные, которые необходимы для проврки и оформления заказа
  */

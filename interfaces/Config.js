@@ -18,7 +18,7 @@
       },
       template: string - путь к .ejs файлу, который рендерить при отправке email
     },
- timezone: string - временная зона ресторана, см. moment-timezone
+ timezone: string - временная зона ресторана
  GeocodeConfig: {
       geocode: string - адаптер геокодинга
       customMaps: string - адаптер загрузки карты с url

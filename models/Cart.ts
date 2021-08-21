@@ -12,7 +12,6 @@ import ORM from "../interfaces/ORM";
 import Dish from "./Dish";
 import * as _ from "lodash";
 import { PaymentResponse } from "../interfaces/Payment"
-import * as moment from "moment";
 import { v4 as uuid } from 'uuid';
 
 

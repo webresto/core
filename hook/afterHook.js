@@ -1,12 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const adapter_1 = require("../adapter");
-const moment = require("moment-timezone");
 /**
  * Initial RMS and set timezone if it given
  */
 async function default_1() {
-    return;
     try {
         /**
          * rmsAdapter
@@ -30,8 +28,6 @@ async function default_1() {
          */
         const timezone = await SystemInfo.use('timezone');
         process.env.TZ = timezone;
-        if (timezone)
-            moment.tz.setDefault(timezone);
         PaymentDocument.processor(timeSyncPayments);
     }
     catch (e) {

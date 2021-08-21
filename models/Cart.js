@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("../lib/actions");
 const getEmitter_1 = require("../lib/getEmitter");
 const _ = require("lodash");
-const moment = require("moment");
 let cartCollection = {
     //@ts-ignore
     primaryKey: 'id',

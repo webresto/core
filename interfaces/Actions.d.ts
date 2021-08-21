@@ -1,4 +1,4 @@
-import { Modifier } from "../interfaces/Modifier";
+import { Modifier } from "./Modifier";
 import Cart from "../models/Cart";
 /**
  * Описывает возможные дейтсвия с корзиной

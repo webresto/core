@@ -1,4 +1,4 @@
-import HookTools from "./hookTools";
+import HookTools from "../lib/hookTools";
 import {resolve} from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";

@@ -20,8 +20,6 @@
   "dependencies": {
     "is-promise": "^4.0.0",
     "lodash": "^4.17.10",
-    "moment": "^2.24.0",
-    "moment-timezone": "^0.5.23",
     "point-in-polygon": "^1.0.1",
     "request-promise": "^4.2.4",
     "sails-build-dictionary": "^0.10.1",
@@ -40,8 +38,6 @@
     "@types/faker": "^4.1.12",
     "@types/lodash": "^4.14.157",
     "@types/mocha": "^8.0.2",
-    "@types/moment": "^2.13.0",
-    "@types/moment-timezone": "^0.5.13",
     "@types/node": "^14.17.11",
     "@types/uuid": "^8.0.0",
     "@types/waterline": "^0.13.4",

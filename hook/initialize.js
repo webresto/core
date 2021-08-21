@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const hookTools_1 = require("./hookTools");
+const hookTools_1 = require("../lib/hookTools");
 const path_1 = require("path");
 const afterHook_1 = require("./afterHook");
 const _ = require("lodash");
