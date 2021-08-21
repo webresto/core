@@ -38,8 +38,8 @@
  *
  */
 
-import checkExpression, {AdditionalInfo} from "../lib/checkExpression";
-import getEmitter from "../lib/getEmitter";
+import checkExpression, {AdditionalInfo} from "../libs/checkExpression";
+import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import Image from "../models/Image";

@@ -7,4 +7,4 @@ module.exports = function (sails) {
   };
 };
 
-module.exports.HookTools = require("./lib/hookTools");
+module.exports.HookTools = require("./libs/hookTools");

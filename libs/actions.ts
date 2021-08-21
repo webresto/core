@@ -42,7 +42,7 @@ import Actions, {
  *
  * 3. Export actions variable
  * ```
- * import actions from "./lib/actions";
+ * import actions from "./libs/actions";
  * import NewActions from "<module>/NewActions";
  * const newActions = <NewActions>actions;
  * ```

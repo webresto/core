@@ -64,10 +64,10 @@
 
 import {GroupModifier}  from "../interfaces/Modifier";
 import Group from "./Group";
-import checkExpression, {AdditionalInfo} from "../lib/checkExpression";
+import checkExpression, {AdditionalInfo} from "../libs/checkExpression";
 import Image from "./Image";
-import hashCode from "../lib/hashCode";
-import getEmitter from "../lib/getEmitter";
+import hashCode from "../libs/hashCode";
+import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import * as _ from "lodash";

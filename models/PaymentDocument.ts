@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { PaymentResponse, Payment }  from "../interfaces/Payment"
 import PaymentMethod from "../models/PaymentMethod";
 import PaymentAdapter from "../adapter/payment/PaymentAdapter";
-import getEmitter from "../lib/getEmitter";
+import getEmitter from "../libs/getEmitter";
 import { NetworkInterfaceInfoIPv4 } from "os";
 
 
