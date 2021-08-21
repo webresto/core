@@ -3,7 +3,7 @@ import groupGenerator from "../../generators/group.generator";
 import { groupFields } from "../../generators/group.generator";
 import dishGenerator from "../../generators/dish.generator";
 import { dishFields } from "../../generators/dish.generator";
-import Group from "../../models/Group";
+import Group from "../../../models/Group";
 import { isArray } from "lodash";
 
 describe('Group', function(){

@@ -1,6 +1,6 @@
-import PaymentAdapter from '../../adapter/payment/PaymentAdapter';
-import { PaymentResponse, Payment }  from "../../interfaces/Payment";
-import PaymentDocument from "../../models/PaymentDocument";
+import PaymentAdapter from '../../../adapter/payment/PaymentAdapter';
+import { PaymentResponse, Payment }  from "../../../interfaces/Payment";
+import PaymentDocument from "../../../models/PaymentDocument";
 
 var database: any = {}; 
 

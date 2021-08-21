@@ -1,10 +1,10 @@
 import { expect } from "chai";
-import getEmitter from "../../libs/getEmitter";
+import getEmitter from "../../../libs/getEmitter";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
-import { Payment }  from "../../interfaces/Payment"
+import { Payment }  from "../../../interfaces/Payment"
 import generate_payment from '../../generators/payment.generator'
-import PaymentDocument from '../../models/PaymentDocument';
-//import Cart from '../../models/Cart';
+import PaymentDocument from '../../../models/PaymentDocument';
+//import Cart from '../../../models/Cart';
 import { create } from 'lodash';
 
 describe('PaymentDocument', function(){
