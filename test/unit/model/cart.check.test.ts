@@ -4,7 +4,7 @@ import Cart from "../../../models/Cart";
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
-
+import Settings from '../../../models/Settings'
 describe('Cart.check()', function(){
     this.timeout(10000);
     let cart: Cart;

@@ -13,6 +13,7 @@ before(function (done) {
         return done();
     });
 });
+
 after(function (done) {
     if (global.sails) {
         return global.sails.lower(function (err) {

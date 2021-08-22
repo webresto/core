@@ -1,10 +1,10 @@
 
 
 import TestPaymentSystem from './ExternalTestPaymentSystem'
-import { Payment }  from "../../interfaces/Payment"
+import { Payment }  from "../../../interfaces/Payment"
 import generate_payment from '../../generators/payment.generator'
 import { expect } from 'chai';
-import PaymentDocument from '../../models/PaymentDocument';
+import PaymentDocument from '../../../models/PaymentDocument';
 
 var paymentDocument: PaymentDocument;
 
