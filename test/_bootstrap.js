@@ -18,12 +18,9 @@ after(function (done) {
         return global.sails.lower(function (err) {
             if (err) {
                 done();
-                return process.exit(2);
             }
             done();
-            return process.exit(0);
         });
     }
     done();
-    return process.exit(2);
 });
