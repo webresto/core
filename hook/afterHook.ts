@@ -1,4 +1,4 @@
-import {RMS} from "../adapter";
+import {RMS} from "../adapters";
 
 /**
  * Initial RMS and set timezone if it given

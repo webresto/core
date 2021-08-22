@@ -38,7 +38,7 @@
       notRequired: boolean - проверка считается успешной даже если НЕ ОДНА система не ответила успешно, игнорируется, если requireAll = true
     }
  */
-import ImageConfig from "../adapter/image/ImageConfig";
+import ImageConfig from "../adapters/image/ImageConfig";
 import { Time } from "./Cause";
 export default interface Config {
     project: string;

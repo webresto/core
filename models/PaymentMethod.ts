@@ -2,7 +2,7 @@ import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from 'uuid';
 var alivedPaymentMethods: {} = {};
-import PaymentAdapter from "../adapter/payment/PaymentAdapter"
+import PaymentAdapter from "../adapters/payment/PaymentAdapter"
 module.exports = {
   primaryKey: 'id',
   attributes: {

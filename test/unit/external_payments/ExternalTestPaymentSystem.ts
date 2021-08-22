@@ -1,4 +1,4 @@
-import PaymentAdapter from '../../../adapter/payment/PaymentAdapter';
+import PaymentAdapter from '../../../adapters/payment/PaymentAdapter';
 import { PaymentResponse, Payment }  from "../../../interfaces/Payment";
 import PaymentDocument from "../../../models/PaymentDocument";
 

@@ -1,6 +1,6 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import PaymentAdapter from "../adapter/payment/PaymentAdapter";
+import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 /**
  * Описывает модель "Способ оплаты"
  */
