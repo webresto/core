@@ -42,13 +42,8 @@
     "faker": "^4.1.0",
     "intermock": "^0.2.2",
     "mocha": "^8.1.1",
-    "rc": "^1.2.8",
-    "sails": "^0.12.14",
-    "sails-postgresql": "^0.12.2",
     "ts-node": "^8.10.2",
-    "typed-sails": "git+https://github.com/42Sails/typed-sails.git",
-    "typedoc": "^0.15.8",
-    "typedoc-plugin-markdown": "^2.2.16"
+    "typed-sails": "git+https://github.com/42Sails/typed-sails.git"
   },
   "deprecated": false,
   "description": "webresto core",
