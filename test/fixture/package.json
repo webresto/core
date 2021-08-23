@@ -6,7 +6,6 @@
   "keywords": [],
   "dependencies": {
     "@webresto/core": "file:../..",
-    "@types/waterline": "^0.13.4",
     "include-all": "^1.0.8",
     "rc": "^1.0.1",
     "request": "^2.88.2",
