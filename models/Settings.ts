@@ -82,15 +82,10 @@ let SettingsModel  =  {
   }
 } 
 
-/**
- * Описывает одно поле конфига, его значение, ключ и откуда оно было взято
- */
-export default interface Settings extends ORM {
-  id: number;
-  key: string;
-  value: string;
-  section: string;
-}
+
+
+
+
 
 type config = typeof sails.config;
 
@@ -135,24 +130,34 @@ type config = typeof sails.config;
 //   ): Promise<any>;
 // }
 
+let SettingsCollection = {
+  /**Id */
+  id: {
+    type: "number",
+    autoIncrement: true,
+  } as unknown as string,
+  key: {
+    type: "string",
+    unique: true,
+    required: true
+  } as unknown as string ,
+  description: "string" as string,
+  value: "string",
+  section: "string" as string,
+  from: "string" as string,
+}
+
+type Settings = typeof SettingsCollection
+
+/**
+ * Описывает одно поле конфига, его значение, ключ и откуда оно было взято
+ */
+ //export default 
+ 
 
 module.exports = {
   primaryKey: "id",
-  attributes: {
-    id: {
-      type: "number",
-      autoIncrement: true,
-    },
-    key: {
-      type: "string",
-      unique: true,
-      required: true
-    },
-    description: "string",
-    value: "string",
-    section: "string",
-    from: "string",
-  },
+  attributes: SettingsCollection,
   ...SettingsModel
 }
 
