@@ -15,11 +15,14 @@ console.log(__dirname + "../../node_modules/**/waterline-schema/schema.js");
 const results = replace.sync({
   files: [
     __dirname + "/../../../node_modules/**/waterline-schema/schema.js", 
-    __dirname + "/../../../node_modules/**/sails-hook-orm/lib/validate-model-def.js", 
+    __dirname + "/../../../node_modules/**/sails-hook-orm/lib/validate-model-def.js",
+    __dirname + "/../../../node_modules/sails-disk/index.js", 
+
 
     //for test system
     __dirname + "/../**/sails-hook-orm/lib/validate-model-def.js", 
-    __dirname + "/../**/waterline-schema/schema.js" 
+    __dirname + "/../**/waterline-schema/schema.js",
+    __dirname + "/../**/sails-disk/index.js" 
   ], 
   from: [
     "(_.isFunction(val.defaultsTo))",
@@ -27,7 +30,8 @@ const results = replace.sync({
     "(_.has(attribute, 'defaultsTo') && _.isNull(attribute.defaultsTo))",
     "(_.has(primaryKeyAttribute, 'defaultsTo') && !_.isUndefined(primaryKeyAttribute, 'defaultsTo'))",
     "(attribute.required && _.has(attribute, 'defaultsTo') && !_.isUndefined(attribute, 'defaultsTo'))",
-    "(_.has(attribute, 'defaultsTo'))"
+    "(_.has(attribute, 'defaultsTo'))",
+    "(primaryKeyAttr.required !== true && (!primaryKeyAttr.autoMigrations || primaryKeyAttr.autoMigrations.autoIncrement !== true))"
   ],
   to: "(false)",
 });

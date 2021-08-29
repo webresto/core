@@ -3,89 +3,104 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("../libs/actions");
 const getEmitter_1 = require("../libs/getEmitter");
 const _ = require("lodash");
+const uuid_1 = require("uuid");
 let cartCollection = {
     //@ts-ignore
     primaryKey: 'id',
     attributes: {
         id: {
             type: 'string',
-            required: true
-            //defaultsTo: function (){ return uuid(); 
-        }
-    },
-    cartId: 'string',
-    shortId: {
-        type: 'string',
-    },
-    dishes: {
-        collection: 'CartDish',
-        via: 'cart'
-    },
-    discount: 'json',
-    paymentMethod: {
-        model: 'PaymentMethod',
-        via: 'id'
-    },
-    paymentMethodTitle: 'string',
-    paid: {
-        type: 'boolean',
-    },
-    isPaymentPromise: {
-        type: 'boolean',
-    },
-    dishesCount: 'number',
-    uniqueDishes: 'number',
-    modifiers: 'json',
-    customer: 'json',
-    address: 'json',
-    comment: 'string',
-    personsCount: 'string',
-    //@ts-ignore Я думаю там гдето типизация для даты на ватерлайн типизации
-    date: 'string',
-    problem: {
-        type: 'boolean',
-    },
-    rmsDelivered: {
-        type: 'boolean',
-    },
-    rmsId: 'string',
-    rmsOrderNumber: 'string',
-    rmsOrderData: 'json',
-    rmsDeliveryDate: 'string',
-    rmsErrorMessage: 'string',
-    rmsErrorCode: 'string',
-    rmsStatusCode: 'string',
-    deliveryStatus: 'string',
-    selfService: {
-        type: 'boolean',
-    },
-    deliveryDescription: {
-        type: 'string',
-    },
-    message: 'string',
-    deliveryItem: {
-        model: 'Dish'
-    },
-    deliveryCost: {
-        type: 'number',
-    },
-    totalWeight: {
-        type: 'number',
-    },
-    total: {
-        type: 'number',
-    },
-    orderTotal: {
-        type: 'number',
-    },
-    cartTotal: {
-        type: 'number',
-    },
-    discountTotal: {
-        type: 'number',
-    },
-    orderDate: 'string',
-    customData: 'json'
+            defaultsTo: function () {
+                return uuid_1.v4();
+            }
+        },
+        cartId: 'string',
+        shortId: {
+            type: 'string',
+            defaultsTo: function () { return this.id.substr(this.id.length - 8).toUpperCase(); },
+        },
+        dishes: {
+            collection: 'CartDish',
+            via: 'cart'
+        },
+        discount: 'json',
+        paymentMethod: {
+            model: 'PaymentMethod',
+            via: 'id'
+        },
+        paymentMethodTitle: 'string',
+        paid: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        isPaymentPromise: {
+            type: 'boolean',
+            defaultsTo: true
+        },
+        dishesCount: 'number',
+        uniqueDishes: 'number',
+        modifiers: 'json',
+        customer: 'json',
+        address: 'json',
+        comment: 'string',
+        personsCount: 'string',
+        //@ts-ignore Я думаю там гдето типизация для даты на ватерлайн типизации
+        date: 'string',
+        problem: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        rmsDelivered: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        rmsId: 'string',
+        rmsOrderNumber: 'string',
+        rmsOrderData: 'json',
+        rmsDeliveryDate: 'string',
+        rmsErrorMessage: 'string',
+        rmsErrorCode: 'string',
+        rmsStatusCode: 'string',
+        deliveryStatus: 'string',
+        selfService: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        deliveryDescription: {
+            type: 'string',
+            defaultsTo: ""
+        },
+        message: 'string',
+        deliveryItem: {
+            model: 'Dish'
+        },
+        deliveryCost: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        totalWeight: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        total: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        orderTotal: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        cartTotal: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        discountTotal: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        orderDate: 'string',
+        customData: 'json'
+    }
 };
 let cartInstance = {
     addDish: async function (dish, amount, modifiers, comment, from, replace, cartDishId) {
@@ -151,8 +166,8 @@ let cartInstance = {
                 addedBy: from
             });
         }
-        await cart.next('CART');
-        await Cart.countCart(cart);
+        await Cart.next('CART');
+        await Cart.countCart(cart.id,  cart);
         cart.save();
         await emitter.emit.apply(emitter, ['core-cart-after-add-dish', cartDish, ...arguments]);
     },
@@ -183,8 +198,8 @@ let cartInstance = {
         else {
             get.destroy();
         }
-        await cart.next('CART');
-        await Cart.countCart(cart);
+        await Cart.next('CART');
+        await Cart.countCart(cart.id,  cart);
         cart.save();
         await emitter.emit.apply(emitter, ['core-cart-after-remove-dish', ...arguments]);
     },
@@ -210,8 +225,8 @@ let cartInstance = {
                 get.destroy();
                 sails.log.info('destroy', get.id);
             }
-            await cart.next('CART');
-            await Cart.countCart(cart);
+            await Cart.next('CART');
+            await Cart.countCart(cart.id,  cart);
             cart.save();
             await emitter.emit.apply(emitter, ['core-cart-after-set-count', ...arguments]);
         }
@@ -230,8 +245,8 @@ let cartInstance = {
         const cartDish = await CartDish.findOne({ cart: cart.id, id: dish.id }).populate('dish');
         if (cartDish) {
             await CartDish.update(cartDish.id, { comment: comment });
-            await cart.next('CART');
-            await Cart.countCart(self);
+            await Cart.next('CART');
+            await Cart.countCart(cart.id,  self);
             cart.save();
             await emitter.emit.apply(emitter, ['core-cart-after-set-comment', ...arguments]);
         }
@@ -252,7 +267,7 @@ let cartInstance = {
         await self.save();
     },
     check: async function (customer, isSelfService, address, paymentMethodId) {
-        const self = await Cart.countCart(this);
+        const self = await Cart.countCart(cart.id,  this);
         if (self.state === "ORDER")
             throw "cart with cartId " + self.id + "in state ORDER";
         //const self: Cart = this;
@@ -369,7 +384,7 @@ let cartInstance = {
         else {
             getEmitter_1.default().emit('core-cart-order-delivery', self);
         }
-        await Cart.countCart(self);
+        await Cart.countCart(cart.id,  self);
         const results = await getEmitter_1.default().emit('core-cart-order', self);
         sails.log.silly('Cart > order > after wait general emitter results: ', results);
         const resultsCount = results.length;
@@ -426,7 +441,7 @@ let cartInstance = {
             backLinkFail: backLinkFail,
             comment: comment
         };
-        await Cart.countCart(self);
+        await Cart.countCart(cart.id,  self);
         await getEmitter_1.default().emit('core-cart-payment', self, params);
         sails.log.info("Cart > payment > self before register:", self);
         try {
@@ -532,7 +547,7 @@ let cartModel = {
         cart.uniqueDishes = uniqueDishes;
         cart.totalWeight = totalWeight;
         cart.total = orderTotal - cart.discountTotal;
-        cart.orderTotal = orderTotal - cart.discountTotal;
+        Cart.orderTotal = orderTotal - cart.discountTotal;
         cart.cartTotal = orderTotal + cart.deliveryCost - cart.discountTotal;
         if (cart.delivery) {
             cart.total += cart.delivery;
@@ -545,7 +560,7 @@ let cartModel = {
     },
     doPaid: async function (paymentDocument) {
         let cart = await Cart.findOne(paymentDocument.paymentId);
-        Cart.countCart(cart);
+        Cart.countCart(cart.id,  cart);
         try {
             let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
             await Cart.update({ id: paymentDocument.paymentId }, { paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle });
@@ -557,7 +572,7 @@ let cartModel = {
                 cart.problem = true;
                 cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!";
             }
-            await cart.order();
+            await Cart.order(cart.id,  );
         }
         catch (e) {
             sails.log.error('Cart > doPaid error: ', e);

@@ -50,7 +50,7 @@ import Actions, {
 const actions = {
   /**
    * Add dish in cart
-   * @param params(cartId, dishesId)
+   * @param params(cart.id,  dishesId)
    * @return Promise<Cart>
    */
   async addDish(cart: Cart, params: AddDishParams): Promise<Cart> {
@@ -64,7 +64,7 @@ const actions = {
 
     await Promise.each(dishesId, async (dishId) => {
       const dish = await Dish.findOne(dishId);
-      await cart.addDish(dish, params.amount, params.modifiers, params.comment, 'delivery');
+      await Cart.addDish(cart.id,  dish, params.amount, params.modifiers, params.comment, 'delivery');
     });
 
     return cart;
@@ -72,7 +72,7 @@ const actions = {
 
   /**
    * Set delivery cost
-   * @param params(cartId, deliveryCost)
+   * @param params(cart.id,  deliveryCost)
    * @returns {Promise<>}
    */
   async delivery(cart: Cart, params: DeliveryParams): Promise<Cart> {
@@ -106,7 +106,7 @@ const actions = {
     }
 
     if (cart.state !== 'CHECKOUT')
-      await cart.next();
+      await Cart.next();
 
     return cart;
   },
@@ -122,11 +122,11 @@ const actions = {
 
     cart.deliveryDescription = "";
     cart.message = "";
-    await cart.next('CART');
+    await Cart.next('CART');
 
     const removeDishes = await CartDish.find({cart: cart.id, addedBy: 'delivery'});
     await Promise.each(removeDishes, (dish: CartDish) => {
-      cart.removeDish(dish, 100000);
+      Cart.removeDish(cart.id,  dish, 100000);
     });
 
     return cart;
@@ -134,7 +134,7 @@ const actions = {
 
   /**
    * Add delivery description in cart
-   * @param params(cartId, description)
+   * @param params(cart.id,  description)
    * @return Promise<Cart>
    */
   async setDeliveryDescription(cart: Cart, params: DeliveryDescriptionParams): Promise<Cart> {
@@ -164,7 +164,7 @@ const actions = {
     if (!cart && !cart.id)
       throw 'cart is required';;
 
-    await cart.next('CART');
+    await Cart.next('CART');
     return cart;
   },
 

@@ -8,8 +8,8 @@ module.exports = {
     attributes: {
         id: {
             type: "string",
-            required: true
-            //defaultsTo: function (){ return uuid();}
+            required: true,
+            defaultsTo: function () { return uuid_1.v4(); }
         },
         paymentId: "string",
         externalId: "string",
@@ -20,10 +20,12 @@ module.exports = {
         amount: "number",
         paid: {
             type: "boolean",
+            defaultsTo: false
         },
         status: {
             type: "string",
             enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
+            defaultsTo: 'NEW'
         },
         comment: "string",
         redirectLink: "string",
