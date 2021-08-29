@@ -88,8 +88,8 @@ let cartModel = {
       });
     }
 
-    await cart.next('CART');
-    await Cart.countCart(cartId, cart);
+    await Cart.next('CART');
+    await Cart.countCart(cart.id,  cart);
     cart.save();
     await emitter.emit.apply(emitter, ['core-cart-after-add-dish', cartDish, ...arguments]);
   },
@@ -124,8 +124,8 @@ let cartModel = {
       get.destroy();
     }
 
-    await cart.next('CART');
-    await Cart.countCart(cartId, cart);
+    await Cart.next('CART');
+    await Cart.countCart(cart.id,  cart);
     cart.save();
     await emitter.emit.apply(emitter, ['core-cart-after-remove-dish', ...arguments]);
   },
@@ -155,8 +155,8 @@ let cartModel = {
         sails.log.info('destroy', get.id);
       }
 
-      await cart.next('CART');
-      await Cart.countCart(cartId, cart);
+      await Cart.next('CART');
+      await Cart.countCart(cart.id,  cart);
       cart.save();
       await emitter.emit.apply(emitter, ['core-cart-after-set-count', ...arguments]);
     } else {
@@ -178,8 +178,8 @@ let cartModel = {
     if (cartDish) {
       await CartDish.update(cartDish.id, {comment: comment});
 
-      await cart.next('CART');
-      await Cart.countCart(cartId, self);
+      await Cart.next('CART');
+      await Cart.countCart(cart.id,  self);
       cart.save();
       await emitter.emit.apply(emitter, ['core-cart-after-set-comment', ...arguments]);
     } else {
@@ -203,7 +203,7 @@ let cartModel = {
     await self.save();
   },
   async check (criteria: any, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<any> {
-    const self: Cart  = await Cart.countCart(cartId, this);
+    const self: Cart  = await Cart.countCart(cart.id,  this);
 
     if (self.state === "ORDER")
       throw "cart with cartId "+ self.id + "in state ORDER"
@@ -338,7 +338,7 @@ let cartModel = {
     } else {
       getEmitter().emit('core-cart-order-delivery', self);
     }
-    await Cart.countCart(cartId, self);
+    await Cart.countCart(cart.id,  self);
     const results = await getEmitter().emit('core-cart-order', self);
 
     sails.log.silly('Cart > order > after wait general emitter results: ', results);
@@ -402,7 +402,7 @@ let cartModel = {
       backLinkFail: backLinkFail,
       comment: comment
     };
-    await Cart.countCart(cartId, self);
+    await Cart.countCart(cart.id,  self);
     await getEmitter().emit('core-cart-payment', self, params);
     sails.log.info("Cart > payment > self before register:", self);
     try {
@@ -543,7 +543,7 @@ let cartModel = {
 
   async doPaid (criteria: any, paymentDocument: PaymentDocument) {
     let cart: Cart = await Cart.findOne(paymentDocument.paymentId);
-    Cart.countCart(cartId, cart);
+    Cart.countCart(cart.id,  cart);
     try {
       let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
       await Cart.update({id: paymentDocument.paymentId}, {paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle});
@@ -558,7 +558,7 @@ let cartModel = {
         cart.problem = true;
         cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!"
       }
-      await Cart.order(cartId, );
+      await Cart.order(cart.id,  );
     } catch (e) {
       sails.log.error('Cart > doPaid error: ', e);
       throw e

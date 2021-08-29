@@ -43,7 +43,7 @@ exports.getAllActionsName = exports.addAction = void 0;
 const actions = {
     /**
      * Add dish in cart
-     * @param params(cartId, dishesId)
+     * @param params(cart.id,  dishesId)
      * @return Promise<Cart>
      */
     async addDish(cart, params) {
@@ -54,13 +54,13 @@ const actions = {
             throw 'dishIds (array of strings) is required as second element of params';
         await Promise.each(dishesId, async (dishId) => {
             const dish = await Dish.findOne(dishId);
-            await Cart.addDish(cartId, dish, params.amount, params.modifiers, params.comment, 'delivery');
+            await Cart.addDish(cart.id,  dish, params.amount, params.modifiers, params.comment, 'delivery');
         });
         return cart;
     },
     /**
      * Set delivery cost
-     * @param params(cartId, deliveryCost)
+     * @param params(cart.id,  deliveryCost)
      * @returns {Promise<>}
      */
     async delivery(cart, params) {
@@ -87,7 +87,7 @@ const actions = {
             cart.deliveryCost = deliveryCost;
         }
         if (cart.state !== 'CHECKOUT')
-            await cart.next();
+            await Cart.next();
         return cart;
     },
     /**
@@ -100,16 +100,16 @@ const actions = {
             throw 'cart is required';
         cart.deliveryDescription = "";
         cart.message = "";
-        await cart.next('CART');
+        await Cart.next('CART');
         const removeDishes = await CartDish.find({ cart: cart.id, addedBy: 'delivery' });
         await Promise.each(removeDishes, (dish) => {
-            Cart.removeDish(cartId, dish, 100000);
+            Cart.removeDish(cart.id,  dish, 100000);
         });
         return cart;
     },
     /**
      * Add delivery description in cart
-     * @param params(cartId, description)
+     * @param params(cart.id,  description)
      * @return Promise<Cart>
      */
     async setDeliveryDescription(cart, params) {
@@ -132,7 +132,7 @@ const actions = {
         if (!cart && !cart.id)
             throw 'cart is required';
         ;
-        await cart.next('CART');
+        await Cart.next('CART');
         return cart;
     },
     async setMessage(cart, params) {
