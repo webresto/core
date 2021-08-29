@@ -1,5 +1,4 @@
 import "mocha";
-import * as _ from "@sailshq/lodash";
 require("dotenv").config();
 var Sails = require("./fixture/node_modules/sails").Sails;
 

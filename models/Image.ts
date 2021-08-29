@@ -31,7 +31,7 @@ module.exports = {
       type: 'string',
       required: true
 
-      //defaultsTo: function (){ return uuid(); }
+      defaultsTo: function (){ return uuid(); }
     }, 
     images: 'json',
     dish: {

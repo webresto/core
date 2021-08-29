@@ -53,7 +53,7 @@ module.exports = {
       type: "string",
       required: true
 
-      //defaultsTo: function (){ return uuid();}
+      defaultsTo: function (){ return uuid();}
     },
     paymentId: "string",
     externalId: "string",
@@ -64,12 +64,12 @@ module.exports = {
     amount: "number",
     paid: {
       type: "boolean",
-      //defaultsTo: false
+      defaultsTo: false
     },
     status: {
       type: "string",
       enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
-      //defaultsTo: 'NEW'
+      defaultsTo: 'NEW'
     },
     comment: "string",
     redirectLink: "string",

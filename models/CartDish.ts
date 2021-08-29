@@ -49,7 +49,7 @@ module.exports = {
     comment: 'string',
     addedBy: {
       type: 'string',
-      //defaultsTo: 'user'
+      defaultsTo: 'user'
     },
     weight: 'number',
     totalWeight: 'number'

@@ -23,13 +23,13 @@ let cartCollection: Waterline.Collection = {
         type: 'string',
         required: true
 
-        //defaultsTo: function (){ return uuid(); 
+        defaultsTo: function (){ return uuid(); 
         }
       },
       cartId: 'string',
       shortId:{
         type: 'string',
-        //defaultsTo: function (){ return this.id.substr(this.id.length - 8).toUpperCase() },
+        defaultsTo: function (){ return this.id.substr(this.id.length - 8).toUpperCase() },
       },
       dishes: {
         collection: 'CartDish',
@@ -43,11 +43,11 @@ let cartCollection: Waterline.Collection = {
       paymentMethodTitle: 'string',
       paid: {
         type: 'boolean',
-        //defaultsTo: false
+        defaultsTo: false
       },
       isPaymentPromise: {
         type: 'boolean',
-        //defaultsTo: true
+        defaultsTo: true
       },
       dishesCount: 'number',
       uniqueDishes: 'number',
@@ -60,11 +60,11 @@ let cartCollection: Waterline.Collection = {
       date: 'string',
       problem: {
         type: 'boolean',
-        //defaultsTo: false
+        defaultsTo: false
       },
       rmsDelivered: {
         type: 'boolean',
-        //defaultsTo: false
+        defaultsTo: false
       },
       rmsId: 'string',
       rmsOrderNumber: 'string',
@@ -76,11 +76,11 @@ let cartCollection: Waterline.Collection = {
       deliveryStatus: 'string',
       selfService: {
         type: 'boolean',
-        //defaultsTo: false
+        defaultsTo: false
       },
       deliveryDescription: {
         type: 'string',
-        //defaultsTo: ""
+        defaultsTo: ""
       },
       message: 'string', // deprecated
       deliveryItem: {
@@ -88,27 +88,27 @@ let cartCollection: Waterline.Collection = {
       },
       deliveryCost: {
         type: 'number',
-        //defaultsTo: 0
+        defaultsTo: 0
       }, // rename to deliveryCost
       totalWeight: {
         type: 'number',
-        //defaultsTo: 0
+        defaultsTo: 0
       },
       total: {
         type: 'number',
-        //defaultsTo: 0
+        defaultsTo: 0
       }, // total = cartTotal
       orderTotal: {
         type: 'number',
-        //defaultsTo: 0
+        defaultsTo: 0
       }, // orderTotal = total + deliveryCost - discountTotal - bonusesTotal
       cartTotal: {
         type: 'number',
-        //defaultsTo: 0
+        defaultsTo: 0
       },
       discountTotal: {
         type: 'number',
-        //defaultsTo: 0
+        defaultsTo: 0
       },
       orderDate: 'string',
       customData: 'json'
