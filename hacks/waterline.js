@@ -37,3 +37,5 @@ const results = replace.sync({
 });
 
 console.log(results);
+
+// Stranger things
