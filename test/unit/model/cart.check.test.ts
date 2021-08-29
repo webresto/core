@@ -1,12 +1,13 @@
 import { expect } from "chai";
 import getEmitter from "../../../libs/getEmitter";
 // import {Settings} from "../../../models/Settings"
+import Cart from "../../../models/Cart"
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
 import Settings from '../../../models/Settings'
 import { settings } from "cluster";
-describe('Cart.check()', function(){
+describe('Cart.check(cartId, )', function(){
     this.timeout(10000);
     let cart: Cart;
     let customer: Customer = {
@@ -22,7 +23,6 @@ describe('Cart.check()', function(){
     }
 
     it('new cart', async function(){
-        Cart.doPaid()
         
         cart = await Cart.create({});
         // console.log('>>> Blank cart ------\n', cart);
@@ -42,7 +42,7 @@ describe('Cart.check()', function(){
                 name: 'Freeman Morgan'
             }
     
-            let result = await cart.check(customer, true);
+            let result = await Cart.check(cartId, customer, true);
         
             expect(result).to.equal(true);
         });
@@ -54,7 +54,7 @@ describe('Cart.check()', function(){
         
             let error = null;
             try{
-                await cart.check(badCustomer);
+                await Cart.check(cartId, badCustomer);
             }catch(e){
                 error = e;
             }
@@ -68,7 +68,7 @@ describe('Cart.check()', function(){
             }
             error = null;
             try{
-                await cart.check(badCustomer);
+                await Cart.check(cartId, badCustomer);
             }catch(e){
                 error = e;
             }
@@ -80,7 +80,7 @@ describe('Cart.check()', function(){
             await cart.save();
             let error = null;
             try{
-                await cart.check();
+                await Cart.check(cartId, );
             }catch(e){
                 error = e;
             }
@@ -90,8 +90,8 @@ describe('Cart.check()', function(){
         })
     });
     it('check isSelfService', async function(){
-        await cart.setSelfService(true);
-        let result = await cart.check(customer, true);
+        await Cart.setSelfService(cartId, true);
+        let result = await Cart.check(cartId, customer, true);
         expect(result).to.equal(true);
 
     });
@@ -107,7 +107,7 @@ describe('Cart.check()', function(){
                 comment: ''
             }
                        
-            let result = await cart.check(customer, null, address);
+            let result = await Cart.check(cartId, customer, null, address);
             expect(result).to.equal(true);
         });
         it('bad address', async function(){
@@ -121,7 +121,7 @@ describe('Cart.check()', function(){
 
             let error = null;
             try{
-                await cart.check(null, null, badAddress);
+                await Cart.check(cartId, null, null, badAddress);
             }catch(e){
                 error = e;
             }
@@ -133,7 +133,7 @@ describe('Cart.check()', function(){
             await cart.save();
             let error = null;
             try{
-                await cart.check(null, true);
+                await Cart.check(cartId, null, true);
             }catch(e){
                 error = e;
             }
@@ -166,15 +166,15 @@ describe('Cart.check()', function(){
             
         let testPaymentSystem = await TestPaymentSystem.getInstance();
         let paymentSystem = (await PaymentMethod.find())[0];
-        let result = await cart.check(customer, false, address, paymentSystem.id);
+        let result = await Cart.check(cartId, customer, false, address, paymentSystem.id);
         expect(result).to.equal(true);
     
-        result = await cart.check(null, null, null, paymentSystem.id);
+        result = await Cart.check(cartId, null, null, null, paymentSystem.id);
         expect(result).to.equal(true);
 
         let error = null;
         try{
-            await cart.check(null, null, null, 'bad-id-payment-system');
+            await Cart.check(cartId, null, null, null, 'bad-id-payment-system');
         }catch(e){
             error = e;
         }
@@ -201,7 +201,7 @@ describe('Cart.check()', function(){
         getEmitter().on('core-cart-after-check', function(){
             count5++;
         });
-        await cart.check(customer);
+        await Cart.check(cartId, customer);
         expect(count1).to.equal(1);
         expect(count3).to.equal(1);
         expect(count4).to.equal(1);
@@ -217,7 +217,7 @@ describe('Cart.check()', function(){
             emitSelfService = serv;
             emitAddress = addr;
         });
-        await cart.check(customer, true, address);
+        await Cart.check(cartId, customer, true, address);
         expect(count2).to.equal(1);
         expect(emitCustomer).to.equal(customer);
         expect(emitSelfService).to.equal(true);
@@ -229,7 +229,7 @@ describe('Cart.check()', function(){
         await cart.next('ORDER');
         let error = null;
         try{
-            await cart.check(customer);
+            await Cart.check(cartId, customer);
         }catch(e){
             error = e;
         }
@@ -238,11 +238,11 @@ describe('Cart.check()', function(){
     it('checkConfig', async function(){
         cart = await Cart.create({});
         await Settings.set('check', JSON.stringify({requireAll: true}));
-        let result = await cart.check(customer, true);
+        let result = await Cart.check(cartId, customer, true);
         expect(result).to.equal(true);
 
         await Settings.set('check', JSON.stringify({notRequired: true}));
-        result = await cart.check(customer, true);
+        result = await Cart.check(cartId, customer, true);
         expect(result).to.equal(true);
     })
 });

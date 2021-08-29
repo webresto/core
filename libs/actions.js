@@ -54,7 +54,7 @@ const actions = {
             throw 'dishIds (array of strings) is required as second element of params';
         await Promise.each(dishesId, async (dishId) => {
             const dish = await Dish.findOne(dishId);
-            await cart.addDish(dish, params.amount, params.modifiers, params.comment, 'delivery');
+            await Cart.addDish(cartId, dish, params.amount, params.modifiers, params.comment, 'delivery');
         });
         return cart;
     },
@@ -103,7 +103,7 @@ const actions = {
         await cart.next('CART');
         const removeDishes = await CartDish.find({ cart: cart.id, addedBy: 'delivery' });
         await Promise.each(removeDishes, (dish) => {
-            cart.removeDish(dish, 100000);
+            Cart.removeDish(cartId, dish, 100000);
         });
         return cart;
     },
