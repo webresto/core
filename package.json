@@ -18,11 +18,12 @@
   ],
   "bundleDependencies": [],
   "dependencies": {
+    "@webresto/worktime": "latest",
     "lodash": "^4.17.10",
+    "replace-in-file": "^6.2.0",
     "sails-build-dictionary": "^0.10.1",
     "sails-hook-slugs": "^2.1.0",
-    "uuid": "latest",
-    "@webresto/worktime": "latest"
+    "uuid": "latest"
   },
   "devDependencies": {
     "typescript": "^3.9.7",
@@ -69,7 +70,8 @@
     "test:js": "mocha test/bootstrap.js './test/{,!(fixture)/**}/*.test.js' --exit",
     "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
     "test:init": "[ ! -d \"test/fixture/node_modules\" ] &&  cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
-    "build": "tsc"
+    "build": "tsc",
+    "postinstall": "node hacks/waterline.js"
   },
   "version": "0.10.0"
 }
