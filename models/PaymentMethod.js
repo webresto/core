@@ -13,7 +13,7 @@ module.exports = {
         type: {
             type: 'string',
             enum: ['promise', 'external', 'internal', 'dummy'],
-            //defaultsTo: 'promise',
+            defaultsTo: 'promise',
             required: true
         },
         adapter: {
@@ -25,7 +25,7 @@ module.exports = {
         description: 'string',
         enable: {
             type: 'boolean',
-            //defaultsTo: true,
+            defaultsTo: true,
             required: true
         },
     },

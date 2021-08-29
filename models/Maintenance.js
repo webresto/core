@@ -25,6 +25,7 @@ module.exports = {
         description: 'string',
         enable: {
             type: 'boolean',
+            defaultsTo: true
         },
         startDate: 'string',
         stopDate: 'string'

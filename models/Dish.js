@@ -126,6 +126,7 @@ module.exports = {
         },
         balance: {
             type: 'number',
+            defaultsTo: -1
         },
         images: {
             collection: 'image',

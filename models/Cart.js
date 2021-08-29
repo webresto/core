@@ -3,89 +3,104 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("../libs/actions");
 const getEmitter_1 = require("../libs/getEmitter");
 const _ = require("lodash");
+const uuid_1 = require("uuid");
 let cartCollection = {
     //@ts-ignore
     primaryKey: 'id',
     attributes: {
         id: {
             type: 'string',
-            required: true
-            //defaultsTo: function (){ return uuid(); 
-        }
-    },
-    cartId: 'string',
-    shortId: {
-        type: 'string',
-    },
-    dishes: {
-        collection: 'CartDish',
-        via: 'cart'
-    },
-    discount: 'json',
-    paymentMethod: {
-        model: 'PaymentMethod',
-        via: 'id'
-    },
-    paymentMethodTitle: 'string',
-    paid: {
-        type: 'boolean',
-    },
-    isPaymentPromise: {
-        type: 'boolean',
-    },
-    dishesCount: 'number',
-    uniqueDishes: 'number',
-    modifiers: 'json',
-    customer: 'json',
-    address: 'json',
-    comment: 'string',
-    personsCount: 'string',
-    //@ts-ignore Я думаю там гдето типизация для даты на ватерлайн типизации
-    date: 'string',
-    problem: {
-        type: 'boolean',
-    },
-    rmsDelivered: {
-        type: 'boolean',
-    },
-    rmsId: 'string',
-    rmsOrderNumber: 'string',
-    rmsOrderData: 'json',
-    rmsDeliveryDate: 'string',
-    rmsErrorMessage: 'string',
-    rmsErrorCode: 'string',
-    rmsStatusCode: 'string',
-    deliveryStatus: 'string',
-    selfService: {
-        type: 'boolean',
-    },
-    deliveryDescription: {
-        type: 'string',
-    },
-    message: 'string',
-    deliveryItem: {
-        model: 'Dish'
-    },
-    deliveryCost: {
-        type: 'number',
-    },
-    totalWeight: {
-        type: 'number',
-    },
-    total: {
-        type: 'number',
-    },
-    orderTotal: {
-        type: 'number',
-    },
-    cartTotal: {
-        type: 'number',
-    },
-    discountTotal: {
-        type: 'number',
-    },
-    orderDate: 'string',
-    customData: 'json'
+            defaultsTo: function () {
+                return uuid_1.v4();
+            }
+        },
+        cartId: 'string',
+        shortId: {
+            type: 'string',
+            defaultsTo: function () { return this.id.substr(this.id.length - 8).toUpperCase(); },
+        },
+        dishes: {
+            collection: 'CartDish',
+            via: 'cart'
+        },
+        discount: 'json',
+        paymentMethod: {
+            model: 'PaymentMethod',
+            via: 'id'
+        },
+        paymentMethodTitle: 'string',
+        paid: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        isPaymentPromise: {
+            type: 'boolean',
+            defaultsTo: true
+        },
+        dishesCount: 'number',
+        uniqueDishes: 'number',
+        modifiers: 'json',
+        customer: 'json',
+        address: 'json',
+        comment: 'string',
+        personsCount: 'string',
+        //@ts-ignore Я думаю там гдето типизация для даты на ватерлайн типизации
+        date: 'string',
+        problem: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        rmsDelivered: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        rmsId: 'string',
+        rmsOrderNumber: 'string',
+        rmsOrderData: 'json',
+        rmsDeliveryDate: 'string',
+        rmsErrorMessage: 'string',
+        rmsErrorCode: 'string',
+        rmsStatusCode: 'string',
+        deliveryStatus: 'string',
+        selfService: {
+            type: 'boolean',
+            defaultsTo: false
+        },
+        deliveryDescription: {
+            type: 'string',
+            defaultsTo: ""
+        },
+        message: 'string',
+        deliveryItem: {
+            model: 'Dish'
+        },
+        deliveryCost: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        totalWeight: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        total: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        orderTotal: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        cartTotal: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        discountTotal: {
+            type: 'number',
+            defaultsTo: 0
+        },
+        orderDate: 'string',
+        customData: 'json'
+    }
 };
 let cartInstance = {
     addDish: async function (dish, amount, modifiers, comment, from, replace, cartDishId) {

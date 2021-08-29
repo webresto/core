@@ -15,110 +15,10 @@ import { PaymentResponse } from "../interfaces/Payment"
 import { v4 as uuid } from 'uuid';
 
 
-let cartCollection: Waterline.Collection = {
-    //@ts-ignore
-    primaryKey: 'id',
-    attributes: {
-      id: {
-        type: 'string',
-        required: true
-
-        defaultsTo: function (){ return uuid(); 
-        }
-      },
-      cartId: 'string',
-      shortId:{
-        type: 'string',
-        defaultsTo: function (){ return this.id.substr(this.id.length - 8).toUpperCase() },
-      },
-      dishes: {
-        collection: 'CartDish',
-        via: 'cart'
-      },
-      discount: 'json',
-      paymentMethod: {
-        model: 'PaymentMethod',
-        via: 'id'
-      },
-      paymentMethodTitle: 'string',
-      paid: {
-        type: 'boolean',
-        defaultsTo: false
-      },
-      isPaymentPromise: {
-        type: 'boolean',
-        defaultsTo: true
-      },
-      dishesCount: 'number',
-      uniqueDishes: 'number',
-      modifiers: 'json', //maybe dont needed here
-      customer: 'json',
-      address: 'json',
-      comment: 'string',
-      personsCount: 'string',
-      //@ts-ignore Я думаю там гдето типизация для даты на ватерлайн типизации
-      date: 'string',
-      problem: {
-        type: 'boolean',
-        defaultsTo: false
-      },
-      rmsDelivered: {
-        type: 'boolean',
-        defaultsTo: false
-      },
-      rmsId: 'string',
-      rmsOrderNumber: 'string',
-      rmsOrderData: 'json',
-      rmsDeliveryDate: 'string',
-      rmsErrorMessage: 'string',
-      rmsErrorCode: 'string',
-      rmsStatusCode: 'string',
-      deliveryStatus: 'string',
-      selfService: {
-        type: 'boolean',
-        defaultsTo: false
-      },
-      deliveryDescription: {
-        type: 'string',
-        defaultsTo: ""
-      },
-      message: 'string', // deprecated
-      deliveryItem: {
-        model: 'Dish'
-      },
-      deliveryCost: {
-        type: 'number',
-        defaultsTo: 0
-      }, // rename to deliveryCost
-      totalWeight: {
-        type: 'number',
-        defaultsTo: 0
-      },
-      total: {
-        type: 'number',
-        defaultsTo: 0
-      }, // total = cartTotal
-      orderTotal: {
-        type: 'number',
-        defaultsTo: 0
-      }, // orderTotal = total + deliveryCost - discountTotal - bonusesTotal
-      cartTotal: {
-        type: 'number',
-        defaultsTo: 0
-      },
-      discountTotal: {
-        type: 'number',
-        defaultsTo: 0
-      },
-      orderDate: 'string',
-      customData: 'json'
-    }
-  }
 
 
-
-let cartInstance: Cart = {
-  addDish: async function (dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number, ) : Promise<void> {
+let cartModel = {  
+  async addDish (criteria: any,  dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number, ) : Promise<void> {
     const emitter = getEmitter();
     await emitter.emit.apply(emitter, ['core-cart-before-add-dish', ...arguments]);
 
@@ -193,7 +93,7 @@ let cartInstance: Cart = {
     cart.save();
     await emitter.emit.apply(emitter, ['core-cart-after-add-dish', cartDish, ...arguments]);
   },
-  removeDish: async function (dish: CartDish, amount: number, stack?: boolean): Promise<void> {
+  async removeDish (criteria: any, dish: CartDish, amount: number, stack?: boolean): Promise<void> {
     // TODO: удалить стек
     const emitter = getEmitter();
     await emitter.emit.apply(emitter, ['core-cart-before-remove-dish', ...arguments]);
@@ -229,7 +129,7 @@ let cartInstance: Cart = {
     cart.save();
     await emitter.emit.apply(emitter, ['core-cart-after-remove-dish', ...arguments]);
   },
-  setCount: async function (dish: CartDish, amount: number): Promise<void> {
+  async setCount (criteria: any, dish: CartDish, amount: number): Promise<void> {
     const emitter = getEmitter();
     await emitter.emit.apply(emitter, ['core-cart-before-set-count', ...arguments]);
 
@@ -264,7 +164,7 @@ let cartInstance: Cart = {
       throw {body: `CartDish dish id ${dish.id} not found`, code: 2};
     }
   },
-  setComment: async function (dish: CartDish, comment: string): Promise<void> {
+  async setComment (criteria: any, dish: CartDish, comment: string): Promise<void> {
     const emitter = getEmitter();
     const self: Cart = this;
     await emitter.emit.apply(emitter, ['core-cart-before-set-comment', ...arguments]);
@@ -292,7 +192,7 @@ let cartInstance: Cart = {
    * Set cart selfService field. Use this method to change selfService.
    * @param selfService
    */
-  setSelfService: async function (selfService: boolean): Promise<void> {
+  async setSelfService (criteria: any, selfService: boolean): Promise<void> {
     const self: Cart = this;
 
     sails.log.verbose('Cart > setSelfService >', selfService);
@@ -302,7 +202,7 @@ let cartInstance: Cart = {
     self.selfService = selfService;
     await self.save();
   },
-  check: async function (customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<any> {
+  async check (criteria: any, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<any> {
     const self: Cart  = await Cart.countCart(this);
 
     if (self.state === "ORDER")
@@ -419,7 +319,7 @@ let cartInstance: Cart = {
     }
 
   },
-  order: async function (): Promise<number> {
+  async order (criteria: any): Promise<number> {
     const self: Cart = this;
 
     if (self.state === "ORDER")
@@ -485,7 +385,7 @@ let cartInstance: Cart = {
       getEmitter().emit('core-cart-after-order', self);
     }
   },
-  payment: async function (): Promise<PaymentResponse> {
+  async payment (criteria: any): Promise<PaymentResponse> {
     const self: Cart = this;
     if (self.state === "ORDER")
       throw "cart with cartId "+ self.id + "in state ORDER"
@@ -514,22 +414,19 @@ let cartInstance: Cart = {
     await self.next('PAYMENT');
     return paymentResponse;
   },
-  paymentMethodId: async function (cart?: Cart): Promise<string> {
+  async paymentMethodId (criteria: any, cart?: Cart): Promise<string> {
     if (!cart)
       cart = this
     //@ts-ignore
     let populatedCart = await Cart.findOne({id: cart.id}).populate('paymentMethod')
     //@ts-ignore
     return populatedCart.paymentMethod.id;
-  }
-} as Cart;
-
-let cartModel: CartModel = {
+  },
   /**
    * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
    * @param cart
    */
-  countCart: async function (cart: Cart) {
+  async countCart (criteria: any, cart: Cart) {
     getEmitter().emit('core-cart-before-count', cart);
 
     if (typeof cart === 'string' || cart instanceof String){
@@ -644,7 +541,7 @@ let cartModel: CartModel = {
     return cart;
   },
 
-  doPaid: async function (paymentDocument: PaymentDocument) {
+  async doPaid (criteria: any, paymentDocument: PaymentDocument) {
     let cart: Cart = await Cart.findOne(paymentDocument.paymentId);
     Cart.countCart(cart);
     try {
@@ -666,35 +563,10 @@ let cartModel: CartModel = {
       sails.log.error('Cart > doPaid error: ', e);
       throw e
     }
-  },
-} as CartModel;
+  }
+};
 
 
-
-
-
-
-
-
-
-/**
- * Описывает класс Cart, содержит статические методы, используется для ORM
- */
-export interface CartModel extends ORMModel<Cart> {
-  /**
-   * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
-   * @param cart
-   */
-  countCart(cart: Cart);
-
-    /** Выполняет оплату в моделе */
-  doPaid(paymentDocument: PaymentDocument): Promise<void>;
-}
-
-
-/**
- * Описывает IIKO  cart
- */
 export default interface Cart extends ORM {
   id: string;
   cartId: string;
@@ -739,181 +611,116 @@ export default interface Cart extends ORM {
   orderTotal: number;
   orderDate: string;
   discountTotal:number
-  /**
-   * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
-   * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
-   * Переводит корзину в состояние CART, если она ещё не в нём.
-   * @param dish - Блюдо для добавления, может быть объект или id блюда
-   * @param amount - количетво
-   * @param modifiers - модификаторы, которые следует применить к текущему блюду
-   * @param comment - комментарий к блюду
-   * @param from - указатель откуда было добавлено блюдо (например, от пользователя или от системы акций)
-   * @throws Object {
-   *   body: string,
-   *   code: number
-   * }
-   * where codes:
-   *  1 - не достаточно блюд
-   *  2 - заданное блюдо не найдено
-   * @fires cart:core-cart-before-add-dish - вызывается перед началом функции. Результат подписок игнорируется.
-   * @fires cart:core-cart-add-dish-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
-   * @fires cart:core-cart-add-dish-before-create-cartdish - вызывается, если все проверки прошли успешно и корзина намеряна
-   * добавить блюдо. Результат подписок игнорируется.
-   * @fires cart:core-cart-after-add-dish - вызывается после успешного добавления блюда. Результат подписок игнорируется.
-   */
-  addDish(dish: Dish | string, amount: number, modifiers?: Modifier[], comment?: string, from?: string, replace?: boolean, cartDishId?: number) : Promise<void>;
-
-  /**
-   * Уменьшает количество заданного блюда на amount. Переводит корзину в состояние CART.
-   * @param dish - Блюдо для изменения количества блюд
-   * @param amount - насколько меньше сделать количество
-   * @param stack - параметр позволяющий удалять в обратном хрогологическом порядке
-   * @throws Object {
-   *   body: string,
-   *   code: number
-   * }
-   * where codes:
-   *  1 - заданный CartDish не найден в текущей корзине
-   *  @fires cart:core-cart-before-remove-dish - вызывается перед началом фунции. Результат подписок игнорируется.
-   *  @fires cart:core-cart-remove-dish-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
-   *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
-   */
-  removeDish(dish: CartDish, amount: number, stack?: boolean): Promise<void>;
-
-  /**
-   * Устанавливает заданное количество для заданного блюда в текущей корзине. Если количество меньше 0, то блюдо будет
-   * удалено из корзины. Переводит корзину в состояние CART.
-   * @param dish - какому блюду измениять количество
-   * @param amount - новое количество
-   * @throws Object {
-   *   body: string,
-   *   code: number
-   * }
-   * where codes:
-   *  1 - нет такого количества блюд
-   *  2 - заданный CartDish не найден
-   * @fires cart:core-cart-before-set-count - вызывается перед началом фунции. Результат подписок игнорируется.
-   * @fires cart:core-cart-set-count-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
-   * @fires cart:core-cart-after-set-count - вызывается после успешной работы функции. Результат подписок игнорируется.
-   * @fires cart:core-cart-set-count-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
-   */
-  setCount(dish: CartDish, amount: number): Promise<void>;
-
-  /**
-   * Устанавливает заданному модификатору в заданом блюде в текузей заданное количество.
-   * В случае успешной работы изменяет состояние корзины в CART
-   * @param dish - блюдо, модификатор которого изменять
-   * @param modifier - id блюда, которое привязано к модификатору, количество которого менять
-   * @param amount - новое количество
-   * @throws Object {
-   *   body: string,
-   *   code: number
-   * }
-   * where codes:
-   * 1 - нет достаточного количества блюд
-   * 2 - dish не найден в текущей корзине
-   * 3 - блюдо modifier не найден как модификатор блюда dish
-   * 4 - блюдо dish в текущей корзине не содержит модификатора modifier
-   * @fires cart:core-cart-before-set-modifier-count - вызывается перед началом фунции. Результат подписок игнорируется.
-   * @fires cart:core-cart-set-modifier-count-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
-   * @fires cart:core-cart-set-modifier-count-reject-no-cartdish - вызывается перед ошибкой с кодом 2. Результат подписок игнорируется.
-   * @fires cart:core-cart-set-modifier-count-reject-no-modifier-dish - вызывается перед ошибкой с кодом 3. Результат подписок игнорируется.
-   * @fires cart:core-cart-set-modifier-count-reject-no-modifier-in-dish - вызывается перед ошибкой с кодом 4. Результат подписок игнорируется.
-   * @fires cart:core-cart-after-set-modifier-count - вызывается после успешной работы функции. Результат подписок игнорируется.
-   */
-  setModifierCount(dish: CartDish, modifier: Dish, amount: number): Promise<void>;
-
-  /**
-   * Меняет комментарий заданного блюда в текущей корзине
-   * @param dish - какому блюду менять комментарий
-   * @param comment - новый комментарий
-   * @throws Object {
-   *   body: string,
-   *   error: number
-   * }
-   * where codes:
-   * 1 - блюдо dish не найдено в текущей корзине
-   * @fires cart:core-cart-before-set-comment - вызывается перед началом фунции. Результат подписок игнорируется.
-   * @fires cart:core-cart-set-comment-reject-no-cartdish - вызывается перед ошибкой о том, что блюдо не найдено. Результат подписок игнорируется.
-   * @fires cart:core-cart-after-set-comment - вызывается после успешной работы функции. Результат подписок игнорируется.
-   */
-  setComment(dish: CartDish, comment: string): Promise<void>;
-
-  /**
-   * Меняет поле корзины selfService на заданное. Используйте только этот метод для изменения параметра selfService.
-   * @param selfService
-   */
-  setSelfService(selfService: boolean): Promise<void>;
-
-  /**
-   * Проверяет ваидность customer. Проверка проходит на наличие полей и их валидность соответсвенно nameRegex и phoneRegex
-   * из конфига. Если указан isSelfService: false, то так же проверяется валидность address на наличие полей и вызывается
-   * `core-cart-check` событие. Каждый подписанный елемент влияет на результат проверки. В зависимости от настроек функция
-   * отдаёт успешность проверки.
-   * @param customer - данные заказчика
-   * @param isSelfService - является ли самовывозов
-   * @param address - адресс, обязательный, если это самовывоз
-   * @return Результат проверки. Если проверка данных заказчика или адресса в случае самомвывоза дали ошибку, то false. Иначе,
-   * если в конфиге checkConfig.requireAll==true, то успех функции только в случае, если все подписки `core-cart-check` вернули положительный результат работы.
-   * Если в конфгие checkConfig.notRequired==true, то независимо от результата всех подписчиков `core-cart-check` будет положительный ответ.
-   * Иначе если хотя бы один подписчик `core-cart-check` ответил успешно, то вся функция считается успешной.
-   * Если результат был успешен, то корзина переходит из состояния CART в CHECKOUT.
-   * @fires cart:core-cart-before-check - вызывается перед началом функции. Результат подписок игнорируется.
-   * @fires cart:core-cart-check-self-service - вызывается если isSelfService==true перед начало логики изменения корзины. Результат подписок игнорируется.
-   * @fires cart:core-cart-check-delivery - вызывается после проверки customer если isSelfService==false. Результат подписок игнорируется.
-   * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
-   * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
-   */
-  check(customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethod?: string): Promise<boolean>;
-
-  /**
-   * Вызывет core-cart-order. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
-   * отдаёт успешность заказа.
-   * @return код результата:
-   *  - 0 - успешно проведённый заказ от всех слушателей.
-   *  - 1 - ни один слушатель не смог успешно сделать заказ.
-   *  - 2 - по крайней мере один слушатель успешно выполнил заказ.
-   * @fires cart:core-cart-before-order - вызывается перед началом функции. Результат подписок игнорируется.
-   * @fires cart:core-cart-order-self-service - вызывается, если совершается заказ с самовывозом.
-   * @fires cart:core-cart-order-delivery - вызывается, если заказ без самовывоза
-   * @fires cart:core-cart-order - событие заказа. Каждый слушатель этого события влияет на результат события.
-   * @fires cart:core-cart-after-order - вызывается сразу после попытки оформить заказ.
-   */
-  order(): Promise<number>;
-
-   /**
-   * Создает платежный документ от модели Cart.
-   * @return код результата:
-   *  - 0 - успешно создан платежный документ
-   *  - 1 - во время создания платежного документа произошла ошибка валидации
-   *  - 2 -
-   * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
-   * @fires cart:core-cart-external-payment - вызывается, если совершается внешняя оплата
-   * @fires cart:core-cart-internal-payment - вызывается, если совершается внутренняя оплата
-   * @fires cart:core-cart-payment - событие оплаты. Каждый слушатель этого события влияет на результат события.
-   * @fires cart:core-cart-after-order - вызывается сразу после попытки провести оплату.
-   */
-  payment(): Promise<PaymentResponse>;
-
-
-   /**
-   * Возвращает paymentMethodId текущей корзины
-   * @param cart
-   * @return paymentMethodId
-   */
-  paymentMethodId(cart?: Cart): Promise<string>
-
-  /**
-   * Попытка переключить state корзины
-   * @param state Новый стейт
-   */
-  next(state?: string): Promise<void>
-
-  /**
-   * Вернет стейт корзны
-   */
-  getState(): string
 }
+
+
+let cartCollection = {
+  //@ts-ignore
+  primaryKey: 'id',
+  attributes: {
+    id: {
+      type: 'string',
+      defaultsTo: function (){ return uuid(); 
+      }
+    },
+    cartId: 'string',
+    shortId:{
+      type: 'string',
+      defaultsTo: function (){ return this.id.substr(this.id.length - 8).toUpperCase() },
+    },
+    dishes: {
+      collection: 'CartDish',
+      via: 'cart'
+    },
+    discount: 'json',
+    paymentMethod: {
+      model: 'PaymentMethod',
+      via: 'id'
+    },
+    paymentMethodTitle: 'string',
+    paid: {
+      type: 'boolean',
+      defaultsTo: false
+    },
+    isPaymentPromise: {
+      type: 'boolean',
+      defaultsTo: true
+    },
+    dishesCount: 'number',
+    uniqueDishes: 'number',
+    modifiers: 'json', //maybe dont needed here
+    customer: 'json',
+    address: 'json',
+    comment: 'string',
+    personsCount: 'string',
+    //@ts-ignore Я думаю там гдето типизация для даты на ватерлайн типизации
+    date: 'string',
+    problem: {
+      type: 'boolean',
+      defaultsTo: false
+    },
+    rmsDelivered: {
+      type: 'boolean',
+      defaultsTo: false
+    },
+    rmsId: 'string',
+    rmsOrderNumber: 'string',
+    rmsOrderData: 'json',
+    rmsDeliveryDate: 'string',
+    rmsErrorMessage: 'string',
+    rmsErrorCode: 'string',
+    rmsStatusCode: 'string',
+    deliveryStatus: 'string',
+    selfService: {
+      type: 'boolean',
+      defaultsTo: false
+    },
+    deliveryDescription: {
+      type: 'string',
+      defaultsTo: ""
+    },
+    message: 'string', // deprecated
+    deliveryItem: {
+      model: 'Dish'
+    },
+    deliveryCost: {
+      type: 'number',
+      defaultsTo: 0
+    }, // rename to deliveryCost
+    totalWeight: {
+      type: 'number',
+      defaultsTo: 0
+    },
+    total: {
+      type: 'number',
+      defaultsTo: 0
+    }, // total = cartTotal
+    orderTotal: {
+      type: 'number',
+      defaultsTo: 0
+    }, // orderTotal = total + deliveryCost - discountTotal - bonusesTotal
+    cartTotal: {
+      type: 'number',
+      defaultsTo: 0
+    },
+    discountTotal: {
+      type: 'number',
+      defaultsTo: 0
+    },
+    orderDate: 'string',
+    customData: 'json'
+  },
+  ...cartModel
+} as  Waterline.Collection
+
+module.exports = cartCollection; // Waterline model export
+
+
+declare global { // Typescript export
+  const Cart: typeof cartModel & ORMModel<Cart>;
+}
+
+/////////////////////////////////////////////////////////////////
 
 
 async function checkCustomerInfo(customer) {
@@ -1015,14 +822,3 @@ async function getOrderDateLimit(): Promise<string>  {
   }
   return moment().add(periodPossibleForOrder, 'minutes').format("YYYY-MM-DD HH:mm:ss");
 }
-
-// JavaScript merge cart model
-//cartCollection.attributes = _.merge(cartCollection.attributes, cartInstance);
-const finalModel = _.merge(cartCollection, cartModel);
-module.exports = finalModel;
-
-declare global {
-  const Cart: CartModel;
-}
-
-

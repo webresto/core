@@ -1,10 +1,11 @@
 import { expect } from "chai";
 import getEmitter from "../../../libs/getEmitter";
-import Cart from "../../../models/Cart";
+// import {Settings} from "../../../models/Settings"
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
 import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
 import Settings from '../../../models/Settings'
+import { settings } from "cluster";
 describe('Cart.check()', function(){
     this.timeout(10000);
     let cart: Cart;
@@ -21,11 +22,12 @@ describe('Cart.check()', function(){
     }
 
     it('new cart', async function(){
+        Cart.doPaid()
+        
         cart = await Cart.create({});
         // console.log('>>> Blank cart ------\n', cart);
     });
     
-
     
     describe('check Customer', function(){
         // let cart: Cart;
@@ -34,6 +36,7 @@ describe('Cart.check()', function(){
         // });
         it('good customer', async function(){
             cart = await Cart.create({});
+            
             let customer: Customer = {
                 phone: '+79998881212',
                 name: 'Freeman Morgan'
