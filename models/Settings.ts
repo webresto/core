@@ -32,6 +32,7 @@ let SettingsCollection = {
 type Settings = typeof SettingsCollection & ORM
 
 let Model  =  {  
+  /** retrun setting value by key */
   async use(config: string, key: string): Promise<Settings> {
     sails.log.silly("CORE > Settings > use: ", key, config);
     if (!key) {
@@ -79,8 +80,6 @@ let Model  =  {
   /**
    * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
    * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
-   * @param values
-   * @return обновлённое или созданное блюдо
    */
   async set(key: string, value: string, config?: string): Promise<any> {
     try {

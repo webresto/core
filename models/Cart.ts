@@ -1,9 +1,7 @@
-import * as Waterline from "waterline";
 import { Modifier, GroupModifier } from "../interfaces/Modifier";
 import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import CartDish from "./CartDish";
-import checkExpression from "../libs/checkExpression";
 import PaymentDocument from "./PaymentDocument";
 import actions from "../libs/actions";
 import getEmitter from "../libs/getEmitter";
@@ -147,7 +145,7 @@ let Attributes = {
   customData: "json" as any,
 };
 
-type Cart = typeof Attributes
+type Cart = typeof Attributes & ORM
 export default Cart
 
 
