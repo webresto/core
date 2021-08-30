@@ -4,8 +4,8 @@
  * @apiDescription Модель блюда в корзине. Содержит информацию о количестве данного блюда в коризне и его модификаторы
  *
  * @apiParam {Integer} id ID данного блюда в корзине. Все операции с блюдом в корзине проводить с этим ID
- * @apiParam {Integer} amount Количество данного блюда с его модификаторами в корзине
- * @apiParam {[Dish](#api-Models-ApiDish)} dish Само блюдо, которое содержится в корзине
+ * @apiParam {Integer} amount 
+ * @apiParam {[Dish](#api-Models-ApiDish)} dish 
  * @apiParam {JSON} modifiers Модификаторы для текущего блюда
  * @apiParam {[Cart](#api-Models-ApiCart)} cart Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии
  * @apiParam {[CartDish](#api-Models-ApiCartdish)} parent Родительское блюдо (для модификаторов)
@@ -23,61 +23,76 @@
  */
 
 import ORM from "../interfaces/ORM";
-import Dish from "../models/Dish";
-import {Modifier} from "../interfaces/Modifier";
 import ORMModel from "../interfaces/ORMModel";
+import Dish from "../models/Dish";
+import Cart from "../models/Cart";
+import { Modifier } from "../interfaces/Modifier";
 
-module.exports = {
-  primaryKey: 'id',
-  attributes: {
-    id: {
-      type: 'number',
-      autoIncrement: true
-    },
-    amount: 'number',
-    dish: { // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
-      model: 'Dish'
-    },
-    modifiers: 'json',
-    cart: {
-      model: 'Cart'
-    },
-    discount: 'json',
-    uniqueItems: 'number',
-    itemTotal: 'number',
-    discountTotal: 'number',
-    comment: 'string',
-    addedBy: {
-      type: 'string',
-      defaultsTo: 'user'
-    },
-    weight: 'number',
-    totalWeight: 'number'
-  }
+let attributes = {
+  /** */
+  id: {
+    type: "number",
+    autoIncrement: true,
+  } as unknown as string,
+
+  /** Количество данного блюда с его модификаторами в корзине */
+  amount: "number" as unknown as number,
+
+  // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
+  // Есть идея что нужно отдельно запекать заказы.
+
+  /**Само блюдо, которое содержится в корзине */
+  dish: {
+    model: "Dish",
+  } as unknown as Association<Dish>,
+
+  /** Модификаторы для текущего блюда */
+  modifiers: "json" as unknown as Modifier[],
+
+  /** */
+  cart: {
+    model: "Cart",
+  } as unknown as Association<Cart>,
+
+  /** Количество уникальных блюд в корзине */
+  uniqueItems: "number" as unknown as number,
+
+  /** Всего количество блюд */
+  itemTotal: "number" as unknown as number,
+
+  /** Скидка */
+  discount: "json" as unknown as any,
+
+  /**Общая сумма скидки */
+  discountTotal: "number" as unknown as number,
+
+  /** Коментарий к корзине */
+  comment: "string" as unknown as number,
+
+  /** Метка кто добавил */
+  addedBy: {
+    type: "string",
+    defaultsTo: "user",
+  } as unknown as string,
+
+  /** Вес */
+  weight: "number" as unknown as number,
+
+  /** Полный вес */
+  totalWeight: "number" as unknown as number,
 };
 
-/**
- * Описывает екзмепляр CartDish, то есть блюда в корзине, имеет связь с корзиной, внутри которой находится и с блюдом,
- * которое описывает
- */
-export default interface CartDish extends ORM {
-  id: string;
-  amount: number;
-  dish: Dish;
-  modifiers: Modifier[];
-  uniqueItems: number;
-  itemTotal: number;
-  weight: number;
-  totalWeight: number;
-  comment: string;
-  addedBy?: string;
-}
+type CartDish = typeof attributes & ORM;
+export default CartDish;
 
-/**
- * Описывает класс CartDish, используется для ORM
- */
-export interface CartDishModel extends ORMModel<CartDish> {}
+let Model = {};
+
+module.exports = {
+  primaryKey: "id",
+  attributes: attributes,
+  ...Model,
+};
 
 declare global {
-  const CartDish: CartDishModel;
+  const CartDish: typeof Model & ORMModel<CartDish>;
 }

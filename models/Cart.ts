@@ -14,7 +14,7 @@ import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
 
 
-let Attributes = {
+let attributes = {
   /** Id  */
   id: {
     type: "string",
@@ -145,7 +145,7 @@ let Attributes = {
   customData: "json" as any,
 };
 
-type Cart = typeof Attributes & ORM
+type Cart = typeof attributes & ORM
 export default Cart
 
 
@@ -883,7 +883,7 @@ let Model = {
 // Waterline model export
 module.exports  = {
   primaryKey: "id",
-  attributes: Attributes,
+  attributes: attributes,
   ...Model,
 }
 

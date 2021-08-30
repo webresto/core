@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 
-let SettingsCollection = {
+let attributes = {
 
   /**Id */
   id: {
@@ -29,8 +29,8 @@ let SettingsCollection = {
   from: "string" as string,
 }
 
-type Settings = typeof SettingsCollection & ORM
-
+type Settings = typeof attributes & ORM
+export default Settings
 let Model  =  {  
   /** retrun setting value by key */
   async use(config: string, key: string): Promise<Settings> {
@@ -101,7 +101,7 @@ let Model  =  {
 
 module.exports = {
   primaryKey: "id",
-  attributes: SettingsCollection,
+  attributes: attributes,
   ...Model
 }
 

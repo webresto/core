@@ -3,6 +3,7 @@ import Config from "../interfaces/Config";
 
 type sailsConfig = typeof sails.config;
 
+// TODO to sails1x 
 interface A<T> extends Array<T> {
   add(id: any): void;
   remove(id: any): void;
