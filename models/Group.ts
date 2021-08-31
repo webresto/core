@@ -235,7 +235,7 @@ export default interface Group extends ORM, AdditionalInfo {
   parentGroup: Group;
   name: string;
   tags: {name: string}[];
-  images: Association<Image>;
+  images: Image;
   isDeleted: boolean;
 
   code: number // TODO change ro string + same in dish

@@ -27,7 +27,7 @@ export default interface Cart extends ORM {
     cartId: string;
     state: string;
     shortId: string;
-    dishes: Association<CartDish>;
+    dishes: CartDish;
     paymentMethod: string;
     paymentMethodTitle: string;
     paid: boolean;

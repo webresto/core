@@ -26,7 +26,7 @@ import ORM from "../interfaces/ORM";
 export default interface Image extends ORM {
     id: string;
     images: any;
-    dish?: Association<Dish>;
+    dish?: Dish;
     group?: Association<Group>;
     uploadDate: string;
 }

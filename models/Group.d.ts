@@ -61,7 +61,7 @@ export default interface Group extends ORM, AdditionalInfo {
     tags: {
         name: string;
     }[];
-    images: Association<Image>;
+    images: Image;
     isDeleted: boolean;
     code: number;
     description: string;

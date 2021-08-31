@@ -37,14 +37,14 @@ let attributes = {
   dishes: {
     collection: "CartDish",
     via: "cart",
-  } as unknown as Association<CartDish>,
+  } as unknown as CartDish,
 
   /** */
   discount: "json" as any,
   paymentMethod: {
     model: "PaymentMethod",
     via: "id",
-  } as unknown as Association<PaymentMethod>,
+  } as unknown as PaymentMethod,
 
   /** */
   paymentMethodTitle: "string",
@@ -105,7 +105,7 @@ let attributes = {
   
   deliveryItem: {
     model: "Dish",
-  } as unknown as Association<Dish>,
+  } as unknown as Dish,
 
   deliveryCost: {
     type: "number",
@@ -823,7 +823,7 @@ let Model = {
 
     const resultCartDishes = (await CartDish.find({
       cart: cart.id,
-    })) as Association<CartDish>;
+    })) as CartDish;
     cart.dishes = resultCartDishes;
 
     await Cart.update({ id: cart.id }, cart);

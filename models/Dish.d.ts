@@ -80,7 +80,7 @@ export default interface Dish extends ORM, AdditionalInfo {
     weight: number;
     price: number;
     order: number;
-    images: Association<Image>;
+    images: Image;
     name: string;
     composition: string;
     hash: number;
