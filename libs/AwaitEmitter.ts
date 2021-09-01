@@ -78,7 +78,7 @@ export default class AwaitEmitter {
       try {
 
         if (sails.config.logs.level === 'silly'){
-          let debugRay =  new Date();
+          let debugRay = "ROUND: "+Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
           args = args.map((arg) => {
             return new Proxy(arg, {
               set: function (target, key, value) {
