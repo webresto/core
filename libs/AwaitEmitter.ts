@@ -1,5 +1,6 @@
-const sleep = require('util').promisify(setTimeout);
+let emitter: AwaitEmitter;
 
+const sleep = require('util').promisify(setTimeout);
 type func = (...args: any) => any | Promise<any>;
 
 /**
@@ -17,6 +18,7 @@ export default class AwaitEmitter {
    * @param timeout - указывает сколько милисекунд ожидать функции, которые возвращают Promise.
    */
   constructor(name: string, timeout?: number) {
+    if (emitter) throw "singleton: please use getEmitter method"
     this.name = name;
     this.timeout = timeout || 1000;
     this.events = [];
@@ -71,10 +73,29 @@ export default class AwaitEmitter {
 
     const res: Response[] = [];
 
-    // Выполняем все подписавщиеся функции f
+
     const executor = event.fns.map(f => async function () {
       try {
-        console.log(args);
+
+        if (sails.config.logs.level === 'silly'){
+          let debugRay =  new Date();
+          args = args.map((arg) => {
+            return new Proxy(arg, {
+              set: function (target, key, value) {
+                console.log(`From \x1b[40m\x1b[33m\x1b[5m ${f.label} \x1b[0m : ${debugRay}` );
+                console.log(`\x1b[33m${key} : ${JSON.stringify(value)} \x1b[0m`);
+
+                console.log("\x1b[32m"+"↷↷↷↷↷↷↷↷↷↷↷");
+                console.dir(target)
+                console.log("-------------------------------------------------------");
+
+                target[key] = value;
+                return true;
+              },
+            });
+          });
+        }
+
         const r = f.fn.apply(that, args);
         
         
@@ -82,7 +103,8 @@ export default class AwaitEmitter {
         if (!!r && (typeof r === 'object' || typeof r === 'function') && typeof r.then === 'function') { // from isPromise
           let timeoutEnd = false;
           let successEnd = false;
-
+          
+          // stop timer 
           const timeout = async function () {
             await sleep(that.timeout);
             if (!successEnd) {
@@ -90,6 +112,7 @@ export default class AwaitEmitter {
               res.push(new Response(f.label, null, null, true));
             }
           };
+
 
           const decorator = async function () {
             const now = new Date();
@@ -112,7 +135,11 @@ export default class AwaitEmitter {
 
         // Если функция не промис то выполняем ее сразу
         } else {
-          res.push(new Response(f.label, r));
+          try {
+            res.push(new Response(f.label, r));
+          } catch (error) {
+            res.push(new Response(f.label, null, e));
+          }
         }
       } catch (e) {
         res.push(new Response(f.label, null, e));
@@ -158,3 +185,15 @@ class Response {
     this.state = timeout ? 'timeout' : this.error ? 'error' : 'success';
   }
 }
+
+
+/**
+ * Получение эмиттера ядра
+ */
+ export function getEmitter(): AwaitEmitter {
+  if (!emitter) {
+    emitter = new AwaitEmitter('core', sails.config.restocore.awaitEmitterTimeout);
+  }
+  return emitter;
+}
+
