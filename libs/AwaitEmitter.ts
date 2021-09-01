@@ -71,12 +71,15 @@ export default class AwaitEmitter {
 
     const res: Response[] = [];
 
+    // Выполняем все подписавщиеся функции f
     const executor = event.fns.map(f => async function () {
       try {
+        console.log(args);
         const r = f.fn.apply(that, args);
         
-        // from isPromise
-        if (!!r && (typeof r === 'object' || typeof r === 'function') && typeof r.then === 'function') {
+        
+        // Если это промис, то ждем
+        if (!!r && (typeof r === 'object' || typeof r === 'function') && typeof r.then === 'function') { // from isPromise
           let timeoutEnd = false;
           let successEnd = false;
 
@@ -106,6 +109,8 @@ export default class AwaitEmitter {
           };
 
           await Promise.race([timeout(), decorator()]);
+
+        // Если функция не промис то выполняем ее сразу
         } else {
           res.push(new Response(f.label, r));
         }
