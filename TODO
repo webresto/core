@@ -11,3 +11,5 @@ https://github.com/building5/sails-db-migrate
 9. System allerts, notify array
 10. RMS-adapter managment from core
 11. adapter for causes, import params, 
+12. separate silly logs, splitted by day 
+13. Debug mode for AwaitEmmiter 
