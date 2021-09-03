@@ -23,4 +23,5 @@ lib-cov
 nbproject
 dump.rdb
 *.js.map
-pnpm-lock.yaml
+pnpm-*
+coverage
