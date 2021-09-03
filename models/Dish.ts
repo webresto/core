@@ -1,68 +1,3 @@
-/**
- * @api {API} Dish Dish
- * @apiGroup Models
- * @apiDescription Модель блюда
- *
- * @apiParam {String} id Уникальный идентификатор
- * @apiParam {String} additionalInfo Дополнительная информация
- * @apiParamExample {JSON} additionalInfo
- * {
- *   workTime: [
- *    {
- *     dayOfWeek: 'monday',
- *     start: '8:00',
- *     end: '18:00'
- *    },
- *   ],
- *   visible: true|false,
- *   promo: true|false,
- *   modifier: true|false
- * }
- * @apiParam {String} code Артикул
- * @apiParam {String} description Описание
- * @apiParam {String} name Название
- * @apiParam {String} seoDescription SEO-описание для клиента
- * @apiParam {String} seoKeywords SEO-ключевые слова
- * @apiParam {String} seoText SEO-текст для роботов
- * @apiParam {String} seoTitle SEO-заголовок
- * @apiParam {Float} carbohydrateAmount Количество углеводов на 100 г блюда
- * @apiParam {Float} carbohydrateFullAmount Количество углеводов в блюде
- * @apiParam {Array} differentPricesOn Список терминалов, на которых цена продукта отличается от стандартной и цен на них
- * @apiParam {Boolean} doNotPrintInCheque Блюдо не нужно печатать на чеке. Актуально только для модификаторов
- * @apiParam {Float} energyAmount Энергетическая ценность на 100 г блюда
- * @apiParam {Float} energyFullAmount Энергетическая ценность в блюде
- * @apiParam {Float} fatAmount Количество жиров на 100 г блюда
- * @apiParam {Float} fatFullAmount Количество жиров в блюде
- * @apiParam {Float} fiberAmount Количество белков на 100 г блюда
- * @apiParam {Float} fiberFullAmount Количество белков в блюде
- * @apiParam {String} groupId Идентификатор группы
- * @apiParam {Array} groupModifiers Групповые модификаторы (не используется в пользу modifiers)
- * @apiParam {String} measureUnit Единица измерения товара ( кг, л, шт, порц.)
- * @apiParam {Float} price Цена
- * @apiParam {[Group](#api-Models-ApiGroup)} productCategoryId Идентификатор категории продукта
- * @apiParam {Array} prohibitedToSaleOn Список ID терминалов, на которых продукт запрещен к продаже
- * @apiParam {String} type Тип:
- dish - блюдо
- good - товар
- modifier - модификатор
- * @apiParam {Boolean} useBalanceForSell Товар продается на вес
- * @apiParam {Float} weight Вес одной единицы в кг
- * @apiParam {Boolean} isIncludedInMenu Нужно ли продукт отображать в дереве номенклатуры
- * @apiParam {Float} order Порядок отображения
- * @apiParam {Boolean} isDeleted Удалён ли продукт в меню, отдаваемого клиенту
- * @apiParam {JSON} modifiers Модификаторы доступные для данного блюда
- * @apiParam {[Group](#api-Models-ApiGroup)} parentGroup Группа, к которой принадлежит блюдо
- * @apiParam {JSON} tags Тэги
- * @apiParam {Integer} balance Количество оставшихся блюд. -1 - бесконечно
- * @apiParam {[Image](#api-Models-ApiImage)[]} images Картинки блюда
- * @apiParam {Integer} itemTotal
- * @apiParam {String} slug Текстовое названия блюда в транслите
- * @apiParam {Integer} hash Хеш данного состояния блюда
- * @apiParam {String} composition Состав блюда
- *
- */
-
-import {GroupModifier}  from "../interfaces/Modifier";
 import Group from "./Group";
 import checkExpression, {AdditionalInfo} from "../libs/checkExpression";
 import Image from "./Image";
@@ -94,149 +29,131 @@ let attributes = {
       allowNull: true
     } as unknown as string,
 
-    /** */
+    /** Артикул */
     code: {
       type: 'string',
       allowNull: true
     } as unknown as string,
 
-    /** */
+    /** Описание блюда */
     description: 'string',
 
-    /** */
+    /** Наименование */
     name: 'string',
 
-    /** */
+    /** SEO description */
     seoDescription: 'string',
 
-    /** */
+    /** SEO keywords */
     seoKeywords: 'string',
 
-    /** */
+    /** SEO text */
     seoText: 'string',
 
-    /** */
+    /** SEO title */
     seoTitle: 'string',
 
-    /** */
-    carbohydrateAmount: 'number' as unknown as number,
-
-    /** */
-    carbohydrateFullAmount: 'number' as unknown as number,
-
-    /** */
-    differentPricesOn: 'json' as unknown as any,
-
-    /** */
+    /** Не печатать в чеке */
     doNotPrintInCheque: 'boolean' as unknown as boolean,
 
-    /** */
+    /** Количество углеводов на (100гр)*/
+    carbohydrateAmount: 'number' as unknown as number,
+
+    /** Количество углеводов в блюде */
+    carbohydrateFullAmount: 'number' as unknown as number,
+
+    /** Енергетическая ценность (100гр) */
     energyAmount: 'number' as unknown as number,
 
-    /** */
+    /** Енергетическая ценность */
     energyFullAmount: 'number' as unknown as number,
 
-    /** */
+    /**  Колличество жиров (100гр) */
     fatAmount: 'number' as unknown as number,
 
-    /** */
+    /** Колличество жиров в блюде */
     fatFullAmount: 'number' as unknown as number,
 
-    /** */
+    /** Количество белков (100гр)  */
     fiberAmount: 'number' as unknown as number,
 
-    /** */
+    /** Количество белков в блюде */
     fiberFullAmount: 'number' as unknown as number,
 
-    /** */
+    /** Идентификатор группы в которой находится блюдо */
     groupId: 'string',
 
-    /** */
-    groupModifiers: 'json' as unknown as any,
-
-    /** */
+    /** Единица измерения товара ( кг, л, шт, порц.) */
     measureUnit: 'string',
 
-    /** */
+    /** Цена блюда */
     price: 'number' as unknown as number,
 
-    /** */
-    productCategoryId: 'string',
+    /**  */
+    productCategoryId: 'string', //TODO: ???
 
-    /** */
-    prohibitedToSaleOn: 'json' as unknown as any,
+    /** Тип */
+    type: 'string', //TODO: ???
 
-    /** */
-    type: 'string',
-
-    /** */
-    useBalanceForSell: 'boolean' as unknown as boolean,
-
-    /** */
+    /** Масса  */
     weight: 'number' as unknown as number,
 
-    /** */
-    isIncludedInMenu: 'boolean' as unknown as boolean,
-
-    /** */
+    /** Порядок сортировки */
     order: 'number' as unknown as number,
 
-    /** */
+    /** Блюдо удалено */
     isDeleted: 'boolean' as unknown as boolean,
 
-    /** */
+    /** Блюдо может быть модифичироанно */
     isModificable: 'boolean' as unknown as boolean,
 
-    /** */
+    /** Модифакторы блюда */
     modifiers: {
       // collection: 'dish'
       type: 'json'
     } as unknown as any,
 
-    /** */
+    /** Родительская группа */
     parentGroup: {
       model: 'group'
     } as unknown as Group,
 
-    /** */
+    /** Теги для фильтрации (Вегетарианский, острый...) */
     tags: {
       type: 'json'
     } as unknown as any,
 
-    /** */
+    /** Баланс для продажи, если -1 то сколько угодно */
     balance: {
       type: 'number',
       defaultsTo: -1
     }as unknown as number,
 
-    /** */
+    /** Список изображений блюда*/
     images: {
       collection: 'image',
       via: 'dish'
     }as unknown as Image,
 
-    /** */
+    /** Слаг */
     slug: {
       type: 'slug',
       from: 'name'
     } as unknown as string,
 
-    /** */
+    /** Хеш обекта блюда */
     hash: 'string',
 
-    /** */
-    composition: 'string',
-
-    /** */
+    /** Можно увидеть на сайте в меню */
     visible: 'boolean' as unknown as boolean,
 
-    /** */
+    /** Признак что это модификатор */
     modifier: 'boolean' as unknown as boolean,
 
-    /** */
+    /** Признак того что блюдо акционное */
     promo: 'boolean' as unknown as boolean,
-
-    /** */
+ 
+    /** Время работы */
     workTime: 'json' as unknown as WorkTime
   }
 
@@ -343,33 +260,6 @@ let Model = {
     }
   }
 };
-
-/**
- * Описывает блюдо
- */
-// export default interface Dish extends ORM, AdditionalInfo {
-
-//   id: string;
-//   additionalInfo: string;
-//   balance: number;
-//   isModificable:  boolean;
-//   modifiers: GroupModifier[];
-//   parentGroup: Group;
-//   weight: number;
-//   price: number;
-//   order: number;
-//   images: Image;
-//   name: string;
-//   composition: string;
-//   hash: number;
-//   rmsId: string;
-//   code: string;
-//   tags: {name: string}[];
-//   isDeleted: boolean;
-//   groupModifiers: GroupModifier[];
-// }
-
-
 
 
 module.exports = {
