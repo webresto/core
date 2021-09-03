@@ -71,85 +71,179 @@ import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import * as _ from "lodash";
+import { WorkTime } from "@webresto/worktime";
 
-module.exports = {
-  primaryKey: 'id',
-  attributes: {
+let attributes = {
+
+
+    /** */
     id: {
       type: 'string',
       required: true
-    },
+    } as unknown as string,
+
+    /** */
     rmsId: {
       type: 'string',
       required: true
-    },
+    } as unknown as string,
+
+    /** */
     additionalInfo: {
       type: 'string',
       allowNull: true
-    },
+    } as unknown as string,
+
+    /** */
     code: {
       type: 'string',
       allowNull: true
-    },
+    } as unknown as string,
+
+    /** */
     description: 'string',
+
+    /** */
     name: 'string',
+
+    /** */
     seoDescription: 'string',
+
+    /** */
     seoKeywords: 'string',
+
+    /** */
     seoText: 'string',
+
+    /** */
     seoTitle: 'string',
-    carbohydrateAmount: 'number',
-    carbohydrateFullAmount: 'number',
-    differentPricesOn: 'json',
-    doNotPrintInCheque: 'boolean',
-    energyAmount: 'number',
-    energyFullAmount: 'number',
-    fatAmount: 'number',
-    fatFullAmount: 'number',
-    fiberAmount: 'number',
-    fiberFullAmount: 'number',
+
+    /** */
+    carbohydrateAmount: 'number' as unknown as number,
+
+    /** */
+    carbohydrateFullAmount: 'number' as unknown as number,
+
+    /** */
+    differentPricesOn: 'json' as unknown as any,
+
+    /** */
+    doNotPrintInCheque: 'boolean' as unknown as boolean,
+
+    /** */
+    energyAmount: 'number' as unknown as number,
+
+    /** */
+    energyFullAmount: 'number' as unknown as number,
+
+    /** */
+    fatAmount: 'number' as unknown as number,
+
+    /** */
+    fatFullAmount: 'number' as unknown as number,
+
+    /** */
+    fiberAmount: 'number' as unknown as number,
+
+    /** */
+    fiberFullAmount: 'number' as unknown as number,
+
+    /** */
     groupId: 'string',
-    groupModifiers: 'json',
+
+    /** */
+    groupModifiers: 'json' as unknown as any,
+
+    /** */
     measureUnit: 'string',
-    price: 'number',
+
+    /** */
+    price: 'number' as unknown as number,
+
+    /** */
     productCategoryId: 'string',
-    prohibitedToSaleOn: 'json',
+
+    /** */
+    prohibitedToSaleOn: 'json' as unknown as any,
+
+    /** */
     type: 'string',
-    useBalanceForSell: 'boolean',
-    weight: 'number',
-    isIncludedInMenu: 'boolean',
-    order: 'number',
-    isDeleted: 'boolean',
-    isModificable: 'boolean',
+
+    /** */
+    useBalanceForSell: 'boolean' as unknown as boolean,
+
+    /** */
+    weight: 'number' as unknown as number,
+
+    /** */
+    isIncludedInMenu: 'boolean' as unknown as boolean,
+
+    /** */
+    order: 'number' as unknown as number,
+
+    /** */
+    isDeleted: 'boolean' as unknown as boolean,
+
+    /** */
+    isModificable: 'boolean' as unknown as boolean,
+
+    /** */
     modifiers: {
       // collection: 'dish'
       type: 'json'
-    },
+    } as unknown as any,
+
+    /** */
     parentGroup: {
       model: 'group'
-    },
+    } as unknown as Group,
+
+    /** */
     tags: {
       type: 'json'
-    },
+    } as unknown as any,
+
+    /** */
     balance: {
       type: 'number',
       defaultsTo: -1
-    },
+    }as unknown as number,
+
+    /** */
     images: {
       collection: 'image',
       via: 'dish'
-    },
+    }as unknown as Image,
+
+    /** */
     slug: {
       type: 'slug',
       from: 'name'
-    },
-    hash: 'string',
-    composition: 'string',
-    visible: 'boolean',
-    modifier: 'boolean',
-    promo: 'boolean',
-    workTime: 'json'
-  },
+    } as unknown as string,
 
+    /** */
+    hash: 'string',
+
+    /** */
+    composition: 'string',
+
+    /** */
+    visible: 'boolean' as unknown as boolean,
+
+    /** */
+    modifier: 'boolean' as unknown as boolean,
+
+    /** */
+    promo: 'boolean' as unknown as boolean,
+
+    /** */
+    workTime: 'json' as unknown as WorkTime
+  }
+
+type Dish = typeof attributes & ORM
+export default Dish
+
+let Model = {
   afterUpdate: function (record, proceed) {
     getEmitter().emit('core-dish-after-update', record);
     return proceed();
@@ -253,57 +347,37 @@ module.exports = {
 /**
  * Описывает блюдо
  */
-export default interface Dish extends ORM, AdditionalInfo {
+// export default interface Dish extends ORM, AdditionalInfo {
 
-  id: string;
-  additionalInfo: string;
-  balance: number;
-  isModificable:  boolean;
-  modifiers: GroupModifier[];
-  parentGroup: Group;
-  weight: number;
-  price: number;
-  order: number;
-  images: Image;
-  name: string;
-  composition: string;
-  hash: number;
-  rmsId: string;
-  code: string;
-  tags: {name: string}[];
-  isDeleted: boolean;
-  groupModifiers: GroupModifier[];
-}
+//   id: string;
+//   additionalInfo: string;
+//   balance: number;
+//   isModificable:  boolean;
+//   modifiers: GroupModifier[];
+//   parentGroup: Group;
+//   weight: number;
+//   price: number;
+//   order: number;
+//   images: Image;
+//   name: string;
+//   composition: string;
+//   hash: number;
+//   rmsId: string;
+//   code: string;
+//   tags: {name: string}[];
+//   isDeleted: boolean;
+//   groupModifiers: GroupModifier[];
+// }
 
-/**
- * Описывает класс Dish, содержит статические методы, используется для ORM
- */
-export interface DishModel extends ORMModel<Dish> {
-  /**
-   * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
-   * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.
-   * @param criteria - критерии поиска
-   * @return найденные блюда
-   */
-  getDishes(criteria): Promise<Dish[]>;
 
-  /**
-   * Популяризирует модификаторы блюда, то есть всем груповым модификаторам дописывает группу и блюда, которые им соответствуют,
-   * а обычным модификаторам дописывает их блюдо.
-   * @param dish
-   */
-  getDishModifiers(dish: Dish);
 
-  /**
-   * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
-   * хеш существующего блюда и новых данных, если они совпали, то сразу же отдаёт блюда, если нет, то обновляет его данные
-   * на новые
-   * @param values
-   * @return обновлённое или созданное блюдо
-   */
-  createOrUpdate(values: Dish): Promise<Dish>;
+
+module.exports = {
+  primaryKey: "id",
+  attributes: attributes,
+  ...Model
 }
 
 declare global {
-  const Dish: DishModel;
+  const Dish: typeof Model & ORMModel<Dish>;
 }
