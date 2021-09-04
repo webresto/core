@@ -5,6 +5,7 @@ type sailsConfig = typeof sails.config;
 
 declare global {
   interface Sails extends sails.Sails {
+    models: any;
     config: SailsConfig;
     log: any;
   }

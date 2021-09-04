@@ -1,33 +1,33 @@
-import ORMModel from "../interfaces/ORMModel";
-import ORM from "../interfaces/ORM";
+// import ORMModel from "../interfaces/ORMModel";
+// import ORM from "../interfaces/ORM";
 
-module.exports = {
-  primaryKey: "id",
-  attributes: {
-    id: {
-      type: "string",
-      required: true
+// module.exports = {
+//   primaryKey: "id",
+//   attributes: {
+//     id: {
+//       type: "string",
+//       required: true
 
-    },
-    isKitchen: 'boolean',
-    isPointOfSale: 'boolean',
-    isPickupPoint: 'boolean',
-    options: 'json'
-  },
-};
+//     },
+//     isKitchen: 'boolean',
+//     isPointOfSale: 'boolean',
+//     isPickupPoint: 'boolean',
+//     options: 'json'
+//   },
+// };
 
-/**
- * Описывает картинки блюд и групп
- */
-export default interface Place extends ORM {
-  id: string;
-}
+// /**
+//  * Описывает картинки блюд и групп
+//  */
+// export default interface Place extends ORM {
+//   id: string;
+// }
 
-/**
- * Описывает класс Image, используется для ORM
- */
-export interface PlaceModel extends ORMModel<Image> {}
+// /**
+//  * Описывает класс Image, используется для ORM
+//  */
+// export interface PlaceModel extends ORMModel<Image> {}
 
-declare global {
-  const Image: PlaceModel;
-}
+// declare global {
+//   const Image: PlaceModel;
+// }

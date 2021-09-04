@@ -5,7 +5,6 @@ import { PaymentResponse, Payment } from "../interfaces/Payment";
 import PaymentMethod from "../models/PaymentMethod";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import getEmitter from "../libs/getEmitter";
-import { NetworkInterfaceInfoIPv4 } from "os";
 
 /** На примере корзины (Cart):
  * 1. Модель проводящяя оплату internal/external (например: Cart) создает PaymentDocument
@@ -42,42 +41,68 @@ import { NetworkInterfaceInfoIPv4 } from "os";
   REFUND - по транзакции была проведена операция возврата;
   DECLINE - авторизация отклонена.
 */
-type Status = "NEW" | "REGISTRED" | "PAID" | "CANCEL" | "REFUND" | "DECLINE";
+
+enum Status {
+  "NEW" , "REGISTRED" , "PAID" , "CANCEL" ,  "REFUND" , "DECLINE"
+} 
 
 let payment_processor_interval: ReturnType<typeof setInterval>;
 
-module.exports = {
-  primaryKey: "id",
-  attributes: {
-    id: {
-      type: "string",
-      required: true
+let attributes = {
 
-      defaultsTo: function (){ return uuid();}
-    },
-    paymentId: "string",
-    externalId: "string",
-    originModel: "string",
-    paymentMethod: {
-      model: "PaymentMethod",
-    },
-    amount: "number",
-    paid: {
-      type: "boolean",
-      defaultsTo: false
-    },
-    status: {
-      type: "string",
-      enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
-      defaultsTo: 'NEW'
-    },
-    comment: "string",
-    redirectLink: "string",
-    error: "string",
-  },
-  doPaid: async function (): Promise<PaymentDocument> {
-    const self: PaymentDocument = this;
+  /** Уникальный id в моделе PaymentDocument */
+  id: {
+    type: "string",
+    required: true,
+    defaultsTo: function (){ return uuid();}
+  } as unknown as string,
 
+/** соответсвует id из модели originModel */
+  paymentId: "string",
+
+  /** ID во внешней системе */
+  externalId: "string",
+
+  /** Модель из которой делается платеж */
+  originModel: "string",
+
+   /** Платежный метод */
+  paymentMethod: {
+    model: "PaymentMethod",
+  } as unknown as PaymentMethod,
+
+  /** Сумма к оплате */
+  amount: "number" as unknown as number,
+
+/** Флаг установлен что оплата произведена */
+  paid: {
+    type: "boolean",
+    defaultsTo: false
+  } as unknown as boolean,
+
+
+  /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
+  status: {
+    type: "string",
+    enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
+    defaultsTo: 'NEW'
+  } as unknown as Status,
+
+  /** Комментари для платежной системы */
+  comment: "string",
+
+  /** ВЕРОЯТНО ТУТ ЭТО НЕ НУЖНО */
+  redirectLink: "string",
+
+/** Текст ошибки */
+  error: "string",
+}
+
+type PaymentDocument = typeof attributes & ORM
+export default PaymentDocument
+let Model  =  {  
+  doPaid: async function (criteria: any): Promise<PaymentDocument> {
+    const self: PaymentDocument = await PaymentDocument.findOne(criteria);
     if (self.status === "PAID" && self.paid !== true) {
       self.status = "PAID";
       self.paid = true;
@@ -86,8 +111,8 @@ module.exports = {
     }
     return self;
   },
-  doCheck: async function (): Promise<PaymentDocument> {
-    const self: PaymentDocument = this;
+  doCheck: async function (criteria: any): Promise<PaymentDocument> {
+    const self: PaymentDocument = await PaymentDocument.findOne(criteria);
     getEmitter().emit("core-payment-document-check", self);
     try {
       let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(
@@ -115,7 +140,6 @@ module.exports = {
       sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
     }
   },
-
   register: async function (
     paymentId: string,
     originModel: string,
@@ -191,7 +215,7 @@ module.exports = {
       };
     }
   },
-  afterUpdate: async function (values: PaymentDocument, next) {
+  afterUpdate: async function (values: PaymentDocument, next: any) {
     sails.log.silly("PaymentDocument > afterUpdate > ", JSON.stringify(values));
     if (values.paid && values.status === "PAID") {
       try {
@@ -241,8 +265,24 @@ module.exports = {
         }
       }
     }, timeout || 120000));
-  },
-};
+  }
+} 
+
+module.exports = {
+  primaryKey: "id",
+  attributes: attributes,
+  ...Model
+}
+
+declare global {
+  const PaymentDocument: typeof Model & ORMModel<PaymentDocument>;
+}
+
+
+
+
+////////////////////////////// LOCAL
+
 
 async function checkOrigin(originModel: string, paymentId: string) {
   //@ts-ignore
@@ -277,106 +317,4 @@ async function checkPaymentMethod(paymentMethodId) {
       error: "paymentAdapter not available",
     };
   }
-}
-
-/**
- * Описывает модель "Платежный документ"
- */
-export default interface PaymentDocument extends ORM {
-  /** Уникальный id в моделе PaymentDocument */
-  id?: string;
-
-  /** соответсвует id из модели originModel */
-  paymentId: string;
-
-  /** ID во внешней системе */
-  externalId?: string;
-
-  /** Модель из которой делается платеж */
-  originModel: string;
-
-  /** Платежный метод */
-  paymentMethod: string;
-
-  /** Сумма к оплате */
-  amount: number;
-
-  /** Признак того что платеж совершается из модели корзины */
-  isCartPayment?: boolean;
-
-  /** Флаг установлен что оплата произведена */
-  paid?: boolean;
-
-  /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
-  status?: Status;
-
-  /** Комментари для платежной системы */
-  comment?: string;
-
-  /**Ошибка во время платежа */
-  error?: string;
-
-  /**
-   * Проводит оплату по платежного документу
-   * @param payment - Платежный документ
-   */
-  doPaid(): Promise<PaymentDocument>;
-
-  /**
-   * Проверяет оплату
-   * @param payment - Платежный документ
-   */
-  doCheck(): Promise<PaymentDocument>;
-}
-
-/**
- * Описывает класс PaymentDocument, используется для ORM
- */
-export interface PaymentDocumentModel extends ORMModel<PaymentDocument> {
-  /**
-   * Регистрирует новый платежный документ
-   * @param paymentId - UUID Идентификатор соответсвующий записи в моделе из originModel
-   * @param originModel - Модель в которой иницировалась оплата
-   * @param amount -  Сумма платежа
-   * @param paymentMethodId - Адаптер платежей
-   * @param backLinkSuccess - Сслыка для возврата успешная
-   * @param backLinkFail - Сслыка для возврата не успешная
-   * @param comment - Комментарий
-   * @throws Object {
-   *   body: string,
-   *   error: number
-   * }
-   * where codes:
-   * 1 - некорректный paymentId или originModel
-   * 2 - amount не указан или плохой тип
-   * 4 - paymentAdapter не существует или недоступен
-   * 5 - произошла ошибка в выбранном paymentAdapter
-   * 6 - произошла ошибка при создании платежного документа
-   * @fires paymentdocument:core-payment-document-before-create - вызывается перед началом фунции. Результат подписок игнорируется.
-   * @fires paymentdocument:core-payment-document-created - вызывается когда документ был создан. Результат подписок игнорируется.
-   * @fires paymentdocument:core-payment-before-exec - вызывается перед выполнением оплаты. Результат подписок ожидается.
-   * @fires paymentdocument:core-payment-document-redirect-link - вызывается после получения ссылки для редиректа. Результат подписок игнорируется.
-   */
-  register(
-    paymentId: string,
-    originModel: string,
-    amount: number,
-    paymentMethodId: string,
-    backLinkSuccess: string,
-    backLinkFail: string,
-    comment: string,
-    data: any
-  ): Promise<PaymentResponse>;
-
-  /**
-   * Возврашает статус платежа
-   */
-  status(paymentId: string): Promise<string>;
-
-  /** Цикл проверки платежей */
-  processor(timeout: number);
-}
-
-declare global {
-  const PaymentDocument: PaymentDocumentModel;
 }

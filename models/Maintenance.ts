@@ -2,6 +2,7 @@ import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from 'uuid';
 import getEmitter from "../libs/getEmitter";
+import { WorkTime } from "@webresto/worktime";
 
 const CHECK_INTERVAL = 60000;
 
@@ -16,74 +17,78 @@ sails.on('lifted', function () {
   }, CHECK_INTERVAL)
 });
 
-module.exports = {
-  primaryKey: 'id',
-  attributes: {
-    id: {
-      type: 'string',
-      required: true
 
-    },
-    title: 'string',
-    description: 'string',
-    enable: {
-      type: 'boolean',
-      defaultsTo: true
-    },
-    startDate: 'string',
-    stopDate: 'string'
-  },
-  beforeCreate: function (paymentMethod, next) {
-    paymentMethod.id = uuid();
-    next();
-  },
+let attributes = {
+  /** id */
+  id: {
+    type: 'string',
+    required: true
 
-  siteIsOff: async function(){
-    const maintenances = await Maintenance.getActiveMaintenance();
-    return maintenances ? true : false;
-  },
+  } as unknown as string,
+  /** title of maintenance */
+  title: 'string',
 
-  getActiveMaintenance: async function() {
-    let maintenances = await Maintenance.find({enable: true});
+  /** description of maintenance (maybe HTML) */
+  description: 'string',
 
-    maintenances = maintenances.filter(s => {
-      let start: number, stop: number;
-      if (s.startDate){
-        start = s.startDate.getTime();
-      }
-      if (s.stopDate){
-        stop = s.stopDate.getTime();
-      }
-      const now = moment().valueOf();
-      return between(start, stop, now);
-    });
-
-    return maintenances[0];
-  }
-};
-
-/**
- * Описывает модель "работы на сайте"
- */
-export default interface Maintenance extends ORM {
-  id: number;
-  title: string;
-  description: string;
-  enable: boolean;
-  startDate: string;
-  stopDate: string;
+  /** is active flag */
+  enable: {
+    type: 'boolean',
+    defaultsTo: true
+  } as unknown as boolean,
+  worktime: "json" as unknown as WorkTime,
+  startDate: 'string',
+  stopDate: 'string'
 }
 
-/**
- * Описывает класс Maintenance, используется для ORM
- */
-export interface MaintenanceModel extends ORMModel<Maintenance> {}
+type Maintenance = typeof attributes & ORM
+export default Maintenance
+
+let Model  =  {  
+    beforeCreate: function (paymentMethod, next) {
+      paymentMethod.id = uuid();
+      next();
+    },
+
+    siteIsOff: async function(){
+      const maintenances = await Maintenance.getActiveMaintenance();
+      return maintenances ? true : false;
+    },
+
+
+    // TODO: add turnSiteOff method
+
+    getActiveMaintenance: async function() {
+      // TODO: here need add worktime support
+      let maintenances = await Maintenance.find({enable: true});
+
+      maintenances = maintenances.filter(s => {
+        let start: number, stop: number;
+        if (s.startDate){
+          start = s.startDate.getTime();
+        }
+        if (s.stopDate){
+          stop = s.stopDate.getTime();
+        }
+        const now = moment().valueOf();
+        return between(start, stop, now);
+      });
+
+      return maintenances[0];
+    }
+}
+
+module.exports = {
+  primaryKey: "id",
+  attributes: attributes,
+  ...Model
+}
 
 declare global {
-  const Maintenance: MaintenanceModel;
+  const Maintenance: typeof Model & ORMModel<Maintenance>;
 }
+
 
 function between(from: number, to: number, a: number): boolean {
   return ((!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a));
 }
-

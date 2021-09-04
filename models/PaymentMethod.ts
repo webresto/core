@@ -3,43 +3,57 @@ import ORM from "../interfaces/ORM";
 import { v4 as uuid } from 'uuid';
 var alivedPaymentMethods: {} = {};
 import PaymentAdapter from "../adapters/payment/PaymentAdapter"
-module.exports = {
-  primaryKey: 'id',
-  attributes: {
-    id: {
-      type: 'string',
-      required: true
 
-    },
-    title: 'string',
-    type: {
-      type: 'string',
-      enum: ['promise', 'external', 'internal', 'dummy'],
-      defaultsTo: 'promise',
-      required: true
-    },
-    adapter: {
-      type: 'string',
-      unique: true,
-      required: true
-    },
-    order: 'number',
-    description: 'string',
-    enable: {
-      type: 'boolean',
-      defaultsTo: true,
-      required: true
-    },
+enum PaymentMethodType {
+  'promise', 'external', 'internal', 'dummy'
+} 
+
+let attributes = {
+  /** ID платежного метода */
+  id: {
+    type: 'string',
+    required: true
+
   },
 
+  /** Название платежного метода */
+  title: 'string',
 
+  /**
+  * Типы платежей, internal - внутренние (когда не требуется запрос во внешнюю систему)
+  * external - Когда надо ожидать подтверждение платежа во внешней системе
+  * promise - Типы оплат при получении
+   */
+  type: {
+    type: 'string',
+    enum: [],
+    defaultsTo: 'promise',
+    required: true
+  } as unknown as PaymentMethodType,
+  adapter: {
+    type: 'string',
+    unique: true,
+    required: true
+  } as unknown as string,
+  order: 'number' as unknown as number,
+  description: 'string',
+  enable: {
+    type: 'boolean',
+    defaultsTo: true,
+    required: true
+  } as unknown as boolean,
+}
 
+type PaymentMethod = typeof attributes & ORM
+export default PaymentMethod
+let Model  =  {  
+  
       /**
      * Возвращает инстанс платежного адаптера по известному названию адаптера
      * @param  paymentMethodId
      * @return
      */
-    async getAdapter(adapter?: string): Promise<PaymentAdapter> {
+       async getAdapter(adapter?: string): Promise<PaymentAdapter> {
         var paymentMethod: PaymentMethod
         if (!adapter) {
           paymentMethod = this;
@@ -55,7 +69,7 @@ module.exports = {
         } else {
           return undefined
         }
-    }
+    },
 
   beforeCreate: function (paymentMethod, next) {
     paymentMethod.id = uuid();
@@ -170,83 +184,15 @@ module.exports = {
     } else {
       return undefined
     }
-  },
-};
+  }
+} 
 
-// /**
-//  * Типы платежей, internal - внутренние (когда не требуется запрос во внешнюю систему)
-//  * external - Когда надо ожидать подтверждение платежа во внешней системе
-//  * promise - Типы оплат при получении
-//  */
-// export enum PaymentType {
-//   internal="internal",
-//   external="external",
-//   promise="promise"
-//
-// }
-
-/**
- * Описывает модель "Способ оплаты"
- */
-export default interface PaymentMethod extends ORM, InitPaymentAdapter  {
-  id: string;
-  enable: boolean;
-  title: string;
-  type: string;
-  adapter: string;
-  order: number;
-  description: string;
-  /**
-  * Возврашает екземпляр платежного адаптера от this или по названию адаптера
-  */
-  getAdapter(adapter?: string): Promise<PaymentAdapter>;
-
-
-}
-
-/**
- * Описывает инит обеькт для регистрации "Способ оплаты"
- */
-export interface InitPaymentAdapter {
-  title: string;
-  type: string;
-  adapter: string;
-  description?: string;
-}
-
-/**
- * Описывает класс PaymentMethod, используется для ORM
- */
-export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
-  /**
-   * Выключает все
-   * @param paymentMethod - ключ
-   * @return .
-   */
-  alive(paymentMethod: PaymentAdapter): Promise<PaymentMethod[]>;
-
-  /**
-  * Возврашает доступные для оплаты платежные методы
-  */
-  getAvailable(): Promise<PaymentMethod[]>;
-
-  /**
-  * Проверяет платежную систему
-  */
-  checkAvailable(paymentMethodId: string): Promise<boolean>;
-
-  /**
-  * Возврашает екземпляр платежного адаптера по paymentMethodId
-  */
-
-  getAdapterById(paymentMethodId?: string)
-
-    /**
-  * Проверяет платежное обещание
-  */
- isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
+module.exports = {
+  primaryKey: "id",
+  attributes: attributes,
+  ...Model
 }
 
 declare global {
-  const PaymentMethod: PaymentMethodModel;
+  const PaymentMethod: typeof Model & ORMModel<PaymentMethod>;
 }
