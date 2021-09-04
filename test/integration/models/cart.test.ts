@@ -190,7 +190,7 @@ describe('Cart',function () {
     await Cart.addDish(cart.id,  dishes[2], 8, [], '', '');
     totalWeight = dishes[0].weight * 5 + dishes[1].weight * 3 + dishes[2].weight * 8;
     cart = await Cart.findOne(cart.id);
-    await Cart.countCart(cart.id,  cart);
+    await Cart.countCart(  cart);
     let changedCart = await Cart.findOne(cart.id);
 
     expect(changedCart.totalWeight).to.equal(totalWeight);

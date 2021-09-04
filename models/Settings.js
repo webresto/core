@@ -15,7 +15,7 @@ let attributes = {
     /** Описание */
     description: "string",
     /** Значение свойства */
-    value: "string",
+    value: "json",
     /** Секция, к которой относится свойство */
     section: "string",
     /** Источника происхождения */

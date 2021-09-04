@@ -20,6 +20,7 @@ declare let Model: {
      */
     setSelfService(criteria: any, selfService: boolean): Promise<void>;
     check(criteria: any, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<any>;
+    /** Оформление корзины */
     order(criteria: any): Promise<number>;
     payment(criteria: any): Promise<PaymentResponse>;
     paymentMethodId(criteria: any, cart?: any): Promise<string>;
@@ -27,7 +28,7 @@ declare let Model: {
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
      * @param cart
      */
-    countCart(criteria: any, cart: any): Promise<any>;
+    countCart(criteria: any): Promise<any>;
     doPaid(criteria: any, paymentDocument: PaymentDocument): Promise<void>;
 };
 declare global {

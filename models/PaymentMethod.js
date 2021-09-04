@@ -24,8 +24,7 @@ let attributes = {
      */
     type: {
         type: 'string',
-        enum: [],
-        defaultsTo: 'promise',
+        enum: ['internal', 'external', 'promise', 'dummy'],
         required: true
     },
     adapter: {
@@ -37,7 +36,6 @@ let attributes = {
     description: 'string',
     enable: {
         type: 'boolean',
-        defaultsTo: true,
         required: true
     },
 };

@@ -8,7 +8,7 @@ declare let attributes: {
     /** Описание */
     description: string;
     /** Значение свойства */
-    value: string;
+    value: any;
     /** Секция, к которой относится свойство */
     section: string;
     /** Источника происхождения */
@@ -23,7 +23,7 @@ declare let Model: {
      * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
      * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
      */
-    set(key: string, value: string, config?: string): Promise<any>;
+    set(key: string, value: any, config?: string): Promise<any>;
 };
 declare global {
     const Settings: typeof Model & ORMModel<Settings>;

@@ -9,8 +9,7 @@ import { WorkTime } from "@webresto/worktime";
 let attributes = {
   /**Id */
   id: {
-    type: "number",
-    autoIncrement: true,
+    type: "string"
   } as unknown as string,
 
   /** Addishinal info */

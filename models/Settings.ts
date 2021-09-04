@@ -20,7 +20,7 @@ let attributes = {
   description: "string" as string,
 
   /** Значение свойства */
-  value: "string",
+  value: "json" as unknown as any,
 
   /** Секция, к которой относится свойство */
   section: "string" as string,
@@ -81,7 +81,7 @@ let Model  =  {
    * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
    * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
    */
-  async set(key: string, value: string, config?: string): Promise<any> {
+  async set(key: string, value: any, config?: string): Promise<any> {
     try {
       const propety = await Settings.findOne({ key: key });
       if (!propety) {

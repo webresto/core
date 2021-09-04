@@ -5,8 +5,7 @@ const getEmitter_1 = require("../libs/getEmitter");
 let attributes = {
     /**Id */
     id: {
-        type: "number",
-        autoIncrement: true,
+        type: "string"
     },
     /** Addishinal info */
     additionalInfo: {

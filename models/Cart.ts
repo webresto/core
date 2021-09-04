@@ -255,7 +255,7 @@ let Model = {
     }
 
     await Cart.next(cart.id, "CART");
-    await Cart.countCart(cart.id, cart);
+    await Cart.countCart(cart);
     Cart.update({id: cart.id},cart).fetch();
     await emitter.emit.apply(emitter, [
       "core-cart-after-add-dish",
@@ -315,7 +315,7 @@ let Model = {
     }
 
     await Cart.next(cart.id, "CART");
-    await Cart.countCart(cart.id, cart);
+    await Cart.countCart(cart);
     Cart.update({id: cart.id},cart).fetch();
     await emitter.emit.apply(emitter, [
       "core-cart-after-remove-dish",
@@ -358,7 +358,7 @@ let Model = {
       }
 
       await Cart.next(cart.id, "CART");
-      await Cart.countCart(cart.id, cart);
+      await Cart.countCart(cart);
       Cart.update({id: cart.id},cart).fetch();
       await emitter.emit.apply(emitter, [
         "core-cart-after-set-count",
@@ -397,7 +397,7 @@ let Model = {
       await CartDish.update(cartDish.id, { comment: comment }).fetch();
 
       await Cart.next(cart.id, "CART");
-      await Cart.countCart(cart.id, cart);
+      await Cart.countCart(cart);
       Cart.update({id: cart.id},cart).fetch();
       await emitter.emit.apply(emitter, [
         "core-cart-after-set-comment",
@@ -434,7 +434,7 @@ let Model = {
     address?: Address,
     paymentMethodId?: string
   ): Promise<any> {
-    const cart: Cart = await Cart.countCart(cart.id, this);
+    const cart: Cart = await Cart.countCart( criteria);
 
     if (cart.state === "ORDER")
       throw "cart with cartId " + cart.id + "in state ORDER";
@@ -459,7 +459,7 @@ let Model = {
       isSelfService,
       address
     );
-    sails.log.debug(
+    sails.log.silly(
       "Cart > check > before check >",
       customer,
       isSelfService,
@@ -537,7 +537,7 @@ let Model = {
     );
     await Cart.update({id: cart.id}, cart).fetch().fetch();
     
-    sails.log.info("Cart > check > after wait general emitter", cart, results);
+    sails.log.silly("Cart > check > after wait general emitter", cart, results);
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
 
@@ -587,6 +587,8 @@ let Model = {
       };
     }
   },
+
+  /** Оформление корзины */
   async order(criteria: any): Promise<number> {
     const cart: Cart = await Cart.findOne(criteria);
 
@@ -611,7 +613,7 @@ let Model = {
     } else {
       getEmitter().emit("core-cart-order-delivery", cart);
     }
-    await Cart.countCart(cart.id, cart);
+    await Cart.countCart(cart);
     const results = await getEmitter().emit("core-cart-order", cart);
 
     sails.log.silly(
@@ -678,7 +680,7 @@ let Model = {
       backLinkFail: backLinkFail,
       comment: comment,
     };
-    await Cart.countCart(cart.id, cart);
+    await Cart.countCart(cart);
     await getEmitter().emit("core-cart-payment", cart, params);
     sails.log.info("Cart > payment > cart before register:", cart);
     try {
@@ -712,14 +714,15 @@ let Model = {
    * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
    * @param cart
    */
-  async countCart(criteria: any, cart: Cart) {
-    getEmitter().emit("core-cart-before-count", cart);
-
-    if (typeof cart === "string" || cart instanceof String) {
-      cart = await Cart.findOne({ id: cart });
+  async countCart(criteria: any) {
+    let cart: Cart
+    if (typeof criteria === "string" || criteria instanceof String) {
+      cart = await Cart.findOne(criteria);
     } else {
-      cart = await Cart.findOne({ id: cart.id });
+      cart = await Cart.findOne(criteria.id);
     }
+
+    getEmitter().emit("core-cart-before-count", cart);
 
     if (cart.state === "ORDER")
       throw "cart with cartId " + cart.id + "in state ORDER";
@@ -838,7 +841,7 @@ let Model = {
 
   async doPaid(criteria: any, paymentDocument: PaymentDocument) {
     let cart: Cart = await Cart.findOne(paymentDocument.paymentId);
-    Cart.countCart(cart.id, cart);
+    Cart.countCart(cart);
     try {
       let paymentMethodTitle = (
         await PaymentMethod.findOne(paymentDocument.paymentMethod)

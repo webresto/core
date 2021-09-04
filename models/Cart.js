@@ -192,7 +192,7 @@ let Model = {
             });
         }
         await Cart.next(cart.id, "CART");
-        await Cart.countCart(cart.id, cart);
+        await Cart.countCart(cart);
         Cart.update({ id: cart.id }, cart).fetch();
         await emitter.emit.apply(emitter, [
             "core-cart-after-add-dish",
@@ -242,7 +242,7 @@ let Model = {
             get.destroy();
         }
         await Cart.next(cart.id, "CART");
-        await Cart.countCart(cart.id, cart);
+        await Cart.countCart(cart);
         Cart.update({ id: cart.id }, cart).fetch();
         await emitter.emit.apply(emitter, [
             "core-cart-after-remove-dish",
@@ -280,7 +280,7 @@ let Model = {
                 sails.log.info("destroy", get.id);
             }
             await Cart.next(cart.id, "CART");
-            await Cart.countCart(cart.id, cart);
+            await Cart.countCart(cart);
             Cart.update({ id: cart.id }, cart).fetch();
             await emitter.emit.apply(emitter, [
                 "core-cart-after-set-count",
@@ -310,7 +310,7 @@ let Model = {
         if (cartDish) {
             await CartDish.update(cartDish.id, { comment: comment }).fetch();
             await Cart.next(cart.id, "CART");
-            await Cart.countCart(cart.id, cart);
+            await Cart.countCart(cart);
             Cart.update({ id: cart.id }, cart).fetch();
             await emitter.emit.apply(emitter, [
                 "core-cart-after-set-comment",
@@ -337,7 +337,7 @@ let Model = {
         await Cart.update({ id: cart.id }, cart).fetch();
     },
     async check(criteria, customer, isSelfService, address, paymentMethodId) {
-        const cart = await Cart.countCart(cart.id, this);
+        const cart = await Cart.countCart(criteria);
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
         //const cart: Cart = await Cart.findOne(criteria);
@@ -352,7 +352,7 @@ let Model = {
          *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
          */
         getEmitter_1.default().emit("core-cart-before-check", cart, customer, isSelfService, address);
-        sails.log.debug("Cart > check > before check >", customer, isSelfService, address, paymentMethodId);
+        sails.log.silly("Cart > check > before check >", customer, isSelfService, address, paymentMethodId);
         if (customer) {
             await checkCustomerInfo(customer);
             cart.customer = customer;
@@ -395,7 +395,7 @@ let Model = {
         getEmitter_1.default().emit("core-cart-check-delivery", cart, customer, isSelfService, address);
         const results = await getEmitter_1.default().emit("core-cart-check", cart, customer, isSelfService, address, paymentMethodId);
         await Cart.update({ id: cart.id }, cart).fetch().fetch();
-        sails.log.info("Cart > check > after wait general emitter", cart, results);
+        sails.log.silly("Cart > check > after wait general emitter", cart, results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
         getEmitter_1.default().emit("core-cart-after-check", cart, customer, isSelfService, address);
@@ -438,6 +438,7 @@ let Model = {
             };
         }
     },
+    /** Оформление корзины */
     async order(criteria) {
         const cart = await Cart.findOne(criteria);
         if (cart.state === "ORDER")
@@ -454,7 +455,7 @@ let Model = {
         else {
             getEmitter_1.default().emit("core-cart-order-delivery", cart);
         }
-        await Cart.countCart(cart.id, cart);
+        await Cart.countCart(cart);
         const results = await getEmitter_1.default().emit("core-cart-order", cart);
         sails.log.silly("Cart > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
@@ -511,7 +512,7 @@ let Model = {
             backLinkFail: backLinkFail,
             comment: comment,
         };
-        await Cart.countCart(cart.id, cart);
+        await Cart.countCart(cart);
         await getEmitter_1.default().emit("core-cart-payment", cart, params);
         sails.log.info("Cart > payment > cart before register:", cart);
         try {
@@ -536,14 +537,15 @@ let Model = {
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
      * @param cart
      */
-    async countCart(criteria, cart) {
-        getEmitter_1.default().emit("core-cart-before-count", cart);
-        if (typeof cart === "string" || cart instanceof String) {
-            cart = await Cart.findOne({ id: cart });
+    async countCart(criteria) {
+        let cart;
+        if (typeof criteria === "string" || criteria instanceof String) {
+            cart = await Cart.findOne(criteria);
         }
         else {
-            cart = await Cart.findOne({ id: cart.id });
+            cart = await Cart.findOne(criteria.id);
         }
+        getEmitter_1.default().emit("core-cart-before-count", cart);
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
         const cartDishes = await CartDish.find({ cart: cart.id }).populate("dish");
@@ -630,7 +632,7 @@ let Model = {
     },
     async doPaid(criteria, paymentDocument) {
         let cart = await Cart.findOne(paymentDocument.paymentId);
-        Cart.countCart(cart.id, cart);
+        Cart.countCart(cart);
         try {
             let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
             await Cart.update({ id: paymentDocument.paymentId }, {

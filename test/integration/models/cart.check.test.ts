@@ -1,15 +1,16 @@
 import { expect } from "chai";
-import getEmitter from "../../../libs/getEmitter";
-// import {Settings} from "../../../models/Settings"
+import { getEmitter } from "../../../libs/AwaitEmitter";
 import Cart from "../../../models/Cart"
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
-import TestPaymentSystem from '../../unit/external_payments/ExternalTestPaymentSystem';
-import Settings from '../../../models/Settings'
-import { settings } from "cluster";
+// import TestPaymentSystem from '../../unit/external_payments/ExternalTestPaymentSystem';
+// import Settings from '../../../models/Settings'
+// import { settings } from "cluster";
+
 describe('Cart.check ()', function(){
     this.timeout(10000);
     var cart: Cart;
+
     let customer: Customer = {
         phone: '+79998881212',
         name: 'Freeman Morgan'
@@ -32,7 +33,6 @@ describe('Cart.check ()', function(){
         try {
             await Cart.setSelfService(cart.id,  true);
             let result: Cart = await Cart.findOne(cart.id);
-            console.log("DSD",result)
             expect(result.selfService).to.equal(true);            
         } catch (error) {
             throw error
@@ -157,49 +157,40 @@ describe('Cart.check ()', function(){
         // });
     
         // expect(cust).to.equal(customer);
-        
     
-        let customer: Customer = {
-          phone: '+79998881212',
-          name: 'Freeman Morgan'
-        }
-        let address: Address = {
-          streetId: 'sdfsf',
-          city: 'New York',
-          street: 'Green Road',
-          home: "42",
-          comment: ''
-        }
-            
-        let testPaymentSystem = await TestPaymentSystem.getInstance();
-        let paymentSystem = (await PaymentMethod.find())[0];
-        let result = await Cart.check(cart.id,  customer, false, address, paymentSystem.id);
-        expect(result).to.equal(true);
-    
-        result = await Cart.check(cart.id,  null, null, null, paymentSystem.id);
-        expect(result).to.equal(true);
 
-        let error = null;
-        try{
-            await Cart.check(cart.id,  null, null, null, 'bad-id-payment-system');
-        }catch(e){
-            error = e;
-        }
-        expect(error.code).to.equal(8);
-        expect(error.error).to.be.an('string');
+        try {
+            let paymentSystem = (await PaymentMethod.find())[0];
+            let result = await Cart.check(cart.id,  customer, false, address, paymentSystem.id);            
+            await Cart.check(cart.id,  null, null, null, paymentSystem.id);
             
+            let error = null;
+            try{
+                await Cart.check(cart.id,  null, null, null, 'bad-id-payment-system');
+            }catch(e){
+                error = e;
+            }
+            expect(error.code).to.equal(8);
+            expect(error.error).to.be.an('string'); 
+        } catch (error) {
+            throw error    
+        }
     });
 
-    it('getEmitter test', async function(){
-        let count1 = 0;
-        let count3 = 0;
-        let count4 = 0;
-        let count5 = 0;
+    it('awaitEmiter cart events', async function(){
 
+        await Settings.set("check", {notRequired: true})
+
+        let count1 = 0;
+        let count3 = 2;
+        let count4 = 3;
+        let count5 = 4;
         getEmitter().on('core-cart-before-check', function(){
+            console.log("!!!!!!!!!!!!!!!!1");
             count1++;
         });
         getEmitter().on('core-cart-check-delivery', function(){
+            console.log("!!!!!!!!!!!!!!!!2");
             count3++;
         });
         getEmitter().on('core-cart-check', function(){
@@ -209,23 +200,26 @@ describe('Cart.check ()', function(){
             count5++;
         });
         await Cart.check(cart.id,  customer);
-        expect(count1).to.equal(1);
-        expect(count3).to.equal(1);
-        expect(count4).to.equal(1);
-        expect(count5).to.equal(1);
 
-        let count2 = 0;
+        expect(count1).to.equal(1);
+        expect(count3).to.equal(3);
+        expect(count4).to.equal(4);
+        expect(count5).to.equal(5);
+
+        let count2 = 1;
         let emitCustomer;
         let emitSelfService;
         let emitAddress;
+
         getEmitter().on('core-cart-check-self-service', function(self, cust, serv, addr){
             count2++;
             emitCustomer = cust;
             emitSelfService = serv;
             emitAddress = addr;
         });
+        
         await Cart.check(cart.id,  customer, true, address);
-        expect(count2).to.equal(1);
+        expect(count2).to.equal(2);
         expect(emitCustomer).to.equal(customer);
         expect(emitSelfService).to.equal(true);
         expect(emitAddress).to.equal(address);
