@@ -19,7 +19,7 @@ const cartDishExample = {
 
 describe('CartDish', function (){
     it('create', async function(){        
-        const cartDish = await CartDish.create(cartDishExample);
+        const cartDish = await CartDish.create(cartDishExample).fetch();
         cartDishId = cartDish.id;
         expect(cartDish).to.include.all.keys(
             'amount',

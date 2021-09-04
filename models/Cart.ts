@@ -307,7 +307,7 @@ let Model = {
     const get = cartDish;
     get.amount -= amount;
     if (get.amount > 0) {
-      await CartDish.update({ id: get.id }, { amount: get.amount });
+      await CartDish.update({ id: get.id }, { amount: get.amount }).fetch();
     } else {
       get.destroy();
     }
@@ -349,7 +349,7 @@ let Model = {
     if (get) {
       get.amount = amount;
       if (get.amount > 0) {
-        await CartDish.update({ id: get.id }, { amount: get.amount });
+        await CartDish.update({ id: get.id }, { amount: get.amount }).fetch();
       } else {
         get.destroy();
         sails.log.info("destroy", get.id);
@@ -392,7 +392,7 @@ let Model = {
     }).populate("dish");
 
     if (cartDish) {
-      await CartDish.update(cartDish.id, { comment: comment });
+      await CartDish.update(cartDish.id, { comment: comment }).fetch();
 
       await Cart.next("CART");
       await Cart.countCart(cart.id, cart);
@@ -424,6 +424,7 @@ let Model = {
     cart.selfService = selfService;
     await Cart.update({id: cart.id}, cart).fetch();
   },
+
   async check(
     criteria: any,
     customer?: Customer,
@@ -532,7 +533,7 @@ let Model = {
       address,
       paymentMethodId
     );
-    await Cart.update({id: cart.id}, cart).fetch();
+    await Cart.update({id: cart.id}, cart).fetch().fetch();
     
     sails.log.info("Cart > check > after wait general emitter", cart, results);
     const resultsCount = results.length;
@@ -653,7 +654,7 @@ let Model = {
       /** Если сохранние модели вызвать до next то будет бесконечный цикл */
       sails.log.info("Cart > order > before save cart", cart);
       // await Cart.update({id: cart.id}).fetch();
-      await Cart.update({ id: cart.id }, data);
+      await Cart.update({ id: cart.id }, data).fetch();
       getEmitter().emit("core-cart-after-order", cart);
     }
   },
@@ -784,7 +785,7 @@ let Model = {
           cartDish.totalWeight = cartDish.weight * cartDish.amount;
           cartDish.itemTotal += cartDish.dish.price;
           cartDish.itemTotal *= cartDish.amount;
-          await CartDish.update({ id: cartDish.id }, cartDish);
+          await CartDish.update({ id: cartDish.id }, cartDish).fetch();
         }
 
         orderTotal += cartDish.itemTotal;
@@ -826,7 +827,7 @@ let Model = {
     })) as CartDish;
     cart.dishes = resultCartDishes;
 
-    await Cart.update({ id: cart.id }, cart);
+    await Cart.update({ id: cart.id }, cart).fetch();
 
     getEmitter().emit("core-cart-after-count", cart);
 

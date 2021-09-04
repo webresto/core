@@ -44,7 +44,7 @@ describe('PaymentDocument', function(){
         });
         
         await PaymentDocument.destroy({});
-        let cart = await Cart.create({});
+        let cart = await Cart.create({}).fetch();
         let paymentMethod = await PaymentMethod.findOne({adapter: "test-payment-system"}); 
         PaymentDocument.processor(3000);
         await PaymentDocument.register(cart.id, "cart", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", {test: true})

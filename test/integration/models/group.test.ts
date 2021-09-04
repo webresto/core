@@ -23,7 +23,7 @@ describe('Group', function(){
         lastGroup.childGroups.push(newGroup);
       }
     }
-    await Group.create(exampleGroups);
+    await Group.create(exampleGroups).fetch();
   });
   it('getGroups', async function(){
     // let groups = await Group.find({});

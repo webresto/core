@@ -250,12 +250,12 @@ let Model = {
     let hash = hashCode(JSON.stringify(values));
     const dish = await Dish.findOne({id: values.id});
     if (!dish) {
-      return Dish.create({hash, ...values});
+      return Dish.create({hash, ...values}).fetch();
     } else {
       if (hash === dish.hash) {
         return dish;
       }
-      return (await Dish.update({id: values.id}, {hash, ...values}))[0];
+      return (await Dish.update({id: values.id}, {hash, ...values}).fetch())[0];
     }
   }
 };

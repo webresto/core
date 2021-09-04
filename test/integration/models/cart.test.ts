@@ -26,7 +26,7 @@ describe('Cart',function () {
   });
 
   it('create Сart', async function (){
-    cart = await Cart.create({});
+    cart = await Cart.create({}).fetch();
     expect(cart).to.be.an('object');
   });
 
@@ -74,7 +74,7 @@ describe('Cart',function () {
   });
   
   it('addDish', async function(){  
-    cart = await Cart.create({});   
+    cart = await Cart.create({}).fetch();   
     await Cart.addDish(cart.id,  dishes[0], 1, [], '', 'test');
     await Cart.addDish(cart.id,  dishes[1], 5, [], 'test comment','test');
     let result = await Cart.findOne(cart.id).populate('dishes');
@@ -103,7 +103,7 @@ describe('Cart',function () {
   });
   
   it('addDish same dish increase amount', async function(){
-    cart = await Cart.create({});   
+    cart = await Cart.create({}).fetch();   
     await Cart.addDish(cart.id,  dishes[0], 2, [], '', 'test');
     await Cart.addDish(cart.id,  dishes[0], 3, [], '', 'test');
     await Cart.addDish(cart.id,  dishes[0], 1, null, '', 'test');
@@ -113,7 +113,7 @@ describe('Cart',function () {
     expect(cartDishes.length).to.equals(1);
     expect(cartDishes[0].amount).to.equals(6);
 
-    cart = await Cart.create({});
+    cart = await Cart.create({}).fetch();
     await Cart.addDish(cart.id,  dishes[0], 1, [{id: dishes[1].id, modifierId: dishes[1].id}], '', 'mod');
     await Cart.addDish(cart.id,  dishes[0], 1, null, '', 'test');
     await Cart.addDish(cart.id,  dishes[0], 2, null, '', 'test');
@@ -156,7 +156,7 @@ describe('Cart',function () {
 
 
   it('addDish 20', async function(){
-    cart = await Cart.create({});
+    cart = await Cart.create({}).fetch();
     for(let i = 0; i < 20; i++){
       await Cart.addDish(cart.id,  dishes[i], 3, [], '', '');
     }
@@ -167,7 +167,7 @@ describe('Cart',function () {
   });
 
   it('setSelfService', async function(){
-    let cart = await Cart.create({});
+    let cart = await Cart.create({}).fetch();
     await Cart.addDish(cart.id,  dishes[0], 5, [], '', '');
     await Cart.addDish(cart.id,  dishes[1], 3, [], '', '');
     await Cart.addDish(cart.id,  dishes[2], 8, [], '', '');
@@ -183,7 +183,7 @@ describe('Cart',function () {
   });
 
   it('countCart', async function(){
-    let cart = await Cart.create({});
+    let cart = await Cart.create({}).fetch();
     let totalWeight = 0;
     await Cart.addDish(cart.id,  dishes[0], 5, [], '', '');
     await Cart.addDish(cart.id,  dishes[1], 3, [], '', '');
@@ -238,7 +238,7 @@ describe('Cart',function () {
   });
 
   it('payment', async function(){
-    let cart = await Cart.create({});
+    let cart = await Cart.create({}).fetch();
     await Cart.next('ORDER');
     let error = null;
     try{
@@ -260,7 +260,7 @@ describe('Cart',function () {
     expect(state).to.equal('PAYMENT');
   });
   it('paymentMethodId', async function(){
-    let cart = await Cart.create({});
+    let cart = await Cart.create({}).fetch();
     let testPaymentSystem = await TestPaymentSystem.getInstance();
     let paymentSystem = (await PaymentMethod.find())[0];
     Cart.paymentMethod = paymentSystem.id;
@@ -272,7 +272,7 @@ describe('Cart',function () {
   it('doPaid', async function(){
     expect(Cart.doPaid).to.not.equals(undefined);
 
-    let cart = await Cart.create({});
+    let cart = await Cart.create({}).fetch();
     await Cart.addDish(cart.id,  dishes[0], 5, [], '', '');
     await Cart.addDish(cart.id,  dishes[1], 3, [], '', '');
     await Cart.addDish(cart.id,  dishes[2], 8, [], '', '');
@@ -303,7 +303,7 @@ describe('Cart',function () {
  * @param dishes - array of dishes
  */
 async function getNewCart(dishes: Dish[]): Promise<Cart>{
-  let cart = await Cart.create({});
+  let cart = await Cart.create({}).fetch();
   await Cart.addDish(cart.id,  dishes[0], 5, [], '', '');
   await Cart.addDish(cart.id,  dishes[1], 3, [], '', '');
   await Cart.addDish(cart.id,  dishes[2], 8, [], '', '');

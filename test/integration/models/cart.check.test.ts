@@ -9,7 +9,7 @@ import Settings from '../../../models/Settings'
 import { settings } from "cluster";
 describe('Cart.check ()', function(){
     this.timeout(10000);
-    let cart: Cart;
+    var cart: Cart;
     let customer: Customer = {
         phone: '+79998881212',
         name: 'Freeman Morgan'
@@ -23,14 +23,16 @@ describe('Cart.check ()', function(){
     }
 
     it('new cart', async function(){
-        cart = await Cart.create({});
+        cart = await Cart.create({}).fetch();
+        console.log("<<<<<<<<<<<<<<<<,",cart)
     });
 
     
     it('check isSelfService', async function(){
         await Cart.setSelfService(cart.id,  true);
-        let result = await Cart.check(cart.id,  customer, true);
-        expect(result).to.equal(true);
+        let result: Cart = await Cart.findOne(cart.id);
+
+        expect(result.selfService).to.equal(true);
 
     });
 
@@ -41,7 +43,7 @@ describe('Cart.check ()', function(){
         //     cart = await Cart.create({});
         // });
         it('good customer', async function(){
-            cart = await Cart.create({});
+            cart = await Cart.create({}).fetch();
             
             let customer: Customer = {
                 phone: '+79998881212',
@@ -98,7 +100,7 @@ describe('Cart.check ()', function(){
 
     describe('check Address', function(){
         it('good address', async function(){
-            cart = await Cart.create({});
+            cart = await Cart.create({}).fetch();
             let address: Address = {
                 streetId: 'sdfsf',
                 city: 'New York',
@@ -236,7 +238,7 @@ describe('Cart.check ()', function(){
         expect(error).to.not.equal(null);
     });
     it('checkConfig', async function(){
-        cart = await Cart.create({});
+        cart = await Cart.create({}).fetch();
         await Settings.set('check', JSON.stringify({requireAll: true}));
         let result = await Cart.check(cart.id,  customer, true);
         expect(result).to.equal(true);

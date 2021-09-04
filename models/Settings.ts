@@ -91,7 +91,7 @@ let Model  =  {
           from: config,
         });
       } else {
-        return (await Settings.update({ key: key }, { value: value }))[0];
+        return (await Settings.update({ key: key }, { value: value }).fetch())[0];
       }
     } catch (e) {
       sails.log.error("CORE > Settings > set: ", key, value, config, e);
