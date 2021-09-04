@@ -166,10 +166,10 @@ let Model = {
     async createOrUpdate(values) {
         const group = await Group.findOne({ id: values.id });
         if (!group) {
-            return Group.create(values);
+            return Group.create(values).fetch();
         }
         else {
-            return (await Group.update({ id: values.id }, values))[0];
+            return (await Group.update({ id: values.id }, values).fetch())[0];
         }
     },
 };

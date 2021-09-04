@@ -97,7 +97,7 @@ let Model = {
     async alive(paymentAdapter) {
         let knownPaymentMethod = await PaymentMethod.findOne({ adapter: paymentAdapter.InitPaymentAdapter.adapter });
         if (!knownPaymentMethod) {
-            knownPaymentMethod = await PaymentMethod.create(paymentAdapter.InitPaymentAdapter);
+            knownPaymentMethod = await PaymentMethod.create(paymentAdapter.InitPaymentAdapter).fetch();
         }
         alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
         sails.log.verbose("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);

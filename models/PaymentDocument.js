@@ -131,7 +131,7 @@ let Model = {
         };
         getEmitter_1.default().emit("core-payment-document-before-create", payment);
         try {
-            await PaymentDocument.create(payment);
+            await PaymentDocument.create(payment).fetch();
         }
         catch (e) {
             getEmitter_1.default().emit("error", "PaymentDocument > register:", e);
