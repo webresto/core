@@ -24,23 +24,19 @@ describe('Cart.check ()', function(){
 
     it('new cart', async function(){
         cart = await Cart.create({}).fetch();
-        console.log("<<<<<<<<<<<<<<<<,",cart)
+        if (!cart) throw "Cart not created"
     });
 
     
     it('check isSelfService', async function(){
-        
         try {
             await Cart.setSelfService(cart.id,  true);
-    
             let result: Cart = await Cart.findOne(cart.id);
             console.log("DSD",result)
             expect(result.selfService).to.equal(true);            
         } catch (error) {
-           // console.log("EEEEEEEEEEEEEEE",error)
             throw error
         }
-
     });
 
     
