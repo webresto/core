@@ -584,10 +584,14 @@ let cartModel: CartModel = {
                 continue;
               }
 
-              await getEmitter().emit('core-cart-countcart-before-calc-modifier', modifier, modifierObj);
+              const modifierCopy = {
+                amount: modifier.amount,
+                id: modifier.id
+              }
+              await getEmitter().emit('core-cart-countcart-before-calc-modifier', modifierCopy, modifierObj);
 
               cartDish.uniqueItems++;
-              cartDish.itemTotal += modifier.amount * modifierObj.price;
+              cartDish.itemTotal += modifierCopy.amount * modifierObj.price;
               cartDish.weight += modifierObj.weight;
             }
           }
@@ -650,10 +654,10 @@ let cartModel: CartModel = {
     try {
       let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
       await Cart.update({id: paymentDocument.paymentId}, {paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle});
-      
+
       sails.log.info("Cart > doPaid: ", cart.id, cart.state, cart.cartTotal, paymentDocument.amount );
-  
-      if(cart.state !== "PAYMENT"){ 
+
+      if(cart.state !== "PAYMENT"){
         sails.log.error('Cart > doPaid: is strange cart state is not PAYMENT', cart);
       }
 

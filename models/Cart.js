@@ -513,9 +513,13 @@ let cartModel = {
                                 sails.log.error('Dish with id ' + modifier.id + ' not found!');
                                 continue;
                             }
-                            await getEmitter_1.default().emit('core-cart-countcart-before-calc-modifier', modifier, modifierObj);
+                            const modifierCopy = {
+                                amount: modifier.amount,
+                                id: modifier.id
+                            };
+                            await getEmitter_1.default().emit('core-cart-countcart-before-calc-modifier', modifierCopy, modifierObj);
                             cartDish.uniqueItems++;
-                            cartDish.itemTotal += modifier.amount * modifierObj.price;
+                            cartDish.itemTotal += modifierCopy.amount * modifierObj.price;
                             cartDish.weight += modifierObj.weight;
                         }
                     }
