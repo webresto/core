@@ -13,6 +13,8 @@ import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
 
+const emitter = getEmitter();
+
 let attributes = {
   /** Id  */
   id: {
@@ -148,6 +150,7 @@ type Cart = typeof attributes & ORM;
 export default Cart;
 
 let Model = {
+  /** 
   async addDish(
     criteria: any,
     dish: Dish | string,
@@ -158,7 +161,7 @@ let Model = {
     replace: boolean,
     cartDishId: number
   ): Promise<void> {
-    const emitter = getEmitter();
+    
     await emitter.emit.apply(emitter, [
       "core-cart-before-add-dish",
       ...arguments,
@@ -251,7 +254,7 @@ let Model = {
 
     await Cart.next("CART");
     await Cart.countCart(cart.id, cart);
-    Cart.update({id: cart.id}, cart).fetch();
+    Cart.update({id: cart.id},cart).fetch();
     await emitter.emit.apply(emitter, [
       "core-cart-after-add-dish",
       cartDish,
@@ -265,7 +268,7 @@ let Model = {
     stack?: boolean
   ): Promise<void> {
     // TODO: удалить стек
-    const emitter = getEmitter();
+    
     await emitter.emit.apply(emitter, [
       "core-cart-before-remove-dish",
       ...arguments,
@@ -311,14 +314,14 @@ let Model = {
 
     await Cart.next("CART");
     await Cart.countCart(cart.id, cart);
-    Cart.update({id: cart.id}, cart).fetch();
+    Cart.update({id: cart.id},cart).fetch();
     await emitter.emit.apply(emitter, [
       "core-cart-after-remove-dish",
       ...arguments,
     ]);
   },
   async setCount(criteria: any, dish: CartDish, amount: number): Promise<void> {
-    const emitter = getEmitter();
+    
     await emitter.emit.apply(emitter, [
       "core-cart-before-set-count",
       ...arguments,
@@ -354,7 +357,7 @@ let Model = {
 
       await Cart.next("CART");
       await Cart.countCart(cart.id, cart);
-      Cart.update({id: cart.id}, cart).fetch();
+      Cart.update({id: cart.id},cart).fetch();
       await emitter.emit.apply(emitter, [
         "core-cart-after-set-count",
         ...arguments,
@@ -367,19 +370,19 @@ let Model = {
       throw { body: `CartDish dish id ${dish.id} not found`, code: 2 };
     }
   },
+  */
   async setComment(
     criteria: any,
     dish: CartDish,
     comment: string
   ): Promise<void> {
-    const emitter = getEmitter();
-    const cart: Cart = Cart.findOne(criteria);
+    
     await emitter.emit.apply(emitter, [
       "core-cart-before-set-comment",
       ...arguments,
     ]);
 
-    const cart = await Cart.findOne(this.id).populate("dishes");
+    const cart = await Cart.findOne(criteria).populate("dishes");
     if (cart.state === "ORDER")
       throw "cart with cartId " + cart.id + "in state ORDER";
 
@@ -393,7 +396,7 @@ let Model = {
 
       await Cart.next("CART");
       await Cart.countCart(cart.id, cart);
-      Cart.update({id: cart.id}, cart).fetch();
+      Cart.update({id: cart.id},cart).fetch();
       await emitter.emit.apply(emitter, [
         "core-cart-after-set-comment",
         ...arguments,
@@ -416,7 +419,7 @@ let Model = {
 
     sails.log.verbose("Cart > setSelfService >", selfService);
 
-    await actions.reset(cart);
+    await actions.reset(this);
 
     cart.selfService = selfService;
     await Cart.update({id: cart.id}, cart).fetch();
@@ -485,7 +488,7 @@ let Model = {
         paymentMethodId
       );
     }
-
+    
     isSelfService = isSelfService === undefined ? false : isSelfService;
     if (isSelfService) {
       getEmitter().emit(
@@ -500,7 +503,7 @@ let Model = {
       await cart.next("CHECKOUT");
       return;
     }
-
+    
     if (address) {
       checkAddress(address);
       cart.address = address;
@@ -520,7 +523,7 @@ let Model = {
       isSelfService,
       address
     );
-
+    
     const results = await getEmitter().emit(
       "core-cart-check",
       cart,
@@ -530,7 +533,7 @@ let Model = {
       paymentMethodId
     );
     await Cart.update({id: cart.id}, cart).fetch();
-
+    
     sails.log.info("Cart > check > after wait general emitter", cart, results);
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
@@ -587,7 +590,7 @@ let Model = {
     if (cart.state === "ORDER")
       throw "cart with cartId " + cart.id + "in state ORDER";
 
-    // await Cart.update({id: cart.id}, cart).fetch();
+    // await Cart.update({id: cart.id}).fetch();
     // PTODO: проверка эта нужна
     // if(( cart.isPaymentPromise && cart.paid) || ( !cart.isPaymentPromise && !cart.paid) )
     //   return 3
@@ -649,7 +652,7 @@ let Model = {
 
       /** Если сохранние модели вызвать до next то будет бесконечный цикл */
       sails.log.info("Cart > order > before save cart", cart);
-      // await Cart.update({id: cart.id}, cart).fetch();
+      // await Cart.update({id: cart.id}).fetch();
       await Cart.update({ id: cart.id }, data);
       getEmitter().emit("core-cart-after-order", cart);
     }
