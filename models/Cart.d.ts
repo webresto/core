@@ -9,6 +9,7 @@ declare let attributes: any;
 declare type Cart = typeof attributes & ORM;
 export default Cart;
 declare let Model: {
+    beforeCreate(cartInit: any, next: any): void;
     addDish(criteria: any, dish: any, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number): Promise<void>;
     removeDish(criteria: any, dish: any, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: any, dish: any, amount: number): Promise<void>;

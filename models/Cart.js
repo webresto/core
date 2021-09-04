@@ -6,20 +6,9 @@ const uuid_1 = require("uuid");
 const emitter = getEmitter_1.default();
 let attributes = {
     /** Id  */
-    id: {
-        type: "string",
-        defaultsTo: function () {
-            return uuid_1.v4();
-        },
-    },
-    /** cartId */
-    cartId: "string",
-    shortId: {
-        type: "string",
-        defaultsTo: function () {
-            return this.id.substr(this.id.length - 8).toUpperCase();
-        },
-    },
+    id: "string",
+    /** last 8 chars from id */
+    shortId: "string",
     /** */
     dishes: {
         collection: "CartDish",
@@ -113,6 +102,15 @@ let attributes = {
     customData: "json",
 };
 let Model = {
+    beforeCreate(cartInit, next) {
+        if (!cartInit.id) {
+            cartInit.id = uuid_1.v4();
+        }
+        if (!cartInit.shortId) {
+            cartInit.shortId = cartInit.id.substr(cartInit.id.length - 8).toUpperCase();
+        }
+        next();
+    },
     async addDish(criteria, dish, amount, modifiers, comment, from, replace, cartDishId) {
         await emitter.emit.apply(emitter, [
             "core-cart-before-add-dish",

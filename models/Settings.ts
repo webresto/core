@@ -49,7 +49,7 @@ let Model  =  {
       }
     }
 
-    let obj = await Settings.findOne({ key: key });
+    let obj = await Settings.find({ key: key }).limit(1);
     sails.log.silly("CORE > Settings > findOne: ", key, obj);
 
     if (!obj) {

@@ -17,22 +17,10 @@ const emitter = getEmitter();
 
 let attributes = {
   /** Id  */
-  id: {
-    type: "string",
-    defaultsTo: function () {
-      return uuid();
-    },
-  } as unknown as string,
+  id: "string",
 
-  /** cartId */
-  cartId: "string",
-
-  shortId: {
-    type: "string",
-    defaultsTo: function () {
-      return this.id.substr(this.id.length - 8).toUpperCase();
-    },
-  } as unknown as string,
+  /** last 8 chars from id */
+  shortId: "string",
 
   /** */
   dishes: {
@@ -150,6 +138,17 @@ type Cart = typeof attributes & ORM;
 export default Cart;
 
 let Model = {
+  
+  beforeCreate (cartInit: any, next: any) {
+    if (!cartInit.id){
+      cartInit.id = uuid();
+    }
+
+    if (!cartInit.shortId) {
+      cartInit.shortId = cartInit.id.substr(cartInit.id.length - 8).toUpperCase();
+    }
+    next();
+  },
 
   async addDish(
     criteria: any,

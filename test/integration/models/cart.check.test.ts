@@ -28,9 +28,11 @@ describe('Cart.check ()', function(){
     });
 
     
-    it('check isSelfService', async function(){
+    it('check isSelfService()', async function(){
+        console.log(cart.id)
         await Cart.setSelfService(cart.id,  true);
         let result: Cart = await Cart.findOne(cart.id);
+        console.log("<<<<<<<<<<<<<<<<result,",result)
 
         expect(result.selfService).to.equal(true);
 
