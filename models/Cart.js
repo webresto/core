@@ -17,8 +17,7 @@ let attributes = {
     /** */
     discount: "json",
     paymentMethod: {
-        model: "PaymentMethod",
-        via: "id",
+        model: "PaymentMethod"
     },
     /** */
     paymentMethodTitle: "string",

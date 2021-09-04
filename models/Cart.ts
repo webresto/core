@@ -31,8 +31,7 @@ let attributes = {
   /** */
   discount: "json" as any,
   paymentMethod: {
-    model: "PaymentMethod",
-    via: "id",
+    model: "PaymentMethod"
   } as unknown as PaymentMethod,
 
   /** */

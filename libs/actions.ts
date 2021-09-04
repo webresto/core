@@ -123,9 +123,10 @@ const actions = {
       await Cart.next(cart.id, 'CART');
 
     const removeDishes = await CartDish.find({cart: cart.id, addedBy: 'delivery'});
-    await Promise.each(removeDishes, (dish: CartDish) => {
+
+    for await (let dish of removeDishes){
       Cart.removeDish(cart.id,  dish, 100000);
-    });
+    }
 
     return cart;
   },
