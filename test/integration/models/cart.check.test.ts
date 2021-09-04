@@ -29,12 +29,9 @@ describe('Cart.check ()', function(){
 
     
     it('check isSelfService()', async function(){
-        console.log(cart.id)
         await Cart.setSelfService(cart.id,  true);
         let result: Cart = await Cart.findOne(cart.id);
-        console.log("<<<<<<<<<<<<<<<<result,",result)
-
-        expect(result.selfService).to.equal(true);
+        expect(result).to.equal(true);
 
     });
 
@@ -230,7 +227,7 @@ describe('Cart.check ()', function(){
     });
 
     it('throw if state ORDER', async function(){
-        await Cart.next('ORDER');
+        await Cart.next(cart.id, 'ORDER');
         let error = null;
         try{
             await Cart.check(cart.id,  customer);

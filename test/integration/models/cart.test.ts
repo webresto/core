@@ -239,7 +239,7 @@ describe('Cart',function () {
 
   it('payment', async function(){
     let cart = await Cart.create({}).fetch();
-    await Cart.next('ORDER');
+    await Cart.next(cart.id, 'ORDER');
     let error = null;
     try{
       await Cart.payment(cart.id,  );
@@ -252,7 +252,7 @@ describe('Cart',function () {
     let paymentSystem = (await PaymentMethod.find())[0];
     Cart.paymentMethod = paymentSystem.id;
 
-    await Cart.next('CHECKOUT');
+    await Cart.next(cart.id, 'CHECKOUT');
     let result = await Cart.payment(cart.id,  );
     // expect(result).to.be.an('object');
 

@@ -59,6 +59,7 @@ let attributes = {
     rmsErrorCode: "string",
     rmsStatusCode: "string",
     deliveryStatus: "string",
+    //state: "string",
     selfService: {
         type: "boolean",
         defaultsTo: false,
@@ -190,7 +191,7 @@ let Model = {
                 addedBy: from,
             });
         }
-        await Cart.next("CART");
+        await Cart.next(cart.id, "CART");
         await Cart.countCart(cart.id, cart);
         Cart.update({ id: cart.id }, cart).fetch();
         await emitter.emit.apply(emitter, [
@@ -240,7 +241,7 @@ let Model = {
         else {
             get.destroy();
         }
-        await Cart.next("CART");
+        await Cart.next(cart.id, "CART");
         await Cart.countCart(cart.id, cart);
         Cart.update({ id: cart.id }, cart).fetch();
         await emitter.emit.apply(emitter, [
@@ -278,7 +279,7 @@ let Model = {
                 get.destroy();
                 sails.log.info("destroy", get.id);
             }
-            await Cart.next("CART");
+            await Cart.next(cart.id, "CART");
             await Cart.countCart(cart.id, cart);
             Cart.update({ id: cart.id }, cart).fetch();
             await emitter.emit.apply(emitter, [
@@ -308,7 +309,7 @@ let Model = {
         }).populate("dish");
         if (cartDish) {
             await CartDish.update(cartDish.id, { comment: comment }).fetch();
-            await Cart.next("CART");
+            await Cart.next(cart.id, "CART");
             await Cart.countCart(cart.id, cart);
             Cart.update({ id: cart.id }, cart).fetch();
             await emitter.emit.apply(emitter, [
@@ -329,9 +330,9 @@ let Model = {
      * @param selfService
      */
     async setSelfService(criteria, selfService) {
-        const cart = Cart.findOne(criteria);
+        const cart = await Cart.findOne(criteria);
         sails.log.verbose("Cart > setSelfService >", selfService);
-        await actions_1.default.reset(this);
+        await actions_1.default.reset(cart);
         cart.selfService = selfService;
         await Cart.update({ id: cart.id }, cart).fetch();
     },
@@ -339,7 +340,7 @@ let Model = {
         const cart = await Cart.countCart(cart.id, this);
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
-        //const cart: Cart = Cart.findOne(criteria);
+        //const cart: Cart = await Cart.findOne(criteria);
         if (cart.paid) {
             sails.log.error("CART > Check > error", cart.id, "cart is paid");
             throw {
@@ -376,7 +377,7 @@ let Model = {
             getEmitter_1.default().emit("core-cart-check-cart-service", cart, customer, isSelfService, address);
             sails.log.verbose("Cart > check > is cart delivery");
             await cart.setSelfService(true);
-            await cart.next("CHECKOUT");
+            await Cart.next(cart.id, "CHECKOUT");
             return;
         }
         if (address) {
@@ -405,7 +406,7 @@ let Model = {
             if (checkConfig.requireAll) {
                 if (resultsCount === successCount) {
                     if (cart.getState() !== "CHECKOUT") {
-                        await cart.next("CHECKOUT");
+                        await Cart.next(cart.id, "CHECKOUT");
                     }
                     return;
                 }
@@ -418,7 +419,7 @@ let Model = {
             }
             if (checkConfig.notRequired) {
                 if (cart.getState() !== "CHECKOUT") {
-                    await cart.next("CHECKOUT");
+                    await Cart.next(cart.id, "CHECKOUT");
                 }
                 return;
             }
@@ -426,7 +427,7 @@ let Model = {
         // если не настроен конфиг то нужен хотябы один положительный ответ(заказ в пустоту бесполезен)
         if (successCount > 0) {
             if (cart.getState() !== "CHECKOUT") {
-                await cart.next("CHECKOUT");
+                await Cart.next(cart.id, "CHECKOUT");
             }
             return;
         }
@@ -438,7 +439,7 @@ let Model = {
         }
     },
     async order(criteria) {
-        const cart = Cart.findOne(criteria);
+        const cart = await Cart.findOne(criteria);
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
         // await Cart.update({id: cart.id}).fetch();
@@ -483,7 +484,7 @@ let Model = {
         await order();
         return;
         async function order() {
-            // await cart.next('ORDER');
+            // await Cart.next(cart.id,'ORDER');
             // TODO: переписать на stateFlow
             let data = {};
             data.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
@@ -496,7 +497,7 @@ let Model = {
         }
     },
     async payment(criteria) {
-        const cart = Cart.findOne(criteria);
+        const cart = await Cart.findOne(criteria);
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
         var paymentResponse;
@@ -520,7 +521,7 @@ let Model = {
             getEmitter_1.default().emit("error", "cart>payment", e);
             sails.log.error("Cart > payment: ", e);
         }
-        await cart.next("PAYMENT");
+        await Cart.next(cart.id, "PAYMENT");
         return paymentResponse;
     },
     async paymentMethodId(criteria, cart) {

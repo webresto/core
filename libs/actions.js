@@ -87,7 +87,7 @@ const actions = {
             cart.deliveryCost = deliveryCost;
         }
         if (cart.state !== 'CHECKOUT')
-            await Cart.next();
+            await Cart.next(cart.id, 'CHECKOUT');
         return cart;
     },
     /**
@@ -100,7 +100,8 @@ const actions = {
             throw 'cart is required';
         cart.deliveryDescription = "";
         cart.message = "";
-        await Cart.next('CART');
+        console.log(cart);
+        await Cart.next(cart.id, 'CART');
         const removeDishes = await CartDish.find({ cart: cart.id, addedBy: 'delivery' });
         await Promise.each(removeDishes, (dish) => {
             Cart.removeDish(cart.id, dish, 100000);
@@ -132,7 +133,7 @@ const actions = {
         if (!cart && !cart.id)
             throw 'cart is required';
         ;
-        await Cart.next('CART');
+        await Cart.next(cart.id, 'CART');
         return cart;
     },
     async setMessage(cart, params) {
