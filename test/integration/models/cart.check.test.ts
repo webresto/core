@@ -83,7 +83,7 @@ describe('Cart.check ()', function(){
         });
         it('no customer throw', async function(){
             cart.customer = null;
-            await Cart.update({id: cart.id}).fetch();
+            await Cart.update({id: cart.id}, cart).fetch();
             let error = null;
             try{
                 await Cart.check ();
@@ -130,7 +130,7 @@ describe('Cart.check ()', function(){
         });
         it('no address throw', async function(){
             cart.customer = null;
-            await Cart.update({id: cart.id}).fetch();
+            await Cart.update({id: cart.id}, cart).fetch();
             let error = null;
             try{
                 await Cart.check(cart.id,  null, true);

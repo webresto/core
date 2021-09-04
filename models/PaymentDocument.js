@@ -90,7 +90,7 @@ let Model = {
             self.status = "PAID";
             self.paid = true;
             getEmitter_1.default().emit("core-payment-document-paid", self);
-            await PaymentDocument.update({ id: self.id }).fetch();
+            await PaymentDocument.update({ id: self.id }, self).fetch();
         }
         return self;
     },

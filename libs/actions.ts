@@ -1,12 +1,6 @@
 import Cart from "../models/Cart";
 import Dish from "../models/Dish";
 import CartDish from "../models/CartDish";
-import Actions, {
-  ActionParams,
-  AddDishParams,
-  DeliveryDescriptionParams,
-  DeliveryParams, MessageParams
-} from "../interfaces/Actions";
 
 /**
  * Object with functions to action
@@ -155,7 +149,7 @@ const actions = {
 
     cart.deliveryDescription = cart.deliveryDescription || "";
     cart.deliveryDescription += description + '\n';
-    await Cart.update({id: cart.id}).fetch();
+    await Cart.update({id: cart.id}, cart).fetch();
 
     return cart;
   },
@@ -185,14 +179,14 @@ const actions = {
 
     cart.message = message;
 
-    await Cart.update({id: cart.id}).fetch();
+    await Cart.update({id: cart.id}, cart).fetch();
     return cart;
   },
 
   return(): number {
     return 0;
   }
-} as Actions;
+};
 
 export default actions;
 

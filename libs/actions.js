@@ -125,7 +125,7 @@ const actions = {
             throw 'cart with id ' + cartId + ' not found';
         cart.deliveryDescription = cart.deliveryDescription || "";
         cart.deliveryDescription += description + '\n';
-        await Cart.update({ id: cart.id }).fetch();
+        await Cart.update({ id: cart.id }, cart).fetch();
         return cart;
     },
     async reject(cart, params) {
@@ -147,7 +147,7 @@ const actions = {
         if (!cart)
             throw 'cart with id ' + cartId + ' not found';
         cart.message = message;
-        await Cart.update({ id: cart.id }).fetch();
+        await Cart.update({ id: cart.id }, cart).fetch();
         return cart;
     },
     return() {

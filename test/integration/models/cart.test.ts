@@ -264,7 +264,7 @@ describe('Cart',function () {
     let testPaymentSystem = await TestPaymentSystem.getInstance();
     let paymentSystem = (await PaymentMethod.find())[0];
     Cart.paymentMethod = paymentSystem.id;
-    await Cart.update({id: cart.id}).fetch();
+    await Cart.update({id: cart.id}, cart).fetch();
 
     let result = await Cart.paymentMethodId(cart.id,  );
     expect(result).to.equal(paymentSystem.id);

@@ -251,7 +251,7 @@ let Model = {
 
     await Cart.next("CART");
     await Cart.countCart(cart.id, cart);
-    Cart.update({id: cart.id}).fetch();
+    Cart.update({id: cart.id}, cart).fetch();
     await emitter.emit.apply(emitter, [
       "core-cart-after-add-dish",
       cartDish,
@@ -311,7 +311,7 @@ let Model = {
 
     await Cart.next("CART");
     await Cart.countCart(cart.id, cart);
-    Cart.update({id: cart.id}).fetch();
+    Cart.update({id: cart.id}, cart).fetch();
     await emitter.emit.apply(emitter, [
       "core-cart-after-remove-dish",
       ...arguments,
@@ -354,7 +354,7 @@ let Model = {
 
       await Cart.next("CART");
       await Cart.countCart(cart.id, cart);
-      Cart.update({id: cart.id}).fetch();
+      Cart.update({id: cart.id}, cart).fetch();
       await emitter.emit.apply(emitter, [
         "core-cart-after-set-count",
         ...arguments,
@@ -373,7 +373,7 @@ let Model = {
     comment: string
   ): Promise<void> {
     const emitter = getEmitter();
-    const self: Cart = this;
+    const cart: Cart = Cart.findOne(criteria);
     await emitter.emit.apply(emitter, [
       "core-cart-before-set-comment",
       ...arguments,
@@ -392,8 +392,8 @@ let Model = {
       await CartDish.update(cartDish.id, { comment: comment });
 
       await Cart.next("CART");
-      await Cart.countCart(cart.id, self);
-      Cart.update({id: cart.id}).fetch();
+      await Cart.countCart(cart.id, cart);
+      Cart.update({id: cart.id}, cart).fetch();
       await emitter.emit.apply(emitter, [
         "core-cart-after-set-comment",
         ...arguments,
@@ -412,14 +412,14 @@ let Model = {
    * @param selfService
    */
   async setSelfService(criteria: any, selfService: boolean): Promise<void> {
-    const self: Cart = this;
+    const cart: Cart = Cart.findOne(criteria);
 
     sails.log.verbose("Cart > setSelfService >", selfService);
 
-    await actions.reset(this);
+    await actions.reset(cart);
 
-    self.selfService = selfService;
-    await Cart.update({id: self.id}).fetch();
+    cart.selfService = selfService;
+    await Cart.update({id: cart.id}, cart).fetch();
   },
   async check(
     criteria: any,
@@ -428,14 +428,14 @@ let Model = {
     address?: Address,
     paymentMethodId?: string
   ): Promise<any> {
-    const self: Cart = await Cart.countCart(cart.id, this);
+    const cart: Cart = await Cart.countCart(cart.id, this);
 
-    if (self.state === "ORDER")
-      throw "cart with cartId " + self.id + "in state ORDER";
+    if (cart.state === "ORDER")
+      throw "cart with cartId " + cart.id + "in state ORDER";
 
-    //const self: Cart = this;
-    if (self.paid) {
-      sails.log.error("CART > Check > error", self.id, "cart is paid");
+    //const cart: Cart = Cart.findOne(criteria);
+    if (cart.paid) {
+      sails.log.error("CART > Check > error", cart.id, "cart is paid");
       throw {
         code: 12,
         error: "cart is paid",
@@ -448,7 +448,7 @@ let Model = {
 
     getEmitter().emit(
       "core-cart-before-check",
-      self,
+      cart,
       customer,
       isSelfService,
       address
@@ -463,9 +463,9 @@ let Model = {
 
     if (customer) {
       await checkCustomerInfo(customer);
-      self.customer = customer;
+      cart.customer = customer;
     } else {
-      if (self.customer === null) {
+      if (cart.customer === null) {
         throw {
           code: 2,
           error: "customer is required",
@@ -473,15 +473,15 @@ let Model = {
       }
     }
 
-    await checkDate(self);
+    await checkDate(cart);
 
     if (paymentMethodId) {
       await checkPaymentMethod(paymentMethodId);
-      self.paymentMethod = paymentMethodId;
-      self.paymentMethodTitle = (
+      cart.paymentMethod = paymentMethodId;
+      cart.paymentMethodTitle = (
         await PaymentMethod.findOne(paymentMethodId)
       ).title;
-      self.isPaymentPromise = await PaymentMethod.isPaymentPromise(
+      cart.isPaymentPromise = await PaymentMethod.isPaymentPromise(
         paymentMethodId
       );
     }
@@ -489,23 +489,23 @@ let Model = {
     isSelfService = isSelfService === undefined ? false : isSelfService;
     if (isSelfService) {
       getEmitter().emit(
-        "core-cart-check-self-service",
-        self,
+        "core-cart-check-cart-service",
+        cart,
         customer,
         isSelfService,
         address
       );
-      sails.log.verbose("Cart > check > is self delivery");
-      await self.setSelfService(true);
-      await self.next("CHECKOUT");
+      sails.log.verbose("Cart > check > is cart delivery");
+      await cart.setSelfService(true);
+      await cart.next("CHECKOUT");
       return;
     }
 
     if (address) {
       checkAddress(address);
-      self.address = address;
+      cart.address = address;
     } else {
-      if (!isSelfService && self.address === null) {
+      if (!isSelfService && cart.address === null) {
         throw {
           code: 2,
           error: "address is required",
@@ -515,7 +515,7 @@ let Model = {
 
     getEmitter().emit(
       "core-cart-check-delivery",
-      self,
+      cart,
       customer,
       isSelfService,
       address
@@ -523,21 +523,21 @@ let Model = {
 
     const results = await getEmitter().emit(
       "core-cart-check",
-      self,
+      cart,
       customer,
       isSelfService,
       address,
       paymentMethodId
     );
-    await Cart.update({id: self.id}).fetch();
+    await Cart.update({id: cart.id}, cart).fetch();
 
-    sails.log.info("Cart > check > after wait general emitter", self, results);
+    sails.log.info("Cart > check > after wait general emitter", cart, results);
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
 
     getEmitter().emit(
       "core-cart-after-check",
-      self,
+      cart,
       customer,
       isSelfService,
       address
@@ -550,8 +550,8 @@ let Model = {
     if (checkConfig) {
       if (checkConfig.requireAll) {
         if (resultsCount === successCount) {
-          if (self.getState() !== "CHECKOUT") {
-            await self.next("CHECKOUT");
+          if (cart.getState() !== "CHECKOUT") {
+            await cart.next("CHECKOUT");
           }
           return;
         } else {
@@ -562,16 +562,16 @@ let Model = {
         }
       }
       if (checkConfig.notRequired) {
-        if (self.getState() !== "CHECKOUT") {
-          await self.next("CHECKOUT");
+        if (cart.getState() !== "CHECKOUT") {
+          await cart.next("CHECKOUT");
         }
         return;
       }
     }
     // если не настроен конфиг то нужен хотябы один положительный ответ(заказ в пустоту бесполезен)
     if (successCount > 0) {
-      if (self.getState() !== "CHECKOUT") {
-        await self.next("CHECKOUT");
+      if (cart.getState() !== "CHECKOUT") {
+        await cart.next("CHECKOUT");
       }
       return;
     } else {
@@ -582,31 +582,31 @@ let Model = {
     }
   },
   async order(criteria: any): Promise<number> {
-    const self: Cart = this;
+    const cart: Cart = Cart.findOne(criteria);
 
-    if (self.state === "ORDER")
-      throw "cart with cartId " + self.id + "in state ORDER";
+    if (cart.state === "ORDER")
+      throw "cart with cartId " + cart.id + "in state ORDER";
 
-    // await Cart.update({id: self.id}).fetch();
+    // await Cart.update({id: cart.id}, cart).fetch();
     // PTODO: проверка эта нужна
-    // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
+    // if(( cart.isPaymentPromise && cart.paid) || ( !cart.isPaymentPromise && !cart.paid) )
     //   return 3
 
-    getEmitter().emit("core-cart-before-order", self);
+    getEmitter().emit("core-cart-before-order", cart);
     sails.log.silly(
       "Cart > order > before order >",
-      self.customer,
-      self.selfService,
-      self.address
+      cart.customer,
+      cart.selfService,
+      cart.address
     );
 
     if (this.selfService) {
-      getEmitter().emit("core-cart-order-self-service", self);
+      getEmitter().emit("core-cart-order-cart-service", cart);
     } else {
-      getEmitter().emit("core-cart-order-delivery", self);
+      getEmitter().emit("core-cart-order-delivery", cart);
     }
-    await Cart.countCart(cart.id, self);
-    const results = await getEmitter().emit("core-cart-order", self);
+    await Cart.countCart(cart.id, cart);
+    const results = await getEmitter().emit("core-cart-order", cart);
 
     sails.log.silly(
       "Cart > order > after wait general emitter results: ",
@@ -641,56 +641,56 @@ let Model = {
     return;
 
     async function order() {
-      // await self.next('ORDER');
+      // await cart.next('ORDER');
       // TODO: переписать на stateFlow
       let data: any = {};
       data.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
       data.state = "ORDER";
 
       /** Если сохранние модели вызвать до next то будет бесконечный цикл */
-      sails.log.info("Cart > order > before save cart", self);
-      // await Cart.update({id: self.id}).fetch();
-      await Cart.update({ id: self.id }, data);
-      getEmitter().emit("core-cart-after-order", self);
+      sails.log.info("Cart > order > before save cart", cart);
+      // await Cart.update({id: cart.id}, cart).fetch();
+      await Cart.update({ id: cart.id }, data);
+      getEmitter().emit("core-cart-after-order", cart);
     }
   },
   async payment(criteria: any): Promise<PaymentResponse> {
-    const self: Cart = this;
-    if (self.state === "ORDER")
-      throw "cart with cartId " + self.id + "in state ORDER";
+    const cart: Cart = Cart.findOne(criteria);
+    if (cart.state === "ORDER")
+      throw "cart with cartId " + cart.id + "in state ORDER";
 
     var paymentResponse: PaymentResponse;
     let comment: string = "";
     var backLinkSuccess: string =
-      (await Settings.use("FrontendOrderPage")) + self.id;
+      (await Settings.use("FrontendOrderPage")) + cart.id;
     var backLinkFail: string = await Settings.use("FrontendCheckoutPage");
-    let paymentMethodId = await self.paymentMethodId();
-    sails.log.verbose("Cart > payment > before payment register", self);
+    let paymentMethodId = await cart.paymentMethodId();
+    sails.log.verbose("Cart > payment > before payment register", cart);
 
     var params = {
       backLinkSuccess: backLinkSuccess,
       backLinkFail: backLinkFail,
       comment: comment,
     };
-    await Cart.countCart(cart.id, self);
-    await getEmitter().emit("core-cart-payment", self, params);
-    sails.log.info("Cart > payment > self before register:", self);
+    await Cart.countCart(cart.id, cart);
+    await getEmitter().emit("core-cart-payment", cart, params);
+    sails.log.info("Cart > payment > cart before register:", cart);
     try {
       paymentResponse = await PaymentDocument.register(
-        self.id,
+        cart.id,
         "cart",
-        self.cartTotal,
+        cart.cartTotal,
         paymentMethodId,
         params.backLinkSuccess,
         params.backLinkFail,
         params.comment,
-        self
+        cart
       );
     } catch (e) {
       getEmitter().emit("error", "cart>payment", e);
       sails.log.error("Cart > payment: ", e);
     }
-    await self.next("PAYMENT");
+    await cart.next("PAYMENT");
     return paymentResponse;
   },
   async paymentMethodId(criteria: any, cart?: Cart): Promise<string> {
