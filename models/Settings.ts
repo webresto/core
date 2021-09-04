@@ -47,7 +47,7 @@ let Model  =  {
       } catch (e) {
         sails.log.error("CORE > Settings > use ENV parse error: ", e);
       }
-    },
+    }
 
     let obj = await Settings.findOne({ key: key });
     sails.log.silly("CORE > Settings > findOne: ", key, obj);

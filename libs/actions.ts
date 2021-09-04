@@ -155,7 +155,7 @@ const actions = {
 
     cart.deliveryDescription = cart.deliveryDescription || "";
     cart.deliveryDescription += description + '\n';
-    await cart.save();
+    await Cart.update({id: cart.id}).fetch();
 
     return cart;
   },
@@ -185,7 +185,7 @@ const actions = {
 
     cart.message = message;
 
-    await cart.save();
+    await Cart.update({id: cart.id}).fetch();
     return cart;
   },
 

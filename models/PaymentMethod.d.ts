@@ -1,58 +1,69 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
-/**
- * Описывает модель "Способ оплаты"
- */
-export default interface PaymentMethod extends ORM, InitPaymentAdapter {
-    id: string;
-    enable: boolean;
+declare let attributes: {
+    /** ID платежного метода */
+    id: {
+        type: string;
+        required: boolean;
+    };
+    /** Название платежного метода */
     title: string;
+    /**
+    * Типы платежей, internal - внутренние (когда не требуется запрос во внешнюю систему)
+    * external - Когда надо ожидать подтверждение платежа во внешней системе
+    * promise - Типы оплат при получении
+     */
     type: string;
     adapter: string;
     order: number;
     description: string;
+    enable: boolean;
+};
+declare type PaymentMethod = typeof attributes & ORM;
+export default PaymentMethod;
+declare let Model: {
     /**
-    * Возврашает екземпляр платежного адаптера от this или по названию адаптера
-    */
+   * Возвращает инстанс платежного адаптера по известному названию адаптера
+   * @param  paymentMethodId
+   * @return
+   */
     getAdapter(adapter?: string): Promise<PaymentAdapter>;
-}
-/**
- * Описывает инит обеькт для регистрации "Способ оплаты"
- */
-export interface InitPaymentAdapter {
-    title: string;
-    type: string;
-    adapter: string;
-    description?: string;
-}
-/**
- * Описывает класс PaymentMethod, используется для ORM
- */
-export interface PaymentMethodModel extends ORMModel<PaymentMethod> {
+    beforeCreate: (paymentMethod: any, next: any) => void;
     /**
-     * Выключает все
-     * @param paymentMethod - ключ
-     * @return .
+     * Возвращает true если платежный метод является обещанием платежа
+     * @param  paymentMethodId
+     * @return
      */
-    alive(paymentMethod: PaymentAdapter): Promise<PaymentMethod[]>;
+    isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
     /**
-    * Возврашает доступные для оплаты платежные методы
-    */
+   * Добавляет в список возможных к использованию платежные адаптеры при их старте.
+   * Если  платежный метод не сушетсвует в базе то создает его
+   * @param paymentMethod
+   * @return
+   */
+    alive(paymentAdapter: PaymentAdapter): Promise<string[]>;
+    /**
+   * Возвращает массив с возможными на текущий момент способами оплаты отсортированный по order
+   * @param  нету
+   * @return массив типов оплат
+   */
     getAvailable(): Promise<PaymentMethod[]>;
     /**
-    * Проверяет платежную систему
-    */
+   * Проверяет платежную систему на доступность, и включенность,
+   *  для пейментПромис систем только включенность.
+   * @param paymentMethodId
+   * @return
+   */
     checkAvailable(paymentMethodId: string): Promise<boolean>;
     /**
-    * Возврашает екземпляр платежного адаптера по paymentMethodId
-    */
-    getAdapterById(paymentMethodId?: string): any;
-    /**
-  * Проверяет платежное обещание
-  */
-    isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
-}
+   * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
+   * @param  paymentMethodId
+   * @return PaymentAdapter
+   * @throws
+   */
+    getAdapterById(paymentMethodId: string): Promise<PaymentAdapter>;
+};
 declare global {
-    const PaymentMethod: PaymentMethodModel;
+    const PaymentMethod: typeof Model & ORMModel<PaymentMethod>;
 }

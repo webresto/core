@@ -1,232 +1,34 @@
-import { Modifier, GroupModifier } from "../interfaces/Modifier";
+import { Modifier } from "../interfaces/Modifier";
 import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
-import CartDish from "./CartDish";
 import PaymentDocument from "./PaymentDocument";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import Dish from "./Dish";
 import { PaymentResponse } from "../interfaces/Payment";
-/**
- * Описывает класс Cart, содержит статические методы, используется для ORM
- */
-export interface CartModel extends ORMModel<Cart> {
+declare let attributes: any;
+declare type Cart = typeof attributes & ORM;
+export default Cart;
+declare let Model: {
+    addDish(criteria: any, dish: any, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number): Promise<void>;
+    removeDish(criteria: any, dish: any, amount: number, stack?: boolean): Promise<void>;
+    setCount(criteria: any, dish: any, amount: number): Promise<void>;
+    setComment(criteria: any, dish: any, comment: string): Promise<void>;
+    /**
+     * Set cart selfService field. Use this method to change selfService.
+     * @param selfService
+     */
+    setSelfService(criteria: any, selfService: boolean): Promise<void>;
+    check(criteria: any, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<any>;
+    order(criteria: any): Promise<number>;
+    payment(criteria: any): Promise<PaymentResponse>;
+    paymentMethodId(criteria: any, cart?: any): Promise<string>;
     /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
      * @param cart
      */
-    countCart(cart: Cart): any;
-    /** Выполняет оплату в моделе */
-    doPaid(paymentDocument: PaymentDocument): Promise<void>;
-}
-/**
- * Описывает IIKO  cart
- */
-export default interface Cart extends ORM {
-    id: string;
-    cartId: string;
-    state: string;
-    shortId: string;
-    dishes: CartDish;
-    paymentMethod: string;
-    paymentMethodTitle: string;
-    paid: boolean;
-    isPaymentPromise: boolean;
-    dishesCount: number;
-    uniqueDishes: number;
-    cartTotal: number;
-    modifiers: GroupModifier[];
-    delivery: number;
-    customer: Customer;
-    address: Address;
-    comment: string;
-    personsCount: string;
-    orderDateLimit?: string;
-    /** Желаемая дата и время доставки */
-    date: string;
-    problem: boolean;
-    rmsDelivered: boolean;
-    rmsId: string;
-    rmsOrderNumber: string;
-    rmsOrderData: any;
-    rmsDeliveryDate: string;
-    rmsErrorMessage: string;
-    rmsErrorCode: string;
-    rmsStatusCode: string;
-    deliveryStatus: string;
-    selfService: boolean;
-    deliveryDescription: string;
-    message: string;
-    deliveryItem: string;
-    deliveryCost: number;
-    totalWeight: number;
-    total: number;
-    orderTotal: number;
-    orderDate: string;
-    discountTotal: number;
-    /**
-     * Добавление блюда в текущую корзину, указывая количество, модификаторы, комментарий и откуда было добавлено блюдо.
-     * Если количество блюд ограничено и требуется больше блюд, нежели присутствует, то сгенерировано исключение.
-     * Переводит корзину в состояние CART, если она ещё не в нём.
-     * @param dish - Блюдо для добавления, может быть объект или id блюда
-     * @param amount - количетво
-     * @param modifiers - модификаторы, которые следует применить к текущему блюду
-     * @param comment - комментарий к блюду
-     * @param from - указатель откуда было добавлено блюдо (например, от пользователя или от системы акций)
-     * @throws Object {
-     *   body: string,
-     *   code: number
-     * }
-     * where codes:
-     *  1 - не достаточно блюд
-     *  2 - заданное блюдо не найдено
-     * @fires cart:core-cart-before-add-dish - вызывается перед началом функции. Результат подписок игнорируется.
-     * @fires cart:core-cart-add-dish-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
-     * @fires cart:core-cart-add-dish-before-create-cartdish - вызывается, если все проверки прошли успешно и корзина намеряна
-     * добавить блюдо. Результат подписок игнорируется.
-     * @fires cart:core-cart-after-add-dish - вызывается после успешного добавления блюда. Результат подписок игнорируется.
-     */
-    addDish(dish: Dish | string, amount: number, modifiers?: Modifier[], comment?: string, from?: string, replace?: boolean, cartDishId?: number): Promise<void>;
-    /**
-     * Уменьшает количество заданного блюда на amount. Переводит корзину в состояние CART.
-     * @param dish - Блюдо для изменения количества блюд
-     * @param amount - насколько меньше сделать количество
-     * @param stack - параметр позволяющий удалять в обратном хрогологическом порядке
-     * @throws Object {
-     *   body: string,
-     *   code: number
-     * }
-     * where codes:
-     *  1 - заданный CartDish не найден в текущей корзине
-     *  @fires cart:core-cart-before-remove-dish - вызывается перед началом фунции. Результат подписок игнорируется.
-     *  @fires cart:core-cart-remove-dish-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
-     *  @fires cart:core-cart-after-remove-dish - вызывается после успешной работы функции. Результат подписок игнорируется.
-     */
-    removeDish(dish: CartDish, amount: number, stack?: boolean): Promise<void>;
-    /**
-     * Устанавливает заданное количество для заданного блюда в текущей корзине. Если количество меньше 0, то блюдо будет
-     * удалено из корзины. Переводит корзину в состояние CART.
-     * @param dish - какому блюду измениять количество
-     * @param amount - новое количество
-     * @throws Object {
-     *   body: string,
-     *   code: number
-     * }
-     * where codes:
-     *  1 - нет такого количества блюд
-     *  2 - заданный CartDish не найден
-     * @fires cart:core-cart-before-set-count - вызывается перед началом фунции. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-count-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
-     * @fires cart:core-cart-after-set-count - вызывается после успешной работы функции. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-count-reject-no-cartdish - вызывается, если dish не найден в текущей корзине. Результат подписок игнорируется.
-     */
-    setCount(dish: CartDish, amount: number): Promise<void>;
-    /**
-     * Устанавливает заданному модификатору в заданом блюде в текузей заданное количество.
-     * В случае успешной работы изменяет состояние корзины в CART
-     * @param dish - блюдо, модификатор которого изменять
-     * @param modifier - id блюда, которое привязано к модификатору, количество которого менять
-     * @param amount - новое количество
-     * @throws Object {
-     *   body: string,
-     *   code: number
-     * }
-     * where codes:
-     * 1 - нет достаточного количества блюд
-     * 2 - dish не найден в текущей корзине
-     * 3 - блюдо modifier не найден как модификатор блюда dish
-     * 4 - блюдо dish в текущей корзине не содержит модификатора modifier
-     * @fires cart:core-cart-before-set-modifier-count - вызывается перед началом фунции. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-modifier-count-reject-amount - вызывается перед ошибкой о недостатке блюд. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-modifier-count-reject-no-cartdish - вызывается перед ошибкой с кодом 2. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-modifier-count-reject-no-modifier-dish - вызывается перед ошибкой с кодом 3. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-modifier-count-reject-no-modifier-in-dish - вызывается перед ошибкой с кодом 4. Результат подписок игнорируется.
-     * @fires cart:core-cart-after-set-modifier-count - вызывается после успешной работы функции. Результат подписок игнорируется.
-     */
-    setModifierCount(dish: CartDish, modifier: Dish, amount: number): Promise<void>;
-    /**
-     * Меняет комментарий заданного блюда в текущей корзине
-     * @param dish - какому блюду менять комментарий
-     * @param comment - новый комментарий
-     * @throws Object {
-     *   body: string,
-     *   error: number
-     * }
-     * where codes:
-     * 1 - блюдо dish не найдено в текущей корзине
-     * @fires cart:core-cart-before-set-comment - вызывается перед началом фунции. Результат подписок игнорируется.
-     * @fires cart:core-cart-set-comment-reject-no-cartdish - вызывается перед ошибкой о том, что блюдо не найдено. Результат подписок игнорируется.
-     * @fires cart:core-cart-after-set-comment - вызывается после успешной работы функции. Результат подписок игнорируется.
-     */
-    setComment(dish: CartDish, comment: string): Promise<void>;
-    /**
-     * Меняет поле корзины selfService на заданное. Используйте только этот метод для изменения параметра selfService.
-     * @param selfService
-     */
-    setSelfService(selfService: boolean): Promise<void>;
-    /**
-     * Проверяет ваидность customer. Проверка проходит на наличие полей и их валидность соответсвенно nameRegex и phoneRegex
-     * из конфига. Если указан isSelfService: false, то так же проверяется валидность address на наличие полей и вызывается
-     * `core-cart-check` событие. Каждый подписанный елемент влияет на результат проверки. В зависимости от настроек функция
-     * отдаёт успешность проверки.
-     * @param customer - данные заказчика
-     * @param isSelfService - является ли самовывозов
-     * @param address - адресс, обязательный, если это самовывоз
-     * @return Результат проверки. Если проверка данных заказчика или адресса в случае самомвывоза дали ошибку, то false. Иначе,
-     * если в конфиге checkConfig.requireAll==true, то успех функции только в случае, если все подписки `core-cart-check` вернули положительный результат работы.
-     * Если в конфгие checkConfig.notRequired==true, то независимо от результата всех подписчиков `core-cart-check` будет положительный ответ.
-     * Иначе если хотя бы один подписчик `core-cart-check` ответил успешно, то вся функция считается успешной.
-     * Если результат был успешен, то корзина переходит из состояния CART в CHECKOUT.
-     * @fires cart:core-cart-before-check - вызывается перед началом функции. Результат подписок игнорируется.
-     * @fires cart:core-cart-check-self-service - вызывается если isSelfService==true перед начало логики изменения корзины. Результат подписок игнорируется.
-     * @fires cart:core-cart-check-delivery - вызывается после проверки customer если isSelfService==false. Результат подписок игнорируется.
-     * @fires cart:core-cart-check - проверка заказа на возможность исполнения. Результат исполнения каждого подписчика влияет на результат.
-     * @fires cart:core-cart-after-check - событие сразу после выполнения основной проверки. Результат подписок игнорируется.
-     */
-    check(customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethod?: string): Promise<boolean>;
-    /**
-     * Вызывет core-cart-order. Каждый подписанный елемент влияет на результат заказа. В зависимости от настроек функция
-     * отдаёт успешность заказа.
-     * @return код результата:
-     *  - 0 - успешно проведённый заказ от всех слушателей.
-     *  - 1 - ни один слушатель не смог успешно сделать заказ.
-     *  - 2 - по крайней мере один слушатель успешно выполнил заказ.
-     * @fires cart:core-cart-before-order - вызывается перед началом функции. Результат подписок игнорируется.
-     * @fires cart:core-cart-order-self-service - вызывается, если совершается заказ с самовывозом.
-     * @fires cart:core-cart-order-delivery - вызывается, если заказ без самовывоза
-     * @fires cart:core-cart-order - событие заказа. Каждый слушатель этого события влияет на результат события.
-     * @fires cart:core-cart-after-order - вызывается сразу после попытки оформить заказ.
-     */
-    order(): Promise<number>;
-    /**
-    * Создает платежный документ от модели Cart.
-    * @return код результата:
-    *  - 0 - успешно создан платежный документ
-    *  - 1 - во время создания платежного документа произошла ошибка валидации
-    *  - 2 -
-    * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
-    * @fires cart:core-cart-external-payment - вызывается, если совершается внешняя оплата
-    * @fires cart:core-cart-internal-payment - вызывается, если совершается внутренняя оплата
-    * @fires cart:core-cart-payment - событие оплаты. Каждый слушатель этого события влияет на результат события.
-    * @fires cart:core-cart-after-order - вызывается сразу после попытки провести оплату.
-    */
-    payment(): Promise<PaymentResponse>;
-    /**
-    * Возвращает paymentMethodId текущей корзины
-    * @param cart
-    * @return paymentMethodId
-    */
-    paymentMethodId(cart?: Cart): Promise<string>;
-    /**
-     * Попытка переключить state корзины
-     * @param state Новый стейт
-     */
-    next(state?: string): Promise<void>;
-    /**
-     * Вернет стейт корзны
-     */
-    getState(): string;
-}
+    countCart(criteria: any, cart: any): Promise<any>;
+    doPaid(criteria: any, paymentDocument: PaymentDocument): Promise<void>;
+};
 declare global {
-    const Cart: CartModel;
+    const Cart: typeof Model & ORMModel<Cart>;
 }

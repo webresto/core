@@ -3,8 +3,9 @@ import Config from "../interfaces/Config";
 declare type sailsConfig = typeof sails.config;
 declare global {
     interface Sails extends sails.Sails {
+        models: any;
         config: SailsConfig;
-        iikoFail: boolean;
+        log: any;
     }
     interface SailsConfig extends sailsConfig {
         restocore: Config;

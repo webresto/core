@@ -59,4 +59,8 @@ declare class Response {
     error: any;
     constructor(label: string, result: any, error?: any, timeout?: boolean);
 }
+/**
+ * Получение эмиттера ядра
+ */
+export declare function getEmitter(): AwaitEmitter;
 export {};

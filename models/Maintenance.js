@@ -14,22 +14,26 @@ sails.on('lifted', function () {
         }
     }, CHECK_INTERVAL);
 });
-module.exports = {
-    primaryKey: 'id',
-    attributes: {
-        id: {
-            type: 'string',
-            required: true
-        },
-        title: 'string',
-        description: 'string',
-        enable: {
-            type: 'boolean',
-            defaultsTo: true
-        },
-        startDate: 'string',
-        stopDate: 'string'
+let attributes = {
+    /** id */
+    id: {
+        type: 'string',
+        required: true
     },
+    /** title of maintenance */
+    title: 'string',
+    /** description of maintenance (maybe HTML) */
+    description: 'string',
+    /** is active flag */
+    enable: {
+        type: 'boolean',
+        defaultsTo: true
+    },
+    worktime: "json",
+    startDate: 'string',
+    stopDate: 'string'
+};
+let Model = {
     beforeCreate: function (paymentMethod, next) {
         paymentMethod.id = uuid_1.v4();
         next();
@@ -38,7 +42,9 @@ module.exports = {
         const maintenances = await Maintenance.getActiveMaintenance();
         return maintenances ? true : false;
     },
+    // TODO: add turnSiteOff method
     getActiveMaintenance: async function () {
+        // TODO: here need add worktime support
         let maintenances = await Maintenance.find({ enable: true });
         maintenances = maintenances.filter(s => {
             let start, stop;
@@ -53,6 +59,11 @@ module.exports = {
         });
         return maintenances[0];
     }
+};
+module.exports = {
+    primaryKey: "id",
+    attributes: attributes,
+    ...Model
 };
 function between(from, to, a) {
     return ((!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a));

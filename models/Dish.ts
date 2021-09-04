@@ -137,8 +137,7 @@ let attributes = {
 
     /** Слаг */
     slug: {
-      type: 'slug',
-      from: 'name'
+      type: 'string',
     } as unknown as string,
 
     /** Хеш обекта блюда */

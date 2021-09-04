@@ -5,7 +5,7 @@ import Cart from "../../../models/Cart";
 import Dish from "../../../models/Dish";
 import Customer from "../../../interfaces/Customer";
 import { Payment } from "../../../interfaces/Payment";
-import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
+import TestPaymentSystem from '../../unit/external_payments/ExternalTestPaymentSystem';
 import getEmitter from "../../../libs/getEmitter";
 import PaymentDocument from "../../../models/PaymentDocument";
 
@@ -264,7 +264,7 @@ describe('Cart',function () {
     let testPaymentSystem = await TestPaymentSystem.getInstance();
     let paymentSystem = (await PaymentMethod.find())[0];
     Cart.paymentMethod = paymentSystem.id;
-    await cart.save();
+    await Cart.update({id: cart.id}).fetch();
 
     let result = await Cart.paymentMethodId(cart.id,  );
     expect(result).to.equal(paymentSystem.id);

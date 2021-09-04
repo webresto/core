@@ -42,7 +42,7 @@ import getEmitter from "../libs/getEmitter";
   DECLINE - авторизация отклонена.
 */
 
-enum Status {
+enum PaymentDocumentStatus {
   "NEW" , "REGISTRED" , "PAID" , "CANCEL" ,  "REFUND" , "DECLINE"
 } 
 
@@ -86,7 +86,7 @@ let attributes = {
     type: "string",
     enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
     defaultsTo: 'NEW'
-  } as unknown as Status,
+  } as unknown as string,
 
   /** Комментари для платежной системы */
   comment: "string",
@@ -107,7 +107,7 @@ let Model  =  {
       self.status = "PAID";
       self.paid = true;
       getEmitter().emit("core-payment-document-paid", self);
-      await self.save();
+      await PaymentDocument.update({id: self.id}).fetch();
     }
     return self;
   },

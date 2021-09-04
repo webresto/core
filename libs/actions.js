@@ -54,7 +54,7 @@ const actions = {
             throw 'dishIds (array of strings) is required as second element of params';
         await Promise.each(dishesId, async (dishId) => {
             const dish = await Dish.findOne(dishId);
-            await Cart.addDish(cart.id,  dish, params.amount, params.modifiers, params.comment, 'delivery');
+            await Cart.addDish(cart.id, dish, params.amount, params.modifiers, params.comment, 'delivery');
         });
         return cart;
     },
@@ -103,7 +103,7 @@ const actions = {
         await Cart.next('CART');
         const removeDishes = await CartDish.find({ cart: cart.id, addedBy: 'delivery' });
         await Promise.each(removeDishes, (dish) => {
-            Cart.removeDish(cart.id,  dish, 100000);
+            Cart.removeDish(cart.id, dish, 100000);
         });
         return cart;
     },
@@ -125,7 +125,7 @@ const actions = {
             throw 'cart with id ' + cartId + ' not found';
         cart.deliveryDescription = cart.deliveryDescription || "";
         cart.deliveryDescription += description + '\n';
-        await cart.save();
+        await Cart.update({ id: cart.id }).fetch();
         return cart;
     },
     async reject(cart, params) {
@@ -147,7 +147,7 @@ const actions = {
         if (!cart)
             throw 'cart with id ' + cartId + ' not found';
         cart.message = message;
-        await cart.save();
+        await Cart.update({ id: cart.id }).fetch();
         return cart;
     },
     return() {

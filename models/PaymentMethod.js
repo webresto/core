@@ -2,33 +2,46 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 var alivedPaymentMethods = {};
-module.exports = {
-    primaryKey: 'id',
-    attributes: {
-        id: {
-            type: 'string',
-            required: true
-        },
-        title: 'string',
-        type: {
-            type: 'string',
-            enum: ['promise', 'external', 'internal', 'dummy'],
-            defaultsTo: 'promise',
-            required: true
-        },
-        adapter: {
-            type: 'string',
-            unique: true,
-            required: true
-        },
-        order: 'number',
-        description: 'string',
-        enable: {
-            type: 'boolean',
-            defaultsTo: true,
-            required: true
-        },
+var PaymentMethodType;
+(function (PaymentMethodType) {
+    PaymentMethodType[PaymentMethodType["promise"] = 0] = "promise";
+    PaymentMethodType[PaymentMethodType["external"] = 1] = "external";
+    PaymentMethodType[PaymentMethodType["internal"] = 2] = "internal";
+    PaymentMethodType[PaymentMethodType["dummy"] = 3] = "dummy";
+})(PaymentMethodType || (PaymentMethodType = {}));
+let attributes = {
+    /** ID платежного метода */
+    id: {
+        type: 'string',
+        required: true
     },
+    /** Название платежного метода */
+    title: 'string',
+    /**
+    * Типы платежей, internal - внутренние (когда не требуется запрос во внешнюю систему)
+    * external - Когда надо ожидать подтверждение платежа во внешней системе
+    * promise - Типы оплат при получении
+     */
+    type: {
+        type: 'string',
+        enum: [],
+        defaultsTo: 'promise',
+        required: true
+    },
+    adapter: {
+        type: 'string',
+        unique: true,
+        required: true
+    },
+    order: 'number',
+    description: 'string',
+    enable: {
+        type: 'boolean',
+        defaultsTo: true,
+        required: true
+    },
+};
+let Model = {
     /**
    * Возвращает инстанс платежного адаптера по известному названию адаптера
    * @param  paymentMethodId
@@ -156,5 +169,10 @@ module.exports = {
         else {
             return undefined;
         }
-    },
+    }
+};
+module.exports = {
+    primaryKey: "id",
+    attributes: attributes,
+    ...Model
 };

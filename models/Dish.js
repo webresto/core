@@ -1,148 +1,116 @@
 "use strict";
-/**
- * @api {API} Dish Dish
- * @apiGroup Models
- * @apiDescription Модель блюда
- *
- * @apiParam {String} id Уникальный идентификатор
- * @apiParam {String} additionalInfo Дополнительная информация
- * @apiParamExample {JSON} additionalInfo
- * {
- *   workTime: [
- *    {
- *     dayOfWeek: 'monday',
- *     start: '8:00',
- *     end: '18:00'
- *    },
- *   ],
- *   visible: true|false,
- *   promo: true|false,
- *   modifier: true|false
- * }
- * @apiParam {String} code Артикул
- * @apiParam {String} description Описание
- * @apiParam {String} name Название
- * @apiParam {String} seoDescription SEO-описание для клиента
- * @apiParam {String} seoKeywords SEO-ключевые слова
- * @apiParam {String} seoText SEO-текст для роботов
- * @apiParam {String} seoTitle SEO-заголовок
- * @apiParam {Float} carbohydrateAmount Количество углеводов на 100 г блюда
- * @apiParam {Float} carbohydrateFullAmount Количество углеводов в блюде
- * @apiParam {Array} differentPricesOn Список терминалов, на которых цена продукта отличается от стандартной и цен на них
- * @apiParam {Boolean} doNotPrintInCheque Блюдо не нужно печатать на чеке. Актуально только для модификаторов
- * @apiParam {Float} energyAmount Энергетическая ценность на 100 г блюда
- * @apiParam {Float} energyFullAmount Энергетическая ценность в блюде
- * @apiParam {Float} fatAmount Количество жиров на 100 г блюда
- * @apiParam {Float} fatFullAmount Количество жиров в блюде
- * @apiParam {Float} fiberAmount Количество белков на 100 г блюда
- * @apiParam {Float} fiberFullAmount Количество белков в блюде
- * @apiParam {String} groupId Идентификатор группы
- * @apiParam {Array} groupModifiers Групповые модификаторы (не используется в пользу modifiers)
- * @apiParam {String} measureUnit Единица измерения товара ( кг, л, шт, порц.)
- * @apiParam {Float} price Цена
- * @apiParam {[Group](#api-Models-ApiGroup)} productCategoryId Идентификатор категории продукта
- * @apiParam {Array} prohibitedToSaleOn Список ID терминалов, на которых продукт запрещен к продаже
- * @apiParam {String} type Тип:
- dish - блюдо
- good - товар
- modifier - модификатор
- * @apiParam {Boolean} useBalanceForSell Товар продается на вес
- * @apiParam {Float} weight Вес одной единицы в кг
- * @apiParam {Boolean} isIncludedInMenu Нужно ли продукт отображать в дереве номенклатуры
- * @apiParam {Float} order Порядок отображения
- * @apiParam {Boolean} isDeleted Удалён ли продукт в меню, отдаваемого клиенту
- * @apiParam {JSON} modifiers Модификаторы доступные для данного блюда
- * @apiParam {[Group](#api-Models-ApiGroup)} parentGroup Группа, к которой принадлежит блюдо
- * @apiParam {JSON} tags Тэги
- * @apiParam {Integer} balance Количество оставшихся блюд. -1 - бесконечно
- * @apiParam {[Image](#api-Models-ApiImage)[]} images Картинки блюда
- * @apiParam {Integer} itemTotal
- * @apiParam {String} slug Текстовое названия блюда в транслите
- * @apiParam {Integer} hash Хеш данного состояния блюда
- * @apiParam {String} composition Состав блюда
- *
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const hashCode_1 = require("../libs/hashCode");
 const getEmitter_1 = require("../libs/getEmitter");
-module.exports = {
-    primaryKey: 'id',
-    attributes: {
-        id: {
-            type: 'string',
-            required: true
-        },
-        rmsId: {
-            type: 'string',
-            required: true
-        },
-        additionalInfo: {
-            type: 'string',
-            allowNull: true
-        },
-        code: {
-            type: 'string',
-            allowNull: true
-        },
-        description: 'string',
-        name: 'string',
-        seoDescription: 'string',
-        seoKeywords: 'string',
-        seoText: 'string',
-        seoTitle: 'string',
-        carbohydrateAmount: 'number',
-        carbohydrateFullAmount: 'number',
-        differentPricesOn: 'json',
-        doNotPrintInCheque: 'boolean',
-        energyAmount: 'number',
-        energyFullAmount: 'number',
-        fatAmount: 'number',
-        fatFullAmount: 'number',
-        fiberAmount: 'number',
-        fiberFullAmount: 'number',
-        groupId: 'string',
-        groupModifiers: 'json',
-        measureUnit: 'string',
-        price: 'number',
-        productCategoryId: 'string',
-        prohibitedToSaleOn: 'json',
+let attributes = {
+    /** */
+    id: {
         type: 'string',
-        useBalanceForSell: 'boolean',
-        weight: 'number',
-        isIncludedInMenu: 'boolean',
-        order: 'number',
-        isDeleted: 'boolean',
-        isModificable: 'boolean',
-        modifiers: {
-            // collection: 'dish'
-            type: 'json'
-        },
-        parentGroup: {
-            model: 'group'
-        },
-        tags: {
-            type: 'json'
-        },
-        balance: {
-            type: 'number',
-            defaultsTo: -1
-        },
-        images: {
-            collection: 'image',
-            via: 'dish'
-        },
-        slug: {
-            type: 'slug',
-            from: 'name'
-        },
-        hash: 'string',
-        composition: 'string',
-        visible: 'boolean',
-        modifier: 'boolean',
-        promo: 'boolean',
-        workTime: 'json'
+        required: true
     },
+    /** */
+    rmsId: {
+        type: 'string',
+        required: true
+    },
+    /** */
+    additionalInfo: {
+        type: 'string',
+        allowNull: true
+    },
+    /** Артикул */
+    code: {
+        type: 'string',
+        allowNull: true
+    },
+    /** Описание блюда */
+    description: 'string',
+    /** Наименование */
+    name: 'string',
+    /** SEO description */
+    seoDescription: 'string',
+    /** SEO keywords */
+    seoKeywords: 'string',
+    /** SEO text */
+    seoText: 'string',
+    /** SEO title */
+    seoTitle: 'string',
+    /** Не печатать в чеке */
+    doNotPrintInCheque: 'boolean',
+    /** Количество углеводов на (100гр)*/
+    carbohydrateAmount: 'number',
+    /** Количество углеводов в блюде */
+    carbohydrateFullAmount: 'number',
+    /** Енергетическая ценность (100гр) */
+    energyAmount: 'number',
+    /** Енергетическая ценность */
+    energyFullAmount: 'number',
+    /**  Колличество жиров (100гр) */
+    fatAmount: 'number',
+    /** Колличество жиров в блюде */
+    fatFullAmount: 'number',
+    /** Количество белков (100гр)  */
+    fiberAmount: 'number',
+    /** Количество белков в блюде */
+    fiberFullAmount: 'number',
+    /** Идентификатор группы в которой находится блюдо */
+    groupId: 'string',
+    /** Единица измерения товара ( кг, л, шт, порц.) */
+    measureUnit: 'string',
+    /** Цена блюда */
+    price: 'number',
+    /**  */
+    productCategoryId: 'string',
+    /** Тип */
+    type: 'string',
+    /** Масса  */
+    weight: 'number',
+    /** Порядок сортировки */
+    order: 'number',
+    /** Блюдо удалено */
+    isDeleted: 'boolean',
+    /** Блюдо может быть модифичироанно */
+    isModificable: 'boolean',
+    /** Модифакторы блюда */
+    modifiers: {
+        // collection: 'dish'
+        type: 'json'
+    },
+    /** Родительская группа */
+    parentGroup: {
+        model: 'group'
+    },
+    /** Теги для фильтрации (Вегетарианский, острый...) */
+    tags: {
+        type: 'json'
+    },
+    /** Баланс для продажи, если -1 то сколько угодно */
+    balance: {
+        type: 'number',
+        defaultsTo: -1
+    },
+    /** Список изображений блюда*/
+    images: {
+        collection: 'image',
+        via: 'dish'
+    },
+    /** Слаг */
+    slug: {
+        type: 'string',
+    },
+    /** Хеш обекта блюда */
+    hash: 'string',
+    /** Можно увидеть на сайте в меню */
+    visible: 'boolean',
+    /** Признак что это модификатор */
+    modifier: 'boolean',
+    /** Признак того что блюдо акционное */
+    promo: 'boolean',
+    /** Время работы */
+    workTime: 'json'
+};
+let Model = {
     afterUpdate: function (record, proceed) {
         getEmitter_1.default().emit('core-dish-after-update', record);
         return proceed();
@@ -236,4 +204,9 @@ module.exports = {
             return (await Dish.update({ id: values.id }, { hash, ...values }))[0];
         }
     }
+};
+module.exports = {
+    primaryKey: "id",
+    attributes: attributes,
+    ...Model
 };

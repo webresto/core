@@ -1,3 +1,6 @@
+/**
+ * DEPRECATED
+ */
 import AwaitEmitter from "./AwaitEmitter";
 /**
  * Получение эмиттера ядра

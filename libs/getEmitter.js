@@ -1,4 +1,7 @@
 "use strict";
+/**
+ * DEPRECATED
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 const AwaitEmitter_1 = require("./AwaitEmitter");
 let emitter;

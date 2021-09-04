@@ -22,7 +22,6 @@
     "lodash": "^4.17.10",
     "replace-in-file": "^6.2.0",
     "sails-build-dictionary": "^0.10.1",
-    "sails-hook-slugs": "^2.1.0",
     "uuid": "latest"
   },
   "devDependencies": {

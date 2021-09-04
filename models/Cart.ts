@@ -13,7 +13,6 @@ import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
 
-
 let attributes = {
   /** Id  */
   id: {
@@ -25,7 +24,7 @@ let attributes = {
 
   /** cartId */
   cartId: "string",
-  
+
   shortId: {
     type: "string",
     defaultsTo: function () {
@@ -75,7 +74,7 @@ let attributes = {
     type: "boolean",
     defaultsTo: false,
   } as unknown as boolean,
-  
+
   /** */
   rmsDelivered: {
     type: "boolean",
@@ -90,19 +89,19 @@ let attributes = {
   rmsErrorCode: "string",
   rmsStatusCode: "string",
   deliveryStatus: "string",
-  
+
   selfService: {
     type: "boolean",
     defaultsTo: false,
   } as unknown as boolean,
-  
+
   deliveryDescription: {
     type: "string",
     defaultsTo: "",
   } as unknown as string,
-  
+
   message: "string", // deprecated
-  
+
   deliveryItem: {
     model: "Dish",
   } as unknown as Dish,
@@ -117,38 +116,36 @@ let attributes = {
     type: "number",
     defaultsTo: 0,
   } as unknown as number,
-  
+
   /** total = cartTotal */
   total: {
     type: "number",
     defaultsTo: 0,
-  }as unknown as number, 
+  } as unknown as number,
 
   /**  orderTotal = total + deliveryCost - discountTotal - bonusesTotal */
   orderTotal: {
     type: "number",
     defaultsTo: 0,
   } as unknown as number,
-  
+
   cartTotal: {
     type: "number",
     defaultsTo: 0,
   } as unknown as number,
-  
+
   discountTotal: {
     type: "number",
     defaultsTo: 0,
   } as unknown as number,
-  
+
   orderDate: "string",
-  
+
   customData: "json" as any,
 };
 
-type Cart = typeof attributes & ORM
-export default Cart
-
-
+type Cart = typeof attributes & ORM;
+export default Cart;
 
 let Model = {
   async addDish(
@@ -254,7 +251,7 @@ let Model = {
 
     await Cart.next("CART");
     await Cart.countCart(cart.id, cart);
-    cart.save();
+    Cart.update({id: cart.id}).fetch();
     await emitter.emit.apply(emitter, [
       "core-cart-after-add-dish",
       cartDish,
@@ -314,7 +311,7 @@ let Model = {
 
     await Cart.next("CART");
     await Cart.countCart(cart.id, cart);
-    cart.save();
+    Cart.update({id: cart.id}).fetch();
     await emitter.emit.apply(emitter, [
       "core-cart-after-remove-dish",
       ...arguments,
@@ -357,7 +354,7 @@ let Model = {
 
       await Cart.next("CART");
       await Cart.countCart(cart.id, cart);
-      cart.save();
+      Cart.update({id: cart.id}).fetch();
       await emitter.emit.apply(emitter, [
         "core-cart-after-set-count",
         ...arguments,
@@ -396,7 +393,7 @@ let Model = {
 
       await Cart.next("CART");
       await Cart.countCart(cart.id, self);
-      cart.save();
+      Cart.update({id: cart.id}).fetch();
       await emitter.emit.apply(emitter, [
         "core-cart-after-set-comment",
         ...arguments,
@@ -422,7 +419,7 @@ let Model = {
     await actions.reset(this);
 
     self.selfService = selfService;
-    await self.save();
+    await Cart.update({id: self.id}).fetch();
   },
   async check(
     criteria: any,
@@ -532,7 +529,7 @@ let Model = {
       address,
       paymentMethodId
     );
-    await self.save();
+    await Cart.update({id: self.id}).fetch();
 
     sails.log.info("Cart > check > after wait general emitter", self, results);
     const resultsCount = results.length;
@@ -590,7 +587,7 @@ let Model = {
     if (self.state === "ORDER")
       throw "cart with cartId " + self.id + "in state ORDER";
 
-    // await self.save();
+    // await Cart.update({id: self.id}).fetch();
     // PTODO: проверка эта нужна
     // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
     //   return 3
@@ -652,7 +649,7 @@ let Model = {
 
       /** Если сохранние модели вызвать до next то будет бесконечный цикл */
       sails.log.info("Cart > order > before save cart", self);
-      // await self.save();
+      // await Cart.update({id: self.id}).fetch();
       await Cart.update({ id: self.id }, data);
       getEmitter().emit("core-cart-after-order", self);
     }
@@ -881,17 +878,16 @@ let Model = {
 };
 
 // Waterline model export
-module.exports  = {
+module.exports = {
   primaryKey: "id",
   attributes: attributes,
   ...Model,
-}
+};
 
 declare global {
   // Typescript export
   const Cart: typeof Model & ORMModel<Cart>;
 }
-
 
 // LOCAL HELPERS
 /////////////////////////////////////////////////////////////////

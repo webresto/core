@@ -4,7 +4,7 @@ import getEmitter from "../../../libs/getEmitter";
 import Cart from "../../../models/Cart"
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
-import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
+import TestPaymentSystem from '../../unit/external_payments/ExternalTestPaymentSystem';
 import Settings from '../../../models/Settings'
 import { settings } from "cluster";
 describe('Cart.check ()', function(){
@@ -23,11 +23,17 @@ describe('Cart.check ()', function(){
     }
 
     it('new cart', async function(){
-        
         cart = await Cart.create({});
-        // console.log('>>> Blank cart ------\n', cart);
     });
+
     
+    it('check isSelfService', async function(){
+        await Cart.setSelfService(cart.id,  true);
+        let result = await Cart.check(cart.id,  customer, true);
+        expect(result).to.equal(true);
+
+    });
+
     
     describe('check Customer', function(){
         // let cart: Cart;
@@ -77,7 +83,7 @@ describe('Cart.check ()', function(){
         });
         it('no customer throw', async function(){
             cart.customer = null;
-            await cart.save();
+            await Cart.update({id: cart.id}).fetch();
             let error = null;
             try{
                 await Cart.check ();
@@ -88,12 +94,6 @@ describe('Cart.check ()', function(){
             expect(error.code).to.equal(2);
             expect(error.error).to.be.an('string');
         })
-    });
-    it('check isSelfService', async function(){
-        await Cart.setSelfService(cart.id,  true);
-        let result = await Cart.check(cart.id,  customer, true);
-        expect(result).to.equal(true);
-
     });
 
     describe('check Address', function(){
@@ -130,7 +130,7 @@ describe('Cart.check ()', function(){
         });
         it('no address throw', async function(){
             cart.customer = null;
-            await cart.save();
+            await Cart.update({id: cart.id}).fetch();
             let error = null;
             try{
                 await Cart.check(cart.id,  null, true);

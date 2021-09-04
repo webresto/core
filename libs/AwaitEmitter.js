@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getEmitter = void 0;
+let emitter;
 const sleep = require('util').promisify(setTimeout);
 /**
  * Класс, позволяющий создавать события и ожидать исполнения их подписок, будь то синхронная функция или функция, возвращающая
@@ -12,6 +14,8 @@ class AwaitEmitter {
      * @param timeout - указывает сколько милисекунд ожидать функции, которые возвращают Promise.
      */
     constructor(name, timeout) {
+        if (emitter)
+            throw "singleton: please use getEmitter method";
         this.name = name;
         this.timeout = timeout || 1000;
         this.events = [];
@@ -49,11 +53,28 @@ class AwaitEmitter {
         const res = [];
         const executor = event.fns.map(f => async function () {
             try {
+                if (sails.config.logs.level === 'silly') {
+                    let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
+                    args = args.map((arg) => {
+                        return new Proxy(arg, {
+                            set: function (target, key, value) {
+                                console.log(`From \x1b[40m\x1b[33m\x1b[5m ${f.label} \x1b[0m : ${debugRay}`);
+                                console.log(`\x1b[33m${key} : ${JSON.stringify(value)} \x1b[0m`);
+                                console.log("\x1b[32m" + "↷↷↷↷↷↷↷↷↷↷↷");
+                                console.dir(target);
+                                console.log("-------------------------------------------------------");
+                                target[key] = value;
+                                return true;
+                            },
+                        });
+                    });
+                }
                 const r = f.fn.apply(that, args);
-                // from isPromise
-                if (!!r && (typeof r === 'object' || typeof r === 'function') && typeof r.then === 'function') {
+                // Если это промис, то ждем
+                if (!!r && (typeof r === 'object' || typeof r === 'function') && typeof r.then === 'function') { // from isPromise
                     let timeoutEnd = false;
                     let successEnd = false;
+                    // stop timer 
                     const timeout = async function () {
                         await sleep(that.timeout);
                         if (!successEnd) {
@@ -80,9 +101,15 @@ class AwaitEmitter {
                         }
                     };
                     await Promise.race([timeout(), decorator()]);
+                    // Если функция не промис то выполняем ее сразу
                 }
                 else {
-                    res.push(new Response(f.label, r));
+                    try {
+                        res.push(new Response(f.label, r));
+                    }
+                    catch (error) {
+                        res.push(new Response(f.label, null, e));
+                    }
                 }
             }
             catch (e) {
@@ -115,3 +142,13 @@ class Response {
         this.state = timeout ? 'timeout' : this.error ? 'error' : 'success';
     }
 }
+/**
+ * Получение эмиттера ядра
+ */
+function getEmitter() {
+    if (!emitter) {
+        emitter = new AwaitEmitter('core', sails.config.restocore.awaitEmitterTimeout);
+    }
+    return emitter;
+}
+exports.getEmitter = getEmitter;

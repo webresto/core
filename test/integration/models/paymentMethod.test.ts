@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import TestPaymentSystem from '../external_payments/ExternalTestPaymentSystem';
+import TestPaymentSystem from '../../unit/external_payments/ExternalTestPaymentSystem';
 
 
 var paymentMethodSeed =

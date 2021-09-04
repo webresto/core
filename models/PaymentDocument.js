@@ -2,47 +2,100 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const getEmitter_1 = require("../libs/getEmitter");
+/** На примере корзины (Cart):
+ * 1. Модель проводящяя оплату internal/external (например: Cart) создает PaymentDocument
+ *
+ * 2. PaymentDocument при создании нового платежного поручения находит нужный платежный метод
+ *    и создает оплату в платежной системе (происходит редирект на платежную форму)
+ *
+ * 3. Когда человек оплатил в зависимости от логики работы платежного шлюза. PaymentProcessor либо
+ *    получет вызов  от платежной системы когда PaymentAdapter создаст емит emitter.on('payment'),
+ *    либо будем опрашивать платежную систему пока не выясним состояние платежа.
+ *    PaymentProcessor имеет таймер для того чтобы опрашивать платежные системы о состоянии платежа,
+ *    таким образом  в платежной системе дополнительно опрос не нужно реализовывать, только функцию check
+ *
+ * 4. В то время когда человек завершил работу со шлюзом и произвел оплату, его вернет на страницу указанную
+ *    в платежном адаптере как страницу для успешного возврата. Предполагается что произойдет редирект на страницу
+ *    заказа, где человек сможет увидеть состояние своего заказа. Во время загрузки этой страницы будет произведен вызов
+ *    контроллера API getOrder(/api/0.5/order/:number)
+ *
+ * 5. Если оплата прошла успешно то PaymentProcessor  установит статус PAID в соответвующий PaymentDocument,
+ *    это в свою очередь означает что PaymentDocument попытается поставить флаг isPaid: true в моделе  и совершит emit('core-payment-document-paid', document)
+ *    соответсвующей originModel текущего PaymentDocument. ( В случе с Cart произойдет next(); )
+ *
+ * 6. В случае изменения статуса оплаты произойдет вызов  emit('core-payment-document-status', document) где любая система сможет
+ *    отрегировать на изменения статуса,
+ *
+ * 7. В случае неуспешной оплаты пользователь будет возвращен на страницу уведомения о неуспешной оплате и далее будет редирект на страницу
+ *    оформления заказа, для того чтобы пользователь смог попытатся оплатить заказ еще раз.
+ */
+/**
+  REGISTRED - заказ зарегистрирован, но не оплачен;
+  PAID - проведена полная авторизация суммы заказа;
+  CANCEL - авторизация отменена;
+  REFUND - по транзакции была проведена операция возврата;
+  DECLINE - авторизация отклонена.
+*/
+var PaymentDocumentStatus;
+(function (PaymentDocumentStatus) {
+    PaymentDocumentStatus[PaymentDocumentStatus["NEW"] = 0] = "NEW";
+    PaymentDocumentStatus[PaymentDocumentStatus["REGISTRED"] = 1] = "REGISTRED";
+    PaymentDocumentStatus[PaymentDocumentStatus["PAID"] = 2] = "PAID";
+    PaymentDocumentStatus[PaymentDocumentStatus["CANCEL"] = 3] = "CANCEL";
+    PaymentDocumentStatus[PaymentDocumentStatus["REFUND"] = 4] = "REFUND";
+    PaymentDocumentStatus[PaymentDocumentStatus["DECLINE"] = 5] = "DECLINE";
+})(PaymentDocumentStatus || (PaymentDocumentStatus = {}));
 let payment_processor_interval;
-module.exports = {
-    primaryKey: "id",
-    attributes: {
-        id: {
-            type: "string",
-            required: true,
-            defaultsTo: function () { return uuid_1.v4(); }
-        },
-        paymentId: "string",
-        externalId: "string",
-        originModel: "string",
-        paymentMethod: {
-            model: "PaymentMethod",
-        },
-        amount: "number",
-        paid: {
-            type: "boolean",
-            defaultsTo: false
-        },
-        status: {
-            type: "string",
-            enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
-            defaultsTo: 'NEW'
-        },
-        comment: "string",
-        redirectLink: "string",
-        error: "string",
+let attributes = {
+    /** Уникальный id в моделе PaymentDocument */
+    id: {
+        type: "string",
+        required: true,
+        defaultsTo: function () { return uuid_1.v4(); }
     },
-    doPaid: async function () {
-        const self = this;
+    /** соответсвует id из модели originModel */
+    paymentId: "string",
+    /** ID во внешней системе */
+    externalId: "string",
+    /** Модель из которой делается платеж */
+    originModel: "string",
+    /** Платежный метод */
+    paymentMethod: {
+        model: "PaymentMethod",
+    },
+    /** Сумма к оплате */
+    amount: "number",
+    /** Флаг установлен что оплата произведена */
+    paid: {
+        type: "boolean",
+        defaultsTo: false
+    },
+    /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
+    status: {
+        type: "string",
+        enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
+        defaultsTo: 'NEW'
+    },
+    /** Комментари для платежной системы */
+    comment: "string",
+    /** ВЕРОЯТНО ТУТ ЭТО НЕ НУЖНО */
+    redirectLink: "string",
+    /** Текст ошибки */
+    error: "string",
+};
+let Model = {
+    doPaid: async function (criteria) {
+        const self = await PaymentDocument.findOne(criteria);
         if (self.status === "PAID" && self.paid !== true) {
             self.status = "PAID";
             self.paid = true;
             getEmitter_1.default().emit("core-payment-document-paid", self);
-            await self.save();
+            await PaymentDocument.update({ id: self.id }).fetch();
         }
         return self;
     },
-    doCheck: async function () {
-        const self = this;
+    doCheck: async function (criteria) {
+        const self = await PaymentDocument.findOne(criteria);
         getEmitter_1.default().emit("core-payment-document-check", self);
         try {
             let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
@@ -143,8 +196,14 @@ module.exports = {
                 }
             }
         }, timeout || 120000));
-    },
+    }
 };
+module.exports = {
+    primaryKey: "id",
+    attributes: attributes,
+    ...Model
+};
+////////////////////////////// LOCAL
 async function checkOrigin(originModel, paymentId) {
     //@ts-ignore
     if (!(await sails.models[originModel].findOne({ id: paymentId }))) {

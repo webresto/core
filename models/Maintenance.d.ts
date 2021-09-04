@@ -1,21 +1,26 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-/**
- * Описывает модель "работы на сайте"
- */
-export default interface Maintenance extends ORM {
-    id: number;
+import { WorkTime } from "@webresto/worktime";
+declare let attributes: {
+    /** id */
+    id: string;
+    /** title of maintenance */
     title: string;
+    /** description of maintenance (maybe HTML) */
     description: string;
+    /** is active flag */
     enable: boolean;
+    worktime: WorkTime;
     startDate: string;
     stopDate: string;
-}
-/**
- * Описывает класс Maintenance, используется для ORM
- */
-export interface MaintenanceModel extends ORMModel<Maintenance> {
-}
+};
+declare type Maintenance = typeof attributes & ORM;
+export default Maintenance;
+declare let Model: {
+    beforeCreate: (paymentMethod: any, next: any) => void;
+    siteIsOff: () => Promise<boolean>;
+    getActiveMaintenance: () => Promise<Maintenance>;
+};
 declare global {
-    const Maintenance: MaintenanceModel;
+    const Maintenance: typeof Model & ORMModel<Maintenance>;
 }

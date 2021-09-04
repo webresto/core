@@ -4,8 +4,8 @@
  * @apiDescription Модель блюда в корзине. Содержит информацию о количестве данного блюда в коризне и его модификаторы
  *
  * @apiParam {Integer} id ID данного блюда в корзине. Все операции с блюдом в корзине проводить с этим ID
- * @apiParam {Integer} amount Количество данного блюда с его модификаторами в корзине
- * @apiParam {[Dish](#api-Models-ApiDish)} dish Само блюдо, которое содержится в корзине
+ * @apiParam {Integer} amount
+ * @apiParam {[Dish](#api-Models-ApiDish)} dish
  * @apiParam {JSON} modifiers Модификаторы для текущего блюда
  * @apiParam {[Cart](#api-Models-ApiCart)} cart Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии
  * @apiParam {[CartDish](#api-Models-ApiCartdish)} parent Родительское блюдо (для модификаторов)
@@ -22,30 +22,11 @@
  *  }
  */
 import ORM from "../interfaces/ORM";
-import Dish from "../models/Dish";
-import { Modifier } from "../interfaces/Modifier";
 import ORMModel from "../interfaces/ORMModel";
-/**
- * Описывает екзмепляр CartDish, то есть блюда в корзине, имеет связь с корзиной, внутри которой находится и с блюдом,
- * которое описывает
- */
-export default interface CartDish extends ORM {
-    id: string;
-    amount: number;
-    dish: Dish;
-    modifiers: Modifier[];
-    uniqueItems: number;
-    itemTotal: number;
-    weight: number;
-    totalWeight: number;
-    comment: string;
-    addedBy?: string;
-}
-/**
- * Описывает класс CartDish, используется для ORM
- */
-export interface CartDishModel extends ORMModel<CartDish> {
-}
+declare let attributes: any;
+declare type CartDish = typeof attributes & ORM;
+export default CartDish;
+declare let Model: {};
 declare global {
-    const CartDish: CartDishModel;
+    const CartDish: typeof Model & ORMModel<CartDish>;
 }

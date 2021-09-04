@@ -29,7 +29,7 @@ let attributes = {
     enum: [],
     defaultsTo: 'promise',
     required: true
-  } as unknown as PaymentMethodType,
+  } as unknown as string,
   adapter: {
     type: 'string',
     unique: true,
