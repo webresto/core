@@ -11,6 +11,6 @@ module.exports = {
   },
   port: process.env.GF_PORT === undefined ? 42772 : process.env.GF_PORT,
   log: {
-   level: "silent"
+   level: "verbose"
   }
 };
