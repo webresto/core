@@ -149,6 +149,8 @@ let Model = {
     if (!cartInit.shortId) {
       cartInit.shortId = cartInit.id.substr(cartInit.id.length - 8).toUpperCase();
     }
+
+    cartInit = "CART";
     next();
   },
 

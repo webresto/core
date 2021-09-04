@@ -28,19 +28,29 @@ describe('Cart.check ()', function(){
     });
 
     
-    it('check isSelfService()', async function(){
-        await Cart.setSelfService(cart.id,  true);
-        let result: Cart = await Cart.findOne(cart.id);
-        expect(result).to.equal(true);
+    it('check isSelfService', async function(){
+        
+        try {
+            await Cart.setSelfService(cart.id,  true);
+    
+            let result: Cart = await Cart.findOne(cart.id);
+            console.log("DSD",result)
+            expect(result.selfService).to.equal(true);            
+        } catch (error) {
+           // console.log("EEEEEEEEEEEEEEE",error)
+            throw error
+        }
 
     });
 
     
     describe('check Customer', function(){
+        
         // let cart: Cart;
         // it('init', async function(){
         //     cart = await Cart.create({});
         // });
+
         it('good customer', async function(){
             cart = await Cart.create({}).fetch();
             

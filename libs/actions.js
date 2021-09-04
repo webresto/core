@@ -101,7 +101,8 @@ const actions = {
         cart.deliveryDescription = "";
         cart.message = "";
         console.log(cart);
-        await Cart.next(cart.id, 'CART');
+        if (cart.state !== 'CART')
+            await Cart.next(cart.id, 'CART');
         const removeDishes = await CartDish.find({ cart: cart.id, addedBy: 'delivery' });
         await Promise.each(removeDishes, (dish) => {
             Cart.removeDish(cart.id, dish, 100000);
