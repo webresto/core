@@ -150,7 +150,7 @@ type Cart = typeof attributes & ORM;
 export default Cart;
 
 let Model = {
-  /** 
+
   async addDish(
     criteria: any,
     dish: Dish | string,
@@ -370,7 +370,7 @@ let Model = {
       throw { body: `CartDish dish id ${dish.id} not found`, code: 2 };
     }
   },
-  */
+
   async setComment(
     criteria: any,
     dish: CartDish,
