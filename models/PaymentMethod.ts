@@ -73,7 +73,7 @@ module.exports = {
         chekingPaymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
       }
 
-      if (chekingPaymentMethod.type === 'promise' || chekingPaymentMethod.type === 'dummy'){
+      if (chekingPaymentMethod.type === 'promise'){
         return true;
       }
       return false;
