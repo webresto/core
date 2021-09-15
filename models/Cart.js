@@ -559,8 +559,8 @@ let cartModel = {
         }
         const resultCartDishes = await CartDish.find({ cart: cart.id });
         cart.dishes = resultCartDishes;
-        await Cart.update({ id: cart.id }, cart);
         getEmitter_1.default().emit('core-cart-after-count', cart);
+        await Cart.update({ id: cart.id }, cart);
         return cart;
     },
     doPaid: async function (paymentDocument) {

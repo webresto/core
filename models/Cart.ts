@@ -641,10 +641,9 @@ let cartModel: CartModel = {
     const resultCartDishes = await CartDish.find({cart: cart.id}) as Association<CartDish>;
     cart.dishes = resultCartDishes;
 
-    await Cart.update({id: cart.id}, cart);
-
     getEmitter().emit('core-cart-after-count', cart);
-
+    
+    await Cart.update({id: cart.id}, cart);
     return cart;
   },
 
