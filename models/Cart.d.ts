@@ -11,6 +11,7 @@ import { PaymentResponse } from "../modelsHelp/Payment";
  * Описывает класс Cart, содержит статические методы, используется для ORM
  */
 export interface CartModel extends ORMModel<Cart> {
+    populate(cart: Cart): any;
     /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
      * @param cart
