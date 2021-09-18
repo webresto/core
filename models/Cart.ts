@@ -7,6 +7,8 @@ import actions from "../libs/actions";
 import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
+import StateFlowModel from "../interfaces/StateFlowModel";
+
 import Dish from "./Dish";
 import * as _ from "lodash";
 import { PaymentResponse } from "../interfaces/Payment";
@@ -962,7 +964,7 @@ module.exports = {
 
 declare global {
   // Typescript export
-  const Cart: typeof Model & ORMModel<Cart>;
+  const Cart: typeof Model & ORMModel<Cart> & StateFlowModel;
 }
 
 // LOCAL HELPERS

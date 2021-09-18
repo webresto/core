@@ -93,7 +93,7 @@ describe('Cart.check ()', function(){
             await Cart.update({id: cart.id}, cart).fetch();
             let error = null;
             try{
-                await Cart.check ();
+                await Cart.check({id: cart.id});
             }catch(e){
                 error = e;
             }
@@ -160,7 +160,7 @@ describe('Cart.check ()', function(){
     
 
         try {
-            let paymentSystem = (await PaymentMethod.find())[0];
+            let paymentSystem = await PaymentMethod.findOne();
             let result = await Cart.check(cart.id,  customer, false, address, paymentSystem.id);            
             await Cart.check(cart.id,  null, null, null, paymentSystem.id);
             

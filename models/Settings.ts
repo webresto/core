@@ -32,6 +32,7 @@ let attributes = {
 type attributes = typeof attributes;
 interface Settings extends attributes, ORM {}
 export default Settings
+
 let Model  =  {  
   /** retrun setting value by key */
   async use(config: string, key: string): Promise<Settings> {
@@ -50,7 +51,7 @@ let Model  =  {
       }
     }
 
-    let obj = await Settings.find({ key: key }).limit(1);
+    let obj = (await Settings.find({ key: key }).limit(1))[0];
     sails.log.silly("CORE > Settings > findOne: ", key, obj);
 
     if (!obj) {

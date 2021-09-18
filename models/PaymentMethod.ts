@@ -14,7 +14,7 @@ let attributes = {
     type: 'string',
     required: true
 
-  },
+  } as unknown as string,
 
   /** Название платежного метода */
   title: 'string',
