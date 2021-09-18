@@ -34,7 +34,7 @@ let attributes = {
   discount: "json" as any,
   paymentMethod: {
     model: "PaymentMethod"
-  } as unknown as PaymentMethod | string,
+  } as unknown as PaymentMethod & string,
 
   /** */
   paymentMethodTitle: "string",
@@ -47,7 +47,7 @@ let attributes = {
   isPaymentPromise: {
     type: "boolean",
     defaultsTo: true,
-  },
+  } as unknown as boolean,
 
   /** */
   dishesCount: "number" as unknown as number,
@@ -97,7 +97,7 @@ let attributes = {
 
   deliveryItem: {
     model: "Dish",
-  } as unknown as Dish | string,
+  } as unknown as Dish & string,
 
   deliveryCost: {
     type: "number",
@@ -137,7 +137,11 @@ let attributes = {
   customData: "json" as any,
 };
 
-type attributes = typeof attributes;
+interface stateFlowInstance {
+  state: string;
+}
+
+type attributes = typeof attributes & stateFlowInstance;
 interface Cart extends attributes, ORM {};
 export default Cart;
 
@@ -158,7 +162,7 @@ let Model = {
 
   async addDish(
     criteria: any,
-    dish: Dish | string,
+    dish: Dish & string,
     amount: number,
     modifiers: Modifier[],
     comment: string,
@@ -438,7 +442,6 @@ let Model = {
     paymentMethodId?: string
   ): Promise<any> {
     const cart: Cart = await Cart.countCart( criteria);
-
     if (cart.state === "ORDER")
       throw "cart with cartId " + cart.id + "in state ORDER";
 
@@ -462,6 +465,7 @@ let Model = {
       isSelfService,
       address
     );
+
     sails.log.silly(
       "Cart > check > before check >",
       customer,
@@ -505,7 +509,7 @@ let Model = {
         address
       );
       sails.log.verbose("Cart > check > is cart delivery");
-      await cart.setSelfService(true);
+      await Cart.setSelfService(cart.id,true);
       await Cart.next(cart.id,"CHECKOUT");
       return;
     }
@@ -870,16 +874,6 @@ let Model = {
         sails.log.error("Cart > count > iterate cartDish error", e);
       }
     }
-
-    // for (let cd in cart.dishes) {
-    //   if (cart.dishes.hasOwnProperty(cd)) {
-    //     const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
-    //     if (!cartDish)
-    //       continue;
-    //     cartDish.dish = cartDishesClone[cartDish.id].dish;
-    //     //cart.dishes[cd] = cartDish;
-    //   }
-    // }
 
     // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
     await getEmitter().emit("core-cart-count-discount-apply", cart);

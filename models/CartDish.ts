@@ -45,7 +45,7 @@ let attributes = {
   /**Само блюдо, которое содержится в корзине */
   dish: {
     model: "Dish",
-  } as unknown as Dish | string,
+  } as unknown as Dish & string,
 
   /** Модификаторы для текущего блюда */
   modifiers: "json" as unknown as Modifier[],
@@ -53,7 +53,7 @@ let attributes = {
   /** */
   cart: {
     model: "Cart",
-  } as unknown as Cart | string,
+  } as unknown as Cart & string,
 
   /** Количество уникальных блюд в корзине */
   uniqueItems: "number" as unknown as number,

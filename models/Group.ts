@@ -36,9 +36,7 @@ let attributes = {
   seoText: "string",
   seoTitle: "string",
   
-  /** Нужно ли продукт отображать в дереве номенклатуры */
-  isIncludedInMenu: "boolean" as unknown as boolean,
-  
+ 
   /** Очередь сортировки */
   order: "number" as unknown as number,
 
@@ -51,7 +49,7 @@ let attributes = {
   /** Родительская группа */
   parentGroup: {
     model: "group",
-  } as unknown as Group | string,
+  } as unknown as Group & string,
 
   /** Дочерние группы */
   childGroups: {
