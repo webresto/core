@@ -50,16 +50,12 @@ describe("Flows: Checkout", function () {
       let result = await Cart.check(cart.id, customer, false, address, paymentSystem.id);
       await Cart.check(cart.id, null, null, null, paymentSystem.id);
 
-      let error = null;
-
       try {
         await Cart.check(cart.id, null, null, null, "bad-id-payment-system");
       } catch (e) {
-        error = e;
+        expect(e.code).to.equal(8);
+        expect(e.error).to.be.an("string");
       }
-
-      expect(error.code).to.equal(8);
-      expect(error.error).to.be.an("string");
     } catch (error) {
       throw error;
     }
@@ -113,8 +109,8 @@ describe("Flows: Checkout", function () {
     });
     try {
       await Cart.check(cart.id, customer, true, address);
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
     }
 
     expect(core_cart_is_self_service).to.equal(1);
@@ -125,24 +121,20 @@ describe("Flows: Checkout", function () {
 
   it("throw if cart is Paid (next Only ORDER)", async function () {
     await Cart.update(cart.id, { state: "PAYMENT", paid: true }).fetch();
-    let error = null;
     try {
       await Cart.check(cart.id, customer);
     } catch (e) {
-      error = e;
+      expect(e).to.not.equal(null);
     }
-    expect(error).to.not.equal(null);
   });
 
   it("throw if state ORDER", async function () {
     await Cart.next(cart.id, "ORDER");
-    let error = null;
     try {
       await Cart.check(cart.id, customer);
     } catch (e) {
-      error = e;
+      expect(e).to.not.equal(null);
     }
-    expect(error).to.not.equal(null);
   });
 
   it("test checkConfig (default - requireAll)", async function () {
@@ -150,56 +142,43 @@ describe("Flows: Checkout", function () {
 
     cart = await Cart.create({}).fetch();
 
-    getEmitter().on("core-cart-check", "ccc",function () {
+    getEmitter().on("core-cart-check", "ccc", function () {
       throw "test";
     });
 
     // for selfServices
-    let error = null;
     try {
       await Cart.check(cart.id, customer, true);
     } catch (e) {
-      error = e;
+      expect(e.code).to.equal(10);
     }
-    expect(error.code).to.equal(10);
-    
+
     // just user with address
-    error = null;
     try {
       await Cart.check(cart.id, customer, false, address);
     } catch (e) {
-      error = e;
+      expect(e.code).to.equal(10);
     }
-    expect(error.code).to.equal(10);
   });
 
-
   it("test checkConfig (notRequired)", async function () {
-
     await Settings.set("check", { notRequired: true });
     cart = await Cart.create({}).fetch();
 
     // for selfServices
-    let error = null;
     try {
       await Cart.check(cart.id, customer, true);
     } catch (e) {
-      error = e;
+      expect(e).to.equal(null);
     }
 
-    expect(error).to.equal(null);
-    
     // just user with address
-    error = null;
     try {
       await Cart.check(cart.id, customer, false, address);
     } catch (e) {
-      error = e;
+      expect(e).to.equal(null);
     }
-    expect(error).to.equal(null);
   });
-
-
 
   describe("check Customer", function () {
     // let cart: Cart;
@@ -215,10 +194,13 @@ describe("Flows: Checkout", function () {
         name: "Freeman Morgan",
       };
 
-      let result = await Cart.check(cart.id, customer, true);
-
-      expect(result).to.equal(true);
+      try {
+        await Cart.check(cart.id, customer, true);
+      } catch (e) {
+        expect(e).to.equal(null);
+      }
     });
+
     it("bad customer", async function () {
       // @ts-ignore
       let badCustomer: Customer = {
@@ -248,6 +230,7 @@ describe("Flows: Checkout", function () {
       expect(error.code).to.equal(1);
       expect(error.error).to.be.an("string");
     });
+
     it("no customer throw", async function () {
       cart.customer = null;
       await Cart.update({ id: cart.id }, cart).fetch();
@@ -267,50 +250,50 @@ describe("Flows: Checkout", function () {
     it("good address", async function () {
       cart = await Cart.create({}).fetch();
       let address: Address = {
-        streetId: "sdfsf",
+        streetId: "1234abcd",
         city: "New York",
         street: "Green Road",
         home: "42",
-        comment: "",
+        comment: "test",
       };
 
-      let result = await Cart.check(cart.id, customer, null, address);
-      expect(result).to.equal(true);
+      try {
+        await Cart.check(cart.id, customer, null, address);
+      } catch (e) {
+        expect(e).to.equal(null);
+      }
     });
+ 
     it("bad address", async function () {
       // @ts-ignore
       let badAddress: Address = {
         city: "New York",
-        // street: 'Green Road',
+        // street: 'Green Road', 
         home: "42",
-        comment: "",
+        comment: "test",
       };
 
-      let error = null;
       try {
         await Cart.check(cart.id, null, null, badAddress);
       } catch (e) {
-        error = e;
+        expect(e.code).to.equal(5);
+        expect(e.error).to.be.an("string");
       }
-      expect(error.code).to.equal(5);
-      expect(error.error).to.be.an("string");
     });
+
     it("no address throw", async function () {
       cart.customer = null;
       await Cart.update({ id: cart.id }, cart).fetch();
-      let error = null;
       try {
         await Cart.check(cart.id, null, true);
       } catch (e) {
-        error = e;
+        expect(e.code).to.equal(2);
+        expect(e.error).to.be.an("string");
       }
 
-      expect(error.code).to.equal(2);
-      expect(error.error).to.be.an("string");
     });
   });
 });
-
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
