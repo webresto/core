@@ -14,16 +14,18 @@ declare let attributes: {
     /** Источника происхождения */
     from: string;
 };
-declare type Settings = typeof attributes & ORM;
+declare type attributes = typeof attributes;
+interface Settings extends attributes, ORM {
+}
 export default Settings;
 declare let Model: {
     /** retrun setting value by key */
-    use(config: string, key: string): Promise<Settings>;
+    use(key: string, from?: string): Promise<any>;
     /**
      * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
      * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
      */
-    set(key: string, value: any, config?: string): Promise<any>;
+    set(key: string, value: any, from?: string): Promise<any>;
 };
 declare global {
     const Settings: typeof Model & ORMModel<Settings>;

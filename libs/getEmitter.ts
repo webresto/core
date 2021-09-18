@@ -1,7 +1,3 @@
-/**
- * DEPRECATED
- */
-
 import AwaitEmitter from "./AwaitEmitter";
 
 let emitter: AwaitEmitter;

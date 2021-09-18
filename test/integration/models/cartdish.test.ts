@@ -4,9 +4,9 @@ let cartDishId: string;
 const cartDishExample = {
     amount: 1000,
     dish: 'dishId',
-    modifiers: '"json"',
+    modifiers: 'json',
     cart: 'cartId',
-    discount: '"json"',
+    discount: 'json',
     parent: 1,
     uniqueItems: 5,
     itemTotal: 5,

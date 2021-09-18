@@ -101,6 +101,7 @@ let attributes = {
     orderDate: "string",
     customData: "json",
 };
+;
 let Model = {
     beforeCreate(cartInit, next) {
         if (!cartInit.id) {
@@ -376,7 +377,7 @@ let Model = {
         if (isSelfService) {
             getEmitter_1.default().emit("core-cart-check-cart-service", cart, customer, isSelfService, address);
             sails.log.verbose("Cart > check > is cart delivery");
-            await cart.setSelfService(true);
+            await Cart.setSelfService(cart.id, true);
             await Cart.next(cart.id, "CHECKOUT");
             return;
         }
@@ -405,7 +406,7 @@ let Model = {
         if (checkConfig) {
             if (checkConfig.requireAll) {
                 if (resultsCount === successCount) {
-                    if (cart.getState() !== "CHECKOUT") {
+                    if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
                         await Cart.next(cart.id, "CHECKOUT");
                     }
                     return;
@@ -418,7 +419,7 @@ let Model = {
                 }
             }
             if (checkConfig.notRequired) {
-                if (cart.getState() !== "CHECKOUT") {
+                if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
                     await Cart.next(cart.id, "CHECKOUT");
                 }
                 return;
@@ -426,7 +427,7 @@ let Model = {
         }
         // если не настроен конфиг то нужен хотябы один положительный ответ(заказ в пустоту бесполезен)
         if (successCount > 0) {
-            if (cart.getState() !== "CHECKOUT") {
+            if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
                 await Cart.next(cart.id, "CHECKOUT");
             }
             return;
@@ -434,7 +435,8 @@ let Model = {
         else {
             throw {
                 code: 11,
-                error: "successCount <= 0",
+                error: "successCount <= 0!",
+                checkConfig: checkConfig
             };
         }
     },
@@ -533,6 +535,51 @@ let Model = {
         //@ts-ignore
         return populatedCart.paymentMethod.id;
     },
+    /**  given populated Cart instance  by criteria*/
+    async populate(criteria) {
+        let cart = await Cart.findOne(criteria);
+        if (!cart)
+            throw `cart by criteria: ${criteria},  not found`;
+        let fullCart;
+        try {
+            fullCart = await Cart.findOne({ id: cart.id }).populate('dishes');
+            const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish').sort('createdAt');
+            for (let cartDish of cartDishes) {
+                if (!cartDish.dish) {
+                    sails.log.error('cartDish', cartDish.id, 'has not dish');
+                    continue;
+                }
+                if (!fullCart.dishes.filter(d => d.id === cartDish.id).length) {
+                    sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
+                    continue;
+                }
+                const dish = await Dish.findOne({
+                    id: cartDish.dish.id,
+                    isDeleted: false
+                }).populate('images').populate('parentGroup');
+                const reason = checkExpression(dish);
+                if (dish && dish.parentGroup)
+                    var reasonG = checkExpression(dish.parentGroup);
+                const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
+                    reasonG === 'visible' || !reasonG;
+                await Dish.getDishModifiers(dish);
+                cartDish.dish = dish;
+                if (cartDish.modifiers !== undefined) {
+                    for await (let modifier of cartDish.modifiers) {
+                        modifier.dish = await Dish.findOne(modifier.id);
+                    }
+                }
+            }
+            fullCart.dishes = cartDishes;
+            fullCart.orderDateLimit = await getOrderDateLimit();
+            fullCart.cartId = fullCart.id;
+            await this.countCart(fullCart);
+        }
+        catch (e) {
+            sails.log.error('CART > fullCart error', e);
+        }
+        return fullCart;
+    },
     /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
      * @param cart
@@ -583,6 +630,11 @@ let Model = {
                                 continue;
                             }
                             await getEmitter_1.default().emit("core-cart-countcart-before-calc-modifier", modifier, modifierObj);
+                            // const modifierCopy = {
+                            //   amount: modifier.amount,
+                            //   id: modifier.id
+                            // }
+                            // await getEmitter().emit('core-cart-countcart-before-calc-modifier', modifierCopy, modifierObj);
                             cartDish.uniqueItems++;
                             cartDish.itemTotal += modifier.amount * modifierObj.price;
                             cartDish.weight += modifierObj.weight;
@@ -602,15 +654,6 @@ let Model = {
                 sails.log.error("Cart > count > iterate cartDish error", e);
             }
         }
-        // for (let cd in cart.dishes) {
-        //   if (cart.dishes.hasOwnProperty(cd)) {
-        //     const cartDish = cartDishes.find(cd1 => cd1.id === cart.dishes[cd].id);
-        //     if (!cartDish)
-        //       continue;
-        //     cartDish.dish = cartDishesClone[cartDish.id].dish;
-        //     //cart.dishes[cd] = cartDish;
-        //   }
-        // }
         // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
         await getEmitter_1.default().emit("core-cart-count-discount-apply", cart);
         cart.dishesCount = dishesCount;

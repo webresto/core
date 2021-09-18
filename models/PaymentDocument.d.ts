@@ -13,7 +13,7 @@ declare let attributes: {
     /** Модель из которой делается платеж */
     originModel: string;
     /** Платежный метод */
-    paymentMethod: PaymentMethod;
+    paymentMethod: string | PaymentMethod;
     /** Сумма к оплате */
     amount: number;
     /** Флаг установлен что оплата произведена */
@@ -27,7 +27,9 @@ declare let attributes: {
     /** Текст ошибки */
     error: string;
 };
-declare type PaymentDocument = typeof attributes & ORM;
+declare type attributes = typeof attributes;
+interface PaymentDocument extends attributes, ORM {
+}
 export default PaymentDocument;
 declare let Model: {
     doPaid: (criteria: any) => Promise<PaymentDocument>;

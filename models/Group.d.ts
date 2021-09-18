@@ -1,8 +1,48 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
+import Image from "../models/Image";
 import Dish from "../models/Dish";
-declare let attributes: any;
-declare type Group = typeof attributes & ORM;
+import { WorkTime } from "@webresto/worktime";
+declare let attributes: {
+    /**Id */
+    id: string;
+    /** Addishinal info */
+    additionalInfo: string;
+    /** */
+    code: string;
+    description: string;
+    /** Удалён ли продукт в меню, отдаваемого клиенту */
+    isDeleted: boolean;
+    /** Наименование блюда */
+    name: string;
+    seoDescription: string;
+    seoKeywords: string;
+    seoText: string;
+    seoTitle: string;
+    /** Очередь сортировки */
+    order: number;
+    /** Блюда группы */
+    dishes: Dish[];
+    /** Родительская группа */
+    parentGroup: string | Group;
+    /** Дочерние группы */
+    childGroups: Group[];
+    /** Изображения */
+    images: Image[];
+    /** Человеко читаемый АйДи */
+    slug: string;
+    /** Гурппа отображается */
+    visible: boolean;
+    /** Группа модификаторов */
+    modifier: boolean;
+    /** Промо группа */
+    promo: boolean;
+    /** Время работы горуппы */
+    workTime: WorkTime[];
+};
+declare type attributes = typeof attributes;
+interface Group extends attributes, ORM {
+}
 export default Group;
 declare let Model: {
     /**
@@ -28,7 +68,7 @@ declare let Model: {
      * @throws ошибка получения группы
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
-    getGroup(groupId: string): Promise<any>;
+    getGroup(groupId: string): Promise<Group>;
     /**
      * Возвращает группу с заданным slug'ом
      * @param groupSlug - slug группы
@@ -36,13 +76,13 @@ declare let Model: {
      * @throws ошибка получения группы
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
-    getGroupBySlug(groupSlug: string): Promise<any>;
+    getGroupBySlug(groupSlug: string): Promise<Group>;
     /**
      * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.
      * @param values
      * @return обновлённая или созданная группа
      */
-    createOrUpdate(values: any): Promise<any>;
+    createOrUpdate(values: Group): Promise<Group>;
 };
 /**
  * Описывает группу блюд в момент получения её популяризированной версии, дополнительные поля являются ошибкой фреймворка

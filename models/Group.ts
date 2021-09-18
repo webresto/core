@@ -49,7 +49,7 @@ let attributes = {
   /** Родительская группа */
   parentGroup: {
     model: "group",
-  } as unknown as Group & string,
+  } as unknown as Group | string,
 
   /** Дочерние группы */
   childGroups: {

@@ -1,22 +1,22 @@
 import Group from "../models/Group";
 import Dish from "../models/Dish";
-/**
- * Описывает модификаторы внутри групповых модификаторов, также применяется в cartDish
- */
-export interface Modifier {
-    id: string;
+interface BaseModifier {
     modifierId: string;
     amount?: number;
     dish?: Dish;
-    group?: Group;
-    groupId?: string;
+    maxAmount?: number;
+    minAmount?: number;
+    defaultAmount?: number;
+    freeAmount?: number;
 }
-export interface GroupModifier {
+export interface Modifier extends BaseModifier {
+    id: string;
+}
+export interface GroupModifier extends BaseModifier {
     id?: string;
-    modifierId?: string;
     childModifiers: Modifier[];
-    dish?: Dish;
     group?: Group | any;
     groupId?: string;
     isSingleModifierGroupWrapper?: boolean;
 }
+export {};

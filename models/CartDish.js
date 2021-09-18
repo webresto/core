@@ -63,6 +63,7 @@ let attributes = {
     /** Полный вес */
     totalWeight: "number",
 };
+;
 let Model = {};
 module.exports = {
     primaryKey: "id",

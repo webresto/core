@@ -16,7 +16,6 @@ interface GroupData  {
   tags?: {name: string}[];
   isDeleted?: boolean;
   dishesTags?: {name: string}[];
-  isIncludedInMenu?: boolean;
   dishes?: any[];
   slug?: string;
 
@@ -36,7 +35,6 @@ export default function groupGenerator(config: GroupData = {}): GroupData{
     tags: [],
     isDeleted: config.isDeleted || false,
     dishesTags: config.dishesTags || [],
-    isIncludedInMenu: config.isDeleted || true,
     dishes: config.dishes || [],
     // slug: faker.random.uuid()
   }
@@ -53,7 +51,6 @@ export let groupFields = [
   'tags',
   'isDeleted',
   'dishesTags',
-  'isIncludedInMenu',
   'dishes',
 ];
 

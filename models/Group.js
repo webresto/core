@@ -26,8 +26,6 @@ let attributes = {
     seoKeywords: "string",
     seoText: "string",
     seoTitle: "string",
-    /** Нужно ли продукт отображать в дереве номенклатуры */
-    isIncludedInMenu: "boolean",
     /** Очередь сортировки */
     order: "number",
     /** Блюда группы */

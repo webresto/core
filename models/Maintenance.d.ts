@@ -14,7 +14,9 @@ declare let attributes: {
     startDate: string;
     stopDate: string;
 };
-declare type Maintenance = typeof attributes & ORM;
+declare type attributes = typeof attributes;
+interface Maintenance extends attributes, ORM {
+}
 export default Maintenance;
 declare let Model: {
     beforeCreate: (paymentMethod: any, next: any) => void;

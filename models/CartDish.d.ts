@@ -23,8 +23,40 @@
  */
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
-declare let attributes: any;
-declare type CartDish = typeof attributes & ORM;
+import Dish from "../models/Dish";
+import Cart from "../models/Cart";
+import { Modifier } from "../interfaces/Modifier";
+declare let attributes: {
+    /** */
+    id: string;
+    /** Количество данного блюда с его модификаторами в корзине */
+    amount: number;
+    /**Само блюдо, которое содержится в корзине */
+    dish: string | Dish;
+    /** Модификаторы для текущего блюда */
+    modifiers: Modifier[];
+    /** */
+    cart: string | Cart;
+    /** Количество уникальных блюд в корзине */
+    uniqueItems: number;
+    /** Всего количество блюд */
+    itemTotal: number;
+    /** Скидка */
+    discount: any;
+    /**Общая сумма скидки */
+    discountTotal: number;
+    /** Коментарий к корзине */
+    comment: number;
+    /** Метка кто добавил */
+    addedBy: string;
+    /** Вес */
+    weight: number;
+    /** Полный вес */
+    totalWeight: number;
+};
+declare type attributes = typeof attributes;
+interface CartDish extends attributes, ORM {
+}
 export default CartDish;
 declare let Model: {};
 declare global {

@@ -18,7 +18,6 @@ function groupGenerator(config = {}) {
         tags: [],
         isDeleted: config.isDeleted || false,
         dishesTags: config.dishesTags || [],
-        isIncludedInMenu: config.isDeleted || true,
         dishes: config.dishes || [],
     };
 }
@@ -34,6 +33,5 @@ exports.groupFields = [
     'tags',
     'isDeleted',
     'dishesTags',
-    'isIncludedInMenu',
     'dishes',
 ];

@@ -34,7 +34,7 @@ let attributes = {
   discount: "json" as any,
   paymentMethod: {
     model: "PaymentMethod"
-  } as unknown as PaymentMethod & string,
+  } as unknown as PaymentMethod | string,
 
   /** */
   paymentMethodTitle: "string",
@@ -97,7 +97,7 @@ let attributes = {
 
   deliveryItem: {
     model: "Dish",
-  } as unknown as Dish & string,
+  } as unknown as Dish | string,
 
   deliveryCost: {
     type: "number",
@@ -162,7 +162,7 @@ let Model = {
 
   async addDish(
     criteria: any,
-    dish: Dish & string,
+    dish: Dish | string,
     amount: number,
     modifiers: Modifier[],
     comment: string,
@@ -440,10 +440,12 @@ let Model = {
     isSelfService?: boolean,
     address?: Address,
     paymentMethodId?: string
-  ): Promise<any> {
+  ): Promise<void> {
+
     const cart: Cart = await Cart.countCart( criteria);
     if (cart.state === "ORDER")
       throw "cart with cartId " + cart.id + "in state ORDER";
+
 
     //const cart: Cart = await Cart.findOne(criteria);
     if (cart.paid) {
@@ -558,12 +560,11 @@ let Model = {
 
     if (resultsCount === 0) return;
 
-    const checkConfig = await Settings.use("check");
-
+    const checkConfig = await Settings.use("check") as any;
     if (checkConfig) {
       if (checkConfig.requireAll) {
         if (resultsCount === successCount) {
-          if (cart.getState() !== "CHECKOUT") {
+          if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
             await Cart.next(cart.id,"CHECKOUT");
           }
           return;
@@ -575,7 +576,7 @@ let Model = {
         }
       }
       if (checkConfig.notRequired) {
-        if (cart.getState() !== "CHECKOUT") {
+        if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
           await Cart.next(cart.id,"CHECKOUT");
         }
         return;
@@ -583,14 +584,15 @@ let Model = {
     }
     // если не настроен конфиг то нужен хотябы один положительный ответ(заказ в пустоту бесполезен)
     if (successCount > 0) {
-      if (cart.getState() !== "CHECKOUT") {
+      if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
         await Cart.next(cart.id,"CHECKOUT");
       }
       return;
     } else {
       throw {
         code: 11,
-        error: "successCount <= 0",
+        error: "successCount <= 0!",
+        checkConfig: checkConfig
       };
     }
   },

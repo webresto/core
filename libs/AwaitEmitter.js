@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEmitter = void 0;
 let emitter;
 const sleep = require('util').promisify(setTimeout);
 /**
@@ -142,13 +141,12 @@ class Response {
         this.state = timeout ? 'timeout' : this.error ? 'error' : 'success';
     }
 }
-/**
- * Получение эмиттера ядра
- */
-function getEmitter() {
-    if (!emitter) {
-        emitter = new AwaitEmitter('core', sails.config.restocore.awaitEmitterTimeout);
-    }
-    return emitter;
-}
-exports.getEmitter = getEmitter;
+// /**
+//  * Получение эмиттера ядра
+//  */
+//  export function getEmitter(): AwaitEmitter {
+//   if (!emitter) {
+//     emitter = new AwaitEmitter('core', sails.config.restocore.awaitEmitterTimeout);
+//   }
+//   return emitter;
+// }

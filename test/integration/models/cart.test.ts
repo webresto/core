@@ -31,10 +31,12 @@ describe('Cart',function () {
   });
 
   it('check model fields', async function(){
+    await Cart.addDish(cart.id,  dishes[0], 1, [], '', 'test');
+    cart = await Cart.findOne(cart.id).populate('dishes');
     expect(cart).to.include.all.keys(
       'id', 
-      'cartId',
       'shortId',
+      'state',
       'dishes',
       'discount',
       'paymentMethod',
@@ -69,8 +71,9 @@ describe('Cart',function () {
       'orderTotal',
       'cartTotal',
       'discountTotal',
-      'orderDate'
-    )
+      'orderDate',
+      'customData'
+      )
   });
   
   it('addDish', async function(){  

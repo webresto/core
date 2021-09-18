@@ -3,10 +3,7 @@ import ORM from "../interfaces/ORM";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 declare let attributes: {
     /** ID платежного метода */
-    id: {
-        type: string;
-        required: boolean;
-    };
+    id: string;
     /** Название платежного метода */
     title: string;
     /**
@@ -20,7 +17,9 @@ declare let attributes: {
     description: string;
     enable: boolean;
 };
-declare type PaymentMethod = typeof attributes & ORM;
+declare type attributes = typeof attributes;
+interface PaymentMethod extends attributes, ORM {
+}
 export default PaymentMethod;
 declare let Model: {
     /**

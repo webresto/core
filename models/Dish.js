@@ -6,113 +6,113 @@ const getEmitter_1 = require("../libs/getEmitter");
 let attributes = {
     /** */
     id: {
-        type: 'string',
-        required: true
+        type: "string",
+        required: true,
     },
     /** */
     rmsId: {
-        type: 'string',
-        required: true
+        type: "string",
+        required: true,
     },
     /** */
     additionalInfo: {
-        type: 'string',
-        allowNull: true
+        type: "string",
+        allowNull: true,
     },
     /** Артикул */
     code: {
-        type: 'string',
-        allowNull: true
+        type: "string",
+        allowNull: true,
     },
     /** Описание блюда */
-    description: 'string',
+    description: "string",
     /** Наименование */
-    name: 'string',
+    name: "string",
     /** SEO description */
-    seoDescription: 'string',
+    seoDescription: "string",
     /** SEO keywords */
-    seoKeywords: 'string',
+    seoKeywords: "string",
     /** SEO text */
-    seoText: 'string',
+    seoText: "string",
     /** SEO title */
-    seoTitle: 'string',
+    seoTitle: "string",
     /** Не печатать в чеке */
-    doNotPrintInCheque: 'boolean',
+    doNotPrintInCheque: "boolean",
     /** Количество углеводов на (100гр)*/
-    carbohydrateAmount: 'number',
+    carbohydrateAmount: "number",
     /** Количество углеводов в блюде */
-    carbohydrateFullAmount: 'number',
+    carbohydrateFullAmount: "number",
     /** Енергетическая ценность (100гр) */
-    energyAmount: 'number',
+    energyAmount: "number",
     /** Енергетическая ценность */
-    energyFullAmount: 'number',
+    energyFullAmount: "number",
     /**  Колличество жиров (100гр) */
-    fatAmount: 'number',
+    fatAmount: "number",
     /** Колличество жиров в блюде */
-    fatFullAmount: 'number',
+    fatFullAmount: "number",
     /** Количество белков (100гр)  */
-    fiberAmount: 'number',
+    fiberAmount: "number",
     /** Количество белков в блюде */
-    fiberFullAmount: 'number',
+    fiberFullAmount: "number",
     /** Идентификатор группы в которой находится блюдо */
-    groupId: 'string',
+    groupId: "string",
     /** Единица измерения товара ( кг, л, шт, порц.) */
-    measureUnit: 'string',
+    measureUnit: "string",
     /** Цена блюда */
-    price: 'number',
+    price: "number",
     /**  */
-    productCategoryId: 'string',
+    productCategoryId: "string",
     /** Тип */
-    type: 'string',
+    type: "string",
     /** Масса  */
-    weight: 'number',
+    weight: "number",
     /** Порядок сортировки */
-    order: 'number',
+    order: "number",
     /** Блюдо удалено */
-    isDeleted: 'boolean',
+    isDeleted: "boolean",
     /** Блюдо может быть модифичироанно */
-    isModificable: 'boolean',
+    isModificable: "boolean",
     /** Модифакторы блюда */
     modifiers: {
         // collection: 'dish'
-        type: 'json'
+        type: "json",
     },
     /** Родительская группа */
     parentGroup: {
-        model: 'group'
+        model: "group",
     },
     /** Теги для фильтрации (Вегетарианский, острый...) */
     tags: {
-        type: 'json'
+        type: "json",
     },
     /** Баланс для продажи, если -1 то сколько угодно */
     balance: {
-        type: 'number',
-        defaultsTo: -1
+        type: "number",
+        defaultsTo: -1,
     },
     /** Список изображений блюда*/
     images: {
-        collection: 'image',
-        via: 'dish'
+        collection: "image",
+        via: "dish",
     },
     /** Слаг */
     slug: {
-        type: 'string',
+        type: "string",
     },
     /** Хеш обекта блюда */
-    hash: 'string',
+    hash: "string",
     /** Можно увидеть на сайте в меню */
-    visible: 'boolean',
+    visible: "boolean",
     /** Признак что это модификатор */
-    modifier: 'boolean',
+    modifier: "boolean",
     /** Признак того что блюдо акционное */
-    promo: 'boolean',
+    promo: "boolean",
     /** Время работы */
-    workTime: 'json'
+    workTime: "json",
 };
 let Model = {
     afterUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core-dish-after-update', record);
+        getEmitter_1.default().emit("core-dish-after-update", record);
         return proceed();
     },
     /**
@@ -123,10 +123,10 @@ let Model = {
      */
     async getDishes(criteria = {}) {
         criteria.isDeleted = false;
-        if (!await Settings.use('ShowUnavailableDishes')) {
-            criteria.balance = { '!': 0 };
+        if (!(await Settings.use("ShowUnavailableDishes"))) {
+            criteria.balance = { "!": 0 };
         }
-        let dishes = await Dish.find(criteria).populate('images');
+        let dishes = await Dish.find(criteria).populate("images");
         await Promise.each(dishes, async (dish) => {
             const reason = checkExpression_1.default(dish);
             if (!reason) {
@@ -139,7 +139,7 @@ let Model = {
             }
         });
         dishes.sort((a, b) => a.order - b.order);
-        await getEmitter_1.default().emit('core-dish-get-dishes', dishes);
+        await getEmitter_1.default().emit("core-dish-get-dishes", dishes);
         return dishes;
     },
     /**
@@ -154,35 +154,52 @@ let Model = {
                 // group modofiers
                 if (modifier.childModifiers && modifier.childModifiers.length > 0) {
                     if (dish.modifiers[index].modifierId !== undefined) {
-                        dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
+                        dish.modifiers[index].group = await Group.findOne({
+                            id: modifier.modifierId,
+                        });
                     }
                     let childIndex = 0;
                     for await (let childModifier of modifier.childModifiers) {
-                        let childModifierDish = await Dish.findOne({ id: childModifier.modifierId }).populate('images');
+                        let childModifierDish = await Dish.findOne({
+                            id: childModifier.modifierId,
+                        }).populate("images");
                         if (!childModifierDish || childModifierDish.balance === 0) {
                             // delete if dish not found
                             dish.modifiers.splice(childIndex, 1);
-                            sails.log.error("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
+                            sails.log.error("DISH > getDishModifiers: Modifier " +
+                                childModifier.modifierId +
+                                " from dish:" +
+                                dish.name +
+                                " not found");
                         }
                         else {
                             try {
-                                dish.modifiers[index].childModifiers[childIndex].dish = childModifierDish;
+                                dish.modifiers[index].childModifiers[childIndex].dish =
+                                    childModifierDish;
                             }
                             catch (error) {
-                                sails.log.error("DISH > getDishModifiers: problem with: " + childModifier.modifierId + " in dish:" + dish.name);
+                                sails.log.error("DISH > getDishModifiers: problem with: " +
+                                    childModifier.modifierId +
+                                    " in dish:" +
+                                    dish.name);
                             }
                         }
                         childIndex++;
                     }
                 }
                 else {
-                    sails.log.error("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
-                    dish.modifiers[index].dish = await Dish.findOne({ id: modifier.id }).populate('images');
+                    sails.log.error("DISH > getDishModifiers: GroupModifier " +
+                        modifier.id +
+                        " from dish:" +
+                        dish.name +
+                        " not have modifiers");
+                    dish.modifiers[index].dish = await Dish.findOne({
+                        id: modifier.id,
+                    }).populate("images");
                 }
                 index++;
             }
         }
-        dish.groupModifiers = null;
     },
     /**
      * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
@@ -203,10 +220,10 @@ let Model = {
             }
             return (await Dish.update({ id: values.id }, { hash, ...values }).fetch())[0];
         }
-    }
+    },
 };
 module.exports = {
     primaryKey: "id",
     attributes: attributes,
-    ...Model
+    ...Model,
 };
