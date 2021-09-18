@@ -51,19 +51,19 @@ let attributes = {
   /** Родительская группа */
   parentGroup: {
     model: "group",
-  } as unknown as Group,
+  } as unknown as Group | string,
 
   /** Дочерние группы */
   childGroups: {
     collection: "group",
     via: "parentGroup",
-  } as unknown as Group,
+  } as unknown as Group[],
 
   /** Изображения */
   images: {
     collection: "image",
     via: "group",
-  } as unknown as Image,
+  } as unknown as Image[],
 
   /** Человеко читаемый АйДи */
   slug: {

@@ -3,9 +3,7 @@ import { getEmitter } from "../../../libs/AwaitEmitter";
 import Cart from "../../../models/Cart"
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
-// import TestPaymentSystem from '../../unit/external_payments/ExternalTestPaymentSystem';
-// import Settings from '../../../models/Settings'
-// import { settings } from "cluster";
+import Settings from '../../../models/Settings'
 
 describe('Cart.check ()', function(){
     this.timeout(10000);

@@ -114,7 +114,7 @@ let attributes = {
   /** Родительская группа */
   parentGroup: {
     model: "group",
-  } as unknown as Group,
+  } as unknown as Group | string,
 
   /** Теги для фильтрации (Вегетарианский, острый...) */
   tags: {
@@ -131,7 +131,7 @@ let attributes = {
   images: {
     collection: "image",
     via: "dish",
-  } as unknown as Image,
+  } as unknown as Image[],
 
   /** Слаг */
   slug: {

@@ -18,13 +18,13 @@ let attributes = {
   dish: {
     collection: "dish",
     via: "images",
-  } as unknown as Dish,
+  } as unknown as Dish[],
 
   /** */
   group: {
     collection: "group",
     via: "images",
-  } as unknown as Group,
+  } as unknown as Group[],
 
   /** Группа, которой принажлежит картинка */
   uploadDate: "string",

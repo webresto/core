@@ -6,10 +6,10 @@ interface BaseModifier {
   modifierId: string;
   amount?: number;
   dish?: Dish;
-  maxAmount: number;
-  minAmount: number;
-  defaultAmount: number;
-  freeAmount: number
+  maxAmount?: number;
+  minAmount?: number;
+  defaultAmount?: number;
+  freeAmount?: number
 }
 
 export interface Modifier extends BaseModifier {

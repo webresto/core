@@ -28,13 +28,13 @@ let attributes = {
   dishes: {
     collection: "CartDish",
     via: "cart",
-  } as unknown as CartDish,
+  } as unknown as CartDish[],
 
   /** */
   discount: "json" as any,
   paymentMethod: {
     model: "PaymentMethod"
-  } as unknown as PaymentMethod,
+  } as unknown as PaymentMethod | string,
 
   /** */
   paymentMethodTitle: "string",
@@ -97,7 +97,7 @@ let attributes = {
 
   deliveryItem: {
     model: "Dish",
-  } as unknown as Dish,
+  } as unknown as Dish | string,
 
   deliveryCost: {
     type: "number",
@@ -163,8 +163,8 @@ let Model = {
     modifiers: Modifier[],
     comment: string,
     from: string,
-    replace: boolean,
-    cartDishId: number
+    replace?: boolean,
+    cartDishId?: number
   ): Promise<void> {
     
     await emitter.emit.apply(emitter, [
