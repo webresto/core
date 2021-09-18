@@ -18,7 +18,7 @@ async function default_1(obj) {
         catch (e) { }
         if (!ai)
             return;
-        const keys = ['visible', 'workTime', 'promo', 'modifier'];
+        const keys = ["visible", "workTime", "promo", "modifier"];
         for (let key of keys)
             if (ai[key] !== undefined)
                 obj[key] = ai[key];
@@ -27,12 +27,12 @@ async function default_1(obj) {
                 await importFn.fn(obj);
             }
             catch (e) {
-                sails.log.error('core > importParams 2 >\nerror in import param with label', importFn.label, '\n', e);
+                sails.log.error("core > importParams 2 >\nerror in import param with label", importFn.label, "\n", e);
             }
         }
     }
     catch (e) {
-        sails.log.error('core > importParams 1 >', e);
+        sails.log.error("core > importParams 1 >", e);
     }
 }
 exports.default = default_1;

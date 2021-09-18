@@ -2,9 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Payment = exports.ImageA = exports.Map = exports.RMS = void 0;
 const fs = require("fs");
-const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined
-    ? "@webresto"
-    : process.env.WEBRESTO_MODULES_PATH;
+const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
  * Отдаёт запрашиваемый RMS-адаптер
  */
@@ -12,9 +10,7 @@ class RMS {
     static getAdapter(adapterName) {
         // For factory we use different dirrectory for modules
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
-        adapterLocation = fs.existsSync(adapterLocation)
-            ? adapterLocation
-            : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
         try {
             const adapter = require(adapterLocation);
             return adapter.RMS[adapterName.toUpperCase()];
@@ -32,9 +28,7 @@ exports.RMS = RMS;
 class Map {
     static getAdapter(adapterName) {
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-map-adapter";
-        adapterLocation = fs.existsSync(adapterLocation)
-            ? adapterLocation
-            : "@webresto/" + adapterName.toLowerCase() + "-map-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-map-adapter";
         try {
             const adapter = require(adapterLocation);
             return adapter.MapAdapter.default;
@@ -51,13 +45,8 @@ exports.Map = Map;
  */
 class ImageA {
     static getAdapter(adapterName) {
-        let adapterLocation = WEBRESTO_MODULES_PATH +
-            "/" +
-            adapterName.toLowerCase() +
-            "-image-adapter";
-        adapterLocation = fs.existsSync(adapterLocation)
-            ? adapterLocation
-            : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
+        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
         try {
             const adapter = require(adapterLocation);
             return adapter.ImageAdapter.default;
@@ -74,13 +63,8 @@ exports.ImageA = ImageA;
  */
 class Payment {
     static getAdapter(adapterName) {
-        let adapterLocation = WEBRESTO_MODULES_PATH +
-            "/" +
-            adapterName.toLowerCase() +
-            "-payment-adapter";
-        adapterLocation = fs.existsSync(adapterLocation)
-            ? adapterLocation
-            : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
+        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
         try {
             const adapter = require(adapterLocation);
             return adapter.PaymentAdapter[adapterName.toUpperCase()];

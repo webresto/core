@@ -49,12 +49,12 @@ const actions = {
     async addDish(cart, params) {
         const dishesId = params.dishesId;
         if (!cart && !cart.id)
-            throw 'cart is required';
+            throw "cart is required";
         if (!dishesId || !dishesId.length)
-            throw 'dishIds (array of strings) is required as second element of params';
+            throw "dishIds (array of strings) is required as second element of params";
         await Promise.each(dishesId, async (dishId) => {
             const dish = await Dish.findOne(dishId);
-            await Cart.addDish(cart.id, dish, params.amount, params.modifiers, params.comment, 'delivery');
+            await Cart.addDish(cart.id, dish, params.amount, params.modifiers, params.comment, "delivery");
         });
         return cart;
     },
@@ -67,27 +67,27 @@ const actions = {
         sails.log.debug(">>> action > delivery");
         sails.log.debug("cart", JSON.stringify(cart));
         if (!cart && !cart.id)
-            throw 'cart is required';
+            throw "cart is required";
         const deliveryCost = params.deliveryCost;
         const deliveryItem = params.deliveryItem;
         if (deliveryCost === undefined && !deliveryItem)
-            throw 'one of deliveryCost or deliveryItem is required';
-        if (deliveryCost && typeof deliveryCost !== 'number')
-            throw 'deliveryCost (float) is required as second element of params';
-        if (deliveryItem && typeof deliveryItem !== 'string')
-            throw 'deliveryCost (string) is required as second element of params';
+            throw "one of deliveryCost or deliveryItem is required";
+        if (deliveryCost && typeof deliveryCost !== "number")
+            throw "deliveryCost (float) is required as second element of params";
+        if (deliveryItem && typeof deliveryItem !== "string")
+            throw "deliveryCost (string) is required as second element of params";
         if (deliveryItem) {
             const item = await Dish.findOne({ rmsId: deliveryItem });
             if (!item)
-                throw 'deliveryItem with rmsId ' + deliveryItem + ' not found';
+                throw "deliveryItem with rmsId " + deliveryItem + " not found";
             cart.deliveryCost = item.price;
             cart.deliveryItem = item.id;
         }
         else {
             cart.deliveryCost = deliveryCost;
         }
-        if (cart.state !== 'CHECKOUT')
-            await Cart.next(cart.id, 'CHECKOUT');
+        if (cart.state !== "CHECKOUT")
+            await Cart.next(cart.id, "CHECKOUT");
         return cart;
     },
     /**
@@ -97,12 +97,15 @@ const actions = {
      */
     async reset(cart) {
         if (!cart && !cart.id)
-            throw 'cart is required';
+            throw "cart is required";
         cart.deliveryDescription = "";
         cart.message = "";
-        if (cart.state !== 'CART')
-            await Cart.next(cart.id, 'CART');
-        const removeDishes = await CartDish.find({ cart: cart.id, addedBy: 'delivery' });
+        if (cart.state !== "CART")
+            await Cart.next(cart.id, "CART");
+        const removeDishes = await CartDish.find({
+            cart: cart.id,
+            addedBy: "delivery",
+        });
         for await (let dish of removeDishes) {
             Cart.removeDish(cart.id, dish, 100000);
         }
@@ -117,23 +120,22 @@ const actions = {
         const cartId = params.cartId;
         const description = params.description;
         if (!cart && !cart.id)
-            throw 'cart is required';
+            throw "cart is required";
         if (!description) {
-            throw 'description (string) is required as second element of params';
+            throw "description (string) is required as second element of params";
         }
         //const cart = await Cart.findOne(cartId);
         if (!cart)
-            throw 'cart with id ' + cartId + ' not found';
+            throw "cart with id " + cartId + " not found";
         cart.deliveryDescription = cart.deliveryDescription || "";
-        cart.deliveryDescription += description + '\n';
+        cart.deliveryDescription += description + "\n";
         await Cart.update({ id: cart.id }, cart).fetch();
         return cart;
     },
     async reject(cart, params) {
         if (!cart && !cart.id)
-            throw 'cart is required';
-        ;
-        await Cart.next(cart.id, 'CART');
+            throw "cart is required";
+        await Cart.next(cart.id, "CART");
         return cart;
     },
     async setMessage(cart, params) {
@@ -141,19 +143,19 @@ const actions = {
         const cartId = params.cartId;
         const message = params.message;
         if (!cart && !cart.id)
-            throw 'cart is required';
+            throw "cart is required";
         if (!message)
-            throw 'description (string) is required as second element of params';
+            throw "description (string) is required as second element of params";
         //const cart = await Cart.findOne(cartId);
         if (!cart)
-            throw 'cart with id ' + cartId + ' not found';
+            throw "cart with id " + cartId + " not found";
         cart.message = message;
         await Cart.update({ id: cart.id }, cart).fetch();
         return cart;
     },
     return() {
         return 0;
-    }
+    },
 };
 exports.default = actions;
 /**

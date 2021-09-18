@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const sleep = require('util').promisify(setTimeout);
+const sleep = require("util").promisify(setTimeout);
 /**
  * Класс, позволяющий создавать события и ожидать исполнения их подписок, будь то синхронная функция или функция, возвращающая
  * Promise. В момент выполнения события запускает все подписки на исполнение, запоминая результат работы каждой (успешный,
@@ -17,18 +17,18 @@ class AwaitEmitter {
         this.events = [];
     }
     on(name, label, fn) {
-        if (typeof label === 'function') {
+        if (typeof label === "function") {
             fn = label;
-            label = '';
+            label = "";
         }
-        let event = this.events.filter(l => l.name === name)[0];
+        let event = this.events.filter((l) => l.name === name)[0];
         if (!event) {
             event = new Event(name);
             this.events.push(event);
         }
         event.fns.push({
             fn: fn,
-            label: label
+            label: label,
         });
         return this;
     }
@@ -43,13 +43,13 @@ class AwaitEmitter {
      */
     async emit(name, ...args) {
         const that = this;
-        const event = this.events.find(l => l.name === name);
+        const event = this.events.find((l) => l.name === name);
         if (!event)
             return [];
         const res = [];
-        const executor = event.fns.map(f => async function () {
+        const executor = event.fns.map((f) => async function () {
             try {
-                if (sails.config.log && sails.config.log.level === 'silly') {
+                if (sails.config.log && sails.config.log.level === "silly") {
                     let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
                     args = args.map((arg) => {
                         return new Proxy(arg, {
@@ -67,10 +67,11 @@ class AwaitEmitter {
                 }
                 const r = f.fn.apply(that, args);
                 // Если это промис, то ждем
-                if (!!r && (typeof r === 'object' || typeof r === 'function') && typeof r.then === 'function') { // from isPromise
+                if (!!r && (typeof r === "object" || typeof r === "function") && typeof r.then === "function") {
+                    // from isPromise
                     let timeoutEnd = false;
                     let successEnd = false;
-                    // stop timer 
+                    // stop timer
                     const timeout = async function () {
                         await sleep(that.timeout);
                         if (!successEnd) {
@@ -87,8 +88,8 @@ class AwaitEmitter {
                                 res.push(new Response(f.label, res1));
                             }
                             else {
-                                const listenerName = f.label || 'some';
-                                sails.log.warn(listenerName, 'event of action', name, 'in', that.name, 'emitter end after', new Date().getTime() - now.getTime(), 'ms');
+                                const listenerName = f.label || "some";
+                                sails.log.warn(listenerName, "event of action", name, "in", that.name, "emitter end after", new Date().getTime() - now.getTime(), "ms");
                             }
                         }
                         catch (e) {
@@ -113,7 +114,7 @@ class AwaitEmitter {
                 res.push(new Response(f.label, null, e));
             }
         });
-        await Promise.all(executor.map(f => f()));
+        await Promise.all(executor.map((f) => f()));
         return res;
     }
 }
@@ -136,7 +137,7 @@ class Response {
         this.label = label;
         this.result = result;
         this.error = error;
-        this.state = timeout ? 'timeout' : this.error ? 'error' : 'success';
+        this.state = timeout ? "timeout" : this.error ? "error" : "success";
     }
 }
 // /**

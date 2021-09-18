@@ -13,7 +13,7 @@ class Polygon {
         return this._name;
     }
     get asArray() {
-        return this._points.map(point => [point.x, point.y]);
+        return this._points.map((point) => [point.x, point.y]);
     }
     toString() {
         return this._points.toString();

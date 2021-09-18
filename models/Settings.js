@@ -62,6 +62,8 @@ let Model = {
      * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
      */
     async set(key, value, from) {
+        if (key === undefined || value === undefined)
+            throw `Setting set key (${key}) and value (${value}) required`;
         try {
             const propety = await Settings.findOne({ key: key });
             if (!propety) {

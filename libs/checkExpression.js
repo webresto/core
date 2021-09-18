@@ -7,28 +7,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 function default_1(obj) {
     if (!obj) {
-        return '';
+        return "";
     }
     try {
         if (obj.visible === false)
-            return 'visible';
+            return "visible";
         if (obj.workTime) {
             if (!checkTime(obj.workTime)) {
-                return 'time';
+                return "time";
             }
         }
         if (obj.promo === true)
-            return 'promo';
+            return "promo";
         if (obj.modifier === true)
-            return 'modifier';
-        return '';
+            return "modifier";
+        return "";
     }
     catch (e) {
-        return '';
+        return "";
     }
 }
 exports.default = default_1;
-;
 function checkTime(timeArray) {
     return true;
 }

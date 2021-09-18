@@ -12,39 +12,39 @@ var PaymentMethodType;
 let attributes = {
     /** ID платежного метода */
     id: {
-        type: 'string',
-        required: true
+        type: "string",
+        required: true,
     },
     /** Название платежного метода */
-    title: 'string',
+    title: "string",
     /**
-    * Типы платежей, internal - внутренние (когда не требуется запрос во внешнюю систему)
-    * external - Когда надо ожидать подтверждение платежа во внешней системе
-    * promise - Типы оплат при получении
+     * Типы платежей, internal - внутренние (когда не требуется запрос во внешнюю систему)
+     * external - Когда надо ожидать подтверждение платежа во внешней системе
+     * promise - Типы оплат при получении
      */
     type: {
-        type: 'string',
-        enum: ['internal', 'external', 'promise', 'dummy'],
-        required: true
+        type: "string",
+        enum: ["internal", "external", "promise", "dummy"],
+        required: true,
     },
     adapter: {
-        type: 'string',
+        type: "string",
         unique: true,
-        required: true
+        required: true,
     },
-    order: 'number',
-    description: 'string',
+    order: "number",
+    description: "string",
     enable: {
-        type: 'boolean',
-        required: true
+        type: "boolean",
+        required: true,
     },
 };
 let Model = {
     /**
-   * Возвращает инстанс платежного адаптера по известному названию адаптера
-   * @param  paymentMethodId
-   * @return
-   */
+     * Возвращает инстанс платежного адаптера по известному названию адаптера
+     * @param  paymentMethodId
+     * @return
+     */
     async getAdapter(adapter) {
         var paymentMethod;
         if (!adapter) {
@@ -79,21 +79,25 @@ let Model = {
             chekingPaymentMethod = this;
         }
         else {
-            chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
+            chekingPaymentMethod = await PaymentMethod.findOne({
+                id: paymentMethodId,
+            });
         }
-        if (chekingPaymentMethod.type === 'promise') {
+        if (chekingPaymentMethod.type === "promise") {
             return true;
         }
         return false;
     },
     /**
-   * Добавляет в список возможных к использованию платежные адаптеры при их старте.
-   * Если  платежный метод не сушетсвует в базе то создает его
-   * @param paymentMethod
-   * @return
-   */
+     * Добавляет в список возможных к использованию платежные адаптеры при их старте.
+     * Если  платежный метод не сушетсвует в базе то создает его
+     * @param paymentMethod
+     * @return
+     */
     async alive(paymentAdapter) {
-        let knownPaymentMethod = await PaymentMethod.findOne({ adapter: paymentAdapter.InitPaymentAdapter.adapter });
+        let knownPaymentMethod = await PaymentMethod.findOne({
+            adapter: paymentAdapter.InitPaymentAdapter.adapter,
+        });
         if (!knownPaymentMethod) {
             knownPaymentMethod = await PaymentMethod.create(paymentAdapter.InitPaymentAdapter).fetch();
         }
@@ -102,58 +106,58 @@ let Model = {
         return;
     },
     /**
-   * Возвращает массив с возможными на текущий момент способами оплаты отсортированный по order
-   * @param  нету
-   * @return массив типов оплат
-   */
+     * Возвращает массив с возможными на текущий момент способами оплаты отсортированный по order
+     * @param  нету
+     * @return массив типов оплат
+     */
     async getAvailable() {
         return await PaymentMethod.find({
             where: {
-                or: [{
+                or: [
+                    {
                         adapter: Object.keys(alivedPaymentMethods),
-                        enable: true
+                        enable: true,
                     },
                     {
-                        type: ['promise', 'dummy'],
-                        enable: true
-                    }]
+                        type: ["promise", "dummy"],
+                        enable: true,
+                    },
+                ],
             },
-            sort: 'order ASC'
+            sort: "order ASC",
         });
     },
     /**
-   * Проверяет платежную систему на доступность, и включенность,
-   *  для пейментПромис систем только включенность.
-   * @param paymentMethodId
-   * @return
-   */
+     * Проверяет платежную систему на доступность, и включенность,
+     *  для пейментПромис систем только включенность.
+     * @param paymentMethodId
+     * @return
+     */
     async checkAvailable(paymentMethodId) {
-        const chekingPaymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
-        const noAdapterTypes = ['promise', 'dummy'];
+        const chekingPaymentMethod = await PaymentMethod.findOne({
+            id: paymentMethodId,
+        });
+        const noAdapterTypes = ["promise", "dummy"];
         if (!chekingPaymentMethod) {
             return false;
         }
-        if (!noAdapterTypes.includes(chekingPaymentMethod.type) &&
-            alivedPaymentMethods[chekingPaymentMethod.adapter] === undefined) {
+        if (!noAdapterTypes.includes(chekingPaymentMethod.type) && alivedPaymentMethods[chekingPaymentMethod.adapter] === undefined) {
             return false;
         }
-        if (chekingPaymentMethod.enable === true &&
-            !noAdapterTypes.includes(chekingPaymentMethod.type) &&
-            alivedPaymentMethods[chekingPaymentMethod.adapter] !== undefined) {
+        if (chekingPaymentMethod.enable === true && !noAdapterTypes.includes(chekingPaymentMethod.type) && alivedPaymentMethods[chekingPaymentMethod.adapter] !== undefined) {
             return true;
         }
-        if (chekingPaymentMethod.enable === true &&
-            noAdapterTypes.includes(chekingPaymentMethod.type)) {
+        if (chekingPaymentMethod.enable === true && noAdapterTypes.includes(chekingPaymentMethod.type)) {
             return true;
         }
         return false;
     },
     /**
-   * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
-   * @param  paymentMethodId
-   * @return PaymentAdapter
-   * @throws
-   */
+     * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
+     * @param  paymentMethodId
+     * @return PaymentAdapter
+     * @throws
+     */
     async getAdapterById(paymentMethodId) {
         const paymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
         //@ts-ignore
@@ -167,10 +171,10 @@ let Model = {
         else {
             return undefined;
         }
-    }
+    },
 };
 module.exports = {
     primaryKey: "id",
     attributes: attributes,
-    ...Model
+    ...Model,
 };

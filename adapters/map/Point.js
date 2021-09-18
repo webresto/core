@@ -6,7 +6,7 @@ class Point {
         this.y = y;
     }
     toString() {
-        return this.x + ' ' + this.y + ', ';
+        return this.x + " " + this.y + ", ";
     }
 }
 exports.default = Point;

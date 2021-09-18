@@ -5,7 +5,7 @@ const getEmitter_1 = require("../libs/getEmitter");
 let attributes = {
     /**Id */
     id: {
-        type: "string"
+        type: "string",
     },
     /** Addishinal info */
     additionalInfo: {
@@ -49,7 +49,7 @@ let attributes = {
     },
     /** Человеко читаемый АйДи */
     slug: {
-        type: "string"
+        type: "string",
     },
     /** Гурппа отображается */
     visible: "boolean",

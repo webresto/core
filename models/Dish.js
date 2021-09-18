@@ -166,33 +166,21 @@ let Model = {
                         if (!childModifierDish || childModifierDish.balance === 0) {
                             // delete if dish not found
                             dish.modifiers.splice(childIndex, 1);
-                            sails.log.error("DISH > getDishModifiers: Modifier " +
-                                childModifier.modifierId +
-                                " from dish:" +
-                                dish.name +
-                                " not found");
+                            sails.log.error("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
                         }
                         else {
                             try {
-                                dish.modifiers[index].childModifiers[childIndex].dish =
-                                    childModifierDish;
+                                dish.modifiers[index].childModifiers[childIndex].dish = childModifierDish;
                             }
                             catch (error) {
-                                sails.log.error("DISH > getDishModifiers: problem with: " +
-                                    childModifier.modifierId +
-                                    " in dish:" +
-                                    dish.name);
+                                sails.log.error("DISH > getDishModifiers: problem with: " + childModifier.modifierId + " in dish:" + dish.name);
                             }
                         }
                         childIndex++;
                     }
                 }
                 else {
-                    sails.log.error("DISH > getDishModifiers: GroupModifier " +
-                        modifier.id +
-                        " from dish:" +
-                        dish.name +
-                        " not have modifiers");
+                    sails.log.error("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
                     dish.modifiers[index].dish = await Dish.findOne({
                         id: modifier.id,
                     }).populate("images");

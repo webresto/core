@@ -145,26 +145,61 @@ describe("Flows: Checkout", function () {
     expect(error).to.not.equal(null);
   });
 
-  it("test checkConfig requireAll", async function () {
+  it("test checkConfig (default - requireAll)", async function () {
+    await Settings.set("check", null);
+
     cart = await Cart.create({}).fetch();
 
-    getEmitter().on("core-cart-check", function () {
+    getEmitter().on("core-cart-check", "ccc",function () {
       throw "test";
     });
 
-    await Settings.set("check", { requireAll: true });
-
-    console.log("@@@@@@@@@@@@");
+    // for selfServices
     let error = null;
     try {
       await Cart.check(cart.id, customer, true);
     } catch (e) {
-      console.log(e);
+      error = e;
+    }
+    expect(error.code).to.equal(10);
+    
+    // just user with address
+    error = null;
+    try {
+      await Cart.check(cart.id, customer, false, address);
+    } catch (e) {
+      error = e;
+    }
+    expect(error.code).to.equal(10);
+  });
+
+
+  it("test checkConfig (notRequired)", async function () {
+
+    await Settings.set("check", { notRequired: true });
+    cart = await Cart.create({}).fetch();
+
+    // for selfServices
+    let error = null;
+    try {
+      await Cart.check(cart.id, customer, true);
+    } catch (e) {
       error = e;
     }
 
-    expect(error.code).to.equal(10);
+    expect(error).to.equal(null);
+    
+    // just user with address
+    error = null;
+    try {
+      await Cart.check(cart.id, customer, false, address);
+    } catch (e) {
+      error = e;
+    }
+    expect(error).to.equal(null);
   });
+
+
 
   describe("check Customer", function () {
     // let cart: Cart;
@@ -275,3 +310,8 @@ describe("Flows: Checkout", function () {
     });
   });
 });
+
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

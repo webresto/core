@@ -9,13 +9,13 @@ async function default_1() {
         /**
          * rmsAdapter
          */
-        const rmsAdapterName = await Settings.use('rmsAdapter');
+        const rmsAdapterName = await Settings.use("rmsAdapter");
         const rmsAdapterConfig = await Settings.use(rmsAdapterName);
-        const imagesConfig = await Settings.use('images');
-        const timeSyncMenu = await Settings.use('timeSyncMenu');
-        const timeSyncBalance = await Settings.use('timeSyncBalance');
-        const timeSyncStreets = await Settings.use('timeSyncStreets');
-        const timeSyncPayments = await Settings.use('timeSyncPayments');
+        const imagesConfig = await Settings.use("images");
+        const timeSyncMenu = await Settings.use("timeSyncMenu");
+        const timeSyncBalance = await Settings.use("timeSyncBalance");
+        const timeSyncStreets = await Settings.use("timeSyncStreets");
+        const timeSyncPayments = await Settings.use("timeSyncPayments");
         /**
          * run instance RMSadapter
          */
@@ -26,13 +26,12 @@ async function default_1() {
         /**
          * TIMEZONE
          */
-        const timezone = await Settings.use('timezone');
+        const timezone = await Settings.use("timezone");
         process.env.TZ = timezone;
         PaymentDocument.processor(timeSyncPayments);
     }
     catch (e) {
-        sails.log.error('core > afterHook > error1', e);
+        sails.log.error("core > afterHook > error1", e);
     }
 }
 exports.default = default_1;
-;

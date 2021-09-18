@@ -12,7 +12,8 @@ class PaymentAdapter {
      * Метод для создания и получения уже существующего Payment адаптера
      * @param params - параметры для инициализации
      */
-    static getInstance(...params) { return PaymentAdapter.prototype; }
-    ;
+    static getInstance(...params) {
+        return PaymentAdapter.prototype;
+    }
 }
 exports.default = PaymentAdapter;

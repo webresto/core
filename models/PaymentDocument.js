@@ -51,7 +51,9 @@ let attributes = {
     id: {
         type: "string",
         required: true,
-        defaultsTo: function () { return uuid_1.v4(); }
+        defaultsTo: function () {
+            return uuid_1.v4();
+        },
     },
     /** соответсвует id из модели originModel */
     paymentId: "string",
@@ -68,13 +70,13 @@ let attributes = {
     /** Флаг установлен что оплата произведена */
     paid: {
         type: "boolean",
-        defaultsTo: false
+        defaultsTo: false,
     },
     /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
     status: {
         type: "string",
         enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
-        defaultsTo: 'NEW'
+        defaultsTo: "NEW",
     },
     /** Комментари для платежной системы */
     comment: "string",
@@ -100,8 +102,7 @@ let Model = {
         try {
             let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
             let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
-            if (checkedPaymentDocument.status === "PAID" &&
-                checkedPaymentDocument.paid !== true) {
+            if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true) {
                 await checkedPaymentDocument.doPaid();
             }
             else {
@@ -196,12 +197,12 @@ let Model = {
                 }
             }
         }, timeout || 120000));
-    }
+    },
 };
 module.exports = {
     primaryKey: "id",
     attributes: attributes,
-    ...Model
+    ...Model,
 };
 ////////////////////////////// LOCAL
 async function checkOrigin(originModel, paymentId) {

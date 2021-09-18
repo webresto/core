@@ -3,35 +3,35 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const getEmitter_1 = require("../libs/getEmitter");
 const CHECK_INTERVAL = 60000;
-sails.on('lifted', function () {
+sails.on("lifted", function () {
     setInterval(async function () {
         const maintenance = await Maintenance.getActiveMaintenance();
         if (maintenance) {
-            getEmitter_1.default().emit('core-maintenance-enabled', maintenance);
+            getEmitter_1.default().emit("core-maintenance-enabled", maintenance);
         }
         else {
-            getEmitter_1.default().emit('core-maintenance-disabled');
+            getEmitter_1.default().emit("core-maintenance-disabled");
         }
     }, CHECK_INTERVAL);
 });
 let attributes = {
     /** id */
     id: {
-        type: 'string',
-        required: true
+        type: "string",
+        required: true,
     },
     /** title of maintenance */
-    title: 'string',
+    title: "string",
     /** description of maintenance (maybe HTML) */
-    description: 'string',
+    description: "string",
     /** is active flag */
     enable: {
-        type: 'boolean',
-        defaultsTo: true
+        type: "boolean",
+        defaultsTo: true,
     },
     worktime: "json",
-    startDate: 'string',
-    stopDate: 'string'
+    startDate: "string",
+    stopDate: "string",
 };
 let Model = {
     beforeCreate: function (paymentMethod, next) {
@@ -46,7 +46,7 @@ let Model = {
     getActiveMaintenance: async function () {
         // TODO: here need add worktime support
         let maintenances = await Maintenance.find({ enable: true });
-        maintenances = maintenances.filter(s => {
+        maintenances = maintenances.filter((s) => {
             let start, stop;
             if (s.startDate) {
                 start = s.startDate.getTime();
@@ -58,13 +58,13 @@ let Model = {
             return between(start, stop, now);
         });
         return maintenances[0];
-    }
+    },
 };
 module.exports = {
     primaryKey: "id",
     attributes: attributes,
-    ...Model
+    ...Model,
 };
 function between(from, to, a) {
-    return ((!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a));
+    return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
 }

@@ -8,13 +8,7 @@ function ToInitialize(sails) {
     /**
      * Required hooks
      */
-    const requiredHooks = [
-        'blueprints',
-        'http',
-        'orm',
-        'policies',
-        'stateflow'
-    ];
+    const requiredHooks = ["blueprints", "http", "orm", "policies", "stateflow"];
     return function initialize(cb) {
         // Disable blueprints magic
         if (process.env.BLUEPRINTS_SECURITY_OFF !== "TRUE") {
@@ -27,12 +21,11 @@ function ToInitialize(sails) {
         /**
          * AFTER OTHERS HOOKS
          */
-        hookTools_1.default.waitForHooks('restocore', requiredHooks, afterHook_1.default);
+        hookTools_1.default.waitForHooks("restocore", requiredHooks, afterHook_1.default);
         /**
          * Bind models
          */
-        hookTools_1.default.bindModels(path_1.resolve(__dirname, '../models')).then(cb);
+        hookTools_1.default.bindModels(path_1.resolve(__dirname, "../models")).then(cb);
     };
 }
 exports.default = ToInitialize;
-;

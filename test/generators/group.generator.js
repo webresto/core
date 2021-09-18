@@ -22,16 +22,4 @@ function groupGenerator(config = {}) {
     };
 }
 exports.default = groupGenerator;
-exports.groupFields = [
-    'id',
-    'additionalInfo',
-    'code',
-    'description',
-    'order',
-    'images',
-    'name',
-    'tags',
-    'isDeleted',
-    'dishesTags',
-    'dishes',
-];
+exports.groupFields = ["id", "additionalInfo", "code", "description", "order", "images", "name", "tags", "isDeleted", "dishesTags", "dishes"];

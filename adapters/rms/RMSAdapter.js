@@ -14,7 +14,8 @@ class RMSAdapter {
      * Метод для создания и получения уже существующего RMS адаптера
      * @param params - параметры для инициализации
      */
-    static getInstance(...params) { return RMSAdapter.prototype; }
-    ;
+    static getInstance(...params) {
+        return RMSAdapter.prototype;
+    }
 }
 exports.default = RMSAdapter;

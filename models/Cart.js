@@ -107,18 +107,13 @@ let Model = {
             cartInit.id = uuid_1.v4();
         }
         if (!cartInit.shortId) {
-            cartInit.shortId = cartInit.id
-                .substr(cartInit.id.length - 8)
-                .toUpperCase();
+            cartInit.shortId = cartInit.id.substr(cartInit.id.length - 8).toUpperCase();
         }
         cartInit = "CART";
         next();
     },
     async addDish(criteria, dish, amount, modifiers, comment, from, replace, cartDishId) {
-        await emitter.emit.apply(emitter, [
-            "core-cart-before-add-dish",
-            ...arguments,
-        ]);
+        await emitter.emit.apply(emitter, ["core-cart-before-add-dish", ...arguments]);
         let dishObj;
         if (typeof dish === "string") {
             dishObj = await Dish.findOne(dish);
@@ -131,10 +126,7 @@ let Model = {
         }
         if (dishObj.balance !== -1)
             if (amount > dishObj.balance) {
-                await emitter.emit.apply(emitter, [
-                    "core-cart-add-dish-reject-amount",
-                    ...arguments,
-                ]);
+                await emitter.emit.apply(emitter, ["core-cart-add-dish-reject-amount", ...arguments]);
                 throw {
                     body: `There is no so mush dishes with id ${dishObj.id}`,
                     code: 1,
@@ -151,10 +143,7 @@ let Model = {
                     m.amount = 1;
             });
         }
-        await emitter.emit.apply(emitter, [
-            "core-cart-add-dish-before-create-cartdish",
-            ...arguments,
-        ]);
+        await emitter.emit.apply(emitter, ["core-cart-add-dish-before-create-cartdish", ...arguments]);
         let cartDish;
         // auto replace and increase amount if same dishes without modifiers
         if (!replace && (!modifiers || (modifiers && modifiers.length === 0))) {
@@ -163,9 +152,7 @@ let Model = {
                 dish: dishObj.id,
             });
             for (let sameCartDish of sameCartDishArray) {
-                if (sameCartDish &&
-                    sameCartDish.modifiers &&
-                    sameCartDish.modifiers.length === 0) {
+                if (sameCartDish && sameCartDish.modifiers && sameCartDish.modifiers.length === 0) {
                     cartDishId = Number(sameCartDish.id);
                     amount = amount + sameCartDish.amount;
                     replace = true;
@@ -196,18 +183,11 @@ let Model = {
         await Cart.next(cart.id, "CART");
         await Cart.countCart(cart);
         Cart.update({ id: cart.id }, cart).fetch();
-        await emitter.emit.apply(emitter, [
-            "core-cart-after-add-dish",
-            cartDish,
-            ...arguments,
-        ]);
+        await emitter.emit.apply(emitter, ["core-cart-after-add-dish", cartDish, ...arguments]);
     },
     async removeDish(criteria, dish, amount, stack) {
         // TODO: удалить стек
-        await emitter.emit.apply(emitter, [
-            "core-cart-before-remove-dish",
-            ...arguments,
-        ]);
+        await emitter.emit.apply(emitter, ["core-cart-before-remove-dish", ...arguments]);
         const cart = await Cart.findOne({ id: this.id }).populate("dishes");
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
@@ -226,10 +206,7 @@ let Model = {
             }).populate("dish");
         }
         if (!cartDish) {
-            await emitter.emit.apply(emitter, [
-                "core-cart-remove-dish-reject-no-cartdish",
-                ...arguments,
-            ]);
+            await emitter.emit.apply(emitter, ["core-cart-remove-dish-reject-no-cartdish", ...arguments]);
             throw {
                 body: `CartDish with id ${dish.id} in cart with id ${this.id} not found`,
                 code: 1,
@@ -246,22 +223,13 @@ let Model = {
         await Cart.next(cart.id, "CART");
         await Cart.countCart(cart);
         Cart.update({ id: cart.id }, cart).fetch();
-        await emitter.emit.apply(emitter, [
-            "core-cart-after-remove-dish",
-            ...arguments,
-        ]);
+        await emitter.emit.apply(emitter, ["core-cart-after-remove-dish", ...arguments]);
     },
     async setCount(criteria, dish, amount) {
-        await emitter.emit.apply(emitter, [
-            "core-cart-before-set-count",
-            ...arguments,
-        ]);
+        await emitter.emit.apply(emitter, ["core-cart-before-set-count", ...arguments]);
         if (dish.dish.balance !== -1)
             if (amount > dish.dish.balance) {
-                await emitter.emit.apply(emitter, [
-                    "core-cart-set-count-reject-amount",
-                    ...arguments,
-                ]);
+                await emitter.emit.apply(emitter, ["core-cart-set-count-reject-amount", ...arguments]);
                 throw {
                     body: `There is no so mush dishes with id ${dish.dish.id}`,
                     code: 1,
@@ -284,24 +252,15 @@ let Model = {
             await Cart.next(cart.id, "CART");
             await Cart.countCart(cart);
             Cart.update({ id: cart.id }, cart).fetch();
-            await emitter.emit.apply(emitter, [
-                "core-cart-after-set-count",
-                ...arguments,
-            ]);
+            await emitter.emit.apply(emitter, ["core-cart-after-set-count", ...arguments]);
         }
         else {
-            await emitter.emit.apply(emitter, [
-                "core-cart-set-count-reject-no-cartdish",
-                ...arguments,
-            ]);
+            await emitter.emit.apply(emitter, ["core-cart-set-count-reject-no-cartdish", ...arguments]);
             throw { body: `CartDish dish id ${dish.id} not found`, code: 2 };
         }
     },
     async setComment(criteria, dish, comment) {
-        await emitter.emit.apply(emitter, [
-            "core-cart-before-set-comment",
-            ...arguments,
-        ]);
+        await emitter.emit.apply(emitter, ["core-cart-before-set-comment", ...arguments]);
         const cart = await Cart.findOne(criteria).populate("dishes");
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
@@ -314,16 +273,10 @@ let Model = {
             await Cart.next(cart.id, "CART");
             await Cart.countCart(cart);
             Cart.update({ id: cart.id }, cart).fetch();
-            await emitter.emit.apply(emitter, [
-                "core-cart-after-set-comment",
-                ...arguments,
-            ]);
+            await emitter.emit.apply(emitter, ["core-cart-after-set-comment", ...arguments]);
         }
         else {
-            await emitter.emit.apply(emitter, [
-                "core-cart-set-comment-reject-no-cartdish",
-                ...arguments,
-            ]);
+            await emitter.emit.apply(emitter, ["core-cart-set-comment-reject-no-cartdish", ...arguments]);
             throw { body: `CartDish with id ${dish.id} not found`, code: 1 };
         }
     },
@@ -338,6 +291,7 @@ let Model = {
         cart.selfService = selfService;
         await Cart.update({ id: cart.id }, cart).fetch();
     },
+    ////////////////////////////////////////////////////////////////////////////////////
     async check(criteria, customer, isSelfService, address, paymentMethodId) {
         const cart = await Cart.countCart(criteria);
         if (cart.state === "ORDER")
@@ -378,7 +332,6 @@ let Model = {
         if (isSelfService) {
             getEmitter_1.default().emit("core-cart-is-self-service", cart, customer, isSelfService, address);
             await Cart.setSelfService(cart.id, true);
-            return;
         }
         else {
             if (address) {
@@ -400,23 +353,31 @@ let Model = {
         await Cart.update({ id: cart.id }, cart).fetch().fetch();
         sails.log.silly("Cart > check > after wait general emitter", cart, results);
         getEmitter_1.default().emit("core-cart-after-check", cart, customer, isSelfService, address);
+        /** Чек может проходить без слушателей, потомучто минимально сам по себе чек
+         *  имеет баовые проверки. И является самодостаточным, но
+         * всеже по умолчанию установлено так что нужно пройти все проверки
+         */
         const checkConfig = (await Settings.use("check"));
-        /** Успех во всех слушателеях */
-        if (checkConfig && checkConfig.requireAll) {
-            const resultsCount = results.length;
-            const successCount = results.filter((r) => r.state === "success").length;
-            if (resultsCount === successCount) {
-                if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
-                    await Cart.next(cart.id, "CHECKOUT");
-                }
-                return;
+        if (checkConfig && checkConfig.notRequired) {
+            if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
+                await Cart.next(cart.id, "CHECKOUT");
             }
-            else {
-                throw {
-                    code: 10,
-                    error: "one or more results from core-cart-check was not sucessed",
-                };
+            return;
+        }
+        /** Успех во всех слушателях по умолчанию */
+        const resultsCount = results.length;
+        const successCount = results.filter((r) => r.state === "success").length;
+        if (resultsCount === successCount) {
+            if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
+                await Cart.next(cart.id, "CHECKOUT");
             }
+            return;
+        }
+        else {
+            throw {
+                code: 10,
+                error: "one or more results from core-cart-check was not sucessed",
+            };
         }
         /**
          * Тут поидее должна быть логика успех хотябы одного слушателя, но
@@ -424,14 +385,8 @@ let Model = {
          *
          * if(checkConfig.justOne) ...
          */
-        /** По умолчанию чек должен проходить без слушателей, потомучто минимально сам по себе чек
-         *  имеет баовые проверки. И является самодостаточным.
-         */
-        if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
-            await Cart.next(cart.id, "CHECKOUT");
-        }
-        return;
     },
+    ////////////////////////////////////////////////////////////////////////////////////
     /** Оформление корзины */
     async order(criteria) {
         const cart = await Cart.findOne(criteria);
@@ -535,9 +490,7 @@ let Model = {
         let fullCart;
         try {
             fullCart = await Cart.findOne({ id: cart.id }).populate("dishes");
-            const cartDishes = await CartDish.find({ cart: cart.id })
-                .populate("dish")
-                .sort("createdAt");
+            const cartDishes = await CartDish.find({ cart: cart.id }).populate("dish").sort("createdAt");
             for (let cartDish of cartDishes) {
                 if (!cartDish.dish) {
                     sails.log.error("cartDish", cartDish.id, "has not dish");
@@ -556,12 +509,7 @@ let Model = {
                 const reason = checkExpression(dish);
                 if (dish && dish.parentGroup)
                     var reasonG = checkExpression(dish.parentGroup);
-                const reasonBool = reason === "promo" ||
-                    reason === "visible" ||
-                    !reason ||
-                    reasonG === "promo" ||
-                    reasonG === "visible" ||
-                    !reasonG;
+                const reasonBool = reason === "promo" || reason === "visible" || !reason || reasonG === "promo" || reasonG === "visible" || !reasonG;
                 await Dish.getDishModifiers(dish);
                 cartDish.dish = dish;
                 if (cartDish.modifiers !== undefined) {
@@ -689,11 +637,7 @@ let Model = {
             }
             if (cart.cartTotal !== paymentDocument.amount) {
                 cart.problem = true;
-                cart.comment =
-                    cart.comment +
-                        " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" +
-                        paymentDocument.amount +
-                        " рублей 🤪 !!!";
+                cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!";
             }
             await Cart.order(cart.id);
         }
@@ -801,12 +745,8 @@ async function checkDate(cart) {
  */
 async function getOrderDateLimit() {
     let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder");
-    if (periodPossibleForOrder === 0 ||
-        periodPossibleForOrder === undefined ||
-        periodPossibleForOrder === null) {
+    if (periodPossibleForOrder === 0 || periodPossibleForOrder === undefined || periodPossibleForOrder === null) {
         periodPossibleForOrder = "20160";
     }
-    return moment()
-        .add(periodPossibleForOrder, "minutes")
-        .format("YYYY-MM-DD HH:mm:ss");
+    return moment().add(periodPossibleForOrder, "minutes").format("YYYY-MM-DD HH:mm:ss");
 }

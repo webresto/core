@@ -361,6 +361,8 @@ let Model = {
     await Cart.update({ id: cart.id }, cart).fetch();
   },
 
+  ////////////////////////////////////////////////////////////////////////////////////
+
   async check(criteria: any, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void> {
     const cart: Cart = await Cart.countCart(criteria);
 
@@ -408,7 +410,6 @@ let Model = {
     if (isSelfService) {
       getEmitter().emit("core-cart-is-self-service", cart, customer, isSelfService, address);
       await Cart.setSelfService(cart.id, true);
-      return;
     } else {
       if (address) {
         checkAddress(address);
@@ -426,7 +427,7 @@ let Model = {
     getEmitter().emit("core-cart-check-delivery", cart, customer, isSelfService, address);
 
     const results = await getEmitter().emit("core-cart-check", cart, customer, isSelfService, address, paymentMethodId);
-
+    
     /** save after updates in emiter */
     await Cart.update({ id: cart.id }, cart).fetch().fetch();
 
@@ -439,10 +440,12 @@ let Model = {
      * всеже по умолчанию установлено так что нужно пройти все проверки
      */
     const checkConfig = (await Settings.use("check")) as any;
+
     if (checkConfig && checkConfig.notRequired) {
       if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
         await Cart.next(cart.id, "CHECKOUT");
       }
+      return
     }
 
     /** Успех во всех слушателях по умолчанию */
@@ -467,6 +470,10 @@ let Model = {
      * if(checkConfig.justOne) ...
      */
   },
+
+
+  ////////////////////////////////////////////////////////////////////////////////////
+
 
   /** Оформление корзины */
   async order(criteria: any): Promise<number> {
