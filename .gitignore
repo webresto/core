@@ -25,3 +25,4 @@ dump.rdb
 *.js.map
 pnpm-*
 coverage
+.vscode/pinned-files.json

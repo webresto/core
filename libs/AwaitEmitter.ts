@@ -1,5 +1,3 @@
-let emitter: AwaitEmitter;
-
 const sleep = require('util').promisify(setTimeout);
 type func = (...args: any) => any | Promise<any>;
 
@@ -18,7 +16,6 @@ export default class AwaitEmitter {
    * @param timeout - указывает сколько милисекунд ожидать функции, которые возвращают Promise.
    */
   constructor(name: string, timeout?: number) {
-    if (emitter) throw "singleton: please use getEmitter method"
     this.name = name;
     this.timeout = timeout || 1000;
     this.events = [];
@@ -39,6 +36,7 @@ export default class AwaitEmitter {
   on(name: string, label: string, fn: func): AwaitEmitter;
 
   on(name: string, label: string | func, fn?: func): AwaitEmitter {
+    
     if (typeof label === 'function') {
       fn = label;
       label = '';
@@ -72,12 +70,11 @@ export default class AwaitEmitter {
       return [];
 
     const res: Response[] = [];
-
-
     const executor = event.fns.map(f => async function () {
+      console.log("222",f);
       try {
 
-        if (sails.config.logs.level === 'silly'){
+        if (sails.config.log && sails.config.log.level === 'silly'){
           let debugRay = "ROUND: "+Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
           args = args.map((arg) => {
             return new Proxy(arg, {
@@ -95,7 +92,6 @@ export default class AwaitEmitter {
             });
           });
         }
-
         const r = f.fn.apply(that, args);
         
         
@@ -142,6 +138,7 @@ export default class AwaitEmitter {
           }
         }
       } catch (e) {
+        sails.log.error("AwaitEmmiter error: ", e);
         res.push(new Response(f.label, null, e));
       }
     });

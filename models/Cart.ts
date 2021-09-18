@@ -441,7 +441,6 @@ let Model = {
     address?: Address,
     paymentMethodId?: string
   ): Promise<void> {
-
     const cart: Cart = await Cart.countCart( criteria);
     if (cart.state === "ORDER")
       throw "cart with cartId " + cart.id + "in state ORDER";
@@ -565,6 +564,7 @@ let Model = {
       if (checkConfig.requireAll) {
         if (resultsCount === successCount) {
           if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
+            console.log(">>>>>>>>>..");
             await Cart.next(cart.id,"CHECKOUT");
           }
           return;
@@ -979,24 +979,33 @@ async function checkCustomerInfo(customer) {
       error: "customer.phone is required",
     };
   }
-  const nameRegex = await Settings.use("nameRegex");
-  const phoneRegex = await Settings.use("phoneRegex");
-  if (nameRegex) {
-    if (!nameRegex.match(customer.name)) {
-      throw {
-        code: 3,
-        error: "customer.name is invalid",
-      };
+  
+
+  try {
+    const nameRegex = await Settings.use("nameRegex");
+    const phoneRegex = await Settings.use("phoneRegex");
+
+    if (nameRegex) {
+      if (!nameRegex.match(customer.name)) {
+        throw {
+          code: 3,
+          error: "customer.name is invalid",
+        };
+      }
     }
-  }
-  if (phoneRegex) {
-    if (!phoneRegex.match(customer.phone)) {
-      throw {
-        code: 4,
-        error: "customer.phone is invalid",
-      };
+    if (phoneRegex) {
+      if (!phoneRegex.match(customer.phone)) {
+        throw {
+          code: 4,
+          error: "customer.phone is invalid",
+        };
+      }
     }
+
+  } catch (error) {
+    sails.log.warn("CART > check user info regex: " , error)
   }
+
 }
 
 function checkAddress(address) {

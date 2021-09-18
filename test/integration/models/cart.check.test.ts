@@ -186,6 +186,7 @@ describe('Cart.check ()', function(){
         let core_cart_after_check = 0;
 
         getEmitter().on('core-cart-before-check', function(){
+
             core_cart_before_check=1;
         });
 

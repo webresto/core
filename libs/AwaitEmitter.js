@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-let emitter;
 const sleep = require('util').promisify(setTimeout);
 /**
  * Класс, позволяющий создавать события и ожидать исполнения их подписок, будь то синхронная функция или функция, возвращающая
@@ -13,8 +12,6 @@ class AwaitEmitter {
      * @param timeout - указывает сколько милисекунд ожидать функции, которые возвращают Promise.
      */
     constructor(name, timeout) {
-        if (emitter)
-            throw "singleton: please use getEmitter method";
         this.name = name;
         this.timeout = timeout || 1000;
         this.events = [];
@@ -51,8 +48,9 @@ class AwaitEmitter {
             return [];
         const res = [];
         const executor = event.fns.map(f => async function () {
+            console.log("222", f);
             try {
-                if (sails.config.logs.level === 'silly') {
+                if (sails.config.log && sails.config.log.level === 'silly') {
                     let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
                     args = args.map((arg) => {
                         return new Proxy(arg, {
@@ -112,6 +110,7 @@ class AwaitEmitter {
                 }
             }
             catch (e) {
+                sails.log.error("AwaitEmmiter error: ", e);
                 res.push(new Response(f.label, null, e));
             }
         });
