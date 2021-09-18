@@ -41,7 +41,8 @@ let attributes = {
   stopDate: 'string'
 }
 
-type Maintenance = typeof attributes & ORM
+type attributes = typeof attributes;
+interface Maintenance extends attributes, ORM {}
 export default Maintenance
 
 let Model  =  {  

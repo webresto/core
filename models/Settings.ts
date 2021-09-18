@@ -29,7 +29,8 @@ let attributes = {
   from: "string" as string,
 }
 
-type Settings = typeof attributes & ORM
+type attributes = typeof attributes;
+interface Settings extends attributes, ORM {}
 export default Settings
 let Model  =  {  
   /** retrun setting value by key */

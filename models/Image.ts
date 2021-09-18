@@ -29,8 +29,8 @@ let attributes = {
   /** Группа, которой принажлежит картинка */
   uploadDate: "string",
 };
-
-type Image = typeof attributes & ORM;
+type attributes = typeof attributes;
+interface Image extends attributes, ORM {}
 export default Image;
 
 

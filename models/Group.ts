@@ -83,7 +83,8 @@ let attributes = {
   workTime: "json" as unknown as WorkTime[],
 };
 
-type Group = typeof attributes & ORM;
+type attributes = typeof attributes;
+interface Group extends attributes, ORM {}
 export default Group;
 
 let Model = {

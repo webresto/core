@@ -98,7 +98,8 @@ let attributes = {
   error: "string",
 }
 
-type PaymentDocument = typeof attributes & ORM
+type attributes = typeof attributes;
+interface PaymentDocument extends attributes, ORM {}
 export default PaymentDocument
 let Model  =  {  
   doPaid: async function (criteria: any): Promise<PaymentDocument> {

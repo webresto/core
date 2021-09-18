@@ -42,7 +42,8 @@ let attributes = {
   } as unknown as boolean,
 }
 
-type PaymentMethod = typeof attributes & ORM
+type attributes = typeof attributes;
+interface PaymentMethod extends attributes, ORM {}
 export default PaymentMethod
 let Model  =  {  
   

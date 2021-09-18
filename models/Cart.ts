@@ -135,7 +135,8 @@ let attributes = {
   customData: "json" as any,
 };
 
-type Cart = typeof attributes & ORM;
+type attributes = typeof attributes;
+interface Cart extends attributes, ORM {};
 export default Cart;
 
 let Model = {
@@ -710,6 +711,66 @@ let Model = {
     //@ts-ignore
     return populatedCart.paymentMethod.id;
   },
+
+  /**  given populated Cart instance  by criteria*/
+  async populate(criteria: any) {
+
+    let cart = await Cart.findOne(criteria);
+
+    if (!cart) throw `cart by criteria: ${criteria},  not found`;
+
+    let fullCart: Cart;
+    try {
+      fullCart = await Cart.findOne({id: cart.id}).populate('dishes');
+      const cartDishes = await CartDish.find({cart: cart.id}).populate('dish').sort('createdAt');
+
+      for (let cartDish of cartDishes) {
+
+        if (!cartDish.dish) {
+          sails.log.error('cartDish', cartDish.id, 'has not dish');
+          continue;
+        }
+
+        if (!fullCart.dishes.filter(d => d.id === cartDish.id).length) {
+          sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
+          continue;
+        }
+
+        const dish = await Dish.findOne({
+          id: cartDish.dish.id,
+          isDeleted: false
+        }).populate('images').populate('parentGroup');
+        const reason = checkExpression(dish);
+
+        if (dish && dish.parentGroup)      
+          var reasonG = checkExpression(dish.parentGroup);
+
+        const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
+          reasonG === 'visible' || !reasonG;
+
+
+        await Dish.getDishModifiers(dish);
+        cartDish.dish = dish;
+
+        if (cartDish.modifiers !== undefined) {
+          for await(let modifier of cartDish.modifiers) {
+            modifier.dish = await Dish.findOne(modifier.id);
+          }
+        }
+      }
+      fullCart.dishes = cartDishes as Association<CartDish>;  
+
+      fullCart.orderDateLimit = await getOrderDateLimit();
+      fullCart.cartId = fullCart.id;
+      await this.countCart(fullCart);
+    } catch (e) {
+      sails.log.error('CART > fullCart error', e);
+    }
+
+    return fullCart;
+  },
+
+
   /**
    * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
    * @param cart
@@ -780,7 +841,13 @@ let Model = {
                 modifier,
                 modifierObj
               );
-
+              
+              // const modifierCopy = {
+              //   amount: modifier.amount,
+              //   id: modifier.id
+              // }
+              // await getEmitter().emit('core-cart-countcart-before-calc-modifier', modifierCopy, modifierObj);
+                
               cartDish.uniqueItems++;
               cartDish.itemTotal += modifier.amount * modifierObj.price;
               cartDish.weight += modifierObj.weight;

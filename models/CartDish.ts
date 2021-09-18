@@ -27,6 +27,7 @@ import ORMModel from "../interfaces/ORMModel";
 import Dish from "../models/Dish";
 import Cart from "../models/Cart";
 import { Modifier } from "../interfaces/Modifier";
+import { Attributes } from "waterline";
 
 let attributes = {
   /** */
@@ -82,8 +83,10 @@ let attributes = {
   totalWeight: "number" as unknown as number,
 };
 
-type CartDish = typeof attributes & ORM;
+type attributes = typeof attributes;
+interface CartDish extends attributes, ORM {};
 export default CartDish;
+
 
 let Model = {};
 

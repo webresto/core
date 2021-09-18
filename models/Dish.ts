@@ -1,5 +1,5 @@
 import Group from "./Group";
-import checkExpression, {AdditionalInfo} from "../libs/checkExpression";
+import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import Image from "./Image";
 import hashCode from "../libs/hashCode";
 import getEmitter from "../libs/getEmitter";
@@ -9,159 +9,158 @@ import * as _ from "lodash";
 import { WorkTime } from "@webresto/worktime";
 
 let attributes = {
+  /** */
+  id: {
+    type: "string",
+    required: true,
+  } as unknown as string,
 
+  /** */
+  rmsId: {
+    type: "string",
+    required: true,
+  } as unknown as string,
 
-    /** */
-    id: {
-      type: 'string',
-      required: true
-    } as unknown as string,
+  /** */
+  additionalInfo: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
-    /** */
-    rmsId: {
-      type: 'string',
-      required: true
-    } as unknown as string,
+  /** Артикул */
+  code: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
-    /** */
-    additionalInfo: {
-      type: 'string',
-      allowNull: true
-    } as unknown as string,
+  /** Описание блюда */
+  description: "string",
 
-    /** Артикул */
-    code: {
-      type: 'string',
-      allowNull: true
-    } as unknown as string,
+  /** Наименование */
+  name: "string",
 
-    /** Описание блюда */
-    description: 'string',
+  /** SEO description */
+  seoDescription: "string",
 
-    /** Наименование */
-    name: 'string',
+  /** SEO keywords */
+  seoKeywords: "string",
 
-    /** SEO description */
-    seoDescription: 'string',
+  /** SEO text */
+  seoText: "string",
 
-    /** SEO keywords */
-    seoKeywords: 'string',
+  /** SEO title */
+  seoTitle: "string",
 
-    /** SEO text */
-    seoText: 'string',
+  /** Не печатать в чеке */
+  doNotPrintInCheque: "boolean" as unknown as boolean,
 
-    /** SEO title */
-    seoTitle: 'string',
+  /** Количество углеводов на (100гр)*/
+  carbohydrateAmount: "number" as unknown as number,
 
-    /** Не печатать в чеке */
-    doNotPrintInCheque: 'boolean' as unknown as boolean,
+  /** Количество углеводов в блюде */
+  carbohydrateFullAmount: "number" as unknown as number,
 
-    /** Количество углеводов на (100гр)*/
-    carbohydrateAmount: 'number' as unknown as number,
+  /** Енергетическая ценность (100гр) */
+  energyAmount: "number" as unknown as number,
 
-    /** Количество углеводов в блюде */
-    carbohydrateFullAmount: 'number' as unknown as number,
+  /** Енергетическая ценность */
+  energyFullAmount: "number" as unknown as number,
 
-    /** Енергетическая ценность (100гр) */
-    energyAmount: 'number' as unknown as number,
+  /**  Колличество жиров (100гр) */
+  fatAmount: "number" as unknown as number,
 
-    /** Енергетическая ценность */
-    energyFullAmount: 'number' as unknown as number,
+  /** Колличество жиров в блюде */
+  fatFullAmount: "number" as unknown as number,
 
-    /**  Колличество жиров (100гр) */
-    fatAmount: 'number' as unknown as number,
+  /** Количество белков (100гр)  */
+  fiberAmount: "number" as unknown as number,
 
-    /** Колличество жиров в блюде */
-    fatFullAmount: 'number' as unknown as number,
+  /** Количество белков в блюде */
+  fiberFullAmount: "number" as unknown as number,
 
-    /** Количество белков (100гр)  */
-    fiberAmount: 'number' as unknown as number,
+  /** Идентификатор группы в которой находится блюдо */
+  groupId: "string",
 
-    /** Количество белков в блюде */
-    fiberFullAmount: 'number' as unknown as number,
+  /** Единица измерения товара ( кг, л, шт, порц.) */
+  measureUnit: "string",
 
-    /** Идентификатор группы в которой находится блюдо */
-    groupId: 'string',
+  /** Цена блюда */
+  price: "number" as unknown as number,
 
-    /** Единица измерения товара ( кг, л, шт, порц.) */
-    measureUnit: 'string',
+  /**  */
+  productCategoryId: "string", //TODO: ???
 
-    /** Цена блюда */
-    price: 'number' as unknown as number,
+  /** Тип */
+  type: "string", //TODO: ???
 
-    /**  */
-    productCategoryId: 'string', //TODO: ???
+  /** Масса  */
+  weight: "number" as unknown as number,
 
-    /** Тип */
-    type: 'string', //TODO: ???
+  /** Порядок сортировки */
+  order: "number" as unknown as number,
 
-    /** Масса  */
-    weight: 'number' as unknown as number,
+  /** Блюдо удалено */
+  isDeleted: "boolean" as unknown as boolean,
 
-    /** Порядок сортировки */
-    order: 'number' as unknown as number,
+  /** Блюдо может быть модифичироанно */
+  isModificable: "boolean" as unknown as boolean,
 
-    /** Блюдо удалено */
-    isDeleted: 'boolean' as unknown as boolean,
+  /** Модифакторы блюда */
+  modifiers: {
+    // collection: 'dish'
+    type: "json",
+  } as unknown as any,
 
-    /** Блюдо может быть модифичироанно */
-    isModificable: 'boolean' as unknown as boolean,
+  /** Родительская группа */
+  parentGroup: {
+    model: "group",
+  } as unknown as Group,
 
-    /** Модифакторы блюда */
-    modifiers: {
-      // collection: 'dish'
-      type: 'json'
-    } as unknown as any,
+  /** Теги для фильтрации (Вегетарианский, острый...) */
+  tags: {
+    type: "json",
+  } as unknown as any,
 
-    /** Родительская группа */
-    parentGroup: {
-      model: 'group'
-    } as unknown as Group,
+  /** Баланс для продажи, если -1 то сколько угодно */
+  balance: {
+    type: "number",
+    defaultsTo: -1,
+  } as unknown as number,
 
-    /** Теги для фильтрации (Вегетарианский, острый...) */
-    tags: {
-      type: 'json'
-    } as unknown as any,
+  /** Список изображений блюда*/
+  images: {
+    collection: "image",
+    via: "dish",
+  } as unknown as Image,
 
-    /** Баланс для продажи, если -1 то сколько угодно */
-    balance: {
-      type: 'number',
-      defaultsTo: -1
-    }as unknown as number,
+  /** Слаг */
+  slug: {
+    type: "string",
+  } as unknown as string,
 
-    /** Список изображений блюда*/
-    images: {
-      collection: 'image',
-      via: 'dish'
-    }as unknown as Image,
+  /** Хеш обекта блюда */
+  hash: "string",
 
-    /** Слаг */
-    slug: {
-      type: 'string',
-    } as unknown as string,
+  /** Можно увидеть на сайте в меню */
+  visible: "boolean" as unknown as boolean,
 
-    /** Хеш обекта блюда */
-    hash: 'string',
+  /** Признак что это модификатор */
+  modifier: "boolean" as unknown as boolean,
 
-    /** Можно увидеть на сайте в меню */
-    visible: 'boolean' as unknown as boolean,
+  /** Признак того что блюдо акционное */
+  promo: "boolean" as unknown as boolean,
 
-    /** Признак что это модификатор */
-    modifier: 'boolean' as unknown as boolean,
+  /** Время работы */
+  workTime: "json" as unknown as WorkTime,
+};
 
-    /** Признак того что блюдо акционное */
-    promo: 'boolean' as unknown as boolean,
- 
-    /** Время работы */
-    workTime: 'json' as unknown as WorkTime
-  }
-
-type Dish = typeof attributes & ORM
-export default Dish
+type attributes = typeof attributes;
+interface Dish extends attributes, ORM {}
+export default Dish;
 
 let Model = {
   afterUpdate: function (record, proceed) {
-    getEmitter().emit('core-dish-after-update', record);
+    getEmitter().emit("core-dish-after-update", record);
     return proceed();
   },
 
@@ -174,12 +173,11 @@ let Model = {
   async getDishes(criteria: any = {}): Promise<Dish[]> {
     criteria.isDeleted = false;
 
-    if (! await Settings.use('ShowUnavailableDishes')) {
-      criteria.balance = {'!': 0};
+    if (!(await Settings.use("ShowUnavailableDishes"))) {
+      criteria.balance = { "!": 0 };
     }
-      
 
-    let dishes = await Dish.find(criteria).populate('images');
+    let dishes = await Dish.find(criteria).populate("images");
 
     await Promise.each(dishes, async (dish) => {
       const reason = checkExpression(dish);
@@ -194,7 +192,7 @@ let Model = {
 
     dishes.sort((a, b) => a.order - b.order);
 
-    await getEmitter().emit('core-dish-get-dishes', dishes);
+    await getEmitter().emit("core-dish-get-dishes", dishes);
     return dishes;
   },
 
@@ -204,39 +202,62 @@ let Model = {
    * @param dish
    */
   async getDishModifiers(dish: Dish) {
-    if(dish.modifiers){
+    if (dish.modifiers) {
       let index = 0;
-      for await(let  modifier of dish.modifiers){
+      for await (let modifier of dish.modifiers) {
         // group modofiers
         if (modifier.childModifiers && modifier.childModifiers.length > 0) {
-          
-          if (dish.modifiers[index].modifierId !== undefined){
-            dish.modifiers[index].group = await Group.findOne({id: modifier.modifierId});
+          if (dish.modifiers[index].modifierId !== undefined) {
+            dish.modifiers[index].group = await Group.findOne({
+              id: modifier.modifierId,
+            });
           }
-          let childIndex=0
-          for await(let childModifier of modifier.childModifiers){
-            let childModifierDish = await Dish.findOne({id: childModifier.modifierId}).populate('images')
-            if (!childModifierDish || childModifierDish.balance === 0){
+          let childIndex = 0;
+          for await (let childModifier of modifier.childModifiers) {
+            let childModifierDish = await Dish.findOne({
+              id: childModifier.modifierId,
+            }).populate("images");
+            if (!childModifierDish || childModifierDish.balance === 0) {
               // delete if dish not found
               dish.modifiers.splice(childIndex, 1);
-              sails.log.error("DISH > getDishModifiers: Modifier "+ childModifier.modifierId +" from dish:"+dish.name+" not found")
+              sails.log.error(
+                "DISH > getDishModifiers: Modifier " +
+                  childModifier.modifierId +
+                  " from dish:" +
+                  dish.name +
+                  " not found"
+              );
             } else {
               try {
-                dish.modifiers[index].childModifiers[childIndex].dish = childModifierDish;
-            } catch (error) {
-                sails.log.error("DISH > getDishModifiers: problem with: "+ childModifier.modifierId+ " in dish:"+ dish.name );
-            }
+                dish.modifiers[index].childModifiers[childIndex].dish =
+                  childModifierDish;
+              } catch (error) {
+                sails.log.error(
+                  "DISH > getDishModifiers: problem with: " +
+                    childModifier.modifierId +
+                    " in dish:" +
+                    dish.name
+                );
+              }
             }
             childIndex++;
           }
         } else {
-          sails.log.error("DISH > getDishModifiers: GroupModifier "+ modifier.id +" from dish:"+ dish.name+" not have modifiers")
-          dish.modifiers[index].dish = await Dish.findOne({id: modifier.id}).populate('images');
+          sails.log.error(
+            "DISH > getDishModifiers: GroupModifier " +
+              modifier.id +
+              " from dish:" +
+              dish.name +
+              " not have modifiers"
+          );
+          dish.modifiers[index].dish = await Dish.findOne({
+            id: modifier.id,
+          }).populate("images");
         }
         index++;
       }
     }
-    dish.groupModifiers=null;
+    dish.groupModifiers = null;
   },
 
   /**
@@ -248,24 +269,25 @@ let Model = {
    */
   async createOrUpdate(values: Dish): Promise<Dish> {
     let hash = hashCode(JSON.stringify(values));
-    const dish = await Dish.findOne({id: values.id});
+    const dish = await Dish.findOne({ id: values.id });
     if (!dish) {
-      return Dish.create({hash, ...values}).fetch();
+      return Dish.create({ hash, ...values }).fetch();
     } else {
       if (hash === dish.hash) {
         return dish;
       }
-      return (await Dish.update({id: values.id}, {hash, ...values}).fetch())[0];
+      return (
+        await Dish.update({ id: values.id }, { hash, ...values }).fetch()
+      )[0];
     }
-  }
+  },
 };
-
 
 module.exports = {
   primaryKey: "id",
   attributes: attributes,
-  ...Model
-}
+  ...Model,
+};
 
 declare global {
   const Dish: typeof Model & ORMModel<Dish>;
