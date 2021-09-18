@@ -84,9 +84,8 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface CartDish extends attributes, ORM {};
+interface CartDish extends attributes, ORM {}
 export default CartDish;
-
 
 let Model = {};
 

@@ -3,6 +3,6 @@ export default interface MapConfig {
   customMaps: string;
   check: string;
   api: any;
-  customMap: string
-  distance?: string
+  customMap: string;
+  distance?: string;
 }

@@ -48,7 +48,6 @@ class AwaitEmitter {
             return [];
         const res = [];
         const executor = event.fns.map(f => async function () {
-            console.log("222", f);
             try {
                 if (sails.config.log && sails.config.log.level === 'silly') {
                     let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();

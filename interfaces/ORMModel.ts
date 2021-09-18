@@ -1,14 +1,12 @@
-import {QueryBuilder, WaterlinePromise, CRUDBuilder, Model, UpdateBuilder, Callback} from "waterline";
+import { QueryBuilder, WaterlinePromise, CRUDBuilder, Model, UpdateBuilder, Callback } from "waterline";
 
 /**
  * Описывает ORM представление
  */
 export default interface ORMModel<T> {
-  
   create?(params: any): CRUDBuilder<T>;
   create?(params: any[]): CRUDBuilder<T[]>;
   createEach?(params: any[]): CRUDBuilder<T[]>;
-
 
   find?(criteria?: any): QueryBuilder<T[]>;
   findOne?(criteria?: any): QueryBuilder<T>;
@@ -17,7 +15,6 @@ export default interface ORMModel<T> {
   update?(criteria: any, changes: any): UpdateBuilder<T[]>;
   update?(criteria: any, changes: any[]): UpdateBuilder<T[]>;
   updateOne?(criteria: any, changes: any[]): UpdateBuilder<T[]>;
-
 
   destroy?(criteria: any): CRUDBuilder<T[]>;
   destroy?(criteria: any[]): CRUDBuilder<T[]>;

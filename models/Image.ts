@@ -33,7 +33,6 @@ type attributes = typeof attributes;
 interface Image extends attributes, ORM {}
 export default Image;
 
-
 let Model = {
   beforeCreate(imageInit, next) {
     if (!imageInit.id) {

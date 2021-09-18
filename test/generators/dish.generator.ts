@@ -1,11 +1,10 @@
-import * as faker from 'faker';
+import * as faker from "faker";
 
 //import Dish from "../../models/Dish"
 
-
 var autoincrement: number = 0;
-interface DishData  {
-  id? : string;
+interface DishData {
+  id?: string;
   additionalInfo?: string;
   balance?: number;
   modifiers?: [];
@@ -18,16 +17,16 @@ interface DishData  {
   composition?: string;
   rmsId?: string;
   code?: string;
-  tags?: {name: string}[];
+  tags?: { name: string }[];
   isDeleted?: boolean;
 }
 
-export default function dishGenerator(config: DishData = {}): DishData{
+export default function dishGenerator(config: DishData = {}): DishData {
   autoincrement++;
   return {
     id: faker.random.uuid(),
     additionalInfo: config.additionalInfo || "null",
-    balance:  config.balance || -1,
+    balance: config.balance || -1,
     modifiers: config.modifiers || [],
     parentGroup: config.parentGroup || null,
     weight: 100,
@@ -36,27 +35,11 @@ export default function dishGenerator(config: DishData = {}): DishData{
     images: config.images || [],
     name: faker.commerce.productName(),
     composition: faker.random.words(25),
-    rmsId: 'none',
+    rmsId: "none",
     code: null,
     tags: [],
-    isDeleted: config.isDeleted || false
-  }
+    isDeleted: config.isDeleted || false,
+  };
 }
 
-export let dishFields = [
-  'id',
-  'additionalInfo',
-  'balance',
-  'modifiers',
-  'weight',
-  'price',
-  'order',
-  'images',
-  'name',
-  'composition',
-  'rmsId',
-  'code',
-  'tags',
-  'isDeleted'
-];
-
+export let dishFields = ["id", "additionalInfo", "balance", "modifiers", "weight", "price", "order", "images", "name", "composition", "rmsId", "code", "tags", "isDeleted"];

@@ -6,8 +6,8 @@ import { Time } from "../interfaces/Cause";
  */
 export default function (obj: AdditionalInfo): string;
 export interface AdditionalInfo {
-    visible: boolean;
-    workTime: Time[];
-    promo: boolean;
-    modifier: boolean;
+  visible: boolean;
+  workTime: Time[];
+  promo: boolean;
+  modifier: boolean;
 }

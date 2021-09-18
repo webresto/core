@@ -1,11 +1,10 @@
-describe('Await emmiter', function () {
+describe("Await emmiter", function () {
   this.timeout(31000);
-  
+
   /**
-   * 
+   *
    */
-  it('Test subscribe', async () => { 
-    return true  
+  it("Test subscribe", async () => {
+    return true;
   });
-  
 });

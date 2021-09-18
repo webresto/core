@@ -43,21 +43,27 @@ import getEmitter from "../libs/getEmitter";
 */
 
 enum PaymentDocumentStatus {
-  "NEW" , "REGISTRED" , "PAID" , "CANCEL" ,  "REFUND" , "DECLINE"
-} 
+  "NEW",
+  "REGISTRED",
+  "PAID",
+  "CANCEL",
+  "REFUND",
+  "DECLINE",
+}
 
 let payment_processor_interval: ReturnType<typeof setInterval>;
 
 let attributes = {
-
   /** Уникальный id в моделе PaymentDocument */
   id: {
     type: "string",
     required: true,
-    defaultsTo: function (){ return uuid();}
+    defaultsTo: function () {
+      return uuid();
+    },
   } as unknown as string,
 
-/** соответсвует id из модели originModel */
+  /** соответсвует id из модели originModel */
   paymentId: "string",
 
   /** ID во внешней системе */
@@ -66,7 +72,7 @@ let attributes = {
   /** Модель из которой делается платеж */
   originModel: "string",
 
-   /** Платежный метод */
+  /** Платежный метод */
   paymentMethod: {
     model: "PaymentMethod",
   } as unknown as PaymentMethod | string,
@@ -74,18 +80,17 @@ let attributes = {
   /** Сумма к оплате */
   amount: "number" as unknown as number,
 
-/** Флаг установлен что оплата произведена */
+  /** Флаг установлен что оплата произведена */
   paid: {
     type: "boolean",
-    defaultsTo: false
+    defaultsTo: false,
   } as unknown as boolean,
-
 
   /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
   status: {
     type: "string",
     enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
-    defaultsTo: 'NEW'
+    defaultsTo: "NEW",
   } as unknown as string,
 
   /** Комментари для платежной системы */
@@ -94,21 +99,21 @@ let attributes = {
   /** ВЕРОЯТНО ТУТ ЭТО НЕ НУЖНО */
   redirectLink: "string",
 
-/** Текст ошибки */
+  /** Текст ошибки */
   error: "string",
-}
+};
 
 type attributes = typeof attributes;
 interface PaymentDocument extends attributes, ORM {}
-export default PaymentDocument
-let Model  =  {  
+export default PaymentDocument;
+let Model = {
   doPaid: async function (criteria: any): Promise<PaymentDocument> {
     const self: PaymentDocument = await PaymentDocument.findOne(criteria);
     if (self.status === "PAID" && self.paid !== true) {
       self.status = "PAID";
       self.paid = true;
       getEmitter().emit("core-payment-document-paid", self);
-      await PaymentDocument.update({id: self.id}, self).fetch();
+      await PaymentDocument.update({ id: self.id }, self).fetch();
     }
     return self;
   },
@@ -116,26 +121,14 @@ let Model  =  {
     const self: PaymentDocument = await PaymentDocument.findOne(criteria);
     getEmitter().emit("core-payment-document-check", self);
     try {
-      let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(
-        self.paymentMethod
-      );
-      let checkedPaymentDocument: PaymentDocument =
-        await paymentAdapter.checkPayment(self);
-      if (
-        checkedPaymentDocument.status === "PAID" &&
-        checkedPaymentDocument.paid !== true
-      ) {
+      let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
+      let checkedPaymentDocument: PaymentDocument = await paymentAdapter.checkPayment(self);
+      if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true) {
         await checkedPaymentDocument.doPaid();
       } else {
-        await PaymentDocument.update(
-          { id: self.id },
-          { status: checkedPaymentDocument.status }
-        );
+        await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status });
       }
-      getEmitter().emit(
-        "core-payment-document-checked-document",
-        checkedPaymentDocument
-      );
+      getEmitter().emit("core-payment-document-checked-document", checkedPaymentDocument);
       return checkedPaymentDocument;
     } catch (e) {
       sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
@@ -178,26 +171,11 @@ let Model  =  {
       };
     }
 
-    let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(
-      paymentMethodId
-    );
-    sails.log.debug(
-      "PaymentDocumnet > register [paymentAdapter]",
-      paymentMethodId,
-      paymentAdapter
-    );
+    let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
+    sails.log.debug("PaymentDocumnet > register [paymentAdapter]", paymentMethodId, paymentAdapter);
     try {
-      sails.log.verbose(
-        "PaymentDocumnet > register [before paymentAdapter.createPayment]",
-        payment,
-        backLinkSuccess,
-        backLinkFail
-      );
-      let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(
-        payment,
-        backLinkSuccess,
-        backLinkFail
-      );
+      sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
+      let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
       await PaymentDocument.update(
         { id: paymentResponse.id },
         {
@@ -221,10 +199,7 @@ let Model  =  {
     if (values.paid && values.status === "PAID") {
       try {
         if (!values.amount || !values.paymentMethod || !values.paymentId) {
-          sails.log.error(
-            "PaymentDocument > afterUpdate, not have requried fields :",
-            values
-          );
+          sails.log.error("PaymentDocument > afterUpdate, not have requried fields :", values);
           throw "PaymentDocument > afterUpdate, not have requried fields";
         }
         await sails.models[values.originModel].doPaid(values);
@@ -237,53 +212,37 @@ let Model  =  {
 
   /** Цикл проверки платежей */
   processor: async function (timeout: number) {
-    sails.log.info(
-      "PaymentDocument.processor > started with timeout: " + timeout
-    );
+    sails.log.info("PaymentDocument.processor > started with timeout: " + timeout);
     return (payment_processor_interval = setInterval(async () => {
       let actualTime = new Date();
 
-      let actualPaymentDocuments: PaymentDocument[] =
-        await PaymentDocument.find({ status: "REGISTRED" });
+      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({ status: "REGISTRED" });
 
       /** Если дата создания платежногоДокумента больше чем час назад ставим статус просрочено*/
       actualTime.setHours(actualTime.getHours() - 1);
       for await (let actualPaymentDocument of actualPaymentDocuments) {
         if (actualPaymentDocument.createdAt < actualTime) {
-          await PaymentDocument.update(
-            { id: actualPaymentDocument.id },
-            { status: "DECLINE" }
-          );
+          await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" });
         } else {
-          sails.log.info(
-            "PAYMENT DOCUMENT > processor actualPaymentDocuments",
-            actualPaymentDocument.id,
-            actualPaymentDocument.createdAt,
-            "after:",
-            actualTime
-          );
+          sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
           await actualPaymentDocument.doCheck();
         }
       }
     }, timeout || 120000));
-  }
-} 
+  },
+};
 
 module.exports = {
   primaryKey: "id",
   attributes: attributes,
-  ...Model
-}
+  ...Model,
+};
 
 declare global {
   const PaymentDocument: typeof Model & ORMModel<PaymentDocument>;
 }
 
-
-
-
 ////////////////////////////// LOCAL
-
 
 async function checkOrigin(originModel: string, paymentId: string) {
   //@ts-ignore

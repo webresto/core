@@ -1,7 +1,6 @@
-
-import { Payment, PaymentResponse } from "../../interfaces/Payment"
-import { InitPaymentAdapter }   from "../../models/PaymentMethod";
-import PaymentDocument from "../../models/PaymentDocument"
+import { Payment, PaymentResponse } from "../../interfaces/Payment";
+import { InitPaymentAdapter } from "../../models/PaymentMethod";
+import PaymentDocument from "../../models/PaymentDocument";
 /**
  * Абстрактный класс Payment адаптера. Используется для создания новых адаптеров платежных систем.
  */
@@ -19,7 +18,7 @@ export default abstract class PaymentAdapter {
    * @param Payment - Платежный документ
    * @return Результат работы функции, тело ответа и код результата
    */
-  public abstract createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string):  Promise<PaymentResponse>;
+  public abstract createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string): Promise<PaymentResponse>;
 
   /**
    * Проверка Оплаты
@@ -32,5 +31,7 @@ export default abstract class PaymentAdapter {
    * Метод для создания и получения уже существующего Payment адаптера
    * @param params - параметры для инициализации
    */
- static getInstance(...params): PaymentAdapter {return PaymentAdapter.prototype};
+  static getInstance(...params): PaymentAdapter {
+    return PaymentAdapter.prototype;
+  }
 }

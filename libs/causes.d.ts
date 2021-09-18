@@ -2,9 +2,9 @@ import Cart from "../models/Cart";
 import { DirectDistance, Time } from "../interfaces/Cause";
 import Condition from "../../checkout/models/Condition";
 declare type customCause = {
-    name: string;
-    needCart: boolean;
-    fn: causeFunc;
+  name: string;
+  needCart: boolean;
+  fn: causeFunc;
 };
 declare type causeFunc = (condition: Condition, cart?: Cart) => boolean | Promise<boolean>;
 /**
@@ -56,12 +56,12 @@ export declare function between(from: number, to: number, a: number): boolean;
  */
 export declare function checkDistance(cart: Cart, data: DirectDistance): Promise<boolean>;
 export declare enum Weekdays {
-    'sunday' = 0,
-    'monday' = 1,
-    'tuesday' = 2,
-    'wednesday' = 3,
-    'thursday' = 4,
-    'friday' = 5,
-    'saturday' = 6
+  "sunday" = 0,
+  "monday" = 1,
+  "tuesday" = 2,
+  "wednesday" = 3,
+  "thursday" = 4,
+  "friday" = 5,
+  "saturday" = 6,
 }
 export {};

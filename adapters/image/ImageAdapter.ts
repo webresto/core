@@ -13,5 +13,5 @@ export default abstract class ImageAdapter {
 
   public abstract load(url: string, key: string): Promise<{ origin: string }>;
   public abstract uploadImage(uploadFile: any, key: string): Promise<any>;
-  public abstract uploadBase64Image(base64: string, filetype: string, key: string ): Promise<any>;
+  public abstract uploadBase64Image(base64: string, filetype: string, key: string): Promise<any>;
 }

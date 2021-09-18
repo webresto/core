@@ -47,8 +47,7 @@ let Model = {
         sails.log.error("CORE > Settings > use ENV parse error: ", e);
         value = process.env[key];
       } finally {
-        if (!(await Settings.find({ key: key }).limit(1))[0])
-          await Settings.set(key, value, "env");
+        if (!(await Settings.find({ key: key }).limit(1))[0]) await Settings.set(key, value, "env");
 
         return value;
       }
@@ -68,8 +67,9 @@ let Model = {
         return value;
       }
     }
+    sails.log.warn(`Settings: ( ${key} ) not found`);
 
-    throw `Setting with name ${key} not found`;
+    return undefined;
   },
 
   /**
@@ -86,9 +86,7 @@ let Model = {
           from: from,
         });
       } else {
-        return (
-          await Settings.update({ key: key }, { value: value }).fetch()
-        )[0];
+        return (await Settings.update({ key: key }, { value: value }).fetch())[0];
       }
     } catch (e) {
       sails.log.error("CORE > Settings > set: ", key, value, from, e);

@@ -1,7 +1,7 @@
 export default interface ImageConfig {
-  dish: ImageConfigInner,
-  group: ImageConfigInner,
-  adapter: string
+  dish: ImageConfigInner;
+  group: ImageConfigInner;
+  adapter: string;
 }
 
 interface ImageConfigInner {

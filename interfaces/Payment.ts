@@ -1,29 +1,27 @@
 /**
  * Описывает платежный документ
- * paid?: Признак того что документ оплачен 
- * amount: Сумма 
+ * paid?: Признак того что документ оплачен
+ * amount: Сумма
  * isCartPayment?: Является оплатой корзины
  * originModel: Название модели иницировавшей оплату
  * PaymentMethod: Адаптер через которую совершался платеж
  * comment?: Комментарий
- * error? 
+ * error?
  */
-
-
 
 export interface Payment {
   id?: string;
-  paid?: boolean; 
+  paid?: boolean;
   amount: number;
   paymentId: string;
   externalId?: string;
   originModel: string;
   paymentMethod: string;
   comment?: string;
-  error?:any;
+  error?: any;
   data?: any;
 }
 
 export interface PaymentResponse extends Payment {
-  redirectLink?: string 
+  redirectLink?: string;
 }

@@ -17,7 +17,7 @@ let attributes = {
     /** */
     discount: "json",
     paymentMethod: {
-        model: "PaymentMethod"
+        model: "PaymentMethod",
     },
     /** */
     paymentMethodTitle: "string",
@@ -101,14 +101,15 @@ let attributes = {
     orderDate: "string",
     customData: "json",
 };
-;
 let Model = {
     beforeCreate(cartInit, next) {
         if (!cartInit.id) {
             cartInit.id = uuid_1.v4();
         }
         if (!cartInit.shortId) {
-            cartInit.shortId = cartInit.id.substr(cartInit.id.length - 8).toUpperCase();
+            cartInit.shortId = cartInit.id
+                .substr(cartInit.id.length - 8)
+                .toUpperCase();
         }
         cartInit = "CART";
         next();
@@ -353,7 +354,7 @@ let Model = {
          *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
          */
         getEmitter_1.default().emit("core-cart-before-check", cart, customer, isSelfService, address);
-        sails.log.silly("Cart > check > before check >", customer, isSelfService, address, paymentMethodId);
+        sails.log.silly(`Cart > check > before check > ${customer} ${isSelfService} ${address} ${paymentMethodId}`);
         if (customer) {
             await checkCustomerInfo(customer);
             cart.customer = customer;
@@ -373,73 +374,63 @@ let Model = {
             cart.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
             cart.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
         }
-        isSelfService = isSelfService === undefined ? false : isSelfService;
+        /** Если самовывоз то не нужно проверять адресс */
         if (isSelfService) {
-            getEmitter_1.default().emit("core-cart-check-cart-service", cart, customer, isSelfService, address);
-            sails.log.verbose("Cart > check > is cart delivery");
+            getEmitter_1.default().emit("core-cart-is-self-service", cart, customer, isSelfService, address);
             await Cart.setSelfService(cart.id, true);
-            await Cart.next(cart.id, "CHECKOUT");
             return;
         }
-        if (address) {
-            checkAddress(address);
-            cart.address = address;
-        }
         else {
-            if (!isSelfService && cart.address === null) {
-                throw {
-                    code: 2,
-                    error: "address is required",
-                };
+            if (address) {
+                checkAddress(address);
+                cart.address = address;
+            }
+            else {
+                if (!isSelfService && cart.address === null) {
+                    throw {
+                        code: 2,
+                        error: "address is required",
+                    };
+                }
             }
         }
         getEmitter_1.default().emit("core-cart-check-delivery", cart, customer, isSelfService, address);
         const results = await getEmitter_1.default().emit("core-cart-check", cart, customer, isSelfService, address, paymentMethodId);
+        /** save after updates in emiter */
         await Cart.update({ id: cart.id }, cart).fetch().fetch();
         sails.log.silly("Cart > check > after wait general emitter", cart, results);
-        const resultsCount = results.length;
-        const successCount = results.filter((r) => r.state === "success").length;
         getEmitter_1.default().emit("core-cart-after-check", cart, customer, isSelfService, address);
-        if (resultsCount === 0)
-            return;
-        const checkConfig = await Settings.use("check");
-        if (checkConfig) {
-            if (checkConfig.requireAll) {
-                if (resultsCount === successCount) {
-                    if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
-                        console.log(">>>>>>>>>..");
-                        await Cart.next(cart.id, "CHECKOUT");
-                    }
-                    return;
-                }
-                else {
-                    throw {
-                        code: 10,
-                        error: "one or more results from core-cart-check was not sucessed",
-                    };
-                }
-            }
-            if (checkConfig.notRequired) {
+        const checkConfig = (await Settings.use("check"));
+        /** Успех во всех слушателеях */
+        if (checkConfig && checkConfig.requireAll) {
+            const resultsCount = results.length;
+            const successCount = results.filter((r) => r.state === "success").length;
+            if (resultsCount === successCount) {
                 if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
                     await Cart.next(cart.id, "CHECKOUT");
                 }
                 return;
             }
-        }
-        // если не настроен конфиг то нужен хотябы один положительный ответ(заказ в пустоту бесполезен)
-        if (successCount > 0) {
-            if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
-                await Cart.next(cart.id, "CHECKOUT");
+            else {
+                throw {
+                    code: 10,
+                    error: "one or more results from core-cart-check was not sucessed",
+                };
             }
-            return;
         }
-        else {
-            throw {
-                code: 11,
-                error: "successCount <= 0!",
-                checkConfig: checkConfig
-            };
+        /**
+         * Тут поидее должна быть логика успех хотябы одного слушателя, но
+         * на текущий момент практического применения не встречалось.
+         *
+         * if(checkConfig.justOne) ...
+         */
+        /** По умолчанию чек должен проходить без слушателей, потомучто минимально сам по себе чек
+         *  имеет баовые проверки. И является самодостаточным.
+         */
+        if ((await Cart.getState(cart.id)) !== "CHECKOUT") {
+            await Cart.next(cart.id, "CHECKOUT");
         }
+        return;
     },
     /** Оформление корзины */
     async order(criteria) {
@@ -543,26 +534,34 @@ let Model = {
             throw `cart by criteria: ${criteria},  not found`;
         let fullCart;
         try {
-            fullCart = await Cart.findOne({ id: cart.id }).populate('dishes');
-            const cartDishes = await CartDish.find({ cart: cart.id }).populate('dish').sort('createdAt');
+            fullCart = await Cart.findOne({ id: cart.id }).populate("dishes");
+            const cartDishes = await CartDish.find({ cart: cart.id })
+                .populate("dish")
+                .sort("createdAt");
             for (let cartDish of cartDishes) {
                 if (!cartDish.dish) {
-                    sails.log.error('cartDish', cartDish.id, 'has not dish');
+                    sails.log.error("cartDish", cartDish.id, "has not dish");
                     continue;
                 }
-                if (!fullCart.dishes.filter(d => d.id === cartDish.id).length) {
-                    sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
+                if (!fullCart.dishes.filter((d) => d.id === cartDish.id).length) {
+                    sails.log.error("cartDish", cartDish.id, "not exists in cart", cart.id);
                     continue;
                 }
                 const dish = await Dish.findOne({
                     id: cartDish.dish.id,
-                    isDeleted: false
-                }).populate('images').populate('parentGroup');
+                    isDeleted: false,
+                })
+                    .populate("images")
+                    .populate("parentGroup");
                 const reason = checkExpression(dish);
                 if (dish && dish.parentGroup)
                     var reasonG = checkExpression(dish.parentGroup);
-                const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
-                    reasonG === 'visible' || !reasonG;
+                const reasonBool = reason === "promo" ||
+                    reason === "visible" ||
+                    !reason ||
+                    reasonG === "promo" ||
+                    reasonG === "visible" ||
+                    !reasonG;
                 await Dish.getDishModifiers(dish);
                 cartDish.dish = dish;
                 if (cartDish.modifiers !== undefined) {
@@ -577,7 +576,7 @@ let Model = {
             await this.countCart(fullCart);
         }
         catch (e) {
-            sails.log.error('CART > fullCart error', e);
+            sails.log.error("CART > fullCart error", e);
         }
         return fullCart;
     },

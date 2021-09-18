@@ -9,7 +9,7 @@ import { WorkTime } from "@webresto/worktime";
 let attributes = {
   /**Id */
   id: {
-    type: "string"
+    type: "string",
   } as unknown as string,
 
   /** Addishinal info */
@@ -30,13 +30,12 @@ let attributes = {
 
   /** Наименование блюда */
   name: "string",
-  
+
   seoDescription: "string",
   seoKeywords: "string",
   seoText: "string",
   seoTitle: "string",
-  
- 
+
   /** Очередь сортировки */
   order: "number" as unknown as number,
 
@@ -65,18 +64,18 @@ let attributes = {
 
   /** Человеко читаемый АйДи */
   slug: {
-    type: "string"
+    type: "string",
   } as unknown as string,
 
   /** Гурппа отображается */
   visible: "boolean" as unknown as boolean,
-  
+
   /** Группа модификаторов */
   modifier: "boolean" as unknown as boolean,
-  
+
   /** Промо группа */
   promo: "boolean" as unknown as boolean,
-  
+
   /** Время работы горуппы */
   workTime: "json" as unknown as WorkTime[],
 };
@@ -98,9 +97,7 @@ let Model = {
    * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
    * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
-  async getGroups(
-    groupsId: string[]
-  ): Promise<{ groups: GroupWithAdditionalFields[]; errors: {} }> {
+  async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[]; errors: {} }> {
     let menu = {} as { [x: string]: GroupWithAdditionalFields };
     const groups = await Group.find({
       id: groupsId,
@@ -133,8 +130,7 @@ let Model = {
           });
           delete menu[group.id].childGroups;
           menu[group.id].children = childGroups;
-          if (menu[group.id].children.length > 1)
-            menu[group.id].children.sort((a, b) => a.order - b.order);
+          if (menu[group.id].children.length > 1) menu[group.id].children.sort((a, b) => a.order - b.order);
         }
         menu[group.id].dishesList = await Dish.getDishes({
           parentGroup: group.id,

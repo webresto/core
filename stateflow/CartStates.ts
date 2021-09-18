@@ -1,5 +1,4 @@
 module.exports = {
-  
   /**
    * This is a first state, here only raw cart.
    * Any modification of cart prssible only in this state.
@@ -62,7 +61,7 @@ module.exports = {
   /**
    * Here you order done, but is not means what you delivery done. It just Order
    * webresto/core as is  in default not know about next flows, but RMS know when order was delivered.
-   * Other modules can extend it, please check modules.webresto.org 
+   * Other modules can extend it, please check modules.webresto.org
    */
   ORDER: {
     routeRules: async function (data, cb): Promise<string> {

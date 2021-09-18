@@ -1,4 +1,4 @@
-import {Time} from "../interfaces/Cause";
+import { Time } from "../interfaces/Cause";
 
 /**
  * Check additionalInfo. Return empty string if success or reject reason string
@@ -7,30 +7,27 @@ import {Time} from "../interfaces/Cause";
  */
 export default function (obj: AdditionalInfo): string {
   if (!obj) {
-    return '';
+    return "";
   }
 
   try {
-    if (obj.visible === false)
-      return 'visible';
+    if (obj.visible === false) return "visible";
 
     if (obj.workTime) {
       if (!checkTime(obj.workTime)) {
-        return 'time';
+        return "time";
       }
     }
 
-    if (obj.promo === true)
-      return 'promo';
+    if (obj.promo === true) return "promo";
 
-    if (obj.modifier === true)
-      return 'modifier';
+    if (obj.modifier === true) return "modifier";
 
-    return '';
+    return "";
   } catch (e) {
-    return '';
+    return "";
   }
-};
+}
 
 export interface AdditionalInfo {
   visible: boolean;
@@ -38,7 +35,6 @@ export interface AdditionalInfo {
   promo: boolean;
   modifier: boolean;
 }
-
 
 function checkTime(timeArray: Time[]): boolean {
   return true;

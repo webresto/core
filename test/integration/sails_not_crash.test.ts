@@ -1,4 +1,4 @@
-describe('Sails', function () {
-    it('sails does not crash', () => true);
+describe("Sails", function () {
+  it("sails does not crash", () => true);
 });
-``
+``;

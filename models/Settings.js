@@ -54,7 +54,8 @@ let Model = {
                 return value;
             }
         }
-        throw `Setting with name ${key} not found`;
+        sails.log.warn(`Settings: ( ${key} ) not found`);
+        return undefined;
     },
     /**
      * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)

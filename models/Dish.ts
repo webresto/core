@@ -183,8 +183,7 @@ let Model = {
       const reason = checkExpression(dish);
       if (!reason) {
         await Dish.getDishModifiers(dish);
-        if (dish.images.length >= 2)
-          dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
+        if (dish.images.length >= 2) dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
       } else {
         dishes.splice(dishes.indexOf(dish), 1);
       }
@@ -220,36 +219,18 @@ let Model = {
             if (!childModifierDish || childModifierDish.balance === 0) {
               // delete if dish not found
               dish.modifiers.splice(childIndex, 1);
-              sails.log.error(
-                "DISH > getDishModifiers: Modifier " +
-                  childModifier.modifierId +
-                  " from dish:" +
-                  dish.name +
-                  " not found"
-              );
+              sails.log.error("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
             } else {
               try {
-                dish.modifiers[index].childModifiers[childIndex].dish =
-                  childModifierDish;
+                dish.modifiers[index].childModifiers[childIndex].dish = childModifierDish;
               } catch (error) {
-                sails.log.error(
-                  "DISH > getDishModifiers: problem with: " +
-                    childModifier.modifierId +
-                    " in dish:" +
-                    dish.name
-                );
+                sails.log.error("DISH > getDishModifiers: problem with: " + childModifier.modifierId + " in dish:" + dish.name);
               }
             }
             childIndex++;
           }
         } else {
-          sails.log.error(
-            "DISH > getDishModifiers: GroupModifier " +
-              modifier.id +
-              " from dish:" +
-              dish.name +
-              " not have modifiers"
-          );
+          sails.log.error("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
           dish.modifiers[index].dish = await Dish.findOne({
             id: modifier.id,
           }).populate("images");
@@ -275,9 +256,7 @@ let Model = {
       if (hash === dish.hash) {
         return dish;
       }
-      return (
-        await Dish.update({ id: values.id }, { hash, ...values }).fetch()
-      )[0];
+      return (await Dish.update({ id: values.id }, { hash, ...values }).fetch())[0];
     }
   },
 };

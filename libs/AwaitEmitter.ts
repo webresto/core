@@ -1,4 +1,4 @@
-const sleep = require('util').promisify(setTimeout);
+const sleep = require("util").promisify(setTimeout);
 type func = (...args: any) => any | Promise<any>;
 
 /**
@@ -36,20 +36,19 @@ export default class AwaitEmitter {
   on(name: string, label: string, fn: func): AwaitEmitter;
 
   on(name: string, label: string | func, fn?: func): AwaitEmitter {
-    
-    if (typeof label === 'function') {
+    if (typeof label === "function") {
       fn = label;
-      label = '';
+      label = "";
     }
 
-    let event = this.events.filter(l => l.name === name)[0];
+    let event = this.events.filter((l) => l.name === name)[0];
     if (!event) {
       event = new Event(name);
       this.events.push(event);
     }
     event.fns.push({
       fn: fn,
-      label: label
+      label: label,
     });
     return this;
   }
@@ -65,85 +64,84 @@ export default class AwaitEmitter {
    */
   async emit(name: string, ...args: any): Promise<Response[]> {
     const that = this;
-    const event = this.events.find(l => l.name === name);
-    if (!event)
-      return [];
+    const event = this.events.find((l) => l.name === name);
+    if (!event) return [];
 
     const res: Response[] = [];
-    const executor = event.fns.map(f => async function () {
-      console.log("222",f);
-      try {
-
-        if (sails.config.log && sails.config.log.level === 'silly'){
-          let debugRay = "ROUND: "+Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
-          args = args.map((arg) => {
-            return new Proxy(arg, {
-              set: function (target, key, value) {
-                console.log(`From \x1b[40m\x1b[33m\x1b[5m ${f.label} \x1b[0m : ${debugRay}` );
-                console.log(`\x1b[33m${key} : ${JSON.stringify(value)} \x1b[0m`);
-
-                console.log("\x1b[32m"+"↷↷↷↷↷↷↷↷↷↷↷");
-                console.dir(target)
-                console.log("-------------------------------------------------------");
-
-                target[key] = value;
-                return true;
-              },
-            });
-          });
-        }
-        const r = f.fn.apply(that, args);
-        
-        
-        // Если это промис, то ждем
-        if (!!r && (typeof r === 'object' || typeof r === 'function') && typeof r.then === 'function') { // from isPromise
-          let timeoutEnd = false;
-          let successEnd = false;
-          
-          // stop timer 
-          const timeout = async function () {
-            await sleep(that.timeout);
-            if (!successEnd) {
-              timeoutEnd = true;
-              res.push(new Response(f.label, null, null, true));
-            }
-          };
-
-
-          const decorator = async function () {
-            const now = new Date();
-            try {
-              const res1 = await r;
-              if (!timeoutEnd) {
-                successEnd = true;
-                res.push(new Response(f.label, res1));
-              } else {
-                const listenerName = f.label || 'some';
-                sails.log.warn(listenerName, 'event of action', name, 'in', that.name, 'emitter end after', new Date().getTime() - now.getTime(), 'ms');
-              }
-            } catch (e) {
-              successEnd = true;
-              res.push(new Response(f.label, null, e));
-            }
-          };
-
-          await Promise.race([timeout(), decorator()]);
-
-        // Если функция не промис то выполняем ее сразу
-        } else {
+    const executor = event.fns.map(
+      (f) =>
+        async function () {
           try {
-            res.push(new Response(f.label, r));
-          } catch (error) {
+            if (sails.config.log && sails.config.log.level === "silly") {
+              let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
+              args = args.map((arg) => {
+                return new Proxy(arg, {
+                  set: function (target, key, value) {
+                    console.log(`From \x1b[40m\x1b[33m\x1b[5m ${f.label} \x1b[0m : ${debugRay}`);
+                    console.log(`\x1b[33m${key} : ${JSON.stringify(value)} \x1b[0m`);
+
+                    console.log("\x1b[32m" + "↷↷↷↷↷↷↷↷↷↷↷");
+                    console.dir(target);
+                    console.log("-------------------------------------------------------");
+
+                    target[key] = value;
+                    return true;
+                  },
+                });
+              });
+            }
+            const r = f.fn.apply(that, args);
+
+            // Если это промис, то ждем
+            if (!!r && (typeof r === "object" || typeof r === "function") && typeof r.then === "function") {
+              // from isPromise
+              let timeoutEnd = false;
+              let successEnd = false;
+
+              // stop timer
+              const timeout = async function () {
+                await sleep(that.timeout);
+                if (!successEnd) {
+                  timeoutEnd = true;
+                  res.push(new Response(f.label, null, null, true));
+                }
+              };
+
+              const decorator = async function () {
+                const now = new Date();
+                try {
+                  const res1 = await r;
+                  if (!timeoutEnd) {
+                    successEnd = true;
+                    res.push(new Response(f.label, res1));
+                  } else {
+                    const listenerName = f.label || "some";
+                    sails.log.warn(listenerName, "event of action", name, "in", that.name, "emitter end after", new Date().getTime() - now.getTime(), "ms");
+                  }
+                } catch (e) {
+                  successEnd = true;
+                  res.push(new Response(f.label, null, e));
+                }
+              };
+
+              await Promise.race([timeout(), decorator()]);
+
+              // Если функция не промис то выполняем ее сразу
+            } else {
+              try {
+                res.push(new Response(f.label, r));
+              } catch (error) {
+                res.push(new Response(f.label, null, e));
+              }
+            }
+          } catch (e) {
+            sails.log.error("AwaitEmmiter error: ", e);
             res.push(new Response(f.label, null, e));
           }
         }
-      } catch (e) {
-        sails.log.error("AwaitEmmiter error: ", e);
-        res.push(new Response(f.label, null, e));
-      }
-    });
+    );
 
-    await Promise.all(executor.map(f => f()));
+    await Promise.all(executor.map((f) => f()));
 
     return res;
   }
@@ -171,7 +169,7 @@ class Event {
  */
 class Response {
   label: string;
-  state: 'success' | 'error' | 'timeout';
+  state: "success" | "error" | "timeout";
   result: any;
   error: any;
 
@@ -179,10 +177,9 @@ class Response {
     this.label = label;
     this.result = result;
     this.error = error;
-    this.state = timeout ? 'timeout' : this.error ? 'error' : 'success';
+    this.state = timeout ? "timeout" : this.error ? "error" : "success";
   }
 }
-
 
 // /**
 //  * Получение эмиттера ядра
@@ -193,4 +190,3 @@ class Response {
 //   }
 //   return emitter;
 // }
-

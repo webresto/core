@@ -1,8 +1,8 @@
-import PaymentAdapter from '../../../adapters/payment/PaymentAdapter';
-import { PaymentResponse, Payment }  from "../../../interfaces/Payment";
+import PaymentAdapter from "../../../adapters/payment/PaymentAdapter";
+import { PaymentResponse, Payment } from "../../../interfaces/Payment";
 import PaymentDocument from "../../../models/PaymentDocument";
 
-var database: any = {}; 
+var database: any = {};
 
 export default class TestPaymentSystem extends PaymentAdapter {
   private static instance: TestPaymentSystem;
@@ -31,24 +31,23 @@ export default class TestPaymentSystem extends PaymentAdapter {
       case "delay_60_sec":
         paid_latency = 60000;
         break;
-      
-        default:
-          paid_latency = 500;
+
+      default:
+        paid_latency = 500;
         break;
     }
 
     let latency = Math.floor(Math.random() * 2400) + 600;
     let response: any;
     response = payment;
-    response.error = null
-    response.paid = false
-    response.redirectLink = "http://redirect_link.com"
+    response.error = null;
+    response.paid = false;
+    response.redirectLink = "http://redirect_link.com";
 
     return new Promise((resolve) => {
       setTimeout(() => {
-
         database[payment.paymentId] = payment;
-        this.paid(payment ,paid_latency);
+        this.paid(payment, paid_latency);
         resolve(response);
       }, latency);
     });
@@ -68,14 +67,14 @@ export default class TestPaymentSystem extends PaymentAdapter {
     if (!TestPaymentSystem.instance) {
       TestPaymentSystem.instance = new TestPaymentSystem({
         title: "test",
-        type: 'external',
-        adapter: "test-payment-system"
+        type: "external",
+        adapter: "test-payment-system",
       });
     }
     return TestPaymentSystem.instance;
   }
 
-  private paid(payment: Payment, latency:number) {
+  private paid(payment: Payment, latency: number) {
     setTimeout(() => {
       database[payment.paymentId].paid = true;
     }, latency);

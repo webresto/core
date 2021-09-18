@@ -9,7 +9,6 @@ export default abstract class RMSAdapter {
   protected readonly syncBalanceTime: number;
   protected readonly syncStreetsTime: number;
 
-
   // TODO: надо убрать от сюда настройки синхронизации
   protected constructor(menuTime: number, balanceTime: number, streetsTime: number) {
     this.syncMenuTime = menuTime;
@@ -64,5 +63,7 @@ export default abstract class RMSAdapter {
    * Метод для создания и получения уже существующего RMS адаптера
    * @param params - параметры для инициализации
    */
-  static getInstance(...params): RMSAdapter {return RMSAdapter.prototype};
+  static getInstance(...params): RMSAdapter {
+    return RMSAdapter.prototype;
+  }
 }

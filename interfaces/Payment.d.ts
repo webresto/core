@@ -9,17 +9,17 @@
  * error?
  */
 export interface Payment {
-    id?: string;
-    paid?: boolean;
-    amount: number;
-    paymentId: string;
-    externalId?: string;
-    originModel: string;
-    paymentMethod: string;
-    comment?: string;
-    error?: any;
-    data?: any;
+  id?: string;
+  paid?: boolean;
+  amount: number;
+  paymentId: string;
+  externalId?: string;
+  originModel: string;
+  paymentMethod: string;
+  comment?: string;
+  error?: any;
+  data?: any;
 }
 export interface PaymentResponse extends Payment {
-    redirectLink?: string;
+  redirectLink?: string;
 }

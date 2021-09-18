@@ -20,7 +20,7 @@ export default class Polygon {
   }
 
   get asArray(): number[][] {
-    return this._points.map(point => [point.x, point.y]);
+    return this._points.map((point) => [point.x, point.y]);
   }
 
   public toString(): string {

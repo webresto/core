@@ -1,11 +1,10 @@
-import * as faker from 'faker';
+import * as faker from "faker";
 
 //import Group from "../../models/Group"
 
-
 var autoincrement: number = 0;
-interface GroupData  {
-  id? : string;
+interface GroupData {
+  id?: string;
   additionalInfo?: string;
   code?: string;
   description?: string;
@@ -13,15 +12,14 @@ interface GroupData  {
   images?: string[];
   order?: number;
   name?: string;
-  tags?: {name: string}[];
+  tags?: { name: string }[];
   isDeleted?: boolean;
-  dishesTags?: {name: string}[];
+  dishesTags?: { name: string }[];
   dishes?: any[];
   slug?: string;
-
 }
 
-export default function groupGenerator(config: GroupData = {}): GroupData{
+export default function groupGenerator(config: GroupData = {}): GroupData {
   autoincrement++;
   return {
     id: faker.random.uuid(),
@@ -37,22 +35,7 @@ export default function groupGenerator(config: GroupData = {}): GroupData{
     dishesTags: config.dishesTags || [],
     dishes: config.dishes || [],
     // slug: faker.random.uuid()
-  }
+  };
 }
 
-export let groupFields = [
-  'id',
-  'additionalInfo',
-  'code',
-  'description',
-  'order',
-  'images',
-  'name',
-  'tags',
-  'isDeleted',
-  'dishesTags',
-  'dishes',
-];
-
-
- 
+export let groupFields = ["id", "additionalInfo", "code", "description", "order", "images", "name", "tags", "isDeleted", "dishesTags", "dishes"];

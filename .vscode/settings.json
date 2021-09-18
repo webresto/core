@@ -6,5 +6,7 @@
     "**/*.js": {
       "when": "$(basename).ts"
     },
-  }
+  },
+  "prettier.quoteProps": "consistent",
+  "prettier.printWidth": 180
 }

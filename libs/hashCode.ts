@@ -2,8 +2,8 @@
  * Отдаёт хеш строки
  * @param str - строка для хеширования
  */
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 export default function hashCode(str: string): number {
-  return crypto.createHash('sha256').update(str).digest('hex');;
+  return crypto.createHash("sha256").update(str).digest("hex");
 }
