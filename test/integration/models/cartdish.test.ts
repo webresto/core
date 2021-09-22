@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-let cartDishId: string;
+let cartDishId: number;
 const cartDishExample = {
   amount: 1000,
   dish: "dishId",

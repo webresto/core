@@ -15,7 +15,7 @@ declare let attributes: {
     /** last 8 chars from id */
     shortId: string;
     /** */
-    dishes: CartDish[];
+    dishes: number[] | CartDish[];
     /** */
     discount: any;
     paymentMethod: string | PaymentMethod;

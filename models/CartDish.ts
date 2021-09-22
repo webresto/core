@@ -34,7 +34,7 @@ let attributes = {
   id: {
     type: "number",
     autoIncrement: true,
-  } as unknown as string,
+  } as unknown as number,
 
   /** Количество данного блюда с его модификаторами в корзине */
   amount: "number" as unknown as number,

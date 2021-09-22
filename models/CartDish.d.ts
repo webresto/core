@@ -28,7 +28,7 @@ import Cart from "../models/Cart";
 import { Modifier } from "../interfaces/Modifier";
 declare let attributes: {
     /** */
-    id: string;
+    id: number;
     /** Количество данного блюда с его модификаторами в корзине */
     amount: number;
     /**Само блюдо, которое содержится в корзине */

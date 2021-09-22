@@ -8,6 +8,7 @@ import { Payment } from "../../../interfaces/Payment";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 import getEmitter from "../../../libs/getEmitter";
 import PaymentDocument from "../../../models/PaymentDocument";
+import CartDish from "../../../models/CartDish";
 
 describe("Cart", function () {
   this.timeout(10000);
@@ -99,7 +100,7 @@ describe("Cart", function () {
   });
 
   it("removeDish", async function () {
-    let dish = (await Cart.findOne(cart.id).populate("dishes")).dishes[1];
+    let dish = (await Cart.findOne(cart.id).populate("dishes")).dishes[1] as CartDish;
     dish = await CartDish.findOne(dish.id);
     await Cart.removeDish(cart.id, dish, 1, false);
     let changedDish = await CartDish.findOne(dish.id);
@@ -148,8 +149,8 @@ describe("Cart", function () {
   });
 
   it("setComment", async function () {
-    let dish = (await Cart.findOne({ id: cart.id }).populate("dishes")).dishes[0];
-    dish = await CartDish.findOne({ id: dish.id });
+    let dish = (await Cart.findOne({ id: cart.id }).populate("dishes")).dishes[0] as CartDish;
+    dish = await CartDish.findOne({ id: dish.id }) ;
     let testComment = "this is a test comment";
     await Cart.setComment(cart.id, dish, testComment);
     let changedDish = await CartDish.findOne({ id: dish.id });

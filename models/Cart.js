@@ -132,7 +132,7 @@ let Model = {
                     code: 1,
                 };
             }
-        const cart = await Cart.findOne({ id: this.id }).populate("dishes");
+        const cart = await Cart.findOne(criteria).populate("dishes");
         if (cart.dishes.length > 99)
             throw "99 max dishes amount";
         if (cart.state === "ORDER")
@@ -148,7 +148,7 @@ let Model = {
         // auto replace and increase amount if same dishes without modifiers
         if (!replace && (!modifiers || (modifiers && modifiers.length === 0))) {
             let sameCartDishArray = await CartDish.find({
-                cart: this.id,
+                cart: cart.id,
                 dish: dishObj.id,
             });
             for (let sameCartDish of sameCartDishArray) {
@@ -163,7 +163,7 @@ let Model = {
         if (replace) {
             cartDish = (await CartDish.update({ id: cartDishId }, {
                 dish: dishObj.id,
-                cart: this.id,
+                cart: cart.id,
                 amount: amount,
                 modifiers: modifiers || [],
                 comment: comment,
@@ -173,7 +173,7 @@ let Model = {
         else {
             cartDish = await CartDish.create({
                 dish: dishObj.id,
-                cart: this.id,
+                cart: cart.id,
                 amount: amount,
                 modifiers: modifiers || [],
                 comment: comment,
@@ -188,7 +188,7 @@ let Model = {
     async removeDish(criteria, dish, amount, stack) {
         // TODO: удалить стек
         await emitter.emit.apply(emitter, ["core-cart-before-remove-dish", ...arguments]);
-        const cart = await Cart.findOne({ id: this.id }).populate("dishes");
+        const cart = await Cart.findOne(criteria).populate("dishes");
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
         var cartDish;
@@ -208,7 +208,7 @@ let Model = {
         if (!cartDish) {
             await emitter.emit.apply(emitter, ["core-cart-remove-dish-reject-no-cartdish", ...arguments]);
             throw {
-                body: `CartDish with id ${dish.id} in cart with id ${this.id} not found`,
+                body: `CartDish with id ${dish.id} in cart with id ${cart.id} not found`,
                 code: 1,
             };
         }
@@ -235,7 +235,7 @@ let Model = {
                     code: 1,
                 };
             }
-        const cart = await Cart.findOne(this.id).populate("dishes");
+        const cart = await Cart.findOne(criteria).populate("dishes");
         if (cart.state === "ORDER")
             throw "cart with cartId " + cart.id + "in state ORDER";
         const cartDishes = await CartDish.find({ cart: cart.id }).populate("dish");
@@ -613,10 +613,10 @@ let Model = {
         if (cart.delivery) {
             cart.total += cart.delivery;
         }
-        const resultCartDishes = (await CartDish.find({
+        const resultCartDishes = await CartDish.find({
             cart: cart.id,
-        }));
-        cart.dishes = resultCartDishes;
+        });
+        cart.dishes = resultCartDishes.map((dish) => dish.id);
         await Cart.update({ id: cart.id }, cart).fetch();
         getEmitter_1.default().emit("core-cart-after-count", cart);
         return cart;
