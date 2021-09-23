@@ -183,7 +183,7 @@ let Model = {
           externalId: paymentResponse.externalId,
           redirectLink: paymentResponse.redirectLink,
         }
-      );
+      ).fetch();
       return paymentResponse;
     } catch (e) {
       getEmitter().emit("error", "PaymentDocument > register:", e);
@@ -222,7 +222,7 @@ let Model = {
       actualTime.setHours(actualTime.getHours() - 1);
       for await (let actualPaymentDocument of actualPaymentDocuments) {
         if (actualPaymentDocument.createdAt < actualTime) {
-          await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" });
+          await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" }).fetch();
         } else {
           sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
           await actualPaymentDocument.doCheck();

@@ -223,7 +223,7 @@ let Model = {
             comment: comment,
             addedBy: from,
           }
-        )
+        ).fetch()
       )[0];
     } else {
       cartDish = await CartDish.create({
@@ -233,7 +233,7 @@ let Model = {
         modifiers: modifiers || [],
         comment: comment,
         addedBy: from,
-      });
+      }).fetch();
     }
 
     await Cart.next(cart.id, "CART");
@@ -756,7 +756,7 @@ let Model = {
           paymentMethod: paymentDocument.paymentMethod,
           paymentMethodTitle: paymentMethodTitle,
         }
-      );
+      ).fetch();
 
       sails.log.info("Cart > doPaid: ", cart.id, cart.state, cart.cartTotal, paymentDocument.amount);
 
