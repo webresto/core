@@ -159,7 +159,8 @@ let Model = {
     next();
   },
 
-  async addDish(criteria: any, dish: Dish | any, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void> {
+  /** Add dish into cart */
+  async addDish(criteria: any, dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void> {
     await emitter.emit.apply(emitter, ["core-cart-before-add-dish", ...arguments]);
 
     let dishObj: Dish;
@@ -236,11 +237,12 @@ let Model = {
       }).fetch();
     }
 
-    await Cart.next(cart.id, "CART");
-    await Cart.countCart(cart);
-    Cart.update({ id: cart.id }, cart).fetch();
     await emitter.emit.apply(emitter, ["core-cart-after-add-dish", cartDish, ...arguments]);
+    await Cart.countCart(cart);
+    await Cart.next(cart.id, "CART");
   },
+
+  //** Delete dish from cart */
   async removeDish(criteria: any, dish: CartDish, amount: number, stack?: boolean): Promise<void> {
     // TODO: удалить стек
 
@@ -277,14 +279,15 @@ let Model = {
     if (get.amount > 0) {
       await CartDish.update({ id: get.id }, { amount: get.amount }).fetch();
     } else {
-      get.destroy();
+      await CartDish.destroy({ id: get.id }).fetch();;
     }
 
+    await emitter.emit.apply(emitter, ["core-cart-after-remove-dish", ...arguments]);
     await Cart.next(cart.id, "CART");
     await Cart.countCart(cart);
-    Cart.update({ id: cart.id }, cart).fetch();
-    await emitter.emit.apply(emitter, ["core-cart-after-remove-dish", ...arguments]);
   },
+
+  
   async setCount(criteria: any, dish: CartDish, amount: number): Promise<void> {
     await emitter.emit.apply(emitter, ["core-cart-before-set-count", ...arguments]);
 
@@ -655,7 +658,7 @@ let Model = {
     for await (let cartDish of cartDishes) {
       try {
         if (cartDish.dish) {
-          const dish = await Dish.findOne(cartDish.dish.id));
+          const dish = await Dish.findOne(cartDish.dish.id);
 
           // Проверяет что блюдо доступно к продаже
           if (!dish) {

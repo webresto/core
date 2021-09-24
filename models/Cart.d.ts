@@ -6,6 +6,7 @@ import PaymentDocument from "./PaymentDocument";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
+import Dish from "./Dish";
 import { PaymentResponse } from "../interfaces/Payment";
 declare let attributes: {
     /** Id  */
@@ -72,7 +73,8 @@ interface Cart extends attributes, ORM {
 export default Cart;
 declare let Model: {
     beforeCreate(cartInit: any, next: any): void;
-    addDish(criteria: any, dish: any, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void>;
+    /** Add dish into cart */
+    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void>;
     removeDish(criteria: any, dish: CartDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: any, dish: CartDish, amount: number): Promise<void>;
     setComment(criteria: any, dish: CartDish, comment: string): Promise<void>;

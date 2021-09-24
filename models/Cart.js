@@ -112,6 +112,7 @@ let Model = {
         cartInit = "CART";
         next();
     },
+    /** Add dish into cart */
     async addDish(criteria, dish, amount, modifiers, comment, from, replace, cartDishId) {
         await emitter.emit.apply(emitter, ["core-cart-before-add-dish", ...arguments]);
         let dishObj;
@@ -180,11 +181,11 @@ let Model = {
                 addedBy: from,
             }).fetch();
         }
-        await Cart.next(cart.id, "CART");
-        await Cart.countCart(cart);
-        Cart.update({ id: cart.id }, cart).fetch();
         await emitter.emit.apply(emitter, ["core-cart-after-add-dish", cartDish, ...arguments]);
+        await Cart.countCart(cart);
+        await Cart.next(cart.id, "CART");
     },
+    //** Delete dish from cart */
     async removeDish(criteria, dish, amount, stack) {
         // TODO: удалить стек
         await emitter.emit.apply(emitter, ["core-cart-before-remove-dish", ...arguments]);
@@ -218,12 +219,12 @@ let Model = {
             await CartDish.update({ id: get.id }, { amount: get.amount }).fetch();
         }
         else {
-            get.destroy();
+            await CartDish.destroy({ id: get.id }).fetch();
+            ;
         }
+        await emitter.emit.apply(emitter, ["core-cart-after-remove-dish", ...arguments]);
         await Cart.next(cart.id, "CART");
         await Cart.countCart(cart);
-        Cart.update({ id: cart.id }, cart).fetch();
-        await emitter.emit.apply(emitter, ["core-cart-after-remove-dish", ...arguments]);
     },
     async setCount(criteria, dish, amount) {
         await emitter.emit.apply(emitter, ["core-cart-before-set-count", ...arguments]);
@@ -588,7 +589,6 @@ let Model = {
                     cartDish.totalWeight = cartDish.weight * cartDish.amount;
                     cartDish.itemTotal += cartDish.dish.price;
                     cartDish.itemTotal *= cartDish.amount;
-                    console.log(cartDish.id, cartDish);
                     cartDish.dish = cartDish.dish.id;
                     await CartDish.update({ id: cartDish.id }, cartDish).fetch();
                 }

@@ -79,8 +79,13 @@ describe("Cart", function () {
 
   it("addDish", async function () {
     cart = await Cart.create({}).fetch();
+
+    //console.log(dishes);
     await Cart.addDish(cart.id, dishes[0], 1, [], "", "test");
     await Cart.addDish(cart.id, dishes[1], 5, [], "test comment", "test");
+
+// /    await Cart.addDish(cart.id, dishes[1], 5, [], "", "test");
+    //await Cart.addDish(cart.id, dishes[1], 5, [], "test comment", "test");s
     let result = await Cart.findOne(cart.id).populate("dishes");
 
     expect(result.dishes.length).to.equal(2);
@@ -89,6 +94,7 @@ describe("Cart", function () {
       cart: cart.id,
       dish: dishes[0].id,
     }).sort("createdAt ASC");
+
     expect(cartDish[0].amount).to.equal(1);
     expect(cartDish[0].comment).to.equal("");
     expect(cartDish[0].addedBy).to.equal("test");
@@ -290,4 +296,8 @@ async function getNewCart(dishes: Dish[]): Promise<Cart> {
   await Cart.addDish(cart.id, dishes[2], 8, [], "", "");
   cart = await Cart.findOne(cart.id);
   return cart;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
