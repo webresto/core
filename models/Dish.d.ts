@@ -1,4 +1,3 @@
-import Group from "./Group";
 import Image from "./Image";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
@@ -63,7 +62,7 @@ declare let attributes: {
     /** Модифакторы блюда */
     modifiers: any;
     /** Родительская группа */
-    parentGroup: string | Group;
+    parentGroup: any;
     /** Теги для фильтрации (Вегетарианский, острый...) */
     tags: any;
     /** Баланс для продажи, если -1 то сколько угодно */

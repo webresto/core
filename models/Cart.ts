@@ -8,7 +8,7 @@ import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
-
+import {formatDate} from "@webresto/worktime"
 import Dish from "./Dish";
 import * as _ from "lodash";
 import { PaymentResponse } from "../interfaces/Payment";
@@ -34,7 +34,7 @@ let attributes = {
   discount: "json" as any,
   paymentMethod: {
     model: "PaymentMethod",
-  } as unknown as PaymentMethod | string,
+  } as unknown as PaymentMethod | any,
 
   /** */
   paymentMethodTitle: "string",
@@ -97,7 +97,7 @@ let attributes = {
 
   deliveryItem: {
     model: "Dish",
-  } as unknown as Dish | string,
+  } as unknown as Dish | any,
 
   deliveryCost: {
     type: "number",
@@ -159,7 +159,7 @@ let Model = {
     next();
   },
 
-  async addDish(criteria: any, dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void> {
+  async addDish(criteria: any, dish: Dish | any, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void> {
     await emitter.emit.apply(emitter, ["core-cart-before-add-dish", ...arguments]);
 
     let dishObj: Dish;
@@ -528,7 +528,7 @@ let Model = {
       // await Cart.next(cart.id,'ORDER');
       // TODO: переписать на stateFlow
       let data: any = {};
-      data.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
+      data.orderDate = new Date();
       data.state = "ORDER";
 
       /** Если сохранние модели вызвать до next то будет бесконечный цикл */
@@ -546,7 +546,7 @@ let Model = {
     let comment: string = "";
     var backLinkSuccess: string = (await Settings.use("FrontendOrderPage")) + cart.id;
     var backLinkFail: string = await Settings.use("FrontendCheckoutPage");
-    let paymentMethodId = await cart.paymentMethodId();
+    let paymentMethodId = await cart.paymentMethod();
     sails.log.verbose("Cart > payment > before payment register", cart);
 
     var params = {
@@ -566,12 +566,10 @@ let Model = {
     await Cart.next(cart.id, "PAYMENT");
     return paymentResponse;
   },
-  async paymentMethodId(criteria: any, cart?: Cart): Promise<string> {
-    if (!cart) cart = this;
-    //@ts-ignore
-    let populatedCart = await Cart.findOne({ id: cart.id }).populate("paymentMethod");
-    //@ts-ignore
-    return populatedCart.paymentMethod.id;
+  async paymentMethodId(criteria: any): Promise<string> {
+    let populatedCart = (await Cart.find(criteria).populate("paymentMethod"))[0];
+    let paymentMethod = populatedCart.paymentMethod as PaymentMethod
+    return paymentMethod.id;
   },
 
   /**  given populated Cart instance  by criteria*/
@@ -657,7 +655,7 @@ let Model = {
     for await (let cartDish of cartDishes) {
       try {
         if (cartDish.dish) {
-          const dish = await Dish.findOne(cartDish.dish.id);
+          const dish = await Dish.findOne(cartDish.dish.id));
 
           // Проверяет что блюдо доступно к продаже
           if (!dish) {
@@ -677,7 +675,7 @@ let Model = {
           cartDish.itemTotal = 0;
           cartDish.weight = cartDish.dish.weight;
           cartDish.totalWeight = 0;
-
+          
           if (cartDish.modifiers) {
             for (let modifier of cartDish.modifiers) {
               const modifierObj = await Dish.findOne(modifier.id);
@@ -704,6 +702,7 @@ let Model = {
           cartDish.totalWeight = cartDish.weight * cartDish.amount;
           cartDish.itemTotal += cartDish.dish.price;
           cartDish.itemTotal *= cartDish.amount;
+          cartDish.dish = cartDish.dish.id;
           await CartDish.update({ id: cartDish.id }, cartDish).fetch();
         }
 
@@ -864,17 +863,17 @@ async function checkPaymentMethod(paymentMethodId) {
 
 async function checkDate(cart: Cart) {
   if (cart.date) {
-    const date = moment(cart.date, "YYYY-MM-DD HH:mm:ss");
-    if (!date.isValid()) {
+    const date = new Date(cart.date);
+
+    if (date instanceof Date === true && !date.toJSON()) {
       throw {
         code: 9,
-        error: "date is not valid, required (YYYY-MM-DD HH:mm:ss)",
+        error: "date is not valid",
       };
     }
 
     const possibleDatetime = await getOrderDateLimit();
-    const momentDateLimit = moment(possibleDatetime);
-    if (!date.isBefore(momentDateLimit)) {
+    if (date.getTime() > possibleDatetime.getTime()) {
       throw {
         code: 10,
         error: "delivery far, far away! allowed not after" + possibleDatetime,
@@ -884,13 +883,17 @@ async function checkDate(cart: Cart) {
 }
 
 /**
- * Возвратит максимальное дату и время доставки
- * (по умолчанию 14 дней)
+ * Return Date in future
+ * default 1 day
  */
-async function getOrderDateLimit(): Promise<string> {
-  let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder");
-  if (periodPossibleForOrder === 0 || periodPossibleForOrder === undefined || periodPossibleForOrder === null) {
-    periodPossibleForOrder = "20160";
-  }
-  return moment().add(periodPossibleForOrder, "minutes").format("YYYY-MM-DD HH:mm:ss");
+
+// TODO: refactor periodPossibleForOrder from seconds to full work days
+async function getOrderDateLimit(): Promise<Date> {
+  let date = new Date();
+  let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //seconds
+  if (!periodPossibleForOrder)
+    periodPossibleForOrder = 86400;
+
+  date.setSeconds(date.getSeconds() + parseInt(periodPossibleForOrder))
+  return date;
 }

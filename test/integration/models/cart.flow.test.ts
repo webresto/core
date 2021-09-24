@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import getEmitter from "../../../libs/getEmitter";
+import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 
 import Cart from "../../../models/Cart";
 import Address from "../../../interfaces/Address";
@@ -263,12 +264,12 @@ describe("Flows: Checkout", function () {
         expect(e).to.equal(null);
       }
     });
- 
+
     it("bad address", async function () {
       // @ts-ignore
       let badAddress: Address = {
         city: "New York",
-        // street: 'Green Road', 
+        // street: 'Green Road',
         home: "42",
         comment: "test",
       };
@@ -290,6 +291,11 @@ describe("Flows: Checkout", function () {
         expect(e.code).to.equal(2);
         expect(e.error).to.be.an("string");
       }
+    });
+  });
+
+  describe("To payment", function () {
+    it("HERE NEED TEST ALL PAYMENT", async function () {
 
     });
   });

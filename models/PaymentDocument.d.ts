@@ -2,7 +2,6 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
-import PaymentMethod from "../models/PaymentMethod";
 declare let attributes: {
     /** Уникальный id в моделе PaymentDocument */
     id: string;
@@ -13,7 +12,7 @@ declare let attributes: {
     /** Модель из которой делается платеж */
     originModel: string;
     /** Платежный метод */
-    paymentMethod: string | PaymentMethod;
+    paymentMethod: any;
     /** Сумма к оплате */
     amount: number;
     /** Флаг установлен что оплата произведена */

@@ -46,15 +46,15 @@ let Model = {
     getActiveMaintenance: async function () {
         // TODO: here need add worktime support
         let maintenances = await Maintenance.find({ enable: true });
-        maintenances = maintenances.filter((s) => {
+        maintenances = maintenances.filter((maintenance) => {
             let start, stop;
-            if (s.startDate) {
-                start = s.startDate.getTime();
+            if (maintenance.startDate) {
+                start = new Date(maintenance.startDate).getTime();
             }
-            if (s.stopDate) {
-                stop = s.stopDate.getTime();
+            if (maintenance.stopDate) {
+                stop = new Date(maintenance.stopDate).getTime();
             }
-            const now = moment().valueOf();
+            const now = new Date().getTime();
             return between(start, stop, now);
         });
         return maintenances[0];

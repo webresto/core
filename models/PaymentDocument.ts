@@ -75,7 +75,7 @@ let attributes = {
   /** Платежный метод */
   paymentMethod: {
     model: "PaymentMethod",
-  } as unknown as PaymentMethod | string,
+  } as unknown as PaymentMethod | any,
 
   /** Сумма к оплате */
   amount: "number" as unknown as number,

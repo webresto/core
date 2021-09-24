@@ -71,7 +71,7 @@ let Model = {
                     key: key,
                     value: value,
                     from: from,
-                });
+                }).fetch();
             }
             else {
                 return (await Settings.update({ key: key }, { value: value }).fetch())[0];

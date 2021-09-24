@@ -23,8 +23,6 @@
  */
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
-import Dish from "../models/Dish";
-import Cart from "../models/Cart";
 import { Modifier } from "../interfaces/Modifier";
 declare let attributes: {
     /** */
@@ -32,11 +30,11 @@ declare let attributes: {
     /** Количество данного блюда с его модификаторами в корзине */
     amount: number;
     /**Само блюдо, которое содержится в корзине */
-    dish: string | Dish;
+    dish: any;
     /** Модификаторы для текущего блюда */
     modifiers: Modifier[];
     /** */
-    cart: string | Cart;
+    cart: any;
     /** Количество уникальных блюд в корзине */
     uniqueItems: number;
     /** Всего количество блюд */

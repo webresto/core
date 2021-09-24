@@ -168,7 +168,7 @@ let Model = {
                 modifiers: modifiers || [],
                 comment: comment,
                 addedBy: from,
-            }))[0];
+            }).fetch())[0];
         }
         else {
             cartDish = await CartDish.create({
@@ -178,7 +178,7 @@ let Model = {
                 modifiers: modifiers || [],
                 comment: comment,
                 addedBy: from,
-            });
+            }).fetch();
         }
         await Cart.next(cart.id, "CART");
         await Cart.countCart(cart);
@@ -437,7 +437,7 @@ let Model = {
             // await Cart.next(cart.id,'ORDER');
             // TODO: переписать на stateFlow
             let data = {};
-            data.orderDate = moment().format("YYYY-MM-DD HH:mm:ss"); // TODO timezone
+            data.orderDate = new Date();
             data.state = "ORDER";
             /** Если сохранние модели вызвать до next то будет бесконечный цикл */
             sails.log.info("Cart > order > before save cart", cart);
@@ -454,7 +454,7 @@ let Model = {
         let comment = "";
         var backLinkSuccess = (await Settings.use("FrontendOrderPage")) + cart.id;
         var backLinkFail = await Settings.use("FrontendCheckoutPage");
-        let paymentMethodId = await cart.paymentMethodId();
+        let paymentMethodId = await cart.paymentMethod();
         sails.log.verbose("Cart > payment > before payment register", cart);
         var params = {
             backLinkSuccess: backLinkSuccess,
@@ -474,13 +474,10 @@ let Model = {
         await Cart.next(cart.id, "PAYMENT");
         return paymentResponse;
     },
-    async paymentMethodId(criteria, cart) {
-        if (!cart)
-            cart = this;
-        //@ts-ignore
-        let populatedCart = await Cart.findOne({ id: cart.id }).populate("paymentMethod");
-        //@ts-ignore
-        return populatedCart.paymentMethod.id;
+    async paymentMethodId(criteria) {
+        let populatedCart = (await Cart.find(criteria).populate("paymentMethod"))[0];
+        let paymentMethod = populatedCart.paymentMethod;
+        return paymentMethod.id;
     },
     /**  given populated Cart instance  by criteria*/
     async populate(criteria) {
@@ -591,6 +588,8 @@ let Model = {
                     cartDish.totalWeight = cartDish.weight * cartDish.amount;
                     cartDish.itemTotal += cartDish.dish.price;
                     cartDish.itemTotal *= cartDish.amount;
+                    console.log(cartDish.id, cartDish);
+                    cartDish.dish = cartDish.dish.id;
                     await CartDish.update({ id: cartDish.id }, cartDish).fetch();
                 }
                 orderTotal += cartDish.itemTotal;
@@ -630,7 +629,7 @@ let Model = {
                 paid: true,
                 paymentMethod: paymentDocument.paymentMethod,
                 paymentMethodTitle: paymentMethodTitle,
-            });
+            }).fetch();
             sails.log.info("Cart > doPaid: ", cart.id, cart.state, cart.cartTotal, paymentDocument.amount);
             if (cart.state !== "PAYMENT") {
                 sails.log.error("Cart > doPaid: is strange cart state is not PAYMENT", cart);
@@ -722,16 +721,15 @@ async function checkPaymentMethod(paymentMethodId) {
 }
 async function checkDate(cart) {
     if (cart.date) {
-        const date = moment(cart.date, "YYYY-MM-DD HH:mm:ss");
-        if (!date.isValid()) {
+        const date = new Date(cart.date);
+        if (date instanceof Date === true && !date.toJSON()) {
             throw {
                 code: 9,
-                error: "date is not valid, required (YYYY-MM-DD HH:mm:ss)",
+                error: "date is not valid",
             };
         }
         const possibleDatetime = await getOrderDateLimit();
-        const momentDateLimit = moment(possibleDatetime);
-        if (!date.isBefore(momentDateLimit)) {
+        if (date.getTime() > possibleDatetime.getTime()) {
             throw {
                 code: 10,
                 error: "delivery far, far away! allowed not after" + possibleDatetime,
@@ -740,13 +738,15 @@ async function checkDate(cart) {
     }
 }
 /**
- * Возвратит максимальное дату и время доставки
- * (по умолчанию 14 дней)
+ * Return Date in future
+ * default 1 day
  */
+// TODO: refactor periodPossibleForOrder from seconds to full work days
 async function getOrderDateLimit() {
-    let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder");
-    if (periodPossibleForOrder === 0 || periodPossibleForOrder === undefined || periodPossibleForOrder === null) {
-        periodPossibleForOrder = "20160";
-    }
-    return moment().add(periodPossibleForOrder, "minutes").format("YYYY-MM-DD HH:mm:ss");
+    let date = new Date();
+    let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //seconds
+    if (!periodPossibleForOrder)
+        periodPossibleForOrder = 86400;
+    date.setSeconds(date.getSeconds() + parseInt(periodPossibleForOrder));
+    return date;
 }

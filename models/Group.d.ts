@@ -24,7 +24,7 @@ declare let attributes: {
     /** Блюда группы */
     dishes: Dish[];
     /** Родительская группа */
-    parentGroup: string | Group;
+    parentGroup: any;
     /** Дочерние группы */
     childGroups: Group[];
     /** Изображения */

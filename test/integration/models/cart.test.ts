@@ -240,28 +240,6 @@ describe("Cart", function () {
     });
   });
 
-  it("payment", async function () {
-    let cart = await Cart.create({}).fetch();
-    await Cart.next(cart.id, "ORDER");
-    let error = null;
-    try {
-      await Cart.payment(cart.id);
-    } catch (e) {
-      error = e;
-    }
-    expect(error).to.not.equal(null);
-
-    let testPaymentSystem = await TestPaymentSystem.getInstance();
-    let paymentSystem = (await PaymentMethod.find())[0];
-    cart.paymentMethod = paymentSystem.id;
-
-    await Cart.next(cart.id, "CHECKOUT");
-    let result = await Cart.payment(cart.id);
-    // expect(result).to.be.an('object');
-
-    let state = await Cart.getState(cart.id);
-    expect(state).to.equal("PAYMENT");
-  });
   it("paymentMethodId", async function () {
     let cart = await Cart.create({}).fetch();
     let testPaymentSystem = await TestPaymentSystem.getInstance();
@@ -272,6 +250,7 @@ describe("Cart", function () {
     let result = await Cart.paymentMethodId(cart.id);
     expect(result).to.equal(paymentSystem.id);
   });
+
   it("doPaid", async function () {
     expect(Cart.doPaid).to.not.equals(undefined);
 

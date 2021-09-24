@@ -6,9 +6,7 @@ import PaymentDocument from "./PaymentDocument";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
-import Dish from "./Dish";
 import { PaymentResponse } from "../interfaces/Payment";
-import PaymentMethod from "./PaymentMethod";
 declare let attributes: {
     /** Id  */
     id: string;
@@ -18,7 +16,7 @@ declare let attributes: {
     dishes: number[] | CartDish[];
     /** */
     discount: any;
-    paymentMethod: string | PaymentMethod;
+    paymentMethod: any;
     /** */
     paymentMethodTitle: string;
     paid: {
@@ -52,7 +50,7 @@ declare let attributes: {
     selfService: boolean;
     deliveryDescription: string;
     message: string;
-    deliveryItem: string | Dish;
+    deliveryItem: any;
     deliveryCost: number;
     /** cart total weight */
     totalWeight: number;
@@ -74,7 +72,7 @@ interface Cart extends attributes, ORM {
 export default Cart;
 declare let Model: {
     beforeCreate(cartInit: any, next: any): void;
-    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void>;
+    addDish(criteria: any, dish: any, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void>;
     removeDish(criteria: any, dish: CartDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: any, dish: CartDish, amount: number): Promise<void>;
     setComment(criteria: any, dish: CartDish, comment: string): Promise<void>;
@@ -87,7 +85,7 @@ declare let Model: {
     /** Оформление корзины */
     order(criteria: any): Promise<number>;
     payment(criteria: any): Promise<PaymentResponse>;
-    paymentMethodId(criteria: any, cart?: Cart): Promise<string>;
+    paymentMethodId(criteria: any): Promise<string>;
     /**  given populated Cart instance  by criteria*/
     populate(criteria: any): Promise<Cart>;
     /**
