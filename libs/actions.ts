@@ -103,22 +103,29 @@ const actions = {
    * @returns {Promise<>}
    */
   async reset(cart: Cart): Promise<Cart> {
+    
+    if (typeof cart === "string") {
+      cart = await Cart.findOne(cart);
+    } 
+    
     if (!cart && !cart.id) throw "cart is required";
-
+    
     cart.deliveryDescription = "";
     cart.message = "";
+
     if (cart.state !== "CART") await Cart.next(cart.id, "CART");
 
     const removeDishes = await CartDish.find({
       cart: cart.id,
-      addedBy: "delivery",
+      addedBy: { '!=' : 'user' },
     });
 
     for await (let dish of removeDishes) {
+      // TODO: rewrite removeDish for totaly remove
       Cart.removeDish(cart.id, dish, 100000);
     }
-
-    return cart;
+    
+    return await Cart.countCart(cart.id);
   },
 
   /**

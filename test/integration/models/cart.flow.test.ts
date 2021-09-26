@@ -28,16 +28,6 @@ describe("Flows: Checkout", function () {
     if (!cart) throw "Cart not created";
   });
 
-  it("Check isSelfService", async function () {
-    try {
-      await Cart.setSelfService(cart.id, true);
-      let result: Cart = await Cart.findOne(cart.id);
-      expect(result.selfService).to.equal(true);
-    } catch (error) {
-      throw error;
-    }
-  });
-
   it("Check paymentSystem", async function () {
     // let cust
     // getEmitter().on('core-cart-before-check', (cart, customer2, isSelfService, address)=>{

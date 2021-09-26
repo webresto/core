@@ -74,7 +74,7 @@ export default Cart;
 declare let Model: {
     beforeCreate(cartInit: any, next: any): void;
     /** Add dish into cart */
-    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void>;
+    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, cartDishId?: number): Promise<void>;
     removeDish(criteria: any, dish: CartDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: any, dish: CartDish, amount: number): Promise<void>;
     setComment(criteria: any, dish: CartDish, comment: string): Promise<void>;
@@ -82,7 +82,7 @@ declare let Model: {
      * Set cart selfService field. Use this method to change selfService.
      * @param selfService
      */
-    setSelfService(criteria: any, selfService: boolean): Promise<void>;
+    setSelfService(criteria: any, selfService?: boolean): Promise<Cart>;
     check(criteria: any, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void>;
     /** Оформление корзины */
     order(criteria: any): Promise<number>;

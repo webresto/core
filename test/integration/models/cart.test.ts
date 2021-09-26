@@ -177,30 +177,25 @@ describe("Cart", function () {
 
   it("setSelfService", async function () {
     let cart = await Cart.create({}).fetch();
-    await Cart.addDish(cart.id, dishes[0], 5, [], "", "");
-    await Cart.addDish(cart.id, dishes[1], 3, [], "", "");
-    await Cart.addDish(cart.id, dishes[2], 8, [], "", "");
-    await Cart.setSelfService(cart.id, true);
-    let changedCart = await Cart.findOne(cart.id);
-
-    expect(changedCart.selfService).to.equal(true);
-
-    await Cart.setSelfService(cart.id, false);
-    changedCart = await Cart.findOne(cart.id);
-
-    expect(changedCart.selfService).to.equal(false);
+    cart = await Cart.setSelfService(cart.id, true);
+    expect(cart.selfService).to.equal(true);
+    
+    console.log(121212,cart)
+    cart = await Cart.setSelfService(cart.id, false);
+    
+    expect(cart.selfService).to.equal(false);
   });
+
 
   it("countCart", async function () {
     let cart = await Cart.create({}).fetch();
     let totalWeight = 0;
+
     await Cart.addDish(cart.id, dishes[0], 5, [], "", "");
     await Cart.addDish(cart.id, dishes[1], 3, [], "", "");
     await Cart.addDish(cart.id, dishes[2], 8, [], "", "");
     totalWeight = dishes[0].weight * 5 + dishes[1].weight * 3 + dishes[2].weight * 8;
-    cart = await Cart.findOne(cart.id);
-    await Cart.countCart(cart);
-    let changedCart = await Cart.findOne(cart.id);
+    let changedCart = await Cart.countCart(cart);
 
     expect(changedCart.totalWeight).to.equal(totalWeight);
     expect(changedCart.uniqueDishes).to.equal(3);
@@ -216,6 +211,7 @@ describe("Cart", function () {
     getEmitter().on("core-cart-before-order", function () {
       count1++;
     });
+
     getEmitter().on("core-cart-order-self-service", function () {
       count2++;
     });
@@ -223,11 +219,13 @@ describe("Cart", function () {
     getEmitter().on("core-cart-order", function () {
       count3++;
     });
-    // getEmitter().on('core-cart-after-order', function(){
-    //   count4++;
-    // });
+    getEmitter().on('core-cart-after-order', function(){
+      count4++;
+    });
+
     await Cart.setSelfService(cart.id, true);
     await Cart.order(cart.id);
+    
     expect(count1).to.equal(1);
     expect(count2).to.equal(1);
     expect(count3).to.equal(1);

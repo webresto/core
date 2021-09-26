@@ -160,10 +160,13 @@ let Model = {
   },
 
   /** Add dish into cart */
-  async addDish(criteria: any, dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace?: boolean, cartDishId?: number): Promise<void> {
+  async addDish(criteria: any, dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, cartDishId?: number): Promise<void> {
     await emitter.emit.apply(emitter, ["core-cart-before-add-dish", ...arguments]);
 
     let dishObj: Dish;
+
+    if (!addedBy) addedBy = 'user'
+
     if (typeof dish === "string") {
       dishObj = await Dish.findOne(dish);
 
@@ -222,7 +225,7 @@ let Model = {
             amount: amount,
             modifiers: modifiers || [],
             comment: comment,
-            addedBy: from,
+            addedBy: addedBy,
           }
         ).fetch()
       )[0];
@@ -233,7 +236,7 @@ let Model = {
         amount: amount,
         modifiers: modifiers || [],
         comment: comment,
-        addedBy: from,
+        addedBy: addedBy,
       }).fetch();
     }
 
@@ -274,12 +277,12 @@ let Model = {
       };
     }
 
-    const get = cartDish;
-    get.amount -= amount;
-    if (get.amount > 0) {
-      await CartDish.update({ id: get.id }, { amount: get.amount }).fetch();
+
+    cartDish.amount -= amount;
+    if (cartDish.amount > 0) {
+      await CartDish.update({ id: cartDish.id }, { amount: cartDish.amount }).fetch();
     } else {
-      await CartDish.destroy({ id: get.id }).fetch();;
+      await CartDish.destroy({ id: cartDish.id }).fetch();;
     }
 
     await emitter.emit.apply(emitter, ["core-cart-after-remove-dish", ...arguments]);
@@ -353,15 +356,11 @@ let Model = {
    * Set cart selfService field. Use this method to change selfService.
    * @param selfService
    */
-  async setSelfService(criteria: any, selfService: boolean): Promise<void> {
-    const cart: Cart = await Cart.findOne(criteria);
-
+  async setSelfService(criteria: any, selfService: boolean = true): Promise<Cart> {
     sails.log.verbose("Cart > setSelfService >", selfService);
-
+    const cart = await Cart.findOne(criteria);
     await actions.reset(cart);
-
-    cart.selfService = selfService;
-    await Cart.update({ id: cart.id }, cart).fetch();
+    return (await Cart.update(criteria, {selfService: Boolean(selfService)}).fetch())[0];
   },
 
   ////////////////////////////////////////////////////////////////////////////////////
@@ -490,11 +489,13 @@ let Model = {
     getEmitter().emit("core-cart-before-order", cart);
     sails.log.silly("Cart > order > before order >", cart.customer, cart.selfService, cart.address);
 
+    
     if (this.selfService) {
-      getEmitter().emit("core-cart-order-cart-service", cart);
+      getEmitter().emit("core-cart-order-self-service", cart);
     } else {
       getEmitter().emit("core-cart-order-delivery", cart);
     }
+
     await Cart.countCart(cart);
     const results = await getEmitter().emit("core-cart-order", cart);
 
@@ -535,7 +536,7 @@ let Model = {
       data.state = "ORDER";
 
       /** Если сохранние модели вызвать до next то будет бесконечный цикл */
-      sails.log.info("Cart > order > before save cart", cart);
+      sails.log.debug("Cart > order > before save cart", cart);
       // await Cart.update({id: cart.id}).fetch();
       await Cart.update({ id: cart.id }, data).fetch();
       getEmitter().emit("core-cart-after-order", cart);

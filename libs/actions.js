@@ -96,6 +96,9 @@ const actions = {
      * @returns {Promise<>}
      */
     async reset(cart) {
+        if (typeof cart === "string") {
+            cart = await Cart.findOne(cart);
+        }
         if (!cart && !cart.id)
             throw "cart is required";
         cart.deliveryDescription = "";
@@ -104,12 +107,13 @@ const actions = {
             await Cart.next(cart.id, "CART");
         const removeDishes = await CartDish.find({
             cart: cart.id,
-            addedBy: "delivery",
+            addedBy: { '!=': 'user' },
         });
         for await (let dish of removeDishes) {
+            // TODO: rewrite removeDish for totaly remove
             Cart.removeDish(cart.id, dish, 100000);
         }
-        return cart;
+        return await Cart.countCart(cart.id);
     },
     /**
      * Add delivery description in cart
