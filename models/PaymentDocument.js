@@ -48,13 +48,7 @@ var PaymentDocumentStatus;
 let payment_processor_interval;
 let attributes = {
     /** Уникальный id в моделе PaymentDocument */
-    id: {
-        type: "string",
-        required: true,
-        defaultsTo: function () {
-            return uuid_1.v4();
-        },
-    },
+    id: "string",
     /** соответсвует id из модели originModel */
     paymentId: "string",
     /** ID во внешней системе */
@@ -86,6 +80,12 @@ let attributes = {
     error: "string",
 };
 let Model = {
+    beforeCreate(paymentDocumentInit, next) {
+        if (!paymentDocumentInit.id) {
+            paymentDocumentInit.id = uuid_1.v4();
+        }
+        next();
+    },
     doPaid: async function (criteria) {
         const self = await PaymentDocument.findOne(criteria);
         if (self.status === "PAID" && self.paid !== true) {

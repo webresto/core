@@ -399,7 +399,7 @@ let Model = {
         //   return 3
         getEmitter_1.default().emit("core-cart-before-order", cart);
         sails.log.silly("Cart > order > before order >", cart.customer, cart.selfService, cart.address);
-        if (this.selfService) {
+        if (cart.selfService) {
             getEmitter_1.default().emit("core-cart-order-self-service", cart);
         }
         else {
@@ -519,7 +519,7 @@ let Model = {
             fullCart.dishes = cartDishes;
             fullCart.orderDateLimit = await getOrderDateLimit();
             fullCart.cartId = fullCart.id;
-            await this.countCart(fullCart);
+            await Cart.countCart(fullCart);
         }
         catch (e) {
             sails.log.error("CART > fullCart error", e);
@@ -621,8 +621,8 @@ let Model = {
         return cart;
     },
     async doPaid(criteria, paymentDocument) {
-        let cart = await Cart.findOne(paymentDocument.paymentId);
-        Cart.countCart(cart);
+        let cart = await Cart.findOne(criteria);
+        await Cart.countCart(cart);
         try {
             let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
             await Cart.update({ id: paymentDocument.paymentId }, {
@@ -636,7 +636,7 @@ let Model = {
             }
             if (cart.cartTotal !== paymentDocument.amount) {
                 cart.problem = true;
-                cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!";
+                cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
             }
             await Cart.order(cart.id);
         }

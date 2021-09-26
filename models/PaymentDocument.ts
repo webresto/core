@@ -55,13 +55,7 @@ let payment_processor_interval: ReturnType<typeof setInterval>;
 
 let attributes = {
   /** Уникальный id в моделе PaymentDocument */
-  id: {
-    type: "string",
-    required: true,
-    defaultsTo: function () {
-      return uuid();
-    },
-  } as unknown as string,
+  id: "string",
 
   /** соответсвует id из модели originModel */
   paymentId: "string",
@@ -107,6 +101,13 @@ type attributes = typeof attributes;
 interface PaymentDocument extends attributes, ORM {}
 export default PaymentDocument;
 let Model = {
+  beforeCreate(paymentDocumentInit: any, next: any) {
+    if (!paymentDocumentInit.id) {
+      paymentDocumentInit.id = uuid();
+    }
+
+    next();
+  },
   doPaid: async function (criteria: any): Promise<PaymentDocument> {
     const self: PaymentDocument = await PaymentDocument.findOne(criteria);
     if (self.status === "PAID" && self.paid !== true) {

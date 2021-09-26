@@ -31,6 +31,7 @@ interface PaymentDocument extends attributes, ORM {
 }
 export default PaymentDocument;
 declare let Model: {
+    beforeCreate(paymentDocumentInit: any, next: any): void;
     doPaid: (criteria: any) => Promise<PaymentDocument>;
     doCheck: (criteria: any) => Promise<PaymentDocument>;
     register: (paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;

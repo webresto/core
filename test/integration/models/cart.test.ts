@@ -213,6 +213,7 @@ describe("Cart", function () {
     });
 
     getEmitter().on("core-cart-order-self-service", function () {
+      console.log("aaaaaaaaaaa")
       count2++;
     });
 
@@ -273,7 +274,7 @@ describe("Cart", function () {
       comment: "string",
       redirectLink: "string",
     };
-    var paymentDocument = await PaymentDocument.create(newPaymentDocument);
+    var paymentDocument = await PaymentDocument.create(newPaymentDocument).fetch();
     await Cart.doPaid(cart.id, paymentDocument);
     cart = await Cart.findOne(cart.id);
     expect(cart.paid).to.equals(true);
