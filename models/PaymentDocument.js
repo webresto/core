@@ -69,7 +69,7 @@ let attributes = {
     /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
     status: {
         type: "string",
-        enum: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
+        isIn: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
         defaultsTo: "NEW",
     },
     /** Комментари для платежной системы */

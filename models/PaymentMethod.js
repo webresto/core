@@ -24,7 +24,7 @@ let attributes = {
      */
     type: {
         type: "string",
-        enum: ["internal", "external", "promise", "dummy"],
+        isIn: ["internal", "external", "promise", "dummy"],
         required: true,
     },
     adapter: {
