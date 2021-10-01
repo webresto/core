@@ -88,7 +88,7 @@ declare let Model: {
  * Описывает группу блюд в момент получения её популяризированной версии, дополнительные поля являются ошибкой фреймворка
  */
 export interface GroupWithAdditionalFields extends Group {
-    children: Group[];
+    childGroups: Group[];
     dishesList: Dish[];
 }
 declare global {

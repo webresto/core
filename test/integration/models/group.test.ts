@@ -33,16 +33,14 @@ describe("Group", function () {
 
   it("getGroups", async function () {
     // let groups = await Group.find({});
-    let result = await Group.getGroups([exampleGroups[0].id, exampleGroups[1].id]);
-    
-    console.log("exampleGroups",exampleGroups, [exampleGroups[0].id, exampleGroups[1].id],result)
-    
-    expect(result.groups.length).to.equal(2);
-    await compareGroups(exampleGroups, result.groups);
+    let result = await Group.getGroups([exampleGroups[0].id, exampleGroups[1].id, exampleGroups[2].id]);
+    expect(result.groups.length).to.equal(3);
+    await equalGroups(exampleGroups, result.groups);
   });
+
   it("getGroup", async function () {
     let group = await Group.getGroup(exampleGroups[0].id);
-    await compareGroup(exampleGroups[0], group);
+    await equalGroup(exampleGroups[0], group);
 
     group = await Group.getGroup("bad-id-group");
     expect(group).to.equal(null);
@@ -52,7 +50,7 @@ describe("Group", function () {
     let group = await Group.getGroupBySlug(example.slug);
 
     // expect(example).to.equal(group);
-    await compareGroup(example, group);
+    await equalGroup(example, group);
 
     let error = null;
     try {
@@ -71,35 +69,38 @@ describe("Group", function () {
     expect(updatedGroup.id).to.equal(group.id);
   });
 
-  function compareGroups(exampleGroups: Group[], result): void {
+
+
+  //// Local methods /////////////////////////////
+
+  /** Throw if not equal */
+  function equalGroups(exampleGroups: Group[], result: Group[]): void {
+    
     for (let exampleGroup of exampleGroups) {
       // @ts-ignore
-      let group = result.find((g) => g.id === exampleGroup.id);
+      let group = result.find((g) => {
+        console.log("111111111111111111",g.id === exampleGroup.id,g, exampleGroup)
+        return g.id === exampleGroup.id
+      } );
 
-      if (!group) throw "compareGroups not found any group in results"
+      if (!group) throw "equalGroups not found any group in results"
       if (typeof group !== "object" ) throw "group is not object"
 
-
-      compareGroup(exampleGroup, group);
-
-      // compareDishes(exampleGroup.dishes, group.dishesList);
-      // console.log(group);
-
       if (exampleGroup.childGroups && exampleGroup.childGroups.length) {
-        expect(exampleGroup.childGroups.length).to.equal(group.children.length);
-        compareGroups(exampleGroup.childGroups, group.children);
+        expect(exampleGroup.childGroups.length).to.equal(group.childGroups.length);
+        equalGroups(exampleGroup.childGroups, group.childGroups);
       }
     }
   }
-  function compareGroup(exampleGroup: Group, group): void {
+
+  /** Throw if not equal */
+  function equalGroup(exampleGroup: Group, group: Group): void {
     let keys = Object.keys(exampleGroup);
     const testGroupFields = groupFields;
     for (let key of keys) {
       if (!testGroupFields.includes(key)) {
         continue;
       }
-      console.log(key);
-      console.log(key, exampleGroup[key], group[key]);
       if (isArray(exampleGroup[key])) {
         expect(exampleGroup[key].length).to.equal(group[key].length);
       } else {
@@ -107,11 +108,12 @@ describe("Group", function () {
       }
     }
     if (exampleGroup.dishes && exampleGroup.dishes.length) {
-      compareDishes(exampleGroup.dishes, group.dishes);
+      equalDishes(exampleGroup.dishes, group.dishes);
     }
-    // compareDishes(exampleGroup.dishes, group.dishesList);
   }
-  function compareDishes(exampleDishes, dishes) {
+
+  /** Throw if not equal */
+  function equalDishes(exampleDishes, dishes) {
     const testDishFields = dishFields;
     for (let exampleDish of exampleDishes) {
       let dish = dishes.find((d) => d.id === exampleDish.id);
@@ -121,7 +123,6 @@ describe("Group", function () {
         if (!testDishFields.includes(key)) {
           continue;
         }
-        // console.log(key, exampleDish[key], dish[key]);
         if (isArray(exampleDish[key])) {
           expect(exampleDish[key].length).to.equal(dish[key].length);
         } else {

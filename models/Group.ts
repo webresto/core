@@ -108,10 +108,8 @@ let Model = {
       .populate("images");
     
     const errors = {};
-    console.log("groups",groupsId,groups)
     for await(let group of groups) {
       const reason = checkExpression(group);
-      console.log("RESON",reason, Boolean(reason),group)
       if (!reason) {
         menu[group.id] = group as GroupWithAdditionalFields;
 
@@ -132,8 +130,8 @@ let Model = {
           }
  
           delete menu[group.id].childGroups;
-          menu[group.id].children = childGroups;
-          if (menu[group.id].children.length > 1) menu[group.id].children.sort((a, b) => a.order - b.order);
+          menu[group.id].childGroups = childGroups;
+          if (menu[group.id].childGroups.length > 1) menu[group.id].childGroups.sort((a, b) => a.order - b.order);
  
         }
  
@@ -212,7 +210,7 @@ let Model = {
  * Описывает группу блюд в момент получения её популяризированной версии, дополнительные поля являются ошибкой фреймворка
  */
 export interface GroupWithAdditionalFields extends Group {
-  children: Group[];
+  childGroups: Group[];
   dishesList: Dish[];
 }
 

@@ -83,10 +83,8 @@ let Model = {
             .populate("dishes")
             .populate("images");
         const errors = {};
-        console.log("groups", groupsId, groups);
         for await (let group of groups) {
             const reason = checkExpression_1.default(group);
-            console.log("RESON", reason, Boolean(reason), group);
             if (!reason) {
                 menu[group.id] = group;
                 if (group.childGroups) {
@@ -106,9 +104,9 @@ let Model = {
                         catch (e) { }
                     }
                     delete menu[group.id].childGroups;
-                    menu[group.id].children = childGroups;
-                    if (menu[group.id].children.length > 1)
-                        menu[group.id].children.sort((a, b) => a.order - b.order);
+                    menu[group.id].childGroups = childGroups;
+                    if (menu[group.id].childGroups.length > 1)
+                        menu[group.id].childGroups.sort((a, b) => a.order - b.order);
                 }
                 menu[group.id].dishesList = await Dish.getDishes({
                     parentGroup: group.id,
