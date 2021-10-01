@@ -536,7 +536,7 @@ let Model = {
       data.state = "ORDER";
 
       /** Если сохранние модели вызвать до next то будет бесконечный цикл */
-      sails.log.debug("Cart > order > before save cart", cart);
+      sails.log.verbose("Cart > order > before save cart", cart);
       // await Cart.update({id: cart.id}).fetch();
       await Cart.update({ id: cart.id }, data).fetch();
       getEmitter().emit("core-cart-after-order", cart);

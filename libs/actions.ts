@@ -54,10 +54,10 @@ const actions = {
 
     if (!dishesId || !dishesId.length) throw "dishIds (array of strings) is required as second element of params";
 
-    await Promise.each(dishesId, async (dishId) => {
+    for await (let dishId of dishesId) {  
       const dish = await Dish.findOne(dishId);
       await Cart.addDish(cart.id, dish, params.amount, params.modifiers, params.comment, "delivery");
-    });
+    }
 
     return cart;
   },

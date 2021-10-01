@@ -17,6 +17,7 @@ interface GroupData {
   dishesTags?: { name: string }[];
   dishes?: any[];
   slug?: string;
+  visible?: boolean;
 }
 
 export default function groupGenerator(config: GroupData = {}): GroupData {
@@ -34,6 +35,7 @@ export default function groupGenerator(config: GroupData = {}): GroupData {
     isDeleted: config.isDeleted || false,
     dishesTags: config.dishesTags || [],
     dishes: config.dishes || [],
+    visible: config.visible || true
     // slug: faker.random.uuid()
   };
 }

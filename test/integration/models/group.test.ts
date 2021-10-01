@@ -24,8 +24,8 @@ describe("Group", function () {
           // @ts-ignore
           lastGroup.childGroups.push(newGroup.id);
         }
-        await Group.createEach(exampleGroups).fetch();
       }
+      await Group.createEach(exampleGroups).fetch();
     } catch (error) {
         // throw error
     }
@@ -33,11 +33,11 @@ describe("Group", function () {
 
   it("getGroups", async function () {
     // let groups = await Group.find({});
-    let result = await Group.getGroups([exampleGroups[0].id, exampleGroups[1].id, exampleGroups[2].id]);
-
-    // @ts-ignore
-    expect(result.groups.length).to.equal(3);
-
+    let result = await Group.getGroups([exampleGroups[0].id, exampleGroups[1].id]);
+    
+    console.log("exampleGroups",exampleGroups, [exampleGroups[0].id, exampleGroups[1].id],result)
+    
+    expect(result.groups.length).to.equal(2);
     await compareGroups(exampleGroups, result.groups);
   });
   it("getGroup", async function () {
@@ -76,7 +76,9 @@ describe("Group", function () {
       // @ts-ignore
       let group = result.find((g) => g.id === exampleGroup.id);
 
-      expect(group).to.be.an("object");
+      if (!group) throw "compareGroups not found any group in results"
+      if (typeof group !== "object" ) throw "group is not object"
+
 
       compareGroup(exampleGroup, group);
 
@@ -96,8 +98,8 @@ describe("Group", function () {
       if (!testGroupFields.includes(key)) {
         continue;
       }
-      // console.log(key);
-      // console.log(key, exampleGroup[key], group[key]);
+      console.log(key);
+      console.log(key, exampleGroup[key], group[key]);
       if (isArray(exampleGroup[key])) {
         expect(exampleGroup[key].length).to.equal(group[key].length);
       } else {

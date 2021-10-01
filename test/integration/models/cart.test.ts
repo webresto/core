@@ -180,7 +180,6 @@ describe("Cart", function () {
     cart = await Cart.setSelfService(cart.id, true);
     expect(cart.selfService).to.equal(true);
     
-    console.log(121212,cart)
     cart = await Cart.setSelfService(cart.id, false);
     
     expect(cart.selfService).to.equal(false);
@@ -213,7 +212,6 @@ describe("Cart", function () {
     });
 
     getEmitter().on("core-cart-order-self-service", function () {
-      console.log("aaaaaaaaaaa")
       count2++;
     });
 

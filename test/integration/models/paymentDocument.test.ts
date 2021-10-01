@@ -51,7 +51,7 @@ describe("PaymentDocument", function () {
 
     // back to 120 sec payment processor
     PaymentDocument.processor(120000);
-    console.log(count);
+    //console.log(count);
     expect(count.length).to.equal(1);
   });
 });

@@ -19,6 +19,8 @@ function groupGenerator(config = {}) {
         isDeleted: config.isDeleted || false,
         dishesTags: config.dishesTags || [],
         dishes: config.dishes || [],
+        visible: config.visible || true
+        // slug: faker.random.uuid()
     };
 }
 exports.default = groupGenerator;

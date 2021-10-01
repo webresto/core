@@ -124,10 +124,10 @@ let Model = {
     async getDishes(criteria = {}) {
         criteria.isDeleted = false;
         if (!(await Settings.use("ShowUnavailableDishes"))) {
-            criteria.balance = { "!": 0 };
+            criteria.balance = { "!=": 0 };
         }
         let dishes = await Dish.find(criteria).populate("images");
-        await Promise.each(dishes, async (dish) => {
+        for await (let dish of dishes) {
             const reason = checkExpression_1.default(dish);
             if (!reason) {
                 await Dish.getDishModifiers(dish);
@@ -137,7 +137,7 @@ let Model = {
             else {
                 dishes.splice(dishes.indexOf(dish), 1);
             }
-        });
+        }
         dishes.sort((a, b) => a.order - b.order);
         await getEmitter_1.default().emit("core-dish-get-dishes", dishes);
         return dishes;

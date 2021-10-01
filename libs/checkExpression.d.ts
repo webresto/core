@@ -1,4 +1,4 @@
-import { Time } from "../interfaces/Cause";
+import { WorkTime } from "@webresto/worktime";
 /**
  * Check additionalInfo. Return empty string if success or reject reason string
  * @param obj
@@ -7,7 +7,7 @@ import { Time } from "../interfaces/Cause";
 export default function (obj: AdditionalInfo): string;
 export interface AdditionalInfo {
     visible: boolean;
-    workTime: Time[];
+    workTime: WorkTime[];
     promo: boolean;
     modifier: boolean;
 }

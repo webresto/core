@@ -75,16 +75,18 @@ let Model = {
      */
     async getGroups(groupsId) {
         let menu = {};
-        const groups = await Group.find({
-            id: groupsId,
-            isDeleted: false,
-        })
+        const groups = await Group.find({ where: {
+                id: groupsId,
+                isDeleted: false,
+            } })
             .populate("childGroups")
             .populate("dishes")
             .populate("images");
         const errors = {};
-        await Promise.each(groups, async (group) => {
+        console.log("groups", groupsId, groups);
+        for await (let group of groups) {
             const reason = checkExpression_1.default(group);
+            console.log("RESON", reason, Boolean(reason), group);
             if (!reason) {
                 menu[group.id] = group;
                 if (group.childGroups) {
@@ -95,14 +97,14 @@ let Model = {
                         .populate("childGroups")
                         .populate("dishes")
                         .populate("images");
-                    await Promise.each(cgs, async (cg) => {
+                    for await (let cg of cgs) {
                         try {
                             const data = await Group.getGroup(cg.id);
                             if (data)
                                 childGroups.push(data);
                         }
                         catch (e) { }
-                    });
+                    }
                     delete menu[group.id].childGroups;
                     menu[group.id].children = childGroups;
                     if (menu[group.id].children.length > 1)
@@ -115,7 +117,7 @@ let Model = {
             else {
                 errors[group.id] = reason;
             }
-        });
+        }
         await getEmitter_1.default().emit("core-group-get-groups", menu, errors);
         const res = Object.values(menu);
         //TODO: rewrite with throw
@@ -129,7 +131,7 @@ let Model = {
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     async getGroup(groupId) {
-        const result = await this.getGroups([groupId]);
+        const result = await Group.getGroups([groupId]);
         if (result.errors[0]) {
             throw result.errors[0];
         }
@@ -144,6 +146,8 @@ let Model = {
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     async getGroupBySlug(groupSlug) {
+        if (!groupSlug)
+            throw "groupSlug is required";
         const groupObj = await Group.findOne({ slug: groupSlug });
         if (!groupObj) {
             throw "group with slug " + groupSlug + " not found";

@@ -59,7 +59,6 @@ class HookTools {
             filter: /(.+)\.(js|json|coffee|litcoffee)$/,
             identity: false,
         }, function (err, configs) {
-            console.log(configs, sails.config);
             //@ts-ignore
             sails.config = sails.util.merge(configs, sails.config);
         });

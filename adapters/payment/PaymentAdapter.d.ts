@@ -1,5 +1,5 @@
 import { Payment, PaymentResponse } from "../../interfaces/Payment";
-import { InitPaymentAdapter } from "../../models/PaymentMethod";
+import { InitPaymentAdapter } from "../../interfaces/InitPaymentAdapter";
 import PaymentDocument from "../../models/PaymentDocument";
 /**
  * Абстрактный класс Payment адаптера. Используется для создания новых адаптеров платежных систем.
