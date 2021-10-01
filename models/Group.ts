@@ -5,7 +5,8 @@ import ORM from "../interfaces/ORM";
 import Image from "../models/Image";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
-
+import slugify from "slugify"
+import { groupBy } from "lodash";
 let attributes = {
   /**Id */
   id: {
@@ -85,6 +86,29 @@ interface Group extends attributes, ORM {}
 export default Group;
 
 let Model = {
+
+  beforeCreate: async function(initGroup: any, proceed: any) {
+
+    if (!initGroup.slug){
+      initGroup.slug = slugify(initGroup.name);
+    }
+
+    // icrease 1 if group present
+    async function getSlug(slug: string, salt?: number){
+      let _slug = slug
+      if (salt) _slug = slug+"-"+salt;
+
+      if(await Group.findOne({slug: _slug})) {
+        getSlug(slug,salt+1);
+      } else {
+        return slug+salt
+      }
+    }
+
+    await getSlug(initGroup.slug);
+    return proceed()
+  },
+
   /**
    * Возвращает объект с группами и ошибками получения этих самых групп.
    * @param groupsId - массив id групп, которые следует получить
@@ -177,6 +201,7 @@ let Model = {
   async getGroupBySlug(groupSlug: string): Promise<Group> {
     
     if (!groupSlug) throw "groupSlug is required"
+
     const groupObj = await Group.findOne({ slug: groupSlug });
 
     if (!groupObj) {

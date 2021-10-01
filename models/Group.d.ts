@@ -45,6 +45,7 @@ interface Group extends attributes, ORM {
 }
 export default Group;
 declare let Model: {
+    beforeCreate: (initGroup: any, proceed: any) => Promise<any>;
     /**
      * Возвращает объект с группами и ошибками получения этих самых групп.
      * @param groupsId - массив id групп, которые следует получить

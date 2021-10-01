@@ -7,6 +7,7 @@ import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import * as _ from "lodash";
 import { WorkTime } from "@webresto/worktime";
+import slugify from "slugify"
 
 let attributes = {
   /** */
@@ -159,6 +160,26 @@ interface Dish extends attributes, ORM {}
 export default Dish;
 
 let Model = {
+  beforeCreate: async function(initDish: any, proceed: any) {
+    if (!initDish.slug){
+      initDish.slug = slugify(initDish.name);
+    }
+    
+    // icrease 1 if group present
+    async function getSlug(slug: string, salt?: number){
+      let _slug = slug
+      if (salt) _slug = slug+"-"+salt;
+
+      if(await Dish.findOne({slug: _slug})) {
+        getSlug(slug,salt+1);
+      } else {
+        return slug+salt
+      }
+    }
+
+    await getSlug(initDish.slug);
+    return proceed();
+  },
   afterUpdate: function (record, proceed) {
     getEmitter().emit("core-dish-after-update", record);
     return proceed();

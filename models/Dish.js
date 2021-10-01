@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const hashCode_1 = require("../libs/hashCode");
 const getEmitter_1 = require("../libs/getEmitter");
+const slugify_1 = require("slugify");
 let attributes = {
     /** */
     id: {
@@ -111,6 +112,25 @@ let attributes = {
     workTime: "json",
 };
 let Model = {
+    beforeCreate: async function (initDish, proceed) {
+        if (!initDish.slug) {
+            initDish.slug = slugify_1.default(initDish.name);
+        }
+        // icrease 1 if group present
+        async function getSlug(slug, salt) {
+            let _slug = slug;
+            if (salt)
+                _slug = slug + "-" + salt;
+            if (await Dish.findOne({ slug: _slug })) {
+                getSlug(slug, salt + 1);
+            }
+            else {
+                return slug + salt;
+            }
+        }
+        await getSlug(initDish.slug);
+        return proceed();
+    },
     afterUpdate: function (record, proceed) {
         getEmitter_1.default().emit("core-dish-after-update", record);
         return proceed();

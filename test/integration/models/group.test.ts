@@ -8,7 +8,7 @@ import { isArray } from "lodash";
 
 describe("Group", function () {
   let exampleGroups: Group[] = [];
-  
+
   it("create example Groups", async function () {
     try {
       for (let i = 0; i < 3; i++) {
@@ -27,7 +27,7 @@ describe("Group", function () {
       }
       await Group.createEach(exampleGroups).fetch();
     } catch (error) {
-        // throw error
+      // throw error
     }
   });
 
@@ -45,6 +45,7 @@ describe("Group", function () {
     group = await Group.getGroup("bad-id-group");
     expect(group).to.equal(null);
   });
+
   it("getGroupBySlug", async function () {
     let example = await Group.getGroup(exampleGroups[1].id);
     let group = await Group.getGroupBySlug(example.slug);
@@ -60,6 +61,7 @@ describe("Group", function () {
     }
     expect(error).to.not.equal(null);
   });
+
   it("createOrUpdate", async function () {
     let group = await Group.findOne(exampleGroups[0].id);
     group.name = "New Group Name";
@@ -69,22 +71,19 @@ describe("Group", function () {
     expect(updatedGroup.id).to.equal(group.id);
   });
 
-
-
   //// Local methods /////////////////////////////
 
   /** Throw if not equal */
   function equalGroups(exampleGroups: Group[], result: Group[]): void {
-    
     for (let exampleGroup of exampleGroups) {
       // @ts-ignore
       let group = result.find((g) => {
-        console.log("111111111111111111",g.id === exampleGroup.id,g, exampleGroup)
-        return g.id === exampleGroup.id
-      } );
+        console.log("111111111111111111", g.id === exampleGroup.id, g, exampleGroup);
+        return g.id === exampleGroup.id;
+      });
 
-      if (!group) throw "equalGroups not found any group in results"
-      if (typeof group !== "object" ) throw "group is not object"
+      if (!group) throw "equalGroups not found any group in results";
+      if (typeof group !== "object") throw "group is not object";
 
       if (exampleGroup.childGroups && exampleGroup.childGroups.length) {
         expect(exampleGroup.childGroups.length).to.equal(group.childGroups.length);

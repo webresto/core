@@ -87,6 +87,7 @@ interface Dish extends attributes, ORM {
 }
 export default Dish;
 declare let Model: {
+    beforeCreate: (initDish: any, proceed: any) => Promise<any>;
     afterUpdate: (record: any, proceed: any) => any;
     /**
      * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет

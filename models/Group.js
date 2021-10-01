@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const getEmitter_1 = require("../libs/getEmitter");
+const slugify_1 = require("slugify");
 let attributes = {
     /**Id */
     id: {
@@ -61,6 +62,25 @@ let attributes = {
     workTime: "json",
 };
 let Model = {
+    beforeCreate: async function (initGroup, proceed) {
+        if (!initGroup.slug) {
+            initGroup.slug = slugify_1.default(initGroup.name);
+        }
+        // icrease 1 if group present
+        async function getSlug(slug, salt) {
+            let _slug = slug;
+            if (salt)
+                _slug = slug + "-" + salt;
+            if (await Group.findOne({ slug: _slug })) {
+                getSlug(slug, salt + 1);
+            }
+            else {
+                return slug + salt;
+            }
+        }
+        await getSlug(initGroup.slug);
+        return proceed();
+    },
     /**
      * Возвращает объект с группами и ошибками получения этих самых групп.
      * @param groupsId - массив id групп, которые следует получить
