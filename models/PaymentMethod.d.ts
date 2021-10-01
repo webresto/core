@@ -1,6 +1,12 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
+declare enum PaymentMethodType {
+    "promise" = 0,
+    "external" = 1,
+    "internal" = 2,
+    "dummy" = 3
+}
 declare let attributes: {
     /** ID платежного метода */
     id: string;
@@ -11,7 +17,7 @@ declare let attributes: {
      * external - Когда надо ожидать подтверждение платежа во внешней системе
      * promise - Типы оплат при получении
      */
-    type: string;
+    type: PaymentMethodType;
     adapter: string;
     order: number;
     description: string;

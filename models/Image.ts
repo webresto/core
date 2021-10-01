@@ -6,10 +6,7 @@ import { v4 as uuid } from "uuid";
 
 let attributes = {
   /** ID картинки */
-  id: {
-    type: "string",
-    required: true,
-  } as unknown as string,
+  id: "string",
 
   /** Данные о картинках, что содержит данная модель */
   images: "json" as unknown as any,
@@ -34,11 +31,11 @@ interface Image extends attributes, ORM {}
 export default Image;
 
 let Model = {
-  beforeCreate(imageInit, next) {
+  beforeCreate(imageInit: any, next: any) {
     if (!imageInit.id) {
       imageInit.id = uuid();
     }
-
+    
     next();
   },
 };

@@ -78,7 +78,6 @@ describe("Group", function () {
     for (let exampleGroup of exampleGroups) {
       // @ts-ignore
       let group = result.find((g) => {
-        console.log("111111111111111111", g.id === exampleGroup.id, g, exampleGroup);
         return g.id === exampleGroup.id;
       });
 

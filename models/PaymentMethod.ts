@@ -30,7 +30,7 @@ let attributes = {
     type: "string",
     enum: ["internal", "external", "promise", "dummy"],
     required: true,
-  } as unknown as string,
+  } as unknown as PaymentMethodType,
   adapter: {
     type: "string",
     unique: true,

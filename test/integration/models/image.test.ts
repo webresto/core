@@ -10,7 +10,8 @@ describe("Image", function () {
         large: "/images/9399fd28-e03a-4f86-8078-a37c67d08c94.png",
       },
       uploadDate: "2020-10-13 16:23:20",
-    });
-    expect(img).to.include.all.keys("id", "images", "dish", "group", "uploadDate");
+    }).fetch();
+    console.log(img);
+    expect(img).to.include.keys("id", "images",  "uploadDate");
   });
 });

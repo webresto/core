@@ -11,6 +11,7 @@ describe("PaymentDocument", function () {
   this.timeout(31000);
 
   it("register TODO", async function () {
+    TestPaymentSystem.getInstance();
     //static
     // Проверка суммы. Проверка originModel. Проверка платежного метода. Проверить paymentResponse, сравнить.
   });
@@ -44,6 +45,7 @@ describe("PaymentDocument", function () {
     let paymentMethod = await PaymentMethod.findOne({
       adapter: "test-payment-system",
     });
+    if (!paymentMethod) throw "paymentMethod (test-payment-system) was not found "
     PaymentDocument.processor(3000);
     await PaymentDocument.register(cart.id, "cart", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
 
