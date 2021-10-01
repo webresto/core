@@ -180,10 +180,7 @@ describe('Dish', function () {
     let dish2 = await Dish.createOrUpdate(d);
     // @ts-ignore
     expect(dish1.hash).to.equal(dish2.hash);
-    // waterline 0.12 return updatedAt string when create and return class Date when find
-    // @ts-ignore
-    expect(dish1.updatedAt).to.equal((dish2.updatedAt).toISOString());
-  
+ 
   });
 });
 

@@ -8,23 +8,29 @@ import { isArray } from "lodash";
 
 describe("Group", function () {
   let exampleGroups: Group[] = [];
+  
   it("create example Groups", async function () {
-    for (let i = 0; i < 3; i++) {
-      // @ts-ignore
-      exampleGroups.push(groupGenerator());
-      let [lastGroup] = exampleGroups.slice(-1);
-      // @ts-ignore
-      lastGroup.dishes = [dishGenerator(), dishGenerator()];
-      lastGroup.childGroups = [];
-      for (let x = 0; x < 2; x++) {
-        let newGroup = groupGenerator();
-        newGroup.dishes = [dishGenerator(), dishGenerator()];
+    try {
+      for (let i = 0; i < 3; i++) {
         // @ts-ignore
-        lastGroup.childGroups.push(newGroup);
+        exampleGroups.push(groupGenerator());
+        let [lastGroup] = exampleGroups.slice(-1);
+        // @ts-ignore
+        //lastGroup.dishes = [dishGenerator(), dishGenerator()];
+        lastGroup.childGroups = [];
+        for (let x = 0; x < 2; x++) {
+          let newGroup = groupGenerator();
+          //newGroup.dishes = [dishGenerator(), dishGenerator()];
+          // @ts-ignore
+          lastGroup.childGroups.push(newGroup.id);
+        }
+        await Group.createEach(exampleGroups).fetch();
       }
+    } catch (error) {
+        // throw error
     }
-    await Group.create(exampleGroups).fetch();
   });
+
   it("getGroups", async function () {
     // let groups = await Group.find({});
     let result = await Group.getGroups([exampleGroups[0].id, exampleGroups[1].id, exampleGroups[2].id]);
