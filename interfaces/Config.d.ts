@@ -90,4 +90,5 @@ export default interface Config {
   orderFail: string;
   notInZone: string;
   awaitEmitterTimeout?: number;
+  [key:string]: any;
 }

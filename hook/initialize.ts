@@ -3,8 +3,7 @@ import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
 
-
-export default function ToInitialize(sails) {
+export default function ToInitialize(sails: Sails) {
   /**
    * Required hooks
    */
@@ -20,15 +19,20 @@ export default function ToInitialize(sails) {
 
     if (sails.config.restocore.stateflow) sails.config.stateflow = _.merge(sails.config.stateflow, sails.config.restocore.stateflow);
 
-    /**
-     * Bind models
-     */
-    HookTools.bindModels(resolve(__dirname, "../models"));
-
+    
     /**
      * AFTER OTHERS HOOKS
      */
-    HookTools.waitForHooks("restocore", requiredHooks, afterHook);
-    cb();
+    try {
+      HookTools.waitForHooks("restocore", requiredHooks, afterHook);
+    } catch (error) {
+      console.log(error)
+    }
+
+    /**
+     * Bind models
+     */
+    HookTools.bindModels(resolve(__dirname, "../models")).then(cb);
   };
+}
 }

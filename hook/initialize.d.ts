@@ -1,1 +1,1 @@
-export default function ToInitialize(sails: any): (cb: any) => void;
+export default function ToInitialize(sails: Sails): (cb: any) => void;

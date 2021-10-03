@@ -31,27 +31,10 @@ export default class HookTools {
           replaceExpr: /^.*\//,
           flattenDirectories: true,
         },
-        function (err, models) {
-          if (err) {
-            return reject(err);
-          }
-          // Get any supplemental files
-          buildDictionary.optional(
-            {
-              dirname: path.resolve(__dirname, folder),
-              filter: /(.+)\.attributes.json$/,
-              replaceExpr: /^.*\//,
-              flattenDirectories: true,
-            },
-            function (err, supplements) {
-              if (err) return reject(err);
-
-              const finalModels = _.merge(models, supplements);
-              sails.models = _.merge(sails.models || {}, finalModels);
-
-              return resolve();
-            }
-          );
+        function (err: any, models: any) {
+          if (err) return reject(err);
+          sails.models = _.merge(sails.models || {}, models);
+          return resolve();
         }
       );
     });
@@ -79,7 +62,7 @@ export default class HookTools {
         filter: /(.+)\.(js|json|coffee|litcoffee)$/,
         identity: false,
       },
-      function (err, configs) {
+      function (err: any, configs: any) {
         //@ts-ignore
         sails.config = sails.util.merge(configs, sails.config);
       }
@@ -107,9 +90,11 @@ export default class HookTools {
       });
     } catch (err) {
       if (err) {
+        sails.log.error(err)
         return cb(err);
       }
     }
+
     sails.after(eventsToWaitFor, cb);
   }
 

@@ -4,11 +4,12 @@ declare type sailsConfig = typeof sails.config;
 declare global {
     interface Sails extends sails.Sails {
         models: any;
-        config: SailsConfig;
+        config: _sailsConfig;
         log: any;
     }
-    interface SailsConfig extends sailsConfig {
+    interface _sailsConfig extends sailsConfig {
         restocore: Config;
+        [key: string]: any | object;
     }
     const sails: Sails;
     type ReqType = sails.Request;
