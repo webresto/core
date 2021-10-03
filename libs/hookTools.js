@@ -16,7 +16,7 @@ class HookTools {
         return new Promise((resolve, reject) => {
             buildDictionary.optional({
                 dirname: path.resolve(__dirname, folder),
-                filter: /^([^.]+)\.(js|coffee|litcoffee)$/,
+                filter: /^([^.]+)\.(js)$/,
                 replaceExpr: /^.*\//,
                 flattenDirectories: true,
             }, function (err, models) {

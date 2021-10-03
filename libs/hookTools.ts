@@ -27,7 +27,7 @@ export default class HookTools {
       buildDictionary.optional(
         {
           dirname: path.resolve(__dirname, folder),
-          filter: /^([^.]+)\.(js|coffee|litcoffee)$/,
+          filter: /^([^.]+)\.(js)$/,
           replaceExpr: /^.*\//,
           flattenDirectories: true,
         },

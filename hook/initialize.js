@@ -19,13 +19,14 @@ function ToInitialize(sails) {
         if (sails.config.restocore.stateflow)
             sails.config.stateflow = _.merge(sails.config.stateflow, sails.config.restocore.stateflow);
         /**
+         * Bind models
+         */
+        hookTools_1.default.bindModels(path_1.resolve(__dirname, "../models"));
+        /**
          * AFTER OTHERS HOOKS
          */
         hookTools_1.default.waitForHooks("restocore", requiredHooks, afterHook_1.default);
-        /**
-         * Bind models
-         */
-        hookTools_1.default.bindModels(path_1.resolve(__dirname, "../models")).then(cb);
+        cb();
     };
 }
 exports.default = ToInitialize;

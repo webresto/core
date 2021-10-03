@@ -1,4 +1,4 @@
-import * as sails from "typed-sails";
+import sails from "typed-sails";
 import Config from "../interfaces/Config";
 declare type sailsConfig = typeof sails.config;
 declare global {
