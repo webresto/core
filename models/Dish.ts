@@ -35,22 +35,40 @@ let attributes = {
   } as unknown as string,
 
   /** Описание блюда */
-  description: "string",
+  description: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
   /** Наименование */
-  name: "string",
+  name: {
+    type: "string",
+    required: true,
+  } as unknown as string,
 
   /** SEO description */
-  seoDescription: "string",
+  seoDescription: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
   /** SEO keywords */
-  seoKeywords: "string",
+  seoKeywords: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
   /** SEO text */
-  seoText: "string",
+  seoText: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
   /** SEO title */
-  seoTitle: "string",
+  seoTitle: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
   /** Не печатать в чеке */
   doNotPrintInCheque: "boolean" as unknown as boolean,
@@ -80,16 +98,25 @@ let attributes = {
   fiberFullAmount: "number" as unknown as number,
 
   /** Идентификатор группы в которой находится блюдо */
-  groupId: "string",
+  groupId: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
   /** Единица измерения товара ( кг, л, шт, порц.) */
-  measureUnit: "string",
+  measureUnit: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
   /** Цена блюда */
   price: "number" as unknown as number,
 
   /**  */
-  productCategoryId: "string", //TODO: ???
+  productCategoryId: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
   /** Тип */
   type: "string", //TODO: ???
@@ -170,7 +197,7 @@ let Model = {
       let _slug = slug
       if (salt) _slug = slug+"-"+salt;
 
-      if(await Dish.findOne({slug: _slug})) {
+      if((await Dish.find({slug: _slug})).length) {
         getSlug(slug,salt+1);
       } else {
         return slug+salt

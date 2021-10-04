@@ -1,1 +1,1 @@
-export default function hashCode(str: string): number;
+export default function hashCode(str: string): string;

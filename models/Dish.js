@@ -26,17 +26,35 @@ let attributes = {
         allowNull: true,
     },
     /** Описание блюда */
-    description: "string",
+    description: {
+        type: "string",
+        allowNull: true,
+    },
     /** Наименование */
-    name: "string",
+    name: {
+        type: "string",
+        required: true,
+    },
     /** SEO description */
-    seoDescription: "string",
+    seoDescription: {
+        type: "string",
+        allowNull: true,
+    },
     /** SEO keywords */
-    seoKeywords: "string",
+    seoKeywords: {
+        type: "string",
+        allowNull: true,
+    },
     /** SEO text */
-    seoText: "string",
+    seoText: {
+        type: "string",
+        allowNull: true,
+    },
     /** SEO title */
-    seoTitle: "string",
+    seoTitle: {
+        type: "string",
+        allowNull: true,
+    },
     /** Не печатать в чеке */
     doNotPrintInCheque: "boolean",
     /** Количество углеводов на (100гр)*/
@@ -56,13 +74,22 @@ let attributes = {
     /** Количество белков в блюде */
     fiberFullAmount: "number",
     /** Идентификатор группы в которой находится блюдо */
-    groupId: "string",
+    groupId: {
+        type: "string",
+        allowNull: true,
+    },
     /** Единица измерения товара ( кг, л, шт, порц.) */
-    measureUnit: "string",
+    measureUnit: {
+        type: "string",
+        allowNull: true,
+    },
     /** Цена блюда */
     price: "number",
     /**  */
-    productCategoryId: "string",
+    productCategoryId: {
+        type: "string",
+        allowNull: true,
+    },
     /** Тип */
     type: "string",
     /** Масса  */
@@ -121,7 +148,7 @@ let Model = {
             let _slug = slug;
             if (salt)
                 _slug = slug + "-" + salt;
-            if (await Dish.findOne({ slug: _slug })) {
+            if ((await Dish.find({ slug: _slug })).length) {
                 getSlug(slug, salt + 1);
             }
             else {

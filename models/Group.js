@@ -18,15 +18,33 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    description: "string",
+    description: {
+        type: "string",
+        allowNull: true,
+    },
     /** Удалён ли продукт в меню, отдаваемого клиенту */
     isDeleted: "boolean",
     /** Наименование блюда */
-    name: "string",
-    seoDescription: "string",
-    seoKeywords: "string",
-    seoText: "string",
-    seoTitle: "string",
+    name: {
+        type: "string",
+        required: true,
+    },
+    seoDescription: {
+        type: "string",
+        allowNull: true,
+    },
+    seoKeywords: {
+        type: "string",
+        allowNull: true,
+    },
+    seoText: {
+        type: "string",
+        allowNull: true,
+    },
+    seoTitle: {
+        type: "string",
+        allowNull: true,
+    },
     /** Очередь сортировки */
     order: "number",
     /** Блюда группы */
@@ -71,7 +89,7 @@ let Model = {
             let _slug = slug;
             if (salt)
                 _slug = slug + "-" + salt;
-            if (await Group.findOne({ slug: _slug })) {
+            if ((await Group.find({ slug: _slug })).length) {
                 getSlug(slug, salt + 1);
             }
             else {

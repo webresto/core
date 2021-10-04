@@ -25,17 +25,35 @@ let attributes = {
     allowNull: true,
   } as unknown as string,
 
-  description: "string",
+  description: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
   /** Удалён ли продукт в меню, отдаваемого клиенту */
   isDeleted: "boolean" as unknown as boolean,
 
   /** Наименование блюда */
-  name: "string",
+  name: {
+    type: "string",
+    required: true,
+  } as unknown as string,
 
-  seoDescription: "string",
-  seoKeywords: "string",
-  seoText: "string",
-  seoTitle: "string",
+  seoDescription: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
+  seoKeywords: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
+  seoText: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
+  seoTitle: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
 
   /** Очередь сортировки */
   order: "number" as unknown as number,
@@ -98,7 +116,7 @@ let Model = {
       let _slug = slug
       if (salt) _slug = slug+"-"+salt;
 
-      if(await Group.findOne({slug: _slug})) {
+      if((await Group.find({slug: _slug})).length) {
         getSlug(slug,salt+1);
       } else {
         return slug+salt
