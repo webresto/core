@@ -20,7 +20,6 @@ function groupGenerator(config = {}) {
         dishesTags: config.dishesTags || [],
         isIncludedInMenu: config.isDeleted || true,
         dishes: config.dishes || [],
-        // slug: faker.random.uuid()
     };
 }
 exports.default = groupGenerator;

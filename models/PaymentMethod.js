@@ -146,14 +146,14 @@ module.exports = {
         const paymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
         //@ts-ignore
         if (await PaymentMethod.isPaymentPromise(paymentMethod.id)) {
-            return undefined;
+            throw `PaymentPromise adapter: (${paymentMethod.adapter}) not have adapter`;
         }
         if (alivedPaymentMethods[paymentMethod.adapter]) {
             sails.log.verbose("Core > PaymentMethod > getAdapterById", alivedPaymentMethods[paymentMethod.adapter]);
             return alivedPaymentMethods[paymentMethod.adapter];
         }
         else {
-            return undefined;
+            throw `${paymentMethod.adapter} is not alived`;
         }
     },
 };
