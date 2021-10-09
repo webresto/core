@@ -605,8 +605,7 @@ let cartModel = {
         if (cart.delivery) {
             cart.total += cart.delivery;
         }
-        const resultCartDishes = await CartDish.find({ cart: cart.id });
-        cart.dishes = resultCartDishes;
+        cart.dishes = cartDishes;
         getEmitter_1.default().emit('core-cart-after-count', cart);
         await Cart.update({ id: cart.id }, cart);
         return cart;

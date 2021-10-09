@@ -698,9 +698,8 @@ let cartModel: CartModel = {
       cart.total += cart.delivery;
     }
 
-    const resultCartDishes = await CartDish.find({cart: cart.id}) as Association<CartDish>;
-    cart.dishes = resultCartDishes;
-
+    cart.dishes = cartDishes as Association<CartDish>;
+    
     getEmitter().emit('core-cart-after-count', cart);
     
     await Cart.update({id: cart.id}, cart);
