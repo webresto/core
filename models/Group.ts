@@ -106,7 +106,6 @@ module.exports = {
    * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
    * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
    * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[], errors: {} }> {
     let menu = {} as {[x: string]: GroupWithAdditionalFields};
@@ -162,7 +161,6 @@ module.exports = {
    * @param groupId - id группы
    * @return запрашиваемая группа
    * @throws ошибка получения группы
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   async getGroup(groupId: string): Promise<Group> {
     const result = await this.getGroups([groupId]);
@@ -178,7 +176,6 @@ module.exports = {
    * @param groupSlug - slug группы
    * @return запрашиваемая группа
    * @throws ошибка получения группы
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   async getGroupBySlug(groupSlug: string): Promise<Group> {
     const groupObj = (await Group.findOne({slug: groupSlug}));
@@ -258,7 +255,6 @@ export interface GroupModel extends ORMModel<Group> {
    * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
    * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
    * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   getGroups(groupsId: string[]): Promise<{ groups: {}, errors: {} }>;
 
@@ -267,7 +263,6 @@ export interface GroupModel extends ORMModel<Group> {
    * @param groupId - id группы
    * @return запрашиваемая группа
    * @throws ошибка получения группы
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   getGroup(groupId: string): Promise<Group>;
 
@@ -276,7 +271,6 @@ export interface GroupModel extends ORMModel<Group> {
    * @param groupSlug - slug группы
    * @return запрашиваемая группа
    * @throws ошибка получения группы
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   getGroupBySlug(groupSlug: string): Promise<Group>;
 

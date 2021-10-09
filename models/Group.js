@@ -101,7 +101,6 @@ module.exports = {
      * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
      * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
      * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     async getGroups(groupsId) {
         let menu = {};
@@ -152,7 +151,6 @@ module.exports = {
      * @param groupId - id группы
      * @return запрашиваемая группа
      * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     async getGroup(groupId) {
         const result = await this.getGroups([groupId]);
@@ -167,7 +165,6 @@ module.exports = {
      * @param groupSlug - slug группы
      * @return запрашиваемая группа
      * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     async getGroupBySlug(groupSlug) {
         const groupObj = (await Group.findOne({ slug: groupSlug }));
