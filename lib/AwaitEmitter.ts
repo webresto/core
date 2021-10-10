@@ -38,7 +38,7 @@ export default class AwaitEmitter {
   on(name: string, label: string, fn: func): AwaitEmitter;
 
   on(name: string, label: string | func, fn?: func): AwaitEmitter {
-    sails.log.debug(`AwaitEmitter > new subscribe: [ ${name} ] from: ${label}`)
+    sails.log.silly(`AwaitEmitter > new subscribe: [ ${name} ] from: ${label}`)
     if (typeof label === 'function') {
       fn = label;
       label = '';
@@ -66,7 +66,7 @@ export default class AwaitEmitter {
    * @return Массив объектов Response
    */
   async emit(name: string, ...args: any): Promise<Response[]> {
-    sails.log.debug(`AwaitEmitter > new emit: ${name}`)
+    sails.log.silly(`AwaitEmitter > new emit: ${name}`)
 
     const that = this;
     const event = this.events.find(l => l.name === name);
