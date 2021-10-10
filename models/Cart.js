@@ -595,6 +595,7 @@ let cartModel = {
         //   }
         // }
         // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
+        cart.dishes = cartDishes;
         await getEmitter_1.default().emit('core-cart-count-discount-apply', cart);
         cart.dishesCount = dishesCount;
         cart.uniqueDishes = uniqueDishes;
@@ -605,7 +606,6 @@ let cartModel = {
         if (cart.delivery) {
             cart.total += cart.delivery;
         }
-        cart.dishes = cartDishes;
         getEmitter_1.default().emit('core-cart-after-count', cart);
         await Cart.update({ id: cart.id }, cart);
         return cart;

@@ -681,9 +681,11 @@ let cartModel: CartModel = {
     //     //cart.dishes[cd] = cartDish;
     //   }
     // }
-
-
+    
+    
+    
     // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
+    cart.dishes = cartDishes as Association<CartDish>;
     await getEmitter().emit('core-cart-count-discount-apply', cart);
 
     cart.dishesCount = dishesCount;
@@ -698,7 +700,6 @@ let cartModel: CartModel = {
       cart.total += cart.delivery;
     }
 
-    cart.dishes = cartDishes as Association<CartDish>;
     
     getEmitter().emit('core-cart-after-count', cart);
     
