@@ -45,6 +45,7 @@ module.exports = {
     discount: 'json',
     uniqueItems: 'integer',
     itemTotal: 'float',
+    itemTotalBeforeDiscount: 'float',
     discountTotal: 'float',
     comment: 'string',
     addedBy: {
