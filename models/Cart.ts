@@ -560,10 +560,6 @@ let cartModel: CartModel = {
         if (dish && dish.parentGroup)      
           var reasonG = checkExpression(dish.parentGroup);
   
-        const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
-          reasonG === 'visible' || !reasonG;
-  
-        
         await Dish.getDishModifiers(dish);
         cartDish.dish = dish;
         
@@ -577,12 +573,14 @@ let cartModel: CartModel = {
 
       fullCart.orderDateLimit = await getOrderDateLimit();
       fullCart.cartId = fullCart.id;
-      await this.countCart(fullCart);
+      if (cart.state !== "ORDER") {
+        await this.countCart(fullCart);
+      } 
     } catch (e) {
       sails.log.error('CART > fullCart error', e);
     }
 
-    return fullCart;
+    return {...fullCart};
   },
 
   /**
@@ -681,11 +679,9 @@ let cartModel: CartModel = {
     //     //cart.dishes[cd] = cartDish;
     //   }
     // }
-    
-    
-    
+
+
     // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
-    cart.dishes = cartDishes as Association<CartDish>;
     await getEmitter().emit('core-cart-count-discount-apply', cart);
 
     cart.dishesCount = dishesCount;
@@ -700,6 +696,7 @@ let cartModel: CartModel = {
       cart.total += cart.delivery;
     }
 
+    cart.dishes = cartDishes as Association<CartDish>;
     
     getEmitter().emit('core-cart-after-count', cart);
     

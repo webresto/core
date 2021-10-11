@@ -493,8 +493,6 @@ let cartModel = {
                 const reason = checkExpression_1.default(dish);
                 if (dish && dish.parentGroup)
                     var reasonG = checkExpression_1.default(dish.parentGroup);
-                const reasonBool = reason === 'promo' || reason === 'visible' || !reason || reasonG === 'promo' ||
-                    reasonG === 'visible' || !reasonG;
                 await Dish.getDishModifiers(dish);
                 cartDish.dish = dish;
                 if (cartDish.modifiers !== undefined) {
@@ -506,12 +504,14 @@ let cartModel = {
             fullCart.dishes = cartDishes;
             fullCart.orderDateLimit = await getOrderDateLimit();
             fullCart.cartId = fullCart.id;
-            await this.countCart(fullCart);
+            if (cart.state !== "ORDER") {
+                await this.countCart(fullCart);
+            }
         }
         catch (e) {
             sails.log.error('CART > fullCart error', e);
         }
-        return fullCart;
+        return { ...fullCart };
     },
     /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
@@ -595,7 +595,6 @@ let cartModel = {
         //   }
         // }
         // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
-        cart.dishes = cartDishes;
         await getEmitter_1.default().emit('core-cart-count-discount-apply', cart);
         cart.dishesCount = dishesCount;
         cart.uniqueDishes = uniqueDishes;
@@ -606,6 +605,7 @@ let cartModel = {
         if (cart.delivery) {
             cart.total += cart.delivery;
         }
+        cart.dishes = cartDishes;
         getEmitter_1.default().emit('core-cart-after-count', cart);
         await Cart.update({ id: cart.id }, cart);
         return cart;
