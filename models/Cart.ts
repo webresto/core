@@ -691,6 +691,9 @@ let cartModel: CartModel = {
 
     cart.total = orderTotal - cart.discountTotal;
     cart.orderTotal = orderTotal - cart.discountTotal;
+
+    // For calculate delivery in fly
+    getEmitter().emit('core:count-before-delivery-cost', cart);
     cart.cartTotal = orderTotal + cart.deliveryCost - cart.discountTotal;
 
     if (cart.delivery) {
