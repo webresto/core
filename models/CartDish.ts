@@ -58,8 +58,11 @@ let attributes = {
   /** Количество уникальных блюд в корзине */
   uniqueItems: "number" as unknown as number,
 
-  /** Всего количество блюд */
-  itemTotal: "number" as unknown as number,
+  /** цена позиции */
+  itemTotal: "float" as unknown as number,
+
+  /** цена позиции до применения скидок */
+  itemTotalBeforeDiscount: 'float',
 
   /** Скидка */
   discount: "json" as unknown as any,

@@ -608,8 +608,6 @@ let Model = {
 
         if (dish && dish.parentGroup) var reasonG = checkExpression(dish.parentGroup);
 
-        const reasonBool = reason === "promo" || reason === "visible" || !reason || reasonG === "promo" || reasonG === "visible" || !reasonG;
-
         await Dish.getDishModifiers(dish);
         cartDish.dish = dish;
 
@@ -719,8 +717,10 @@ let Model = {
       }
     }
 
+    cart.dishes = cartDishes;
+
     // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
-    await getEmitter().emit("core-cart-count-discount-apply", cart);
+    await getEmitter().emit('core-cart-count-discount-apply', cart);
 
     cart.dishesCount = dishesCount;
     cart.uniqueDishes = uniqueDishes;
@@ -728,6 +728,8 @@ let Model = {
 
     cart.total = orderTotal - cart.discountTotal;
     Cart.orderTotal = orderTotal - cart.discountTotal;
+
+    getEmitter().emit('core:count-before-delivery-cost', cart);
     cart.cartTotal = orderTotal + cart.deliveryCost - cart.discountTotal;
 
     if (cart.delivery) {
