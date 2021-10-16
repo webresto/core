@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../lib/checkExpression");
 const actions_1 = require("../lib/actions");
 const getEmitter_1 = require("../lib/getEmitter");
 const _ = require("lodash");
@@ -486,13 +485,12 @@ let cartModel = {
                     sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
                     continue;
                 }
+                // console.log(111,cartDish,cartDish.dish.id,dish)
                 const dish = await Dish.findOne({
-                    id: cartDish.dish.id,
-                    isDeleted: false
+                    id: cartDish.dish.id
+                    // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
+                    // isDeleted: false
                 }).populate('images').populate('parentGroup');
-                const reason = checkExpression_1.default(dish);
-                if (dish && dish.parentGroup)
-                    var reasonG = checkExpression_1.default(dish.parentGroup);
                 await Dish.getDishModifiers(dish);
                 cartDish.dish = dish;
                 if (cartDish.modifiers !== undefined) {
@@ -547,6 +545,7 @@ let cartModel = {
                     }
                     if (dish.balance === -1 ? false : dish.balance < cartDish.amount) {
                         cartDish.amount = dish.balance;
+                        // Нужно удалять если количество 0
                         getEmitter_1.default().emit('core-cartdish-change-amount', cartDish);
                         sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
                     }

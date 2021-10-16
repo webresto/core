@@ -550,17 +550,14 @@ let cartModel: CartModel = {
           sails.log.error('cartDish', cartDish.id, 'not exists in cart', cart.id);
           continue;
         }
-  
+        // console.log(111,cartDish,cartDish.dish.id,dish)
         const dish = await Dish.findOne({
-          id: cartDish.dish.id,
-          isDeleted: false
+          id: cartDish.dish.id
+          // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
+          // isDeleted: false
         }).populate('images').populate('parentGroup');
-        const reason = checkExpression(dish);
-  
-        if (dish && dish.parentGroup)      
-          var reasonG = checkExpression(dish.parentGroup);
-  
-        await Dish.getDishModifiers(dish);
+
+        await Dish.getDishModifiers(dish)
         cartDish.dish = dish;
         
         if (cartDish.modifiers !== undefined) {
@@ -624,6 +621,7 @@ let cartModel: CartModel = {
 
           if (dish.balance === -1 ? false : dish.balance < cartDish.amount) {
             cartDish.amount = dish.balance;
+            // Нужно удалять если количество 0
             getEmitter().emit('core-cartdish-change-amount', cartDish);
             sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
           }
