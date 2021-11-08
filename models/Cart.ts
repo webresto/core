@@ -119,27 +119,29 @@ let cartCollection: Waterline.Collection = {
 
 let cartInstance: Cart = {
   addDish: async function (dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, from: string, replace: boolean, cartDishId: number, ) : Promise<void> {
+    
     const emitter = getEmitter();
     await emitter.emit.apply(emitter, ['core-cart-before-add-dish', ...arguments]);
-
+    
+    
     let dishObj: Dish;
     if (typeof dish === "string") {
       dishObj = await Dish.findOne(dish);
-
+      
       if (!dishObj) {
         throw {body: `Dish with id ${dish} not found`, code: 2}
       }
     } else {
       dishObj = dish;
     }
-
+    
     if (dishObj.balance !== -1)
-      if (amount > dishObj.balance) {
-        await emitter.emit.apply(emitter, ['core-cart-add-dish-reject-amount', ...arguments]);
-        throw {body: `There is no so mush dishes with id ${dishObj.id}`, code: 1};
-      }
+    if (amount > dishObj.balance) {
+      await emitter.emit.apply(emitter, ['core-cart-add-dish-reject-amount', ...arguments]);
+      throw {body: `There is no so mush dishes with id ${dishObj.id}`, code: 1};
+    }
     const cart = await Cart.findOne({id: this.id}).populate('dishes');
-
+    
     if (cart.dishes.length > 99)
       throw "99 max dishes amount"
 
@@ -148,7 +150,7 @@ let cartInstance: Cart = {
 
     if (modifiers && modifiers.length) {
       modifiers.forEach((m: Modifier) => {
-        if (!m.amount)
+        if (m.amount === undefined)
           m.amount = 1;
       });
     }
@@ -168,6 +170,9 @@ let cartInstance: Cart = {
         }
       }
     }
+
+
+    console.log(22222222222,modifiers)
     if(replace) {
       cartDish = (await CartDish.update({id: cartDishId},{
         dish: dishObj.id,

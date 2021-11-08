@@ -129,7 +129,7 @@ let cartInstance = {
             throw "cart with cartId " + cart.id + "in state ORDER";
         if (modifiers && modifiers.length) {
             modifiers.forEach((m) => {
-                if (!m.amount)
+                if (m.amount === undefined)
                     m.amount = 1;
             });
         }
@@ -147,6 +147,7 @@ let cartInstance = {
                 }
             }
         }
+        console.log(22222222222, modifiers);
         if (replace) {
             cartDish = (await CartDish.update({ id: cartDishId }, {
                 dish: dishObj.id,

@@ -77,6 +77,22 @@ export default class AwaitEmitter {
 
     const executor = event.fns.map(f => async function () {
       try {
+        // let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
+        // args = args.map((arg) => {
+        //   return new Proxy(arg, {
+        //     set: function (target, key, value) {
+        //       console.log(`From \x1b[40m\x1b[33m\x1b[5m ${f.label} \x1b[0m : ${debugRay}`);
+        //       console.log(`\x1b[33m${key} : ${JSON.stringify(value)} \x1b[0m`);
+
+        //       console.log("\x1b[32m" + "↷↷↷↷↷↷↷↷↷↷↷");
+        //       console.dir(target);
+        //       console.log("-------------------------------------------------------");
+
+        //       target[key] = value;
+        //       return true;
+        //     },
+        //   });
+        // });
         const r = f.fn.apply(that, args);
         if (isPromise(r)) {
           let timeoutEnd = false;
