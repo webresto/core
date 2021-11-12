@@ -29,7 +29,7 @@
     "sails-util": "^0.11.0",
     "typescript": "^3.9.7",
     "uuid": "latest",
-    "@webresto/worktime": "latest"
+    "@webresto/worktime": "=1.0.12"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.32",
