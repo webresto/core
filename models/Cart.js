@@ -581,6 +581,7 @@ let cartModel = {
                     cartDish.itemTotal += cartDish.dish.price;
                     cartDish.itemTotal *= cartDish.amount;
                     await CartDish.update({ id: cartDish.id }, cartDish);
+                    cartDish.dish = dish;
                 }
                 orderTotal += cartDish.itemTotal;
                 dishesCount += cartDish.amount;
