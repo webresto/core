@@ -47,6 +47,7 @@ module.exports = {
     itemTotal: 'float',
     itemTotalBeforeDiscount: 'float',
     discountTotal: 'float',
+    discountMessage: 'string',
     comment: 'string',
     addedBy: {
       type: 'string',
@@ -68,6 +69,10 @@ export default interface CartDish extends ORM {
   modifiers: Modifier[];
   uniqueItems: number;
   itemTotal: number;
+  itemTotalBeforeDiscount: number;
+  discountTotal: number;
+  discountType: string;
+  discountMessage: string;
   weight: number;
   totalWeight: number;
   comment: string;

@@ -668,7 +668,6 @@ let cartModel: CartModel = {
           cartDish.itemTotal += cartDish.dish.price;
           cartDish.itemTotal *= cartDish.amount;
           await CartDish.update({id: cartDish.id}, cartDish);
-          cartDish.dish = dish;
         }
 
 
@@ -714,7 +713,7 @@ let cartModel: CartModel = {
     getEmitter().emit('core-cart-after-count', cart);
     
     await Cart.update({id: cart.id}, cart);
-    return cart;
+    return {...cart};
   },
 
   doPaid: async function (paymentDocument: PaymentDocument) {
