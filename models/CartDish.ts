@@ -47,6 +47,7 @@ module.exports = {
     itemTotal: 'float',
     itemTotalBeforeDiscount: 'float',
     discountTotal: 'float',
+    discountType: 'string',
     discountMessage: 'string',
     comment: 'string',
     addedBy: {
