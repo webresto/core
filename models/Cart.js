@@ -581,6 +581,7 @@ let cartModel = {
                     cartDish.itemTotal += cartDish.dish.price;
                     cartDish.itemTotal *= cartDish.amount;
                     await CartDish.update({ id: cartDish.id }, cartDish);
+                    cartDish.dish = dish;
                 }
                 orderTotal += cartDish.itemTotal;
                 dishesCount += cartDish.amount;
@@ -616,7 +617,7 @@ let cartModel = {
         }
         getEmitter_1.default().emit('core-cart-after-count', cart);
         await Cart.update({ id: cart.id }, cart);
-        return { ...cart };
+        return cart;
     },
     doPaid: async function (paymentDocument) {
         let cart = await Cart.findOne(paymentDocument.paymentId);

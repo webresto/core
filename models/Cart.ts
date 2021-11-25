@@ -668,6 +668,7 @@ let cartModel: CartModel = {
           cartDish.itemTotal += cartDish.dish.price;
           cartDish.itemTotal *= cartDish.amount;
           await CartDish.update({id: cartDish.id}, cartDish);
+          cartDish.dish = dish;
         }
 
 
@@ -698,22 +699,21 @@ let cartModel: CartModel = {
     cart.dishesCount = dishesCount;
     cart.uniqueDishes = uniqueDishes;
     cart.totalWeight = totalWeight;
-
     cart.total = orderTotal - cart.discountTotal;
     cart.orderTotal = orderTotal - cart.discountTotal;
-
     // For calculate delivery in fly
     getEmitter().emit('core:count-before-delivery-cost', cart);
-    cart.cartTotal = orderTotal + cart.deliveryCost - cart.discountTotal;
 
+    cart.cartTotal = orderTotal + cart.deliveryCost - cart.discountTotal;
+    
     if (cart.delivery) {
       cart.total += cart.delivery;
     }
-
+    
     getEmitter().emit('core-cart-after-count', cart);
     
     await Cart.update({id: cart.id}, cart);
-    return {...cart};
+    return cart;
   },
 
   doPaid: async function (paymentDocument: PaymentDocument) {
