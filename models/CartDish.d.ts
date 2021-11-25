@@ -40,6 +40,7 @@ export default interface CartDish extends ORM {
     discountTotal: number;
     discountType: string;
     discountMessage: string;
+    discountAmount: number;
     weight: number;
     totalWeight: number;
     comment: string;
