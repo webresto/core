@@ -595,7 +595,7 @@ let cartModel: CartModel = {
         cart = await Cart.findOne({ id: cart.id });
       }
 
-      if (cart.state !== "CART") throw "cart with cartId " + cart.id + " not in CART state";
+      if (!["CART","CHECKOUT"].includes(cart.state)) throw `Cart with cartId ${cart.id} - not can calculated from current state: (${cart.state})`;
 
       const cartDishes = await CartDish.find({ cart: cart.id }).populate("dish");
       // const cartDishesClone = {};
