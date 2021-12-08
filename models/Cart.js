@@ -612,10 +612,13 @@ let cartModel = {
             // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
             cart.dishes = cartDishes;
             await getEmitter_1.default().emit("core-cart-count-discount-apply", cart);
+            /**
+             * Карт тотал это чистая стоимость корзины
+             */
             cart.dishesCount = dishesCount;
             cart.uniqueDishes = uniqueDishes;
             cart.totalWeight = totalWeight;
-            cart.cartTotal = cartTotal - cart.discountTotal;
+            cart.cartTotal = cartTotal;
             // For calculate delivery in fly
             getEmitter_1.default().emit("core:count-before-delivery-cost", cart);
             cart.total = cartTotal + cart.deliveryCost - cart.discountTotal;

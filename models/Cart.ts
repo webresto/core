@@ -682,10 +682,13 @@ let cartModel: CartModel = {
       cart.dishes = cartDishes as Association<CartDish>;
       await getEmitter().emit("core-cart-count-discount-apply", cart);
 
+      /**
+       * Карт тотал это чистая стоимость корзины
+       */
       cart.dishesCount = dishesCount;
       cart.uniqueDishes = uniqueDishes;
       cart.totalWeight = totalWeight;
-      cart.cartTotal = cartTotal - cart.discountTotal;
+      cart.cartTotal = cartTotal;
       // For calculate delivery in fly
       getEmitter().emit("core:count-before-delivery-cost", cart);
       
