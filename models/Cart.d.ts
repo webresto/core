@@ -200,23 +200,23 @@ export default interface Cart extends ORM {
      */
     order(): Promise<number>;
     /**
-    * Создает платежный документ от модели Cart.
-    * @return код результата:
-    *  - 0 - успешно создан платежный документ
-    *  - 1 - во время создания платежного документа произошла ошибка валидации
-    *  - 2 -
-    * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
-    * @fires cart:core-cart-external-payment - вызывается, если совершается внешняя оплата
-    * @fires cart:core-cart-internal-payment - вызывается, если совершается внутренняя оплата
-    * @fires cart:core-cart-payment - событие оплаты. Каждый слушатель этого события влияет на результат события.
-    * @fires cart:core-cart-after-order - вызывается сразу после попытки провести оплату.
-    */
+     * Создает платежный документ от модели Cart.
+     * @return код результата:
+     *  - 0 - успешно создан платежный документ
+     *  - 1 - во время создания платежного документа произошла ошибка валидации
+     *  - 2 -
+     * @fires cart:core-cart-before-payment - вызывается перед началом функции. Результат подписок игнорируется.
+     * @fires cart:core-cart-external-payment - вызывается, если совершается внешняя оплата
+     * @fires cart:core-cart-internal-payment - вызывается, если совершается внутренняя оплата
+     * @fires cart:core-cart-payment - событие оплаты. Каждый слушатель этого события влияет на результат события.
+     * @fires cart:core-cart-after-order - вызывается сразу после попытки провести оплату.
+     */
     payment(): Promise<PaymentResponse>;
     /**
-    * Возвращает paymentMethodId текущей корзины
-    * @param cart
-    * @return paymentMethodId
-    */
+     * Возвращает paymentMethodId текущей корзины
+     * @param cart
+     * @return paymentMethodId
+     */
     paymentMethodId(cart?: Cart): Promise<string>;
     /**
      * Попытка переключить state корзины
