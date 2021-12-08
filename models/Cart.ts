@@ -100,11 +100,12 @@ let cartCollection: Waterline.Collection = {
     total: {
       type: "float",
       defaultsTo: 0,
-    }, // total = cartTotal
+    }, // total = orderTotal
     orderTotal: {
       type: "float",
       defaultsTo: 0,
-    }, // orderTotal = total + deliveryCost - discountTotal - bonusesTotal
+    }, 
+    // orderTotal = total + deliveryCost - discountTotal - bonusesTotal
     cartTotal: {
       type: "float",
       defaultsTo: 0,
@@ -510,7 +511,7 @@ let cartInstance: Cart = {
     await getEmitter().emit("core-cart-payment", self, params);
     sails.log.info("Cart > payment > self before register:", self);
     try {
-      paymentResponse = await PaymentDocument.register(self.id, "cart", self.cartTotal, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, self);
+      paymentResponse = await PaymentDocument.register(self.id, "cart", self.orderTotal, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, self);
     } catch (e) {
       getEmitter().emit("error", "cart>payment", e);
       sails.log.error("Cart > payment: ", e);
@@ -600,7 +601,7 @@ let cartModel: CartModel = {
       // const cartDishesClone = {};
       // cart.dishes.map(cd => cartDishesClone[cd.id] = _.cloneDeep(cd));
 
-      let orderTotal = 0;
+      let cartTotal = 0;
       let dishesCount = 0;
       let uniqueDishes = 0;
       let totalWeight = 0;
@@ -658,7 +659,7 @@ let cartModel: CartModel = {
             cartDish.dish = dish;
           }
 
-          orderTotal += cartDish.itemTotal;
+          cartTotal += cartDish.itemTotal;
           dishesCount += cartDish.amount;
           uniqueDishes++;
           totalWeight += cartDish.totalWeight;
@@ -684,12 +685,12 @@ let cartModel: CartModel = {
       cart.dishesCount = dishesCount;
       cart.uniqueDishes = uniqueDishes;
       cart.totalWeight = totalWeight;
-      cart.total = orderTotal - cart.discountTotal;
-      cart.orderTotal = orderTotal - cart.discountTotal;
+      cart.cartTotal = cartTotal - cart.discountTotal;
       // For calculate delivery in fly
       getEmitter().emit("core:count-before-delivery-cost", cart);
-
-      cart.cartTotal = orderTotal + cart.deliveryCost - cart.discountTotal;
+      
+      cart.total = cartTotal + cart.deliveryCost - cart.discountTotal;
+      cart.orderTotal = cartTotal + cart.deliveryCost - cart.discountTotal;
 
       if (cart.delivery) {
         cart.total += cart.delivery;
@@ -710,13 +711,13 @@ let cartModel: CartModel = {
       let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
       await Cart.update({ id: paymentDocument.paymentId }, { paid: true, paymentMethod: paymentDocument.paymentMethod, paymentMethodTitle: paymentMethodTitle });
 
-      sails.log.info("Cart > doPaid: ", cart.id, cart.state, cart.cartTotal, paymentDocument.amount);
+      sails.log.info("Cart > doPaid: ", cart.id, cart.state, cart.orderTotal, paymentDocument.amount);
 
       if (cart.state !== "PAYMENT") {
         sails.log.error("Cart > doPaid: is strange cart state is not PAYMENT", cart);
       }
 
-      if (cart.cartTotal !== paymentDocument.amount) {
+      if (cart.orderTotal !== paymentDocument.amount) {
         cart.problem = true;
         cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount + " рублей 🤪 !!!";
       }
