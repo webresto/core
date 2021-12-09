@@ -186,7 +186,7 @@ const actions = {
 
 export default actions;
 
-type actionFunc1 = (params?: ActionParams, ...args: any) => Promise<Cart>;
+type actionFunc1 = (params?: any, ...args: any) => Promise<Cart>;
 type actionFunc2 = (...args: any) => Promise<Cart>;
 type actionFunc = actionFunc1 | actionFunc2;
 

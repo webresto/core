@@ -81,6 +81,11 @@ let attributes = {
     via: "group",
   } as unknown as Image[],
 
+  /** Плейсхолдер для блюд группы */
+  dishesPlaceholder: {
+    model: "image",
+  } as unknown as Image[],
+
   /** Человеко читаемый АйДи */
   slug: {
     type: "string",
@@ -95,7 +100,7 @@ let attributes = {
   /** Промо группа */
   promo: "boolean" as unknown as boolean,
 
-  /** Время работы горуппы */
+  /** Время работы гыруппы */
   workTime: "json" as unknown as WorkTime[],
 };
 

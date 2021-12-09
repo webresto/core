@@ -1,5 +1,4 @@
 import Cart from "../models/Cart";
-import Actions, { ActionParams } from "../interfaces/Actions";
 /**
  * Object with functions to action
  * If you wanna add new actions just call addAction('newActionName', function newActionFunction(...) {...}); Also in this
@@ -39,9 +38,37 @@ import Actions, { ActionParams } from "../interfaces/Actions";
  * const newActions = <NewActions>actions;
  * ```
  */
-declare const actions: Actions;
+declare const actions: {
+    /**
+     * Add dish in cart
+     * @param params(cart.id,  dishesId)
+     * @return Promise<Cart>
+     */
+    addDish(cart: Cart, params: any): Promise<Cart>;
+    /**
+     * Set delivery cost
+     * @param params(cart.id,  deliveryCost)
+     * @returns {Promise<>}
+     */
+    delivery(cart: Cart, params: any): Promise<Cart>;
+    /**
+     * Reset all cart action
+     * @param cartId
+     * @returns {Promise<>}
+     */
+    reset(cart: Cart): Promise<Cart>;
+    /**
+     * Add delivery description in cart
+     * @param params(cart.id,  description)
+     * @return Promise<Cart>
+     */
+    setDeliveryDescription(cart: Cart, params: any): Promise<Cart>;
+    reject(cart: Cart, params: any): Promise<Cart>;
+    setMessage(cart: Cart, params: any): Promise<Cart>;
+    return(): number;
+};
 export default actions;
-declare type actionFunc1 = (params?: ActionParams, ...args: any) => Promise<Cart>;
+declare type actionFunc1 = (params?: any, ...args: any) => Promise<Cart>;
 declare type actionFunc2 = (...args: any) => Promise<Cart>;
 declare type actionFunc = actionFunc1 | actionFunc2;
 /**

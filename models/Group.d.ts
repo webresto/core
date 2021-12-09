@@ -29,6 +29,8 @@ declare let attributes: {
     childGroups: Group[];
     /** Изображения */
     images: Image[];
+    /** Плейсхолдер для блюд группы */
+    dishesPlaceholder: Image[];
     /** Человеко читаемый АйДи */
     slug: string;
     /** Гурппа отображается */
@@ -37,7 +39,7 @@ declare let attributes: {
     modifier: boolean;
     /** Промо группа */
     promo: boolean;
-    /** Время работы горуппы */
+    /** Время работы гыруппы */
     workTime: WorkTime[];
 };
 declare type attributes = typeof attributes;

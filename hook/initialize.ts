@@ -35,4 +35,3 @@ export default function ToInitialize(sails: Sails) {
     HookTools.bindModels(resolve(__dirname, "../models")).then(cb);
   };
 }
-}

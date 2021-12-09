@@ -66,6 +66,10 @@ let attributes = {
         collection: "image",
         via: "group",
     },
+    /** Плейсхолдер для блюд группы */
+    dishesPlaceholder: {
+        model: "image",
+    },
     /** Человеко читаемый АйДи */
     slug: {
         type: "string",
@@ -76,7 +80,7 @@ let attributes = {
     modifier: "boolean",
     /** Промо группа */
     promo: "boolean",
-    /** Время работы горуппы */
+    /** Время работы гыруппы */
     workTime: "json",
 };
 let Model = {
