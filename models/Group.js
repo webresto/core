@@ -82,6 +82,9 @@ module.exports = {
             collection: 'image',
             via: 'group'
         },
+        dishPlaceholder: {
+            model: "image",
+        },
         slug: {
             type: 'slug',
             from: 'name'
