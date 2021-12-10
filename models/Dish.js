@@ -137,8 +137,20 @@ module.exports = {
         promo: 'boolean',
         workTime: 'json'
     },
+    beforeUpdate: function (record, proceed) {
+        getEmitter_1.default().emit('core:dish-before-update', record);
+        return proceed();
+    },
+    beforeCreate: function (record, proceed) {
+        getEmitter_1.default().emit('core:dish-before-create', record);
+        return proceed();
+    },
     afterUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core-dish-after-update', record);
+        getEmitter_1.default().emit('core:dish-after-update', record);
+        return proceed();
+    },
+    afterCreate: function (record, proceed) {
+        getEmitter_1.default().emit('core:dish-after-create', record);
         return proceed();
     },
     /**

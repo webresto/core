@@ -92,7 +92,23 @@ module.exports = {
         visible: 'boolean',
         modifier: 'boolean',
         promo: 'boolean',
-        workTime: 'json'
+        workTime: 'json',
+    },
+    beforeUpdate: function (record, proceed) {
+        getEmitter_1.default().emit('core:group-before-update', record);
+        return proceed();
+    },
+    beforeCreate: function (record, proceed) {
+        getEmitter_1.default().emit('core:group-before-create', record);
+        return proceed();
+    },
+    afterUpdate: function (record, proceed) {
+        getEmitter_1.default().emit('core:group-after-update', record);
+        return proceed();
+    },
+    afterCreate: function (record, proceed) {
+        getEmitter_1.default().emit('core:group-after-create', record);
+        return proceed();
     },
     /**
      * Возвращает объект с группами и ошибками получения этих самых групп.

@@ -84,5 +84,5 @@
     "test:init": "[ ! -d \"test/fixtures/v0.12-app/node_modules\" ] &&  cd ./test/fixtures/v0.12-app && npm i --no-package-lock --prefix ./ ",
     "build": "tsc"
   },
-  "version": "0.9.10"
+  "version": "0.9.11"
 }
