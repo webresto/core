@@ -4,8 +4,8 @@
  * @apiDescription Модель блюда в корзине. Содержит информацию о количестве данного блюда в коризне и его модификаторы
  *
  * @apiParam {Integer} id ID данного блюда в корзине. Все операции с блюдом в корзине проводить с этим ID
- * @apiParam {Integer} amount 
- * @apiParam {[Dish](#api-Models-ApiDish)} dish 
+ * @apiParam {Integer} amount
+ * @apiParam {[Dish](#api-Models-ApiDish)} dish
  * @apiParam {JSON} modifiers Модификаторы для текущего блюда
  * @apiParam {[Cart](#api-Models-ApiCart)} cart Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии
  * @apiParam {[CartDish](#api-Models-ApiCartdish)} parent Родительское блюдо (для модификаторов)
@@ -69,6 +69,15 @@ let attributes = {
 
   /**Общая сумма скидки */
   discountTotal: "number" as unknown as number,
+
+  /** Тип скидки */
+  discountType: 'string',
+
+  /** Сообщение скидки */
+  discountMessage: "string",
+
+  /** Сумма скидки */
+  discountAmount: 'float',
 
   /** Коментарий к корзине */
   comment: "string" as unknown as number,

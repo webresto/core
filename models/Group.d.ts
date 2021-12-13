@@ -1,8 +1,6 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import Image from "../models/Image";
 import Dish from "../models/Dish";
-import { WorkTime } from "@webresto/worktime";
 declare let attributes: {
     /**Id */
     id: string;
@@ -22,15 +20,15 @@ declare let attributes: {
     /** Очередь сортировки */
     order: number;
     /** Блюда группы */
-    dishes: Dish[];
+    dishes: {};
     /** Родительская группа */
     parentGroup: any;
     /** Дочерние группы */
-    childGroups: Group[];
+    childGroups: {};
     /** Изображения */
-    images: Image[];
+    images: {};
     /** Плейсхолдер для блюд группы */
-    dishesPlaceholder: Image[];
+    dishesPlaceholder: {};
     /** Человеко читаемый АйДи */
     slug: string;
     /** Гурппа отображается */
@@ -40,14 +38,14 @@ declare let attributes: {
     /** Промо группа */
     promo: boolean;
     /** Время работы гыруппы */
-    workTime: WorkTime[];
+    workTime: {};
 };
 declare type attributes = typeof attributes;
 interface Group extends attributes, ORM {
 }
 export default Group;
 declare let Model: {
-    beforeCreate: (initGroup: any, proceed: any) => Promise<any>;
+    beforeCreate: (initGroup: any, proceed: any) => unknown;
     /**
      * Возвращает объект с группами и ошибками получения этих самых групп.
      * @param groupsId - массив id групп, которые следует получить
@@ -60,8 +58,8 @@ declare let Model: {
      * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
-    getGroups(groupsId: string[]): Promise<{
-        groups: GroupWithAdditionalFields[];
+    getGroups(groupsId: {}): Promise<{
+        groups: {};
         errors: {};
     }>;
     /**

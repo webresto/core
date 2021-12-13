@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("../libs/actions");
 const getEmitter_1 = require("../libs/getEmitter");
 const uuid_1 = require("uuid");
-const emitter = getEmitter_1.default();
+const emitter = (0, getEmitter_1.default)();
 let attributes = {
     /** Id  */
     id: "string",
@@ -104,7 +104,7 @@ let attributes = {
 let Model = {
     beforeCreate(cartInit, next) {
         if (!cartInit.id) {
-            cartInit.id = uuid_1.v4();
+            cartInit.id = (0, uuid_1.v4)();
         }
         if (!cartInit.shortId) {
             cartInit.shortId = cartInit.id.substr(cartInit.id.length - 8).toUpperCase();
@@ -142,7 +142,7 @@ let Model = {
             throw "cart with cartId " + cart.id + "in state ORDER";
         if (modifiers && modifiers.length) {
             modifiers.forEach((m) => {
-                if (!m.amount)
+                if (m.amount === undefined)
                     m.amount = 1;
             });
         }
@@ -308,7 +308,7 @@ let Model = {
         /**
          *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
          */
-        getEmitter_1.default().emit("core-cart-before-check", cart, customer, isSelfService, address);
+        (0, getEmitter_1.default)().emit("core-cart-before-check", cart, customer, isSelfService, address);
         sails.log.silly(`Cart > check > before check > ${customer} ${isSelfService} ${address} ${paymentMethodId}`);
         if (customer) {
             await checkCustomerInfo(customer);
@@ -331,7 +331,7 @@ let Model = {
         }
         /** Если самовывоз то не нужно проверять адресс */
         if (isSelfService) {
-            getEmitter_1.default().emit("core-cart-is-self-service", cart, customer, isSelfService, address);
+            (0, getEmitter_1.default)().emit("core-cart-is-self-service", cart, customer, isSelfService, address);
             await Cart.setSelfService(cart.id, true);
         }
         else {
@@ -348,12 +348,18 @@ let Model = {
                 }
             }
         }
-        getEmitter_1.default().emit("core-cart-check-delivery", cart, customer, isSelfService, address);
-        const results = await getEmitter_1.default().emit("core-cart-check", cart, customer, isSelfService, address, paymentMethodId);
+        (0, getEmitter_1.default)().emit("core-cart-check-delivery", cart, customer, isSelfService, address);
+        const results = await (0, getEmitter_1.default)().emit("core-cart-check", cart, customer, isSelfService, address, paymentMethodId);
+        if (self.dishesCount === 0) {
+            throw {
+                code: 13,
+                error: 'cart is empty'
+            };
+        }
         /** save after updates in emiter */
         await Cart.update({ id: cart.id }, cart).fetch().fetch();
         sails.log.silly("Cart > check > after wait general emitter", cart, results);
-        getEmitter_1.default().emit("core-cart-after-check", cart, customer, isSelfService, address);
+        (0, getEmitter_1.default)().emit("core-cart-after-check", cart, customer, isSelfService, address);
         /** Чек может проходить без слушателей, потомучто минимально сам по себе чек
          *  имеет баовые проверки. И является самодостаточным, но
          * всеже по умолчанию установлено так что нужно пройти все проверки
@@ -397,16 +403,16 @@ let Model = {
         // PTODO: проверка эта нужна
         // if(( cart.isPaymentPromise && cart.paid) || ( !cart.isPaymentPromise && !cart.paid) )
         //   return 3
-        getEmitter_1.default().emit("core-cart-before-order", cart);
+        (0, getEmitter_1.default)().emit("core-cart-before-order", cart);
         sails.log.silly("Cart > order > before order >", cart.customer, cart.selfService, cart.address);
         if (cart.selfService) {
-            getEmitter_1.default().emit("core-cart-order-self-service", cart);
+            (0, getEmitter_1.default)().emit("core-cart-order-self-service", cart);
         }
         else {
-            getEmitter_1.default().emit("core-cart-order-delivery", cart);
+            (0, getEmitter_1.default)().emit("core-cart-order-delivery", cart);
         }
         await Cart.countCart(cart);
-        const results = await getEmitter_1.default().emit("core-cart-order", cart);
+        const results = await (0, getEmitter_1.default)().emit("core-cart-order", cart);
         sails.log.silly("Cart > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
@@ -444,7 +450,7 @@ let Model = {
             sails.log.verbose("Cart > order > before save cart", cart);
             // await Cart.update({id: cart.id}).fetch();
             await Cart.update({ id: cart.id }, data).fetch();
-            getEmitter_1.default().emit("core-cart-after-order", cart);
+            (0, getEmitter_1.default)().emit("core-cart-after-order", cart);
         }
     },
     async payment(criteria) {
@@ -463,13 +469,13 @@ let Model = {
             comment: comment,
         };
         await Cart.countCart(cart);
-        await getEmitter_1.default().emit("core-cart-payment", cart, params);
+        await (0, getEmitter_1.default)().emit("core-cart-payment", cart, params);
         sails.log.info("Cart > payment > cart before register:", cart);
         try {
-            paymentResponse = await PaymentDocument.register(cart.id, "cart", cart.cartTotal, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, cart);
+            paymentResponse = await PaymentDocument.register(cart.id, "cart", cart.orderTotal, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, cart);
         }
         catch (e) {
-            getEmitter_1.default().emit("error", "cart>payment", e);
+            (0, getEmitter_1.default)().emit("error", "cart>payment", e);
             sails.log.error("Cart > payment: ", e);
         }
         await Cart.next(cart.id, "PAYMENT");
@@ -499,15 +505,12 @@ let Model = {
                     continue;
                 }
                 const dish = await Dish.findOne({
-                    id: cartDish.dish.id,
-                    isDeleted: false,
+                    id: cartDish.dish.id
+                    // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
+                    // isDeleted: false,
                 })
                     .populate("images")
                     .populate("parentGroup");
-                const reason = checkExpression(dish);
-                if (dish && dish.parentGroup)
-                    var reasonG = checkExpression(dish.parentGroup);
-                const reasonBool = reason === "promo" || reason === "visible" || !reason || reasonG === "promo" || reasonG === "visible" || !reasonG;
                 await Dish.getDishModifiers(dish);
                 cartDish.dish = dish;
                 if (cartDish.modifiers !== undefined) {
@@ -519,110 +522,117 @@ let Model = {
             fullCart.dishes = cartDishes;
             fullCart.orderDateLimit = await getOrderDateLimit();
             fullCart.cartId = fullCart.id;
-            await Cart.countCart(fullCart);
         }
         catch (e) {
             sails.log.error("CART > fullCart error", e);
         }
-        return fullCart;
+        return { ...fullCart };
     },
     /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
+     * Подсчет должен происходить только до перехода на чекаут
      * @param cart
      */
     async countCart(criteria) {
-        let cart;
-        if (typeof criteria === "string" || criteria instanceof String) {
-            cart = await Cart.findOne(criteria);
-        }
-        else {
-            cart = await Cart.findOne(criteria.id);
-        }
-        getEmitter_1.default().emit("core-cart-before-count", cart);
-        if (cart.state === "ORDER")
-            throw "cart with cartId " + cart.id + "in state ORDER";
-        const cartDishes = await CartDish.find({ cart: cart.id }).populate("dish");
-        // const cartDishesClone = {};
-        // cart.dishes.map(cd => cartDishesClone[cd.id] = _.cloneDeep(cd));
-        let orderTotal = 0;
-        let dishesCount = 0;
-        let uniqueDishes = 0;
-        let totalWeight = 0;
-        for await (let cartDish of cartDishes) {
-            try {
-                if (cartDish.dish) {
-                    const dish = await Dish.findOne(cartDish.dish.id);
-                    // Проверяет что блюдо доступно к продаже
-                    if (!dish) {
-                        sails.log.error("Dish with id " + cartDish.dish.id + " not found!");
-                        getEmitter_1.default().emit("core-cart-return-full-cart-destroy-cartdish", dish, cart);
-                        await CartDish.destroy({ id: cartDish.dish.id });
-                        continue;
-                    }
-                    if (dish.balance === -1 ? false : dish.balance < cartDish.amount) {
-                        cartDish.amount = dish.balance;
-                        getEmitter_1.default().emit("core-cartdish-change-amount", cartDish);
-                        sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
-                    }
-                    cartDish.uniqueItems = 1;
-                    cartDish.itemTotal = 0;
-                    cartDish.weight = cartDish.dish.weight;
-                    cartDish.totalWeight = 0;
-                    if (cartDish.modifiers) {
-                        for (let modifier of cartDish.modifiers) {
-                            const modifierObj = await Dish.findOne(modifier.id);
-                            if (!modifierObj) {
-                                sails.log.error("Dish with id " + modifier.id + " not found!");
-                                continue;
-                            }
-                            await getEmitter_1.default().emit("core-cart-countcart-before-calc-modifier", modifier, modifierObj);
-                            // const modifierCopy = {
-                            //   amount: modifier.amount,
-                            //   id: modifier.id
-                            // }
-                            // await getEmitter().emit('core-cart-countcart-before-calc-modifier', modifierCopy, modifierObj);
-                            cartDish.uniqueItems++;
-                            cartDish.itemTotal += modifier.amount * modifierObj.price;
-                            cartDish.weight += modifierObj.weight;
+        try {
+            let cart;
+            if (typeof criteria === "string" || criteria instanceof String) {
+                cart = await Cart.findOne(criteria);
+            }
+            else {
+                cart = await Cart.findOne(criteria.id);
+            }
+            (0, getEmitter_1.default)().emit("core-cart-before-count", cart);
+            if (!["CART", "CHECKOUT"].includes(cart.state))
+                throw `Cart with cartId ${cart.id} - not can calculated from current state: (${cart.state})`;
+            const cartDishes = await CartDish.find({ cart: cart.id }).populate("dish");
+            // const cartDishesClone = {};
+            // cart.dishes.map(cd => cartDishesClone[cd.id] = _.cloneDeep(cd));
+            let cartTotal = 0;
+            let dishesCount = 0;
+            let uniqueDishes = 0;
+            let totalWeight = 0;
+            for await (let cartDish of cartDishes) {
+                try {
+                    if (cartDish.dish) {
+                        const dish = await Dish.findOne(cartDish.dish.id);
+                        // Проверяет что блюдо доступно к продаже
+                        if (!dish) {
+                            sails.log.error("Dish with id " + cartDish.dish.id + " not found!");
+                            (0, getEmitter_1.default)().emit("core-cart-return-full-cart-destroy-cartdish", dish, cart);
+                            await CartDish.destroy({ id: cartDish.dish.id });
+                            continue;
                         }
+                        if (dish.balance === -1 ? false : dish.balance < cartDish.amount) {
+                            cartDish.amount = dish.balance;
+                            (0, getEmitter_1.default)().emit("core-cartdish-change-amount", cartDish);
+                            sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
+                        }
+                        cartDish.uniqueItems = 1;
+                        cartDish.itemTotal = 0;
+                        cartDish.weight = cartDish.dish.weight;
+                        cartDish.totalWeight = 0;
+                        if (cartDish.modifiers) {
+                            for (let modifier of cartDish.modifiers) {
+                                const modifierObj = await Dish.findOne(modifier.id);
+                                if (!modifierObj) {
+                                    sails.log.error("Dish with id " + modifier.id + " not found!");
+                                    continue;
+                                }
+                                await (0, getEmitter_1.default)().emit("core-cart-countcart-before-calc-modifier", modifier, modifierObj);
+                                // const modifierCopy = {
+                                //   amount: modifier.amount,
+                                //   id: modifier.id
+                                // }
+                                // await getEmitter().emit('core-cart-countcart-before-calc-modifier', modifierCopy, modifierObj);
+                                cartDish.uniqueItems++;
+                                cartDish.itemTotal += modifier.amount * modifierObj.price;
+                                cartDish.weight += modifierObj.weight;
+                            }
+                        }
+                        cartDish.totalWeight = cartDish.weight * cartDish.amount;
+                        cartDish.itemTotal += cartDish.dish.price;
+                        cartDish.itemTotal *= cartDish.amount;
+                        cartDish.dish = cartDish.dish.id;
+                        await CartDish.update({ id: cartDish.id }, cartDish).fetch();
+                        cartDish.dish = dish;
                     }
-                    cartDish.totalWeight = cartDish.weight * cartDish.amount;
-                    cartDish.itemTotal += cartDish.dish.price;
-                    cartDish.itemTotal *= cartDish.amount;
-                    cartDish.dish = cartDish.dish.id;
-                    await CartDish.update({ id: cartDish.id }, cartDish).fetch();
+                    cartTotal += cartDish.itemTotal;
+                    dishesCount += cartDish.amount;
+                    uniqueDishes++;
+                    totalWeight += cartDish.totalWeight;
                 }
-                orderTotal += cartDish.itemTotal;
-                dishesCount += cartDish.amount;
-                uniqueDishes++;
-                totalWeight += cartDish.totalWeight;
+                catch (e) {
+                    sails.log.error("Cart > count > iterate cartDish error", e);
+                }
             }
-            catch (e) {
-                sails.log.error("Cart > count > iterate cartDish error", e);
+            cart.dishes = cartDishes;
+            // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
+            cart.dishes = cartDishes;
+            await (0, getEmitter_1.default)().emit('core-cart-count-discount-apply', cart);
+            /**
+             * Карт тотал это чистая стоимость корзины
+             */
+            cart.dishesCount = dishesCount;
+            cart.uniqueDishes = uniqueDishes;
+            cart.totalWeight = totalWeight;
+            cart.cartTotal = cartTotal;
+            (0, getEmitter_1.default)().emit('core:count-before-delivery-cost', cart);
+            cart.total = cartTotal + cart.deliveryCost - cart.discountTotal;
+            cart.orderTotal = cartTotal + cart.deliveryCost - cart.discountTotal;
+            if (cart.delivery) {
+                cart.total += cart.delivery;
             }
+            await Cart.update({ id: cart.id }, cart).fetch();
+            (0, getEmitter_1.default)().emit("core-cart-after-count", cart);
+            return cart;
         }
-        // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
-        await getEmitter_1.default().emit("core-cart-count-discount-apply", cart);
-        cart.dishesCount = dishesCount;
-        cart.uniqueDishes = uniqueDishes;
-        cart.totalWeight = totalWeight;
-        cart.total = orderTotal - cart.discountTotal;
-        Cart.orderTotal = orderTotal - cart.discountTotal;
-        cart.cartTotal = orderTotal + cart.deliveryCost - cart.discountTotal;
-        if (cart.delivery) {
-            cart.total += cart.delivery;
+        catch (error) {
+            console.log(" error >", error);
         }
-        const resultCartDishes = await CartDish.find({
-            cart: cart.id,
-        });
-        cart.dishes = resultCartDishes.map((dish) => dish.id);
-        await Cart.update({ id: cart.id }, cart).fetch();
-        getEmitter_1.default().emit("core-cart-after-count", cart);
-        return cart;
     },
     async doPaid(criteria, paymentDocument) {
         let cart = await Cart.findOne(criteria);
-        await Cart.countCart(cart);
         try {
             let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
             await Cart.update({ id: paymentDocument.paymentId }, {
@@ -630,11 +640,11 @@ let Model = {
                 paymentMethod: paymentDocument.paymentMethod,
                 paymentMethodTitle: paymentMethodTitle,
             }).fetch();
-            sails.log.info("Cart > doPaid: ", cart.id, cart.state, cart.cartTotal, paymentDocument.amount);
+            sails.log.info("Cart > doPaid: ", cart.id, cart.state, cart.orderTotal, paymentDocument.amount);
             if (cart.state !== "PAYMENT") {
                 sails.log.error("Cart > doPaid: is strange cart state is not PAYMENT", cart);
             }
-            if (cart.cartTotal !== paymentDocument.amount) {
+            if (cart.orderTotal !== paymentDocument.amount) {
                 cart.problem = true;
                 cart.comment = cart.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
             }

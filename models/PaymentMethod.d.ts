@@ -47,13 +47,13 @@ declare let Model: {
      * @param paymentMethod
      * @return
      */
-    alive(paymentAdapter: PaymentAdapter): Promise<string[]>;
+    alive(paymentAdapter: PaymentAdapter): Promise<{}>;
     /**
      * Возвращает массив с возможными на текущий момент способами оплаты отсортированный по order
      * @param  нету
      * @return массив типов оплат
      */
-    getAvailable(): Promise<PaymentMethod[]>;
+    getAvailable(): Promise<{}>;
     /**
      * Проверяет платежную систему на доступность, и включенность,
      *  для пейментПромис систем только включенность.

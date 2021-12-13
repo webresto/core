@@ -141,7 +141,7 @@ let attributes = {
 let Model = {
     beforeCreate: async function (initDish, proceed) {
         if (!initDish.slug) {
-            initDish.slug = slugify_1.default(initDish.name);
+            initDish.slug = (0, slugify_1.default)(initDish.name);
         }
         // icrease 1 if group present
         async function getSlug(slug, salt) {
@@ -159,7 +159,7 @@ let Model = {
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        getEmitter_1.default().emit("core-dish-after-update", record);
+        (0, getEmitter_1.default)().emit("core-dish-after-update", record);
         return proceed();
     },
     /**
@@ -175,7 +175,7 @@ let Model = {
         }
         let dishes = await Dish.find(criteria).populate("images");
         for await (let dish of dishes) {
-            const reason = checkExpression_1.default(dish);
+            const reason = (0, checkExpression_1.default)(dish);
             if (!reason) {
                 await Dish.getDishModifiers(dish);
                 if (dish.images.length >= 2)
@@ -186,7 +186,7 @@ let Model = {
             }
         }
         dishes.sort((a, b) => a.order - b.order);
-        await getEmitter_1.default().emit("core-dish-get-dishes", dishes);
+        await (0, getEmitter_1.default)().emit("core-dish-get-dishes", dishes);
         return dishes;
     },
     /**
@@ -244,7 +244,7 @@ let Model = {
      * @return обновлённое или созданное блюдо
      */
     async createOrUpdate(values) {
-        let hash = hashCode_1.default(JSON.stringify(values));
+        let hash = (0, hashCode_1.default)(JSON.stringify(values));
         const dish = await Dish.findOne({ id: values.id });
         if (!dish) {
             return Dish.create({ hash, ...values }).fetch();

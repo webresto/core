@@ -1,16 +1,14 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
-import Dish from "../models/Dish";
-import Group from "../models/Group";
 declare let attributes: {
     /** ID картинки */
     id: string;
     /** Данные о картинках, что содержит данная модель */
     images: any;
     /** Блюдо, которому принадлежит картинка */
-    dish: Dish[];
+    dish: {};
     /** */
-    group: Group[];
+    group: {};
     /** Группа, которой принажлежит картинка */
     uploadDate: string;
 };

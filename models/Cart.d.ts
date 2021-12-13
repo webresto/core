@@ -1,4 +1,3 @@
-import { Modifier } from "../interfaces/Modifier";
 import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import CartDish from "./CartDish";
@@ -14,7 +13,7 @@ declare let attributes: {
     /** last 8 chars from id */
     shortId: string;
     /** */
-    dishes: number[] | CartDish[];
+    dishes: {};
     /** */
     discount: any;
     paymentMethod: any;
@@ -74,7 +73,7 @@ export default Cart;
 declare let Model: {
     beforeCreate(cartInit: any, next: any): void;
     /** Add dish into cart */
-    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, cartDishId?: number): Promise<void>;
+    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: {}, comment: string, addedBy: string, replace?: boolean, cartDishId?: number): Promise<void>;
     removeDish(criteria: any, dish: CartDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: any, dish: CartDish, amount: number): Promise<void>;
     setComment(criteria: any, dish: CartDish, comment: string): Promise<void>;
@@ -89,13 +88,14 @@ declare let Model: {
     payment(criteria: any): Promise<PaymentResponse>;
     paymentMethodId(criteria: any): Promise<string>;
     /**  given populated Cart instance  by criteria*/
-    populate(criteria: any): Promise<Cart>;
+    populate(criteria: any): unknown;
     /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
+     * Подсчет должен происходить только до перехода на чекаут
      * @param cart
      */
-    countCart(criteria: any): Promise<Cart>;
-    doPaid(criteria: any, paymentDocument: PaymentDocument): Promise<void>;
+    countCart(criteria: any): unknown;
+    doPaid(criteria: any, paymentDocument: PaymentDocument): any;
 };
 declare global {
     const Cart: typeof Model & ORMModel<Cart> & StateFlowModel;

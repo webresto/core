@@ -65,7 +65,7 @@ let Model = {
         }
     },
     beforeCreate: function (paymentMethod, next) {
-        paymentMethod.id = uuid_1.v4();
+        paymentMethod.id = (0, uuid_1.v4)();
         next();
     },
     /**
@@ -162,14 +162,14 @@ let Model = {
         const paymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
         //@ts-ignore
         if (await PaymentMethod.isPaymentPromise(paymentMethod.id)) {
-            return undefined;
+            throw `PaymentPromise adapter: (${paymentMethod.adapter}) not have adapter`;
         }
         if (alivedPaymentMethods[paymentMethod.adapter]) {
             sails.log.verbose("Core > PaymentMethod > getAdapterById", alivedPaymentMethods[paymentMethod.adapter]);
             return alivedPaymentMethods[paymentMethod.adapter];
         }
         else {
-            return undefined;
+            throw `${paymentMethod.adapter} is not alived`;
         }
     },
 };

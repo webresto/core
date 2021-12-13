@@ -86,7 +86,7 @@ let attributes = {
 let Model = {
     beforeCreate: async function (initGroup, proceed) {
         if (!initGroup.slug) {
-            initGroup.slug = slugify_1.default(initGroup.name);
+            initGroup.slug = (0, slugify_1.default)(initGroup.name);
         }
         // icrease 1 if group present
         async function getSlug(slug, salt) {
@@ -126,7 +126,7 @@ let Model = {
             .populate("images");
         const errors = {};
         for await (let group of groups) {
-            const reason = checkExpression_1.default(group);
+            const reason = (0, checkExpression_1.default)(group);
             if (!reason) {
                 menu[group.id] = group;
                 if (group.childGroups) {
@@ -158,7 +158,7 @@ let Model = {
                 errors[group.id] = reason;
             }
         }
-        await getEmitter_1.default().emit("core-group-get-groups", menu, errors);
+        await (0, getEmitter_1.default)().emit("core-group-get-groups", menu, errors);
         const res = Object.values(menu);
         //TODO: rewrite with throw
         return { groups: res, errors: errors };

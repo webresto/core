@@ -1,6 +1,5 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import { WorkTime } from "@webresto/worktime";
 declare let attributes: {
     /** id */
     id: string;
@@ -20,8 +19,8 @@ interface Maintenance extends attributes, ORM {
 export default Maintenance;
 declare let Model: {
     beforeCreate: (paymentMethod: any, next: any) => void;
-    siteIsOff: () => Promise<boolean>;
-    getActiveMaintenance: () => Promise<Maintenance>;
+    siteIsOff: () => unknown;
+    getActiveMaintenance: () => unknown;
 };
 declare global {
     const Maintenance: typeof Model & ORMModel<Maintenance>;

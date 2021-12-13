@@ -45,12 +45,20 @@ let attributes = {
     },
     /** Количество уникальных блюд в корзине */
     uniqueItems: "number",
-    /** Всего количество блюд */
-    itemTotal: "number",
+    /** цена позиции */
+    itemTotal: "float",
+    /** цена позиции до применения скидок */
+    itemTotalBeforeDiscount: 'float',
     /** Скидка */
     discount: "json",
     /**Общая сумма скидки */
     discountTotal: "number",
+    /** Тип скидки */
+    discountType: 'string',
+    /** Сообщение скидки */
+    discountMessage: "string",
+    /** Сумма скидки */
+    discountAmount: 'float',
     /** Коментарий к корзине */
     comment: "string",
     /** Метка кто добавил */

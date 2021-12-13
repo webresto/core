@@ -18,7 +18,7 @@
   ],
   "bundleDependencies": [],
   "dependencies": {
-    "@webresto/worktime": "latest",
+    "@webresto/worktime": "=1.0.12",
     "lodash": "^4.17.10",
     "replace-in-file": "^6.2.0",
     "sails-build-dictionary": "^0.10.1",
