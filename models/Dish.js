@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const hashCode_1 = require("../libs/hashCode");
 const getEmitter_1 = require("../libs/getEmitter");
-const slugify_1 = require("slugify");
 let attributes = {
     /** */
     id: {
@@ -139,27 +138,20 @@ let attributes = {
     workTime: "json",
 };
 let Model = {
-    beforeCreate: async function (initDish, proceed) {
-        if (!initDish.slug) {
-            initDish.slug = (0, slugify_1.default)(initDish.name);
-        }
-        // icrease 1 if group present
-        async function getSlug(slug, salt) {
-            let _slug = slug;
-            if (salt)
-                _slug = slug + "-" + salt;
-            if ((await Dish.find({ slug: _slug })).length) {
-                getSlug(slug, salt + 1);
-            }
-            else {
-                return slug + salt;
-            }
-        }
-        await getSlug(initDish.slug);
+    beforeUpdate: function (record, proceed) {
+        (0, getEmitter_1.default)().emit('core:dish-before-update', record);
+        return proceed();
+    },
+    beforeCreate: function (record, proceed) {
+        (0, getEmitter_1.default)().emit('core:dish-before-create', record);
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit("core-dish-after-update", record);
+        (0, getEmitter_1.default)().emit('core:dish-after-update', record);
+        return proceed();
+    },
+    afterCreate: function (record, proceed) {
+        (0, getEmitter_1.default)().emit('core:dish-after-create', record);
         return proceed();
     },
     /**

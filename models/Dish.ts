@@ -187,28 +187,23 @@ interface Dish extends attributes, ORM {}
 export default Dish;
 
 let Model = {
-  beforeCreate: async function(initDish: any, proceed: any) {
-    if (!initDish.slug){
-      initDish.slug = slugify(initDish.name);
-    }
-    
-    // icrease 1 if group present
-    async function getSlug(slug: string, salt?: number){
-      let _slug = slug
-      if (salt) _slug = slug+"-"+salt;
-
-      if((await Dish.find({slug: _slug})).length) {
-        getSlug(slug,salt+1);
-      } else {
-        return slug+salt
-      }
-    }
-
-    await getSlug(initDish.slug);
+  beforeUpdate: function (record, proceed) {
+    getEmitter().emit('core:dish-before-update', record);
     return proceed();
   },
+
+  beforeCreate: function (record, proceed) {
+    getEmitter().emit('core:dish-before-create', record);
+    return proceed();
+  },
+
   afterUpdate: function (record, proceed) {
-    getEmitter().emit("core-dish-after-update", record);
+    getEmitter().emit('core:dish-after-update', record);
+    return proceed();
+  },
+
+  afterCreate: function (record, proceed) {
+    getEmitter().emit('core:dish-after-create', record);
     return proceed();
   },
 

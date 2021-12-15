@@ -110,26 +110,24 @@ export default Group;
 
 let Model = {
 
-  beforeCreate: async function(initGroup: any, proceed: any) {
+  beforeUpdate: function (record, proceed) {
+    getEmitter().emit('core:group-before-update', record);
+    return proceed();
+  },
 
-    if (!initGroup.slug){
-      initGroup.slug = slugify(initGroup.name);
-    }
+  beforeCreate: function (record, proceed) {
+    getEmitter().emit('core:group-before-create', record);
+    return proceed();
+  },
 
-    // icrease 1 if group present
-    async function getSlug(slug: string, salt?: number){
-      let _slug = slug
-      if (salt) _slug = slug+"-"+salt;
+  afterUpdate: function (record, proceed) {
+    getEmitter().emit('core:group-after-update', record);
+    return proceed();
+  },
 
-      if((await Group.find({slug: _slug})).length) {
-        getSlug(slug,salt+1);
-      } else {
-        return slug+salt
-      }
-    }
-
-    await getSlug(initGroup.slug);
-    return proceed()
+  afterCreate: function (record, proceed) {
+    getEmitter().emit('core:group-after-create', record);
+    return proceed();
   },
 
   /**
@@ -153,7 +151,7 @@ let Model = {
       .populate("childGroups")
       .populate("dishes")
       .populate("images");
-    
+
     const errors = {};
     for await(let group of groups) {
       const reason = checkExpression(group);
@@ -175,13 +173,13 @@ let Model = {
               if (data) childGroups.push(data);
             } catch (e) {}
           }
- 
+
           delete menu[group.id].childGroups;
           menu[group.id].childGroups = childGroups;
           if (menu[group.id].childGroups.length > 1) menu[group.id].childGroups.sort((a, b) => a.order - b.order);
- 
+
         }
- 
+
         menu[group.id].dishesList = await Dish.getDishes({
           parentGroup: group.id,
         });
@@ -222,7 +220,7 @@ let Model = {
    * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   async getGroupBySlug(groupSlug: string): Promise<Group> {
-    
+
     if (!groupSlug) throw "groupSlug is required"
 
     const groupObj = await Group.findOne({ slug: groupSlug });

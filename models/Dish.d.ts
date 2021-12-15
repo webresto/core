@@ -85,8 +85,10 @@ interface Dish extends attributes, ORM {
 }
 export default Dish;
 declare let Model: {
-    beforeCreate: (initDish: any, proceed: any) => unknown;
+    beforeUpdate: (record: any, proceed: any) => any;
+    beforeCreate: (record: any, proceed: any) => any;
     afterUpdate: (record: any, proceed: any) => any;
+    afterCreate: (record: any, proceed: any) => any;
     /**
      * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
      * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.

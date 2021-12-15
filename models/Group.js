@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const getEmitter_1 = require("../libs/getEmitter");
-const slugify_1 = require("slugify");
 let attributes = {
     /**Id */
     id: {
@@ -84,23 +83,20 @@ let attributes = {
     workTime: "json",
 };
 let Model = {
-    beforeCreate: async function (initGroup, proceed) {
-        if (!initGroup.slug) {
-            initGroup.slug = (0, slugify_1.default)(initGroup.name);
-        }
-        // icrease 1 if group present
-        async function getSlug(slug, salt) {
-            let _slug = slug;
-            if (salt)
-                _slug = slug + "-" + salt;
-            if ((await Group.find({ slug: _slug })).length) {
-                getSlug(slug, salt + 1);
-            }
-            else {
-                return slug + salt;
-            }
-        }
-        await getSlug(initGroup.slug);
+    beforeUpdate: function (record, proceed) {
+        (0, getEmitter_1.default)().emit('core:group-before-update', record);
+        return proceed();
+    },
+    beforeCreate: function (record, proceed) {
+        (0, getEmitter_1.default)().emit('core:group-before-create', record);
+        return proceed();
+    },
+    afterUpdate: function (record, proceed) {
+        (0, getEmitter_1.default)().emit('core:group-after-update', record);
+        return proceed();
+    },
+    afterCreate: function (record, proceed) {
+        (0, getEmitter_1.default)().emit('core:group-after-create', record);
         return proceed();
     },
     /**

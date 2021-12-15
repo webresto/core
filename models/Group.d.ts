@@ -45,7 +45,10 @@ interface Group extends attributes, ORM {
 }
 export default Group;
 declare let Model: {
-    beforeCreate: (initGroup: any, proceed: any) => unknown;
+    beforeUpdate: (record: any, proceed: any) => any;
+    beforeCreate: (record: any, proceed: any) => any;
+    afterUpdate: (record: any, proceed: any) => any;
+    afterCreate: (record: any, proceed: any) => any;
     /**
      * Возвращает объект с группами и ошибками получения этих самых групп.
      * @param groupsId - массив id групп, которые следует получить
