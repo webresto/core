@@ -10,8 +10,11 @@ https://github.com/building5/sails-db-migrate
 8. database migration agregator
 9. System allerts, notify array (adapter)
 10. RMS-adapter managment from core
-11. adapter for causes, import params 
+11. adapter for causes, import params, 
 12. separate silly logs, splitted by day 
 13. Debug mode for AwaitEmmiter 
 14. discount adapter
 15. add state reject for await emmiter ( and get reason to checkout cart)
+16. adapter for discount
+17. User's support
+18. Database migration system 
