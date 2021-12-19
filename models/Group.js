@@ -84,19 +84,19 @@ let attributes = {
 };
 let Model = {
     beforeUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-before-update', record);
+        getEmitter_1.default().emit('core:group-before-update', record);
         return proceed();
     },
     beforeCreate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-before-create', record);
+        getEmitter_1.default().emit('core:group-before-create', record);
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-after-update', record);
+        getEmitter_1.default().emit('core:group-after-update', record);
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-after-create', record);
+        getEmitter_1.default().emit('core:group-after-create', record);
         return proceed();
     },
     /**
@@ -122,7 +122,7 @@ let Model = {
             .populate("images");
         const errors = {};
         for await (let group of groups) {
-            const reason = (0, checkExpression_1.default)(group);
+            const reason = checkExpression_1.default(group);
             if (!reason) {
                 menu[group.id] = group;
                 if (group.childGroups) {
@@ -154,7 +154,7 @@ let Model = {
                 errors[group.id] = reason;
             }
         }
-        await (0, getEmitter_1.default)().emit("core-group-get-groups", menu, errors);
+        await getEmitter_1.default().emit("core-group-get-groups", menu, errors);
         const res = Object.values(menu);
         //TODO: rewrite with throw
         return { groups: res, errors: errors };

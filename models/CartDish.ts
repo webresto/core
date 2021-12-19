@@ -59,10 +59,10 @@ let attributes = {
   uniqueItems: "number" as unknown as number,
 
   /** цена позиции */
-  itemTotal: "float" as unknown as number,
+  itemTotal: "number" as unknown as number,
 
   /** цена позиции до применения скидок */
-  itemTotalBeforeDiscount: 'float',
+  itemTotalBeforeDiscount: "number",
 
   /** Скидка */
   discount: "json" as unknown as any,
@@ -77,7 +77,7 @@ let attributes = {
   discountMessage: "string",
 
   /** Сумма скидки */
-  discountAmount: 'float',
+  discountAmount: "number",
 
   /** Коментарий к корзине */
   comment: "string" as unknown as number,

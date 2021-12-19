@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
+import { WorkTime } from "@webresto/worktime";
 declare let attributes: {
     id: string;
     title: string;

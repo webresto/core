@@ -23,6 +23,7 @@
  */
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
+import { Modifier } from "../interfaces/Modifier";
 declare let attributes: {
     /** */
     id: number;
@@ -31,7 +32,7 @@ declare let attributes: {
     /**Само блюдо, которое содержится в корзине */
     dish: any;
     /** Модификаторы для текущего блюда */
-    modifiers: {};
+    modifiers: Modifier[];
     /** */
     cart: any;
     /** Количество уникальных блюд в корзине */
