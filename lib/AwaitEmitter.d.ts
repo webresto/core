@@ -54,7 +54,7 @@ declare class Event {
  */
 declare class Response {
     label: string;
-    state: 'success' | 'error' | 'timeout';
+    state: "success" | "error" | "timeout";
     result: any;
     error: any;
     constructor(label: string, result: any, error?: any, timeout?: boolean);

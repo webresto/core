@@ -310,7 +310,11 @@ let cartInstance: Cart = {
   },
   check: async function (customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<any> {
     const self: Cart = await Cart.countCart(this);
-
+    
+    // reset 
+    self.message = "";
+    self.deliveryDescription = "";
+    
     if (self.state === "ORDER") throw "cart with cartId " + self.id + "in state ORDER";
 
     //const self: Cart = this;
@@ -376,6 +380,7 @@ let cartInstance: Cart = {
     const results = await getEmitter().emit("core-cart-check", self, customer, isSelfService, address, paymentMethodId);
 
     await self.save();
+    console
     if (self.dishesCount === 0) {
       throw {
         code: 13,

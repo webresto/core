@@ -120,8 +120,6 @@ const actions = {
     if (!cart && !cart.id)
       throw 'cart is required';
 
-    cart.deliveryDescription = "";
-    cart.message = "";
     await cart.next('CART');
 
     const removeDishes = await CartDish.find({cart: cart.id, addedBy: 'delivery'});
