@@ -33,11 +33,18 @@ module.exports = {
         }
         /** ENV variable is important*/
         if (process.env[key] !== undefined) {
+            let value;
             try {
                 return JSON.parse(process.env[key]);
             }
             catch (e) {
                 sails.log.error("CORE > SystemInfo > use ENV parse error: ", e);
+                value = process.env[key];
+            }
+            finally {
+                if (!(await SystemInfo.find({ key: key }).limit(1))[0])
+                    await SystemInfo.set(key, value, "env");
+                return value;
             }
         }
         let obj = await SystemInfo.findOne({ key: key });
