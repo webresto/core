@@ -4,7 +4,7 @@ import Address from "./Address";
  * Описывает данные, которые необходимы для проврки и оформления заказа
  */
 export default interface OrderData {
-    cartId: string;
+    orderId: string;
     customer: Customer;
     delivery?: {
         type: string;

@@ -1,4 +1,4 @@
-import Cart from "../models/Cart";
+import Order from "../models/Order";
 /**
  * Object with functions to action
  * If you wanna add new actions just call addAction('newActionName', function newActionFunction(...) {...}); Also in this
@@ -8,26 +8,26 @@ import Cart from "../models/Cart";
  *
  * 1. Add new function doStuff
  * ```
- * addAction('doStuff', function(params: ActionParams): Promise<Cart> {
- *   const cartId = params.cartId;
+ * addAction('doStuff', function(params: ActionParams): Promise<Order> {
+ *   const orderId = params.orderId;
  *
- *   if (!cartId)
- *     throw 'cartId (string) is required as first element of params';
+ *   if (!orderId)
+ *     throw 'orderId (string) is required as first element of params';
  *
- *   const cart = await Cart.findOne(cartId);
- *   if (!cart)
- *     throw 'cart with id ' + cartId + ' not found';
+ *   const order = await Order.findOne(orderId);
+ *   if (!order)
+ *     throw 'order with id ' + orderId + ' not found';
  *
- *   sails.log.info('DO STUFF WITH CART', cart);
+ *   sails.log.info('DO STUFF WITH CART', order);
  *
- *   return cart;
+ *   return order;
  * });
  * ```
  *
  * 2. Create new Actions interface
  * ```
  * interface NewActions extends Actions {
- *   doStuff(params: ActionParams): Promise<Cart>;
+ *   doStuff(params: ActionParams): Promise<Order>;
  * }
  * ```
  *
@@ -40,36 +40,36 @@ import Cart from "../models/Cart";
  */
 declare const actions: {
     /**
-     * Add dish in cart
-     * @param params(cart.id,  dishesId)
-     * @return Promise<Cart>
+     * Add dish in order
+     * @param params(order.id,  dishesId)
+     * @return Promise<Order>
      */
-    addDish(cart: Cart, params: any): Promise<Cart>;
+    addDish(order: Order, params: any): Promise<Order>;
     /**
      * Set delivery cost
-     * @param params(cart.id,  deliveryCost)
+     * @param params(order.id,  deliveryCost)
      * @returns {Promise<>}
      */
-    delivery(cart: Cart, params: any): Promise<Cart>;
+    delivery(order: Order, params: any): Promise<Order>;
     /**
-     * Reset all cart action
-     * @param cartId
+     * Reset all order action
+     * @param orderId
      * @returns {Promise<>}
      */
-    reset(cart: Cart): Promise<Cart>;
+    reset(order: Order): Promise<Order>;
     /**
-     * Add delivery description in cart
-     * @param params(cart.id,  description)
-     * @return Promise<Cart>
+     * Add delivery description in order
+     * @param params(order.id,  description)
+     * @return Promise<Order>
      */
-    setDeliveryDescription(cart: Cart, params: any): Promise<Cart>;
-    reject(cart: Cart, params: any): Promise<Cart>;
-    setMessage(cart: Cart, params: any): Promise<Cart>;
+    setDeliveryDescription(order: Order, params: any): Promise<Order>;
+    reject(order: Order, params: any): Promise<Order>;
+    setMessage(order: Order, params: any): Promise<Order>;
     return(): number;
 };
 export default actions;
-declare type actionFunc1 = (params?: any, ...args: any) => Promise<Cart>;
-declare type actionFunc2 = (...args: any) => Promise<Cart>;
+declare type actionFunc1 = (params?: any, ...args: any) => Promise<Order>;
+declare type actionFunc2 = (...args: any) => Promise<Order>;
 declare type actionFunc = actionFunc1 | actionFunc2;
 /**
  * Add new action in actions

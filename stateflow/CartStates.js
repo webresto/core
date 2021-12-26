@@ -1,7 +1,7 @@
 module.exports = {
     /**
-     * This is a first state, here only raw cart.
-     * Any modification of cart prssible only in this state.
+     * This is a first state, here only raw order.
+     * Any modification of order prssible only in this state.
      * If you need add promo goods or delete stoped dish you need be here
      */
     CART: {
@@ -19,8 +19,8 @@ module.exports = {
         },
     },
     /**
-     * This stage of cart after totaly checked
-     * If you make any odification of cart, you need make checkout again
+     * This stage of order after totaly checked
+     * If you make any odification of order, you need make checkout again
      * From checkout you may go to payment and order (for payment promise)
      */
     CHECKOUT: {

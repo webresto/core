@@ -9,8 +9,8 @@ module.exports.restocore = {
     timeSyncMap: 900,
     stateflow: {
         models: {
-            cart: {
-                flowFile: path_1.resolve(__dirname, "../stateflow/", "CartStates.js"),
+            order: {
+                flowFile: path_1.resolve(__dirname, "../stateflow/", "OrderStates.js"),
                 startState: "CART",
                 states: {
                     CART: ["CHECKOUT"],

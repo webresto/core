@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const getEmitter_1 = require("../libs/getEmitter");
-/** На примере корзины (Cart):
- * 1. Модель проводящяя оплату internal/external (например: Cart) создает PaymentDocument
+/** На примере корзины (Order):
+ * 1. Модель проводящяя оплату internal/external (например: Order) создает PaymentDocument
  *
  * 2. PaymentDocument при создании нового платежного поручения находит нужный платежный метод
  *    и создает оплату в платежной системе (происходит редирект на платежную форму)
@@ -21,7 +21,7 @@ const getEmitter_1 = require("../libs/getEmitter");
  *
  * 5. Если оплата прошла успешно то PaymentProcessor  установит статус PAID в соответвующий PaymentDocument,
  *    это в свою очередь означает что PaymentDocument попытается поставить флаг isPaid: true в моделе  и совершит emit('core-payment-document-paid', document)
- *    соответсвующей originModel текущего PaymentDocument. ( В случе с Cart произойдет next(); )
+ *    соответсвующей originModel текущего PaymentDocument. ( В случе с Order произойдет next(); )
  *
  * 6. В случае изменения статуса оплаты произойдет вызов  emit('core-payment-document-status', document) где любая система сможет
  *    отрегировать на изменения статуса,
