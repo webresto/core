@@ -19,3 +19,4 @@ https://github.com/building5/sails-db-migrate
 17. User's support
 18. Database migration system + automigration submodules (best way automigration from all submodules migration dirs, but for start normaly make migration by bash script)
 19. AwaitEmmiter setup globaly 
+20. persistent OrderDish history

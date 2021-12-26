@@ -1,33 +1,8 @@
-/**
- * @api {API} OrderDish OrderDish
- * @apiGroup Models
- * @apiDescription Модель блюда в корзине. Содержит информацию о количестве данного блюда в коризне и его модификаторы
- *
- * @apiParam {Integer} id ID данного блюда в корзине. Все операции с блюдом в корзине проводить с этим ID
- * @apiParam {Integer} amount
- * @apiParam {[Dish](#api-Models-ApiDish)} dish
- * @apiParam {JSON} modifiers Модификаторы для текущего блюда
- * @apiParam {[Order](#api-Models-ApiOrder)} order Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии
- * @apiParam {[OrderDish](#api-Models-ApiOrderdish)} parent Родительское блюдо (для модификаторов)
- * @apiParam {Integer} uniqueItems Количество уникальных блюд для текущего блюда (учитывая модификаторы)
- * @apiParam {Integer} itemTotal Стоимсть данного блюда с модификаторами
- * @apiParam {String} comment Комментарий к блюду
- * @apiParam {String} addedBy Указывает каким образом блюдо попало в корзину
- *
- * @apiParamExample {JSON} Модификаторы:
- *  {
-      "id": "string",
-      "amount": "integer",
-      "groupId": "string"
- *  }
- */
-
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
 import { Modifier } from "../interfaces/Modifier";
-import { Attributes } from "waterline";
 
 let attributes = {
   /** */
@@ -42,7 +17,7 @@ let attributes = {
   // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
   // Есть идея что нужно отдельно запекать заказы.
 
-  /**Само блюдо, которое содержится в корзине */
+  /**Блюдо, которое содержится в корзине */
   dish: {
     model: "Dish",
   } as unknown as Dish | any,
