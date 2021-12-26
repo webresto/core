@@ -1,5 +1,5 @@
 /**
- * @api {API} CartDish CartDish
+ * @api {API} OrderDish OrderDish
  * @apiGroup Models
  * @apiDescription Модель блюда в корзине. Содержит информацию о количестве данного блюда в коризне и его модификаторы
  *
@@ -7,8 +7,8 @@
  * @apiParam {Integer} amount
  * @apiParam {[Dish](#api-Models-ApiDish)} dish
  * @apiParam {JSON} modifiers Модификаторы для текущего блюда
- * @apiParam {[Cart](#api-Models-ApiCart)} cart Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии
- * @apiParam {[CartDish](#api-Models-ApiCartdish)} parent Родительское блюдо (для модификаторов)
+ * @apiParam {[Order](#api-Models-ApiOrder)} order Корзина, в которой находится данное блюдо. Обычно просто ID корзины без модели во избежание рекурсии
+ * @apiParam {[OrderDish](#api-Models-ApiOrderdish)} parent Родительское блюдо (для модификаторов)
  * @apiParam {Integer} uniqueItems Количество уникальных блюд для текущего блюда (учитывая модификаторы)
  * @apiParam {Integer} itemTotal Стоимсть данного блюда с модификаторами
  * @apiParam {String} comment Комментарий к блюду
@@ -25,7 +25,7 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import Dish from "../models/Dish";
-import Cart from "../models/Cart";
+import Order from "../models/Order";
 import { Modifier } from "../interfaces/Modifier";
 import { Attributes } from "waterline";
 
@@ -51,9 +51,9 @@ let attributes = {
   modifiers: "json" as unknown as Modifier[],
 
   /** */
-  cart: {
-    model: "Cart",
-  } as unknown as Cart | any,
+  order: {
+    model: "Order",
+  } as unknown as Order | any,
 
   /** Количество уникальных блюд в корзине */
   uniqueItems: "number" as unknown as number,
@@ -96,8 +96,8 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface CartDish extends attributes, ORM {}
-export default CartDish;
+interface OrderDish extends attributes, ORM {}
+export default OrderDish;
 
 let Model = {};
 
@@ -108,5 +108,5 @@ module.exports = {
 };
 
 declare global {
-  const CartDish: typeof Model & ORMModel<CartDish>;
+  const OrderDish: typeof Model & ORMModel<OrderDish>;
 }

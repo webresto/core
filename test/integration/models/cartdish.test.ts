@@ -1,11 +1,11 @@
 import { expect } from "chai";
 
-let cartDishId: number;
-const cartDishExample = {
+let orderDishId: number;
+const orderDishExample = {
   amount: 1000,
   dish: "dishId",
   modifiers: '"json"',
-  cart: "cartId",
+  order: "orderId",
   discount: '"json"',
   parent: 1,
   uniqueItems: 5,
@@ -17,16 +17,16 @@ const cartDishExample = {
   totalWeight: 600,
 };
 
-describe("CartDish", function () {
+describe("OrderDish", function () {
   
   it("create", async function () {
-    const cartDish = await CartDish.create(cartDishExample).fetch();
-    cartDishId = cartDish.id;
-    expect(cartDish).to.include.all.keys(
+    const orderDish = await OrderDish.create(orderDishExample).fetch();
+    orderDishId = orderDish.id;
+    expect(orderDish).to.include.all.keys(
       "amount",
       "dish",
       "modifiers",
-      "cart",
+      "order",
       "discount",
       "parent",
       "uniqueItems",
