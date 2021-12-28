@@ -496,6 +496,8 @@ let cartInstance: Cart = {
       getEmitter().emit("core-cart-after-order", self);
     }
   },
+
+  
   payment: async function (): Promise<PaymentResponse> {
     const self: Cart = this;
     if (self.state === "ORDER") throw "cart with cartId " + self.id + "in state ORDER";
@@ -627,6 +629,9 @@ let cartModel: CartModel = {
             if (dish.balance === -1 ? false : dish.balance < cartDish.amount) {
               cartDish.amount = dish.balance;
               // Нужно удалять если количество 0
+              if(cartDish.amount >= 0){
+                  await cart.removeDish(cartDish, 999999)
+              }
               getEmitter().emit("core-cartdish-change-amount", cartDish);
               sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
             }

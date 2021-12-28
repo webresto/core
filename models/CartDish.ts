@@ -43,7 +43,7 @@ module.exports = {
       model: 'Cart'
     },
     discount: 'json',
-    uniqueItems: 'integer',
+    uniqueItems: 'integer', //deprecated
     itemTotal: 'float',
     itemTotalBeforeDiscount: 'float',
     discountTotal: 'float',

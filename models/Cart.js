@@ -565,6 +565,9 @@ let cartModel = {
                         if (dish.balance === -1 ? false : dish.balance < cartDish.amount) {
                             cartDish.amount = dish.balance;
                             // Нужно удалять если количество 0
+                            if (cartDish.amount >= 0) {
+                                await cart.removeDish(cartDish, 999999);
+                            }
                             getEmitter_1.default().emit("core-cartdish-change-amount", cartDish);
                             sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
                         }
