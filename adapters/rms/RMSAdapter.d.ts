@@ -1,5 +1,5 @@
 import OrderResponse from "./OrderResponse";
-import Cart from "../../models/Cart";
+import Order from "../../models/Order";
 /**
  * Абстрактный класс RMS адаптера. Используется для создания новых адаптеров RMS.
  */
@@ -25,13 +25,13 @@ export default abstract class RMSAdapter {
      * @param orderData - корзина, которую заказывают
      * @return Результат работы функции, тело ответа и код результата
      */
-    abstract createOrder(orderData: Cart): Promise<OrderResponse>;
+    abstract createOrder(orderData: Order): Promise<OrderResponse>;
     /**
      * Проверка заказа
      * @param orderData - корзина для проверки
      * @return результат работы функции, тело ответа и код результата
      */
-    abstract checkOrder(orderData: Cart): Promise<OrderResponse>;
+    abstract checkOrder(orderData: Order): Promise<OrderResponse>;
     /**
      * Получение системной информации
      * @return системная информация RMS

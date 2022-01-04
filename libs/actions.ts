@@ -1,6 +1,6 @@
-import Cart from "../models/Cart";
+import Order from "../models/Order";
 import Dish from "../models/Dish";
-import CartDish from "../models/CartDish";
+import OrderDish from "../models/OrderDish";
 
 /**
  * Object with functions to action
@@ -11,26 +11,26 @@ import CartDish from "../models/CartDish";
  *
  * 1. Add new function doStuff
  * ```
- * addAction('doStuff', function(params: ActionParams): Promise<Cart> {
- *   const cartId = params.cartId;
+ * addAction('doStuff', function(params: ActionParams): Promise<Order> {
+ *   const orderId = params.orderId;
  *
- *   if (!cartId)
- *     throw 'cartId (string) is required as first element of params';
+ *   if (!orderId)
+ *     throw 'orderId (string) is required as first element of params';
  *
- *   const cart = await Cart.findOne(cartId);
- *   if (!cart)
- *     throw 'cart with id ' + cartId + ' not found';
+ *   const order = await Order.findOne(orderId);
+ *   if (!order)
+ *     throw 'order with id ' + orderId + ' not found';
  *
- *   sails.log.info('DO STUFF WITH CART', cart);
+ *   sails.log.info('DO STUFF WITH CART', order);
  *
- *   return cart;
+ *   return order;
  * });
  * ```
  *
  * 2. Create new Actions interface
  * ```
  * interface NewActions extends Actions {
- *   doStuff(params: ActionParams): Promise<Cart>;
+ *   doStuff(params: ActionParams): Promise<Order>;
  * }
  * ```
  *
@@ -43,35 +43,35 @@ import CartDish from "../models/CartDish";
  */
 const actions = {
   /**
-   * Add dish in cart
-   * @param params(cart.id,  dishesId)
-   * @return Promise<Cart>
+   * Add dish in order
+   * @param params(order.id,  dishesId)
+   * @return Promise<Order>
    */
-  async addDish(cart: Cart, params: AddDishParams): Promise<Cart> {
+  async addDish(order: Order, params: AddDishParams): Promise<Order> {
     const dishesId = params.dishesId;
 
-    if (!cart && !cart.id) throw "cart is required";
+    if (!order && !order.id) throw "order is required";
 
     if (!dishesId || !dishesId.length) throw "dishIds (array of strings) is required as second element of params";
 
     for await (let dishId of dishesId) {  
       const dish = await Dish.findOne(dishId);
-      await Cart.addDish(cart.id, dish, params.amount, params.modifiers, params.comment, "delivery");
+      await Order.addDish(order.id, dish, params.amount, params.modifiers, params.comment, "delivery");
     }
 
-    return cart;
+    return order;
   },
 
   /**
    * Set delivery cost
-   * @param params(cart.id,  deliveryCost)
+   * @param params(order.id,  deliveryCost)
    * @returns {Promise<>}
    */
-  async delivery(cart: Cart, params: DeliveryParams): Promise<Cart> {
+  async delivery(order: Order, params: DeliveryParams): Promise<Order> {
     sails.log.debug(">>> action > delivery");
-    sails.log.debug("cart", JSON.stringify(cart));
+    sails.log.debug("order", JSON.stringify(order));
 
-    if (!cart && !cart.id) throw "cart is required";
+    if (!order && !order.id) throw "order is required";
 
     const deliveryCost = params.deliveryCost;
     const deliveryItem = params.deliveryItem;
@@ -86,97 +86,97 @@ const actions = {
       const item = await Dish.findOne({ rmsId: deliveryItem });
       if (!item) throw "deliveryItem with rmsId " + deliveryItem + " not found";
 
-      cart.deliveryCost = item.price;
-      cart.deliveryItem = item.id;
+      order.deliveryCost = item.price;
+      order.deliveryItem = item.id;
     } else {
-      cart.deliveryCost = deliveryCost;
+      order.deliveryCost = deliveryCost;
     }
 
-    if (cart.state !== "CHECKOUT") await Cart.next(cart.id, "CHECKOUT");
+    if (order.state !== "CHECKOUT") await Order.next(order.id, "CHECKOUT");
 
-    return cart;
+    return order;
   },
 
   /**
-   * Reset all cart action
-   * @param cartId
+   * Reset all order action
+   * @param orderId
    * @returns {Promise<>}
    */
-  async reset(cart: Cart): Promise<Cart> {
+  async reset(order: Order): Promise<Order> {
     
-    if (typeof cart === "string") {
-      cart = await Cart.findOne(cart);
+    if (typeof order === "string") {
+      order = await Order.findOne(order);
     } 
     
-    if (!cart && !cart.id) throw "cart is required";
+    if (!order && !order.id) throw "order is required";
     
-    cart.deliveryDescription = "";
-    cart.message = "";
+    order.deliveryDescription = "";
+    order.message = "";
 
-    if (cart.state !== "CART") await Cart.next(cart.id, "CART");
+    if (order.state !== "CART") await Order.next(order.id, "CART");
 
-    const removeDishes = await CartDish.find({
-      cart: cart.id,
+    const removeDishes = await OrderDish.find({
+      order: order.id,
       addedBy: { '!=' : 'user' },
     });
 
     for await (let dish of removeDishes) {
       // TODO: rewrite removeDish for totaly remove
-      Cart.removeDish(cart.id, dish, 100000);
+      Order.removeDish(order.id, dish, 100000);
     }
     
-    return await Cart.countCart(cart.id);
+    return await Order.countOrder(order.id);
   },
 
   /**
-   * Add delivery description in cart
-   * @param params(cart.id,  description)
-   * @return Promise<Cart>
+   * Add delivery description in order
+   * @param params(order.id,  description)
+   * @return Promise<Order>
    */
-  async setDeliveryDescription(cart: Cart, params: DeliveryDescriptionParams): Promise<Cart> {
-    const cartId = params.cartId;
+  async setDeliveryDescription(order: Order, params: DeliveryDescriptionParams): Promise<Order> {
+    const orderId = params.orderId;
     const description = params.description;
 
-    if (!cart && !cart.id) throw "cart is required";
+    if (!order && !order.id) throw "order is required";
 
     if (!description) {
       throw "description (string) is required as second element of params";
     }
 
-    //const cart = await Cart.findOne(cartId);
+    //const order = await Order.findOne(orderId);
 
-    if (!cart) throw "cart with id " + cartId + " not found";
+    if (!order) throw "order with id " + orderId + " not found";
 
-    cart.deliveryDescription = cart.deliveryDescription || "";
-    cart.deliveryDescription += description + "\n";
-    await Cart.update({ id: cart.id }, cart).fetch();
+    order.deliveryDescription = order.deliveryDescription || "";
+    order.deliveryDescription += description + "\n";
+    await Order.update({ id: order.id }, order).fetch();
 
-    return cart;
+    return order;
   },
 
-  async reject(cart: Cart, params: ActionParams): Promise<Cart> {
-    if (!cart && !cart.id) throw "cart is required";
+  async reject(order: Order, params: ActionParams): Promise<Order> {
+    if (!order && !order.id) throw "order is required";
 
-    await Cart.next(cart.id, "CART");
-    return cart;
+    await Order.next(order.id, "CART");
+    return order;
   },
 
-  async setMessage(cart: Cart, params: MessageParams): Promise<Cart> {
+  async setMessage(order: Order, params: MessageParams): Promise<Order> {
     sails.log.info("CORE > actions > setMessage", params);
-    const cartId = params.cartId;
+    const orderId = params.orderId;
     const message = params.message;
 
-    if (!cart && !cart.id) throw "cart is required";
+    if (!order && !order.id) throw "order is required";
 
     if (!message) throw "description (string) is required as second element of params";
 
-    //const cart = await Cart.findOne(cartId);
-    if (!cart) throw "cart with id " + cartId + " not found";
+    //const order = await Order.findOne(orderId);
+    if (!order) throw "order with id " + orderId + " not found";
 
-    cart.message = message;
+    order.message = message;
 
-    await Cart.update({ id: cart.id }, cart).fetch();
-    return cart;
+    await Order.update({ id: order.id }, order).fetch();
+    return order;
   },
 
   return(): number {
@@ -186,8 +186,8 @@ const actions = {
 
 export default actions;
 
-type actionFunc1 = (params?: any, ...args: any) => Promise<Cart>;
-type actionFunc2 = (...args: any) => Promise<Cart>;
+type actionFunc1 = (params?: any, ...args: any) => Promise<Order>;
+type actionFunc2 = (...args: any) => Promise<Order>;
 type actionFunc = actionFunc1 | actionFunc2;
 
 /**

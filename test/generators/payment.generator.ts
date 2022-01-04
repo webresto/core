@@ -6,7 +6,7 @@ export default function generate_payment(): Payment {
     amount: Math.floor(Math.random() * 9999) + 1000,
     paymentId: uuid(),
     paymentMethod: "TestPaymentSystem",
-    originModel: "Cart",
+    originModel: "Order",
     comment: "testing",
   };
 }

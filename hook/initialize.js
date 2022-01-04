@@ -12,9 +12,9 @@ function ToInitialize(sails) {
     return function initialize(cb) {
         // Disable blueprints magic
         if (process.env.BLUEPRINTS_SECURITY_OFF !== "TRUE") {
-            sails.log.info("Blueprints rest/shortcuts magic is OFF");
             sails.config.blueprints.shortcuts = false;
             sails.config.blueprints.rest = false;
+            sails.log.info("Blueprints rest/shortcuts magic is OFF");
         }
         if (sails.config.restocore.stateflow)
             sails.config.stateflow = _.merge(sails.config.stateflow, sails.config.restocore.stateflow);
@@ -30,7 +30,7 @@ function ToInitialize(sails) {
         /**
          * Bind models
          */
-        hookTools_1.default.bindModels((0, path_1.resolve)(__dirname, "../models")).then(cb);
+        hookTools_1.default.bindModels(path_1.resolve(__dirname, "../models")).then(cb);
     };
 }
 exports.default = ToInitialize;

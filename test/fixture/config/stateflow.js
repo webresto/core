@@ -1,4 +1,4 @@
 module.exports.stateflow = {
-  model: 'Cart',
+  model: 'Order',
   stateField: 'state'
 };

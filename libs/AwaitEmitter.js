@@ -52,17 +52,33 @@ class AwaitEmitter {
                 if (sails.config.log && sails.config.log.level === "silly") {
                     let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
                     args = args.map((arg) => {
-                        return new Proxy(arg, {
-                            set: function (target, key, value) {
-                                console.log(`From \x1b[40m\x1b[33m\x1b[5m ${f.label} \x1b[0m : ${debugRay}`);
-                                console.log(`\x1b[33m${key} : ${JSON.stringify(value)} \x1b[0m`);
-                                console.log("\x1b[32m" + "↷↷↷↷↷↷↷↷↷↷↷");
-                                console.dir(target);
-                                console.log("-------------------------------------------------------");
-                                target[key] = value;
-                                return true;
-                            },
-                        });
+                        if (typeof arg === "object") {
+                            return new Proxy(arg, {
+                                set: function (target, key, value) {
+                                    let label = `
+  -----------------------------------------------------------------
+  From \x1b[40m\x1b[33m\x1b[5m ${f.label} \x1b[0m : ${debugRay}
+  \x1b[33m${key} : ${JSON.stringify(value, null, 2)} \x1b[0m
+    
+  method listing:
+  
+  ${f.fn}
+  
+  \x1b[32m ↷↷↷↷↷↷↷↷↷↷↷
+  ${JSON.stringify(target, null, 2)}
+  
+  
+  TRACE: 
+                      `;
+                                    console.trace(label);
+                                    target[key] = value;
+                                    return true;
+                                },
+                            });
+                        }
+                        else {
+                            return arg;
+                        }
                     });
                 }
                 const r = f.fn.apply(that, args);

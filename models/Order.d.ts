@@ -1,7 +1,7 @@
 import { Modifier } from "../interfaces/Modifier";
 import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
-import CartDish from "./CartDish";
+import OrderDish from "./OrderDish";
 import PaymentDocument from "./PaymentDocument";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
@@ -14,7 +14,7 @@ declare let attributes: {
     /** last 8 chars from id */
     shortId: string;
     /** */
-    dishes: number[] | CartDish[];
+    dishes: number[] | OrderDish[];
     /** */
     discount: any;
     paymentMethod: any;
@@ -53,13 +53,12 @@ declare let attributes: {
     message: string;
     deliveryItem: any;
     deliveryCost: number;
-    /** cart total weight */
+    /** order total weight */
     totalWeight: number;
-    /** total = cartTotal */
+    /** total = orderTotal */
     total: number;
     /**  orderTotal = total + deliveryCost - discountTotal - bonusesTotal */
     orderTotal: number;
-    cartTotal: number;
     discountTotal: number;
     orderDate: string;
     customData: any;
@@ -68,34 +67,34 @@ interface stateFlowInstance {
     state: string;
 }
 declare type attributes = typeof attributes & stateFlowInstance;
-interface Cart extends attributes, ORM {
+interface Order extends attributes, ORM {
 }
-export default Cart;
+export default Order;
 declare let Model: {
-    beforeCreate(cartInit: any, next: any): void;
-    /** Add dish into cart */
-    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, cartDishId?: number): Promise<void>;
-    removeDish(criteria: any, dish: CartDish, amount: number, stack?: boolean): Promise<void>;
-    setCount(criteria: any, dish: CartDish, amount: number): Promise<void>;
-    setComment(criteria: any, dish: CartDish, comment: string): Promise<void>;
+    beforeCreate(orderInit: any, next: any): void;
+    /** Add dish into order */
+    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
+    removeDish(criteria: any, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
+    setCount(criteria: any, dish: OrderDish, amount: number): Promise<void>;
+    setComment(criteria: any, dish: OrderDish, comment: string): Promise<void>;
     /**
-     * Set cart selfService field. Use this method to change selfService.
+     * Set order selfService field. Use this method to change selfService.
      * @param selfService
      */
-    setSelfService(criteria: any, selfService?: boolean): Promise<Cart>;
+    setSelfService(criteria: any, selfService?: boolean): Promise<Order>;
     check(criteria: any, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void>;
     /** Оформление корзины */
     order(criteria: any): Promise<number>;
     payment(criteria: any): Promise<PaymentResponse>;
     paymentMethodId(criteria: any): Promise<string>;
-    /**  given populated Cart instance  by criteria*/
+    /**  given populated Order instance  by criteria*/
     populate(criteria: any): Promise<{
         /** Id  */
         id: string;
         /** last 8 chars from id */
         shortId: string;
         /** */
-        dishes: number[] | CartDish[];
+        dishes: number[] | OrderDish[];
         /** */
         discount: any;
         paymentMethod: any;
@@ -134,13 +133,12 @@ declare let Model: {
         message: string;
         deliveryItem: any;
         deliveryCost: number;
-        /** cart total weight */
+        /** order total weight */
         totalWeight: number;
-        /** total = cartTotal */
+        /** total = orderTotal */
         total: number;
         /**  orderTotal = total + deliveryCost - discountTotal - bonusesTotal */
         orderTotal: number;
-        cartTotal: number;
         discountTotal: number;
         orderDate: string;
         customData: any;
@@ -150,11 +148,11 @@ declare let Model: {
     /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
      * Подсчет должен происходить только до перехода на чекаут
-     * @param cart
+     * @param order
      */
-    countCart(criteria: any): Promise<Cart>;
+    countOrder(criteria: any): Promise<Order>;
     doPaid(criteria: any, paymentDocument: PaymentDocument): Promise<void>;
 };
 declare global {
-    const Cart: typeof Model & ORMModel<Cart> & StateFlowModel;
+    const Order: typeof Model & ORMModel<Order> & StateFlowModel;
 }

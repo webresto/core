@@ -4,7 +4,7 @@ import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentS
 import { Payment } from "../../../interfaces/Payment";
 import generate_payment from "../../generators/payment.generator";
 import PaymentDocument from "../../../models/PaymentDocument";
-//import Cart from '../../../models/Cart';
+//import Order from '../../../models/Order';
 import { create } from "lodash";
 
 describe("PaymentDocument", function () {
@@ -41,13 +41,13 @@ describe("PaymentDocument", function () {
     });
 
     await PaymentDocument.destroy({});
-    let cart = await Cart.create({}).fetch();
+    let order = await Order.create({}).fetch();
     let paymentMethod = await PaymentMethod.findOne({
       adapter: "test-payment-system",
     });
     if (!paymentMethod) throw "paymentMethod (test-payment-system) was not found "
     PaymentDocument.processor(3000);
-    await PaymentDocument.register(cart.id, "cart", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
+    await PaymentDocument.register(order.id, "order", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
 
     await sleep(5000);
 

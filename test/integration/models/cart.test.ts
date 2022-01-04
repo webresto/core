@@ -1,20 +1,20 @@
 import { expect } from "chai";
 import Address from "../../../interfaces/Address";
 import { name } from "faker";
-import Cart from "../../../models/Cart";
+import Order from "../../../models/Order";
 import Dish from "../../../models/Dish";
 import Customer from "../../../interfaces/Customer";
 import { Payment } from "../../../interfaces/Payment";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 import getEmitter from "../../../libs/getEmitter";
 import PaymentDocument from "../../../models/PaymentDocument";
-import CartDish from "../../../models/CartDish";
+import OrderDish from "../../../models/OrderDish";
 
-describe("Cart", function () {
+describe("Order", function () {
   this.timeout(10000);
-  let cart: Cart;
+  let order: Order;
   let dishes: Dish[];
-  let fullCart: Cart;
+  let fullOrder: Order;
 
   // describe('New Example', function (){
   //   it('new it', function(){
@@ -27,14 +27,14 @@ describe("Cart", function () {
   });
 
   it("create Сart", async function () {
-    cart = await Cart.create({}).fetch();
-    expect(cart).to.be.an("object");
+    order = await Order.create({}).fetch();
+    expect(order).to.be.an("object");
   });
 
   it("check model fields", async function () {
-    await Cart.addDish(cart.id, dishes[0], 1, [], "", "test");
-    cart = await Cart.findOne(cart.id).populate("dishes");
-    expect(cart).to.include.all.keys(
+    await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+    order = await Order.findOne(order.id).populate("dishes");
+    expect(order).to.include.all.keys(
       "id",
       "shortId",
       "state",
@@ -70,7 +70,7 @@ describe("Cart", function () {
       "totalWeight",
       "total",
       "orderTotal",
-      "cartTotal",
+      "orderTotal",
       "discountTotal",
       "orderDate",
       "customData"
@@ -78,61 +78,61 @@ describe("Cart", function () {
   });
 
   it("addDish", async function () {
-    cart = await Cart.create({}).fetch();
+    order = await Order.create({}).fetch();
 
     //console.log(dishes);
-    await Cart.addDish(cart.id, dishes[0], 1, [], "", "test");
-    await Cart.addDish(cart.id, dishes[1], 5, [], "test comment", "test");
+    await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+    await Order.addDish(order.id, dishes[1], 5, [], "test comment", "test");
 
-// /    await Cart.addDish(cart.id, dishes[1], 5, [], "", "test");
-    //await Cart.addDish(cart.id, dishes[1], 5, [], "test comment", "test");s
-    let result = await Cart.findOne(cart.id).populate("dishes");
+// /    await Order.addDish(order.id, dishes[1], 5, [], "", "test");
+    //await Order.addDish(order.id, dishes[1], 5, [], "test comment", "test");s
+    let result = await Order.findOne(order.id).populate("dishes");
 
     expect(result.dishes.length).to.equal(2);
 
-    let cartDish = await CartDish.find({
-      cart: cart.id,
+    let orderDish = await OrderDish.find({
+      order: order.id,
       dish: dishes[0].id,
     }).sort("createdAt ASC");
 
-    expect(cartDish[0].amount).to.equal(1);
-    expect(cartDish[0].comment).to.equal("");
-    expect(cartDish[0].addedBy).to.equal("test");
+    expect(orderDish[0].amount).to.equal(1);
+    expect(orderDish[0].comment).to.equal("");
+    expect(orderDish[0].addedBy).to.equal("test");
 
-    cartDish = await CartDish.find({ cart: cart.id, dish: dishes[1].id }).sort("createdAt ASC");
-    expect(cartDish[0].amount).to.equal(5);
-    expect(cartDish[0].comment).to.equal("test comment");
-    expect(cartDish[0].addedBy).to.equal("test");
+    orderDish = await OrderDish.find({ order: order.id, dish: dishes[1].id }).sort("createdAt ASC");
+    expect(orderDish[0].amount).to.equal(5);
+    expect(orderDish[0].comment).to.equal("test comment");
+    expect(orderDish[0].addedBy).to.equal("test");
   });
 
   it("removeDish", async function () {
-    let dish = (await Cart.findOne(cart.id).populate("dishes")).dishes[1] as CartDish;
-    dish = await CartDish.findOne(dish.id);
-    await Cart.removeDish(cart.id, dish, 1, false);
-    let changedDish = await CartDish.findOne(dish.id);
+    let dish = (await Order.findOne(order.id).populate("dishes")).dishes[1] as OrderDish;
+    dish = await OrderDish.findOne(dish.id);
+    await Order.removeDish(order.id, dish, 1, false);
+    let changedDish = await OrderDish.findOne(dish.id);
 
     expect(changedDish.amount).to.equal(dish.amount - 1);
   });
 
   it("addDish same dish increase amount", async function () {
-    cart = await Cart.create({}).fetch();
-    await Cart.addDish(cart.id, dishes[0], 2, [], "", "test");
-    await Cart.addDish(cart.id, dishes[0], 3, [], "", "test");
-    await Cart.addDish(cart.id, dishes[0], 1, null, "", "test");
+    order = await Order.create({}).fetch();
+    await Order.addDish(order.id, dishes[0], 2, [], "", "test");
+    await Order.addDish(order.id, dishes[0], 3, [], "", "test");
+    await Order.addDish(order.id, dishes[0], 1, null, "", "test");
 
-    let cartDishes = await CartDish.find({ cart: cart.id, dish: dishes[0].id });
-    // console.log('dishes > ', cartDishes);
-    expect(cartDishes.length).to.equals(1);
-    expect(cartDishes[0].amount).to.equals(6);
+    let orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
+    // console.log('dishes > ', orderDishes);
+    expect(orderDishes.length).to.equals(1);
+    expect(orderDishes[0].amount).to.equals(6);
 
-    cart = await Cart.create({}).fetch();
-    await Cart.addDish(cart.id, dishes[0], 1, [{ id: dishes[1].id, modifierId: dishes[1].id }], "", "mod");
-    await Cart.addDish(cart.id, dishes[0], 1, null, "", "test");
-    await Cart.addDish(cart.id, dishes[0], 2, null, "", "test");
-    cartDishes = await CartDish.find({ cart: cart.id, dish: dishes[0].id });
-    // console.log(cartDishes);
-    expect(cartDishes.length).to.equals(2);
-    for (let dish of cartDishes) {
+    order = await Order.create({}).fetch();
+    await Order.addDish(order.id, dishes[0], 1, [{ id: dishes[1].id, modifierId: dishes[1].id }], "", "mod");
+    await Order.addDish(order.id, dishes[0], 1, null, "", "test");
+    await Order.addDish(order.id, dishes[0], 2, null, "", "test");
+    orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
+    // console.log(orderDishes);
+    expect(orderDishes.length).to.equals(2);
+    for (let dish of orderDishes) {
       if (dish.modifiers.length == 1) {
         expect(dish.amount).to.equals(1);
       } else {
@@ -142,10 +142,10 @@ describe("Cart", function () {
   });
 
   // it('setCount', async function(){
-  //   let dish = (await Cart.findOne({id: cart.id}).populate('dishes')).dishes[0];
-  //   dish = await CartDish.findOne(dish.id);
-  //   await cart.setCount(dish, 10);
-  //   let changedDish = await CartDish.findOne({id: dish.id});
+  //   let dish = (await Order.findOne({id: order.id}).populate('dishes')).dishes[0];
+  //   dish = await OrderDish.findOne(dish.id);
+  //   await order.setCount(dish, 10);
+  //   let changedDish = await OrderDish.findOne({id: dish.id});
 
   //   expect(changedDish.amount).to.equal(10);
   // });
@@ -155,50 +155,50 @@ describe("Cart", function () {
   });
 
   it("setComment", async function () {
-    let dish = (await Cart.findOne({ id: cart.id }).populate("dishes")).dishes[0] as CartDish;
-    dish = await CartDish.findOne({ id: dish.id }) ;
+    let dish = (await Order.findOne({ id: order.id }).populate("dishes")).dishes[0] as OrderDish;
+    dish = await OrderDish.findOne({ id: dish.id }) ;
     let testComment = "this is a test comment";
-    await Cart.setComment(cart.id, dish, testComment);
-    let changedDish = await CartDish.findOne({ id: dish.id });
+    await Order.setComment(order.id, dish, testComment);
+    let changedDish = await OrderDish.findOne({ id: dish.id });
 
     expect(changedDish.comment).to.equal(testComment);
   });
 
   it("addDish 20", async function () {
-    cart = await Cart.create({}).fetch();
+    order = await Order.create({}).fetch();
     for (let i = 0; i < 20; i++) {
-      await Cart.addDish(cart.id, dishes[i], 3, [], "", "");
+      await Order.addDish(order.id, dishes[i], 3, [], "", "");
     }
   });
 
   it("addDish 21th", async function () {
-    await Cart.addDish(cart.id, dishes[21], 3, [], "", "");
+    await Order.addDish(order.id, dishes[21], 3, [], "", "");
   });
 
   it("setSelfService", async function () {
-    let cart = await Cart.create({}).fetch();
-    cart = await Cart.setSelfService(cart.id, true);
-    expect(cart.selfService).to.equal(true);
+    let order = await Order.create({}).fetch();
+    order = await Order.setSelfService(order.id, true);
+    expect(order.selfService).to.equal(true);
     
-    cart = await Cart.setSelfService(cart.id, false);
+    order = await Order.setSelfService(order.id, false);
     
-    expect(cart.selfService).to.equal(false);
+    expect(order.selfService).to.equal(false);
   });
 
 
-  it("countCart", async function () {
-    let cart = await Cart.create({}).fetch();
+  it("countOrder", async function () {
+    let order = await Order.create({}).fetch();
     let totalWeight = 0;
 
-    await Cart.addDish(cart.id, dishes[0], 5, [], "", "");
-    await Cart.addDish(cart.id, dishes[1], 3, [], "", "");
-    await Cart.addDish(cart.id, dishes[2], 8, [], "", "");
+    await Order.addDish(order.id, dishes[0], 5, [], "", "");
+    await Order.addDish(order.id, dishes[1], 3, [], "", "");
+    await Order.addDish(order.id, dishes[2], 8, [], "", "");
     totalWeight = dishes[0].weight * 5 + dishes[1].weight * 3 + dishes[2].weight * 8;
-    let changedCart = await Cart.countCart(cart);
+    let changedOrder = await Order.countOrder(order);
 
-    expect(changedCart.totalWeight).to.equal(totalWeight);
-    expect(changedCart.uniqueDishes).to.equal(3);
-    expect(changedCart.dishesCount).to.equal(5 + 3 + 8);
+    expect(changedOrder.totalWeight).to.equal(totalWeight);
+    expect(changedOrder.uniqueDishes).to.equal(3);
+    expect(changedOrder.dishesCount).to.equal(5 + 3 + 8);
   });
 
   it("order", async function () {
@@ -207,23 +207,23 @@ describe("Cart", function () {
     let count3 = 0;
     let count4 = 0;
 
-    getEmitter().on("core-cart-before-order", function () {
+    getEmitter().on("core-order-before-order", function () {
       count1++;
     });
 
-    getEmitter().on("core-cart-order-self-service", function () {
+    getEmitter().on("core-order-order-self-service", function () {
       count2++;
     });
 
-    getEmitter().on("core-cart-order", function () {
+    getEmitter().on("core-order-order", function () {
       count3++;
     });
-    getEmitter().on('core-cart-after-order', function(){
+    getEmitter().on('core-order-after-order', function(){
       count4++;
     });
 
-    await Cart.setSelfService(cart.id, true);
-    await Cart.order(cart.id);
+    await Order.setSelfService(order.id, true);
+    await Order.order(order.id);
     
     expect(count1).to.equal(1);
     expect(count2).to.equal(1);
@@ -232,39 +232,39 @@ describe("Cart", function () {
 
     let error = null;
     try {
-      await Cart.order(cart.id);
+      await Order.order(order.id);
     } catch (e) {
       error = e;
     }
     expect(error).to.not.equal(null);
 
-    getEmitter().on("core-cart-order-delivery", function () {
+    getEmitter().on("core-order-order-delivery", function () {
       // count1++;
     });
   });
 
   it("paymentMethodId", async function () {
-    let cart = await Cart.create({}).fetch();
+    let order = await Order.create({}).fetch();
     let testPaymentSystem = await TestPaymentSystem.getInstance();
     let paymentSystem = (await PaymentMethod.find())[0];
-    cart.paymentMethod = paymentSystem.id;
-    await Cart.update({ id: cart.id }, cart).fetch();
+    order.paymentMethod = paymentSystem.id;
+    await Order.update({ id: order.id }, order).fetch();
 
-    let result = await Cart.paymentMethodId(cart.id);
+    let result = await Order.paymentMethodId(order.id);
     expect(result).to.equal(paymentSystem.id);
   });
 
   it("doPaid", async function () {
-    expect(Cart.doPaid).to.not.equals(undefined);
+    expect(Order.doPaid).to.not.equals(undefined);
 
-    let cart = await Cart.create({}).fetch();
-    await Cart.addDish(cart.id, dishes[0], 5, [], "", "");
-    await Cart.addDish(cart.id, dishes[1], 3, [], "", "");
-    await Cart.addDish(cart.id, dishes[2], 8, [], "", "");
+    let order = await Order.create({}).fetch();
+    await Order.addDish(order.id, dishes[0], 5, [], "", "");
+    await Order.addDish(order.id, dishes[1], 3, [], "", "");
+    await Order.addDish(order.id, dishes[2], 8, [], "", "");
 
     const paymentMethod = (await PaymentMethod.find({}))[0];
     let newPaymentDocument = {
-      paymentId: cart.id,
+      paymentId: order.id,
       externalId: "string",
       originModel: "string",
       paymentMethod: paymentMethod.id,
@@ -273,26 +273,26 @@ describe("Cart", function () {
       redirectLink: "string",
     };
     var paymentDocument = await PaymentDocument.create(newPaymentDocument).fetch();
-    await Cart.doPaid(cart.id, paymentDocument);
-    cart = await Cart.findOne(cart.id);
-    expect(cart.paid).to.equals(true);
-    expect(cart.paymentMethod).to.equals(paymentDocument.paymentMethod);
+    await Order.doPaid(order.id, paymentDocument);
+    order = await Order.findOne(order.id);
+    expect(order.paid).to.equals(true);
+    expect(order.paymentMethod).to.equals(paymentDocument.paymentMethod);
     let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
-    expect(cart.paymentMethodTitle).to.equals(paymentMethodTitle);
+    expect(order.paymentMethodTitle).to.equals(paymentMethodTitle);
   });
 });
 
 /**
- * create and return new Cart with few dishes
+ * create and return new Order with few dishes
  * @param dishes - array of dishes
  */
-async function getNewCart(dishes: Dish[]): Promise<Cart> {
-  let cart = await Cart.create({}).fetch();
-  await Cart.addDish(cart.id, dishes[0], 5, [], "", "");
-  await Cart.addDish(cart.id, dishes[1], 3, [], "", "");
-  await Cart.addDish(cart.id, dishes[2], 8, [], "", "");
-  cart = await Cart.findOne(cart.id);
-  return cart;
+async function getNewOrder(dishes: Dish[]): Promise<Order> {
+  let order = await Order.create({}).fetch();
+  await Order.addDish(order.id, dishes[0], 5, [], "", "");
+  await Order.addDish(order.id, dishes[1], 3, [], "", "");
+  await Order.addDish(order.id, dishes[2], 8, [], "", "");
+  order = await Order.findOne(order.id);
+  return order;
 }
 
 function sleep(ms) {

@@ -1,5 +1,7 @@
+import Image from "./Image";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
+import { WorkTime } from "@webresto/worktime";
 declare let attributes: {
     /** */
     id: string;
@@ -66,7 +68,7 @@ declare let attributes: {
     /** Баланс для продажи, если -1 то сколько угодно */
     balance: number;
     /** Список изображений блюда*/
-    images: {};
+    images: Image[];
     /** Слаг */
     slug: string;
     /** Хеш обекта блюда */
@@ -95,13 +97,13 @@ declare let Model: {
      * @param criteria - критерии поиска
      * @return найденные блюда
      */
-    getDishes(criteria?: any): Promise<{}>;
+    getDishes(criteria?: any): Promise<Dish[]>;
     /**
      * Популяризирует модификаторы блюда, то есть всем груповым модификаторам дописывает группу и блюда, которые им соответствуют,
      * а обычным модификаторам дописывает их блюдо.
      * @param dish
      */
-    getDishModifiers(dish: Dish): any;
+    getDishModifiers(dish: Dish): Promise<void>;
     /**
      * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
      * хеш существующего блюда и новых данных, если они идентифны, то сразу же отдаёт блюда, если нет, то обновляет его данные

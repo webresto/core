@@ -7,10 +7,10 @@ sails.on("lifted", function () {
     setInterval(async function () {
         const maintenance = await Maintenance.getActiveMaintenance();
         if (maintenance) {
-            (0, getEmitter_1.default)().emit("core-maintenance-enabled", maintenance);
+            getEmitter_1.default().emit("core-maintenance-enabled", maintenance);
         }
         else {
-            (0, getEmitter_1.default)().emit("core-maintenance-disabled");
+            getEmitter_1.default().emit("core-maintenance-disabled");
         }
     }, CHECK_INTERVAL);
 });
@@ -34,7 +34,7 @@ let attributes = {
 };
 let Model = {
     beforeCreate: function (paymentMethod, next) {
-        paymentMethod.id = (0, uuid_1.v4)();
+        paymentMethod.id = uuid_1.v4();
         next();
     },
     siteIsOff: async function () {

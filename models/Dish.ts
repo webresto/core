@@ -7,7 +7,6 @@ import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import * as _ from "lodash";
 import { WorkTime } from "@webresto/worktime";
-import slugify from "slugify"
 
 let attributes = {
   /** */
