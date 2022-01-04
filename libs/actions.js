@@ -113,7 +113,7 @@ const actions = {
             // TODO: rewrite removeDish for totaly remove
             Order.removeDish(order.id, dish, 100000);
         }
-        return await Order.countOrder(order.id);
+        return await Order.countCart(order.id);
     },
     /**
      * Add delivery description in order

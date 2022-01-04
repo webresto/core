@@ -184,7 +184,7 @@ let Model = {
             }).fetch();
         }
         await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
-        await Order.countOrder(order);
+        await Order.countCart(order);
         await Order.next(order.id, "CART");
     },
     //** Delete dish from order */
@@ -225,7 +225,7 @@ let Model = {
         }
         await emitter.emit.apply(emitter, ["core-order-after-remove-dish", ...arguments]);
         await Order.next(order.id, "CART");
-        await Order.countOrder(order);
+        await Order.countCart(order);
     },
     async setCount(criteria, dish, amount) {
         await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
@@ -252,7 +252,7 @@ let Model = {
                 sails.log.info("destroy", get.id);
             }
             await Order.next(order.id, "CART");
-            await Order.countOrder(order);
+            await Order.countCart(order);
             Order.update({ id: order.id }, order).fetch();
             await emitter.emit.apply(emitter, ["core-order-after-set-count", ...arguments]);
         }
@@ -273,7 +273,7 @@ let Model = {
         if (orderDish) {
             await OrderDish.update(orderDish.id, { comment: comment }).fetch();
             await Order.next(order.id, "CART");
-            await Order.countOrder(order);
+            await Order.countCart(order);
             Order.update({ id: order.id }, order).fetch();
             await emitter.emit.apply(emitter, ["core-order-after-set-comment", ...arguments]);
         }
@@ -294,7 +294,7 @@ let Model = {
     },
     ////////////////////////////////////////////////////////////////////////////////////
     async check(criteria, customer, isSelfService, address, paymentMethodId) {
-        const order = await Order.countOrder(criteria);
+        const order = await Order.countCart(criteria);
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
         //const order: Order = await Order.findOne(criteria);
@@ -411,7 +411,7 @@ let Model = {
         else {
             getEmitter_1.default().emit("core-order-order-delivery", order);
         }
-        await Order.countOrder(order);
+        await Order.countCart(order);
         const results = await getEmitter_1.default().emit("core-order-order", order);
         sails.log.silly("Order > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
@@ -420,7 +420,7 @@ let Model = {
         if (orderConfig) {
             if (orderConfig.requireAll) {
                 if (resultsCount === successCount) {
-                    await order();
+                    await orderIt();
                     return;
                 }
                 else {
@@ -429,7 +429,7 @@ let Model = {
             }
             if (orderConfig.justOne) {
                 if (successCount > 0) {
-                    await order();
+                    await orderIt();
                     return;
                 }
                 else {
@@ -438,9 +438,9 @@ let Model = {
             }
             throw "Bad orderConfig";
         }
-        await order();
+        await orderIt();
         return;
-        async function order() {
+        async function orderIt() {
             // await Order.next(order.id,'ORDER');
             // TODO: переписать на stateFlow
             let data = {};
@@ -468,7 +468,7 @@ let Model = {
             backLinkFail: backLinkFail,
             comment: comment,
         };
-        await Order.countOrder(order);
+        await Order.countCart(order);
         await getEmitter_1.default().emit("core-order-payment", order, params);
         sails.log.info("Order > payment > order before register:", order);
         try {
@@ -533,7 +533,7 @@ let Model = {
      * Подсчет должен происходить только до перехода на чекаут
      * @param order
      */
-    async countOrder(criteria) {
+    async countCart(criteria) {
         try {
             let order;
             if (typeof criteria === "string" || criteria instanceof String) {

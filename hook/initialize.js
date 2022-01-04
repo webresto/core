@@ -14,7 +14,7 @@ function ToInitialize(sails) {
         if (process.env.BLUEPRINTS_SECURITY_OFF !== "TRUE") {
             sails.config.blueprints.shortcuts = false;
             sails.config.blueprints.rest = false;
-            sails.log.info("Blueprints rest/shortcuts magic is OFF");
+            sails.log.info("Blueprints rest/shortcuts magic is OFF ");
         }
         if (sails.config.restocore.stateflow)
             sails.config.stateflow = _.merge(sails.config.stateflow, sails.config.restocore.stateflow);

@@ -150,7 +150,7 @@ declare let Model: {
      * Подсчет должен происходить только до перехода на чекаут
      * @param order
      */
-    countOrder(criteria: any): Promise<Order>;
+    countCart(criteria: any): Promise<Order>;
     doPaid(criteria: any, paymentDocument: PaymentDocument): Promise<void>;
 };
 declare global {

@@ -186,7 +186,7 @@ describe("Order", function () {
   });
 
 
-  it("countOrder", async function () {
+  it("countCart", async function () {
     let order = await Order.create({}).fetch();
     let totalWeight = 0;
 
@@ -194,7 +194,7 @@ describe("Order", function () {
     await Order.addDish(order.id, dishes[1], 3, [], "", "");
     await Order.addDish(order.id, dishes[2], 8, [], "", "");
     totalWeight = dishes[0].weight * 5 + dishes[1].weight * 3 + dishes[2].weight * 8;
-    let changedOrder = await Order.countOrder(order);
+    let changedOrder = await Order.countCart(order);
 
     expect(changedOrder.totalWeight).to.equal(totalWeight);
     expect(changedOrder.uniqueDishes).to.equal(3);
