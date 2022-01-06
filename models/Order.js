@@ -117,7 +117,7 @@ let Model = {
         await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
         let dishObj;
         if (!addedBy)
-            addedBy = 'user';
+            addedBy = "user";
         if (typeof dish === "string") {
             dishObj = await Dish.findOne(dish);
             if (!dishObj) {
@@ -221,7 +221,6 @@ let Model = {
         }
         else {
             await OrderDish.destroy({ id: orderDish.id }).fetch();
-            ;
         }
         await emitter.emit.apply(emitter, ["core-order-after-remove-dish", ...arguments]);
         await Order.next(order.id, "CART");
@@ -353,7 +352,7 @@ let Model = {
         if (self.dishesCount === 0) {
             throw {
                 code: 13,
-                error: 'order is empty'
+                error: "order is empty",
             };
         }
         /** save after updates in emiter */
@@ -505,9 +504,7 @@ let Model = {
                     continue;
                 }
                 const dish = await Dish.findOne({
-                    id: orderDish.dish.id
-                    // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
-                    // isDeleted: false,
+                    id: orderDish.dish.id,
                 })
                     .populate("images")
                     .populate("parentGroup");
@@ -565,6 +562,10 @@ let Model = {
                         }
                         if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
                             orderDish.amount = dish.balance;
+                            // Нужно удалять если количество 0
+                            if (orderDish.amount >= 0) {
+                                await Order.removeDish(order.id, orderDish, 999999);
+                            }
                             getEmitter_1.default().emit("core-orderdish-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
@@ -609,7 +610,7 @@ let Model = {
             order.dishes = orderDishes;
             // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
             order.dishes = orderDishes;
-            await getEmitter_1.default().emit('core-order-count-discount-apply', order);
+            await getEmitter_1.default().emit("core-order-count-discount-apply", order);
             /**
              * Карт тотал это чистая стоимость корзины
              */
@@ -617,13 +618,11 @@ let Model = {
             order.uniqueDishes = uniqueDishes;
             order.totalWeight = totalWeight;
             order.orderTotal = orderTotal;
-            getEmitter_1.default().emit('core:count-before-delivery-cost', order);
+            getEmitter_1.default().emit("core:count-before-delivery-cost", order);
             order.total = orderTotal + order.deliveryCost - order.discountTotal;
             order.orderTotal = orderTotal + order.deliveryCost - order.discountTotal;
-            if (order.delivery) {
-                order.total += order.delivery;
-            }
-            await Order.update({ id: order.id }, order).fetch();
+            delete (order.dishes);
+            order = (await Order.update({ id: order.id }, order).fetch())[0];
             getEmitter_1.default().emit("core-order-after-count", order);
             return order;
         }

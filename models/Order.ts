@@ -8,7 +8,7 @@ import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
-import {formatDate} from "@webresto/worktime"
+import { formatDate } from "@webresto/worktime";
 import Dish from "./Dish";
 import * as _ from "lodash";
 import { PaymentResponse } from "../interfaces/Payment";
@@ -160,12 +160,21 @@ let Model = {
   },
 
   /** Add dish into order */
-  async addDish(criteria: any, dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void> {
+  async addDish(
+    criteria: any,
+    dish: Dish | string,
+    amount: number,
+    modifiers: Modifier[],
+    comment: string,
+    addedBy: string,
+    replace?: boolean,
+    orderDishId?: number
+  ): Promise<void> {
     await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
 
     let dishObj: Dish;
 
-    if (!addedBy) addedBy = 'user'
+    if (!addedBy) addedBy = "user";
 
     if (typeof dish === "string") {
       dishObj = await Dish.findOne(dish);
@@ -178,13 +187,13 @@ let Model = {
     }
 
     if (dishObj.balance !== -1)
-    if (amount > dishObj.balance) {
-      await emitter.emit.apply(emitter, ["core-order-add-dish-reject-amount", ...arguments]);
-      throw {
-        body: `There is no so mush dishes with id ${dishObj.id}`,
-        code: 1,
-      };
-    }
+      if (amount > dishObj.balance) {
+        await emitter.emit.apply(emitter, ["core-order-add-dish-reject-amount", ...arguments]);
+        throw {
+          body: `There is no so mush dishes with id ${dishObj.id}`,
+          code: 1,
+        };
+      }
     const order = await Order.findOne(criteria).populate("dishes");
 
     if (order.dishes.length > 99) throw "99 max dishes amount";
@@ -277,19 +286,17 @@ let Model = {
       };
     }
 
-
     orderDish.amount -= amount;
     if (orderDish.amount > 0) {
       await OrderDish.update({ id: orderDish.id }, { amount: orderDish.amount }).fetch();
     } else {
-      await OrderDish.destroy({ id: orderDish.id }).fetch();;
+      await OrderDish.destroy({ id: orderDish.id }).fetch();
     }
 
     await emitter.emit.apply(emitter, ["core-order-after-remove-dish", ...arguments]);
     await Order.next(order.id, "CART");
     await Order.countCart(order);
   },
-
 
   async setCount(criteria: any, dish: OrderDish, amount: number): Promise<void> {
     await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
@@ -360,7 +367,7 @@ let Model = {
     sails.log.verbose("Order > setSelfService >", selfService);
     const order = await Order.findOne(criteria);
     await actions.reset(order);
-    return (await Order.update(criteria, {selfService: Boolean(selfService)}).fetch())[0];
+    return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
   },
 
   ////////////////////////////////////////////////////////////////////////////////////
@@ -430,11 +437,11 @@ let Model = {
 
     const results = await getEmitter().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
 
-    if (self.dishesCount === 0){
+    if (self.dishesCount === 0) {
       throw {
         code: 13,
-        error: 'order is empty'
-      }
+        error: "order is empty",
+      };
     }
 
     /** save after updates in emiter */
@@ -495,7 +502,6 @@ let Model = {
 
     getEmitter().emit("core-order-before-order", order);
     sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
-
 
     if (order.selfService) {
       getEmitter().emit("core-order-order-self-service", order);
@@ -579,7 +585,7 @@ let Model = {
   },
   async paymentMethodId(criteria: any): Promise<string> {
     let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];
-    let paymentMethod = populatedOrder.paymentMethod as PaymentMethod
+    let paymentMethod = populatedOrder.paymentMethod as PaymentMethod;
     return paymentMethod.id;
   },
 
@@ -606,7 +612,7 @@ let Model = {
         }
 
         const dish = await Dish.findOne({
-          id: orderDish.dish.id
+          id: orderDish.dish.id,
           // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
           // isDeleted: false,
         })
@@ -630,7 +636,7 @@ let Model = {
       sails.log.error("CART > fullOrder error", e);
     }
 
-    return {...fullOrder};
+    return { ...fullOrder };
   },
 
   /**
@@ -649,7 +655,7 @@ let Model = {
 
       getEmitter().emit("core-order-before-count", order);
 
-      if (!["CART","CHECKOUT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
+      if (!["CART", "CHECKOUT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
 
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
       // const orderDishesClone = {};
@@ -675,6 +681,10 @@ let Model = {
 
             if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
               orderDish.amount = dish.balance;
+              // Нужно удалять если количество 0
+              if (orderDish.amount >= 0) {
+                await Order.removeDish(order.id, orderDish, 999999);
+              }
               getEmitter().emit("core-orderdish-change-amount", orderDish);
               sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
             }
@@ -728,7 +738,7 @@ let Model = {
 
       // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
       order.dishes = orderDishes as Association<OrderDish>;
-      await getEmitter().emit('core-order-count-discount-apply', order);
+      await getEmitter().emit("core-order-count-discount-apply", order);
 
       /**
        * Карт тотал это чистая стоимость корзины
@@ -739,16 +749,13 @@ let Model = {
 
       order.orderTotal = orderTotal;
 
-      getEmitter().emit('core:count-before-delivery-cost', order);
+      getEmitter().emit("core:count-before-delivery-cost", order);
 
       order.total = orderTotal + order.deliveryCost - order.discountTotal;
       order.orderTotal = orderTotal + order.deliveryCost - order.discountTotal;
 
-      if (order.delivery) {
-        order.total += order.delivery;
-      }
-
-      await Order.update({ id: order.id }, order).fetch();
+      delete(order.dishes)
+      order = (await Order.update({ id: order.id }, order).fetch())[0];
 
       getEmitter().emit("core-order-after-count", order);
 
@@ -779,7 +786,7 @@ let Model = {
 
       if (order.orderTotal !== paymentDocument.amount) {
         order.problem = true;
-        order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount ;
+        order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
       }
       await Order.order(order.id);
     } catch (e) {
@@ -905,9 +912,8 @@ async function checkDate(order: Order) {
 async function getOrderDateLimit(): Promise<Date> {
   let date = new Date();
   let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //seconds
-  if (!periodPossibleForOrder)
-    periodPossibleForOrder = 86400;
+  if (!periodPossibleForOrder) periodPossibleForOrder = 86400;
 
-  date.setSeconds(date.getSeconds() + parseInt(periodPossibleForOrder))
+  date.setSeconds(date.getSeconds() + parseInt(periodPossibleForOrder));
   return date;
 }
