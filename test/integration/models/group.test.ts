@@ -48,6 +48,7 @@ describe("Group", function () {
 
   it("getGroupBySlug", async function () {
     let example = await Group.getGroup(exampleGroups[1].id);
+    console.log("EXAAAAAAAAAAAAAAAAMPLE", example)
     let group = await Group.getGroupBySlug(example.slug);
 
     // expect(example).to.equal(group);

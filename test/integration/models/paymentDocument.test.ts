@@ -45,6 +45,7 @@ describe("PaymentDocument", function () {
     let paymentMethod = await PaymentMethod.findOne({
       adapter: "test-payment-system",
     });
+    console.log("PAYMENT METHOD", paymentMethod);
     if (!paymentMethod) throw "paymentMethod (test-payment-system) was not found "
     PaymentDocument.processor(3000);
     await PaymentDocument.register(order.id, "order", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });

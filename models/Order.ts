@@ -437,6 +437,7 @@ let Model = {
 
     const results = await getEmitter().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
 
+    console.log("ORDER", order)
     if (order.dishesCount === 0) {
       throw {
         code: 13,
@@ -445,7 +446,7 @@ let Model = {
     }
 
     /** save after updates in emiter */
-    await Order.update({ id: order.id }, order).fetch().fetch();
+    await Order.update({ id: order.id }, order).fetch();
 
     sails.log.silly("Order > check > after wait general emitter", order, results);
 

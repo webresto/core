@@ -24,11 +24,11 @@ describe("Flows: Checkout", function () {
     comment: "",
   };
 
-  let dishes;
+  let dishes: Dish[];
 
   it("Create new order", async function () {
     order = await Order.create({}).fetch();
-    dishes = await Dish.find({})
+    dishes = await Dish.find({});
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     if (!order) throw "Order not created";
   });
@@ -138,6 +138,8 @@ describe("Flows: Checkout", function () {
     await Settings.set("check", null);
 
     order = await Order.create({}).fetch();
+    dishes = await Dish.find({});
+    await Order.addDish(order.id, dishes[0], 1, [], "", "test");
 
     getEmitter().on("core-order-check", "ccc", function () {
       throw "test";
@@ -161,6 +163,8 @@ describe("Flows: Checkout", function () {
   it("test checkConfig (notRequired)", async function () {
     await Settings.set("check", { notRequired: true });
     order = await Order.create({}).fetch();
+    dishes = await Dish.find({});
+    await Order.addDish(order.id, dishes[0], 1, [], "", "test");
 
     // for selfServices
     try {
@@ -180,7 +184,7 @@ describe("Flows: Checkout", function () {
   describe("check Customer", function () {
     // let order: Order;
     // it('init', async function(){
-    //     order = await Order.create({});
+    //     order = await Order.create({}).fetch();
     // });
 
     it("good customer", async function () {
@@ -299,4 +303,10 @@ describe("Flows: Checkout", function () {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function createOrder(order: Order, dishes: Dish[]) {
+  order = await Order.create({}).fetch();
+  dishes = await Dish.find({});
+  await Order.addDish(order.id, dishes[0], 1, [], "", "test");
 }
