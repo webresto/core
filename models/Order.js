@@ -349,7 +349,7 @@ let Model = {
         }
         getEmitter_1.default().emit("core-order-check-delivery", order, customer, isSelfService, address);
         const results = await getEmitter_1.default().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
-        if (self.dishesCount === 0) {
+        if (order.dishesCount === 0) {
             throw {
                 code: 13,
                 error: "order is empty",

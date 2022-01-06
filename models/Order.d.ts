@@ -14,7 +14,7 @@ declare let attributes: {
     /** last 8 chars from id */
     shortId: string;
     /** */
-    dishes: number[] | OrderDish[];
+    dishes: OrderDish[] | number[];
     /** */
     discount: any;
     paymentMethod: any;
@@ -73,7 +73,7 @@ export default Order;
 declare let Model: {
     beforeCreate(orderInit: any, next: any): void;
     /** Add dish into order */
-    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: any, dish: Dish | string, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: any, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: any, dish: OrderDish, amount: number): Promise<void>;
     setComment(criteria: any, dish: OrderDish, comment: string): Promise<void>;
@@ -94,7 +94,7 @@ declare let Model: {
         /** last 8 chars from id */
         shortId: string;
         /** */
-        dishes: number[] | OrderDish[];
+        dishes: OrderDish[] | number[];
         /** */
         discount: any;
         paymentMethod: any;
