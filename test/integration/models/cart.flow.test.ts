@@ -27,9 +27,9 @@ describe("Flows: Checkout", function () {
   let dishes;
 
   it("Create new order", async function () {
+    order = await Order.create({}).fetch();
     dishes = await Dish.find({})
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
-    order = await Order.create({}).fetch();
     if (!order) throw "Order not created";
   });
 
