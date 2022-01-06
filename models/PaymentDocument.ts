@@ -80,12 +80,11 @@ let attributes = {
     defaultsTo: false,
   } as unknown as boolean,
 
-  /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
   status: {
     type: "string",
     isIn: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
     defaultsTo: "NEW",
-  } as unknown as string,
+  } as unknown as PaymentDocumentStatus,
 
   /** Комментари для платежной системы */
   comment: "string",

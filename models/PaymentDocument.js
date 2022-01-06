@@ -66,7 +66,6 @@ let attributes = {
         type: "boolean",
         defaultsTo: false,
     },
-    /**  Cтатус может быть NEW REGISTRED PAID CANCEL REFUND DECLINE */
     status: {
         type: "string",
         isIn: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
