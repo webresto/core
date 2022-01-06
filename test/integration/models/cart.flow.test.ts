@@ -6,6 +6,7 @@ import Order from "../../../models/Order";
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
 import Settings from "../../../models/Settings";
+import Dish from "../../../models/Dish";
 
 describe("Flows: Checkout", function () {
   this.timeout(10000);
@@ -23,7 +24,11 @@ describe("Flows: Checkout", function () {
     comment: "",
   };
 
+  let dishes;
+
   it("Create new order", async function () {
+    dishes = await Dish.find({})
+    await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     order = await Order.create({}).fetch();
     if (!order) throw "Order not created";
   });
@@ -37,8 +42,9 @@ describe("Flows: Checkout", function () {
     // expect(cust).to.equal(customer);
 
     try {
+
       let paymentSystem = (await PaymentMethod.find().limit(1))[0];
-      let result = await Order.check(order.id, customer, false, address, paymentSystem.id);
+      await Order.check(order.id, customer, false, address, paymentSystem.id);
       await Order.check(order.id, null, null, null, paymentSystem.id);
 
       try {
