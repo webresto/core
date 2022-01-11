@@ -9,7 +9,6 @@ let attributes = {
     phone: 'string',
     enable: {
         type: 'boolean',
-        defaultsTo: true,
         required: true
     },
     worktime: 'json',

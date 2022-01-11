@@ -10,6 +10,11 @@ export default function ToInitialize(sails: Sails) {
   const requiredHooks = ["blueprints", "http", "orm", "policies", "stateflow"];
 
   return function initialize(cb) {
+
+    if(process.env.WEBRESTO_CORE_DISABLED){
+      return cb();
+    }
+
     // Disable blueprints magic
     if (process.env.BLUEPRINTS_SECURITY_OFF !== "TRUE") {
       sails.config.blueprints.shortcuts = false;
