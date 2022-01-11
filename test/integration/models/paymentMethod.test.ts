@@ -2,11 +2,13 @@ import { expect } from "chai";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 
 var paymentMethodSeed = {
+  id: "test-payment-cash",
   title: "Cash",
   type: "promise",
   adapter: "not_adapter_cache2",
   order: 2,
   description: "Pay by cash",
+  enable: true
 };
 var cashMethod;
 

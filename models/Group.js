@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const getEmitter_1 = require("../libs/getEmitter");
+const slugify_1 = require("slugify");
 let attributes = {
     /**Id */
     id: {
@@ -89,6 +90,7 @@ let Model = {
     },
     beforeCreate: function (record, proceed) {
         getEmitter_1.default().emit('core:group-before-create', record);
+        record.slug = slugify_1.default(record.name);
         return proceed();
     },
     afterUpdate: function (record, proceed) {

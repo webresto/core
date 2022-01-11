@@ -24,25 +24,19 @@ describe("Flows: Checkout", function () {
     comment: "",
   };
 
-  let dishes: Dish[];
+  let dishes;
 
-  it("Create new order", async function () {
+  it("Check dishescount", async function () {
     order = await Order.create({}).fetch();
-    dishes = await Dish.find({});
+    dishes = await Dish.find({})
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+    order = await Order.findOne(order.id);
     if (!order) throw "Order not created";
+    if (order.dishesCount !== 1 ) throw `Oredr dishescount: ${order.dishesCount}`
   });
 
   it("Check paymentSystem", async function () {
-    // let cust
-    // getEmitter().on('core-order-before-check', (order, customer2, isSelfService, address)=>{
-    //   cust = customer2;
-    // });
-
-    // expect(cust).to.equal(customer);
-
     try {
-
       let paymentSystem = (await PaymentMethod.find().limit(1))[0];
       await Order.check(order.id, customer, false, address, paymentSystem.id);
       await Order.check(order.id, null, null, null, paymentSystem.id);
@@ -138,8 +132,8 @@ describe("Flows: Checkout", function () {
     await Settings.set("check", null);
 
     order = await Order.create({}).fetch();
-    dishes = await Dish.find({});
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+    order = await Order.findOne(order.id);
 
     getEmitter().on("core-order-check", "ccc", function () {
       throw "test";
@@ -156,6 +150,7 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check(order.id, customer, false, address);
     } catch (e) {
+      console.error(e)
       expect(e.code).to.equal(10);
     }
   });
@@ -163,13 +158,14 @@ describe("Flows: Checkout", function () {
   it("test checkConfig (notRequired)", async function () {
     await Settings.set("check", { notRequired: true });
     order = await Order.create({}).fetch();
-    dishes = await Dish.find({});
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+    order = await Order.findOne(order.id);
 
     // for selfServices
     try {
       await Order.check(order.id, customer, true);
     } catch (e) {
+      console.error(e)
       expect(e).to.equal(null);
     }
 
@@ -177,6 +173,7 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check(order.id, customer, false, address);
     } catch (e) {
+      console.error(e)
       expect(e).to.equal(null);
     }
   });
@@ -184,12 +181,14 @@ describe("Flows: Checkout", function () {
   describe("check Customer", function () {
     // let order: Order;
     // it('init', async function(){
-    //     order = await Order.create({}).fetch();
+    //     order = await Order.create({});
     // });
 
     it("good customer", async function () {
       order = await Order.create({}).fetch();
-
+      await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+      order = await Order.findOne(order.id);
+  
       let customer: Customer = {
         phone: "+79998881212",
         name: "Freeman Morgan",
@@ -250,6 +249,10 @@ describe("Flows: Checkout", function () {
   describe("check Address", function () {
     it("good address", async function () {
       order = await Order.create({}).fetch();
+      
+      await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+      order = await Order.findOne(order.id);
+
       let address: Address = {
         streetId: "1234abcd",
         city: "New York",
@@ -303,10 +306,4 @@ describe("Flows: Checkout", function () {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function createOrder(order: Order, dishes: Dish[]) {
-  order = await Order.create({}).fetch();
-  dishes = await Dish.find({});
-  await Order.addDish(order.id, dishes[0], 1, [], "", "test");
 }

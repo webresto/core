@@ -11,7 +11,6 @@ let attributes = {
   phone: 'string',
   enable: {
     type: 'boolean',
-    defaultsTo: true,
     required: true
   } as unknown as boolean,
   worktime: 'json' as unknown as WorkTime,
