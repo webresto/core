@@ -711,6 +711,7 @@ let cartModel: CartModel = {
 
       getEmitter().emit("core-cart-after-count", cart);
 
+      delete(cart.dishes)
       await Cart.update({ id: cart.id }, cart);
       return cart;
     } catch (error) {

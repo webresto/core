@@ -634,6 +634,7 @@ let cartModel = {
                 cart.total += cart.delivery;
             }
             getEmitter_1.default().emit("core-cart-after-count", cart);
+            delete (cart.dishes);
             await Cart.update({ id: cart.id }, cart);
             return cart;
         }
