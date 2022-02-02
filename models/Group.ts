@@ -117,7 +117,7 @@ let Model = {
 
   beforeCreate: function (record, proceed) {
     getEmitter().emit('core:group-before-create', record);
-    record.slug = slugify(record.name, {remove: /[*+~.()'"!:@]/g});
+    record.slug = slugify(record.name, {remove: /[*+~.()'"!:@\\\/]/g}).toLowerCase();
     return proceed();
   },
 
