@@ -14,6 +14,7 @@ import * as _ from "lodash";
 import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
+import { isArray } from "lodash";
 
 const emitter = getEmitter();
 
@@ -172,7 +173,7 @@ let Model = {
     if (!addedBy) addedBy = "user";
 
     if (typeof dish === "string") {
-      dishObj = await Dish.findOne(dish);
+      dishObj = (await Dish.find(dish).limit(1))[0];
 
       if (!dishObj) {
         throw { body: `Dish with id ${dish} not found`, code: 2 };
@@ -620,7 +621,7 @@ let Model = {
 
         if (orderDish.modifiers !== undefined) {
           for await (let modifier of orderDish.modifiers) {
-            modifier.dish = await Dish.findOne(modifier.id);
+            modifier.dish = (await Dish.find(modifier.id).limit(1))[0];
           }
         }
       }
@@ -665,7 +666,7 @@ let Model = {
       for await (let orderDish of orderDishes) {
         try {
           if (orderDish.dish) {
-            const dish = await Dish.findOne(orderDish.dish.id);
+            const dish = (await Dish.find(orderDish.dish.id).limit(1))[0];
 
             // Проверяет что блюдо доступно к продаже
             if (!dish) {
@@ -689,10 +690,11 @@ let Model = {
             orderDish.itemTotal = 0;
             orderDish.weight = orderDish.dish.weight;
             orderDish.totalWeight = 0;
+            // orderDish.dishId = dish.id
 
-            if (orderDish.modifiers) {
+            if (orderDish.modifiers && isArray(orderDish.modifiers)) {
               for (let modifier of orderDish.modifiers) {
-                const modifierObj = await Dish.findOne(modifier.id);
+                const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
 
                 if (!modifierObj) {
                   sails.log.error("Dish with id " + modifier.id + " not found!");
@@ -708,14 +710,19 @@ let Model = {
                 // await getEmitter().emit('core-order-countorder-before-calc-modifier', modifierCopy, modifierObj);
 
                 orderDish.uniqueItems++;
+
                 orderDish.itemTotal += modifier.amount * modifierObj.price;
+                if (!Number(orderDish.itemTotal)) throw `orderDish.itemTotal is NaN ${modifier}.`
+
                 orderDish.weight += modifierObj.weight;
               }
             }
 
             orderDish.totalWeight = orderDish.weight * orderDish.amount;
             orderDish.itemTotal += orderDish.dish.price;
+
             orderDish.itemTotal *= orderDish.amount;
+
             orderDish.dish = orderDish.dish.id;
             await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
             orderDish.dish = dish;
@@ -730,10 +737,7 @@ let Model = {
         }
       }
 
-      order.dishes = orderDishes;
-
       // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
-      order.dishes = orderDishes as Association<OrderDish>;
       await getEmitter().emit("core-order-count-discount-apply", order);
 
       /**
@@ -750,11 +754,9 @@ let Model = {
       order.total = orderTotal + order.deliveryCost - order.discountTotal;
       order.orderTotal = orderTotal + order.deliveryCost - order.discountTotal;
 
-      delete(order.dishes)
       order = (await Order.update({ id: order.id }, order).fetch())[0];
-
+      order.dishes = orderDishes;
       getEmitter().emit("core-order-after-count", order);
-
       return order;
     } catch (error) {
       console.log(" error >", error);

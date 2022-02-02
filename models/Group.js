@@ -90,7 +90,7 @@ let Model = {
     },
     beforeCreate: function (record, proceed) {
         getEmitter_1.default().emit('core:group-before-create', record);
-        record.slug = slugify_1.default(record.name, { remove: /[*+~.()'"!:@]/g });
+        record.slug = slugify_1.default(record.name, { remove: /[*+~.()'"!:@\\\/]/g }).toLowerCase();
         return proceed();
     },
     afterUpdate: function (record, proceed) {
