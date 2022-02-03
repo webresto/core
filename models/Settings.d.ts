@@ -28,5 +28,7 @@ declare let Model: {
     set(key: string, value: any, from?: string): Promise<any>;
 };
 declare global {
-    const Settings: typeof Model & ORMModel<Settings>;
+    namespace NodeJS {
+        const Settings: typeof Model & ORMModel<Settings>;
+    }
 }

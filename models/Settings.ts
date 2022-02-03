@@ -77,7 +77,7 @@ let Model = {
    * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
    */
   async set(key: string, value: any, from?: string): Promise<any> {
-    if (key === undefined || value === undefined) throw `Setting set key (${key}) and value (${value}) required`
+    if (key === undefined || value === undefined) throw `Setting set key (${key}) and value (${value}) required`;
     try {
       const propety = await Settings.findOne({ key: key });
       if (!propety) {
@@ -102,5 +102,7 @@ module.exports = {
 };
 
 declare global {
-  const Settings: typeof Model & ORMModel<Settings>;
+  namespace NodeJS {
+    const Settings: typeof Model & ORMModel<Settings>;
+  }
 }
