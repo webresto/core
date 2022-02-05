@@ -353,7 +353,10 @@ let Model = {
                 error: "order is empty",
             };
         }
-        /** save after updates in emiter */
+        /** save after updates in emiter
+         * есть сомнения что это тут нужно
+        */
+        delete (order.dishes);
         await Order.update({ id: order.id }, { ...order });
         sails.log.silly("Order > check > after wait general emitter", order, results);
         getEmitter_1.default().emit("core-order-after-check", order, customer, isSelfService, address);

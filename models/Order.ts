@@ -441,7 +441,10 @@ let Model = {
       };
     }
 
-    /** save after updates in emiter */
+    /** save after updates in emiter 
+     * есть сомнения что это тут нужно
+    */
+    delete(order.dishes);
     await Order.update({ id: order.id }, {...order});
 
     sails.log.silly("Order > check > after wait general emitter", order, results);
