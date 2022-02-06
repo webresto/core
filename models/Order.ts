@@ -360,8 +360,11 @@ let Model = {
    * @param selfService
    */
   async setSelfService(criteria: any, selfService: boolean = true): Promise<Order> {
+    
     sails.log.verbose("Order > setSelfService >", selfService);
     const order = await Order.findOne(criteria);
+    if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
+
     await actions.reset(order);
     return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
   },
@@ -493,7 +496,10 @@ let Model = {
   async order(criteria: any): Promise<number> {
     const order = await Order.findOne(criteria);
 
+
+    //  TODO: Реализовать через стейтфлоу
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
+    if (order.state === "CART") throw "order with orderId " + order.id + "in state CART";
 
     // await Order.update({id: order.id}).fetch();
     // PTODO: проверка эта нужна
@@ -555,9 +561,11 @@ let Model = {
       getEmitter().emit("core-order-after-order", order);
     }
   },
+
+
   async payment(criteria: any): Promise<PaymentResponse> {
     const order: Order = await Order.findOne(criteria);
-    if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
+    if (order.state !== "CHECKOUT") throw "order with orderId " + order.id + "in state ${order.state} but need CHECKOUT";
 
     var paymentResponse: PaymentResponse;
     let comment: string = "";

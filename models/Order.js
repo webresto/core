@@ -285,6 +285,8 @@ let Model = {
     async setSelfService(criteria, selfService = true) {
         sails.log.verbose("Order > setSelfService >", selfService);
         const order = await Order.findOne(criteria);
+        if (order.state === "ORDER")
+            throw "order with orderId " + order.id + "in state ORDER";
         await actions_1.default.reset(order);
         return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
     },
@@ -397,8 +399,11 @@ let Model = {
     /** Оформление корзины */
     async order(criteria) {
         const order = await Order.findOne(criteria);
+        //  TODO: Реализовать через стейтфлоу
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
+        if (order.state === "CART")
+            throw "order with orderId " + order.id + "in state CART";
         // await Order.update({id: order.id}).fetch();
         // PTODO: проверка эта нужна
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
@@ -455,8 +460,8 @@ let Model = {
     },
     async payment(criteria) {
         const order = await Order.findOne(criteria);
-        if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+        if (order.state !== "CHECKOUT")
+            throw "order with orderId " + order.id + "in state ${order.state} but need CHECKOUT";
         var paymentResponse;
         let comment = "";
         var backLinkSuccess = (await Settings.use("FrontendOrderPage")) + order.id;
