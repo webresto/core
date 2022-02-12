@@ -122,11 +122,6 @@ let attributes = {
     defaultsTo: 0,
   } as unknown as number,
 
-  orderTotal: {
-    type: "number",
-    defaultsTo: 0,
-  } as unknown as number,
-
   discountTotal: {
     type: "number",
     defaultsTo: 0,
@@ -446,7 +441,7 @@ let Model = {
     }
 
     /** save after updates in emiter */
-    await Order.update({ id: order.id }, order).fetch();
+    await Order.update({ id: order.id }, {...order});
 
     sails.log.silly("Order > check > after wait general emitter", order, results);
 

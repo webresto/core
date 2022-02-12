@@ -90,10 +90,6 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
-    orderTotal: {
-        type: "number",
-        defaultsTo: 0,
-    },
     discountTotal: {
         type: "number",
         defaultsTo: 0,
@@ -357,7 +353,7 @@ let Model = {
             };
         }
         /** save after updates in emiter */
-        await Order.update({ id: order.id }, order).fetch();
+        await Order.update({ id: order.id }, { ...order });
         sails.log.silly("Order > check > after wait general emitter", order, results);
         getEmitter_1.default().emit("core-order-after-check", order, customer, isSelfService, address);
         /** Чек может проходить без слушателей, потомучто минимально сам по себе чек
