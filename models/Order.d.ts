@@ -14,7 +14,7 @@ declare let attributes: {
     /** last 8 chars from id */
     shortId: string;
     /** */
-    dishes: OrderDish[] | number[];
+    dishes: number[] | OrderDish[];
     /** */
     discount: any;
     paymentMethod: any;
@@ -94,7 +94,7 @@ declare let Model: {
         /** last 8 chars from id */
         shortId: string;
         /** */
-        dishes: OrderDish[] | number[];
+        dishes: number[] | OrderDish[];
         /** */
         discount: any;
         paymentMethod: any;
