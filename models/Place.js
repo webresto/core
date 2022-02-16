@@ -2,7 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 let attributes = {
-    id: "string",
+    id: {
+        type: "string",
+        required: true,
+    },
     title: 'string',
     address: 'string',
     order: 'integer',

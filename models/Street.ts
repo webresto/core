@@ -4,7 +4,10 @@ import { v4 as uuid } from "uuid";
 
 let attributes = {
   /** ID */
-  id: "string",
+  id: {
+    type: "string",
+    required: true,
+  } as unknown as string,
 
   /** Название улицы */
   name: "string",

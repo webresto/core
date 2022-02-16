@@ -18,6 +18,7 @@ let attributes = {
     /** id */
     id: {
         type: "string",
+        required: true,
     },
     /** title of maintenance */
     title: "string",

@@ -7,7 +7,10 @@ const lodash_1 = require("lodash");
 const emitter = getEmitter_1.default();
 let attributes = {
     /** Id  */
-    id: "string",
+    id: {
+        type: "string",
+        required: true,
+    },
     /** last 8 chars from id */
     shortId: "string",
     /** */

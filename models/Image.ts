@@ -6,7 +6,10 @@ import { v4 as uuid } from "uuid";
 
 let attributes = {
   /** ID картинки */
-  id: "string",
+  id: {
+    type: "string",
+    required: true,
+  } as unknown as string,
 
   /** Данные о картинках, что содержит данная модель */
   images: "json" as unknown as any,

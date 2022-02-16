@@ -11,6 +11,7 @@ let attributes = {
   /**Id */
   id: {
     type: "string",
+    required: true,
   } as unknown as string,
 
   /** Addishinal info */

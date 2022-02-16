@@ -48,7 +48,10 @@ var PaymentDocumentStatus;
 let payment_processor_interval;
 let attributes = {
     /** Уникальный id в моделе PaymentDocument */
-    id: "string",
+    id: {
+        type: "string",
+        required: true,
+    },
     /** соответсвует id из модели originModel */
     paymentId: "string",
     /** ID во внешней системе */

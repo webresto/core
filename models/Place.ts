@@ -4,7 +4,10 @@ import { v4 as uuid } from "uuid";
 import { WorkTime } from "@webresto/worktime";
 
 let attributes = {
-  id: "string",
+  id: {
+    type: "string",
+    required: true,
+  } as unknown as string,
   title: 'string',
   address: 'string',
   order: 'integer' as unknown as number,

@@ -20,7 +20,10 @@ const emitter = getEmitter();
 
 let attributes = {
   /** Id  */
-  id: "string",
+  id: {
+    type: "string",
+    required: true,
+  } as unknown as string,
 
   /** last 8 chars from id */
   shortId: "string",

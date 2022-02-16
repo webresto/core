@@ -55,7 +55,10 @@ let payment_processor_interval: ReturnType<typeof setInterval>;
 
 let attributes = {
   /** Уникальный id в моделе PaymentDocument */
-  id: "string",
+  id: {
+    type: "string",
+    required: true,
+  } as unknown as string,
 
   /** соответсвует id из модели originModel */
   paymentId: "string",
