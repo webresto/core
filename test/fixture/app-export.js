@@ -45,7 +45,7 @@ try {
   rc = require('rc');
 } catch (e0) {
   try {
-    rc = require('sails/node_modules/rc');
+    rc = require('sails/accessible/rc');
   } catch (e1) {
     console.error('Could not find dependency: `rc`.');
     console.error('Your `.sailsrc` file(s) will be ignored.');
@@ -70,4 +70,4 @@ try {
 module.exports = {
   sails: sails,
   rc: rc('sails')
-} 
+}
