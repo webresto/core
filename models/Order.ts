@@ -22,7 +22,12 @@ let attributes = {
   /** Id  */
   id: {
     type: "string",
+    
+    /** Для тестовой системы есть хак (@webresto/core/hacks/waterline.js: ) 
+     *  который гасит проблему в sails-disk, а для постгри это не нужно
     required: true,
+    ^^^^^^^^^^^^^^^
+    */
   } as unknown as string,
 
   /** last 8 chars from id */
@@ -145,7 +150,7 @@ interface Order extends attributes, ORM {}
 export default Order;
 
 let Model = {
-  beforeValidate(orderInit: any, next: any) {
+  beforeCreate(orderInit: any, next: any) {
     if (!orderInit.id) {
       orderInit.id = uuid();
     }

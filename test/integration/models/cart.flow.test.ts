@@ -53,6 +53,7 @@ describe("Flows: Checkout", function () {
   });
 
   it("awaitEmiter order events", async function () {
+    //@ts-ignore
     await Settings.set("check", { notRequired: true });
 
     let core_order_before_check = 0;
@@ -129,6 +130,7 @@ describe("Flows: Checkout", function () {
   });
 
   it("test checkConfig (default - requireAll)", async function () {
+    //@ts-ignore
     await Settings.set("check", null);
 
     order = await Order.create({}).fetch();
@@ -156,7 +158,9 @@ describe("Flows: Checkout", function () {
   });
 
   it("test checkConfig (notRequired)", async function () {
+    //@ts-ignore
     await Settings.set("check", { notRequired: true });
+    
     order = await Order.create({}).fetch();
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     order = await Order.findOne(order.id);

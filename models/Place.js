@@ -4,7 +4,6 @@ const uuid_1 = require("uuid");
 let attributes = {
     id: {
         type: "string",
-        required: true,
     },
     title: 'string',
     address: 'string',
@@ -21,7 +20,7 @@ let attributes = {
     customData: 'json'
 };
 let Model = {
-    beforeValidate(placeInit, next) {
+    beforeCreate(placeInit, next) {
         if (!placeInit.id) {
             placeInit.id = uuid_1.v4();
         }

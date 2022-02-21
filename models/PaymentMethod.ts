@@ -15,7 +15,7 @@ let attributes = {
   /** ID платежного метода */
   id: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   /** Название платежного метода */
@@ -71,7 +71,7 @@ let Model = {
     }
   },
 
-  beforeValidate: function (paymentMethod, next) {
+  beforeCreate: function (paymentMethod, next) {
     paymentMethod.id = uuid();
     next();
   },

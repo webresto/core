@@ -13,7 +13,7 @@ let attributes = {
   /**Id */
   id: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   /** Addishinal info */
@@ -38,7 +38,7 @@ let attributes = {
   /** Наименование блюда */
   name: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   seoDescription: {
@@ -112,7 +112,7 @@ interface Group extends attributes, ORM {}
 export default Group;
 
 let Model = {
-  beforeValidate(init: any, next: any) {
+  beforeCreate(init: any, next: any) {
     if (!init.id) {
       init.id = uuid();
     }

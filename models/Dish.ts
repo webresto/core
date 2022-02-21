@@ -13,13 +13,13 @@ let attributes = {
   /** */
   id: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   /** */
   rmsId: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   /** */
@@ -43,7 +43,7 @@ let attributes = {
   /** Наименование */
   name: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   /** SEO description */
@@ -187,7 +187,7 @@ interface Dish extends attributes, ORM {}
 export default Dish;
 
 let Model = {
-  beforeValidate(init: any, next: any) {
+  beforeCreate(init: any, next: any) {
     if (!init.id) {
       init.id = uuid();
     }

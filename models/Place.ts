@@ -6,7 +6,7 @@ import { WorkTime } from "@webresto/worktime";
 let attributes = {
   id: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
   title: 'string',
   address: 'string',
@@ -27,7 +27,7 @@ interface Place extends attributes, ORM {}
 export default Place;
 
 let Model = {
-  beforeValidate(placeInit: any, next: any) {
+  beforeCreate(placeInit: any, next: any) {
     if (!placeInit.id) {
       placeInit.id = uuid();
     }

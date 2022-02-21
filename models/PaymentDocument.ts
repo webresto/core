@@ -57,7 +57,7 @@ let attributes = {
   /** Уникальный id в моделе PaymentDocument */
   id: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   /** соответсвует id из модели originModel */
@@ -103,7 +103,7 @@ type attributes = typeof attributes;
 interface PaymentDocument extends attributes, ORM {}
 export default PaymentDocument;
 let Model = {
-  beforeValidate(paymentDocumentInit: any, next: any) {
+  beforeCreate(paymentDocumentInit: any, next: any) {
     if (!paymentDocumentInit.id) {
       paymentDocumentInit.id = uuid();
     }

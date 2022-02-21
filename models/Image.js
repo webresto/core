@@ -5,7 +5,6 @@ let attributes = {
     /** ID картинки */
     id: {
         type: "string",
-        required: true,
     },
     /** Данные о картинках, что содержит данная модель */
     images: "json",
@@ -23,7 +22,7 @@ let attributes = {
     uploadDate: "string",
 };
 let Model = {
-    beforeValidate(imageInit, next) {
+    beforeCreate(imageInit, next) {
         if (!imageInit.id) {
             imageInit.id = uuid_1.v4();
         }

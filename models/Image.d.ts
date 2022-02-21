@@ -1,14 +1,16 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
+import Dish from "../models/Dish";
+import Group from "../models/Group";
 declare let attributes: {
     /** ID картинки */
     id: string;
     /** Данные о картинках, что содержит данная модель */
     images: any;
     /** Блюдо, которому принадлежит картинка */
-    dish: {};
+    dish: Dish[];
     /** */
-    group: {};
+    group: Group[];
     /** Группа, которой принажлежит картинка */
     uploadDate: string;
 };
@@ -17,7 +19,7 @@ interface Image extends attributes, ORM {
 }
 export default Image;
 declare let Model: {
-    beforeValidate(imageInit: any, next: any): void;
+    beforeCreate(imageInit: any, next: any): void;
 };
 declare global {
     const Image: typeof Model & ORMModel<Image>;

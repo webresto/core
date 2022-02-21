@@ -16,7 +16,7 @@ interface Street extends attributes, ORM {
 }
 export default Street;
 declare let Model: {
-    beforeValidate(streetInit: any, next: any): void;
+    beforeCreate(streetInit: any, next: any): void;
 };
 declare global {
     const Street: typeof Model & ORMModel<Street>;

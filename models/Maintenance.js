@@ -18,7 +18,6 @@ let attributes = {
     /** id */
     id: {
         type: "string",
-        required: true,
     },
     /** title of maintenance */
     title: "string",
@@ -34,7 +33,7 @@ let attributes = {
     stopDate: "string",
 };
 let Model = {
-    beforeValidate: function (paymentMethod, next) {
+    beforeCreate: function (paymentMethod, next) {
         paymentMethod.id = uuid_1.v4();
         next();
     },

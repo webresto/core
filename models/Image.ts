@@ -8,7 +8,7 @@ let attributes = {
   /** ID картинки */
   id: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   /** Данные о картинках, что содержит данная модель */
@@ -34,7 +34,7 @@ interface Image extends attributes, ORM {}
 export default Image;
 
 let Model = {
-  beforeValidate(imageInit: any, next: any) {
+  beforeCreate(imageInit: any, next: any) {
     if (!imageInit.id) {
       imageInit.id = uuid();
     }

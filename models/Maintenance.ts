@@ -21,7 +21,7 @@ let attributes = {
   /** id */
   id: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
   /** title of maintenance */
   title: "string",
@@ -44,7 +44,7 @@ interface Maintenance extends attributes, ORM {}
 export default Maintenance;
 
 let Model = {
-  beforeValidate: function (paymentMethod, next) {
+  beforeCreate: function (paymentMethod, next) {
     paymentMethod.id = uuid();
     next();
   },

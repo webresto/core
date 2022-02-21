@@ -6,7 +6,7 @@ let attributes = {
   /** ID */
   id: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   /** Название улицы */
@@ -27,7 +27,7 @@ interface Street extends attributes, ORM {}
 export default Street;
 
 let Model = {
-  beforeValidate(streetInit: any, next: any) {
+  beforeCreate(streetInit: any, next: any) {
     if (!streetInit.id) {
       streetInit.id = uuid();
     }

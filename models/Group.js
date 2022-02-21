@@ -8,7 +8,6 @@ let attributes = {
     /**Id */
     id: {
         type: "string",
-        required: true,
     },
     /** Addishinal info */
     additionalInfo: {
@@ -29,7 +28,6 @@ let attributes = {
     /** Наименование блюда */
     name: {
         type: "string",
-        required: true,
     },
     seoDescription: {
         type: "string",
@@ -86,7 +84,7 @@ let attributes = {
     workTime: "json",
 };
 let Model = {
-    beforeValidate(init, next) {
+    beforeCreate(init, next) {
         if (!init.id) {
             init.id = uuid_1.v4();
         }

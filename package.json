@@ -66,12 +66,12 @@
     "hookName": "restocore"
   },
   "scripts": {
-    "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
+    "test": "tsc; mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
     "test:js": "mocha test/bootstrap.js './test/{,!(fixture)/**}/*.test.js' --exit",
     "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
     "test:init": "[ ! -d \"test/fixture/node_modules\" ] &&  cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
     "build": "tsc",
-    "_postinstall": "node hacks/waterline.js",
+    "postinstall": "node hacks/waterline.js",
     "format": "npx prettier --write \"**/*.ts\""
   },
   "version": "1.0.2"

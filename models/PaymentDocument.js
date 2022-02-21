@@ -50,7 +50,6 @@ let attributes = {
     /** Уникальный id в моделе PaymentDocument */
     id: {
         type: "string",
-        required: true,
     },
     /** соответсвует id из модели originModel */
     paymentId: "string",
@@ -82,7 +81,7 @@ let attributes = {
     error: "string",
 };
 let Model = {
-    beforeValidate(paymentDocumentInit, next) {
+    beforeCreate(paymentDocumentInit, next) {
         if (!paymentDocumentInit.id) {
             paymentDocumentInit.id = uuid_1.v4();
         }

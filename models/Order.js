@@ -9,7 +9,6 @@ let attributes = {
     /** Id  */
     id: {
         type: "string",
-        required: true,
     },
     /** last 8 chars from id */
     shortId: "string",
@@ -102,7 +101,7 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeValidate(orderInit, next) {
+    beforeCreate(orderInit, next) {
         if (!orderInit.id) {
             orderInit.id = uuid_1.v4();
         }
