@@ -27,7 +27,7 @@ interface Place extends attributes, ORM {}
 export default Place;
 
 let Model = {
-  beforeCreate(placeInit: any, next: any) {
+  beforeValidate(placeInit: any, next: any) {
     if (!placeInit.id) {
       placeInit.id = uuid();
     }

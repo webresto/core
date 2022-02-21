@@ -16,7 +16,7 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate(streetInit, next) {
+    beforeValidate(streetInit, next) {
         if (!streetInit.id) {
             streetInit.id = uuid_1.v4();
         }

@@ -1,6 +1,5 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
-import { WorkTime } from "@webresto/worktime";
 declare let attributes: {
     id: string;
     title: string;
@@ -8,7 +7,7 @@ declare let attributes: {
     order: number;
     phone: string;
     enable: boolean;
-    worktime: WorkTime;
+    worktime: any;
     isPickupPoint: boolean;
     isCookingPoint: boolean;
     isSalePoint: boolean;
@@ -19,7 +18,7 @@ interface Place extends attributes, ORM {
 }
 export default Place;
 declare let Model: {
-    beforeCreate(placeInit: any, next: any): void;
+    beforeValidate(placeInit: any, next: any): void;
 };
 declare global {
     const Place: typeof Model & ORMModel<Place>;

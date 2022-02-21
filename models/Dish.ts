@@ -7,6 +7,7 @@ import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import * as _ from "lodash";
 import { WorkTime } from "@webresto/worktime";
+import { v4 as uuid } from "uuid";
 
 let attributes = {
   /** */
@@ -186,6 +187,13 @@ interface Dish extends attributes, ORM {}
 export default Dish;
 
 let Model = {
+  beforeValidate(init: any, next: any) {
+    if (!init.id) {
+      init.id = uuid();
+    }
+    next();
+  },
+
   beforeUpdate: function (record, proceed) {
     getEmitter().emit('core:dish-before-update', record);
     return proceed();

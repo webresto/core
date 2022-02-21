@@ -27,7 +27,7 @@ interface Street extends attributes, ORM {}
 export default Street;
 
 let Model = {
-  beforeCreate(streetInit: any, next: any) {
+  beforeValidate(streetInit: any, next: any) {
     if (!streetInit.id) {
       streetInit.id = uuid();
     }

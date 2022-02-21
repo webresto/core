@@ -7,6 +7,8 @@ import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import slugify from "slugify"
 import { groupBy } from "lodash";
+import { v4 as uuid } from "uuid";
+
 let attributes = {
   /**Id */
   id: {
@@ -110,7 +112,12 @@ interface Group extends attributes, ORM {}
 export default Group;
 
 let Model = {
-
+  beforeValidate(init: any, next: any) {
+    if (!init.id) {
+      init.id = uuid();
+    }
+    next();
+  },
   beforeUpdate: function (record, proceed) {
     getEmitter().emit('core:group-before-update', record);
     return proceed();

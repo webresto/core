@@ -103,7 +103,7 @@ type attributes = typeof attributes;
 interface PaymentDocument extends attributes, ORM {}
 export default PaymentDocument;
 let Model = {
-  beforeCreate(paymentDocumentInit: any, next: any) {
+  beforeValidate(paymentDocumentInit: any, next: any) {
     if (!paymentDocumentInit.id) {
       paymentDocumentInit.id = uuid();
     }

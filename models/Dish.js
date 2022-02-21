@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const hashCode_1 = require("../libs/hashCode");
 const getEmitter_1 = require("../libs/getEmitter");
+const uuid_1 = require("uuid");
 let attributes = {
     /** */
     id: {
@@ -138,6 +139,12 @@ let attributes = {
     workTime: "json",
 };
 let Model = {
+    beforeValidate(init, next) {
+        if (!init.id) {
+            init.id = uuid_1.v4();
+        }
+        next();
+    },
     beforeUpdate: function (record, proceed) {
         getEmitter_1.default().emit('core:dish-before-update', record);
         return proceed();

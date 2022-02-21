@@ -23,7 +23,7 @@ let attributes = {
     uploadDate: "string",
 };
 let Model = {
-    beforeCreate(imageInit, next) {
+    beforeValidate(imageInit, next) {
         if (!imageInit.id) {
             imageInit.id = uuid_1.v4();
         }

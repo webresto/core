@@ -82,7 +82,7 @@ let attributes = {
     error: "string",
 };
 let Model = {
-    beforeCreate(paymentDocumentInit, next) {
+    beforeValidate(paymentDocumentInit, next) {
         if (!paymentDocumentInit.id) {
             paymentDocumentInit.id = uuid_1.v4();
         }

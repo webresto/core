@@ -102,7 +102,7 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate(orderInit, next) {
+    beforeValidate(orderInit, next) {
         if (!orderInit.id) {
             orderInit.id = uuid_1.v4();
         }

@@ -145,7 +145,7 @@ interface Order extends attributes, ORM {}
 export default Order;
 
 let Model = {
-  beforeCreate(orderInit: any, next: any) {
+  beforeValidate(orderInit: any, next: any) {
     if (!orderInit.id) {
       orderInit.id = uuid();
     }

@@ -21,7 +21,7 @@ let attributes = {
     customData: 'json'
 };
 let Model = {
-    beforeCreate(placeInit, next) {
+    beforeValidate(placeInit, next) {
         if (!placeInit.id) {
             placeInit.id = uuid_1.v4();
         }

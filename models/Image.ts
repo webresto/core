@@ -34,11 +34,11 @@ interface Image extends attributes, ORM {}
 export default Image;
 
 let Model = {
-  beforeCreate(imageInit: any, next: any) {
+  beforeValidate(imageInit: any, next: any) {
     if (!imageInit.id) {
       imageInit.id = uuid();
     }
-    
+
     next();
   },
 };

@@ -34,7 +34,7 @@ let attributes = {
     stopDate: "string",
 };
 let Model = {
-    beforeCreate: function (paymentMethod, next) {
+    beforeValidate: function (paymentMethod, next) {
         paymentMethod.id = uuid_1.v4();
         next();
     },
