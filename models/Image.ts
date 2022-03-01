@@ -20,6 +20,9 @@ let attributes = {
     via: "images",
   } as unknown as Dish[],
 
+  /** Порядок сортировки */
+  order: "number" as unknown as number,
+
   /** */
   group: {
     collection: "group",

@@ -33,41 +33,41 @@ declare let Model: {
      * @param  paymentMethodId
      * @return
      */
-    getAdapter(adapter?: string): Promise<PaymentAdapter>;
+    getAdapter(adapter?: string): any;
     beforeCreate: (paymentMethod: any, next: any) => void;
     /**
      * Возвращает true если платежный метод является обещанием платежа
      * @param  paymentMethodId
      * @return
      */
-    isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
+    isPaymentPromise(paymentMethodId?: string): any;
     /**
      * Добавляет в список возможных к использованию платежные адаптеры при их старте.
      * Если  платежный метод не сушетсвует в базе то создает его
      * @param paymentMethod
      * @return
      */
-    alive(paymentAdapter: PaymentAdapter): Promise<string[]>;
+    alive(paymentAdapter: PaymentAdapter): any;
     /**
      * Возвращает массив с возможными на текущий момент способами оплаты отсортированный по order
      * @param  нету
      * @return массив типов оплат
      */
-    getAvailable(): Promise<PaymentMethod[]>;
+    getAvailable(): any;
     /**
      * Проверяет платежную систему на доступность, и включенность,
      *  для пейментПромис систем только включенность.
      * @param paymentMethodId
      * @return
      */
-    checkAvailable(paymentMethodId: string): Promise<boolean>;
+    checkAvailable(paymentMethodId: string): any;
     /**
      * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
      * @param  paymentMethodId
      * @return PaymentAdapter
      * @throws
      */
-    getAdapterById(paymentMethodId: string): Promise<PaymentAdapter>;
+    getAdapterById(paymentMethodId: string): any;
 };
 declare global {
     const PaymentMethod: typeof Model & ORMModel<PaymentMethod>;

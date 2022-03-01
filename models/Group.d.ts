@@ -1,8 +1,6 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import Image from "../models/Image";
 import Dish from "../models/Dish";
-import { WorkTime } from "@webresto/worktime";
 declare let attributes: {
     /**Id */
     id: string;
@@ -22,15 +20,15 @@ declare let attributes: {
     /** Очередь сортировки */
     order: number;
     /** Блюда группы */
-    dishes: Dish[];
+    dishes: {};
     /** Родительская группа */
     parentGroup: any;
     /** Дочерние группы */
-    childGroups: Group[];
+    childGroups: {};
     /** Изображения */
-    images: Image[];
+    images: {};
     /** Плейсхолдер для блюд группы */
-    dishesPlaceholder: Image[];
+    dishesPlaceholder: {};
     /** Человеко читаемый АйДи */
     slug: string;
     /** Гурппа отображается */
@@ -40,7 +38,7 @@ declare let attributes: {
     /** Промо группа */
     promo: boolean;
     /** Время работы гыруппы */
-    workTime: WorkTime[];
+    workTime: {};
 };
 declare type attributes = typeof attributes;
 interface Group extends attributes, ORM {
@@ -63,10 +61,7 @@ declare let Model: {
      * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
-    getGroups(groupsId: string[]): Promise<{
-        groups: GroupWithAdditionalFields[];
-        errors: {};
-    }>;
+    getGroups(groupsId: {}): any;
     /**
      * Возвращает группу с заданным id
      * @param groupId - id группы
@@ -74,7 +69,7 @@ declare let Model: {
      * @throws ошибка получения группы
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
-    getGroup(groupId: string): Promise<Group>;
+    getGroup(groupId: string): any;
     /**
      * Возвращает группу с заданным slug'ом
      * @param groupSlug - slug группы
@@ -82,13 +77,13 @@ declare let Model: {
      * @throws ошибка получения группы
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
-    getGroupBySlug(groupSlug: string): Promise<Group>;
+    getGroupBySlug(groupSlug: string): any;
     /**
      * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.
      * @param values
      * @return обновлённая или созданная группа
      */
-    createOrUpdate(values: Group): Promise<Group>;
+    createOrUpdate(values: Group): any;
 };
 /**
  * Описывает группу блюд в момент получения её популяризированной версии, дополнительные поля являются ошибкой фреймворка

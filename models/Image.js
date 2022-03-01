@@ -13,6 +13,8 @@ let attributes = {
         collection: "dish",
         via: "images",
     },
+    /** Порядок сортировки */
+    order: "number",
     /** */
     group: {
         collection: "group",
