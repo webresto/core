@@ -526,6 +526,7 @@ let cartModel = {
         catch (e) {
             sails.log.error("CART > fullCart error", e);
         }
+        getEmitter_1.default().emit("core-cart-populate", fullCart);
         return { ...fullCart };
     },
     /**

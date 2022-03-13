@@ -583,6 +583,7 @@ let cartModel: CartModel = {
     } catch (e) {
       sails.log.error("CART > fullCart error", e);
     }
+    getEmitter().emit("core-cart-populate", fullCart);
 
     return { ...fullCart };
   },
