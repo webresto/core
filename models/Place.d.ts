@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
+import { WorkTime } from "@webresto/worktime";
 declare let attributes: {
     id: string;
     title: string;
@@ -7,7 +8,7 @@ declare let attributes: {
     order: number;
     phone: string;
     enable: boolean;
-    worktime: any;
+    worktime: WorkTime;
     isPickupPoint: boolean;
     isCookingPoint: boolean;
     isSalePoint: boolean;

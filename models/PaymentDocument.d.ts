@@ -1,5 +1,7 @@
+/// <reference types="node" />
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
+import { PaymentResponse } from "../interfaces/Payment";
 /** На примере корзины (Order):
  * 1. Модель проводящяя оплату internal/external (например: Order) создает PaymentDocument
  *
@@ -71,12 +73,12 @@ interface PaymentDocument extends attributes, ORM {
 export default PaymentDocument;
 declare let Model: {
     beforeCreate(paymentDocumentInit: any, next: any): void;
-    doPaid: (criteria: any) => any;
-    doCheck: (criteria: any) => any;
-    register: (paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => any;
-    afterUpdate: (values: PaymentDocument, next: any) => any;
+    doPaid: (criteria: any) => Promise<PaymentDocument>;
+    doCheck: (criteria: any) => Promise<PaymentDocument>;
+    register: (paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;
+    afterUpdate: (values: PaymentDocument, next: any) => Promise<void>;
     /** Цикл проверки платежей */
-    processor: (timeout: number) => unknown;
+    processor: (timeout: number) => Promise<NodeJS.Timeout>;
 };
 declare global {
     const PaymentDocument: typeof Model & ORMModel<PaymentDocument>;

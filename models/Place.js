@@ -7,7 +7,7 @@ let attributes = {
     },
     title: 'string',
     address: 'string',
-    order: 'integer',
+    order: 'number',
     phone: 'string',
     enable: {
         type: 'boolean',

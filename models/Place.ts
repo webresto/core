@@ -10,7 +10,7 @@ let attributes = {
   } as unknown as string,
   title: 'string',
   address: 'string',
-  order: 'integer' as unknown as number,
+  order: 'number' as unknown as number,
   phone: 'string',
   enable: {
     type: 'boolean',
