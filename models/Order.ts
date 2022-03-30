@@ -125,6 +125,12 @@ let attributes = {
     defaultsTo: 0,
   } as unknown as number,
 
+  /** Сдача */
+  trifleFrom: {
+    type: "number",
+    defaultsTo: 0,
+  } as unknown as number,
+
   /**  orderTotal = total + deliveryCost - discountTotal - bonusesTotal */
   orderTotal: {
     type: "number",

@@ -88,6 +88,11 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
+    /** Сдача */
+    trifleFrom: {
+        type: "number",
+        defaultsTo: 0,
+    },
     /**  orderTotal = total + deliveryCost - discountTotal - bonusesTotal */
     orderTotal: {
         type: "number",
