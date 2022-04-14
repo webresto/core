@@ -172,7 +172,7 @@ let Model = {
                     sails.log.error("PaymentDocument > afterUpdate, not have requried fields :", values);
                     throw "PaymentDocument > afterUpdate, not have requried fields";
                 }
-                await sails.models[values.originModel].doPaid(values);
+                await sails.models[values.originModel].doPaid({ id: values.paymentId }, values);
             }
             catch (e) {
                 sails.log.error("Error in PaymentDocument.afterUpdate :", e);
