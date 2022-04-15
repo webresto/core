@@ -918,6 +918,7 @@ async function checkDate(order: Order) {
 
     const possibleDatetime = await getOrderDateLimit();
     if (date.getTime() > possibleDatetime.getTime()) {
+      sails.log.error(`Order checkDate: ${date.getTime()} > ${possibleDatetime.getTime()} = ${date.getTime() > possibleDatetime.getTime()}`)
       throw {
         code: 10,
         error: "delivery far, far away! allowed not after" + possibleDatetime,
