@@ -768,9 +768,9 @@ async function checkDate(order) {
 // TODO: refactor periodPossibleForOrder from seconds to full work days
 async function getOrderDateLimit() {
     let date = new Date();
-    let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //seconds
+    let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //minutes
     if (!periodPossibleForOrder)
-        periodPossibleForOrder = 86400;
-    date.setSeconds(date.getSeconds() + parseInt(periodPossibleForOrder));
+        periodPossibleForOrder = 1440;
+    date.setSeconds(date.getSeconds() + (parseInt(periodPossibleForOrder) * 60));
     return date;
 }
