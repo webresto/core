@@ -634,7 +634,7 @@ let Model = {
             order.orderTotal = orderTotal;
             getEmitter_1.default().emit("core:count-before-delivery-cost", order);
             order.total = orderTotal + order.deliveryCost - order.discountTotal;
-            order.orderTotal = orderTotal + order.deliveryCost - order.discountTotal;
+            // order.orderTotal = orderTotal + order.deliveryCost - order.discountTotal;
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             order.dishes = orderDishes;
             getEmitter_1.default().emit("core-order-after-count", order);
