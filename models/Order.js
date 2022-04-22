@@ -662,6 +662,7 @@ let Model = {
                 order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
             }
             await Order.order(order.id);
+            getEmitter_1.default().emit("core-order-after-dopaid", order);
         }
         catch (e) {
             sails.log.error("Order > doPaid error: ", e);
