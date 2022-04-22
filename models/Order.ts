@@ -726,13 +726,13 @@ let Model = {
                   continue;
                 }
 
-                await getEmitter().emit("core-order-countorder-before-calc-modifier", modifier, modifierObj);
+                await getEmitter().emit("core-order-countcart-before-calc-modifier", modifier, modifierObj);
 
                 // const modifierCopy = {
                 //   amount: modifier.amount,
                 //   id: modifier.id
                 // }
-                // await getEmitter().emit('core-order-countorder-before-calc-modifier', modifierCopy, modifierObj);
+                // await getEmitter().emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
 
                 orderDish.uniqueItems++;
 
