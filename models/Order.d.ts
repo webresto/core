@@ -55,11 +55,13 @@ declare let attributes: {
     deliveryCost: number;
     /** order total weight */
     totalWeight: number;
-    /** total = orderTotal */
-    total: number;
     /** Сдача */
     trifleFrom: number;
-    /**  orderTotal = total + deliveryCost - discountTotal - bonusesTotal */
+    /** Summ of all bobnuses */
+    bonusesTotal: number;
+    /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
+    total: number;
+    /** Just calcualte dishes in raw order */
     orderTotal: number;
     discountTotal: number;
     orderDate: string;
@@ -137,11 +139,13 @@ declare let Model: {
         deliveryCost: number;
         /** order total weight */
         totalWeight: number;
-        /** total = orderTotal */
-        total: number;
         /** Сдача */
         trifleFrom: number;
-        /**  orderTotal = total + deliveryCost - discountTotal - bonusesTotal */
+        /** Summ of all bobnuses */
+        bonusesTotal: number;
+        /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
+        total: number;
+        /** Just calcualte dishes in raw order */
         orderTotal: number;
         discountTotal: number;
         orderDate: string;

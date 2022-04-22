@@ -119,19 +119,27 @@ let attributes = {
     defaultsTo: 0,
   } as unknown as number,
 
-  /** total = orderTotal */
-  total: {
-    type: "number",
-    defaultsTo: 0,
-  } as unknown as number,
-
   /** Сдача */
   trifleFrom: {
     type: "number",
     defaultsTo: 0,
   } as unknown as number,
 
-  /**  orderTotal = total + deliveryCost - discountTotal - bonusesTotal */
+
+  /** Summ of all bobnuses */
+  bonusesTotal: {
+    type: "number",
+    defaultsTo: 0,
+  } as unknown as number,
+
+  
+  /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
+  total: {
+    type: "number",
+    defaultsTo: 0,
+  } as unknown as number,
+
+  /** Just calcualte dishes in raw order */
   orderTotal: {
     type: "number",
     defaultsTo: 0,
@@ -597,7 +605,7 @@ let Model = {
     await getEmitter().emit("core-order-payment", order, params);
     sails.log.info("Order > payment > order before register:", order);
     try {
-      paymentResponse = await PaymentDocument.register(order.id, "order", order.orderTotal, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
+      paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
     } catch (e) {
       getEmitter().emit("error", "order>payment", e);
       sails.log.error("Order > payment: ", e);
@@ -777,7 +785,6 @@ let Model = {
       getEmitter().emit("core:count-before-delivery-cost", order);
 
       order.total = orderTotal + order.deliveryCost - order.discountTotal;
-      // order.orderTotal = orderTotal + order.deliveryCost - order.discountTotal;
 
       order = (await Order.update({ id: order.id }, order).fetch())[0];
       order.dishes = orderDishes;
@@ -801,13 +808,13 @@ let Model = {
         }
       ).fetch();
 
-      sails.log.info("Order > doPaid: ", order.id, order.state, order.orderTotal, paymentDocument.amount);
+      sails.log.info("Order > doPaid: ", order.id, order.state, order.total, paymentDocument.amount);
 
       if (order.state !== "PAYMENT") {
         sails.log.error("Order > doPaid: is strange order state is not PAYMENT", order);
       }
 
-      if (order.orderTotal !== paymentDocument.amount) {
+      if (order.total !== paymentDocument.amount) {
         order.problem = true;
         order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
       }
