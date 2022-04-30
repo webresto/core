@@ -1,6 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const getEmitter_1 = require("../libs/getEmitter");
+// Memory store
+let settings = {};
+sails.on('lifted', async () => {
+    //@ts-ignore
+    let allSettings = await Settings.find({});
+    allSettings.forEach(settingsItem => {
+        settings[settingsItem.key] = settingsItem.value;
+    });
+});
+///////////////
 let attributes = {
     /**Id */
     id: {
@@ -25,10 +35,12 @@ let attributes = {
 let Model = {
     afterUpdate: function (record, proceed) {
         getEmitter_1.default().emit(`settings:${record.key}`, record);
+        settings[record.key] = record.value;
         return proceed();
     },
     afterCreate: function (record, proceed) {
         getEmitter_1.default().emit(`settings:${record.key}`, record);
+        settings[record.key] = record.value;
         return proceed();
     },
     /** retrun setting value by key */
@@ -66,6 +78,20 @@ let Model = {
         sails.log.warn(`Settings: ( ${key} ) not found`);
         return undefined;
     },
+    /** ⚠️ Experemental! Read setting from memory store */
+    get(key) {
+        if (settings[key] !== undefined) {
+            return settings[key];
+        }
+        else {
+            return undefined;
+        }
+    }
+    /**
+     * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
+     * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
+     */
+    ,
     /**
      * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
      * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.

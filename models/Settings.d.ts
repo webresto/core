@@ -23,6 +23,8 @@ declare let Model: {
     afterCreate: (record: any, proceed: any) => any;
     /** retrun setting value by key */
     use(key: string, from?: string): Promise<any>;
+    /** ⚠️ Experemental! Read setting from memory store */
+    get(key: string): any;
     /**
      * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
      * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.

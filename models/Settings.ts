@@ -2,6 +2,18 @@ import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import getEmitter from "../libs/getEmitter";
 
+// Memory store
+let settings = {}
+sails.on('lifted', async () => {
+  //@ts-ignore
+  let allSettings = await Settings.find({})
+  allSettings.forEach(settingsItem => {
+    settings[settingsItem.key] = settingsItem.value;
+  });
+});
+
+///////////////
+
 let attributes = {
   /**Id */
   id: {
@@ -37,11 +49,13 @@ let Model = {
 
   afterUpdate: function (record, proceed) {
     getEmitter().emit(`settings:${record.key}`, record);
+    settings[record.key] = record.value;
     return proceed();
   },
 
   afterCreate: function (record, proceed) {
     getEmitter().emit(`settings:${record.key}`, record);
+    settings[record.key] = record.value;
     return proceed();
   },
 
@@ -84,6 +98,16 @@ let Model = {
     return undefined;
   },
 
+
+  /** ⚠️ Experemental! Read setting from memory store */
+  get(key: string): any { 
+    if (settings[key] !== undefined) {
+      return settings[key];
+    } else  {
+      return undefined
+    }
+  }
+  
   /**
    * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
    * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
