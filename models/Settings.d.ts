@@ -19,6 +19,8 @@ interface Settings extends attributes, ORM {
 }
 export default Settings;
 declare let Model: {
+    afterUpdate: (record: any, proceed: any) => any;
+    afterCreate: (record: any, proceed: any) => any;
     /** retrun setting value by key */
     use(key: string, from?: string): Promise<any>;
     /**

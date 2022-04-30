@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
+import getEmitter from "../libs/getEmitter";
 
 let attributes = {
   /**Id */
@@ -33,6 +34,17 @@ interface Settings extends attributes, ORM {}
 export default Settings;
 
 let Model = {
+
+  afterUpdate: function (record, proceed) {
+    getEmitter().emit(`settings:${record.key}`, record);
+    return proceed();
+  },
+
+  afterCreate: function (record, proceed) {
+    getEmitter().emit(`settings:${record.key}`, record);
+    return proceed();
+  },
+
   /** retrun setting value by key */
   async use(key: string, from?: string): Promise<any> {
     sails.log.silly("CORE > Settings > use: ", key, from);

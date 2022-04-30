@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const getEmitter_1 = require("../libs/getEmitter");
 let attributes = {
     /**Id */
     id: {
@@ -22,6 +23,14 @@ let attributes = {
     from: "string",
 };
 let Model = {
+    afterUpdate: function (record, proceed) {
+        getEmitter_1.default().emit(`settings:${record.key}`, record);
+        return proceed();
+    },
+    afterCreate: function (record, proceed) {
+        getEmitter_1.default().emit(`settings:${record.key}`, record);
+        return proceed();
+    },
     /** retrun setting value by key */
     async use(key, from) {
         sails.log.silly("CORE > Settings > use: ", key, from);
