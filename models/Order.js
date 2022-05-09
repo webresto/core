@@ -628,8 +628,15 @@ let Model = {
                     sails.log.error("Order > count > iterate orderDish error", e);
                 }
             }
-            // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
+            // Discount calc
+            /**
+             * TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
+             * Скидки должны быть массивом, и они должны хранится в каждом блюде OrderDish чтобы при выключении скидки не исчезали скидки на Ордере
+             */
+            order.dishes = orderDishes;
             await getEmitter_1.default().emit("core-order-count-discount-apply", order);
+            delete (order.dishes);
+            ///////////////////////////////////
             /**
              * Карт тотал это чистая стоимость корзины
              */
@@ -640,7 +647,6 @@ let Model = {
             getEmitter_1.default().emit("core:count-before-delivery-cost", order);
             order.total = orderTotal + order.deliveryCost - order.discountTotal;
             order = (await Order.update({ id: order.id }, order).fetch())[0];
-            order.dishes = orderDishes;
             getEmitter_1.default().emit("core-order-after-count", order);
             return order;
         }
