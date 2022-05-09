@@ -492,6 +492,18 @@ let Model = {
     /** Успех во всех слушателях по умолчанию */
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
+    
+    let error: string 
+    if (resultsCount !== successCount) {
+      results.forEach(result => {
+          if (result.state=== 'error' && result.error) {
+              sails.log.error(`Order > core-order-check error: ${result.error}`);
+              sails.log.error(result);
+              error = result.error
+          }
+      });
+  }
+  
     if (resultsCount === successCount) {
       if ((await Order.getState(order.id)) !== "CHECKOUT") {
         await Order.next(order.id, "CHECKOUT");
@@ -499,8 +511,8 @@ let Model = {
       return;
     } else {
       throw {
-        code: 10,
-        error: "one or more results from core-order-check was not sucessed",
+        code: 0,
+        error: `one or more results from core-order-check was not sucessed\n last error: ${error}`,
       };
     }
 
