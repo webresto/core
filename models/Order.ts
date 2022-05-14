@@ -757,7 +757,7 @@ let Model = {
                 orderDish.uniqueItems++;
 
                 orderDish.itemTotal += modifier.amount * modifierObj.price;
-                if (!Number(orderDish.itemTotal)) throw `orderDish.itemTotal is NaN ${modifier}.`
+                if (!Number(orderDish.itemTotal)) throw `orderDish.itemTotal is NaN ${JSON.stringify(modifier)}.`
 
                 orderDish.weight += modifierObj.weight;
               }
