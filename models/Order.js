@@ -319,10 +319,10 @@ let Model = {
          *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
          */
         getEmitter_1.default().emit("core-order-before-check", order, customer, isSelfService, address);
-        sails.log.silly(`Order > check > before check > ${customer} ${isSelfService} ${address} ${paymentMethodId}`);
+        sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
         if (customer) {
             await checkCustomerInfo(customer);
-            order.customer = customer;
+            order.customer = { ...customer };
         }
         else {
             if (order.customer === null) {
@@ -347,12 +347,12 @@ let Model = {
         else {
             if (address) {
                 checkAddress(address);
-                order.address = address;
+                order.address = { ...address };
             }
             else {
                 if (!isSelfService && order.address === null) {
                     throw {
-                        code: 2,
+                        code: 5,
                         error: "address is required",
                     };
                 }
@@ -371,6 +371,7 @@ let Model = {
          * есть сомнения что это тут нужно
         */
         delete (order.dishes);
+        console.log(1111, order);
         await Order.update({ id: order.id }, { ...order });
         sails.log.silly("Order > check > after wait general emitter", order, results);
         getEmitter_1.default().emit("core-order-after-check", order, customer, isSelfService, address);
@@ -618,7 +619,7 @@ let Model = {
                                 orderDish.uniqueItems++;
                                 orderDish.itemTotal += modifier.amount * modifierObj.price;
                                 if (!Number(orderDish.itemTotal))
-                                    throw `orderDish.itemTotal is NaN ${modifier}.`;
+                                    throw `orderDish.itemTotal is NaN ${JSON.stringify(modifier)}.`;
                                 orderDish.weight += modifierObj.weight;
                             }
                         }
@@ -706,6 +707,7 @@ async function checkCustomerInfo(customer) {
         };
     }
     if (!customer.phone) {
+        console.log("!1111", customer);
         throw {
             code: 2,
             error: "customer.phone is required",
