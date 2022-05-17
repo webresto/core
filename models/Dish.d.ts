@@ -15,6 +15,8 @@ declare let attributes: {
     description: string;
     /** Наименование */
     name: string;
+    /** Концепция */
+    concept: string;
     /** SEO description */
     seoDescription: string;
     /** SEO keywords */

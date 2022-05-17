@@ -32,6 +32,10 @@ let attributes = {
     name: {
         type: "string",
     },
+    /** Концепция */
+    concept: {
+        type: "string",
+    },
     /** SEO description */
     seoDescription: {
         type: "string",

@@ -46,6 +46,11 @@ let attributes = {
     //required: true,
   } as unknown as string,
 
+  /** Концепция */
+  concept: {
+    type: "string",
+  } as unknown as string,
+
   /** SEO description */
   seoDescription: {
     type: "string",
@@ -64,6 +69,7 @@ let attributes = {
     allowNull: true,
   } as unknown as string,
 
+  
   /** SEO title */
   seoTitle: {
     type: "string",

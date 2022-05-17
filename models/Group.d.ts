@@ -33,6 +33,8 @@ declare let attributes: {
     dishesPlaceholder: Image[];
     /** Человеко читаемый АйДи */
     slug: string;
+    /** Концепция */
+    concept: string;
     /** Гурппа отображается */
     visible: boolean;
     /** Группа модификаторов */

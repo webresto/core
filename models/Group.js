@@ -74,6 +74,10 @@ let attributes = {
     slug: {
         type: "string",
     },
+    /** Концепция */
+    concept: {
+        type: "string",
+    },
     /** Гурппа отображается */
     visible: "boolean",
     /** Группа модификаторов */

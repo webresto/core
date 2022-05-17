@@ -94,6 +94,12 @@ let attributes = {
     type: "string",
   } as unknown as string,
 
+
+  /** Концепция */
+  concept: {
+    type: "string",
+  } as unknown as string,
+
   /** Гурппа отображается */
   visible: "boolean" as unknown as boolean,
 
