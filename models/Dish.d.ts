@@ -15,8 +15,6 @@ declare let attributes: {
     description: string;
     /** Наименование */
     name: string;
-    /** Концепция */
-    concept: string;
     /** SEO description */
     seoDescription: string;
     /** SEO keywords */
@@ -73,6 +71,8 @@ declare let attributes: {
     images: Image[];
     /** Слаг */
     slug: string;
+    /** Концепт к которому относится блюдо */
+    concept: string;
     /** Хеш обекта блюда */
     hash: string;
     /** Можно увидеть на сайте в меню */
@@ -89,7 +89,7 @@ interface Dish extends attributes, ORM {
 }
 export default Dish;
 declare let Model: {
-    beforeCreate(record: any, proceed: any): any;
+    beforeCreate(init: any, next: any): void;
     beforeUpdate: (record: any, proceed: any) => any;
     afterUpdate: (record: any, proceed: any) => any;
     afterCreate: (record: any, proceed: any) => any;

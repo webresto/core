@@ -46,11 +46,6 @@ let attributes = {
     //required: true,
   } as unknown as string,
 
-  /** Концепция */
-  concept: {
-    type: "string",
-  } as unknown as string,
-
   /** SEO description */
   seoDescription: {
     type: "string",
@@ -69,7 +64,6 @@ let attributes = {
     allowNull: true,
   } as unknown as string,
 
-  
   /** SEO title */
   seoTitle: {
     type: "string",
@@ -172,6 +166,9 @@ let attributes = {
     type: "string",
   } as unknown as string,
 
+  /** Концепт к которому относится блюдо */
+  concept: "string",
+
   /** Хеш обекта блюда */
   hash: "string",
 
@@ -194,19 +191,19 @@ export default Dish;
 
 let Model = {
   beforeCreate(init: any, next: any) {
+    getEmitter().emit('core:dish-before-create', init);
     if (!init.id) {
       init.id = uuid();
+    }
+
+    if (!init.concept) {
+      init.concept = "origin"
     }
     next();
   },
 
   beforeUpdate: function (record, proceed) {
     getEmitter().emit('core:dish-before-update', record);
-    return proceed();
-  },
-
-  beforeCreate: function (record, proceed) {
-    getEmitter().emit('core:dish-before-create', record);
     return proceed();
   },
 

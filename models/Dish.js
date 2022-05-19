@@ -32,10 +32,6 @@ let attributes = {
     name: {
         type: "string",
     },
-    /** Концепция */
-    concept: {
-        type: "string",
-    },
     /** SEO description */
     seoDescription: {
         type: "string",
@@ -128,6 +124,8 @@ let attributes = {
     slug: {
         type: "string",
     },
+    /** Концепт к которому относится блюдо */
+    concept: "string",
     /** Хеш обекта блюда */
     hash: "string",
     /** Можно увидеть на сайте в меню */
@@ -141,17 +139,17 @@ let attributes = {
 };
 let Model = {
     beforeCreate(init, next) {
+        getEmitter_1.default().emit('core:dish-before-create', init);
         if (!init.id) {
             init.id = uuid_1.v4();
+        }
+        if (!init.concept) {
+            init.concept = "origin";
         }
         next();
     },
     beforeUpdate: function (record, proceed) {
         getEmitter_1.default().emit('core:dish-before-update', record);
-        return proceed();
-    },
-    beforeCreate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-before-create', record);
         return proceed();
     },
     afterUpdate: function (record, proceed) {

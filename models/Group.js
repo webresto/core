@@ -74,10 +74,8 @@ let attributes = {
     slug: {
         type: "string",
     },
-    /** Концепция */
-    concept: {
-        type: "string",
-    },
+    /** Концепт к которому относится группа */
+    concept: "string",
     /** Гурппа отображается */
     visible: "boolean",
     /** Группа модификаторов */
@@ -89,18 +87,18 @@ let attributes = {
 };
 let Model = {
     beforeCreate(init, next) {
+        getEmitter_1.default().emit('core:group-before-create', init);
         if (!init.id) {
             init.id = uuid_1.v4();
         }
+        if (!init.concept) {
+            init.concept = "origin";
+        }
+        init.slug = slugify_1.default(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         next();
     },
     beforeUpdate: function (record, proceed) {
         getEmitter_1.default().emit('core:group-before-update', record);
-        return proceed();
-    },
-    beforeCreate: function (record, proceed) {
-        getEmitter_1.default().emit('core:group-before-create', record);
-        record.slug = slugify_1.default(record.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         return proceed();
     },
     afterUpdate: function (record, proceed) {
@@ -127,7 +125,7 @@ let Model = {
         let menu = {};
         const groups = await Group.find({ where: {
                 id: groupsId,
-                isDeleted: false,
+                isDeleted: false
             } })
             .populate("childGroups")
             .populate("dishes")
@@ -159,7 +157,7 @@ let Model = {
                         menu[group.id].childGroups.sort((a, b) => a.order - b.order);
                 }
                 menu[group.id].dishesList = await Dish.getDishes({
-                    parentGroup: group.id,
+                    parentGroup: group.id
                 });
             }
             else {

@@ -33,7 +33,7 @@ declare let attributes: {
     dishesPlaceholder: Image[];
     /** Человеко читаемый АйДи */
     slug: string;
-    /** Концепция */
+    /** Концепт к которому относится группа */
     concept: string;
     /** Гурппа отображается */
     visible: boolean;
@@ -49,7 +49,7 @@ interface Group extends attributes, ORM {
 }
 export default Group;
 declare let Model: {
-    beforeCreate(record: any, proceed: any): any;
+    beforeCreate(init: any, next: any): void;
     beforeUpdate: (record: any, proceed: any) => any;
     afterUpdate: (record: any, proceed: any) => any;
     afterCreate: (record: any, proceed: any) => any;

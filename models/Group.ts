@@ -94,11 +94,8 @@ let attributes = {
     type: "string",
   } as unknown as string,
 
-
-  /** Концепция */
-  concept: {
-    type: "string",
-  } as unknown as string,
+  /** Концепт к которому относится группа */
+  concept: "string",
 
   /** Гурппа отображается */
   visible: "boolean" as unknown as boolean,
@@ -119,19 +116,20 @@ export default Group;
 
 let Model = {
   beforeCreate(init: any, next: any) {
+    getEmitter().emit('core:group-before-create', init);
     if (!init.id) {
       init.id = uuid();
     }
+
+    if (!init.concept) {
+      init.concept = "origin"
+    }
+
+    init.slug = slugify(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
     next();
   },
   beforeUpdate: function (record, proceed) {
     getEmitter().emit('core:group-before-update', record);
-    return proceed();
-  },
-
-  beforeCreate: function (record, proceed) {
-    getEmitter().emit('core:group-before-create', record);
-    record.slug = slugify(record.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
     return proceed();
   },
 
@@ -158,10 +156,11 @@ let Model = {
    * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[]; errors: {} }> {
+
     let menu = {} as { [x: string]: GroupWithAdditionalFields };
     const groups = await Group.find({ where: {
       id: groupsId,
-      isDeleted: false,
+      isDeleted: false
     }})
       .populate("childGroups")
       .populate("dishes")
@@ -196,7 +195,7 @@ let Model = {
         }
 
         menu[group.id].dishesList = await Dish.getDishes({
-          parentGroup: group.id,
+          parentGroup: group.id
         });
       } else {
         errors[group.id] = reason;
