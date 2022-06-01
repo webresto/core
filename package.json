@@ -73,5 +73,5 @@
     "build": "tsc",
     "format": "npx prettier --write \"**/*.ts\""
   },
-  "version": "1.0.8"
+  "version": "1.0.9"
 }
