@@ -31,6 +31,9 @@ let attributes = {
     isIn: ["internal", "external", "promise", "dummy"],
     required: true,
   } as unknown as PaymentMethodType,
+  isCash: {
+    type: "boolean"
+  } as unknown as boolean,
   adapter: {
     type: "string",
     unique: true,

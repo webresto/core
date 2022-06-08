@@ -26,6 +26,9 @@ let attributes = {
         isIn: ["internal", "external", "promise", "dummy"],
         required: true,
     },
+    isCash: {
+        type: "boolean"
+    },
     adapter: {
         type: "string",
         unique: true,

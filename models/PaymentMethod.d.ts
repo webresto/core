@@ -18,6 +18,7 @@ declare let attributes: {
      * promise - Типы оплат при получении
      */
     type: PaymentMethodType;
+    isCash: boolean;
     adapter: string;
     order: number;
     description: string;
