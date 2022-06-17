@@ -640,7 +640,10 @@ let Model = {
 
     let fullOrder: Order;
     try {
-      fullOrder = await Order.findOne({ id: order.id }).populate("dishes");
+      fullOrder = await Order.findOne({ id: order.id })
+                                  .populate("dishes")
+                                  .populate("deliveryItem")
+                                  .populate('paymentMethod');
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish").sort("createdAt");
 
       for (let orderDish of orderDishes) {
