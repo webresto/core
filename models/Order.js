@@ -360,7 +360,6 @@ let Model = {
         }
         getEmitter_1.default().emit("core-order-check-delivery", order, customer, isSelfService, address);
         const results = await getEmitter_1.default().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
-        console.log("ORDER", order);
         if (order.dishesCount === 0) {
             throw {
                 code: 13,
@@ -371,7 +370,6 @@ let Model = {
          * есть сомнения что это тут нужно
         */
         delete (order.dishes);
-        console.log(1111, order);
         await Order.update({ id: order.id }, { ...order });
         sails.log.silly("Order > check > after wait general emitter", order, results);
         getEmitter_1.default().emit("core-order-after-check", order, customer, isSelfService, address);
@@ -489,7 +487,7 @@ let Model = {
         let comment = "";
         var backLinkSuccess = (await Settings.use("FrontendOrderPage")) + order.id;
         var backLinkFail = await Settings.use("FrontendCheckoutPage");
-        let paymentMethodId = await order.paymentMethod();
+        let paymentMethodId = await order.paymentMethod;
         sails.log.verbose("Order > payment > before payment register", order);
         var params = {
             backLinkSuccess: backLinkSuccess,
@@ -710,7 +708,6 @@ async function checkCustomerInfo(customer) {
         };
     }
     if (!customer.phone) {
-        console.log("!1111", customer);
         throw {
             code: 2,
             error: "customer.phone is required",

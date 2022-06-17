@@ -75,7 +75,9 @@ let Model = {
   },
 
   beforeCreate: function (paymentMethod, next) {
-    paymentMethod.id = uuid();
+    if (!paymentMethod.id) {
+      paymentMethod.id = uuid();
+    }
     next();
   },
   /**
