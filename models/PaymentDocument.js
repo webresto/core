@@ -97,7 +97,6 @@ let Model = {
             let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
             sails.log.debug("checkedPaymentDocument >> ", checkedPaymentDocument);
             if (checkedPaymentDocument.status === "PAID") {
-                console.log("checkedPaymentDocument >> ", checkedPaymentDocument);
                 await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status, paid: true }).fetch();
             }
             else {
@@ -161,7 +160,6 @@ let Model = {
     afterUpdate: async function (values, next) {
         sails.log.silly("PaymentDocument > afterUpdate > ", JSON.stringify(values));
         if (values.paid && values.status === "PAID") {
-            console.log("<<<<<<<<<<<<<<<<,,,111333", values);
             try {
                 if (!values.amount || !values.paymentMethod || !values.paymentId) {
                     sails.log.error("PaymentDocument > afterUpdate, not have requried fields :", values);
