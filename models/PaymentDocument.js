@@ -38,12 +38,12 @@ const getEmitter_1 = require("../libs/getEmitter");
 */
 var PaymentDocumentStatus;
 (function (PaymentDocumentStatus) {
-    PaymentDocumentStatus[PaymentDocumentStatus["NEW"] = 0] = "NEW";
-    PaymentDocumentStatus[PaymentDocumentStatus["REGISTRED"] = 1] = "REGISTRED";
-    PaymentDocumentStatus[PaymentDocumentStatus["PAID"] = 2] = "PAID";
-    PaymentDocumentStatus[PaymentDocumentStatus["CANCEL"] = 3] = "CANCEL";
-    PaymentDocumentStatus[PaymentDocumentStatus["REFUND"] = 4] = "REFUND";
-    PaymentDocumentStatus[PaymentDocumentStatus["DECLINE"] = 5] = "DECLINE";
+    PaymentDocumentStatus["NEW"] = "NEW";
+    PaymentDocumentStatus["REGISTRED"] = "REGISTRED";
+    PaymentDocumentStatus["PAID"] = "PAID";
+    PaymentDocumentStatus["CANCEL"] = "CANCEL";
+    PaymentDocumentStatus["REFUND"] = "REFUND";
+    PaymentDocumentStatus["DECLINE"] = "DECLINE";
 })(PaymentDocumentStatus || (PaymentDocumentStatus = {}));
 let payment_processor_interval;
 let attributes = {
@@ -87,27 +87,21 @@ let Model = {
         }
         next();
     },
-    doPaid: async function (criteria) {
-        const self = await PaymentDocument.findOne(criteria);
-        if (self.status === "PAID" && self.paid !== true) {
-            self.status = "PAID";
-            self.paid = true;
-            getEmitter_1.default().emit("core-payment-document-paid", self);
-            await PaymentDocument.update({ id: self.id }, self).fetch();
-        }
-        return self;
-    },
     doCheck: async function (criteria) {
-        const self = await PaymentDocument.findOne(criteria);
+        const self = (await PaymentDocument.find(criteria).limit(1))[0];
+        if (!self)
+            throw `PaymentDocument is not found`;
         getEmitter_1.default().emit("core-payment-document-check", self);
         try {
             let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
             let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
-            if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true) {
-                await checkedPaymentDocument.doPaid();
+            sails.log.debug("checkedPaymentDocument >> ", checkedPaymentDocument);
+            if (checkedPaymentDocument.status === "PAID") {
+                console.log("checkedPaymentDocument >> ", checkedPaymentDocument);
+                await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status, paid: true }).fetch();
             }
             else {
-                await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status });
+                await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status }).fetch();
             }
             getEmitter_1.default().emit("core-payment-document-checked-document", checkedPaymentDocument);
             return checkedPaymentDocument;
@@ -167,6 +161,7 @@ let Model = {
     afterUpdate: async function (values, next) {
         sails.log.silly("PaymentDocument > afterUpdate > ", JSON.stringify(values));
         if (values.paid && values.status === "PAID") {
+            console.log("<<<<<<<<<<<<<<<<,,,111333", values);
             try {
                 if (!values.amount || !values.paymentMethod || !values.paymentId) {
                     sails.log.error("PaymentDocument > afterUpdate, not have requried fields :", values);

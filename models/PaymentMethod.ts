@@ -112,7 +112,7 @@ let Model = {
       adapter: paymentAdapter.InitPaymentAdapter.adapter,
     });
     if (!knownPaymentMethod) {
-      knownPaymentMethod = await PaymentMethod.create(paymentAdapter.InitPaymentAdapter).fetch();
+      knownPaymentMethod = await PaymentMethod.create({...paymentAdapter.InitPaymentAdapter, enable: false}).fetch();
     }
     alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
     sails.log.verbose("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);

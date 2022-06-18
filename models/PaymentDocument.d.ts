@@ -37,12 +37,12 @@ import { PaymentResponse } from "../interfaces/Payment";
   DECLINE - авторизация отклонена.
 */
 declare enum PaymentDocumentStatus {
-    "NEW" = 0,
-    "REGISTRED" = 1,
-    "PAID" = 2,
-    "CANCEL" = 3,
-    "REFUND" = 4,
-    "DECLINE" = 5
+    NEW = "NEW",
+    REGISTRED = "REGISTRED",
+    PAID = "PAID",
+    CANCEL = "CANCEL",
+    REFUND = "REFUND",
+    DECLINE = "DECLINE"
 }
 declare let attributes: {
     /** Уникальный id в моделе PaymentDocument */
@@ -73,7 +73,6 @@ interface PaymentDocument extends attributes, ORM {
 export default PaymentDocument;
 declare let Model: {
     beforeCreate(paymentDocumentInit: any, next: any): void;
-    doPaid: (criteria: any) => Promise<PaymentDocument>;
     doCheck: (criteria: any) => Promise<PaymentDocument>;
     register: (paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: any) => Promise<void>;

@@ -37,7 +37,8 @@ export default class TestPaymentSystem extends PaymentAdapter {
         break;
     }
 
-    let latency = Math.floor(Math.random() * 2400) + 600;
+    // Imitation http latency of external system 
+    let latency = Math.floor(Math.random() * 1000) + 600;
     let response: any;
     response = payment;
     response.error = null;
@@ -54,7 +55,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
   }
 
   public async checkPayment(payment: PaymentDocument): Promise<PaymentDocument> {
-    let latency = Math.floor(Math.random() * 1200) + 1;
+    let latency = Math.floor(Math.random() * 500) + 1;
     return new Promise((resolve) => {
       setTimeout(() => {
         let response = database[payment.paymentId];
@@ -76,7 +77,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
 
   private paid(payment: Payment, latency: number) {
     setTimeout(() => {
-      database[payment.paymentId].paid = true;
+      database[payment.paymentId].status = "PAID";
     }, latency);
     return;
   }

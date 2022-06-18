@@ -43,12 +43,12 @@ import getEmitter from "../libs/getEmitter";
 */
 
 enum PaymentDocumentStatus {
-  "NEW",
-  "REGISTRED",
-  "PAID",
-  "CANCEL",
-  "REFUND",
-  "DECLINE",
+  NEW = "NEW",
+  REGISTRED = "REGISTRED",
+  PAID = "PAID",
+  CANCEL = "CANCEL",
+  REFUND = "REFUND",
+  DECLINE = "DECLINE"
 }
 
 let payment_processor_interval: ReturnType<typeof setInterval>;
@@ -110,26 +110,22 @@ let Model = {
 
     next();
   },
-  doPaid: async function (criteria: any): Promise<PaymentDocument> {
-    const self: PaymentDocument = await PaymentDocument.findOne(criteria);
-    if (self.status === "PAID" && self.paid !== true) {
-      self.status = "PAID";
-      self.paid = true;
-      getEmitter().emit("core-payment-document-paid", self);
-      await PaymentDocument.update({ id: self.id }, self).fetch();
-    }
-    return self;
-  },
   doCheck: async function (criteria: any): Promise<PaymentDocument> {
-    const self: PaymentDocument = await PaymentDocument.findOne(criteria);
+    const self: PaymentDocument = (await PaymentDocument.find(criteria).limit(1))[0];
+    if (!self) throw `PaymentDocument is not found`
+
     getEmitter().emit("core-payment-document-check", self);
     try {
       let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
       let checkedPaymentDocument: PaymentDocument = await paymentAdapter.checkPayment(self);
-      if (checkedPaymentDocument.status === "PAID" && checkedPaymentDocument.paid !== true) {
-        await checkedPaymentDocument.doPaid();
+      sails.log.debug("checkedPaymentDocument >> ", checkedPaymentDocument)
+
+
+
+      if (checkedPaymentDocument.status === "PAID") {
+        await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status, paid: true }).fetch();
       } else {
-        await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status });
+        await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status }).fetch();
       }
       getEmitter().emit("core-payment-document-checked-document", checkedPaymentDocument);
       return checkedPaymentDocument;
