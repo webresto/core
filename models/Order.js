@@ -124,6 +124,7 @@ let Model = {
     /** Add dish into order */
     async addDish(criteria, dish, amount, modifiers, comment, addedBy, replace, orderDishId) {
         await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
+        // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone 
         let dishObj;
         if (!addedBy)
             addedBy = "user";

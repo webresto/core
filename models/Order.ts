@@ -190,6 +190,8 @@ let Model = {
   ): Promise<void> {
     await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
 
+    // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone 
+
     let dishObj: Dish;
 
     if (!addedBy) addedBy = "user";

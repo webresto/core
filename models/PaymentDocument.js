@@ -114,7 +114,7 @@ let Model = {
         await checkOrigin(originModel, paymentId);
         await checkPaymentMethod(paymentMethodId);
         var id = uuid_1.v4();
-        id = id.substr(id.length - 8).toUpperCase();
+        // id = id.substr(id.length - 8).toUpperCase();
         let payment = {
             id: id,
             paymentId: paymentId,
