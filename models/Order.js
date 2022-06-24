@@ -600,7 +600,7 @@ let Model = {
                             getEmitter_1.default().emit("core-orderdish-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
-                        orderDish.uniqueItems = 1;
+                        orderDish.uniqueItems = 1; // deprecated
                         orderDish.itemTotal = 0;
                         orderDish.weight = orderDish.dish.weight;
                         orderDish.totalWeight = 0;
@@ -612,14 +612,30 @@ let Model = {
                                     sails.log.error("Dish with id " + modifier.id + " not found!");
                                     continue;
                                 }
-                                await getEmitter_1.default().emit("core-order-countcart-before-calc-modifier", modifier, modifierObj);
+                                let opts = {};
+                                await getEmitter_1.default().emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
                                 // const modifierCopy = {
                                 //   amount: modifier.amount,
                                 //   id: modifier.id
                                 // }
                                 // await getEmitter().emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
                                 orderDish.uniqueItems++;
+                                /** // TODO:
+                                 * Initial modification checking logic, now it's ugly.
+                                 * Needed review architecture modifiers to keep it in model.
+                                 * Also all checks modifiers need process in current loop thread. Currently we not have access to modifer options
+                                 * Here by opts we can pass options for modifiers
+                                 */
                                 orderDish.itemTotal += modifier.amount * modifierObj.price;
+                                // FreeAmount modiefires support
+                                if (opts.freeAmount && typeof opts.freeAmount === "number") {
+                                    if (opts.freeAmount < modifier.amount) {
+                                        orderDish.itemTotal -= opts.freeAmount * modifierObj.price;
+                                    }
+                                    else {
+                                        orderDish.itemTotal -= modifier.amount * modifierObj.price;
+                                    }
+                                }
                                 if (!Number(orderDish.itemTotal))
                                     throw `orderDish.itemTotal is NaN ${JSON.stringify(modifier)}.`;
                                 orderDish.weight += modifierObj.weight;
@@ -640,7 +656,7 @@ let Model = {
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);
                 }
-            }
+            } // for orderDish
             // Discount calc
             /**
              * TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
