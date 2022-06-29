@@ -74,6 +74,18 @@ export default PaymentDocument;
 declare let Model: {
     beforeCreate(paymentDocumentInit: any, next: any): void;
     doCheck: (criteria: any) => Promise<PaymentDocument>;
+    /**
+     * Registred new payment
+     * @param paymentId
+     * @param originModel
+     * @param amount
+     * @param paymentMethodId
+     * @param backLinkSuccess
+     * @param backLinkFail
+     * @param comment
+     * @param data
+     * @returns
+     */
     register: (paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: any) => Promise<void>;
     /** Цикл проверки платежей */

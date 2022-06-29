@@ -21,3 +21,4 @@ https://github.com/building5/sails-db-migrate
 19. AwaitEmmiter setup globaly 
 20. persistent OrderDish history
 21. Modifiers is model
+22. Imporeve Product model instead Dish

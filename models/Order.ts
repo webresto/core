@@ -618,7 +618,14 @@ let Model = {
     await getEmitter().emit("core-order-payment", order, params);
     sails.log.info("Order > payment > order before register:", order);
     try {
-      paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
+      paymentResponse = await PaymentDocument.register(
+        order.id, 
+        "order", 
+        order.total, 
+        paymentMethodId, 
+        params.backLinkSuccess, 
+        params.backLinkFail, 
+        params.comment, order);
     } catch (e) {
       getEmitter().emit("error", "order>payment", e);
       sails.log.error("Order > payment: ", e);

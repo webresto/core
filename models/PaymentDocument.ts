@@ -133,6 +133,18 @@ let Model = {
       sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
     }
   },
+  /**
+   * Registred new payment
+   * @param paymentId 
+   * @param originModel 
+   * @param amount 
+   * @param paymentMethodId 
+   * @param backLinkSuccess 
+   * @param backLinkFail 
+   * @param comment 
+   * @param data 
+   * @returns 
+   */
   register: async function (
     paymentId: string,
     originModel: string,
@@ -175,6 +187,7 @@ let Model = {
     try {
       sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
       let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
+      
       await PaymentDocument.update(
         { id: paymentResponse.id },
         {

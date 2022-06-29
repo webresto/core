@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const getEmitter_1 = require("../libs/getEmitter");
 // Memory store
 let settings = {};
-sails.on('lifted', async () => {
+sails.after(["hook:orm:loaded"], () => {
     //@ts-ignore
     let allSettings = await Settings.find({});
     allSettings.forEach(settingsItem => {

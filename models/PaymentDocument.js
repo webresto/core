@@ -109,6 +109,18 @@ let Model = {
             sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
         }
     },
+    /**
+     * Registred new payment
+     * @param paymentId
+     * @param originModel
+     * @param amount
+     * @param paymentMethodId
+     * @param backLinkSuccess
+     * @param backLinkFail
+     * @param comment
+     * @param data
+     * @returns
+     */
     register: async function (paymentId, originModel, amount, paymentMethodId, backLinkSuccess, backLinkFail, comment, data) {
         checkAmount(amount);
         await checkOrigin(originModel, paymentId);
