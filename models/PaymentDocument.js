@@ -199,7 +199,7 @@ let Model = {
                 }
                 else {
                     sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
-                    await actualPaymentDocument.doCheck();
+                    await PaymentDocument.doCheck({ id: actualPaymentDocument.id });
                 }
             }
         }, timeout || 120000));

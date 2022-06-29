@@ -187,7 +187,7 @@ let Model = {
     try {
       sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
       let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
-      
+
       await PaymentDocument.update(
         { id: paymentResponse.id },
         {
@@ -237,7 +237,7 @@ let Model = {
           await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" }).fetch();
         } else {
           sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
-          await actualPaymentDocument.doCheck();
+          await PaymentDocument.doCheck({id: actualPaymentDocument.id}) ;
         }
       }
     }, timeout || 120000));
