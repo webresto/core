@@ -4,7 +4,7 @@ import getEmitter from "../libs/getEmitter";
 
 // Memory store
 let settings = {}
-sails.after(["hook:orm:loaded"], () => {
+sails.after(["hook:orm:loaded"], async () => {
   //@ts-ignore
   let allSettings = await Settings.find({})
   allSettings.forEach(settingsItem => {
