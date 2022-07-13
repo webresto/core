@@ -14,7 +14,7 @@ let cartCollection = {
             type: "string",
             primaryKey: true,
             defaultsTo: function () {
-                return uuid_1.v4();
+                return (0, uuid_1.v4)();
             },
         },
         cartId: "string",
@@ -110,7 +110,7 @@ let cartCollection = {
 };
 let cartInstance = {
     addDish: async function (dish, amount, modifiers, comment, from, replace, cartDishId) {
-        const emitter = getEmitter_1.default();
+        const emitter = (0, getEmitter_1.default)();
         await emitter.emit.apply(emitter, ["core-cart-before-add-dish", ...arguments]);
         let dishObj;
         if (typeof dish === "string") {
@@ -185,7 +185,7 @@ let cartInstance = {
     },
     removeDish: async function (dish, amount, stack) {
         // TODO: удалить стек
-        const emitter = getEmitter_1.default();
+        const emitter = (0, getEmitter_1.default)();
         await emitter.emit.apply(emitter, ["core-cart-before-remove-dish", ...arguments]);
         const cart = await Cart.findOne({ id: this.id }).populate("dishes");
         if (cart.state === "ORDER")
@@ -216,7 +216,7 @@ let cartInstance = {
         await emitter.emit.apply(emitter, ["core-cart-after-remove-dish", ...arguments]);
     },
     setCount: async function (dish, amount) {
-        const emitter = getEmitter_1.default();
+        const emitter = (0, getEmitter_1.default)();
         await emitter.emit.apply(emitter, ["core-cart-before-set-count", ...arguments]);
         if (dish.dish.balance !== -1)
             if (amount > dish.dish.balance) {
@@ -248,7 +248,7 @@ let cartInstance = {
         }
     },
     setComment: async function (dish, comment) {
-        const emitter = getEmitter_1.default();
+        const emitter = (0, getEmitter_1.default)();
         const self = this;
         await emitter.emit.apply(emitter, ["core-cart-before-set-comment", ...arguments]);
         const cart = await Cart.findOne(this.id).populate("dishes");
@@ -296,7 +296,7 @@ let cartInstance = {
         /**
          *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
          */
-        getEmitter_1.default().emit("core-cart-before-check", self, customer, isSelfService, address);
+        (0, getEmitter_1.default)().emit("core-cart-before-check", self, customer, isSelfService, address);
         sails.log.debug("Cart > check > before check >", customer, isSelfService, address, paymentMethodId);
         if (customer) {
             await checkCustomerInfo(customer);
@@ -319,7 +319,7 @@ let cartInstance = {
         }
         isSelfService = isSelfService === undefined ? false : isSelfService;
         if (isSelfService) {
-            getEmitter_1.default().emit("core-cart-check-self-service", self, customer, isSelfService, address);
+            (0, getEmitter_1.default)().emit("core-cart-check-self-service", self, customer, isSelfService, address);
             sails.log.verbose("Cart > check > is self delivery");
             await self.setSelfService(true);
             await self.next("CHECKOUT");
@@ -337,8 +337,8 @@ let cartInstance = {
                 };
             }
         }
-        getEmitter_1.default().emit("core-cart-check-delivery", self, customer, isSelfService, address);
-        const results = await getEmitter_1.default().emit("core-cart-check", self, customer, isSelfService, address, paymentMethodId);
+        (0, getEmitter_1.default)().emit("core-cart-check-delivery", self, customer, isSelfService, address);
+        const results = await (0, getEmitter_1.default)().emit("core-cart-check", self, customer, isSelfService, address, paymentMethodId);
         await self.save();
         console;
         if (self.dishesCount === 0) {
@@ -350,7 +350,7 @@ let cartInstance = {
         sails.log.info("Cart > check > after wait general emitter", self, results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
-        getEmitter_1.default().emit("core-cart-after-check", self, customer, isSelfService, address);
+        (0, getEmitter_1.default)().emit("core-cart-after-check", self, customer, isSelfService, address);
         if (resultsCount === 0)
             return;
         const checkConfig = await SystemInfo.use("check");
@@ -398,16 +398,16 @@ let cartInstance = {
         // PTODO: проверка эта нужна
         // if(( self.isPaymentPromise && self.paid) || ( !self.isPaymentPromise && !self.paid) )
         //   return 3
-        getEmitter_1.default().emit("core-cart-before-order", self);
+        (0, getEmitter_1.default)().emit("core-cart-before-order", self);
         sails.log.silly("Cart > order > before order >", self.customer, self.selfService, self.address);
         if (this.selfService) {
-            getEmitter_1.default().emit("core-cart-order-self-service", self);
+            (0, getEmitter_1.default)().emit("core-cart-order-self-service", self);
         }
         else {
-            getEmitter_1.default().emit("core-cart-order-delivery", self);
+            (0, getEmitter_1.default)().emit("core-cart-order-delivery", self);
         }
         // await Cart.countCart(self);
-        const results = await getEmitter_1.default().emit("core-cart-order", self);
+        const results = await (0, getEmitter_1.default)().emit("core-cart-order", self);
         sails.log.silly("Cart > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
@@ -445,7 +445,7 @@ let cartInstance = {
             sails.log.info("Cart > order > before save cart", self);
             // await self.save();
             await Cart.update({ id: self.id }, data);
-            getEmitter_1.default().emit("core-cart-after-order", self);
+            (0, getEmitter_1.default)().emit("core-cart-after-order", self);
         }
     },
     payment: async function () {
@@ -463,13 +463,13 @@ let cartInstance = {
             backLinkFail: backLinkFail,
             comment: comment,
         };
-        await getEmitter_1.default().emit("core-cart-payment", self, params);
+        await (0, getEmitter_1.default)().emit("core-cart-payment", self, params);
         sails.log.info("Cart > payment > self before register:", self);
         try {
             paymentResponse = await PaymentDocument.register(self.id, "cart", self.orderTotal, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, self);
         }
         catch (e) {
-            getEmitter_1.default().emit("error", "cart>payment", e);
+            (0, getEmitter_1.default)().emit("error", "cart>payment", e);
             sails.log.error("Cart > payment: ", e);
         }
         await self.next("PAYMENT");
@@ -508,6 +508,8 @@ let cartModel = {
                 // console.log(111,cartDish,cartDish.dish.id,dish)
                 const dish = await Dish.findOne({
                     id: cartDish.dish.id,
+                    // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
+                    // isDeleted: false
                 })
                     .populate("images")
                     .populate("parentGroup");
@@ -526,7 +528,7 @@ let cartModel = {
         catch (e) {
             sails.log.error("CART > fullCart error", e);
         }
-        getEmitter_1.default().emit("core-cart-populate", fullCart);
+        (0, getEmitter_1.default)().emit("core-cart-populate", fullCart);
         return { ...fullCart };
     },
     /**
@@ -536,7 +538,7 @@ let cartModel = {
      */
     countCart: async function (cart) {
         try {
-            getEmitter_1.default().emit("core-cart-before-count", cart);
+            (0, getEmitter_1.default)().emit("core-cart-before-count", cart);
             if (typeof cart === "string" || cart instanceof String) {
                 cart = await Cart.findOne({ id: cart });
             }
@@ -559,7 +561,7 @@ let cartModel = {
                         // Проверяет что блюдо доступно к продаже
                         if (!dish) {
                             sails.log.error("Dish with id " + cartDish.dish.id + " not found!");
-                            getEmitter_1.default().emit("core-cart-return-full-cart-destroy-cartdish", dish, cart);
+                            (0, getEmitter_1.default)().emit("core-cart-return-full-cart-destroy-cartdish", dish, cart);
                             await CartDish.destroy({ id: cartDish.dish.id });
                             continue;
                         }
@@ -569,7 +571,7 @@ let cartModel = {
                             if (cartDish.amount >= 0) {
                                 await cart.removeDish(cartDish, 999999);
                             }
-                            getEmitter_1.default().emit("core-cartdish-change-amount", cartDish);
+                            (0, getEmitter_1.default)().emit("core-cartdish-change-amount", cartDish);
                             sails.log.debug(`Cart with id ${cart.id} and  CardDish with id ${cartDish.id} amount was changed!`);
                         }
                         cartDish.uniqueItems = 1;
@@ -587,7 +589,7 @@ let cartModel = {
                                     amount: modifier.amount,
                                     id: modifier.id,
                                 };
-                                await getEmitter_1.default().emit("core-cart-countcart-before-calc-modifier", modifierCopy, modifierObj);
+                                await (0, getEmitter_1.default)().emit("core-cart-countcart-before-calc-modifier", modifierCopy, modifierObj);
                                 cartDish.uniqueItems++;
                                 cartDish.itemTotal += modifierCopy.amount * modifierObj.price;
                                 cartDish.weight += modifierObj.weight;
@@ -619,7 +621,7 @@ let cartModel = {
             // }
             // TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
             cart.dishes = cartDishes;
-            await getEmitter_1.default().emit("core-cart-count-discount-apply", cart);
+            await (0, getEmitter_1.default)().emit("core-cart-count-discount-apply", cart);
             /**
              * Карт тотал это чистая стоимость корзины
              */
@@ -628,15 +630,16 @@ let cartModel = {
             cart.totalWeight = totalWeight;
             cart.cartTotal = cartTotal;
             // For calculate delivery in fly
-            getEmitter_1.default().emit("core:count-before-delivery-cost", cart);
+            (0, getEmitter_1.default)().emit("core:count-before-delivery-cost", cart);
             cart.total = cartTotal + cart.deliveryCost - cart.discountTotal;
             cart.orderTotal = cartTotal + cart.deliveryCost - cart.discountTotal;
             if (cart.delivery) {
                 cart.total += cart.delivery;
             }
-            getEmitter_1.default().emit("core-cart-after-count", cart);
-            delete (cart.dishes);
-            await Cart.update({ id: cart.id }, cart);
+            (0, getEmitter_1.default)().emit("core-cart-after-count", cart);
+            let cartUpd = { ...cart };
+            delete (cartUpd.dishes);
+            await Cart.update({ id: cart.id }, cartUpd);
             return cart;
         }
         catch (error) {
