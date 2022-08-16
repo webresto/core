@@ -550,7 +550,6 @@ let Model = {
       getEmitter().emit("core-order-order-delivery", order);
     }
 
-    await Order.countCart(order);
     const results = await getEmitter().emit("core-order-order", order);
 
     sails.log.silly("Order > order > after wait general emitter results: ", results);
@@ -848,8 +847,14 @@ let Model = {
     }
   },
 
-  async doPaid(criteria: any, paymentDocument: PaymentDocument) {
+  async doPaid(criteria: any, paymentDocument: PaymentDocument) : Promise<void> {
     let order = await Order.findOne(criteria);
+    
+    if(order.paid) {
+      sails.log.info(`Order > doPaid: Order with id ${order.id} is paid`);
+      return
+    }
+
     try {
       let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
       await Order.update(
@@ -862,6 +867,7 @@ let Model = {
       ).fetch();
 
       sails.log.info("Order > doPaid: ", order.id, order.state, order.total, paymentDocument.amount);
+
 
       if (order.state !== "PAYMENT") {
         sails.log.error("Order > doPaid: is strange order state is not PAYMENT", order);

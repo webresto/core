@@ -33,7 +33,7 @@ function ToInitialize(sails) {
         /**
          * Bind models
          */
-        hookTools_1.default.bindModels(path_1.resolve(__dirname, "../models")).then(cb);
+        hookTools_1.default.bindModels((0, path_1.resolve)(__dirname, "../models")).then(cb);
     };
 }
 exports.default = ToInitialize;
