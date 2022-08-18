@@ -99,6 +99,7 @@ let Model = {
             sails.log.debug("checkedPaymentDocument >> ", checkedPaymentDocument);
             if (checkedPaymentDocument.status === "PAID") {
                 await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status, paid: true }).fetch();
+                checkedPaymentDocument.paid = true;
             }
             else {
                 await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status }).fetch();
