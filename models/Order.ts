@@ -249,11 +249,11 @@ let Model = {
 
     if ( SEPARATE_CONCEPTS_ORDERS && order.concept && order.concept !== dishObj.concept) {
       throw { body: `Dish ${dishObj.name} not in same concept as cart`, code: 1 };
-    } else if ( separateConceptsOrders && !order.concept ) {  
+    } else if ( SEPARATE_CONCEPTS_ORDERS && order.dishes.length === 0) {  
       await Order.update({id:order.id}, {concept: dishObj.concept})
     }
     
-    
+
     let orderDish: OrderDish;
 
     // auto replace and increase amount if same dishes without modifiers
