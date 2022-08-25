@@ -13,6 +13,8 @@ declare let attributes: {
     id: string;
     /** last 8 chars from id */
     shortId: string;
+    /** Концепт к которому относится группа */
+    concept: string;
     /** */
     dishes: number[] | OrderDish[];
     paymentMethod: any;
@@ -95,6 +97,8 @@ declare let Model: {
         id: string;
         /** last 8 chars from id */
         shortId: string;
+        /** Концепт к которому относится группа */
+        concept: string;
         /** */
         dishes: number[] | OrderDish[];
         paymentMethod: any;

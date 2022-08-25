@@ -73,7 +73,8 @@ describe("Order", function () {
       "orderTotal",
       "discountTotal",
       "orderDate",
-      "customData"
+      "customData",
+      "concept"
     );
   });
 
@@ -103,6 +104,14 @@ describe("Order", function () {
     expect(orderDish[0].amount).to.equal(5);
     expect(orderDish[0].comment).to.equal("test comment");
     expect(orderDish[0].addedBy).to.equal("test");
+  });
+
+  it("addDish SEPARATE_CONCEPTS_ORDERS test", async function () {
+    // TODO: test it
+  });
+
+  it("addDish ONLY_CONCEPTS_DISHES test", async function () {
+    // TODO: test it
   });
 
   it("removeDish", async function () {

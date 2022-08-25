@@ -17,6 +17,8 @@ let attributes = {
     },
     /** last 8 chars from id */
     shortId: "string",
+    /** Концепт к которому относится группа */
+    concept: "string",
     /** */
     dishes: {
         collection: "OrderDish",
@@ -162,6 +164,23 @@ let Model = {
             });
         }
         await emitter.emit.apply(emitter, ["core-order-add-dish-before-create-orderdish", ...arguments]);
+        /**
+         * @setting: ONLY_CONCEPTS_DISHES - Prevents ordering from origin concept
+         */
+        const ONLY_CONCEPTS_DISHES = Settings.get('ONLY_CONCEPTS_DISHES');
+        if (ONLY_CONCEPTS_DISHES && dishObj.concept === 'origin') {
+            throw { body: `Dish ${dishObj.name} (${dishObj.id}) from [${dishObj.concept}] concept, but ONLY_CONCEPTS_DISHES setting is: ${ONLY_CONCEPTS_DISHES}`, code: 1 };
+        }
+        /**
+        * @setting: CORE_SEPARATE_CONCEPTS_ORDERS - Prevents ordering in the same cart from different concepts
+        */
+        const SEPARATE_CONCEPTS_ORDERS = Settings.get('SEPARATE_CONCEPTS_ORDERS');
+        if (SEPARATE_CONCEPTS_ORDERS && order.concept && order.concept !== dishObj.concept) {
+            throw { body: `Dish ${dishObj.name} not in same concept as cart`, code: 1 };
+        }
+        else if (separateConceptsOrders && !order.concept) {
+            await Order.update({ id: order.id }, { concept: dishObj.concept });
+        }
         let orderDish;
         // auto replace and increase amount if same dishes without modifiers
         if (!replace && (!modifiers || (modifiers && modifiers.length === 0))) {
