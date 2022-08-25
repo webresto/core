@@ -509,7 +509,7 @@ let Model = {
             throw "order with orderId " + order.id + "in state ${order.state} but need CHECKOUT";
         var paymentResponse;
         let comment = "";
-        var backLinkSuccess = (await Settings.use("FrontendOrderPage")) + order.id;
+        var backLinkSuccess = (await Settings.use("FrontendOrderPage")) + order.shortId;
         var backLinkFail = await Settings.use("FrontendCheckoutPage");
         let paymentMethodId = await order.paymentMethod;
         sails.log.verbose("Order > payment > before payment register", order);
