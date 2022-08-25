@@ -97,6 +97,7 @@ let attributes = {
 
   /** Текст ошибки */
   error: "string",
+  data: "json" as unknown as any
 };
 
 type attributes = typeof attributes;

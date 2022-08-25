@@ -66,6 +66,7 @@ declare let attributes: {
     redirectLink: string;
     /** Текст ошибки */
     error: string;
+    data: any;
 };
 declare type attributes = typeof attributes;
 interface PaymentDocument extends attributes, ORM {

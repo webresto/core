@@ -80,6 +80,7 @@ let attributes = {
     redirectLink: "string",
     /** Текст ошибки */
     error: "string",
+    data: "json"
 };
 let Model = {
     beforeCreate(paymentDocumentInit, next) {
