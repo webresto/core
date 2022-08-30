@@ -66,6 +66,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../lib/checkExpression");
 const hashCode_1 = require("../lib/hashCode");
 const getEmitter_1 = require("../lib/getEmitter");
+const slugify_1 = require("slugify");
 module.exports = {
     attributes: {
         id: {
@@ -127,8 +128,7 @@ module.exports = {
             via: 'dish'
         },
         slug: {
-            type: 'slug',
-            from: 'name'
+            type: 'string'
         },
         hash: 'string',
         composition: 'string',
@@ -138,19 +138,20 @@ module.exports = {
         workTime: 'json'
     },
     beforeUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-before-update', record);
+        (0, getEmitter_1.default)().emit('core:dish-before-update', record);
         return proceed();
     },
-    beforeCreate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-before-create', record);
+    beforeCreate: function (init, proceed) {
+        init.slug = (0, slugify_1.default)(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+        (0, getEmitter_1.default)().emit('core:dish-before-create', init);
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-after-update', record);
+        (0, getEmitter_1.default)().emit('core:dish-after-update', record);
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-after-create', record);
+        (0, getEmitter_1.default)().emit('core:dish-after-create', record);
         return proceed();
     },
     /**
@@ -166,7 +167,7 @@ module.exports = {
         }
         let dishes = await Dish.find(criteria).populate('images');
         await Promise.each(dishes, async (dish) => {
-            const reason = checkExpression_1.default(dish);
+            const reason = (0, checkExpression_1.default)(dish);
             if (!reason) {
                 await Dish.getDishModifiers(dish);
                 if (dish.images.length >= 2)
@@ -177,7 +178,7 @@ module.exports = {
             }
         });
         dishes.sort((a, b) => a.order - b.order);
-        await getEmitter_1.default().emit('core-dish-get-dishes', dishes);
+        await (0, getEmitter_1.default)().emit('core-dish-get-dishes', dishes);
         return dishes;
     },
     /**
@@ -230,7 +231,7 @@ module.exports = {
      * @return обновлённое или созданное блюдо
      */
     async createOrUpdate(values) {
-        let hash = hashCode_1.default(JSON.stringify(values));
+        let hash = (0, hashCode_1.default)(JSON.stringify(values));
         const dish = await Dish.findOne({ id: values.id });
         if (!dish) {
             return Dish.create({ hash, ...values });

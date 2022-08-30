@@ -71,6 +71,7 @@ import getEmitter from "../lib/getEmitter";
 import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import * as _ from "lodash";
+import slugify from "slugify"
 
 module.exports = {
   attributes: {
@@ -133,8 +134,7 @@ module.exports = {
       via: 'dish'
     },
     slug: {
-      type: 'slug',
-      from: 'name'
+      type: 'string'
     },
     hash: 'string',
     composition: 'string',
@@ -150,8 +150,9 @@ module.exports = {
     return proceed();
   },
 
-  beforeCreate: function (record, proceed) {
-    getEmitter().emit('core:dish-before-create', record);
+  beforeCreate: function (init, proceed) {
+    init.slug = slugify(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
+    getEmitter().emit('core:dish-before-create', init);
     return proceed();
   },
 

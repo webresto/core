@@ -44,6 +44,7 @@ import ORMModel from "../modelsHelp/ORMModel";
 import ORM from "../modelsHelp/ORM";
 import Image from "../models/Image";
 import Dish from "../models/Dish";
+import slugify from "slugify"
 
 module.exports = {
   attributes: {
@@ -92,8 +93,7 @@ module.exports = {
     },
 
     slug: {
-      type: 'slug',
-      from: 'name'
+      type: 'string'
     },
     visible: 'boolean',
     modifier: 'boolean',
@@ -106,8 +106,9 @@ module.exports = {
     return proceed();
   },
 
-  beforeCreate: function (record, proceed) {
-    getEmitter().emit('core:group-before-create', record);
+  beforeCreate: function (init, proceed) {
+    getEmitter().emit('core:group-before-create', init);
+    init.slug = slugify(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
     return proceed();
   },
 

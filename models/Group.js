@@ -41,6 +41,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../lib/checkExpression");
 const getEmitter_1 = require("../lib/getEmitter");
+const slugify_1 = require("slugify");
 module.exports = {
     attributes: {
         id: {
@@ -86,8 +87,7 @@ module.exports = {
             model: "image",
         },
         slug: {
-            type: 'slug',
-            from: 'name'
+            type: 'string'
         },
         visible: 'boolean',
         modifier: 'boolean',
@@ -95,19 +95,20 @@ module.exports = {
         workTime: 'json',
     },
     beforeUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:group-before-update', record);
+        (0, getEmitter_1.default)().emit('core:group-before-update', record);
         return proceed();
     },
-    beforeCreate: function (record, proceed) {
-        getEmitter_1.default().emit('core:group-before-create', record);
+    beforeCreate: function (init, proceed) {
+        (0, getEmitter_1.default)().emit('core:group-before-create', init);
+        init.slug = (0, slugify_1.default)(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:group-after-update', record);
+        (0, getEmitter_1.default)().emit('core:group-after-update', record);
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        getEmitter_1.default().emit('core:group-after-create', record);
+        (0, getEmitter_1.default)().emit('core:group-after-create', record);
         return proceed();
     },
     /**
@@ -131,7 +132,7 @@ module.exports = {
             .populate('images');
         const errors = {};
         await Promise.each(groups, async (group) => {
-            const reason = checkExpression_1.default(group);
+            const reason = (0, checkExpression_1.default)(group);
             if (!reason) {
                 menu[group.id] = group;
                 if (group.childGroups) {
@@ -160,7 +161,7 @@ module.exports = {
                 errors[group.id] = reason;
             }
         });
-        await getEmitter_1.default().emit('core-group-get-groups', menu, errors);
+        await (0, getEmitter_1.default)().emit('core-group-get-groups', menu, errors);
         const res = Object.values(menu);
         //TODO: rewrite with throw
         return { groups: res, errors: errors };
