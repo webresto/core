@@ -23,7 +23,7 @@ module.exports = {
         id: {
             type: 'string',
             primaryKey: true,
-            defaultsTo: function () { return uuid_1.v4(); }
+            defaultsTo: function () { return (0, uuid_1.v4)(); }
         },
         images: 'json',
         dish: {

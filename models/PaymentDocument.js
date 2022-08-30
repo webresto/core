@@ -9,7 +9,7 @@ module.exports = {
         id: {
             type: 'string',
             primaryKey: true,
-            defaultsTo: function () { return uuid_1.v4(); }
+            defaultsTo: function () { return (0, uuid_1.v4)(); }
         },
         paymentId: 'string',
         externalId: 'string',
@@ -35,14 +35,14 @@ module.exports = {
             if (self.status === "PAID" && self.paid !== true) {
                 self.status = "PAID";
                 self.paid = true;
-                getEmitter_1.default().emit('core-payment-document-paid', self);
+                (0, getEmitter_1.default)().emit('core-payment-document-paid', self);
                 await self.save();
             }
             return self;
         },
         doCheck: async function () {
             const self = this;
-            getEmitter_1.default().emit('core-payment-document-check', self);
+            (0, getEmitter_1.default)().emit('core-payment-document-check', self);
             try {
                 let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
                 let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
@@ -52,7 +52,7 @@ module.exports = {
                 else {
                     await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status });
                 }
-                getEmitter_1.default().emit('core-payment-document-checked-document', checkedPaymentDocument);
+                (0, getEmitter_1.default)().emit('core-payment-document-checked-document', checkedPaymentDocument);
                 return checkedPaymentDocument;
             }
             catch (e) {
@@ -64,15 +64,15 @@ module.exports = {
         checkAmount(amount);
         await checkOrigin(originModel, paymentId);
         await checkPaymentMethod(paymentMethodId);
-        var id = uuid_1.v4();
+        var id = (0, uuid_1.v4)();
         id = id.substr(id.length - 8).toUpperCase();
         let payment = { id: id, paymentId: paymentId, originModel: originModel, paymentMethod: paymentMethodId, amount: amount, comment: comment, data: data };
-        getEmitter_1.default().emit('core-payment-document-before-create', payment);
+        (0, getEmitter_1.default)().emit('core-payment-document-before-create', payment);
         try {
             await PaymentDocument.create(payment);
         }
         catch (e) {
-            getEmitter_1.default().emit('error', "PaymentDocument > register:", e);
+            (0, getEmitter_1.default)().emit('error', "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 3,
@@ -92,7 +92,7 @@ module.exports = {
             return paymentResponse;
         }
         catch (e) {
-            getEmitter_1.default().emit('error', "PaymentDocument > register:", e);
+            (0, getEmitter_1.default)().emit('error', "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 4,

@@ -53,7 +53,7 @@ module.exports = {
         }
     },
     beforeCreate: function (paymentMethod, next) {
-        paymentMethod.id = uuid_1.v4();
+        paymentMethod.id = (0, uuid_1.v4)();
         next();
     },
     /**

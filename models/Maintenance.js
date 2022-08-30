@@ -9,10 +9,10 @@ sails.on('lifted', function () {
     setInterval(async function () {
         const maintenance = await Maintenance.getActiveMaintenance();
         if (maintenance) {
-            getEmitter_1.default().emit('core-maintenance-enabled', maintenance);
+            (0, getEmitter_1.default)().emit('core-maintenance-enabled', maintenance);
         }
         else {
-            getEmitter_1.default().emit('core-maintenance-disabled');
+            (0, getEmitter_1.default)().emit('core-maintenance-disabled');
         }
     }, CHECK_INTERVAL);
 });
@@ -32,7 +32,7 @@ module.exports = {
         stopDate: 'datetime'
     },
     beforeCreate: function (paymentMethod, next) {
-        paymentMethod.id = uuid_1.v4();
+        paymentMethod.id = (0, uuid_1.v4)();
         next();
     },
     siteIsOff: async function () {
@@ -50,7 +50,7 @@ module.exports = {
                 stop = s.stopDate.getTime();
             }
             const now = moment().valueOf();
-            return causes_1.between(start, stop, now);
+            return (0, causes_1.between)(start, stop, now);
         });
         return maintenances[0];
     }
