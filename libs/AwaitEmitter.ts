@@ -81,7 +81,7 @@ export default class AwaitEmitter {
                       let label = `
   -----------------------------------------------------------------
   From \x1b[40m\x1b[33m\x1b[5m ${f.label} \x1b[0m : ${debugRay}
-  \x1b[33m${key} : ${JSON.stringify(value,null,2)} \x1b[0m
+  \x1b[33m${key as string} : ${JSON.stringify(value,null,2)} \x1b[0m
     
   method listing:
   
@@ -143,7 +143,7 @@ export default class AwaitEmitter {
             } else {
               try {
                 res.push(new Response(f.label, r));
-              } catch (error) {
+              } catch (e) {
                 res.push(new Response(f.label, null, e));
               }
             }
