@@ -6,9 +6,15 @@ import * as fs from "fs";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
  * Отдаёт запрашиваемый RMS-адаптер
- */
+ */ 
 export class RMS {
   public static getAdapter(adapterName: string): typeof RMSAdapter {
+    
+    // if(!Boolean(adapterName)) {
+    //   sails.log.warn(`RMS adapter not defined: ${adapterName}`);
+    //   return 
+    // }
+
     // For factory we use different dirrectory for modules
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
@@ -27,6 +33,12 @@ export class RMS {
  */
 export class Map {
   public static getAdapter(adapterName: string): new (config) => MapAdapter {
+
+    // if(!Boolean(adapterName)) {
+    //   sails.log.warn(`Map adapter not defined: ${adapterName}`);
+    //   return 
+    // }
+
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-map-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-map-adapter";
     try {
@@ -46,6 +58,12 @@ export class Map {
  */
 export class ImageA {
   public static getAdapter(adapterName: string): ImageAdapter {
+
+    // if(!Boolean(adapterName)) {
+    //   sails.log.warn(`Image adapter not defined: ${adapterName}`);
+    //   return 
+    // }
+
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
     try {
@@ -62,6 +80,13 @@ export class ImageA {
  */
 export class Payment {
   public static getAdapter(adapterName: string): PaymentAdapter {
+
+    // if(!Boolean(adapterName)) {
+    //   sails.log.warn(`Payment adapter not defined: ${adapterName}`);
+    //   return 
+    // }
+
+
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
 

@@ -105,7 +105,17 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
-    /** Just calcualte dishes in raw order */
+    // TODO: Uncoment after impl migrations
+    // /** 
+    // * Sum dishes in raw order 
+    // */
+    // orderCost: {
+    //   type: "number",
+    //   defaultsTo: 0,
+    // } as unknown as number,
+    /**
+    *   @deprecated orderTotal use orderCost
+    */
     orderTotal: {
         type: "number",
         defaultsTo: 0,
@@ -699,6 +709,7 @@ let Model = {
             order.totalWeight = totalWeight;
             order.orderTotal = orderTotal;
             (0, getEmitter_1.default)().emit("core:count-before-delivery-cost", order);
+            // @deprecated orderTotal use orderCost
             order.total = orderTotal + order.deliveryCost - order.discountTotal;
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             (0, getEmitter_1.default)().emit("core-order-after-count", order);

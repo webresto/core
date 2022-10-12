@@ -8,6 +8,10 @@ const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? 
  */
 class RMS {
     static getAdapter(adapterName) {
+        // if(!Boolean(adapterName)) {
+        //   sails.log.warn(`RMS adapter not defined: ${adapterName}`);
+        //   return 
+        // }
         // For factory we use different dirrectory for modules
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
@@ -27,6 +31,10 @@ exports.RMS = RMS;
  */
 class Map {
     static getAdapter(adapterName) {
+        // if(!Boolean(adapterName)) {
+        //   sails.log.warn(`Map adapter not defined: ${adapterName}`);
+        //   return 
+        // }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-map-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-map-adapter";
         try {
@@ -45,6 +53,10 @@ exports.Map = Map;
  */
 class ImageA {
     static getAdapter(adapterName) {
+        // if(!Boolean(adapterName)) {
+        //   sails.log.warn(`Image adapter not defined: ${adapterName}`);
+        //   return 
+        // }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
         try {
@@ -63,6 +75,10 @@ exports.ImageA = ImageA;
  */
 class Payment {
     static getAdapter(adapterName) {
+        // if(!Boolean(adapterName)) {
+        //   sails.log.warn(`Payment adapter not defined: ${adapterName}`);
+        //   return 
+        // }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
         try {

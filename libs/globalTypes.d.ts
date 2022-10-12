@@ -6,6 +6,7 @@ declare global {
         models: any;
         config: _sailsConfig;
         log: any;
+        after: any;
     }
     interface _sailsConfig extends sailsConfig {
         restocore: Config;

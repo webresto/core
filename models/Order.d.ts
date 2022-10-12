@@ -61,7 +61,9 @@ declare let attributes: {
     bonusesTotal: number;
     /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
     total: number;
-    /** Just calcualte dishes in raw order */
+    /**
+    *   @deprecated orderTotal use orderCost
+    */
     orderTotal: number;
     discountTotal: number;
     orderDate: string;
@@ -145,7 +147,9 @@ declare let Model: {
         bonusesTotal: number;
         /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
         total: number;
-        /** Just calcualte dishes in raw order */
+        /**
+        *   @deprecated orderTotal use orderCost
+        */
         orderTotal: number;
         discountTotal: number;
         orderDate: string;

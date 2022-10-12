@@ -120,7 +120,7 @@ class AwaitEmitter {
                     try {
                         res.push(new Response(f.label, r));
                     }
-                    catch (error) {
+                    catch (e) {
                         res.push(new Response(f.label, null, e));
                     }
                 }
