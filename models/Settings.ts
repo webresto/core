@@ -41,8 +41,8 @@ let attributes = {
   from: "string" as string,
 };
 
-type attributes = typeof attributes;
-interface Settings extends attributes, ORM {}
+type attributes = typeof attributes & ORM;
+interface Settings extends attributes {}
 export default Settings;
 
 let Model = {
@@ -106,7 +106,7 @@ let Model = {
     } else  {
       return undefined
     }
-  }
+  },
   
   /**
    * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
@@ -138,7 +138,5 @@ module.exports = {
 };
 
 declare global {
-  namespace NodeJS {
     const Settings: typeof Model & ORMModel<Settings>;
-  }
 }

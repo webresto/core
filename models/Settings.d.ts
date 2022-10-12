@@ -14,8 +14,8 @@ declare let attributes: {
     /** Источника происхождения */
     from: string;
 };
-declare type attributes = typeof attributes;
-interface Settings extends attributes, ORM {
+declare type attributes = typeof attributes & ORM;
+interface Settings extends attributes {
 }
 export default Settings;
 declare let Model: {
@@ -32,7 +32,5 @@ declare let Model: {
     set(key: string, value: any, from?: string): Promise<any>;
 };
 declare global {
-    namespace NodeJS {
-        const Settings: typeof Model & ORMModel<Settings>;
-    }
+    const Settings: typeof Model & ORMModel<Settings>;
 }
