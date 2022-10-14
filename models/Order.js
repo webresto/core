@@ -576,10 +576,13 @@ let Model = {
                     .populate("parentGroup");
                 await Dish.getDishModifiers(dish);
                 orderDish.dish = dish;
-                if (orderDish.modifiers !== undefined) {
+                if (orderDish.modifiers !== undefined && (0, lodash_1.isArray)(orderDish.modifiers)) {
                     for await (let modifier of orderDish.modifiers) {
                         modifier.dish = (await Dish.find(modifier.id).limit(1))[0];
                     }
+                }
+                else {
+                    throw `orderDish.modifiers not iterable`;
                 }
             }
             fullOrder.dishes = orderDishes;
@@ -675,6 +678,9 @@ let Model = {
                                     throw `orderDish.itemTotal is NaN ${JSON.stringify(modifier)}.`;
                                 orderDish.weight += modifierObj.weight;
                             }
+                        }
+                        else {
+                            throw `orderDish.modifiers not iterable`;
                         }
                         orderDish.totalWeight = orderDish.weight * orderDish.amount;
                         orderDish.itemTotal += orderDish.dish.price;

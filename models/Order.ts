@@ -713,10 +713,12 @@ let Model = {
         await Dish.getDishModifiers(dish);
         orderDish.dish = dish;
 
-        if (orderDish.modifiers !== undefined) {
+        if (orderDish.modifiers !== undefined && isArray(orderDish.modifiers)) {
           for await (let modifier of orderDish.modifiers) {
             modifier.dish = (await Dish.find(modifier.id).limit(1))[0];
           }
+        } else {
+          throw `orderDish.modifiers not iterable`
         }
       }
       fullOrder.dishes = orderDishes as Association<OrderDish>;
@@ -832,6 +834,8 @@ let Model = {
 
                 orderDish.weight += modifierObj.weight;
               }
+            } else {
+              throw `orderDish.modifiers not iterable`
             }
 
             orderDish.totalWeight = orderDish.weight * orderDish.amount;
