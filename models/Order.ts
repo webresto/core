@@ -835,7 +835,7 @@ let Model = {
                 orderDish.weight += modifierObj.weight;
               }
             } else {
-              throw `orderDish.modifiers not iterable`
+              throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish)} <<`
             }
 
             orderDish.totalWeight = orderDish.weight * orderDish.amount;
