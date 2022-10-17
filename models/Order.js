@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("../libs/actions");
 const getEmitter_1 = require("../libs/getEmitter");
 const uuid_1 = require("uuid");
-const lodash_1 = require("lodash");
 const emitter = (0, getEmitter_1.default)();
 let attributes = {
     /** Id  */
@@ -576,13 +575,13 @@ let Model = {
                     .populate("parentGroup");
                 await Dish.getDishModifiers(dish);
                 orderDish.dish = dish;
-                if (orderDish.modifiers !== undefined && (0, lodash_1.isArray)(orderDish.modifiers)) {
+                if (orderDish.modifiers !== undefined && Array.isArray(orderDish.modifiers)) {
                     for await (let modifier of orderDish.modifiers) {
                         modifier.dish = (await Dish.find(modifier.id).limit(1))[0];
                     }
                 }
                 else {
-                    throw `orderDish.modifiers not iterable`;
+                    throw `orderDish.modifiers not iterable orderDish: ${JSON.stringify(orderDish.modifiers, undefined, 2)}`;
                 }
             }
             fullOrder.dishes = orderDishes;
@@ -643,7 +642,7 @@ let Model = {
                         orderDish.weight = orderDish.dish.weight;
                         orderDish.totalWeight = 0;
                         // orderDish.dishId = dish.id
-                        if (orderDish.modifiers && (0, lodash_1.isArray)(orderDish.modifiers)) {
+                        if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
                             for (let modifier of orderDish.modifiers) {
                                 const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
                                 if (!modifierObj) {
@@ -680,7 +679,7 @@ let Model = {
                             }
                         }
                         else {
-                            throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish)} <<`;
+                            throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish.modifiers, undefined, 2)} <<`;
                         }
                         orderDish.totalWeight = orderDish.weight * orderDish.amount;
                         orderDish.itemTotal += orderDish.dish.price;

@@ -14,7 +14,7 @@ let attributes = {
     dish: {
         model: "Dish",
     },
-    /** Модификаторы для текущего блюда */
+    /** Selected modifiers */
     modifiers: "json",
     /** */
     order: {

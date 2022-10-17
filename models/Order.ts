@@ -14,7 +14,6 @@ import * as _ from "lodash";
 import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
-import { isArray } from "lodash";
 
 const emitter = getEmitter();
 
@@ -635,7 +634,6 @@ let Model = {
     }
   },
 
-
   async payment(criteria: any): Promise<PaymentResponse> {
     const order: Order = await Order.findOne(criteria);
     if (order.state !== "CHECKOUT") throw "order with orderId " + order.id + "in state ${order.state} but need CHECKOUT";
@@ -671,6 +669,7 @@ let Model = {
     await Order.next(order.id, "PAYMENT");
     return paymentResponse;
   },
+
   async paymentMethodId(criteria: any): Promise<string> {
     let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];
     let paymentMethod = populatedOrder.paymentMethod as PaymentMethod;
@@ -713,12 +712,12 @@ let Model = {
         await Dish.getDishModifiers(dish);
         orderDish.dish = dish;
 
-        if (orderDish.modifiers !== undefined && isArray(orderDish.modifiers)) {
+        if (orderDish.modifiers !== undefined && Array.isArray(orderDish.modifiers)) {
           for await (let modifier of orderDish.modifiers) {
             modifier.dish = (await Dish.find(modifier.id).limit(1))[0];
           }
         } else {
-          throw `orderDish.modifiers not iterable`
+          throw `orderDish.modifiers not iterable orderDish: ${JSON.stringify(orderDish.modifiers, undefined, 2)}`
         }
       }
       fullOrder.dishes = orderDishes as Association<OrderDish>;
@@ -789,7 +788,7 @@ let Model = {
             orderDish.totalWeight = 0;
             // orderDish.dishId = dish.id
 
-            if (orderDish.modifiers && isArray(orderDish.modifiers)) {
+            if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
               for (let modifier of orderDish.modifiers) {
                 const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
 
@@ -835,7 +834,7 @@ let Model = {
                 orderDish.weight += modifierObj.weight;
               }
             } else {
-              throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish)} <<`
+              throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish.modifiers, undefined, 2)} <<`
             }
 
             orderDish.totalWeight = orderDish.weight * orderDish.amount;

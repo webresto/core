@@ -8,7 +8,7 @@ declare let attributes: {
     amount: number;
     /**Блюдо, которое содержится в корзине */
     dish: any;
-    /** Модификаторы для текущего блюда */
+    /** Selected modifiers */
     modifiers: Modifier[];
     /** */
     order: any;

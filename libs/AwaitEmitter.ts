@@ -80,7 +80,7 @@ export default class AwaitEmitter {
                     set: function (target, key, value) {
                       let label = `
   -----------------------------------------------------------------
-  From \x1b[40m\x1b[33m\x1b[5m ${f.label} \x1b[0m : ${debugRay}
+  Event: \x1b[40m\x1b[33m\x1b[5m ${name} <- ${f.label}  \x1b[0m : ${debugRay}
   \x1b[33m${key as string} : ${JSON.stringify(value,null,2)} \x1b[0m
     
   method listing:

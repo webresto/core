@@ -213,7 +213,7 @@ let Model = {
                     let childModifierDish = await Dish.findOne({ id: childModifier.modifierId }).populate('images');
                     if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)) {
                         // delete if dish not found
-                        sails.log.error("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
+                        sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
                     }
                     else {
                         try {
@@ -230,13 +230,12 @@ let Model = {
                 dish.modifiers[index].childModifiers = childModifiers;
                 // If groupMod not have options delete it
                 if (modifier.childModifiers && !modifier.childModifiers.length > 0) {
-                    sails.log.error("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
+                    sails.log.warn("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
                     dish.modifiers.splice(index, 1);
                 }
                 index++;
             }
         }
-        dish.groupModifiers = null;
     },
     /**
      * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
