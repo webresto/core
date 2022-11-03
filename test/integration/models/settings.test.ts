@@ -4,6 +4,7 @@ describe("Settings", function () {
 
   it("Get from memory", async function () {
     await sleep(1000);
+    await Settings.set("projectName", "test" )
     let setting = Settings.get("projectName");
     expect(setting).to.equal("test")
   });

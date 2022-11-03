@@ -27,6 +27,7 @@ describe("Flows: Checkout", function () {
   let dishes;
 
   it("Check dishescount", async function () {
+    await sleep(500)
     order = await Order.create({}).fetch();
     dishes = await Dish.find({})
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
@@ -135,11 +136,8 @@ describe("Flows: Checkout", function () {
       throw "test";
     });
     
-    try {
-      order = await Order.create({}).fetch();
-    } catch (error) {
-      console.log(111111111111111111, error)
-    }
+    await sleep(500)
+    order = await Order.create({}).fetch();
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     order = await Order.findOne(order.id);
 
@@ -163,6 +161,7 @@ describe("Flows: Checkout", function () {
   it("test checkConfig (notRequired)", async function () {
     await Settings.set("check", { notRequired: true });
     
+    await sleep(500)
     order = await Order.create({}).fetch();
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     order = await Order.findOne(order.id);
@@ -191,6 +190,7 @@ describe("Flows: Checkout", function () {
     // });
 
     it("good customer", async function () {
+      await sleep(500)
       order = await Order.create({}).fetch();
       await Order.addDish(order.id, dishes[0], 1, [], "", "test");
       order = await Order.findOne(order.id);
@@ -237,9 +237,8 @@ describe("Flows: Checkout", function () {
       expect(error.error).to.be.an("string");
     });
 
-    it("no customer throw", async function () {
-      order.customer = null;
-      await Order.update({ id: order.id }, order).fetch();
+    it("no customer throw", async function () {      
+      await Order.update({ id: order.id }, {customer: null}).fetch();
       let error = null;
       try {
         await Order.check({ id: order.id });
@@ -254,6 +253,7 @@ describe("Flows: Checkout", function () {
 
   describe("check Address", function () {
     it("good address", async function () {
+      await sleep(500)
       order = await Order.create({}).fetch();
       
       await Order.addDish(order.id, dishes[0], 1, [], "", "test");
@@ -291,9 +291,8 @@ describe("Flows: Checkout", function () {
       }
     });
 
-    it("no address throw", async function () {
-      order.customer = null;
-      await Order.update({ id: order.id }, order).fetch();
+    it("no address throw", async function () {  
+      await Order.update({ id: order.id }, {address: null}).fetch();
       try {
         await Order.check(order.id, null, true);
       } catch (e) {

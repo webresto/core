@@ -164,7 +164,6 @@ let Model = {
      */
     async getAdapterById(paymentMethodId) {
         const paymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
-        //@ts-ignore
         if (await PaymentMethod.isPaymentPromise(paymentMethod.id)) {
             throw `PaymentPromise adapter: (${paymentMethod.adapter}) not have adapter`;
         }

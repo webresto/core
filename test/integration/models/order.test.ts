@@ -271,8 +271,7 @@ describe("Order", function () {
     let order = await Order.create({}).fetch();
     let testPaymentSystem = await TestPaymentSystem.getInstance();
     let paymentSystem = (await PaymentMethod.find())[0];
-    order.paymentMethod = paymentSystem.id;
-    await Order.update({ id: order.id }, order).fetch();
+    await Order.update({ id: order.id }, {paymentMethod: paymentSystem.id}).fetch();
 
     let result = await Order.paymentMethodId(order.id);
     expect(result).to.equal(paymentSystem.id);

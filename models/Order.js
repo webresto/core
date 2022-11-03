@@ -417,7 +417,6 @@ let Model = {
         /** Успех во всех слушателях по умолчанию */
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
-        console.log("!!!!!!!!!!!!!!!", resultsCount, successCount, results);
         if (resultsCount === successCount) {
             if ((await Order.getState(order.id)) !== "CHECKOUT") {
                 await Order.next(order.id, "CHECKOUT");

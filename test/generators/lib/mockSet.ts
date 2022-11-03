@@ -1,5 +1,5 @@
 import { mock } from "intermock";
-import { readFiles, FileTuples } from "intermock/build/src/libs/read-files";
+import { readFiles, FileTuples } from "intermock/build/src/lib/read-files";
 import { readdir } from "fs";
 import { promisify } from "util";
 

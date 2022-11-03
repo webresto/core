@@ -532,7 +532,6 @@ let Model = {
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
     
-    console.log("!!!!!!!!!!!!!!!",resultsCount, successCount, results)
     if (resultsCount === successCount) {
       if ((await Order.getState(order.id)) !== "CHECKOUT") {
         await Order.next(order.id, "CHECKOUT");
@@ -797,7 +796,7 @@ let Model = {
                   continue;
                 }
 
-                let opts = {} 
+                let opts:  any = {} 
                 await getEmitter().emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
 
                 // const modifierCopy = {

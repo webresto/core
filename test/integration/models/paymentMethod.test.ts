@@ -5,7 +5,7 @@ var paymentMethodSeed = {
   id: "test-payment-cash",
   title: "Cash",
   type: "promise",
-  adapter: "not_adapter_cache2",
+  adapter: "not_adapter_cache",
   order: 2,
   description: "Pay by cash",
   enable: true
@@ -18,17 +18,25 @@ describe("PaymentMethod", function () {
   it("getAdapter", async function () {
     // test paymentpromise PaymentMethod
     cashMethod = await PaymentMethod.findOrCreate({ adapter: paymentMethodSeed.adapter }, paymentMethodSeed);
-    let result = await cashMethod.getAdapter();
-    expect(result).to.equal(undefined);
+    console.log(cashMethod)
+    let result = await PaymentMethod.getAdapter(cashMethod.adapter);
+    expect(result).be.undefined;
 
     // TODO: check external PaymentMethod
   });
-  it("getAdapterById TODO", async function () {
+  it("getAdapterById", async function () {
     //static
     cashMethod = await PaymentMethod.findOrCreate({ adapter: paymentMethodSeed.adapter }, paymentMethodSeed);
-    let result = await PaymentMethod.getAdapterById(cashMethod.id);
-    expect(result).to.equal(undefined);
-
+    
+    let error = null;
+    try {
+      await PaymentMethod.getAdapterById(cashMethod.id);
+    } catch (e) {
+      error = e;
+    }
+    
+    expect(error).to.not.equal(null);
+    
     // TODO: check external PaymentMethod
   });
   it("isPaymentPromise", async function () {
