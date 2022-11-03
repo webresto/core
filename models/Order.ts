@@ -497,7 +497,7 @@ let Model = {
     getEmitter().emit("core-order-check-delivery", order, customer, isSelfService, address);
 
     const results = await getEmitter().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
-
+    console.log(results)
     if (order.dishesCount === 0) {
       throw {
         code: 13,
@@ -515,10 +515,10 @@ let Model = {
 
     getEmitter().emit("core-order-after-check", order, customer, isSelfService, address);
 
-    /** Чек может проходить без слушателей, потомучто минимально сам по себе чек
-     *  имеет баовые проверки. И является самодостаточным, но
-     * всеже по умолчанию установлено так что нужно пройти все проверки
-     */
+    /** The check can pass without listeners, because the check itself is minimal
+    * has basic checks. And is self-sufficient, but
+    * is still set by default so all checks must be passed
+    */
     const checkConfig = (await Settings.use("check")) as any;
 
     if (checkConfig && checkConfig.notRequired) {
@@ -532,23 +532,23 @@ let Model = {
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
     
-    let error: string 
-    if (resultsCount !== successCount) {
-      results.forEach(result => {
-          if (result.state=== 'error' && result.error) {
-              sails.log.error(`Order > core-order-check error: ${result.error}`);
-              sails.log.error(result);
-              error = result.error
-          }
-      });
-  }
-  
+    console.log("!!!!!!!!!!!!!!!",resultsCount, successCount, results)
     if (resultsCount === successCount) {
       if ((await Order.getState(order.id)) !== "CHECKOUT") {
         await Order.next(order.id, "CHECKOUT");
       }
       return;
     } else {
+      let error: string 
+      // Find error reason
+      results.forEach(result => {
+        if (result.state=== 'error' && result.error) {
+            sails.log.error(`Order > core-order-check error: ${result.error}`);
+            sails.log.error(result);
+            error = result.error
+        }
+      });
+
       throw {
         code: 0,
         error: `one or more results from core-order-check was not sucessed\n last error: ${error}`,

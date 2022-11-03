@@ -13,11 +13,11 @@ describe("Flows: Checkout", function () {
   var order: Order;
 
   let customer: Customer = {
-    phone: "+79998881212",
+    phone: "+99999999999",
     name: "Freeman Morgan",
   };
   let address: Address = {
-    streetId: "sdfsf",
+    streetId: "1234",
     city: "New York",
     street: "Green Road",
     home: "42",
@@ -116,7 +116,7 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check(order.id, customer);
     } catch (e) {
-      expect(e).to.not.equal(null);
+      expect(e).be.not.undefined;
     }
   });
 
@@ -125,27 +125,30 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check(order.id, customer);
     } catch (e) {
-      expect(e).to.not.equal(null);
+      expect(e).be.not.undefined;
     }
   });
 
   it("test checkConfig (default - requireAll)", async function () {
-    //@ts-ignore
-    await Settings.set("check", null);
-
-    order = await Order.create({}).fetch();
+    
+    getEmitter().on("core-order-check", "test checkConfig (default - requireAll)", function () {
+      throw "test";
+    });
+    
+    try {
+      order = await Order.create({}).fetch();
+    } catch (error) {
+      console.log(111111111111111111, error)
+    }
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     order = await Order.findOne(order.id);
 
-    getEmitter().on("core-order-check", "ccc", function () {
-      throw "test";
-    });
+    await Settings.set("check", {});
 
-    // for selfServices
     try {
       await Order.check(order.id, customer, true);
     } catch (e) {
-      expect(e.code).to.equal(10);
+      expect(e.code).to.equal(0);
     }
 
     // just user with address
@@ -153,12 +156,11 @@ describe("Flows: Checkout", function () {
       await Order.check(order.id, customer, false, address);
     } catch (e) {
       console.error(e)
-      expect(e.code).to.equal(10);
+      expect(e.code).to.equal(0);
     }
   });
 
   it("test checkConfig (notRequired)", async function () {
-    //@ts-ignore
     await Settings.set("check", { notRequired: true });
     
     order = await Order.create({}).fetch();
@@ -170,7 +172,7 @@ describe("Flows: Checkout", function () {
       await Order.check(order.id, customer, true);
     } catch (e) {
       console.error(e)
-      expect(e).to.equal(null);
+      expect(e).be.undefined;
     }
 
     // just user with address
@@ -178,7 +180,7 @@ describe("Flows: Checkout", function () {
       await Order.check(order.id, customer, false, address);
     } catch (e) {
       console.error(e)
-      expect(e).to.equal(null);
+      expect(e).be.undefined;
     }
   });
 
@@ -194,14 +196,14 @@ describe("Flows: Checkout", function () {
       order = await Order.findOne(order.id);
   
       let customer: Customer = {
-        phone: "+79998881212",
+        phone: "+99999999999",
         name: "Freeman Morgan",
       };
 
       try {
         await Order.check(order.id, customer, true);
       } catch (e) {
-        expect(e).to.equal(null);
+        expect(e).be.undefined;
       }
     });
 
@@ -268,7 +270,7 @@ describe("Flows: Checkout", function () {
       try {
         await Order.check(order.id, customer, null, address);
       } catch (e) {
-        expect(e).to.equal(null);
+        expect(e).be.undefined;
       }
     });
 

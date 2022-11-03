@@ -270,8 +270,7 @@ let Model = {
 
           let childModifiers = []
 
-          // Fix Null
-          if (modifier.childModifiers === null) modifier.childModifiers = [];
+          if (!modifier.childModifiers) modifier.childModifiers = [];
           
           for await(let childModifier of modifier.childModifiers){
             let childModifierDish = await Dish.findOne({id: childModifier.modifierId}).populate('images')

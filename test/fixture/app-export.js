@@ -1,3 +1,4 @@
+var fs = require('fs');
 /**
  * app.js
  *
@@ -23,6 +24,11 @@
 // no matter where we actually lift from.
 // > Note: This is not required in order to lift, but it is a convenient default.
 process.chdir(__dirname);
+
+// filedb not present clean environment in drop
+if (fs.existsSync(__dirname + "/.tmp/localDiskDb")) {
+  fs.rmSync(__dirname + "/.tmp/localDiskDb", { recursive: true, force: true });
+}
 
 // Attempt to import `sails`.
 var sails;

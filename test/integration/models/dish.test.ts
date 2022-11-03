@@ -143,17 +143,12 @@ describe('Dish', function () {
     expect(Dish.getDishModifiers).to.not.equals(undefined);
 
     let dishes = await Dish.find({});
-    // @ts-ignore
-    let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: [{id: dishes[0].id}] }) );
-    await Dish.getDishModifiers(dish);
-    // console.log(JSON.stringify(dish, null, '  '));
-    expect(dish.modifiers.length).to.equal(1);
-    expect(dish.modifiers[0].id).to.equal(dishes[0].id);
 
     let group = (await Group.find({}).limit(1))[0];
-    // @ts-ignor
-    dish.modifiers = [{modifierId: group.id, childModifiers: [{id: dishes[0].id, modifierId: dishes[0].id}]}];
-    dish = await Dish.createOrUpdate(dish);
+    
+    let modifiers = [{modifierId: group.id, childModifiers: [{id: dishes[0].id, modifierId: dishes[0].id}]}];
+    // @ts-ignore
+    let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers }) );
     await Dish.getDishModifiers(dish);
     // console.log(JSON.stringify(dish, null, '  '));
     expect(dish.modifiers.length).to.equal(1);

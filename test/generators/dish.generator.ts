@@ -8,7 +8,7 @@ interface DishData  {
   id? : string;
   additionalInfo?: string;
   balance?: number;
-  modifiers?: [];
+  modifiers?: any[];
   parentGroup?: string;
   weight?: number;
   price?: number;
@@ -24,6 +24,15 @@ interface DishData  {
 
 export default function dishGenerator(config: DishData = {}): DishData{
   autoincrement++;
+  // if (config.modifiers && config.modifiers.length) {
+  //   config.modifiers.forEach(modifier => {
+  //     if (!modifier.childModifiers) {
+  //       let _modifier: any = {} 
+  //       _modifier.childModifiers = { ... modifier }
+  //       modifier = _modifier
+  //     }
+  //   });
+  // }
   return {
     id: faker.random.uuid(),
     additionalInfo: config.additionalInfo || "null",

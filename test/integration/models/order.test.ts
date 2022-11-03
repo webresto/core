@@ -11,6 +11,18 @@ import PaymentDocument from "../../../models/PaymentDocument";
 import OrderDish from "../../../models/OrderDish";
 
 describe("Order", function () {
+  let customer: Customer = {
+    phone: "+99999999999",
+    name: "Freeman Morgan",
+  };
+  let address: Address = {
+    streetId: "1234",
+    city: "New York",
+    street: "Green Road",
+    home: "42",
+    comment: "",
+  };
+
   this.timeout(10000);
   let order: Order;
   let dishes: Dish[];
@@ -39,7 +51,6 @@ describe("Order", function () {
       "shortId",
       "state",
       "dishes",
-      "discount",
       "paymentMethod",
       "paymentMethodTitle",
       "paid",
@@ -69,6 +80,7 @@ describe("Order", function () {
       "deliveryCost",
       "totalWeight",
       "total",
+      "trifleFrom",
       "orderTotal",
       "orderTotal",
       "discountTotal",
@@ -232,6 +244,9 @@ describe("Order", function () {
     });
 
     await Order.setSelfService(order.id, true);
+
+    await Order.check(order.id, customer, true, undefined, undefined);
+ 
     await Order.order(order.id);
     
     expect(count1).to.equal(1);
@@ -270,6 +285,8 @@ describe("Order", function () {
     await Order.addDish(order.id, dishes[0], 5, [], "", "");
     await Order.addDish(order.id, dishes[1], 3, [], "", "");
     await Order.addDish(order.id, dishes[2], 8, [], "", "");
+
+    await Order.check(order.id, customer, true, undefined, undefined);
 
     const paymentMethod = (await PaymentMethod.find({}))[0];
     let newPaymentDocument = {

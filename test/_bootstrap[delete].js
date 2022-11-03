@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 require("mocha");
 require('dotenv').config();
-var Sails = require('./fixture/node_modules/sails').Sails;
+var Sails = require('./fixture/node_modules/sails/lib').Sails;
 before(function (done) {
     let rc = require('./fixture/app').rc;
     this.timeout(50000);
