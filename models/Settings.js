@@ -34,12 +34,12 @@ let attributes = {
 };
 let Model = {
     afterUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit(`settings:${record.key}`, record);
+        getEmitter_1.default().emit(`settings:${record.key}`, record);
         settings[record.key] = record.value;
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit(`settings:${record.key}`, record);
+        getEmitter_1.default().emit(`settings:${record.key}`, record);
         settings[record.key] = record.value;
         return proceed();
     },

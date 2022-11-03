@@ -5,7 +5,6 @@ let attributes = {
     /** ID */
     id: {
         type: "string",
-        //required: true,
     },
     /** Название улицы */
     name: "string",
@@ -18,7 +17,7 @@ let attributes = {
 let Model = {
     beforeCreate(streetInit, next) {
         if (!streetInit.id) {
-            streetInit.id = (0, uuid_1.v4)();
+            streetInit.id = uuid_1.v4();
         }
         next();
     },

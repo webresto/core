@@ -50,7 +50,6 @@ let attributes = {
     /** Уникальный id в моделе PaymentDocument */
     id: {
         type: "string",
-        //required: true,
     },
     /** соответсвует id из модели originModel */
     paymentId: "string",
@@ -85,7 +84,7 @@ let attributes = {
 let Model = {
     beforeCreate(paymentDocumentInit, next) {
         if (!paymentDocumentInit.id) {
-            paymentDocumentInit.id = (0, uuid_1.v4)();
+            paymentDocumentInit.id = uuid_1.v4();
         }
         next();
     },
@@ -93,7 +92,7 @@ let Model = {
         const self = (await PaymentDocument.find(criteria).limit(1))[0];
         if (!self)
             throw `PaymentDocument is not found`;
-        (0, getEmitter_1.default)().emit("core-payment-document-check", self);
+        getEmitter_1.default().emit("core-payment-document-check", self);
         try {
             let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
             let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
@@ -105,7 +104,7 @@ let Model = {
             else {
                 await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status }).fetch();
             }
-            (0, getEmitter_1.default)().emit("core-payment-document-checked-document", checkedPaymentDocument);
+            getEmitter_1.default().emit("core-payment-document-checked-document", checkedPaymentDocument);
             return checkedPaymentDocument;
         }
         catch (e) {
@@ -128,7 +127,7 @@ let Model = {
         checkAmount(amount);
         await checkOrigin(originModel, paymentId);
         await checkPaymentMethod(paymentMethodId);
-        var id = (0, uuid_1.v4)();
+        var id = uuid_1.v4();
         id = id.replace(/-/g, '').toUpperCase();
         let payment = {
             id: id,
@@ -139,12 +138,12 @@ let Model = {
             comment: comment,
             data: data,
         };
-        (0, getEmitter_1.default)().emit("core-payment-document-before-create", payment);
+        getEmitter_1.default().emit("core-payment-document-before-create", payment);
         try {
             await PaymentDocument.create(payment).fetch();
         }
         catch (e) {
-            (0, getEmitter_1.default)().emit("error", "PaymentDocument > register:", e);
+            getEmitter_1.default().emit("error", "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 3,
@@ -164,7 +163,7 @@ let Model = {
             return paymentResponse;
         }
         catch (e) {
-            (0, getEmitter_1.default)().emit("error", "PaymentDocument > register:", e);
+            getEmitter_1.default().emit("error", "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 4,

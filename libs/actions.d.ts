@@ -44,13 +44,13 @@ declare const actions: {
      * @param params(order.id,  dishesId)
      * @return Promise<Order>
      */
-    addDish(order: Order, params: AddDishParams): Promise<Order>;
+    addDish(order: Order, params: any): Promise<Order>;
     /**
      * Set delivery cost
      * @param params(order.id,  deliveryCost)
      * @returns {Promise<>}
      */
-    delivery(order: Order, params: DeliveryParams): Promise<Order>;
+    delivery(order: Order, params: any): Promise<Order>;
     /**
      * Reset all order action
      * @param orderId
@@ -62,9 +62,9 @@ declare const actions: {
      * @param params(order.id,  description)
      * @return Promise<Order>
      */
-    setDeliveryDescription(order: Order, params: DeliveryDescriptionParams): Promise<Order>;
-    reject(order: Order, params: ActionParams): Promise<Order>;
-    setMessage(order: Order, params: MessageParams): Promise<Order>;
+    setDeliveryDescription(order: Order, params: any): Promise<Order>;
+    reject(order: Order, params: any): Promise<Order>;
+    setMessage(order: Order, params: any): Promise<Order>;
     return(): number;
 };
 export default actions;
