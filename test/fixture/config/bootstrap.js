@@ -23,7 +23,7 @@ module.exports.bootstrap = async function(cb) {
         for(let y = 0; y < 2; y++){
           let subSubGroup = await Group.create(groupGenerator({parentGroup: subGroup}));
           try {    
-            await Dish.create(dishGenerator({parentGroup: subSubGroup}));
+            await Dish.create(dishGenerator({parentGroup: subSubGroup, price: 100.1}));
           } catch (error) {
             console.log(error);
           }

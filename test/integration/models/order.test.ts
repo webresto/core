@@ -209,18 +209,17 @@ describe("Order", function () {
 
   it("countCart", async function () {
     let order = await Order.create({id: "countcart"}).fetch();
-    let totalWeight = 0;
 
     await Order.addDish(order.id, dishes[0], 5, [], "", "");
     await Order.addDish(order.id, dishes[1], 3, [], "", "");
     await Order.addDish(order.id, dishes[2], 8, [], "", "");
-    await Order.addDish(order.id, dishes[2], 8, [], "", "");
+   // await Order.addDish(order.id, dishes[2], 8, [], "", "");
     let changedOrder = await Order.countCart(order);
 
-    expect(changedOrder.totalWeight).to.equal(totalWeight);
     expect(changedOrder.uniqueDishes).to.equal(3);
     expect(changedOrder.dishesCount).to.equal(5 + 3 + 8);
-    expect(changedOrder.orderTotal).to.equal(2400);
+    expect(changedOrder.totalWeight).to.equal(changedOrder.dishesCount * 100);
+    expect(changedOrder.orderTotal).to.equal(changedOrder.dishesCount * 100.1);
   });
 
   it("order", async function () {
