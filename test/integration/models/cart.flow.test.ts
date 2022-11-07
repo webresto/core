@@ -203,7 +203,7 @@ describe("Flows: Checkout", function () {
       try {
         await Order.check(order.id, customer, true);
       } catch (e) {
-        expect(e).be.undefined;
+        expect(e).to.be.undefined;
       }
     });
 
