@@ -39,7 +39,7 @@ describe("Order", function () {
   });
 
   it("create Сart", async function () {
-    order = await Order.create({}).fetch();
+    order = await Order.create({id:"create-cart"}).fetch();
     expect(order).to.be.an("object");
   });
 
@@ -91,7 +91,7 @@ describe("Order", function () {
   });
 
   it("addDish", async function () {
-    order = await Order.create({}).fetch();
+    order = await Order.create({id: "add-dish"}).fetch();
 
     //console.log(dishes);
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
@@ -136,7 +136,7 @@ describe("Order", function () {
   });
 
   it("addDish same dish increase amount", async function () {
-    order = await Order.create({}).fetch();
+    order = await Order.create({id: "adddish-same-dish-increase-amount-1"}).fetch();
     await Order.addDish(order.id, dishes[0], 2, [], "", "test");
     await Order.addDish(order.id, dishes[0], 3, [], "", "test");
     await Order.addDish(order.id, dishes[0], 1, null, "", "test");
@@ -146,7 +146,7 @@ describe("Order", function () {
     expect(orderDishes.length).to.equals(1);
     expect(orderDishes[0].amount).to.equals(6);
 
-    order = await Order.create({}).fetch();
+    order = await Order.create({id:"adddish-same-dish-increase-amount-2"}).fetch();
     await Order.addDish(order.id, dishes[0], 1, [{ id: dishes[1].id, modifierId: dishes[1].id }], "", "mod");
     await Order.addDish(order.id, dishes[0], 1, null, "", "test");
     await Order.addDish(order.id, dishes[0], 2, null, "", "test");
@@ -186,7 +186,7 @@ describe("Order", function () {
   });
 
   it("addDish 20", async function () {
-    order = await Order.create({}).fetch();
+    order = await Order.create({id: "adddish-20"}).fetch();
     for (let i = 0; i < 20; i++) {
       await Order.addDish(order.id, dishes[i], 3, [], "", "");
     }
@@ -197,7 +197,7 @@ describe("Order", function () {
   });
 
   it("setSelfService", async function () {
-    let order = await Order.create({}).fetch();
+    let order = await Order.create({id: "setselfservice"}).fetch();
     order = await Order.setSelfService(order.id, true);
     expect(order.selfService).to.equal(true);
     
@@ -208,7 +208,7 @@ describe("Order", function () {
 
 
   it("countCart", async function () {
-    let order = await Order.create({}).fetch();
+    let order = await Order.create({id: "countcart"}).fetch();
     let totalWeight = 0;
 
     await Order.addDish(order.id, dishes[0], 5, [], "", "");
@@ -269,7 +269,7 @@ describe("Order", function () {
   });
 
   it("paymentMethodId", async function () {
-    let order = await Order.create({}).fetch();
+    let order = await Order.create({id: "paymentmethodid"}).fetch();
     let testPaymentSystem = await TestPaymentSystem.getInstance();
     let paymentSystem = (await PaymentMethod.find())[0];
     await Order.update({ id: order.id }, {paymentMethod: paymentSystem.id}).fetch();
@@ -281,7 +281,7 @@ describe("Order", function () {
   it("doPaid", async function () {
     expect(Order.doPaid).to.not.equals(undefined);
 
-    let order = await Order.create({}).fetch();
+    let order = await Order.create({id:"dopaid"}).fetch();
     await Order.addDish(order.id, dishes[0], 5, [], "", "");
     await Order.addDish(order.id, dishes[1], 3, [], "", "");
     await Order.addDish(order.id, dishes[2], 8, [], "", "");
@@ -308,18 +308,6 @@ describe("Order", function () {
   });
 });
 
-/**
- * create and return new Order with few dishes
- * @param dishes - array of dishes
- */
-async function getNewOrder(dishes: Dish[]): Promise<Order> {
-  let order = await Order.create({}).fetch();
-  await Order.addDish(order.id, dishes[0], 5, [], "", "");
-  await Order.addDish(order.id, dishes[1], 3, [], "", "");
-  await Order.addDish(order.id, dishes[2], 8, [], "", "");
-  order = await Order.findOne(order.id);
-  return order;
-}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));

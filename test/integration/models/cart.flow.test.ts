@@ -28,7 +28,7 @@ describe("Flows: Checkout", function () {
 
   it("Check dishescount", async function () {
     await sleep(500)
-    order = await Order.create({}).fetch();
+    order = await Order.create({id:"test.order.check-dishescount"}).fetch();
     dishes = await Dish.find({})
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     order = await Order.findOne(order.id);
@@ -136,8 +136,9 @@ describe("Flows: Checkout", function () {
       throw "test";
     });
     
+
     await sleep(500)
-    order = await Order.create({}).fetch();
+    order = await Order.create({id: "test-checkconfig-default-requireall"}).fetch();
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     order = await Order.findOne(order.id);
 
@@ -162,7 +163,7 @@ describe("Flows: Checkout", function () {
     await Settings.set("check", { notRequired: true });
     
     await sleep(500)
-    order = await Order.create({}).fetch();
+    order = await Order.create({id: "test-checkconfig-notrequired"}).fetch();
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     order = await Order.findOne(order.id);
 
@@ -170,7 +171,6 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check(order.id, customer, true);
     } catch (e) {
-      console.error(e)
       expect(e).be.undefined;
     }
 
@@ -191,7 +191,7 @@ describe("Flows: Checkout", function () {
 
     it("good customer", async function () {
       await sleep(500)
-      order = await Order.create({}).fetch();
+      order = await Order.create({id: "check-customer"}).fetch();
       await Order.addDish(order.id, dishes[0], 1, [], "", "test");
       order = await Order.findOne(order.id);
   
@@ -203,7 +203,7 @@ describe("Flows: Checkout", function () {
       try {
         await Order.check(order.id, customer, true);
       } catch (e) {
-        expect(e).to.be.undefined;
+        expect(e).be.undefined;
       }
     });
 
@@ -254,7 +254,7 @@ describe("Flows: Checkout", function () {
   describe("check Address", function () {
     it("good address", async function () {
       await sleep(500)
-      order = await Order.create({}).fetch();
+      order = await Order.create({id:"check-address"}).fetch();
       
       await Order.addDish(order.id, dishes[0], 1, [], "", "test");
       order = await Order.findOne(order.id);
