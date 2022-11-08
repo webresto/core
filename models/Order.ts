@@ -751,7 +751,9 @@ let Model = {
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
       // const orderDishesClone = {};
       // order.dishes.map(cd => orderDishesClone[cd.id] = _.cloneDeep(cd));
-
+      if (order.id === "test--countcart"){
+        console.dir("111112",orderDishes, 1)
+      }
       let orderTotal = 0;
       let dishesCount = 0;
       let uniqueDishes = 0;
@@ -781,13 +783,15 @@ let Model = {
             }
 
             
-            orderDish.uniqueItems = 1; // deprecated
-            orderDish.itemTotal = 0;
+            orderDish.uniqueItems += orderDish.amount; // deprecated
+            orderDish.itemTotal = orderDish.dish.price;
             orderDish.weight = orderDish.dish.weight;
             orderDish.totalWeight = 0;
             // orderDish.dishId = dish.id
 
             if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
+              console.log(orderDish.modifiers)
+
               for (let modifier of orderDish.modifiers) {
                 const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
 
@@ -805,7 +809,6 @@ let Model = {
                 // }
                 // await getEmitter().emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
 
-                orderDish.uniqueItems++;
 
 
 
@@ -817,6 +820,8 @@ let Model = {
                  */
 
                 orderDish.itemTotal += modifier.amount * modifierObj.price;
+                // TODO: discountPrice
+                
 
                 // FreeAmount modiefires support
                 if (opts.freeAmount && typeof opts.freeAmount === "number") {
@@ -837,15 +842,16 @@ let Model = {
             }
 
             orderDish.totalWeight = orderDish.weight * orderDish.amount;
-            orderDish.itemTotal += orderDish.dish.price;
-
             orderDish.itemTotal *= orderDish.amount;
-
+            
             orderDish.dish = orderDish.dish.id;
             await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
             orderDish.dish = dish;
-          }
 
+          } // for disches
+
+
+          console.log("==========",orderDish.amount,orderDish.itemTotal)
           orderTotal += orderDish.itemTotal;
           dishesCount += orderDish.amount;
           uniqueDishes++;

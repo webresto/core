@@ -31,6 +31,11 @@ module.exports.bootstrap = async function(cb) {
       }
     }  
   }
+
+  // "modifier-with-zero-price"
+  await Dish.create(dishGenerator({id: "modifier-with-zero-price", price: 0}));
+
+
   try {    
     var dishes = await Dish.find({});
     console.log('Dishes: '+dishes.length);

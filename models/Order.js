@@ -606,6 +606,9 @@ let Model = {
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             // const orderDishesClone = {};
             // order.dishes.map(cd => orderDishesClone[cd.id] = _.cloneDeep(cd));
+            if (order.id === "test--countcart") {
+                console.dir("111112", orderDishes, 1);
+            }
             let orderTotal = 0;
             let dishesCount = 0;
             let uniqueDishes = 0;
@@ -630,12 +633,13 @@ let Model = {
                             getEmitter_1.default().emit("core-orderdish-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
-                        orderDish.uniqueItems = 1; // deprecated
-                        orderDish.itemTotal = 0;
+                        orderDish.uniqueItems += orderDish.amount; // deprecated
+                        orderDish.itemTotal = orderDish.dish.price;
                         orderDish.weight = orderDish.dish.weight;
                         orderDish.totalWeight = 0;
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
+                            console.log(orderDish.modifiers);
                             for (let modifier of orderDish.modifiers) {
                                 const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
                                 if (!modifierObj) {
@@ -649,7 +653,6 @@ let Model = {
                                 //   id: modifier.id
                                 // }
                                 // await getEmitter().emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
-                                orderDish.uniqueItems++;
                                 /** // TODO:
                                  * Initial modification checking logic, now it's ugly.
                                  * Needed review architecture modifiers to keep it in model.
@@ -657,6 +660,7 @@ let Model = {
                                  * Here by opts we can pass options for modifiers
                                  */
                                 orderDish.itemTotal += modifier.amount * modifierObj.price;
+                                // TODO: discountPrice
                                 // FreeAmount modiefires support
                                 if (opts.freeAmount && typeof opts.freeAmount === "number") {
                                     if (opts.freeAmount < modifier.amount) {
@@ -675,12 +679,12 @@ let Model = {
                             throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish.modifiers, undefined, 2)} <<`;
                         }
                         orderDish.totalWeight = orderDish.weight * orderDish.amount;
-                        orderDish.itemTotal += orderDish.dish.price;
                         orderDish.itemTotal *= orderDish.amount;
                         orderDish.dish = orderDish.dish.id;
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
-                    }
+                    } // for disches
+                    console.log("==========", orderDish.amount, orderDish.itemTotal);
                     orderTotal += orderDish.itemTotal;
                     dishesCount += orderDish.amount;
                     uniqueDishes++;

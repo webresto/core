@@ -34,7 +34,7 @@ export default function dishGenerator(config: DishData = {}): DishData{
   //   });
   // }
   return {
-    id: faker.random.uuid(),
+    id: config.id || faker.random.uuid(),
     additionalInfo: config.additionalInfo || "null",
     balance:  config.balance || -1,
     modifiers: config.modifiers || [],

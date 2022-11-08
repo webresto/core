@@ -208,18 +208,25 @@ describe("Order", function () {
 
 
   it("countCart", async function () {
-    let order = await Order.create({id: "countcart"}).fetch();
+    let order = await Order.create({id: "test--countcart"}).fetch();
 
-    await Order.addDish(order.id, dishes[0], 5, [], "", "");
-    await Order.addDish(order.id, dishes[1], 3, [], "", "");
-    await Order.addDish(order.id, dishes[2], 8, [], "", "");
-   // await Order.addDish(order.id, dishes[2], 8, [], "", "");
+    await Order.addDish(order.id, dishes[0], 5, [], "", "test");
+    await Order.addDish(order.id, dishes[1], 3, [], "", "test");
+    await Order.addDish(order.id, dishes[2], 8, [], "", "test");
+    
+    // Add dish with modifier with zero price
+    await Order.addDish(order.id, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "test");
+    
+    // Modifier with price
+    await Order.addDish(order.id, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "test");
+
+
     let changedOrder = await Order.countCart(order);
-
-    expect(changedOrder.uniqueDishes).to.equal(3);
-    expect(changedOrder.dishesCount).to.equal(5 + 3 + 8);
-    expect(changedOrder.totalWeight).to.equal(changedOrder.dishesCount * 100);
-    expect(changedOrder.orderTotal).to.equal(changedOrder.dishesCount * 100.1);
+    console.dir(changedOrder)
+    expect(changedOrder.uniqueDishes).to.equal(5);
+    expect(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1 + 1); // 18
+    expect(changedOrder.totalWeight).to.equal(changedOrder.dishesCount * 100 + (100 + 100 /** from mofifiers */)); 
+    expect(changedOrder.orderTotal).to.equal(changedOrder.dishesCount * 100.1 + ( 100.1  + 0 /** from mofifiers */));
   });
 
   it("order", async function () {
