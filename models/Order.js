@@ -640,7 +640,7 @@ let Model = {
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
                             console.log(orderDish.modifiers);
-                            for (let modifier of orderDish.modifiers) {
+                            for await (let modifier of orderDish.modifiers) {
                                 const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
                                 if (!modifierObj) {
                                     sails.log.error("Dish with id " + modifier.id + " not found!");
@@ -684,7 +684,6 @@ let Model = {
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
                     } // for disches
-                    console.log("==========", orderDish.amount, orderDish.itemTotal);
                     orderTotal += orderDish.itemTotal;
                     dishesCount += orderDish.amount;
                     uniqueDishes++;

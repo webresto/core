@@ -40,7 +40,7 @@ export default function dishGenerator(config: DishData = {}): DishData{
     modifiers: config.modifiers || [],
     parentGroup: config.parentGroup || null,
     weight: 100,
-    price: config.price || faker.random.number(500),
+    price: config.price === undefined ? faker.random.number(500) : config.price,
     order: autoincrement,
     images: config.images || [],
     name: faker.commerce.productName(),

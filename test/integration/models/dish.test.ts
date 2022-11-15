@@ -162,6 +162,7 @@ describe('Dish', function () {
     let dish = await Dish.createOrUpdate(dishGenerator({name: "test dish"}));
 
     dish.name = 'New Dish Name';
+    dish.price = 100.1;
     let updatedDish = await Dish.createOrUpdate(dish);
 
     expect(updatedDish.name).to.equals('New Dish Name');

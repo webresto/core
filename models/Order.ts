@@ -792,7 +792,7 @@ let Model = {
             if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
               console.log(orderDish.modifiers)
 
-              for (let modifier of orderDish.modifiers) {
+              for await (let modifier of orderDish.modifiers) {
                 const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
 
                 if (!modifierObj) {
@@ -851,7 +851,6 @@ let Model = {
           } // for disches
 
 
-          console.log("==========",orderDish.amount,orderDish.itemTotal)
           orderTotal += orderDish.itemTotal;
           dishesCount += orderDish.amount;
           uniqueDishes++;
