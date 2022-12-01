@@ -10,7 +10,7 @@ import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
 import { formatDate } from "@webresto/worktime";
 import Dish from "./Dish";
-import * as _ from "lodash";
+import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
@@ -165,6 +165,11 @@ let attributes = {
   } as unknown as number,
 
   orderDate: "string",
+
+  /** Родительская группа */
+  user: {
+    model: "user",
+  } as unknown as User | any,
 
   customData: "json" as any,
 };
@@ -379,7 +384,7 @@ let Model = {
       if (get.amount > 0) {
         await OrderDish.update({ id: get.id }, { amount: get.amount }).fetch();
       } else {
-        get.destroy();
+        await OrderDish.destroy({id: get.id});
         sails.log.info("destroy", get.id);
       }
 
@@ -750,7 +755,6 @@ let Model = {
 
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
       // const orderDishesClone = {};
-      // order.dishes.map(cd => orderDishesClone[cd.id] = _.cloneDeep(cd));
       if (order.id === "test--countcart"){
         console.dir("111112",orderDishes, 1)
       }
