@@ -26,14 +26,17 @@ let attributes = {
     favorites: {
         collection: 'dish'
     },
+    bonuses: {
+        collection: 'userbonus',
+    },
     history: {
         collection: 'order',
     },
     avatar: "string",
-    // location: {
-    //   collection: 'UserLocation',
-    //   via: 'user'
-    // },
+    locations: {
+        collection: 'UserLocation',
+        via: 'user'
+    },
     verified: {
         type: 'boolean'
     },

@@ -18,8 +18,8 @@ let attributes = {
     doorphone: 'string',
     street: 'string',
     user: {
-        model: 'UserLocation',
-        via: 'location'
+        model: 'user',
+        via: 'locations'
     },
     comment: "string",
     customData: "json",

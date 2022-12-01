@@ -19,7 +19,7 @@ declare let attributes: {
     };
     comment: string;
     customData: string | {
-        [k: string]: string | number | boolean;
+        [key: string]: string | number | boolean;
     };
 };
 declare type attributes = typeof attributes;
