@@ -3,6 +3,7 @@ import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
+import UserBonus from "../models/UserBonus";
 
 let attributes = {
   
@@ -18,8 +19,7 @@ let attributes = {
   lastName: 'string',
 
   email: {
-    type: 'string',
-    email: true,
+    type: 'string'
   } as unknown as string,
 
   phone: {
@@ -42,14 +42,18 @@ let attributes = {
     collection: 'dish'
   } as unknown as Dish[],
 
+  bonuses: {
+    collection: 'userbonus',
+  } as unknown as UserBonus,
+
   history: {
     collection: 'order',
   } as unknown as Order[],
 
   avatar: "string",
 
-  location: {
-    collection: 'location',
+  locations: {
+    collection: 'UserLocation',
     via: 'user'
   },
 
@@ -64,7 +68,7 @@ let attributes = {
   } as unknown as boolean,
   
   customData: "json" as unknown as {
-    [k: string]: string | boolean | number;
+    [key: string]: string | boolean | number;
   } | string,
 };
 

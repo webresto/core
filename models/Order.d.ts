@@ -67,6 +67,8 @@ declare let attributes: {
     orderTotal: number;
     discountTotal: number;
     orderDate: string;
+    /** Родительская группа */
+    user: any;
     customData: any;
 };
 interface stateFlowInstance {
@@ -153,6 +155,8 @@ declare let Model: {
         orderTotal: number;
         discountTotal: number;
         orderDate: string;
+        /** Родительская группа */
+        user: any;
         customData: any;
         state: string;
         toJSON(): any;

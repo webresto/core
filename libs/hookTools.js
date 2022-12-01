@@ -9,6 +9,10 @@ const buildDictionary = require("sails-build-dictionary");
  */
 class HookTools {
     /**
+     * Policies array is one for all project. It not assigned with sails policies
+     */
+    static policies;
+    /**
      * Bind models from folder. Folder must be full path.
      * @param folder - path to models
      */
@@ -148,7 +152,7 @@ class HookTools {
     static loadPolicies(folder) {
         const normalizedPath = path.normalize(folder);
         const policies = {};
-        fs_1.readdirSync(normalizedPath).forEach(function (file) {
+        (0, fs_1.readdirSync)(normalizedPath).forEach(function (file) {
             policies[file.split(".").slice(0, -1).join(".")] = require(normalizedPath + "/" + file);
         });
         this.policies = policies;

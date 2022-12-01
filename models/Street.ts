@@ -18,7 +18,7 @@ let attributes = {
   } as unknown as boolean,
   
   customData: "json" as unknown as {
-    [k: string]: string | boolean | number;
+    [key: string]: string | boolean | number;
   } | string,
 };
 

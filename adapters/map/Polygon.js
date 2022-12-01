@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Polygon {
+    _name;
+    _description;
+    _points;
     constructor(name, description, points) {
         this._name = name;
         this._description = description;

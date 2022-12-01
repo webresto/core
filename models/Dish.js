@@ -8,10 +8,12 @@ let attributes = {
     /** */
     id: {
         type: "string",
+        //required: true,
     },
     /** */
     rmsId: {
         type: "string",
+        //required: true,
     },
     /** */
     additionalInfo: {
@@ -31,6 +33,7 @@ let attributes = {
     /** Наименование */
     name: {
         type: "string",
+        //required: true,
     },
     /** SEO description */
     seoDescription: {
@@ -139,9 +142,9 @@ let attributes = {
 };
 let Model = {
     beforeCreate(init, next) {
-        getEmitter_1.default().emit('core:dish-before-create', init);
+        (0, getEmitter_1.default)().emit('core:dish-before-create', init);
         if (!init.id) {
-            init.id = uuid_1.v4();
+            init.id = (0, uuid_1.v4)();
         }
         if (!init.concept) {
             init.concept = "origin";
@@ -149,15 +152,15 @@ let Model = {
         next();
     },
     beforeUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-before-update', record);
+        (0, getEmitter_1.default)().emit('core:dish-before-update', record);
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-after-update', record);
+        (0, getEmitter_1.default)().emit('core:dish-after-update', record);
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-after-create', record);
+        (0, getEmitter_1.default)().emit('core:dish-after-create', record);
         return proceed();
     },
     /**
@@ -173,7 +176,7 @@ let Model = {
         }
         let dishes = await Dish.find(criteria).populate("images");
         for await (let dish of dishes) {
-            const reason = checkExpression_1.default(dish);
+            const reason = (0, checkExpression_1.default)(dish);
             if (!reason) {
                 await Dish.getDishModifiers(dish);
                 if (dish.images.length >= 2)
@@ -184,7 +187,7 @@ let Model = {
             }
         }
         dishes.sort((a, b) => a.order - b.order);
-        await getEmitter_1.default().emit("core-dish-get-dishes", dishes);
+        await (0, getEmitter_1.default)().emit("core-dish-get-dishes", dishes);
         return dishes;
     },
     /**
@@ -241,7 +244,7 @@ let Model = {
      * @return обновлённое или созданное блюдо
      */
     async createOrUpdate(values) {
-        let hash = hashCode_1.default(JSON.stringify(values));
+        let hash = (0, hashCode_1.default)(JSON.stringify(values));
         const dish = await Dish.findOne({ id: values.id });
         if (!dish) {
             return Dish.create({ hash, ...values }).fetch();
