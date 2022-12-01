@@ -34,13 +34,13 @@ export default function dishGenerator(config: DishData = {}): DishData{
   //   });
   // }
   return {
-    id: faker.random.uuid(),
+    id: config.id || faker.random.uuid(),
     additionalInfo: config.additionalInfo || "null",
     balance:  config.balance || -1,
     modifiers: config.modifiers || [],
     parentGroup: config.parentGroup || null,
     weight: 100,
-    price: config.price || faker.random.number(500),
+    price: config.price === undefined ? faker.random.number(500) : config.price,
     order: autoincrement,
     images: config.images || [],
     name: faker.commerce.productName(),
