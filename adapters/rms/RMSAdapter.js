@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Абстрактный класс RMS адаптера. Используется для создания новых адаптеров RMS.
+ * An abstract RMS adapter class. Used to create new RMS adapters.
  */
 class RMSAdapter {
+    syncMenuTime;
+    syncBalanceTime;
+    syncStreetsTime;
     // TODO: надо убрать от сюда настройки синхронизации
     constructor(menuTime, balanceTime, streetsTime) {
         this.syncMenuTime = menuTime;
@@ -11,8 +14,8 @@ class RMSAdapter {
         this.syncStreetsTime = streetsTime;
     }
     /**
-     * Метод для создания и получения уже существующего RMS адаптера
-     * @param params - параметры для инициализации
+     * Method for creating and getting an already existing RMS adapter
+     * @param params - parameters for initialization
      */
     static getInstance(...params) {
         return RMSAdapter.prototype;

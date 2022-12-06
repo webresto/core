@@ -1,5 +1,5 @@
 /**
- * Объект ответа от RMS-адаптера
+ * Responce from RMS
  */
 export default interface OrderResponse {
     code: number;

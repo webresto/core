@@ -1,7 +1,7 @@
 import OrderResponse from "./OrderResponse";
 import Order from "../../models/Order";
 /**
- * Абстрактный класс RMS адаптера. Используется для создания новых адаптеров RMS.
+ * An abstract RMS adapter class. Used to create new RMS adapters.
  */
 export default abstract class RMSAdapter {
     protected readonly syncMenuTime: number;
@@ -9,44 +9,44 @@ export default abstract class RMSAdapter {
     protected readonly syncStreetsTime: number;
     protected constructor(menuTime: number, balanceTime: number, streetsTime: number);
     /**
-     * Синхронизация данных с RMS системы
+     * Menu synchronization with RMS system
      */
     protected abstract sync(): Promise<void>;
     /**
-     * Синхронизация улиц с RMS системы
+     * Synchronization of streets with RMS systems
      */
     protected abstract syncStreets(): Promise<void>;
     /**
-     * Синхронизация баланса блюд с RMS адаптера
+     * Synchronizing the balance of dishes with the RMS adapter
      */
     protected abstract syncBalance(): Promise<void>;
     /**
-     * Создание заказа
-     * @param orderData - корзина, которую заказывают
-     * @return Результат работы функции, тело ответа и код результата
+     * Create an order
+     * @param orderData - webresto order
+     * @return Order response
      */
     abstract createOrder(orderData: Order): Promise<OrderResponse>;
     /**
-     * Проверка заказа
-     * @param orderData - корзина для проверки
-     * @return результат работы функции, тело ответа и код результата
+     * Order check
+     * @param orderData - webresto order
+     * @return Order response
      */
     abstract checkOrder(orderData: Order): Promise<OrderResponse>;
     /**
-     * Получение системной информации
-     * @return системная информация RMS
+     * Getting system information
+     * @return RMS system information
      */
     abstract getSystemData(): Promise<any>;
     /**
-     * Прямой запрос к API RMS
-     * @param method - к какому методу обращаться
-     * @param params - какие параметры передавать
-     * @return ответ API
+     * Direct request to the RMS API
+     * @param method - method name
+     * @param params - params
+     * @return
      */
     abstract api(method: string, params: any): Promise<any>;
     /**
-     * Метод для создания и получения уже существующего RMS адаптера
-     * @param params - параметры для инициализации
+     * Method for creating and getting an already existing RMS adapter
+     * @param params - parameters for initialization
      */
     static getInstance(...params: any[]): RMSAdapter;
 }

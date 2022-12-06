@@ -3,14 +3,10 @@ import ORMModel from "../interfaces/ORMModel";
 import getEmitter from "../libs/getEmitter";
 
 // Memory store
-let settings = {}
-sails.after(["hook:orm:loaded"], async () => {
-  //@ts-ignore
-  let allSettings = await Settings.find({})
-  allSettings.forEach(settingsItem => {
-    settings[settingsItem.key] = settingsItem.value;
-  });
-});
+let settings: Value = {}
+type Value = {
+  [key: string]: string | boolean | number;
+} | string | boolean | number | string[] | number[];
 
 ///////////////
 
@@ -32,7 +28,7 @@ let attributes = {
   description: "string" as string,
 
   /** Значение свойства */
-  value: "json" as unknown as any,
+  value: "json" as unknown as Value,
 
   /** Секция, к которой относится свойство */
   section: "string" as string,
@@ -60,10 +56,10 @@ let Model = {
   },
 
   /** retrun setting value by key */
-  async use(key: string, from?: string): Promise<any> {
+  async use(key: string, from?: string): Promise<Value> {
     sails.log.silly("CORE > Settings > use: ", key, from);
 
-    let value: any;
+    let value: Value;
 
     /** ENV variable is important*/
     if (process.env[key] !== undefined) {
@@ -99,12 +95,13 @@ let Model = {
   },
 
 
-  /** ⚠️ Experemental! Read setting from memory store */
-  get(key: string): any { 
+  async get(key: string): Promise<Value> { 
     if (settings[key] !== undefined) {
       return settings[key];
     } else  {
-      return undefined
+      const value = await Settings.use(key)
+      settings[key] =  value
+      return value;
     }
   },
   
@@ -112,12 +109,13 @@ let Model = {
    * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
    * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
    */
-  async set(key: string, value: any, from?: string): Promise<any> {
+  async set(key: string, value: any, from?: string): Promise<Settings> {
     if (key === undefined || value === undefined) throw `Setting set key (${key}) and value (${value}) required`;
     try {
       const propety = await Settings.findOne({ key: key });
+      settings[key] = value;
       if (!propety) {
-        return Settings.create({
+        return await Settings.create({
           key: key,
           value: value,
           from: from,

@@ -12,8 +12,4 @@ export default abstract class BonusAdapter {
    * @return Результат работы функции, тело ответа и код результата
    */
    public abstract getUserBalance(): Promise<number>;
-
-
-   
-
 }

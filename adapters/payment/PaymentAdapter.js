@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Абстрактный класс Payment адаптера. Используется для создания новых адаптеров платежных систем.
+ * The abstract class of the Payment adapter. Used to create new payment system adapters.
  */
 class PaymentAdapter {
+    InitPaymentAdapter;
     constructor(InitPaymentAdapter) {
         this.InitPaymentAdapter = InitPaymentAdapter;
         PaymentMethod.alive(this);

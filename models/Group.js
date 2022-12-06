@@ -24,9 +24,9 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    /** Удалён ли продукт в меню, отдаваемого клиенту */
+    /** Soft deletion */
     isDeleted: "boolean",
-    /** Наименование блюда */
+    /** Dishes group name*/
     name: {
         type: "string",
         //required: true,
@@ -47,18 +47,15 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    /** Очередь сортировки */
+    /** Sorting weight */
     order: "number",
-    /** Блюда группы */
     dishes: {
         collection: "dish",
         via: "parentGroup",
     },
-    /** Родительская группа */
     parentGroup: {
         model: "group",
     },
-    /** Дочерние группы */
     childGroups: {
         collection: "group",
         via: "parentGroup",

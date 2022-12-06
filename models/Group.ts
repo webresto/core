@@ -32,10 +32,11 @@ let attributes = {
     type: "string",
     allowNull: true,
   } as unknown as string,
-  /** Удалён ли продукт в меню, отдаваемого клиенту */
+
+  /** Soft deletion */
   isDeleted: "boolean" as unknown as boolean,
 
-  /** Наименование блюда */
+  /** Dishes group name*/
   name: {
     type: "string",
     //required: true,
@@ -45,34 +46,34 @@ let attributes = {
     type: "string",
     allowNull: true,
   } as unknown as string,
+
   seoKeywords: {
     type: "string",
     allowNull: true,
   } as unknown as string,
+  
   seoText: {
     type: "string",
     allowNull: true,
   } as unknown as string,
+  
   seoTitle: {
     type: "string",
     allowNull: true,
   } as unknown as string,
 
-  /** Очередь сортировки */
+  /** Sorting weight */
   order: "number" as unknown as number,
 
-  /** Блюда группы */
   dishes: {
     collection: "dish",
     via: "parentGroup",
   } as unknown as Dish[],
 
-  /** Родительская группа */
   parentGroup: {
     model: "group",
   } as unknown as Group | any,
 
-  /** Дочерние группы */
   childGroups: {
     collection: "group",
     via: "parentGroup",

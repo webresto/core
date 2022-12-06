@@ -11,21 +11,18 @@ declare let attributes: {
     /** */
     code: string;
     description: string;
-    /** Удалён ли продукт в меню, отдаваемого клиенту */
+    /** Soft deletion */
     isDeleted: boolean;
-    /** Наименование блюда */
+    /** Dishes group name*/
     name: string;
     seoDescription: string;
     seoKeywords: string;
     seoText: string;
     seoTitle: string;
-    /** Очередь сортировки */
+    /** Sorting weight */
     order: number;
-    /** Блюда группы */
     dishes: Dish[];
-    /** Родительская группа */
     parentGroup: any;
-    /** Дочерние группы */
     childGroups: Group[];
     /** Изображения */
     images: Image[];
