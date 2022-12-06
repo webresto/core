@@ -1,6 +1,6 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
-declare type Value = {
+declare type SettingValue = {
     [key: string]: string | boolean | number;
 } | string | boolean | number | string[] | number[];
 declare let attributes: {
@@ -11,7 +11,7 @@ declare let attributes: {
     /** Описание */
     description: string;
     /** Значение свойства */
-    value: Value;
+    value: SettingValue;
     /** Секция, к которой относится свойство */
     section: string;
     /** Источника происхождения */
@@ -25,8 +25,8 @@ declare let Model: {
     afterUpdate: (record: any, proceed: any) => any;
     afterCreate: (record: any, proceed: any) => any;
     /** retrun setting value by key */
-    use(key: string, from?: string): Promise<Value>;
-    get(key: string): Promise<Value>;
+    use(key: string, from?: string): Promise<SettingValue>;
+    get(key: string): Promise<SettingValue>;
     /**
      * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
      * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.

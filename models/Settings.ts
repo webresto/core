@@ -3,8 +3,8 @@ import ORMModel from "../interfaces/ORMModel";
 import getEmitter from "../libs/getEmitter";
 
 // Memory store
-let settings: Value = {}
-type Value = {
+let settings: SettingValue = {}
+type SettingValue = {
   [key: string]: string | boolean | number;
 } | string | boolean | number | string[] | number[];
 
@@ -28,7 +28,7 @@ let attributes = {
   description: "string" as string,
 
   /** Значение свойства */
-  value: "json" as unknown as Value,
+  value: "json" as unknown as SettingValue,
 
   /** Секция, к которой относится свойство */
   section: "string" as string,
@@ -56,10 +56,10 @@ let Model = {
   },
 
   /** retrun setting value by key */
-  async use(key: string, from?: string): Promise<Value> {
+  async use(key: string, from?: string): Promise<SettingValue> {
     sails.log.silly("CORE > Settings > use: ", key, from);
 
-    let value: Value;
+    let value: SettingValue;
 
     /** ENV variable is important*/
     if (process.env[key] !== undefined) {
@@ -95,7 +95,7 @@ let Model = {
   },
 
 
-  async get(key: string): Promise<Value> { 
+  async get(key: string): Promise<SettingValue> { 
     if (settings[key] !== undefined) {
       return settings[key];
     } else  {
