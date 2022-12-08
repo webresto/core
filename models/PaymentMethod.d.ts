@@ -1,11 +1,12 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
-declare enum PaymentMethodType {
-    "promise" = 0,
-    "external" = 1,
-    "internal" = 2,
-    "dummy" = 3
+import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+export declare enum PaymentMethodType {
+    PROMISE = "promise",
+    EXTERNAL = "external",
+    INTERNAL = "internal",
+    DUMMY = "dummy"
 }
 declare let attributes: {
     /** ID платежного метода */
@@ -25,7 +26,7 @@ declare let attributes: {
     enable: boolean;
 };
 declare type attributes = typeof attributes;
-interface PaymentMethod extends attributes, ORM {
+interface PaymentMethod extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {
 }
 export default PaymentMethod;
 declare let Model: {

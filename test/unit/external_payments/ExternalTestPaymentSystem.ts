@@ -1,6 +1,7 @@
 import PaymentAdapter from "../../../adapters/payment/PaymentAdapter";
 import { PaymentResponse, Payment } from "../../../interfaces/Payment";
 import PaymentDocument from "../../../models/PaymentDocument";
+import { PaymentMethodType } from "../../../models/PaymentMethod";
 
 var database: any = {};
 
@@ -68,7 +69,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
     if (!TestPaymentSystem.instance) {
       TestPaymentSystem.instance = new TestPaymentSystem({
         title: "test",
-        type: "external",
+        type: PaymentMethodType.EXTERNAL,
         adapter: "test-payment-system",
       });
     }

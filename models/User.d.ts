@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
-import UserBonus from "../models/UserBonus";
+import UserBonusProgram from "../models/UserBonusProgram";
 declare let attributes: {
     /** ID */
     id: string;
@@ -13,7 +13,7 @@ declare let attributes: {
     birthday: string;
     passwordHash: string;
     favorites: Dish[];
-    bonuses: UserBonus;
+    bonusProgram: UserBonusProgram;
     history: Order[];
     avatar: string;
     locations: {

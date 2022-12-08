@@ -141,7 +141,7 @@ let Model = {
         };
         (0, getEmitter_1.default)().emit("core-payment-document-before-create", payment);
         try {
-            await PaymentDocument.create(payment).fetch();
+            await PaymentDocument.create(payment);
         }
         catch (e) {
             (0, getEmitter_1.default)().emit("error", "PaymentDocument > register:", e);
@@ -157,7 +157,7 @@ let Model = {
             sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
             let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
             await PaymentDocument.update({ id: paymentResponse.id }, {
-                status: "REGISTRED",
+                status: PaymentDocumentStatus.REGISTRED,
                 externalId: paymentResponse.externalId,
                 redirectLink: paymentResponse.redirectLink,
             }).fetch();
@@ -193,12 +193,12 @@ let Model = {
         sails.log.info("PaymentDocument.processor > started with timeout: " + timeout);
         return (payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
-            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED" });
+            let actualPaymentDocuments = await PaymentDocument.find({ status: PaymentDocumentStatus.REGISTRED });
             /** Если дата создания платежногоДокумента больше чем час назад ставим статус просрочено*/
             actualTime.setHours(actualTime.getHours() - 1);
             for await (let actualPaymentDocument of actualPaymentDocuments) {
                 if (actualPaymentDocument.createdAt < actualTime) {
-                    await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" }).fetch();
+                    await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: PaymentDocumentStatus.DECLINE }).fetch();
                 }
                 else {
                     sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);

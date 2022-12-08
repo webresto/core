@@ -96,6 +96,8 @@ declare let Model: {
     paymentMethodId(criteria: any): Promise<string>;
     /**  given populated Order instance  by criteria*/
     populate(criteria: any): Promise<{
+        createdAt?: Date;
+        updatedAt?: Date;
         id: string;
         shortId?: string;
         concept?: string;

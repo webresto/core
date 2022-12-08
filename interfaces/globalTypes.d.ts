@@ -1,4 +1,4 @@
-import sails from "typed-sails";
+import sails from "@42pub/typed-sails";
 import Config from "./Config";
 
 type sailsConfig = typeof sails.config;

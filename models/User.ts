@@ -3,7 +3,7 @@ import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
-import UserBonus from "../models/UserBonus";
+import UserBonusProgram from "../models/UserBonusProgram";
 
 let attributes = {
   
@@ -42,9 +42,9 @@ let attributes = {
     collection: 'dish'
   } as unknown as Dish[],
 
-  bonuses: {
+  bonusProgram: {
     collection: 'userbonus',
-  } as unknown as UserBonus,
+  } as unknown as UserBonusProgram,
 
   history: {
     collection: 'order',

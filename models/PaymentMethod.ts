@@ -3,11 +3,13 @@ import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
 var alivedPaymentMethods: {} = {};
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
-enum PaymentMethodType {
-  "promise",
-  "external",
-  "internal",
-  "dummy",
+import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+
+export enum PaymentMethodType {
+  PROMISE = "promise",
+  EXTERNAL = "external",
+  INTERNAL = "internal",
+  DUMMY = "dummy",
 }
 
 let attributes = {
@@ -47,7 +49,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface PaymentMethod extends attributes, ORM {}
+interface PaymentMethod extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {}
 export default PaymentMethod;
 let Model = {
   /**
@@ -95,7 +97,7 @@ let Model = {
       });
     }
 
-    if (chekingPaymentMethod.type === "promise") {
+    if (chekingPaymentMethod.type === PaymentMethodType.PROMISE) {
       return true;
     }
     return false;
@@ -111,7 +113,7 @@ let Model = {
       adapter: paymentAdapter.InitPaymentAdapter.adapter,
     });
     if (!knownPaymentMethod) {
-      knownPaymentMethod = await PaymentMethod.create({...paymentAdapter.InitPaymentAdapter, enable: false}).fetch();
+      knownPaymentMethod = await PaymentMethod.create({ ...paymentAdapter.InitPaymentAdapter, enable: false }).fetch();
     }
     alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
     sails.log.verbose("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
@@ -132,7 +134,7 @@ let Model = {
             enable: true,
           },
           {
-            type: ["promise", "dummy"],
+            type: [PaymentMethodType.PROMISE, PaymentMethodType.DUMMY],
             enable: true,
           },
         ],

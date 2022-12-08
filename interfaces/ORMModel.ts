@@ -2,9 +2,17 @@ import { QueryBuilder, WaterlinePromise, CRUDBuilder, Model, UpdateBuilder, Call
 import { OptionalAll } from "../interfaces/toolsTS"
 
 
-type not<F> = {
-  "!": F
-  "!="?: F
+// type or<T> = {
+//   "or"?: { [P in keyof T]?: T[P] }[]
+// }
+
+type or<T> = {
+  or?: WhereCriteriaQuery<T>[]
+}
+
+type not<T> = {
+  "!": T
+  "!="?: T
 }
 
 type lessThan<F> = {
@@ -47,15 +55,15 @@ type endsWith = {
   endsWith: string
 }
 
-export type CriteriaQuery<F> = {
-  where?: WhereCriteriaQuery<F>
+export type CriteriaQuery<T> = {
+  where?: WhereCriteriaQuery<T> | or<T>
   limit?: number
   skip?: number
   sort?: string | {[key: string]: string} | {[key: string]: string}[]
-} | WhereCriteriaQuery<F>
+} | WhereCriteriaQuery<T>
 
 export type WhereCriteriaQuery<T> = {
-  [P in keyof T]?: T[P] | T[P][] | not<T[P]> | lessThan<T[P]> | lessThanOrEqual<T[P]> | greaterThan<T[P]> | greaterThanOrEqual<T[P]> | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | lessThan<T[P][]> | lessThanOrEqual<T[P][]> | greaterThan<T[P][]> | greaterThanOrEqual<T[P][]> ;
+  [P in keyof T]?: T[P] | T[P][] | not<T[P]> | lessThan<T[P]> | lessThanOrEqual<T[P]> | greaterThan<T[P]> | greaterThanOrEqual<T[P]> | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | lessThan<T[P][]> | lessThanOrEqual<T[P][]> | greaterThan<T[P][]> | greaterThanOrEqual<T[P][]> | or<T>;
 }
 
 
@@ -69,6 +77,11 @@ export default interface ORMModel<T> {
 
   find?(criteria?: CriteriaQuery<T>): QueryBuilder<T[]>;
   findOne?(criteria?: CriteriaQuery<T>): QueryBuilder<T>;
+
+  // Direct findOne by primaryKey
+  findOne?(criteria?: number): QueryBuilder<T>;
+  findOne?(criteria?: string): QueryBuilder<T>;
+  
   findOrCreate?(criteria?: CriteriaQuery<T>, values?: OptionalAll<T>): QueryBuilder<T>;
 
   update?(criteria: CriteriaQuery<T>, changes: OptionalAll<T>): UpdateBuilder<T[]>;

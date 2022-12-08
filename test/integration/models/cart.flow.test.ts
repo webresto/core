@@ -31,7 +31,7 @@ describe("Flows: Checkout", function () {
     order = await Order.create({id:"test.order.check-dishescount"}).fetch();
     dishes = await Dish.find({})
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
-    order = await Order.findOne(order.id);
+    order = await Order.findOne({id: order.id});
     if (!order) throw "Order not created";
     if (order.dishesCount !== 1 ) throw `Oredr dishescount: ${order.dishesCount}`
   });
@@ -113,7 +113,7 @@ describe("Flows: Checkout", function () {
   });
 
   it("throw if order is Paid (next Only ORDER)", async function () {
-    await Order.update(order.id, { state: "PAYMENT", paid: true }).fetch();
+    await Order.update({id: order.id}, { state: "PAYMENT", paid: true }).fetch();
     try {
       await Order.check(order.id, customer);
     } catch (e) {
@@ -140,7 +140,7 @@ describe("Flows: Checkout", function () {
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-default-requireall"}).fetch();
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
-    order = await Order.findOne(order.id);
+    order = await Order.findOne({id: order.id});
 
     await Settings.set("check", {});
 
@@ -165,7 +165,7 @@ describe("Flows: Checkout", function () {
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-notrequired"}).fetch();
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
-    order = await Order.findOne(order.id);
+    order = await Order.findOne({id: order.id});
 
     // for selfServices
     try {
@@ -193,7 +193,7 @@ describe("Flows: Checkout", function () {
       await sleep(500)
       order = await Order.create({id: "check-customer"}).fetch();
       await Order.addDish(order.id, dishes[0], 1, [], "", "test");
-      order = await Order.findOne(order.id);
+      order = await Order.findOne({id: order.id});
   
       let customer: Customer = {
         phone: "+99999999999",
@@ -257,7 +257,7 @@ describe("Flows: Checkout", function () {
       order = await Order.create({id:"check-address"}).fetch();
       
       await Order.addDish(order.id, dishes[0], 1, [], "", "test");
-      order = await Order.findOne(order.id);
+      order = await Order.findOne({id: order.id});
 
       let address: Address = {
         streetId: "1234abcd",

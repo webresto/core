@@ -1,9 +1,12 @@
 /// <reference types="node" />
 import { QueryBuilder, WaterlinePromise, CRUDBuilder, UpdateBuilder, Callback } from "waterline";
 import { OptionalAll } from "../interfaces/toolsTS";
-declare type not<F> = {
-    "!": F;
-    "!="?: F;
+declare type or<T> = {
+    or?: WhereCriteriaQuery<T>[];
+};
+declare type not<T> = {
+    "!": T;
+    "!="?: T;
 };
 declare type lessThan<F> = {
     "<": F;
@@ -32,8 +35,8 @@ declare type startsWith = {
 declare type endsWith = {
     endsWith: string;
 };
-export declare type CriteriaQuery<F> = {
-    where?: WhereCriteriaQuery<F>;
+export declare type CriteriaQuery<T> = {
+    where?: WhereCriteriaQuery<T> | or<T>;
     limit?: number;
     skip?: number;
     sort?: string | {
@@ -41,9 +44,9 @@ export declare type CriteriaQuery<F> = {
     } | {
         [key: string]: string;
     }[];
-} | WhereCriteriaQuery<F>;
+} | WhereCriteriaQuery<T>;
 export declare type WhereCriteriaQuery<T> = {
-    [P in keyof T]?: T[P] | T[P][] | not<T[P]> | lessThan<T[P]> | lessThanOrEqual<T[P]> | greaterThan<T[P]> | greaterThanOrEqual<T[P]> | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | lessThan<T[P][]> | lessThanOrEqual<T[P][]> | greaterThan<T[P][]> | greaterThanOrEqual<T[P][]>;
+    [P in keyof T]?: T[P] | T[P][] | not<T[P]> | lessThan<T[P]> | lessThanOrEqual<T[P]> | greaterThan<T[P]> | greaterThanOrEqual<T[P]> | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | lessThan<T[P][]> | lessThanOrEqual<T[P][]> | greaterThan<T[P][]> | greaterThanOrEqual<T[P][]> | or<T>;
 };
 /**
  * Waterline model
@@ -54,6 +57,8 @@ export default interface ORMModel<T> {
     createEach?(params: T[]): CRUDBuilder<T[]>;
     find?(criteria?: CriteriaQuery<T>): QueryBuilder<T[]>;
     findOne?(criteria?: CriteriaQuery<T>): QueryBuilder<T>;
+    findOne?(criteria?: number): QueryBuilder<T>;
+    findOne?(criteria?: string): QueryBuilder<T>;
     findOrCreate?(criteria?: CriteriaQuery<T>, values?: OptionalAll<T>): QueryBuilder<T>;
     update?(criteria: CriteriaQuery<T>, changes: OptionalAll<T>): UpdateBuilder<T[]>;
     update?(criteria: CriteriaQuery<T>, changes: OptionalAll<T>[]): UpdateBuilder<T[]>;

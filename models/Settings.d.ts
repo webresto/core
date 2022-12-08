@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
+import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 declare type PlainValie = string | boolean | number | string[] | number[];
 declare type SettingValue = PlainValie | {
     [key: string]: string | boolean | number;
@@ -19,7 +20,7 @@ declare let attributes: {
     from: string;
 };
 declare type attributes = typeof attributes & ORM;
-interface Settings extends attributes {
+interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "value"> {
 }
 export default Settings;
 declare let Model: {

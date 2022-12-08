@@ -1,14 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PaymentMethodType = void 0;
 const uuid_1 = require("uuid");
 var alivedPaymentMethods = {};
 var PaymentMethodType;
 (function (PaymentMethodType) {
-    PaymentMethodType[PaymentMethodType["promise"] = 0] = "promise";
-    PaymentMethodType[PaymentMethodType["external"] = 1] = "external";
-    PaymentMethodType[PaymentMethodType["internal"] = 2] = "internal";
-    PaymentMethodType[PaymentMethodType["dummy"] = 3] = "dummy";
-})(PaymentMethodType || (PaymentMethodType = {}));
+    PaymentMethodType["PROMISE"] = "promise";
+    PaymentMethodType["EXTERNAL"] = "external";
+    PaymentMethodType["INTERNAL"] = "internal";
+    PaymentMethodType["DUMMY"] = "dummy";
+})(PaymentMethodType = exports.PaymentMethodType || (exports.PaymentMethodType = {}));
 let attributes = {
     /** ID платежного метода */
     id: {
@@ -88,7 +89,7 @@ let Model = {
                 id: paymentMethodId,
             });
         }
-        if (chekingPaymentMethod.type === "promise") {
+        if (chekingPaymentMethod.type === PaymentMethodType.PROMISE) {
             return true;
         }
         return false;
@@ -124,7 +125,7 @@ let Model = {
                         enable: true,
                     },
                     {
-                        type: ["promise", "dummy"],
+                        type: [PaymentMethodType.PROMISE, PaymentMethodType.DUMMY],
                         enable: true,
                     },
                 ],

@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
+import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import getEmitter from "../libs/getEmitter";
 
 // Memory store
@@ -39,7 +40,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes & ORM;
-interface Settings extends attributes {}
+interface Settings extends  RequiredField<OptionalAll<attributes>, "key" | "value"> {}
 export default Settings;
 
 let Model = {
@@ -120,7 +121,7 @@ let Model = {
           key: key,
           value: value,
           from: from,
-        }).fetch();
+        });
       } else {
         return (await Settings.update({ key: key }, { value: value }).fetch())[0];
       }

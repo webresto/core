@@ -63,7 +63,7 @@ describe("Group", function () {
   });
 
   it("createOrUpdate", async function () {
-    let group = await Group.findOne(exampleGroups[0].id);
+    let group = await Group.findOne({id: exampleGroups[0].id});
     group.name = "New Group Name";
     let updatedGroup = await Group.createOrUpdate(group);
 

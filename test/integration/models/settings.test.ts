@@ -11,7 +11,7 @@ describe("Settings", function () {
 
   it("Get from memory afterCreate", async function () {
     await Settings.set("test", {test: true});
-    let setting = Settings.get("test");
+    let setting = Settings.get("test") as unknown as {test: boolean};
     expect(setting.test).to.equal(true)
   });
 
