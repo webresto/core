@@ -4,13 +4,7 @@ import { v4 as uuid } from "uuid";
 var alivedPaymentMethods: {} = {};
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-
-export enum PaymentMethodType {
-  PROMISE = "promise",
-  EXTERNAL = "external",
-  INTERNAL = "internal",
-  DUMMY = "dummy",
-}
+import { PaymentMethodType } from "../libs/enums/PaymentMethodTypes";
 
 let attributes = {
   /** ID платежного метода */

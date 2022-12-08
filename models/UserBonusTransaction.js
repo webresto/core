@@ -1,11 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-var BonusTransactionType;
-(function (BonusTransactionType) {
-    BonusTransactionType["CAME"] = "came";
-    BonusTransactionType["GONE"] = "gone";
-})(BonusTransactionType || (BonusTransactionType = {}));
 let attributes = {
     /** ID */
     id: {

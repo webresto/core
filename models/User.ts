@@ -43,7 +43,7 @@ let attributes = {
   } as unknown as Dish[],
 
   bonusProgram: {
-    collection: 'userbonus',
+    collection: 'userbonusprogram',
   } as unknown as UserBonusProgram,
 
   history: {

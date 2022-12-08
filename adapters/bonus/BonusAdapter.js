@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class BonusAdapter {
-    InitBonusAdapter;
     constructor(InitBonusAdapter) {
         this.InitBonusAdapter = InitBonusAdapter;
         BonusProgram.alive(this);

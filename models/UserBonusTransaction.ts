@@ -4,12 +4,9 @@ import {RequiredField, OptionalAll} from "../interfaces/toolsTS";
 import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import User from "../models/User"
+import { BonusTransactionType } from "../libs/enums/BonusTransactionType";
 
 
-enum BonusTransactionType{
-  CAME ='came',
-  GONE ='gone'
-}
 
 let attributes = {
   

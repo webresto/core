@@ -27,7 +27,7 @@ let attributes = {
         collection: 'dish'
     },
     bonusProgram: {
-        collection: 'userbonus',
+        collection: 'userbonusprogram',
     },
     history: {
         collection: 'order',

@@ -2,10 +2,7 @@ import ORM from "../interfaces/ORM";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import ORMModel from "../interfaces/ORMModel";
 import User from "../models/User";
-declare enum BonusTransactionType {
-    CAME = "came",
-    GONE = "gone"
-}
+import { BonusTransactionType } from "../libs/enums/BonusTransactionType";
 declare let attributes: {
     /** ID */
     id: string;

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { PaymentMethodType } from "../../../models/PaymentMethod";
+import { PaymentMethodType } from "../../../libs/enums/PaymentMethodTypes";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 
 var paymentMethodSeed = {

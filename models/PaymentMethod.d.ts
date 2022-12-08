@@ -2,12 +2,7 @@ import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-export declare enum PaymentMethodType {
-    PROMISE = "promise",
-    EXTERNAL = "external",
-    INTERNAL = "internal",
-    DUMMY = "dummy"
-}
+import { PaymentMethodType } from "../libs/enums/PaymentMethodTypes";
 declare let attributes: {
     /** ID платежного метода */
     id: string;
