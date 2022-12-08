@@ -124,6 +124,7 @@ let attributes = {
         defaultsTo: 0,
     },
     orderDate: "string",
+    // orderDateLimit: "string",
     /** Родительская группа */
     user: {
         model: "user",
@@ -149,7 +150,7 @@ let Model = {
         if (!addedBy)
             addedBy = "user";
         if (typeof dish === "string") {
-            dishObj = (await Dish.find(dish).limit(1))[0];
+            dishObj = (await Dish.find({ id: dish }).limit(1))[0];
             if (!dishObj) {
                 throw { body: `Dish with id ${dish} not found`, code: 2 };
             }
@@ -317,7 +318,7 @@ let Model = {
             id: dish.id,
         }).populate("dish");
         if (orderDish) {
-            await OrderDish.update(orderDish.id, { comment: comment }).fetch();
+            await OrderDish.update({ id: orderDish.id }, { comment: comment }).fetch();
             await Order.next(order.id, "CART");
             await Order.countCart(order);
             Order.update({ id: order.id }, order).fetch();
@@ -374,7 +375,7 @@ let Model = {
         if (paymentMethodId) {
             await checkPaymentMethod(paymentMethodId);
             order.paymentMethod = paymentMethodId;
-            order.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
+            order.paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
             order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
         }
         /** Если самовывоз то не нужно проверять адресс */
@@ -566,10 +567,11 @@ let Model = {
                     sails.log.error("orderDish", orderDish.id, "has not dish");
                     continue;
                 }
-                if (!fullOrder.dishes.filter((d) => d.id === orderDish.id).length) {
-                    sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
-                    continue;
-                }
+                // WHATIS? It seems like test of waterline or check orderDishes not in Order?!
+                // if (!fullOrder.dishes.filter((d: { id: number; }) => d.id === orderDish.id).length) {
+                //   sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
+                //   continue;
+                // }
                 const dish = await Dish.findOne({
                     id: orderDish.dish.id,
                     // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
@@ -581,7 +583,7 @@ let Model = {
                 orderDish.dish = dish;
                 if (orderDish.modifiers !== undefined && Array.isArray(orderDish.modifiers)) {
                     for await (let modifier of orderDish.modifiers) {
-                        modifier.dish = (await Dish.find(modifier.id).limit(1))[0];
+                        modifier.dish = (await Dish.find({ id: modifier.id }).limit(1))[0];
                     }
                 }
                 else {
@@ -589,8 +591,9 @@ let Model = {
                 }
             }
             fullOrder.dishes = orderDishes;
-            fullOrder.orderDateLimit = await getOrderDateLimit();
-            fullOrder.orderId = fullOrder.id;
+            // TODO: refactor descr in method was writed
+            // fullOrder.orderDateLimit = "await getOrderDateLimit()";
+            // fullOrder.orderId = fullOrder.id;
         }
         catch (e) {
             sails.log.error("CART > fullOrder error", e);
@@ -605,20 +608,17 @@ let Model = {
     async countCart(criteria) {
         try {
             let order;
-            if (typeof criteria === "string" || criteria instanceof String) {
-                order = await Order.findOne(criteria);
+            if (typeof criteria === "string") {
+                order = await Order.findOne({ id: criteria });
             }
             else {
-                order = await Order.findOne(criteria.id);
+                order = await Order.findOne(criteria);
             }
             (0, getEmitter_1.default)().emit("core-order-before-count", order);
             if (!["CART", "CHECKOUT"].includes(order.state))
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-            // const orderDishesClone = {};
-            if (order.id === "test--countcart") {
-                console.dir("111112", orderDishes, 1);
-            }
+            // const orderDishesClone = {}
             let orderTotal = 0;
             let dishesCount = 0;
             let uniqueDishes = 0;
@@ -651,7 +651,7 @@ let Model = {
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
                             console.log(orderDish.modifiers);
                             for await (let modifier of orderDish.modifiers) {
-                                const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
+                                const modifierObj = (await Dish.find({ id: modifier.id }).limit(1))[0];
                                 if (!modifierObj) {
                                     sails.log.error("Dish with id " + modifier.id + " not found!");
                                     continue;
@@ -861,7 +861,7 @@ async function getOrderDateLimit() {
     let date = new Date();
     let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //minutes
     if (!periodPossibleForOrder)
-        periodPossibleForOrder = 1440;
+        periodPossibleForOrder = "1440";
     date.setSeconds(date.getSeconds() + (parseInt(periodPossibleForOrder) * 60));
     return date;
 }

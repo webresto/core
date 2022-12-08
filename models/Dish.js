@@ -138,7 +138,7 @@ let attributes = {
     /** Признак того что блюдо акционное */
     promo: "boolean",
     /** Время работы */
-    workTime: "json",
+    worktime: "json",
 };
 let Model = {
     beforeCreate(init, next) {
@@ -228,7 +228,7 @@ let Model = {
                 // 
                 dish.modifiers[index].childModifiers = childModifiers;
                 // If groupMod not have options delete it
-                if (modifier.childModifiers && !modifier.childModifiers.length > 0) {
+                if (modifier.childModifiers && modifier.childModifiers.length) {
                     sails.log.warn("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
                     dish.modifiers.splice(index, 1);
                 }

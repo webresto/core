@@ -1,29 +1,32 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
+// type Optional<T> = {
+//   [P in keyof T]?: T[P];
+// }
 let attributes = {
     /** ID */
     id: {
         type: "string",
         //required: true,
     },
-    /** Type of bonuses */
-    type: 'string',
     active: {
-        type: 'boolean',
-        defaultsTo: true
+        type: 'boolean'
     },
     balance: {
-        type: 'boolean',
-        defaultsTo: true
+        type: 'number'
     },
     isDeleted: {
         type: 'boolean',
     },
     user: {
-        collection: 'user',
-        via: "bonuses"
+        model: 'user'
     },
+    BonusProgram: {
+        model: 'bonusprogram'
+    },
+    /** UNIX era seconds */
+    syncedToTime: "string",
     customData: "json",
 };
 let Model = {

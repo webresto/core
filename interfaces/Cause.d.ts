@@ -4,7 +4,7 @@ import { WorkTime } from "@webresto/worktime";
  * Описывает возможные условия для Condition
  */
 export default interface Cause {
-  workTime: WorkTime[];
+  worktime: WorkTime[];
   cartAmount: {
     valueFrom: number;
     valueTo: number;

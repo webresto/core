@@ -13,8 +13,8 @@ export default function (obj: AdditionalInfo): string {
   try {
     if (obj.visible === false) return "visible";
 
-    if (obj.workTime) {
-      if (!checkTime(obj.workTime)) {
+    if (obj.worktime) {
+      if (!checkTime(obj.worktime)) {
         return "time";
       }
     }
@@ -31,7 +31,7 @@ export default function (obj: AdditionalInfo): string {
 
 export interface AdditionalInfo {
   visible: boolean;
-  workTime: WorkTime[];
+  worktime: WorkTime[];
   promo: boolean;
   modifier: boolean;
 }

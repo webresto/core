@@ -39,7 +39,7 @@ declare let attributes: {
     /** Промо группа */
     promo: boolean;
     /** Время работы гыруппы */
-    workTime: WorkTime[];
+    worktime: WorkTime[];
 };
 declare type attributes = typeof attributes;
 interface Group extends attributes, ORM {

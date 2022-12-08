@@ -4,9 +4,10 @@ import getEmitter from "../libs/getEmitter";
 
 // Memory store
 let settings: SettingValue = {}
-type SettingValue = {
+type PlainValie = string | boolean | number | string[] | number[]
+type SettingValue = PlainValie | {
   [key: string]: string | boolean | number;
-} | string | boolean | number | string[] | number[];
+};
 
 ///////////////
 

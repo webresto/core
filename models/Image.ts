@@ -53,5 +53,6 @@ module.exports = {
 };
 
 declare global {
+  //@ts-ignore-check //TODO: need rename model of images maybe ProductCover
   const Image: typeof Model & ORMModel<Image>;
 }

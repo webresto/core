@@ -108,7 +108,7 @@ let attributes = {
   promo: "boolean" as unknown as boolean,
 
   /** Время работы гыруппы */
-  workTime: "json" as unknown as WorkTime[],
+  worktime: "json" as unknown as WorkTime[],
 };
 
 type attributes = typeof attributes;

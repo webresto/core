@@ -3,34 +3,34 @@ import ORMModel from "../interfaces/ORMModel";
 declare let attributes: {
     /** ID */
     id: string;
-    /** Type of bonuses */
-    type: string;
     active: {
         type: string;
-        defaultsTo: boolean;
     };
     balance: {
         type: string;
-        defaultsTo: boolean;
     };
     isDeleted: {
         type: string;
     };
     user: {
-        collection: string;
-        via: string;
+        model: string;
     };
+    BonusProgram: {
+        model: string;
+    };
+    /** UNIX era seconds */
+    syncedToTime: string;
     customData: string | {
         [key: string]: string | number | boolean;
     };
 };
 declare type attributes = typeof attributes;
-interface UserBonus extends attributes, ORM {
+interface UserBonusProgram extends attributes, ORM {
 }
-export default UserBonus;
+export default UserBonusProgram;
 declare let Model: {
     beforeCreate(UserBonusInit: any, next: any): void;
 };
 declare global {
-    const UserBonus: typeof Model & ORMModel<UserBonus>;
+    const UserBonusProgram: typeof Model & ORMModel<UserBonusProgram>;
 }

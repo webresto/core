@@ -41,6 +41,14 @@ import OrderDish from "../models/OrderDish";
  * const newActions = <NewActions>actions;
  * ```
  */
+
+
+interface AddDishParams {
+  dishesId: string[]
+  amount: number
+  modifiers: any
+  comment: string
+} 
 const actions = {
   /**
    * Add dish in order
@@ -48,6 +56,7 @@ const actions = {
    * @return Promise<Order>
    */
   async addDish(order: Order, params: AddDishParams): Promise<Order> {
+    
     const dishesId = params.dishesId;
 
     if (!order && !order.id) throw "order is required";
@@ -55,7 +64,7 @@ const actions = {
     if (!dishesId || !dishesId.length) throw "dishIds (array of strings) is required as second element of params";
 
     for await (let dishId of dishesId) {  
-      const dish = await Dish.findOne(dishId);
+      const dish = await Dish.findOne({id: dishId});
       await Order.addDish(order.id, dish, params.amount, params.modifiers, params.comment, "delivery");
     }
 
@@ -67,10 +76,8 @@ const actions = {
    * @param params(order.id,  deliveryCost)
    * @returns {Promise<>}
    */
-  async delivery(order: Order, params: DeliveryParams): Promise<Order> {
-    sails.log.debug(">>> action > delivery");
-    sails.log.debug("order", JSON.stringify(order));
-
+  async delivery(order: Order, params: {deliveryCost: number, deliveryItem: string}): Promise<Order> {
+ 
     if (!order && !order.id) throw "order is required";
 
     const deliveryCost = params.deliveryCost;
@@ -117,7 +124,7 @@ const actions = {
 
     const removeDishes = await OrderDish.find({
       order: order.id,
-      addedBy: { '!=' : 'user' },
+      addedBy: { '!' : 'user' },
     });
 
     for await (let dish of removeDishes) {
@@ -133,7 +140,7 @@ const actions = {
    * @param params(order.id,  description)
    * @return Promise<Order>
    */
-  async setDeliveryDescription(order: Order, params: DeliveryDescriptionParams): Promise<Order> {
+  async setDeliveryDescription(order: Order, params: {orderId: string, description: string}): Promise<Order> {
     const orderId = params.orderId;
     const description = params.description;
 
@@ -154,14 +161,14 @@ const actions = {
     return order;
   },
 
-  async reject(order: Order, params: ActionParams): Promise<Order> {
+  async reject(order: Order, params: any): Promise<Order> {
     if (!order && !order.id) throw "order is required";
 
     await Order.next(order.id, "CART");
     return order;
   },
 
-  async setMessage(order: Order, params: MessageParams): Promise<Order> {
+  async setMessage(order: Order, params: {orderId: string, message: string}): Promise<Order> {
     sails.log.info("CORE > actions > setMessage", params);
     const orderId = params.orderId;
     const message = params.message;

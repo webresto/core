@@ -36,7 +36,7 @@ let attributes = {
     discountMessage: "string",
     /** Сумма скидки */
     discountAmount: "number",
-    /** Коментарий к корзине */
+    /** Comment to dish in order */
     comment: "string",
     /** Метка кто добавил */
     addedBy: {

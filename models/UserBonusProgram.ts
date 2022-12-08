@@ -3,6 +3,11 @@ import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import Dish from "./Dish";
 import Order from "./Order";
+import User from "../models/User"
+
+// type Optional<T> = {
+//   [P in keyof T]?: T[P];
+// }
 
 let attributes = {
   
@@ -10,19 +15,14 @@ let attributes = {
   id: {
     type: "string",
     //required: true,
-  } as unknown as string,
+  } as unknown as Readonly<string>,
 
-  /** Type of bonuses */
-  type: 'string',
-  
   active: {
-    type: 'boolean',
-    defaultsTo: true
+    type: 'boolean'
   },
 
   balance: {
-    type: 'boolean',
-    defaultsTo: true
+    type: 'number'
   },
   
   isDeleted: {
@@ -30,18 +30,27 @@ let attributes = {
   },
 
   user: {
-    collection: 'user',
-    via: "bonuses"
+    model: 'user'
   },
+
+  BonusProgram: {
+    model: 'bonusprogram'
+  },
+
+  /** UNIX era seconds */
+  syncedToTime: "string",
 
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
 };
 
+
+
+
 type attributes = typeof attributes;
-interface UserBonus extends attributes, ORM {}
-export default UserBonus;
+interface UserBonusProgram extends attributes, ORM {}
+export default UserBonusProgram;
 
 let Model = {
   beforeCreate(UserBonusInit: any, next: any) {
@@ -60,5 +69,5 @@ module.exports = {
 };
 
 declare global {
-  const UserBonus: typeof Model & ORMModel<UserBonus>;
+  const UserBonusProgram: typeof Model & ORMModel<UserBonusProgram>;
 }

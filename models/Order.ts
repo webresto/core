@@ -5,7 +5,7 @@ import OrderDish from "./OrderDish";
 import PaymentDocument from "./PaymentDocument";
 import actions from "../libs/actions";
 import getEmitter from "../libs/getEmitter";
-import ORMModel from "../interfaces/ORMModel";
+import ORMModel, { CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
 import { formatDate } from "@webresto/worktime";
@@ -14,6 +14,7 @@ import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
+import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 
 const emitter = getEmitter();
 
@@ -52,7 +53,7 @@ let attributes = {
   paid: {
     type: "boolean",
     defaultsTo: false,
-  },
+  } as unknown as boolean,
 
   /** */
   isPaymentPromise: {
@@ -108,7 +109,7 @@ let attributes = {
 
   deliveryItem: {
     model: "Dish",
-  } as unknown as Dish | any,
+  } as unknown as Dish | string,
 
   deliveryCost: {
     type: "number",
@@ -165,11 +166,11 @@ let attributes = {
   } as unknown as number,
 
   orderDate: "string",
-
+  // orderDateLimit: "string",
   /** Родительская группа */
   user: {
     model: "user",
-  } as unknown as User | any,
+  } as unknown as User | string,
 
   customData: "json" as any,
 };
@@ -179,7 +180,8 @@ interface stateFlowInstance {
 }
 
 type attributes = typeof attributes & stateFlowInstance;
-interface Order extends attributes, ORM {}
+interface Order extends ORM, RequiredField<OptionalAll<attributes>, "id"> {}
+
 export default Order;
 
 let Model = {
@@ -216,7 +218,7 @@ let Model = {
     if (!addedBy) addedBy = "user";
 
     if (typeof dish === "string") {
-      dishObj = (await Dish.find(dish).limit(1))[0];
+      dishObj = (await Dish.find({id: dish}).limit(1))[0];
 
       if (!dishObj) {
         throw { body: `Dish with id ${dish} not found`, code: 2 };
@@ -410,7 +412,7 @@ let Model = {
     }).populate("dish");
 
     if (orderDish) {
-      await OrderDish.update(orderDish.id, { comment: comment }).fetch();
+      await OrderDish.update({ id: orderDish.id}, { comment: comment }).fetch();
 
       await Order.next(order.id, "CART");
       await Order.countCart(order);
@@ -477,7 +479,7 @@ let Model = {
     if (paymentMethodId) {
       await checkPaymentMethod(paymentMethodId);
       order.paymentMethod = paymentMethodId;
-      order.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
+      order.paymentMethodTitle = (await PaymentMethod.findOne({id: paymentMethodId})).title;
       order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
     }
 
@@ -598,7 +600,7 @@ let Model = {
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
 
-    const orderConfig = await Settings.use("order");
+    const orderConfig = await Settings.use("order") as unknown as {requireAll: boolean, justOne:boolean};
     if (orderConfig) {
       if (orderConfig.requireAll) {
         if (resultsCount === successCount) {
@@ -645,7 +647,7 @@ let Model = {
     var paymentResponse: PaymentResponse;
     let comment: string = "";
     var backLinkSuccess: string = (await Settings.use("FrontendOrderPage")) + order.shortId;
-    var backLinkFail: string = await Settings.use("FrontendCheckoutPage");
+    var backLinkFail: string = await Settings.use("FrontendCheckoutPage") as string;
     let paymentMethodId = await order.paymentMethod
     sails.log.verbose("Order > payment > before payment register", order);
 
@@ -700,10 +702,11 @@ let Model = {
           continue;
         }
 
-        if (!fullOrder.dishes.filter((d) => d.id === orderDish.id).length) {
-          sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
-          continue;
-        }
+        // WHATIS? It seems like test of waterline or check orderDishes not in Order?!
+        // if (!fullOrder.dishes.filter((d: { id: number; }) => d.id === orderDish.id).length) {
+        //   sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
+        //   continue;
+        // }
 
         const dish = await Dish.findOne({
           id: orderDish.dish.id,
@@ -718,16 +721,17 @@ let Model = {
 
         if (orderDish.modifiers !== undefined && Array.isArray(orderDish.modifiers)) {
           for await (let modifier of orderDish.modifiers) {
-            modifier.dish = (await Dish.find(modifier.id).limit(1))[0];
+            modifier.dish = (await Dish.find({ id: modifier.id}).limit(1))[0];
           }
         } else {
           throw `orderDish.modifiers not iterable orderDish: ${JSON.stringify(orderDish.modifiers, undefined, 2)}`
         }
       }
-      fullOrder.dishes = orderDishes as Association<OrderDish>;
+      fullOrder.dishes = orderDishes;
 
-      fullOrder.orderDateLimit = await getOrderDateLimit();
-      fullOrder.orderId = fullOrder.id;
+      // TODO: refactor descr in method was writed
+      // fullOrder.orderDateLimit = "await getOrderDateLimit()";
+      // fullOrder.orderId = fullOrder.id;
     } catch (e) {
       sails.log.error("CART > fullOrder error", e);
     }
@@ -740,13 +744,13 @@ let Model = {
    * Подсчет должен происходить только до перехода на чекаут
    * @param order
    */
-  async countCart(criteria: any) {
+  async countCart(criteria: CriteriaQuery<Order> | string) {
     try {
       let order: Order;
-      if (typeof criteria === "string" || criteria instanceof String) {
-        order = await Order.findOne(criteria);
+      if (typeof criteria === "string") {
+        order = await Order.findOne({id: criteria});
       } else {
-        order = await Order.findOne(criteria.id);
+        order = await Order.findOne(criteria);
       }
 
       getEmitter().emit("core-order-before-count", order);
@@ -754,10 +758,7 @@ let Model = {
       if (!["CART", "CHECKOUT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
 
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-      // const orderDishesClone = {};
-      if (order.id === "test--countcart"){
-        console.dir("111112",orderDishes, 1)
-      }
+      // const orderDishesClone = {}
       let orderTotal = 0;
       let dishesCount = 0;
       let uniqueDishes = 0;
@@ -797,7 +798,7 @@ let Model = {
               console.log(orderDish.modifiers)
 
               for await (let modifier of orderDish.modifiers) {
-                const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
+                const modifierObj = (await Dish.find({id: modifier.id}).limit(1))[0];
 
                 if (!modifierObj) {
                   sails.log.error("Dish with id " + modifier.id + " not found!");
@@ -969,8 +970,8 @@ async function checkCustomerInfo(customer) {
   }
 
   try {
-    const nameRegex = await Settings.use("nameRegex");
-    const phoneRegex = await Settings.use("phoneRegex");
+    const nameRegex = await Settings.use("nameRegex") as string;
+    const phoneRegex = await Settings.use("phoneRegex") as string;
 
     if (nameRegex) {
       if (!nameRegex.match(customer.name)) {
@@ -1055,8 +1056,8 @@ async function checkDate(order: Order) {
 // TODO: refactor periodPossibleForOrder from seconds to full work days
 async function getOrderDateLimit(): Promise<Date> {
   let date = new Date();
-  let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //minutes
-  if (!periodPossibleForOrder) periodPossibleForOrder = 1440;
+  let periodPossibleForOrder: string = await Settings.use("PeriodPossibleForOrder") as string; //minutes
+  if (!periodPossibleForOrder) periodPossibleForOrder = "1440";
 
   date.setSeconds(date.getSeconds() + ( parseInt(periodPossibleForOrder) * 60 ));
   return date;

@@ -1,6 +1,7 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { Modifier } from "../interfaces/Modifier";
+import { OptionalAll } from "../interfaces/toolsTS";
 declare let attributes: {
     /** */
     id: number;
@@ -28,8 +29,8 @@ declare let attributes: {
     discountMessage: string;
     /** Сумма скидки */
     discountAmount: string;
-    /** Коментарий к корзине */
-    comment: number;
+    /** Comment to dish in order */
+    comment: string;
     /** Метка кто добавил */
     addedBy: string;
     /** Вес */
@@ -38,7 +39,7 @@ declare let attributes: {
     totalWeight: number;
 };
 declare type attributes = typeof attributes;
-interface OrderDish extends attributes, ORM {
+interface OrderDish extends OptionalAll<attributes>, ORM {
 }
 export default OrderDish;
 declare let Model: {};

@@ -7,7 +7,7 @@ import { WorkTime } from "@webresto/worktime";
 export default function (obj: AdditionalInfo): string;
 export interface AdditionalInfo {
     visible: boolean;
-    workTime: WorkTime[];
+    worktime: WorkTime[];
     promo: boolean;
     modifier: boolean;
 }

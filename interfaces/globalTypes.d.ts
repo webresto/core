@@ -1,11 +1,15 @@
 import sails from "typed-sails";
-import Config from "../interfaces/Config";
+import Config from "./Config";
 
 type sailsConfig = typeof sails.config;
 
 declare global {
 
   interface Sails extends sails.Sails {
+    on: any
+    emit: any
+    router: any
+    hooks: any
     models: any;
     config: _sailsConfig;
     log: any;

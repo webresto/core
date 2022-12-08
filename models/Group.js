@@ -82,7 +82,7 @@ let attributes = {
     /** Промо группа */
     promo: "boolean",
     /** Время работы гыруппы */
-    workTime: "json",
+    worktime: "json",
 };
 let Model = {
     beforeCreate(init, next) {

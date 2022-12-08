@@ -3,7 +3,6 @@ import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
 var alivedPaymentMethods: {} = {};
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
-
 enum PaymentMethodType {
   "promise",
   "external",

@@ -39,7 +39,6 @@
     }
  */
 import ImageConfig from "../adapters/image/ImageConfig";
-import { Time } from "./Cause";
 export default interface Config {
   project: string;
   city: string;
@@ -74,7 +73,6 @@ export default interface Config {
   };
   timeSyncMap: number;
   zoneDontWork?: string;
-  deliveryWorkTime: Time[];
   phoneRegex?: string;
   nameRegex?: string;
   check: {

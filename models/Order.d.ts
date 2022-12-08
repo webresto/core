@@ -3,11 +3,13 @@ import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import OrderDish from "./OrderDish";
 import PaymentDocument from "./PaymentDocument";
-import ORMModel from "../interfaces/ORMModel";
+import ORMModel, { CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
 import Dish from "./Dish";
+import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
+import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 declare let attributes: {
     /** Id  */
     id: string;
@@ -20,10 +22,7 @@ declare let attributes: {
     paymentMethod: any;
     /** */
     paymentMethodTitle: string;
-    paid: {
-        type: string;
-        defaultsTo: boolean;
-    };
+    paid: boolean;
     /** */
     isPaymentPromise: boolean;
     /** */
@@ -51,7 +50,7 @@ declare let attributes: {
     selfService: boolean;
     deliveryDescription: string;
     message: string;
-    deliveryItem: any;
+    deliveryItem: string | Dish;
     deliveryCost: number;
     /** order total weight */
     totalWeight: number;
@@ -68,14 +67,14 @@ declare let attributes: {
     discountTotal: number;
     orderDate: string;
     /** Родительская группа */
-    user: any;
+    user: string | User;
     customData: any;
 };
 interface stateFlowInstance {
     state: string;
 }
 declare type attributes = typeof attributes & stateFlowInstance;
-interface Order extends attributes, ORM {
+interface Order extends ORM, RequiredField<OptionalAll<attributes>, "id"> {
 }
 export default Order;
 declare let Model: {
@@ -97,76 +96,54 @@ declare let Model: {
     paymentMethodId(criteria: any): Promise<string>;
     /**  given populated Order instance  by criteria*/
     populate(criteria: any): Promise<{
-        /** Id  */
         id: string;
-        /** last 8 chars from id */
-        shortId: string;
-        /** Концепт к которому относится группа */
-        concept: string;
-        /** */
-        dishes: number[] | OrderDish[];
-        paymentMethod: any;
-        /** */
-        paymentMethodTitle: string;
-        paid: {
-            type: string;
-            defaultsTo: boolean;
-        };
-        /** */
-        isPaymentPromise: boolean;
-        /** */
-        dishesCount: number;
-        uniqueDishes: number;
-        modifiers: any;
-        customer: any;
-        address: any;
-        comment: string;
-        personsCount: string;
-        /** Желаемая дата и время доставки */
-        date: string;
-        problem: boolean;
-        /** */
-        rmsDelivered: boolean;
-        /** */
-        rmsId: string;
-        rmsOrderNumber: string;
-        rmsOrderData: any;
-        rmsDeliveryDate: string;
-        rmsErrorMessage: string;
-        rmsErrorCode: string;
-        rmsStatusCode: string;
-        deliveryStatus: string;
-        selfService: boolean;
-        deliveryDescription: string;
-        message: string;
-        deliveryItem: any;
-        deliveryCost: number;
-        /** order total weight */
-        totalWeight: number;
-        /** Сдача */
-        trifleFrom: number;
-        /** Summ of all bobnuses */
-        bonusesTotal: number;
-        /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
-        total: number;
-        /**
-        *   @deprecated orderTotal use orderCost
-        */
-        orderTotal: number;
-        discountTotal: number;
-        orderDate: string;
-        /** Родительская группа */
-        user: any;
-        customData: any;
-        state: string;
-        toJSON(): any;
+        shortId?: string;
+        concept?: string;
+        dishes?: number[] | OrderDish[];
+        paymentMethod?: any;
+        paymentMethodTitle?: string;
+        paid?: boolean;
+        isPaymentPromise?: boolean;
+        dishesCount?: number;
+        uniqueDishes?: number;
+        modifiers?: any;
+        customer?: any;
+        address?: any;
+        comment?: string;
+        personsCount?: string;
+        date?: string;
+        problem?: boolean;
+        rmsDelivered?: boolean;
+        rmsId?: string;
+        rmsOrderNumber?: string;
+        rmsOrderData?: any;
+        rmsDeliveryDate?: string;
+        rmsErrorMessage?: string;
+        rmsErrorCode?: string;
+        rmsStatusCode?: string;
+        deliveryStatus?: string;
+        selfService?: boolean;
+        deliveryDescription?: string;
+        message?: string;
+        deliveryItem?: string | Dish;
+        deliveryCost?: number;
+        totalWeight?: number;
+        trifleFrom?: number;
+        bonusesTotal?: number;
+        total?: number;
+        orderTotal?: number;
+        discountTotal?: number;
+        orderDate?: string;
+        user?: string | User;
+        customData?: any;
+        state?: string;
     }>;
     /**
      * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
      * Подсчет должен происходить только до перехода на чекаут
      * @param order
      */
-    countCart(criteria: any): Promise<Order>;
+    countCart(criteria: string | CriteriaQuery<Order>): Promise<Order>;
     doPaid(criteria: any, paymentDocument: PaymentDocument): Promise<void>;
 };
 declare global {

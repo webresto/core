@@ -34,7 +34,7 @@ const dishExample = {
       "visible": null,
       "modifier": null,
       "promo": null,
-      "workTime": null,
+      "worktime": null,
       "createdAt": "2020-10-16T02:11:44.000Z",
       "updatedAt": "2020-10-16T02:11:44.000Z",
       "parentGroup": null
@@ -75,7 +75,7 @@ const dishExample = {
     "visible": null,
     "modifier": null,
     "promo": null,
-    "workTime": null
+    "worktime": null
 } 
 
 describe('Dish', function () {
@@ -132,7 +132,7 @@ describe('Dish', function () {
     'visible',
     'modifier',
     'promo',
-    'workTime')
+    'worktime')
   });
 
   it('getDishes', function(){

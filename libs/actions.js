@@ -1,45 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAllActionsName = exports.addAction = void 0;
-/**
- * Object with functions to action
- * If you wanna add new actions just call addAction('newActionName', function newActionFunction(...) {...}); Also in this
- * way you need to extends Actions interface and cast actions variable to new extended interface.
- *
- * For example:
- *
- * 1. Add new function doStuff
- * ```
- * addAction('doStuff', function(params: ActionParams): Promise<Order> {
- *   const orderId = params.orderId;
- *
- *   if (!orderId)
- *     throw 'orderId (string) is required as first element of params';
- *
- *   const order = await Order.findOne(orderId);
- *   if (!order)
- *     throw 'order with id ' + orderId + ' not found';
- *
- *   sails.log.info('DO STUFF WITH CART', order);
- *
- *   return order;
- * });
- * ```
- *
- * 2. Create new Actions interface
- * ```
- * interface NewActions extends Actions {
- *   doStuff(params: ActionParams): Promise<Order>;
- * }
- * ```
- *
- * 3. Export actions variable
- * ```
- * import actions from "./libs/actions";
- * import NewActions from "<module>/NewActions";
- * const newActions = <NewActions>actions;
- * ```
- */
 const actions = {
     /**
      * Add dish in order
@@ -53,7 +14,7 @@ const actions = {
         if (!dishesId || !dishesId.length)
             throw "dishIds (array of strings) is required as second element of params";
         for await (let dishId of dishesId) {
-            const dish = await Dish.findOne(dishId);
+            const dish = await Dish.findOne({ id: dishId });
             await Order.addDish(order.id, dish, params.amount, params.modifiers, params.comment, "delivery");
         }
         return order;
@@ -64,8 +25,6 @@ const actions = {
      * @returns {Promise<>}
      */
     async delivery(order, params) {
-        sails.log.debug(">>> action > delivery");
-        sails.log.debug("order", JSON.stringify(order));
         if (!order && !order.id)
             throw "order is required";
         const deliveryCost = params.deliveryCost;
@@ -107,7 +66,7 @@ const actions = {
             await Order.next(order.id, "CART");
         const removeDishes = await OrderDish.find({
             order: order.id,
-            addedBy: { '!=': 'user' },
+            addedBy: { '!': 'user' },
         });
         for await (let dish of removeDishes) {
             // TODO: rewrite removeDish for totaly remove

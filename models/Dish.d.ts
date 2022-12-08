@@ -82,7 +82,7 @@ declare let attributes: {
     /** Признак того что блюдо акционное */
     promo: boolean;
     /** Время работы */
-    workTime: WorkTime;
+    worktime: WorkTime[];
 };
 declare type attributes = typeof attributes;
 interface Dish extends attributes, ORM {

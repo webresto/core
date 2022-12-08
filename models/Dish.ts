@@ -182,7 +182,7 @@ let attributes = {
   promo: "boolean" as unknown as boolean,
 
   /** Время работы */
-  workTime: "json" as unknown as WorkTime,
+  worktime: "json" as unknown as WorkTime[],
 };
 
 type attributes = typeof attributes;
@@ -233,7 +233,7 @@ let Model = {
     let dishes = await Dish.find(criteria).populate("images");
 
     for await (let dish of dishes) {
-      const reason = checkExpression(dish);
+      const reason = checkExpression(dish as Pick<typeof dish, "worktime" | "visible" | "promo" | "modifier">);
       if (!reason) {
         await Dish.getDishModifiers(dish);
         if (dish.images.length >= 2) dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
@@ -292,7 +292,7 @@ let Model = {
           dish.modifiers[index].childModifiers = childModifiers;
 
           // If groupMod not have options delete it
-          if (modifier.childModifiers && !modifier.childModifiers.length > 0) {  
+          if (modifier.childModifiers && modifier.childModifiers.length) {  
             sails.log.warn("DISH > getDishModifiers: GroupModifier "+ modifier.id +" from dish:"+ dish.name+" not have modifiers")
             dish.modifiers.splice(index, 1);
           }

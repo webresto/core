@@ -12,8 +12,8 @@ function default_1(obj) {
     try {
         if (obj.visible === false)
             return "visible";
-        if (obj.workTime) {
-            if (!checkTime(obj.workTime)) {
+        if (obj.worktime) {
+            if (!checkTime(obj.worktime)) {
                 return "time";
             }
         }

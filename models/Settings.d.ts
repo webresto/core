@@ -1,8 +1,9 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
-declare type SettingValue = {
+declare type PlainValie = string | boolean | number | string[] | number[];
+declare type SettingValue = PlainValie | {
     [key: string]: string | boolean | number;
-} | string | boolean | number | string[] | number[];
+};
 declare let attributes: {
     /**Id */
     id: string;
