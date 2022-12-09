@@ -405,7 +405,6 @@ let Model = {
         }
         (0, getEmitter_1.default)().emit("core-order-check-delivery", order, customer, isSelfService, address);
         const results = await (0, getEmitter_1.default)().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
-        console.log(results);
         if (order.dishesCount === 0) {
             throw {
                 code: 13,
@@ -649,7 +648,6 @@ let Model = {
                         orderDish.totalWeight = 0;
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
-                            console.log(orderDish.modifiers);
                             for await (let modifier of orderDish.modifiers) {
                                 const modifierObj = (await Dish.find({ id: modifier.id }).limit(1))[0];
                                 if (!modifierObj) {
@@ -710,7 +708,6 @@ let Model = {
              */
             order.dishes = orderDishes;
             await (0, getEmitter_1.default)().emit("core-order-count-discount-apply", order);
-            console.log(888, order.id, "order.dishes", order.dishes);
             delete (order.dishes);
             ///////////////////////////////////
             /**
@@ -728,7 +725,7 @@ let Model = {
             return order;
         }
         catch (error) {
-            console.log(" error >", error);
+            console.error(" error >", error);
         }
     },
     async doPaid(criteria, paymentDocument) {

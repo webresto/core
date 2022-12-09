@@ -93,7 +93,6 @@ describe("Order", function () {
   it("addDish", async function () {
     order = await Order.create({id: "add-dish"}).fetch();
 
-    //console.log(dishes);
     await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
     await Order.addDish({id: order.id}, dishes[1], 5, [], "test comment", "test");
 
@@ -142,7 +141,6 @@ describe("Order", function () {
     await Order.addDish({id: order.id}, dishes[0], 1, null, "", "test");
 
     let orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
-    // console.log('dishes > ', orderDishes);
     expect(orderDishes.length).to.equals(1);
     expect(orderDishes[0].amount).to.equals(6);
 
@@ -151,7 +149,6 @@ describe("Order", function () {
     await Order.addDish({id: order.id}, dishes[0], 1, null, "", "test");
     await Order.addDish({id: order.id}, dishes[0], 2, null, "", "test");
     orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
-    // console.log(orderDishes);
     expect(orderDishes.length).to.equals(2);
     for (let dish of orderDishes) {
       if (dish.modifiers.length == 1) {

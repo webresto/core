@@ -509,7 +509,6 @@ let Model = {
     getEmitter().emit("core-order-check-delivery", order, customer, isSelfService, address);
 
     const results = await getEmitter().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
-    console.log(results)
     if (order.dishesCount === 0) {
       throw {
         code: 13,
@@ -796,8 +795,6 @@ let Model = {
             // orderDish.dishId = dish.id
 
             if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
-              console.log(orderDish.modifiers)
-
               for await (let modifier of orderDish.modifiers) {
                 const modifierObj = (await Dish.find({id: modifier.id}).limit(1))[0];
 
@@ -873,7 +870,6 @@ let Model = {
        */
       order.dishes = orderDishes;
       await getEmitter().emit("core-order-count-discount-apply", order);
-      console.log(888, order.id, "order.dishes",order.dishes)
       delete(order.dishes);
       ///////////////////////////////////
 
@@ -898,7 +894,7 @@ let Model = {
       getEmitter().emit("core-order-after-count", order);
       return order;
     } catch (error) {
-      console.log(" error >", error);
+      console.error(" error >", error);
     }
   },
 
