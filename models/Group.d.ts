@@ -1,6 +1,6 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import Image from "../models/Image";
+import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
@@ -26,9 +26,9 @@ declare let attributes: {
     parentGroup: any;
     childGroups: Group[];
     /** Изображения */
-    images: Image[];
+    images: MediaFile[];
     /** Плейсхолдер для блюд группы */
-    dishesPlaceholder: Image[];
+    dishesPlaceholder: MediaFile[];
     /** Человеко читаемый АйДи */
     slug: string;
     /** Концепт к которому относится группа */

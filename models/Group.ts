@@ -2,7 +2,7 @@ import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import Image from "../models/Image";
+import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import slugify from "slugify"
@@ -84,12 +84,12 @@ let attributes = {
   images: {
     collection: "image",
     via: "group",
-  } as unknown as Image[],
+  } as unknown as MediaFile[],
 
   /** Плейсхолдер для блюд группы */
   dishesPlaceholder: {
     model: "image",
-  } as unknown as Image[],
+  } as unknown as MediaFile[],
 
   /** Человеко читаемый АйДи */
   slug: {

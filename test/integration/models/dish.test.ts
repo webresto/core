@@ -29,7 +29,6 @@ const dishExample = {
       "seoTitle": null,
       "tags": [],
       "order": 3,
-      "dishesTags": null,
       "slug": "picca",
       "visible": null,
       "modifier": null,
@@ -158,7 +157,7 @@ describe('Dish', function () {
   });
   it('createOrUpdate', async function(){
     expect(Dish.createOrUpdate).to.not.equals(undefined);
-    // @ts-ignore
+    
     let dish = await Dish.createOrUpdate(dishGenerator({name: "test dish"}));
 
     dish.name = 'New Dish Name';

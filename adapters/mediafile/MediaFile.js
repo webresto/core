@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  *
  */
-class Image {
+class MediaFile {
     constructor(url, name, key) {
         this.url = url;
         // TODO: переименовать нейм по идеи это размеры картинок + оригинал (передается оно в images)
@@ -11,4 +11,4 @@ class Image {
         this.key = key;
     }
 }
-exports.default = Image;
+exports.default = MediaFile;

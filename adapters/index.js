@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Payment = exports.ImageA = exports.Map = exports.RMS = void 0;
+exports.Payment = exports.MediaFileA = exports.Map = exports.RMS = void 0;
 const fs = require("fs");
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
@@ -49,27 +49,27 @@ class Map {
 }
 exports.Map = Map;
 /**
- * Отдаёт запрашиваемый Image-адаптер
+ * Отдаёт запрашиваемый MediaFile-адаптер
  */
-class ImageA {
+class MediaFileA {
     static getAdapter(adapterName) {
         // if(!Boolean(adapterName)) {
-        //   sails.log.warn(`Image adapter not defined: ${adapterName}`);
+        //   sails.log.warn(`MediaFile adapter not defined: ${adapterName}`);
         //   return 
         // }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
         try {
             const adapter = require(adapterLocation);
-            return adapter.ImageAdapter.default;
+            return adapter.MediaFileAdapter.default;
         }
         catch (e) {
-            sails.log.error("CORE > getAdapter ImageA > error; ", e);
+            sails.log.error("CORE > getAdapter MediaFileA > error; ", e);
             throw new Error("Module " + adapterLocation + " not found");
         }
     }
 }
-exports.ImageA = ImageA;
+exports.MediaFileA = MediaFileA;
 /**
  * Отдаёт запрашиваемый Payment-адаптер
  */

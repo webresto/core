@@ -209,6 +209,7 @@ describe("Flows: Checkout", function () {
     });
 
     it("bad customer", async function () {
+      
       // @ts-ignore
       let badCustomer: Customer = {
         name: "Bad Man",
@@ -228,6 +229,7 @@ describe("Flows: Checkout", function () {
       badCustomer = {
         phone: "+79998882244",
       };
+
       error = null;
       try {
         await Order.check({id: order.id}, badCustomer);
@@ -276,6 +278,7 @@ describe("Flows: Checkout", function () {
     });
 
     it("bad address", async function () {
+      
       // @ts-ignore
       let badAddress: Address = {
         city: "New York",

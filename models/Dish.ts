@@ -1,6 +1,6 @@
 import Group from "./Group";
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
-import Image from "./Image";
+import MediaFile from "./MediaFile";
 import hashCode from "../libs/hashCode";
 import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
@@ -161,7 +161,7 @@ let attributes = {
   images: {
     collection: "image",
     via: "dish",
-  } as unknown as Image[],
+  } as unknown as MediaFile[],
 
   /** Слаг */
   slug: {

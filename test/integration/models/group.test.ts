@@ -12,16 +12,16 @@ describe("Group", function () {
   it("create example Groups", async function () {
     try {
       for (let i = 0; i < 3; i++) {
-        // @ts-ignore
+        
         exampleGroups.push(groupGenerator());
         let [lastGroup] = exampleGroups.slice(-1);
-        // @ts-ignore
+        
         //lastGroup.dishes = [dishGenerator(), dishGenerator()];
         lastGroup.childGroups = [];
         for (let x = 0; x < 2; x++) {
           let newGroup = groupGenerator();
           //newGroup.dishes = [dishGenerator(), dishGenerator()];
-          // @ts-ignore
+          
           lastGroup.childGroups.push(newGroup.id);
         }
       }
@@ -76,7 +76,7 @@ describe("Group", function () {
   /** Throw if not equal */
   function equalGroups(exampleGroups: Group[], result: Group[]): void {
     for (let exampleGroup of exampleGroups) {
-      // @ts-ignore
+      
       let group = result.find((g) => {
         return g.id === exampleGroup.id;
       });

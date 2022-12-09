@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
-import Dish from "../models/Dish";
-import Group from "../models/Group";
+import Dish from "./Dish";
+import Group from "./Group";
 declare let attributes: {
     /** ID картинки */
     id: string;
@@ -17,12 +17,12 @@ declare let attributes: {
     uploadDate: string;
 };
 declare type attributes = typeof attributes;
-interface Image extends attributes, ORM {
+interface MediaFile extends attributes, ORM {
 }
-export default Image;
+export default MediaFile;
 declare let Model: {
     beforeCreate(imageInit: any, next: any): void;
 };
 declare global {
-    const Image: typeof Model & ORMModel<Image>;
+    const MediaFile: typeof Model & ORMModel<MediaFile>;
 }

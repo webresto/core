@@ -1,7 +1,7 @@
 /**
  *
  */
-export default class Image {
+export default class MediaFile {
   url: string;
   name: {
     origin: string;

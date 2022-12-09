@@ -1,4 +1,4 @@
-import Image from "./Image";
+import MediaFile from "./MediaFile";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { WorkTime } from "@webresto/worktime";
@@ -70,7 +70,7 @@ declare let attributes: {
     /** Баланс для продажи, если -1 то сколько угодно */
     balance: number;
     /** Список изображений блюда*/
-    images: Image[];
+    images: MediaFile[];
     /** Слаг */
     slug: string;
     /** Концепт к которому относится блюдо */

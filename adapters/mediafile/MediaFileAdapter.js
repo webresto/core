@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class ImageAdapter {
+class MediaFileAdapter {
     constructor(config) {
         config.dish.path = config.dish.path || "";
         config.group.path = config.group.path || "";
@@ -9,4 +9,4 @@ class ImageAdapter {
         this.config = config;
     }
 }
-exports.default = ImageAdapter;
+exports.default = MediaFileAdapter;
