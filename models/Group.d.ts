@@ -3,6 +3,7 @@ import ORM from "../interfaces/ORM";
 import Image from "../models/Image";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
+import { OptionalAll } from "../interfaces/toolsTS";
 declare let attributes: {
     /**Id */
     id: string;
@@ -42,7 +43,7 @@ declare let attributes: {
     worktime: WorkTime[];
 };
 declare type attributes = typeof attributes;
-interface Group extends attributes, ORM {
+interface Group extends OptionalAll<attributes>, ORM {
 }
 export default Group;
 declare let Model: {

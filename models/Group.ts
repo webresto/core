@@ -8,6 +8,7 @@ import { WorkTime } from "@webresto/worktime";
 import slugify from "slugify"
 import { groupBy } from "lodash";
 import { v4 as uuid } from "uuid";
+import { OptionalAll } from "../interfaces/toolsTS";
 
 let attributes = {
   /**Id */
@@ -112,7 +113,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface Group extends attributes, ORM {}
+interface Group extends OptionalAll<attributes>, ORM {}
 export default Group;
 
 let Model = {

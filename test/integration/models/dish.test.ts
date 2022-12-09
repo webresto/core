@@ -71,7 +71,6 @@ const dishExample = {
     "balance": -1,
     "slug": "evropejskaya",
     "hash": -374730368,
-    "composition": null,
     "visible": null,
     "modifier": null,
     "promo": null,
@@ -128,7 +127,7 @@ describe('Dish', function () {
     'images',
     'slug',
     'hash',
-    'composition',
+    'description',
     'visible',
     'modifier',
     'promo',
@@ -147,10 +146,10 @@ describe('Dish', function () {
     let group = (await Group.find({}).limit(1))[0];
     
     let modifiers = [{modifierId: group.id, childModifiers: [{id: dishes[0].id, modifierId: dishes[0].id}]}];
-    // @ts-ignore
+
     let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers }) );
-    await Dish.getDishModifiers(dish);
-    // console.log(JSON.stringify(dish, null, '  '));
+    dish = await Dish.getDishModifiers(dish);
+    console.log(999911,JSON.stringify(dish, null, '  '));
     expect(dish.modifiers.length).to.equal(1);
     expect(dish.modifiers[0].childModifiers[0].dish.id).to.equal(dishes[0].id);
     expect(dish.modifiers[0].group.id).to.equal(group.id);

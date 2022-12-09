@@ -316,7 +316,7 @@ let Model = {
     await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
 
     try {
-      await Order.countCart(order);
+      await Order.countCart({id: order.id});
       await Order.next(order.id, "CART");
     } catch (error) {
       sails.log.error(error)
@@ -365,7 +365,7 @@ let Model = {
 
     await emitter.emit.apply(emitter, ["core-order-after-remove-dish", ...arguments]);
     await Order.next(order.id, "CART");
-    await Order.countCart(order);
+    await Order.countCart({id: order.id});
   },
 
   async setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void> {
@@ -396,7 +396,7 @@ let Model = {
       }
 
       await Order.next(order.id, "CART");
-      await Order.countCart(order);
+      await Order.countCart({id: order.id});
       Order.update({ id: order.id }, order).fetch();
       await emitter.emit.apply(emitter, ["core-order-after-set-count", ...arguments]);
     } else {
@@ -420,7 +420,7 @@ let Model = {
       await OrderDish.update({ id: orderDish.id}, { comment: comment }).fetch();
 
       await Order.next(order.id, "CART");
-      await Order.countCart(order);
+      await Order.countCart({id: order.id});
       Order.update({ id: order.id }, order).fetch();
       await emitter.emit.apply(emitter, ["core-order-after-set-comment", ...arguments]);
     } else {
@@ -661,7 +661,7 @@ let Model = {
       backLinkFail: backLinkFail,
       comment: comment,
     };
-    await Order.countCart(order);
+    await Order.countCart({id: order.id});
     await getEmitter().emit("core-order-payment", order, params);
     sails.log.info("Order > payment > order before register:", order);
     try {
@@ -751,6 +751,7 @@ let Model = {
    */
   async countCart(criteria: CriteriaQuery<Order>) {
     try {
+      
       let order = await Order.findOne(criteria);
 
       getEmitter().emit("core-order-before-count", order);

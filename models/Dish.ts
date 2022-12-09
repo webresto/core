@@ -8,6 +8,8 @@ import ORM from "../interfaces/ORM";
 import * as _ from "lodash";
 import { WorkTime } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
+import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
+import { GroupModifier, Modifier } from "../interfaces/Modifier";
 
 let attributes = {
   /** */
@@ -137,7 +139,7 @@ let attributes = {
   modifiers: {
     // collection: 'dish'
     type: "json",
-  } as unknown as any,
+  } as unknown as GroupModifier[],
 
   /** Родительская группа */
   parentGroup: {
@@ -186,7 +188,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface Dish extends attributes, ORM {}
+interface Dish extends OptionalAll<attributes>, ORM {}
 export default Dish;
 
 let Model = {
@@ -253,7 +255,7 @@ let Model = {
    * а обычным модификаторам дописывает их блюдо.
    * @param dish
    */
-   async getDishModifiers(dish: Dish) {
+   async getDishModifiers(dish: Dish): Promise<Dish> {
     if(dish.modifiers){
       let index = 0;
       for await(let  modifier of dish.modifiers){
@@ -299,6 +301,7 @@ let Model = {
         index++;
       }
     }
+    return dish
   },
 
   /**

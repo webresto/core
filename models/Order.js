@@ -233,7 +233,7 @@ let Model = {
         }
         await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
         try {
-            await Order.countCart(order);
+            await Order.countCart({ id: order.id });
             await Order.next(order.id, "CART");
         }
         catch (error) {
@@ -278,7 +278,7 @@ let Model = {
         }
         await emitter.emit.apply(emitter, ["core-order-after-remove-dish", ...arguments]);
         await Order.next(order.id, "CART");
-        await Order.countCart(order);
+        await Order.countCart({ id: order.id });
     },
     async setCount(criteria, dish, amount) {
         await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
@@ -305,7 +305,7 @@ let Model = {
                 sails.log.info("destroy", get.id);
             }
             await Order.next(order.id, "CART");
-            await Order.countCart(order);
+            await Order.countCart({ id: order.id });
             Order.update({ id: order.id }, order).fetch();
             await emitter.emit.apply(emitter, ["core-order-after-set-count", ...arguments]);
         }
@@ -326,7 +326,7 @@ let Model = {
         if (orderDish) {
             await OrderDish.update({ id: orderDish.id }, { comment: comment }).fetch();
             await Order.next(order.id, "CART");
-            await Order.countCart(order);
+            await Order.countCart({ id: order.id });
             Order.update({ id: order.id }, order).fetch();
             await emitter.emit.apply(emitter, ["core-order-after-set-comment", ...arguments]);
         }
@@ -538,7 +538,7 @@ let Model = {
             backLinkFail: backLinkFail,
             comment: comment,
         };
-        await Order.countCart(order);
+        await Order.countCart({ id: order.id });
         await (0, getEmitter_1.default)().emit("core-order-payment", order, params);
         sails.log.info("Order > payment > order before register:", order);
         try {

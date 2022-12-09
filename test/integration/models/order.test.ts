@@ -221,7 +221,7 @@ describe("Order", function () {
     await Order.addDish({id: order.id}, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "test");
 
 
-    let changedOrder = await Order.countCart(order);
+    let changedOrder = await Order.countCart({id: order.id});
     console.dir(changedOrder)
     expect(changedOrder.uniqueDishes).to.equal(5);
     expect(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1 + 1); // 18

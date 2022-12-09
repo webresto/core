@@ -28,12 +28,10 @@ describe("Flows: Checkout", function () {
 
   it("Check dishescount", async function () {
     await sleep(500)
-    let id = {id:"test.order.check-dishescount"};
-    order = await Order.create(id).fetch();
+    order = await Order.create({id:"test.order.check-dishescount"}).fetch();
     dishes = await Dish.find({})
     await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
-    order = await Order.findOne(id);
-    console.log(999, order.id, order)
+    order = await Order.findOne({id:"test.order.check-dishescount"});
 
     if (!order) throw "Order not created";
     if (order.dishesCount !== 1 ) throw `Order dishescount: ${order.dishesCount} ${JSON.stringify(order)}`
