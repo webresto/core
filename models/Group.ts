@@ -78,7 +78,7 @@ let attributes = {
   childGroups: {
     collection: "group",
     via: "parentGroup",
-  } as unknown as Group[],
+  } as unknown as Group[] | string[],
 
   /** Изображения */
   images: {

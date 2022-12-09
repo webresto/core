@@ -86,7 +86,7 @@ describe("Group", function () {
 
       if (exampleGroup.childGroups && exampleGroup.childGroups.length) {
         expect(exampleGroup.childGroups.length).to.equal(group.childGroups.length);
-        equalGroups(exampleGroup.childGroups, group.childGroups);
+        equalGroups(exampleGroup.childGroups as Group[], group.childGroups as Group[]);
       }
     }
   }

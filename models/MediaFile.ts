@@ -3,6 +3,7 @@ import ORMModel from "../interfaces/ORMModel";
 import Dish from "./Dish";
 import Group from "./Group";
 import { v4 as uuid } from "uuid";
+import { OptionalAll } from "../interfaces/toolsTS";
 
 let attributes = {
   /** ID картинки */
@@ -33,7 +34,7 @@ let attributes = {
   uploadDate: "string",
 };
 type attributes = typeof attributes;
-interface MediaFile extends attributes, ORM {}
+interface MediaFile extends OptionalAll<attributes>, ORM {}
 export default MediaFile;
 
 let Model = {

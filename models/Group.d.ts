@@ -24,7 +24,7 @@ declare let attributes: {
     order: number;
     dishes: Dish[];
     parentGroup: any;
-    childGroups: Group[];
+    childGroups: string[] | Group[];
     /** Изображения */
     images: MediaFile[];
     /** Плейсхолдер для блюд группы */
