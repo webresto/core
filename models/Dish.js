@@ -198,14 +198,14 @@ let Model = {
     async getDishModifiers(dish) {
         if (dish.modifiers) {
             let index = 0;
+            // group modofiers
             for await (let modifier of dish.modifiers) {
-                // group modofiers
+                let childIndex = 0;
+                let childModifiers = [];
                 // assign group
                 if (dish.modifiers[index].modifierId !== undefined) {
                     dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
                 }
-                let childIndex = 0;
-                let childModifiers = [];
                 if (!modifier.childModifiers)
                     modifier.childModifiers = [];
                 for await (let childModifier of modifier.childModifiers) {
@@ -228,7 +228,7 @@ let Model = {
                 // 
                 dish.modifiers[index].childModifiers = childModifiers;
                 // If groupMod not have options delete it
-                if (modifier.childModifiers && modifier.childModifiers.length) {
+                if (modifier.childModifiers && !modifier.childModifiers.length) {
                     sails.log.warn("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
                     dish.modifiers.splice(index, 1);
                 }
