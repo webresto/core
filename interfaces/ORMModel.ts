@@ -1,18 +1,12 @@
 import { QueryBuilder, WaterlinePromise, CRUDBuilder, Model, UpdateBuilder, Callback } from "waterline";
 import { OptionalAll } from "../interfaces/toolsTS"
 
-
-// type or<T> = {
-//   "or"?: { [P in keyof T]?: T[P] }[]
-// }
-
 type or<T> = {
   or?: WhereCriteriaQuery<T>[]
 }
 
 type not<T> = {
   "!": T
-  "!="?: T
 }
 
 type lessThan<F> = {

@@ -254,7 +254,7 @@ let Model = {
    /**
     * @setting: ONLY_CONCEPTS_DISHES - Prevents ordering from origin concept
     */
-    const ONLY_CONCEPTS_DISHES = Settings.get('ONLY_CONCEPTS_DISHES')
+    const ONLY_CONCEPTS_DISHES = await Settings.get('ONLY_CONCEPTS_DISHES')
     if(ONLY_CONCEPTS_DISHES && dishObj.concept === 'origin'){
       throw { body: `Dish ${dishObj.name} (${dishObj.id}) from [${dishObj.concept}] concept, but ONLY_CONCEPTS_DISHES setting is: ${ONLY_CONCEPTS_DISHES}`, code: 1 };
     }
@@ -263,7 +263,7 @@ let Model = {
     /**
     * @setting: CORE_SEPARATE_CONCEPTS_ORDERS - Prevents ordering in the same cart from different concepts
     */
-    const SEPARATE_CONCEPTS_ORDERS = Settings.get('SEPARATE_CONCEPTS_ORDERS')
+    const SEPARATE_CONCEPTS_ORDERS = await Settings.get('SEPARATE_CONCEPTS_ORDERS')
 
     if ( SEPARATE_CONCEPTS_ORDERS && order.concept && order.concept !== dishObj.concept) {
       throw { body: `Dish ${dishObj.name} not in same concept as cart`, code: 1 };
@@ -313,7 +313,7 @@ let Model = {
         addedBy: addedBy,
       }).fetch();
     }
-
+    console.log(orderDish,9999999)
     await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
     await Order.countCart(order);
     await Order.next(order.id, "CART");

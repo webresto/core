@@ -6,7 +6,6 @@ declare type or<T> = {
 };
 declare type not<T> = {
     "!": T;
-    "!="?: T;
 };
 declare type lessThan<F> = {
     "<": F;

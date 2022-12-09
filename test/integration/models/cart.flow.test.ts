@@ -33,7 +33,7 @@ describe("Flows: Checkout", function () {
     await Order.addDish(order.id, dishes[0], 1, [], "", "test");
     order = await Order.findOne({id: order.id});
     if (!order) throw "Order not created";
-    if (order.dishesCount !== 1 ) throw `Oredr dishescount: ${order.dishesCount}`
+    if (order.dishesCount !== 1 ) throw `Order dishescount: ${order.dishesCount}`
   });
 
   it("Check paymentSystem", async function () {
