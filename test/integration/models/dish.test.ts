@@ -149,7 +149,8 @@ describe('Dish', function () {
 
     let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers }) );
     dish = await Dish.getDishModifiers(dish);
-    console.log(999911,JSON.stringify(dish, null, '  '));
+    console.log(999912,JSON.stringify(dish, null, '  '));
+    
     expect(dish.modifiers.length).to.equal(1);
     expect(dish.modifiers[0].childModifiers[0].dish.id).to.equal(dishes[0].id);
     expect(dish.modifiers[0].group.id).to.equal(group.id);
@@ -168,12 +169,9 @@ describe('Dish', function () {
     expect(updatedDish.id).to.equal(dish.id);
 
     let d = dishGenerator();
-    // @ts-ignore
     let dish1 = await Dish.createOrUpdate(d);
     await delay(1000);
-    // @ts-ignore
     let dish2 = await Dish.createOrUpdate(d);
-    // @ts-ignore
     expect(dish1.hash).to.equal(dish2.hash);
  
   });
