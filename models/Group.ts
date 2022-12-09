@@ -82,13 +82,13 @@ let attributes = {
 
   /** Изображения */
   images: {
-    collection: "image",
+    collection: "mediafile",
     via: "group",
   } as unknown as MediaFile[],
 
   /** Плейсхолдер для блюд группы */
   dishesPlaceholder: {
-    model: "image",
+    model: "mediafile",
   } as unknown as MediaFile[],
 
   /** Человеко читаемый АйДи */

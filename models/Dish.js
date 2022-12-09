@@ -120,7 +120,7 @@ let attributes = {
     },
     /** Список изображений блюда*/
     images: {
-        collection: "image",
+        collection: "mediafile",
         via: "dish",
     },
     /** Слаг */

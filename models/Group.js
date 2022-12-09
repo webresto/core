@@ -62,12 +62,12 @@ let attributes = {
     },
     /** Изображения */
     images: {
-        collection: "image",
+        collection: "mediafile",
         via: "group",
     },
     /** Плейсхолдер для блюд группы */
     dishesPlaceholder: {
-        model: "image",
+        model: "mediafile",
     },
     /** Человеко читаемый АйДи */
     slug: {
