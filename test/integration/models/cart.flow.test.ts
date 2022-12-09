@@ -28,22 +28,25 @@ describe("Flows: Checkout", function () {
 
   it("Check dishescount", async function () {
     await sleep(500)
-    order = await Order.create({id:"test.order.check-dishescount"}).fetch();
+    let id = {id:"test.order.check-dishescount"};
+    order = await Order.create(id).fetch();
     dishes = await Dish.find({})
-    await Order.addDish(order.id, dishes[0], 1, [], "", "test");
-    order = await Order.findOne({id: order.id});
+    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
+    order = await Order.findOne(id);
+    console.log(999, order.id, order)
+
     if (!order) throw "Order not created";
-    if (order.dishesCount !== 1 ) throw `Order dishescount: ${order.dishesCount}`
+    if (order.dishesCount !== 1 ) throw `Order dishescount: ${order.dishesCount} ${JSON.stringify(order)}`
   });
 
   it("Check paymentSystem", async function () {
     try {
       let paymentSystem = (await PaymentMethod.find().limit(1))[0];
-      await Order.check(order.id, customer, false, address, paymentSystem.id);
-      await Order.check(order.id, null, null, null, paymentSystem.id);
+      await Order.check({id: order.id}, customer, false, address, paymentSystem.id);
+      await Order.check({id: order.id}, null, null, null, paymentSystem.id);
 
       try {
-        await Order.check(order.id, null, null, null, "bad-id-payment-system");
+        await Order.check({id: order.id}, null, null, null, "bad-id-payment-system");
       } catch (e) {
         expect(e.code).to.equal(8);
         expect(e.error).to.be.an("string");
@@ -79,7 +82,7 @@ describe("Flows: Checkout", function () {
     });
 
     try {
-      await Order.check(order.id, customer);
+      await Order.check({id: order.id}, customer);
     } catch (e) {
       console.error(e);
     }
@@ -101,7 +104,7 @@ describe("Flows: Checkout", function () {
       emitAddress = addr;
     });
     try {
-      await Order.check(order.id, customer, true, address);
+      await Order.check({id: order.id}, customer, true, address);
     } catch (e) {
       console.error(e);
     }
@@ -115,7 +118,7 @@ describe("Flows: Checkout", function () {
   it("throw if order is Paid (next Only ORDER)", async function () {
     await Order.update({id: order.id}, { state: "PAYMENT", paid: true }).fetch();
     try {
-      await Order.check(order.id, customer);
+      await Order.check({id: order.id}, customer);
     } catch (e) {
       expect(e).be.not.undefined;
     }
@@ -124,7 +127,7 @@ describe("Flows: Checkout", function () {
   it("throw if state ORDER", async function () {
     await Order.next(order.id, "ORDER");
     try {
-      await Order.check(order.id, customer);
+      await Order.check({id: order.id}, customer);
     } catch (e) {
       expect(e).be.not.undefined;
     }
@@ -139,20 +142,20 @@ describe("Flows: Checkout", function () {
 
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-default-requireall"}).fetch();
-    await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
     order = await Order.findOne({id: order.id});
 
     await Settings.set("check", {});
 
     try {
-      await Order.check(order.id, customer, true);
+      await Order.check({id: order.id}, customer, true);
     } catch (e) {
       expect(e.code).to.equal(0);
     }
 
     // just user with address
     try {
-      await Order.check(order.id, customer, false, address);
+      await Order.check({id: order.id}, customer, false, address);
     } catch (e) {
       console.error(e)
       expect(e.code).to.equal(0);
@@ -164,19 +167,19 @@ describe("Flows: Checkout", function () {
     
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-notrequired"}).fetch();
-    await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
     order = await Order.findOne({id: order.id});
 
     // for selfServices
     try {
-      await Order.check(order.id, customer, true);
+      await Order.check({id: order.id}, customer, true);
     } catch (e) {
       expect(e).be.undefined;
     }
 
     // just user with address
     try {
-      await Order.check(order.id, customer, false, address);
+      await Order.check({id: order.id}, customer, false, address);
     } catch (e) {
       console.error(e)
       expect(e).be.undefined;
@@ -192,7 +195,7 @@ describe("Flows: Checkout", function () {
     it("good customer", async function () {
       await sleep(500)
       order = await Order.create({id: "check-customer"}).fetch();
-      await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+      await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
       order = await Order.findOne({id: order.id});
   
       let customer: Customer = {
@@ -201,7 +204,7 @@ describe("Flows: Checkout", function () {
       };
 
       try {
-        await Order.check(order.id, customer, true);
+        await Order.check({id: order.id}, customer, true);
       } catch (e) {
         expect(e).be.undefined;
       }
@@ -215,7 +218,7 @@ describe("Flows: Checkout", function () {
 
       let error = null;
       try {
-        await Order.check(order.id, badCustomer);
+        await Order.check({id: order.id}, badCustomer);
       } catch (e) {
         error = e;
       }
@@ -229,7 +232,7 @@ describe("Flows: Checkout", function () {
       };
       error = null;
       try {
-        await Order.check(order.id, badCustomer);
+        await Order.check({id: order.id}, badCustomer);
       } catch (e) {
         error = e;
       }
@@ -256,7 +259,7 @@ describe("Flows: Checkout", function () {
       await sleep(500)
       order = await Order.create({id:"check-address"}).fetch();
       
-      await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+      await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
       order = await Order.findOne({id: order.id});
 
       let address: Address = {
@@ -268,7 +271,7 @@ describe("Flows: Checkout", function () {
       };
 
       try {
-        await Order.check(order.id, customer, null, address);
+        await Order.check({id: order.id}, customer, null, address);
       } catch (e) {
         expect(e).be.undefined;
       }
@@ -284,7 +287,7 @@ describe("Flows: Checkout", function () {
       };
 
       try {
-        await Order.check(order.id, null, null, badAddress);
+        await Order.check({id: order.id}, null, null, badAddress);
       } catch (e) {
         expect(e.code).to.equal(5);
         expect(e.error).to.be.an("string");
@@ -294,7 +297,7 @@ describe("Flows: Checkout", function () {
     it("no address throw", async function () {  
       await Order.update({ id: order.id }, {address: null}).fetch();
       try {
-        await Order.check(order.id, null, true);
+        await Order.check({id: order.id}, null, true);
       } catch (e) {
         expect(e.code).to.equal(2);
         expect(e.error).to.be.an("string");

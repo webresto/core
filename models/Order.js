@@ -166,7 +166,7 @@ let Model = {
                     code: 1,
                 };
             }
-        const order = await Order.findOne(criteria).populate("dishes");
+        let order = await Order.findOne(criteria).populate("dishes");
         if (order.dishes.length > 99)
             throw "99 max dishes amount";
         if (order.state === "ORDER")
@@ -231,10 +231,15 @@ let Model = {
                 addedBy: addedBy,
             }).fetch();
         }
-        console.log(orderDish, 9999999);
         await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
-        await Order.countCart(order);
-        await Order.next(order.id, "CART");
+        try {
+            await Order.countCart(order);
+            await Order.next(order.id, "CART");
+        }
+        catch (error) {
+            sails.log.error(error);
+            throw error;
+        }
     },
     //** Delete dish from order */
     async removeDish(criteria, dish, amount, stack) {
@@ -382,7 +387,7 @@ let Model = {
         /** Если самовывоз то не нужно проверять адресс */
         if (isSelfService) {
             (0, getEmitter_1.default)().emit("core-order-is-self-service", order, customer, isSelfService, address);
-            await Order.setSelfService(order.id, true);
+            await Order.setSelfService({ id: order.id }, true);
         }
         else {
             if (address) {
@@ -608,13 +613,7 @@ let Model = {
      */
     async countCart(criteria) {
         try {
-            let order;
-            if (typeof criteria === "string") {
-                order = await Order.findOne({ id: criteria });
-            }
-            else {
-                order = await Order.findOne(criteria);
-            }
+            let order = await Order.findOne(criteria);
             (0, getEmitter_1.default)().emit("core-order-before-count", order);
             if (!["CART", "CHECKOUT"].includes(order.state))
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
@@ -639,7 +638,7 @@ let Model = {
                             orderDish.amount = dish.balance;
                             // Нужно удалять если количество 0
                             if (orderDish.amount >= 0) {
-                                await Order.removeDish(order.id, orderDish, 999999);
+                                await Order.removeDish({ id: order.id }, orderDish, 999999);
                             }
                             (0, getEmitter_1.default)().emit("core-orderdish-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
@@ -711,6 +710,7 @@ let Model = {
              */
             order.dishes = orderDishes;
             await (0, getEmitter_1.default)().emit("core-order-count-discount-apply", order);
+            console.log(888, order.id, "order.dishes", order.dishes);
             delete (order.dishes);
             ///////////////////////////////////
             /**
@@ -752,7 +752,7 @@ let Model = {
                 order.problem = true;
                 order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
             }
-            await Order.order(order.id);
+            await Order.order({ id: order.id });
             (0, getEmitter_1.default)().emit("core-order-after-dopaid", order);
         }
         catch (e) {

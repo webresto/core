@@ -15,7 +15,7 @@ const actions = {
             throw "dishIds (array of strings) is required as second element of params";
         for await (let dishId of dishesId) {
             const dish = await Dish.findOne({ id: dishId });
-            await Order.addDish(order.id, dish, params.amount, params.modifiers, params.comment, "delivery");
+            await Order.addDish({ id: order.id }, dish, params.amount, params.modifiers, params.comment, "delivery");
         }
         return order;
     },
@@ -70,9 +70,9 @@ const actions = {
         });
         for await (let dish of removeDishes) {
             // TODO: rewrite removeDish for totaly remove
-            Order.removeDish(order.id, dish, 100000);
+            Order.removeDish({ id: order.id }, dish, 100000);
         }
-        return await Order.countCart(order.id);
+        return await Order.countCart({ id: order.id });
     },
     /**
      * Add delivery description in order

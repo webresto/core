@@ -80,22 +80,22 @@ export default Order;
 declare let Model: {
     beforeCreate(orderInit: any, next: any): void;
     /** Add dish into order */
-    addDish(criteria: any, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
-    removeDish(criteria: any, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
-    setCount(criteria: any, dish: OrderDish, amount: number): Promise<void>;
-    setComment(criteria: any, dish: OrderDish, comment: string): Promise<void>;
+    addDish(criteria: CriteriaQuery<Order>, dish: string | Dish, amount: number, modifiers: Modifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
+    removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
+    setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
+    setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void>;
     /**
      * Set order selfService field. Use this method to change selfService.
      * @param selfService
      */
-    setSelfService(criteria: any, selfService?: boolean): Promise<Order>;
-    check(criteria: any, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void>;
+    setSelfService(criteria: CriteriaQuery<Order>, selfService?: boolean): Promise<Order>;
+    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void>;
     /** Оформление корзины */
-    order(criteria: any): Promise<number>;
-    payment(criteria: any): Promise<PaymentResponse>;
-    paymentMethodId(criteria: any): Promise<string>;
+    order(criteria: CriteriaQuery<Order>): Promise<number>;
+    payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
+    paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string>;
     /**  given populated Order instance  by criteria*/
-    populate(criteria: any): Promise<{
+    populate(criteria: CriteriaQuery<Order>): Promise<{
         createdAt?: Date;
         updatedAt?: Date;
         id: string;
@@ -145,8 +145,8 @@ declare let Model: {
      * Подсчет должен происходить только до перехода на чекаут
      * @param order
      */
-    countCart(criteria: string | CriteriaQuery<Order>): Promise<Order>;
-    doPaid(criteria: any, paymentDocument: PaymentDocument): Promise<void>;
+    countCart(criteria: CriteriaQuery<Order>): Promise<Order>;
+    doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
 };
 declare global {
     const Order: typeof Model & ORMModel<Order> & StateFlowModel;

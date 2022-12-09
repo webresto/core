@@ -1,4 +1,4 @@
-import { Modifier, GroupModifier } from "../interfaces/Modifier";
+import { Modifier } from "../interfaces/Modifier";
 import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import OrderDish from "./OrderDish";
@@ -8,7 +8,6 @@ import getEmitter from "../libs/getEmitter";
 import ORMModel, { CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
-import { formatDate } from "@webresto/worktime";
 import Dish from "./Dish";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
@@ -200,7 +199,7 @@ let Model = {
 
   /** Add dish into order */
   async addDish(
-    criteria: any,
+    criteria: CriteriaQuery<Order>,
     dish: Dish | string,
     amount: number,
     modifiers: Modifier[],
@@ -235,7 +234,7 @@ let Model = {
           code: 1,
         };
       }
-    const order = await Order.findOne(criteria).populate("dishes");
+    let order = await Order.findOne(criteria).populate("dishes");
     
 
     if (order.dishes.length > 99) throw "99 max dishes amount";
@@ -313,14 +312,20 @@ let Model = {
         addedBy: addedBy,
       }).fetch();
     }
-    console.log(orderDish,9999999)
+
     await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
-    await Order.countCart(order);
-    await Order.next(order.id, "CART");
+
+    try {
+      await Order.countCart(order);
+      await Order.next(order.id, "CART");
+    } catch (error) {
+      sails.log.error(error)
+      throw error
+    }
   },
 
   //** Delete dish from order */
-  async removeDish(criteria: any, dish: OrderDish, amount: number, stack?: boolean): Promise<void> {
+  async removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void> {
     // TODO: удалить стек
 
     await emitter.emit.apply(emitter, ["core-order-before-remove-dish", ...arguments]);
@@ -363,7 +368,7 @@ let Model = {
     await Order.countCart(order);
   },
 
-  async setCount(criteria: any, dish: OrderDish, amount: number): Promise<void> {
+  async setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void> {
     await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
 
     if (dish.dish.balance !== -1)
@@ -400,7 +405,7 @@ let Model = {
     }
   },
 
-  async setComment(criteria: any, dish: OrderDish, comment: string): Promise<void> {
+  async setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void> {
     await emitter.emit.apply(emitter, ["core-order-before-set-comment", ...arguments]);
 
     const order = await Order.findOne(criteria).populate("dishes");
@@ -428,7 +433,7 @@ let Model = {
    * Set order selfService field. Use this method to change selfService.
    * @param selfService
    */
-  async setSelfService(criteria: any, selfService: boolean = true): Promise<Order> {
+  async setSelfService(criteria: CriteriaQuery<Order>, selfService: boolean = true): Promise<Order> {
     
     sails.log.verbose("Order > setSelfService >", selfService);
     const order = await Order.findOne(criteria);
@@ -440,7 +445,7 @@ let Model = {
 
   ////////////////////////////////////////////////////////////////////////////////////
 
-  async check(criteria: any, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void> {
+  async check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void> {
     const order: Order = await Order.countCart(criteria);
 
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
@@ -486,7 +491,7 @@ let Model = {
     /** Если самовывоз то не нужно проверять адресс */
     if (isSelfService) {
       getEmitter().emit("core-order-is-self-service", order, customer, isSelfService, address);
-      await Order.setSelfService(order.id, true);
+      await Order.setSelfService({id: order.id}, true);
     } else {
       if (address) {
         checkAddress(address);
@@ -572,7 +577,7 @@ let Model = {
   ////////////////////////////////////////////////////////////////////////////////////
 
   /** Оформление корзины */
-  async order(criteria: any): Promise<number> {
+  async order(criteria: CriteriaQuery<Order>): Promise<number> {
     const order = await Order.findOne(criteria);
 
 
@@ -640,7 +645,7 @@ let Model = {
     }
   },
 
-  async payment(criteria: any): Promise<PaymentResponse> {
+  async payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse> {
     const order: Order = await Order.findOne(criteria);
     if (order.state !== "CHECKOUT") throw "order with orderId " + order.id + "in state ${order.state} but need CHECKOUT";
 
@@ -676,14 +681,14 @@ let Model = {
     return paymentResponse;
   },
 
-  async paymentMethodId(criteria: any): Promise<string> {
+  async paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string> {
     let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];
     let paymentMethod = populatedOrder.paymentMethod as PaymentMethod;
     return paymentMethod.id;
   },
 
   /**  given populated Order instance  by criteria*/
-  async populate(criteria: any) {
+  async populate(criteria: CriteriaQuery<Order>) {
     let order = await Order.findOne(criteria);
 
     if (!order) throw `order by criteria: ${criteria},  not found`;
@@ -744,14 +749,9 @@ let Model = {
    * Подсчет должен происходить только до перехода на чекаут
    * @param order
    */
-  async countCart(criteria: CriteriaQuery<Order> | string) {
+  async countCart(criteria: CriteriaQuery<Order>) {
     try {
-      let order: Order;
-      if (typeof criteria === "string") {
-        order = await Order.findOne({id: criteria});
-      } else {
-        order = await Order.findOne(criteria);
-      }
+      let order = await Order.findOne(criteria);
 
       getEmitter().emit("core-order-before-count", order);
 
@@ -781,7 +781,7 @@ let Model = {
               orderDish.amount = dish.balance;
               // Нужно удалять если количество 0
               if (orderDish.amount >= 0) {
-                await Order.removeDish(order.id, orderDish, 999999);
+                await Order.removeDish({id: order.id}, orderDish, 999999);
               }
               getEmitter().emit("core-orderdish-change-amount", orderDish);
               sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
@@ -872,12 +872,15 @@ let Model = {
        */
       order.dishes = orderDishes;
       await getEmitter().emit("core-order-count-discount-apply", order);
+      console.log(888, order.id, "order.dishes",order.dishes)
       delete(order.dishes);
       ///////////////////////////////////
 
       /**
        * Карт тотал это чистая стоимость корзины
        */
+
+
       order.dishesCount = dishesCount;
       order.uniqueDishes = uniqueDishes;
       order.totalWeight = totalWeight;
@@ -889,7 +892,6 @@ let Model = {
       // @deprecated orderTotal use orderCost
       order.total = orderTotal + order.deliveryCost - order.discountTotal;
 
-      
       order = (await Order.update({ id: order.id }, order).fetch())[0];
      
       getEmitter().emit("core-order-after-count", order);
@@ -899,7 +901,7 @@ let Model = {
     }
   },
 
-  async doPaid(criteria: any, paymentDocument: PaymentDocument) : Promise<void> {
+  async doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument) : Promise<void> {
     let order = await Order.findOne(criteria);
     
     if(order.paid) {
@@ -930,7 +932,7 @@ let Model = {
         order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
       }
 
-      await Order.order(order.id);
+      await Order.order({id: order.id});
       getEmitter().emit("core-order-after-dopaid", order);
 
     } catch (e) {
