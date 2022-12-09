@@ -31,7 +31,7 @@ export default function ToInitialize(sails: Sails) {
     try {
       HookTools.waitForHooks("restocore", requiredHooks, afterHook);
     } catch (error) {
-      console.log(error)
+      sails.log.error(error)
     }
 
     /**

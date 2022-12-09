@@ -18,7 +18,7 @@ declare let attributes: {
     /** Концепт к которому относится группа */
     concept: string;
     /** */
-    dishes: number[] | OrderDish[];
+    dishes: OrderDish[] | number[];
     paymentMethod: any;
     /** */
     paymentMethodTitle: string;
@@ -101,7 +101,7 @@ declare let Model: {
         id: string;
         shortId?: string;
         concept?: string;
-        dishes?: number[] | OrderDish[];
+        dishes?: OrderDish[] | number[];
         paymentMethod?: any;
         paymentMethodTitle?: string;
         paid?: boolean;

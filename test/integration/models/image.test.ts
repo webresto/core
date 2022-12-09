@@ -11,7 +11,6 @@ describe("MediaFile", function () {
       },
       uploadDate: "2020-10-13 16:23:20",
     }).fetch();
-    console.log(img);
-    expect(img).to.include.keys("id", "images",  "uploadDate");
+        expect(img).to.include.keys("id", "images",  "uploadDate");
   });
 });

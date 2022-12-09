@@ -25,7 +25,7 @@ module.exports.bootstrap = async function(cb) {
           try {    
             await Dish.create(dishGenerator({parentGroup: subSubGroup, price: 100.1}));
           } catch (error) {
-            console.log(error);
+            sails.log.error(error);
           }
         }
       }
@@ -38,9 +38,8 @@ module.exports.bootstrap = async function(cb) {
 
   try {    
     var dishes = await Dish.find({});
-    console.log('Dishes: '+dishes.length);
-  } catch (error) {
-    console.log(error);
+      } catch (error) {
+    sails.log.error(error);
   } 
   cb();
 };
