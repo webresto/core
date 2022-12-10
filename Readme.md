@@ -6,15 +6,13 @@ Food E-Commerce backend core repository.
 
 Here you will find basic models and methods for create you own delivery website.
 
-## License
-
-[MIT License](https://opensource.org/licenses/MIT)  Copyright © 2018-present, [WebResto](https://webresto.org)
 
 ## Thanks & Support
 
-<span>
-<a href="https://browserstack.com/"><img src="https://i.imgur.com/Rib9y9E.png" align="left" /></a>
-<p>Cross browser testing and debugging provided by the very lovely team at BrowserStack.</p>
-</span>
+<a href="https://browserstack.com/"><img src="https://i.imgur.com/Rib9y9E.png" width="250px" /></a>
 
 
+
+## License
+
+[MIT License](https://opensource.org/licenses/MIT)  Copyright © 2018-present, [WebResto](https://webresto.org)
