@@ -171,8 +171,8 @@ let Model = {
      */
     async getDishes(criteria = {}) {
         criteria.isDeleted = false;
-        if (!(await Settings.use("ShowUnavailableDishes"))) {
-            criteria.balance = { "!=": 0 };
+        if (!(await Settings.get("ShowUnavailableDishes"))) {
+            criteria.balance = { "!": 0 };
         }
         let dishes = await Dish.find(criteria).populate("images");
         for await (let dish of dishes) {
