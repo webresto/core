@@ -93,5 +93,18 @@ export default interface ORMModel<T> {
   query(sqlQuery: string, data: any, cb: Callback<any>): void;
   native(cb: (err: Error, collection: any) => void): void;
 
-  stream?(criteria: any, writeEnd: any): NodeJS.WritableStream | Error;
+
+
+  // TODO: check stream ??
+  stream?(criteria: any, writeEnd: any): NodeJS.WritableStream | Error;   // .stream() await Something.stream(criteria) .eachRecord(async (record)=>{}); https://sailsjs.com/documentation/reference/waterline-orm/models/stream
+
+
+  // .addToCollection() https://sailsjs.com/documentation/reference/waterline-orm/models/add-to-collection
+  // .createEach() https://sailsjs.com/documentation/reference/waterline-orm/models/create-each
+  // .getDatastore() https://sailsjs.com/documentation/reference/waterline-orm/models/get-datastore
+  // .removeFromCollection() https://sailsjs.com/documentation/reference/waterline-orm/models/remove-from-collection
+  // .replaceCollection() https://sailsjs.com/documentation/reference/waterline-orm/models/replace-collection
+  // .sum() https://sailsjs.com/documentation/reference/waterline-orm/models/sum
+  // .validate() https://sailsjs.com/documentation/reference/waterline-orm/models/validate
+  // .query() https://sailsjs.com/documentation/reference/waterline-orm/models/query
 }
