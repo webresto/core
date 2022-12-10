@@ -8,10 +8,12 @@ let attributes = {
     /** */
     id: {
         type: "string",
+        //required: true,
     },
     /** */
     rmsId: {
         type: "string",
+        //required: true,
     },
     /** */
     additionalInfo: {
@@ -31,6 +33,7 @@ let attributes = {
     /** Наименование */
     name: {
         type: "string",
+        //required: true,
     },
     /** SEO description */
     seoDescription: {
@@ -117,7 +120,7 @@ let attributes = {
     },
     /** Список изображений блюда*/
     images: {
-        collection: "image",
+        collection: "mediafile",
         via: "dish",
     },
     /** Слаг */
@@ -135,13 +138,13 @@ let attributes = {
     /** Признак того что блюдо акционное */
     promo: "boolean",
     /** Время работы */
-    workTime: "json",
+    worktime: "json",
 };
 let Model = {
     beforeCreate(init, next) {
-        getEmitter_1.default().emit('core:dish-before-create', init);
+        (0, getEmitter_1.default)().emit('core:dish-before-create', init);
         if (!init.id) {
-            init.id = uuid_1.v4();
+            init.id = (0, uuid_1.v4)();
         }
         if (!init.concept) {
             init.concept = "origin";
@@ -149,15 +152,15 @@ let Model = {
         next();
     },
     beforeUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-before-update', record);
+        (0, getEmitter_1.default)().emit('core:dish-before-update', record);
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-after-update', record);
+        (0, getEmitter_1.default)().emit('core:dish-after-update', record);
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        getEmitter_1.default().emit('core:dish-after-create', record);
+        (0, getEmitter_1.default)().emit('core:dish-after-create', record);
         return proceed();
     },
     /**
@@ -173,7 +176,7 @@ let Model = {
         }
         let dishes = await Dish.find(criteria).populate("images");
         for await (let dish of dishes) {
-            const reason = checkExpression_1.default(dish);
+            const reason = (0, checkExpression_1.default)(dish);
             if (!reason) {
                 await Dish.getDishModifiers(dish);
                 if (dish.images.length >= 2)
@@ -184,7 +187,7 @@ let Model = {
             }
         }
         dishes.sort((a, b) => a.order - b.order);
-        await getEmitter_1.default().emit("core-dish-get-dishes", dishes);
+        await (0, getEmitter_1.default)().emit("core-dish-get-dishes", dishes);
         return dishes;
     },
     /**
@@ -195,14 +198,14 @@ let Model = {
     async getDishModifiers(dish) {
         if (dish.modifiers) {
             let index = 0;
+            // group modofiers
             for await (let modifier of dish.modifiers) {
-                // group modofiers
+                let childIndex = 0;
+                let childModifiers = [];
                 // assign group
                 if (dish.modifiers[index].modifierId !== undefined) {
                     dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
                 }
-                let childIndex = 0;
-                let childModifiers = [];
                 if (!modifier.childModifiers)
                     modifier.childModifiers = [];
                 for await (let childModifier of modifier.childModifiers) {
@@ -225,13 +228,14 @@ let Model = {
                 // 
                 dish.modifiers[index].childModifiers = childModifiers;
                 // If groupMod not have options delete it
-                if (modifier.childModifiers && !modifier.childModifiers.length > 0) {
+                if (modifier.childModifiers && !modifier.childModifiers.length) {
                     sails.log.warn("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
                     dish.modifiers.splice(index, 1);
                 }
                 index++;
             }
         }
+        return dish;
     },
     /**
      * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
@@ -241,7 +245,7 @@ let Model = {
      * @return обновлённое или созданное блюдо
      */
     async createOrUpdate(values) {
-        let hash = hashCode_1.default(JSON.stringify(values));
+        let hash = (0, hashCode_1.default)(JSON.stringify(values));
         const dish = await Dish.findOne({ id: values.id });
         if (!dish) {
             return Dish.create({ hash, ...values }).fetch();

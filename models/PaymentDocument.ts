@@ -5,6 +5,7 @@ import { PaymentResponse, Payment } from "../interfaces/Payment";
 import PaymentMethod from "../models/PaymentMethod";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import getEmitter from "../libs/getEmitter";
+import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 
 /** На примере корзины (Order):
  * 1. Модель проводящяя оплату internal/external (например: Order) создает PaymentDocument
@@ -101,7 +102,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface PaymentDocument extends attributes, ORM {}
+interface PaymentDocument extends OptionalAll<attributes>, ORM {}
 export default PaymentDocument;
 let Model = {
   beforeCreate(paymentDocumentInit: any, next: any) {
@@ -174,7 +175,7 @@ let Model = {
 
     getEmitter().emit("core-payment-document-before-create", payment);
     try {
-      await PaymentDocument.create(payment).fetch();
+      await PaymentDocument.create(payment as PaymentDocument);
     } catch (e) {
       getEmitter().emit("error", "PaymentDocument > register:", e);
       sails.log.error("Error in paymentAdapter.createPayment :", e);
@@ -193,7 +194,7 @@ let Model = {
       await PaymentDocument.update(
         { id: paymentResponse.id },
         {
-          status: "REGISTRED",
+          status: PaymentDocumentStatus.REGISTRED,
           externalId: paymentResponse.externalId,
           redirectLink: paymentResponse.redirectLink,
         }
@@ -230,13 +231,13 @@ let Model = {
     return (payment_processor_interval = setInterval(async () => {
       let actualTime = new Date();
 
-      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({ status: "REGISTRED" });
+      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({ status: PaymentDocumentStatus.REGISTRED });
 
       /** Если дата создания платежногоДокумента больше чем час назад ставим статус просрочено*/
       actualTime.setHours(actualTime.getHours() - 1);
       for await (let actualPaymentDocument of actualPaymentDocuments) {
         if (actualPaymentDocument.createdAt < actualTime) {
-          await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" }).fetch();
+          await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: PaymentDocumentStatus.DECLINE }).fetch();
         } else {
           sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
           await PaymentDocument.doCheck({id: actualPaymentDocument.id}) ;

@@ -2,6 +2,7 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
+import { OptionalAll } from "../interfaces/toolsTS";
 /** На примере корзины (Order):
  * 1. Модель проводящяя оплату internal/external (например: Order) создает PaymentDocument
  *
@@ -69,7 +70,7 @@ declare let attributes: {
     data: any;
 };
 declare type attributes = typeof attributes;
-interface PaymentDocument extends attributes, ORM {
+interface PaymentDocument extends OptionalAll<attributes>, ORM {
 }
 export default PaymentDocument;
 declare let Model: {

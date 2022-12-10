@@ -1,6 +1,6 @@
 import Group from "./Group";
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
-import Image from "./Image";
+import MediaFile from "./MediaFile";
 import hashCode from "../libs/hashCode";
 import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
@@ -8,6 +8,8 @@ import ORM from "../interfaces/ORM";
 import * as _ from "lodash";
 import { WorkTime } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
+import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
+import { GroupModifier, Modifier } from "../interfaces/Modifier";
 
 let attributes = {
   /** */
@@ -137,7 +139,7 @@ let attributes = {
   modifiers: {
     // collection: 'dish'
     type: "json",
-  } as unknown as any,
+  } as unknown as GroupModifier[],
 
   /** Родительская группа */
   parentGroup: {
@@ -157,9 +159,9 @@ let attributes = {
 
   /** Список изображений блюда*/
   images: {
-    collection: "image",
+    collection: "mediafile",
     via: "dish",
-  } as unknown as Image[],
+  } as unknown as MediaFile[],
 
   /** Слаг */
   slug: {
@@ -182,11 +184,11 @@ let attributes = {
   promo: "boolean" as unknown as boolean,
 
   /** Время работы */
-  workTime: "json" as unknown as WorkTime,
+  worktime: "json" as unknown as WorkTime[],
 };
 
 type attributes = typeof attributes;
-interface Dish extends attributes, ORM {}
+interface Dish extends OptionalAll<attributes>, ORM {}
 export default Dish;
 
 let Model = {
@@ -233,7 +235,7 @@ let Model = {
     let dishes = await Dish.find(criteria).populate("images");
 
     for await (let dish of dishes) {
-      const reason = checkExpression(dish);
+      const reason = checkExpression(dish as Pick<typeof dish, "worktime" | "visible" | "promo" | "modifier">);
       if (!reason) {
         await Dish.getDishModifiers(dish);
         if (dish.images.length >= 2) dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
@@ -253,26 +255,28 @@ let Model = {
    * а обычным модификаторам дописывает их блюдо.
    * @param dish
    */
-   async getDishModifiers(dish: Dish) {
+   async getDishModifiers(dish: Dish): Promise<Dish> {
+
     if(dish.modifiers){
       let index = 0;
+      
+      // group modofiers
       for await(let  modifier of dish.modifiers){
-        // group modofiers
-
-
-          // assign group
-          if (dish.modifiers[index].modifierId !== undefined){
+        
+        let childIndex=0
+        let childModifiers = []
+        
+        
+        
+        // assign group
+        if (dish.modifiers[index].modifierId !== undefined){
             dish.modifiers[index].group = await Group.findOne({id: modifier.modifierId});
           }
-
-
-          let childIndex=0
-
-          let childModifiers = []
-
+          
           if (!modifier.childModifiers) modifier.childModifiers = [];
           
           for await(let childModifier of modifier.childModifiers){
+
             let childModifierDish = await Dish.findOne({id: childModifier.modifierId}).populate('images')
             if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)){
               // delete if dish not found
@@ -287,18 +291,19 @@ let Model = {
             }
             childIndex++;
           }
-
           // 
+          
           dish.modifiers[index].childModifiers = childModifiers;
-
+          
           // If groupMod not have options delete it
-          if (modifier.childModifiers && !modifier.childModifiers.length > 0) {  
+          if (modifier.childModifiers && !modifier.childModifiers.length) {  
             sails.log.warn("DISH > getDishModifiers: GroupModifier "+ modifier.id +" from dish:"+ dish.name+" not have modifiers")
             dish.modifiers.splice(index, 1);
           }
-        index++;
-      }
+          index++;
+        }
     }
+    return dish
   },
 
   /**

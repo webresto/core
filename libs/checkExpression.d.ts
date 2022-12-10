@@ -6,8 +6,8 @@ import { WorkTime } from "@webresto/worktime";
  */
 export default function (obj: AdditionalInfo): string;
 export interface AdditionalInfo {
-    visible: boolean;
-    workTime: WorkTime[];
-    promo: boolean;
-    modifier: boolean;
+    visible?: boolean;
+    worktime?: WorkTime[];
+    promo?: boolean;
+    modifier?: boolean;
 }

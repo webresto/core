@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.groupFields = void 0;
 const faker = require("faker");
-//import Group from "../../models/Group"
 var autoincrement = 0;
 function groupGenerator(config = {}) {
     autoincrement++;
@@ -15,13 +14,11 @@ function groupGenerator(config = {}) {
         order: autoincrement,
         images: config.images || [],
         name: config.name || faker.commerce.productName(),
-        tags: [],
         isDeleted: config.isDeleted || false,
-        dishesTags: config.dishesTags || [],
         dishes: config.dishes || [],
         visible: config.visible || true
         // slug: faker.random.uuid()
     };
 }
 exports.default = groupGenerator;
-exports.groupFields = ["id", "additionalInfo", "code", "description", "order", "images", "name", "tags", "isDeleted", "dishesTags", "dishes"];
+exports.groupFields = ["id", "additionalInfo", "code", "description", "order", "images", "name", "isDeleted", "dishes"];

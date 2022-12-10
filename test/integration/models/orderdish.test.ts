@@ -4,7 +4,6 @@ let orderDishId: number;
 const orderDishExample = {
   amount: 1000,
   dish: "dishId",
-  modifiers: '"json"',
   order: "orderId",
   discount: '"json"',
   parent: 1,

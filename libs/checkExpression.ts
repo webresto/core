@@ -11,17 +11,17 @@ export default function (obj: AdditionalInfo): string {
   }
 
   try {
-    if (obj.visible === false) return "visible";
+    if (obj.visible !== undefined && obj.visible === false) return "visible";
 
-    if (obj.workTime) {
-      if (!checkTime(obj.workTime)) {
+    if (obj.worktime) {
+      if (!checkTime(obj.worktime)) {
         return "time";
       }
     }
 
-    if (obj.promo === true) return "promo";
+    if (obj.promo && obj.promo === true) return "promo";
 
-    if (obj.modifier === true) return "modifier";
+    if (obj.modifier && obj.modifier === true) return "modifier";
 
     return "";
   } catch (e) {
@@ -30,10 +30,10 @@ export default function (obj: AdditionalInfo): string {
 }
 
 export interface AdditionalInfo {
-  visible: boolean;
-  workTime: WorkTime[];
-  promo: boolean;
-  modifier: boolean;
+  visible?: boolean;
+  worktime?: WorkTime[];
+  promo?: boolean;
+  modifier?: boolean;
 }
 
 function checkTime(timeArray: WorkTime[]): boolean {

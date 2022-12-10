@@ -8,7 +8,7 @@ declare let attributes: {
     /** Признак того что улица удалена */
     isDeleted: boolean;
     customData: string | {
-        [k: string]: string | number | boolean;
+        [key: string]: string | number | boolean;
     };
 };
 declare type attributes = typeof attributes;

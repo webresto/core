@@ -1,28 +1,10 @@
 import * as faker from 'faker';
 
-//import Dish from "../../models/Dish"
+import Dish from "../../models/Dish"
 
 
 var autoincrement: number = 0;
-interface DishData  {
-  id? : string;
-  additionalInfo?: string;
-  balance?: number;
-  modifiers?: any[];
-  parentGroup?: string;
-  weight?: number;
-  price?: number;
-  images?: string[];
-  order?: number;
-  name?: string;
-  composition?: string;
-  rmsId?: string;
-  code?: string;
-  tags?: {name: string}[];
-  isDeleted?: boolean;
-}
-
-export default function dishGenerator(config: DishData = {}): DishData{
+export default function dishGenerator(config: Dish = {}): Dish{
   autoincrement++;
   // if (config.modifiers && config.modifiers.length) {
   //   config.modifiers.forEach(modifier => {
@@ -44,7 +26,7 @@ export default function dishGenerator(config: DishData = {}): DishData{
     order: autoincrement,
     images: config.images || [],
     name: faker.commerce.productName(),
-    composition: faker.random.words(25),
+    description: faker.random.words(25),
     rmsId: 'none',
     code: null,
     tags: [],
@@ -62,7 +44,7 @@ export let dishFields = [
   'order',
   'images',
   'name',
-  'composition',
+  'description',
   'rmsId',
   'code',
   'tags',

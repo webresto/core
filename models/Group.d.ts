@@ -1,8 +1,9 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import Image from "../models/Image";
+import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
+import { OptionalAll } from "../interfaces/toolsTS";
 declare let attributes: {
     /**Id */
     id: string;
@@ -11,26 +12,23 @@ declare let attributes: {
     /** */
     code: string;
     description: string;
-    /** Удалён ли продукт в меню, отдаваемого клиенту */
+    /** Soft deletion */
     isDeleted: boolean;
-    /** Наименование блюда */
+    /** Dishes group name*/
     name: string;
     seoDescription: string;
     seoKeywords: string;
     seoText: string;
     seoTitle: string;
-    /** Очередь сортировки */
+    /** Sorting weight */
     order: number;
-    /** Блюда группы */
     dishes: Dish[];
-    /** Родительская группа */
     parentGroup: any;
-    /** Дочерние группы */
-    childGroups: Group[];
+    childGroups: Group[] | string[];
     /** Изображения */
-    images: Image[];
+    images: MediaFile[];
     /** Плейсхолдер для блюд группы */
-    dishesPlaceholder: Image[];
+    dishesPlaceholder: MediaFile[];
     /** Человеко читаемый АйДи */
     slug: string;
     /** Концепт к которому относится группа */
@@ -42,10 +40,10 @@ declare let attributes: {
     /** Промо группа */
     promo: boolean;
     /** Время работы гыруппы */
-    workTime: WorkTime[];
+    worktime: WorkTime[];
 };
 declare type attributes = typeof attributes;
-interface Group extends attributes, ORM {
+interface Group extends OptionalAll<attributes>, ORM {
 }
 export default Group;
 declare let Model: {

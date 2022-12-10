@@ -3,6 +3,7 @@ import ORMModel from "../interfaces/ORMModel";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
 import { Modifier } from "../interfaces/Modifier";
+import { OptionalAll } from "../interfaces/toolsTS";
 
 let attributes = {
   /** */
@@ -54,8 +55,8 @@ let attributes = {
   /** Сумма скидки */
   discountAmount: "number",
 
-  /** Коментарий к корзине */
-  comment: "string" as unknown as number,
+  /** Comment to dish in order */
+  comment: "string",
 
   /** Метка кто добавил */
   addedBy: {
@@ -71,7 +72,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface OrderDish extends attributes, ORM {}
+interface OrderDish extends OptionalAll<attributes>, ORM {}
 export default OrderDish;
 
 let Model = {};

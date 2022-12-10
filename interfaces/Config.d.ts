@@ -4,7 +4,7 @@
  timeSyncBalance: number - время синхронизации баланса в секундах
  timeSyncMenu: number - время синхронизации меню в секундах
  timeSyncStreets: number - время синхронизации улиц в часах
- images: ImageConfig
+ images: MediaFileConfig
  development: boolean - режим разработки, включает доступ к RMS напрямую
  masterKey: string - ключ для доступа к RMS API, если режим разработчкика выключен
  city: string - город, в котором находется ресторан
@@ -38,8 +38,7 @@
       notRequired: boolean - проверка считается успешной даже если НЕ ОДНА система не ответила успешно, игнорируется, если requireAll = true
     }
  */
-import ImageConfig from "../adapters/image/ImageConfig";
-import { Time } from "./Cause";
+import MediaFileConfig from "../adapters/mediafile/MediaFileConfig";
 export default interface Config {
   project: string;
   city: string;
@@ -53,7 +52,7 @@ export default interface Config {
   checkType: string;
   groupShift: string;
   rmsAdapter: string;
-  images: ImageConfig;
+  images: MediaFileConfig;
   prefix: string;
   email?: {
     server: {
@@ -74,7 +73,6 @@ export default interface Config {
   };
   timeSyncMap: number;
   zoneDontWork?: string;
-  deliveryWorkTime: Time[];
   phoneRegex?: string;
   nameRegex?: string;
   check: {

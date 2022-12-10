@@ -51,8 +51,7 @@ describe("PaymentDocument", function () {
     //   adapter: "test-payment-system",
     // });
     
-    // console.log("PAYMENT METHOD", paymentMethod);
-
+    // 
     // if (!paymentMethod) throw "paymentMethod (test-payment-system) was not found "
     // PaymentDocument.processor(3000);
     // await PaymentDocument.register(order.id, "order", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
@@ -61,8 +60,7 @@ describe("PaymentDocument", function () {
 
     // // back to 120 sec payment processor
     // PaymentDocument.processor(120000);
-    // //console.log(count);
-    // expect(count.length).to.equal(1);
+    // //    // expect(count.length).to.equal(1);
   });
 });
 

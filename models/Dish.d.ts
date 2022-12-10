@@ -1,7 +1,9 @@
-import Image from "./Image";
+import MediaFile from "./MediaFile";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { WorkTime } from "@webresto/worktime";
+import { OptionalAll } from "../interfaces/toolsTS";
+import { GroupModifier } from "../interfaces/Modifier";
 declare let attributes: {
     /** */
     id: string;
@@ -60,7 +62,7 @@ declare let attributes: {
     /** Блюдо может быть модифичироанно */
     isModificable: boolean;
     /** Модифакторы блюда */
-    modifiers: any;
+    modifiers: GroupModifier[];
     /** Родительская группа */
     parentGroup: any;
     /** Теги для фильтрации (Вегетарианский, острый...) */
@@ -68,7 +70,7 @@ declare let attributes: {
     /** Баланс для продажи, если -1 то сколько угодно */
     balance: number;
     /** Список изображений блюда*/
-    images: Image[];
+    images: MediaFile[];
     /** Слаг */
     slug: string;
     /** Концепт к которому относится блюдо */
@@ -82,10 +84,10 @@ declare let attributes: {
     /** Признак того что блюдо акционное */
     promo: boolean;
     /** Время работы */
-    workTime: WorkTime;
+    worktime: WorkTime[];
 };
 declare type attributes = typeof attributes;
-interface Dish extends attributes, ORM {
+interface Dish extends OptionalAll<attributes>, ORM {
 }
 export default Dish;
 declare let Model: {
@@ -105,7 +107,7 @@ declare let Model: {
      * а обычным модификаторам дописывает их блюдо.
      * @param dish
      */
-    getDishModifiers(dish: Dish): Promise<void>;
+    getDishModifiers(dish: Dish): Promise<Dish>;
     /**
      * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
      * хеш существующего блюда и новых данных, если они идентифны, то сразу же отдаёт блюда, если нет, то обновляет его данные

@@ -10,16 +10,16 @@ function default_1(obj) {
         return "";
     }
     try {
-        if (obj.visible === false)
+        if (obj.visible !== undefined && obj.visible === false)
             return "visible";
-        if (obj.workTime) {
-            if (!checkTime(obj.workTime)) {
+        if (obj.worktime) {
+            if (!checkTime(obj.worktime)) {
                 return "time";
             }
         }
-        if (obj.promo === true)
+        if (obj.promo && obj.promo === true)
             return "promo";
-        if (obj.modifier === true)
+        if (obj.modifier && obj.modifier === true)
             return "modifier";
         return "";
     }

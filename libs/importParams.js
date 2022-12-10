@@ -18,7 +18,7 @@ async function default_1(obj) {
         catch (e) { }
         if (!ai)
             return;
-        const keys = ["visible", "workTime", "promo", "modifier"];
+        const keys = ["visible", "worktime", "promo", "modifier"];
         for (let key of keys)
             if (ai[key] !== undefined)
                 obj[key] = ai[key];

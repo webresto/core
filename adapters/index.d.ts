@@ -1,6 +1,6 @@
 import RMSAdapter from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
-import ImageAdapter from "./image/ImageAdapter";
+import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 /**
  * Отдаёт запрашиваемый RMS-адаптер
@@ -15,10 +15,10 @@ export declare class Map {
     static getAdapter(adapterName: string): new (config: any) => MapAdapter;
 }
 /**
- * Отдаёт запрашиваемый Image-адаптер
+ * Отдаёт запрашиваемый MediaFile-адаптер
  */
-export declare class ImageA {
-    static getAdapter(adapterName: string): ImageAdapter;
+export declare class MediaFileA {
+    static getAdapter(adapterName: string): MediaFileAdapter;
 }
 /**
  * Отдаёт запрашиваемый Payment-адаптер

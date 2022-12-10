@@ -38,19 +38,28 @@ import Order from "../models/Order";
  * const newActions = <NewActions>actions;
  * ```
  */
+interface AddDishParams {
+    dishesId: string[];
+    amount: number;
+    modifiers: any;
+    comment: string;
+}
 declare const actions: {
     /**
      * Add dish in order
      * @param params(order.id,  dishesId)
      * @return Promise<Order>
      */
-    addDish(order: Order, params: any): Promise<Order>;
+    addDish(order: Order, params: AddDishParams): Promise<Order>;
     /**
      * Set delivery cost
      * @param params(order.id,  deliveryCost)
      * @returns {Promise<>}
      */
-    delivery(order: Order, params: any): Promise<Order>;
+    delivery(order: Order, params: {
+        deliveryCost: number;
+        deliveryItem: string;
+    }): Promise<Order>;
     /**
      * Reset all order action
      * @param orderId
@@ -62,9 +71,15 @@ declare const actions: {
      * @param params(order.id,  description)
      * @return Promise<Order>
      */
-    setDeliveryDescription(order: Order, params: any): Promise<Order>;
+    setDeliveryDescription(order: Order, params: {
+        orderId: string;
+        description: string;
+    }): Promise<Order>;
     reject(order: Order, params: any): Promise<Order>;
-    setMessage(order: Order, params: any): Promise<Order>;
+    setMessage(order: Order, params: {
+        orderId: string;
+        message: string;
+    }): Promise<Order>;
     return(): number;
 };
 export default actions;

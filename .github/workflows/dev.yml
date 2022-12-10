@@ -13,4 +13,4 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm run test:init && npm run test
+      - run: npm run test:init 2>&1 || true  npm run test

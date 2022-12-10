@@ -2,12 +2,13 @@ import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import getEmitter from "../libs/getEmitter";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import Image from "../models/Image";
+import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import slugify from "slugify"
 import { groupBy } from "lodash";
 import { v4 as uuid } from "uuid";
+import { OptionalAll } from "../interfaces/toolsTS";
 
 let attributes = {
   /**Id */
@@ -32,10 +33,11 @@ let attributes = {
     type: "string",
     allowNull: true,
   } as unknown as string,
-  /** Удалён ли продукт в меню, отдаваемого клиенту */
+
+  /** Soft deletion */
   isDeleted: "boolean" as unknown as boolean,
 
-  /** Наименование блюда */
+  /** Dishes group name*/
   name: {
     type: "string",
     //required: true,
@@ -45,49 +47,49 @@ let attributes = {
     type: "string",
     allowNull: true,
   } as unknown as string,
+
   seoKeywords: {
     type: "string",
     allowNull: true,
   } as unknown as string,
+  
   seoText: {
     type: "string",
     allowNull: true,
   } as unknown as string,
+  
   seoTitle: {
     type: "string",
     allowNull: true,
   } as unknown as string,
 
-  /** Очередь сортировки */
+  /** Sorting weight */
   order: "number" as unknown as number,
 
-  /** Блюда группы */
   dishes: {
     collection: "dish",
     via: "parentGroup",
   } as unknown as Dish[],
 
-  /** Родительская группа */
   parentGroup: {
     model: "group",
   } as unknown as Group | any,
 
-  /** Дочерние группы */
   childGroups: {
     collection: "group",
     via: "parentGroup",
-  } as unknown as Group[],
+  } as unknown as Group[] | string[],
 
   /** Изображения */
   images: {
-    collection: "image",
+    collection: "mediafile",
     via: "group",
-  } as unknown as Image[],
+  } as unknown as MediaFile[],
 
   /** Плейсхолдер для блюд группы */
   dishesPlaceholder: {
-    model: "image",
-  } as unknown as Image[],
+    model: "mediafile",
+  } as unknown as MediaFile[],
 
   /** Человеко читаемый АйДи */
   slug: {
@@ -107,11 +109,11 @@ let attributes = {
   promo: "boolean" as unknown as boolean,
 
   /** Время работы гыруппы */
-  workTime: "json" as unknown as WorkTime[],
+  worktime: "json" as unknown as WorkTime[],
 };
 
 type attributes = typeof attributes;
-interface Group extends attributes, ORM {}
+interface Group extends OptionalAll<attributes>, ORM {}
 export default Group;
 
 let Model = {

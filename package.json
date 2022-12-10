@@ -66,12 +66,12 @@
     "hookName": "restocore"
   },
   "scripts": {
-    "test": "tsc; mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
+    "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
     "test:js": "mocha test/bootstrap.js './test/{,!(fixture)/**}/*.test.js' --exit",
     "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
     "test:init": "cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
     "build": "tsc",
     "format": "npx prettier --write \"**/*.ts\""
   },
-  "version": "1.1.0"
+  "version": "1.2.0"
 }

@@ -25,7 +25,7 @@ export default async function (obj: Dish | Group): Promise<void> {
       ai = <AdditionalInfo>JSON.parse(obj.additionalInfo);
     } catch (e) {}
     if (!ai) return;
-    const keys = ["visible", "workTime", "promo", "modifier"];
+    const keys = ["visible", "worktime", "promo", "modifier"];
     for (let key of keys) if (ai[key] !== undefined) obj[key] = ai[key];
 
     for (let importFn of importFns) {

@@ -2,5 +2,7 @@
  * Описывает экземпляр класса
  */
 export default interface ORM {
-  toJSON(): any;
+  createdAt?: Date | undefined
+  updatedAt?: Date | undefined
+  // toJSON(): any;
 }

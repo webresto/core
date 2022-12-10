@@ -2,17 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 var alivedPaymentMethods = {};
-var PaymentMethodType;
-(function (PaymentMethodType) {
-    PaymentMethodType[PaymentMethodType["promise"] = 0] = "promise";
-    PaymentMethodType[PaymentMethodType["external"] = 1] = "external";
-    PaymentMethodType[PaymentMethodType["internal"] = 2] = "internal";
-    PaymentMethodType[PaymentMethodType["dummy"] = 3] = "dummy";
-})(PaymentMethodType || (PaymentMethodType = {}));
+const PaymentMethodTypes_1 = require("../libs/enums/PaymentMethodTypes");
 let attributes = {
     /** ID платежного метода */
     id: {
         type: "string",
+        //required: true,
     },
     /** Название платежного метода */
     title: "string",
@@ -68,7 +63,7 @@ let Model = {
     },
     beforeCreate: function (paymentMethod, next) {
         if (!paymentMethod.id) {
-            paymentMethod.id = uuid_1.v4();
+            paymentMethod.id = (0, uuid_1.v4)();
         }
         next();
     },
@@ -87,7 +82,7 @@ let Model = {
                 id: paymentMethodId,
             });
         }
-        if (chekingPaymentMethod.type === "promise") {
+        if (chekingPaymentMethod.type === PaymentMethodTypes_1.PaymentMethodType.PROMISE) {
             return true;
         }
         return false;
@@ -123,7 +118,7 @@ let Model = {
                         enable: true,
                     },
                     {
-                        type: ["promise", "dummy"],
+                        type: [PaymentMethodTypes_1.PaymentMethodType.PROMISE, PaymentMethodTypes_1.PaymentMethodType.DUMMY],
                         enable: true,
                     },
                 ],

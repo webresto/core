@@ -29,12 +29,11 @@ const dishExample = {
       "seoTitle": null,
       "tags": [],
       "order": 3,
-      "dishesTags": null,
       "slug": "picca",
       "visible": null,
       "modifier": null,
       "promo": null,
-      "workTime": null,
+      "worktime": null,
       "createdAt": "2020-10-16T02:11:44.000Z",
       "updatedAt": "2020-10-16T02:11:44.000Z",
       "parentGroup": null
@@ -71,11 +70,10 @@ const dishExample = {
     "balance": -1,
     "slug": "evropejskaya",
     "hash": -374730368,
-    "composition": null,
     "visible": null,
     "modifier": null,
     "promo": null,
-    "workTime": null
+    "worktime": null
 } 
 
 describe('Dish', function () {
@@ -128,11 +126,11 @@ describe('Dish', function () {
     'images',
     'slug',
     'hash',
-    'composition',
+    'description',
     'visible',
     'modifier',
     'promo',
-    'workTime')
+    'worktime')
   });
 
   it('getDishes', function(){
@@ -147,10 +145,10 @@ describe('Dish', function () {
     let group = (await Group.find({}).limit(1))[0];
     
     let modifiers = [{modifierId: group.id, childModifiers: [{id: dishes[0].id, modifierId: dishes[0].id}]}];
-    // @ts-ignore
+
     let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers }) );
-    await Dish.getDishModifiers(dish);
-    // console.log(JSON.stringify(dish, null, '  '));
+    dish = await Dish.getDishModifiers(dish);
+        
     expect(dish.modifiers.length).to.equal(1);
     expect(dish.modifiers[0].childModifiers[0].dish.id).to.equal(dishes[0].id);
     expect(dish.modifiers[0].group.id).to.equal(group.id);
@@ -158,7 +156,7 @@ describe('Dish', function () {
   });
   it('createOrUpdate', async function(){
     expect(Dish.createOrUpdate).to.not.equals(undefined);
-    // @ts-ignore
+    
     let dish = await Dish.createOrUpdate(dishGenerator({name: "test dish"}));
 
     dish.name = 'New Dish Name';
@@ -169,12 +167,9 @@ describe('Dish', function () {
     expect(updatedDish.id).to.equal(dish.id);
 
     let d = dishGenerator();
-    // @ts-ignore
     let dish1 = await Dish.createOrUpdate(d);
     await delay(1000);
-    // @ts-ignore
     let dish2 = await Dish.createOrUpdate(d);
-    // @ts-ignore
     expect(dish1.hash).to.equal(dish2.hash);
  
   });

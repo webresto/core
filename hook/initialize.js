@@ -28,12 +28,12 @@ function ToInitialize(sails) {
             hookTools_1.default.waitForHooks("restocore", requiredHooks, afterHook_1.default);
         }
         catch (error) {
-            console.log(error);
+            sails.log.error(error);
         }
         /**
          * Bind models
          */
-        hookTools_1.default.bindModels(path_1.resolve(__dirname, "../models")).then(cb);
+        hookTools_1.default.bindModels((0, path_1.resolve)(__dirname, "../models")).then(cb);
     };
 }
 exports.default = ToInitialize;

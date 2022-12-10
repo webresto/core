@@ -8,6 +8,7 @@ let attributes = {
     /**Id */
     id: {
         type: "string",
+        //required: true,
     },
     /** Addishinal info */
     additionalInfo: {
@@ -23,11 +24,12 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    /** Удалён ли продукт в меню, отдаваемого клиенту */
+    /** Soft deletion */
     isDeleted: "boolean",
-    /** Наименование блюда */
+    /** Dishes group name*/
     name: {
         type: "string",
+        //required: true,
     },
     seoDescription: {
         type: "string",
@@ -45,30 +47,27 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    /** Очередь сортировки */
+    /** Sorting weight */
     order: "number",
-    /** Блюда группы */
     dishes: {
         collection: "dish",
         via: "parentGroup",
     },
-    /** Родительская группа */
     parentGroup: {
         model: "group",
     },
-    /** Дочерние группы */
     childGroups: {
         collection: "group",
         via: "parentGroup",
     },
     /** Изображения */
     images: {
-        collection: "image",
+        collection: "mediafile",
         via: "group",
     },
     /** Плейсхолдер для блюд группы */
     dishesPlaceholder: {
-        model: "image",
+        model: "mediafile",
     },
     /** Человеко читаемый АйДи */
     slug: {
@@ -83,30 +82,30 @@ let attributes = {
     /** Промо группа */
     promo: "boolean",
     /** Время работы гыруппы */
-    workTime: "json",
+    worktime: "json",
 };
 let Model = {
     beforeCreate(init, next) {
-        getEmitter_1.default().emit('core:group-before-create', init);
+        (0, getEmitter_1.default)().emit('core:group-before-create', init);
         if (!init.id) {
-            init.id = uuid_1.v4();
+            init.id = (0, uuid_1.v4)();
         }
         if (!init.concept) {
             init.concept = "origin";
         }
-        init.slug = slugify_1.default(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+        init.slug = (0, slugify_1.default)(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         next();
     },
     beforeUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:group-before-update', record);
+        (0, getEmitter_1.default)().emit('core:group-before-update', record);
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        getEmitter_1.default().emit('core:group-after-update', record);
+        (0, getEmitter_1.default)().emit('core:group-after-update', record);
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        getEmitter_1.default().emit('core:group-after-create', record);
+        (0, getEmitter_1.default)().emit('core:group-after-create', record);
         return proceed();
     },
     /**
@@ -132,7 +131,7 @@ let Model = {
             .populate("images");
         const errors = {};
         for await (let group of groups) {
-            const reason = checkExpression_1.default(group);
+            const reason = (0, checkExpression_1.default)(group);
             if (!reason) {
                 menu[group.id] = group;
                 if (group.childGroups) {
@@ -164,7 +163,7 @@ let Model = {
                 errors[group.id] = reason;
             }
         }
-        await getEmitter_1.default().emit("core-group-get-groups", menu, errors);
+        await (0, getEmitter_1.default)().emit("core-group-get-groups", menu, errors);
         const res = Object.values(menu);
         //TODO: rewrite with throw
         return { groups: res, errors: errors };

@@ -3,11 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("../libs/actions");
 const getEmitter_1 = require("../libs/getEmitter");
 const uuid_1 = require("uuid");
-const emitter = getEmitter_1.default();
+const emitter = (0, getEmitter_1.default)();
 let attributes = {
     /** Id  */
     id: {
         type: "string",
+        /** Для тестовой системы есть хак (@webresto/core/hacks/waterline.js: )
+         *  который гасит проблему в sails-disk, а для постгри это не нужно
+        required: true,
+        ^^^^^^^^^^^^^^^
+        */
     },
     /** last 8 chars from id */
     shortId: "string",
@@ -119,12 +124,17 @@ let attributes = {
         defaultsTo: 0,
     },
     orderDate: "string",
+    // orderDateLimit: "string",
+    /** Родительская группа */
+    user: {
+        model: "user",
+    },
     customData: "json",
 };
 let Model = {
     beforeCreate(orderInit, next) {
         if (!orderInit.id) {
-            orderInit.id = uuid_1.v4();
+            orderInit.id = (0, uuid_1.v4)();
         }
         if (!orderInit.shortId) {
             orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
@@ -140,7 +150,7 @@ let Model = {
         if (!addedBy)
             addedBy = "user";
         if (typeof dish === "string") {
-            dishObj = (await Dish.find(dish).limit(1))[0];
+            dishObj = (await Dish.find({ id: dish }).limit(1))[0];
             if (!dishObj) {
                 throw { body: `Dish with id ${dish} not found`, code: 2 };
             }
@@ -156,7 +166,7 @@ let Model = {
                     code: 1,
                 };
             }
-        const order = await Order.findOne(criteria).populate("dishes");
+        let order = await Order.findOne(criteria).populate("dishes");
         if (order.dishes.length > 99)
             throw "99 max dishes amount";
         if (order.state === "ORDER")
@@ -171,14 +181,14 @@ let Model = {
         /**
          * @setting: ONLY_CONCEPTS_DISHES - Prevents ordering from origin concept
          */
-        const ONLY_CONCEPTS_DISHES = Settings.get('ONLY_CONCEPTS_DISHES');
+        const ONLY_CONCEPTS_DISHES = await Settings.get('ONLY_CONCEPTS_DISHES');
         if (ONLY_CONCEPTS_DISHES && dishObj.concept === 'origin') {
             throw { body: `Dish ${dishObj.name} (${dishObj.id}) from [${dishObj.concept}] concept, but ONLY_CONCEPTS_DISHES setting is: ${ONLY_CONCEPTS_DISHES}`, code: 1 };
         }
         /**
         * @setting: CORE_SEPARATE_CONCEPTS_ORDERS - Prevents ordering in the same cart from different concepts
         */
-        const SEPARATE_CONCEPTS_ORDERS = Settings.get('SEPARATE_CONCEPTS_ORDERS');
+        const SEPARATE_CONCEPTS_ORDERS = await Settings.get('SEPARATE_CONCEPTS_ORDERS');
         if (SEPARATE_CONCEPTS_ORDERS && order.concept && order.concept !== dishObj.concept) {
             throw { body: `Dish ${dishObj.name} not in same concept as cart`, code: 1 };
         }
@@ -222,8 +232,14 @@ let Model = {
             }).fetch();
         }
         await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
-        await Order.countCart(order);
-        await Order.next(order.id, "CART");
+        try {
+            await Order.countCart({ id: order.id });
+            await Order.next(order.id, "CART");
+        }
+        catch (error) {
+            sails.log.error(error);
+            throw error;
+        }
     },
     //** Delete dish from order */
     async removeDish(criteria, dish, amount, stack) {
@@ -262,7 +278,7 @@ let Model = {
         }
         await emitter.emit.apply(emitter, ["core-order-after-remove-dish", ...arguments]);
         await Order.next(order.id, "CART");
-        await Order.countCart(order);
+        await Order.countCart({ id: order.id });
     },
     async setCount(criteria, dish, amount) {
         await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
@@ -285,11 +301,11 @@ let Model = {
                 await OrderDish.update({ id: get.id }, { amount: get.amount }).fetch();
             }
             else {
-                get.destroy();
+                await OrderDish.destroy({ id: get.id });
                 sails.log.info("destroy", get.id);
             }
             await Order.next(order.id, "CART");
-            await Order.countCart(order);
+            await Order.countCart({ id: order.id });
             Order.update({ id: order.id }, order).fetch();
             await emitter.emit.apply(emitter, ["core-order-after-set-count", ...arguments]);
         }
@@ -308,9 +324,9 @@ let Model = {
             id: dish.id,
         }).populate("dish");
         if (orderDish) {
-            await OrderDish.update(orderDish.id, { comment: comment }).fetch();
+            await OrderDish.update({ id: orderDish.id }, { comment: comment }).fetch();
             await Order.next(order.id, "CART");
-            await Order.countCart(order);
+            await Order.countCart({ id: order.id });
             Order.update({ id: order.id }, order).fetch();
             await emitter.emit.apply(emitter, ["core-order-after-set-comment", ...arguments]);
         }
@@ -347,7 +363,7 @@ let Model = {
         /**
          *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
          */
-        getEmitter_1.default().emit("core-order-before-check", order, customer, isSelfService, address);
+        (0, getEmitter_1.default)().emit("core-order-before-check", order, customer, isSelfService, address);
         sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
         if (customer) {
             await checkCustomerInfo(customer);
@@ -365,13 +381,13 @@ let Model = {
         if (paymentMethodId) {
             await checkPaymentMethod(paymentMethodId);
             order.paymentMethod = paymentMethodId;
-            order.paymentMethodTitle = (await PaymentMethod.findOne(paymentMethodId)).title;
+            order.paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
             order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
         }
         /** Если самовывоз то не нужно проверять адресс */
         if (isSelfService) {
-            getEmitter_1.default().emit("core-order-is-self-service", order, customer, isSelfService, address);
-            await Order.setSelfService(order.id, true);
+            (0, getEmitter_1.default)().emit("core-order-is-self-service", order, customer, isSelfService, address);
+            await Order.setSelfService({ id: order.id }, true);
         }
         else {
             if (address) {
@@ -387,9 +403,8 @@ let Model = {
                 }
             }
         }
-        getEmitter_1.default().emit("core-order-check-delivery", order, customer, isSelfService, address);
-        const results = await getEmitter_1.default().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
-        console.log(results);
+        (0, getEmitter_1.default)().emit("core-order-check-delivery", order, customer, isSelfService, address);
+        const results = await (0, getEmitter_1.default)().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
         if (order.dishesCount === 0) {
             throw {
                 code: 13,
@@ -402,7 +417,7 @@ let Model = {
         delete (order.dishes);
         await Order.update({ id: order.id }, { ...order });
         sails.log.silly("Order > check > after wait general emitter", order, results);
-        getEmitter_1.default().emit("core-order-after-check", order, customer, isSelfService, address);
+        (0, getEmitter_1.default)().emit("core-order-after-check", order, customer, isSelfService, address);
         /** The check can pass without listeners, because the check itself is minimal
         * has basic checks. And is self-sufficient, but
         * is still set by default so all checks must be passed
@@ -458,15 +473,15 @@ let Model = {
         // PTODO: проверка эта нужна
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
         //   return 3
-        getEmitter_1.default().emit("core-order-before-order", order);
+        (0, getEmitter_1.default)().emit("core-order-before-order", order);
         sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
         if (order.selfService) {
-            getEmitter_1.default().emit("core-order-order-self-service", order);
+            (0, getEmitter_1.default)().emit("core-order-order-self-service", order);
         }
         else {
-            getEmitter_1.default().emit("core-order-order-delivery", order);
+            (0, getEmitter_1.default)().emit("core-order-order-delivery", order);
         }
-        const results = await getEmitter_1.default().emit("core-order-order", order);
+        const results = await (0, getEmitter_1.default)().emit("core-order-order", order);
         sails.log.silly("Order > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
@@ -504,7 +519,7 @@ let Model = {
             sails.log.verbose("Order > order > before save order", order);
             // await Order.update({id: order.id}).fetch();
             await Order.update({ id: order.id }, data).fetch();
-            getEmitter_1.default().emit("core-order-after-order", order);
+            (0, getEmitter_1.default)().emit("core-order-after-order", order);
         }
     },
     async payment(criteria) {
@@ -522,14 +537,14 @@ let Model = {
             backLinkFail: backLinkFail,
             comment: comment,
         };
-        await Order.countCart(order);
-        await getEmitter_1.default().emit("core-order-payment", order, params);
+        await Order.countCart({ id: order.id });
+        await (0, getEmitter_1.default)().emit("core-order-payment", order, params);
         sails.log.info("Order > payment > order before register:", order);
         try {
             paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
         }
         catch (e) {
-            getEmitter_1.default().emit("error", "order>payment", e);
+            (0, getEmitter_1.default)().emit("error", "order>payment", e);
             sails.log.error("Order > payment: ", e);
         }
         await Order.next(order.id, "PAYMENT");
@@ -557,12 +572,15 @@ let Model = {
                     sails.log.error("orderDish", orderDish.id, "has not dish");
                     continue;
                 }
-                if (!fullOrder.dishes.filter((d) => d.id === orderDish.id).length) {
-                    sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
-                    continue;
-                }
+                // WHATIS? It seems like test of waterline or check orderDishes not in Order?!
+                // if (!fullOrder.dishes.filter((d: { id: number; }) => d.id === orderDish.id).length) {
+                //   sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
+                //   continue;
+                // }
                 const dish = await Dish.findOne({
                     id: orderDish.dish.id,
+                    // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
+                    // isDeleted: false,
                 })
                     .populate("images")
                     .populate("parentGroup");
@@ -570,7 +588,7 @@ let Model = {
                 orderDish.dish = dish;
                 if (orderDish.modifiers !== undefined && Array.isArray(orderDish.modifiers)) {
                     for await (let modifier of orderDish.modifiers) {
-                        modifier.dish = (await Dish.find(modifier.id).limit(1))[0];
+                        modifier.dish = (await Dish.find({ id: modifier.id }).limit(1))[0];
                     }
                 }
                 else {
@@ -578,8 +596,9 @@ let Model = {
                 }
             }
             fullOrder.dishes = orderDishes;
-            fullOrder.orderDateLimit = await getOrderDateLimit();
-            fullOrder.orderId = fullOrder.id;
+            // TODO: refactor descr in method was writed
+            // fullOrder.orderDateLimit = "await getOrderDateLimit()";
+            // fullOrder.orderId = fullOrder.id;
         }
         catch (e) {
             sails.log.error("CART > fullOrder error", e);
@@ -593,22 +612,12 @@ let Model = {
      */
     async countCart(criteria) {
         try {
-            let order;
-            if (typeof criteria === "string" || criteria instanceof String) {
-                order = await Order.findOne(criteria);
-            }
-            else {
-                order = await Order.findOne(criteria.id);
-            }
-            getEmitter_1.default().emit("core-order-before-count", order);
+            let order = await Order.findOne(criteria);
+            (0, getEmitter_1.default)().emit("core-order-before-count", order);
             if (!["CART", "CHECKOUT"].includes(order.state))
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-            // const orderDishesClone = {};
-            // order.dishes.map(cd => orderDishesClone[cd.id] = _.cloneDeep(cd));
-            if (order.id === "test--countcart") {
-                console.dir("111112", orderDishes, 1);
-            }
+            // const orderDishesClone = {}
             let orderTotal = 0;
             let dishesCount = 0;
             let uniqueDishes = 0;
@@ -620,7 +629,7 @@ let Model = {
                         // Проверяет что блюдо доступно к продаже
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
-                            getEmitter_1.default().emit("core-order-return-full-order-destroy-orderdish", dish, order);
+                            (0, getEmitter_1.default)().emit("core-order-return-full-order-destroy-orderdish", dish, order);
                             await OrderDish.destroy({ id: orderDish.dish.id });
                             continue;
                         }
@@ -628,9 +637,9 @@ let Model = {
                             orderDish.amount = dish.balance;
                             // Нужно удалять если количество 0
                             if (orderDish.amount >= 0) {
-                                await Order.removeDish(order.id, orderDish, 999999);
+                                await Order.removeDish({ id: order.id }, orderDish, 999999);
                             }
-                            getEmitter_1.default().emit("core-orderdish-change-amount", orderDish);
+                            (0, getEmitter_1.default)().emit("core-orderdish-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
                         orderDish.uniqueItems += orderDish.amount; // deprecated
@@ -639,15 +648,14 @@ let Model = {
                         orderDish.totalWeight = 0;
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
-                            console.log(orderDish.modifiers);
                             for await (let modifier of orderDish.modifiers) {
-                                const modifierObj = (await Dish.find(modifier.id).limit(1))[0];
+                                const modifierObj = (await Dish.find({ id: modifier.id }).limit(1))[0];
                                 if (!modifierObj) {
                                     sails.log.error("Dish with id " + modifier.id + " not found!");
                                     continue;
                                 }
                                 let opts = {};
-                                await getEmitter_1.default().emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
+                                await (0, getEmitter_1.default)().emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
                                 // const modifierCopy = {
                                 //   amount: modifier.amount,
                                 //   id: modifier.id
@@ -699,7 +707,7 @@ let Model = {
              * Скидки должны быть массивом, и они должны хранится в каждом блюде OrderDish чтобы при выключении скидки не исчезали скидки на Ордере
              */
             order.dishes = orderDishes;
-            await getEmitter_1.default().emit("core-order-count-discount-apply", order);
+            await (0, getEmitter_1.default)().emit("core-order-count-discount-apply", order);
             delete (order.dishes);
             ///////////////////////////////////
             /**
@@ -709,15 +717,15 @@ let Model = {
             order.uniqueDishes = uniqueDishes;
             order.totalWeight = totalWeight;
             order.orderTotal = orderTotal;
-            getEmitter_1.default().emit("core:count-before-delivery-cost", order);
+            (0, getEmitter_1.default)().emit("core:count-before-delivery-cost", order);
             // @deprecated orderTotal use orderCost
             order.total = orderTotal + order.deliveryCost - order.discountTotal;
             order = (await Order.update({ id: order.id }, order).fetch())[0];
-            getEmitter_1.default().emit("core-order-after-count", order);
+            (0, getEmitter_1.default)().emit("core-order-after-count", order);
             return order;
         }
         catch (error) {
-            console.log(" error >", error);
+            console.error(" error >", error);
         }
     },
     async doPaid(criteria, paymentDocument) {
@@ -741,8 +749,8 @@ let Model = {
                 order.problem = true;
                 order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
             }
-            await Order.order(order.id);
-            getEmitter_1.default().emit("core-order-after-dopaid", order);
+            await Order.order({ id: order.id });
+            (0, getEmitter_1.default)().emit("core-order-after-dopaid", order);
         }
         catch (e) {
             sails.log.error("Order > doPaid error: ", e);
@@ -851,7 +859,7 @@ async function getOrderDateLimit() {
     let date = new Date();
     let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //minutes
     if (!periodPossibleForOrder)
-        periodPossibleForOrder = 1440;
+        periodPossibleForOrder = "1440";
     date.setSeconds(date.getSeconds() + (parseInt(periodPossibleForOrder) * 60));
     return date;
 }

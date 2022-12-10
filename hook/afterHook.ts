@@ -9,13 +9,13 @@ export default async function () {
     /**
      * rmsAdapter
      */
-    const rmsAdapterName = await Settings.use("rmsAdapter", "restocore");
+    const rmsAdapterName = await Settings.use("rmsAdapter", "restocore") as string;
     const rmsAdapterConfig = await Settings.use(rmsAdapterName, "restocore");
     const imagesConfig = await Settings.use("images","restocore");
     const timeSyncMenu = await Settings.use("timeSyncMenu","restocore");
     const timeSyncBalance = await Settings.use("timeSyncBalance","restocore");
     const timeSyncStreets = await Settings.use("timeSyncStreets","restocore");
-    const timeSyncPayments = await Settings.use("timeSyncPayments","restocore");
+    const timeSyncPayments = await Settings.use("timeSyncPayments","restocore") as number;
 
     /**
      * run instance RMSadapter
@@ -28,7 +28,7 @@ export default async function () {
     /**
      * TIMEZONE
      */
-    const timezone = await Settings.use("timezone");
+    const timezone = await Settings.use("timezone") as string;
     process.env.TZ = timezone;
 
     PaymentDocument.processor(timeSyncPayments);

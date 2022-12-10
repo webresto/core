@@ -3,13 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const getEmitter_1 = require("../libs/getEmitter");
 // Memory store
 let settings = {};
-sails.after(["hook:orm:loaded"], async () => {
-    //@ts-ignore
-    let allSettings = await Settings.find({});
-    allSettings.forEach(settingsItem => {
-        settings[settingsItem.key] = settingsItem.value;
-    });
-});
 ///////////////
 let attributes = {
     /**Id */
@@ -34,12 +27,12 @@ let attributes = {
 };
 let Model = {
     afterUpdate: function (record, proceed) {
-        getEmitter_1.default().emit(`settings:${record.key}`, record);
+        (0, getEmitter_1.default)().emit(`settings:${record.key}`, record);
         settings[record.key] = record.value;
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        getEmitter_1.default().emit(`settings:${record.key}`, record);
+        (0, getEmitter_1.default)().emit(`settings:${record.key}`, record);
         settings[record.key] = record.value;
         return proceed();
     },
@@ -78,13 +71,14 @@ let Model = {
         sails.log.warn(`Settings: ( ${key} ) not found`);
         return undefined;
     },
-    /** ⚠️ Experemental! Read setting from memory store */
-    get(key) {
+    async get(key) {
         if (settings[key] !== undefined) {
             return settings[key];
         }
         else {
-            return undefined;
+            const value = await Settings.use(key);
+            settings[key] = value;
+            return value;
         }
     },
     /**
@@ -96,12 +90,13 @@ let Model = {
             throw `Setting set key (${key}) and value (${value}) required`;
         try {
             const propety = await Settings.findOne({ key: key });
+            settings[key] = value;
             if (!propety) {
-                return Settings.create({
+                return await Settings.create({
                     key: key,
                     value: value,
                     from: from,
-                }).fetch();
+                });
             }
             else {
                 return (await Settings.update({ key: key }, { value: value }).fetch())[0];
