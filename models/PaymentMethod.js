@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 var alivedPaymentMethods = {};
-const PaymentMethodTypes_1 = require("../libs/enums/PaymentMethodTypes");
 let attributes = {
     /** ID платежного метода */
     id: {
@@ -82,7 +81,7 @@ let Model = {
                 id: paymentMethodId,
             });
         }
-        if (chekingPaymentMethod.type === PaymentMethodTypes_1.PaymentMethodType.PROMISE) {
+        if (chekingPaymentMethod.type === "promise") {
             return true;
         }
         return false;
@@ -118,7 +117,7 @@ let Model = {
                         enable: true,
                     },
                     {
-                        type: [PaymentMethodTypes_1.PaymentMethodType.PROMISE, PaymentMethodTypes_1.PaymentMethodType.DUMMY],
+                        type: ["promise", "dummy"],
                         enable: true,
                     },
                 ],
