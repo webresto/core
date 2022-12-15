@@ -91,7 +91,7 @@ let Model = {
       });
     }
 
-    if (chekingPaymentMethod.type === PaymentMethodType.PROMISE) {
+    if (chekingPaymentMethod.type === "promise") {
       return true;
     }
     return false;
@@ -128,7 +128,7 @@ let Model = {
             enable: true,
           },
           {
-            type: [PaymentMethodType.PROMISE, PaymentMethodType.DUMMY],
+            type: ["promise", "dummy"],
             enable: true,
           },
         ],

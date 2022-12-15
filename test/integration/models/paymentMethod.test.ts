@@ -1,11 +1,10 @@
 import { expect } from "chai";
-import { PaymentMethodType } from "../../../libs/enums/PaymentMethodTypes";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
-
-var paymentMethodSeed = {
+import PaymentMethod from "../../../models/PaymentMethod"
+var paymentMethodSeed: PaymentMethod = {
   id: "test-payment-cash",
   title: "Cash",
-  type: PaymentMethodType.PROMISE,
+  type: "promise",
   adapter: "not_adapter_cache",
   order: 2,
   description: "Pay by cash",

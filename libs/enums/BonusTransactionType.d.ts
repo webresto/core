@@ -1,4 +1,1 @@
-export declare enum BonusTransactionType {
-    CAME = "came",
-    GONE = "gone"
-}
+export declare type BonusTransactionType = 'came' | 'gone';

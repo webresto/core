@@ -69,7 +69,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
     if (!TestPaymentSystem.instance) {
       TestPaymentSystem.instance = new TestPaymentSystem({
         title: "test",
-        type: PaymentMethodType.EXTERNAL,
+        type: "external",
         adapter: "test-payment-system",
       });
     }

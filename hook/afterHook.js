@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const adapters_1 = require("../adapters");
+const getEmitter_1 = require("../libs/getEmitter");
 /**
  * Initial RMS and set timezone if it given
  */
@@ -29,6 +30,8 @@ async function default_1() {
         const timezone = await Settings.use("timezone");
         process.env.TZ = timezone;
         PaymentDocument.processor(timeSyncPayments);
+        // @ts-ignore
+        global.emitter = (0, getEmitter_1.default)();
     }
     catch (e) {
         sails.log.error("core > afterHook > error1", e);
