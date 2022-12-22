@@ -245,6 +245,8 @@ let Model = {
       modifiers.forEach((m: OrderModifier) => {
         if (m.amount === undefined) m.amount = 1;
       });
+    } else {
+      modifiers = [];
     }
 
     await emitter.emit.apply(emitter, ["core-order-add-dish-before-create-orderdish", ...arguments]);
@@ -279,6 +281,7 @@ let Model = {
         order: order.id,
         dish: dishObj.id,
       });
+      
       for (let sameOrderDish of sameOrderDishArray) {
         if (sameOrderDish && sameOrderDish.modifiers && sameOrderDish.modifiers.length === 0) {
           orderDishId = Number(sameOrderDish.id);
@@ -287,7 +290,9 @@ let Model = {
           break;
         }
       }
+
     }
+
     if (replace) {
       orderDish = (
         await OrderDish.update(

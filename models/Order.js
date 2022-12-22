@@ -177,6 +177,9 @@ let Model = {
                     m.amount = 1;
             });
         }
+        else {
+            modifiers = [];
+        }
         await emitter.emit.apply(emitter, ["core-order-add-dish-before-create-orderdish", ...arguments]);
         /**
          * @setting: ONLY_CONCEPTS_DISHES - Prevents ordering from origin concept
