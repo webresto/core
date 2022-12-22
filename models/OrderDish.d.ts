@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
-import { Modifier } from "../interfaces/Modifier";
-import { OptionalAll } from "../interfaces/toolsTS";
+import { OrderModifier } from "../interfaces/Modifier";
+import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 declare let attributes: {
     /** */
     id: number;
@@ -10,7 +10,7 @@ declare let attributes: {
     /**Блюдо, которое содержится в корзине */
     dish: any;
     /** Selected modifiers */
-    modifiers: Modifier[];
+    modifiers: OrderModifier[];
     /** */
     order: any;
     /** Количество уникальных блюд в корзине */
@@ -39,7 +39,7 @@ declare let attributes: {
     totalWeight: number;
 };
 declare type attributes = typeof attributes;
-interface OrderDish extends OptionalAll<attributes>, ORM {
+interface OrderDish extends RequiredField<OptionalAll<attributes>, "dish" | "amount">, ORM {
 }
 export default OrderDish;
 declare let Model: {};

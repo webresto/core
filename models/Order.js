@@ -216,7 +216,7 @@ let Model = {
                 dish: dishObj.id,
                 order: order.id,
                 amount: amount,
-                modifiers: modifiers || [],
+                modifiers: modifiers,
                 comment: comment,
                 addedBy: addedBy,
             }).fetch())[0];
@@ -226,9 +226,9 @@ let Model = {
                 dish: dishObj.id,
                 order: order.id,
                 amount: amount,
-                modifiers: modifiers || [],
+                modifiers: modifiers,
                 comment: comment,
-                addedBy: addedBy,
+                addedBy: addedBy
             }).fetch();
         }
         await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);

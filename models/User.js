@@ -37,6 +37,10 @@ let attributes = {
         collection: 'UserLocation',
         via: 'user'
     },
+    devices: {
+        collection: 'UserDevice',
+        via: 'user'
+    },
     verified: {
         type: 'boolean'
     },

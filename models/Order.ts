@@ -1,4 +1,4 @@
-import { Modifier } from "../interfaces/Modifier";
+import { OrderModifier } from "../interfaces/Modifier";
 import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import OrderDish from "./OrderDish";
@@ -202,7 +202,7 @@ let Model = {
     criteria: CriteriaQuery<Order>,
     dish: Dish | string,
     amount: number,
-    modifiers: Modifier[],
+    modifiers: OrderModifier[],
     comment: string,
     addedBy: string,
     replace?: boolean,
@@ -242,7 +242,7 @@ let Model = {
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
 
     if (modifiers && modifiers.length) {
-      modifiers.forEach((m: Modifier) => {
+      modifiers.forEach((m: OrderModifier) => {
         if (m.amount === undefined) m.amount = 1;
       });
     }
@@ -296,7 +296,7 @@ let Model = {
             dish: dishObj.id,
             order: order.id,
             amount: amount,
-            modifiers: modifiers || [],
+            modifiers: modifiers,
             comment: comment,
             addedBy: addedBy,
           }
@@ -307,9 +307,9 @@ let Model = {
         dish: dishObj.id,
         order: order.id,
         amount: amount,
-        modifiers: modifiers || [],
+        modifiers: modifiers,
         comment: comment,
-        addedBy: addedBy,
+        addedBy: addedBy
       }).fetch();
     }
 

@@ -57,6 +57,11 @@ let attributes = {
     via: 'user'
   },
 
+  devices: {
+    collection: 'UserDevice',
+    via: 'user'
+  },
+  
   verified: {
     type: 'boolean'
   } as unknown as boolean,

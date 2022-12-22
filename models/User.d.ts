@@ -20,6 +20,10 @@ declare let attributes: {
         collection: string;
         via: string;
     };
+    devices: {
+        collection: string;
+        via: string;
+    };
     verified: boolean;
     lastActive: string;
     isDeleted: boolean;
