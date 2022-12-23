@@ -15,8 +15,11 @@ declare let attributes: {
     favorites: Dish[];
     bonusProgram: UserBonusProgram;
     history: Order[];
-    avatar: string;
     locations: {
+        collection: string;
+        via: string;
+    };
+    devices: {
         collection: string;
         via: string;
     };

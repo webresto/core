@@ -3,7 +3,7 @@ describe("Sails", function () {
 });
 
 describe("await emiter global", function () {
-  it("sails does not crash", () => {
+  it("emmiter is defined", () => {
     //@ts-ignore
     if (emitter.on === undefined) {
       throw `emitter.on === undefined`

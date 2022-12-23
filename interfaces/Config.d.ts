@@ -19,9 +19,9 @@
     },
  timezone: string - временная зона ресторана
  GeocodeConfig: {
-      geocode: string - адаптер геокодинга
-      customMaps: string - адаптер загрузки карты с url
-      check: string - адаптер для проверки вхождения адресса в зону
+      geocode: string - adapter геокодинга
+      customMaps: string - adapter загрузки карты с url
+      check: string - adapter для проверки вхождения адресса в зону
       api: string - ключ API для карт
       customMap: string - ссылка на карту для загрузки
     },
@@ -30,7 +30,7 @@
  zoneDontWork: string - сообщение о невозможности доставки
  deliveryWorkTime: Time[] - время работы ресторана
  groupShift: string - смещение группы для синхронизации
- rmsAdapter: string - адаптер RMS
+ rmsAdapter: string - adapter RMS
  phoneRegex?: string - regex для проверки телефона
  nameRegex?: string - regex для проверки имени
  check: {

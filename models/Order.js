@@ -177,6 +177,9 @@ let Model = {
                     m.amount = 1;
             });
         }
+        else {
+            modifiers = [];
+        }
         await emitter.emit.apply(emitter, ["core-order-add-dish-before-create-orderdish", ...arguments]);
         /**
          * @setting: ONLY_CONCEPTS_DISHES - Prevents ordering from origin concept
@@ -216,7 +219,7 @@ let Model = {
                 dish: dishObj.id,
                 order: order.id,
                 amount: amount,
-                modifiers: modifiers || [],
+                modifiers: modifiers,
                 comment: comment,
                 addedBy: addedBy,
             }).fetch())[0];
@@ -226,9 +229,9 @@ let Model = {
                 dish: dishObj.id,
                 order: order.id,
                 amount: amount,
-                modifiers: modifiers || [],
+                modifiers: modifiers,
                 comment: comment,
-                addedBy: addedBy,
+                addedBy: addedBy
             }).fetch();
         }
         await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
@@ -519,6 +522,10 @@ let Model = {
             sails.log.verbose("Order > order > before save order", order);
             // await Order.update({id: order.id}).fetch();
             await Order.update({ id: order.id }, data).fetch();
+            /** Here core just make emit,
+             * instead call directly in RMSadapter.
+             * But i think we need select default adpater,
+             * and make order here */
             (0, getEmitter_1.default)().emit("core-order-after-order", order);
         }
     },
@@ -703,7 +710,7 @@ let Model = {
             } // for orderDish
             // Discount calc
             /**
-             * TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
+             * TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать adapterом.
              * Скидки должны быть массивом, и они должны хранится в каждом блюде OrderDish чтобы при выключении скидки не исчезали скидки на Ордере
              */
             order.dishes = orderDishes;

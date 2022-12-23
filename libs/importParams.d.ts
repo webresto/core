@@ -2,7 +2,7 @@ import Dish from "../models/Dish";
 import Group from "../models/Group";
 declare type importParamFunction = (obj: Dish | Group) => Promise<void>;
 /**
- * Параметры импорта блюд и групп при синхронизации из RMS адаптера
+ * Параметры импорта блюд и групп при синхронизации из RMS adapterа
  * @param obj
  */
 export default function (obj: Dish | Group): Promise<void>;

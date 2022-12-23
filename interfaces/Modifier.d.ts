@@ -9,6 +9,12 @@ interface BaseModifier {
     defaultAmount?: number;
     freeAmount?: number;
 }
+export interface OrderModifier {
+    id: string;
+    amount?: number;
+    dish?: Dish;
+    modifierId?: string;
+}
 export interface Modifier extends BaseModifier {
     id: string;
 }

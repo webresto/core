@@ -11,6 +11,13 @@ interface BaseModifier {
   freeAmount?: number;
 }
 
+export interface OrderModifier {
+  id: string
+  amount?: number
+  dish?: Dish  // TODO:  refactor to delete it from OrderModifier
+  modifierId?: string // TODO:  refactor to delete it from OrderModifier
+}
+
 export interface Modifier extends BaseModifier {
   id: string;
 }

@@ -20,7 +20,7 @@ export default abstract class PaymentAdapter {
      */
     abstract checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
     /**
-     * Метод для создания и получения уже существующего Payment адаптера
+     * Метод для создания и получения уже существующего Payment adapterа
      * @param params - параметры для инициализации
      */
     static getInstance(...params: any[]): PaymentAdapter;

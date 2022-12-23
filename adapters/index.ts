@@ -1,11 +1,15 @@
 import RMSAdapter from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
+import CaptchaAdapter from "./captcha/CaptchaAdapter";
+import { POW } from "./captcha/default/pow";
+
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
+
 /**
- * Отдаёт запрашиваемый RMS-адаптер
+ * retruns RMS-adapter
  */ 
 export class RMS {
   public static getAdapter(adapterName: string): typeof RMSAdapter {
@@ -20,6 +24,7 @@ export class RMS {
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
     try {
       const adapter = require(adapterLocation);
+      // why adapterName.toUpperCase() ↘
       return adapter.RMS[adapterName.toUpperCase()];
     } catch (e) {
       sails.log.error("CORE > getAdapter RMS > error; ", e);
@@ -29,7 +34,7 @@ export class RMS {
 }
 
 /**
- * Отдаёт запрашиваемый Map-адаптер
+ * retruns Map-adapter
  */
 export class Map {
   public static getAdapter(adapterName: string): new (config) => MapAdapter {
@@ -54,7 +59,7 @@ export class Map {
 }
 
 /**
- * Отдаёт запрашиваемый MediaFile-адаптер
+ * retruns MediaFile-adapter
  */
 export class MediaFileA {
   public static getAdapter(adapterName: string): MediaFileAdapter {
@@ -75,8 +80,9 @@ export class MediaFileA {
     }
   }
 }
+
 /**
- * Отдаёт запрашиваемый Payment-адаптер
+ * retruns Payment-adapter
  */
 export class Payment {
   public static getAdapter(adapterName: string): PaymentAdapter {
@@ -95,6 +101,30 @@ export class Payment {
       return adapter.PaymentAdapter[adapterName.toUpperCase()];
     } catch (e) {
       sails.log.error("CORE > getAdapter Payment > error; ", e);
+      throw new Error("Module " + adapterLocation + " not found");
+    }
+  }
+}
+
+/**
+ * retruns Captcha-adapter
+ */
+export class Captcha {
+  public static getAdapter(adapterName?: string): CaptchaAdapter {
+  
+    // Use default adapter POW (crypto-puzzle)
+    if (!adapterName) {
+      return new POW;
+    }
+
+    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-captcha-adapter";
+    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-captcha-adapter";
+
+    try {
+      const adapter = require(adapterLocation);
+      return new adapter.CaptchaAdapter[adapterName] as CaptchaAdapter;
+    } catch (e) {
+      sails.log.error("CORE > getAdapter Captcha > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
   }

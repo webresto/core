@@ -32,9 +32,12 @@ let attributes = {
     history: {
         collection: 'order',
     },
-    avatar: "string",
     locations: {
         collection: 'UserLocation',
+        via: 'user'
+    },
+    devices: {
+        collection: 'UserDevice',
         via: 'user'
     },
     verified: {

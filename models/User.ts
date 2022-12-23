@@ -50,13 +50,16 @@ let attributes = {
     collection: 'order',
   } as unknown as Order[],
 
-  avatar: "string",
-
   locations: {
     collection: 'UserLocation',
     via: 'user'
   },
 
+  devices: {
+    collection: 'UserDevice',
+    via: 'user'
+  },
+  
   verified: {
     type: 'boolean'
   } as unknown as boolean,
