@@ -50,8 +50,6 @@ let attributes = {
     collection: 'order',
   } as unknown as Order[],
 
-  avatar: "string",
-
   locations: {
     collection: 'UserLocation',
     via: 'user'

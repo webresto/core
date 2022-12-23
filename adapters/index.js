@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Payment = exports.MediaFileA = exports.Map = exports.RMS = void 0;
+exports.Captcha = exports.Payment = exports.MediaFileA = exports.Map = exports.RMS = void 0;
+const pow_1 = require("./captcha/default/pow");
 const fs = require("fs");
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
- * Отдаёт запрашиваемый RMS-адаптер
+ * retruns RMS-adapter
  */
 class RMS {
     static getAdapter(adapterName) {
@@ -17,6 +18,7 @@ class RMS {
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
         try {
             const adapter = require(adapterLocation);
+            // why adapterName.toUpperCase() ↘
             return adapter.RMS[adapterName.toUpperCase()];
         }
         catch (e) {
@@ -27,7 +29,7 @@ class RMS {
 }
 exports.RMS = RMS;
 /**
- * Отдаёт запрашиваемый Map-адаптер
+ * retruns Map-adapter
  */
 class Map {
     static getAdapter(adapterName) {
@@ -49,7 +51,7 @@ class Map {
 }
 exports.Map = Map;
 /**
- * Отдаёт запрашиваемый MediaFile-адаптер
+ * retruns MediaFile-adapter
  */
 class MediaFileA {
     static getAdapter(adapterName) {
@@ -71,7 +73,7 @@ class MediaFileA {
 }
 exports.MediaFileA = MediaFileA;
 /**
- * Отдаёт запрашиваемый Payment-адаптер
+ * retruns Payment-adapter
  */
 class Payment {
     static getAdapter(adapterName) {
@@ -92,3 +94,25 @@ class Payment {
     }
 }
 exports.Payment = Payment;
+/**
+ * retruns Captcha-adapter
+ */
+class Captcha {
+    static getAdapter(adapterName) {
+        // Use default adapter POW (crypto-puzzle)
+        if (!adapterName) {
+            return new pow_1.POW;
+        }
+        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-captcha-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-captcha-adapter";
+        try {
+            const adapter = require(adapterLocation);
+            return new adapter.CaptchaAdapter[adapterName];
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter Captcha > error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
+}
+exports.Captcha = Captcha;

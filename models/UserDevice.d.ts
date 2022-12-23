@@ -12,13 +12,14 @@ declare let attributes: {
         via: string;
     };
     lastIP: string;
-    lastLogin: string;
+    loginTime: string;
+    lastActivity: string;
     customData: string | {
         [key: string]: string | number | boolean;
     };
 };
 declare type attributes = typeof attributes;
-interface UserDevice extends RequiredField<OptionalAll<attributes>, "name" | "userAgent" | "user" | "lastIP" | "lastLogin">, ORM {
+interface UserDevice extends RequiredField<OptionalAll<attributes>, "lastIP" | "lastActivity">, ORM {
 }
 export default UserDevice;
 declare let Model: {

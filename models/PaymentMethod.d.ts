@@ -26,7 +26,7 @@ interface PaymentMethod extends RequiredField<OptionalAll<attributes>, "type" | 
 export default PaymentMethod;
 declare let Model: {
     /**
-     * Возвращает инстанс платежного адаптера по известному названию адаптера
+     * Возвращает инстанс платежного adapterа по известному названию adapterа
      * @param  paymentMethodId
      * @return
      */
@@ -39,7 +39,7 @@ declare let Model: {
      */
     isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
     /**
-     * Добавляет в список возможных к использованию платежные адаптеры при их старте.
+     * Добавляет в список возможных к использованию платежные adapterы при их старте.
      * Если  платежный метод не сушетсвует в базе то создает его
      * @param paymentMethod
      * @return
@@ -59,7 +59,7 @@ declare let Model: {
      */
     checkAvailable(paymentMethodId: string): Promise<boolean>;
     /**
-     * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
+     * Возвращает инстанс платежного adapterа по известному ID PaymentMethod
      * @param  paymentMethodId
      * @return PaymentAdapter
      * @throws

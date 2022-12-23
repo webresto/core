@@ -32,7 +32,6 @@ let attributes = {
     history: {
         collection: 'order',
     },
-    avatar: "string",
     locations: {
         collection: 'UserLocation',
         via: 'user'

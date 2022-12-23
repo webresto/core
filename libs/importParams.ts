@@ -11,7 +11,7 @@ type importParamObject = {
 let importFns: importParamObject[] = [];
 
 /**
- * Параметры импорта блюд и групп при синхронизации из RMS адаптера
+ * Параметры импорта блюд и групп при синхронизации из RMS adapterа
  * @param obj
  */
 export default async function (obj: Dish | Group): Promise<void> {

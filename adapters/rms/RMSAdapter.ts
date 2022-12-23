@@ -63,7 +63,7 @@ export default abstract class RMSAdapter {
    * Method for creating and getting an already existing RMS adapter
    * @param params - parameters for initialization
    */
-  static getInstance(...params): RMSAdapter {
+  static getInstance(...params: any[]): RMSAdapter {
     return RMSAdapter.prototype;
   }
 }
