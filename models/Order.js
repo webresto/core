@@ -861,12 +861,12 @@ async function checkDate(order) {
  * Return Date in future
  * default 1 day
  */
-// TODO: refactor periodPossibleForOrder from seconds to full work days
+// TODO: refactor possibleToOrderInMinutes from seconds to full work days
 async function getOrderDateLimit() {
     let date = new Date();
-    let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //minutes
-    if (!periodPossibleForOrder)
-        periodPossibleForOrder = "1440";
-    date.setSeconds(date.getSeconds() + (parseInt(periodPossibleForOrder) * 60));
+    let possibleToOrderInMinutes = await Settings.use("possibleToOrderInMinutes"); //minutes
+    if (!possibleToOrderInMinutes)
+        possibleToOrderInMinutes = "1440";
+    date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));
     return date;
 }

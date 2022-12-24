@@ -179,7 +179,7 @@ interface stateFlowInstance {
 }
 
 type attributes = typeof attributes & stateFlowInstance;
-interface Order extends ORM, RequiredField<OptionalAll<attributes>, "id"> {}
+interface Order extends ORM, OptionalAll<attributes> {}
 
 export default Order;
 
@@ -1062,12 +1062,12 @@ async function checkDate(order: Order) {
  * default 1 day
  */
 
-// TODO: refactor periodPossibleForOrder from seconds to full work days
+// TODO: refactor possibleToOrderInMinutes from seconds to full work days
 async function getOrderDateLimit(): Promise<Date> {
   let date = new Date();
-  let periodPossibleForOrder: string = await Settings.use("PeriodPossibleForOrder") as string; //minutes
-  if (!periodPossibleForOrder) periodPossibleForOrder = "1440";
+  let possibleToOrderInMinutes: string = await Settings.use("possibleToOrderInMinutes") as string; //minutes
+  if (!possibleToOrderInMinutes) possibleToOrderInMinutes = "1440";
 
-  date.setSeconds(date.getSeconds() + ( parseInt(periodPossibleForOrder) * 60 ));
+  date.setSeconds(date.getSeconds() + ( parseInt(possibleToOrderInMinutes) * 60 ));
   return date;
 }
