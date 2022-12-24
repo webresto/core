@@ -35,7 +35,7 @@ let attributes = {
         required: true,
         custom: function (phone) {
             if (!phone.code || !phone.number)
-                return false;
+                throw `Code or Number of phone not passed`;
             // Check dictonary
             let isCounryCode = false;
             for (let country of Countries) {
@@ -44,6 +44,7 @@ let attributes = {
             }
             if (typeof phone.code !== "string" || typeof phone.number !== "string" || typeof phone.number !== "string" || isCounryCode === false)
                 return false;
+            return true;
         }
     },
     birthday: {
@@ -77,11 +78,11 @@ let attributes = {
     },
     lastActive: {
         type: 'string',
-        isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
+        // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
     },
     lastPasswordChange: {
         type: 'string',
-        isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
+        // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
     },
     isDeleted: {
         type: 'boolean'
@@ -117,27 +118,29 @@ let Model = {
     async setPassword(userId, newPassword, oldPassword, force = false) {
         let paswordRegex = await Settings.get("PasswordRegex");
         let passwordMinLength = await Settings.get("PasswordMinLength");
-        if (passwordMinLength && newPassword.length <= passwordMinLength)
+        if (!userId || !newPassword)
+            throw 'UserId and newPassword is required';
+        if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength))
             throw `Password less than minimum length`;
         if (paswordRegex && !newPassword.match(paswordRegex))
             throw `Password not match with regex`;
-        if (!userId || !newPassword)
-            throw 'UserId and newPassword is required';
         // salt
         let salt = await Settings.get("PasswordSalt");
         if (!salt)
-            salt = "number42";
-        if (force) {
+            salt = 8;
+        let user = await User.findOne({ id: userId });
+        if (!force && user.passwordHash) {
             if (!oldPassword)
                 throw 'oldPassword is required';
-            let user = await User.findOne({ id: userId });
-            let oldPasswordHash = bcryptjs.hashSync(oldPassword, salt);
-            if (oldPasswordHash !== user.passwordHash) {
-                throw `Old pasword not accepted`;
+            if (user.passwordHash) {
+                let oldPasswordHash = bcryptjs.hashSync(oldPassword, salt);
+                if (!await bcryptjs.compare(oldPassword, user.passwordHash)) {
+                    throw `Old pasword not accepted`;
+                }
             }
         }
         let passwordHash = bcryptjs.hashSync(newPassword, salt);
-        User.update({ id: userId }, { passwordHash: passwordHash, lastPasswordChange: new Date().toISOString() });
+        return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: new Date().toISOString() });
     }
 };
 module.exports = {

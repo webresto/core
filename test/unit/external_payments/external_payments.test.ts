@@ -31,7 +31,7 @@ describe("TestPaymentSystem & PaymentAdapter basic testing", function () {
   /**
    * 3. Проверка оплаты (преждевременная)
    */
-  it("Testigt, not yet payment check", async () => {
+  it("Testing, not yet payment check", async () => {
     const result = await TestPaymentSystem.getInstance().checkPayment(paymentDocument);
     expect(result.paid).to.equal(false);
   });

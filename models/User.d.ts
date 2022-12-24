@@ -3,6 +3,7 @@ import ORMModel from "../interfaces/ORMModel";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
 import UserBonusProgram from "../models/UserBonusProgram";
+import { OptionalAll } from "../interfaces/toolsTS";
 declare type Phone = {
     code: string;
     number: string;
@@ -44,7 +45,7 @@ declare let attributes: {
     };
 };
 declare type attributes = typeof attributes;
-interface User extends attributes, ORM {
+interface User extends OptionalAll<attributes>, ORM {
 }
 export default User;
 declare let Model: {
@@ -64,8 +65,8 @@ declare let Model: {
      *
      * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
      */
-    setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean): Promise<void>;
+    setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean): Promise<User>;
 };
 declare global {
-    const User: typeof Model & ORMModel<User, "id" | "firstName">;
+    const User: typeof Model & ORMModel<User, "id" | "firstName" | "phone">;
 }

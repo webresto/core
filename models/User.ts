@@ -52,7 +52,7 @@ let attributes = {
     type: 'json',
     required: true,
     custom: function(phone: Phone) {
-      if (!phone.code || !phone.number) return false;
+      if (!phone.code || !phone.number) throw `Code or Number of phone not passed`;
 
       // Check dictonary
       let isCounryCode = false
@@ -61,6 +61,7 @@ let attributes = {
       }
 
       if(typeof phone.code !== "string" || typeof phone.number !== "string" || typeof phone.number !== "string" || isCounryCode === false) return false
+      return true
     }
   } as unknown as Phone,
 
@@ -105,12 +106,12 @@ let attributes = {
 
   lastActive: {
     type: 'string',
-    isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
+    // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
   } as unknown as string,
 
   lastPasswordChange: {
     type: 'string',
-    isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
+    // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
   } as unknown as string,
 
   isDeleted: { 
@@ -123,7 +124,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface User extends attributes, ORM {}
+interface User extends OptionalAll<attributes>, ORM {}
 export default User;
 
 let Model = {
@@ -153,30 +154,33 @@ let Model = {
    * 
    * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
    */
-  async setPassword(userId: string, newPassword: string, oldPassword: string, force: boolean = false): Promise<void> {
+  async setPassword(userId: string, newPassword: string, oldPassword: string, force: boolean = false): Promise<User> {
     let paswordRegex = await Settings.get("PasswordRegex");
     let passwordMinLength = await Settings.get("PasswordMinLength");
-    
-    if (passwordMinLength && newPassword.length <= passwordMinLength) throw `Password less than minimum length`
+
+    if (!userId || !newPassword) throw 'UserId and newPassword is required'
+
+    if ( Number(passwordMinLength) && newPassword.length < Number(passwordMinLength)) throw `Password less than minimum length`
     if (paswordRegex && !newPassword.match(paswordRegex as string)) throw `Password not match with regex`
     
-    if (!userId || !newPassword) throw 'UserId and newPassword is required'
     
     // salt
     let salt = await Settings.get("PasswordSalt");
-    if (!salt) salt = "number42";
-    
-    if (force) {
+    if (!salt) salt = 8;
+
+    let user = await User.findOne({id:userId});
+    if (!force && user.passwordHash) {
       if (!oldPassword) throw 'oldPassword is required'  
-      let user = await User.findOne({id:userId});
-      let oldPasswordHash = bcryptjs.hashSync(oldPassword, salt as string | number);
-      if (oldPasswordHash !== user.passwordHash) {
-        throw `Old pasword not accepted`
+      if (user.passwordHash) {
+        let oldPasswordHash = bcryptjs.hashSync(oldPassword, salt as string | number);
+        if (!await bcryptjs.compare(oldPassword, user.passwordHash)) {
+          throw `Old pasword not accepted`
+        }
       }
     }
 
     let passwordHash = bcryptjs.hashSync(newPassword, salt as string | number);
-    User.update({id: userId}, {passwordHash: passwordHash, lastPasswordChange: new Date().toISOString()});
+    return await User.updateOne({id: user.id}, {passwordHash: passwordHash, lastPasswordChange: new Date().toISOString()});
   }
 };
 
@@ -187,5 +191,5 @@ module.exports = {
 };
 
 declare global {
-  const User: typeof Model & ORMModel<User, "id" | "firstName" >;
+  const User: typeof Model & ORMModel<User, "id" | "firstName" | "phone" >;
 }
