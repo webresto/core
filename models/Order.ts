@@ -645,6 +645,11 @@ let Model = {
       sails.log.verbose("Order > order > before save order", order);
       // await Order.update({id: order.id}).fetch();
       await Order.update({ id: order.id }, data).fetch();
+
+      /** Here core just make emit, 
+       * instead call directly in RMSadapter. 
+       * But i think we need select default adpater, 
+       * and make order here */
       getEmitter().emit("core-order-after-order", order);
     }
   },
@@ -870,7 +875,7 @@ let Model = {
       
       // Discount calc
       /**
-       * TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать адаптером.
+       * TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать adapterом.
        * Скидки должны быть массивом, и они должны хранится в каждом блюде OrderDish чтобы при выключении скидки не исчезали скидки на Ордере
        */
       order.dishes = orderDishes;

@@ -1,28 +1,35 @@
 import RMSAdapter from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
+import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 /**
- * Отдаёт запрашиваемый RMS-адаптер
+ * retruns RMS-adapter
  */
 export declare class RMS {
     static getAdapter(adapterName: string): typeof RMSAdapter;
 }
 /**
- * Отдаёт запрашиваемый Map-адаптер
+ * retruns Map-adapter
  */
 export declare class Map {
     static getAdapter(adapterName: string): new (config: any) => MapAdapter;
 }
 /**
- * Отдаёт запрашиваемый MediaFile-адаптер
+ * retruns MediaFile-adapter
  */
 export declare class MediaFileA {
     static getAdapter(adapterName: string): MediaFileAdapter;
 }
 /**
- * Отдаёт запрашиваемый Payment-адаптер
+ * retruns Payment-adapter
  */
 export declare class Payment {
     static getAdapter(adapterName: string): PaymentAdapter;
+}
+/**
+ * retruns Captcha-adapter
+ */
+export declare class Captcha {
+    static getAdapter(adapterName?: string): CaptchaAdapter;
 }

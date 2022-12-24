@@ -37,7 +37,7 @@ let attributes = {
 };
 let Model = {
     /**
-     * Возвращает инстанс платежного адаптера по известному названию адаптера
+     * Возвращает инстанс платежного adapterа по известному названию adapterа
      * @param  paymentMethodId
      * @return
      */
@@ -87,7 +87,7 @@ let Model = {
         return false;
     },
     /**
-     * Добавляет в список возможных к использованию платежные адаптеры при их старте.
+     * Добавляет в список возможных к использованию платежные adapterы при их старте.
      * Если  платежный метод не сушетсвует в базе то создает его
      * @param paymentMethod
      * @return
@@ -151,7 +151,7 @@ let Model = {
         return false;
     },
     /**
-     * Возвращает инстанс платежного адаптера по известному ID PaymentMethod
+     * Возвращает инстанс платежного adapterа по известному ID PaymentMethod
      * @param  paymentMethodId
      * @return PaymentAdapter
      * @throws

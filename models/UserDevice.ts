@@ -20,14 +20,15 @@ let attributes = {
     via: 'devices'
   },
   lastIP: "string",
-  lastLogin: "number",
+  loginTime: "number",
+  lastActivity: "number",
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
 };
 
 type attributes = typeof attributes;
-interface UserDevice extends RequiredField<OptionalAll<attributes>, "name" | "userAgent" | "user" | "lastIP" | "lastLogin">, ORM {}
+interface UserDevice extends RequiredField<OptionalAll<attributes>, "lastIP" | "lastActivity" >, ORM {}
 export default UserDevice;
 
 let Model = {

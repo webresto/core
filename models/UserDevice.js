@@ -15,7 +15,8 @@ let attributes = {
         via: 'devices'
     },
     lastIP: "string",
-    lastLogin: "number",
+    loginTime: "number",
+    lastActivity: "number",
     customData: "json",
 };
 let Model = {

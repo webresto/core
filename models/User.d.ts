@@ -15,7 +15,6 @@ declare let attributes: {
     favorites: Dish[];
     bonusProgram: UserBonusProgram;
     history: Order[];
-    avatar: string;
     locations: {
         collection: string;
         via: string;

@@ -31,7 +31,7 @@ export default abstract class BonusAdapter {
    public abstract getTransactions(user: User, afterTime: string): Promise<BonusTransaction[]>;
 
   /**
-   * Метод для создания и получения уже существующего Payment адаптера
+   * Метод для создания и получения уже существующего Payment adapterа
    * @param params - параметры для инициализации
    */
   static getInstance(...params): BonusAdapter {
