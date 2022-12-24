@@ -22,5 +22,5 @@ declare let Model: {
     alive(ba: any): Promise<void>;
 };
 declare global {
-    const BonusProgram: typeof Model & ORMModel<BonusProgram>;
+    const BonusProgram: typeof Model & ORMModel<BonusProgram, null>;
 }

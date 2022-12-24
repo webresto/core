@@ -19,12 +19,12 @@ declare let attributes: {
     };
 };
 declare type attributes = typeof attributes;
-interface UserDevice extends RequiredField<OptionalAll<attributes>, "lastIP" | "lastActivity">, ORM {
+interface UserDevice extends RequiredField<OptionalAll<attributes>, null>, ORM {
 }
 export default UserDevice;
 declare let Model: {
     beforeCreate(UserLocationInit: any, next: any): void;
 };
 declare global {
-    const UserDevice: typeof Model & ORMModel<UserDevice>;
+    const UserDevice: typeof Model & ORMModel<UserDevice, "lastIP" | "lastActivity">;
 }

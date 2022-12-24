@@ -138,5 +138,5 @@ module.exports = {
 };
 
 declare global {
-    const Settings: typeof Model & ORMModel<Settings>;
+    const Settings: typeof Model & ORMModel<Settings,  "key" | "value">;
 }

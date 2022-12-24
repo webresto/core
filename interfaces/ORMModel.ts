@@ -1,5 +1,5 @@
 import { QueryBuilder, WaterlinePromise, CRUDBuilder, Model, UpdateBuilder, Callback } from "waterline";
-import { OptionalAll } from "../interfaces/toolsTS"
+import { OptionalAll, RequiredField } from "../interfaces/toolsTS"
 
 type or<T> = {
   or?: WhereCriteriaQuery<T>[]
@@ -63,31 +63,34 @@ export type WhereCriteriaQuery<T> = {
 
 /**
  * Waterline model
+ * @template M Model object
+ * @template C Fields required for create new instance
  */
-export default interface ORMModel<T> {
-  create?(params: T): CRUDBuilder<T>;
-  create?(params: T[]): CRUDBuilder<T[]>;
-  createEach?(params: T[]): CRUDBuilder<T[]>;
+export default interface ORMModel<M, C extends keyof M> {
 
-  find?(criteria?: CriteriaQuery<T>): QueryBuilder<T[]>;
-  findOne?(criteria?: CriteriaQuery<T>): QueryBuilder<T>;
+  create?(params: RequiredField<OptionalAll<M>,C>): CRUDBuilder<M>
+  create?(params: RequiredField<OptionalAll<M>,C>[]): CRUDBuilder<M[]>;
+  createEach?(params: M[]): CRUDBuilder<M[]>;
+
+  find?(criteria?: CriteriaQuery<M>): QueryBuilder<M[]>;
+  findOne?(criteria?: CriteriaQuery<M>): QueryBuilder<M>;
 
   // Direct findOne by primaryKey
-  findOne?(criteria?: number): QueryBuilder<T>;
-  findOne?(criteria?: string): QueryBuilder<T>;
+  findOne?(criteria?: number): QueryBuilder<M>;
+  findOne?(criteria?: string): QueryBuilder<M>;
   
-  findOrCreate?(criteria?: CriteriaQuery<T>, values?: OptionalAll<T>): QueryBuilder<T>;
+  findOrCreate?(criteria?: CriteriaQuery<M>, values?: OptionalAll<M>): QueryBuilder<M>;
 
-  update?(criteria: CriteriaQuery<T>, changes: OptionalAll<T>): UpdateBuilder<T[]>;
-  update?(criteria: CriteriaQuery<T>, changes: OptionalAll<T>[]): UpdateBuilder<T[]>;
-  updateOne?(criteria: CriteriaQuery<T>, changes: OptionalAll<T>[]): UpdateBuilder<T[]>;
+  update?(criteria: CriteriaQuery<M>, changes: OptionalAll<M>): UpdateBuilder<M[]>;
+  update?(criteria: CriteriaQuery<M>, changes: OptionalAll<M>[]): UpdateBuilder<M[]>;
+  updateOne?(criteria: CriteriaQuery<M>, changes: OptionalAll<M>[]): UpdateBuilder<M[]>;
 
-  destroy?(criteria: CriteriaQuery<T>): CRUDBuilder<T[]>;
-  destroy?(criteria: CriteriaQuery<T>[]): CRUDBuilder<T[]>;
-  destroyOne?(criteria: CriteriaQuery<T>[]): CRUDBuilder<T[]>;
+  destroy?(criteria: CriteriaQuery<M>): CRUDBuilder<M[]>;
+  destroy?(criteria: CriteriaQuery<M>[]): CRUDBuilder<M[]>;
+  destroyOne?(criteria: CriteriaQuery<M>[]): CRUDBuilder<M[]>;
 
-  count?(criteria?: CriteriaQuery<T>): WaterlinePromise<number>;
-  count?(criteria: CriteriaQuery<T>[]): WaterlinePromise<number>;
+  count?(criteria?: CriteriaQuery<M>): WaterlinePromise<number>;
+  count?(criteria: CriteriaQuery<M>[]): WaterlinePromise<number>;
 
   query(sqlQuery: string, cb: Callback<any>): void;
   query(sqlQuery: string, data: any, cb: Callback<any>): void;
@@ -95,11 +98,11 @@ export default interface ORMModel<T> {
 
 
 
-  // TODO: check stream ??
+  // MODO: check stream ??
   stream?(criteria: any, writeEnd: any): NodeJS.WritableStream | Error;   // .stream() await Something.stream(criteria) .eachRecord(async (record)=>{}); https://sailsjs.com/documentation/reference/waterline-orm/models/stream
 
 
-  // .addToCollection() https://sailsjs.com/documentation/reference/waterline-orm/models/add-to-collection
+  // .addMoCollection() https://sailsjs.com/documentation/reference/waterline-orm/models/add-to-collection
   // .createEach() https://sailsjs.com/documentation/reference/waterline-orm/models/create-each
   // .getDatastore() https://sailsjs.com/documentation/reference/waterline-orm/models/get-datastore
   // .removeFromCollection() https://sailsjs.com/documentation/reference/waterline-orm/models/remove-from-collection

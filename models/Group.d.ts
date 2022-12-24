@@ -98,5 +98,5 @@ export interface GroupWithAdditionalFields extends Group {
     dishesList: Dish[];
 }
 declare global {
-    const Group: typeof Model & ORMModel<Group>;
+    const Group: typeof Model & ORMModel<Group, null>;
 }

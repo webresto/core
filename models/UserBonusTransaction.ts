@@ -84,5 +84,5 @@ module.exports = {
 };
 
 declare global {
-  const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction>;
+  const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "id">;
 }

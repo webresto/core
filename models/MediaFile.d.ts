@@ -25,5 +25,5 @@ declare let Model: {
     beforeCreate(imageInit: any, next: any): void;
 };
 declare global {
-    const MediaFile: typeof Model & ORMModel<MediaFile>;
+    const MediaFile: typeof Model & ORMModel<MediaFile, null>;
 }

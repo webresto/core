@@ -19,5 +19,5 @@ declare let Model: {
     beforeCreate(streetInit: any, next: any): void;
 };
 declare global {
-    const Street: typeof Model & ORMModel<Street>;
+    const Street: typeof Model & ORMModel<Street, null>;
 }

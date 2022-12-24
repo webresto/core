@@ -84,5 +84,5 @@ module.exports = {
 };
 
 declare global {
-  const OrderDish: typeof Model & ORMModel<OrderDish>;
+  const OrderDish: typeof Model & ORMModel<OrderDish, "dish" | "amount">;
 }

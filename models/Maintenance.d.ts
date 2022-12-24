@@ -24,5 +24,5 @@ declare let Model: {
     getActiveMaintenance: () => Promise<Maintenance>;
 };
 declare global {
-    const Maintenance: typeof Model & ORMModel<Maintenance>;
+    const Maintenance: typeof Model & ORMModel<Maintenance, null>;
 }

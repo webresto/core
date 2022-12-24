@@ -43,5 +43,5 @@ module.exports = {
 };
 
 declare global {
-  const Street: typeof Model & ORMModel<Street>;
+  const Street: typeof Model & ORMModel<Street, null>;
 }

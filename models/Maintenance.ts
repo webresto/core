@@ -83,7 +83,7 @@ module.exports = {
 };
 
 declare global {
-  const Maintenance: typeof Model & ORMModel<Maintenance>;
+  const Maintenance: typeof Model & ORMModel<Maintenance, null>;
 }
 
 function between(from: number, to: number, a: number): boolean {

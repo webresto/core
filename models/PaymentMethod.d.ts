@@ -67,5 +67,5 @@ declare let Model: {
     getAdapterById(paymentMethodId: string): Promise<PaymentAdapter>;
 };
 declare global {
-    const PaymentMethod: typeof Model & ORMModel<PaymentMethod>;
+    const PaymentMethod: typeof Model & ORMModel<PaymentMethod, "type" | "adapter" | "enable">;
 }

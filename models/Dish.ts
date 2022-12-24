@@ -45,7 +45,7 @@ let attributes = {
   /** Наименование */
   name: {
     type: "string",
-    //required: true,
+    required: true,
   } as unknown as string,
 
   /** SEO description */
@@ -188,7 +188,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface Dish extends OptionalAll<attributes>, ORM {}
+interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, ORM {}
 export default Dish;
 
 let Model = {
@@ -334,5 +334,5 @@ module.exports = {
 };
 
 declare global {
-  const Dish: typeof Model & ORMModel<Dish>;
+  const Dish: typeof Model & ORMModel<Dish, "name" | "price">;
 }

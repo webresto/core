@@ -6,6 +6,7 @@ import Order from "../models/Order";
 import UserBonusProgram from "../models/UserBonusProgram";
 import { Country } from "../interfaces/Country";
 import * as bcryptjs from "bcryptjs";
+import { OptionalAll } from "../interfaces/toolsTS";
 const Countries: Country[] = require("../libs/dictionaries/countries.json")
 type Phone = {
   code: string
@@ -107,6 +108,11 @@ let attributes = {
     isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
   } as unknown as string,
 
+  lastPasswordChange: {
+    type: 'string',
+    isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
+  } as unknown as string,
+
   isDeleted: { 
     type:'boolean'
   } as unknown as boolean,
@@ -145,7 +151,7 @@ let Model = {
    * @setting PasswordRegex - Checking password by regex (default: no check)
    * @setting PasswordMinLength - Checks minimum length password (default: no check)
    * 
-   * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], 42));" your-password-here
+   * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
    */
   async setPassword(userId: string, newPassword: string, oldPassword: string, force: boolean = false): Promise<void> {
     let paswordRegex = await Settings.get("PasswordRegex");
@@ -170,7 +176,7 @@ let Model = {
     }
 
     let passwordHash = bcryptjs.hashSync(newPassword, salt as string | number);
-    User.update({id: userId}, {passwordHash: passwordHash});
+    User.update({id: userId}, {passwordHash: passwordHash, lastPasswordChange: new Date().toISOString()});
   }
 };
 
@@ -181,5 +187,5 @@ module.exports = {
 };
 
 declare global {
-  const User: typeof Model & ORMModel<User>;
+  const User: typeof Model & ORMModel<User, "id" | "firstName" >;
 }

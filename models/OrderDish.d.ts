@@ -44,5 +44,5 @@ interface OrderDish extends RequiredField<OptionalAll<attributes>, "dish" | "amo
 export default OrderDish;
 declare let Model: {};
 declare global {
-    const OrderDish: typeof Model & ORMModel<OrderDish>;
+    const OrderDish: typeof Model & ORMModel<OrderDish, "dish" | "amount">;
 }

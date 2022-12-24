@@ -4,7 +4,10 @@ import Dish from "../../models/Dish"
 
 
 var autoincrement: number = 0;
-export default function dishGenerator(config: Dish = {}): Dish{
+export default function dishGenerator(config: Dish = {
+  name: undefined,
+  price: undefined
+}): Dish{
   autoincrement++;
   // if (config.modifiers && config.modifiers.length) {
   //   config.modifiers.forEach(modifier => {

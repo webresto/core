@@ -254,7 +254,7 @@ module.exports = {
 };
 
 declare global {
-  const PaymentDocument: typeof Model & ORMModel<PaymentDocument>;
+  const PaymentDocument: typeof Model & ORMModel<PaymentDocument, null>;
 }
 
 ////////////////////////////// LOCAL

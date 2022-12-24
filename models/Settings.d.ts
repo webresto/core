@@ -36,5 +36,5 @@ declare let Model: {
     set(key: string, value: any, from?: string): Promise<Settings>;
 };
 declare global {
-    const Settings: typeof Model & ORMModel<Settings>;
+    const Settings: typeof Model & ORMModel<Settings, "key" | "value">;
 }

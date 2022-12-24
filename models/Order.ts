@@ -958,7 +958,7 @@ module.exports = {
 
 declare global {
   // Typescript export
-  const Order: typeof Model & ORMModel<Order> & StateFlowModel;
+  const Order: typeof Model & ORMModel<Order, null> & StateFlowModel;
 }
 
 // LOCAL HELPERS

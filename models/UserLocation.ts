@@ -52,6 +52,5 @@ module.exports = {
 };
 
 declare global {
-  const UserLocation: typeof Model & ORMModel<UserLocation
->;
+  const UserLocation: typeof Model & ORMModel<UserLocation, null>;
 }

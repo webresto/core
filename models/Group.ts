@@ -283,5 +283,5 @@ module.exports = {
 };
 
 declare global {
-  const Group: typeof Model & ORMModel<Group>;
+  const Group: typeof Model & ORMModel<Group, null>;
 }

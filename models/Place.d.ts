@@ -22,5 +22,5 @@ declare let Model: {
     beforeCreate(placeInit: any, next: any): void;
 };
 declare global {
-    const Place: typeof Model & ORMModel<Place>;
+    const Place: typeof Model & ORMModel<Place, null>;
 }

@@ -33,5 +33,5 @@ declare let Model: {
     beforeCreate(UserBonusTransactionInit: any, next: any): void;
 };
 declare global {
-    const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction>;
+    const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "id">;
 }

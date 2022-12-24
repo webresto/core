@@ -43,7 +43,5 @@ module.exports = {
 };
 
 declare global {
-  const Place: typeof Model & ORMModel<Place>;
+  const Place: typeof Model & ORMModel<Place, null>;
 }
-
-

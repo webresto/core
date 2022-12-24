@@ -30,5 +30,5 @@ declare let Model: {
     beforeCreate(UserLocationInit: any, next: any): void;
 };
 declare global {
-    const UserLocation: typeof Model & ORMModel<UserLocation>;
+    const UserLocation: typeof Model & ORMModel<UserLocation, null>;
 }

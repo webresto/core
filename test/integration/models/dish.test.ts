@@ -80,7 +80,7 @@ describe('Dish', function () {
   it('Test DishGenerator', async () => {
     for (let index = 0; index < 3; index++) {
       try {
-        var result =  dishGenerator({name: "test"});
+        var result =  dishGenerator({name: "test", price: 100.1});
       } catch (error) {
     
       }
@@ -146,7 +146,7 @@ describe('Dish', function () {
     
     let modifiers = [{modifierId: group.id, childModifiers: [{id: dishes[0].id, modifierId: dishes[0].id}]}];
 
-    let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers }) );
+    let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers, price: 100.1 }) );
     dish = await Dish.getDishModifiers(dish);
         
     expect(dish.modifiers.length).to.equal(1);
@@ -157,7 +157,7 @@ describe('Dish', function () {
   it('createOrUpdate', async function(){
     expect(Dish.createOrUpdate).to.not.equals(undefined);
     
-    let dish = await Dish.createOrUpdate(dishGenerator({name: "test dish"}));
+    let dish = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 100.1}));
 
     dish.name = 'New Dish Name';
     dish.price = 100.1;

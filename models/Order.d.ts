@@ -9,7 +9,7 @@ import StateFlowModel from "../interfaces/StateFlowModel";
 import Dish from "./Dish";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
-import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+import { OptionalAll } from "../interfaces/toolsTS";
 declare let attributes: {
     /** Id  */
     id: string;
@@ -74,7 +74,7 @@ interface stateFlowInstance {
     state: string;
 }
 declare type attributes = typeof attributes & stateFlowInstance;
-interface Order extends ORM, RequiredField<OptionalAll<attributes>, "id"> {
+interface Order extends ORM, OptionalAll<attributes> {
 }
 export default Order;
 declare let Model: {
@@ -98,7 +98,7 @@ declare let Model: {
     populate(criteria: CriteriaQuery<Order>): Promise<{
         createdAt?: Date;
         updatedAt?: Date;
-        id: string;
+        id?: string;
         shortId?: string;
         concept?: string;
         dishes?: number[] | OrderDish[];
@@ -149,5 +149,5 @@ declare let Model: {
     doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
 };
 declare global {
-    const Order: typeof Model & ORMModel<Order> & StateFlowModel;
+    const Order: typeof Model & ORMModel<Order, null> & StateFlowModel;
 }

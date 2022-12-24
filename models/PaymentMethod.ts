@@ -194,5 +194,5 @@ module.exports = {
 };
 
 declare global {
-  const PaymentMethod: typeof Model & ORMModel<PaymentMethod>;
+  const PaymentMethod: typeof Model & ORMModel<PaymentMethod, "type" | "adapter" | "enable">;
 }

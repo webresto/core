@@ -54,5 +54,5 @@ module.exports = {
 };
 
 declare global {
-  const BonusProgram: typeof Model & ORMModel<BonusProgram>;
+  const BonusProgram: typeof Model & ORMModel<BonusProgram, null>;
 }

@@ -2,7 +2,7 @@ import MediaFile from "./MediaFile";
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { WorkTime } from "@webresto/worktime";
-import { OptionalAll } from "../interfaces/toolsTS";
+import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier } from "../interfaces/Modifier";
 declare let attributes: {
     /** */
@@ -87,7 +87,7 @@ declare let attributes: {
     worktime: WorkTime[];
 };
 declare type attributes = typeof attributes;
-interface Dish extends OptionalAll<attributes>, ORM {
+interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, ORM {
 }
 export default Dish;
 declare let Model: {
@@ -118,5 +118,5 @@ declare let Model: {
     createOrUpdate(values: Dish): Promise<Dish>;
 };
 declare global {
-    const Dish: typeof Model & ORMModel<Dish>;
+    const Dish: typeof Model & ORMModel<Dish, "name" | "price">;
 }

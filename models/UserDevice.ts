@@ -28,7 +28,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface UserDevice extends RequiredField<OptionalAll<attributes>, "lastIP" | "lastActivity" >, ORM {}
+interface UserDevice extends RequiredField<OptionalAll<attributes>, null >, ORM {}
 export default UserDevice;
 
 let Model = {
@@ -48,6 +48,5 @@ module.exports = {
 };
 
 declare global {
-  const UserDevice: typeof Model & ORMModel<UserDevice
->;
+  const UserDevice: typeof Model & ORMModel<UserDevice,  "lastIP" | "lastActivity" >;
 }

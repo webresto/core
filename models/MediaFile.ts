@@ -55,5 +55,5 @@ module.exports = {
 
 declare global {
   //@ts-ignore //TODO: need rename model of images maybe ProductCover
-  const MediaFile: typeof Model & ORMModel<MediaFile>;
+  const MediaFile: typeof Model & ORMModel<MediaFile, null>;
 }

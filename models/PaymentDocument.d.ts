@@ -94,5 +94,5 @@ declare let Model: {
     processor: (timeout: number) => Promise<NodeJS.Timeout>;
 };
 declare global {
-    const PaymentDocument: typeof Model & ORMModel<PaymentDocument>;
+    const PaymentDocument: typeof Model & ORMModel<PaymentDocument, null>;
 }

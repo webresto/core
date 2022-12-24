@@ -33,7 +33,7 @@ let attributes = {
     /** Наименование */
     name: {
         type: "string",
-        //required: true,
+        required: true,
     },
     /** SEO description */
     seoDescription: {
