@@ -40,7 +40,6 @@ let attributes = {
     isEmail: true
   } as unknown as string,
   
-
   /**
       { 
         code: String!
@@ -70,13 +69,6 @@ let attributes = {
     isAfter: new Date('Sat Jan 1 1900 00:00:00 GMT-0000'),
     // isBefore: new Date().setFullYear(new Date().getFullYear()-10)
   } as unknown as string,
-
-
-  passwordHash: {
-    type: 'string',
-    isNotEmptyString: true
-  } as unknown as string,
-
 
   favorites: {
     collection: 'dish'
@@ -109,9 +101,20 @@ let attributes = {
     // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
   } as unknown as string,
 
+  passwordHash: {
+    type: 'string',
+    isNotEmptyString: true
+  } as unknown as string,
+
   lastPasswordChange: {
     type: 'string',
     // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
+  } as unknown as string,
+
+  /** Its temporary code for authorization */
+  temporaryCode: {
+    type: 'string',
+    allowNull: true
   } as unknown as string,
 
   isDeleted: { 
@@ -154,7 +157,7 @@ let Model = {
    * 
    * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
    */
-  async setPassword(userId: string, newPassword: string, oldPassword: string, force: boolean = false): Promise<User> {
+  async setPassword(userId: string, newPassword: string, oldPassword: string,  force: boolean = false, temporaryCode?: string): Promise<User> {
     let paswordRegex = await Settings.get("PasswordRegex");
     let passwordMinLength = await Settings.get("PasswordMinLength");
 
@@ -169,12 +172,15 @@ let Model = {
     if (!salt) salt = 8;
 
     let user = await User.findOne({id:userId});
-    if (!force && user.passwordHash) {
+    if (!force && ( user.passwordHash || user.temporaryCode) ) {
       if (!oldPassword) throw 'oldPassword is required'  
       if (user.passwordHash) {
-        let oldPasswordHash = bcryptjs.hashSync(oldPassword, salt as string | number);
         if (!await bcryptjs.compare(oldPassword, user.passwordHash)) {
           throw `Old pasword not accepted`
+        }
+      } else {
+        if(temporaryCode !== user.temporaryCode) {
+          throw `Temporary code not match`
         }
       }
     }

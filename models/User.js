@@ -52,10 +52,6 @@ let attributes = {
         isAfter: new Date('Sat Jan 1 1900 00:00:00 GMT-0000'),
         // isBefore: new Date().setFullYear(new Date().getFullYear()-10)
     },
-    passwordHash: {
-        type: 'string',
-        isNotEmptyString: true
-    },
     favorites: {
         collection: 'dish'
     },
@@ -80,9 +76,18 @@ let attributes = {
         type: 'string',
         // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
     },
+    passwordHash: {
+        type: 'string',
+        isNotEmptyString: true
+    },
     lastPasswordChange: {
         type: 'string',
         // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
+    },
+    /** Its temporary code for authorization */
+    temporaryCode: {
+        type: 'string',
+        allowNull: true
     },
     isDeleted: {
         type: 'boolean'
@@ -115,7 +120,7 @@ let Model = {
      *
      * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
      */
-    async setPassword(userId, newPassword, oldPassword, force = false) {
+    async setPassword(userId, newPassword, oldPassword, force = false, temporaryCode) {
         let paswordRegex = await Settings.get("PasswordRegex");
         let passwordMinLength = await Settings.get("PasswordMinLength");
         if (!userId || !newPassword)
@@ -129,13 +134,17 @@ let Model = {
         if (!salt)
             salt = 8;
         let user = await User.findOne({ id: userId });
-        if (!force && user.passwordHash) {
+        if (!force && (user.passwordHash || user.temporaryCode)) {
             if (!oldPassword)
                 throw 'oldPassword is required';
             if (user.passwordHash) {
-                let oldPasswordHash = bcryptjs.hashSync(oldPassword, salt);
                 if (!await bcryptjs.compare(oldPassword, user.passwordHash)) {
                     throw `Old pasword not accepted`;
+                }
+            }
+            else {
+                if (temporaryCode !== user.temporaryCode) {
+                    throw `Temporary code not match`;
                 }
             }
         }

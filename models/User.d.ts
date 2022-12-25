@@ -24,7 +24,6 @@ declare let attributes: {
      */
     phone: Phone;
     birthday: string;
-    passwordHash: string;
     favorites: Dish[];
     bonusProgram: UserBonusProgram;
     history: Order[];
@@ -38,7 +37,10 @@ declare let attributes: {
     };
     verified: boolean;
     lastActive: string;
+    passwordHash: string;
     lastPasswordChange: string;
+    /** Its temporary code for authorization */
+    temporaryCode: string;
     isDeleted: boolean;
     customData: string | {
         [key: string]: string | number | boolean;
@@ -65,7 +67,7 @@ declare let Model: {
      *
      * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
      */
-    setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean): Promise<User>;
+    setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean, temporaryCode?: string): Promise<User>;
 };
 declare global {
     const User: typeof Model & ORMModel<User, "id" | "firstName" | "phone">;
