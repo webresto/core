@@ -4,7 +4,7 @@ import Customer from "../interfaces/Customer";
 import OrderDish from "./OrderDish";
 import PaymentDocument from "./PaymentDocument";
 import actions from "../libs/actions";
-import getEmitter from "../libs/getEmitter";
+
 import ORMModel, { CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
@@ -15,7 +15,7 @@ import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 
-const emitter = getEmitter();
+;
 
 let attributes = {
   /** Id  */
@@ -468,7 +468,7 @@ let Model = {
      *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
      */
 
-    getEmitter().emit("core-order-before-check", order, customer, isSelfService, address);
+    emitter.emit("core-order-before-check", order, customer, isSelfService, address);
 
     sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
 
@@ -495,7 +495,7 @@ let Model = {
 
     /** Если самовывоз то не нужно проверять адресс */
     if (isSelfService) {
-      getEmitter().emit("core-order-is-self-service", order, customer, isSelfService, address);
+      emitter.emit("core-order-is-self-service", order, customer, isSelfService, address);
       await Order.setSelfService({id: order.id}, true);
     } else {
       if (address) {
@@ -511,9 +511,9 @@ let Model = {
       }
     }
 
-    getEmitter().emit("core-order-check-delivery", order, customer, isSelfService, address);
+    emitter.emit("core-order-check-delivery", order, customer, isSelfService, address);
 
-    const results = await getEmitter().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
+    const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
     if (order.dishesCount === 0) {
       throw {
         code: 13,
@@ -529,7 +529,7 @@ let Model = {
 
     sails.log.silly("Order > check > after wait general emitter", order, results);
 
-    getEmitter().emit("core-order-after-check", order, customer, isSelfService, address);
+    emitter.emit("core-order-after-check", order, customer, isSelfService, address);
 
     /** The check can pass without listeners, because the check itself is minimal
     * has basic checks. And is self-sufficient, but
@@ -594,16 +594,16 @@ let Model = {
     // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
     //   return 3
 
-    getEmitter().emit("core-order-before-order", order);
+    emitter.emit("core-order-before-order", order);
     sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
 
     if (order.selfService) {
-      getEmitter().emit("core-order-order-self-service", order);
+      emitter.emit("core-order-order-self-service", order);
     } else {
-      getEmitter().emit("core-order-order-delivery", order);
+      emitter.emit("core-order-order-delivery", order);
     }
 
-    const results = await getEmitter().emit("core-order-order", order);
+    const results = await emitter.emit("core-order-order", order);
 
     sails.log.silly("Order > order > after wait general emitter results: ", results);
     const resultsCount = results.length;
@@ -650,7 +650,7 @@ let Model = {
        * instead call directly in RMSadapter. 
        * But i think we need select default adpater, 
        * and make order here */
-      getEmitter().emit("core-order-after-order", order);
+      emitter.emit("core-order-after-order", order);
     }
   },
 
@@ -671,7 +671,7 @@ let Model = {
       comment: comment,
     };
     await Order.countCart({id: order.id});
-    await getEmitter().emit("core-order-payment", order, params);
+    await emitter.emit("core-order-payment", order, params);
     sails.log.info("Order > payment > order before register:", order);
     try {
       paymentResponse = await PaymentDocument.register(
@@ -683,7 +683,7 @@ let Model = {
         params.backLinkFail, 
         params.comment, order);
     } catch (e) {
-      getEmitter().emit("error", "order>payment", e);
+      emitter.emit("error", "order>payment", e);
       sails.log.error("Order > payment: ", e);
     }
     await Order.next(order.id, "PAYMENT");
@@ -763,7 +763,7 @@ let Model = {
       
       let order = await Order.findOne(criteria);
 
-      getEmitter().emit("core-order-before-count", order);
+      emitter.emit("core-order-before-count", order);
 
       if (!["CART", "CHECKOUT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
 
@@ -782,7 +782,7 @@ let Model = {
             // Проверяет что блюдо доступно к продаже
             if (!dish) {
               sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
-              getEmitter().emit("core-order-return-full-order-destroy-orderdish", dish, order);
+              emitter.emit("core-order-return-full-order-destroy-orderdish", dish, order);
               await OrderDish.destroy({ id: orderDish.dish.id });
               continue;
             }
@@ -793,7 +793,7 @@ let Model = {
               if (orderDish.amount >= 0) {
                 await Order.removeDish({id: order.id}, orderDish, 999999);
               }
-              getEmitter().emit("core-orderdish-change-amount", orderDish);
+              emitter.emit("core-orderdish-change-amount", orderDish);
               sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
             }
 
@@ -814,13 +814,13 @@ let Model = {
                 }
 
                 let opts:  any = {} 
-                await getEmitter().emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
+                await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
 
                 // const modifierCopy = {
                 //   amount: modifier.amount,
                 //   id: modifier.id
                 // }
-                // await getEmitter().emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
+                // await emitter.emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
 
 
 
@@ -879,7 +879,7 @@ let Model = {
        * Скидки должны быть массивом, и они должны хранится в каждом блюде OrderDish чтобы при выключении скидки не исчезали скидки на Ордере
        */
       order.dishes = orderDishes;
-      await getEmitter().emit("core-order-count-discount-apply", order);
+      await emitter.emit("core-order-count-discount-apply", order);
       delete(order.dishes);
       ///////////////////////////////////
 
@@ -894,14 +894,14 @@ let Model = {
 
       order.orderTotal = orderTotal;
 
-      getEmitter().emit("core:count-before-delivery-cost", order);
+      emitter.emit("core:count-before-delivery-cost", order);
 
       // @deprecated orderTotal use orderCost
       order.total = orderTotal + order.deliveryCost - order.discountTotal;
 
       order = (await Order.update({ id: order.id }, order).fetch())[0];
      
-      getEmitter().emit("core-order-after-count", order);
+      emitter.emit("core-order-after-count", order);
       return order;
     } catch (error) {
       console.error(" error >", error);
@@ -940,7 +940,7 @@ let Model = {
       }
 
       await Order.order({id: order.id});
-      getEmitter().emit("core-order-after-dopaid", order);
+      emitter.emit("core-order-after-dopaid", order);
 
     } catch (e) {
       sails.log.error("Order > doPaid error: ", e);

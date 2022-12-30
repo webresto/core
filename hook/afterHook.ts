@@ -1,5 +1,4 @@
 import { RMS } from "../adapters";
-import getEmitter from "../libs/getEmitter";
 
 /**
  * Initial RMS and set timezone if it given
@@ -34,9 +33,7 @@ export default async function () {
 
     PaymentDocument.processor(timeSyncPayments);
 
-    // @ts-ignore
-    global.emitter = getEmitter();
-    
+
   } catch (e) {
     sails.log.error("core > afterHook > error1", e);
   }

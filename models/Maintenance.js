@@ -1,16 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const getEmitter_1 = require("../libs/getEmitter");
 const CHECK_INTERVAL = 60000;
 sails.on("lifted", function () {
     setInterval(async function () {
         const maintenance = await Maintenance.getActiveMaintenance();
         if (maintenance) {
-            (0, getEmitter_1.default)().emit("core-maintenance-enabled", maintenance);
+            emitter.emit("core-maintenance-enabled", maintenance);
         }
         else {
-            (0, getEmitter_1.default)().emit("core-maintenance-disabled");
+            emitter.emit("core-maintenance-disabled");
         }
     }, CHECK_INTERVAL);
 });

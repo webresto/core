@@ -197,7 +197,7 @@ class Response {
 // /**
 //  * Получение эмиттера ядра
 //  */
-//  export function getEmitter(): AwaitEmitter {
+//  export function emitter(): AwaitEmitter {
 //   if (!emitter) {
 //     emitter = new AwaitEmitter('core', sails.config.restocore.awaitEmitterTimeout);
 //   }

@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const hashCode_1 = require("../libs/hashCode");
-const getEmitter_1 = require("../libs/getEmitter");
 const uuid_1 = require("uuid");
 let attributes = {
     /** */
@@ -142,7 +141,7 @@ let attributes = {
 };
 let Model = {
     beforeCreate(init, next) {
-        (0, getEmitter_1.default)().emit('core:dish-before-create', init);
+        emitter.emit('core:dish-before-create', init);
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
@@ -152,15 +151,15 @@ let Model = {
         next();
     },
     beforeUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:dish-before-update', record);
+        emitter.emit('core:dish-before-update', record);
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:dish-after-update', record);
+        emitter.emit('core:dish-after-update', record);
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:dish-after-create', record);
+        emitter.emit('core:dish-after-create', record);
         return proceed();
     },
     /**
@@ -187,7 +186,7 @@ let Model = {
             }
         }
         dishes.sort((a, b) => a.order - b.order);
-        await (0, getEmitter_1.default)().emit("core-dish-get-dishes", dishes);
+        await emitter.emit("core-dish-get-dishes", dishes);
         return dishes;
     },
     /**

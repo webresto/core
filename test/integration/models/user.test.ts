@@ -16,6 +16,5 @@ describe("User", function () {
     // Check oldPassword
     user = await User.setPassword(user.id, "00000000", "1234567890");
     console.log(user)
-
   });
 });

@@ -3,6 +3,11 @@ import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
 
+import getEmitter from "../libs/getEmitter";
+// @ts-ignore
+global.emitter = getEmitter();
+    
+
 export default function ToInitialize(sails: Sails) {
   /**
    * Required hooks

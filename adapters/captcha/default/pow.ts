@@ -7,15 +7,27 @@ let Puzzle = require("fix-esm").require("crypto-puzzle").default; // https://git
 import { v4 as uuid } from "uuid";
 
 export class POW extends CaptchaAdapter {
-  public async getJob(): Promise<CaptchaJob> {
+  public async getJob(label: string): Promise<CaptchaJob> {
     const id = uuid();
     
+    /**
+     * Action: as example captcha adater recive label `login:12025550184` sent task, and client solve it
+     * When client pass solved captcha to login user, Method User.login pass same label, and if this not matched 
+     * Capthca adapter reject login. 
+     * To prevent brute force the adapter increases the complexity after several attempts.
+     */
+    if (!label) throw `label not provided`
     let difficulty = Number(process.env.CAPTCHA_POW_DIFFICUTLY) ? Number(process.env.CAPTCHA_POW_DIFFICUTLY) : 7 * 100000;
 
+    
+    let attempt = 0
     // Tasks garbage collect
     Object.keys(POW.taskStorage).forEach((item) => {
       if (POW.taskStorage[id].time < Date.now() - 30 * 60 * 1000) delete(POW.taskStorage[id]);
+      if (POW.taskStorage[id].label === label) attempt++;
     })
+    let difficultСoefficient = 1 + Number((attempt/7).toFixed())
+    difficulty = difficulty * difficultСoefficient;
 
     let puzzle = await Puzzle.generate(difficulty)
     let task = {
@@ -26,18 +38,19 @@ export class POW extends CaptchaAdapter {
     POW.taskStorage[id] = {
       task: task,
       time: Date.now(),
+      label: label,
       puzzle: puzzle
     }
 
     return task;
   }
 
-  public async check(id: string, solution: string): Promise<boolean> {
+  public async check(id: string, solution: string, label: string): Promise<boolean> {
     
     if ( POW.taskStorage[id] === undefined ) return false
 
     let puzzle = POW.taskStorage[id].puzzle;
-    
+    if (puzzle.label !== label) return false
     if(puzzle.solution === BigInt(solution)) {
       delete(POW.taskStorage[id]);
       return true

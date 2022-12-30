@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const getEmitter_1 = require("../libs/getEmitter");
 // Memory store
 let settings = {};
 ///////////////
@@ -27,12 +26,12 @@ let attributes = {
 };
 let Model = {
     afterUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit(`settings:${record.key}`, record);
+        emitter.emit(`settings:${record.key}`, record);
         settings[record.key] = record.value;
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit(`settings:${record.key}`, record);
+        emitter.emit(`settings:${record.key}`, record);
         settings[record.key] = record.value;
         return proceed();
     },

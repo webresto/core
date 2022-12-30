@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-import getEmitter from "../libs/getEmitter";
+
 
 // Memory store
 let settings: SettingValue = {}
@@ -46,13 +46,13 @@ export default Settings;
 let Model = {
 
   afterUpdate: function (record, proceed) {
-    getEmitter().emit(`settings:${record.key}`, record);
+    emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = record.value;
     return proceed();
   },
 
   afterCreate: function (record, proceed) {
-    getEmitter().emit(`settings:${record.key}`, record);
+    emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = record.value;
     return proceed();
   },

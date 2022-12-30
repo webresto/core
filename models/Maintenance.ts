@@ -1,7 +1,7 @@
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
-import getEmitter from "../libs/getEmitter";
+
 import { WorkTime } from "@webresto/worktime";
 
 const CHECK_INTERVAL = 60000;
@@ -10,9 +10,9 @@ sails.on("lifted", function () {
   setInterval(async function () {
     const maintenance = await Maintenance.getActiveMaintenance();
     if (maintenance) {
-      getEmitter().emit("core-maintenance-enabled", maintenance);
+      emitter.emit("core-maintenance-enabled", maintenance);
     } else {
-      getEmitter().emit("core-maintenance-disabled");
+      emitter.emit("core-maintenance-disabled");
     }
   }, CHECK_INTERVAL);
 });

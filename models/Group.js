@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
-const getEmitter_1 = require("../libs/getEmitter");
 const slugify_1 = require("slugify");
 const uuid_1 = require("uuid");
 let attributes = {
@@ -86,7 +85,7 @@ let attributes = {
 };
 let Model = {
     beforeCreate(init, next) {
-        (0, getEmitter_1.default)().emit('core:group-before-create', init);
+        emitter.emit('core:group-before-create', init);
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
@@ -97,15 +96,15 @@ let Model = {
         next();
     },
     beforeUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-before-update', record);
+        emitter.emit('core:group-before-update', record);
         return proceed();
     },
     afterUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-after-update', record);
+        emitter.emit('core:group-after-update', record);
         return proceed();
     },
     afterCreate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-after-create', record);
+        emitter.emit('core:group-after-create', record);
         return proceed();
     },
     /**
@@ -163,7 +162,7 @@ let Model = {
                 errors[group.id] = reason;
             }
         }
-        await (0, getEmitter_1.default)().emit("core-group-get-groups", menu, errors);
+        await emitter.emit("core-group-get-groups", menu, errors);
         const res = Object.values(menu);
         //TODO: rewrite with throw
         return { groups: res, errors: errors };

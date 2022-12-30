@@ -24,10 +24,11 @@ let attributes = {
         isEmail: true
     },
     /**
-        {
-          code: String!
-          number: String!
-          additionalNumber: String
+     * Its a basic login field
+     *  type Phone {
+          code: string
+          number: string
+          additionalNumber?: string
         }
      */
     phone: {
@@ -106,6 +107,21 @@ let Model = {
         next();
     },
     /**
+     * Returns phone string by user criteria
+     * Additional number will be added separated by commas (+19990000000,1234)
+     * @param {WaterlineCriteria} criteria
+     * @returns String
+     */
+    async getPhoneString(criteria) {
+        let user = await User.findOne(criteria);
+        if (user) {
+            return `${user.phone.code}${user.phone.number}${user.phone.additionalNumber ? ',' + user.phone.additionalNumber : ''}`;
+        }
+        else {
+            throw `User not found`;
+        }
+    },
+    /**
      * Update user password
      *
      * @param userId User id
@@ -150,6 +166,12 @@ let Model = {
         }
         let passwordHash = bcryptjs.hashSync(newPassword, salt);
         return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: new Date().toISOString() });
+    },
+    async login(login, password, temporaryCode) {
+        return;
+    },
+    async authDevice() {
+        return;
     }
 };
 module.exports = {

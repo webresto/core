@@ -2,7 +2,7 @@ import Group from "./Group";
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import MediaFile from "./MediaFile";
 import hashCode from "../libs/hashCode";
-import getEmitter from "../libs/getEmitter";
+
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import * as _ from "lodash";
@@ -193,7 +193,7 @@ export default Dish;
 
 let Model = {
   beforeCreate(init: any, next: any) {
-    getEmitter().emit('core:dish-before-create', init);
+    emitter.emit('core:dish-before-create', init);
     if (!init.id) {
       init.id = uuid();
     }
@@ -205,17 +205,17 @@ let Model = {
   },
 
   beforeUpdate: function (record, proceed) {
-    getEmitter().emit('core:dish-before-update', record);
+    emitter.emit('core:dish-before-update', record);
     return proceed();
   },
 
   afterUpdate: function (record, proceed) {
-    getEmitter().emit('core:dish-after-update', record);
+    emitter.emit('core:dish-after-update', record);
     return proceed();
   },
 
   afterCreate: function (record, proceed) {
-    getEmitter().emit('core:dish-after-create', record);
+    emitter.emit('core:dish-after-create', record);
     return proceed();
   },
 
@@ -246,7 +246,7 @@ let Model = {
 
     dishes.sort((a, b) => a.order - b.order);
 
-    await getEmitter().emit("core-dish-get-dishes", dishes);
+    await emitter.emit("core-dish-get-dishes", dishes);
     return dishes;
   },
 

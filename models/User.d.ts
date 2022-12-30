@@ -16,10 +16,11 @@ declare let attributes: {
     lastName: string;
     email: string;
     /**
-        {
-          code: String!
-          number: String!
-          additionalNumber: String
+     * Its a basic login field
+     *  type Phone {
+          code: string
+          number: string
+          additionalNumber?: string
         }
      */
     phone: Phone;
@@ -53,6 +54,13 @@ export default User;
 declare let Model: {
     beforeCreate(userInit: User, next: Function): void;
     /**
+     * Returns phone string by user criteria
+     * Additional number will be added separated by commas (+19990000000,1234)
+     * @param {WaterlineCriteria} criteria
+     * @returns String
+     */
+    getPhoneString(criteria: any): Promise<string>;
+    /**
      * Update user password
      *
      * @param userId User id
@@ -68,6 +76,8 @@ declare let Model: {
      * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
      */
     setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean, temporaryCode?: string): Promise<User>;
+    login(login: string, password: string, temporaryCode: string): Promise<void>;
+    authDevice(): Promise<void>;
 };
 declare global {
     const User: typeof Model & ORMModel<User, "id" | "firstName" | "phone">;

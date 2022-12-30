@@ -9,7 +9,7 @@ describe("Captcha default adapter (POW)", function () {
 
   it("get task", async () => {
     let captchaAdapter = Captcha.getAdapter();
-    job = await captchaAdapter.getJob();
+    job = await captchaAdapter.getJob("test");
 
     if(!job || !job.task) throw `job not found`
     if(!job.id) throw `job id not found`
@@ -29,6 +29,6 @@ describe("Captcha default adapter (POW)", function () {
     }
     let captchaAdapter = Captcha.getAdapter();
     let result = await Puzzle.solve(parsedTask)
-    if (!captchaAdapter.check(job.id, result)) throw `Captcha POW check fail`  
+    if (!captchaAdapter.check(job.id, result, "test")) throw `Captcha POW check fail`  
   });
 });

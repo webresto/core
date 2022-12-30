@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const getEmitter_1 = require("../libs/getEmitter");
 /** На примере корзины (Order):
  * 1. Модель проводящяя оплату internal/external (например: Order) создает PaymentDocument
  *
@@ -93,7 +92,7 @@ let Model = {
         const self = (await PaymentDocument.find(criteria).limit(1))[0];
         if (!self)
             throw `PaymentDocument is not found`;
-        (0, getEmitter_1.default)().emit("core-payment-document-check", self);
+        emitter.emit("core-payment-document-check", self);
         try {
             let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
             let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
@@ -105,7 +104,7 @@ let Model = {
             else {
                 await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status }).fetch();
             }
-            (0, getEmitter_1.default)().emit("core-payment-document-checked-document", checkedPaymentDocument);
+            emitter.emit("core-payment-document-checked-document", checkedPaymentDocument);
             return checkedPaymentDocument;
         }
         catch (e) {
@@ -139,12 +138,12 @@ let Model = {
             comment: comment,
             data: data,
         };
-        (0, getEmitter_1.default)().emit("core-payment-document-before-create", payment);
+        emitter.emit("core-payment-document-before-create", payment);
         try {
             await PaymentDocument.create(payment);
         }
         catch (e) {
-            (0, getEmitter_1.default)().emit("error", "PaymentDocument > register:", e);
+            emitter.emit("error", "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 3,
@@ -164,7 +163,7 @@ let Model = {
             return paymentResponse;
         }
         catch (e) {
-            (0, getEmitter_1.default)().emit("error", "PaymentDocument > register:", e);
+            emitter.emit("error", "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 4,

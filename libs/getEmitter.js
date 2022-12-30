@@ -1,15 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const AwaitEmitter_1 = require("./AwaitEmitter");
-let emitter;
+let _emitter;
 /**
  * Получение эмиттера ядра
  */
-function getEmitter() {
-    if (!emitter) {
+function emitter() {
+    if (!_emitter) {
         const awaitEmitterTimeout = sails.config.restocore ? sails.config.restocore.awaitEmitterTimeout || 60000 : 60000;
-        emitter = new AwaitEmitter_1.default("core", awaitEmitterTimeout);
+        _emitter = new AwaitEmitter_1.default("core", awaitEmitterTimeout);
     }
-    return emitter;
+    return _emitter;
 }
-exports.default = getEmitter;
+exports.default = emitter;

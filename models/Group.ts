@@ -1,5 +1,5 @@
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
-import getEmitter from "../libs/getEmitter";
+
 import ORMModel from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import MediaFile from "../models/MediaFile";
@@ -118,7 +118,7 @@ export default Group;
 
 let Model = {
   beforeCreate(init: any, next: any) {
-    getEmitter().emit('core:group-before-create', init);
+    emitter.emit('core:group-before-create', init);
     if (!init.id) {
       init.id = uuid();
     }
@@ -131,17 +131,17 @@ let Model = {
     next();
   },
   beforeUpdate: function (record, proceed) {
-    getEmitter().emit('core:group-before-update', record);
+    emitter.emit('core:group-before-update', record);
     return proceed();
   },
 
   afterUpdate: function (record, proceed) {
-    getEmitter().emit('core:group-after-update', record);
+    emitter.emit('core:group-after-update', record);
     return proceed();
   },
 
   afterCreate: function (record, proceed) {
-    getEmitter().emit('core:group-after-create', record);
+    emitter.emit('core:group-after-create', record);
     return proceed();
   },
 
@@ -204,7 +204,7 @@ let Model = {
       }
     }
 
-    await getEmitter().emit("core-group-get-groups", menu, errors);
+    await emitter.emit("core-group-get-groups", menu, errors);
 
     const res = Object.values(menu);
 
