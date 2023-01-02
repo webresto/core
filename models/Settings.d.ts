@@ -24,6 +24,8 @@ interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "value
 }
 export default Settings;
 declare let Model: {
+    beforeCreate: (record: any, proceed: any) => any;
+    beforeUpdate: (record: any, proceed: any) => any;
     afterUpdate: (record: any, proceed: any) => any;
     afterCreate: (record: any, proceed: any) => any;
     /** retrun setting value by key */

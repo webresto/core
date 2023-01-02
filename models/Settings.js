@@ -25,6 +25,16 @@ let attributes = {
     from: "string",
 };
 let Model = {
+    beforeCreate: function (record, proceed) {
+        record.key = toScreamingSnake(record.key);
+        return proceed();
+    },
+    beforeUpdate: function (record, proceed) {
+        if (record.key) {
+            record.key = toScreamingSnake(record.key);
+        }
+        return proceed();
+    },
     afterUpdate: function (record, proceed) {
         emitter.emit(`settings:${record.key}`, record);
         settings[record.key] = record.value;
@@ -37,6 +47,7 @@ let Model = {
     },
     /** retrun setting value by key */
     async use(key, from) {
+        key = toScreamingSnake(key);
         sails.log.silly("CORE > Settings > use: ", key, from);
         let value;
         /** ENV variable is important*/
@@ -57,9 +68,16 @@ let Model = {
         /** If variable present in database */
         let setting = (await Settings.find({ key: key }).limit(1))[0];
         sails.log.silly("CORE > Settings > findOne: ", key, setting);
-        if (setting && setting.value)
+        if (setting && setting.value) {
+            if (typeof value === "string") {
+                process.env[key] = value;
+            }
+            else {
+                process.env[key] = JSON.stringify(value);
+            }
             return setting.value;
-        /** Variable present in config */
+        }
+        /** Variable present in sails config */
         if (from) {
             if (sails.config[from] && sails.config[from][key]) {
                 value = sails.config[from][key];
@@ -71,6 +89,7 @@ let Model = {
         return undefined;
     },
     async get(key) {
+        key = toScreamingSnake(key);
         if (settings[key] !== undefined) {
             return settings[key];
         }
@@ -87,9 +106,19 @@ let Model = {
     async set(key, value, from) {
         if (key === undefined || value === undefined)
             throw `Setting set key (${key}) and value (${value}) required`;
+        key = toScreamingSnake(key);
+        // Set in local variable
+        settings[key] = value;
+        // Set in ENV
+        if (typeof value === "string") {
+            process.env[key] = value;
+        }
+        else {
+            process.env[key] = JSON.stringify(value);
+        }
+        // Write to Database
         try {
             const propety = await Settings.findOne({ key: key });
-            settings[key] = value;
             if (!propety) {
                 return await Settings.create({
                     key: key,
@@ -111,3 +140,7 @@ module.exports = {
     attributes: attributes,
     ...Model,
 };
+function toScreamingSnake(str) {
+    // Test123___Test_test -> TEST123_TEST_TEST
+    return str.replace(/\.?([A-Z]+)/g, function (x, y) { return "_" + y.toLowerCase(); }).replace(/^_/, "").replace(/_{1,}/g, "_").toUpperCase();
+}

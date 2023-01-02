@@ -16,10 +16,16 @@ describe("Settings", function () {
   });
 
   it("Get from memory afterUpdate", async function () {
-    await Settings.update({ key: "test"}, {value: "yep"}).fetch();
+    await Settings.update({ key: "TEST"}, {value: "yep"}).fetch();
     let setting = await Settings.get("test");
     expect(setting).to.equal("yep")
   });
+
+  it("Should set process.env", async function () {
+    await Settings.set("test_123Test", true);
+    expect(process.env.TEST_123_TEST).to.equal('true')
+  });
+
 
 });
 function sleep(ms) {
