@@ -146,7 +146,11 @@ let Model = {
         if (!salt)
             salt = 8;
         let user = await User.findOne({ id: userId });
-        if (!force && (user.passwordHash || user.temporaryCode)) {
+        /**
+         * If not force, it should check new/old paswords
+         * If user not have oldPassword
+         */
+        if (!force) {
             if (!oldPassword)
                 throw 'oldPassword is required';
             if (user.passwordHash) {
@@ -154,8 +158,9 @@ let Model = {
                     throw `Old pasword not accepted`;
                 }
             }
-            else {
-                if (temporaryCode !== user.temporaryCode) {
+            else if (temporaryCode) {
+                let login = await User.getPhoneString({ id: userId });
+                if (!await OneTimePassword.check(login, temporaryCode)) {
                     throw `Temporary code not match`;
                 }
             }

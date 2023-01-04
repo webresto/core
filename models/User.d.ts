@@ -79,5 +79,5 @@ declare let Model: {
     authDevice(): Promise<void>;
 };
 declare global {
-    const User: typeof Model & ORMModel<User, "id" | "firstName" | "phone">;
+    const User: typeof Model & ORMModel<User, "firstName" | "phone">;
 }
