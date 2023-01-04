@@ -3,7 +3,7 @@ on:
   push:
     branches-ignore:
       - master
-      - staging
+      - alpha
 jobs:
   build:
     runs-on: ubuntu-latest
