@@ -151,9 +151,9 @@ let Model = {
          * If user not have oldPassword
          */
         if (!force) {
-            if (!oldPassword)
-                throw 'oldPassword is required';
             if (user.passwordHash) {
+                if (!oldPassword)
+                    throw 'oldPassword is required';
                 if (!await bcryptjs.compare(oldPassword, user.passwordHash)) {
                     throw `Old pasword not accepted`;
                 }
