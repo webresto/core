@@ -5,6 +5,11 @@ export declare type CaptchaJob = {
     id: string;
     task: string | number;
 };
+export declare type ResolvedCaptcha = {
+    id: string;
+    result: string;
+    label: string;
+};
 export declare type TaskStorage = {
     [key: string]: {
         /** Captcha Job */
@@ -24,5 +29,5 @@ export default abstract class CaptchaAdapter {
     /**
      * check results
      */
-    abstract check(id: string, result: string, label: string): Promise<boolean>;
+    abstract check(resolvedCaptcha: ResolvedCaptcha): Promise<boolean>;
 }

@@ -40,14 +40,14 @@ class POW extends CaptchaAdapter_1.default {
         };
         return task;
     }
-    async check(id, solution, label) {
-        if (POW.taskStorage[id] === undefined)
+    async check(resolvedCaptcha) {
+        if (POW.taskStorage[resolvedCaptcha.id] === undefined)
             return false;
-        let puzzle = POW.taskStorage[id].puzzle;
-        if (puzzle.label !== label)
+        let puzzle = POW.taskStorage[resolvedCaptcha.id].puzzle;
+        if (puzzle.label !== resolvedCaptcha.label)
             return false;
-        if (puzzle.solution === BigInt(solution)) {
-            delete (POW.taskStorage[id]);
+        if (puzzle.solution === BigInt(resolvedCaptcha.result)) {
+            delete (POW.taskStorage[resolvedCaptcha.id]);
             return true;
         }
         else {

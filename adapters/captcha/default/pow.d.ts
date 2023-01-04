@@ -1,6 +1,6 @@
 import CaptchaAdapter from "../CaptchaAdapter";
-import { CaptchaJob } from "../CaptchaAdapter";
+import { CaptchaJob, ResolvedCaptcha } from "../CaptchaAdapter";
 export declare class POW extends CaptchaAdapter {
     getJob(label: string): Promise<CaptchaJob>;
-    check(id: string, solution: string, label: string): Promise<boolean>;
+    check(resolvedCaptcha: ResolvedCaptcha): Promise<boolean>;
 }

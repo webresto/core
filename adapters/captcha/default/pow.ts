@@ -1,5 +1,5 @@
 import CaptchaAdapter from "../CaptchaAdapter";
-import { CaptchaJob } from "../CaptchaAdapter"
+import { CaptchaJob, ResolvedCaptcha } from "../CaptchaAdapter"
 
 // import Puzzle from "crypto-puzzle" https://github.com/fabiospampinato/crypto-puzzle/issues/1
 let Puzzle = require("fix-esm").require("crypto-puzzle").default; // https://github.com/fabiospampinato/crypto-puzzle/issues/2
@@ -45,14 +45,14 @@ export class POW extends CaptchaAdapter {
     return task;
   }
 
-  public async check(id: string, solution: string, label: string): Promise<boolean> {
+  public async check(resolvedCaptcha: ResolvedCaptcha): Promise<boolean> {
     
-    if ( POW.taskStorage[id] === undefined ) return false
+    if ( POW.taskStorage[resolvedCaptcha.id] === undefined ) return false
 
-    let puzzle = POW.taskStorage[id].puzzle;
-    if (puzzle.label !== label) return false
-    if(puzzle.solution === BigInt(solution)) {
-      delete(POW.taskStorage[id]);
+    let puzzle = POW.taskStorage[resolvedCaptcha.id].puzzle;
+    if (puzzle.label !== resolvedCaptcha.label) return false
+    if(puzzle.solution === BigInt(resolvedCaptcha.result)) {
+      delete(POW.taskStorage[resolvedCaptcha.id]);
       return true
     } else {
       return false 

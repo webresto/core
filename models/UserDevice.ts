@@ -32,11 +32,14 @@ interface UserDevice extends RequiredField<OptionalAll<attributes>, null >, ORM 
 export default UserDevice;
 
 let Model = {
-  beforeCreate(UserLocationInit: any, next: any) {
-    if (!UserLocationInit.id) {
-      UserLocationInit.id = uuid();
+  beforeUpdate(record: UserDevice, next: Function){
+    record.lastActivity = new Date().toISOString();
+  },
+  beforeCreate(record: any, next: Function) {
+    record.lastActivity = new Date().toISOString();
+    if (!record.id) {
+      record.id = uuid();
     }
-    
     next();
   },
 };
@@ -48,5 +51,5 @@ module.exports = {
 };
 
 declare global {
-  const UserDevice: typeof Model & ORMModel<UserDevice,  "lastIP" | "lastActivity" >;
+  const UserDevice: typeof Model & ORMModel<UserDevice,  "lastIP" >;
 }

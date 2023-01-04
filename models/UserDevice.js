@@ -20,9 +20,13 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate(UserLocationInit, next) {
-        if (!UserLocationInit.id) {
-            UserLocationInit.id = (0, uuid_1.v4)();
+    beforeUpdate(record, next) {
+        record.lastActivity = new Date().toISOString();
+    },
+    beforeCreate(record, next) {
+        record.lastActivity = new Date().toISOString();
+        if (!record.id) {
+            record.id = (0, uuid_1.v4)();
         }
         next();
     },

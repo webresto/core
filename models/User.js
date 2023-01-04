@@ -33,7 +33,7 @@ let attributes = {
      */
     phone: {
         type: 'json',
-        required: true,
+        // required: true,
         custom: function (phone) {
             if (!phone.code || !phone.number)
                 throw `Code or Number of phone not passed`;
@@ -72,10 +72,6 @@ let attributes = {
     },
     verified: {
         type: 'boolean'
-    },
-    lastActive: {
-        type: 'string',
-        // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
     },
     passwordHash: {
         type: 'string',

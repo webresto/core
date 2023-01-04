@@ -23,8 +23,9 @@ interface UserDevice extends RequiredField<OptionalAll<attributes>, null>, ORM {
 }
 export default UserDevice;
 declare let Model: {
-    beforeCreate(UserLocationInit: any, next: any): void;
+    beforeUpdate(record: UserDevice, next: Function): void;
+    beforeCreate(record: any, next: Function): void;
 };
 declare global {
-    const UserDevice: typeof Model & ORMModel<UserDevice, "lastIP" | "lastActivity">;
+    const UserDevice: typeof Model & ORMModel<UserDevice, "lastIP">;
 }

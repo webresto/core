@@ -4,7 +4,7 @@ import Dish from "../models/Dish";
 import Order from "../models/Order";
 import UserBonusProgram from "../models/UserBonusProgram";
 import { OptionalAll } from "../interfaces/toolsTS";
-declare type Phone = {
+export declare type Phone = {
     code: string;
     number: string;
     additionalNumber?: string;
@@ -37,7 +37,6 @@ declare let attributes: {
         via: string;
     };
     verified: boolean;
-    lastActive: string;
     passwordHash: string;
     lastPasswordChange: string;
     /** Its temporary code for authorization */

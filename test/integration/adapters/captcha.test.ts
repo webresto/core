@@ -1,4 +1,5 @@
 import { Captcha } from "../../../adapters/index";
+import { ResolvedCaptcha } from "../../../adapters/captcha/CaptchaAdapter"
 let job;
 let task
 let Puzzle = require("fix-esm").require("crypto-puzzle").default;
@@ -29,6 +30,11 @@ describe("Captcha default adapter (POW)", function () {
     }
     let captchaAdapter = Captcha.getAdapter();
     let result = await Puzzle.solve(parsedTask)
-    if (!captchaAdapter.check(job.id, result, "test")) throw `Captcha POW check fail`  
+    let resolvedCaptcha: ResolvedCaptcha = {
+      id: job.id,
+      result: result,
+      label: "test"
+    }
+    if (!captchaAdapter.check(resolvedCaptcha)) throw `Captcha POW check fail`  
   });
 });
