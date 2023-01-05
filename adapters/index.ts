@@ -2,7 +2,7 @@ import RMSAdapter from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
-import { NotificationWaterfall } from "./otp/default/NotificationWaterfall";
+import { Waterfall } from "./otp/default/Waterfall";
 import OTPAdapter from "./otp/OneTimePasswordAdapter"
 import NotificationAdapter from "./notification/NotificationAdapter"
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
@@ -140,7 +140,7 @@ export class OTP {
   
     // Use default adapter POW (crypto-puzzle)
     if (!adapterName) {
-      return new NotificationWaterfall;
+      return new Waterfall;
     }
 
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
@@ -157,7 +157,7 @@ export class OTP {
 }
 
 /**
- * retruns OTP-adapter
+ * retruns Notification-adapter
  */
 export class Notification {
   public static getAdapter(adapterName?: string): NotificationAdapter {

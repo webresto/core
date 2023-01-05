@@ -42,7 +42,7 @@ export declare class OTP {
     static getAdapter(adapterName?: string): OTPAdapter;
 }
 /**
- * retruns OTP-adapter
+ * retruns Notification-adapter
  */
 export declare class Notification {
     static getAdapter(adapterName?: string): NotificationAdapter;

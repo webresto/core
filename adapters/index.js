@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Notification = exports.OTP = exports.Captcha = exports.Payment = exports.MediaFileA = exports.Map = exports.RMS = void 0;
 const pow_1 = require("./captcha/default/pow");
-const NotificationWaterfall_1 = require("./otp/default/NotificationWaterfall");
+const Waterfall_1 = require("./otp/default/Waterfall");
 const fs = require("fs");
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
@@ -124,7 +124,7 @@ class OTP {
     static getAdapter(adapterName) {
         // Use default adapter POW (crypto-puzzle)
         if (!adapterName) {
-            return new NotificationWaterfall_1.NotificationWaterfall;
+            return new Waterfall_1.Waterfall;
         }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-otp-adapter";
@@ -140,7 +140,7 @@ class OTP {
 }
 exports.OTP = OTP;
 /**
- * retruns OTP-adapter
+ * retruns Notification-adapter
  */
 class Notification {
     static getAdapter(adapterName) {
