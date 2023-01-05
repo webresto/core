@@ -31,6 +31,7 @@ __exportStar(require("./models/UserBonusProgram"), exports);
 __exportStar(require("./models/UserBonusTransaction"), exports);
 __exportStar(require("./models/UserDevice"), exports);
 __exportStar(require("./models/UserLocation"), exports);
+__exportStar(require("./models/OneTimePassword"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),

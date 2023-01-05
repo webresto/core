@@ -15,3 +15,4 @@ export * from './models/UserBonusProgram';
 export * from './models/UserBonusTransaction';
 export * from './models/UserDevice';
 export * from './models/UserLocation';
+export * from './models/OneTimePassword';
