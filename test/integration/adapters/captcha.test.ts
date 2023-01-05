@@ -32,9 +32,8 @@ describe("Captcha default adapter (POW)", function () {
     let result = await Puzzle.solve(parsedTask)
     let resolvedCaptcha: ResolvedCaptcha = {
       id: job.id,
-      result: result,
-      label: "test"
+      result: result
     }
-    if (!captchaAdapter.check(resolvedCaptcha)) throw `Captcha POW check fail`  
+    if (!captchaAdapter.check(resolvedCaptcha, "test")) throw `Captcha POW check fail`  
   });
 });

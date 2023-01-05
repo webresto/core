@@ -2,7 +2,9 @@ import RMSAdapter from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
-
+import { NotificationWaterfall } from "./otp/default/NotificationWaterfall";
+import OTPAdapter from "./otp/OneTimePasswordAdapter"
+import NotificationAdapter from "./notification/NotificationAdapter"
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
@@ -125,6 +127,54 @@ export class Captcha {
       return new adapter.CaptchaAdapter[adapterName] as CaptchaAdapter;
     } catch (e) {
       sails.log.error("CORE > getAdapter Captcha > error; ", e);
+      throw new Error("Module " + adapterLocation + " not found");
+    }
+  }
+}
+
+/**
+ * retruns OTP-adapter
+ */
+export class OTP {
+  public static getAdapter(adapterName?: string): OTPAdapter {
+  
+    // Use default adapter POW (crypto-puzzle)
+    if (!adapterName) {
+      return new NotificationWaterfall;
+    }
+
+    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
+    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-otp-adapter";
+
+    try {
+      const adapter = require(adapterLocation);
+      return new adapter.OTPAdapter[adapterName] as OTPAdapter;
+    } catch (e) {
+      sails.log.error("CORE > getAdapter OTP > error; ", e);
+      throw new Error("Module " + adapterLocation + " not found");
+    }
+  }
+}
+
+/**
+ * retruns OTP-adapter
+ */
+export class Notification {
+  public static getAdapter(adapterName?: string): NotificationAdapter {
+  
+    // TODO: make web push
+    // if (!adapterName) {
+    //   return new WebPush;
+    // }
+
+    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-notification-adapter";
+    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-notification-adapter";
+
+    try {
+      const adapter = require(adapterLocation);
+      return new adapter.NotificationAdapter[adapterName] as NotificationAdapter;
+    } catch (e) {
+      sails.log.error("CORE > getAdapter Notification > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
   }

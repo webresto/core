@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Captcha = exports.Payment = exports.MediaFileA = exports.Map = exports.RMS = void 0;
+exports.Notification = exports.OTP = exports.Captcha = exports.Payment = exports.MediaFileA = exports.Map = exports.RMS = void 0;
 const pow_1 = require("./captcha/default/pow");
+const NotificationWaterfall_1 = require("./otp/default/NotificationWaterfall");
 const fs = require("fs");
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
@@ -116,3 +117,47 @@ class Captcha {
     }
 }
 exports.Captcha = Captcha;
+/**
+ * retruns OTP-adapter
+ */
+class OTP {
+    static getAdapter(adapterName) {
+        // Use default adapter POW (crypto-puzzle)
+        if (!adapterName) {
+            return new NotificationWaterfall_1.NotificationWaterfall;
+        }
+        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-otp-adapter";
+        try {
+            const adapter = require(adapterLocation);
+            return new adapter.OTPAdapter[adapterName];
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter OTP > error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
+}
+exports.OTP = OTP;
+/**
+ * retruns OTP-adapter
+ */
+class Notification {
+    static getAdapter(adapterName) {
+        // TODO: make web push
+        // if (!adapterName) {
+        //   return new WebPush;
+        // }
+        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-notification-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-notification-adapter";
+        try {
+            const adapter = require(adapterLocation);
+            return new adapter.NotificationAdapter[adapterName];
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter Notification > error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
+}
+exports.Notification = Notification;

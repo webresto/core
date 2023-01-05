@@ -1,16 +1,14 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
+import User from "../models/User";
 declare let attributes: {
     /** ID */
     id: string;
     name: string;
     userAgent: string;
-    isActive: boolean;
-    user: {
-        model: string;
-        via: string;
-    };
+    isLogined: boolean;
+    user: String | User;
     lastIP: string;
     loginTime: string;
     lastActivity: string;

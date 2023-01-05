@@ -45,12 +45,13 @@ export class POW extends CaptchaAdapter {
     return task;
   }
 
-  public async check(resolvedCaptcha: ResolvedCaptcha): Promise<boolean> {
+  public async check(resolvedCaptcha: ResolvedCaptcha, label:string): Promise<boolean> {
     
     if ( POW.taskStorage[resolvedCaptcha.id] === undefined ) return false
+    
+    if (POW.taskStorage[resolvedCaptcha.id].label !== label) return false
 
     let puzzle = POW.taskStorage[resolvedCaptcha.id].puzzle;
-    if (puzzle.label !== resolvedCaptcha.label) return false
     if(puzzle.solution === BigInt(resolvedCaptcha.result)) {
       delete(POW.taskStorage[resolvedCaptcha.id]);
       return true

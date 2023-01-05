@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-
+import User from "../models/User"
 let attributes = {
   
   /** ID */
@@ -13,12 +13,13 @@ let attributes = {
 
   name: 'string',
   userAgent: 'string',
-  isActive: "boolean" as unknown as boolean,
+
+  isLogined: "boolean" as unknown as boolean,
 
   user: {
     model: 'user',
     via: 'devices'
-  },
+  } as unknown as User | String,
   lastIP: "string",
   loginTime: "number",
   lastActivity: "number",

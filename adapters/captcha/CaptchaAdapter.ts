@@ -10,7 +10,6 @@ export type CaptchaJob = {
 export type ResolvedCaptcha = {
   id: string
   result: string
-  label: string
 }
 
 export type TaskStorage  = {
@@ -37,5 +36,5 @@ export default abstract class CaptchaAdapter {
   /**
    * check results
    */
-  public abstract check(resolvedCaptcha: ResolvedCaptcha): Promise<boolean>;
+  public abstract check(resolvedCaptcha: ResolvedCaptcha, label: string): Promise<boolean>;
 }

@@ -9,7 +9,7 @@ let attributes = {
     },
     name: 'string',
     userAgent: 'string',
-    isActive: "boolean",
+    isLogined: "boolean",
     user: {
         model: 'user',
         via: 'devices'
