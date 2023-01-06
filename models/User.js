@@ -86,6 +86,17 @@ let attributes = {
         type: 'string',
         allowNull: true
     },
+    /**
+     * UserGroup (new, best.... )
+     * Its Idea for making different promo for users
+     */
+    // group:  "string",
+    /** Mark as kitchen worker
+     * its idea for making delivery message for Employers
+     * */
+    // isEmployee: { 
+    //   type:'boolean'
+    // } as unknown as boolean,
     isDeleted: {
         type: 'boolean'
     },

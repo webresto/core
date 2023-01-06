@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Notification = exports.OTP = exports.Captcha = exports.Payment = exports.MediaFile = exports.Map = exports.RMS = void 0;
+exports.OTP = exports.Captcha = exports.Payment = exports.MediaFile = exports.Map = exports.RMS = void 0;
 const pow_1 = require("./captcha/default/pow");
-const Waterfall_1 = require("./otp/default/Waterfall");
+const defaultOTP_1 = require("./otp/default/defaultOTP");
 const fs = require("fs");
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
@@ -141,7 +141,7 @@ class OTP {
         }
         // Use default adapter POW (crypto-puzzle)
         if (!adapterName) {
-            return new Waterfall_1.Waterfall;
+            return new defaultOTP_1.DefaultOTP;
         }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-otp-adapter";
@@ -156,28 +156,3 @@ class OTP {
     }
 }
 exports.OTP = OTP;
-/**
- * retruns Notification-adapter
- */
-class Notification {
-    static async getAdapter(adapterName) {
-        if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_NOTIFICATION_ADAPTER");
-        }
-        // TODO: make web push
-        // if (!adapterName) {
-        //   return new WebPush;
-        // }
-        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-notification-adapter";
-        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-notification-adapter";
-        try {
-            const adapter = require(adapterLocation);
-            return new adapter.NotificationAdapter[adapterName];
-        }
-        catch (e) {
-            sails.log.error("CORE > getAdapter Notification > error; ", e);
-            throw new Error("Module " + adapterLocation + " not found");
-        }
-    }
-}
-exports.Notification = Notification;

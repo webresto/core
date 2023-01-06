@@ -4,9 +4,18 @@ const hookTools_1 = require("../libs/hookTools");
 const path_1 = require("path");
 const afterHook_1 = require("./afterHook");
 const _ = require("lodash");
+/**
+ * Set global emmiter
+ */
 const getEmitter_1 = require("../libs/getEmitter");
 // @ts-ignore
 global.emitter = (0, getEmitter_1.default)();
+/**
+ * Set global NotificationManager
+ */
+const NotificationManager_1 = require("../libs/NotificationManager");
+// @ts-ignore
+global.NotificationManager = NotificationManager_1.NotificationManager;
 function ToInitialize(sails) {
     /**
      * Required hooks

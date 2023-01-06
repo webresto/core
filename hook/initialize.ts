@@ -3,10 +3,19 @@ import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
 
+/**
+ * Set global emmiter
+ */
 import getEmitter from "../libs/getEmitter";
 // @ts-ignore
 global.emitter = getEmitter();
-    
+   
+/**
+ * Set global NotificationManager
+ */
+import { NotificationManager } from "../libs/NotificationManager";
+// @ts-ignore
+global.NotificationManager = NotificationManager
 
 export default function ToInitialize(sails: Sails) {
   /**

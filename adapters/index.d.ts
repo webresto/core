@@ -2,7 +2,6 @@ import RMSAdapter from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import OTPAdapter from "./otp/OneTimePasswordAdapter";
-import NotificationAdapter from "./notification/NotificationAdapter";
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 /**
@@ -40,10 +39,4 @@ export declare class Captcha {
  */
 export declare class OTP {
     static getAdapter(adapterName?: string): Promise<OTPAdapter>;
-}
-/**
- * retruns Notification-adapter
- */
-export declare class Notification {
-    static getAdapter(adapterName?: string): Promise<NotificationAdapter>;
 }

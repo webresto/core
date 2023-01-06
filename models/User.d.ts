@@ -41,6 +41,13 @@ declare let attributes: {
     lastPasswordChange: string;
     /** Its temporary code for authorization */
     temporaryCode: string;
+    /**
+     * UserGroup (new, best.... )
+     * Its Idea for making different promo for users
+     */
+    /** Mark as kitchen worker
+     * its idea for making delivery message for Employers
+     * */
     isDeleted: boolean;
     customData: string | {
         [key: string]: string | number | boolean;

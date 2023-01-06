@@ -2,9 +2,8 @@ import RMSAdapter from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
-import { Waterfall } from "./otp/default/Waterfall";
+import { DefaultOTP } from "./otp/default/defaultOTP";
 import OTPAdapter from "./otp/OneTimePasswordAdapter"
-import NotificationAdapter from "./notification/NotificationAdapter"
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
@@ -165,7 +164,7 @@ export class OTP {
 
     // Use default adapter POW (crypto-puzzle)
     if (!adapterName) {
-      return new Waterfall;
+      return new DefaultOTP;
     }
 
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
@@ -181,31 +180,3 @@ export class OTP {
   }
 }
 
-/**
- * retruns Notification-adapter
- */
-export class Notification {
-  public static async getAdapter(adapterName?: string): Promise<NotificationAdapter> {
-  
-
-    if(!adapterName) {
-      adapterName = await Settings.get("DEFAULT_NOTIFICATION_ADAPTER") as string;
-    }
-
-    // TODO: make web push
-    // if (!adapterName) {
-    //   return new WebPush;
-    // }
-
-    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-notification-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-notification-adapter";
-
-    try {
-      const adapter = require(adapterLocation);
-      return new adapter.NotificationAdapter[adapterName] as NotificationAdapter;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Notification > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-}
