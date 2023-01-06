@@ -9,41 +9,41 @@ import PaymentAdapter from "./payment/PaymentAdapter";
  * retruns RMS-adapter
  */
 export declare class RMS {
-    static getAdapter(adapterName: string): typeof RMSAdapter;
+    static getAdapter(adapterName: string): Promise<typeof RMSAdapter>;
 }
 /**
  * retruns Map-adapter
  */
 export declare class Map {
-    static getAdapter(adapterName: string): new (config: any) => MapAdapter;
+    static getAdapter(adapterName: string): Promise<typeof MapAdapter>;
 }
 /**
  * retruns MediaFile-adapter
  */
-export declare class MediaFileA {
-    static getAdapter(adapterName: string): MediaFileAdapter;
+export declare class MediaFile {
+    static getAdapter(adapterName: string): Promise<MediaFileAdapter>;
 }
 /**
  * retruns Payment-adapter
  */
 export declare class Payment {
-    static getAdapter(adapterName: string): PaymentAdapter;
+    static getAdapter(adapterName: string): Promise<PaymentAdapter>;
 }
 /**
  * retruns Captcha-adapter
  */
 export declare class Captcha {
-    static getAdapter(adapterName?: string): CaptchaAdapter;
+    static getAdapter(adapterName?: string): Promise<CaptchaAdapter>;
 }
 /**
  * retruns OTP-adapter
  */
 export declare class OTP {
-    static getAdapter(adapterName?: string): OTPAdapter;
+    static getAdapter(adapterName?: string): Promise<OTPAdapter>;
 }
 /**
  * retruns Notification-adapter
  */
 export declare class Notification {
-    static getAdapter(adapterName?: string): NotificationAdapter;
+    static getAdapter(adapterName?: string): Promise<NotificationAdapter>;
 }

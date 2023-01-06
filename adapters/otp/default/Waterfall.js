@@ -5,7 +5,7 @@ const OneTimePasswordAdapter_1 = require("../OneTimePasswordAdapter");
 const index_1 = require("../../index");
 class Waterfall extends OneTimePasswordAdapter_1.default {
     async get(login) {
-        let notificationAdapter = index_1.Notification.getAdapter();
+        let notificationAdapter = await index_1.Notification.getAdapter();
         let otp = await OneTimePassword.create({ login: login }).fetch();
         if (!otp.password || !login)
             notificationAdapter.sendToManager("Error", `Failed OPT password generate for ${login}, please contact with him`);

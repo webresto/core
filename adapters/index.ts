@@ -14,7 +14,7 @@ const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? 
  * retruns RMS-adapter
  */ 
 export class RMS {
-  public static getAdapter(adapterName: string): typeof RMSAdapter {
+  public static async getAdapter(adapterName: string): Promise<typeof RMSAdapter> {
     
     // if(!Boolean(adapterName)) {
     //   sails.log.warn(`RMS adapter not defined: ${adapterName}`);
@@ -22,6 +22,15 @@ export class RMS {
     // }
 
     // For factory we use different dirrectory for modules
+
+    if(!adapterName) {
+      adapterName = await Settings.get("DEFAULT_RMS_ADAPTER") as string;
+    }
+
+    // if(!adapterName) {
+    //   // RUN DUMMY ADAPTER
+    // }
+
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
     try {
@@ -39,12 +48,11 @@ export class RMS {
  * retruns Map-adapter
  */
 export class Map {
-  public static getAdapter(adapterName: string): new (config) => MapAdapter {
+  public static async getAdapter(adapterName: string): Promise<typeof MapAdapter> {
 
-    // if(!Boolean(adapterName)) {
-    //   sails.log.warn(`Map adapter not defined: ${adapterName}`);
-    //   return 
-    // }
+    if(!adapterName) {
+      adapterName = await Settings.get("DEFAULT_MAP_ADAPTER") as string;
+    }
 
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-map-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-map-adapter";
@@ -63,13 +71,19 @@ export class Map {
 /**
  * retruns MediaFile-adapter
  */
-export class MediaFileA {
-  public static getAdapter(adapterName: string): MediaFileAdapter {
+export class MediaFile {
+  public static async getAdapter(adapterName: string): Promise<MediaFileAdapter> {
 
     // if(!Boolean(adapterName)) {
     //   sails.log.warn(`MediaFile adapter not defined: ${adapterName}`);
     //   return 
     // }
+
+    if(!adapterName) {
+      adapterName = await Settings.get("MEDIAFILE_ADAPTER") as string;
+    }
+
+
 
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
@@ -87,13 +101,16 @@ export class MediaFileA {
  * retruns Payment-adapter
  */
 export class Payment {
-  public static getAdapter(adapterName: string): PaymentAdapter {
+  public static async getAdapter(adapterName: string): Promise<PaymentAdapter> {
 
     // if(!Boolean(adapterName)) {
     //   sails.log.warn(`Payment adapter not defined: ${adapterName}`);
     //   return 
     // }
 
+    if(!adapterName) {
+      adapterName = await Settings.get("DEFAULT_PAYMENT_ADAPTER") as string;
+    }
 
     let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
@@ -112,8 +129,12 @@ export class Payment {
  * retruns Captcha-adapter
  */
 export class Captcha {
-  public static getAdapter(adapterName?: string): CaptchaAdapter {
+  public static  async getAdapter(adapterName?: string): Promise<CaptchaAdapter> {
   
+    if(!adapterName) {
+      adapterName = await Settings.get("DEFAULT_CAPTCHA_ADAPTER") as string;
+    }
+
     // Use default adapter POW (crypto-puzzle)
     if (!adapterName) {
       return new POW;
@@ -136,8 +157,12 @@ export class Captcha {
  * retruns OTP-adapter
  */
 export class OTP {
-  public static getAdapter(adapterName?: string): OTPAdapter {
+  public static async getAdapter(adapterName?: string): Promise<OTPAdapter> {
   
+    if(!adapterName) {
+      adapterName = await Settings.get("DEFAULT_OTP_ADAPTER") as string;
+    }
+
     // Use default adapter POW (crypto-puzzle)
     if (!adapterName) {
       return new Waterfall;
@@ -160,8 +185,13 @@ export class OTP {
  * retruns Notification-adapter
  */
 export class Notification {
-  public static getAdapter(adapterName?: string): NotificationAdapter {
+  public static async getAdapter(adapterName?: string): Promise<NotificationAdapter> {
   
+
+    if(!adapterName) {
+      adapterName = await Settings.get("DEFAULT_NOTIFICATION_ADAPTER") as string;
+    }
+
     // TODO: make web push
     // if (!adapterName) {
     //   return new WebPush;

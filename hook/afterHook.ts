@@ -21,7 +21,7 @@ export default async function () {
      * run instance RMSadapter
      */
     if (rmsAdapterName) {
-      const rmsAdapter = RMS.getAdapter(rmsAdapterName);
+      const rmsAdapter = await RMS.getAdapter(rmsAdapterName);
       rmsAdapter.getInstance(rmsAdapterConfig, imagesConfig, timeSyncMenu, timeSyncBalance, timeSyncStreets);
     }
 

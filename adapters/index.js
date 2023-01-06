@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Notification = exports.OTP = exports.Captcha = exports.Payment = exports.MediaFileA = exports.Map = exports.RMS = void 0;
+exports.Notification = exports.OTP = exports.Captcha = exports.Payment = exports.MediaFile = exports.Map = exports.RMS = void 0;
 const pow_1 = require("./captcha/default/pow");
 const Waterfall_1 = require("./otp/default/Waterfall");
 const fs = require("fs");
@@ -9,12 +9,18 @@ const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? 
  * retruns RMS-adapter
  */
 class RMS {
-    static getAdapter(adapterName) {
+    static async getAdapter(adapterName) {
         // if(!Boolean(adapterName)) {
         //   sails.log.warn(`RMS adapter not defined: ${adapterName}`);
         //   return 
         // }
         // For factory we use different dirrectory for modules
+        if (!adapterName) {
+            adapterName = await Settings.get("DEFAULT_RMS_ADAPTER");
+        }
+        // if(!adapterName) {
+        //   // RUN DUMMY ADAPTER
+        // }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
         try {
@@ -33,11 +39,10 @@ exports.RMS = RMS;
  * retruns Map-adapter
  */
 class Map {
-    static getAdapter(adapterName) {
-        // if(!Boolean(adapterName)) {
-        //   sails.log.warn(`Map adapter not defined: ${adapterName}`);
-        //   return 
-        // }
+    static async getAdapter(adapterName) {
+        if (!adapterName) {
+            adapterName = await Settings.get("DEFAULT_MAP_ADAPTER");
+        }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-map-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-map-adapter";
         try {
@@ -54,12 +59,15 @@ exports.Map = Map;
 /**
  * retruns MediaFile-adapter
  */
-class MediaFileA {
-    static getAdapter(adapterName) {
+class MediaFile {
+    static async getAdapter(adapterName) {
         // if(!Boolean(adapterName)) {
         //   sails.log.warn(`MediaFile adapter not defined: ${adapterName}`);
         //   return 
         // }
+        if (!adapterName) {
+            adapterName = await Settings.get("MEDIAFILE_ADAPTER");
+        }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
         try {
@@ -72,16 +80,19 @@ class MediaFileA {
         }
     }
 }
-exports.MediaFileA = MediaFileA;
+exports.MediaFile = MediaFile;
 /**
  * retruns Payment-adapter
  */
 class Payment {
-    static getAdapter(adapterName) {
+    static async getAdapter(adapterName) {
         // if(!Boolean(adapterName)) {
         //   sails.log.warn(`Payment adapter not defined: ${adapterName}`);
         //   return 
         // }
+        if (!adapterName) {
+            adapterName = await Settings.get("DEFAULT_PAYMENT_ADAPTER");
+        }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
         try {
@@ -99,7 +110,10 @@ exports.Payment = Payment;
  * retruns Captcha-adapter
  */
 class Captcha {
-    static getAdapter(adapterName) {
+    static async getAdapter(adapterName) {
+        if (!adapterName) {
+            adapterName = await Settings.get("DEFAULT_CAPTCHA_ADAPTER");
+        }
         // Use default adapter POW (crypto-puzzle)
         if (!adapterName) {
             return new pow_1.POW;
@@ -121,7 +135,10 @@ exports.Captcha = Captcha;
  * retruns OTP-adapter
  */
 class OTP {
-    static getAdapter(adapterName) {
+    static async getAdapter(adapterName) {
+        if (!adapterName) {
+            adapterName = await Settings.get("DEFAULT_OTP_ADAPTER");
+        }
         // Use default adapter POW (crypto-puzzle)
         if (!adapterName) {
             return new Waterfall_1.Waterfall;
@@ -143,7 +160,10 @@ exports.OTP = OTP;
  * retruns Notification-adapter
  */
 class Notification {
-    static getAdapter(adapterName) {
+    static async getAdapter(adapterName) {
+        if (!adapterName) {
+            adapterName = await Settings.get("DEFAULT_NOTIFICATION_ADAPTER");
+        }
         // TODO: make web push
         // if (!adapterName) {
         //   return new WebPush;

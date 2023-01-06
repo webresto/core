@@ -9,7 +9,7 @@ describe("Captcha default adapter (POW)", function () {
   this.timeout(60000)
 
   it("get task", async () => {
-    let captchaAdapter = Captcha.getAdapter();
+    let captchaAdapter = await Captcha.getAdapter();
     job = await captchaAdapter.getJob("test");
 
     if(!job || !job.task) throw `job not found`
@@ -28,7 +28,7 @@ describe("Captcha default adapter (POW)", function () {
       salt: task.salt,
       hash: task.hash
     }
-    let captchaAdapter = Captcha.getAdapter();
+    let captchaAdapter = await Captcha.getAdapter();
     let result = await Puzzle.solve(parsedTask)
     let resolvedCaptcha: ResolvedCaptcha = {
       id: job.id,
