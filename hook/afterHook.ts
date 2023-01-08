@@ -33,7 +33,19 @@ export default async function () {
 
     PaymentDocument.processor(timeSyncPayments);
 
-
+    //Set default
+    await Settings.setDefault("LOGIN_FIELD", "phone");    
+    await Settings.setDefault("REGISTRATION_OTP_REQUIRED", true);
+    await Settings.setDefault("LOGIN_OTP_REQUIRED", true);
+    await Settings.setDefault("SET_LAST_OTP_AS_PASSWORD", true);
+    await Settings.setDefault("PASSWORD_REQUIRED", false);
+    
+    if (!await Settings.get("PASSWORD_REQUIRED") && !await Settings.get("REGISTRATION_OTP_REQUIRED")){
+      sails.log.info(`Use default registartion strategy [OTP]`)
+      await Settings.set("LOGIN_OTP_REQUIRED", true);
+      await Settings.set("REGISTRATION_OTP_REQUIRED", true);
+    }
+    
   } catch (e) {
     sails.log.error("core > afterHook > error1", e);
   }

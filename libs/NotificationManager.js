@@ -7,6 +7,9 @@ exports.NotificationManager = void 0;
 class NotificationManager {
     constructor() {
     }
+    isChannelExist(channel) {
+        return true;
+    }
     async sendMessageToUser(badge, user, message, subject, channel, data) {
     }
     ;

@@ -9,6 +9,7 @@ export declare class NotificationManager {
     static kitchenChannels: Function[];
     static userChannels: Function[];
     constructor();
+    isChannelExist(channel: string): boolean;
     sendMessageToUser(badge: Badge, user: User, message: string, subject?: string, channel?: string, data?: object): Promise<void>;
     sendMessageToDeliveryManager(badge: Badge, message: string, data?: object): Promise<void>;
     sendMessageToEmployeeGroup(badge: Badge, message: string, data?: object): Promise<void>;

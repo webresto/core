@@ -83,7 +83,7 @@ export default interface ORMModel<M, C extends keyof M> {
 
   update?(criteria: CriteriaQuery<M>, changes: OptionalAll<M>): UpdateBuilder<M[]>;
   // update?(criteria: CriteriaQuery<M>, changes: OptionalAll<M[]>): UpdateBuilder<M[]>;
-  updateOne?(criteria: CriteriaQuery<M>, changes: OptionalAll<M>): M;
+  updateOne?(criteria: CriteriaQuery<M>, changes: OptionalAll<M>): UpdateBuilder<M>;
 
   destroy?(criteria: CriteriaQuery<M>): CRUDBuilder<M[]>;
   destroy?(criteria: CriteriaQuery<M>[]): CRUDBuilder<M[]>;

@@ -23,6 +23,10 @@ let attributes = {
   lastIP: "string",
   loginTime: "number",
   lastActivity: "number",
+  authToken:  {
+    type: "string",
+    allowNull: true
+  } as unknown as string,
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
@@ -35,11 +39,24 @@ export default UserDevice;
 let Model = {
   beforeUpdate(record: UserDevice, next: Function){
     record.lastActivity = new Date().toISOString();
+    if(record.user) delete record.user
+    if (record.isLogined === false) {
+      record.authToken = null
+    }
+
+    if (record.isLogined === true) {
+      record.authToken = uuid();
+    }
+    
   },
   beforeCreate(record: any, next: Function) {
     record.lastActivity = new Date().toISOString();
     if (!record.id) {
       record.id = uuid();
+    }
+
+    if (record.isLogined === true) {
+      record.authToken = uuid();
     }
     next();
   },

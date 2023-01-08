@@ -12,6 +12,7 @@ declare let attributes: {
     lastIP: string;
     loginTime: string;
     lastActivity: string;
+    authToken: string;
     customData: string | {
         [key: string]: string | number | boolean;
     };

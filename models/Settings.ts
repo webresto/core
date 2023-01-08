@@ -160,8 +160,21 @@ let Model = {
     } catch (e) {
       sails.log.error("CORE > Settings > set: ", key, value, from, e);
     }
-  },
+  },  
+  async setDefault(key: string, value: any, from?: string): Promise<void> {
+    let setting = (await Settings.find({ key: key }).limit(1))[0];
+    if(!setting){
+      await Settings.create({
+        key: key,
+        value: value,
+        from: from,
+      });
+    }
+  }
+
 };
+
+
 
 module.exports = {
   primaryKey: "id",

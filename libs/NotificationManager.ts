@@ -16,6 +16,10 @@ export class NotificationManager {
 
   }
 
+  public isChannelExist(channel: string): boolean {
+    return true
+  }
+  
   public async sendMessageToUser(badge: Badge, user: User, message: string, subject?: string, channel?: string, data?: object): Promise<void> {
 
   };

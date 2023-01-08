@@ -36,6 +36,7 @@ declare let Model: {
      * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
      */
     set(key: string, value: any, from?: string): Promise<Settings>;
+    setDefault(key: string, value: any, from?: string): Promise<void>;
 };
 declare global {
     const Settings: typeof Model & ORMModel<Settings, "key" | "value">;
