@@ -2,6 +2,7 @@ import RMSAdapter from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
+import * as LocalMediaFileAdapter from "./mediafile/default/im-local"
 import { DefaultOTP } from "./otp/default/defaultOTP";
 import OTPAdapter from "./otp/OneTimePasswordAdapter"
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
@@ -70,7 +71,7 @@ export class Map {
 /**
  * retruns MediaFile-adapter
  */
-export class MediaFile {
+export class Media {
   public static async getAdapter(adapterName: string): Promise<MediaFileAdapter> {
 
     // if(!Boolean(adapterName)) {
@@ -81,18 +82,21 @@ export class MediaFile {
     if(!adapterName) {
       adapterName = await Settings.get("MEDIAFILE_ADAPTER") as string;
     }
-
-
-
-    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
-    try {
-      const adapter = require(adapterLocation);
-      return adapter.MediaFileAdapter.default;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter MediaFileA > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
+    let adapter: {MediaFileAdapter: {default: MediaFileAdapter}}
+    // Use default adapter local Imagemagick
+    if (!adapterName || "imagemagick-local") {
+      adapter = require("./mediafile/default/im-local");
+    } else {
+      let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
+      adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
+      try {
+        adapter = require(adapterLocation);
+      } catch (e) {
+        sails.log.error("CORE > getAdapter MediaFileA > error; ", e);
+        throw new Error("Module " + adapterLocation + " not found");
+      }
     }
+    return adapter.MediaFileAdapter.default;
   }
 }
 

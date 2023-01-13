@@ -4,17 +4,19 @@ import Dish from "./Dish";
 import Group from "./Group";
 import { OptionalAll } from "../interfaces/toolsTS";
 declare let attributes: {
-    /** ID картинки */
+    /** ID */
     id: string;
-    /** Данные о картинках, что содержит данная модель */
+    /** Image items */
     images: any;
-    /** Блюдо, которому принадлежит картинка */
+    /** Video items */
+    videos: any;
+    /** Dish relation */
     dish: Dish[];
-    /** Порядок сортировки */
+    /** Sort order */
     order: number;
-    /** */
+    /** Group relation */
     group: Group[];
-    /** Группа, которой принажлежит картинка */
+    /** upload date */
     uploadDate: string;
 };
 declare type attributes = typeof attributes;

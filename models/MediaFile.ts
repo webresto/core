@@ -6,31 +6,35 @@ import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 
 let attributes = {
-  /** ID картинки */
+  /** ID */
   id: {
     type: "string",
     //required: true,
   } as unknown as string,
 
-  /** Данные о картинках, что содержит данная модель */
+  /** Image items */
   images: "json" as unknown as any,
 
-  /** Блюдо, которому принадлежит картинка */
+
+  /** Video items */
+  videos: "json" as unknown as any,
+
+  /** Dish relation */
   dish: {
     collection: "dish",
     via: "images",
   } as unknown as Dish[],
 
-  /** Порядок сортировки */
+  /** Sort order */
   order: "number" as unknown as number,
 
-  /** */
+  /** Group relation */
   group: {
     collection: "group",
     via: "images",
   } as unknown as Group[],
 
-  /** Группа, которой принажлежит картинка */
+  /** upload date */
   uploadDate: "string",
 };
 type attributes = typeof attributes;

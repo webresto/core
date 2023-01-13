@@ -19,7 +19,7 @@ export declare class Map {
 /**
  * retruns MediaFile-adapter
  */
-export declare class MediaFile {
+export declare class Media {
     static getAdapter(adapterName: string): Promise<MediaFileAdapter>;
 }
 /**

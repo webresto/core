@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OTP = exports.Captcha = exports.Payment = exports.MediaFile = exports.Map = exports.RMS = void 0;
+exports.OTP = exports.Captcha = exports.Payment = exports.Media = exports.Map = exports.RMS = void 0;
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
 const fs = require("fs");
@@ -59,7 +59,7 @@ exports.Map = Map;
 /**
  * retruns MediaFile-adapter
  */
-class MediaFile {
+class Media {
     static async getAdapter(adapterName) {
         // if(!Boolean(adapterName)) {
         //   sails.log.warn(`MediaFile adapter not defined: ${adapterName}`);
@@ -68,19 +68,26 @@ class MediaFile {
         if (!adapterName) {
             adapterName = await Settings.get("MEDIAFILE_ADAPTER");
         }
-        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
-        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
-        try {
-            const adapter = require(adapterLocation);
-            return adapter.MediaFileAdapter.default;
+        let adapter;
+        // Use default adapter local Imagemagick
+        if (!adapterName || "imagemagick-local") {
+            adapter = require("./mediafile/default/im-local");
         }
-        catch (e) {
-            sails.log.error("CORE > getAdapter MediaFileA > error; ", e);
-            throw new Error("Module " + adapterLocation + " not found");
+        else {
+            let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
+            adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
+            try {
+                adapter = require(adapterLocation);
+            }
+            catch (e) {
+                sails.log.error("CORE > getAdapter MediaFileA > error; ", e);
+                throw new Error("Module " + adapterLocation + " not found");
+            }
         }
+        return adapter.MediaFileAdapter.default;
     }
 }
-exports.MediaFile = MediaFile;
+exports.Media = Media;
 /**
  * retruns Payment-adapter
  */

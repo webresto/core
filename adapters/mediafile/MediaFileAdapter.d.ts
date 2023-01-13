@@ -6,5 +6,4 @@ export default abstract class MediaFileAdapter {
         origin: string;
     }>;
     abstract uploadMediaFile(uploadFile: any, key: string): Promise<any>;
-    abstract uploadBase64MediaFile(base64: string, filetype: string, key: string): Promise<any>;
 }

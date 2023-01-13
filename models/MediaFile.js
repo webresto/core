@@ -2,26 +2,28 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 let attributes = {
-    /** ID картинки */
+    /** ID */
     id: {
         type: "string",
         //required: true,
     },
-    /** Данные о картинках, что содержит данная модель */
+    /** Image items */
     images: "json",
-    /** Блюдо, которому принадлежит картинка */
+    /** Video items */
+    videos: "json",
+    /** Dish relation */
     dish: {
         collection: "dish",
         via: "images",
     },
-    /** Порядок сортировки */
+    /** Sort order */
     order: "number",
-    /** */
+    /** Group relation */
     group: {
         collection: "group",
         via: "images",
     },
-    /** Группа, которой принажлежит картинка */
+    /** upload date */
     uploadDate: "string",
 };
 let Model = {
