@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const adapters_1 = require("../adapters");
+const index_1 = require("../adapters/index");
 /**
  * Initial RMS and set timezone if it given
  */
@@ -20,7 +20,7 @@ async function default_1() {
          * run instance RMSadapter
          */
         if (rmsAdapterName) {
-            const rmsAdapter = await adapters_1.RMS.getAdapter(rmsAdapterName);
+            const rmsAdapter = await index_1.RMS.getAdapter(rmsAdapterName);
             rmsAdapter.getInstance(rmsAdapterConfig, imagesConfig, timeSyncMenu, timeSyncBalance, timeSyncStreets);
         }
         /**

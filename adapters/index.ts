@@ -35,8 +35,7 @@ export class RMS {
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
     try {
       const adapter = require(adapterLocation);
-      // why adapterName.toUpperCase() ↘
-      return adapter.RMS[adapterName.toUpperCase()];
+      return adapter.RMSAdapter.default;
     } catch (e) {
       sails.log.error("CORE > getAdapter RMS > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
