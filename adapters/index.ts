@@ -71,7 +71,7 @@ export class Map {
  * retruns MediaFile-adapter
  */
 export class Media {
-  public static async getAdapter(adapterName: string): Promise<MediaFileAdapter> {
+  public static async getAdapter(adapterName: string): Promise<typeof MediaFileAdapter> {
 
     // if(!Boolean(adapterName)) {
     //   sails.log.warn(`MediaFile adapter not defined: ${adapterName}`);
@@ -81,7 +81,7 @@ export class Media {
     if(!adapterName) {
       adapterName = await Settings.get("MEDIAFILE_ADAPTER") as string;
     }
-    let adapter: {MediaFileAdapter: {default: MediaFileAdapter}}
+    let adapter: {default: typeof MediaFileAdapter}
     // Use default adapter local Imagemagick
     if (!adapterName || "imagemagick-local") {
       adapter = require("./mediafile/default/im-local");
@@ -95,7 +95,7 @@ export class Media {
         throw new Error("Module " + adapterLocation + " not found");
       }
     }
-    return adapter.MediaFileAdapter.default;
+    return adapter.default;
   }
 }
 

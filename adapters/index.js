@@ -83,7 +83,7 @@ class Media {
                 throw new Error("Module " + adapterLocation + " not found");
             }
         }
-        return adapter.MediaFileAdapter.default;
+        return adapter.default;
     }
 }
 exports.Media = Media;
