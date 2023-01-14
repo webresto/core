@@ -6,10 +6,11 @@ import { OptionalAll } from "../interfaces/toolsTS";
 declare let attributes: {
     /** ID */
     id: string;
+    /** Type of media content */
+    /** Video/Photo items */
     /** Image items */
     images: any;
-    /** Video items */
-    videos: any;
+    original: string;
     /** Dish relation */
     dish: Dish[];
     /** Sort order */

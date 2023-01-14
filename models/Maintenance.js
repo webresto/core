@@ -4,13 +4,7 @@ const uuid_1 = require("uuid");
 const CHECK_INTERVAL = 60000;
 sails.on("lifted", function () {
     setInterval(async function () {
-        const maintenance = await Maintenance.getActiveMaintenance();
-        if (maintenance) {
-            emitter.emit("core-maintenance-enabled", maintenance);
-        }
-        else {
-            emitter.emit("core-maintenance-disabled");
-        }
+        checkMaintenance();
     }, CHECK_INTERVAL);
 });
 let attributes = {
@@ -33,8 +27,16 @@ let attributes = {
     stopDate: "string",
 };
 let Model = {
-    beforeCreate: function (paymentMethod, next) {
-        paymentMethod.id = (0, uuid_1.v4)();
+    afterCreate: function (maintenance, next) {
+        checkMaintenance();
+        next();
+    },
+    afterUpdate: function (maintenance, next) {
+        checkMaintenance();
+        next();
+    },
+    beforeCreate: function (maintenance, next) {
+        maintenance.id = (0, uuid_1.v4)();
         next();
     },
     siteIsOff: async function () {
@@ -66,4 +68,13 @@ module.exports = {
 };
 function between(from, to, a) {
     return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
+}
+async function checkMaintenance() {
+    const maintenance = await Maintenance.getActiveMaintenance();
+    if (maintenance) {
+        emitter.emit("core-maintenance-enabled", maintenance);
+    }
+    else {
+        emitter.emit("core-maintenance-disabled");
+    }
 }

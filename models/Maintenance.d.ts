@@ -19,7 +19,9 @@ interface Maintenance extends attributes, ORM {
 }
 export default Maintenance;
 declare let Model: {
-    beforeCreate: (paymentMethod: any, next: any) => void;
+    afterCreate: (maintenance: any, next: any) => void;
+    afterUpdate: (maintenance: any, next: any) => void;
+    beforeCreate: (maintenance: any, next: any) => void;
     siteIsOff: () => Promise<boolean>;
     getActiveMaintenance: () => Promise<Maintenance>;
 };

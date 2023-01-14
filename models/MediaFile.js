@@ -7,10 +7,17 @@ let attributes = {
         type: "string",
         //required: true,
     },
+    /** Type of media content */
+    //type: {
+    //  type: "string",
+    //  isIn: ['video', 'image']
+    //} as unknown as "video" | "image",
+    /** Video/Photo items */
+    //content: "json" as unknown as any,
+    // DEPRECATED use content instead
     /** Image items */
     images: "json",
-    /** Video items */
-    videos: "json",
+    original: "string",
     /** Dish relation */
     dish: {
         collection: "dish",

@@ -8,12 +8,7 @@ const CHECK_INTERVAL = 60000;
 
 sails.on("lifted", function () {
   setInterval(async function () {
-    const maintenance = await Maintenance.getActiveMaintenance();
-    if (maintenance) {
-      emitter.emit("core-maintenance-enabled", maintenance);
-    } else {
-      emitter.emit("core-maintenance-disabled");
-    }
+    checkMaintenance();
   }, CHECK_INTERVAL);
 });
 
@@ -44,8 +39,18 @@ interface Maintenance extends attributes, ORM {}
 export default Maintenance;
 
 let Model = {
-  beforeCreate: function (paymentMethod, next) {
-    paymentMethod.id = uuid();
+  afterCreate: function (maintenance, next) {
+    checkMaintenance()
+    next();
+  },
+
+  afterUpdate: function (maintenance, next) {
+    checkMaintenance()
+    next();
+  },
+
+  beforeCreate: function (maintenance, next) {
+    maintenance.id = uuid();
     next();
   },
 
@@ -88,4 +93,13 @@ declare global {
 
 function between(from: number, to: number, a: number): boolean {
   return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
+}
+
+async function checkMaintenance(){
+  const maintenance = await Maintenance.getActiveMaintenance();
+  if (maintenance) {
+    emitter.emit("core-maintenance-enabled", maintenance);
+  } else {
+    emitter.emit("core-maintenance-disabled");
+  }
 }

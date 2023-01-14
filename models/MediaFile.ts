@@ -12,13 +12,23 @@ let attributes = {
     //required: true,
   } as unknown as string,
 
+
+  /** Type of media content */
+  //type: {
+  //  type: "string",
+  //  isIn: ['video', 'image']
+  //} as unknown as "video" | "image",
+  
+  /** Video/Photo items */
+  //content: "json" as unknown as any,
+
+  // DEPRECATED use content instead
   /** Image items */
   images: "json" as unknown as any,
 
 
-  /** Video items */
-  videos: "json" as unknown as any,
-
+  
+  original: "string",
   /** Dish relation */
   dish: {
     collection: "dish",
