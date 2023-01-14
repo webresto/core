@@ -49,6 +49,14 @@ let Model = {
         let maintenances = await Maintenance.find({ enable: true });
         maintenances = maintenances.filter((maintenance) => {
             let start, stop;
+            // When dates interval not set is active maintenance
+            if (!maintenance.startDate && !maintenance.stopDate)
+                return true;
+            // When start or stop date not set, is infinity
+            if (!maintenance.startDate)
+                maintenance.startDate = "0000";
+            if (!maintenance.stopDate)
+                maintenance.stopDate = "9999";
             if (maintenance.startDate) {
                 start = new Date(maintenance.startDate).getTime();
             }
