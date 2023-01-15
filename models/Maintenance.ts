@@ -49,6 +49,11 @@ let Model = {
     next();
   },
 
+  afterDestroy: function (maintenance, next) {
+    checkMaintenance();
+    next();
+  },
+
   beforeCreate: function (maintenance, next) {
     maintenance.id = uuid();
     next();
