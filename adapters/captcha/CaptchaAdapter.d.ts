@@ -7,7 +7,7 @@ export declare type CaptchaJob = {
 };
 export declare type ResolvedCaptcha = {
     id: string;
-    result: string;
+    solution: string;
 };
 export declare type TaskStorage = {
     [key: string]: {

@@ -17,6 +17,7 @@ class DefaultOTP extends OneTimePasswordAdapter_1.default {
             await NotificationManager.sendMessageToUser("OTP", user, `Your code is ${otp.password}`);
         }
         await NotificationManager.sendMessageToDeliveryManager("OTP", `Please inform client ${login} OPT code ${otp.password}`);
+        return otp;
     }
 }
 exports.DefaultOTP = DefaultOTP;

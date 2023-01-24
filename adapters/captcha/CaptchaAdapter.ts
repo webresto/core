@@ -9,7 +9,7 @@ export type CaptchaJob = {
 
 export type ResolvedCaptcha = {
   id: string
-  result: string
+  solution: string
 }
 
 export type TaskStorage  = {

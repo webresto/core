@@ -23,8 +23,8 @@ export class POW extends CaptchaAdapter {
     let attempt = 0
     // Tasks garbage collect
     Object.keys(POW.taskStorage).forEach((item) => {
-      if (POW.taskStorage[id].time < Date.now() - 30 * 60 * 1000) delete(POW.taskStorage[id]);
-      if (POW.taskStorage[id].label === label) attempt++;
+      if (POW.taskStorage[id]?.time < Date.now() - 30 * 60 * 1000) delete(POW.taskStorage[id]);
+      if (POW.taskStorage[id]?.label === label) attempt++;
     })
     let difficultСoefficient = 1 + Number((attempt/7).toFixed())
     difficulty = difficulty * difficultСoefficient;
@@ -52,7 +52,7 @@ export class POW extends CaptchaAdapter {
     if (POW.taskStorage[resolvedCaptcha.id].label !== label) return false
 
     let puzzle = POW.taskStorage[resolvedCaptcha.id].puzzle;
-    if(puzzle.solution === BigInt(resolvedCaptcha.result)) {
+    if(puzzle.solution === BigInt(resolvedCaptcha.solution)) {
       delete(POW.taskStorage[resolvedCaptcha.id]);
       return true
     } else {

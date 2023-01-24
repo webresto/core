@@ -1,7 +1,8 @@
 import OneTimePasswordAdapter from "../OneTimePasswordAdapter";
 import User from "../../../models/User";
+import OneTimePassword from "../../../models/OneTimePassword"
 export class DefaultOTP extends OneTimePasswordAdapter {
-  public async get(login: string): Promise<void> {
+  public async get(login: string): Promise<OneTimePassword> {
     let otp = await OneTimePassword.create({ login: login }).fetch();
     if (!otp.password || !login)  {
       await NotificationManager.sendMessageToDeliveryManager("Error", `Failed OPT password generate for ${login}, please contact with him`);
@@ -17,5 +18,6 @@ export class DefaultOTP extends OneTimePasswordAdapter {
     }
 
     await NotificationManager.sendMessageToDeliveryManager("OTP", `Please inform client ${login} OPT code ${otp.password}`);
+    return otp;
   }
 }

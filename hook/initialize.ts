@@ -15,7 +15,7 @@ global.emitter = getEmitter();
  */
 import { NotificationManager } from "../libs/NotificationManager";
 // @ts-ignore
-global.NotificationManager = NotificationManager
+global.NotificationManager = new NotificationManager
 
 export default function ToInitialize(sails: Sails) {
   /**

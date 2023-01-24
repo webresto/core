@@ -27,13 +27,14 @@ export default OneTimePassword;
 
 let Model = {
   beforeCreate(record: any, next: Function) {
-    if (!record.opt) {
-      record.opt = generateOtp();
+    if (!record.password) {
+      record.password = generateOtp();
     }
 
     if (!record.expires) {
       record.expires = Date.now() + 30 * 60 * 1000 // 30 minutes
     }
+    next();
   },
 
   async check(login: string, password: string): Promise<boolean> {

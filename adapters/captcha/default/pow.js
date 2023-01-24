@@ -20,9 +20,9 @@ class POW extends CaptchaAdapter_1.default {
         let attempt = 0;
         // Tasks garbage collect
         Object.keys(POW.taskStorage).forEach((item) => {
-            if (POW.taskStorage[id].time < Date.now() - 30 * 60 * 1000)
+            if (POW.taskStorage[id]?.time < Date.now() - 30 * 60 * 1000)
                 delete (POW.taskStorage[id]);
-            if (POW.taskStorage[id].label === label)
+            if (POW.taskStorage[id]?.label === label)
                 attempt++;
         });
         let difficultСoefficient = 1 + Number((attempt / 7).toFixed());
@@ -46,7 +46,7 @@ class POW extends CaptchaAdapter_1.default {
         if (POW.taskStorage[resolvedCaptcha.id].label !== label)
             return false;
         let puzzle = POW.taskStorage[resolvedCaptcha.id].puzzle;
-        if (puzzle.solution === BigInt(resolvedCaptcha.result)) {
+        if (puzzle.solution === BigInt(resolvedCaptcha.solution)) {
             delete (POW.taskStorage[resolvedCaptcha.id]);
             return true;
         }

@@ -30,7 +30,7 @@ export class NotificationManager {
   // };
 
   public async sendMessageToDeliveryManager(badge: Badge, message: string, data?: object): Promise<void> {
-
+    console.log("NotificationManager > sendMessageToDeliveryManager",badge, message, data)
   };
 
   // IDEA

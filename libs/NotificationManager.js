@@ -17,6 +17,7 @@ class NotificationManager {
     // public async sendMessageToUserGroup(badge: Badge, group: UserGroup, message: string, subject?: string, channel?: string, data?: object): Promise<void> {
     // };
     async sendMessageToDeliveryManager(badge, message, data) {
+        console.log("NotificationManager > sendMessageToDeliveryManager", badge, message, data);
     }
     ;
     // IDEA
