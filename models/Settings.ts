@@ -37,6 +37,11 @@ let attributes = {
 
   /** Источника происхождения */
   from: "string" as string,
+
+  /** Only reading */
+  readOnly: {
+    type: "boolean"
+  } as unknown as boolean,
 };
 
 type attributes = typeof attributes & ORM;
@@ -131,7 +136,7 @@ let Model = {
    * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
    * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
    */
-  async set(key: string, value: any, from?: string): Promise<Settings> {
+  async set(key: string, value: any, from?: string, readOnly: boolean = false): Promise<Settings> {
     if (key === undefined || value === undefined) throw `Setting set key (${key}) and value (${value}) required`;
     key = toScreamingSnake(key);
 
@@ -153,21 +158,24 @@ let Model = {
           key: key,
           value: value,
           from: from,
+          readOnly: readOnly
         });
       } else {
+        if (propety.readOnly) throw `Property cannot be changed (read only)`
         return (await Settings.update({ key: key }, { value: value }).fetch())[0];
       }
     } catch (e) {
       sails.log.error("CORE > Settings > set: ", key, value, from, e);
     }
   },  
-  async setDefault(key: string, value: any, from?: string): Promise<void> {
+  async setDefault(key: string, value: any, from?: string, readOnly: boolean = false): Promise<void> {
     let setting = (await Settings.find({ key: key }).limit(1))[0];
     if(!setting){
       await Settings.create({
         key: key,
         value: value,
         from: from,
+        readOnly: readOnly
       });
     }
   }

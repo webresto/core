@@ -3,6 +3,7 @@ import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
+import UserDevice from "./UserDevice";
 import UserBonusProgram from "../models/UserBonusProgram";
 import { Country } from "../interfaces/Country";
 import * as bcryptjs from "bcryptjs";
@@ -24,9 +25,14 @@ let attributes = {
     unique: true
   } as unknown as string,
 
+  login: {
+    type: 'string',
+    required: true
+  } as unknown as string,
 
   firstName: {
     type: 'string',
+    unique: true,
     required: true
   } as unknown as string,
 
@@ -68,7 +74,7 @@ let attributes = {
 
   birthday: {
     type: 'string',
-    isAfter: new Date('Sat Jan 1 1900 00:00:00 GMT-0000'),
+    // isAfter: new Date('Sat Jan 1 1900 00:00:00 GMT-0000'),
     // isBefore: new Date().setFullYear(new Date().getFullYear()-10)
   } as unknown as string,
 
@@ -100,13 +106,11 @@ let attributes = {
 
   passwordHash: {
     type: 'string',
+    allowNull: true,
     isNotEmptyString: true
   } as unknown as string,
 
-  lastPasswordChange: {
-    type: 'string',
-    // isAfter: new Date('Sat Jan 1 2023 00:00:00 GMT-0000'),
-  } as unknown as string,
+  lastPasswordChange:  { type: "number"} as unknown as number,
 
   /** Its temporary code for authorization */
   temporaryCode: {
@@ -141,13 +145,17 @@ interface User extends OptionalAll<attributes>, ORM {}
 export default User;
 
 let Model = {
-  beforeCreate(userInit: User, next: Function) {
+  async beforeCreate(userInit: User, next: Function) {
     if (!userInit.id) {
       userInit.id = uuid();
     }
     
     if(!userInit.isDeleted) userInit.isDeleted = false;
     if(!userInit.verified) userInit.verified = false;
+
+    if (await Settings.get("LOGIN_FIELD") === undefined || await Settings.get("LOGIN_FIELD") === 'phone'){
+      if(!userInit.phone) throw `User phone is required` 
+    }
 
     next();
   },
@@ -159,12 +167,13 @@ let Model = {
      * @param {WaterlineCriteria} criteria 
      * @returns String
      */
-    async getPhoneString(criteria){
-      let user = await User.findOne(criteria)
-      if (user){
-       return `${user.phone.code}${user.phone.number}${user.phone.additionalNumber? ','+user.phone.additionalNumber : ''}`
+    async getPhoneString(phone: Phone, target: "login" | "print" | "string" = "login"){
+      if (target === 'login') {
+        return (phone.code+phone.number).replace(/\D/g, '')
+      } else if(target === "print") {
+        // TODO: implement mask `+1 (111) 123-45-67`
       } else {
-       throw `User not found`
+        return `${phone.code}${phone.number}${phone.additionalNumber? ','+phone.additionalNumber : ''}`
       }
    },
 
@@ -184,13 +193,16 @@ let Model = {
    * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
    */
   async setPassword(userId: string, newPassword: string, oldPassword: string,  force: boolean = false, temporaryCode?: string): Promise<User> {
-    let paswordRegex = await Settings.get("PasswordRegex");
-    let passwordMinLength = await Settings.get("PasswordMinLength");
-
     if (!userId || !newPassword) throw 'UserId and newPassword is required'
+    
 
-    if ( Number(passwordMinLength) && newPassword.length < Number(passwordMinLength)) throw `Password less than minimum length`
-    if (paswordRegex && !newPassword.match(paswordRegex as string)) throw `Password not match with regex`
+    if (!await Settings.get("SET_LAST_OTP_AS_PASSWORD")) {
+      let paswordRegex = await Settings.get("PASSWORD_REGEX");
+      let passwordMinLength = await Settings.get("PASSWORD_MIN_LENGTH");
+      
+      if ( Number(passwordMinLength) && newPassword.length < Number(passwordMinLength)) throw `Password less than minimum length`
+      if (paswordRegex && !newPassword.match(paswordRegex as string)) throw `Password not match with regex`
+    }
     
     
     // salt
@@ -210,7 +222,7 @@ let Model = {
           throw `Old pasword not accepted`
         }
       } else if (temporaryCode) {
-        let login = await User.getPhoneString({id: userId});
+        let login = await User.getPhoneString(user.phone);
 
         if(!await OneTimePassword.check(login, temporaryCode)) {
           throw `Temporary code not match`
@@ -219,15 +231,48 @@ let Model = {
     }
 
     let passwordHash = bcryptjs.hashSync(newPassword, salt as string | number);
-    return await User.updateOne({id: user.id}, {passwordHash: passwordHash, lastPasswordChange: new Date().toISOString()});
+    return await User.updateOne({id: user.id}, {passwordHash: passwordHash, lastPasswordChange: Date.now()});
   },
   
-  async login(login: string, password: string, temporaryCode: string) {
-    return
+  async login(login: string, deviceName: string, password: string, OTP: string, userAgent:string, IP: string ): Promise<UserDevice> {
+    let user = await User.findOne({login: login});
+
+    // Stop login when password or OTP not passed
+    if (!password && !OTP) {
+      throw `Password or OTP required`
+    }
+    
+    // Stop login without deviceName
+    if (!deviceName) {
+      throw `deviceName required`
+    }
+
+    // Check OTP first because it will prevent brute force.
+    if( OTP  || await Settings.get("LOGIN_OTP_REQUIRED")) {
+      if (!(await OneTimePassword.check(login, OTP))) {
+        throw "OTP check failed"
+      }
+    }
+
+    // check password if passed or required
+    if( password || await Settings.get("PASSWORD_REQUIRED")) {
+      if (!await bcryptjs.compare(password, user.passwordHash)) {
+        throw `Password not match`
+      }
+    }
+
+    // Set last checked OTP as password
+    if(await Settings.get("LOGIN_OTP_REQUIRED") && await Settings.get("SET_LAST_OTP_AS_PASSWORD")) {
+      await User.setPassword(user.id, OTP, null, true)
+    }
+
+    return await User.authDevice(user.id, deviceName, userAgent, IP);
   },
 
-  async authDevice() {
-    return
+  async authDevice(userId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDevice> {
+    let userDevice  = await UserDevice.findOrCreate({user: userId, name: deviceName}, {user: userId, name: deviceName});
+    userDevice = await UserDevice.updateOne({id: userDevice.id}, {loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent })
+    return userDevice;
   }
 };
 
@@ -238,5 +283,5 @@ module.exports = {
 };
 
 declare global {
-  const User: typeof Model & ORMModel<User, "firstName" | "phone" >;
+  const User: typeof Model & ORMModel<User, "firstName" >;
 }

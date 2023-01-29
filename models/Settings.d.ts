@@ -18,6 +18,8 @@ declare let attributes: {
     section: string;
     /** Источника происхождения */
     from: string;
+    /** Only reading */
+    readOnly: boolean;
 };
 declare type attributes = typeof attributes & ORM;
 interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "value"> {
@@ -35,8 +37,8 @@ declare let Model: {
      * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
      * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
      */
-    set(key: string, value: any, from?: string): Promise<Settings>;
-    setDefault(key: string, value: any, from?: string): Promise<void>;
+    set(key: string, value: any, from?: string, readOnly?: boolean): Promise<Settings>;
+    setDefault(key: string, value: any, from?: string, readOnly?: boolean): Promise<void>;
 };
 declare global {
     const Settings: typeof Model & ORMModel<Settings, "key" | "value">;

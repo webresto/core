@@ -15,9 +15,10 @@ let attributes = {
         via: 'devices'
     },
     lastIP: "string",
-    loginTime: "number",
-    lastActivity: "number",
-    authToken: {
+    loginTime: { type: "number" },
+    lastActivity: { type: "number" },
+    /**  (not jwt-token)  */
+    sessionId: {
         type: "string",
         allowNull: true
     },
@@ -25,26 +26,30 @@ let attributes = {
 };
 let Model = {
     beforeUpdate(record, next) {
-        record.lastActivity = new Date().toISOString();
+        record.lastActivity = Date.now();
         if (record.user)
             delete record.user;
         if (record.isLogined === false) {
-            record.authToken = null;
+            record.sessionId = null;
         }
         if (record.isLogined === true) {
-            record.authToken = (0, uuid_1.v4)();
+            record.sessionId = (0, uuid_1.v4)();
         }
     },
     beforeCreate(record, next) {
-        record.lastActivity = new Date().toISOString();
+        record.lastActivity = Date.now();
         if (!record.id) {
             record.id = (0, uuid_1.v4)();
         }
         if (record.isLogined === true) {
-            record.authToken = (0, uuid_1.v4)();
+            record.sessionId = (0, uuid_1.v4)();
         }
         next();
     },
+    /** Method set lastActiity  for device */
+    async setActivity(criteria, client = {}) {
+        await UserDevice.update(criteria, client);
+    }
 };
 module.exports = {
     primaryKey: "id",

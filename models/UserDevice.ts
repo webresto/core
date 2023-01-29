@@ -1,5 +1,5 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import ORMModel, { CriteriaQuery } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import User from "../models/User"
@@ -21,9 +21,11 @@ let attributes = {
     via: 'devices'
   } as unknown as User | String,
   lastIP: "string",
-  loginTime: "number",
-  lastActivity: "number",
-  authToken:  {
+  loginTime:  { type: "number"} as unknown as number,
+  lastActivity: { type: "number"} as unknown as number,
+  
+  /**  (not jwt-token)  */
+  sessionId:  {
     type: "string",
     allowNull: true
   } as unknown as string,
@@ -38,28 +40,33 @@ export default UserDevice;
 
 let Model = {
   beforeUpdate(record: UserDevice, next: Function){
-    record.lastActivity = new Date().toISOString();
+    record.lastActivity = Date.now();
     if(record.user) delete record.user
     if (record.isLogined === false) {
-      record.authToken = null
+      record.sessionId = null
     }
 
     if (record.isLogined === true) {
-      record.authToken = uuid();
+      record.sessionId = uuid();
     }
-    
   },
+
   beforeCreate(record: any, next: Function) {
-    record.lastActivity = new Date().toISOString();
+    record.lastActivity = Date.now();
     if (!record.id) {
       record.id = uuid();
     }
 
     if (record.isLogined === true) {
-      record.authToken = uuid();
+      record.sessionId = uuid();
     }
     next();
   },
+
+  /** Method set lastActiity  for device */
+  async setActivity(criteria: CriteriaQuery<UserDevice>, client:  { lastIP?: string , userAgent?: string } = {}): Promise<void> {
+    await UserDevice.update(criteria, client);
+  }
 };
 
 module.exports = {

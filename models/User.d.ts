@@ -2,6 +2,7 @@ import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
+import UserDevice from "./UserDevice";
 import UserBonusProgram from "../models/UserBonusProgram";
 import { OptionalAll } from "../interfaces/toolsTS";
 export declare type Phone = {
@@ -12,6 +13,7 @@ export declare type Phone = {
 declare let attributes: {
     /** ID */
     id: string;
+    login: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -38,7 +40,7 @@ declare let attributes: {
     };
     verified: boolean;
     passwordHash: string;
-    lastPasswordChange: string;
+    lastPasswordChange: number;
     /** Its temporary code for authorization */
     temporaryCode: string;
     /**
@@ -58,14 +60,14 @@ interface User extends OptionalAll<attributes>, ORM {
 }
 export default User;
 declare let Model: {
-    beforeCreate(userInit: User, next: Function): void;
+    beforeCreate(userInit: User, next: Function): Promise<void>;
     /**
      * Returns phone string by user criteria
      * Additional number will be added separated by commas (+19990000000,1234)
      * @param {WaterlineCriteria} criteria
      * @returns String
      */
-    getPhoneString(criteria: any): Promise<string>;
+    getPhoneString(phone: Phone, target?: "login" | "print" | "string"): Promise<string>;
     /**
      * Update user password
      *
@@ -82,9 +84,9 @@ declare let Model: {
      * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
      */
     setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean, temporaryCode?: string): Promise<User>;
-    login(login: string, password: string, temporaryCode: string): Promise<void>;
-    authDevice(): Promise<void>;
+    login(login: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice>;
+    authDevice(userId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDevice>;
 };
 declare global {
-    const User: typeof Model & ORMModel<User, "firstName" | "phone">;
+    const User: typeof Model & ORMModel<User, "firstName">;
 }

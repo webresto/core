@@ -21,6 +21,7 @@ export default Maintenance;
 declare let Model: {
     afterCreate: (maintenance: any, next: any) => void;
     afterUpdate: (maintenance: any, next: any) => void;
+    afterDestroy: (maintenance: any, next: any) => void;
     beforeCreate: (maintenance: any, next: any) => void;
     siteIsOff: () => Promise<boolean>;
     getActiveMaintenance: () => Promise<Maintenance>;

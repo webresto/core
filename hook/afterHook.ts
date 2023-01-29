@@ -33,19 +33,49 @@ export default async function () {
 
     PaymentDocument.processor(timeSyncPayments);
 
-    //Set default
-    await Settings.setDefault("LOGIN_FIELD", "phone");    
-    await Settings.setDefault("REGISTRATION_OTP_REQUIRED", true);
-    await Settings.setDefault("LOGIN_OTP_REQUIRED", true);
-    await Settings.setDefault("SET_LAST_OTP_AS_PASSWORD", true);
-    await Settings.setDefault("PASSWORD_REQUIRED", false);
+    /**  
+     * Setting default
+     * 
+     * For food delivery, the phone is primary, 
+     * so we set the following flags by default, 
+     * 
+     * if they need to be changed, then use the 
+     * config/bootstrap.js, 
+     * seeds/settings.json, 
+     * environment variables (.env)
+     *  */ 
+
+    /**
+     * @setting LOGIN_FIELD User login field source (ex: "phone", "email" ...) [read only by default]
+     */
+    await Settings.setDefault("LOGIN_FIELD", "phone", "core", true);    
+ 
+    /**
+     * @setting REGISTRATION_OTP_REQUIRED check OTP on registration process 
+     */
+    await Settings.setDefault("REGISTRATION_OTP_REQUIRED", true, "core");
+
+    /**
+     * @setting LOGIN_OTP_REQUIRED check OTP on login process 
+     */
+    await Settings.setDefault("LOGIN_OTP_REQUIRED", true, "core");
+
+    /**
+     * @setting SET_LAST_OTP_AS_PASSWORD setting last OTP as password 
+     */
+    await Settings.setDefault("SET_LAST_OTP_AS_PASSWORD", true, "core");
     
+    /**
+     * @setting PASSWORD_REQUIRED Check password (Login only by OTP if false) 
+     */
+    await Settings.setDefault("PASSWORD_REQUIRED", false, "core");
+
+    // Setting default registartion/login strategy
     if (!await Settings.get("PASSWORD_REQUIRED") && !await Settings.get("REGISTRATION_OTP_REQUIRED")){
       sails.log.info(`Use default registartion strategy [OTP]`)
       await Settings.set("LOGIN_OTP_REQUIRED", true);
       await Settings.set("REGISTRATION_OTP_REQUIRED", true);
     }
-    
   } catch (e) {
     sails.log.error("core > afterHook > error1", e);
   }

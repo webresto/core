@@ -41,7 +41,7 @@ let Model = {
     // Clean expired
     await OneTimePassword.destroy({expires: { "<": Date.now() }})
 
-    let OTP = await OneTimePassword.findOne({login: login}).sort('createdAt DESC')
+    let OTP = (await OneTimePassword.find({login: login}).sort('createdAt DESC'))[0]
     if (OTP === undefined) return false
 
     if (password === OTP.password) {
