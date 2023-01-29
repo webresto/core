@@ -66,6 +66,20 @@ let Model = {
   /** Method set lastActiity  for device */
   async setActivity(criteria: CriteriaQuery<UserDevice>, client:  { lastIP?: string , userAgent?: string } = {}): Promise<void> {
     await UserDevice.update(criteria, client);
+  },
+
+  async checkSession(sessionId: string, userId: string, client: { lastIP?: string , userAgent?: string } = {}): Promise<boolean> {
+    let ud = await UserDevice.findOne({sessionId: sessionId})
+    
+    if (!ud) {
+      return false;
+    }
+
+    if(ud.user === userId && ud.isLogined) {
+      await UserDevice.setActivity({id: ud.id}, client)
+      return true;
+    }
+    return false;
   }
 };
 

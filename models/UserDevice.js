@@ -49,6 +49,17 @@ let Model = {
     /** Method set lastActiity  for device */
     async setActivity(criteria, client = {}) {
         await UserDevice.update(criteria, client);
+    },
+    async checkSession(sessionId, userId, client = {}) {
+        let ud = await UserDevice.findOne({ sessionId: sessionId });
+        if (!ud) {
+            return false;
+        }
+        if (ud.user === userId && ud.isLogined) {
+            await UserDevice.setActivity({ id: ud.id }, client);
+            return true;
+        }
+        return false;
     }
 };
 module.exports = {

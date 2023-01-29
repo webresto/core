@@ -30,6 +30,10 @@ declare let Model: {
         lastIP?: string;
         userAgent?: string;
     }): Promise<void>;
+    checkSession(sessionId: string, userId: string, client?: {
+        lastIP?: string;
+        userAgent?: string;
+    }): Promise<boolean>;
 };
 declare global {
     const UserDevice: typeof Model & ORMModel<UserDevice, "lastIP">;
