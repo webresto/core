@@ -98,7 +98,6 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
   }
 
   private async loadMediaFiles() {
-    console.log("loadMediaFilesProcessQueue.length",loadMediaFilesProcessQueue.length)
     try {
       while (loadMediaFilesProcessQueue.length) {
         const mediafile = loadMediaFilesProcessQueue.shift();

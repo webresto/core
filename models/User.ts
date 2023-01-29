@@ -64,10 +64,13 @@ let attributes = {
       // Check dictonary
       let isCounryCode = false
       for (let country of Countries) {
-        if (phone.code === country.phoneCode) isCounryCode = true;
+        
+        if (phone.code.replace(/\D/g, '') === country.phoneCode.replace(/\D/g, '')) isCounryCode = true;
       }
 
-      if(typeof phone.code !== "string" || typeof phone.number !== "string" || typeof phone.number !== "string" || isCounryCode === false) return false
+      if(typeof phone.code !== "string" || typeof phone.number !== "string" || typeof phone.number !== "string" || isCounryCode === false) {        
+        return false
+      }
       return true
     }
   } as unknown as Phone,
@@ -237,8 +240,9 @@ let Model = {
   async login(login: string, deviceName: string, password: string, OTP: string, userAgent:string, IP: string ): Promise<UserDevice> {
     let user = await User.findOne({login: login});
 
+
     // Stop login when password or OTP not passed
-    if (!password && !OTP) {
+    if (!(password || OTP)) {
       throw `Password or OTP required`
     }
     
@@ -265,15 +269,13 @@ let Model = {
     if(await Settings.get("LOGIN_OTP_REQUIRED") && await Settings.get("SET_LAST_OTP_AS_PASSWORD")) {
       await User.setPassword(user.id, OTP, null, true)
     }
-
     return await User.authDevice(user.id, deviceName, userAgent, IP);
   },
 
   async authDevice(userId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDevice> {
     let userDevice  = await UserDevice.findOrCreate({user: userId, name: deviceName}, {user: userId, name: deviceName});
-    userDevice = await UserDevice.updateOne({id: userDevice.id}, {loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent })
-    return userDevice;
-  }
+    return await UserDevice.updateOne({id: userDevice.id}, {loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent })
+   }
 };
 
 module.exports = {

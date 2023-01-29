@@ -12,7 +12,6 @@ let attributes = {
     isLogined: "boolean",
     user: {
         model: 'user',
-        via: 'devices'
     },
     lastIP: "string",
     loginTime: { type: "number" },
@@ -35,6 +34,7 @@ let Model = {
         if (record.isLogined === true) {
             record.sessionId = (0, uuid_1.v4)();
         }
+        next();
     },
     beforeCreate(record, next) {
         record.lastActivity = Date.now();

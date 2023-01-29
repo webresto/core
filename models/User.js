@@ -45,11 +45,12 @@ let attributes = {
             // Check dictonary
             let isCounryCode = false;
             for (let country of Countries) {
-                if (phone.code === country.phoneCode)
+                if (phone.code.replace(/\D/g, '') === country.phoneCode.replace(/\D/g, ''))
                     isCounryCode = true;
             }
-            if (typeof phone.code !== "string" || typeof phone.number !== "string" || typeof phone.number !== "string" || isCounryCode === false)
+            if (typeof phone.code !== "string" || typeof phone.number !== "string" || typeof phone.number !== "string" || isCounryCode === false) {
                 return false;
+            }
             return true;
         }
     },
@@ -193,7 +194,7 @@ let Model = {
     async login(login, deviceName, password, OTP, userAgent, IP) {
         let user = await User.findOne({ login: login });
         // Stop login when password or OTP not passed
-        if (!password && !OTP) {
+        if (!(password || OTP)) {
             throw `Password or OTP required`;
         }
         // Stop login without deviceName
@@ -220,8 +221,7 @@ let Model = {
     },
     async authDevice(userId, deviceName, userAgent, IP) {
         let userDevice = await UserDevice.findOrCreate({ user: userId, name: deviceName }, { user: userId, name: deviceName });
-        userDevice = await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent });
-        return userDevice;
+        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent });
     }
 };
 module.exports = {

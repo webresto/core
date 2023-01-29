@@ -86,7 +86,6 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         });
     }
     async loadMediaFiles() {
-        console.log("loadMediaFilesProcessQueue.length", loadMediaFilesProcessQueue.length);
         try {
             while (loadMediaFilesProcessQueue.length) {
                 const mediafile = loadMediaFilesProcessQueue.shift();

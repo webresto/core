@@ -15,6 +15,5 @@ describe("User", function () {
     if (!await bcryptjs.compare("1234567890", user.passwordHash)) throw "Password hash is corrupt"
     // Check oldPassword
     user = await User.setPassword(user.id, "00000000", "1234567890");
-    console.log(user)
   });
 });

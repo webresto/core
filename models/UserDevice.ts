@@ -18,7 +18,6 @@ let attributes = {
 
   user: {
     model: 'user',
-    via: 'devices'
   } as unknown as User | String,
   lastIP: "string",
   loginTime:  { type: "number"} as unknown as number,
@@ -49,6 +48,7 @@ let Model = {
     if (record.isLogined === true) {
       record.sessionId = uuid();
     }
+    next();
   },
 
   beforeCreate(record: any, next: Function) {
