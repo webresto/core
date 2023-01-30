@@ -115,7 +115,7 @@ let Model = {
             userInit.isDeleted = false;
         if (!userInit.verified)
             userInit.verified = false;
-        if (await Settings.get("LOGIN_FIELD") === undefined || await Settings.get("LOGIN_FIELD") === 'phone') {
+        if ((await Settings.get("LOGIN_FIELD")) === undefined || (await Settings.get("LOGIN_FIELD")) === "phone") {
             if (!userInit.phone)
                 throw `User phone is required`;
         }
@@ -128,14 +128,15 @@ let Model = {
      * @returns String
      */
     async getPhoneString(phone, target = "login") {
-        if (target === 'login') {
-            return (phone.code + phone.number).replace(/\D/g, '');
+        if (target === "login") {
+            return (phone.code + phone.number).replace(/\D/g, "");
         }
         else if (target === "print") {
             // TODO: implement mask `+1 (111) 123-45-67`
+            // GPT: return `+${phone.code} (${phone.number.slice(0,3)}) ${phone.number.slice(3,6)}-${phone.number.slice(6,8)}-${phone.number.slice(8)}`
         }
         else {
-            return `${phone.code}${phone.number}${phone.additionalNumber ? ',' + phone.additionalNumber : ''}`;
+            return `${phone.code}${phone.number}${phone.additionalNumber ? "," + phone.additionalNumber : ""}`;
         }
     },
     /**
@@ -155,8 +156,8 @@ let Model = {
      */
     async setPassword(userId, newPassword, oldPassword, force = false, temporaryCode) {
         if (!userId || !newPassword)
-            throw 'UserId and newPassword is required';
-        if (!await Settings.get("SET_LAST_OTP_AS_PASSWORD")) {
+            throw "UserId and newPassword is required";
+        if (!(await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
             let paswordRegex = await Settings.get("PASSWORD_REGEX");
             let passwordMinLength = await Settings.get("PASSWORD_MIN_LENGTH");
             if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength))
@@ -176,14 +177,14 @@ let Model = {
         if (!force) {
             if (user.passwordHash) {
                 if (!oldPassword)
-                    throw 'oldPassword is required';
-                if (!await bcryptjs.compare(oldPassword, user.passwordHash)) {
+                    throw "oldPassword is required";
+                if (!(await bcryptjs.compare(oldPassword, user.passwordHash))) {
                     throw `Old pasword not accepted`;
                 }
             }
             else if (temporaryCode) {
                 let login = await User.getPhoneString(user.phone);
-                if (!await OneTimePassword.check(login, temporaryCode)) {
+                if (!(await OneTimePassword.check(login, temporaryCode))) {
                     throw `Temporary code not match`;
                 }
             }
@@ -193,36 +194,37 @@ let Model = {
     },
     async login(login, deviceName, password, OTP, userAgent, IP) {
         let user = await User.findOne({ login: login });
-        // Stop login when password or OTP not passed
-        if (!(password || OTP)) {
-            throw `Password or OTP required`;
-        }
         // Stop login without deviceName
         if (!deviceName) {
             throw `deviceName required`;
         }
+        // Stop login when password or OTP not passed
+        if (!(password || OTP)) {
+            throw `Password or OTP required`;
+        }
         // Check OTP first because it will prevent brute force.
-        if (OTP || await Settings.get("LOGIN_OTP_REQUIRED")) {
+        if (OTP || (await Settings.get("LOGIN_OTP_REQUIRED"))) {
             if (!(await OneTimePassword.check(login, OTP))) {
                 throw "OTP check failed";
             }
         }
         // check password if passed or required
-        if (password || await Settings.get("PASSWORD_REQUIRED")) {
-            if (!await bcryptjs.compare(password, user.passwordHash)) {
+        if (password || (await Settings.get("PASSWORD_REQUIRED"))) {
+            if (!(await bcryptjs.compare(password, user.passwordHash))) {
                 throw `Password not match`;
             }
         }
         // Set last checked OTP as password
-        if (await Settings.get("LOGIN_OTP_REQUIRED") && await Settings.get("SET_LAST_OTP_AS_PASSWORD")) {
+        if ((await Settings.get("LOGIN_OTP_REQUIRED")) && (await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
             await User.setPassword(user.id, OTP, null, true);
         }
         return await User.authDevice(user.id, deviceName, userAgent, IP);
     },
     async authDevice(userId, deviceName, userAgent, IP) {
         let userDevice = await UserDevice.findOrCreate({ user: userId, name: deviceName }, { user: userId, name: deviceName });
-        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent });
-    }
+        // Need pass sessionId here for except paralells login with one name
+        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
+    },
 };
 module.exports = {
     primaryKey: "id",
