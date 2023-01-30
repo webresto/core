@@ -31,18 +31,12 @@ let Model = {
         if (record.isLogined === false) {
             record.sessionId = null;
         }
-        if (record.isLogined === true) {
-            record.sessionId = (0, uuid_1.v4)();
-        }
         next();
     },
     beforeCreate(record, next) {
         record.lastActivity = Date.now();
         if (!record.id) {
             record.id = (0, uuid_1.v4)();
-        }
-        if (record.isLogined === true) {
-            record.sessionId = (0, uuid_1.v4)();
         }
         next();
     },

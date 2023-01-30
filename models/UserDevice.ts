@@ -44,10 +44,6 @@ let Model = {
     if (record.isLogined === false) {
       record.sessionId = null
     }
-
-    if (record.isLogined === true) {
-      record.sessionId = uuid();
-    }
     next();
   },
 
@@ -57,9 +53,6 @@ let Model = {
       record.id = uuid();
     }
 
-    if (record.isLogined === true) {
-      record.sessionId = uuid();
-    }
     next();
   },
 

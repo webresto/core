@@ -80,7 +80,7 @@ export default Order;
 declare let Model: {
     beforeCreate(orderInit: any, next: any): void;
     /** Add dish into order */
-    addDish(criteria: CriteriaQuery<Order>, dish: Dish | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: CriteriaQuery<Order>, dish: string | Dish, amount: number, modifiers: OrderModifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void>;
