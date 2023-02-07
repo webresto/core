@@ -68,7 +68,7 @@ export default async function () {
     /**
      * @setting PASSWORD_REQUIRED Check password (Login only by OTP if false) 
      */
-    await Settings.setDefault("PASSWORD_REQUIRED", false, "core");
+    await Settings.setDefault("PASSWORD_REQUIRED", true, "core");
 
     // Setting default registartion/login strategy
     if (!await Settings.get("PASSWORD_REQUIRED") && !await Settings.get("REGISTRATION_OTP_REQUIRED")){
