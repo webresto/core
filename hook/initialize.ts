@@ -2,6 +2,7 @@ import HookTools from "../libs/hookTools";
 import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
+import bindAssets from "./bindAssets"
 
 /**
  * Set global emmiter
@@ -22,7 +23,7 @@ export default function ToInitialize(sails: Sails) {
    * Required hooks
    */
   const requiredHooks = ["blueprints", "http", "orm", "policies", "stateflow"];
-
+  
   return function initialize(cb) {
 
     if(process.env.WEBRESTO_CORE_DISABLED){
@@ -48,6 +49,9 @@ export default function ToInitialize(sails: Sails) {
       sails.log.error(error)
     }
 
+    // Bind assets
+    bindAssets();
+    
     /**
      * Bind models
      */
