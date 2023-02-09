@@ -3,6 +3,31 @@ import Config from "./Config";
 import AwaitEmitter from "../libs/AwaitEmitter";
 declare type sailsConfig = typeof sails.config;
 import { NotificationManager } from "../libs/NotificationManager";
+interface RestocoreHook {
+    dictionaries: {
+        countries: {
+            [key: string]: {
+                phoneCode: string;
+                iso: string;
+                name: string;
+                nativeCountryName: string;
+                language: string[] | string;
+                currency: string;
+                currencySymbol: string;
+                currencyISO: string;
+                currencyUnit: string;
+                currencyDenomination: string;
+                phoneMask: string | string[];
+                flag: string;
+            };
+        };
+    };
+    [key: string]: any | object | Function;
+}
+interface SailsHooks {
+    restocore: RestocoreHook;
+    [key: string]: any | object | Function;
+}
 declare global {
     const emitter: AwaitEmitter;
     const NotificationManager: NotificationManager;
@@ -10,7 +35,7 @@ declare global {
         on: any;
         emit: any;
         router: any;
-        hooks: any;
+        hooks: SailsHooks;
         models: any;
         config: _sailsConfig;
         log: any;

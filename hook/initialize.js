@@ -4,6 +4,8 @@ const hookTools_1 = require("../libs/hookTools");
 const path_1 = require("path");
 const afterHook_1 = require("./afterHook");
 const _ = require("lodash");
+const bindAssets_1 = require("./bindAssets");
+const bindDictonaries_1 = require("./bindDictonaries");
 /**
  * Set global emmiter
  */
@@ -42,6 +44,10 @@ function ToInitialize(sails) {
         catch (error) {
             sails.log.error(error);
         }
+        // Bind assets
+        (0, bindAssets_1.default)();
+        // Bind dictonaries
+        (0, bindDictonaries_1.default)();
         /**
          * Bind models
          */

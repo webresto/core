@@ -4,14 +4,41 @@ import AwaitEmitter from "../libs/AwaitEmitter";
 type sailsConfig = typeof sails.config;
 import { NotificationManager } from "../libs/NotificationManager"
 
+interface RestocoreHook {
+  dictionaries: {
+    countries: {
+      [key:string]: {
+        phoneCode: string;
+        iso: string;
+        name: string;
+        nativeCountryName: string;
+        language: string[] | string;
+        currency: string;
+        currencySymbol: string;
+        currencyISO: string;
+        currencyUnit: string;
+        currencyDenomination:string;
+        phoneMask: string | string[];
+        flag: string;
+      }
+    }
+  }
+  [key:string]: any | object | Function;
+}
+
+interface SailsHooks {
+  restocore: RestocoreHook;
+  [key:string]: any | object | Function;
+}
+
 declare global {
   const emitter: AwaitEmitter;
   const NotificationManager: NotificationManager
   interface Sails extends sails.Sails {
-    on: any
-    emit: any
-    router: any
-    hooks: any
+    on: any;
+    emit: any;
+    router: any;
+    hooks: SailsHooks;
     models: any;
     config: _sailsConfig;
     log: any;

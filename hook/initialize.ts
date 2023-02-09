@@ -3,7 +3,7 @@ import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
 import bindAssets from "./bindAssets"
-
+import bindDictonaries from "./bindDictonaries";
 /**
  * Set global emmiter
  */
@@ -51,7 +51,9 @@ export default function ToInitialize(sails: Sails) {
 
     // Bind assets
     bindAssets();
-    
+
+    // Bind dictonaries
+    bindDictonaries();
     /**
      * Bind models
      */
