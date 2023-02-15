@@ -26,12 +26,13 @@ __exportStar(require("./models/PaymentMethod"), exports);
 __exportStar(require("./models/Place"), exports);
 __exportStar(require("./models/Settings"), exports);
 __exportStar(require("./models/Street"), exports);
+__exportStar(require("./models/OneTimePassword"), exports);
 __exportStar(require("./models/User"), exports);
 __exportStar(require("./models/UserBonusProgram"), exports);
 __exportStar(require("./models/UserBonusTransaction"), exports);
 __exportStar(require("./models/UserDevice"), exports);
 __exportStar(require("./models/UserLocation"), exports);
-__exportStar(require("./models/OneTimePassword"), exports);
+__exportStar(require("./models/UserOrderHistory"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),

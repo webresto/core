@@ -12,12 +12,13 @@ export * from './models/PaymentMethod';
 export * from './models/Place';
 export * from './models/Settings';
 export * from './models/Street';
+export * from './models/OneTimePassword';
 export * from './models/User';
 export * from './models/UserBonusProgram';
 export * from './models/UserBonusTransaction';
 export * from './models/UserDevice';
 export * from './models/UserLocation';
-export * from './models/OneTimePassword';
+export * from './models/UserOrderHistory';
 
 module.exports = function (sails) {
   return {

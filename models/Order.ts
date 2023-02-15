@@ -166,7 +166,7 @@ let attributes = {
 
   orderDate: "string",
   // orderDateLimit: "string",
-  /** Родительская группа */
+
   user: {
     model: "user",
   } as unknown as User | string,
@@ -651,6 +651,10 @@ let Model = {
        * But i think we need select default adpater, 
        * and make order here */
       emitter.emit("core-order-after-order", order);
+
+      if (order.user) {
+        UserOrderHistory.save(order.id);
+      }
     }
   },
 

@@ -66,7 +66,6 @@ declare let attributes: {
     orderTotal: number;
     discountTotal: number;
     orderDate: string;
-    /** Родительская группа */
     user: string | User;
     customData: any;
 };

@@ -11,13 +11,13 @@ interface RestocoreHook {
                 iso: string;
                 name: string;
                 nativeCountryName: string;
-                language: string[] | string;
+                language: string[];
                 currency: string;
                 currencySymbol: string;
                 currencyISO: string;
                 currencyUnit: string;
-                currencyDenomination: string;
-                phoneMask: string | string[];
+                currencyDenomination: number;
+                phoneMask: string[];
                 flag: string;
             };
         };
