@@ -18,7 +18,7 @@
   ],
   "bundleDependencies": [],
   "dependencies": {
-    "@webresto/worktime": "^v1.0.17",
+    "@webresto/worktime": "^1.1.1-beta",
     "bcryptjs": "^2.4.3",
     "crypto-puzzle": "^4.0.0",
     "fix-esm": "^1.0.1",
