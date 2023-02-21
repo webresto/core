@@ -20,10 +20,12 @@ class POW extends CaptchaAdapter_1.default {
         let attempt = 0;
         // Tasks garbage collect
         Object.keys(POW.taskStorage).forEach((item) => {
-            if (POW.taskStorage[item]?.time < Date.now() - 30 * 60 * 1000)
-                delete (POW.taskStorage[item]);
-            if (POW.taskStorage[item]?.label === label)
-                attempt++;
+            if (POW.taskStorage[item]) {
+                if (POW.taskStorage[item]?.time < Date.now() - 30 * 60 * 1000)
+                    delete (POW.taskStorage[item]);
+                if (POW.taskStorage[item]?.label === label)
+                    attempt++;
+            }
         });
         let difficultСoefficient = 1 + Number((attempt / 7).toFixed());
         difficulty = difficulty * difficultСoefficient;
