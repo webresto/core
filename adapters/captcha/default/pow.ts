@@ -17,7 +17,7 @@ export class POW extends CaptchaAdapter {
      * To prevent brute force the adapter increases the complexity after several attempts.
      */
     if (!label) throw `label not provided`
-    let difficulty = Number(process.env.CAPTCHA_POW_DIFFICUTLY) ? Number(process.env.CAPTCHA_POW_DIFFICUTLY) : 7 * 100000;
+    let difficulty = Number(process.env.CAPTCHA_POW_DIFFICUTLY) ? Number(process.env.CAPTCHA_POW_DIFFICUTLY) : 5 * 10000;
 
     
     let attempt = 0
@@ -50,7 +50,7 @@ export class POW extends CaptchaAdapter {
   }
 
   public async check(resolvedCaptcha: ResolvedCaptcha, label:string): Promise<boolean> {
-    
+    // if (process.env.NODE_ENV !== "production" && process.env.CAPTCHA_BYPASS) return true
     if ( POW.taskStorage[resolvedCaptcha.id] === undefined ) return false
     
     if (POW.taskStorage[resolvedCaptcha.id].label !== label) return false

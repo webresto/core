@@ -66,7 +66,7 @@ const actions = {
             await Order.next(order.id, "CART");
         const removeDishes = await OrderDish.find({
             order: order.id,
-            addedBy: { '!': 'user' },
+            addedBy: { '!=': 'user' },
         });
         for await (let dish of removeDishes) {
             // TODO: rewrite removeDish for totaly remove

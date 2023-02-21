@@ -26,7 +26,8 @@
     "lodash": "^4.17.10",
     "sails-build-dictionary": "^0.10.1",
     "slugify": "^1.6.0",
-    "uuid": "latest"
+    "uuid": "latest",
+    "yn": "^5.0.0"
   },
   "devDependencies": {
     "@42pub/typed-sails": "^1.0.0",

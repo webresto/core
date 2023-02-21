@@ -4,7 +4,7 @@ import * as bcryptjs from "bcryptjs";
 let user;
 describe("User", function () {
   it("createUser", async function () {
-     user = await User.create({id: "111", lastName: 'TEST', firstName: "111", phone: {code: "1", number:"123"}}).fetch();
+     user = await User.create({id: "111", login: "1123", lastName: 'TEST', firstName: "111", phone: {code: "1", number:"123"}}).fetch();
      if (!user.id) throw `UserID undefined`
   });
 

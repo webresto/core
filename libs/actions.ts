@@ -125,7 +125,7 @@ const actions = {
 
     const removeDishes = await OrderDish.find({
       order: order.id,
-      addedBy: { '!' : 'user' },
+      addedBy: { '!=' : 'user' },
     });
 
     for await (let dish of removeDishes) {
