@@ -6,7 +6,7 @@ type or<T> = {
 }
 
 type not<T> = {
-  "!": T
+  "!=": T
 }
 
 type lessThan<F> = {

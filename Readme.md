@@ -15,4 +15,4 @@ Here you will find basic models and methods for create you own delivery website.
 
 ## License
 
-[MIT License](https://opensource.org/licenses/MIT)  Copyright © 2018-present, [WebResto](https://webresto.org)
+[MIT License](https://opensource.org/licenses/MIT)  Copyright © 2018-2023, [WebResto](https://webresto.org)

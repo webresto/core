@@ -16,8 +16,7 @@ let attributes = {
     },
     firstName: {
         type: 'string',
-        unique: true,
-        required: true
+        unique: true
     },
     lastName: {
         type: 'string',

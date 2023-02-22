@@ -229,7 +229,7 @@ let Model = {
     criteria.isDeleted = false;
 
     if (!(await Settings.get("ShowUnavailableDishes"))) {
-      criteria.balance = { "!": 0 };
+      criteria.balance = { "!=": 0 };
     }
 
     let dishes = await Dish.find(criteria).populate("images");

@@ -5,7 +5,7 @@ declare type or<T> = {
     or?: WhereCriteriaQuery<T>[];
 };
 declare type not<T> = {
-    "!": T;
+    "!=": T;
 };
 declare type lessThan<F> = {
     "<": F;
