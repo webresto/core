@@ -32,8 +32,7 @@ let attributes = {
 
   firstName: {
     type: 'string',
-    unique: true,
-    required: true
+    unique: true
   } as unknown as string,
 
   lastName: {
