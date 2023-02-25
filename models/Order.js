@@ -833,6 +833,16 @@ async function checkDate(order) {
             };
         }
         const possibleDatetime = await getOrderDateLimit();
+        let minDeliveryDate = new Date();
+        let minDeliveryTime = await Settings.use("MinDeliveryTime"); //minutes
+        if (!minDeliveryTime)
+            minDeliveryTime = 40;
+        minDeliveryDate.setSeconds(minDeliveryDate.getSeconds() + (parseInt(minDeliveryTime) * 60));
+        if (date.getTime() < minDeliveryTime.getTime()) {
+            sails.log.error(`Order.date has broken time ${order.date}! Setting order.date = undefined`);
+            order.comment += `Order.date has broken time ${order.date}!`;
+            order.date = undefined;
+        }
         if (date.getTime() > possibleDatetime.getTime()) {
             sails.log.error(`Order checkDate: ${date.getTime()} > ${possibleDatetime.getTime()} = ${date.getTime() > possibleDatetime.getTime()}`);
             throw {
