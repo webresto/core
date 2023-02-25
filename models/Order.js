@@ -362,6 +362,7 @@ let Model = {
             }
         }
         await checkDate(order);
+        console.log(order);
         if (paymentMethodId) {
             await checkPaymentMethod(paymentMethodId);
             order.paymentMethod = paymentMethodId;
@@ -833,15 +834,15 @@ async function checkDate(order) {
             };
         }
         const possibleDatetime = await getOrderDateLimit();
-        let minDeliveryDate = new Date();
         let minDeliveryTime = await Settings.use("MinDeliveryTime"); //minutes
         if (!minDeliveryTime)
             minDeliveryTime = 40;
-        minDeliveryDate.setSeconds(minDeliveryDate.getSeconds() + (parseInt(minDeliveryTime) * 60));
-        if (date.getTime() < minDeliveryTime.getTime()) {
+        let minDeliveryDate = Date.now() + (parseInt(minDeliveryTime) * 60 * 1000);
+        console.log(date.getTime() < minDeliveryDate, date.getTime(), minDeliveryDate, date.getTime() - minDeliveryDate);
+        if (date.getTime() < minDeliveryDate) {
             sails.log.error(`Order.date has broken time ${order.date}! Setting order.date = undefined`);
-            order.comment += `Order.date has broken time ${order.date}!`;
-            order.date = undefined;
+            order.comment += ` ⚠️ Order.date has broken time [${order.date}]`;
+            order.date = '';
         }
         if (date.getTime() > possibleDatetime.getTime()) {
             sails.log.error(`Order checkDate: ${date.getTime()} > ${possibleDatetime.getTime()} = ${date.getTime() > possibleDatetime.getTime()}`);
@@ -862,6 +863,6 @@ async function getOrderDateLimit() {
     let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //minutes
     if (!periodPossibleForOrder)
         periodPossibleForOrder = 1440;
-    date.setSeconds(date.getSeconds() + (parseInt(periodPossibleForOrder) * 60));
+    date.setSeconds(date.getSeconds() + (parseInt(periodPossibleForOrder) * 60 * 1000));
     return date;
 }

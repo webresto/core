@@ -302,6 +302,69 @@ describe("Flows: Checkout", function () {
     });
   });
 
+
+  describe("check Time", function () {
+    it("Time less minDeliveryTime", async function () {
+      await sleep(500)
+      order = await Order.create({id:"check-delivery-time-less-than-mindelivery-time"}).fetch();
+      
+      await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+      order = await Order.findOne(order.id);
+
+      order.date = new Date().toLocaleString();
+      await Order.update({ id: order.id }, order).fetch();
+
+      let address: Address = {
+        streetId: "1234abcd",
+        city: "New York",
+        street: "Green Road",
+        home: "42",
+        comment: "test",
+      };
+
+      await Order.check(order.id, customer, null, address);
+      order = await Order.findOne(order.id);
+      
+      console.log(111,order)
+      if(order.date !== "") {
+        throw `Date should be undefined after Order.cehck with incorrect date`
+      }
+    });
+
+    it("Good time in future", async function () {
+      await sleep(500)
+      order = await Order.create({id:"check-delivery-good-time-in-future"}).fetch();
+      
+      await Order.addDish(order.id, dishes[0], 1, [], "", "test");
+      order = await Order.findOne(order.id);
+
+
+      let goodDateInFuture = new Date(Date.now() + ( 42 * 60 * 1000 ));
+
+      let goodDateInFutureStr = goodDateInFuture.toLocaleString();
+      order.date = goodDateInFutureStr;
+      await Order.update({ id: order.id }, order).fetch();
+
+      let address: Address = {
+        streetId: "1234abcd",
+        city: "New York",
+        street: "Green Road",
+        home: "42",
+        comment: "test",
+      };
+
+      await Order.check(order.id, customer, null, address);
+      order = await Order.findOne(order.id);
+      
+      if(order.date !== goodDateInFutureStr) {
+        throw `Date should be goodDateInFutureStr after Order.cehck with correct date`
+      }
+    });
+
+  });
+
+
+
   describe("To payment", function () {
     it("HERE NEED TEST ALL PAYMENT", async function () {
 
