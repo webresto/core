@@ -1043,7 +1043,7 @@ async function checkDate(order: Order) {
     if (date.getTime() < minDeliveryDate) {
       sails.log.error(`Order.date has broken time ${order.date}! Setting order.date = undefined`)
       // TODO add error in Order model
-      order.message += `\n[webresto/core]: ⚠️ Impossible delivery time (${order.date})`
+      // order.message += `\n[webresto/core]: ⚠️ Impossible delive ry time (${order.date})`
       order.date = minDeliveryDate.toLocaleString();
     }
 
