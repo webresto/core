@@ -311,7 +311,8 @@ describe("Flows: Checkout", function () {
       await Order.addDish(order.id, dishes[0], 1, [], "", "test");
       order = await Order.findOne(order.id);
 
-      order.date = new Date().toLocaleString();
+      let now = new Date();
+      order.date = now.toLocaleString(); 
       await Order.update({ id: order.id }, order).fetch();
 
       let address: Address = {
@@ -325,9 +326,8 @@ describe("Flows: Checkout", function () {
       await Order.check(order.id, customer, null, address);
       order = await Order.findOne(order.id);
       
-      console.log(111,order)
-      if(order.date !== "") {
-        throw `Date should be undefined after Order.cehck with incorrect date`
+      if(new Date(order.date).getTime() < now.getTime()) {
+        throw `Date should be setting in future after Order.cehck with incorrect date`
       }
     });
 

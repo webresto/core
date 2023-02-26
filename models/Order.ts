@@ -1025,13 +1025,15 @@ async function checkDate(order: Order) {
   let minDeliveryTime = await Settings.use("MinDeliveryTime"); //minutes
   if(!minDeliveryTime) minDeliveryTime = 40;
   let minDeliveryDate = new Date(Date.now() + ( parseInt(minDeliveryTime) * 60 * 1000));
+  let hour12 = (await Settings.use("GLOBAL_HOUR12") || false)
+  let timeLocale = (await Settings.use("GLOBAL_TIME_LOCALE") || 'en')
 
   if (order.date) {
     const date = new Date(order.date);
 
     if (date instanceof Date === true && !date.toJSON()) {
       sails.log.error(`Invalid date ${order.date}`);
-      order.date = minDeliveryDate.toLocaleString();
+      order.date = minDeliveryDate.toLocaleString(timeLocale,{hour12: hour12});
     }
 
     const possibleDatetime = await getOrderDateLimit();
@@ -1044,7 +1046,7 @@ async function checkDate(order: Order) {
       sails.log.error(`Order.date has broken time ${order.date}! Setting order.date = undefined`)
       // TODO add error in Order model
       // order.message += `\n[webresto/core]: ⚠️ Impossible delive ry time (${order.date})`
-      order.date = minDeliveryDate.toLocaleString();
+      order.date = minDeliveryDate.toLocaleString(timeLocale,{hour12: hour12});
     }
 
     if (date.getTime() > possibleDatetime.getTime()) {
@@ -1057,7 +1059,7 @@ async function checkDate(order: Order) {
   } else {
     let CALCULATE_EMPTY_DELIVERY_DATE = (await Settings.use("CALCULATE_EMPTY_DELIVERY_DATE") || true);
     if(Boolean(CALCULATE_EMPTY_DELIVERY_DATE)) {
-      order.date = minDeliveryDate.toLocaleString();
+      order.date = minDeliveryDate.toLocaleString(timeLocale,{hour12: hour12});
     }
   }
 }
