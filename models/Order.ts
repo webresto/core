@@ -1033,14 +1033,17 @@ async function checkDate(order: Order) {
     }
 
     const possibleDatetime = await getOrderDateLimit();
+      // 1677404501668 1677404400000 45 true -101668
+      // console.log(minDeliveryDate, date.getTime(), minDeliveryTime, date.getTime() < minDeliveryDate, date.getTime() - minDeliveryDate)
 
     let minDeliveryTime = await Settings.use("MinDeliveryTime"); //minutes
     if(!minDeliveryTime) minDeliveryTime = 40;
-    let minDeliveryDate = Date.now() + ( parseInt(minDeliveryTime) * 60 * 1000 );
+    let minDeliveryDate = Date.now() + ( parseInt(minDeliveryTime) * 60 * 1000 + ());
 
-    if (date.getTime() < minDeliveryDate) { 
+    if (date.getTime() < minDeliveryDate) {
       sails.log.error(`Order.date has broken time ${order.date}! Setting order.date = undefined`)
-      order.comment += ` ⚠️ Order.date has broken time [${order.date}]`
+      // TODO add error in Order model
+      order.message += `\n[webresto/core]: ⚠️ Impossible delivery time (${order.date})`
       order.date = '';
     }
 
