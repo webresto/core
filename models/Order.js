@@ -825,6 +825,10 @@ async function checkPaymentMethod(paymentMethodId) {
     }
 }
 async function checkDate(order) {
+    let minDeliveryTime = await Settings.use("MinDeliveryTime"); //minutes
+    if (!minDeliveryTime)
+        minDeliveryTime = 40;
+    let minDeliveryDate = Date.now() + (parseInt(minDeliveryTime) * 60 * 1000);
     if (order.date) {
         const date = new Date(order.date);
         if (date instanceof Date === true && !date.toJSON()) {
@@ -836,15 +840,11 @@ async function checkDate(order) {
         const possibleDatetime = await getOrderDateLimit();
         // 1677404501668 1677404400000 45 true -101668
         // console.log(minDeliveryDate, date.getTime(), minDeliveryTime, date.getTime() < minDeliveryDate, date.getTime() - minDeliveryDate)
-        let minDeliveryTime = await Settings.use("MinDeliveryTime"); //minutes
-        if (!minDeliveryTime)
-            minDeliveryTime = 40;
-        let minDeliveryDate = Date.now() + (parseInt(minDeliveryTime) * 60 * 1000);
         if (date.getTime() < minDeliveryDate) {
             sails.log.error(`Order.date has broken time ${order.date}! Setting order.date = undefined`);
             // TODO add error in Order model
             order.message += `\n[webresto/core]: ⚠️ Impossible delivery time (${order.date})`;
-            order.date = '';
+            order.date = minDeliveryDate.toLocaleString();
         }
         if (date.getTime() > possibleDatetime.getTime()) {
             sails.log.error(`Order checkDate: ${date.getTime()} > ${possibleDatetime.getTime()} = ${date.getTime() > possibleDatetime.getTime()}`);
@@ -852,6 +852,12 @@ async function checkDate(order) {
                 code: 10,
                 error: "delivery far, far away! allowed not after" + possibleDatetime,
             };
+        }
+    }
+    else {
+        let CALCULATE_EMPTY_DELIVERY_DATE = (await Settings.use("CALCULATE_EMPTY_DELIVERY_DATE") || true);
+        if (Boolean(CALCULATE_EMPTY_DELIVERY_DATE)) {
+            order.date = minDeliveryDate.toLocaleString();
         }
     }
 }
