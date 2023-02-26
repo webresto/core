@@ -832,10 +832,8 @@ async function checkDate(order) {
     if (order.date) {
         const date = new Date(order.date);
         if (date instanceof Date === true && !date.toJSON()) {
-            throw {
-                code: 9,
-                error: "date is not valid",
-            };
+            sails.log.error(`Invalid date ${order.date}`);
+            order.date = minDeliveryDate.toLocaleString();
         }
         const possibleDatetime = await getOrderDateLimit();
         // 1677404501668 1677404400000 45 true -101668
