@@ -839,7 +839,7 @@ async function checkDate(order) {
         let minDeliveryTime = await Settings.use("MinDeliveryTime"); //minutes
         if (!minDeliveryTime)
             minDeliveryTime = 40;
-        let minDeliveryDate = Date.now() + (parseInt(minDeliveryTime) * 60 * 1000 + ());
+        let minDeliveryDate = Date.now() + (parseInt(minDeliveryTime) * 60 * 1000);
         if (date.getTime() < minDeliveryDate) {
             sails.log.error(`Order.date has broken time ${order.date}! Setting order.date = undefined`);
             // TODO add error in Order model
