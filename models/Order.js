@@ -828,7 +828,7 @@ async function checkDate(order) {
     let minDeliveryTime = await Settings.use("MinDeliveryTime"); //minutes
     if (!minDeliveryTime)
         minDeliveryTime = 40;
-    let minDeliveryDate = Date.now() + (parseInt(minDeliveryTime) * 60 * 1000);
+    let minDeliveryDate = new Date(Date.now() + (parseInt(minDeliveryTime) * 60 * 1000));
     if (order.date) {
         const date = new Date(order.date);
         if (date instanceof Date === true && !date.toJSON()) {
