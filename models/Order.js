@@ -388,6 +388,12 @@ let Model = {
                 }
             }
         }
+        if (order.address === null && order.selfService === false) {
+            throw {
+                code: 5,
+                error: "address is required",
+            };
+        }
         getEmitter_1.default().emit("core-order-check-delivery", order, customer, isSelfService, address);
         const results = await getEmitter_1.default().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
         console.log(results);
@@ -800,7 +806,7 @@ function checkAddress(address) {
     if (!address.street) {
         throw {
             code: 5,
-            error: "address.street  is required",
+            error: "address.street is required",
         };
     }
     if (!address.home) {
