@@ -380,19 +380,13 @@ let Model = {
                 order.address = { ...address };
             }
             else {
-                if (!isSelfService && order.address === null) {
+                if (order.selfService === false && order.address === null) {
                     throw {
                         code: 5,
                         error: "address is required",
                     };
                 }
             }
-        }
-        if (order.address === null && order.selfService === false) {
-            throw {
-                code: 5,
-                error: "address is required",
-            };
         }
         getEmitter_1.default().emit("core-order-check-delivery", order, customer, isSelfService, address);
         const results = await getEmitter_1.default().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
