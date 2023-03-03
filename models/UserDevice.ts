@@ -11,7 +11,9 @@ let attributes = {
     //required: true,
   } as unknown as string,
 
+  /** Generated name from OS type, and location */
   name: 'string',
+  
   userAgent: 'string',
 
   isLogined: "boolean" as unknown as boolean,

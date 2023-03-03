@@ -124,6 +124,7 @@ let attributes = {
     },
     orderDate: "string",
     // orderDateLimit: "string",
+    deviceId: "string",
     user: {
         model: "user",
     },

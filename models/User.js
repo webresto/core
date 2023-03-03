@@ -12,11 +12,13 @@ let attributes = {
     },
     login: {
         type: 'string',
-        required: true
+        required: true,
+        isNotEmptyString: true
     },
     firstName: {
         type: 'string',
-        unique: true
+        allowNull: true,
+        isNotEmptyString: true
     },
     lastName: {
         type: 'string',
@@ -75,7 +77,16 @@ let attributes = {
         collection: 'UserDevice',
         via: 'user'
     },
-    verified: {
+    /**
+     *  Has success verification Phone
+     */
+    isPhoneVerified: {
+        type: 'boolean'
+    },
+    /**
+     * Indicate filled all required custom fields
+     */
+    hasFilledAllCustomFields: {
         type: 'boolean'
     },
     passwordHash: {
@@ -103,6 +114,13 @@ let attributes = {
     isDeleted: {
         type: 'boolean'
     },
+    /**
+     * Object with filed custom user fields
+    */
+    customFields: "json",
+    /**
+    * Any data storadge for person
+    */
     customData: "json",
 };
 let Model = {
@@ -191,11 +209,11 @@ let Model = {
         let passwordHash = bcryptjs.hashSync(newPassword, salt);
         return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: Date.now() });
     },
-    async login(login, deviceName, password, OTP, userAgent, IP) {
+    async login(login, deviceId, deviceName, password, OTP, userAgent, IP) {
         let user = await User.findOne({ login: login });
         // Stop login without deviceName
-        if (!deviceName) {
-            throw `deviceName required`;
+        if (!deviceName && !deviceId) {
+            throw `deviceName && deviceId required`;
         }
         // Stop login when password or OTP not passed
         if (!(password || OTP)) {
@@ -217,10 +235,10 @@ let Model = {
         if ((await Settings.get("LOGIN_OTP_REQUIRED")) && (await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
             await User.setPassword(user.id, OTP, null, true);
         }
-        return await User.authDevice(user.id, deviceName, userAgent, IP);
+        return await User.authDevice(user.id, deviceId, deviceName, userAgent, IP);
     },
-    async authDevice(userId, deviceName, userAgent, IP) {
-        let userDevice = await UserDevice.findOrCreate({ user: userId, name: deviceName }, { user: userId, name: deviceName });
+    async authDevice(userId, deviceId, deviceName, userAgent, IP) {
+        let userDevice = await UserDevice.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
         // Need pass sessionId here for except paralells login with one name
         return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
     },
@@ -230,3 +248,4 @@ module.exports = {
     attributes: attributes,
     ...Model,
 };
+"firstName";

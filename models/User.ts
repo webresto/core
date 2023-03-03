@@ -27,12 +27,14 @@ let attributes = {
 
   login: {
     type: 'string',
-    required: true
+    required: true,
+    isNotEmptyString: true
   } as unknown as string,
 
   firstName: {
     type: 'string',
-    unique: true
+    allowNull: true,
+    isNotEmptyString: true
   } as unknown as string,
 
   lastName: {
@@ -102,7 +104,17 @@ let attributes = {
     via: 'user'
   },
   
-  verified: {
+  /**
+   *  Has success verification Phone
+   */
+  isPhoneVerified: {
+    type: 'boolean'
+  } as unknown as boolean,
+
+  /**
+   * Indicate filled all required custom fields 
+   */
+  hasFilledAllCustomFields: {
     type: 'boolean'
   } as unknown as boolean,
 
@@ -137,6 +149,16 @@ let attributes = {
     type:'boolean'
   } as unknown as boolean,
   
+  /** 
+   * Object with filed custom user fields
+  */
+  customFields: "json" as unknown as {
+    [key: string]: string | boolean | number;
+  } | string,
+
+  /** 
+  * Any data storadge for person
+  */
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
@@ -234,13 +256,15 @@ let Model = {
     return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: Date.now() });
   },
 
-  async login(login: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice> {
+  async login(login: string, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice> {
     let user = await User.findOne({ login: login });
 
     // Stop login without deviceName
-    if (!deviceName) {
-      throw `deviceName required`;
+    if (!deviceName && !deviceId) {
+      throw `deviceName && deviceId required`;
     }
+
+
 
     // Stop login when password or OTP not passed
     if (!(password || OTP)) {
@@ -266,11 +290,12 @@ let Model = {
     if ((await Settings.get("LOGIN_OTP_REQUIRED")) && (await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
       await User.setPassword(user.id, OTP, null, true);
     }
-    return await User.authDevice(user.id, deviceName, userAgent, IP);
+    return await User.authDevice(user.id, deviceId, deviceName, userAgent, IP);
   },
 
-  async authDevice(userId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDevice> {
-    let userDevice = await UserDevice.findOrCreate({ user: userId, name: deviceName }, { user: userId, name: deviceName });
+
+  async authDevice(userId: string, deviceId: string,  deviceName: string, userAgent: string, IP: string): Promise<UserDevice> {
+    let userDevice = await UserDevice.findOrCreate({id: deviceId }, {id: deviceId, user: userId, name: deviceName });
     // Need pass sessionId here for except paralells login with one name
     return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: uuid() });
   },
@@ -283,5 +308,6 @@ module.exports = {
 };
 
 declare global {
-  const User: typeof Model & ORMModel<User, "firstName" >;
+  const User: typeof Model & ORMModel<User, null >;
 }
+"firstName"

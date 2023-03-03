@@ -5,6 +5,7 @@ import User from "../models/User";
 declare let attributes: {
     /** ID */
     id: string;
+    /** Generated name from OS type, and location */
     name: string;
     userAgent: string;
     isLogined: boolean;
