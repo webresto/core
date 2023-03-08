@@ -114,7 +114,7 @@ let attributes = {
   /**
    * Indicate filled all required custom fields 
    */
-  allRequiredFieldsAreFilled: {
+  allRequiredCustomFieldsAreFilled: {
     type: 'boolean'
   } as unknown as boolean,
 
