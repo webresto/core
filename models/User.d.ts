@@ -45,7 +45,7 @@ declare let attributes: {
     /**
      * Indicate filled all required custom fields
      */
-    hasFilledAllCustomFields: boolean;
+    allRequiredFieldsAreFilled: boolean;
     passwordHash: string;
     lastPasswordChange: number;
     /** Its temporary code for authorization */

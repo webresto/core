@@ -86,7 +86,7 @@ let attributes = {
     /**
      * Indicate filled all required custom fields
      */
-    hasFilledAllCustomFields: {
+    allRequiredFieldsAreFilled: {
         type: 'boolean'
     },
     passwordHash: {
@@ -130,8 +130,6 @@ let Model = {
         }
         if (!userInit.isDeleted)
             userInit.isDeleted = false;
-        if (!userInit.verified)
-            userInit.verified = false;
         if ((await Settings.get("LOGIN_FIELD")) === undefined || (await Settings.get("LOGIN_FIELD")) === "phone") {
             if (!userInit.phone)
                 throw `User phone is required`;

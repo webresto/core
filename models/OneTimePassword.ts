@@ -40,7 +40,11 @@ let Model = {
   async check(login: string, password: string): Promise<boolean> {
     // Clean expired
     await OneTimePassword.destroy({expires: { "<": Date.now() }})
-
+    
+    if(process.env.NODE_ENV !== "production" && process.env.DEFAULT_OTP === password) {
+      return true
+    }
+    
     let OTP = (await OneTimePassword.find({login: login}).sort('createdAt DESC'))[0]
     if (OTP === undefined) return false
 
