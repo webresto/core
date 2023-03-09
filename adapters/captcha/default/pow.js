@@ -16,7 +16,7 @@ class POW extends CaptchaAdapter_1.default {
          */
         if (!label)
             throw `label not provided`;
-        let difficulty = Number(process.env.CAPTCHA_POW_DIFFICUTLY) ? Number(process.env.CAPTCHA_POW_DIFFICUTLY) : 5 * 10000;
+        let difficulty = Number(process.env.CAPTCHA_POW_DIFFICUTLY) ? Number(process.env.CAPTCHA_POW_DIFFICUTLY) : 7 * 1000;
         let attempt = 0;
         // Tasks garbage collect
         Object.keys(POW.taskStorage).forEach((item) => {
