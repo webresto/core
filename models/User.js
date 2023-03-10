@@ -246,4 +246,3 @@ module.exports = {
     attributes: attributes,
     ...Model,
 };
-"firstName";

@@ -309,4 +309,3 @@ module.exports = {
 declare global {
   const User: typeof Model & ORMModel<User, null >;
 }
-"firstName"
