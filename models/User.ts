@@ -307,7 +307,9 @@ let Model = {
       if (passwordPolicy === "from_otp")  {
         await User.setPassword(user.id, OTP, null, true);
       }
-    } else {
+    }
+
+    if (!user) {
       throw `User not found`
     }
 

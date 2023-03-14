@@ -254,7 +254,7 @@ let Model = {
                 await User.setPassword(user.id, OTP, null, true);
             }
         }
-        else {
+        if (!user) {
             throw `User not found`;
         }
         // check password if passed or required
