@@ -80,7 +80,7 @@ let attributes = {
     /**
      *  Has success verification Phone
      */
-    isPhoneVerified: {
+    verified: {
         type: 'boolean'
     },
     /**
@@ -208,29 +208,63 @@ let Model = {
         return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: Date.now() });
     },
     async login(login, deviceId, deviceName, password, OTP, userAgent, IP) {
-        let user = await User.findOne({ login: login });
-        // Stop login without deviceName
-        if (!deviceName && !deviceId) {
-            throw `deviceName && deviceId required`;
-        }
         // Stop login when password or OTP not passed
         if (!(password || OTP)) {
             throw `Password or OTP required`;
         }
-        // Check OTP first because it will prevent brute force.
-        if (OTP || (await Settings.get("LOGIN_OTP_REQUIRED"))) {
-            if (!(await OneTimePassword.check(login, OTP))) {
+        // Stop login without deviceName
+        if (!deviceName && !deviceId) {
+            throw `deviceName && deviceId required`;
+        }
+        // Define password policy
+        let passwordPolicy = await Settings.get("PASSWORD_POLICY");
+        if (!passwordPolicy)
+            passwordPolicy = "from_otp";
+        let user = await User.findOne({ login: login });
+        // Check OTP
+        let checkOTPResult = false;
+        if (OTP) {
+            if (await OneTimePassword.check(login, OTP)) {
+                checkOTPResult = true;
+            }
+            else {
                 throw "OTP check failed";
             }
         }
+        // When password required and LOGIN_OTP_REQUIRED you should pass both
+        if (await Settings.get("LOGIN_OTP_REQUIRED") && !checkOTPResult && passwordPolicy === "required")
+            throw `OTP check failed`;
+        // When password is disabled Login possibly only by OTP
+        if (passwordPolicy === "disabled" && !checkOTPResult)
+            throw `Password policy [disabled] (OTP check failed)`;
+        // Create user if not exist and only with verified OTP
+        let CREATE_USER_IF_NOT_EXIST = await Settings.get("CREATE_USER_IF_NOT_EXIST") || true;
+        if (!user && CREATE_USER_IF_NOT_EXIST && checkOTPResult) {
+            if (passwordPolicy === "required") {
+                if (!password)
+                    throw `Password required`;
+            }
+            user = await User.create({
+                login: login, verified: checkOTPResult
+            }).fetch();
+            if (passwordPolicy === "required") {
+                await User.setPassword(user.id, password, null, true);
+            }
+            if (passwordPolicy === "from_otp") {
+                await User.setPassword(user.id, OTP, null, true);
+            }
+        }
+        else {
+            throw `User not found`;
+        }
         // check password if passed or required
-        if (password || (await Settings.get("PASSWORD_REQUIRED"))) {
+        if (password || passwordPolicy === "required") {
             if (!(await bcryptjs.compare(password, user.passwordHash))) {
                 throw `Password not match`;
             }
         }
         // Set last checked OTP as password
-        if ((await Settings.get("LOGIN_OTP_REQUIRED")) && (await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
+        if (OTP && passwordPolicy === "from_otp") {
             await User.setPassword(user.id, OTP, null, true);
         }
         return await User.authDevice(user.id, deviceId, deviceName, userAgent, IP);

@@ -41,7 +41,7 @@ declare let attributes: {
     /**
      *  Has success verification Phone
      */
-    isPhoneVerified: boolean;
+    verified: boolean;
     /**
      * Indicate filled all required custom fields
      */
