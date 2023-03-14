@@ -72,8 +72,7 @@
     "hookName": "restocore"
   },
   "scripts": {
-    "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
-    "test:js": "mocha test/bootstrap.js './test/{,!(fixture)/**}/*.test.js' --exit",
+    "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
     "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
     "test:init": "cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
     "build": "tsc",

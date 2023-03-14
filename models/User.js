@@ -130,9 +130,12 @@ let Model = {
         }
         if (!userInit.isDeleted)
             userInit.isDeleted = false;
+        // Phone required
         if ((await Settings.get("LOGIN_FIELD")) === undefined || (await Settings.get("LOGIN_FIELD")) === "phone") {
-            if (!userInit.phone)
+            if (!userInit.phone) {
+                sails.log.error(`User with login: ${userInit.login} should has phone on creation`);
                 throw `User phone is required`;
+            }
         }
         next();
     },
@@ -175,10 +178,15 @@ let Model = {
         if (!(await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
             let paswordRegex = await Settings.get("PASSWORD_REGEX");
             let passwordMinLength = await Settings.get("PASSWORD_MIN_LENGTH");
-            if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength))
-                throw `Password less than minimum length`;
-            if (paswordRegex && !newPassword.match(paswordRegex))
-                throw `Password not match with regex`;
+            let passwordPolicy = await Settings.get("PASSWORD_POLICY");
+            if (!passwordPolicy)
+                passwordPolicy = "from_otp";
+            if (passwordPolicy === "required") {
+                if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength))
+                    throw `Password less than minimum length`;
+                if (paswordRegex && !newPassword.match(paswordRegex))
+                    throw `Password not match with regex`;
+            }
         }
         // salt
         let salt = await Settings.get("PasswordSalt");
@@ -207,7 +215,7 @@ let Model = {
         let passwordHash = bcryptjs.hashSync(newPassword, salt);
         return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: Date.now() });
     },
-    async login(login, deviceId, deviceName, password, OTP, userAgent, IP) {
+    async login(login, phone, deviceId, deviceName, password, OTP, userAgent, IP) {
         // Stop login when password or OTP not passed
         if (!(password || OTP)) {
             throw `Password or OTP required`;
@@ -220,6 +228,10 @@ let Model = {
         let passwordPolicy = await Settings.get("PASSWORD_POLICY");
         if (!passwordPolicy)
             passwordPolicy = "from_otp";
+        // Check password
+        if (!password && passwordPolicy === "required") {
+            throw `Password required`;
+        }
         let user = await User.findOne({ login: login });
         // Check OTP
         let checkOTPResult = false;
@@ -240,12 +252,20 @@ let Model = {
         // Create user if not exist and only with verified OTP
         let CREATE_USER_IF_NOT_EXIST = await Settings.get("CREATE_USER_IF_NOT_EXIST") || true;
         if (!user && CREATE_USER_IF_NOT_EXIST && checkOTPResult) {
+            let loginFiled = await Settings.get("LOGIN_FIELD") || "phone";
+            if (loginFiled === "phone") {
+                if (!phone) {
+                    throw `Phone is required for LOGIN_FIELD: phone`;
+                }
+            }
             if (passwordPolicy === "required") {
                 if (!password)
                     throw `Password required`;
             }
             user = await User.create({
-                login: login, verified: checkOTPResult
+                login: login,
+                verified: true,
+                ...(loginFiled === "phone" || phone !== undefined) && { phone: phone }
             }).fetch();
             if (passwordPolicy === "required") {
                 await User.setPassword(user.id, password, null, true);

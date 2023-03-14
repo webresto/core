@@ -176,8 +176,12 @@ let Model = {
 
     if (!userInit.isDeleted) userInit.isDeleted = false;
 
+    // Phone required
     if ((await Settings.get("LOGIN_FIELD")) === undefined || (await Settings.get("LOGIN_FIELD")) === "phone") {
-      if (!userInit.phone) throw `User phone is required`;
+      if (!userInit.phone) {
+        sails.log.error(`User with login: ${userInit.login} should has phone on creation`);
+        throw `User phone is required`;
+      }
     }
 
     next();
@@ -222,8 +226,12 @@ let Model = {
       let paswordRegex = await Settings.get("PASSWORD_REGEX");
       let passwordMinLength = await Settings.get("PASSWORD_MIN_LENGTH");
 
-      if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength)) throw `Password less than minimum length`;
-      if (paswordRegex && !newPassword.match(paswordRegex as string)) throw `Password not match with regex`;
+      let passwordPolicy = await Settings.get("PASSWORD_POLICY") as "required" | "from_otp" | "disabled";
+      if (!passwordPolicy) passwordPolicy = "from_otp";
+      if(passwordPolicy === "required"){
+        if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength)) throw `Password less than minimum length`;
+        if (paswordRegex && !newPassword.match(paswordRegex as string)) throw `Password not match with regex`;
+      }
     }
 
     // salt
@@ -255,8 +263,8 @@ let Model = {
     return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: Date.now() });
   },
 
-  async login(login: string, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice> {
-        
+  async login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice> {
+  
     // Stop login when password or OTP not passed
     if (!(password || OTP)) {
       throw `Password or OTP required`;
@@ -271,8 +279,13 @@ let Model = {
     let passwordPolicy = await Settings.get("PASSWORD_POLICY") as "required" | "from_otp" | "disabled";
     if (!passwordPolicy) passwordPolicy = "from_otp";
 
+    // Check password
+    if (!password && passwordPolicy === "required") {
+      throw `Password required`;
+    }
+
     let user = await User.findOne({ login: login });
-    
+
     // Check OTP
     let checkOTPResult = false;
     if (OTP) { 
@@ -282,28 +295,37 @@ let Model = {
         throw "OTP check failed"
       }
     }
-    
+
     // When password required and LOGIN_OTP_REQUIRED you should pass both
     if (await Settings.get("LOGIN_OTP_REQUIRED") && !checkOTPResult && passwordPolicy === "required") throw `OTP check failed`
 
     // When password is disabled Login possibly only by OTP
     if (passwordPolicy === "disabled"  && !checkOTPResult) throw `Password policy [disabled] (OTP check failed)`
-    
     // Create user if not exist and only with verified OTP
+
     let CREATE_USER_IF_NOT_EXIST = await Settings.get("CREATE_USER_IF_NOT_EXIST") || true;
     if (!user && CREATE_USER_IF_NOT_EXIST && checkOTPResult) {
+      let loginFiled = await Settings.get("LOGIN_FIELD") || "phone"
+      if (loginFiled === "phone") { 
+        if (!phone) {
+          throw `Phone is required for LOGIN_FIELD: phone`
+        }
+      }
+
       if (passwordPolicy === "required")  {
         if(!password) throw `Password required`
       }
-      
+
       user = await User.create({
-        login: login, verified: checkOTPResult
+        login: login, 
+        verified: true,
+        ...(loginFiled === "phone" || phone !== undefined) && {phone: phone}
       }).fetch()
-  
+
       if (passwordPolicy === "required")  {
         await User.setPassword(user.id, password, null, true);
       }      
-  
+
       if (passwordPolicy === "from_otp")  {
         await User.setPassword(user.id, OTP, null, true);
       }

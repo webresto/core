@@ -83,7 +83,7 @@ declare let Model: {
      * @param {WaterlineCriteria} criteria
      * @returns String
      */
-    getPhoneString(phone: Phone, target?: "string" | "login" | "print"): Promise<string>;
+    getPhoneString(phone: Phone, target?: "login" | "print" | "string"): Promise<string>;
     /**
      * Update user password
      *
@@ -100,7 +100,7 @@ declare let Model: {
      * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
      */
     setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean, temporaryCode?: string): Promise<User>;
-    login(login: string, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice>;
+    login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice>;
     authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDevice>;
 };
 declare global {
