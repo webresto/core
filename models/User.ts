@@ -312,10 +312,6 @@ let Model = {
         }
       }
 
-      if (passwordPolicy === "required")  {
-        if(!password) throw `Password required`
-      }
-
       user = await User.create({
         login: login, 
         verified: true,

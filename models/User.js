@@ -258,20 +258,16 @@ let Model = {
                     throw `Phone is required for LOGIN_FIELD: phone`;
                 }
             }
-            if (passwordPolicy === "required") {
-                if (!password)
-                    throw `Password required`;
-            }
             user = await User.create({
                 login: login,
                 verified: true,
                 ...(loginFiled === "phone" || phone !== undefined) && { phone: phone }
             }).fetch();
             if (passwordPolicy === "required") {
-                await User.setPassword(user.id, password, null, true);
+                user = await User.setPassword(user.id, password, null, true);
             }
             if (passwordPolicy === "from_otp") {
-                await User.setPassword(user.id, OTP, null, true);
+                user = await User.setPassword(user.id, OTP, null, true);
             }
         }
         if (!user) {
