@@ -69,6 +69,10 @@ describe("User", function () {
 
 
       if (login.id !== "deviceId-test" || login.name !== "device-name") throw `bad login user device`
+
+      login = await User.login("778899", null, "deviceId-test3", "device-name3", otp.password, undefined, "agent", "IP");
+      console.log(login)
+      
     });
 
 
@@ -105,7 +109,7 @@ describe("User", function () {
       
       if (!_user) throw `user not found`;
       if (!(await bcryptjs.compare("password01", _user.passwordHash))) {
-        throw `Password not match`;
+        throw `testing password not match`;
       }
       if (login.id !== "deviceId-test" || login.name !== "device-name") throw `bad login user device`
 
@@ -125,19 +129,7 @@ describe("User", function () {
 
     });
 
-    // it("login user with password", async function () {
-    //   await Settings.set("PASSWORD_POLICY", "required") 
-    //   await Settings.set("LOGIN_FIELD", "email") 
 
-    //   let login = await User.login("test@mail.com", null,"deviceId-test", "device-name", "password01", otp.password, "agent", "IP");
-    //   let _user = await User.findOne({login: "test@mail.com"})
-      
-    //   if (!_user) throw `user not found`;
-    //   if (!(await bcryptjs.compare("password01", _user.passwordHash))) {
-    //     throw `Password not match`;
-    //   }
-    //   if (login.id !== "deviceId-test" || login.name !== "device-name") throw `bad login user device`
-    // });
 
   });
 });

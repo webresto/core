@@ -288,11 +288,9 @@ let Model = {
 
     // Check OTP
     let checkOTPResult = false;
-    if (OTP) { 
+    if (OTP && typeof OTP === "string" && OTP.length > 0) { 
       if(await OneTimePassword.check(login, OTP)) {
         checkOTPResult = true
-      } else {
-        throw "OTP check failed"
       }
     }
 
@@ -301,8 +299,9 @@ let Model = {
 
     // When password is disabled Login possibly only by OTP
     if (passwordPolicy === "disabled"  && !checkOTPResult) throw `Password policy [disabled] (OTP check failed)`
+    
+    
     // Create user if not exist and only with verified OTP
-
     let CREATE_USER_IF_NOT_EXIST = await Settings.get("CREATE_USER_IF_NOT_EXIST") || true;
     if (!user && CREATE_USER_IF_NOT_EXIST && checkOTPResult) {
       let loginFiled = await Settings.get("LOGIN_FIELD") || "phone"
@@ -319,11 +318,11 @@ let Model = {
       }).fetch()
 
       if (passwordPolicy === "required")  {
-        await User.setPassword(user.id, password, null, true);
+        user = await User.setPassword(user.id, password, null, true);
       }      
 
       if (passwordPolicy === "from_otp")  {
-        await User.setPassword(user.id, OTP, null, true);
+        user = await User.setPassword(user.id, OTP, null, true);
       }
     }
 

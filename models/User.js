@@ -235,12 +235,9 @@ let Model = {
         let user = await User.findOne({ login: login });
         // Check OTP
         let checkOTPResult = false;
-        if (OTP) {
+        if (OTP && typeof OTP === "string" && OTP.length > 0) {
             if (await OneTimePassword.check(login, OTP)) {
                 checkOTPResult = true;
-            }
-            else {
-                throw "OTP check failed";
             }
         }
         // When password required and LOGIN_OTP_REQUIRED you should pass both
