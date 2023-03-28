@@ -295,7 +295,7 @@ let Model = {
     }
 
     // When password required and LOGIN_OTP_REQUIRED you should pass both
-    if (await Settings.get("LOGIN_OTP_REQUIRED") && !checkOTPResult && passwordPolicy === "required") throw `OTP check failed`
+    if (await Settings.get("LOGIN_OTP_REQUIRED") && !checkOTPResult && passwordPolicy === "required") throw `login OTP check failed`
 
     // When password is disabled Login possibly only by OTP
     if (passwordPolicy === "disabled"  && !checkOTPResult) throw `Password policy [disabled] (OTP check failed)`
