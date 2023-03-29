@@ -1,8 +1,9 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import Dish from "../models/Dish";
-import Order from "../models/Order";
+import UserOrderHistory from "./UserOrderHistory";
 import UserDevice from "./UserDevice";
+import UserLocation from "./UserLocation";
 import UserBonusProgram from "../models/UserBonusProgram";
 import { OptionalAll } from "../interfaces/toolsTS";
 export declare type Phone = {
@@ -28,16 +29,10 @@ declare let attributes: {
     phone: Phone;
     birthday: string;
     favorites: Dish[];
-    bonusProgram: UserBonusProgram;
-    history: Order[];
-    locations: {
-        collection: string;
-        via: string;
-    };
-    devices: {
-        collection: string;
-        via: string;
-    };
+    bonusProgram: UserBonusProgram[];
+    history: UserOrderHistory[];
+    locations: UserLocation[];
+    devices: UserDevice[];
     /**
      *  Has success verification Phone
      */
@@ -78,12 +73,18 @@ export default User;
 declare let Model: {
     beforeCreate(userInit: User, next: Function): Promise<void>;
     /**
+     * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
+     * @param userId
+     * @param dishId
+     */
+    handleFavoriteDish(userId: string, dishId: string): Promise<void>;
+    /**
      * Returns phone string by user criteria
      * Additional number will be added separated by commas (+19990000000,1234)
      * @param {WaterlineCriteria} criteria
      * @returns String
      */
-    getPhoneString(phone: Phone, target?: "string" | "login" | "print"): Promise<string>;
+    getPhoneString(phone: Phone, target?: "login" | "print" | "string"): Promise<string>;
     /**
      * Update user password
      *

@@ -89,7 +89,7 @@ describe('Dish', function () {
   });
   
   it('Dish Model attributes', async () => {
-    let dish = (await Dish.find({}).limit(1).populate('images'))[0];
+    let dish = (await Dish.find({}).limit(1).populate("images"))[0];
     expect(dish).to.include.all.keys(
     'id',
     'rmsId',

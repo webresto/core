@@ -67,7 +67,7 @@ let attributes = {
         collection: 'userbonusprogram',
     },
     history: {
-        collection: 'order',
+        collection: 'UserOrderHistory',
     },
     locations: {
         collection: 'UserLocation',
@@ -138,6 +138,21 @@ let Model = {
             }
         }
         next();
+    },
+    /**
+     * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
+     * @param userId
+     * @param dishId
+     */
+    async handleFavoriteDish(userId, dishId) {
+        let user = await User.findOne({ id: userId }).populate("favorites");
+        let favoritesIds = user.favorites.map((i) => i.id);
+        if (favoritesIds.includes(dishId)) {
+            await User.removeFromCollection(userId, "favorites").members([dishId]);
+        }
+        else {
+            await User.addToCollection(userId, "favorites").members([dishId]);
+        }
     },
     /**
      * Returns phone string by user criteria

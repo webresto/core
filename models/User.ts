@@ -3,13 +3,14 @@ import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
+import UserOrderHistory from "./UserOrderHistory";
 import UserDevice from "./UserDevice";
+import UserLocation from "./UserLocation";
 import UserBonusProgram from "../models/UserBonusProgram";
 import { Country } from "../interfaces/Country";
 import * as bcryptjs from "bcryptjs";
 import { OptionalAll } from "../interfaces/toolsTS";
 const Countries: Country[] = require("../libs/dictionaries/countries.json")
-
 export type Phone = {
   code: string
   number: string 
@@ -84,25 +85,25 @@ let attributes = {
 
   favorites: {
     collection: 'dish'
-  } as unknown as Dish[],
+  } as unknown as Dish[] | undefined,
 
   bonusProgram: {
     collection: 'userbonusprogram',
-  } as unknown as UserBonusProgram,
+  } as unknown as UserBonusProgram[],
 
   history: {
-    collection: 'order',
-  } as unknown as Order[],
+    collection: 'UserOrderHistory',
+  } as unknown as UserOrderHistory[],
 
   locations: {
     collection: 'UserLocation',
     via: 'user'
-  },
+  } as unknown as UserLocation[],
 
   devices: {
     collection: 'UserDevice',
     via: 'user'
-  },
+  } as unknown as UserDevice[],
   
   /**
    *  Has success verification Phone
@@ -185,6 +186,21 @@ let Model = {
     }
 
     next();
+  },
+
+  /**
+   * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
+   * @param userId 
+   * @param dishId 
+   */
+  async handleFavoriteDish(userId: string, dishId: string): Promise<void> {
+    let user = await User.findOne({id: userId}).populate("favorites");
+    let favoritesIds = user.favorites.map((i) => i.id);
+    if (favoritesIds.includes(dishId)) {
+      await User.removeFromCollection(userId, "favorites").members([dishId])
+    }  else {
+      await User.addToCollection(userId, "favorites").members([dishId])
+    }
   },
 
   /**
