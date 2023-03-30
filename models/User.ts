@@ -188,6 +188,11 @@ let Model = {
     next();
   },
 
+  afterCreate: function (record, proceed) {
+    emitter.emit('core:user-after-create', record);
+    return proceed();
+  },
+
   /**
    * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
    * @param userId 

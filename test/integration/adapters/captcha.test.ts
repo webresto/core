@@ -5,10 +5,10 @@ let task
 let Puzzle = require("fix-esm").require("crypto-puzzle").default;
 
 process.env.CAPTCHA_POW_DIFFICUTLY = "250000"
-describe("Captcha default adapter (POW)", function () {
+describe("Captcha adapter", function () {
   this.timeout(60000)
 
-  it("get task", async () => {
+  it("get captcha POW task", async () => {
     let captchaAdapter = await Captcha.getAdapter();
     job = await captchaAdapter.getJob("test");
 
@@ -22,7 +22,7 @@ describe("Captcha default adapter (POW)", function () {
     }
   });
 
-  it("check", async () => {
+  it("check POW captcha", async () => {
     let parsedTask = {
       difficulty: parseInt(task.difficulty),
       salt: task.salt,
@@ -35,6 +35,10 @@ describe("Captcha default adapter (POW)", function () {
       solution: result
     }
     if (await captchaAdapter.check(resolvedCaptcha, "test") === false) throw `Captcha POW check fail`  
+    
+    // Second pass captcha
+    if (await captchaAdapter.check(resolvedCaptcha, "test") === true) throw `Captcha POW check fail`  
+
   });
 
   it("Bad captcha", async () => {
@@ -46,5 +50,5 @@ describe("Captcha default adapter (POW)", function () {
     let result = await captchaAdapter.check(resolvedCaptcha, "test123")  
     if (result === true) throw `Bad captcha check should return false`
   });
-
+  
 });
