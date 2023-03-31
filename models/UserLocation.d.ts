@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
+import User from "../models/User";
 declare let attributes: {
     /** ID */
     id: string;
@@ -13,10 +14,7 @@ declare let attributes: {
     apartment: string;
     doorphone: string;
     street: string;
-    user: {
-        model: string;
-        via: string;
-    };
+    user: string | User;
     comment: string;
     customData: string | {
         [key: string]: string | number | boolean;

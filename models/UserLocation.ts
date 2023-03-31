@@ -1,6 +1,7 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
+import User from "../models/User"
 
 let attributes = {
   
@@ -23,7 +24,7 @@ let attributes = {
   user: {
     model: 'user',
     via: 'locations'
-  },
+  } as unknown as User | string,
   
   comment: "string",
   customData: "json" as unknown as {

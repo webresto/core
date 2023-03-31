@@ -210,6 +210,25 @@ let Model = {
     }
   },
 
+  async delete(userId:string, OTP: string, force: boolean): Promise<void> {
+    if (!force){
+      if (!OTP) {
+        throw `OTP required for deleting user`;
+      }
+
+      let user = await User.findOne({id: userId})
+      if(!user) {
+        throw `OTP required for deleting user`;
+      }
+
+      if(await OneTimePassword.check(user.login, OTP)) {
+        throw `OTP checks failed`  
+      }
+    }
+    await UserDevice.update({ user: userId }, { isLogined: false });
+    User.update({id: userId}, {isDeleted: true});
+  },
+
   /**
    * Returns phone string by user criteria
    * Additional number will be added separated by commas (+19990000000,1234)
