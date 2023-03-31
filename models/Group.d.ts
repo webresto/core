@@ -21,7 +21,7 @@ declare let attributes: {
     seoText: string;
     seoTitle: string;
     /** Sorting weight */
-    order: number;
+    sortOrder: number;
     dishes: Dish[];
     parentGroup: any;
     childGroups: string[] | Group[];

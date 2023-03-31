@@ -28,7 +28,7 @@ let attributes = {
         unique: true,
         required: true,
     },
-    order: "number",
+    sortOrder: "number",
     description: "string",
     enable: {
         type: "boolean",

@@ -14,7 +14,7 @@ declare let attributes: {
     /** Dish relation */
     dish: Dish[];
     /** Sort order */
-    order: number;
+    sortOrder: number;
     /** Group relation */
     group: Group[];
     /** upload date */

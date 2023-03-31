@@ -11,7 +11,7 @@ let attributes = {
         type: "string",
         required: true,
     },
-    order: "number",
+    sortOrder: "number",
     description: "string",
     // hasExternalLogic: {
     //   type: "boolean",

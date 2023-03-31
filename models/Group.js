@@ -47,7 +47,7 @@ let attributes = {
         allowNull: true,
     },
     /** Sorting weight */
-    order: "number",
+    sortOrder: "number",
     dishes: {
         collection: "dish",
         via: "parentGroup",

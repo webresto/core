@@ -36,7 +36,7 @@ let attributes = {
   } as unknown as Dish[],
 
   /** Sort order */
-  order: "number" as unknown as number,
+  sortOrder: "number" as unknown as number,
 
   /** Group relation */
   group: {

@@ -127,7 +127,7 @@ let attributes = {
   weight: "number" as unknown as number,
 
   /** Порядок сортировки */
-  order: "number" as unknown as number,
+  sortOrder: "number" as unknown as number,
 
   /** Блюдо удалено */
   isDeleted: "boolean" as unknown as boolean,

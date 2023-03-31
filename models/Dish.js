@@ -94,7 +94,7 @@ let attributes = {
     /** Масса  */
     weight: "number",
     /** Порядок сортировки */
-    order: "number",
+    sortOrder: "number",
     /** Блюдо удалено */
     isDeleted: "boolean",
     /** Блюдо может быть модифичироанно */

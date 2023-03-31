@@ -24,7 +24,7 @@ let attributes = {
         via: "images",
     },
     /** Sort order */
-    order: "number",
+    sortOrder: "number",
     /** Group relation */
     group: {
         collection: "group",
