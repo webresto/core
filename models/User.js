@@ -65,9 +65,11 @@ let attributes = {
     },
     bonusProgram: {
         collection: 'userbonusprogram',
+        via: 'user'
     },
     history: {
         collection: 'UserOrderHistory',
+        via: 'user'
     },
     locations: {
         collection: 'UserLocation',

@@ -89,10 +89,12 @@ let attributes = {
 
   bonusProgram: {
     collection: 'userbonusprogram',
+    via: 'user'
   } as unknown as UserBonusProgram[],
 
   history: {
     collection: 'UserOrderHistory',
+    via: 'user'
   } as unknown as UserOrderHistory[],
 
   locations: {
