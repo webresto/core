@@ -113,6 +113,9 @@ let attributes = {
     // isEmployee: { 
     //   type:'boolean'
     // } as unknown as boolean,
+    orderCount: {
+        type: 'number',
+    },
     isDeleted: {
         type: 'boolean'
     },
@@ -132,6 +135,7 @@ let Model = {
         }
         if (!userInit.isDeleted)
             userInit.isDeleted = false;
+        userInit.orderCount = 0;
         // Phone required
         if ((await Settings.get("LOGIN_FIELD")) === undefined || (await Settings.get("LOGIN_FIELD")) === "phone") {
             if (!userInit.phone) {

@@ -52,6 +52,7 @@ declare let attributes: {
     /** Mark as kitchen worker
      * its idea for making delivery message for Employers
      * */
+    orderCount: number;
     isDeleted: boolean;
     /**
      * Object with filed custom user fields

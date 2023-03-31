@@ -148,6 +148,10 @@ let attributes = {
   //   type:'boolean'
   // } as unknown as boolean,
 
+  orderCount: {
+    type: 'number',
+  } as unknown as number,
+
   isDeleted: { 
     type:'boolean'
   } as unknown as boolean,
@@ -165,6 +169,8 @@ let attributes = {
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
+
+
 };
 
 type attributes = typeof attributes;
@@ -178,7 +184,7 @@ let Model = {
     }
 
     if (!userInit.isDeleted) userInit.isDeleted = false;
-
+    userInit.orderCount = 0;
     // Phone required
     if ((await Settings.get("LOGIN_FIELD")) === undefined || (await Settings.get("LOGIN_FIELD")) === "phone") {
       if (!userInit.phone) {
