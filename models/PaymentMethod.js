@@ -122,7 +122,7 @@ let Model = {
                     },
                 ],
             },
-            sort: "order ASC",
+            sort: "sortOrder ASC",
         });
     },
     /**
