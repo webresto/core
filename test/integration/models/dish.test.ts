@@ -116,7 +116,7 @@ describe('Dish', function () {
     'productCategoryId',
     'type',
     'weight',
-    'order',
+    'sortOrder',
     'isDeleted',
     'isModificable',
     'modifiers',
