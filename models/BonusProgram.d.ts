@@ -4,7 +4,7 @@ declare let attributes: {
     /** ID */
     id: string;
     adapter: string;
-    order: number;
+    sortOrder: number;
     description: string;
     enable: boolean;
     customData: string | {

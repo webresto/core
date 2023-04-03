@@ -19,6 +19,7 @@
   "bundleDependencies": [],
   "dependencies": {
     "@webresto/worktime": "^1.1.1-beta",
+    "ajv": "^8.12.0",
     "bcryptjs": "^2.4.3",
     "crypto-puzzle": "^4.0.0",
     "fix-esm": "^1.0.1",
@@ -72,8 +73,7 @@
     "hookName": "restocore"
   },
   "scripts": {
-    "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
-    "test:js": "mocha test/bootstrap.js './test/{,!(fixture)/**}/*.test.js' --exit",
+    "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
     "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
     "test:init": "cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
     "build": "tsc",

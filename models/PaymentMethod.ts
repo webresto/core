@@ -34,7 +34,7 @@ let attributes = {
     unique: true,
     required: true,
   } as unknown as string,
-  order: "number" as unknown as number,
+  sortOrder: "number" as unknown as number,
   description: "string",
   enable: {
     type: "boolean",
@@ -133,7 +133,7 @@ let Model = {
           },
         ],
       },
-      sort: "order ASC",
+      sort: "sortOrder ASC",
     });
   },
   /**

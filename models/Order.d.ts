@@ -66,6 +66,7 @@ declare let attributes: {
     orderTotal: number;
     discountTotal: number;
     orderDate: string;
+    deviceId: string;
     user: string | User;
     customData: any;
 };
@@ -135,6 +136,7 @@ declare let Model: {
         orderTotal?: number;
         discountTotal?: number;
         orderDate?: string;
+        deviceId?: string;
         user?: string | User;
         customData?: any;
         state?: string;

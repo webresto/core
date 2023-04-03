@@ -12,7 +12,7 @@ let attributes = {
     type: "string",
     required: true,
   } as unknown as string,
-  order: "number" as unknown as number,
+  sortOrder: "number" as unknown as number,
   description: "string",
   // hasExternalLogic: {
   //   type: "boolean",

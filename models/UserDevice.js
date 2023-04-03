@@ -7,6 +7,7 @@ let attributes = {
         type: "string",
         //required: true,
     },
+    /** Generated name from OS type, and location */
     name: 'string',
     userAgent: 'string',
     isLogined: "boolean",

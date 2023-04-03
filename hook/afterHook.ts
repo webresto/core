@@ -50,10 +50,6 @@ export default async function () {
      */
     await Settings.setDefault("LOGIN_FIELD", "phone", "core", true);    
  
-    /**
-     * @setting REGISTRATION_OTP_REQUIRED check OTP on registration process 
-     */
-    await Settings.setDefault("REGISTRATION_OTP_REQUIRED", true, "core");
 
     /**
      * @setting LOGIN_OTP_REQUIRED check OTP on login process 
@@ -70,12 +66,6 @@ export default async function () {
      */
     await Settings.setDefault("PASSWORD_REQUIRED", true, "core");
 
-    // Setting default registartion/login strategy
-    if (!await Settings.get("PASSWORD_REQUIRED") && !await Settings.get("REGISTRATION_OTP_REQUIRED")){
-      sails.log.info(`Use default registartion strategy [OTP]`)
-      await Settings.set("LOGIN_OTP_REQUIRED", true);
-      await Settings.set("REGISTRATION_OTP_REQUIRED", true);
-    }
   } catch (e) {
     sails.log.error("core > afterHook > error1", e);
   }

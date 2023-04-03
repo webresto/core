@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import { QueryBuilder, WaterlinePromise, CRUDBuilder, UpdateBuilder, Callback } from "waterline";
-import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+import { WaterlinePromise, CRUDBuilder, UpdateBuilder, Callback } from "waterline";
+import { OptionalAll, RequiredField, NonPrimitiveKeys, TypeOrArray } from "../interfaces/toolsTS";
 declare type or<T> = {
     or?: WhereCriteriaQuery<T>[];
 };
@@ -47,6 +47,31 @@ export declare type CriteriaQuery<T> = {
 export declare type WhereCriteriaQuery<T> = {
     [P in keyof T]?: T[P] | T[P][] | not<T[P]> | lessThan<T[P]> | lessThanOrEqual<T[P]> | greaterThan<T[P]> | greaterThanOrEqual<T[P]> | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | lessThan<T[P][]> | lessThanOrEqual<T[P][]> | greaterThan<T[P][]> | greaterThanOrEqual<T[P][]> | or<T>;
 };
+declare type collectionMember = {
+    members(childIds: string[]): Promise<void>;
+};
+declare type QueryBuilder<T> = WaterlinePromise<T> & {
+    where(condition: any): QueryBuilder<T>;
+    limit(lim: number): QueryBuilder<T>;
+    skip(num: number): QueryBuilder<T>;
+    sort(criteria: string | {
+        [attribute: string]: string;
+    } | {
+        [attribute: string]: string;
+    }[]): QueryBuilder<T>;
+    paginate(pagination?: {
+        page: number;
+        limit: number;
+    }): QueryBuilder<T>;
+    populate(association: NonPrimitiveKeys<TypeOrArray<T>>): QueryBuilder<T>;
+    populate(association: NonPrimitiveKeys<TypeOrArray<T>>, filter: any): QueryBuilder<T>;
+    groupBy(attrOrExpr: string): QueryBuilder<T>;
+    max(attribute: string): QueryBuilder<T>;
+    min(attribute: string): QueryBuilder<T>;
+    sum(attribute: string): QueryBuilder<T>;
+    average(attribute: string): QueryBuilder<T>;
+    meta(options: any): QueryBuilder<T>;
+};
 /**
  * Waterline model
  * @template M Model object
@@ -68,9 +93,18 @@ export default interface ORMModel<M, C extends keyof M> {
     destroyOne?(criteria: CriteriaQuery<M>[]): CRUDBuilder<M[]>;
     count?(criteria?: CriteriaQuery<M>): WaterlinePromise<number>;
     count?(criteria: CriteriaQuery<M>[]): WaterlinePromise<number>;
-    query(sqlQuery: string, cb: Callback<any>): void;
-    query(sqlQuery: string, data: any, cb: Callback<any>): void;
-    native(cb: (err: Error, collection: any) => void): void;
+    query?(sqlQuery: string, cb: Callback<any>): void;
+    query?(sqlQuery: string, data: any, cb: Callback<any>): void;
+    native?(cb: (err: Error, collection: any) => void): void;
     stream?(criteria: any, writeEnd: any): NodeJS.WritableStream | Error;
+    addToCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: string[]): Promise<void>;
+    addToCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: number[]): Promise<void>;
+    addToCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>): collectionMember;
+    removeFromCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: string[]): Promise<void>;
+    removeFromCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: number[]): Promise<void>;
+    removeFromCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>): collectionMember;
+    replaceCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: string[]): Promise<void>;
+    replaceCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: number[]): Promise<void>;
+    replaceCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>): collectionMember;
 }
 export {};

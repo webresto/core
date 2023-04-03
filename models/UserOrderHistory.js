@@ -44,6 +44,9 @@ let Model = {
                 user: user.id
             }).fetch();
         }
+        // Count orders
+        let count = await UserOrderHistory.find({ user: user.id });
+        await User.update({ id: user.id }, { orderCount: count.length });
     }
 };
 module.exports = {

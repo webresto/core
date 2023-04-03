@@ -19,7 +19,7 @@ export default abstract class BonusAdapter {
      * Return user
      * @param afterTime - UNIX seconds
      */
-    abstract getTransactions(user: User, afterTime: string): Promise<BonusTransaction[]>;
+    abstract getTransactions(user: User, afterTime: string, limit: number, skip: number): Promise<BonusTransaction[]>;
     /**
      * Метод для создания и получения уже существующего Payment adapterа
      * @param params - параметры для инициализации

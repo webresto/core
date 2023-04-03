@@ -21,10 +21,10 @@ declare let attributes: {
     seoText: string;
     seoTitle: string;
     /** Sorting weight */
-    order: number;
+    sortOrder: number;
     dishes: Dish[];
     parentGroup: any;
-    childGroups: Group[] | string[];
+    childGroups: string[] | Group[];
     /** Изображения */
     images: MediaFile[];
     /** Плейсхолдер для блюд группы */

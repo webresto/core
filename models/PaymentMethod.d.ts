@@ -16,7 +16,7 @@ declare let attributes: {
     type: PaymentMethodType;
     isCash: boolean;
     adapter: string;
-    order: number;
+    sortOrder: number;
     description: string;
     enable: boolean;
 };

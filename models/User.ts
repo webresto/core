@@ -3,13 +3,14 @@ import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import Dish from "../models/Dish";
 import Order from "../models/Order";
+import UserOrderHistory from "./UserOrderHistory";
 import UserDevice from "./UserDevice";
+import UserLocation from "./UserLocation";
 import UserBonusProgram from "../models/UserBonusProgram";
 import { Country } from "../interfaces/Country";
 import * as bcryptjs from "bcryptjs";
 import { OptionalAll } from "../interfaces/toolsTS";
 const Countries: Country[] = require("../libs/dictionaries/countries.json")
-
 export type Phone = {
   code: string
   number: string 
@@ -27,12 +28,14 @@ let attributes = {
 
   login: {
     type: 'string',
-    required: true
+    required: true,
+    isNotEmptyString: true
   } as unknown as string,
 
   firstName: {
     type: 'string',
-    unique: true
+    allowNull: true,
+    isNotEmptyString: true
   } as unknown as string,
 
   lastName: {
@@ -82,27 +85,39 @@ let attributes = {
 
   favorites: {
     collection: 'dish'
-  } as unknown as Dish[],
+  } as unknown as Dish[] | undefined,
 
   bonusProgram: {
     collection: 'userbonusprogram',
-  } as unknown as UserBonusProgram,
+    via: 'user'
+  } as unknown as UserBonusProgram[],
 
   history: {
-    collection: 'order',
-  } as unknown as Order[],
+    collection: 'UserOrderHistory',
+    via: 'user'
+  } as unknown as UserOrderHistory[],
 
   locations: {
     collection: 'UserLocation',
     via: 'user'
-  },
+  } as unknown as UserLocation[],
 
   devices: {
     collection: 'UserDevice',
     via: 'user'
-  },
+  } as unknown as UserDevice[],
   
+  /**
+   *  Has success verification Phone
+   */
   verified: {
+    type: 'boolean'
+  } as unknown as boolean,
+
+  /**
+   * Indicate filled all required custom fields 
+   */
+  allRequiredCustomFieldsAreFilled: {
     type: 'boolean'
   } as unknown as boolean,
 
@@ -133,13 +148,29 @@ let attributes = {
   //   type:'boolean'
   // } as unknown as boolean,
 
+  orderCount: {
+    type: 'number',
+  } as unknown as number,
+
   isDeleted: { 
     type:'boolean'
   } as unknown as boolean,
   
+  /** 
+   * Object with filed custom user fields
+  */
+  customFields: "json" as unknown as {
+    [key: string]: string | boolean | number;
+  } | string,
+
+  /** 
+  * Any data storadge for person
+  */
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
+
+
 };
 
 type attributes = typeof attributes;
@@ -153,13 +184,55 @@ let Model = {
     }
 
     if (!userInit.isDeleted) userInit.isDeleted = false;
-    if (!userInit.verified) userInit.verified = false;
-
+    userInit.orderCount = 0;
+    // Phone required
     if ((await Settings.get("LOGIN_FIELD")) === undefined || (await Settings.get("LOGIN_FIELD")) === "phone") {
-      if (!userInit.phone) throw `User phone is required`;
+      if (!userInit.phone) {
+        sails.log.error(`User with login: ${userInit.login} should has phone on creation`);
+        throw `User phone is required`;
+      }
     }
 
     next();
+  },
+
+  afterCreate: function (record, proceed) {
+    emitter.emit('core:user-after-create', record);
+    return proceed();
+  },
+
+  /**
+   * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
+   * @param userId 
+   * @param dishId 
+   */
+  async handleFavoriteDish(userId: string, dishId: string): Promise<void> {
+    let user = await User.findOne({id: userId}).populate("favorites");
+    let favoritesIds = user.favorites.map((i) => i.id);
+    if (favoritesIds.includes(dishId)) {
+      await User.removeFromCollection(userId, "favorites").members([dishId])
+    }  else {
+      await User.addToCollection(userId, "favorites").members([dishId])
+    }
+  },
+
+  async delete(userId:string, OTP: string, force: boolean): Promise<void> {
+    if (!force){
+      if (!OTP) {
+        throw `OTP required for deleting user`;
+      }
+
+      let user = await User.findOne({id: userId})
+      if(!user) {
+        throw `OTP required for deleting user`;
+      }
+
+      if(await OneTimePassword.check(user.login, OTP)) {
+        throw `OTP checks failed`  
+      }
+    }
+    await UserDevice.update({ user: userId }, { isLogined: false });
+    User.update({id: userId}, {isDeleted: true});
   },
 
   /**
@@ -201,8 +274,12 @@ let Model = {
       let paswordRegex = await Settings.get("PASSWORD_REGEX");
       let passwordMinLength = await Settings.get("PASSWORD_MIN_LENGTH");
 
-      if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength)) throw `Password less than minimum length`;
-      if (paswordRegex && !newPassword.match(paswordRegex as string)) throw `Password not match with regex`;
+      let passwordPolicy = await Settings.get("PASSWORD_POLICY") as "required" | "from_otp" | "disabled";
+      if (!passwordPolicy) passwordPolicy = "from_otp";
+      if(passwordPolicy === "required"){
+        if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength)) throw `Password less than minimum length`;
+        if (paswordRegex && !newPassword.match(paswordRegex as string)) throw `Password not match with regex`;
+      }
     }
 
     // salt
@@ -234,43 +311,91 @@ let Model = {
     return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: Date.now() });
   },
 
-  async login(login: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice> {
-    let user = await User.findOne({ login: login });
-
-    // Stop login without deviceName
-    if (!deviceName) {
-      throw `deviceName required`;
-    }
-
+  async login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice> {
+  
     // Stop login when password or OTP not passed
     if (!(password || OTP)) {
       throw `Password or OTP required`;
     }
 
+    // Stop login without deviceName
+    if (!deviceName && !deviceId) {
+      throw `deviceName && deviceId required`;
+    }
 
-    // Check OTP first because it will prevent brute force.
-    if (OTP || (await Settings.get("LOGIN_OTP_REQUIRED"))) {
-      if (!(await OneTimePassword.check(login, OTP))) {
-        throw "OTP check failed";
+    // Define password policy
+    let passwordPolicy = await Settings.get("PASSWORD_POLICY") as "required" | "from_otp" | "disabled";
+    if (!passwordPolicy) passwordPolicy = "from_otp";
+
+    // Check password
+    if (!password && passwordPolicy === "required") {
+      throw `Password required`;
+    }
+
+    let user = await User.findOne({ login: login });
+
+    // Check OTP
+    let checkOTPResult = false;
+    if (OTP && typeof OTP === "string" && OTP.length > 0) { 
+      if(await OneTimePassword.check(login, OTP)) {
+        checkOTPResult = true
       }
     }
 
+    // When password required and LOGIN_OTP_REQUIRED you should pass both
+    if (await Settings.get("LOGIN_OTP_REQUIRED") && !checkOTPResult && passwordPolicy === "required") throw `login OTP check failed`
+
+    // When password is disabled Login possibly only by OTP
+    if (passwordPolicy === "disabled"  && !checkOTPResult) throw `Password policy [disabled] (OTP check failed)`
+    
+    
+    // Create user if not exist and only with verified OTP
+    let CREATE_USER_IF_NOT_EXIST = await Settings.get("CREATE_USER_IF_NOT_EXIST") || true;
+    if (!user && CREATE_USER_IF_NOT_EXIST && checkOTPResult) {
+      let loginFiled = await Settings.get("LOGIN_FIELD") || "phone"
+      if (loginFiled === "phone") { 
+        if (!phone) {
+          throw `Phone is required for LOGIN_FIELD: phone`
+        }
+      }
+
+      user = await User.create({
+        login: login, 
+        verified: true,
+        ...(loginFiled === "phone" || phone !== undefined) && {phone: phone}
+      }).fetch()
+
+      if (passwordPolicy === "required")  {
+        user = await User.setPassword(user.id, password, null, true);
+      }      
+
+      if (passwordPolicy === "from_otp")  {
+        user = await User.setPassword(user.id, OTP, null, true);
+      }
+    }
+
+    if (!user) {
+      throw `User not found`
+    }
+
     // check password if passed or required
-    if (password || (await Settings.get("PASSWORD_REQUIRED"))) {
+    if (password || passwordPolicy === "required") {
       if (!(await bcryptjs.compare(password, user.passwordHash))) {
         throw `Password not match`;
       }
     }
-
+    
     // Set last checked OTP as password
-    if ((await Settings.get("LOGIN_OTP_REQUIRED")) && (await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
+    if (OTP && passwordPolicy === "from_otp") {
       await User.setPassword(user.id, OTP, null, true);
     }
-    return await User.authDevice(user.id, deviceName, userAgent, IP);
+
+    return await User.authDevice(user.id, deviceId, deviceName, userAgent, IP);
   },
 
-  async authDevice(userId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDevice> {
-    let userDevice = await UserDevice.findOrCreate({ user: userId, name: deviceName }, { user: userId, name: deviceName });
+
+  async authDevice(userId: string, deviceId: string,  deviceName: string, userAgent: string, IP: string): Promise<UserDevice> {
+    let userDevice = await UserDevice.findOrCreate({id: deviceId }, {id: deviceId, user: userId, name: deviceName });
     // Need pass sessionId here for except paralells login with one name
     return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: uuid() });
   },
@@ -283,5 +408,5 @@ module.exports = {
 };
 
 declare global {
-  const User: typeof Model & ORMModel<User, "firstName" >;
+  const User: typeof Model & ORMModel<User, null >;
 }

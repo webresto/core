@@ -64,7 +64,7 @@ let attributes = {
   } as unknown as string,
 
   /** Sorting weight */
-  order: "number" as unknown as number,
+  sortOrder: "number" as unknown as number,
 
   dishes: {
     collection: "dish",
