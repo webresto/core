@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HookTools = void 0;
 const path = require("path");
 const _ = require("lodash");
 const fs_1 = require("fs");
@@ -155,4 +154,4 @@ class HookTools {
         this.policies = policies;
     }
 }
-exports.HookTools = HookTools;
+exports.default = HookTools;
