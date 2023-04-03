@@ -192,7 +192,7 @@ let Model = {
 
           delete menu[group.id].childGroups;
           menu[group.id].childGroups = childGroups;
-          if (menu[group.id].childGroups.length > 1) menu[group.id].childGroups.sort((a, b) => a.order - b.order);
+          if (menu[group.id].childGroups.length > 1) menu[group.id].childGroups.sort((a, b) => a.sortOrder- b.sortOrder);
 
         }
 

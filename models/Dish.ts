@@ -244,7 +244,7 @@ let Model = {
       }
     }
 
-    dishes.sort((a, b) => a.order - b.order);
+    dishes.sort((a, b) => a.sortOrder - b.sortOrder);
 
     await emitter.emit("core-dish-get-dishes", dishes);
     return dishes;
