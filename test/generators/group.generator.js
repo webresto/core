@@ -11,7 +11,7 @@ function groupGenerator(config = {}) {
         code: config.code || null,
         description: faker.random.words(25),
         parentGroup: config.parentGroup || null,
-        order: autoincrement,
+        sortOrder: autoincrement,
         images: config.images || [],
         name: config.name || faker.commerce.productName(),
         isDeleted: config.isDeleted || false,
