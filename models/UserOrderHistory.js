@@ -22,7 +22,7 @@ let attributes = {
     /** Gross weight */
     totalWeight: "number",
     user: {
-        model: 'user',
+        model: 'user'
     },
 };
 let Model = {

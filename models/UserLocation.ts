@@ -23,7 +23,6 @@ let attributes = {
   street: 'string',
   user: {
     model: 'user',
-    via: 'locations'
   } as unknown as User | string,
   
   comment: "string",
