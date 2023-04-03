@@ -12,7 +12,7 @@ export type Action = (req: ReqType, res: ResType) => Promise<any>;
 /**
  * Provide tools for hooks. Has only static methods.
  */
-export class HookTools {
+export default class HookTools {
   /**
    * Policies array is one for all project. It not assigned with sails policies
    */
