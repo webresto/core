@@ -1,4 +1,4 @@
-export declare type PaymentMethodType = 
+export type PaymentMethodType = 
 /** Payment promise */
 "promise" | 
 /** External payment */

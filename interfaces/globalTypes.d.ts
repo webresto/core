@@ -1,7 +1,7 @@
 import sails from "@42pub/typed-sails";
 import Config from "./Config";
 import AwaitEmitter from "../libs/AwaitEmitter";
-declare type sailsConfig = typeof sails.config;
+type sailsConfig = typeof sails.config;
 import { NotificationManager } from "../libs/NotificationManager";
 interface RestocoreHook {
     dictionaries: {

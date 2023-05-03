@@ -1,40 +1,40 @@
 /// <reference types="node" />
 import { WaterlinePromise, CRUDBuilder, UpdateBuilder, Callback } from "waterline";
 import { OptionalAll, RequiredField, NonPrimitiveKeys, TypeOrArray } from "../interfaces/toolsTS";
-declare type or<T> = {
+type or<T> = {
     or?: WhereCriteriaQuery<T>[];
 };
-declare type not<T> = {
+type not<T> = {
     "!=": T;
 };
-declare type lessThan<F> = {
+type lessThan<F> = {
     "<": F;
 };
-declare type lessThanOrEqual<F> = {
+type lessThanOrEqual<F> = {
     "<=": F;
 };
-declare type greaterThan<F> = {
+type greaterThan<F> = {
     ">": F;
 };
-declare type greaterThanOrEqual<F> = {
+type greaterThanOrEqual<F> = {
     ">=": F;
 };
-declare type nin<F> = {
+type nin<F> = {
     nin: F[];
 };
-declare type _in<F> = {
+type _in<F> = {
     in: F[];
 };
-declare type contains = {
+type contains = {
     contains: string;
 };
-declare type startsWith = {
+type startsWith = {
     startsWith: string;
 };
-declare type endsWith = {
+type endsWith = {
     endsWith: string;
 };
-export declare type CriteriaQuery<T> = {
+export type CriteriaQuery<T> = {
     where?: WhereCriteriaQuery<T> | or<T>;
     limit?: number;
     skip?: number;
@@ -44,13 +44,13 @@ export declare type CriteriaQuery<T> = {
         [key: string]: string;
     }[];
 } | WhereCriteriaQuery<T>;
-export declare type WhereCriteriaQuery<T> = {
+export type WhereCriteriaQuery<T> = {
     [P in keyof T]?: T[P] | T[P][] | not<T[P]> | lessThan<T[P]> | lessThanOrEqual<T[P]> | greaterThan<T[P]> | greaterThanOrEqual<T[P]> | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | lessThan<T[P][]> | lessThanOrEqual<T[P][]> | greaterThan<T[P][]> | greaterThanOrEqual<T[P][]> | or<T>;
 };
-declare type collectionMember = {
+type collectionMember = {
     members(childIds: string[]): Promise<void>;
 };
-declare type QueryBuilder<T> = WaterlinePromise<T> & {
+type QueryBuilder<T> = WaterlinePromise<T> & {
     where(condition: any): QueryBuilder<T>;
     limit(lim: number): QueryBuilder<T>;
     skip(num: number): QueryBuilder<T>;

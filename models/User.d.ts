@@ -6,7 +6,7 @@ import UserDevice from "./UserDevice";
 import UserLocation from "./UserLocation";
 import UserBonusProgram from "../models/UserBonusProgram";
 import { OptionalAll } from "../interfaces/toolsTS";
-export declare type Phone = {
+export type Phone = {
     code: string;
     number: string;
     additionalNumber?: string;
@@ -67,7 +67,7 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface User extends OptionalAll<attributes>, ORM {
 }
 export default User;

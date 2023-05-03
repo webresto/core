@@ -1,8 +1,8 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-declare type PlainValie = string | boolean | number | string[] | number[];
-declare type SettingValue = PlainValie | {
+type PlainValie = string | boolean | number | string[] | number[];
+type SettingValue = PlainValie | {
     [key: string]: string | boolean | number;
 };
 declare let attributes: {
@@ -21,7 +21,7 @@ declare let attributes: {
     /** Only reading */
     readOnly: boolean;
 };
-declare type attributes = typeof attributes & ORM;
+type attributes = typeof attributes & ORM;
 interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "value"> {
 }
 export default Settings;

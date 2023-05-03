@@ -5,5 +5,5 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class CaptchaAdapter {
 }
-exports.default = CaptchaAdapter;
 CaptchaAdapter.taskStorage = {};
+exports.default = CaptchaAdapter;

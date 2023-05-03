@@ -25,7 +25,7 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "id">, ORM {
 }
 export default UserBonusTransaction;
