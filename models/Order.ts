@@ -228,17 +228,20 @@ let Model = {
       dishObj = dish;
     }
 
-    if (dishObj.balance !== -1)
+
+    // TODO: In core you can add any amount dish, only in checkout it should show which not allowed
+    if (dishObj.balance !== -1) {
       if (amount > dishObj.balance) {
         await emitter.emit.apply(emitter, ["core-order-add-dish-reject-amount", ...arguments]);
-        throw {
+        console.error({
           body: `There is no so mush dishes with id ${dishObj.id}`,
           code: 1,
-        };
+        });
       }
+    }
+
     let order = await Order.findOne(criteria).populate("dishes");
     
-
     if (order.dishes.length > 99) throw "99 max dishes amount";
 
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
@@ -436,6 +439,35 @@ let Model = {
     }
   },
 
+  /**
+   * Clone dishes in new order
+   * @param source Order findOne criteria
+   * @returns new order
+   */
+  async clone(source: CriteriaQuery<Order>): Promise<Order> {
+    
+    // Find the original order by ID
+    const originalOrder = await Order.findOne(source).populate("dishes");
+
+    // Check if the original order exists
+    if (!originalOrder) {
+      throw new Error(`Order with ID ${originalOrder.id} not found.`);
+    }
+
+    const newOrder = await Order.create({}).fetch();
+
+    // Clone the order dishes from the original order to the new order
+    const originalOrderDishes = originalOrder.dishes as OrderDish[];
+
+    // Iterate through the original order dishes and add them to the new order
+    for (const originalOrderDish of originalOrderDishes) {
+      
+      // Assuming you have an addDish method that takes an order ID and a dish object as parameters
+      await Order.addDish({ id: newOrder.id }, originalOrderDish.dish, originalOrderDish.amount, originalOrderDish.modifiers, null, "order-clone");
+    }
+
+    return newOrder;
+  }, 
   /**
    * Set order selfService field. Use this method to change selfService.
    * @param selfService

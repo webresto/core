@@ -85,6 +85,12 @@ declare let Model: {
     setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void>;
     /**
+     * Clone dishes in new order
+     * @param source Order findOne criteria
+     * @returns new order
+     */
+    clone(source: CriteriaQuery<Order>): Promise<Order>;
+    /**
      * Set order selfService field. Use this method to change selfService.
      * @param selfService
      */

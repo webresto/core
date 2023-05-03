@@ -7,11 +7,6 @@ let attributes = {
     /** Id  */
     id: {
         type: "string",
-        /** Для тестовой системы есть хак (@webresto/core/hacks/waterline.js: )
-         *  который гасит проблему в sails-disk, а для постгри это не нужно
-        required: true,
-        ^^^^^^^^^^^^^^^
-        */
     },
     /** last 8 chars from id */
     shortId: "string",
@@ -133,7 +128,7 @@ let attributes = {
 let Model = {
     beforeCreate(orderInit, next) {
         if (!orderInit.id) {
-            orderInit.id = (0, uuid_1.v4)();
+            orderInit.id = uuid_1.v4();
         }
         if (!orderInit.shortId) {
             orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
@@ -157,14 +152,16 @@ let Model = {
         else {
             dishObj = dish;
         }
-        if (dishObj.balance !== -1)
+        // TODO: In core you can add any amount dish, only in checkout it should show which not allowed
+        if (dishObj.balance !== -1) {
             if (amount > dishObj.balance) {
                 await emitter.emit.apply(emitter, ["core-order-add-dish-reject-amount", ...arguments]);
-                throw {
+                console.error({
                     body: `There is no so mush dishes with id ${dishObj.id}`,
                     code: 1,
-                };
+                });
             }
+        }
         let order = await Order.findOne(criteria).populate("dishes");
         if (order.dishes.length > 99)
             throw "99 max dishes amount";
@@ -336,6 +333,28 @@ let Model = {
             await emitter.emit.apply(emitter, ["core-order-set-comment-reject-no-orderdish", ...arguments]);
             throw { body: `OrderDish with id ${dish.id} not found`, code: 1 };
         }
+    },
+    /**
+     * Clone dishes in new order
+     * @param source Order findOne criteria
+     * @returns new order
+     */
+    async clone(source) {
+        // Find the original order by ID
+        const originalOrder = await Order.findOne(source).populate("dishes");
+        // Check if the original order exists
+        if (!originalOrder) {
+            throw new Error(`Order with ID ${originalOrder.id} not found.`);
+        }
+        const newOrder = await Order.create({}).fetch();
+        // Clone the order dishes from the original order to the new order
+        const originalOrderDishes = originalOrder.dishes;
+        // Iterate through the original order dishes and add them to the new order
+        for (const originalOrderDish of originalOrderDishes) {
+            // Assuming you have an addDish method that takes an order ID and a dish object as parameters
+            await Order.addDish({ id: newOrder.id }, originalOrderDish.dish, originalOrderDish.amount, originalOrderDish.modifiers, null, "order-clone");
+        }
+        return newOrder;
     },
     /**
      * Set order selfService field. Use this method to change selfService.
@@ -588,8 +607,6 @@ let Model = {
                 // }
                 const dish = await Dish.findOne({
                     id: orderDish.dish.id,
-                    // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
-                    // isDeleted: false,
                 })
                     .populate("images")
                     .populate("parentGroup");
