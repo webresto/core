@@ -6,7 +6,6 @@ let attributes = {
     /** ID платежного метода */
     id: {
         type: "string",
-        //required: true,
     },
     /** Название платежного метода */
     title: "string",
@@ -62,7 +61,7 @@ let Model = {
     },
     beforeCreate: function (paymentMethod, next) {
         if (!paymentMethod.id) {
-            paymentMethod.id = (0, uuid_1.v4)();
+            paymentMethod.id = uuid_1.v4();
         }
         next();
     },

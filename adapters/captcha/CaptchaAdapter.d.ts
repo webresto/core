@@ -1,15 +1,15 @@
 /**label
  * An abstract Captcha adapter class. Used to create new Captcha adapters.
  */
-export type CaptchaJob = {
+export declare type CaptchaJob = {
     id: string;
     task: string | number;
 };
-export type ResolvedCaptcha = {
+export declare type ResolvedCaptcha = {
     id: string;
     solution: string;
 };
-export type TaskStorage = {
+export declare type TaskStorage = {
     [key: string]: {
         /** Captcha Job */
         task: CaptchaJob;

@@ -6,13 +6,13 @@ const chai_1 = require("chai");
 var paymentDocument;
 describe("TestPaymentSystem & PaymentAdapter basic testing", function () {
     this.timeout(31000);
-    var test_payment = (0, payment_generator_1.default)();
+    var test_payment = payment_generator_1.default();
     /**
      * 1. Тест регистрации платежной системы
      */
     it("PaymentSystem registration", async () => {
         const result = await ExternalTestPaymentSystem_1.default.getInstance();
-        (0, chai_1.expect)(result["InitPaymentAdapter"].adapter).to.equal("test-payment-system");
+        chai_1.expect(result["InitPaymentAdapter"].adapter).to.equal("test-payment-system");
     });
     /**
      * 2. тест создания платежа
@@ -20,14 +20,14 @@ describe("TestPaymentSystem & PaymentAdapter basic testing", function () {
     it("Create payment test", async () => {
         const result = await ExternalTestPaymentSystem_1.default.getInstance().createPayment(test_payment, "http://back_url.com", "http://back_url.com", "delay_3_sec");
         paymentDocument = result;
-        (0, chai_1.expect)(result.redirectLink).to.equal("http://redirect_link.com");
+        chai_1.expect(result.redirectLink).to.equal("http://redirect_link.com");
     });
     /**
      * 3. Проверка оплаты (преждевременная)
      */
     it("Testing, not yet payment check", async () => {
         const result = await ExternalTestPaymentSystem_1.default.getInstance().checkPayment(paymentDocument);
-        (0, chai_1.expect)(result.paid).to.equal(false);
+        chai_1.expect(result.paid).to.equal(false);
     });
     /**
      * 4. Проверка оплаты (уже оплачено)
@@ -35,7 +35,7 @@ describe("TestPaymentSystem & PaymentAdapter basic testing", function () {
     it("Check done payment", async () => {
         setTimeout(async () => {
             const result = await ExternalTestPaymentSystem_1.default.getInstance().checkPayment(paymentDocument);
-            (0, chai_1.expect)(result.paid).to.equal(true);
+            chai_1.expect(result.paid).to.equal(true);
         }, 3000);
     });
     // /**

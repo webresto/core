@@ -86,7 +86,7 @@ declare let attributes: {
     /** Время работы */
     worktime: WorkTime[];
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, ORM {
 }
 export default Dish;

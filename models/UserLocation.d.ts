@@ -20,7 +20,7 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface UserLocation extends attributes, ORM {
 }
 export default UserLocation;

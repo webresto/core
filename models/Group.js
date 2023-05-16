@@ -7,7 +7,6 @@ let attributes = {
     /**Id */
     id: {
         type: "string",
-        //required: true,
     },
     /** Addishinal info */
     additionalInfo: {
@@ -28,7 +27,6 @@ let attributes = {
     /** Dishes group name*/
     name: {
         type: "string",
-        //required: true,
     },
     seoDescription: {
         type: "string",
@@ -87,12 +85,12 @@ let Model = {
     beforeCreate(init, next) {
         emitter.emit('core:group-before-create', init);
         if (!init.id) {
-            init.id = (0, uuid_1.v4)();
+            init.id = uuid_1.v4();
         }
         if (!init.concept) {
             init.concept = "origin";
         }
-        init.slug = (0, slugify_1.default)(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+        init.slug = slugify_1.default(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         next();
     },
     beforeUpdate: function (record, proceed) {
@@ -130,7 +128,7 @@ let Model = {
             .populate("images");
         const errors = {};
         for await (let group of groups) {
-            const reason = (0, checkExpression_1.default)(group);
+            const reason = checkExpression_1.default(group);
             if (!reason) {
                 menu[group.id] = group;
                 if (group.childGroups) {

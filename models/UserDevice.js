@@ -5,7 +5,6 @@ let attributes = {
     /** ID */
     id: {
         type: "string",
-        //required: true,
     },
     /** Generated name from OS type, and location */
     name: 'string',
@@ -37,7 +36,7 @@ let Model = {
     beforeCreate(record, next) {
         record.lastActivity = Date.now();
         if (!record.id) {
-            record.id = (0, uuid_1.v4)();
+            record.id = uuid_1.v4();
         }
         next();
     },

@@ -6,7 +6,7 @@ import UserDevice from "./UserDevice";
 import UserLocation from "./UserLocation";
 import UserBonusProgram from "../models/UserBonusProgram";
 import { OptionalAll } from "../interfaces/toolsTS";
-export type Phone = {
+export declare type Phone = {
     code: string;
     number: string;
     additionalNumber?: string;
@@ -67,7 +67,7 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface User extends OptionalAll<attributes>, ORM {
 }
 export default User;
@@ -87,7 +87,7 @@ declare let Model: {
      * @param {WaterlineCriteria} criteria
      * @returns String
      */
-    getPhoneString(phone: Phone, target?: "string" | "print" | "login"): Promise<string>;
+    getPhoneString(phone: Phone, target?: "string" | "login" | "print"): Promise<string>;
     /**
      * Update user password
      *

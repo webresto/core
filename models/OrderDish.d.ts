@@ -38,7 +38,7 @@ declare let attributes: {
     /** Полный вес */
     totalWeight: number;
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface OrderDish extends RequiredField<OptionalAll<attributes>, "dish" | "amount">, ORM {
 }
 export default OrderDish;

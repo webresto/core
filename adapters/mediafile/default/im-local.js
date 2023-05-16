@@ -41,12 +41,12 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         sails.log.verbose("MediaFileAdapter > load >", url);
         const conf = this.config[key];
         var mediafileExtesion = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0];
-        const filename = conf.path + "/" + (0, uuid_1.v5)(url, UUID_NAMESPACE) + mediafileExtesion;
+        const filename = conf.path + "/" + uuid_1.v5(url, UUID_NAMESPACE) + mediafileExtesion;
         const name = {
             origin: filename,
         };
         for (let res in this.config[key].resize) {
-            name[res] = conf.path + "/" + (0, uuid_1.v5)(url, UUID_NAMESPACE) + "." + conf.format;
+            name[res] = conf.path + "/" + uuid_1.v5(url, UUID_NAMESPACE) + "." + conf.format;
         }
         const mediafile = new MediaFile_1.default(url, name, key);
         loadMediaFilesProcessQueue.push(mediafile);

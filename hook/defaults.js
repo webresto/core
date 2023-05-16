@@ -10,7 +10,7 @@ module.exports.restocore = {
     stateflow: {
         models: {
             order: {
-                flowFile: (0, path_1.resolve)(__dirname, "../stateflow/", "OrderStates.js"),
+                flowFile: path_1.resolve(__dirname, "../stateflow/", "OrderStates.js"),
                 startState: "CART",
                 states: {
                     CART: ["CHECKOUT"],

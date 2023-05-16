@@ -1,7 +1,7 @@
 /**
  * Type for functions that is controllers
  */
-export type Action = (req: ReqType, res: ResType) => Promise<any>;
+export declare type Action = (req: ReqType, res: ResType) => Promise<any>;
 /**
  * Provide tools for hooks. Has only static methods.
  */

@@ -1,40 +1,40 @@
 /// <reference types="node" />
 import { WaterlinePromise, CRUDBuilder, UpdateBuilder, Callback } from "waterline";
 import { OptionalAll, RequiredField, NonPrimitiveKeys, TypeOrArray } from "../interfaces/toolsTS";
-type or<T> = {
+declare type or<T> = {
     or?: WhereCriteriaQuery<T>[];
 };
-type not<T> = {
+declare type not<T> = {
     "!=": T;
 };
-type lessThan<F> = {
+declare type lessThan<F> = {
     "<": F;
 };
-type lessThanOrEqual<F> = {
+declare type lessThanOrEqual<F> = {
     "<=": F;
 };
-type greaterThan<F> = {
+declare type greaterThan<F> = {
     ">": F;
 };
-type greaterThanOrEqual<F> = {
+declare type greaterThanOrEqual<F> = {
     ">=": F;
 };
-type nin<F> = {
+declare type nin<F> = {
     nin: F[];
 };
-type _in<F> = {
+declare type _in<F> = {
     in: F[];
 };
-type contains = {
+declare type contains = {
     contains: string;
 };
-type startsWith = {
+declare type startsWith = {
     startsWith: string;
 };
-type endsWith = {
+declare type endsWith = {
     endsWith: string;
 };
-export type CriteriaQuery<T> = {
+export declare type CriteriaQuery<T> = {
     where?: WhereCriteriaQuery<T> | or<T>;
     limit?: number;
     skip?: number;
@@ -44,13 +44,13 @@ export type CriteriaQuery<T> = {
         [key: string]: string;
     }[];
 } | WhereCriteriaQuery<T>;
-export type WhereCriteriaQuery<T> = {
+export declare type WhereCriteriaQuery<T> = {
     [P in keyof T]?: T[P] | T[P][] | not<T[P]> | lessThan<T[P]> | lessThanOrEqual<T[P]> | greaterThan<T[P]> | greaterThanOrEqual<T[P]> | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | lessThan<T[P][]> | lessThanOrEqual<T[P][]> | greaterThan<T[P][]> | greaterThanOrEqual<T[P][]> | or<T>;
 };
-type collectionMember = {
+declare type collectionMember = {
     members(childIds: string[]): Promise<void>;
 };
-type QueryBuilder<T> = WaterlinePromise<T> & {
+declare type QueryBuilder<T> = WaterlinePromise<T> & {
     where(condition: any): QueryBuilder<T>;
     limit(lim: number): QueryBuilder<T>;
     skip(num: number): QueryBuilder<T>;

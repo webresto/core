@@ -1,6 +1,6 @@
 import UserBonusTransaction from "../../models/UserBonusTransaction";
 import User from "../../models/User";
-type InitBonusAdapter = {
+declare type InitBonusAdapter = {
     id: string;
 };
 interface optionalId {

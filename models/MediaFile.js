@@ -5,7 +5,6 @@ let attributes = {
     /** ID */
     id: {
         type: "string",
-        //required: true,
     },
     /** Type of media content */
     //type: {
@@ -36,7 +35,7 @@ let attributes = {
 let Model = {
     beforeCreate(imageInit, next) {
         if (!imageInit.id) {
-            imageInit.id = (0, uuid_1.v4)();
+            imageInit.id = uuid_1.v4();
         }
         next();
     },

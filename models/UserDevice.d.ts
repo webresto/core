@@ -19,7 +19,7 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface UserDevice extends RequiredField<OptionalAll<attributes>, null>, ORM {
 }
 export default UserDevice;

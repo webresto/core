@@ -22,7 +22,7 @@ declare let attributes: {
     totalWeight: number;
     user: String | User;
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface UserOrderHistory extends OptionalAll<attributes>, ORM {
 }
 export default UserOrderHistory;

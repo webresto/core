@@ -5,7 +5,6 @@ let attributes = {
     /** ID */
     id: {
         type: "string",
-        //required: true,
     },
     adapter: {
         type: "string",
@@ -25,7 +24,7 @@ let attributes = {
 let Model = {
     beforeCreate(BonusProgramInit, next) {
         if (!BonusProgramInit.id) {
-            BonusProgramInit.id = (0, uuid_1.v4)();
+            BonusProgramInit.id = uuid_1.v4();
         }
         next();
     },

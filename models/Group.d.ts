@@ -42,7 +42,7 @@ declare let attributes: {
     /** Время работы гыруппы */
     worktime: WorkTime[];
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface Group extends OptionalAll<attributes>, ORM {
 }
 export default Group;

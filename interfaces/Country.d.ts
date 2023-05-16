@@ -1,4 +1,4 @@
-export type Country = {
+export declare type Country = {
     phoneCode: String;
     iso: String;
     name: String;

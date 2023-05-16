@@ -69,7 +69,7 @@ declare let attributes: {
     error: string;
     data: any;
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface PaymentDocument extends OptionalAll<attributes>, ORM {
 }
 export default PaymentDocument;

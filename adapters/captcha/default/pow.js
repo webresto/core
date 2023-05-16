@@ -7,7 +7,7 @@ let Puzzle = require("fix-esm").require("crypto-puzzle").default; // https://git
 const uuid_1 = require("uuid");
 class POW extends CaptchaAdapter_1.default {
     async getJob(label) {
-        const id = (0, uuid_1.v4)();
+        const id = uuid_1.v4();
         /**
          * Action: as example captcha adater recive label `login:12025550184` sent task, and client solve it
          * When client pass solved captcha to login user, Method User.login pass same label, and if this not matched

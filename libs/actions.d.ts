@@ -83,9 +83,9 @@ declare const actions: {
     return(): number;
 };
 export default actions;
-type actionFunc1 = (params?: any, ...args: any) => Promise<Order>;
-type actionFunc2 = (...args: any) => Promise<Order>;
-type actionFunc = actionFunc1 | actionFunc2;
+declare type actionFunc1 = (params?: any, ...args: any) => Promise<Order>;
+declare type actionFunc2 = (...args: any) => Promise<Order>;
+declare type actionFunc = actionFunc1 | actionFunc2;
 /**
  * Add new action in actions
  * @param name - new action name

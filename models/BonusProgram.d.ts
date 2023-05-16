@@ -11,7 +11,7 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface BonusProgram extends attributes, ORM {
 }
 export default BonusProgram;

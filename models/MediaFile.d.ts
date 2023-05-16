@@ -20,7 +20,7 @@ declare let attributes: {
     /** upload date */
     uploadDate: string;
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM {
 }
 export default MediaFile;

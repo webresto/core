@@ -11,7 +11,7 @@ declare let attributes: {
     password: string;
     expires: number;
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface OneTimePassword extends RequiredField<OptionalAll<attributes>, "login">, ORM {
 }
 export default OneTimePassword;

@@ -5,7 +5,6 @@ let attributes = {
     /** ID */
     id: {
         type: "string",
-        //required: true,
     },
     /** Number of unique dishes in the cart */
     uniqueItems: "number",
@@ -35,7 +34,7 @@ let Model = {
         let user = await User.findOne({ id: order.user });
         if (user && user.id) {
             await UserOrderHistory.create({
-                id: (0, uuid_1.v4)(),
+                id: uuid_1.v4(),
                 order: order,
                 orderTotal: order.orderTotal,
                 uniqueItems: order.uniqueDishes,

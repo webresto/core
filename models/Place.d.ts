@@ -14,7 +14,7 @@ declare let attributes: {
     isSalePoint: boolean;
     customData: any;
 };
-type attributes = typeof attributes;
+declare type attributes = typeof attributes;
 interface Place extends attributes, ORM {
 }
 export default Place;

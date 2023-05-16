@@ -7,11 +7,6 @@ let attributes = {
     /** Id  */
     id: {
         type: "string",
-        /** Для тестовой системы есть хак (@webresto/core/hacks/waterline.js: )
-         *  который гасит проблему в sails-disk, а для постгри это не нужно
-        required: true,
-        ^^^^^^^^^^^^^^^
-        */
     },
     /** last 8 chars from id */
     shortId: "string",
@@ -133,7 +128,7 @@ let attributes = {
 let Model = {
     beforeCreate(orderInit, next) {
         if (!orderInit.id) {
-            orderInit.id = (0, uuid_1.v4)();
+            orderInit.id = uuid_1.v4();
         }
         if (!orderInit.shortId) {
             orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
@@ -612,8 +607,6 @@ let Model = {
                 // }
                 const dish = await Dish.findOne({
                     id: orderDish.dish.id,
-                    // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
-                    // isDeleted: false,
                 })
                     .populate("images")
                     .populate("parentGroup");
