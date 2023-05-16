@@ -87,7 +87,7 @@ declare let Model: {
      * @param {WaterlineCriteria} criteria
      * @returns String
      */
-    getPhoneString(phone: Phone, target?: "string" | "login" | "print"): Promise<string>;
+    getPhoneString(phone: Phone, target?: "string" | "print" | "login"): Promise<string>;
     /**
      * Update user password
      *

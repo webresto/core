@@ -3,9 +3,11 @@ import ORMModel from "../interfaces/ORMModel";
 declare let attributes: {
     /** ID */
     id: string;
-    /** Название улицы */
+    /** Id in external system */
+    exId: string;
+    /** Name of street */
     name: string;
-    /** Признак того что улица удалена */
+    /** Street has delited */
     isDeleted: boolean;
     customData: string | {
         [key: string]: string | number | boolean;

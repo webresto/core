@@ -7,9 +7,13 @@ let attributes = {
         type: "string",
         //required: true,
     },
-    /** Название улицы */
+    /** Id in external system */
+    exId: {
+        type: "string"
+    },
+    /** Name of street */
     name: "string",
-    /** Признак того что улица удалена */
+    /** Street has delited */
     isDeleted: {
         type: 'boolean'
     },
