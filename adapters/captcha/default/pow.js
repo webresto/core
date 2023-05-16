@@ -20,11 +20,10 @@ class POW extends CaptchaAdapter_1.default {
         let attempt = 0;
         // Tasks garbage collect
         Object.keys(POW.taskStorage).forEach((item) => {
-            var _a, _b;
             if (POW.taskStorage[item]) {
-                if (((_a = POW.taskStorage[item]) === null || _a === void 0 ? void 0 : _a.time) < Date.now() - 30 * 60 * 1000)
+                if (POW.taskStorage[item]?.time < Date.now() - 30 * 60 * 1000)
                     delete (POW.taskStorage[item]);
-                if (((_b = POW.taskStorage[item]) === null || _b === void 0 ? void 0 : _b.label) === label)
+                if (POW.taskStorage[item]?.label === label)
                     attempt++;
             }
         });
