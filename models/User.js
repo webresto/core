@@ -57,6 +57,8 @@ let attributes = {
     },
     birthday: {
         type: 'string',
+        // isAfter: new Date('Sat Jan 1 1900 00:00:00 GMT-0000'),
+        // isBefore: new Date().setFullYear(new Date().getFullYear()-10)
     },
     favorites: {
         collection: 'dish'
@@ -129,7 +131,7 @@ let attributes = {
 let Model = {
     async beforeCreate(userInit, next) {
         if (!userInit.id) {
-            userInit.id = uuid_1.v4();
+            userInit.id = (0, uuid_1.v4)();
         }
         if (!userInit.isDeleted)
             userInit.isDeleted = false;
@@ -324,7 +326,7 @@ let Model = {
     async authDevice(userId, deviceId, deviceName, userAgent, IP) {
         let userDevice = await UserDevice.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
         // Need pass sessionId here for except paralells login with one name
-        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: uuid_1.v4() });
+        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
     },
 };
 module.exports = {

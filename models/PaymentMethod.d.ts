@@ -20,7 +20,7 @@ declare let attributes: {
     description: string;
     enable: boolean;
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface PaymentMethod extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {
 }
 export default PaymentMethod;

@@ -4,6 +4,7 @@ const uuid_1 = require("uuid");
 let attributes = {
     id: {
         type: "string",
+        //required: true,
     },
     title: 'string',
     address: 'string',
@@ -22,7 +23,7 @@ let attributes = {
 let Model = {
     beforeCreate(placeInit, next) {
         if (!placeInit.id) {
-            placeInit.id = uuid_1.v4();
+            placeInit.id = (0, uuid_1.v4)();
         }
         next();
     },

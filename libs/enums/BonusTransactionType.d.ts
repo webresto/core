@@ -1,1 +1,1 @@
-export declare type BonusTransactionType = 'came' | 'gone';
+export type BonusTransactionType = 'came' | 'gone';

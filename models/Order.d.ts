@@ -73,7 +73,7 @@ declare let attributes: {
 interface stateFlowInstance {
     state: string;
 }
-declare type attributes = typeof attributes & stateFlowInstance;
+type attributes = typeof attributes & stateFlowInstance;
 interface Order extends ORM, OptionalAll<attributes> {
 }
 export default Order;

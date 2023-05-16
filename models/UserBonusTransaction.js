@@ -41,7 +41,7 @@ let attributes = {
 let Model = {
     beforeCreate(UserBonusTransactionInit, next) {
         if (!UserBonusTransactionInit.id) {
-            UserBonusTransactionInit.id = uuid_1.v4();
+            UserBonusTransactionInit.id = (0, uuid_1.v4)();
         }
         next();
     },

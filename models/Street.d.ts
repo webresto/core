@@ -13,7 +13,7 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface Street extends attributes, ORM {
 }
 export default Street;

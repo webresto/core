@@ -11,7 +11,7 @@ const bindDictonaries_1 = require("./bindDictonaries");
  */
 const getEmitter_1 = require("../libs/getEmitter");
 // @ts-ignore
-global.emitter = getEmitter_1.default();
+global.emitter = (0, getEmitter_1.default)();
 /**
  * Set global NotificationManager
  */
@@ -45,13 +45,13 @@ function ToInitialize(sails) {
             sails.log.error(error);
         }
         // Bind assets
-        bindAssets_1.default();
+        (0, bindAssets_1.default)();
         // Bind dictonaries
-        bindDictonaries_1.default();
+        (0, bindDictonaries_1.default)();
         /**
          * Bind models
          */
-        hookTools_1.default.bindModels(path_1.resolve(__dirname, "../models")).then(cb);
+        hookTools_1.default.bindModels((0, path_1.resolve)(__dirname, "../models")).then(cb);
     };
 }
 exports.default = ToInitialize;

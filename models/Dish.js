@@ -7,10 +7,12 @@ let attributes = {
     /** */
     id: {
         type: "string",
+        //required: true,
     },
     /** */
     rmsId: {
         type: "string",
+        //required: true,
     },
     /** */
     additionalInfo: {
@@ -141,7 +143,7 @@ let Model = {
     beforeCreate(init, next) {
         emitter.emit('core:dish-before-create', init);
         if (!init.id) {
-            init.id = uuid_1.v4();
+            init.id = (0, uuid_1.v4)();
         }
         if (!init.concept) {
             init.concept = "origin";
@@ -173,7 +175,7 @@ let Model = {
         }
         let dishes = await Dish.find(criteria).populate("images");
         for await (let dish of dishes) {
-            const reason = checkExpression_1.default(dish);
+            const reason = (0, checkExpression_1.default)(dish);
             if (!reason) {
                 await Dish.getDishModifiers(dish);
                 if (dish.images.length >= 2)
@@ -242,7 +244,7 @@ let Model = {
      * @return обновлённое или созданное блюдо
      */
     async createOrUpdate(values) {
-        let hash = hashCode_1.default(JSON.stringify(values));
+        let hash = (0, hashCode_1.default)(JSON.stringify(values));
         const dish = await Dish.findOne({ id: values.id });
         if (!dish) {
             return Dish.create({ hash, ...values }).fetch();

@@ -49,6 +49,7 @@ let attributes = {
     /** Уникальный id в моделе PaymentDocument */
     id: {
         type: "string",
+        //required: true,
     },
     /** соответсвует id из модели originModel */
     paymentId: "string",
@@ -83,7 +84,7 @@ let attributes = {
 let Model = {
     beforeCreate(paymentDocumentInit, next) {
         if (!paymentDocumentInit.id) {
-            paymentDocumentInit.id = uuid_1.v4();
+            paymentDocumentInit.id = (0, uuid_1.v4)();
         }
         next();
     },
@@ -126,7 +127,7 @@ let Model = {
         checkAmount(amount);
         await checkOrigin(originModel, paymentId);
         await checkPaymentMethod(paymentMethodId);
-        var id = uuid_1.v4();
+        var id = (0, uuid_1.v4)();
         id = id.replace(/-/g, '').toUpperCase();
         let payment = {
             id: id,

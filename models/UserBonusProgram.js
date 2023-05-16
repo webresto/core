@@ -8,6 +8,7 @@ let attributes = {
     /** ID */
     id: {
         type: "string",
+        //required: true,
     },
     active: {
         type: 'boolean'
@@ -31,7 +32,7 @@ let attributes = {
 let Model = {
     beforeCreate(UserBonusInit, next) {
         if (!UserBonusInit.id) {
-            UserBonusInit.id = uuid_1.v4();
+            UserBonusInit.id = (0, uuid_1.v4)();
         }
         next();
     },

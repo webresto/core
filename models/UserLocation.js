@@ -5,6 +5,7 @@ let attributes = {
     /** ID */
     id: {
         type: "string",
+        //required: true,
     },
     name: 'string',
     city: 'string',
@@ -25,7 +26,7 @@ let attributes = {
 let Model = {
     beforeCreate(UserLocationInit, next) {
         if (!UserLocationInit.id) {
-            UserLocationInit.id = uuid_1.v4();
+            UserLocationInit.id = (0, uuid_1.v4)();
         }
         next();
     },

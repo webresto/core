@@ -11,6 +11,7 @@ let attributes = {
     /** id */
     id: {
         type: "string",
+        //required: true,
     },
     /** title of maintenance */
     title: "string",
@@ -39,7 +40,7 @@ let Model = {
         next();
     },
     beforeCreate: function (maintenance, next) {
-        maintenance.id = uuid_1.v4();
+        maintenance.id = (0, uuid_1.v4)();
         next();
     },
     siteIsOff: async function () {

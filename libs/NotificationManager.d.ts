@@ -2,7 +2,7 @@
  * WebPush
  */
 import User from "../models/User";
-declare type Badge = 
+type Badge = 
 /** Send OTP */
 "OTP" | "Error" | string;
 export declare class NotificationManager {
