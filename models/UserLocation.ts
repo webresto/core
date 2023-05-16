@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import User from "../models/User"
-
+import Street from "./Street";
 let attributes = {
   
   /** ID */
@@ -20,7 +20,9 @@ let attributes = {
   floor: 'string',
   apartment: 'string',
   doorphone: 'string',
-  street: 'string',
+  street: {
+    model: 'street',
+  } as unknown as Street | string,
   user: {
     model: 'user',
   } as unknown as User | string,
