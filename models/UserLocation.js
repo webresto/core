@@ -7,16 +7,45 @@ let attributes = {
         type: "string",
         //required: true,
     },
-    name: 'string',
-    city: 'string',
-    home: 'string',
-    housing: 'string',
-    index: 'string',
-    entrance: 'string',
-    floor: 'string',
-    apartment: 'string',
-    doorphone: 'string',
-    street: 'string',
+    name: {
+        type: "string",
+        allowNull: true,
+    },
+    city: {
+        type: "string",
+        allowNull: true,
+    },
+    home: {
+        type: "string",
+        allowNull: true,
+    },
+    housing: {
+        type: "string",
+        allowNull: true,
+    },
+    index: {
+        type: "string",
+        allowNull: true,
+    },
+    entrance: {
+        type: "string",
+        allowNull: true,
+    },
+    floor: {
+        type: "string",
+        allowNull: true,
+    },
+    apartment: {
+        type: "string",
+        allowNull: true,
+    },
+    doorphone: {
+        type: "string",
+        allowNull: true,
+    },
+    street: {
+        model: 'street',
+    },
     user: {
         model: 'user',
     },
