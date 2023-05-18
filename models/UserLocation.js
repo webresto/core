@@ -49,7 +49,10 @@ let attributes = {
     user: {
         model: 'user',
     },
-    comment: "string",
+    comment: {
+        type: "string",
+        allowNull: true,
+    },
     customData: "json",
 };
 let Model = {

@@ -53,7 +53,11 @@ let attributes = {
     model: 'user',
   } as unknown as User | string,
   
-  comment: "string",
+  comment: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
+  
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
