@@ -18,6 +18,7 @@ let attributes = {
     home: {
         type: "string",
         allowNull: true,
+        required: true
     },
     housing: {
         type: "string",
@@ -45,9 +46,17 @@ let attributes = {
     },
     street: {
         model: 'street',
+        required: true
+    },
+    /**
+     * Set as default for specific user
+     * */
+    default: {
+        type: 'boolean',
     },
     user: {
         model: 'user',
+        required: true
     },
     comment: {
         type: "string",
@@ -56,12 +65,25 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate(UserLocationInit, next) {
-        if (!UserLocationInit.id) {
-            UserLocationInit.id = (0, uuid_1.v4)();
+    async beforeUpdate(record, next) {
+        if (record.default === true) {
+            await UserLocation.update({ user: record.user }, { default: false });
         }
         next();
     },
+    async beforeCreate(UserLocationInit, next) {
+        if (!UserLocationInit.id) {
+            UserLocationInit.id = (0, uuid_1.v4)();
+        }
+        if (!UserLocationInit.name) {
+            const street = await Street.findOne({ id: UserLocationInit.street });
+            UserLocationInit.name = `${street.name} ${UserLocationInit.home}`;
+        }
+        if (UserLocationInit.default === true) {
+            await UserLocation.update({ user: UserLocationInit.user }, { default: false });
+        }
+        next();
+    }
 };
 module.exports = {
     primaryKey: "id",

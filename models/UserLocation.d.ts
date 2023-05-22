@@ -15,6 +15,10 @@ declare let attributes: {
     apartment: string;
     doorphone: string;
     street: string | Street;
+    /**
+     * Set as default for specific user
+     * */
+    default: boolean;
     user: string | User;
     comment: string;
     customData: string | {
@@ -26,7 +30,8 @@ interface UserLocation extends attributes, ORM {
 }
 export default UserLocation;
 declare let Model: {
-    beforeCreate(UserLocationInit: any, next: any): void;
+    beforeUpdate(record: UserLocation, next: Function): Promise<void>;
+    beforeCreate(UserLocationInit: UserLocation, next: Function): Promise<void>;
 };
 declare global {
     const UserLocation: typeof Model & ORMModel<UserLocation, null>;
