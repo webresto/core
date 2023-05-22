@@ -21,7 +21,6 @@ let attributes = {
   home: {
     type: "string",
     allowNull: true,
-    required: true
   } as unknown as string,
   housing: {
     type: "string",

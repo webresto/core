@@ -18,7 +18,6 @@ let attributes = {
     home: {
         type: "string",
         allowNull: true,
-        required: true
     },
     housing: {
         type: "string",
