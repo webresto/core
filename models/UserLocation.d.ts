@@ -18,7 +18,7 @@ declare let attributes: {
     /**
      * Set as default for specific user
      * */
-    default: boolean;
+    isDefault: boolean;
     user: string | User;
     comment: string;
     customData: string | {

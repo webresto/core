@@ -54,7 +54,7 @@ let attributes = {
   /**
    * Set as default for specific user
    * */
-  default: {
+  isDefault: {
     type: 'boolean',
   } as unknown as boolean,
   
