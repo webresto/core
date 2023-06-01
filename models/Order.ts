@@ -917,6 +917,7 @@ let Model = {
        * Скидки должны быть массивом, и они должны хранится в каждом блюде OrderDish чтобы при выключении скидки не исчезали скидки на Ордере
        */
       order.dishes = orderDishes;
+      // depricated
       await emitter.emit("core-order-count-discount-apply", order);
       delete(order.dishes);
       ///////////////////////////////////
