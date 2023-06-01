@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class MediaFileAdapter {
+    config;
     constructor(config) {
         config.dish.path = config.dish.path || "";
         config.group.path = config.group.path || "";

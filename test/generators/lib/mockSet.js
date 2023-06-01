@@ -8,6 +8,13 @@ const util_1 = require("util");
 const listFiles = (0, util_1.promisify)(fs_1.readdir);
 const isRecord = (o) => o != null && typeof o === "object" && !(o instanceof Array) && Object.keys(o).reduce((result, key) => result && typeof key === "string", true);
 class MockSet {
+    static instance;
+    declarationPaths;
+    fileNames;
+    fileData;
+    mocks;
+    extension;
+    interfaces;
     constructor() {
         this.declarationPaths = ["../../models/", "../../interfaces/", "../../adapters/", "../../config/", "../../libs/"];
         this.extension = ".d.ts";

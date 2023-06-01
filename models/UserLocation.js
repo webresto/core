@@ -7,29 +7,82 @@ let attributes = {
         type: "string",
         //required: true,
     },
-    name: 'string',
-    city: 'string',
-    home: 'string',
-    housing: 'string',
-    index: 'string',
-    entrance: 'string',
-    floor: 'string',
-    apartment: 'string',
-    doorphone: 'string',
-    street: 'string',
+    name: {
+        type: "string",
+        allowNull: true,
+    },
+    city: {
+        type: "string",
+        allowNull: true,
+    },
+    home: {
+        type: "string",
+        allowNull: true,
+    },
+    housing: {
+        type: "string",
+        allowNull: true,
+    },
+    index: {
+        type: "string",
+        allowNull: true,
+    },
+    entrance: {
+        type: "string",
+        allowNull: true,
+    },
+    floor: {
+        type: "string",
+        allowNull: true,
+    },
+    apartment: {
+        type: "string",
+        allowNull: true,
+    },
+    doorphone: {
+        type: "string",
+        allowNull: true,
+    },
+    street: {
+        model: 'street',
+        required: true
+    },
+    /**
+     * Set as default for specific user
+     * */
+    isDefault: {
+        type: 'boolean',
+    },
     user: {
         model: 'user',
+        required: true
     },
-    comment: "string",
+    comment: {
+        type: "string",
+        allowNull: true,
+    },
     customData: "json",
 };
 let Model = {
-    beforeCreate(UserLocationInit, next) {
-        if (!UserLocationInit.id) {
-            UserLocationInit.id = (0, uuid_1.v4)();
+    async beforeUpdate(record, next) {
+        if (record.default === true) {
+            await UserLocation.update({ user: record.user }, { default: false });
         }
         next();
     },
+    async beforeCreate(UserLocationInit, next) {
+        if (!UserLocationInit.id) {
+            UserLocationInit.id = (0, uuid_1.v4)();
+        }
+        if (!UserLocationInit.name) {
+            const street = await Street.findOne({ id: UserLocationInit.street });
+            UserLocationInit.name = `${street.name} ${UserLocationInit.home}`;
+        }
+        if (UserLocationInit.default === true) {
+            await UserLocation.update({ user: UserLocationInit.user }, { default: false });
+        }
+        next();
+    }
 };
 module.exports = {
     primaryKey: "id",

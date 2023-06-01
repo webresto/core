@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * The abstract class of the Payment adapter. Used to create new payment system adapters.
  */
 class PaymentAdapter {
+    InitPaymentAdapter;
     constructor(InitPaymentAdapter) {
         this.InitPaymentAdapter = InitPaymentAdapter;
         PaymentMethod.alive(this);

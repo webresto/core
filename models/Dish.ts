@@ -42,6 +42,12 @@ let attributes = {
     allowNull: true,
   } as unknown as string,
 
+  /** Ingredients of dish */
+  ingredients: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
+
   /** Наименование */
   name: {
     type: "string",

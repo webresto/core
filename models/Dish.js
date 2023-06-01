@@ -29,6 +29,11 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
+    /** Ingredients of dish */
+    ingredients: {
+        type: "string",
+        allowNull: true,
+    },
     /** Наименование */
     name: {
         type: "string",

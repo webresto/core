@@ -15,6 +15,8 @@ declare let attributes: {
     code: string;
     /** Описание блюда */
     description: string;
+    /** Ingredients of dish */
+    ingredients: string;
     /** Наименование */
     name: string;
     /** SEO description */

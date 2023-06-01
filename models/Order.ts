@@ -14,25 +14,19 @@ import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+import { OrderBonuses } from "../interfaces/OrderBonuses";
 
-;
 
 let attributes = {
   /** Id  */
   id: {
     type: "string",
-    
-    /** Для тестовой системы есть хак (@webresto/core/hacks/waterline.js: ) 
-     *  который гасит проблему в sails-disk, а для постгри это не нужно
-    required: true,
-    ^^^^^^^^^^^^^^^
-    */
   } as unknown as string,
 
   /** last 8 chars from id */
   shortId: "string",
 
-  /** Концепт к которому относится группа */
+  /**  Concept string */
   concept: "string",
   
   /** */
@@ -135,24 +129,22 @@ let attributes = {
   } as unknown as number,
 
   
-  /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
+  /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
   total: {
     type: "number",
     defaultsTo: 0,
   } as unknown as number,
 
-
-  // TODO: Uncoment after impl migrations
-  // /** 
-  // * Sum dishes in raw order 
-  // */
-  // orderCost: {
-  //   type: "number",
-  //   defaultsTo: 0,
-  // } as unknown as number,
+/** 
+  * Sum dishes user added 
+  */
+  basketTotal: {
+    type: "number",
+    defaultsTo: 0,
+  } as unknown as number,
 
   /** 
-  *   @deprecated orderTotal use orderCost
+  *   @deprecated orderTotal use basketTotal
   */
   orderTotal: {
     type: "number",
@@ -482,8 +474,31 @@ let Model = {
     return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
   },
 
+  /**
+   * The use of bonuses in the cart implies that this order has a user. 
+   * Then all checks will be made and a record will be written in the transaction of user bonuses
+   * 
+   Bonus spending strategies :
+    1) bonus_from_order_total: (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
+    2) bonus_from_basket_delivery_discount: writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
+    3) bonus_from_basket_and_delivery: writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
+    4) bonus_from_basket: write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
+
+   */
+  async applyBonuses(orderId, orderBonuses: OrderBonuses): Promise<void> {
+    const order = await Order.findOne({id: orderId});
+    if (order.user && typeof order.user === "string") {
+      for(let bonusSpend of orderBonuses){
+      //  . let total = order.
+      }
+    } else {
+      throw `User not found in Order, applyBonuses failed`
+    }
+  },
+
   ////////////////////////////////////////////////////////////////////////////////////
 
+  // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
   async check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void> {
     const order: Order = await Order.countCart(criteria);
 
@@ -807,7 +822,7 @@ let Model = {
 
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
       // const orderDishesClone = {}
-      let orderTotal = 0;
+      let basketTotal = 0;
       let dishesCount = 0;
       let uniqueDishes = 0;
       let totalWeight = 0;
@@ -902,7 +917,7 @@ let Model = {
           } // for disches
 
 
-          orderTotal += orderDish.itemTotal;
+          basketTotal += orderDish.itemTotal;
           dishesCount += orderDish.amount;
           uniqueDishes++;
           totalWeight += orderDish.totalWeight;
@@ -922,21 +937,18 @@ let Model = {
       delete(order.dishes);
       ///////////////////////////////////
 
-      /**
-       * Карт тотал это чистая стоимость корзины
-       */
-
-
       order.dishesCount = dishesCount;
       order.uniqueDishes = uniqueDishes;
       order.totalWeight = totalWeight;
 
-      order.orderTotal = orderTotal;
-
+      // @deprecated orderTotal use orderCost
+      order.orderTotal = basketTotal;
+      order.basketTotal = basketTotal;
+      
       emitter.emit("core:count-before-delivery-cost", order);
 
       // @deprecated orderTotal use orderCost
-      order.total = orderTotal + order.deliveryCost - order.discountTotal;
+      order.total = basketTotal + order.deliveryCost - order.discountTotal;
 
       order = (await Order.update({ id: order.id }, order).fetch())[0];
      

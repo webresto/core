@@ -9,10 +9,15 @@ let attributes = {
     //required: true,
   } as unknown as string,
 
-  /** Название улицы */
+  /** Id in external system */
+  exId: {
+    type: "string"
+  } as unknown as string,
+  
+  /** Name of street */
   name: "string",
 
-  /** Признак того что улица удалена */
+  /** Street has delited */
   isDeleted: { 
     type:'boolean'
   } as unknown as boolean,
