@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OTP = exports.Captcha = exports.Payment = exports.Media = exports.Map = exports.RMS = void 0;
+exports.Adapter = exports.OTP = exports.Captcha = exports.Payment = exports.Media = exports.Map = exports.RMS = void 0;
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
 const fs = require("fs");
+const defaultDiscountAdapter_1 = require("./discount/default/defaultDiscountAdapter");
+// import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
  * retruns RMS-adapter
@@ -162,3 +164,25 @@ class OTP {
     }
 }
 exports.OTP = OTP;
+/** TODO: move other Adapters to one class adapter */
+class Adapter {
+    static async getDiscountAdapter(adapterName, initParams) {
+        if (!adapterName) {
+            adapterName = await Settings.get("DEFAULT_DISCOUNT_ADAPTER");
+        }
+        if (!adapterName) {
+            return defaultDiscountAdapter_1.DiscountAdapter.getInstance();
+        }
+        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-discount-adapter";
+        try {
+            const adapter = require(adapterLocation);
+            return adapter.DiscountAdapter[adapterName].getInstance(initParams);
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter Discount > error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
+}
+exports.Adapter = Adapter;

@@ -4,6 +4,7 @@ import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import OTPAdapter from "./otp/OneTimePasswordAdapter";
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
+import { DiscountAdapter } from "./discount/default/defaultDiscountAdapter";
 /**
  * retruns RMS-adapter
  */
@@ -39,4 +40,10 @@ export declare class Captcha {
  */
 export declare class OTP {
     static getAdapter(adapterName?: string): Promise<OTPAdapter>;
+}
+/** TODO: move other Adapters to one class adapter */
+export declare class Adapter {
+    static getDiscountAdapter(adapterName?: string, initParams?: {
+        [key: string]: string | number | boolean;
+    }): Promise<DiscountAdapter>;
 }
