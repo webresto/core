@@ -2,20 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("../libs/actions");
 const uuid_1 = require("uuid");
-;
+const decimal_js_1 = require("decimal.js");
 let attributes = {
     /** Id  */
     id: {
         type: "string",
-        /** Для тестовой системы есть хак (@webresto/core/hacks/waterline.js: )
-         *  который гасит проблему в sails-disk, а для постгри это не нужно
-        required: true,
-        ^^^^^^^^^^^^^^^
-        */
     },
     /** last 8 chars from id */
     shortId: "string",
-    /** Концепт к которому относится группа */
+    /**  Concept string */
     concept: "string",
     /** */
     dishes: {
@@ -98,21 +93,23 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
-    /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
+    bonuses: {
+        type: "json"
+    },
+    /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
     total: {
         type: "number",
         defaultsTo: 0,
     },
-    // TODO: Uncoment after impl migrations
-    // /** 
-    // * Sum dishes in raw order 
-    // */
-    // orderCost: {
-    //   type: "number",
-    //   defaultsTo: 0,
-    // } as unknown as number,
     /**
-    *   @deprecated orderTotal use orderCost
+      * Sum dishes user added
+      */
+    basketTotal: {
+        type: "number",
+        defaultsTo: 0,
+    },
+    /**
+    *   @deprecated orderTotal use basketTotal
     */
     orderTotal: {
         type: "number",
@@ -373,7 +370,72 @@ let Model = {
         await actions_1.default.reset(order);
         return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
     },
+    /**
+     * The use of bonuses in the cart implies that this order has a user.
+     * Then all checks will be made and a record will be written in the transaction of user bonuses
+     *
+     Bonus spending strategies :
+      1) 'bonus_from_order_total': (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
+      2) 'bonus_from_basket_delivery_discount': writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
+      3) 'bonus_from_basket_and_delivery': writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
+      4) 'bonus_from_basket': write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
+  
+      Current implement logic for only one strategy
+  
+     */
+    async applyBonuses(orderId, bonusSpend) {
+        const order = await Order.findOne({ id: orderId });
+        let bonusSpendingStrategy = await Settings.get("BonusSpendingStrategy") ?? 'bonus_from_order_total';
+        if (order.user && typeof order.user === "string") {
+            // Fetch the bonus program for this bonus spend
+            const bonusProgram = await BonusProgram.findOne({ id: bonusSpend.bonusProgramId });
+            let amountToDeduct = 0;
+            switch (bonusSpendingStrategy) {
+                case 'bonus_from_order_total':
+                    amountToDeduct = order.total;
+                    break;
+                case 'bonus_from_basket_delivery_discount':
+                    amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+                    break;
+                case 'bonus_from_basket_and_delivery':
+                    amountToDeduct = order.basketTotal + order.deliveryCost;
+                    break;
+                case 'bonus_from_basket':
+                    amountToDeduct = order.basketTotal;
+                    break;
+                default:
+                    throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+            }
+            // Calculate maximum allowed bonus coverage
+            const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul(bonusProgram.coveragePercentage);
+            // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+            let bonusCoverage;
+            if (bonusSpend.amount && new decimal_js_1.default(bonusSpend.amount).lessThan(maxBonusCoverage)) {
+                bonusCoverage = new decimal_js_1.default(bonusSpend.amount);
+            }
+            else {
+                bonusCoverage = maxBonusCoverage;
+            }
+            // Deduct the bonus from the order total
+            order.total = new decimal_js_1.default(order.total).sub(bonusCoverage).toNumber();
+            // Throw if User not have bonuses to cover this 
+            await UserBonusTransaction.create({
+                amount: bonusCoverage.toNumber(),
+                bonusProgram: bonusProgram.id,
+                user: order.user
+            }).fetch();
+            // Update the order with new total
+            await Order.updateOne({ id: orderId }, { total: order.total, bonusesTotal: bonusCoverage.toNumber() });
+        }
+        else {
+            throw `User not found in Order, applyBonuses failed`;
+        }
+    }
     ////////////////////////////////////////////////////////////////////////////////////
+    // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
+    ,
+    ////////////////////////////////////////////////////////////////////////////////////
+    // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
     async check(criteria, customer, isSelfService, address, paymentMethodId) {
         const order = await Order.countCart(criteria);
         if (order.state === "ORDER")
@@ -651,7 +713,7 @@ let Model = {
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             // const orderDishesClone = {}
-            let orderTotal = 0;
+            let basketTotal = 0;
             let dishesCount = 0;
             let uniqueDishes = 0;
             let totalWeight = 0;
@@ -725,7 +787,7 @@ let Model = {
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
                     } // for disches
-                    orderTotal += orderDish.itemTotal;
+                    basketTotal += orderDish.itemTotal;
                     dishesCount += orderDish.amount;
                     uniqueDishes++;
                     totalWeight += orderDish.totalWeight;
@@ -744,16 +806,15 @@ let Model = {
             await emitter.emit("core-order-count-discount-apply", order);
             delete (order.dishes);
             ///////////////////////////////////
-            /**
-             * Карт тотал это чистая стоимость корзины
-             */
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
             order.totalWeight = totalWeight;
-            order.orderTotal = orderTotal;
+            // @deprecated orderTotal use orderCost
+            order.orderTotal = basketTotal;
+            order.basketTotal = basketTotal;
             emitter.emit("core:count-before-delivery-cost", order);
             // @deprecated orderTotal use orderCost
-            order.total = orderTotal + order.deliveryCost - order.discountTotal;
+            order.total = basketTotal + order.deliveryCost - order.discountTotal;
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             emitter.emit("core-order-after-count", order);
             return order;

@@ -1,6 +1,4 @@
-export type OrderBonuses  = SpendBonus[];
-
-interface SpendBonus {
+export interface OrderBonus {
   bonusProgramId: string
   bonusProgramName?: string
   amount: number

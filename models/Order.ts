@@ -14,7 +14,8 @@ import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import { OrderBonuses } from "../interfaces/OrderBonuses";
+import { OrderBonus } from "../interfaces/OrderBonus";
+import Decimal from "decimal.js";
 
 
 let attributes = {
@@ -127,6 +128,10 @@ let attributes = {
     type: "number",
     defaultsTo: 0,
   } as unknown as number,
+
+  bonuses: {
+    type: "json"
+  } as unknown as OrderBonus,
 
   
   /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
@@ -479,22 +484,71 @@ let Model = {
    * Then all checks will be made and a record will be written in the transaction of user bonuses
    * 
    Bonus spending strategies :
-    1) bonus_from_order_total: (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
-    2) bonus_from_basket_delivery_discount: writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
-    3) bonus_from_basket_and_delivery: writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
-    4) bonus_from_basket: write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
+    1) 'bonus_from_order_total': (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
+    2) 'bonus_from_basket_delivery_discount': writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
+    3) 'bonus_from_basket_and_delivery': writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
+    4) 'bonus_from_basket': write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
+
+    Current implement logic for only one strategy
 
    */
-  async applyBonuses(orderId, orderBonuses: OrderBonuses): Promise<void> {
-    const order = await Order.findOne({id: orderId});
-    if (order.user && typeof order.user === "string") {
-      for(let bonusSpend of orderBonuses){
-      //  . let total = order.
+
+    async applyBonuses(orderId, bonusSpend: OrderBonus): Promise<void> {
+      const order = await Order.findOne({id: orderId});
+      let bonusSpendingStrategy = await Settings.get("BonusSpendingStrategy") ?? 'bonus_from_order_total';
+      
+      if (order.user && typeof order.user === "string") {
+          // Fetch the bonus program for this bonus spend
+          const bonusProgram = await BonusProgram.findOne({id: bonusSpend.bonusProgramId});
+    
+          let amountToDeduct = 0;
+          switch (bonusSpendingStrategy) {
+            case 'bonus_from_order_total':
+              amountToDeduct = order.total;
+              break;
+            case 'bonus_from_basket_delivery_discount':
+              amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+              break;
+            case 'bonus_from_basket_and_delivery':
+              amountToDeduct = order.basketTotal + order.deliveryCost;
+              break;
+            case 'bonus_from_basket':
+              amountToDeduct = order.basketTotal;
+              break;
+            default:
+              throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+          }
+    
+          // Calculate maximum allowed bonus coverage
+          const maxBonusCoverage = new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage);
+          
+          // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+          let bonusCoverage;
+          if (bonusSpend.amount && new Decimal(bonusSpend.amount).lessThan(maxBonusCoverage)) {
+              bonusCoverage = new Decimal(bonusSpend.amount);
+          } else {
+              bonusCoverage = maxBonusCoverage;
+          }
+    
+          // Deduct the bonus from the order total
+          order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
+    
+          // Throw if User not have bonuses to cover this 
+          await UserBonusTransaction.create({
+            amount: bonusCoverage.toNumber(),
+            bonusProgram: bonusProgram.id,
+            user: order.user
+          }).fetch();
+    
+          // Update the order with new total
+          await Order.updateOne({id: orderId}, {total: order.total, bonusesTotal:  bonusCoverage.toNumber()});
+      
+      } else {
+        throw `User not found in Order, applyBonuses failed`
       }
-    } else {
-      throw `User not found in Order, applyBonuses failed`
     }
-  },
+    
+  
 
   ////////////////////////////////////////////////////////////////////////////////////
 

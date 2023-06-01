@@ -9,10 +9,6 @@ const buildDictionary = require("sails-build-dictionary");
  */
 class HookTools {
     /**
-     * Policies array is one for all project. It not assigned with sails policies
-     */
-    static policies;
-    /**
      * Bind models from folder. Folder must be full path.
      * @param folder - path to models
      */

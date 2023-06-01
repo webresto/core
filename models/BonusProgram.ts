@@ -26,9 +26,10 @@ let attributes = {
   exchangeRate: "number" as unknown as number,
   /** How much can you spend from the amount of the order */
   coveragePercentage: "number" as unknown as number,
+  decimals: "number" as unknown as number,
+  
   sortOrder: "number" as unknown as number,
   description: "string",
-  decimals: "number" as unknown as number,
   
   /** user option */
   enabled: {
@@ -46,11 +47,17 @@ interface BonusProgram extends attributes, ORM {}
 export default BonusProgram;
 
 let Model = {
-  beforeCreate(BonusProgramInit: BonusProgram, next: Function) {
-    if (!BonusProgramInit.id) {
-      BonusProgramInit.id = uuid();
+  beforeCreate(init: BonusProgram, next: Function) {
+    if (!init.id) {
+      init.id = uuid();
     }
     
+    if (init.coveragePercentage > 1) {
+      init.coveragePercentage = 1;
+    } else if (init.coveragePercentage < 0) {
+      init.coveragePercentage = 0;
+    }
+
     next();
   },
 

@@ -1,5 +1,5 @@
 import Order from "../../models/Order";
-export default abstract class AbstractDiscount {
+export default abstract class AbstractDiscountHandler {
     /** unique id */
     abstract id: string;
     abstract isJoint: boolean;
@@ -13,9 +13,6 @@ export default abstract class AbstractDiscount {
     abstract readonly actions: string;
     abstract condition(order: Order): Promise<boolean>;
     abstract action(): Promise<void>;
-}
-export declare abstract class AbsctractPublicDiscount extends AbstractDiscount {
-    isPublic: boolean;
     abstract displayGroupDiscount(): Promise<void>;
     abstract displayGroupDish(): Promise<void>;
 }

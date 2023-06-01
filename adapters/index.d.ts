@@ -4,7 +4,7 @@ import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import OTPAdapter from "./otp/OneTimePasswordAdapter";
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
-import { DiscountAdapter } from "./discount/default/defaultDiscountAdapter";
+import { DiscountAdapter } from "./discount/default/discountAdapter";
 /**
  * retruns RMS-adapter
  */

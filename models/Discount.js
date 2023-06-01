@@ -22,7 +22,14 @@ let attributes = {
      *  discountAmount: "number",
      *
      */
-    configuredDiscount: "json",
+    configDiscount: {
+        type: "json"
+    },
+    /** created by User */
+    createdByUser: {
+        type: "boolean",
+        required: true,
+    },
     name: {
         type: "string",
         required: true,
@@ -62,11 +69,6 @@ let attributes = {
         type: "boolean",
         required: true,
     },
-    /** created by User */
-    isConfigured: {
-        type: "boolean",
-        required: true,
-    },
     productCategoryDiscounts: "json",
     /** User can disable this discount*/
     enable: {
@@ -81,51 +83,25 @@ let attributes = {
         required: true,
     },
     worktime: "json",
-    startDate: "string",
-    stopDate: "string",
-    condition: {
-        type: (order) => Promise,
-        required: true,
-    },
-    action: {
-        type: () => Promise,
-        required: true,
-    },
 };
 let Model = {
-    async getAll() {
-        const discounts = await Discount.find({});
-        if (!discounts)
-            throw `There is no discount`;
-        return discounts;
+    async afterUpdate(record, next) {
+        if (record.createdByUser) {
+            // call recreate of discountHandler
+        }
+        next();
     },
-    async getAllByConcept(concept) {
-        if (!concept[0])
-            throw "concept is required";
-        const discount = await Discount.find({ concept: concept });
-        if (!discount)
-            throw "Discount with concept: " + concept + " not found";
-        return discount;
+    async afterCreate(record, next) {
+        if (record.createdByUser) {
+            // call recreate of discountHandler
+        }
+        next();
     },
-    async getById(discountId) {
-        if (!discountId)
-            throw "discountId is required";
-        const discount = await Discount.findOne({ id: discountId });
-        if (!discount)
-            throw "Discount with discountId: " + discountId + " not found";
-        return discount;
+    async beforeUpdate(init, next) {
+        next();
     },
-    async deleteById(discountId) {
-        let discount = await Discount.findOne({ id: discountId });
-        if (!discount)
-            throw `There is no discount`;
-        await Discount.update({ id: discountId }, { isDeleted: true }).fetch();
-    },
-    async switchEnableById(discountId) {
-        let discount = await Discount.findOne({ id: discountId });
-        if (!discount)
-            throw `There is no discount`;
-        await Discount.update({ id: discountId }, { enable: !discount.enable }).fetch();
+    async beforeCreate(init, next) {
+        next();
     },
     async createOrUpdate(values) {
         let hash = (0, hashCode_1.default)(JSON.stringify(values));
@@ -145,6 +121,10 @@ let Model = {
     async setAlive(idArray) {
         //
     },
+    // async getHandler(id: string): Promise<any> {
+    //   const adapter = Adapter.getDiscountAdapter()
+    //   return adapter.getHandlerById(id)
+    // },
     getActiveDiscount: async function () {
         // TODO: here need add worktime support
         let discounts = await Discount.find({ enable: true });

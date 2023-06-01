@@ -4,7 +4,7 @@ exports.Adapter = exports.OTP = exports.Captcha = exports.Payment = exports.Medi
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
 const fs = require("fs");
-const defaultDiscountAdapter_1 = require("./discount/default/defaultDiscountAdapter");
+const discountAdapter_1 = require("./discount/default/discountAdapter");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
@@ -171,7 +171,7 @@ class Adapter {
             adapterName = await Settings.get("DEFAULT_DISCOUNT_ADAPTER");
         }
         if (!adapterName) {
-            return defaultDiscountAdapter_1.DiscountAdapter.getInstance();
+            return discountAdapter_1.DiscountAdapter.getInstance();
         }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-discount-adapter";

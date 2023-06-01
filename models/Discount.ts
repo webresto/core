@@ -34,8 +34,7 @@ let attributes = {
    *  
    */
   configDiscount: {
-    type: "json",
-    allowNull: true,
+    type: "json"
   } as unknown as any,
 
   /** created by User */

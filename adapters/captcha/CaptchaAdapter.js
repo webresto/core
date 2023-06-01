@@ -4,6 +4,6 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 class CaptchaAdapter {
-    static taskStorage = {};
 }
+CaptchaAdapter.taskStorage = {};
 exports.default = CaptchaAdapter;

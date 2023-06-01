@@ -27,22 +27,16 @@ let attributes = {
   /** Custom badges */
   group: "string",
 
-  /**
-   * binary sign of transaction type
-   */
-  isPositive: {
-    type: 'boolean',
-    required: true
-  } as unknown as boolean,
-
   amount: {
     type: 'number',
   }  as unknown as number,
 
+  /** automatic recalculate */
   balanceAfter: {
     type: 'number',
   } as unknown as number,
   
+  /** User can delete transaction */
   isDeleted: {
     type: 'boolean',
   } as unknown as boolean,
@@ -176,5 +170,5 @@ module.exports = {
 };
 
 declare global {
-  const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "id">;
+  const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "user" | "amount" | "bonusProgram">;
 }

@@ -1,20 +1,17 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
+import User from "../models/User";
 declare let attributes: {
     /** ID */
     id: string;
     active: {
         type: string;
     };
-    balance: {
-        type: string;
-    };
+    balance: number;
     isDeleted: {
         type: string;
     };
-    user: {
-        model: string;
-    };
+    user: string | User;
     BonusProgram: {
         model: string;
     };

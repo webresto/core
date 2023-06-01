@@ -2,7 +2,6 @@ import { WorkTime } from "@webresto/worktime";
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import Order from "./Order";
 import AbstractDiscount from "../adapters/discount/AbstractDiscount";
 declare let attributes: {
     /** TODO: show discounts to dish and orders */
@@ -14,7 +13,9 @@ declare let attributes: {
      *  discountAmount: "number",
      *
      */
-    configuredDiscount: any;
+    configDiscount: any;
+    /** created by User */
+    createdByUser: boolean;
     name: string;
     concept: string[];
     discount: string;
@@ -26,8 +27,6 @@ declare let attributes: {
     isPublic: boolean;
     /** first use isJoint = false discounts then true */
     isJoint: boolean;
-    /** created by User */
-    isConfigured: boolean;
     productCategoryDiscounts: any;
     /** User can disable this discount*/
     enable: boolean;
@@ -36,21 +35,16 @@ declare let attributes: {
     /** Хеш обекта скидки */
     hash: string;
     worktime: WorkTime;
-    startDate: string;
-    stopDate: string;
-    condition: (order: Order) => Promise<boolean>;
-    action: () => Promise<void>;
 };
 type attributes = typeof attributes;
-interface Discount extends RequiredField<OptionalAll<attributes>, "id" | "configuredDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "discount" | "discountType" | "actions" | "condition" | "action">, ORM {
+interface Discount extends RequiredField<OptionalAll<attributes>, "id" | "configuredDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "discount" | "discountType" | "actions">, ORM {
 }
 export default Discount;
 declare let Model: {
-    getAll(): Promise<Discount[]>;
-    getAllByConcept(concept: string[]): Promise<Discount[]>;
-    getById(discountId: string): Promise<Discount>;
-    deleteById(discountId: string): Promise<void>;
-    switchEnableById(discountId: string): Promise<void>;
+    afterUpdate(record: Discount, next: Function): Promise<void>;
+    afterCreate(record: Discount, next: Function): Promise<void>;
+    beforeUpdate(init: Discount, next: Function): Promise<void>;
+    beforeCreate(init: Discount, next: Function): Promise<void>;
     createOrUpdate(values: AbstractDiscount): Promise<AbstractDiscount>;
     setDelete(): Promise<void>;
     setAlive(idArray: string[]): Promise<void>;
