@@ -1,8 +1,10 @@
 import UserBonusTransaction from "../../models/UserBonusTransaction"
+import BonusProgram from "../../models/BonusProgram"
 import User from "../../models/User"
 
 type InitBonusAdapter = {
-  id: string
+  id: string,
+  adapter: string
 }
 
 interface optionalId {id?: string}
@@ -17,12 +19,18 @@ export default abstract class BonusAdapter {
     BonusProgram.alive(this);
   }
 
+  // TODO: нужен способ выключени бонусов автоматически
 
 
   /**
    * Return user balance
    */
    public abstract getBalance(user: User): Promise<number>;
+
+  /**
+   * write user transaction
+   */
+  public abstract writeTransaction(bonusProgram: BonusProgram, user: User, userBonusTransaction: UserBonusTransaction): Promise<number>;
 
   /**
    * Return user 

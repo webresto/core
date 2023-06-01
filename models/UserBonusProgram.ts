@@ -9,6 +9,7 @@ import User from "../models/User"
 //   [P in keyof T]?: T[P];
 // }
 
+
 let attributes = {
   
   /** ID */
@@ -23,7 +24,7 @@ let attributes = {
 
   balance: {
     type: 'number'
-  },
+  } as unknown as number,
   
   isDeleted: {
     type: 'boolean',
@@ -31,7 +32,7 @@ let attributes = {
 
   user: {
     model: 'user'
-  },
+  } as unknown as User | string,
 
   BonusProgram: {
     model: 'bonusprogram'
