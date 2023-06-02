@@ -7,6 +7,7 @@ import ORMModel from "../interfaces/ORMModel";
 declare let attributes: {
     /** ID */
     id: string;
+    name: string;
     adapter: string;
     /** Exchange price for website currency */
     exchangeRate: number;
@@ -38,7 +39,7 @@ declare let Model: {
      * @param bonusProgramAdapterId string
      * @returns
      */
-    getAdapter(bonusProgramId: string): Promise<BonusProgramAdapter>;
+    getAdapter(adapter: string): Promise<BonusProgramAdapter>;
     /**
      * Method for registration alived bonus program adapter
      * @param bonusProgramAdapterId string

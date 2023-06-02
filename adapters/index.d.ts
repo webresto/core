@@ -5,6 +5,7 @@ import OTPAdapter from "./otp/OneTimePasswordAdapter";
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
+import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 /**
  * retruns RMS-adapter
  */
@@ -46,4 +47,7 @@ export declare class Adapter {
     static getDiscountAdapter(adapterName?: string, initParams?: {
         [key: string]: string | number | boolean;
     }): Promise<DiscountAdapter>;
+    static getBonusProgramAdapter(adapterName?: string, initParams?: {
+        [key: string]: string | number | boolean;
+    }): Promise<BonusProgramAdapter>;
 }

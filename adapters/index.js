@@ -184,5 +184,22 @@ class Adapter {
             throw new Error("Module " + adapterLocation + " not found");
         }
     }
+    static async getBonusProgramAdapter(adapterName, initParams) {
+        if (!adapterName) {
+            let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
+            if (!defaultAdapterName)
+                throw 'BonusProgramAdapter is not set ';
+        }
+        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-bonus-adapter";
+        try {
+            const adapter = require(adapterLocation);
+            return adapter.BonusProgramAdapter[adapterName].getInstance(initParams);
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter Discount > error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
 }
 exports.Adapter = Adapter;

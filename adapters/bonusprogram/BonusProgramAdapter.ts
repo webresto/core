@@ -2,27 +2,29 @@ import UserBonusTransaction from "../../models/UserBonusTransaction"
 import BonusProgram from "../../models/BonusProgram"
 import User from "../../models/User"
 
-type InitBonusProgramAdapter = {
-  id: string,
-  adapter: string
+export type ConfigBonusProgramAdapter = {
+  [key: string]: number | boolean | string
 }
 
 interface optionalId {id?: string}
-interface BonusTransaction extends Pick<UserBonusTransaction, "isNegative" | "group" | "amount" | "customData" > , optionalId {}
+export interface BonusTransaction extends Pick<UserBonusTransaction, "isNegative" | "group" | "amount" | "customData" > , optionalId {}
 
 
 export default abstract class BonusProgramAdapter {
-  public readonly InitBonusProgramAdapter: InitBonusProgramAdapter;
+  public readonly config: ConfigBonusProgramAdapter = {};
   
   /** Adapter name */
   public readonly name: string
+
+  public readonly adapter: string
+
   public readonly exchangeRate: number
   public readonly coveragePercentage: number 
-  public readonly decimals: string
+  public readonly decimals: number
   public readonly description: string
 
-  protected constructor(InitBonusProgramAdapter: InitBonusProgramAdapter) {
-    this.InitBonusProgramAdapter = InitBonusProgramAdapter;
+  public constructor(config?: ConfigBonusProgramAdapter) {
+    this.config = config;
     BonusProgram.alive(this);
   }
 
@@ -37,7 +39,7 @@ export default abstract class BonusProgramAdapter {
   /**
    * write user transaction
    */
-  public abstract writeTransaction(bonusProgram: BonusProgram, user: User, userBonusTransaction: UserBonusTransaction): Promise<number>;
+  public abstract writeTransaction(bonusProgram: BonusProgram, user: User, userBonusTransaction: UserBonusTransaction): Promise<void>;
 
   /**
    * Return user 

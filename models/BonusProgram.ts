@@ -18,6 +18,11 @@ let attributes = {
     type: "string",
     //required: true,
   } as unknown as string,
+  name: {
+    type: "string",
+    required: true,
+  } as unknown as string,
+
   adapter: {
     type: "string",
     required: true,
@@ -78,15 +83,30 @@ let Model = {
    * @returns 
    */
   async alive(bonusProgramAdapter: BonusProgramAdapter) {
-    let knownBonusProgram = await BonusProgram.findOne({
-      adapter: bonusProgramAdapter.InitBonusProgramAdapter.adapter,
-    });
 
-    if (!knownBonusProgram) {
-      knownBonusProgram = await BonusProgram.create({ ...bonusProgramAdapter.InitBonusProgramAdapter, enable: false }).fetch();
+    if (!bonusProgramAdapter.adapter) {
+      throw `name not defined`
     }
-    alivedBonusPrograms[bonusProgramAdapter.InitBonusProgramAdapter.adapter] = bonusProgramAdapter;
-    sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.InitBonusProgramAdapter.adapter]);
+    
+    console.log(bonusProgramAdapter,8888, bonusProgramAdapter.adapter)
+    
+    let knownBonusProgram = await BonusProgram.findOne({
+      adapter: bonusProgramAdapter.adapter,
+    });
+    
+    if (!knownBonusProgram) {
+      knownBonusProgram = await BonusProgram.create({ 
+        name: bonusProgramAdapter.name,
+        adapter: bonusProgramAdapter.adapter,
+        exchangeRate: bonusProgramAdapter.exchangeRate,
+        coveragePercentage: bonusProgramAdapter.coveragePercentage,
+        decimals: bonusProgramAdapter.decimals,
+        description: bonusProgramAdapter.description,
+        enable: false
+      }).fetch();
+    }
+    alivedBonusPrograms[bonusProgramAdapter.adapter] = bonusProgramAdapter;
+    sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.adapter]);
     return;
   },
 
@@ -97,10 +117,10 @@ let Model = {
    */
   async getAdapter(adapter: string): Promise<BonusProgramAdapter> {
     let bonusProgram = await BonusProgram.findOne({
-      adapter: adapter,
-      enable: true
+      adapter: adapter
     });
 
+    if(bonusProgram.enable !== true) throw `bonusProgram ${adapter} is disabled`
     if(bonusProgram && bonusProgram.enable && alivedBonusPrograms[bonusProgram.adapter] !== undefined) {
       return alivedBonusPrograms[bonusProgram.adapter]
     } else {
