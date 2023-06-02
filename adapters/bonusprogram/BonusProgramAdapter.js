@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class BonusAdapter {
-    constructor(InitBonusAdapter) {
-        this.InitBonusAdapter = InitBonusAdapter;
+class BonusProgramAdapter {
+    constructor(InitBonusProgramAdapter) {
+        this.InitBonusProgramAdapter = InitBonusProgramAdapter;
         BonusProgram.alive(this);
     }
     /**
@@ -10,7 +10,7 @@ class BonusAdapter {
      * @param params - параметры для инициализации
      */
     static getInstance(...params) {
-        return BonusAdapter.prototype;
+        return BonusProgramAdapter.prototype;
     }
 }
-exports.default = BonusAdapter;
+exports.default = BonusProgramAdapter;

@@ -2,13 +2,14 @@
  * The bonus program implements the spending of virtual bonuses through the adapter.
  */
 
-import BonusAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
+import { Adapter } from "../adapters";
+import BonusProgramAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 
 const alivedBonusPrograms: { 
-  [key: string]: BonusAdapter
+  [key: string]: BonusProgramAdapter
 } = {};
 
 let attributes = {
@@ -32,7 +33,7 @@ let attributes = {
   description: "string",
   
   /** user option */
-  enabled: {
+  enable: {
     type: "boolean",
     required: true,
   } as unknown as boolean,
@@ -52,10 +53,20 @@ let Model = {
       init.id = uuid();
     }
     
+    // defaults
     if (init.coveragePercentage > 1) {
       init.coveragePercentage = 1;
     } else if (init.coveragePercentage < 0) {
       init.coveragePercentage = 0;
+    }
+
+    if (!init.exchangeRate) {
+      init.exchangeRate = 1;
+    }
+
+    // decimals
+    if (!init.decimals) {
+      init.decimals = 0;
     }
 
     next();
@@ -66,16 +77,16 @@ let Model = {
    * @param bonusProgramAdapter 
    * @returns 
    */
-  async alive(bonusProgramAdapter: BonusAdapter) {
+  async alive(bonusProgramAdapter: BonusProgramAdapter) {
     let knownBonusProgram = await BonusProgram.findOne({
-      adapter: bonusProgramAdapter.InitBonusAdapter.adapter,
+      adapter: bonusProgramAdapter.InitBonusProgramAdapter.adapter,
     });
 
     if (!knownBonusProgram) {
-      knownBonusProgram = await BonusProgram.create({ ...bonusProgramAdapter.InitBonusAdapter, enabled: false }).fetch();
+      knownBonusProgram = await BonusProgram.create({ ...bonusProgramAdapter.InitBonusProgramAdapter, enable: false }).fetch();
     }
-    alivedBonusPrograms[bonusProgramAdapter.InitBonusAdapter.adapter] = bonusProgramAdapter;
-    sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.InitBonusAdapter.adapter]);
+    alivedBonusPrograms[bonusProgramAdapter.InitBonusProgramAdapter.adapter] = bonusProgramAdapter;
+    sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.InitBonusProgramAdapter.adapter]);
     return;
   },
 
@@ -84,16 +95,21 @@ let Model = {
    * @param bonusProgramAdapterId string 
    * @returns 
    */
-  async getAdapter(bonusProgramId: string): Promise<BonusAdapter> {
+  async getAdapter(adapter: string): Promise<BonusProgramAdapter> {
     let bonusProgram = await BonusProgram.findOne({
-      id: bonusProgramId,
+      adapter: adapter,
+      enable: true
     });
 
-    if(bonusProgram && bonusProgram.enabled && alivedBonusPrograms[bonusProgram.adapter] !== undefined) {
+    if(bonusProgram && bonusProgram.enable && alivedBonusPrograms[bonusProgram.adapter] !== undefined) {
       return alivedBonusPrograms[bonusProgram.adapter]
     } else {
       // here should find the adapter by adapter/index.ts 
-      throw `BonusProgram ${bonusProgramId} no alived`
+      try {
+        return Adapter.getBonusProgramAdapter(adapter);
+      } catch (error) {
+        throw `BonusProgram ${adapter} no alived or disabled`
+      }
     }
   },
 

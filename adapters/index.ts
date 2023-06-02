@@ -9,6 +9,7 @@ import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
+import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -208,5 +209,25 @@ export class Adapter {
       throw new Error("Module " + adapterLocation + " not found");
     }
   }
+
+
+  public static async getBonusProgramAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<BonusProgramAdapter> {
+    if(!adapterName) {
+      let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER") as string;
+      if (!defaultAdapterName) throw 'BonusProgramAdapter is not set '
+    }
+
+    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
+    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-discount-adapter";
+
+    try {
+      const adapter = require(adapterLocation);
+      return adapter.BonusProgramAdapter[adapterName].getInstance(initParams) as BonusProgramAdapter;
+    } catch (e) {
+      sails.log.error("CORE > getAdapter Discount > error; ", e);
+      throw new Error("Module " + adapterLocation + " not found");
+    }
+  }
+
 }
 

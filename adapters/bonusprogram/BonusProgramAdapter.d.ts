@@ -1,7 +1,7 @@
 import UserBonusTransaction from "../../models/UserBonusTransaction";
 import BonusProgram from "../../models/BonusProgram";
 import User from "../../models/User";
-type InitBonusAdapter = {
+type InitBonusProgramAdapter = {
     id: string;
     adapter: string;
 };
@@ -10,9 +10,9 @@ interface optionalId {
 }
 interface BonusTransaction extends Pick<UserBonusTransaction, "type" | "group" | "amount" | "customData">, optionalId {
 }
-export default abstract class BonusAdapter {
-    readonly InitBonusAdapter: InitBonusAdapter;
-    protected constructor(InitBonusAdapter: InitBonusAdapter);
+export default abstract class BonusProgramAdapter {
+    readonly InitBonusProgramAdapter: InitBonusProgramAdapter;
+    protected constructor(InitBonusProgramAdapter: InitBonusProgramAdapter);
     /**
      * Return user balance
      */
@@ -30,6 +30,6 @@ export default abstract class BonusAdapter {
      * Метод для создания и получения уже существующего Payment adapterа
      * @param params - параметры для инициализации
      */
-    static getInstance(...params: any[]): BonusAdapter;
+    static getInstance(...params: any[]): BonusProgramAdapter;
 }
 export {};

@@ -23,7 +23,7 @@ let attributes = {
     sortOrder: "number",
     description: "string",
     /** user option */
-    enabled: {
+    enable: {
         type: "boolean",
         required: true,
     },
@@ -49,13 +49,13 @@ let Model = {
      */
     async alive(bonusProgramAdapter) {
         let knownBonusProgram = await BonusProgram.findOne({
-            adapter: bonusProgramAdapter.InitBonusAdapter.adapter,
+            adapter: bonusProgramAdapter.InitBonusProgramAdapter.adapter,
         });
         if (!knownBonusProgram) {
-            knownBonusProgram = await BonusProgram.create({ ...bonusProgramAdapter.InitBonusAdapter, enabled: false }).fetch();
+            knownBonusProgram = await BonusProgram.create({ ...bonusProgramAdapter.InitBonusProgramAdapter, enable: false }).fetch();
         }
-        alivedBonusPrograms[bonusProgramAdapter.InitBonusAdapter.adapter] = bonusProgramAdapter;
-        sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.InitBonusAdapter.adapter]);
+        alivedBonusPrograms[bonusProgramAdapter.InitBonusProgramAdapter.adapter] = bonusProgramAdapter;
+        sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.InitBonusProgramAdapter.adapter]);
         return;
     },
     /**

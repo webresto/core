@@ -2,20 +2,27 @@ import UserBonusTransaction from "../../models/UserBonusTransaction"
 import BonusProgram from "../../models/BonusProgram"
 import User from "../../models/User"
 
-type InitBonusAdapter = {
+type InitBonusProgramAdapter = {
   id: string,
   adapter: string
 }
 
 interface optionalId {id?: string}
-interface BonusTransaction extends Pick<UserBonusTransaction, "type" | "group" | "amount" | "customData" > , optionalId {}
+interface BonusTransaction extends Pick<UserBonusTransaction, "isNegative" | "group" | "amount" | "customData" > , optionalId {}
 
 
-export default abstract class BonusAdapter {
-  public readonly InitBonusAdapter: InitBonusAdapter;
+export default abstract class BonusProgramAdapter {
+  public readonly InitBonusProgramAdapter: InitBonusProgramAdapter;
+  
+  /** Adapter name */
+  public readonly name: string
+  public readonly exchangeRate: number
+  public readonly coveragePercentage: number 
+  public readonly decimals: string
+  public readonly description: string
 
-  protected constructor(InitBonusAdapter: InitBonusAdapter) {
-    this.InitBonusAdapter = InitBonusAdapter;
+  protected constructor(InitBonusProgramAdapter: InitBonusProgramAdapter) {
+    this.InitBonusProgramAdapter = InitBonusProgramAdapter;
     BonusProgram.alive(this);
   }
 
@@ -42,7 +49,7 @@ export default abstract class BonusAdapter {
    * Метод для создания и получения уже существующего Payment adapterа
    * @param params - параметры для инициализации
    */
-  static getInstance(...params): BonusAdapter {
-    return BonusAdapter.prototype;
+  static getInstance(...params): BonusProgramAdapter {
+    return BonusProgramAdapter.prototype;
   }
 }

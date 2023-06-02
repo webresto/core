@@ -1,7 +1,7 @@
 /**
  * The bonus program implements the spending of virtual bonuses through the adapter.
  */
-import BonusAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
+import BonusProgramAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 declare let attributes: {
@@ -16,7 +16,7 @@ declare let attributes: {
     sortOrder: number;
     description: string;
     /** user option */
-    enabled: boolean;
+    enable: boolean;
     customData: string | {
         [key: string]: string | number | boolean;
     };
@@ -32,13 +32,13 @@ declare let Model: {
      * @param bonusProgramAdapter
      * @returns
      */
-    alive(bonusProgramAdapter: BonusAdapter): Promise<void>;
+    alive(bonusProgramAdapter: BonusProgramAdapter): Promise<void>;
     /**
      * Method for registration alived bonus program adapter
      * @param bonusProgramAdapterId string
      * @returns
      */
-    getAdapter(bonusProgramId: string): Promise<BonusAdapter>;
+    getAdapter(bonusProgramId: string): Promise<BonusProgramAdapter>;
     /**
      * Method for registration alived bonus program adapter
      * @param bonusProgramAdapterId string
