@@ -700,11 +700,6 @@ let Model = {
         }
         return { ...fullOrder };
     },
-    /**
-     * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
-     * Подсчет должен происходить только до перехода на чекаут
-     * @param order
-     */
     async countCart(criteria) {
         try {
             let order = await Order.findOne(criteria);
@@ -713,10 +708,10 @@ let Model = {
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             // const orderDishesClone = {}
-            let basketTotal = 0;
+            let basketTotal = new decimal_js_1.default(0);
             let dishesCount = 0;
             let uniqueDishes = 0;
-            let totalWeight = 0;
+            let totalWeight = new decimal_js_1.default(0);
             for await (let orderDish of orderDishes) {
                 try {
                     if (orderDish.dish) {
@@ -767,54 +762,47 @@ let Model = {
                                 // FreeAmount modiefires support
                                 if (opts.freeAmount && typeof opts.freeAmount === "number") {
                                     if (opts.freeAmount < modifier.amount) {
-                                        orderDish.itemTotal -= opts.freeAmount * modifierObj.price;
+                                        let freePrice = new decimal_js_1.default(modifierObj.price).times(opts.freeAmount);
+                                        orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).minus(freePrice).toNumber();
                                     }
                                     else {
-                                        orderDish.itemTotal -= modifier.amount * modifierObj.price;
+                                        // If more just calc
+                                        let freePrice = new decimal_js_1.default(modifierObj.price).times(modifier.amount);
+                                        orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).minus(freePrice).toNumber();
                                     }
                                 }
                                 if (!Number(orderDish.itemTotal))
                                     throw `orderDish.itemTotal is NaN ${JSON.stringify(modifier)}.`;
-                                orderDish.weight += modifierObj.weight;
+                                orderDish.weight = new decimal_js_1.default(orderDish.weight).plus(modifierObj.weight).toNumber();
                             }
                         }
                         else {
                             throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish.modifiers, undefined, 2)} <<`;
                         }
-                        orderDish.totalWeight = orderDish.weight * orderDish.amount;
-                        orderDish.itemTotal *= orderDish.amount;
+                        orderDish.totalWeight = new decimal_js_1.default(orderDish.weight).times(orderDish.amount).toNumber();
+                        orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).times(orderDish.amount).toNumber();
                         orderDish.dish = orderDish.dish.id;
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
-                    } // for disches
-                    basketTotal += orderDish.itemTotal;
+                    }
+                    basketTotal = basketTotal.plus(orderDish.itemTotal);
                     dishesCount += orderDish.amount;
                     uniqueDishes++;
-                    totalWeight += orderDish.totalWeight;
+                    totalWeight = totalWeight.plus(orderDish.totalWeight);
                 }
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);
                 }
-            } // for orderDish
-            // Discount calc
-            /**
-             * TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать adapterом.
-             * Скидки должны быть массивом, и они должны хранится в каждом блюде OrderDish чтобы при выключении скидки не исчезали скидки на Ордере
-             */
-            order.dishes = orderDishes;
-            // depricated
+            }
             await emitter.emit("core-order-count-discount-apply", order);
             delete (order.dishes);
-            ///////////////////////////////////
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
-            order.totalWeight = totalWeight;
-            // @deprecated orderTotal use orderCost
-            order.orderTotal = basketTotal;
-            order.basketTotal = basketTotal;
+            order.totalWeight = totalWeight.toNumber();
+            order.orderTotal = basketTotal.toNumber();
+            order.basketTotal = basketTotal.toNumber();
             emitter.emit("core:count-before-delivery-cost", order);
-            // @deprecated orderTotal use orderCost
-            order.total = basketTotal + order.deliveryCost - order.discountTotal;
+            order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             emitter.emit("core-order-after-count", order);
             return order;

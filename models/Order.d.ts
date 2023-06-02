@@ -169,11 +169,6 @@ declare let Model: {
         customData?: any;
         state?: string;
     }>;
-    /**
-     * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
-     * Подсчет должен происходить только до перехода на чекаут
-     * @param order
-     */
     countCart(criteria: CriteriaQuery<Order>): Promise<Order>;
     doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
 };
