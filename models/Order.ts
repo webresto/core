@@ -480,6 +480,7 @@ let Model = {
   },
 
   /**
+   * !! Not for external use, only in Order.check
    * The use of bonuses in the cart implies that this order has a user. 
    * Then all checks will be made and a record will be written in the transaction of user bonuses
    * 
@@ -493,9 +494,8 @@ let Model = {
 
    */
 
-  async applyBonuses(orderId, spendBonus: OrderBonus): Promise<void> {
+  async checkBonus(orderId, spendBonus: OrderBonus): Promise<void> {
       const order = await Order.findOne({id: orderId});
-      let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
       
       if (order.user && typeof order.user === "string") {
           // Fetch the bonus program for this bonus spend
@@ -533,6 +533,7 @@ let Model = {
           // Deduct the bonus from the order total
           order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
     
+
           // Throw if User not have bonuses to cover this 
           await UserBonusTransaction.create({
             amount: bonusCoverage.toNumber(),
@@ -622,8 +623,55 @@ let Model = {
     }
 
     emitter.emit("core-order-check-delivery", order, customer, isSelfService, address);
+    
+    /**
+     *  Bonus spending
+     * */ 
+    if (order.user && typeof order.user === "string") {
+      
+      // load bonus strategy
+      let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
+
+      // Fetch the bonus program for this bonus spend
+      const bonusProgram = await BonusProgram.findOne({id: spendBonus.bonusProgramId});
+
+      let amountToDeduct = 0;
+      switch (bonusSpendingStrategy) {
+        case 'bonus_from_order_total':
+          amountToDeduct = order.total;
+          break;
+        case 'bonus_from_basket_delivery_discount':
+          amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+          break;
+        case 'bonus_from_basket_and_delivery':
+          amountToDeduct = order.basketTotal + order.deliveryCost;
+          break;
+        case 'bonus_from_basket':
+          amountToDeduct = order.basketTotal;
+          break;
+        default:
+          throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+      }
+
+      // Calculate maximum allowed bonus coverage
+      const maxBonusCoverage = new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage);
+      
+      // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+      let bonusCoverage: Decimal;
+      if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
+          bonusCoverage = new Decimal(spendBonus.amount);
+      } else {
+          bonusCoverage = maxBonusCoverage;
+      }
+
+      // Deduct the bonus from the order total
+      order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
+      order.bonusesTotal = bonusCoverage.toNumber();
+    }
 
     const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
+
+    // Check order empty
     if (order.dishesCount === 0) {
       throw {
         code: 13,
@@ -744,6 +792,17 @@ let Model = {
     return;
 
     async function orderIt() {
+
+      if(order.user && order.bonusesTotal) {
+        // Throw if User not have bonuses to cover this 
+        await UserBonusTransaction.create({
+          isNegative: true,
+          amount: order.bonusesTotal,
+          bonusProgram: order.spendBonus.bonusProgramId,
+          user: order.user
+        }).fetch();
+      }
+
       // await Order.next(order.id,'ORDER');
       // TODO: Rewrite on stateflow
       let data: any = {};
@@ -759,11 +818,15 @@ let Model = {
        * instead call directly in RMSadapter. 
        * But i think we need select default adpater, 
        * and make order here */
+
+      // TODO: entry for RMSadapter make new order
       emitter.emit("core-order-after-order", order);
 
       if (order.user) {
         UserOrderHistory.save(order.id);
       }
+
+
     }
   },
 

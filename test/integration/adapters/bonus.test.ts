@@ -1,6 +1,8 @@
 import Decimal from "decimal.js";
 import { MockBonusProgramAdapter } from "../../mocks/adapter/bonusProgram";
 import { expect } from "chai";
+import { customer, address } from "../../mocks/customer"
+import { OrderBonus } from "../../../interfaces/OrderBonus";
 
 describe("Bonus program adapter", function () {
   this.timeout(60000)
@@ -24,10 +26,18 @@ describe("Bonus program adapter", function () {
     
     await Order.addDish({id: order.id}, dishes[0], 5, [], "", "user");
     await Order.addDish({id: order.id}, dishes[1], 3, [], "", "user");
+    const bonusProgram = await BonusProgram.findOne({adapter: "test"});
+    const spendBonus: OrderBonus =  {
+      bonusProgramId: bonusProgram.id,
+      amount: 5
+    }
+    await Order.check({id: order.id}, customer, true, undefined,  undefined, spendBonus);
     
-    let changedOrder = await Order.countCart({id: order.id});
-    
-    expect(changedOrder.uniqueDishes).to.equal(5);
+    let checkedOrder = await Order.findOne({id: order.id});
+
+
+
+    expect(checkedOrder.state).to.equal("checkout");
     expect(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1 + 1); // 18
    
    

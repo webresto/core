@@ -125,10 +125,20 @@ let Model = {
         calculate.plus(record.amount)
       }
       let newBalance = parseFloat(calculate.toFixed(bonusProgram.decimals ?? 0));
-      const user =  await User.findOne({id: record.user as string});
-      await bonusProgramAdapter.writeTransaction(bonusProgram, user, record);
+      const user =  await User.findOne({id: record.user as string});      
+      
+      // First write transaction
       await UserBonusProgram.updateOne({id: userBonus.id}, {balance: newBalance});
       
+      // Exec write transaction in external system 
+      try {
+        await bonusProgramAdapter.writeTransaction(bonusProgram, user, record);
+      } catch (error) {
+        if (await Settings.get("DISABLE_BONUSPROGRAM_ON_ERROR") === true) {
+          await BonusProgram.updateOne({id: bonusProgram.id}, {enable: false});
+        }
+        throw error
+      }
       // Set IsStable
       await UserBonusTransaction.updateOne({id: record.id}, {isStable: true});
     }

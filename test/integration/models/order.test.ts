@@ -10,19 +10,9 @@ import getEmitter from "../../../libs/getEmitter";
 import PaymentDocument from "../../../models/PaymentDocument";
 import OrderDish from "../../../models/OrderDish";
 import Decimal from "decimal.js";
+import { customer, address } from "../../mocks/customer"
 
 describe("Order", function () {
-  let customer: Customer = {
-    phone: "+99999999999",
-    name: "Freeman Morgan",
-  };
-  let address: Address = {
-    streetId: "1234",
-    city: "New York",
-    street: "Green Road",
-    home: "42",
-    comment: "",
-  };
 
   this.timeout(10000);
   let order: Order;

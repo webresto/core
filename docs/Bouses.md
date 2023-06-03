@@ -40,3 +40,16 @@ After the deduction of rewards, a record is made in the UserBonusTransaction mod
 - During user registration, a check will be performed to see if the rewards system is enabled for a specific user.
 - During user login, synchronization will be performed starting from the last synchronization date.
 - Also, each reward adapter can implement a record in the UserBonusTransaction model by its own means.
+
+### Flow
+
+бонусы будут добавлены в заказ при проверке заказа, но списание будет сделано только когда заказ оформляется.
+при списании будут проведена проверка на сохранение
+
+### Стабильность 
+
+при списании бонусов возможен случай когда внешняя бонусная система не списала бонусы а сайт списал. в таком случае в моделе пользователя будет списсаная транзакция с флагом isSable: false, такие транзакции должны быть обработаны адапетром бонусной системы. В случае если произошла ощибка то бонусная система может быть выключена из ядра, для этого нужно поставить свойство 
+`DISABLE_BONUSPROGRAM_ON_ERROR`
+
+### User
+Для того чтобы у пользователя заработала бонусная система она должна быть включена у него. По умолчанию все бонусные системы которые включен будут доступны пользователю. Но если бонусную систему выключили у конкретного пользователя, то она должна быть выключена из адапетра (тоесть из внешней системы.) UserBonusProgram модель свойство active 

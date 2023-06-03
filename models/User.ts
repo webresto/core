@@ -399,6 +399,11 @@ let Model = {
     // Need pass sessionId here for except paralells login with one name
     return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: uuid() });
   },
+
+
+  async availabilityBonusprograms(userId: string): Promise<void> {
+    // check all active bonus program for user
+  },
 };
 
 module.exports = {
