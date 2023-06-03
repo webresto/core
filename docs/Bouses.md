@@ -8,7 +8,7 @@ The rewards are implemented as a rewards program which can be managed through th
   - `decimals`: Number, default is 0 (denomination)
   - `description`: String
 
-The rewards program must be implemented as an adapter from an abstract class (@webresto/core/adapters/bonusprogram/BonusProgramAdapter.ts) and added to the model through 'alive'. The adapter itself performs the recording of transactions in an external source or synchronization from an external source by implementing the abstract class `BonusProgramAdapter`.
+The rewards program must be implemented as an adapter from an abstract class  `@webresto/core/adapters/bonusprogram/BonusProgramAdapter.ts` and added to the model through `BonusProgram.alive()`. The adapter itself performs the recording of transactions in an external source or synchronization from an external source by implementing the abstract class `BonusProgramAdapter`.
 
 ## Spending of rewards during the order
 
@@ -26,10 +26,12 @@ Note: Multiple rewards systems may be used on the site, but only one can be appl
 Rewards must be added during the order check and recalculated each time something changes in the order or when the validity period of the checked order has expired (10 minutes).
 
 Bonus spending strategies:
-1) 'bonus_from_order_total': (default) Deduction from the final amount of the order including promotional dishes, discounts and delivery.
-2) 'bonus_from_basket_delivery_discount': Writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes).
-3) 'bonus_from_basket_and_delivery': Writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts).
-4) 'bonus_from_basket': Write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery).
+1) '**bonus_from_order_total**': (default) Deduction from the final amount of the order including promotional dishes, discounts and delivery.
+2) '**bonus_from_basket_delivery_discount**': Writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes).
+3) '**bonus_from_basket_and_delivery**': Writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts).
+4) '**bonus_from_basket**': Write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery).
+
+> Strategy should setting in Settings model with key `BONUS_SPENDING_STRATEGY`
 
 After the deduction of rewards, a record is made in the UserBonusTransaction model, and the balance is updated.
 

@@ -495,7 +495,7 @@ let Model = {
 
   async applyBonuses(orderId, spendBonus: OrderBonus): Promise<void> {
       const order = await Order.findOne({id: orderId});
-      let bonusSpendingStrategy = await Settings.get("BonusSpendingStrategy") ?? 'bonus_from_order_total';
+      let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
       
       if (order.user && typeof order.user === "string") {
           // Fetch the bonus program for this bonus spend
