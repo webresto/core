@@ -40,7 +40,10 @@ let Model = {
             init.id = (0, uuid_1.v4)();
         }
         // defaults
-        if (init.coveragePercentage > 1) {
+        if (!init.coveragePercentage) {
+            init.coveragePercentage = 1;
+        }
+        else if (init.coveragePercentage > 1) {
             init.coveragePercentage = 1;
         }
         else if (init.coveragePercentage < 0) {

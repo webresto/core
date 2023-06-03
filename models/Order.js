@@ -41,7 +41,7 @@ let attributes = {
     address: "json",
     comment: "string",
     personsCount: "string",
-    /** Желаемая дата и время доставки */
+    /** The desired date and delivery time*/
     date: "string",
     problem: {
         type: "boolean",
@@ -93,7 +93,7 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
-    bonuses: {
+    spendBonus: {
         type: "json"
     },
     /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
@@ -244,7 +244,7 @@ let Model = {
     },
     //** Delete dish from order */
     async removeDish(criteria, dish, amount, stack) {
-        // TODO: удалить стек
+        // TODO: delete stack
         await emitter.emit.apply(emitter, ["core-order-before-remove-dish", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
@@ -383,12 +383,12 @@ let Model = {
       Current implement logic for only one strategy
   
      */
-    async applyBonuses(orderId, bonusSpend) {
+    async applyBonuses(orderId, spendBonus) {
         const order = await Order.findOne({ id: orderId });
         let bonusSpendingStrategy = await Settings.get("BonusSpendingStrategy") ?? 'bonus_from_order_total';
         if (order.user && typeof order.user === "string") {
             // Fetch the bonus program for this bonus spend
-            const bonusProgram = await BonusProgram.findOne({ id: bonusSpend.bonusProgramId });
+            const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
             let amountToDeduct = 0;
             switch (bonusSpendingStrategy) {
                 case 'bonus_from_order_total':
@@ -410,8 +410,8 @@ let Model = {
             const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul(bonusProgram.coveragePercentage);
             // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
             let bonusCoverage;
-            if (bonusSpend.amount && new decimal_js_1.default(bonusSpend.amount).lessThan(maxBonusCoverage)) {
-                bonusCoverage = new decimal_js_1.default(bonusSpend.amount);
+            if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThan(maxBonusCoverage)) {
+                bonusCoverage = new decimal_js_1.default(spendBonus.amount);
             }
             else {
                 bonusCoverage = maxBonusCoverage;
@@ -430,13 +430,10 @@ let Model = {
         else {
             throw `User not found in Order, applyBonuses failed`;
         }
-    }
+    },
     ////////////////////////////////////////////////////////////////////////////////////
     // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
-    ,
-    ////////////////////////////////////////////////////////////////////////////////////
-    // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
-    async check(criteria, customer, isSelfService, address, paymentMethodId) {
+    async check(criteria, customer, isSelfService, address, paymentMethodId, spendBonus) {
         const order = await Order.countCart(criteria);
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
@@ -449,7 +446,7 @@ let Model = {
             };
         }
         /**
-         *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
+         *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
          */
         emitter.emit("core-order-before-check", order, customer, isSelfService, address);
         sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
@@ -472,7 +469,7 @@ let Model = {
             order.paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
             order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
         }
-        /** Если самовывоз то не нужно проверять адресс */
+        /** if pickup, then you do not need to check the address*/
         if (isSelfService) {
             emitter.emit("core-order-is-self-service", order, customer, isSelfService, address);
             await Order.setSelfService({ id: order.id }, true);
@@ -500,7 +497,7 @@ let Model = {
             };
         }
         /** save after updates in emiter
-         * есть сомнения что это тут нужно
+        * there are doubts that it is needed here
         */
         delete (order.dishes);
         await Order.update({ id: order.id }, { ...order });
@@ -517,7 +514,7 @@ let Model = {
             }
             return;
         }
-        /** Успех во всех слушателях по умолчанию */
+        /** Success in all listeners by default */
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
         if (resultsCount === successCount) {
@@ -542,23 +539,23 @@ let Model = {
             };
         }
         /**
-         * Тут поидее должна быть логика успех хотябы одного слушателя, но
-         * на текущий момент практического применения не встречалось.
+         * Here, there should be the logic of the success of at least one listener, but
+         * At the moment, no practical application was found.
          *
-         * if(checkConfig.justOne) ...
+         * if (checkconfig.justone) ...
          */
     },
     ////////////////////////////////////////////////////////////////////////////////////
-    /** Оформление корзины */
+    /** Basket design*/
     async order(criteria) {
         const order = await Order.findOne(criteria);
-        //  TODO: Реализовать через стейтфлоу
+        //  TODO: impl with stateflow
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
         if (order.state === "CART")
             throw "order with orderId " + order.id + "in state CART";
         // await Order.update({id: order.id}).fetch();
-        // PTODO: проверка эта нужна
+        // TODO: this check is needed
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
         //   return 3
         emitter.emit("core-order-before-order", order);
@@ -581,7 +578,7 @@ let Model = {
                     return;
                 }
                 else {
-                    throw "по крайней мере один слушатель не выполнил заказ.";
+                    throw "At least one listener did not complete the order.";
                 }
             }
             if (orderConfig.justOne) {
@@ -590,7 +587,7 @@ let Model = {
                     return;
                 }
                 else {
-                    throw "ни один слушатель не выполнил заказ";
+                    throw "No listener completed the order";
                 }
             }
             throw "Bad orderConfig";
@@ -599,11 +596,11 @@ let Model = {
         return;
         async function orderIt() {
             // await Order.next(order.id,'ORDER');
-            // TODO: переписать на stateFlow
+            // TODO: Rewrite on stateflow
             let data = {};
             data.orderDate = new Date();
             data.state = "ORDER";
-            /** Если сохранние модели вызвать до next то будет бесконечный цикл */
+            /** ⚠️ If the preservation of the model is caused to NEXT, then there will be an endless cycle */
             sails.log.verbose("Order > order > before save order", order);
             // await Order.update({id: order.id}).fetch();
             await Order.update({ id: order.id }, data).fetch();
@@ -716,7 +713,7 @@ let Model = {
                 try {
                     if (orderDish.dish) {
                         const dish = (await Dish.find(orderDish.dish.id).limit(1))[0];
-                        // Проверяет что блюдо доступно к продаже
+                        // Checks that the dish is available for sale
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
                             emitter.emit("core-order-return-full-order-destroy-orderdish", dish, order);
@@ -725,7 +722,7 @@ let Model = {
                         }
                         if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
                             orderDish.amount = dish.balance;
-                            // Нужно удалять если количество 0
+                            //It is necessary to delete if the amount is 0
                             if (orderDish.amount >= 0) {
                                 await Order.removeDish({ id: order.id }, orderDish, 999999);
                             }

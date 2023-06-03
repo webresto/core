@@ -34,7 +34,7 @@ declare let attributes: {
     address: any;
     comment: string;
     personsCount: string;
-    /** Желаемая дата и время доставки */
+    /** The desired date and delivery time*/
     date: string;
     problem: boolean;
     /** */
@@ -59,7 +59,7 @@ declare let attributes: {
     trifleFrom: number;
     /** Summ of all bobnuses */
     bonusesTotal: number;
-    bonuses: OrderBonus;
+    spendBonus: OrderBonus;
     /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
     total: number;
     /**
@@ -114,9 +114,9 @@ declare let Model: {
       Current implement logic for only one strategy
   
      */
-    applyBonuses(orderId: any, bonusSpend: OrderBonus): Promise<void>;
-    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void>;
-    /** Оформление корзины */
+    applyBonuses(orderId: any, spendBonus: OrderBonus): Promise<void>;
+    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, spendBonus?: OrderBonus): Promise<void>;
+    /** Basket design*/
     order(criteria: CriteriaQuery<Order>): Promise<number>;
     payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
     paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string>;
@@ -158,7 +158,7 @@ declare let Model: {
         totalWeight?: number;
         trifleFrom?: number;
         bonusesTotal?: number;
-        bonuses?: OrderBonus;
+        spendBonus?: OrderBonus;
         total?: number;
         basketTotal?: number;
         orderTotal?: number;
