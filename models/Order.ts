@@ -186,7 +186,7 @@ interface Order extends ORM, OptionalAll<attributes> {}
 export default Order;
 
 let Model = {
-  beforeCreate(orderInit: any, next: any) {
+  beforeCreate(orderInit: any, cb:  (err?: string) => void) {
     if (!orderInit.id) {
       orderInit.id = uuid();
     }
@@ -196,7 +196,7 @@ let Model = {
     }
 
     orderInit = "CART";
-    next();
+    cb();
   },
 
   /** Add dish into order */
@@ -634,9 +634,9 @@ let Model = {
       
       // load bonus strategy
       let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
-
       // Fetch the bonus program for this bonus spend
       const bonusProgram = await BonusProgram.findOne({id: spendBonus.bonusProgramId});
+      spendBonus.amount = parseFloat(new Decimal(spendBonus.amount).toFixed(bonusProgram.decimals))
 
       let amountToDeduct = 0;
       switch (bonusSpendingStrategy) {
@@ -742,7 +742,7 @@ let Model = {
   ////////////////////////////////////////////////////////////////////////////////////
 
   /** Basket design*/
-  async order(criteria: CriteriaQuery<Order>): Promise<number> {
+  async order(criteria: CriteriaQuery<Order>): Promise<void> {
     const order = await Order.findOne(criteria);
 
 

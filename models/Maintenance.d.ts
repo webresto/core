@@ -19,10 +19,10 @@ interface Maintenance extends attributes, ORM {
 }
 export default Maintenance;
 declare let Model: {
-    afterCreate: (maintenance: any, next: any) => void;
-    afterUpdate: (maintenance: any, next: any) => void;
-    afterDestroy: (maintenance: any, next: any) => void;
-    beforeCreate: (maintenance: any, next: any) => void;
+    afterCreate: (maintenance: any, cb: (err?: string) => void) => void;
+    afterUpdate: (maintenance: any, cb: (err?: string) => void) => void;
+    afterDestroy: (maintenance: any, cb: (err?: string) => void) => void;
+    beforeCreate: (maintenance: any, cb: (err?: string) => void) => void;
     siteIsOff: () => Promise<boolean>;
     getActiveMaintenance: () => Promise<Maintenance>;
 };

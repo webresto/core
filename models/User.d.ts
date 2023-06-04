@@ -72,8 +72,8 @@ interface User extends OptionalAll<attributes>, ORM {
 }
 export default User;
 declare let Model: {
-    beforeCreate(userInit: User, next: Function): Promise<void>;
-    afterCreate(record: User, next: Function): Promise<any>;
+    beforeCreate(userInit: User, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: User, cb: (err?: string) => void): Promise<void>;
     /**
      * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
      * @param userId

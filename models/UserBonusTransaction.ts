@@ -66,7 +66,7 @@ interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "i
 export default UserBonusTransaction;
 
 let Model = {
-  async beforeCreate(init: UserBonusTransaction, next: any) {
+  async beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void) {
     try {
       if (!init.id) {
         init.id = uuid();
@@ -74,7 +74,7 @@ let Model = {
 
       let userBonus = await UserBonusProgram.findOne({ bonusProgram: init.bonusProgram as string, user: init.user });
       
-      if (!userBonus) throw "beforeCreate: Bonus program not found for user";
+      if (!userBonus) cb("beforeCreate: Bonus program not found for user");
 
       // set negative by default
       if (init.isNegative === undefined) {
@@ -86,37 +86,37 @@ let Model = {
       let bonusProgram = await BonusProgram.findOne({ id: init.bonusProgram as string });
 
       const bonusProgramAdapterExist = await BonusProgram.isAlived(bonusProgram.adapter);
-      if (!bonusProgramAdapterExist) throw `Bonus program not alived`;
+      if (!bonusProgramAdapterExist) cb(`Bonus program not alived`);
 
       if (init.isNegative === true) {
         if (bonusProgramAdapterExist && init.user !== undefined && typeof init.user === "string") {
           if (userBonus.balance < init.amount) {
-            throw `UserBonusTransaction user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`;
+            cb(`UserBonusTransaction user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`);
           }
         } else {
-          throw "UserBonusTransaction user not defined";
+          cb("UserBonusTransaction user not defined");
         }
       }
-      next();
+      cb();
     } catch (error) {
       sails.log.error(error);
-      throw error;
+      cb(error);
     }
   },
 
-  async afterCreate(record: UserBonusTransaction, next: any) {
+  async afterCreate(record: UserBonusTransaction, cb:  (err?: string) => void) {
     try {
       // After writing to the model, core safely calculate new bonuses
       const bonusProgram = await BonusProgram.findOne({ id: record.bonusProgram as string });
       const bonusProgramAdapter = await BonusProgram.getAdapter(bonusProgram.adapter);
       let userBonus = await UserBonusProgram.findOne({ bonusProgram: bonusProgram.id as string, user: record.user });
-      if (!userBonus) throw "afterCreate: Bonus program not found for user";
+      if (!userBonus) cb("afterCreate: Bonus program not found for user");
       
       
       if (bonusProgramAdapter !== undefined) {
         
         if(record.isNegative === true && userBonus.balance < record.amount ){
-          throw `UserBonusTransaction user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`;
+          cb(`UserBonusTransaction user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
         }
 
         let calculate = new Decimal(userBonus.balance);
@@ -140,16 +140,16 @@ let Model = {
             if ((await Settings.get("DISABLE_BONUSPROGRAM_ON_ERROR")) === true) {
               await BonusProgram.updateOne({ id: bonusProgram.id }, { enable: false });
             }
-            throw error;
+           cb(error);
           }
           // Set IsStable
           await UserBonusTransaction.updateOne({ id: record.id }, { isStable: true });
         }
       }
-      next();
+      cb();
     } catch (error) {
       sails.log.error(error);
-      throw error;
+      cb(error);
     }
   },
 
@@ -157,7 +157,7 @@ let Model = {
     throw "destory bonus transaction not allowed";
   },
 
-  beforeUpdate(record: OptionalAll<UserBonusTransaction>, next: Function) {
+  beforeUpdate(record: OptionalAll<UserBonusTransaction>, cb:  (err?: string) => void) {
     /**
      * only stability updates allowed
      */
@@ -170,7 +170,7 @@ let Model = {
       throw "update bonus transaction not allowed";
     }
     if (Object.keys(record).length !== 2) throw "only isStable allwed for update";
-    next();
+    cb();
   },
 };
 /**

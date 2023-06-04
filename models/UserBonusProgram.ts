@@ -54,12 +54,12 @@ interface UserBonusProgram extends attributes, ORM {}
 export default UserBonusProgram;
 
 let Model = {
-  beforeCreate(UserBonusInit: any, next: any) {
-    if (!UserBonusInit.id) {
-      UserBonusInit.id = uuid();
+  beforeCreate(init: UserBonusProgram, cb:  (err?: string) => void) {
+    if (!init.id) {
+      init.id = uuid();
     }
     
-    next();
+    cb();
   },
 
   async registration(user: User, adapterOrId: string): Promise<UserBonusProgram> {

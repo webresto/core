@@ -40,7 +40,7 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate(init, next) {
+    beforeCreate(init, cb) {
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
@@ -61,7 +61,7 @@ let Model = {
         if (!init.decimals) {
             init.decimals = 0;
         }
-        next();
+        cb();
     },
     /**
      * Method for registration alived bonus program adapter

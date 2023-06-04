@@ -50,28 +50,28 @@ export default Settings;
 
 let Model = {
 
-  beforeCreate: function (record, proceed) {
+  beforeCreate: function (record: Settings, cb:  (err?: string) => void) {
     record.key = toScreamingSnake(record.key)
-    return proceed();
+    cb();
   },
 
-  beforeUpdate: function (record, proceed) {
+  beforeUpdate: function (record: Settings, cb:  (err?: string) => void) {
     if (record.key) {
       record.key = toScreamingSnake(record.key)
     }
-    return proceed();
+    cb();
   },
 
-  afterUpdate: function (record, proceed) {
+  afterUpdate: function (record: Settings, cb:  (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = record.value;
-    return proceed();
+    cb();
   },
 
-  afterCreate: function (record, proceed) {
+  afterCreate: function (record: Settings, cb:  (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = record.value;
-    return proceed();
+    return cb();
   },
 
   /** retrun setting value by key */

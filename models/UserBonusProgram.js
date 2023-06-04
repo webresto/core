@@ -30,11 +30,11 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate(UserBonusInit, next) {
-        if (!UserBonusInit.id) {
-            UserBonusInit.id = (0, uuid_1.v4)();
+    beforeCreate(init, cb) {
+        if (!init.id) {
+            init.id = (0, uuid_1.v4)();
         }
-        next();
+        cb();
     },
     async registration(user, adapterOrId) {
         const bp = await BonusProgram.getAdapter(adapterOrId);

@@ -69,11 +69,11 @@ let Model = {
     }
   },
 
-  beforeCreate: function (paymentMethod, next) {
+  beforeCreate: function (paymentMethod, cb:  (err?: string) => void) {
     if (!paymentMethod.id) {
       paymentMethod.id = uuid();
     }
-    next();
+    cb();
   },
   /**
    * Возвращает true если платежный метод является обещанием платежа

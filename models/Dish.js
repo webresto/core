@@ -145,7 +145,7 @@ let attributes = {
     worktime: "json",
 };
 let Model = {
-    beforeCreate(init, next) {
+    beforeCreate(init, cb) {
         emitter.emit('core:dish-before-create', init);
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
@@ -153,19 +153,19 @@ let Model = {
         if (!init.concept) {
             init.concept = "origin";
         }
-        next();
+        cb();
     },
-    beforeUpdate: function (record, proceed) {
+    beforeUpdate: function (record, cb) {
         emitter.emit('core:dish-before-update', record);
-        return proceed();
+        return cb();
     },
-    afterUpdate: function (record, proceed) {
+    afterUpdate: function (record, cb) {
         emitter.emit('core:dish-after-update', record);
-        return proceed();
+        return cb();
     },
-    afterCreate: function (record, proceed) {
+    afterCreate: function (record, cb) {
         emitter.emit('core:dish-after-create', record);
-        return proceed();
+        return cb();
     },
     /**
      * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет

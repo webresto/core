@@ -178,7 +178,7 @@ interface User extends OptionalAll<attributes>, ORM {}
 export default User;
 
 let Model = {
-  async beforeCreate(userInit: User, next: Function) {
+  async beforeCreate(userInit: User, cb:  (err?: string) => void) {
     if (!userInit.id) {
       userInit.id = uuid();
     }
@@ -193,13 +193,13 @@ let Model = {
       }
     }
 
-    next();
+    cb();
   },
 
-  async afterCreate(record: User, next: Function) {
+  async afterCreate(record: User, cb:  (err?: string) => void) {
     emitter.emit('core:user-after-create', record);
     await User.checkRegisteredInBonusPrograms(record.id);
-    return next();
+    return cb();
   },
 
   /**

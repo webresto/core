@@ -86,7 +86,7 @@ interface Order extends ORM, OptionalAll<attributes> {
 }
 export default Order;
 declare let Model: {
-    beforeCreate(orderInit: any, next: any): void;
+    beforeCreate(orderInit: any, cb: (err?: string) => void): void;
     /** Add dish into order */
     addDish(criteria: CriteriaQuery<Order>, dish: string | Dish, amount: number, modifiers: OrderModifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
@@ -120,7 +120,7 @@ declare let Model: {
     checkBonus(orderId: any, spendBonus: OrderBonus): Promise<void>;
     check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, spendBonus?: OrderBonus): Promise<void>;
     /** Basket design*/
-    order(criteria: CriteriaQuery<Order>): Promise<number>;
+    order(criteria: CriteriaQuery<Order>): Promise<void>;
     payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
     paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string>;
     /**  given populated Order instance  by criteria*/

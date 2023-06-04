@@ -84,7 +84,7 @@ let attributes = {
     worktime: "json",
 };
 let Model = {
-    beforeCreate(init, next) {
+    beforeCreate(init, cb) {
         emitter.emit('core:group-before-create', init);
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
@@ -93,19 +93,19 @@ let Model = {
             init.concept = "origin";
         }
         init.slug = (0, slugify_1.default)(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
-        next();
+        cb();
     },
-    beforeUpdate: function (record, proceed) {
+    beforeUpdate: function (record, cb) {
         emitter.emit('core:group-before-update', record);
-        return proceed();
+        return cb();
     },
-    afterUpdate: function (record, proceed) {
+    afterUpdate: function (record, cb) {
         emitter.emit('core:group-after-update', record);
-        return proceed();
+        return cb();
     },
-    afterCreate: function (record, proceed) {
+    afterCreate: function (record, cb) {
         emitter.emit('core:group-after-create', record);
-        return proceed();
+        return cb();
     },
     /**
      * Возвращает объект с группами и ошибками получения этих самых групп.

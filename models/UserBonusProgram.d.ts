@@ -21,7 +21,7 @@ interface UserBonusProgram extends attributes, ORM {
 }
 export default UserBonusProgram;
 declare let Model: {
-    beforeCreate(UserBonusInit: any, next: any): void;
+    beforeCreate(init: UserBonusProgram, cb: (err?: string) => void): void;
     registration(user: User, adapterOrId: string): Promise<UserBonusProgram>;
 };
 declare global {

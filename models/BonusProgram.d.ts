@@ -31,7 +31,7 @@ interface BonusProgram extends attributes, ORM {
 }
 export default BonusProgram;
 declare let Model: {
-    beforeCreate(init: BonusProgram, next: Function): void;
+    beforeCreate(init: BonusProgram, cb: (err?: string) => void): void;
     /**
      * Method for registration alived bonus program adapter
      * @param bonusProgramAdapter

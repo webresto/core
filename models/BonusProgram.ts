@@ -61,7 +61,7 @@ interface BonusProgram extends attributes, ORM {}
 export default BonusProgram;
 
 let Model = {
-  beforeCreate(init: BonusProgram, next: Function) {
+  beforeCreate(init: BonusProgram, cb:  (err?: string) => void) {
     if (!init.id) {
       init.id = uuid();
     }
@@ -84,7 +84,7 @@ let Model = {
       init.decimals = 0;
     }
 
-    next();
+    cb();
   },
 
   /**

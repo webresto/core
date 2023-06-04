@@ -129,7 +129,7 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    async beforeCreate(userInit, next) {
+    async beforeCreate(userInit, cb) {
         if (!userInit.id) {
             userInit.id = (0, uuid_1.v4)();
         }
@@ -143,12 +143,12 @@ let Model = {
                 throw `User phone is required`;
             }
         }
-        next();
+        cb();
     },
-    async afterCreate(record, next) {
+    async afterCreate(record, cb) {
         emitter.emit('core:user-after-create', record);
         await User.checkRegisteredInBonusPrograms(record.id);
-        return next();
+        return cb();
     },
     /**
      * If favorite dish exist in fovorites collection, it will be deleted. And vice versa

@@ -33,10 +33,10 @@ interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "i
 }
 export default UserBonusTransaction;
 declare let Model: {
-    beforeCreate(init: UserBonusTransaction, next: any): Promise<void>;
-    afterCreate(record: UserBonusTransaction, next: any): Promise<void>;
+    beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
     beforeDestroy(): never;
-    beforeUpdate(record: OptionalAll<UserBonusTransaction>, next: Function): void;
+    beforeUpdate(record: OptionalAll<UserBonusTransaction>, cb: (err?: string) => void): void;
 };
 declare global {
     const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "user" | "amount" | "bonusProgram">;

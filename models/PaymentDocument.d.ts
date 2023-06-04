@@ -74,7 +74,7 @@ interface PaymentDocument extends OptionalAll<attributes>, ORM {
 }
 export default PaymentDocument;
 declare let Model: {
-    beforeCreate(paymentDocumentInit: any, next: any): void;
+    beforeCreate(paymentDocumentInit: any, cb: (err?: string) => void): void;
     doCheck: (criteria: any) => Promise<PaymentDocument>;
     /**
      * Registred new payment

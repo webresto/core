@@ -42,14 +42,14 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    async beforeCreate(init, next) {
+    async beforeCreate(init, cb) {
         try {
             if (!init.id) {
                 init.id = (0, uuid_1.v4)();
             }
             let userBonus = await UserBonusProgram.findOne({ bonusProgram: init.bonusProgram, user: init.user });
             if (!userBonus)
-                throw "beforeCreate: Bonus program not found for user";
+                cb("beforeCreate: Bonus program not found for user");
             // set negative by default
             if (init.isNegative === undefined) {
                 init.isNegative = true;
@@ -59,35 +59,35 @@ let Model = {
             let bonusProgram = await BonusProgram.findOne({ id: init.bonusProgram });
             const bonusProgramAdapterExist = await BonusProgram.isAlived(bonusProgram.adapter);
             if (!bonusProgramAdapterExist)
-                throw `Bonus program not alived`;
+                cb(`Bonus program not alived`);
             if (init.isNegative === true) {
                 if (bonusProgramAdapterExist && init.user !== undefined && typeof init.user === "string") {
                     if (userBonus.balance < init.amount) {
-                        throw `UserBonusTransaction user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`;
+                        cb(`UserBonusTransaction user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`);
                     }
                 }
                 else {
-                    throw "UserBonusTransaction user not defined";
+                    cb("UserBonusTransaction user not defined");
                 }
             }
-            next();
+            cb();
         }
         catch (error) {
             sails.log.error(error);
-            throw error;
+            cb(error);
         }
     },
-    async afterCreate(record, next) {
+    async afterCreate(record, cb) {
         try {
             // After writing to the model, core safely calculate new bonuses
             const bonusProgram = await BonusProgram.findOne({ id: record.bonusProgram });
             const bonusProgramAdapter = await BonusProgram.getAdapter(bonusProgram.adapter);
             let userBonus = await UserBonusProgram.findOne({ bonusProgram: bonusProgram.id, user: record.user });
             if (!userBonus)
-                throw "afterCreate: Bonus program not found for user";
+                cb("afterCreate: Bonus program not found for user");
             if (bonusProgramAdapter !== undefined) {
                 if (record.isNegative === true && userBonus.balance < record.amount) {
-                    throw `UserBonusTransaction user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`;
+                    cb(`UserBonusTransaction user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
                 }
                 let calculate = new decimal_js_1.default(userBonus.balance);
                 if (record.isNegative === true) {
@@ -109,23 +109,23 @@ let Model = {
                         if ((await Settings.get("DISABLE_BONUSPROGRAM_ON_ERROR")) === true) {
                             await BonusProgram.updateOne({ id: bonusProgram.id }, { enable: false });
                         }
-                        throw error;
+                        cb(error);
                     }
                     // Set IsStable
                     await UserBonusTransaction.updateOne({ id: record.id }, { isStable: true });
                 }
             }
-            next();
+            cb();
         }
         catch (error) {
             sails.log.error(error);
-            throw error;
+            cb(error);
         }
     },
     beforeDestroy() {
         throw "destory bonus transaction not allowed";
     },
-    beforeUpdate(record, next) {
+    beforeUpdate(record, cb) {
         /**
          * only stability updates allowed
          */
@@ -140,7 +140,7 @@ let Model = {
         }
         if (Object.keys(record).length !== 2)
             throw "only isStable allwed for update";
-        next();
+        cb();
     },
 };
 /**
