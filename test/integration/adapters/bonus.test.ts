@@ -29,11 +29,6 @@ describe("Bonus program adapter", function () {
     expect(userBP.balance).to.equal(500);
   });
 
-  // it("Bonus user registration", async () => {
-  //   var user = await User.create({ id: "handleTestApply Bonus", login: "7723555", lastName: 'TESThandleTestApply', firstName: "test", phone: { code: "77", number: "23555" } }).fetch();
-  //   bp.registration(user);
-  // });
-
   it("apply bonuses in order", async () => {
     const dishes = await Dish.find({});
     let order = await Order.create({id: "test--apply--bonus", user: user.id}).fetch();
@@ -49,15 +44,11 @@ describe("Bonus program adapter", function () {
     
     let checkedOrder = await Order.findOne({id: order.id});
 
+    expect(checkedOrder.bonusesTotal).to.equal(5);
 
-
-    // expect(checkedOrder.state).to.equal("checkout");
-    // expect(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1 + 1); // 18
-   
-   
-    // expect(changedOrder.totalWeight).to.equal(new Decimal(100).times(changedOrder.dishesCount).plus(200).toNumber());
-    // expect(changedOrder.orderTotal).to.equal(new Decimal(100.1).times(changedOrder.dishesCount).plus(100.1).toNumber());
-
+    await Order.order({id: order.id})
+    let userBP = await UserBonusProgram.findOne({user: user.id});
+    expect(userBP.balance).to.equal(495);
   });
 
 

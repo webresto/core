@@ -630,7 +630,7 @@ let Model = {
     /**
      *  Bonus spending
      * */ 
-    if (order.user && typeof order.user === "string") {
+    if (order.user && typeof order.user === "string" && spendBonus.bonusProgramId) {
       
       // load bonus strategy
       let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
@@ -668,6 +668,7 @@ let Model = {
       }
 
       // Deduct the bonus from the order total
+      order.spendBonus = spendBonus;
       order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
       order.bonusesTotal = bonusCoverage.toNumber();
     }
