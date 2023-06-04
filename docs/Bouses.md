@@ -1,62 +1,67 @@
 # Bonuses
 
-The rewards are implemented as a rewards program which can be managed through the rewards program model. This rewards program includes:
+Bonuses are implemented through a Bonus Program, managed by the Bonus Program model. This Bonus Program includes:
 
-  - `name`: String, required (for human visualization)
-  - `exchangeRate`: Number, default is 1 (Exchange price for website currency)
-  - `coveragePercentage`: Number, default is 1 (How much can you spend from the amount of the order)
-  - `decimals`: Number, default is 0 (denomination)
-  - `description`: String
+- `name`: String, required (for human visualization)
+- `exchangeRate`: Number, default is 1 (Exchange price for website currency)
+- `coveragePercentage`: Number, default is 1 (How much of the order's amount can be spent)
+- `decimals`: Number, default is 0 (denomination)
+- `description`: String
 
-The rewards program must be implemented as an adapter from an abstract class  `@webresto/core/adapters/bonusprogram/BonusProgramAdapter.ts` and added to the model through `BonusProgram.alive()`. The adapter itself performs the recording of transactions in an external source or synchronization from an external source by implementing the abstract class `BonusProgramAdapter`.
+The Bonus Program should be implemented as an adapter from the abstract class `@webresto/core/adapters/bonusprogram/BonusProgramAdapter.ts` and added to the model via `BonusProgram.alive()`. The adapter is responsible for recording transactions in an external source or syncing from an external source by implementing the abstract class `BonusProgramAdapter`.
 
-## Spending of rewards during the order
+## Deducting Bonus during Order
 
-During the order, rewards can be deducted during the order check. For this, an object must be passed to the 'check' function, indicating what rewards to deduct:
+During the ordering process, bonuses can be deducted at the order check stage. For this, an object should be passed to the 'check' function, specifying the bonus amount to be deducted:
 
-```
-interface OrderBonus {
+```typescript
+interface SpendBonus {
   bonusProgramId: string,
   amount: number,
 }
 ```
+Multiple bonus systems may be used on the site, but only one can be applied per order. Bonuses are added during the order check and recalculated each time something changes in the order or when the checked order's validity period has expired (10 minutes).
 
-Note: Multiple rewards systems may be used on the site, but only one can be applied to an order.
+### Bonus Deduction Strategies
 
-Rewards must be added during the order check and recalculated each time something changes in the order or when the validity period of the checked order has expired (10 minutes).
+There are several strategies for deducting bonuses:
 
-Bonus spending strategies:
-1) '**bonus_from_order_total**': (default) Deduction from the final amount of the order including promotional dishes, discounts and delivery.
-2) '**bonus_from_basket_delivery_discount**': Writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes).
-3) '**bonus_from_basket_and_delivery**': Writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts).
-4) '**bonus_from_basket**': Write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery).
+1) `bonus_from_order_total`: Deduction from the final amount of the order including promotional dishes, discounts, and delivery.
+2) `bonus_from_basket_delivery_discount`: Deducting bonuses from the basket total, delivery, and discounts (excluding promotional dishes).
+3) `bonus_from_basket_and_delivery`: Deducting bonuses from the basket total and delivery (excluding promotional dishes and discounts).
+4) `bonus_from_basket`: Deducting bonuses from the basket total (excluding promotional dishes, discounts, and delivery).
 
-> Strategy should setting in Settings model with key `BONUS_SPENDING_STRATEGY`
+> Strategy is set in the Settings model with the key `BONUS_SPENDING_STRATEGY`.
 
-After the deduction of rewards, a record is made in the UserBonusTransaction model, and the balance is updated.
+After the bonus deduction, a record is made in the UserBonusTransaction model, and the balance is updated.
 
 ### Synchronization
 
-- During user registration, a check will be performed to see if the rewards system is enabled for a specific user.
-- During user login, synchronization will be performed starting from the last synchronization date.
-- Also, each reward adapter can implement a record in the UserBonusTransaction model by its own means.
+- During user registration, a check will be performed to determine if the bonus system is enabled for the specific user.
+- During user login, synchronization will be conducted starting from the last synchronization date.
+- Additionally, each reward adapter can implement a record in the UserBonusTransaction model by its own means.
 
 ### Flow
 
-бонусы будут добавлены в заказ при проверке заказа, но списание будет сделано только когда заказ оформляется.
-при списании будут проведена проверка на сохранение
+Bonuses will be added to the order during the order check, but they will be deducted only when the order is finalized. A consistency check is performed when deducting the bonuses.
 
-### Стабильность 
+### Stability
 
-при списании бонусов возможен случай когда внешняя бонусная система не списала бонусы а сайт списал. в таком случае в моделе пользователя будет списсаная транзакция с флагом isSable: false, такие транзакции должны быть обработаны адапетром бонусной системы. В случае если произошла ощибка то бонусная система может быть выключена из ядра, для этого нужно поставить свойство 
-`DISABLE_BONUSPROGRAM_ON_ERROR`
+In the event that the external bonus system fails to deduct bonuses but the site has deducted them, the UserBonusTransaction model will have a transaction record flagged as `isStable: false`. Such transactions should be handled by the bonus system adapter. In case of an error, the bonus system can be disabled from the core using the property `DISABLE_BONUSPROGRAM_ON_ERROR`.
 
 ### User
-Для того чтобы у пользователя заработала бонусная система она должна быть включена у него. По умолчанию все бонусные системы которые включен будут доступны пользователю. Но если бонусную систему выключили у конкретного пользователя, то она должна быть выключена из адапетра (тоесть из внешней системы.) UserBonusProgram модель свойство active 
 
-при создании пользователя будет выполенен запрос во все известные бонусные программы, чтобы проверить что пользователь зарегистрирован. 
+For a user to utilize the bonus system, it needs to be enabled for them. By default, all activated bonus systems will be available to the user. However, if a bonus system is disabled for a specific user, it should be turned off from the adapter (i.e., from the external system). This is managed through the UserBonusProgram model property `active`.
 
-Для регистрации может быть использован отдельный метод регистрации, и удаление бонусной программы через адаптер
+Upon user creation, a request will be made to all known bonus programs to verify user registration.
 
-### Концепции и Исключения для блюд
-Вне не зависимости от стратегии траты бонусов на каждую бонусную программу могут быть назначены исключения груп, блюд и даже целой концепции, при которой будет возможно трата бонусов. Если не указано такое ограничение значит бонусы тратятся в соотвествии со стратегией
+A separate registration method can be used for signing up and removing the bonus program through the adapter.
+
+### Meal concepts and exceptions
+*Not implemented in current version*
+
+Regardless of the strategy for spending bonuses, exceptions can be assigned to groups, dishes or even entire concepts, limiting the ability to spend bonuses. If such a limit is not specified, bonuses are spent according to the strategy. 
+
+### Bonus Support in RMS Adapter
+
+For a delivery site that sends orders to an external system, a flag should be set in the RMS adapter indicating it supports bonus spending. This means RMS will independently calculate how many bonuses are spent in the order and apply a discount to reconcile accounting. Deduction of bonuses is carried out by the bonus systems adapter.

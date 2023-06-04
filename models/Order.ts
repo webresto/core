@@ -14,7 +14,7 @@ import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import { OrderBonus } from "../interfaces/OrderBonus";
+import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
 
 
@@ -134,7 +134,7 @@ let attributes = {
 
   spendBonus: {
     type: "json"
-  } as unknown as OrderBonus,
+  } as unknown as SpendBonus,
 
   
   /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
@@ -497,7 +497,7 @@ let Model = {
 
    */
 
-  async checkBonus(orderId, spendBonus: OrderBonus): Promise<void> {
+  async checkBonus(orderId, spendBonus: SpendBonus): Promise<void> {
       const order = await Order.findOne({id: orderId});
       
       if (order.user && typeof order.user === "string") {
@@ -563,7 +563,7 @@ let Model = {
     isSelfService?: boolean, 
     address?: Address, 
     paymentMethodId?: string,
-    spendBonus?: OrderBonus
+    spendBonus?: SpendBonus
     ): Promise<void> {
     const order: Order = await Order.countCart(criteria);
 

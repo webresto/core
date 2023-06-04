@@ -10,7 +10,7 @@ import Dish from "./Dish";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
-import { OrderBonus } from "../interfaces/OrderBonus";
+import { SpendBonus } from "../interfaces/SpendBonus";
 declare let attributes: {
     /** Id  */
     id: string;
@@ -61,7 +61,7 @@ declare let attributes: {
     trifleFrom: number;
     /** Summ of all bobnuses */
     bonusesTotal: number;
-    spendBonus: OrderBonus;
+    spendBonus: SpendBonus;
     /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
     total: number;
     /**
@@ -117,8 +117,8 @@ declare let Model: {
       Current implement logic for only one strategy
   
      */
-    checkBonus(orderId: any, spendBonus: OrderBonus): Promise<void>;
-    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, spendBonus?: OrderBonus): Promise<void>;
+    checkBonus(orderId: any, spendBonus: SpendBonus): Promise<void>;
+    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, spendBonus?: SpendBonus): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<Order>): Promise<void>;
     payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
@@ -162,7 +162,7 @@ declare let Model: {
         totalWeight?: number;
         trifleFrom?: number;
         bonusesTotal?: number;
-        spendBonus?: OrderBonus;
+        spendBonus?: SpendBonus;
         total?: number;
         basketTotal?: number;
         orderTotal?: number;

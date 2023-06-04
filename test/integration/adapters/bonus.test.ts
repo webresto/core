@@ -2,7 +2,7 @@ import Decimal from "decimal.js";
 import { MockBonusProgramAdapter } from "../../mocks/adapter/bonusProgram";
 import { expect } from "chai";
 import { customer, address } from "../../mocks/customer"
-import { OrderBonus } from "../../../interfaces/OrderBonus";
+import { SpendBonus } from "../../../interfaces/SpendBonus";
 import User from "../../../models/User";
 import Order from "../../../models/Order";
 import BonusProgram from "../../../models/BonusProgram";
@@ -38,7 +38,7 @@ describe("Bonus program adapter", function () {
     await Order.addDish({id: order1.id}, dishes[0], 5, [], "", "user");
     await Order.addDish({id: order1.id}, dishes[1], 3, [], "", "user");
     const bonusProgram = await BonusProgram.findOne({adapter: "test"});
-    const spendBonus: OrderBonus =  {
+    const spendBonus: SpendBonus =  {
       bonusProgramId: bonusProgram.id,
       amount: 5.23 // BonusProgram test has 1 decimal 
     }
