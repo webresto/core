@@ -16,8 +16,10 @@ declare let attributes: {
     id: string;
     /** last 8 chars from id */
     shortId: string;
-    /**  Concept string */
+    /** Concept string */
     concept: string;
+    /** the basket contains mixed types of concepts */
+    isMixedConcept: boolean;
     /** */
     dishes: number[] | OrderDish[];
     paymentMethod: any;
@@ -102,6 +104,7 @@ declare let Model: {
      */
     setSelfService(criteria: CriteriaQuery<Order>, selfService?: boolean): Promise<Order>;
     /**
+     * !! Not for external use, only in Order.check
      * The use of bonuses in the cart implies that this order has a user.
      * Then all checks will be made and a record will be written in the transaction of user bonuses
      *
@@ -114,7 +117,7 @@ declare let Model: {
       Current implement logic for only one strategy
   
      */
-    applyBonuses(orderId: any, spendBonus: OrderBonus): Promise<void>;
+    checkBonus(orderId: any, spendBonus: OrderBonus): Promise<void>;
     check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, spendBonus?: OrderBonus): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<Order>): Promise<number>;
@@ -127,6 +130,7 @@ declare let Model: {
         id?: string;
         shortId?: string;
         concept?: string;
+        isMixedConcept?: boolean;
         dishes?: number[] | OrderDish[];
         paymentMethod?: any;
         paymentMethodTitle?: string;

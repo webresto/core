@@ -7,9 +7,9 @@ declare let attributes: {
     /** ID */
     id: string;
     /** Type of bonuses (default: true)
-    * came is incoming (positive transaction)
-    * gone is outgoin (negative transaction)
-    */
+     * came is incoming (positive transaction)
+     * gone is outgoin (negative transaction)
+     */
     isNegative: boolean;
     /** Custom badges */
     group: string;

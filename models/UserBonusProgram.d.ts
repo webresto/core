@@ -1,20 +1,15 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import User from "../models/User";
+import BonusProgram from "./BonusProgram";
 declare let attributes: {
     /** ID */
     id: string;
-    active: {
-        type: string;
-    };
+    active: boolean;
     balance: number;
-    isDeleted: {
-        type: string;
-    };
+    isDeleted: boolean;
     user: string | User;
-    BonusProgram: {
-        model: string;
-    };
+    bonusProgram: string | BonusProgram;
     /** UNIX era seconds */
     syncedToTime: string;
     customData: string | {
@@ -27,6 +22,7 @@ interface UserBonusProgram extends attributes, ORM {
 export default UserBonusProgram;
 declare let Model: {
     beforeCreate(UserBonusInit: any, next: any): void;
+    registration(user: User, adapterOrId: string): Promise<UserBonusProgram>;
 };
 declare global {
     const UserBonusProgram: typeof Model & ORMModel<UserBonusProgram, null>;

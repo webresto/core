@@ -10,8 +10,10 @@ let attributes = {
     },
     /** last 8 chars from id */
     shortId: "string",
-    /**  Concept string */
+    /** Concept string */
     concept: "string",
+    /** the basket contains mixed types of concepts */
+    isMixedConcept: "boolean",
     /** */
     dishes: {
         collection: "OrderDish",
@@ -371,6 +373,7 @@ let Model = {
         return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
     },
     /**
+     * !! Not for external use, only in Order.check
      * The use of bonuses in the cart implies that this order has a user.
      * Then all checks will be made and a record will be written in the transaction of user bonuses
      *
@@ -383,9 +386,8 @@ let Model = {
       Current implement logic for only one strategy
   
      */
-    async applyBonuses(orderId, spendBonus) {
+    async checkBonus(orderId, spendBonus) {
         const order = await Order.findOne({ id: orderId });
-        let bonusSpendingStrategy = await Settings.get("BonusSpendingStrategy") ?? 'bonus_from_order_total';
         if (order.user && typeof order.user === "string") {
             // Fetch the bonus program for this bonus spend
             const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
@@ -489,7 +491,47 @@ let Model = {
             }
         }
         emitter.emit("core-order-check-delivery", order, customer, isSelfService, address);
+        /**
+         *  Bonus spending
+         * */
+        if (order.user && typeof order.user === "string") {
+            // load bonus strategy
+            let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
+            // Fetch the bonus program for this bonus spend
+            const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+            let amountToDeduct = 0;
+            switch (bonusSpendingStrategy) {
+                case 'bonus_from_order_total':
+                    amountToDeduct = order.total;
+                    break;
+                case 'bonus_from_basket_delivery_discount':
+                    amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+                    break;
+                case 'bonus_from_basket_and_delivery':
+                    amountToDeduct = order.basketTotal + order.deliveryCost;
+                    break;
+                case 'bonus_from_basket':
+                    amountToDeduct = order.basketTotal;
+                    break;
+                default:
+                    throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+            }
+            // Calculate maximum allowed bonus coverage
+            const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul(bonusProgram.coveragePercentage);
+            // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+            let bonusCoverage;
+            if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThan(maxBonusCoverage)) {
+                bonusCoverage = new decimal_js_1.default(spendBonus.amount);
+            }
+            else {
+                bonusCoverage = maxBonusCoverage;
+            }
+            // Deduct the bonus from the order total
+            order.total = new decimal_js_1.default(order.total).sub(bonusCoverage).toNumber();
+            order.bonusesTotal = bonusCoverage.toNumber();
+        }
         const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
+        // Check order empty
         if (order.dishesCount === 0) {
             throw {
                 code: 13,
@@ -595,6 +637,15 @@ let Model = {
         await orderIt();
         return;
         async function orderIt() {
+            if (order.user && order.bonusesTotal) {
+                // Throw if User not have bonuses to cover this 
+                await UserBonusTransaction.create({
+                    isNegative: true,
+                    amount: order.bonusesTotal,
+                    bonusProgram: order.spendBonus.bonusProgramId,
+                    user: order.user
+                }).fetch();
+            }
             // await Order.next(order.id,'ORDER');
             // TODO: Rewrite on stateflow
             let data = {};
@@ -608,6 +659,7 @@ let Model = {
              * instead call directly in RMSadapter.
              * But i think we need select default adpater,
              * and make order here */
+            // TODO: entry for RMSadapter make new order
             emitter.emit("core-order-after-order", order);
             if (order.user) {
                 UserOrderHistory.save(order.id);

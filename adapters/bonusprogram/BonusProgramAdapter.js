@@ -7,8 +7,15 @@ class BonusProgramAdapter {
         BonusProgram.alive(this);
     }
     /**
-     * Метод для создания и получения уже существующего Payment adapterа
-     * @param params - параметры для инициализации
+     * method for set ORMid
+     * this.id = id;
+     */
+    setORMId(id) {
+        this.id = id;
+    }
+    /**
+     * A method for creating and obtaining an existing Payment Adapter
+     * @param params - Parameters for initialization
      */
     static getInstance(...params) {
         return BonusProgramAdapter.prototype;

@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 import Dish from "./Dish";
 import Order from "./Order";
 import User from "../models/User"
-
+import BonusProgram from "./BonusProgram";
 // type Optional<T> = {
 //   [P in keyof T]?: T[P];
 // }
@@ -20,7 +20,7 @@ let attributes = {
 
   active: {
     type: 'boolean'
-  },
+  } as unknown as boolean,
 
   balance: {
     type: 'number'
@@ -28,15 +28,15 @@ let attributes = {
   
   isDeleted: {
     type: 'boolean',
-  },
+  } as unknown as boolean,
 
   user: {
     model: 'user'
   } as unknown as User | string,
 
-  BonusProgram: {
+  bonusProgram: {
     model: 'bonusprogram'
-  },
+  } as unknown as BonusProgram | string,
 
   /** UNIX era seconds */
   syncedToTime: "string",
@@ -61,6 +61,20 @@ let Model = {
     
     next();
   },
+
+  async registration(user: User, adapterOrId: string): Promise<UserBonusProgram> {
+    const bp = await BonusProgram.getAdapter(adapterOrId);
+    await bp.registration(user);
+
+    return await UserBonusProgram.create({
+      user: user.id, 
+      active: true,
+      balance: 0,
+      isDeleted: false,
+      bonusProgram: bp.id,
+      syncedToTime: "0"
+    }).fetch();
+  }
 };
 
 module.exports = {

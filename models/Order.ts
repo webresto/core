@@ -27,8 +27,11 @@ let attributes = {
   /** last 8 chars from id */
   shortId: "string",
 
-  /**  Concept string */
+  /** Concept string */
   concept: "string",
+
+  /** the basket contains mixed types of concepts */
+  isMixedConcept: "boolean" as unknown as boolean, 
   
   /** */
   dishes: {

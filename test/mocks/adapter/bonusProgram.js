@@ -12,6 +12,15 @@ class MockBonusProgramAdapter extends BonusProgramAdapter_1.default {
         this.decimals = 1;
         this.description = "Mock for BonusProgramAdapter";
     }
+    async registration(user) {
+        return;
+    }
+    delete(user) {
+        throw new Error("Method not implemented.");
+    }
+    isRegistred(user) {
+        throw new Error("Method not implemented.");
+    }
     getBalance(user) {
         throw new Error("Method not implemented.");
     }

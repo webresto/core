@@ -22,7 +22,7 @@ let attributes = {
     user: {
         model: 'user'
     },
-    BonusProgram: {
+    bonusProgram: {
         model: 'bonusprogram'
     },
     /** UNIX era seconds */
@@ -36,6 +36,18 @@ let Model = {
         }
         next();
     },
+    async registration(user, adapterOrId) {
+        const bp = await BonusProgram.getAdapter(adapterOrId);
+        await bp.registration(user);
+        return await UserBonusProgram.create({
+            user: user.id,
+            active: true,
+            balance: 0,
+            isDeleted: false,
+            bonusProgram: bp.id,
+            syncedToTime: "0"
+        }).fetch();
+    }
 };
 module.exports = {
     primaryKey: "id",

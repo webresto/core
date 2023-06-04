@@ -196,9 +196,10 @@ let Model = {
     next();
   },
 
-  afterCreate: function (record, proceed) {
+  async afterCreate(record: User, next: Function) {
     emitter.emit('core:user-after-create', record);
-    return proceed();
+    await User.checkRegisteredInBonusPrograms(record.id);
+    return next();
   },
 
   /**
@@ -400,8 +401,10 @@ let Model = {
     return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: uuid() });
   },
 
-
-  async availabilityBonusprograms(userId: string): Promise<void> {
+  /** 
+    check all active bonus program for user
+  */
+  async checkRegisteredInBonusPrograms(userId: string): Promise<void> {
     // check all active bonus program for user
   },
 };

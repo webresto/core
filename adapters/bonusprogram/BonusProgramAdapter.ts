@@ -12,6 +12,7 @@ interface optionalId {
 export interface BonusTransaction extends Pick<UserBonusTransaction, "isNegative" | "group" | "amount" | "customData">, optionalId {}
 
 export default abstract class BonusProgramAdapter {
+  public id: string;
   public readonly config: ConfigBonusProgramAdapter = {};
 
   /** Adapter name */
@@ -30,15 +31,28 @@ export default abstract class BonusProgramAdapter {
   }
 
   /**
+   * method for set ORMid
+   * this.id = id;
+   */
+  setORMId(id: string): void {
+    this.id = id;
+  }
+  
+  /**
    * Return user balance
    */
   public abstract getBalance(user: User): Promise<number>;
 
 
   /**
-   * Registration
+   * Registration user
    */
   public abstract registration(user: User): Promise<void>;
+
+  /**
+   * Delete user
+   */
+  public abstract delete(user: User): Promise<void>;
 
   /**
    * Check registred user or not

@@ -2,6 +2,7 @@ import BonusProgramAdapter, { BonusTransaction, ConfigBonusProgramAdapter } from
 import User from "../../../models/User";
 
 export class MockBonusProgramAdapter extends BonusProgramAdapter {
+
   public name: string = "test bonus adapter name";
   public adapter: string = "test";
   public exchangeRate: number = 10;
@@ -11,6 +12,16 @@ export class MockBonusProgramAdapter extends BonusProgramAdapter {
   
   public constructor(config?: ConfigBonusProgramAdapter) {
     super(config);
+  }
+
+  public async registration(user: User): Promise<void> {
+    return
+  }
+  public delete(user: User): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  public isRegistred(user: User): Promise<boolean> {
+    throw new Error("Method not implemented.");
   }
 
   public getBalance(user: User): Promise<number> {

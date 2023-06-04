@@ -145,9 +145,10 @@ let Model = {
         }
         next();
     },
-    afterCreate: function (record, proceed) {
+    async afterCreate(record, next) {
         emitter.emit('core:user-after-create', record);
-        return proceed();
+        await User.checkRegisteredInBonusPrograms(record.id);
+        return next();
     },
     /**
      * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
@@ -327,6 +328,12 @@ let Model = {
         let userDevice = await UserDevice.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
         // Need pass sessionId here for except paralells login with one name
         return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
+    },
+    /**
+      check all active bonus program for user
+    */
+    async checkRegisteredInBonusPrograms(userId) {
+        // check all active bonus program for user
     },
 };
 module.exports = {

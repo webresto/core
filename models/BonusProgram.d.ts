@@ -16,6 +16,10 @@ declare let attributes: {
     decimals: number;
     sortOrder: number;
     description: string;
+    /** Icon link */
+    iconLink: string;
+    /** Link for read detail info about bonus program */
+    detailInfoLink: string;
     /** user option */
     enable: boolean;
     customData: string | {
@@ -39,13 +43,13 @@ declare let Model: {
      * @param bonusProgramAdapterId string
      * @returns
      */
-    getAdapter(adapter: string): Promise<BonusProgramAdapter>;
+    getAdapter(adapterOrId: string): Promise<BonusProgramAdapter>;
     /**
      * Method for registration alived bonus program adapter
      * @param bonusProgramAdapterId string
      * @returns
      */
-    isAlived(bonusProgramId: string): Promise<boolean>;
+    isAlived(adapter: string): Promise<boolean>;
     /**
      * Returns an array with currently possible bonus programs by order
      * @return BonusProgram[]
