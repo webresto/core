@@ -35,11 +35,11 @@ export default abstract class AbstractDiscountHandler {
 
     public abstract worktime?: WorkTime[];
 
-    public abstract condition(order: Order): Promise<boolean>;
+    // public abstract condition(order: Order): Promise<boolean>;
 
-    public abstract action(): Promise<void>;
+    // public abstract action(): Promise<void>;
 
-    public abstract displayGroupDiscount(): Promise<void>;
+    // public abstract displayGroupDiscount(): Promise<void>;
 
-    public abstract displayGroupDish(): Promise<void>;
+    // public abstract displayGroupDish(): Promise<void>;
 }

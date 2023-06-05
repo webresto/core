@@ -1,6 +1,7 @@
 import Order from "../../models/Order"
+import AbstractDiscountHandler from "./AbstractDiscount";
 
-export default abstract class AbstractDiscountHandler {
+export default abstract class AbstractDiscountHandlerINSTANCE {
 
         private static discounts;
 
@@ -18,5 +19,5 @@ export default abstract class AbstractDiscountHandler {
 
         public abstract getInstance(initParams?: {
             [key: string]: string | number | boolean;
-        }): AbstractDiscountHandler;
+        }): AbstractDiscountHandlerINSTANCE;
 }

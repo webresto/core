@@ -2,7 +2,6 @@ import { WorkTime } from "@webresto/worktime";
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import Order from "./Order";
 import AbstractDiscount from "../adapters/discount/AbstractDiscount";
 declare let attributes: {
     /** TODO: show discounts to dish and orders */
@@ -37,13 +36,9 @@ declare let attributes: {
     /** Хеш обекта скидки */
     hash: string;
     worktime: WorkTime[];
-    condition: (order: Order) => Promise<boolean>;
-    action: () => Promise<void>;
-    displayGroupDiscount: () => Promise<void>;
-    displayGroupDish: () => Promise<void>;
 };
 type attributes = typeof attributes;
-interface Discount extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "discount" | "discountType" | "actions" | "condition" | "action" | "displayGroupDish" | "displayGroupDiscount" | "enable" | "isDeleted" | "sortOrder" | "productCategoryDiscounts" | "hash">, ORM {
+interface Discount extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "discount" | "discountType" | "actions" | "enable" | "isDeleted" | "sortOrder" | "productCategoryDiscounts" | "hash">, ORM {
 }
 export default Discount;
 declare let Model: {

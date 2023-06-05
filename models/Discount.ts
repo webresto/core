@@ -7,7 +7,7 @@ import Order from "./Order";
 import AbstractDiscount from "../adapters/discount/AbstractDiscount";
 // import { DiscountAdapter } from "../adapters/discount/default/defaultDiscountAdapter";
 import { Adapter } from "../adapters";
-import { WorkTimeValidator} from '@webresto/worktime'
+import { WorkTimeValidator } from "@webresto/worktime";
 // import Decimal from "decimal.js";
 
 let attributes = {
@@ -26,7 +26,7 @@ let attributes = {
   /** TODO: implement interface
    *  discountType: 'string',
    *  discountAmount: "number",
-   *  
+   *
    */
   configDiscount: {
     type: "json",
@@ -106,47 +106,62 @@ let attributes = {
 
   worktime: "json" as unknown as WorkTime[],
 
-  condition: {
-    type: (order: Order) => Promise<boolean>,
-    required: true,
-  } as unknown as (order: Order) => Promise<boolean>,
+  // condition: {
+  //   type: (order: Order) => Promise<boolean>,
+  //   required: true,
+  // } as unknown as (order: Order) => Promise<boolean>,
 
-  action: {
-    type: () => Promise<void>,
-    required: true,
-  } as unknown as () => Promise<void>,
+  // action: {
+  //   type: () => Promise<void>,
+  //   required: true,
+  // } as unknown as () => Promise<void>,
 
-  displayGroupDiscount: {
-    type: () => Promise<void>,
-    required: true,
-  } as unknown as () => Promise<void>,
+  // displayGroupDiscount: {
+  //   type: () => Promise<void>,
+  //   required: true,
+  // } as unknown as () => Promise<void>,
 
-   displayGroupDish: {
-    type: () => Promise<void>,
-    required: true,
-  } as unknown as () => Promise<void>,
-
+  // displayGroupDish: {
+  //   type: () => Promise<void>,
+  //   required: true,
+  // } as unknown as () => Promise<void>,
 };
 
 type attributes = typeof attributes;
 interface Discount
   extends RequiredField<
       OptionalAll<attributes>,
-      "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" 
-      | "concept" | "discount" | "discountType" | "actions" | "condition" | "action" | "displayGroupDish" | "displayGroupDiscount"
-      | "enable" | "isDeleted" | "sortOrder" | "productCategoryDiscounts" | "hash" 
+      | "id"
+      | "configDiscount"
+      | "isJoint"
+      | "name"
+      | "isPublic"
+      | "description"
+      | "concept"
+      | "discount"
+      | "discountType"
+      | "actions"
+      // | "condition"
+      // | "action"
+      // | "displayGroupDish"
+      // | "displayGroupDiscount"
+      | "enable"
+      | "isDeleted"
+      | "sortOrder"
+      | "productCategoryDiscounts"
+      | "hash"
     >,
     ORM {}
 
 export default Discount;
 
 let Model = {
-  async afterUpdate(record: Discount, next: Function){
-    if(record.createdByUser){
+  async afterUpdate(record: Discount, next: Function) {
+    if (record.createdByUser) {
       // call recreate of discountHandler
     }
 
-    let result:Discount[] = await Discount.find({});
+    let result: Discount[] = await Discount.find({});
 
     // result = result.filter(record => {
     //   if (!record.worktime) return true;
@@ -157,34 +172,34 @@ let Model = {
     //   }
     // })
 
-    result.filter(record => {
-      if (!record.worktime) return false;
-      try {
-          return !((WorkTimeValidator.isWorkNow({worktime: record.worktime})).workNow) // WorkTime[]
-      } catch (error) {
-          sails.log.error("Discount > helper > error: ",error)
-      }
-    }).forEach(async (record)=>{
-      await Discount.update({ id: record.id }, { isDeleted: true }).fetch();
-    })
+    result
+      .filter((record) => {
+        if (!record.worktime) return true;
+        try {
+          return WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow; 
+        } catch (error) {
+          sails.log.error("Discount > helper > error: ", error);
+        }
+      })
 
-    next()
+
+    next();
   },
 
-  async afterCreate(record: Discount, next: Function){
-    if(record.createdByUser){
+  async afterCreate(record: Discount, next: Function) {
+    if (record.createdByUser) {
       // call recreate of discountHandler
     }
 
-    next()
+    next();
   },
 
-  async beforeUpdate(init: Discount, next: Function){
-    next()
+  async beforeUpdate(init: Discount, next: Function) {
+    next();
   },
 
-  async beforeCreate(init: Discount, next: Function){
-    next()
+  async beforeCreate(init: Discount, next: Function) {
+    next();
   },
 
   async createOrUpdate(values: AbstractDiscount): Promise<AbstractDiscount> {
@@ -217,7 +232,6 @@ let Model = {
   },
 
   async setAlive(idArray: string[]): Promise<void> {
-    
     //
   },
 
@@ -225,8 +239,6 @@ let Model = {
   //   const adapter = Adapter.getDiscountAdapter()
   //   return adapter.getHandlerById(id)
   // },
-
-  
 };
 
 module.exports = {

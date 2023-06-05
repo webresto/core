@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const hashCode_1 = require("../libs/hashCode");
-const worktime_1 = require("@webresto/worktime");
 // import Decimal from "decimal.js";
 let attributes = {
     /** TODO: show discounts to dish and orders */
@@ -81,29 +80,29 @@ let attributes = {
         required: true,
     },
     worktime: "json",
-    condition: {
-        type: (order) => Promise,
-        required: true,
-    },
-    action: {
-        type: () => Promise,
-        required: true,
-    },
-    displayGroupDiscount: {
-        type: () => Promise,
-        required: true,
-    },
-    displayGroupDish: {
-        type: () => Promise,
-        required: true,
-    },
+    // condition: {
+    //   type: (order: Order) => Promise<boolean>,
+    //   required: true,
+    // } as unknown as (order: Order) => Promise<boolean>,
+    // action: {
+    //   type: () => Promise<void>,
+    //   required: true,
+    // } as unknown as () => Promise<void>,
+    // displayGroupDiscount: {
+    //   type: () => Promise<void>,
+    //   required: true,
+    // } as unknown as () => Promise<void>,
+    // displayGroupDish: {
+    //   type: () => Promise<void>,
+    //   required: true,
+    // } as unknown as () => Promise<void>,
 };
 let Model = {
     async afterUpdate(record, next) {
         if (record.createdByUser) {
             // call recreate of discountHandler
         }
-        let result = await Discount.find({});
+        // let result: Discount[] = await Discount.find({});
         // result = result.filter(record => {
         //   if (!record.worktime) return true;
         //   try {
@@ -112,18 +111,19 @@ let Model = {
         //       sails.log.error("Discount > helper > error: ",error)
         //   }
         // })
-        result.filter(record => {
-            if (!record.worktime)
-                return false;
-            try {
-                return !((worktime_1.WorkTimeValidator.isWorkNow({ worktime: record.worktime })).workNow); // WorkTime[]
-            }
-            catch (error) {
-                sails.log.error("Discount > helper > error: ", error);
-            }
-        }).forEach(async (record) => {
-            await Discount.update({ id: record.id }, { isDeleted: true }).fetch();
-        });
+        // result
+        //   .filter((record) => {
+        //     if (!record.worktime) return false;
+        //     try {
+        //       return !WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow; // WorkTime[]
+        //     } catch (error) {
+        //       sails.log.error("Discount > helper > error: ", error);
+        //     }
+        //   })
+        //   .forEach(async (record) => {
+        //     // each Discount where workTime end => delete
+        //     await Discount.update({ id: record.id }, { isDeleted: true }).fetch();
+        //   });
         next();
     },
     async afterCreate(record, next) {

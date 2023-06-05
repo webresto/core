@@ -1,4 +1,3 @@
-import Order from "../../models/Order";
 import { WorkTime } from "@webresto/worktime";
 export default abstract class AbstractDiscountHandler {
     /** unique id */
@@ -18,8 +17,4 @@ export default abstract class AbstractDiscountHandler {
     abstract productCategoryDiscounts: any;
     abstract hash: string;
     abstract worktime?: WorkTime[];
-    abstract condition(order: Order): Promise<boolean>;
-    abstract action(): Promise<void>;
-    abstract displayGroupDiscount(): Promise<void>;
-    abstract displayGroupDish(): Promise<void>;
 }
