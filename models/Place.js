@@ -21,11 +21,11 @@ let attributes = {
     customData: 'json'
 };
 let Model = {
-    beforeCreate(placeInit, next) {
+    beforeCreate(placeInit, cb) {
         if (!placeInit.id) {
             placeInit.id = (0, uuid_1.v4)();
         }
-        next();
+        cb();
     },
 };
 module.exports = {

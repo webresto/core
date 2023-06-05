@@ -198,7 +198,7 @@ interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">,
 export default Dish;
 
 let Model = {
-  beforeCreate(init: any, next: any) {
+  beforeCreate(init: any, cb:  (err?: string) => void) {
     emitter.emit('core:dish-before-create', init);
     if (!init.id) {
       init.id = uuid();
@@ -207,22 +207,22 @@ let Model = {
     if (!init.concept) {
       init.concept = "origin"
     }
-    next();
+    cb();
   },
 
-  beforeUpdate: function (record, proceed) {
+  beforeUpdate: function (record, cb:  (err?: string) => void) {
     emitter.emit('core:dish-before-update', record);
-    return proceed();
+    return cb();
   },
 
-  afterUpdate: function (record, proceed) {
+  afterUpdate: function (record, cb:  (err?: string) => void) {
     emitter.emit('core:dish-after-update', record);
-    return proceed();
+    return cb();
   },
 
-  afterCreate: function (record, proceed) {
+  afterCreate: function (record, cb:  (err?: string) => void) {
     emitter.emit('core:dish-after-create', record);
-    return proceed();
+    return cb();
   },
 
   /**

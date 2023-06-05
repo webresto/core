@@ -79,29 +79,29 @@ export default UserLocation;
 
 let Model = {
   
-  async beforeUpdate(record: UserLocation, next: Function) {
-    if(record.default === true) {
-      await UserLocation.update({user: record.user}, {default: false})
+  async beforeUpdate(record: UserLocation, cb:  (err?: string) => void) {
+    if(record.isDefault === true) {
+      await UserLocation.update({user: record.user}, {isDefault: false})
     }  
     
-    next();
+    cb();
   },
 
-  async beforeCreate(UserLocationInit: UserLocation, next: Function) {
-    if (!UserLocationInit.id) {
-      UserLocationInit.id = uuid();
+  async beforeCreate(init: UserLocation, cb:  (err?: string) => void) {
+    if (!init.id) {
+      init.id = uuid();
     }
 
-    if (!UserLocationInit.name) {
-      const street = await Street.findOne({id: UserLocationInit.street as string});
-      UserLocationInit.name = `${street.name} ${UserLocationInit.home}`;
+    if (!init.name) {
+      const street = await Street.findOne({id: init.street as string});
+      init.name = `${street.name} ${init.home}`;
     }
 
-    if(UserLocationInit.default === true) {
-      await UserLocation.update({user: UserLocationInit.user}, {default: false})
+    if(init.isDefault === true) {
+      await UserLocation.update({user: init.user}, {isDefault: false})
     }  
     
-    next();
+    cb();
   }
 };
 

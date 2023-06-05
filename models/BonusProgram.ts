@@ -2,13 +2,14 @@
  * The bonus program implements the spending of virtual bonuses through the adapter.
  */
 
-import BonusAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
+import { Adapter } from "../adapters";
+import BonusProgramAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 
 const alivedBonusPrograms: { 
-  [key: string]: BonusAdapter
+  [key: string]: BonusProgramAdapter
 } = {};
 
 let attributes = {
@@ -17,21 +18,35 @@ let attributes = {
     type: "string",
     //required: true,
   } as unknown as string,
+  
+  name: {
+    type: "string",
+    required: true,
+  } as unknown as string,
+
   adapter: {
     type: "string",
     required: true,
+    unique: true
   } as unknown as string,
 
   /** Exchange price for website currency */
   exchangeRate: "number" as unknown as number,
   /** How much can you spend from the amount of the order */
   coveragePercentage: "number" as unknown as number,
-  sortOrder: "number" as unknown as number,
-  description: "string",
   decimals: "number" as unknown as number,
   
+  sortOrder: "number" as unknown as number,
+  description: "string",
+
+  /** Icon link */
+  iconLink: "string",
+  
+  /** Link for read detail info about bonus program */
+  detailInfoLink: "string",
+
   /** user option */
-  enabled: {
+  enable: {
     type: "boolean",
     required: true,
   } as unknown as boolean,
@@ -46,12 +61,30 @@ interface BonusProgram extends attributes, ORM {}
 export default BonusProgram;
 
 let Model = {
-  beforeCreate(BonusProgramInit: BonusProgram, next: Function) {
-    if (!BonusProgramInit.id) {
-      BonusProgramInit.id = uuid();
+  beforeCreate(init: BonusProgram, cb:  (err?: string) => void) {
+    if (!init.id) {
+      init.id = uuid();
     }
     
-    next();
+    // defaults
+    if (!init.coveragePercentage) {
+      init.coveragePercentage = 1;
+    }else if(init.coveragePercentage > 1) {
+      init.coveragePercentage = 1;
+    } else if (init.coveragePercentage < 0) {
+      init.coveragePercentage = 0;
+    }
+
+    if (!init.exchangeRate) {
+      init.exchangeRate = 1;
+    }
+
+    // decimals
+    if (!init.decimals) {
+      init.decimals = 0;
+    }
+
+    cb();
   },
 
   /**
@@ -59,16 +92,33 @@ let Model = {
    * @param bonusProgramAdapter 
    * @returns 
    */
-  async alive(bonusProgramAdapter: BonusAdapter) {
-    let knownBonusProgram = await BonusProgram.findOne({
-      adapter: bonusProgramAdapter.InitBonusAdapter.adapter,
-    });
+  async alive(bonusProgramAdapter: BonusProgramAdapter): Promise<void | Error> {
 
-    if (!knownBonusProgram) {
-      knownBonusProgram = await BonusProgram.create({ ...bonusProgramAdapter.InitBonusAdapter, enabled: false }).fetch();
+    if (!bonusProgramAdapter.adapter) {
+      sails.log.error(`Bonusprogram > alive : Adapter not defined`)
+      
+      // safe stop alive, throw  crash sails
+      return new Error
     }
-    alivedBonusPrograms[bonusProgramAdapter.InitBonusAdapter.adapter] = bonusProgramAdapter;
-    sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.InitBonusAdapter.adapter]);
+    
+    let knownBonusProgram = await BonusProgram.findOne({
+      adapter: bonusProgramAdapter.adapter,
+    });
+    
+    if (!knownBonusProgram) {
+      knownBonusProgram = await BonusProgram.create({ 
+        name: bonusProgramAdapter.name,
+        adapter: bonusProgramAdapter.adapter,
+        exchangeRate: bonusProgramAdapter.exchangeRate,
+        coveragePercentage: bonusProgramAdapter.coveragePercentage,
+        decimals: bonusProgramAdapter.decimals,
+        description: bonusProgramAdapter.description,
+        enable: process.env.NODE_ENV !== "production" //For production adapter should be off on strart
+      }).fetch();
+    }
+    bonusProgramAdapter.setORMId(knownBonusProgram.id);
+    alivedBonusPrograms[bonusProgramAdapter.adapter] = bonusProgramAdapter;
+    sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.adapter]);
     return;
   },
 
@@ -77,17 +127,32 @@ let Model = {
    * @param bonusProgramAdapterId string 
    * @returns 
    */
-  async getAdapter(bonusProgramId: string): Promise<BonusAdapter> {
-    let bonusProgram = await BonusProgram.findOne({
-      id: bonusProgramId,
+  async getAdapter(adapterOrId: string): Promise<BonusProgramAdapter> {
+    let bonusProgram = await BonusProgram.findOne({ where: { or: [{
+          adapter: adapterOrId
+        }, {
+          id: adapterOrId
+        }
+      ]}
     });
+    
+    if (bonusProgram) {
+      if (bonusProgram.enable !== true) throw `bonusProgram ${adapterOrId} is disabled`;
 
-    if(bonusProgram && bonusProgram.enabled && alivedBonusPrograms[bonusProgram.adapter] !== undefined) {
-      return alivedBonusPrograms[bonusProgram.adapter]
+      if(alivedBonusPrograms[bonusProgram.adapter] !== undefined) {
+        return alivedBonusPrograms[bonusProgram.adapter]
+      } else {
+        // here should find the adapter by adapter/index.ts 
+        try {
+          return Adapter.getBonusProgramAdapter(adapterOrId);
+        } catch (error) {
+          throw `BonusProgram ${adapterOrId} no alived or disabled`
+        }
+      }
     } else {
-      // here should find the adapter by adapter/index.ts 
-      throw `BonusProgram ${bonusProgramId} no alived`
+      throw `bonusProgram ${adapterOrId} not found`
     }
+
   },
 
   /**
@@ -95,8 +160,8 @@ let Model = {
    * @param bonusProgramAdapterId string 
    * @returns 
    */
-  async isAlived(bonusProgramId: string): Promise<boolean> {
-    let bonusProgram = await BonusProgram.getAdapter(bonusProgramId);
+  async isAlived(adapter: string): Promise<boolean> {
+    let bonusProgram = await BonusProgram.getAdapter(adapter);
     return bonusProgram !== undefined;
   },
 

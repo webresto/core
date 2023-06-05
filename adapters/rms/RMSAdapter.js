@@ -4,9 +4,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * An abstract RMS adapter class. Used to create new RMS adapters.
  */
 class RMSAdapter {
-    syncMenuTime;
-    syncBalanceTime;
-    syncStreetsTime;
     // TODO: надо убрать от сюда настройки синхронизации
     constructor(menuTime, balanceTime, streetsTime) {
         this.syncMenuTime = menuTime;

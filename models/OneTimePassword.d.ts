@@ -16,7 +16,7 @@ interface OneTimePassword extends RequiredField<OptionalAll<attributes>, "login"
 }
 export default OneTimePassword;
 declare let Model: {
-    beforeCreate(record: any, next: Function): void;
+    beforeCreate(record: any, cb: (err?: string) => void): void;
     check(login: string, password: string): Promise<boolean>;
 };
 declare global {

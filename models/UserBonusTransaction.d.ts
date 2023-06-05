@@ -7,18 +7,22 @@ declare let attributes: {
     /** ID */
     id: string;
     /** Type of bonuses (default: true)
+<<<<<<< HEAD
     * came is incoming (positive transaction)
     * gone is outgoin (negative transaction)
     */
+=======
+     * came is incoming (positive transaction)
+     * gone is outgoin (negative transaction)
+     */
+>>>>>>> origin/bonuses
     isNegative: boolean;
     /** Custom badges */
     group: string;
-    /**
-     * binary sign of transaction type
-     */
-    isPositive: boolean;
     amount: number;
+    /** automatic recalculate */
     balanceAfter: number;
+    /** User can delete transaction */
     isDeleted: boolean;
     /**
      * Indicates whether the call was made after creation. If so, this means that the bonus adapter worked without errors
@@ -35,11 +39,18 @@ interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "i
 }
 export default UserBonusTransaction;
 declare let Model: {
+<<<<<<< HEAD
     beforeCreate(init: UserBonusTransaction, next: any): Promise<void>;
     afterCreate(record: UserBonusTransaction, next: any): Promise<void>;
     beforeDestroy(): never;
     beforeUpdate(record: OptionalAll<UserBonusTransaction>, next: Function): void;
+=======
+    beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
+    beforeDestroy(): never;
+    beforeUpdate(record: OptionalAll<UserBonusTransaction>, cb: (err?: string) => void): void;
+>>>>>>> origin/bonuses
 };
 declare global {
-    const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "id">;
+    const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "user" | "amount" | "bonusProgram">;
 }

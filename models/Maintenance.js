@@ -27,21 +27,21 @@ let attributes = {
     stopDate: "string",
 };
 let Model = {
-    afterCreate: function (maintenance, next) {
+    afterCreate: function (maintenance, cb) {
         checkMaintenance();
-        next();
+        cb();
     },
-    afterUpdate: function (maintenance, next) {
+    afterUpdate: function (maintenance, cb) {
         checkMaintenance();
-        next();
+        cb();
     },
-    afterDestroy: function (maintenance, next) {
+    afterDestroy: function (maintenance, cb) {
         checkMaintenance();
-        next();
+        cb();
     },
-    beforeCreate: function (maintenance, next) {
+    beforeCreate: function (maintenance, cb) {
         maintenance.id = (0, uuid_1.v4)();
-        next();
+        cb();
     },
     siteIsOff: async function () {
         const maintenances = await Maintenance.getActiveMaintenance();

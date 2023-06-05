@@ -82,11 +82,11 @@ let attributes = {
     data: "json"
 };
 let Model = {
-    beforeCreate(paymentDocumentInit, next) {
+    beforeCreate(paymentDocumentInit, cb) {
         if (!paymentDocumentInit.id) {
             paymentDocumentInit.id = (0, uuid_1.v4)();
         }
-        next();
+        cb();
     },
     doCheck: async function (criteria) {
         const self = (await PaymentDocument.find(criteria).limit(1))[0];

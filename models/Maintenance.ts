@@ -39,24 +39,24 @@ interface Maintenance extends attributes, ORM {}
 export default Maintenance;
 
 let Model = {
-  afterCreate: function (maintenance, next) {
+  afterCreate: function (maintenance, cb:  (err?: string) => void) {
     checkMaintenance()
-    next();
+    cb();
   },
 
-  afterUpdate: function (maintenance, next) {
+  afterUpdate: function (maintenance, cb:  (err?: string) => void) {
     checkMaintenance()
-    next();
+    cb();
   },
 
-  afterDestroy: function (maintenance, next) {
+  afterDestroy: function (maintenance, cb:  (err?: string) => void) {
     checkMaintenance();
-    next();
+    cb();
   },
 
-  beforeCreate: function (maintenance, next) {
+  beforeCreate: function (maintenance, cb:  (err?: string) => void) {
     maintenance.id = uuid();
-    next();
+    cb();
   },
 
   siteIsOff: async function () {

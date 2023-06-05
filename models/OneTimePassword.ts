@@ -26,7 +26,7 @@ interface OneTimePassword extends RequiredField<OptionalAll<attributes>, "login"
 export default OneTimePassword;
 
 let Model = {
-  beforeCreate(record: any, next: Function) {
+  beforeCreate(record: any, cb:  (err?: string) => void) {
     if (!record.password) {
       record.password = generateOtp();
     }
@@ -34,7 +34,7 @@ let Model = {
     if (!record.expires) {
       record.expires = Date.now() + 30 * 60 * 1000 // 30 minutes
     }
-    next();
+    cb();
   },
 
   async check(login: string, password: string): Promise<boolean> {

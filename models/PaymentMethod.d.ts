@@ -31,7 +31,7 @@ declare let Model: {
      * @return
      */
     getAdapter(adapter?: string): Promise<PaymentAdapter>;
-    beforeCreate: (paymentMethod: any, next: any) => void;
+    beforeCreate: (paymentMethod: any, cb: (err?: string) => void) => void;
     /**
      * Возвращает true если платежный метод является обещанием платежа
      * @param  paymentMethodId
