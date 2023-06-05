@@ -1,15 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const hashCode_1 = require("../libs/hashCode");
-const CHECK_INTERVAL = 60000;
-sails.on("lifted", function () {
-    setInterval(async function () {
-        checkDiscount();
-    }, CHECK_INTERVAL);
-});
+// import Decimal from "decimal.js";
 let attributes = {
     /** TODO: show discounts to dish and orders */
     /** TODO: isJoint global variable for all discounts*/
+    /** TODO: worktime rework */
     /** */
     id: {
         type: "string",
@@ -23,7 +19,12 @@ let attributes = {
      *
      */
     configDiscount: {
+<<<<<<< HEAD
+        type: "json",
+        allowNull: true,
+=======
         type: "json"
+>>>>>>> origin/bonuses
     },
     /** created by User */
     createdByUser: {
@@ -83,12 +84,56 @@ let attributes = {
         required: true,
     },
     worktime: "json",
+<<<<<<< HEAD
+    // condition: {
+    //   type: (order: Order) => Promise<boolean>,
+    //   required: true,
+    // } as unknown as (order: Order) => Promise<boolean>,
+    // action: {
+    //   type: () => Promise<void>,
+    //   required: true,
+    // } as unknown as () => Promise<void>,
+    // displayGroupDiscount: {
+    //   type: () => Promise<void>,
+    //   required: true,
+    // } as unknown as () => Promise<void>,
+    // displayGroupDish: {
+    //   type: () => Promise<void>,
+    //   required: true,
+    // } as unknown as () => Promise<void>,
+=======
+>>>>>>> origin/bonuses
 };
 let Model = {
     async afterUpdate(record, next) {
         if (record.createdByUser) {
             // call recreate of discountHandler
         }
+<<<<<<< HEAD
+        // let result: Discount[] = await Discount.find({});
+        // result = result.filter(record => {
+        //   if (!record.worktime) return true;
+        //   try {
+        //       return (WorkTimeValidator.isWorkNow({worktime: record.worktime})).workNow
+        //   } catch (error) {
+        //       sails.log.error("Discount > helper > error: ",error)
+        //   }
+        // })
+        // result
+        //   .filter((record) => {
+        //     if (!record.worktime) return false;
+        //     try {
+        //       return !WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow; // WorkTime[]
+        //     } catch (error) {
+        //       sails.log.error("Discount > helper > error: ", error);
+        //     }
+        //   })
+        //   .forEach(async (record) => {
+        //     // each Discount where workTime end => delete
+        //     await Discount.update({ id: record.id }, { isDeleted: true }).fetch();
+        //   });
+=======
+>>>>>>> origin/bonuses
         next();
     },
     async afterCreate(record, next) {
@@ -110,7 +155,15 @@ let Model = {
             return Discount.create({ hash, ...values }).fetch();
         if (hash === discount.hash)
             return discount;
-        return (await Discount.update({ id: values.id }, { hash, ...values }).fetch())[0];
+        // return (await Discount.update({ id: values.id }, { hash, ...values }).fetch())[0];
+    },
+    async getAllByConcept(concept) {
+        if (!concept)
+            throw "concept is required";
+        const discount = await Discount.find({ concept: concept });
+        if (!discount)
+            throw "Discount with concept: " + concept + " not found";
+        return discount;
     },
     async setDelete() {
         const discounts = await Discount.find({});
@@ -125,6 +178,8 @@ let Model = {
     //   const adapter = Adapter.getDiscountAdapter()
     //   return adapter.getHandlerById(id)
     // },
+<<<<<<< HEAD
+=======
     getActiveDiscount: async function () {
         // TODO: here need add worktime support
         let discounts = await Discount.find({ enable: true });
@@ -150,21 +205,10 @@ let Model = {
         // return array of active discounts
         return discounts[0];
     },
+>>>>>>> origin/bonuses
 };
 module.exports = {
     primaryKey: "id",
     attributes: attributes,
     ...Model,
 };
-async function checkDiscount() {
-    const discount = await Discount.getActiveDiscount();
-    if (discount) {
-        emitter.emit("core-discount-enabled", discount);
-    }
-    else {
-        emitter.emit("core-discount-disabled");
-    }
-}
-function between(from, to, a) {
-    return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
-}

@@ -1,5 +1,10 @@
 import Order from "../../models/Order";
+<<<<<<< HEAD
+import AbstractDiscountHandler from "./AbstractDiscount";
+export default abstract class AbstractDiscountHandlerINSTANCE {
+=======
 export default abstract class AbstractDiscountHandler {
+>>>>>>> origin/bonuses
     private static discounts;
     abstract apply(order: Order): Promise<void>;
     abstract clear(): void;
@@ -9,5 +14,9 @@ export default abstract class AbstractDiscountHandler {
     abstract getAllStatic(): Promise<AbstractDiscountHandler[]>;
     abstract getInstance(initParams?: {
         [key: string]: string | number | boolean;
+<<<<<<< HEAD
+    }): AbstractDiscountHandlerINSTANCE;
+=======
     }): AbstractDiscountHandler;
+>>>>>>> origin/bonuses
 }

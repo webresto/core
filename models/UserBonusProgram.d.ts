@@ -1,6 +1,22 @@
 import ORM from "../interfaces/ORM";
 import ORMModel from "../interfaces/ORMModel";
 import User from "../models/User";
+<<<<<<< HEAD
+declare let attributes: {
+    /** ID */
+    id: string;
+    active: {
+        type: string;
+    };
+    balance: number;
+    isDeleted: {
+        type: string;
+    };
+    user: string | User;
+    BonusProgram: {
+        model: string;
+    };
+=======
 import BonusProgram from "./BonusProgram";
 declare let attributes: {
     /** ID */
@@ -9,6 +25,7 @@ declare let attributes: {
     isDeleted: boolean;
     user: string | User;
     bonusProgram: string | BonusProgram;
+>>>>>>> origin/bonuses
     /** UNIX era seconds */
     syncedToTime: string;
     customData: string | {

@@ -10,13 +10,21 @@ import Dish from "./Dish";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
+<<<<<<< HEAD
+import { OrderBonuses } from "../interfaces/OrderBonuses";
+=======
 import { SpendBonus } from "../interfaces/SpendBonus";
+>>>>>>> origin/bonuses
 declare let attributes: {
     /** Id  */
     id: string;
     /** last 8 chars from id */
     shortId: string;
+<<<<<<< HEAD
+    /**  Concept string */
+=======
     /** Concept string */
+>>>>>>> origin/bonuses
     concept: string;
     /** the basket contains mixed types of concepts */
     isMixedConcept: boolean;
@@ -61,7 +69,10 @@ declare let attributes: {
     trifleFrom: number;
     /** Summ of all bobnuses */
     bonusesTotal: number;
+<<<<<<< HEAD
+=======
     spendBonus: SpendBonus;
+>>>>>>> origin/bonuses
     /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
     total: number;
     /**
@@ -104,11 +115,26 @@ declare let Model: {
      */
     setSelfService(criteria: CriteriaQuery<Order>, selfService?: boolean): Promise<Order>;
     /**
+<<<<<<< HEAD
+=======
      * !! Not for external use, only in Order.check
+>>>>>>> origin/bonuses
      * The use of bonuses in the cart implies that this order has a user.
      * Then all checks will be made and a record will be written in the transaction of user bonuses
      *
      Bonus spending strategies :
+<<<<<<< HEAD
+      1) bonus_from_order_total: (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
+      2) bonus_from_basket_delivery_discount: writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
+      3) bonus_from_basket_and_delivery: writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
+      4) bonus_from_basket: write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
+  
+     */
+    applyBonuses(orderId: any, orderBonuses: OrderBonuses): Promise<void>;
+    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void>;
+    /** Оформление корзины */
+    order(criteria: CriteriaQuery<Order>): Promise<number>;
+=======
       1) 'bonus_from_order_total': (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
       2) 'bonus_from_basket_delivery_discount': writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
       3) 'bonus_from_basket_and_delivery': writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
@@ -121,6 +147,7 @@ declare let Model: {
     check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, spendBonus?: SpendBonus): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<Order>): Promise<void>;
+>>>>>>> origin/bonuses
     payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
     paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string>;
     /**  given populated Order instance  by criteria*/

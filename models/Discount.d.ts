@@ -6,6 +6,7 @@ import AbstractDiscount from "../adapters/discount/AbstractDiscount";
 declare let attributes: {
     /** TODO: show discounts to dish and orders */
     /** TODO: isJoint global variable for all discounts*/
+    /** TODO: worktime rework */
     /** */
     id: string;
     /** TODO: implement interface
@@ -34,10 +35,17 @@ declare let attributes: {
     isDeleted: boolean;
     /** Хеш обекта скидки */
     hash: string;
+<<<<<<< HEAD
+    worktime: WorkTime[];
+};
+type attributes = typeof attributes;
+interface Discount extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "discount" | "discountType" | "actions" | "enable" | "isDeleted" | "sortOrder" | "productCategoryDiscounts" | "hash">, ORM {
+=======
     worktime: WorkTime;
 };
 type attributes = typeof attributes;
 interface Discount extends RequiredField<OptionalAll<attributes>, "id" | "configuredDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "discount" | "discountType" | "actions">, ORM {
+>>>>>>> origin/bonuses
 }
 export default Discount;
 declare let Model: {
@@ -46,10 +54,10 @@ declare let Model: {
     beforeUpdate(init: Discount, next: Function): Promise<void>;
     beforeCreate(init: Discount, next: Function): Promise<void>;
     createOrUpdate(values: AbstractDiscount): Promise<AbstractDiscount>;
+    getAllByConcept(concept: string[]): Promise<Discount[]>;
     setDelete(): Promise<void>;
     setAlive(idArray: string[]): Promise<void>;
-    getActiveDiscount: () => Promise<Discount>;
 };
 declare global {
-    const Discount: typeof Model & ORMModel<Discount, "configuredDiscount">;
+    const Discount: typeof Model & ORMModel<Discount, "configDiscount">;
 }
