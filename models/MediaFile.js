@@ -34,11 +34,11 @@ let attributes = {
     uploadDate: "string",
 };
 let Model = {
-    beforeCreate(imageInit, next) {
+    beforeCreate(imageInit, cb) {
         if (!imageInit.id) {
             imageInit.id = (0, uuid_1.v4)();
         }
-        next();
+        cb();
     },
 };
 module.exports = {

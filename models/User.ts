@@ -178,7 +178,7 @@ interface User extends OptionalAll<attributes>, ORM {}
 export default User;
 
 let Model = {
-  async beforeCreate(userInit: User, next: Function) {
+  async beforeCreate(userInit: User, cb:  (err?: string) => void) {
     if (!userInit.id) {
       userInit.id = uuid();
     }
@@ -193,12 +193,13 @@ let Model = {
       }
     }
 
-    next();
+    cb();
   },
 
-  afterCreate: function (record, proceed) {
+  async afterCreate(record: User, cb:  (err?: string) => void) {
     emitter.emit('core:user-after-create', record);
-    return proceed();
+    await User.checkRegisteredInBonusPrograms(record.id);
+    return cb();
   },
 
   /**
@@ -398,6 +399,13 @@ let Model = {
     let userDevice = await UserDevice.findOrCreate({id: deviceId }, {id: deviceId, user: userId, name: deviceName });
     // Need pass sessionId here for except paralells login with one name
     return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: uuid() });
+  },
+
+  /** 
+    check all active bonus program for user
+  */
+  async checkRegisteredInBonusPrograms(userId: string): Promise<void> {
+    // check all active bonus program for user
   },
 };
 

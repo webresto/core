@@ -93,10 +93,10 @@ interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">,
 }
 export default Dish;
 declare let Model: {
-    beforeCreate(init: any, next: any): void;
-    beforeUpdate: (record: any, proceed: any) => any;
-    afterUpdate: (record: any, proceed: any) => any;
-    afterCreate: (record: any, proceed: any) => any;
+    beforeCreate(init: any, cb: (err?: string) => void): void;
+    beforeUpdate: (record: any, cb: (err?: string) => void) => void;
+    afterUpdate: (record: any, cb: (err?: string) => void) => void;
+    afterCreate: (record: any, cb: (err?: string) => void) => void;
     /**
      * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
      * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.

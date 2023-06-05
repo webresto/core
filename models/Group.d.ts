@@ -47,10 +47,10 @@ interface Group extends OptionalAll<attributes>, ORM {
 }
 export default Group;
 declare let Model: {
-    beforeCreate(init: any, next: any): void;
-    beforeUpdate: (record: any, proceed: any) => any;
-    afterUpdate: (record: any, proceed: any) => any;
-    afterCreate: (record: any, proceed: any) => any;
+    beforeCreate(init: any, cb: (err?: string) => void): void;
+    beforeUpdate: (record: any, cb: (err?: string) => void) => void;
+    afterUpdate: (record: any, cb: (err?: string) => void) => void;
+    afterCreate: (record: any, cb: (err?: string) => void) => void;
     /**
      * Возвращает объект с группами и ошибками получения этих самых групп.
      * @param groupsId - массив id групп, которые следует получить

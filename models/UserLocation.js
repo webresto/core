@@ -64,24 +64,24 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    async beforeUpdate(record, next) {
-        if (record.default === true) {
-            await UserLocation.update({ user: record.user }, { default: false });
+    async beforeUpdate(record, cb) {
+        if (record.isDefault === true) {
+            await UserLocation.update({ user: record.user }, { isDefault: false });
         }
-        next();
+        cb();
     },
-    async beforeCreate(UserLocationInit, next) {
-        if (!UserLocationInit.id) {
-            UserLocationInit.id = (0, uuid_1.v4)();
+    async beforeCreate(init, cb) {
+        if (!init.id) {
+            init.id = (0, uuid_1.v4)();
         }
-        if (!UserLocationInit.name) {
-            const street = await Street.findOne({ id: UserLocationInit.street });
-            UserLocationInit.name = `${street.name} ${UserLocationInit.home}`;
+        if (!init.name) {
+            const street = await Street.findOne({ id: init.street });
+            init.name = `${street.name} ${init.home}`;
         }
-        if (UserLocationInit.default === true) {
-            await UserLocation.update({ user: UserLocationInit.user }, { default: false });
+        if (init.isDefault === true) {
+            await UserLocation.update({ user: init.user }, { isDefault: false });
         }
-        next();
+        cb();
     }
 };
 module.exports = {

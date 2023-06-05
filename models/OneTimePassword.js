@@ -17,14 +17,14 @@ let attributes = {
     expires: 'number'
 };
 let Model = {
-    beforeCreate(record, next) {
+    beforeCreate(record, cb) {
         if (!record.password) {
             record.password = generateOtp();
         }
         if (!record.expires) {
             record.expires = Date.now() + 30 * 60 * 1000; // 30 minutes
         }
-        next();
+        cb();
     },
     async check(login, password) {
         // Clean expired

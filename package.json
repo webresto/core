@@ -22,6 +22,7 @@
     "ajv": "^8.12.0",
     "bcryptjs": "^2.4.3",
     "crypto-puzzle": "^4.0.0",
+    "decimal.js": "^10.4.3",
     "fix-esm": "^1.0.1",
     "imagemagick": "^0.1.3",
     "lodash": "^4.17.10",

@@ -72,8 +72,8 @@ interface User extends OptionalAll<attributes>, ORM {
 }
 export default User;
 declare let Model: {
-    beforeCreate(userInit: User, next: Function): Promise<void>;
-    afterCreate: (record: any, proceed: any) => any;
+    beforeCreate(userInit: User, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: User, cb: (err?: string) => void): Promise<void>;
     /**
      * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
      * @param userId
@@ -106,6 +106,10 @@ declare let Model: {
     setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean, temporaryCode?: string): Promise<User>;
     login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice>;
     authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDevice>;
+    /**
+      check all active bonus program for user
+    */
+    checkRegisteredInBonusPrograms(userId: string): Promise<void>;
 };
 declare global {
     const User: typeof Model & ORMModel<User, null>;

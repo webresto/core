@@ -19,7 +19,7 @@ interface Place extends attributes, ORM {
 }
 export default Place;
 declare let Model: {
-    beforeCreate(placeInit: any, next: any): void;
+    beforeCreate(placeInit: any, cb: (err?: string) => void): void;
 };
 declare global {
     const Place: typeof Model & ORMModel<Place, null>;

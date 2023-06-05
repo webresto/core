@@ -60,11 +60,11 @@ let Model = {
             return undefined;
         }
     },
-    beforeCreate: function (paymentMethod, next) {
+    beforeCreate: function (paymentMethod, cb) {
         if (!paymentMethod.id) {
             paymentMethod.id = (0, uuid_1.v4)();
         }
-        next();
+        cb();
     },
     /**
      * Возвращает true если платежный метод является обещанием платежа

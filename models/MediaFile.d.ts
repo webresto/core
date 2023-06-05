@@ -25,7 +25,7 @@ interface MediaFile extends OptionalAll<attributes>, ORM {
 }
 export default MediaFile;
 declare let Model: {
-    beforeCreate(imageInit: any, next: any): void;
+    beforeCreate(imageInit: any, cb: (err?: string) => void): void;
 };
 declare global {
     const MediaFile: typeof Model & ORMModel<MediaFile, null>;

@@ -40,22 +40,22 @@ interface UserDevice extends RequiredField<OptionalAll<attributes>, null >, ORM 
 export default UserDevice;
 
 let Model = {
-  beforeUpdate(record: UserDevice, next: Function){
+  beforeUpdate(record: UserDevice, cb:  (err?: string) => void){
     record.lastActivity = Date.now();
     if(record.user) delete record.user
     if (record.isLogined === false) {
       record.sessionId = null
     }
-    next();
+    cb();
   },
 
-  beforeCreate(record: any, next: Function) {
+  beforeCreate(record: any, cb:  (err?: string) => void) {
     record.lastActivity = Date.now();
     if (!record.id) {
       record.id = uuid();
     }
 
-    next();
+    cb();
   },
 
   /** Method set lastActiity  for device */

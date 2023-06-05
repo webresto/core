@@ -30,8 +30,8 @@ interface UserLocation extends attributes, ORM {
 }
 export default UserLocation;
 declare let Model: {
-    beforeUpdate(record: UserLocation, next: Function): Promise<void>;
-    beforeCreate(UserLocationInit: UserLocation, next: Function): Promise<void>;
+    beforeUpdate(record: UserLocation, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(init: UserLocation, cb: (err?: string) => void): Promise<void>;
 };
 declare global {
     const UserLocation: typeof Model & ORMModel<UserLocation, null>;

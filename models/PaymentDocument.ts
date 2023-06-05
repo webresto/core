@@ -105,12 +105,12 @@ type attributes = typeof attributes;
 interface PaymentDocument extends OptionalAll<attributes>, ORM {}
 export default PaymentDocument;
 let Model = {
-  beforeCreate(paymentDocumentInit: any, next: any) {
+  beforeCreate(paymentDocumentInit: any, cb:  (err?: string) => void) {
     if (!paymentDocumentInit.id) {
       paymentDocumentInit.id = uuid();
     }
 
-    next();
+    cb();
   },
   doCheck: async function (criteria: any): Promise<PaymentDocument> {
     const self: PaymentDocument = (await PaymentDocument.find(criteria).limit(1))[0];

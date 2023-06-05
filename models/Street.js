@@ -20,11 +20,11 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate(streetInit, next) {
+    beforeCreate(streetInit, cb) {
         if (!streetInit.id) {
             streetInit.id = (0, uuid_1.v4)();
         }
-        next();
+        cb();
     },
 };
 module.exports = {

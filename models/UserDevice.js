@@ -25,21 +25,21 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeUpdate(record, next) {
+    beforeUpdate(record, cb) {
         record.lastActivity = Date.now();
         if (record.user)
             delete record.user;
         if (record.isLogined === false) {
             record.sessionId = null;
         }
-        next();
+        cb();
     },
-    beforeCreate(record, next) {
+    beforeCreate(record, cb) {
         record.lastActivity = Date.now();
         if (!record.id) {
             record.id = (0, uuid_1.v4)();
         }
-        next();
+        cb();
     },
     /** Method set lastActiity  for device */
     async setActivity(criteria, client = {}) {

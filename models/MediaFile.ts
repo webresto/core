@@ -52,12 +52,12 @@ interface MediaFile extends OptionalAll<attributes>, ORM {}
 export default MediaFile;
 
 let Model = {
-  beforeCreate(imageInit: any, next: any) {
+  beforeCreate(imageInit: any, cb:  (err?: string) => void) {
     if (!imageInit.id) {
       imageInit.id = uuid();
     }
 
-    next();
+    cb();
   },
 };
 

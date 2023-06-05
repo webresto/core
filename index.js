@@ -33,6 +33,7 @@ __exportStar(require("./models/UserBonusTransaction"), exports);
 __exportStar(require("./models/UserDevice"), exports);
 __exportStar(require("./models/UserLocation"), exports);
 __exportStar(require("./models/UserOrderHistory"), exports);
+__exportStar(require("./models/Discount"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),
