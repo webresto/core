@@ -4,7 +4,6 @@ const AbstractDiscount_1 = require("../AbstractDiscount");
 class configuredDiscount extends AbstractDiscount_1.default {
     constructor(discount) {
         super();
-<<<<<<< HEAD
         this.id = discount.id,
             this.isJoint = discount.isJoint,
             this.name = discount.name,
@@ -26,28 +25,6 @@ class configuredDiscount extends AbstractDiscount_1.default {
         this.displayGroupDiscount = discount.displayGroupDiscount;
         this.displayGroupDish = discount.displayGroupDish;
     }
-    id;
-    isJoint;
-    name;
-    isPublic;
-    description;
-    concept;
-    configDiscount;
-    discount;
-    discountType;
-    actions;
-    enable;
-    isDeleted;
-    sortOrder;
-    productCategoryDiscounts;
-    hash;
-    worktime;
-=======
-        this.id = discount.id;
-        this.isJoint = discount.isJoint,
-        ;
-    }
->>>>>>> origin/bonuses
     condition(order) {
         throw new Error("Method not implemented.");
     }

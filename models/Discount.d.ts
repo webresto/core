@@ -35,17 +35,10 @@ declare let attributes: {
     isDeleted: boolean;
     /** Хеш обекта скидки */
     hash: string;
-<<<<<<< HEAD
     worktime: WorkTime[];
 };
 type attributes = typeof attributes;
 interface Discount extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "discount" | "discountType" | "actions" | "enable" | "isDeleted" | "sortOrder" | "productCategoryDiscounts" | "hash">, ORM {
-=======
-    worktime: WorkTime;
-};
-type attributes = typeof attributes;
-interface Discount extends RequiredField<OptionalAll<attributes>, "id" | "configuredDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "discount" | "discountType" | "actions">, ORM {
->>>>>>> origin/bonuses
 }
 export default Discount;
 declare let Model: {

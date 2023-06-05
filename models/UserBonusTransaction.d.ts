@@ -7,15 +7,9 @@ declare let attributes: {
     /** ID */
     id: string;
     /** Type of bonuses (default: true)
-<<<<<<< HEAD
-    * came is incoming (positive transaction)
-    * gone is outgoin (negative transaction)
-    */
-=======
      * came is incoming (positive transaction)
      * gone is outgoin (negative transaction)
      */
->>>>>>> origin/bonuses
     isNegative: boolean;
     /** Custom badges */
     group: string;
@@ -39,17 +33,10 @@ interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "i
 }
 export default UserBonusTransaction;
 declare let Model: {
-<<<<<<< HEAD
-    beforeCreate(init: UserBonusTransaction, next: any): Promise<void>;
-    afterCreate(record: UserBonusTransaction, next: any): Promise<void>;
-    beforeDestroy(): never;
-    beforeUpdate(record: OptionalAll<UserBonusTransaction>, next: Function): void;
-=======
     beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
     afterCreate(record: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
     beforeDestroy(): never;
     beforeUpdate(record: OptionalAll<UserBonusTransaction>, cb: (err?: string) => void): void;
->>>>>>> origin/bonuses
 };
 declare global {
     const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "user" | "amount" | "bonusProgram">;

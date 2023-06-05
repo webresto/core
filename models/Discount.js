@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const hashCode_1 = require("../libs/hashCode");
+const worktime_1 = require("@webresto/worktime");
 // import Decimal from "decimal.js";
 let attributes = {
     /** TODO: show discounts to dish and orders */
@@ -19,12 +20,7 @@ let attributes = {
      *
      */
     configDiscount: {
-<<<<<<< HEAD
-        type: "json",
-        allowNull: true,
-=======
         type: "json"
->>>>>>> origin/bonuses
     },
     /** created by User */
     createdByUser: {
@@ -84,7 +80,6 @@ let attributes = {
         required: true,
     },
     worktime: "json",
-<<<<<<< HEAD
     // condition: {
     //   type: (order: Order) => Promise<boolean>,
     //   required: true,
@@ -101,16 +96,13 @@ let attributes = {
     //   type: () => Promise<void>,
     //   required: true,
     // } as unknown as () => Promise<void>,
-=======
->>>>>>> origin/bonuses
 };
 let Model = {
     async afterUpdate(record, next) {
         if (record.createdByUser) {
             // call recreate of discountHandler
         }
-<<<<<<< HEAD
-        // let result: Discount[] = await Discount.find({});
+        let result = await Discount.find({});
         // result = result.filter(record => {
         //   if (!record.worktime) return true;
         //   try {
@@ -119,21 +111,17 @@ let Model = {
         //       sails.log.error("Discount > helper > error: ",error)
         //   }
         // })
-        // result
-        //   .filter((record) => {
-        //     if (!record.worktime) return false;
-        //     try {
-        //       return !WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow; // WorkTime[]
-        //     } catch (error) {
-        //       sails.log.error("Discount > helper > error: ", error);
-        //     }
-        //   })
-        //   .forEach(async (record) => {
-        //     // each Discount where workTime end => delete
-        //     await Discount.update({ id: record.id }, { isDeleted: true }).fetch();
-        //   });
-=======
->>>>>>> origin/bonuses
+        result
+            .filter((record) => {
+            if (!record.worktime)
+                return true;
+            try {
+                return worktime_1.WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow;
+            }
+            catch (error) {
+                sails.log.error("Discount > helper > error: ", error);
+            }
+        });
         next();
     },
     async afterCreate(record, next) {
@@ -178,34 +166,6 @@ let Model = {
     //   const adapter = Adapter.getDiscountAdapter()
     //   return adapter.getHandlerById(id)
     // },
-<<<<<<< HEAD
-=======
-    getActiveDiscount: async function () {
-        // TODO: here need add worktime support
-        let discounts = await Discount.find({ enable: true });
-        discounts = discounts.filter((discounts) => {
-            let start, stop;
-            // When dates interval not set is active discount
-            if (!discounts.startDate && !discounts.stopDate)
-                return true;
-            // When start or stop date not set, is infinity
-            if (!discounts.startDate)
-                discounts.startDate = "0000";
-            if (!discounts.stopDate)
-                discounts.stopDate = "9999";
-            if (discounts.startDate) {
-                start = new Date(discounts.startDate).getTime();
-            }
-            if (discounts.stopDate) {
-                stop = new Date(discounts.stopDate).getTime();
-            }
-            const now = new Date().getTime();
-            return between(start, stop, now);
-        });
-        // return array of active discounts
-        return discounts[0];
-    },
->>>>>>> origin/bonuses
 };
 module.exports = {
     primaryKey: "id",

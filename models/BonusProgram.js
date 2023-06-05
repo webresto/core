@@ -3,10 +3,7 @@
  * The bonus program implements the spending of virtual bonuses through the adapter.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-<<<<<<< HEAD
-=======
 const adapters_1 = require("../adapters");
->>>>>>> origin/bonuses
 const uuid_1 = require("uuid");
 const alivedBonusPrograms = {};
 let attributes = {
@@ -15,11 +12,6 @@ let attributes = {
         type: "string",
         //required: true,
     },
-<<<<<<< HEAD
-    adapter: {
-        type: "string",
-        required: true,
-=======
     name: {
         type: "string",
         required: true,
@@ -28,19 +20,11 @@ let attributes = {
         type: "string",
         required: true,
         unique: true
->>>>>>> origin/bonuses
     },
     /** Exchange price for website currency */
     exchangeRate: "number",
     /** How much can you spend from the amount of the order */
     coveragePercentage: "number",
-<<<<<<< HEAD
-    sortOrder: "number",
-    description: "string",
-    decimals: "number",
-    /** user option */
-    enabled: {
-=======
     decimals: "number",
     sortOrder: "number",
     description: "string",
@@ -50,20 +34,12 @@ let attributes = {
     detailInfoLink: "string",
     /** user option */
     enable: {
->>>>>>> origin/bonuses
         type: "boolean",
         required: true,
     },
     customData: "json",
 };
 let Model = {
-<<<<<<< HEAD
-    beforeCreate(BonusProgramInit, next) {
-        if (!BonusProgramInit.id) {
-            BonusProgramInit.id = (0, uuid_1.v4)();
-        }
-        next();
-=======
     beforeCreate(init, cb) {
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
@@ -86,7 +62,6 @@ let Model = {
             init.decimals = 0;
         }
         cb();
->>>>>>> origin/bonuses
     },
     /**
      * Method for registration alived bonus program adapter
@@ -94,16 +69,6 @@ let Model = {
      * @returns
      */
     async alive(bonusProgramAdapter) {
-<<<<<<< HEAD
-        let knownBonusProgram = await BonusProgram.findOne({
-            adapter: bonusProgramAdapter.InitBonusAdapter.adapter,
-        });
-        if (!knownBonusProgram) {
-            knownBonusProgram = await BonusProgram.create({ ...bonusProgramAdapter.InitBonusAdapter, enabled: false }).fetch();
-        }
-        alivedBonusPrograms[bonusProgramAdapter.InitBonusAdapter.adapter] = bonusProgramAdapter;
-        sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.InitBonusAdapter.adapter]);
-=======
         if (!bonusProgramAdapter.adapter) {
             sails.log.error(`Bonusprogram > alive : Adapter not defined`);
             // safe stop alive, throw  crash sails
@@ -126,7 +91,6 @@ let Model = {
         bonusProgramAdapter.setORMId(knownBonusProgram.id);
         alivedBonusPrograms[bonusProgramAdapter.adapter] = bonusProgramAdapter;
         sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.adapter]);
->>>>>>> origin/bonuses
         return;
     },
     /**
@@ -134,18 +98,6 @@ let Model = {
      * @param bonusProgramAdapterId string
      * @returns
      */
-<<<<<<< HEAD
-    async getAdapter(bonusProgramId) {
-        let bonusProgram = await BonusProgram.findOne({
-            id: bonusProgramId,
-        });
-        if (bonusProgram && bonusProgram.enabled && alivedBonusPrograms[bonusProgram.adapter] !== undefined) {
-            return alivedBonusPrograms[bonusProgram.adapter];
-        }
-        else {
-            // here should find the adapter by adapter/index.ts 
-            throw `BonusProgram ${bonusProgramId} no alived`;
-=======
     async getAdapter(adapterOrId) {
         let bonusProgram = await BonusProgram.findOne({ where: { or: [{
                         adapter: adapterOrId
@@ -172,7 +124,6 @@ let Model = {
         }
         else {
             throw `bonusProgram ${adapterOrId} not found`;
->>>>>>> origin/bonuses
         }
     },
     /**
@@ -180,13 +131,8 @@ let Model = {
      * @param bonusProgramAdapterId string
      * @returns
      */
-<<<<<<< HEAD
-    async isAlived(bonusProgramId) {
-        let bonusProgram = await BonusProgram.getAdapter(bonusProgramId);
-=======
     async isAlived(adapter) {
         let bonusProgram = await BonusProgram.getAdapter(adapter);
->>>>>>> origin/bonuses
         return bonusProgram !== undefined;
     },
     /**

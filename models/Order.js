@@ -2,10 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("../libs/actions");
 const uuid_1 = require("uuid");
-<<<<<<< HEAD
-=======
 const decimal_js_1 = require("decimal.js");
->>>>>>> origin/bonuses
 let attributes = {
     /** Id  */
     id: {
@@ -13,11 +10,7 @@ let attributes = {
     },
     /** last 8 chars from id */
     shortId: "string",
-<<<<<<< HEAD
-    /**  Concept string */
-=======
     /** Concept string */
->>>>>>> origin/bonuses
     concept: "string",
     /** the basket contains mixed types of concepts */
     isMixedConcept: "boolean",
@@ -102,12 +95,9 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
-<<<<<<< HEAD
-=======
     spendBonus: {
         type: "json"
     },
->>>>>>> origin/bonuses
     /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
     total: {
         type: "number",
@@ -383,28 +373,11 @@ let Model = {
         return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
     },
     /**
-<<<<<<< HEAD
-=======
      * !! Not for external use, only in Order.check
->>>>>>> origin/bonuses
      * The use of bonuses in the cart implies that this order has a user.
      * Then all checks will be made and a record will be written in the transaction of user bonuses
      *
      Bonus spending strategies :
-<<<<<<< HEAD
-      1) bonus_from_order_total: (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
-      2) bonus_from_basket_delivery_discount: writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
-      3) bonus_from_basket_and_delivery: writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
-      4) bonus_from_basket: write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
-  
-     */
-    async applyBonuses(orderId, orderBonuses) {
-        const order = await Order.findOne({ id: orderId });
-        if (order.user && typeof order.user === "string") {
-            for (let bonusSpend of orderBonuses) {
-                //  . let total = order.
-            }
-=======
       1) 'bonus_from_order_total': (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
       2) 'bonus_from_basket_delivery_discount': writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
       3) 'bonus_from_basket_and_delivery': writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
@@ -455,7 +428,6 @@ let Model = {
             }).fetch();
             // Update the order with new total
             await Order.updateOne({ id: orderId }, { total: order.total, bonusesTotal: bonusCoverage.toNumber() });
->>>>>>> origin/bonuses
         }
         else {
             throw `User not found in Order, applyBonuses failed`;
@@ -463,11 +435,7 @@ let Model = {
     },
     ////////////////////////////////////////////////////////////////////////////////////
     // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
-<<<<<<< HEAD
-    async check(criteria, customer, isSelfService, address, paymentMethodId) {
-=======
     async check(criteria, customer, isSelfService, address, paymentMethodId, spendBonus) {
->>>>>>> origin/bonuses
         const order = await Order.countCart(criteria);
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
@@ -791,11 +759,7 @@ let Model = {
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             // const orderDishesClone = {}
-<<<<<<< HEAD
-            let basketTotal = 0;
-=======
             let basketTotal = new decimal_js_1.default(0);
->>>>>>> origin/bonuses
             let dishesCount = 0;
             let uniqueDishes = 0;
             let totalWeight = new decimal_js_1.default(0);
@@ -871,13 +835,8 @@ let Model = {
                         orderDish.dish = orderDish.dish.id;
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
-<<<<<<< HEAD
-                    } // for disches
-                    basketTotal += orderDish.itemTotal;
-=======
                     }
                     basketTotal = basketTotal.plus(orderDish.itemTotal);
->>>>>>> origin/bonuses
                     dishesCount += orderDish.amount;
                     uniqueDishes++;
                     totalWeight = totalWeight.plus(orderDish.totalWeight);
@@ -888,18 +847,6 @@ let Model = {
             }
             await emitter.emit("core-order-count-discount-apply", order);
             delete (order.dishes);
-<<<<<<< HEAD
-            ///////////////////////////////////
-            order.dishesCount = dishesCount;
-            order.uniqueDishes = uniqueDishes;
-            order.totalWeight = totalWeight;
-            // @deprecated orderTotal use orderCost
-            order.orderTotal = basketTotal;
-            order.basketTotal = basketTotal;
-            emitter.emit("core:count-before-delivery-cost", order);
-            // @deprecated orderTotal use orderCost
-            order.total = basketTotal + order.deliveryCost - order.discountTotal;
-=======
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
             order.totalWeight = totalWeight.toNumber();
@@ -907,7 +854,6 @@ let Model = {
             order.basketTotal = basketTotal.toNumber();
             emitter.emit("core:count-before-delivery-cost", order);
             order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
->>>>>>> origin/bonuses
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             emitter.emit("core-order-after-count", order);
             return order;

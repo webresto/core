@@ -5,10 +5,7 @@ import OTPAdapter from "./otp/OneTimePasswordAdapter";
 import MediaFileAdapter from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
-<<<<<<< HEAD
-=======
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
->>>>>>> origin/bonuses
 /**
  * retruns RMS-adapter
  */
