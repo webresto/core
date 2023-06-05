@@ -13,12 +13,12 @@ export default abstract class BonusProgramAdapter {
     id: string;
     readonly config: ConfigBonusProgramAdapter;
     /** Adapter name */
-    readonly name: string;
-    readonly adapter: string;
-    readonly exchangeRate: number;
-    readonly coveragePercentage: number;
-    readonly decimals: number;
-    readonly description: string;
+    abstract readonly name: string;
+    abstract readonly adapter: string;
+    abstract readonly exchangeRate: number;
+    abstract readonly coveragePercentage: number;
+    abstract readonly decimals: number;
+    abstract readonly description: string;
     constructor(config?: ConfigBonusProgramAdapter);
     /**
      * method for set ORMid

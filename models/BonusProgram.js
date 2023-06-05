@@ -70,7 +70,9 @@ let Model = {
      */
     async alive(bonusProgramAdapter) {
         if (!bonusProgramAdapter.adapter) {
-            throw `name not defined`;
+            sails.log.error(`Bonusprogram > alive : Adapter not defined`);
+            // safe stop alive, throw  crash sails
+            return new Error;
         }
         let knownBonusProgram = await BonusProgram.findOne({
             adapter: bonusProgramAdapter.adapter,
@@ -83,7 +85,7 @@ let Model = {
                 coveragePercentage: bonusProgramAdapter.coveragePercentage,
                 decimals: bonusProgramAdapter.decimals,
                 description: bonusProgramAdapter.description,
-                enable: false
+                enable: process.env.NODE_ENV !== "production" //For production adapter should be off on strart
             }).fetch();
         }
         bonusProgramAdapter.setORMId(knownBonusProgram.id);

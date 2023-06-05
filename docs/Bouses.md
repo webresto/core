@@ -10,6 +10,10 @@ Bonuses are implemented through a Bonus Program, managed by the Bonus Program mo
 
 The Bonus Program should be implemented as an adapter from the abstract class `@webresto/core/adapters/bonusprogram/BonusProgramAdapter.ts` and added to the model via `BonusProgram.alive()`. The adapter is responsible for recording transactions in an external source or syncing from an external source by implementing the abstract class `BonusProgramAdapter`.
 
+> ⚠️ Any bonus adapter must be passed to the `BonusProgram` model in the `alive()` method. Example: `await BonusProgram.alive(new LocalBonusProgramAdapter());`
+
+> ⚠️ If yours is in production mode, then the adapter will be turned off when you turn it on for the first time
+
 ## Deducting Bonus during Order
 
 During the ordering process, bonuses can be deducted at the order check stage. For this, an object should be passed to the 'check' function, specifying the bonus amount to be deducted:
@@ -65,3 +69,11 @@ Regardless of the strategy for spending bonuses, exceptions can be assigned to g
 ### Bonus Support in RMS Adapter
 
 For a delivery site that sends orders to an external system, a flag should be set in the RMS adapter indicating it supports bonus spending. This means RMS will independently calculate how many bonuses are spent in the order and apply a discount to reconcile accounting. Deduction of bonuses is carried out by the bonus systems adapter.
+
+
+### to do:
+1. check isRegistred after create new user by FLAG settings
+2. Implement syncronization transaction
+3. delete user & bonus program
+4. recheck user balance, by util recheck transaction user
+5. Meal concepts and exceptions

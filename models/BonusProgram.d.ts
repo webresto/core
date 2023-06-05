@@ -37,7 +37,7 @@ declare let Model: {
      * @param bonusProgramAdapter
      * @returns
      */
-    alive(bonusProgramAdapter: BonusProgramAdapter): Promise<void>;
+    alive(bonusProgramAdapter: BonusProgramAdapter): Promise<void | Error>;
     /**
      * Method for registration alived bonus program adapter
      * @param bonusProgramAdapterId string

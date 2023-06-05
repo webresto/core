@@ -18,10 +18,6 @@ let attributes = {
     //required: true,
   } as unknown as Readonly<string>,
 
-  active: {
-    type: 'boolean'
-  } as unknown as boolean,
-
   balance: {
     type: 'number'
   } as unknown as number,
@@ -62,18 +58,38 @@ let Model = {
     cb();
   },
 
-  async registration(user: User, adapterOrId: string): Promise<UserBonusProgram> {
+  async registration(user: User | string, adapterOrId: string): Promise<UserBonusProgram> {
     const bp = await BonusProgram.getAdapter(adapterOrId);
+    
+    // TODO: this new standart call for models methods (Object or string)
+    if(typeof user === "string") {
+      user = await User.findOne({id: user})
+    }
+    
     await bp.registration(user);
 
     return await UserBonusProgram.create({
       user: user.id, 
-      active: true,
       balance: 0,
       isDeleted: false,
       bonusProgram: bp.id,
       syncedToTime: "0"
     }).fetch();
+  },
+
+  async delete(user: User | string, adapterOrId: string): Promise<void> {
+    const bp = await BonusProgram.getAdapter(adapterOrId);
+    
+    if(typeof user === "string") {
+      user = await User.findOne({id: user})
+    }
+    
+    await bp.delete(user);
+    await UserBonusProgram.update({user: user.id}, {
+      isDeleted: true,
+    }).fetch();
+
+    return;
   }
 };
 

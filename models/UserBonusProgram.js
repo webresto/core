@@ -10,9 +10,6 @@ let attributes = {
         type: "string",
         //required: true,
     },
-    active: {
-        type: 'boolean'
-    },
     balance: {
         type: 'number'
     },
@@ -38,15 +35,29 @@ let Model = {
     },
     async registration(user, adapterOrId) {
         const bp = await BonusProgram.getAdapter(adapterOrId);
+        // TODO: this new standart call for models methods (Object or string)
+        if (typeof user === "string") {
+            user = await User.findOne({ id: user });
+        }
         await bp.registration(user);
         return await UserBonusProgram.create({
             user: user.id,
-            active: true,
             balance: 0,
             isDeleted: false,
             bonusProgram: bp.id,
             syncedToTime: "0"
         }).fetch();
+    },
+    async delete(user, adapterOrId) {
+        const bp = await BonusProgram.getAdapter(adapterOrId);
+        if (typeof user === "string") {
+            user = await User.findOne({ id: user });
+        }
+        await bp.delete(user);
+        await UserBonusProgram.update({ user: user.id }, {
+            isDeleted: true,
+        }).fetch();
+        return;
     }
 };
 module.exports = {

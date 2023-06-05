@@ -4,7 +4,6 @@ class BonusProgramAdapter {
     constructor(config) {
         this.config = {};
         this.config = config;
-        BonusProgram.alive(this);
     }
     /**
      * method for set ORMid

@@ -5,7 +5,6 @@ import BonusProgram from "./BonusProgram";
 declare let attributes: {
     /** ID */
     id: string;
-    active: boolean;
     balance: number;
     isDeleted: boolean;
     user: string | User;
@@ -22,7 +21,8 @@ interface UserBonusProgram extends attributes, ORM {
 export default UserBonusProgram;
 declare let Model: {
     beforeCreate(init: UserBonusProgram, cb: (err?: string) => void): void;
-    registration(user: User, adapterOrId: string): Promise<UserBonusProgram>;
+    registration(user: string | User, adapterOrId: string): Promise<UserBonusProgram>;
+    delete(user: string | User, adapterOrId: string): Promise<void>;
 };
 declare global {
     const UserBonusProgram: typeof Model & ORMModel<UserBonusProgram, null>;
