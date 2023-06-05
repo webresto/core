@@ -10,12 +10,13 @@ import Dish from "./Dish";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
+import { OrderBonuses } from "../interfaces/OrderBonuses";
 declare let attributes: {
     /** Id  */
     id: string;
     /** last 8 chars from id */
     shortId: string;
-    /** Концепт к которому относится группа */
+    /**  Concept string */
     concept: string;
     /** */
     dishes: number[] | OrderDish[];
@@ -58,10 +59,14 @@ declare let attributes: {
     trifleFrom: number;
     /** Summ of all bobnuses */
     bonusesTotal: number;
-    /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
+    /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
     total: number;
     /**
-    *   @deprecated orderTotal use orderCost
+      * Sum dishes user added
+      */
+    basketTotal: number;
+    /**
+    *   @deprecated orderTotal use basketTotal
     */
     orderTotal: number;
     discountTotal: number;
@@ -95,6 +100,18 @@ declare let Model: {
      * @param selfService
      */
     setSelfService(criteria: CriteriaQuery<Order>, selfService?: boolean): Promise<Order>;
+    /**
+     * The use of bonuses in the cart implies that this order has a user.
+     * Then all checks will be made and a record will be written in the transaction of user bonuses
+     *
+     Bonus spending strategies :
+      1) bonus_from_order_total: (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
+      2) bonus_from_basket_delivery_discount: writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
+      3) bonus_from_basket_and_delivery: writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
+      4) bonus_from_basket: write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
+  
+     */
+    applyBonuses(orderId: any, orderBonuses: OrderBonuses): Promise<void>;
     check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string): Promise<void>;
     /** Оформление корзины */
     order(criteria: CriteriaQuery<Order>): Promise<number>;
@@ -139,6 +156,7 @@ declare let Model: {
         trifleFrom?: number;
         bonusesTotal?: number;
         total?: number;
+        basketTotal?: number;
         orderTotal?: number;
         discountTotal?: number;
         orderDate?: string;

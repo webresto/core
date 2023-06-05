@@ -2,6 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SimpleDiscount = void 0;
 class SimpleDiscount {
+    id;
+    discount;
+    action;
+    discountType;
     Condition(order) {
         // for (let key in this.discounts) {
         //   if (this.discounts.hasOwnProperty(key)) {

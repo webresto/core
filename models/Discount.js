@@ -1,15 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const hashCode_1 = require("../libs/hashCode");
-const CHECK_INTERVAL = 60000;
-sails.on("lifted", function () {
-    setInterval(async function () {
-        checkDiscount();
-    }, CHECK_INTERVAL);
-});
+const worktime_1 = require("@webresto/worktime");
+// import Decimal from "decimal.js";
 let attributes = {
     /** TODO: show discounts to dish and orders */
     /** TODO: isJoint global variable for all discounts*/
+    /** TODO: worktime rework */
     /** */
     id: {
         type: "string",
@@ -22,7 +19,15 @@ let attributes = {
      *  discountAmount: "number",
      *
      */
-    configuredDiscount: "json",
+    configDiscount: {
+        type: "json",
+        allowNull: true,
+    },
+    /** created by User */
+    createdByUser: {
+        type: "boolean",
+        required: true,
+    },
     name: {
         type: "string",
         required: true,
@@ -62,11 +67,6 @@ let attributes = {
         type: "boolean",
         required: true,
     },
-    /** created by User */
-    isConfigured: {
-        type: "boolean",
-        required: true,
-    },
     productCategoryDiscounts: "json",
     /** User can disable this discount*/
     enable: {
@@ -81,8 +81,6 @@ let attributes = {
         required: true,
     },
     worktime: "json",
-    startDate: "string",
-    stopDate: "string",
     condition: {
         type: (order) => Promise,
         required: true,
@@ -91,41 +89,54 @@ let attributes = {
         type: () => Promise,
         required: true,
     },
+    displayGroupDiscount: {
+        type: () => Promise,
+        required: true,
+    },
+    displayGroupDish: {
+        type: () => Promise,
+        required: true,
+    },
 };
 let Model = {
-    async getAll() {
-        const discounts = await Discount.find({});
-        if (!discounts)
-            throw `There is no discount`;
-        return discounts;
+    async afterUpdate(record, next) {
+        if (record.createdByUser) {
+            // call recreate of discountHandler
+        }
+        let result = await Discount.find({});
+        // result = result.filter(record => {
+        //   if (!record.worktime) return true;
+        //   try {
+        //       return (WorkTimeValidator.isWorkNow({worktime: record.worktime})).workNow
+        //   } catch (error) {
+        //       sails.log.error("Discount > helper > error: ",error)
+        //   }
+        // })
+        result.filter(record => {
+            if (!record.worktime)
+                return false;
+            try {
+                return !((worktime_1.WorkTimeValidator.isWorkNow({ worktime: record.worktime })).workNow); // WorkTime[]
+            }
+            catch (error) {
+                sails.log.error("Discount > helper > error: ", error);
+            }
+        }).forEach(async (record) => {
+            await Discount.update({ id: record.id }, { isDeleted: true }).fetch();
+        });
+        next();
     },
-    async getAllByConcept(concept) {
-        if (!concept[0])
-            throw "concept is required";
-        const discount = await Discount.find({ concept: concept });
-        if (!discount)
-            throw "Discount with concept: " + concept + " not found";
-        return discount;
+    async afterCreate(record, next) {
+        if (record.createdByUser) {
+            // call recreate of discountHandler
+        }
+        next();
     },
-    async getById(discountId) {
-        if (!discountId)
-            throw "discountId is required";
-        const discount = await Discount.findOne({ id: discountId });
-        if (!discount)
-            throw "Discount with discountId: " + discountId + " not found";
-        return discount;
+    async beforeUpdate(init, next) {
+        next();
     },
-    async deleteById(discountId) {
-        let discount = await Discount.findOne({ id: discountId });
-        if (!discount)
-            throw `There is no discount`;
-        await Discount.update({ id: discountId }, { isDeleted: true }).fetch();
-    },
-    async switchEnableById(discountId) {
-        let discount = await Discount.findOne({ id: discountId });
-        if (!discount)
-            throw `There is no discount`;
-        await Discount.update({ id: discountId }, { enable: !discount.enable }).fetch();
+    async beforeCreate(init, next) {
+        next();
     },
     async createOrUpdate(values) {
         let hash = (0, hashCode_1.default)(JSON.stringify(values));
@@ -134,7 +145,15 @@ let Model = {
             return Discount.create({ hash, ...values }).fetch();
         if (hash === discount.hash)
             return discount;
-        return (await Discount.update({ id: values.id }, { hash, ...values }).fetch())[0];
+        // return (await Discount.update({ id: values.id }, { hash, ...values }).fetch())[0];
+    },
+    async getAllByConcept(concept) {
+        if (!concept)
+            throw "concept is required";
+        const discount = await Discount.find({ concept: concept });
+        if (!discount)
+            throw "Discount with concept: " + concept + " not found";
+        return discount;
     },
     async setDelete() {
         const discounts = await Discount.find({});
@@ -145,46 +164,13 @@ let Model = {
     async setAlive(idArray) {
         //
     },
-    getActiveDiscount: async function () {
-        // TODO: here need add worktime support
-        let discounts = await Discount.find({ enable: true });
-        discounts = discounts.filter((discounts) => {
-            let start, stop;
-            // When dates interval not set is active discount
-            if (!discounts.startDate && !discounts.stopDate)
-                return true;
-            // When start or stop date not set, is infinity
-            if (!discounts.startDate)
-                discounts.startDate = "0000";
-            if (!discounts.stopDate)
-                discounts.stopDate = "9999";
-            if (discounts.startDate) {
-                start = new Date(discounts.startDate).getTime();
-            }
-            if (discounts.stopDate) {
-                stop = new Date(discounts.stopDate).getTime();
-            }
-            const now = new Date().getTime();
-            return between(start, stop, now);
-        });
-        // return array of active discounts
-        return discounts[0];
-    },
+    // async getHandler(id: string): Promise<any> {
+    //   const adapter = Adapter.getDiscountAdapter()
+    //   return adapter.getHandlerById(id)
+    // },
 };
 module.exports = {
     primaryKey: "id",
     attributes: attributes,
     ...Model,
 };
-async function checkDiscount() {
-    const discount = await Discount.getActiveDiscount();
-    if (discount) {
-        emitter.emit("core-discount-enabled", discount);
-    }
-    else {
-        emitter.emit("core-discount-disabled");
-    }
-}
-function between(from, to, a) {
-    return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
-}

@@ -5,20 +5,15 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import hashCode from "../libs/hashCode";
 import Order from "./Order";
 import AbstractDiscount from "../adapters/discount/AbstractDiscount";
-import { DiscountAdapter } from "../adapters/discount/default/defaultDiscountAdapter";
+// import { DiscountAdapter } from "../adapters/discount/default/defaultDiscountAdapter";
 import { Adapter } from "../adapters";
-
-const CHECK_INTERVAL = 60000;
-
-sails.on("lifted", function () {
-  setInterval(async function () {
-    checkDiscount();
-  }, CHECK_INTERVAL);
-});
+import { WorkTimeValidator} from '@webresto/worktime'
+// import Decimal from "decimal.js";
 
 let attributes = {
   /** TODO: show discounts to dish and orders */
   /** TODO: isJoint global variable for all discounts*/
+  /** TODO: worktime rework */
 
   /** */
   id: {
@@ -109,14 +104,37 @@ let attributes = {
     required: true,
   } as unknown as string,
 
-  worktime: "json" as unknown as WorkTime,
+  worktime: "json" as unknown as WorkTime[],
+
+  condition: {
+    type: (order: Order) => Promise<boolean>,
+    required: true,
+  } as unknown as (order: Order) => Promise<boolean>,
+
+  action: {
+    type: () => Promise<void>,
+    required: true,
+  } as unknown as () => Promise<void>,
+
+  displayGroupDiscount: {
+    type: () => Promise<void>,
+    required: true,
+  } as unknown as () => Promise<void>,
+
+   displayGroupDish: {
+    type: () => Promise<void>,
+    required: true,
+  } as unknown as () => Promise<void>,
+
 };
 
 type attributes = typeof attributes;
 interface Discount
   extends RequiredField<
       OptionalAll<attributes>,
-      "id" | "configuredDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "discount" | "discountType" | "actions" 
+      "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" 
+      | "concept" | "discount" | "discountType" | "actions" | "condition" | "action" | "displayGroupDish" | "displayGroupDiscount"
+      | "enable" | "isDeleted" | "sortOrder" | "productCategoryDiscounts" | "hash" 
     >,
     ORM {}
 
@@ -127,6 +145,29 @@ let Model = {
     if(record.createdByUser){
       // call recreate of discountHandler
     }
+
+    let result:Discount[] = await Discount.find({});
+
+    // result = result.filter(record => {
+    //   if (!record.worktime) return true;
+    //   try {
+    //       return (WorkTimeValidator.isWorkNow({worktime: record.worktime})).workNow
+    //   } catch (error) {
+    //       sails.log.error("Discount > helper > error: ",error)
+    //   }
+    // })
+
+    result.filter(record => {
+      if (!record.worktime) return false;
+      try {
+          return !((WorkTimeValidator.isWorkNow({worktime: record.worktime})).workNow) // WorkTime[]
+      } catch (error) {
+          sails.log.error("Discount > helper > error: ",error)
+      }
+    }).forEach(async (record)=>{
+      await Discount.update({ id: record.id }, { isDeleted: true }).fetch();
+    })
+
     next()
   },
 
@@ -134,6 +175,7 @@ let Model = {
     if(record.createdByUser){
       // call recreate of discountHandler
     }
+
     next()
   },
 
@@ -154,7 +196,17 @@ let Model = {
 
     if (hash === discount.hash) return discount;
 
-    return (await Discount.update({ id: values.id }, { hash, ...values }).fetch())[0];
+    // return (await Discount.update({ id: values.id }, { hash, ...values }).fetch())[0];
+  },
+
+  async getAllByConcept(concept: string[]): Promise<Discount[]> {
+    if (!concept) throw "concept is required";
+
+    const discount: Discount[] = await Discount.find({ concept: concept });
+
+    if (!discount) throw "Discount with concept: " + concept + " not found";
+
+    return discount;
   },
 
   async setDelete(): Promise<void> {
@@ -165,6 +217,7 @@ let Model = {
   },
 
   async setAlive(idArray: string[]): Promise<void> {
+    
     //
   },
 
@@ -173,33 +226,7 @@ let Model = {
   //   return adapter.getHandlerById(id)
   // },
 
-  getActiveDiscount: async function () {
-    // TODO: here need add worktime support
-    let discounts = await Discount.find({ enable: true });
-
-    discounts = discounts.filter((discounts) => {
-      let start: number, stop: number;
-      // When dates interval not set is active discount
-      if (!discounts.startDate && !discounts.stopDate) return true;
-
-      // When start or stop date not set, is infinity
-      if (!discounts.startDate) discounts.startDate = "0000";
-      if (!discounts.stopDate) discounts.stopDate = "9999";
-
-      if (discounts.startDate) {
-        start = new Date(discounts.startDate).getTime();
-      }
-
-      if (discounts.stopDate) {
-        stop = new Date(discounts.stopDate).getTime();
-      }
-      const now = new Date().getTime();
-      return between(start, stop, now);
-    });
-
-    // return array of active discounts
-    return discounts[0];
-  },
+  
 };
 
 module.exports = {
@@ -209,18 +236,5 @@ module.exports = {
 };
 
 declare global {
-  const Discount: typeof Model & ORMModel<Discount, "configuredDiscount">;
-}
-
-async function checkDiscount() {
-  const discount = await Discount.getActiveDiscount();
-  if (discount) {
-    emitter.emit("core-discount-enabled", discount);
-  } else {
-    emitter.emit("core-discount-disabled");
-  }
-}
-
-function between(from: number, to: number, a: number): boolean {
-  return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
+  const Discount: typeof Model & ORMModel<Discount, "configDiscount">;
 }
