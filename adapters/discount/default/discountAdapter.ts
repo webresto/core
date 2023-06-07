@@ -2,6 +2,7 @@ import Order from "../../../models/Order";
 import AbstractDiscountHandler from "../AbstractDiscount";
 // import Discount from "../../../models/Discount";
 import configuredDiscount from './configuredDiscount';
+import { WorkTimeValidator } from "@webresto/worktime";
 
 export class DiscountAdapter {
   // constructor all discounts isDeleted: true
@@ -17,6 +18,17 @@ export class DiscountAdapter {
     // Order.concept : string
     // when apply => use only discounts from this.discounts
     let discountByConcept: AbstractDiscountHandler[] = await Discount.getAllByConcept([order.concept]);
+
+    let filtredDiscountByConcept = discountByConcept.filter(record => {
+      if (!record.worktime) return true;
+
+      try {
+          return (WorkTimeValidator.isWorkNow({worktime: record.worktime})).workNow
+      } catch (error) {
+          sails.log.error("Discount > helper > error: ",error)
+      }
+    })
+
     // let discountByConcept: AbstractDiscount[] = await Discount.getAll();
 
     // configuredDiscount if has discount in model but not in this.d
@@ -30,7 +42,7 @@ export class DiscountAdapter {
     //   }
     //   //
     // }
-    await this.checkDiscount(order, discountByConcept)
+    await this.checkDiscount(order, filtredDiscountByConcept)
 
   }
 
@@ -40,12 +52,12 @@ export class DiscountAdapter {
       .filter((discount) => {
         return discount.concept.includes(order.concept)
       }).find(async(discount)=>{
-        await discount.condition(order)
+        // await discount.condition(order)
       })
     // await adapterDiscountToApply.action();
 
     let modelDiscountToApply: AbstractDiscountHandler | undefined = Object.values(modelDiscounts).find(async (discount)=>{
-      await discount.condition(order)
+      // await discount.condition(order)
     })
 
     if(adapterDiscountToApply === undefined && modelDiscountToApply === undefined 
@@ -58,12 +70,12 @@ export class DiscountAdapter {
     if(adapterDiscountToApply === undefined && modelDiscountToApply !== undefined){
       // add in this.d configuredDiscount if has discount in model but not in this.d
       await this.addDiscountHandler(new configuredDiscount(modelDiscountToApply))
-      await modelDiscountToApply.action()
+      // await modelDiscountToApply.action()
     }
 
     if(adapterDiscountToApply !== undefined && modelDiscountToApply !== undefined){
       // apply action
-      await adapterDiscountToApply.action();
+      // await adapterDiscountToApply.action();
       return
     }
   }
