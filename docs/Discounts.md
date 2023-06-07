@@ -29,5 +29,5 @@ Bonuses will be added to the order during the order check and when order reach p
 
 ### to do:
 1. Add condition, action, displayGroupDiscount, displayGroupDish abstract methods and implementation
-2. Check DiscountAdapter.apply(...), DiscountAdapter.checkDiscount(...) methods
+2. Check DiscountAdapter.apply(...), DiscountAdapter.checkDiscount(...) DiscountAdapter.add() methods
 3. Add discount to Order
