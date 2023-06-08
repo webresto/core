@@ -7,7 +7,6 @@ import Order from "./Order";
 import AbstractDiscount from "../adapters/discount/AbstractDiscount";
 // import { DiscountAdapter } from "../adapters/discount/default/defaultDiscountAdapter";
 import { Adapter } from "../adapters";
-import { WorkTimeValidator } from "@webresto/worktime";
 // import Decimal from "decimal.js";
 
 let attributes = {
@@ -159,28 +158,6 @@ let Model = {
     if (record.createdByUser) {
       // call recreate of discountHandler
     }
-
-    let result: Discount[] = await Discount.find({});
-
-    // result = result.filter(record => {
-    //   if (!record.worktime) return true;
-    //   try {
-    //       return (WorkTimeValidator.isWorkNow({worktime: record.worktime})).workNow
-    //   } catch (error) {
-    //       sails.log.error("Discount > helper > error: ",error)
-    //   }
-    // })
-
-    result
-      .filter((record) => {
-        if (!record.worktime) return true;
-        try {
-          return WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow; 
-        } catch (error) {
-          sails.log.error("Discount > helper > error: ", error);
-        }
-      })
-
 
     next();
   },

@@ -22,10 +22,10 @@ export default class configuredDiscount extends AbstractDiscountHandler {
         this.productCategoryDiscounts= discount.productCategoryDiscounts;
         this.hash= discount.hash;
         this.worktime= discount.worktime;
-        this.condition = discount.condition;
-        this.action = discount.action;
-        this.displayGroupDiscount = discount.displayGroupDiscount;
-        this.displayGroupDish = discount.displayGroupDish;
+        // this.condition = discount.condition;
+        // this.action = discount.action;
+        // this.displayGroupDiscount = discount.displayGroupDiscount;
+        // this.displayGroupDish = discount.displayGroupDish;
     }
 
     public id: string;
