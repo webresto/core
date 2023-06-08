@@ -1,15 +1,23 @@
 import ORM from "../interfaces/ORM";
 
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-import ORMModel from "../interfaces/ORMModel";
+import ORMModel, { CriteriaQuery } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import User from "../models/User";
 import BonusProgram from "../models/BonusProgram";
 import Decimal from "decimal.js";
+import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 
 let attributes = {
   /** ID */
   id: {
+    type: "string",
+  } as unknown as string,
+
+  /**
+   * ID transaction in 3dparty system
+   * */ 
+  externalId: {
     type: "string",
   } as unknown as string,
 
@@ -43,6 +51,9 @@ let attributes = {
     type: "boolean",
   } as unknown as boolean,
 
+  /** UTC time */
+  time: "string",
+
   bonusProgram: {
     model: "bonusprogram",
     required: true,
@@ -62,7 +73,7 @@ let attributes = {
 
 type attributes = typeof attributes;
 
-interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "id" | "isNegative" | "bonusProgram" | "user">, ORM {}
+interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "isNegative" | "bonusProgram" | "user" | "amount" >, ORM {}
 export default UserBonusTransaction;
 
 let Model = {
@@ -74,12 +85,14 @@ let Model = {
 
       let userBonus = await UserBonusProgram.findOne({ bonusProgram: init.bonusProgram as string, user: init.user });
       
-      if (!userBonus) cb("beforeCreate: Bonus program not found for user");
+      if (!userBonus) return cb("beforeCreate: Bonus program not found for user");
 
+
+      init.isStable = false;
+      
       // set negative by default
       if (init.isNegative === undefined) {
         init.isNegative = true;
-        init.isStable = false;
       }
 
       // If Bonus program not active, should stop
@@ -90,17 +103,17 @@ let Model = {
 
       if (init.isNegative === true) {
         if (bonusProgramAdapterExist && init.user !== undefined && typeof init.user === "string") {
-          if (userBonus.balance < init.amount) {
-            cb(`UserBonusTransaction user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`);
+          if (await UserBonusProgram.checkEnoughToSpend(init.user, init.bonusProgram, init.amount) !== true) {
+            return cb(`UserBonusTransaction beforeCreate > user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`);
           }
         } else {
-          cb("UserBonusTransaction user not defined");
+          return cb("UserBonusTransaction user not defined");
         }
       }
-      cb();
+      return cb();
     } catch (error) {
       sails.log.error(error);
-      cb(error);
+      return cb(error);
     }
   },
 
@@ -110,13 +123,13 @@ let Model = {
       const bonusProgram = await BonusProgram.findOne({ id: record.bonusProgram as string });
       const bonusProgramAdapter = await BonusProgram.getAdapter(bonusProgram.adapter);
       let userBonus = await UserBonusProgram.findOne({ bonusProgram: bonusProgram.id as string, user: record.user });
-      if (!userBonus) cb("afterCreate: Bonus program not found for user");
+      if (!userBonus) return cb("afterCreate: Bonus program not found for user");
       
       
       if (bonusProgramAdapter !== undefined) {
         
-        if(record.isNegative === true && userBonus.balance < record.amount ){
-          cb(`UserBonusTransaction user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
+        if(record.isNegative === true && await UserBonusProgram.checkEnoughToSpend(record.user, record.bonusProgram, record.amount) !== true ){
+          return cb(`UserBonusTransaction afterCreate > user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
         }
 
         let calculate = new Decimal(userBonus.balance);
@@ -133,23 +146,27 @@ let Model = {
         await UserBonusProgram.updateOne({ id: userBonus.id }, { balance: newBalance });
 
         // Exec write unstabled transaction in external system
+        let bonusProgramAdapterTransaction = {} as BonusTransaction;
         if (record.isStable !== true) {
           try {
-            await bonusProgramAdapter.writeTransaction(bonusProgram, user, record);
+           bonusProgramAdapterTransaction = await bonusProgramAdapter.writeTransaction(bonusProgram, user, record);
           } catch (error) {
-            if ((await Settings.get("DISABLE_BONUSPROGRAM_ON_ERROR")) === true) {
+            if ((await Settings.get("DISABLE_BONUS_PROGRAM_ON_FAIL")) === true) {
               await BonusProgram.updateOne({ id: bonusProgram.id }, { enable: false });
             }
-           cb(error);
+            return cb(error);
           }
           // Set IsStable
-          await UserBonusTransaction.updateOne({ id: record.id }, { isStable: true });
+          if(bonusProgramAdapterTransaction && !bonusProgramAdapterTransaction.externalId){
+            return cb();
+          }
+          await UserBonusTransaction.updateOne({ id: record.id }, { externalId: bonusProgramAdapterTransaction.externalId ,isStable: true });
         }
       }
-      cb();
+      return cb();
     } catch (error) {
       sails.log.error(error);
-      cb(error);
+      return cb(error);
     }
   },
 
@@ -170,8 +187,8 @@ let Model = {
       throw "update bonus transaction not allowed";
     }
     if (Object.keys(record).length !== 2) throw "only isStable allwed for update";
-    cb();
-  },
+    return cb();
+  }
 };
 /**
  * When paying or accruing a transaction, core write it to the UserBonusTransaction model.

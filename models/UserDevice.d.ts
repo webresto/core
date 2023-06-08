@@ -25,6 +25,10 @@ interface UserDevice extends RequiredField<OptionalAll<attributes>, null>, ORM {
 export default UserDevice;
 declare let Model: {
     beforeUpdate(record: UserDevice, cb: (err?: string) => void): void;
+    /**
+     * For each request from user device to core
+     */
+    afterUpdate(record: UserDevice, cb: (err?: string) => void): void;
     beforeCreate(record: any, cb: (err?: string) => void): void;
     /** Method set lastActiity  for device */
     setActivity(criteria: CriteriaQuery<UserDevice>, client?: {

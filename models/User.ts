@@ -193,12 +193,18 @@ let Model = {
       }
     }
 
-    cb();
+    return cb();
   },
 
   async afterCreate(record: User, cb:  (err?: string) => void) {
     emitter.emit('core:user-after-create', record);
-    await User.checkRegisteredInBonusPrograms(record.id);
+    
+    // try {
+    //   User.checkRegisteredInBonusPrograms(record.id);
+    // } catch (error) {
+    //   sails.log.error(error)
+    // }
+    
     return cb();
   },
 
@@ -392,6 +398,8 @@ let Model = {
     }
 
     return await User.authDevice(user.id, deviceId, deviceName, userAgent, IP);
+
+    // TODO: getBalance BonusProgram
   },
 
 
@@ -405,7 +413,21 @@ let Model = {
     check all active bonus program for user
   */
   async checkRegisteredInBonusPrograms(userId: string): Promise<void> {
-    // check all active bonus program for user
+    let user = await User.findOne({id: userId})
+    if (!user) throw `User not found`
+    const bps = await BonusProgram.getAvailable()
+    for (let bp of bps) {
+      let adapter = await BonusProgram.getAdapter(bp.adapter);
+      if (adapter.isRegistred(user)) {
+        // Not need await finish sync
+        UserBonusProgram.sync(userId, bp.id);
+      } else {
+        // Registration if Bonus program has automatic registration otion
+        if(bp.automaticUserRegistration){
+          await UserBonusProgram.registration(user, bp.adapter);
+        }
+      }
+    } 
   },
 };
 

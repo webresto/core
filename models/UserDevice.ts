@@ -49,6 +49,14 @@ let Model = {
     cb();
   },
 
+  /**
+   * For each request from user device to core
+   */
+  afterUpdate(record: UserDevice, cb:  (err?: string) => void){
+    UserBonusProgram.syncAll(record.user as string);
+    return cb();
+  },
+
   beforeCreate(record: any, cb:  (err?: string) => void) {
     record.lastActivity = Date.now();
     if (!record.id) {

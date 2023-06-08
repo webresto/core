@@ -3,11 +3,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DiscountAdapter = void 0;
 // import Discount from "../../../models/Discount";
 const configuredDiscount_1 = require("./configuredDiscount");
+const worktime_1 = require("@webresto/worktime");
 class DiscountAdapter {
     static async apply(order) {
         // Order.concept : string
         // when apply => use only discounts from this.discounts
         let discountByConcept = await Discount.getAllByConcept([order.concept]);
+        let filtredDiscountByConcept = discountByConcept.filter(record => {
+            if (!record.worktime)
+                return true;
+            try {
+                return (worktime_1.WorkTimeValidator.isWorkNow({ worktime: record.worktime })).workNow;
+            }
+            catch (error) {
+                sails.log.error("Discount > helper > error: ", error);
+            }
+        });
         // let discountByConcept: AbstractDiscount[] = await Discount.getAll();
         // configuredDiscount if has discount in model but not in this.d
         // isJoint=false discount go first (only one)
@@ -20,18 +31,18 @@ class DiscountAdapter {
         //   }
         //   //
         // }
-        await this.checkDiscount(order, discountByConcept);
+        await this.checkDiscount(order, filtredDiscountByConcept);
     }
     static async checkDiscount(order, modelDiscounts) {
         let adapterDiscountToApply = Object.values(this.discounts)
             .filter((discount) => {
             return discount.concept.includes(order.concept);
         }).find(async (discount) => {
-            await discount.condition(order);
+            // await discount.condition(order)
         });
         // await adapterDiscountToApply.action();
         let modelDiscountToApply = Object.values(modelDiscounts).find(async (discount) => {
-            await discount.condition(order);
+            // await discount.condition(order)
         });
         if (adapterDiscountToApply === undefined && modelDiscountToApply === undefined
             || adapterDiscountToApply !== undefined && modelDiscountToApply === undefined) {
@@ -42,11 +53,11 @@ class DiscountAdapter {
         if (adapterDiscountToApply === undefined && modelDiscountToApply !== undefined) {
             // add in this.d configuredDiscount if has discount in model but not in this.d
             await this.addDiscountHandler(new configuredDiscount_1.default(modelDiscountToApply));
-            await modelDiscountToApply.action();
+            // await modelDiscountToApply.action()
         }
         if (adapterDiscountToApply !== undefined && modelDiscountToApply !== undefined) {
             // apply action
-            await adapterDiscountToApply.action();
+            // await adapterDiscountToApply.action();
             return;
         }
     }

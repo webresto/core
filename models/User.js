@@ -143,11 +143,15 @@ let Model = {
                 throw `User phone is required`;
             }
         }
-        cb();
+        return cb();
     },
     async afterCreate(record, cb) {
         emitter.emit('core:user-after-create', record);
-        await User.checkRegisteredInBonusPrograms(record.id);
+        // try {
+        //   User.checkRegisteredInBonusPrograms(record.id);
+        // } catch (error) {
+        //   sails.log.error(error)
+        // }
         return cb();
     },
     /**
@@ -323,6 +327,7 @@ let Model = {
             await User.setPassword(user.id, OTP, null, true);
         }
         return await User.authDevice(user.id, deviceId, deviceName, userAgent, IP);
+        // TODO: getBalance BonusProgram
     },
     async authDevice(userId, deviceId, deviceName, userAgent, IP) {
         let userDevice = await UserDevice.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
@@ -333,7 +338,23 @@ let Model = {
       check all active bonus program for user
     */
     async checkRegisteredInBonusPrograms(userId) {
-        // check all active bonus program for user
+        let user = await User.findOne({ id: userId });
+        if (!user)
+            throw `User not found`;
+        const bps = await BonusProgram.getAvailable();
+        for (let bp of bps) {
+            let adapter = await BonusProgram.getAdapter(bp.adapter);
+            if (adapter.isRegistred(user)) {
+                // Not need await finish sync
+                UserBonusProgram.sync(userId, bp.id);
+            }
+            else {
+                // Registration if Bonus program has automatic registration otion
+                if (bp.automaticUserRegistration) {
+                    await UserBonusProgram.registration(user, bp.adapter);
+                }
+            }
+        }
     },
 };
 module.exports = {

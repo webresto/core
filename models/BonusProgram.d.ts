@@ -22,6 +22,7 @@ declare let attributes: {
     detailInfoLink: string;
     /** user option */
     enable: boolean;
+    automaticUserRegistration: boolean;
     customData: string | {
         [key: string]: string | number | boolean;
     };

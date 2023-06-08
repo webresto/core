@@ -7,7 +7,7 @@ export type ConfigBonusProgramAdapter = {
 interface optionalId {
     id?: string;
 }
-export interface BonusTransaction extends Pick<UserBonusTransaction, "isNegative" | "group" | "amount" | "customData">, optionalId {
+export interface BonusTransaction extends Pick<UserBonusTransaction, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter">, optionalId {
 }
 export default abstract class BonusProgramAdapter {
     id: string;
@@ -44,12 +44,12 @@ export default abstract class BonusProgramAdapter {
     /**
      * write user transaction
      */
-    abstract writeTransaction(bonusProgram: BonusProgram, user: User, userBonusTransaction: UserBonusTransaction): Promise<void>;
+    abstract writeTransaction(bonusProgram: BonusProgram, user: User, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction>;
     /**
      * Return user
      * @param afterTime - UNIX seconds
      */
-    abstract getTransactions(user: User, afterTime: string, limit?: number, skip?: number): Promise<BonusTransaction[]>;
+    abstract getTransactions(user: User, afterTime: Date, limit?: number, skip?: number): Promise<BonusTransaction[]>;
     /**
      * A method for creating and obtaining an existing Payment Adapter
      * @param params - Parameters for initialization

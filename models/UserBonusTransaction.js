@@ -7,6 +7,12 @@ let attributes = {
     id: {
         type: "string",
     },
+    /**
+     * ID transaction in 3dparty system
+     * */
+    externalId: {
+        type: "string",
+    },
     /** Type of bonuses (default: true)
      * came is incoming (positive transaction)
      * gone is outgoin (negative transaction)
@@ -31,6 +37,8 @@ let attributes = {
     isStable: {
         type: "boolean",
     },
+    /** UTC time */
+    time: "string",
     bonusProgram: {
         model: "bonusprogram",
         required: true,
@@ -49,11 +57,11 @@ let Model = {
             }
             let userBonus = await UserBonusProgram.findOne({ bonusProgram: init.bonusProgram, user: init.user });
             if (!userBonus)
-                cb("beforeCreate: Bonus program not found for user");
+                return cb("beforeCreate: Bonus program not found for user");
+            init.isStable = false;
             // set negative by default
             if (init.isNegative === undefined) {
                 init.isNegative = true;
-                init.isStable = false;
             }
             // If Bonus program not active, should stop
             let bonusProgram = await BonusProgram.findOne({ id: init.bonusProgram });
@@ -62,19 +70,19 @@ let Model = {
                 cb(`Bonus program not alived`);
             if (init.isNegative === true) {
                 if (bonusProgramAdapterExist && init.user !== undefined && typeof init.user === "string") {
-                    if (userBonus.balance < init.amount) {
-                        cb(`UserBonusTransaction user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`);
+                    if (await UserBonusProgram.checkEnoughToSpend(init.user, init.bonusProgram, init.amount) !== true) {
+                        return cb(`UserBonusTransaction beforeCreate > user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`);
                     }
                 }
                 else {
-                    cb("UserBonusTransaction user not defined");
+                    return cb("UserBonusTransaction user not defined");
                 }
             }
-            cb();
+            return cb();
         }
         catch (error) {
             sails.log.error(error);
-            cb(error);
+            return cb(error);
         }
     },
     async afterCreate(record, cb) {
@@ -84,10 +92,10 @@ let Model = {
             const bonusProgramAdapter = await BonusProgram.getAdapter(bonusProgram.adapter);
             let userBonus = await UserBonusProgram.findOne({ bonusProgram: bonusProgram.id, user: record.user });
             if (!userBonus)
-                cb("afterCreate: Bonus program not found for user");
+                return cb("afterCreate: Bonus program not found for user");
             if (bonusProgramAdapter !== undefined) {
-                if (record.isNegative === true && userBonus.balance < record.amount) {
-                    cb(`UserBonusTransaction user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
+                if (record.isNegative === true && await UserBonusProgram.checkEnoughToSpend(record.user, record.bonusProgram, record.amount) !== true) {
+                    return cb(`UserBonusTransaction afterCreate > user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
                 }
                 let calculate = new decimal_js_1.default(userBonus.balance);
                 if (record.isNegative === true) {
@@ -101,25 +109,29 @@ let Model = {
                 // First write transaction
                 await UserBonusProgram.updateOne({ id: userBonus.id }, { balance: newBalance });
                 // Exec write unstabled transaction in external system
+                let bonusProgramAdapterTransaction = {};
                 if (record.isStable !== true) {
                     try {
-                        await bonusProgramAdapter.writeTransaction(bonusProgram, user, record);
+                        bonusProgramAdapterTransaction = await bonusProgramAdapter.writeTransaction(bonusProgram, user, record);
                     }
                     catch (error) {
-                        if ((await Settings.get("DISABLE_BONUSPROGRAM_ON_ERROR")) === true) {
+                        if ((await Settings.get("DISABLE_BONUS_PROGRAM_ON_FAIL")) === true) {
                             await BonusProgram.updateOne({ id: bonusProgram.id }, { enable: false });
                         }
-                        cb(error);
+                        return cb(error);
                     }
                     // Set IsStable
-                    await UserBonusTransaction.updateOne({ id: record.id }, { isStable: true });
+                    if (bonusProgramAdapterTransaction && !bonusProgramAdapterTransaction.externalId) {
+                        return cb();
+                    }
+                    await UserBonusTransaction.updateOne({ id: record.id }, { externalId: bonusProgramAdapterTransaction.externalId, isStable: true });
                 }
             }
-            cb();
+            return cb();
         }
         catch (error) {
             sails.log.error(error);
-            cb(error);
+            return cb(error);
         }
     },
     beforeDestroy() {
@@ -140,8 +152,8 @@ let Model = {
         }
         if (Object.keys(record).length !== 2)
             throw "only isStable allwed for update";
-        cb();
-    },
+        return cb();
+    }
 };
 /**
  * When paying or accruing a transaction, core write it to the UserBonusTransaction model.

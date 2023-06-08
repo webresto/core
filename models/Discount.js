@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const hashCode_1 = require("../libs/hashCode");
-const worktime_1 = require("@webresto/worktime");
 // import Decimal from "decimal.js";
 let attributes = {
     /** TODO: show discounts to dish and orders */
@@ -102,26 +101,6 @@ let Model = {
         if (record.createdByUser) {
             // call recreate of discountHandler
         }
-        let result = await Discount.find({});
-        // result = result.filter(record => {
-        //   if (!record.worktime) return true;
-        //   try {
-        //       return (WorkTimeValidator.isWorkNow({worktime: record.worktime})).workNow
-        //   } catch (error) {
-        //       sails.log.error("Discount > helper > error: ",error)
-        //   }
-        // })
-        result
-            .filter((record) => {
-            if (!record.worktime)
-                return true;
-            try {
-                return worktime_1.WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow;
-            }
-            catch (error) {
-                sails.log.error("Discount > helper > error: ", error);
-            }
-        });
         next();
     },
     async afterCreate(record, next) {

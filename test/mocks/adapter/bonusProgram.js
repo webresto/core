@@ -1,44 +1,56 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MockBonusProgramAdapter = void 0;
+exports.InMemoryBonusProgramAdapter = void 0;
 const BonusProgramAdapter_1 = require("../../../adapters/bonusprogram/BonusProgramAdapter");
-class MockBonusProgramAdapter extends BonusProgramAdapter_1.default {
+class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
     constructor(config) {
         super(config);
+        this.transactions = new Map();
+        this.users = new Map();
         this.name = "test bonus adapter name";
         this.adapter = "test";
         this.exchangeRate = 10;
         this.coveragePercentage = 0.5;
         this.decimals = 1;
-        this.description = "Mock for BonusProgramAdapter";
+        this.description = "In-memory BonusProgramAdapter";
     }
     async registration(user) {
-        return;
+        if (!this.users.has(user.id)) {
+            this.users.set(user.id, user);
+            this.transactions.set(user.id, []);
+        }
     }
-    delete(user) {
-        throw new Error("Method not implemented.");
+    async delete(user) {
+        if (this.users.has(user.id)) {
+            this.users.delete(user.id);
+            this.transactions.delete(user.id);
+        }
     }
-    isRegistred(user) {
-        throw new Error("Method not implemented.");
+    async isRegistred(user) {
+        return this.users.has(user.id);
     }
-    getBalance(user) {
-        throw new Error("Method not implemented.");
+    async getBalance(user) {
+        const transactions = this.transactions.get(user.id) || [];
+        return transactions.reduce((total, transaction) => total + (transaction.isNegative ? -transaction.amount : transaction.amount), 0);
     }
-    getTransactions(user, afterTime, limit, skip) {
-        throw new Error("Method not implemented.");
+    async getTransactions(user, afterTime, limit = 0, skip = 0) {
+        const transactions = this.transactions.get(user.id) || [];
+        return transactions.filter((transaction) => new Date(transaction.time) > afterTime).slice(skip, limit || undefined);
     }
-    // Implement required methods here
-    async writeTransaction(bonusProgram, user, transaction) {
-        // Your logic here
+    async writeTransaction(bonusProgram, user, userBonusTransaction) {
+        if (!this.users.has(user.id)) {
+            throw new Error("User not found");
+        }
+        const transaction = {
+            ...userBonusTransaction,
+            id: `${Date.now()}-${Math.random()}`,
+            time: new Date().toISOString(),
+        };
+        this.transactions.get(user.id).push(transaction);
+        return transaction;
     }
-    async readTransaction(bonusProgram, user) {
-        // Your logic here
-    }
-    async balance(user, bonusProgram) {
-        // Your logic here
-    }
-    async applyBonus(bonusProgram, user, order) {
-        // Your logic here
+    setORMId(id) {
+        this.id = id;
     }
 }
-exports.MockBonusProgramAdapter = MockBonusProgramAdapter;
+exports.InMemoryBonusProgramAdapter = InMemoryBonusProgramAdapter;

@@ -1,5 +1,5 @@
 import Decimal from "decimal.js";
-import { MockBonusProgramAdapter } from "../../mocks/adapter/bonusProgram";
+import { InMemoryBonusProgramAdapter } from "../../mocks/adapter/bonusProgram";
 import { expect } from "chai";
 import { customer, address } from "../../mocks/customer"
 import { SpendBonus } from "../../../interfaces/SpendBonus";
@@ -12,26 +12,30 @@ let user: User;
 let bp: BonusProgramAdapter;
 let bonusProgram: BonusProgram;
 let order1: Order;
-describe("Bonus program adapter", function () {
+describe("bonus program adapter", function () {
   this.timeout(60000)
 
   before(async function() {
-    var testBA = new MockBonusProgramAdapter();
-    await BonusProgram.alive(testBA);
-    bonusProgram = (await BonusProgram.update({adapter: "test"},{enable: true}).fetch())[0]
-    user = await User.create({ id: "handletestapply-bonus-id", login: "7723555", lastName: 'TESThandleTestApply', firstName: "test", phone: { code: "77", number: "23555" } }).fetch();
-    bp = await BonusProgram.getAdapter("test")
-    let userBP = await UserBonusProgram.registration(user, "test");
-    await UserBonusTransaction.create({bonusProgram: bp.id, user: user.id, isStable: true, amount: 500, isNegative: false}).fetch()
+    try {
+      var testBA = new InMemoryBonusProgramAdapter();
+      await BonusProgram.alive(testBA);
+      bonusProgram = (await BonusProgram.update({adapter: "test"},{enable: true}).fetch())[0]
+      user = await User.create({ id: "handletestapply-bonus-id", login: "7723555", lastName: 'TESThandleTestApply', firstName: "test", phone: { code: "77", number: "23555" } }).fetch();
+      bp = await BonusProgram.getAdapter("test")
+      let userBP = await UserBonusProgram.registration(user, "test");
+      let tranct = await UserBonusTransaction.create({bonusProgram: bp.id, user: user.id, isStable: true, amount: 500, isNegative: false}).fetch()
+    } catch (error) {
+      console.error(error)
+    }
   });
 
-  it("Bonus user must be registered", async () => {
+  it("bonus user must be registered", async () => {
     let userBP = await UserBonusProgram.findOne({user: user.id});
     expect(userBP.bonusProgram).to.equal(bonusProgram.id);
     expect(userBP.balance).to.equal(500);
   });
 
-  it("apply bonuses in order on check", async () => {
+  it("apply bonus in order on check", async () => {
     const dishes = await Dish.find({});
     order1 = await Order.create({id: "test--apply--bonus", user: user.id}).fetch();
     

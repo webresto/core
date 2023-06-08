@@ -242,11 +242,11 @@ let Model = {
         return dish;
     },
     /**
-     * Проверяет существует ли блюдо, если не сущестует, то создаёт новое и возвращает его. Если существует, то сверяет
-     * хеш существующего блюда и новых данных, если они идентифны, то сразу же отдаёт блюда, если нет, то обновляет его данные
-     * на новые
+     * Checks whether the dish exists, if it does not exist, then creates a new one and returns it.If exists, then checks
+     * Hesh of the existing dish and new data, if they are identical, then immediately gives the dishes, if not, it updates its data
+     * for new ones
      * @param values
-     * @return обновлённое или созданное блюдо
+     * @return Updated or created dish
      */
     async createOrUpdate(values) {
         let hash = (0, hashCode_1.default)(JSON.stringify(values));

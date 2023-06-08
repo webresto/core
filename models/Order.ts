@@ -503,7 +503,7 @@ let Model = {
       if (order.user && typeof order.user === "string") {
           // Fetch the bonus program for this bonus spend
           const bonusProgram = await BonusProgram.findOne({id: spendBonus.bonusProgramId});
-    
+          const bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? "bonus_from_order_total";
           let amountToDeduct = 0;
           switch (bonusSpendingStrategy) {
             case 'bonus_from_order_total':

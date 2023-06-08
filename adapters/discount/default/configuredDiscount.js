@@ -20,10 +20,10 @@ class configuredDiscount extends AbstractDiscount_1.default {
         this.productCategoryDiscounts = discount.productCategoryDiscounts;
         this.hash = discount.hash;
         this.worktime = discount.worktime;
-        this.condition = discount.condition;
-        this.action = discount.action;
-        this.displayGroupDiscount = discount.displayGroupDiscount;
-        this.displayGroupDish = discount.displayGroupDish;
+        // this.condition = discount.condition;
+        // this.action = discount.action;
+        // this.displayGroupDiscount = discount.displayGroupDiscount;
+        // this.displayGroupDish = discount.displayGroupDish;
     }
     condition(order) {
         throw new Error("Method not implemented.");

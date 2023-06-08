@@ -70,9 +70,7 @@ describe("User", function () {
 
       if (login.id !== "deviceId-test" || login.name !== "device-name") throw `bad login user device`
 
-      login = await User.login("778899", null, "deviceId-test3", "device-name3", otp.password, undefined, "agent", "IP");
-      console.log(login)
-      
+      login = await User.login("778899", null, "deviceId-test3", "device-name3", otp.password, undefined, "agent", "IP");      
     });
 
 

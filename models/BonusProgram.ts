@@ -51,6 +51,10 @@ let attributes = {
     required: true,
   } as unknown as boolean,
 
+  automaticUserRegistration: {
+    type: "boolean",
+  } as unknown as boolean,
+
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
@@ -77,6 +81,10 @@ let Model = {
 
     if (!init.exchangeRate) {
       init.exchangeRate = 1;
+    }
+
+    if(!init.automaticUserRegistration) {
+      init.automaticUserRegistration = process.env.NODE_ENV !== "production";
     }
 
     // decimals
@@ -137,7 +145,7 @@ let Model = {
     });
     
     if (bonusProgram) {
-      if (bonusProgram.enable !== true) throw `bonusProgram ${adapterOrId} is disabled`;
+      if (bonusProgram.enable !== true) throw `getAdapter > bonusProgram ${adapterOrId} is disabled`;
 
       if(alivedBonusPrograms[bonusProgram.adapter] !== undefined) {
         return alivedBonusPrograms[bonusProgram.adapter]

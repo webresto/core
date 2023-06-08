@@ -14,6 +14,21 @@ The Bonus Program should be implemented as an adapter from the abstract class `@
 
 > ⚠️ If yours is in production mode, then the adapter will be turned off when you turn it on for the first time
 
+> ⚠️ Automatic user registration `automaticUserRegistration` (default for production: `false`)
+
+> ⚠️ Bonuses will be synchronized every time the user is active but no more than `TIME_TO_SYNC_BONUSES_IN_MINUTES` (default 2 minutes)
+
+
+## Check enough balance cases
+
+Every time when there is a write-off of bonuses, the bonus program will be forcibly synchronized. And a check will be performed in the external system and, depending on the settings, a decision will be made on spending bonuses
+
+
+- If userBalance equals externalBalance and externalBalance equals amount, the function returns true.
+- If userBalance doesn't equal externalBalance and the setting DISABLE_BONUS_PROGRAM_ON_FAIL is enabled, it disables the bonus program and returns false
+- If externalBalance is greater than amount and the setting ONLY_EXTERNAL_BONUS_SPEND_CHECK is enabled, the function returns true.
+- If externalBalance and userBalance are both greater than amount, it logs an error and returns true.
+
 ## Deducting Bonus during Order
 
 During the ordering process, bonuses can be deducted at the order check stage. For this, an object should be passed to the 'check' function, specifying the bonus amount to be deducted:
@@ -74,6 +89,5 @@ For a delivery site that sends orders to an external system, a flag should be se
 ### to do:
 1. check isRegistred after create new user by FLAG settings
 2. Implement syncronization transaction
-3. delete user & bonus program
-4. recheck user balance, by util recheck transaction user
-5. Meal concepts and exceptions
+3. recheck user balance, by util recheck transaction user
+4. dishes and groups concepts and exceptions
