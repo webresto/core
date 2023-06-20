@@ -270,7 +270,7 @@ let Model = {
     emitter.emit('core:group-get-menu', groups, concept);
 
     // Default logic
-    if (!groups) {
+    if (!groups.length) {
       
       // TODO: Here should be find top level concept menu by Settings
       groups = await Group.find({
