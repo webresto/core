@@ -1,5 +1,5 @@
 import ORM from "../interfaces/ORM";
-import ORMModel, { CriteriaQuery } from "../interfaces/ORMModel";
+import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import User from "../models/User";
 declare let attributes: {

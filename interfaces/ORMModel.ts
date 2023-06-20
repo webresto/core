@@ -1,44 +1,57 @@
-import { WaterlinePromise, CRUDBuilder, Model, UpdateBuilder, Callback } from "waterline";
-import { OptionalAll, RequiredField, NonPrimitiveKeys, TypeOrArray } from "../interfaces/toolsTS"
+import { RequiredField, NonPrimitiveKeys, TypeOrArray } from "../interfaces/toolsTS"
+
+import { WaterlinePromise, CRUDBuilder, UpdateBuilder, LifecycleCallbacks } from "waterline";
+export type Callback<T> = (err: Error | null, result: T) => void;
+
+export type DataStore = {
+  manager: any,
+  config: any,
+  driver: any,
+  schema: any
+}
 
 type or<T> = {
   or?: WhereCriteriaQuery<T>[]
 }
 
+type notEqual<T> = {
+  '!=': T;
+};
+
 type not<T> = {
-  "!=": T
+  "!?": T
+  "!="?: T
 }
 
-type lessThan<F> = {
-  "<": F
+type lessThan<T> = {
+  "<": T
 }
 
-type lessThanOrEqual<F> = {
-  "<=": F
+type lessThanOrEqual<T> = {
+  "<=": T
 }
 
-type greaterThan<F> = {
-  ">": F
+type greaterThan<T> = {
+  ">": T
 }
 
-type greaterThanOrEqual<F> = {
-  ">=": F
+type greaterThanOrEqual<T> = {
+  ">=": T
 }
 
 
-type nin<F> = {
-  nin: F[]
+type nin<T> = {
+  nin: T[]
 }
 
-type _in<F> = {
-  in: F[]
+type _in<T> = {
+  in: T[]
 }
 
 
 type contains = {
   contains: string
 }
-
 
 type startsWith = {
   startsWith: string
@@ -49,21 +62,57 @@ type endsWith = {
   endsWith: string
 }
 
+type SortDirection = 'asc' | 'desc';
+
+type SortCriteria<T> = {
+  [P in keyof T]?: SortDirection;
+};
+
 export type CriteriaQuery<T> = {
-  where?: WhereCriteriaQuery<T> | or<T>
-  limit?: number
-  skip?: number
-  sort?: string | {[key: string]: string} | {[key: string]: string}[]
-} | WhereCriteriaQuery<T>
+  where?: WhereCriteriaQuery<T> | or<T>;
+  limit?: number;
+  skip?: number;
+  sort?: string | SortCriteria<T> | SortCriteria<T>[];
+} | WhereCriteriaQuery<T>;
+
+
+type notIn<T> = {
+  "!=": T[]
+}
 
 export type WhereCriteriaQuery<T> = {
-  [P in keyof T]?: T[P] | T[P][] | not<T[P]> | lessThan<T[P]> | lessThanOrEqual<T[P]> | greaterThan<T[P]> | greaterThanOrEqual<T[P]> | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | lessThan<T[P][]> | lessThanOrEqual<T[P][]> | greaterThan<T[P][]> | greaterThanOrEqual<T[P][]> | or<T>;
-}
+  [P in keyof T]?: T[P] | 
+  T[P][] | 
+  not<T[P]> | 
+  lessThan<T[P]> | 
+  lessThan<T[P][]> | 
+  lessThanOrEqual<T[P]> | 
+  lessThanOrEqual<T[P][]> | 
+  greaterThanOrEqual<T[P]> | 
+  greaterThanOrEqual<T[P][]> | 
+  greaterThan<T[P]> | 
+  greaterThan<T[P][]> | 
+  notEqual<T[P]> |
+  notEqual<T[P]>[] |
+  _in<T[P]> | 
+  nin<T[P]> | 
+  contains | 
+  startsWith | 
+  endsWith | 
+  not<T[P][]> | 
+  or<T>
+};
+
+
 
 type collectionMember = {
   members(childIds: string[]): Promise<void>;
 };
 
+
+type UpdateSetBuilder<T> = {
+  set: (changes: Partial<T>) => WaterlinePromise<T[]>
+}
 
 type QueryBuilder<T> = WaterlinePromise<T> & {
   where(condition: any): QueryBuilder<T>;
@@ -86,10 +135,15 @@ type QueryBuilder<T> = WaterlinePromise<T> & {
  * @template M Model object
  * @template C Fields required for create new instance
  */
-export default interface ORMModel<M, C extends keyof M> {
+/**
+ * Waterline model
+ * @template M Model object
+ * @template C Fields required for create new instance
+ */
+export interface ORMModel<M, C extends keyof M> {
 
-  create?(params: RequiredField<OptionalAll<M>,C>): CRUDBuilder<M>
-  create?(params: RequiredField<OptionalAll<M>,C>[]): CRUDBuilder<M[]>;
+  create?(params: RequiredField<Partial<M>,C>): CRUDBuilder<M>
+  create?(params: RequiredField<Partial<M>,C>[]): CRUDBuilder<M[]>;
   createEach?(params: M[]): CRUDBuilder<M[]>;
 
   find?(criteria?: CriteriaQuery<M>): QueryBuilder<M[]>;
@@ -99,11 +153,13 @@ export default interface ORMModel<M, C extends keyof M> {
   findOne?(criteria?: number): QueryBuilder<M>;
   findOne?(criteria?: string): QueryBuilder<M>;
   
-  findOrCreate?(criteria?: CriteriaQuery<M>, values?: OptionalAll<M>): QueryBuilder<M>;
+  findOrCreate?(criteria?: CriteriaQuery<M>, values?: Partial<M>): QueryBuilder<M>;
 
-  update?(criteria: CriteriaQuery<M>, changes: OptionalAll<M>): UpdateBuilder<M[]>;
-  // update?(criteria: CriteriaQuery<M>, changes: OptionalAll<M[]>): UpdateBuilder<M[]>;
-  updateOne?(criteria: CriteriaQuery<M>, changes: OptionalAll<M>): UpdateBuilder<M>;
+  update?(criteria: CriteriaQuery<M>, changes: Partial<M>): UpdateBuilder<M[]>;
+  updateOne?(criteria: CriteriaQuery<M>, changes: Partial<M>): UpdateBuilder<M>;
+  
+  update?(criteria: CriteriaQuery<M>): UpdateSetBuilder<M>;
+  updateOne?(criteria: CriteriaQuery<M>): UpdateSetBuilder<M>;
 
   destroy?(criteria: CriteriaQuery<M>): CRUDBuilder<M[]>;
   destroy?(criteria: CriteriaQuery<M>[]): CRUDBuilder<M[]>;
@@ -116,29 +172,39 @@ export default interface ORMModel<M, C extends keyof M> {
   query?(sqlQuery: string, data: any, cb: Callback<any>): void;
   native?(cb: (err: Error, collection: any) => void): void;
 
-
-
-  // MODO: check stream ??
   stream?(criteria: any, writeEnd: any): NodeJS.WritableStream | Error;   // .stream() await Something.stream(criteria) .eachRecord(async (record)=>{}); https://sailsjs.com/documentation/reference/waterline-orm/models/stream
 
-  // https://sailsjs.com/documentation/reference/waterline-orm/models/add-to-collection
   addToCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: string[]): Promise<void> 
   addToCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: number[]): Promise<void>
   addToCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>): collectionMember
    
-  // https://sailsjs.com/documentation/reference/waterline-orm/models/remove-from-collection
   removeFromCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: string[]): Promise<void> 
   removeFromCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: number[]): Promise<void>
   removeFromCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>): collectionMember
   
-  // https://sailsjs.com/documentation/reference/waterline-orm/models/replace-collection
   replaceCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: string[]): Promise<void> 
   replaceCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>, childIds: number[]): Promise<void>
   replaceCollection?(parentId: string | number | string[] | number[], association: NonPrimitiveKeys<M>): collectionMember
 
-  // .createEach() https://sailsjs.com/documentation/reference/waterline-orm/models/create-each
-  // .getDatastore() https://sailsjs.com/documentation/reference/waterline-orm/models/get-datastore
-  // .sum() https://sailsjs.com/documentation/reference/waterline-orm/models/sum
-  // .validate() https://sailsjs.com/documentation/reference/waterline-orm/models/validate
-  // .query() https://sailsjs.com/documentation/reference/waterline-orm/models/query
+
+  createEach?(params: Array<Partial<M>>): WaterlinePromise<M[]>;
+
+  getDatastore?(): WaterlinePromise<DataStore>;
+
+  sum?(attribute: keyof M): WaterlinePromise<number | null>;
+
+  validate?(params: Partial<M>): WaterlinePromise<void>;
+
+  query?(sqlQuery: string, cb: Callback<any>): void;
+  query?(sqlQuery: string, data: any, cb: Callback<any>): void;
+
+
+  archive?(criteria: CriteriaQuery<M>): WaterlinePromise<M[]>;
+  archived?(): WaterlinePromise<M[]>;
+  lease?(leaseCriteria: any): WaterlinePromise<M>;
+}
+
+
+export type ModelMethods = LifecycleCallbacks & {
+  [key:string]: Function
 }

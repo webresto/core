@@ -1,6 +1,7 @@
 import { WorkTime } from "@webresto/worktime";
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import hashCode from "../libs/hashCode";
 import Order from "./Order";

@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+
 import Dish from "../models/Dish";
 import Order from "../models/Order";
 import { Modifier, OrderModifier } from "../interfaces/Modifier";

@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+
 import { v4 as uuid } from "uuid";
 import { WorkTime } from "@webresto/worktime";
 

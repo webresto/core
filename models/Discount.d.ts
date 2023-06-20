@@ -1,6 +1,6 @@
 import { WorkTime } from "@webresto/worktime";
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import AbstractDiscount from "../adapters/discount/AbstractDiscount";
 declare let attributes: {

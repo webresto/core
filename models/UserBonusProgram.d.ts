@@ -1,5 +1,5 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import User from "../models/User";
 import BonusProgram from "./BonusProgram";
 declare let attributes: {

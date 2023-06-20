@@ -1,4 +1,5 @@
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
 

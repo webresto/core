@@ -1,5 +1,5 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import Order from "../models/Order";
 import { OptionalAll } from "../interfaces/toolsTS";
 import User from "../models/User";

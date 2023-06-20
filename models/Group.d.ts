@@ -1,4 +1,4 @@
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
@@ -25,7 +25,9 @@ declare let attributes: {
     dishes: Dish[];
     parentGroup: any;
     childGroups: string[] | Group[];
-    /** Изображения */
+    /** Icon */
+    icon: MediaFile;
+    /** Images */
     images: MediaFile[];
     /** Плейсхолдер для блюд группы */
     dishesPlaceholder: MediaFile[];
@@ -39,7 +41,7 @@ declare let attributes: {
     modifier: boolean;
     /** Промо группа */
     promo: boolean;
-    /** Время работы гыруппы */
+    /** Время работы */
     worktime: WorkTime[];
 };
 type attributes = typeof attributes;
@@ -53,6 +55,7 @@ declare let Model: {
     afterCreate: (record: any, cb: (err?: string) => void) => void;
     /**
      * Возвращает объект с группами и ошибками получения этих самых групп.
+     * @deprecated not used
      * @param groupsId - массив id групп, которые следует получить
      * @return Object {
      *   groups: [],
@@ -69,6 +72,7 @@ declare let Model: {
     }>;
     /**
      * Возвращает группу с заданным id
+     * @deprecated not used
      * @param groupId - id группы
      * @return запрашиваемая группа
      * @throws ошибка получения группы
@@ -76,13 +80,18 @@ declare let Model: {
      */
     getGroup(groupId: string): Promise<Group>;
     /**
-     * Возвращает группу с заданным slug'ом
+     * Returns a group with a given Slug
+     * @deprecated not used
      * @param groupSlug - slug группы
      * @return запрашиваемая группа
      * @throws ошибка получения группы
      * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     getGroupBySlug(groupSlug: string): Promise<Group>;
+    /**
+     * Menu for navbar
+     * */
+    getMenuGroups(concept: string, topLevelGroupId?: string): Promise<Group[]>;
     /**
      * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.
      * @param values

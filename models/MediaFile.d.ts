@@ -1,5 +1,5 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import Dish from "./Dish";
 import Group from "./Group";
 import { OptionalAll } from "../interfaces/toolsTS";

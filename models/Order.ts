@@ -5,7 +5,7 @@ import OrderDish from "./OrderDish";
 import PaymentDocument from "./PaymentDocument";
 import actions from "../libs/actions";
 
-import ORMModel, { CriteriaQuery } from "../interfaces/ORMModel";
+import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
 import Dish from "./Dish";

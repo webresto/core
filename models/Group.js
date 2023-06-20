@@ -59,7 +59,11 @@ let attributes = {
         collection: "group",
         via: "parentGroup",
     },
-    /** Изображения */
+    /** Icon */
+    icon: {
+        model: "mediafile",
+    },
+    /** Images */
     images: {
         collection: "mediafile",
         via: "group",
@@ -80,7 +84,7 @@ let attributes = {
     modifier: "boolean",
     /** Промо группа */
     promo: "boolean",
-    /** Время работы гыруппы */
+    /** Время работы */
     worktime: "json",
 };
 let Model = {
@@ -109,6 +113,7 @@ let Model = {
     },
     /**
      * Возвращает объект с группами и ошибками получения этих самых групп.
+     * @deprecated not used
      * @param groupsId - массив id групп, которые следует получить
      * @return Object {
      *   groups: [],
@@ -169,6 +174,7 @@ let Model = {
     },
     /**
      * Возвращает группу с заданным id
+     * @deprecated not used
      * @param groupId - id группы
      * @return запрашиваемая группа
      * @throws ошибка получения группы
@@ -183,7 +189,8 @@ let Model = {
         return group[0] ? group[0] : null;
     },
     /**
-     * Возвращает группу с заданным slug'ом
+     * Returns a group with a given Slug
+     * @deprecated not used
      * @param groupSlug - slug группы
      * @return запрашиваемая группа
      * @throws ошибка получения группы
@@ -202,6 +209,33 @@ let Model = {
         }
         const group = result.groups;
         return group[0] ? group[0] : null;
+    },
+    /**
+     * Menu for navbar
+     * */
+    async getMenuGroups(concept, topLevelGroupId) {
+        let groups = [];
+        emitter.emit('core:group-get-menu', groups, concept);
+        // Default logic
+        if (!groups) {
+            // TODO: Here should be find top level concept menu by Settings
+            groups = await Group.find({
+                parentGroup: topLevelGroupId ?? null,
+                ...concept && { concept: concept }
+            });
+            // Check subgroups when one group in top menu
+            if (groups.length === 1 && topLevelGroupId === undefined) {
+                let childs = await Group.find({
+                    parentGroup: groups[0].id,
+                });
+                if (childs)
+                    groups = childs;
+            }
+        }
+        else {
+            // direct from emitter
+            return groups;
+        }
     },
     /**
      * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.

@@ -3,7 +3,8 @@ import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import MediaFile from "./MediaFile";
 import hashCode from "../libs/hashCode";
 
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+
 import ORM from "../interfaces/ORM";
 import * as _ from "lodash";
 import { WorkTime } from "@webresto/worktime";

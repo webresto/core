@@ -1,6 +1,6 @@
 import ORM from "../interfaces/ORM";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import User from "../models/User";
 import BonusProgram from "../models/BonusProgram";
 declare let attributes: {

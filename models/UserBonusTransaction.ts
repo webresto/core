@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-import ORMModel, { CriteriaQuery } from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import User from "../models/User";
 import BonusProgram from "../models/BonusProgram";

@@ -5,7 +5,8 @@
 import { Adapter } from "../adapters";
 import BonusProgramAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+
 import { v4 as uuid } from "uuid";
 
 const alivedBonusPrograms: { 
