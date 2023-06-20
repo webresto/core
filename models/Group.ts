@@ -276,19 +276,19 @@ let Model = {
        * Check all option from settings to detect TopLevelGroupId
        */
       if (!topLevelGroupId) {
-        let menuTopLevel = undefined as string;
+        let menuTopLevelSlug = undefined as string;
 
         if(concept !== undefined) {
-          menuTopLevel = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`) as string;
+          menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`) as string;
         }
 
-        if( menuTopLevel === undefined) {
-          menuTopLevel = await Settings.get(`SLUG_MENU_TOP_LEVEL`) as string;
+        if( menuTopLevelSlug === undefined) {
+          menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL`) as string;
         }
 
-        if(menuTopLevel) {
+        if(menuTopLevelSlug) {
           let menuTopLevelGroup = await Group.findOne({ 
-            slug: menuTopLevel,
+            slug: menuTopLevelSlug,
             ...concept &&  { concept: concept }
            })
           if(menuTopLevelGroup) {
@@ -296,7 +296,7 @@ let Model = {
           }
         }
       }
-      
+
       groups = await Group.find({
         parentGroup: topLevelGroupId ?? null,
         ...concept &&  { concept: concept }
@@ -309,10 +309,9 @@ let Model = {
         });
         if(childs) groups = childs;
       }
-    } else {
-      // direct from emitter
-      return groups
-    }
+    } 
+
+    return groups
   },
 
   /**

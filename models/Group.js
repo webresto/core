@@ -222,16 +222,16 @@ let Model = {
              * Check all option from settings to detect TopLevelGroupId
              */
             if (!topLevelGroupId) {
-                let menuTopLevel = undefined;
+                let menuTopLevelSlug = undefined;
                 if (concept !== undefined) {
-                    menuTopLevel = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`);
+                    menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`);
                 }
-                if (menuTopLevel === undefined) {
-                    menuTopLevel = await Settings.get(`SLUG_MENU_TOP_LEVEL`);
+                if (menuTopLevelSlug === undefined) {
+                    menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL`);
                 }
-                if (menuTopLevel) {
+                if (menuTopLevelSlug) {
                     let menuTopLevelGroup = await Group.findOne({
-                        slug: menuTopLevel,
+                        slug: menuTopLevelSlug,
                         ...concept && { concept: concept }
                     });
                     if (menuTopLevelGroup) {
@@ -252,10 +252,7 @@ let Model = {
                     groups = childs;
             }
         }
-        else {
-            // direct from emitter
-            return groups;
-        }
+        return groups;
     },
     /**
      * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.
