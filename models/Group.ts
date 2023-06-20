@@ -272,7 +272,31 @@ let Model = {
     // Default logic
     if (!groups.length) {
       
-      // TODO: Here should be find top level concept menu by Settings
+      /**
+       * Check all option from settings to detect TopLevelGroupId
+       */
+      if (!topLevelGroupId) {
+        let menuTopLevel = undefined as string;
+
+        if(concept !== undefined) {
+          menuTopLevel = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`) as string;
+        }
+
+        if( menuTopLevel === undefined) {
+          menuTopLevel = await Settings.get(`SLUG_MENU_TOP_LEVEL`) as string;
+        }
+
+        if(menuTopLevel) {
+          let menuTopLevelGroup = await Group.findOne({ 
+            slug: menuTopLevel,
+            ...concept &&  { concept: concept }
+           })
+          if(menuTopLevelGroup) {
+            topLevelGroupId = menuTopLevelGroup.id
+          }
+        }
+      }
+      
       groups = await Group.find({
         parentGroup: topLevelGroupId ?? null,
         ...concept &&  { concept: concept }
