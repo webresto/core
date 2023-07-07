@@ -8,6 +8,7 @@ before(function (done) {
   Sails().lift({}, function (err: any, _sails: any) {
     if (err) return done(err);
     global.sails = _sails;
+    console.log(Object.keys(_sails.models))
     return done();
   });
 });

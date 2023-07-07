@@ -567,6 +567,7 @@ let Model = {
     ): Promise<void> {
     const order: Order = await Order.countCart(criteria);
 
+    if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
 
     //const order: Order = await Order.findOne(criteria);
@@ -745,6 +746,8 @@ let Model = {
   async order(criteria: CriteriaQuery<Order>): Promise<void> {
     const order = await Order.findOne(criteria);
 
+    // Check maintenance
+    if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
 
     //  TODO: impl with stateflow
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";

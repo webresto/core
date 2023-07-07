@@ -438,6 +438,8 @@ let Model = {
     // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
     async check(criteria, customer, isSelfService, address, paymentMethodId, spendBonus) {
         const order = await Order.countCart(criteria);
+        if (await Maintenance.getActiveMaintenance() !== undefined)
+            throw `Currently site is off`;
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
         //const order: Order = await Order.findOne(criteria);
@@ -594,6 +596,9 @@ let Model = {
     /** Basket design*/
     async order(criteria) {
         const order = await Order.findOne(criteria);
+        // Check maintenance
+        if (await Maintenance.getActiveMaintenance() !== undefined)
+            throw `Currently site is off`;
         //  TODO: impl with stateflow
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
