@@ -450,6 +450,8 @@ let Model = {
     /** Оформление корзины */
     async order(criteria) {
         const order = await Order.findOne(criteria);
+        if (await Maintenance.getActiveMaintenance() !== undefined)
+            throw `Currently site is off`;
         //  TODO: Реализовать через стейтфлоу
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
