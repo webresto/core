@@ -14,7 +14,7 @@ declare let attributes: {
     /** Источника происхождения */
     from: string;
 };
-declare type attributes = typeof attributes & ORM;
+type attributes = typeof attributes & ORM;
 interface Settings extends attributes {
 }
 export default Settings;

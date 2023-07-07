@@ -16,7 +16,7 @@ declare let attributes: {
     /** Группа, которой принажлежит картинка */
     uploadDate: string;
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface Image extends attributes, ORM {
 }
 export default Image;

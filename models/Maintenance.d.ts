@@ -14,7 +14,7 @@ declare let attributes: {
     startDate: string;
     stopDate: string;
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface Maintenance extends attributes, ORM {
 }
 export default Maintenance;

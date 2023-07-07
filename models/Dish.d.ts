@@ -84,7 +84,7 @@ declare let attributes: {
     /** Время работы */
     workTime: WorkTime;
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface Dish extends attributes, ORM {
 }
 export default Dish;

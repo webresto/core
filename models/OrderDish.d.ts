@@ -37,7 +37,7 @@ declare let attributes: {
     /** Полный вес */
     totalWeight: number;
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface OrderDish extends attributes, ORM {
 }
 export default OrderDish;

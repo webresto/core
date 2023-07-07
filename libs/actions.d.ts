@@ -44,13 +44,13 @@ declare const actions: {
      * @param params(order.id,  dishesId)
      * @return Promise<Order>
      */
-    addDish(order: Order, params: any): Promise<Order>;
+    addDish(order: Order, params: AddDishParams): Promise<Order>;
     /**
      * Set delivery cost
      * @param params(order.id,  deliveryCost)
      * @returns {Promise<>}
      */
-    delivery(order: Order, params: any): Promise<Order>;
+    delivery(order: Order, params: DeliveryParams): Promise<Order>;
     /**
      * Reset all order action
      * @param orderId
@@ -62,15 +62,15 @@ declare const actions: {
      * @param params(order.id,  description)
      * @return Promise<Order>
      */
-    setDeliveryDescription(order: Order, params: any): Promise<Order>;
-    reject(order: Order, params: any): Promise<Order>;
-    setMessage(order: Order, params: any): Promise<Order>;
+    setDeliveryDescription(order: Order, params: DeliveryDescriptionParams): Promise<Order>;
+    reject(order: Order, params: ActionParams): Promise<Order>;
+    setMessage(order: Order, params: MessageParams): Promise<Order>;
     return(): number;
 };
 export default actions;
-declare type actionFunc1 = (params?: any, ...args: any) => Promise<Order>;
-declare type actionFunc2 = (...args: any) => Promise<Order>;
-declare type actionFunc = actionFunc1 | actionFunc2;
+type actionFunc1 = (params?: any, ...args: any) => Promise<Order>;
+type actionFunc2 = (...args: any) => Promise<Order>;
+type actionFunc = actionFunc1 | actionFunc2;
 /**
  * Add new action in actions
  * @param name - new action name

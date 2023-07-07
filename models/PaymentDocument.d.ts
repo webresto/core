@@ -68,7 +68,7 @@ declare let attributes: {
     error: string;
     data: any;
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface PaymentDocument extends attributes, ORM {
 }
 export default PaymentDocument;
