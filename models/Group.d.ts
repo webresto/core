@@ -26,7 +26,7 @@ declare let attributes: {
     parentGroup: any;
     childGroups: string[] | Group[];
     /** Icon */
-    icon: MediaFile;
+    icon: string;
     /** Images */
     images: MediaFile[];
     /** Плейсхолдер для блюд группы */

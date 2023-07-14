@@ -82,9 +82,7 @@ let attributes = {
   } as unknown as Group[] | string[],
 
   /** Icon */
-  icon: {
-    model: "mediafile",
-  } as unknown as MediaFile,
+  icon: "string",
 
   /** Images */
   images: {
