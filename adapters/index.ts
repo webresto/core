@@ -14,9 +14,10 @@ import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
 /**
- * retruns RMS-adapter
+ * // TODO: delete  getAdapter RMS after release new adapter RMS
  */ 
 export class RMS {
+
   public static async getAdapter(adapterName: string): Promise<typeof RMSAdapter> {
     
     // if(!Boolean(adapterName)) {
@@ -188,6 +189,10 @@ export class OTP {
 
 /** TODO: move other Adapters to one class adapter */
 export class Adapter {
+  
+  // Singletons
+  private static instanceRMS: RMSAdapter;
+
   public static async getDiscountAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<DiscountAdapter> {
   
     if(!adapterName) {
@@ -210,7 +215,9 @@ export class Adapter {
     }
   }
 
-
+  /**
+   * retruns BonusProgram-adapter
+   */ 
   public static async getBonusProgramAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<BonusProgramAdapter> {
     if(!adapterName) {
       let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER") as string;
@@ -225,6 +232,35 @@ export class Adapter {
       return adapter.BonusProgramAdapter[adapterName].getInstance(initParams) as BonusProgramAdapter;
     } catch (e) {
       sails.log.error("CORE > getAdapter Discount > error; ", e);
+      throw new Error("Module " + adapterLocation + " not found");
+    }
+  }
+
+
+  /**
+   * retruns RMS-adapter
+   */ 
+  public static async getRMSAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<RMSAdapter> {
+    
+    // Return singleton
+    if (this.instanceRMS) {
+      return this.instanceRMS;  
+    }
+    
+    if(!adapterName) {
+      adapterName = await Settings.get("DEFAULT_RMS_ADAPTER") as string;
+      if (!adapterName) throw 'RMSAdapter is not set '
+    }
+
+    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
+    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
+
+    try {
+      const adapter = require(adapterLocation);
+      this.instanceRMS = new adapter.RMSAdapter(initParams);
+      return this.instanceRMS
+    } catch (e) {
+      sails.log.error("CORE > getAdapter RMS > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
   }

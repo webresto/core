@@ -8,7 +8,7 @@ const discountAdapter_1 = require("./discount/default/discountAdapter");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
- * retruns RMS-adapter
+ * // TODO: delete  getAdapter RMS after release new adapter RMS
  */
 class RMS {
     static async getAdapter(adapterName) {
@@ -184,6 +184,9 @@ class Adapter {
             throw new Error("Module " + adapterLocation + " not found");
         }
     }
+    /**
+     * retruns BonusProgram-adapter
+     */
     static async getBonusProgramAdapter(adapterName, initParams) {
         if (!adapterName) {
             let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
@@ -198,6 +201,31 @@ class Adapter {
         }
         catch (e) {
             sails.log.error("CORE > getAdapter Discount > error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
+    /**
+     * retruns RMS-adapter
+     */
+    static async getRMSAdapter(adapterName, initParams) {
+        // Return singleton
+        if (this.instanceRMS) {
+            return this.instanceRMS;
+        }
+        if (!adapterName) {
+            adapterName = await Settings.get("DEFAULT_RMS_ADAPTER");
+            if (!adapterName)
+                throw 'RMSAdapter is not set ';
+        }
+        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
+        try {
+            const adapter = require(adapterLocation);
+            this.instanceRMS = new adapter.RMSAdapter(initParams);
+            return this.instanceRMS;
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter RMS > error; ", e);
             throw new Error("Module " + adapterLocation + " not found");
         }
     }

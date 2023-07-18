@@ -31,6 +31,7 @@ interface SailsHooks {
 declare global {
     const emitter: AwaitEmitter;
     const NotificationManager: NotificationManager;
+    const Adapter: typeof import("../adapters").Adapter;
     interface Sails extends sails.Sails {
         on: any;
         emit: any;

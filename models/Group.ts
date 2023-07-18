@@ -18,6 +18,13 @@ let attributes = {
     //required: true,
   } as unknown as string,
 
+
+  /** ID in external system */
+  rmsId: {
+    type: "string",
+    //required: true,
+  } as unknown as string,
+
   /** Addishinal info */
   additionalInfo: {
     type: "string",

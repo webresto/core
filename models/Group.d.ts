@@ -7,6 +7,8 @@ import { OptionalAll } from "../interfaces/toolsTS";
 declare let attributes: {
     /**Id */
     id: string;
+    /** ID in external system */
+    rmsId: string;
     /** Addishinal info */
     additionalInfo: string;
     /** */

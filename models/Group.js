@@ -9,6 +9,11 @@ let attributes = {
         type: "string",
         //required: true,
     },
+    /** ID in external system */
+    rmsId: {
+        type: "string",
+        //required: true,
+    },
     /** Addishinal info */
     additionalInfo: {
         type: "string",

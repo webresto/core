@@ -8,7 +8,7 @@ let attributes = {
         //required: true,
     },
     /** Id in external system */
-    exId: {
+    externalId: {
         type: "string"
     },
     /** Name of street */
