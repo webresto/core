@@ -14,7 +14,7 @@ module.exports.bootstrap = async function(cb) {
 
   await PaymentMethod.findOrCreate({id: "cash"}, cashPaymentMethod)
 
-
+  // In total, 5 groups, 15 subgroups, 30 undergraduates and 60 dishes will be created.  
   if(await Group.count() === 0){
     for(let i = 0; i < 5; i++){
       let group = await Group.create(groupGenerator());

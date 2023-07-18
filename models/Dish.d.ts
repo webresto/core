@@ -11,13 +11,13 @@ declare let attributes: {
     rmsId: string;
     /** */
     additionalInfo: string;
-    /** Артикул */
+    /** Article */
     code: string;
-    /** Описание блюда */
+    /** Description of the dish */
     description: string;
     /** Ingredients of dish */
     ingredients: string;
-    /** Наименование */
+    /** Name */
     name: string;
     /** SEO description */
     seoDescription: string;
@@ -27,65 +27,63 @@ declare let attributes: {
     seoText: string;
     /** SEO title */
     seoTitle: string;
-    /** Не печатать в чеке */
-    doNotPrintInCheque: boolean;
-    /** Количество углеводов на (100гр)*/
+    /** The amount of carbohydrates per (100g)*/
     carbohydrateAmount: number;
-    /** Количество углеводов в блюде */
+    /** The amount of carbohydrates in the dish */
     carbohydrateFullAmount: number;
-    /** Енергетическая ценность (100гр) */
+    /** Energy value (100 g) */
     energyAmount: number;
-    /** Енергетическая ценность */
+    /** Energy value */
     energyFullAmount: number;
-    /**  Колличество жиров (100гр) */
+    /**  The amount of fat (100 g) */
     fatAmount: number;
-    /** Колличество жиров в блюде */
+    /** The amount of fat in the dish */
     fatFullAmount: number;
-    /** Количество белков (100гр)  */
+    /** The number of proteins (100g)  */
     fiberAmount: number;
-    /** Количество белков в блюде */
+    /** The amount of proteins in the dish */
     fiberFullAmount: number;
-    /** Идентификатор группы в которой находится блюдо */
+    /** The group identifier in which the dish is located */
     groupId: string;
-    /** Единица измерения товара ( кг, л, шт, порц.) */
+    /** Unit of measurement of goods (kg, l, pcs, port.)*/
     measureUnit: string;
-    /** Цена блюда */
+    /** The price of the dish */
     price: number;
     /**  */
     productCategoryId: string;
-    /** Тип */
+    /** Type */
     type: string;
-    /** Масса  */
+    /** Weight  */
     weight: number;
-    /** Порядок сортировки */
+    /** Sorting order */
     sortOrder: number;
-    /** Блюдо удалено */
+    /** The dish is removed */
     isDeleted: boolean;
-    /** Блюдо может быть модифичироанно */
+    /** The dish can be modified*/
     isModificable: boolean;
     /** Модифакторы блюда */
     modifiers: GroupModifier[];
-    /** Родительская группа */
+    /** Parental group */
     parentGroup: any;
-    /** Теги для фильтрации (Вегетарианский, острый...) */
+    /** Tags for filtering (vegetarian, sharp ...) */
     tags: any;
-    /** Баланс для продажи, если -1 то сколько угодно */
+    /** Balance for sale, if -1, then as much as you like */
     balance: number;
-    /** Список изображений блюда*/
+    /**List of images of the dish*/
     images: MediaFile[];
     /** Слаг */
     slug: string;
-    /** Концепт к которому относится блюдо */
+    /** The concept to which the dish belongs */
     concept: string;
-    /** Хеш обекта блюда */
+    /** Wesh */
     hash: string;
-    /** Можно увидеть на сайте в меню */
+    /** Can be seen on the site on the menu */
     visible: boolean;
-    /** Признак что это модификатор */
+    /** A sign that this is a modifier */
     modifier: boolean;
-    /** Признак того что блюдо акционное */
+    /**A sign that a promotional dish */
     promo: boolean;
-    /** Время работы */
+    /** Working hours */
     worktime: WorkTime[];
 };
 type attributes = typeof attributes;
@@ -98,15 +96,15 @@ declare let Model: {
     afterUpdate: (record: any, cb: (err?: string) => void) => void;
     afterCreate: (record: any, cb: (err?: string) => void) => void;
     /**
-     * Принимает waterline criteria и дописывает, туда isDeleted = false, balance != 0. Таким образом эта функция позволяет
-     * находить в базе блюда по критерию и при этом такие, что с ними можно работать юзеру.
-     * @param criteria - критерии поиска
-     * @return найденные блюда
+     * Accepts Waterline Criteria and prepares it there isdeleted = false, balance! = 0. Thus, this function allows
+     * Find in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.
+     * @param criteria - criteria asked
+     * @return Found dishes
      */
     getDishes(criteria?: any): Promise<Dish[]>;
     /**
-     * Популяризирует модификаторы блюда, то есть всем груповым модификаторам дописывает группу и блюда, которые им соответствуют,
-     * а обычным модификаторам дописывает их блюдо.
+     * Popularizes the modifiers of the dish, that is, all the Group modifiers are preparing a group and dishes that correspond to them,
+     * And ordinary modifiers are preparing their dish.
      * @param dish
      */
     getDishModifiers(dish: Dish): Promise<Dish>;

@@ -1,4 +1,4 @@
-import RMSAdapter from "./rms/RMSAdapter";
+import RMSAdapter, { ConfigRMSAdapter } from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import OTPAdapter from "./otp/OneTimePasswordAdapter";
@@ -57,7 +57,5 @@ export declare class Adapter {
     /**
      * retruns RMS-adapter
      */
-    static getRMSAdapter(adapterName?: string, initParams?: {
-        [key: string]: string | number | boolean;
-    }): Promise<RMSAdapter>;
+    static getRMSAdapter(adapter?: string | RMSAdapter, initParams?: ConfigRMSAdapter): Promise<RMSAdapter>;
 }

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Adapter = exports.OTP = exports.Captcha = exports.Payment = exports.Media = exports.Map = exports.RMS = void 0;
+const RMSAdapter_1 = require("./rms/RMSAdapter");
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
 const fs = require("fs");
@@ -207,25 +208,39 @@ class Adapter {
     /**
      * retruns RMS-adapter
      */
-    static async getRMSAdapter(adapterName, initParams) {
-        // Return singleton
+    static async getRMSAdapter(adapter, initParams) {
+        // Return the singleon
         if (this.instanceRMS) {
             return this.instanceRMS;
+        }
+        let adapterName;
+        if (adapter) {
+            if (typeof adapter === "string") {
+                adapterName = adapter;
+            }
+            else if (adapter instanceof RMSAdapter_1.default) {
+                console.log('content', adapter);
+                this.instanceRMS = adapter;
+                return this.instanceRMS;
+            }
+            else {
+                throw new Error("Adapter should be a string or instance of rmsadapter");
+            }
         }
         if (!adapterName) {
             adapterName = await Settings.get("DEFAULT_RMS_ADAPTER");
             if (!adapterName)
-                throw 'RMSAdapter is not set ';
+                throw 'RMS adapter is not installed';
         }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
         try {
-            const adapter = require(adapterLocation);
-            this.instanceRMS = new adapter.RMSAdapter(initParams);
+            const adapterModule = require(adapterLocation);
+            this.instanceRMS = new adapterModule.RMSAdapter(initParams);
             return this.instanceRMS;
         }
         catch (e) {
-            sails.log.error("CORE > getAdapter RMS > error; ", e);
+            sails.log.error("CORE > getAdapter RMS >  error; ", e);
             throw new Error("Module " + adapterLocation + " not found");
         }
     }

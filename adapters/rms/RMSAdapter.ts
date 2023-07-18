@@ -93,7 +93,7 @@ export default abstract class RMSAdapter {
       let allProductIds = [];
   
       for (const group of currentRMSGroupsFlatTree) {
-        const productsToUpdate = await rmsAdapter.loadProductsByGroup(group.rmsId);
+        const productsToUpdate = await rmsAdapter.loadProductsByGroup(group);
         
         // Get ids of all current products in group
         const productIds = productsToUpdate.map(product => product.rmsId);
@@ -123,7 +123,7 @@ export default abstract class RMSAdapter {
    * Synchronizing the balance of dishes with the RMS adapter
    */
   public static syncOutOfStocks(): Promise<void> {
-    
+    // Consider the concepts
     return
   };
 
@@ -137,12 +137,13 @@ export default abstract class RMSAdapter {
    * 
    * @returns 
    */
-  protected abstract loadNomenclatureTree(groupIds?: string[]): Promise<Group[]> 
+  protected abstract loadNomenclatureTree(rmsGroupIds?: string[]): Promise<Group[]> 
 
 
 
-  protected abstract loadProductsByGroup(groupId: string): Promise<Dish[]> 
+  protected abstract loadProductsByGroup(group: Group): Promise<Dish[]> 
 
+  protected abstract loadOutOfStocksDishes(concept?:  string): Promise<Dish[]> 
 
 
 

@@ -249,16 +249,10 @@ export class Adapter {
     let adapterName: string;
     if(adapter) {
       if(typeof adapter === "string") {
-  
-        // If passed full path to JS file
-        if(fs.existsSync(adapter)) {
-          const adapterFile = require(adapter);
-          this.instanceRMS = new adapterFile.RMSAdapter(initParams);
-          return this.instanceRMS;
-        } else {
           adapterName = adapter;
-        }
       } else if(adapter instanceof RMSAdapter) {
+
+console.log('content', adapter);
         this.instanceRMS = adapter;
         return this.instanceRMS;
       } else {

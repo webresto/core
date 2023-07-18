@@ -7,7 +7,7 @@ export type ConfigRMSAdapter = {
 /**
  * Responce from RMS
  */
-interface OrderResponse {
+export interface OrderResponse {
     code: number;
     body: any;
 }
@@ -22,6 +22,10 @@ export default abstract class RMSAdapter {
     private static initialize;
     /**
      * Menu synchronization with RMS system
+     * At first, groups are synchronized, then dishes are synchronized for each of these groups.
+     * When synchronizing groups, those groups that were not on the list will be turned off before the start of synchronization
+     * Those dishes that are left without ties will be marked with isDeleted
+     * There can be no dishes in the root.
      */
     static syncProducts(force?: boolean): Promise<void>;
     /**
@@ -37,8 +41,9 @@ export default abstract class RMSAdapter {
      *
      * @returns
      */
-    protected abstract loadNomenclatureTree(groupIds?: string[]): Promise<Group[]>;
-    protected abstract loadProductsByGroup(groupId: string): Promise<Dish[]>;
+    protected abstract loadNomenclatureTree(rmsGroupIds?: string[]): Promise<Group[]>;
+    protected abstract loadProductsByGroup(group: Group): Promise<Dish[]>;
+    protected abstract loadOutOfStocksDishes(concept?: string): Promise<Dish[]>;
     /**
      * Create an order
      * @param orderData - webresto order
@@ -59,4 +64,3 @@ export default abstract class RMSAdapter {
      */
     abstract api(method: string, params: any): Promise<any>;
 }
-export {};

@@ -71,23 +71,25 @@ let attributes = {
         collection: "mediafile",
         via: "group",
     },
-    /** Плейсхолдер для блюд группы */
+    /** PlaySholder for group dishes */
     dishesPlaceholder: {
         model: "mediafile",
     },
-    /** Человеко читаемый АйДи */
+    /** The person readable isii*/
     slug: {
         type: "string",
     },
-    /** Концепт к которому относится группа */
+    /** The concept to which the group belongs */
     concept: "string",
-    /** Гурппа отображается */
+    /** The group is displayed*/
     visible: "boolean",
-    /** Группа модификаторов */
+    /**A group of modifiers */
     modifier: "boolean",
-    /** Промо группа */
+    /**  A sign that this is a promo group
+     *  The promo group cannot be added from the user.
+     */
     promo: "boolean",
-    /** Время работы */
+    /** Working hours */
     worktime: "json",
 };
 let Model = {
@@ -115,17 +117,17 @@ let Model = {
         return cb();
     },
     /**
-     * Возвращает объект с группами и ошибками получения этих самых групп.
+     * Returns an object with groups and errors of obtaining these very groups.
      * @deprecated not used
-     * @param groupsId - массив id групп, которые следует получить
+     * @param groupsId - array of ID groups that should be obtained
      * @return Object {
      *   groups: [],
      *   errors: {}
      * }
-     * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
-     * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
-     * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * where Groups is an array, requested groups with a complete display of investment, that is, with their dishes, the dishes are their modifiers
+     * and pictures, there are pictures of the group, etc., and errors is an object in which the keys are groups that cannot be obtained
+     * According to some dinich, the values of this object are the reasons why the group was not obtained.
+     * @fires group:core-group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     async getGroups(groupsId) {
         let menu = {};
@@ -176,12 +178,12 @@ let Model = {
         return { groups: res, errors: errors };
     },
     /**
-     * Возвращает группу с заданным id
+     * Returns a group with a given ID
      * @deprecated not used
-     * @param groupId - id группы
-     * @return запрашиваемая группа
-     * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * @param groupId - ID groups
+     * @return The requested group
+     * @throws The error of obtaining a group
+     * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     async getGroup(groupId) {
         const result = await Group.getGroups([groupId]);
@@ -194,10 +196,10 @@ let Model = {
     /**
      * Returns a group with a given Slug
      * @deprecated not used
-     * @param groupSlug - slug группы
-     * @return запрашиваемая группа
-     * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * @param groupSlug - Slug groups
+     * @return The requested group
+     * @throws The error of obtaining a group
+     * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     async getGroupBySlug(groupSlug) {
         if (!groupSlug)
@@ -258,9 +260,9 @@ let Model = {
         return groups;
     },
     /**
-     * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.
+     * Checks whether the group exists, if it does not exist, then creates a new one and returns it.
      * @param values
-     * @return обновлённая или созданная группа
+     * @return Updated or created group
      */
     async createOrUpdate(values) {
         const group = await Group.findOne({ id: values.id });
