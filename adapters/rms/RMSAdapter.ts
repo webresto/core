@@ -8,7 +8,7 @@ export type ConfigRMSAdapter = {
 /**
  * Responce from RMS
  */
-interface OrderResponse {
+export interface OrderResponse {
   code: number;
   body: any;
 }
@@ -34,7 +34,7 @@ export default abstract class RMSAdapter {
 
   private static async initialize(){
     // Run product sync interval
-    const NO_SYNC_NOMENCLATURE = await Settings.get("NO_SYNC_NOMENCLATURE") as boolean;
+    const NO_SYNC_NOMENCLATURE = await Settings.get("NO_SYNC_NOMENCLATURE") as boolean ?? false;
     if(!NO_SYNC_NOMENCLATURE) {
       const SYNC_PRODUCTS_INTERVAL_SECOUNDS = await Settings.get("SYNC_PRODUCTS_INTERVAL_SECOUNDS") as number;
       if(RMSAdapter.syncProductsInterval) clearInterval(RMSAdapter.syncProductsInterval);
@@ -47,7 +47,7 @@ export default abstract class RMSAdapter {
     }
 
     // Run sync OutOfStock
-    const NO_SYNC_OUT_OF_STOCKS = await Settings.get("NO_SYNC_OUT_OF_STOCKS") as boolean;
+    const NO_SYNC_OUT_OF_STOCKS = await Settings.get("NO_SYNC_OUT_OF_STOCKS") as boolean ?? false;
     if(!NO_SYNC_OUT_OF_STOCKS) {
       const SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS = await Settings.get("SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS") as number;
       if(RMSAdapter.syncOutOfStocksInterval) clearInterval(RMSAdapter.syncOutOfStocksInterval);
@@ -63,31 +63,59 @@ export default abstract class RMSAdapter {
 
   /**
    * Menu synchronization with RMS system
+   * At first, groups are synchronized, then dishes are synchronized for each of these groups.
+   * When synchronizing groups, those groups that were not on the list will be turned off before the start of synchronization
+   * Those dishes that are left without ties will be marked with isDeleted
+   * There can be no dishes in the root.
    */
   public static async syncProducts(force: boolean = false): Promise<void> {
     const rootGroupsToSync = await Settings.get("rootGroupsRMSToSync") as string[];
     const rmsAdapter = await Adapter.getRMSAdapter();
-
-    if(rmsAdapter.nomenclatureHasUpdated() || force) {
-       const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
-       // TODO: clean deleted dish and groups 
-       // CheckSum
-       // TODO: UPDATE GROUP LOGIC
-       // TODO: udate images
-       const currentRMSGroupsIds = currentRMSGroupsFlatTree.map(prd => prd.rmsId);
-       for (const group of currentRMSGroupsFlatTree){
+  
+    if (rmsAdapter.nomenclatureHasUpdated() || force) {
+      const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
+  
+      // Get ids of all current RMS groups
+      const rmsGroupIds = currentRMSGroupsFlatTree.map(group => group.rmsId);
+  
+      // Set all groups not in the list to inactive
+      await Group.update({ rmsId: { not: rmsGroupIds }}).set({ isDeleted: true });
+  
+      for (const group of currentRMSGroupsFlatTree) {
         emitter.emit("rms-sync:before-each-group-item", group);
-
-        const productsToUpdate = await rmsAdapter.loadProductsByGroup(group.rmsId)
-          for(let product of productsToUpdate){
-            // CheckSum
-            emitter.emit("rms-sync:before-each-product-item", product);
-            // TODO: UPDATE PRODUCT LOGIC
-            // TODO: udate images
-          }
-       }
+        
+        // Update or create group
+        const groupData = { ...group, isDeleted: false };
+        await Group.createOrUpdate(groupData);
+      }
+  
+      // Collect all product ids
+      let allProductIds = [];
+  
+      for (const group of currentRMSGroupsFlatTree) {
+        const productsToUpdate = await rmsAdapter.loadProductsByGroup(group.rmsId);
+        
+        // Get ids of all current products in group
+        const productIds = productsToUpdate.map(product => product.rmsId);
+        allProductIds = allProductIds.concat(productIds);
+  
+        for (let product of productsToUpdate) {
+          emitter.emit("rms-sync:before-each-product-item", product);
+          
+          // Update or create product
+          const productData = { ...product, isDeleted: false };
+          await Dish.createOrUpdate(productData);
+        }
+      }
+  
+      // Find all inactive groups
+      const inactiveGroups = await Group.find({ isDeleted: true });
+      const inactiveGroupIds = inactiveGroups.map(group => group.id);
+  
+      // Delete all dishes in inactive groups or not in the updated list
+      await Dish.update({ where:{ or: [ { groupId: { in: inactiveGroupIds }}, { rmsId: { not: allProductIds }} ]}}).set({ isDeleted: true });
     }
-    
+  
     return
   };
 
