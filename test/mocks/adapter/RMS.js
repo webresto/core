@@ -11,6 +11,9 @@ class TestRMS extends RMSAdapter_1.default {
     async nomenclatureHasUpdated() {
         return true;
     }
+    /**
+     Since 7 dishes are created for each group, the total number of dishes will be 88 groups * 7 dishes = 616 dishes.
+    *  */
     async loadNomenclatureTree(rmsGroupIds) {
         let groups = [];
         for (let i = 0; i < 4; i++) {
@@ -31,7 +34,6 @@ class TestRMS extends RMSAdapter_1.default {
         }
         return groups;
     }
-    // Since 7 dishes are created for each group, the total number of dishes will be 88 groups * 7 dishes = 616 dishes.
     async loadProductsByGroup(group) {
         let dishes = [];
         for (let i = 0; i < 7; i++) {

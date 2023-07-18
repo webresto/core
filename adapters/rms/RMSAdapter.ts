@@ -68,7 +68,11 @@ export default abstract class RMSAdapter {
    * Those dishes that are left without ties will be marked with isDeleted
    * There can be no dishes in the root.
    */
-  public static async syncProducts(force: boolean = false): Promise<void> {
+  public static async syncProducts(concept?: string, force: boolean = false): Promise<void> {
+    
+    // TODO: implement concept 
+
+
     const rootGroupsToSync = await Settings.get("rootGroupsRMSToSync") as string[];
     const rmsAdapter = await Adapter.getRMSAdapter();
   
@@ -79,7 +83,7 @@ export default abstract class RMSAdapter {
       const rmsGroupIds = currentRMSGroupsFlatTree.map(group => group.rmsId);
   
       // Set all groups not in the list to inactive
-      await Group.update({ rmsId: { not: rmsGroupIds }}).set({ isDeleted: true });
+      await Group.update({ where:{ rmsId: { not: rmsGroupIds }}},{ isDeleted: true }).fetch();
   
       for (const group of currentRMSGroupsFlatTree) {
         emitter.emit("rms-sync:before-each-group-item", group);
@@ -113,7 +117,7 @@ export default abstract class RMSAdapter {
       const inactiveGroupIds = inactiveGroups.map(group => group.id);
   
       // Delete all dishes in inactive groups or not in the updated list
-      await Dish.update({ where:{ or: [ { groupId: { in: inactiveGroupIds }}, { rmsId: { not: allProductIds }} ]}}).set({ isDeleted: true });
+      await Dish.update({ where:{ or: [ { parentGroup: { in: inactiveGroupIds }}, { rmsId: { not: allProductIds }}, {parentGroup: null} ]}}, { isDeleted: true });
     }
   
     return

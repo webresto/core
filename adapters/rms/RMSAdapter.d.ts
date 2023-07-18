@@ -27,7 +27,7 @@ export default abstract class RMSAdapter {
      * Those dishes that are left without ties will be marked with isDeleted
      * There can be no dishes in the root.
      */
-    static syncProducts(force?: boolean): Promise<void>;
+    static syncProducts(concept?: string, force?: boolean): Promise<void>;
     /**
      * Synchronizing the balance of dishes with the RMS adapter
      */

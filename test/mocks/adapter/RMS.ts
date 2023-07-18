@@ -15,8 +15,10 @@ export class TestRMS  extends RMSAdapter {
         return true
     }
 
-    
-    protected async loadNomenclatureTree(rmsGroupIds?: string[]): Promise<Group[]> {
+/**
+ Since 7 dishes are created for each group, the total number of dishes will be 88 groups * 7 dishes = 616 dishes.
+*  */
+        protected async loadNomenclatureTree(rmsGroupIds?: string[]): Promise<Group[]> {
         let groups: Group[] = [];
         for(let i = 0; i < 4; i++){
             let group = groupGenerator();
@@ -37,7 +39,6 @@ export class TestRMS  extends RMSAdapter {
         return groups;
     }
     
-    // Since 7 dishes are created for each group, the total number of dishes will be 88 groups * 7 dishes = 616 dishes.
     protected async loadProductsByGroup(group: Group): Promise<Dish[]> {
         let dishes = [];
         for(let i = 0; i < 7; i++) {

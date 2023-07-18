@@ -39,7 +39,8 @@ class RMSAdapter {
      * Those dishes that are left without ties will be marked with isDeleted
      * There can be no dishes in the root.
      */
-    static async syncProducts(force = false) {
+    static async syncProducts(concept, force = false) {
+        // TODO: implement concept 
         const rootGroupsToSync = await Settings.get("rootGroupsRMSToSync");
         const rmsAdapter = await Adapter.getRMSAdapter();
         if (rmsAdapter.nomenclatureHasUpdated() || force) {
@@ -47,7 +48,7 @@ class RMSAdapter {
             // Get ids of all current RMS groups
             const rmsGroupIds = currentRMSGroupsFlatTree.map(group => group.rmsId);
             // Set all groups not in the list to inactive
-            await Group.update({ rmsId: { not: rmsGroupIds } }).set({ isDeleted: true });
+            await Group.update({ where: { rmsId: { not: rmsGroupIds } } }, { isDeleted: true }).fetch();
             for (const group of currentRMSGroupsFlatTree) {
                 emitter.emit("rms-sync:before-each-group-item", group);
                 // Update or create group
@@ -72,7 +73,7 @@ class RMSAdapter {
             const inactiveGroups = await Group.find({ isDeleted: true });
             const inactiveGroupIds = inactiveGroups.map(group => group.id);
             // Delete all dishes in inactive groups or not in the updated list
-            await Dish.update({ where: { or: [{ groupId: { in: inactiveGroupIds } }, { rmsId: { not: allProductIds } }] } }).set({ isDeleted: true });
+            await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { not: allProductIds } }, { parentGroup: null }] } }, { isDeleted: true });
         }
         return;
     }
