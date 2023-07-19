@@ -2,7 +2,7 @@ import Order from "../../models/Order";
 import Dish from "../../models/Dish";
 import Group from "../../models/Group";
 export type ConfigRMSAdapter = {
-  [key: string]: number | boolean | string;
+  [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };
 
 /**
@@ -24,15 +24,23 @@ export default abstract class RMSAdapter {
   
   private static syncProductsInterval: ReturnType<typeof setInterval>;
   private static syncOutOfStocksInterval: ReturnType<typeof setInterval>;
+  private initializationPromise: Promise<void>;
 
   public constructor(config?: ConfigRMSAdapter) {
     this.config = config;
 
-    // Run async inittilization
-    RMSAdapter.initialize();
+    // Run async initialization
+    this.initializationPromise = this.initialize();
   }
 
-  private static async initialize(){
+  /**
+   * Waiting for initialization
+   */
+  public async wait(): Promise<void> {
+    await this.initializationPromise;
+  }
+  
+  private async initialize(): Promise<void> {
     // Run product sync interval
     const NO_SYNC_NOMENCLATURE = await Settings.get("NO_SYNC_NOMENCLATURE") as boolean ?? false;
     if(!NO_SYNC_NOMENCLATURE) {
@@ -40,7 +48,7 @@ export default abstract class RMSAdapter {
       if(RMSAdapter.syncProductsInterval) clearInterval(RMSAdapter.syncProductsInterval);
       RMSAdapter.syncProductsInterval = setInterval(
         async () => {
-          RMSAdapter.syncProducts();
+          this.syncProducts();
         },
         SYNC_PRODUCTS_INTERVAL_SECOUNDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECOUNDS * 1000 || 120000
       );
@@ -53,11 +61,13 @@ export default abstract class RMSAdapter {
       if(RMSAdapter.syncOutOfStocksInterval) clearInterval(RMSAdapter.syncOutOfStocksInterval);
       RMSAdapter.syncOutOfStocksInterval = setInterval(
         async () => {
-          RMSAdapter.syncOutOfStocks();
+          this.syncOutOfStocks();
         },
         SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS * 1000 || 60000
       );
     }
+
+    await this.customInitialize();
   }
 
 
@@ -68,7 +78,7 @@ export default abstract class RMSAdapter {
    * Those dishes that are left without ties will be marked with isDeleted
    * There can be no dishes in the root.
    */
-  public static async syncProducts(concept?: string, force: boolean = false): Promise<void> {
+  public async syncProducts(concept?: string, force: boolean = false): Promise<void> {
     
     // TODO: implement concept 
 
@@ -126,10 +136,18 @@ export default abstract class RMSAdapter {
   /**
    * Synchronizing the balance of dishes with the RMS adapter
    */
-  public static syncOutOfStocks(): Promise<void> {
+  public async syncOutOfStocks(): Promise<void> {
     // Consider the concepts
     return
   };
+
+
+  /**
+   * This method will start after the main initialization
+   * @returns boolean
+   */
+  protected abstract customInitialize(): Promise<void> 
+
 
   /**
    * Checks whether the nomenclature was updated if the last time something has changed will return to True

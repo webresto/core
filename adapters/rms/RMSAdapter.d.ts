@@ -2,7 +2,7 @@ import Order from "../../models/Order";
 import Dish from "../../models/Dish";
 import Group from "../../models/Group";
 export type ConfigRMSAdapter = {
-    [key: string]: number | boolean | string;
+    [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };
 /**
  * Responce from RMS
@@ -18,8 +18,13 @@ export default abstract class RMSAdapter {
     readonly config: ConfigRMSAdapter;
     private static syncProductsInterval;
     private static syncOutOfStocksInterval;
+    private initializationPromise;
     constructor(config?: ConfigRMSAdapter);
-    private static initialize;
+    /**
+     * Waiting for initialization
+     */
+    wait(): Promise<void>;
+    private initialize;
     /**
      * Menu synchronization with RMS system
      * At first, groups are synchronized, then dishes are synchronized for each of these groups.
@@ -27,11 +32,16 @@ export default abstract class RMSAdapter {
      * Those dishes that are left without ties will be marked with isDeleted
      * There can be no dishes in the root.
      */
-    static syncProducts(concept?: string, force?: boolean): Promise<void>;
+    syncProducts(concept?: string, force?: boolean): Promise<void>;
     /**
      * Synchronizing the balance of dishes with the RMS adapter
      */
-    static syncOutOfStocks(): Promise<void>;
+    syncOutOfStocks(): Promise<void>;
+    /**
+     * This method will start after the main initialization
+     * @returns boolean
+     */
+    protected abstract customInitialize(): Promise<void>;
     /**
      * Checks whether the nomenclature was updated if the last time something has changed will return to True
      * @returns boolean

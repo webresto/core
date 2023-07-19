@@ -7,10 +7,16 @@ class RMSAdapter {
     constructor(config) {
         this.config = {};
         this.config = config;
-        // Run async inittilization
-        RMSAdapter.initialize();
+        // Run async initialization
+        this.initializationPromise = this.initialize();
     }
-    static async initialize() {
+    /**
+     * Waiting for initialization
+     */
+    async wait() {
+        await this.initializationPromise;
+    }
+    async initialize() {
         // Run product sync interval
         const NO_SYNC_NOMENCLATURE = await Settings.get("NO_SYNC_NOMENCLATURE") ?? false;
         if (!NO_SYNC_NOMENCLATURE) {
@@ -18,7 +24,7 @@ class RMSAdapter {
             if (RMSAdapter.syncProductsInterval)
                 clearInterval(RMSAdapter.syncProductsInterval);
             RMSAdapter.syncProductsInterval = setInterval(async () => {
-                RMSAdapter.syncProducts();
+                this.syncProducts();
             }, SYNC_PRODUCTS_INTERVAL_SECOUNDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECOUNDS * 1000 || 120000);
         }
         // Run sync OutOfStock
@@ -28,9 +34,10 @@ class RMSAdapter {
             if (RMSAdapter.syncOutOfStocksInterval)
                 clearInterval(RMSAdapter.syncOutOfStocksInterval);
             RMSAdapter.syncOutOfStocksInterval = setInterval(async () => {
-                RMSAdapter.syncOutOfStocks();
+                this.syncOutOfStocks();
             }, SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS * 1000 || 60000);
         }
+        await this.customInitialize();
     }
     /**
      * Menu synchronization with RMS system
@@ -39,7 +46,7 @@ class RMSAdapter {
      * Those dishes that are left without ties will be marked with isDeleted
      * There can be no dishes in the root.
      */
-    static async syncProducts(concept, force = false) {
+    async syncProducts(concept, force = false) {
         // TODO: implement concept 
         const rootGroupsToSync = await Settings.get("rootGroupsRMSToSync");
         const rmsAdapter = await Adapter.getRMSAdapter();
@@ -81,7 +88,7 @@ class RMSAdapter {
     /**
      * Synchronizing the balance of dishes with the RMS adapter
      */
-    static syncOutOfStocks() {
+    async syncOutOfStocks() {
         // Consider the concepts
         return;
     }
