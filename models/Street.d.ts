@@ -4,7 +4,7 @@ declare let attributes: {
     /** ID */
     id: string;
     /** Id in external system */
-    exId: string;
+    externalId: string;
     /** Name of street */
     name: string;
     /** Street has delited */

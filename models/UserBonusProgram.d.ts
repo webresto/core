@@ -7,6 +7,7 @@ declare let attributes: {
     id: string;
     balance: number;
     isDeleted: boolean;
+    isActive: boolean;
     user: string | User;
     bonusProgram: string | BonusProgram;
     /** UNIX era seconds */

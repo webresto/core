@@ -31,6 +31,10 @@ let attributes = {
     type: 'boolean',
   } as unknown as boolean,
 
+  isActive: {
+    type: 'boolean',
+  } as unknown as boolean,
+
   user: {
     model: 'user'
   } as unknown as User | string,
@@ -76,6 +80,7 @@ let Model = {
     return await UserBonusProgram.create({
       user: user.id, 
       balance: 0,
+      isActive: true,
       isDeleted: false,
       bonusProgram: bp.id,
       syncedToTime: "0"

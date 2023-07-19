@@ -7,6 +7,8 @@ import { OptionalAll } from "../interfaces/toolsTS";
 declare let attributes: {
     /**Id */
     id: string;
+    /** ID in external system */
+    rmsId: string;
     /** Addishinal info */
     additionalInfo: string;
     /** */
@@ -26,22 +28,24 @@ declare let attributes: {
     parentGroup: any;
     childGroups: string[] | Group[];
     /** Icon */
-    icon: MediaFile;
+    icon: string;
     /** Images */
     images: MediaFile[];
-    /** Плейсхолдер для блюд группы */
+    /** PlaySholder for group dishes */
     dishesPlaceholder: MediaFile[];
-    /** Человеко читаемый АйДи */
+    /** The person readable isii*/
     slug: string;
-    /** Концепт к которому относится группа */
+    /** The concept to which the group belongs */
     concept: string;
-    /** Гурппа отображается */
+    /** The group is displayed*/
     visible: boolean;
-    /** Группа модификаторов */
+    /**A group of modifiers */
     modifier: boolean;
-    /** Промо группа */
+    /**  A sign that this is a promo group
+     *  The promo group cannot be added from the user.
+     */
     promo: boolean;
-    /** Время работы */
+    /** Working hours */
     worktime: WorkTime[];
 };
 type attributes = typeof attributes;
@@ -54,38 +58,38 @@ declare let Model: {
     afterUpdate: (record: any, cb: (err?: string) => void) => void;
     afterCreate: (record: any, cb: (err?: string) => void) => void;
     /**
-     * Возвращает объект с группами и ошибками получения этих самых групп.
+     * Returns an object with groups and errors of obtaining these very groups.
      * @deprecated not used
-     * @param groupsId - массив id групп, которые следует получить
+     * @param groupsId - array of ID groups that should be obtained
      * @return Object {
      *   groups: [],
      *   errors: {}
      * }
-     * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
-     * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
-     * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * where Groups is an array, requested groups with a complete display of investment, that is, with their dishes, the dishes are their modifiers
+     * and pictures, there are pictures of the group, etc., and errors is an object in which the keys are groups that cannot be obtained
+     * According to some dinich, the values of this object are the reasons why the group was not obtained.
+     * @fires group:core-group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     getGroups(groupsId: string[]): Promise<{
         groups: GroupWithAdditionalFields[];
         errors: {};
     }>;
     /**
-     * Возвращает группу с заданным id
+     * Returns a group with a given ID
      * @deprecated not used
-     * @param groupId - id группы
-     * @return запрашиваемая группа
-     * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * @param groupId - ID groups
+     * @return The requested group
+     * @throws The error of obtaining a group
+     * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     getGroup(groupId: string): Promise<Group>;
     /**
      * Returns a group with a given Slug
      * @deprecated not used
-     * @param groupSlug - slug группы
-     * @return запрашиваемая группа
-     * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * @param groupSlug - Slug groups
+     * @return The requested group
+     * @throws The error of obtaining a group
+     * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     getGroupBySlug(groupSlug: string): Promise<Group>;
     /**
@@ -93,14 +97,14 @@ declare let Model: {
      * */
     getMenuGroups(concept: string, topLevelGroupId?: string): Promise<Group[]>;
     /**
-     * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.
+     * Checks whether the group exists, if it does not exist, then creates a new one and returns it.
      * @param values
-     * @return обновлённая или созданная группа
+     * @return Updated or created group
      */
     createOrUpdate(values: Group): Promise<Group>;
 };
 /**
- * Описывает группу блюд в момент получения её популяризированной версии, дополнительные поля являются ошибкой фреймворка
+ * Describes a group of dishes at the time of obtaining its popularized version, additional fields are the error of the framework
  */
 export interface GroupWithAdditionalFields extends Group {
     childGroups: Group[];

@@ -14,7 +14,7 @@ export default function groupGenerator(config: Group = {}): Group {
     parentGroup: config.parentGroup || null,
     sortOrder: autoincrement,
     images: config.images || [],
-    name: config.name || faker.commerce.productName(),
+    name: config.name || `${faker.commerce.productAdjective()} ${faker.commerce.productMaterial()}`,
     isDeleted: config.isDeleted || false,
     dishes: config.dishes || [],
     visible: config.visible || true

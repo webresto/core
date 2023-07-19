@@ -1,4 +1,4 @@
-import RMSAdapter from "./rms/RMSAdapter";
+import RMSAdapter, { ConfigRMSAdapter } from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import OTPAdapter from "./otp/OneTimePasswordAdapter";
@@ -7,7 +7,7 @@ import PaymentAdapter from "./payment/PaymentAdapter";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 /**
- * retruns RMS-adapter
+ * // TODO: delete  getAdapter RMS after release new adapter RMS
  */
 export declare class RMS {
     static getAdapter(adapterName: string): Promise<typeof RMSAdapter>;
@@ -44,10 +44,18 @@ export declare class OTP {
 }
 /** TODO: move other Adapters to one class adapter */
 export declare class Adapter {
+    private static instanceRMS;
     static getDiscountAdapter(adapterName?: string, initParams?: {
         [key: string]: string | number | boolean;
     }): Promise<DiscountAdapter>;
+    /**
+     * retruns BonusProgram-adapter
+     */
     static getBonusProgramAdapter(adapterName?: string, initParams?: {
         [key: string]: string | number | boolean;
     }): Promise<BonusProgramAdapter>;
+    /**
+     * retruns RMS-adapter
+     */
+    static getRMSAdapter(adapter?: string | RMSAdapter, initParams?: ConfigRMSAdapter): Promise<RMSAdapter>;
 }

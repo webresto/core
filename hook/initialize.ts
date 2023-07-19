@@ -18,6 +18,14 @@ import { NotificationManager } from "../libs/NotificationManager";
 // @ts-ignore
 global.NotificationManager = new NotificationManager
 
+/**
+ * Set global NotificationManager
+ */
+import { Adapter } from "../adapters/index";
+// @ts-ignore
+global.Adapter = Adapter
+
+
 export default function ToInitialize(sails: Sails) {
   /**
    * Required hooks

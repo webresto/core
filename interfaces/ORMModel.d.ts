@@ -15,8 +15,10 @@ type notEqual<T> = {
     '!=': T;
 };
 type not<T> = {
-    "!?": T;
-    "!="?: T;
+    "!=": T;
+};
+type _not<T> = {
+    "not": T;
 };
 type lessThan<T> = {
     "<": T;
@@ -56,7 +58,7 @@ export type CriteriaQuery<T> = {
     sort?: string | SortCriteria<T> | SortCriteria<T>[];
 } | WhereCriteriaQuery<T>;
 export type WhereCriteriaQuery<T> = {
-    [P in keyof T]?: T[P] | T[P][] | not<T[P]> | lessThan<T[P]> | lessThan<T[P][]> | lessThanOrEqual<T[P]> | lessThanOrEqual<T[P][]> | greaterThanOrEqual<T[P]> | greaterThanOrEqual<T[P][]> | greaterThan<T[P]> | greaterThan<T[P][]> | notEqual<T[P]> | notEqual<T[P]>[] | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | or<T>;
+    [P in keyof T]?: T[P] | T[P][] | not<T[P]> | not<T[P][]> | _not<T[P]> | _not<T[P][]> | lessThan<T[P]> | lessThan<T[P][]> | lessThanOrEqual<T[P]> | lessThanOrEqual<T[P][]> | greaterThanOrEqual<T[P]> | greaterThanOrEqual<T[P][]> | greaterThan<T[P]> | greaterThan<T[P][]> | notEqual<T[P]> | notEqual<T[P]>[] | _in<T[P]> | nin<T[P]> | contains | startsWith | endsWith | not<T[P][]> | or<T>;
 };
 type collectionMember = {
     members(childIds: string[]): Promise<void>;

@@ -1,25 +1,49 @@
-import OrderResponse from "./OrderResponse";
 import Order from "../../models/Order";
+import Dish from "../../models/Dish";
+import Group from "../../models/Group";
+export type ConfigRMSAdapter = {
+    [key: string]: number | boolean | string;
+};
+/**
+ * Responce from RMS
+ */
+export interface OrderResponse {
+    code: number;
+    body: any;
+}
 /**
  * An abstract RMS adapter class. Used to create new RMS adapters.
  */
 export default abstract class RMSAdapter {
-    protected readonly syncMenuTime: number;
-    protected readonly syncBalanceTime: number;
-    protected readonly syncStreetsTime: number;
-    protected constructor(menuTime: number, balanceTime: number, streetsTime: number);
+    readonly config: ConfigRMSAdapter;
+    private static syncProductsInterval;
+    private static syncOutOfStocksInterval;
+    constructor(config?: ConfigRMSAdapter);
+    private static initialize;
     /**
      * Menu synchronization with RMS system
+     * At first, groups are synchronized, then dishes are synchronized for each of these groups.
+     * When synchronizing groups, those groups that were not on the list will be turned off before the start of synchronization
+     * Those dishes that are left without ties will be marked with isDeleted
+     * There can be no dishes in the root.
      */
-    protected abstract sync(): Promise<void>;
-    /**
-     * Synchronization of streets with RMS systems
-     */
-    protected abstract syncStreets(): Promise<void>;
+    static syncProducts(concept?: string, force?: boolean): Promise<void>;
     /**
      * Synchronizing the balance of dishes with the RMS adapter
      */
-    protected abstract syncBalance(): Promise<void>;
+    static syncOutOfStocks(): Promise<void>;
+    /**
+     * Checks whether the nomenclature was updated if the last time something has changed will return to True
+     * @returns boolean
+     */
+    protected abstract nomenclatureHasUpdated(): Promise<boolean>;
+    /**
+     *
+     * @returns
+     */
+    protected abstract loadNomenclatureTree(rmsGroupIds?: string[]): Promise<Group[]>;
+    protected abstract loadProductsByGroup(group: Group): Promise<Dish[]>;
+    protected abstract loadOutOfStocksDishes(concept?: string): Promise<Dish[]>;
     /**
      * Create an order
      * @param orderData - webresto order
@@ -27,16 +51,11 @@ export default abstract class RMSAdapter {
      */
     abstract createOrder(orderData: Order): Promise<OrderResponse>;
     /**
-     * Order check
+     * Order check before order
      * @param orderData - webresto order
      * @return Order response
      */
     abstract checkOrder(orderData: Order): Promise<OrderResponse>;
-    /**
-     * Getting system information
-     * @return RMS system information
-     */
-    abstract getSystemData(): Promise<any>;
     /**
      * Direct request to the RMS API
      * @param method - method name
@@ -44,9 +63,4 @@ export default abstract class RMSAdapter {
      * @return
      */
     abstract api(method: string, params: any): Promise<any>;
-    /**
-     * Method for creating and getting an already existing RMS adapter
-     * @param params - parameters for initialization
-     */
-    static getInstance(...params: any[]): RMSAdapter;
 }

@@ -19,9 +19,13 @@ type notEqual<T> = {
 };
 
 type not<T> = {
-  "!?": T
-  "!="?: T
+  "!=": T
 }
+
+type _not<T> = {
+  "not": T
+}
+
 
 type lessThan<T> = {
   "<": T
@@ -76,14 +80,17 @@ export type CriteriaQuery<T> = {
 } | WhereCriteriaQuery<T>;
 
 
-type notIn<T> = {
-  "!=": T[]
-}
+// type notIn<T> = {
+//   "!=": T[]
+// }
 
 export type WhereCriteriaQuery<T> = {
   [P in keyof T]?: T[P] | 
   T[P][] | 
   not<T[P]> | 
+  not<T[P][]> | 
+  _not<T[P]> | 
+  _not<T[P][]> | 
   lessThan<T[P]> | 
   lessThan<T[P][]> | 
   lessThanOrEqual<T[P]> | 

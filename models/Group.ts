@@ -7,13 +7,19 @@ import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import slugify from "slugify"
-import { groupBy } from "lodash";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 
 let attributes = {
   /**Id */
   id: {
+    type: "string",
+    //required: true,
+  } as unknown as string,
+
+
+  /** ID in external system */
+  rmsId: {
     type: "string",
     //required: true,
   } as unknown as string,
@@ -82,9 +88,7 @@ let attributes = {
   } as unknown as Group[] | string[],
 
   /** Icon */
-  icon: {
-    model: "mediafile",
-  } as unknown as MediaFile,
+  icon: "string",
 
   /** Images */
   images: {
@@ -92,29 +96,31 @@ let attributes = {
     via: "group",
   } as unknown as MediaFile[],
 
-  /** Плейсхолдер для блюд группы */
+  /** PlaySholder for group dishes */
   dishesPlaceholder: {
     model: "mediafile",
   } as unknown as MediaFile[],
 
-  /** Человеко читаемый АйДи */
+  /** The person readable isii*/
   slug: {
     type: "string",
   } as unknown as string,
 
-  /** Концепт к которому относится группа */
+  /** The concept to which the group belongs */
   concept: "string",
 
-  /** Гурппа отображается */
+  /** The group is displayed*/
   visible: "boolean" as unknown as boolean,
 
-  /** Группа модификаторов */
+  /**A group of modifiers */
   modifier: "boolean" as unknown as boolean,
 
-  /** Промо группа */
+  /**  A sign that this is a promo group
+   *  The promo group cannot be added from the user.
+   */
   promo: "boolean" as unknown as boolean,
 
-  /** Время работы */
+  /** Working hours */
   worktime: "json" as unknown as WorkTime[],
 };
 
@@ -152,17 +158,17 @@ let Model = {
   },
 
   /**
-   * Возвращает объект с группами и ошибками получения этих самых групп.
+   * Returns an object with groups and errors of obtaining these very groups.
    * @deprecated not used
-   * @param groupsId - массив id групп, которые следует получить
+   * @param groupsId - array of ID groups that should be obtained
    * @return Object {
    *   groups: [],
    *   errors: {}
    * }
-   * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
-   * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
-   * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+   * where Groups is an array, requested groups with a complete display of investment, that is, with their dishes, the dishes are their modifiers
+   * and pictures, there are pictures of the group, etc., and errors is an object in which the keys are groups that cannot be obtained
+   * According to some dinich, the values of this object are the reasons why the group was not obtained.
+   * @fires group:core-group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[]; errors: {} }> {
 
@@ -220,12 +226,12 @@ let Model = {
   },
 
   /**
-   * Возвращает группу с заданным id
+   * Returns a group with a given ID
    * @deprecated not used
-   * @param groupId - id группы
-   * @return запрашиваемая группа
-   * @throws ошибка получения группы
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+   * @param groupId - ID groups
+   * @return The requested group
+   * @throws The error of obtaining a group
+   * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
    */
   async getGroup(groupId: string): Promise<Group> {
     const result = await Group.getGroups([groupId]);
@@ -239,10 +245,10 @@ let Model = {
   /**
    * Returns a group with a given Slug
    * @deprecated not used
-   * @param groupSlug - slug группы
-   * @return запрашиваемая группа
-   * @throws ошибка получения группы
-   * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+   * @param groupSlug - Slug groups
+   * @return The requested group
+   * @throws The error of obtaining a group
+   * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
    */
   async getGroupBySlug(groupSlug: string): Promise<Group> {
 
@@ -276,19 +282,19 @@ let Model = {
        * Check all option from settings to detect TopLevelGroupId
        */
       if (!topLevelGroupId) {
-        let menuTopLevel = undefined as string;
+        let menuTopLevelSlug = undefined as string;
 
         if(concept !== undefined) {
-          menuTopLevel = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`) as string;
+          menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`) as string;
         }
 
-        if( menuTopLevel === undefined) {
-          menuTopLevel = await Settings.get(`SLUG_MENU_TOP_LEVEL`) as string;
+        if( menuTopLevelSlug === undefined) {
+          menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL`) as string;
         }
 
-        if(menuTopLevel) {
+        if(menuTopLevelSlug) {
           let menuTopLevelGroup = await Group.findOne({ 
-            slug: menuTopLevel,
+            slug: menuTopLevelSlug,
             ...concept &&  { concept: concept }
            })
           if(menuTopLevelGroup) {
@@ -296,7 +302,7 @@ let Model = {
           }
         }
       }
-      
+
       groups = await Group.find({
         parentGroup: topLevelGroupId ?? null,
         ...concept &&  { concept: concept }
@@ -309,16 +315,15 @@ let Model = {
         });
         if(childs) groups = childs;
       }
-    } else {
-      // direct from emitter
-      return groups
-    }
+    } 
+
+    return groups
   },
 
   /**
-   * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.
+   * Checks whether the group exists, if it does not exist, then creates a new one and returns it.
    * @param values
-   * @return обновлённая или созданная группа
+   * @return Updated or created group
    */
   async createOrUpdate(values: Group): Promise<Group> {
     const group = await Group.findOne({ id: values.id });
@@ -331,7 +336,7 @@ let Model = {
 };
 
 /**
- * Описывает группу блюд в момент получения её популяризированной версии, дополнительные поля являются ошибкой фреймворка
+ * Describes a group of dishes at the time of obtaining its popularized version, additional fields are the error of the framework
  */
 export interface GroupWithAdditionalFields extends Group {
   childGroups: Group[];

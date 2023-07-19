@@ -11,7 +11,7 @@ let attributes = {
   } as unknown as string,
 
   /** Id in external system */
-  exId: {
+  externalId: {
     type: "string"
   } as unknown as string,
   

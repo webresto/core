@@ -1,4 +1,4 @@
-import RMSAdapter from "./rms/RMSAdapter";
+import RMSAdapter, { ConfigRMSAdapter } from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
@@ -14,9 +14,10 @@ import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
 /**
- * retruns RMS-adapter
+ * // TODO: delete  getAdapter RMS after release new adapter RMS
  */ 
 export class RMS {
+
   public static async getAdapter(adapterName: string): Promise<typeof RMSAdapter> {
     
     // if(!Boolean(adapterName)) {
@@ -188,6 +189,10 @@ export class OTP {
 
 /** TODO: move other Adapters to one class adapter */
 export class Adapter {
+  
+  // Singletons
+  private static instanceRMS: RMSAdapter;
+
   public static async getDiscountAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<DiscountAdapter> {
   
     if(!adapterName) {
@@ -210,7 +215,9 @@ export class Adapter {
     }
   }
 
-
+  /**
+   * retruns BonusProgram-adapter
+   */ 
   public static async getBonusProgramAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<BonusProgramAdapter> {
     if(!adapterName) {
       let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER") as string;
@@ -229,5 +236,47 @@ export class Adapter {
     }
   }
 
-}
 
+  /**
+   * retruns RMS-adapter
+   */ 
+  public static async getRMSAdapter(adapter?: string | RMSAdapter, initParams?: ConfigRMSAdapter): Promise<RMSAdapter> {
+    // Return the singleon
+    if (this.instanceRMS) {
+      return this.instanceRMS;
+    }
+  
+    let adapterName: string;
+    if(adapter) {
+      if(typeof adapter === "string") {
+          adapterName = adapter;
+      } else if(adapter instanceof RMSAdapter) {
+        this.instanceRMS = adapter;
+        return this.instanceRMS;
+      } else {
+        throw new Error("Adapter should be a string or instance of rmsadapter");
+      }
+    
+    }
+
+    if(!adapterName) {
+      adapterName = await Settings.get("DEFAULT_RMS_ADAPTER") as string;
+      if (!adapterName) throw 'RMS adapter is not installed';
+    }
+  
+
+    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
+    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
+  
+    try {
+      const adapterModule = require(adapterLocation);
+      this.instanceRMS = new adapterModule.RMSAdapter(initParams);
+      return this.instanceRMS;
+    } catch (e) {
+      sails.log.error("CORE > getAdapter RMS >  error; ", e);
+      throw new Error("Module " + adapterLocation + " not found");
+    }
+  }
+  
+
+}

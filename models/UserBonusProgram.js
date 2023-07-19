@@ -17,6 +17,9 @@ let attributes = {
     isDeleted: {
         type: 'boolean',
     },
+    isActive: {
+        type: 'boolean',
+    },
     user: {
         model: 'user'
     },
@@ -44,6 +47,7 @@ let Model = {
         return await UserBonusProgram.create({
             user: user.id,
             balance: 0,
+            isActive: true,
             isDeleted: false,
             bonusProgram: bp.id,
             syncedToTime: "0"
