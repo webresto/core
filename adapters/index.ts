@@ -251,8 +251,6 @@ export class Adapter {
       if(typeof adapter === "string") {
           adapterName = adapter;
       } else if(adapter instanceof RMSAdapter) {
-
-console.log('content', adapter);
         this.instanceRMS = adapter;
         return this.instanceRMS;
       } else {

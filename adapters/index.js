@@ -219,7 +219,6 @@ class Adapter {
                 adapterName = adapter;
             }
             else if (adapter instanceof RMSAdapter_1.default) {
-                console.log('content', adapter);
                 this.instanceRMS = adapter;
                 return this.instanceRMS;
             }
