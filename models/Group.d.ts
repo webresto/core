@@ -26,9 +26,12 @@ declare let attributes: {
     sortOrder: number;
     dishes: Dish[];
     parentGroup: any;
-    childGroups: string[] | Group[];
+    childGroups: Group[] | string[];
     /** Icon */
-    icon: string;
+    icon: {
+        type: string;
+        allowNull: boolean;
+    };
     /** Images */
     images: MediaFile[];
     /** PlaySholder for group dishes */

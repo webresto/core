@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 class RMSAdapter {
     constructor(config) {
         this.config = {};
+        this.syncProductsExecuted = false;
         this.config = config;
         // Run async initialization
         this.initializationPromise = this.initialize();
@@ -48,9 +49,14 @@ class RMSAdapter {
      */
     async syncProducts(concept, force = false) {
         // TODO: implement concept 
-        const rootGroupsToSync = await Settings.get("rootGroupsRMSToSync");
+        if (this.syncProductsExecuted) {
+            sails.log.info(`Method "syncProducts" was already executed and won't be executed again`);
+            return;
+        }
+        this.syncProductsExecuted = true;
+        const rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC");
         const rmsAdapter = await Adapter.getRMSAdapter();
-        if (rmsAdapter.nomenclatureHasUpdated() || force) {
+        if (await rmsAdapter.nomenclatureHasUpdated() || force) {
             const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
             // Get ids of all current RMS groups
             const rmsGroupIds = currentRMSGroupsFlatTree.map(group => group.rmsId);
@@ -82,6 +88,7 @@ class RMSAdapter {
             // Delete all dishes in inactive groups or not in the updated list
             await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { not: allProductIds } }, { parentGroup: null }] } }, { isDeleted: true });
         }
+        this.syncProductsExecuted = false;
         return;
     }
     ;

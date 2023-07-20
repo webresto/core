@@ -65,7 +65,10 @@ let attributes = {
         via: "parentGroup",
     },
     /** Icon */
-    icon: "string",
+    icon: {
+        type: "string",
+        allowNull: true
+    },
     /** Images */
     images: {
         collection: "mediafile",

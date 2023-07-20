@@ -25,7 +25,7 @@ export default abstract class RMSAdapter {
   private static syncProductsInterval: ReturnType<typeof setInterval>;
   private static syncOutOfStocksInterval: ReturnType<typeof setInterval>;
   private initializationPromise: Promise<void>;
-
+  private syncProductsExecuted: boolean = false;
   public constructor(config?: ConfigRMSAdapter) {
     this.config = config;
 
@@ -82,11 +82,16 @@ export default abstract class RMSAdapter {
     
     // TODO: implement concept 
 
+    if(this.syncProductsExecuted){
+      sails.log.info(`Method "syncProducts" was already executed and won't be executed again`)
+      return
+    }
+    this.syncProductsExecuted = true;
 
-    const rootGroupsToSync = await Settings.get("rootGroupsRMSToSync") as string[];
+    const rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC") as string[];
     const rmsAdapter = await Adapter.getRMSAdapter();
   
-    if (rmsAdapter.nomenclatureHasUpdated() || force) {
+    if (await rmsAdapter.nomenclatureHasUpdated() || force) {
       const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
   
       // Get ids of all current RMS groups
@@ -129,7 +134,7 @@ export default abstract class RMSAdapter {
       // Delete all dishes in inactive groups or not in the updated list
       await Dish.update({ where:{ or: [ { parentGroup: { in: inactiveGroupIds }}, { rmsId: { not: allProductIds }}, {parentGroup: null} ]}}, { isDeleted: true });
     }
-  
+    this.syncProductsExecuted = false
     return
   };
 

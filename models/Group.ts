@@ -88,7 +88,10 @@ let attributes = {
   } as unknown as Group[] | string[],
 
   /** Icon */
-  icon: "string",
+  icon: {
+    type: "string",
+    allowNull: true
+  },
 
   /** Images */
   images: {
