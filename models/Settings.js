@@ -89,7 +89,7 @@ let Model = {
                 return value;
             }
         }
-        sails.log.warn(`Settings: ( ${key} ) not found`);
+        sails.log.silly(`Settings: ( ${key} ) not found`);
         return undefined;
     },
     async get(key) {
@@ -159,6 +159,10 @@ module.exports = {
     ...Model,
 };
 function toScreamingSnake(str) {
+    if (!str) {
+        console.log("STR", str);
+        return '';
+    }
     // Test123___Test_test -> TEST123_TEST_TEST
     return str.replace(/\.?([A-Z]+)/g, function (x, y) { return "_" + y.toLowerCase(); }).replace(/^_/, "").replace(/_{1,}/g, "_").toUpperCase();
 }

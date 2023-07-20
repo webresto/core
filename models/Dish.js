@@ -62,19 +62,40 @@ let attributes = {
     /** The amount of carbohydrates per (100g)*/
     carbohydrateAmount: "number",
     /** The amount of carbohydrates in the dish */
-    carbohydrateFullAmount: "number",
+    carbohydrateFullAmount: {
+        type: "number",
+        allowNull: true
+    },
     /** Energy value (100 g) */
-    energyAmount: "number",
+    energyAmount: {
+        type: "number",
+        allowNull: true
+    },
     /** Energy value */
-    energyFullAmount: "number",
+    energyFullAmount: {
+        type: "number",
+        allowNull: true
+    },
     /**  The amount of fat (100 g) */
-    fatAmount: "number",
+    fatAmount: {
+        type: "number",
+        allowNull: true
+    },
     /** The amount of fat in the dish */
-    fatFullAmount: "number",
+    fatFullAmount: {
+        type: "number",
+        allowNull: true
+    },
     /** The number of proteins (100g)  */
-    fiberAmount: "number",
+    fiberAmount: {
+        type: "number",
+        allowNull: true
+    },
     /** The amount of proteins in the dish */
-    fiberFullAmount: "number",
+    fiberFullAmount: {
+        type: "number",
+        allowNull: true
+    },
     /** The group identifier in which the dish is located */
     groupId: {
         type: "string",
@@ -93,9 +114,12 @@ let attributes = {
         allowNull: true,
     },
     /** Type */
-    type: "string",
+    // type: "string", //TODO: ???
     /** Weight  */
-    weight: "number",
+    weight: {
+        type: "number",
+        allowNull: true
+    },
     /** Sorting order */
     sortOrder: "number",
     /** The dish is removed */

@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = require("../adapters/index");
 /**
  * Initial RMS and set timezone if it given
  */
@@ -10,19 +9,19 @@ async function default_1() {
          * rmsAdapter
          */
         const rmsAdapterName = await Settings.use("rmsAdapter", "restocore");
-        const rmsAdapterConfig = await Settings.use(rmsAdapterName, "restocore");
+        const rmsAdapterConfig = await Settings.use("rmsAdapterName", "restocore");
         const imagesConfig = await Settings.use("images", "restocore");
         const timeSyncMenu = await Settings.use("timeSyncMenu", "restocore");
         const timeSyncBalance = await Settings.use("timeSyncBalance", "restocore");
         const timeSyncStreets = await Settings.use("timeSyncStreets", "restocore");
         const timeSyncPayments = await Settings.use("timeSyncPayments", "restocore");
-        /**
-         * run instance RMSadapter
-         */
-        if (rmsAdapterName) {
-            const rmsAdapter = await index_1.RMS.getAdapter(rmsAdapterName);
-            rmsAdapter.getInstance(rmsAdapterConfig, imagesConfig, timeSyncMenu, timeSyncBalance, timeSyncStreets);
-        }
+        // /**
+        //  * run instance RMSadapter
+        //  */
+        // if (rmsAdapterName) {
+        //   const rmsAdapter = await RMS.getAdapter(rmsAdapterName);
+        //   rmsAdapter.getInstance(rmsAdapterConfig, imagesConfig, timeSyncMenu, timeSyncBalance, timeSyncStreets);
+        // }
         /**
          * TIMEZONE
          */

@@ -83,25 +83,46 @@ let attributes = {
   carbohydrateAmount: "number" as unknown as number,
 
   /** The amount of carbohydrates in the dish */
-  carbohydrateFullAmount: "number" as unknown as number,
+  carbohydrateFullAmount: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /** Energy value (100 g) */
-  energyAmount: "number" as unknown as number,
+  energyAmount: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /** Energy value */
-  energyFullAmount: "number" as unknown as number,
+  energyFullAmount: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /**  The amount of fat (100 g) */
-  fatAmount: "number" as unknown as number,
+  fatAmount: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /** The amount of fat in the dish */
-  fatFullAmount: "number" as unknown as number,
+  fatFullAmount: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /** The number of proteins (100g)  */
-  fiberAmount: "number" as unknown as number,
+  fiberAmount: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /** The amount of proteins in the dish */
-  fiberFullAmount: "number" as unknown as number,
+  fiberFullAmount: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /** The group identifier in which the dish is located */
   groupId: {
@@ -125,10 +146,13 @@ let attributes = {
   } as unknown as string,
 
   /** Type */
-  type: "string", //TODO: ???
+  // type: "string", //TODO: ???
 
   /** Weight  */
-  weight: "number" as unknown as number,
+  weight: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /** Sorting order */
   sortOrder: "number" as unknown as number,

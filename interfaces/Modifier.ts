@@ -4,11 +4,13 @@ import Dish from "../models/Dish";
 interface BaseModifier {
   modifierId: string;
   amount?: number;
-  dish?: Dish;
+  dish?: Dish | string;
   maxAmount?: number;
   minAmount?: number;
   defaultAmount?: number;
   freeAmount?: number;
+  required: boolean | null;
+  freeOfChargeAmount?: number | null;
 }
 
 export interface OrderModifier {
@@ -25,7 +27,10 @@ export interface Modifier extends BaseModifier {
 export interface GroupModifier extends BaseModifier {
   id?: string; // id не обязательный для поддержки вирутальных групп
   childModifiers: Modifier[];
-  group?: Group | any;
+  group?: Group | string;
   groupId?: string;
   isSingleModifierGroupWrapper?: boolean;
 }
+
+
+
