@@ -189,7 +189,7 @@ let attributes = {
   images: {
     collection: "mediafile",
     via: "dish",
-  } as unknown as MediaFile[],
+  } as unknown as MediaFile[] | string[],
 
   /** Слаг */
   slug: {

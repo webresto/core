@@ -4,11 +4,11 @@ interface BaseModifier {
     modifierId: string;
     amount?: number;
     dish?: Dish | string;
-    maxAmount?: number;
-    minAmount?: number;
-    defaultAmount?: number;
-    freeAmount?: number;
-    required: boolean | null;
+    maxAmount?: number | null;
+    minAmount?: number | null;
+    defaultAmount?: number | null;
+    freeAmount?: number | null;
+    required?: boolean | null;
     freeOfChargeAmount?: number | null;
 }
 export interface OrderModifier {

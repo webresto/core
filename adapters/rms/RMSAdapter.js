@@ -77,6 +77,22 @@ class RMSAdapter {
                 allProductIds = allProductIds.concat(productIds);
                 for (let product of productsToUpdate) {
                     emitter.emit("rms-sync:before-each-product-item", product);
+                    // Load images
+                    if (product.images && product.images.length) {
+                        const isURL = (str) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
+                        for (let image of product.images) {
+                            if (isURL(image)) {
+                                // load image
+                                let mfAdater = await Adapter.getMediaFileAdapter();
+                                let mediaFileImage = await mfAdater.toDownload(image, 'dish', 'image');
+                                await Dish.addToCollection(product.id, 'images').members([mediaFileImage.id]);
+                            }
+                            else {
+                                sails.log.debug(`Image not url on sync products ${image}`);
+                                continue;
+                            }
+                        }
+                    }
                     // Update or create product
                     const productData = { ...product, isDeleted: false };
                     await Dish.createOrUpdate(productData);

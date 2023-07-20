@@ -9,8 +9,7 @@ describe("MediaFile", function () {
         small: "/images/27ed4b5b-7161-4d88-bf76-fae8023aff9f.png",
         large: "/images/9399fd28-e03a-4f86-8078-a37c67d08c94.png",
       },
-      uploadDate: "2020-10-13 16:23:20",
     }).fetch();
-        expect(img).to.include.keys("id", "images",  "uploadDate");
+        expect(img).to.include.keys("id", "images");
   });
 });

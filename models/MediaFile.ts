@@ -43,10 +43,7 @@ let attributes = {
   group: {
     collection: "group",
     via: "images",
-  } as unknown as Group[],
-
-  /** upload date */
-  uploadDate: "string",
+  } as unknown as Group[]
 };
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM {}

@@ -1,7 +1,6 @@
 import path = require("path");
 import { TestRMS } from "../../mocks/adapter/RMS";
 import { Adapter } from "../../../adapters"; 
-import RMSAdapter from "../../../adapters/rms/RMSAdapter"; 
 import { expect } from "chai";
 
 
@@ -15,7 +14,7 @@ describe("RMS adapter", function () {
   });
 
   it("SyncProducts", async () => {
-    await RMSAdapter.syncProducts();
+    await rmsAdapter.syncProducts();
     let countGroups = await Group.count({isDeleted: false})
     expect(countGroups).to.equal(88);  
     let count = await Dish.count({isDeleted: false});

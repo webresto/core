@@ -17,8 +17,6 @@ declare let attributes: {
     sortOrder: number;
     /** Group relation */
     group: Group[];
-    /** upload date */
-    uploadDate: string;
 };
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM {

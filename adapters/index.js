@@ -1,11 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Adapter = exports.OTP = exports.Captcha = exports.Payment = exports.Media = exports.Map = exports.RMS = void 0;
+exports.Adapter = exports.OTP = exports.Captcha = exports.Payment = exports.Map = exports.RMS = void 0;
 const RMSAdapter_1 = require("./rms/RMSAdapter");
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
+const MediaFileAdapter_1 = require("./mediafile/MediaFileAdapter");
 const fs = require("fs");
 const discountAdapter_1 = require("./discount/default/discountAdapter");
+const path = require("path");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
@@ -58,38 +60,6 @@ class Map {
     }
 }
 exports.Map = Map;
-/**
- * retruns MediaFile-adapter
- */
-class Media {
-    static async getAdapter(adapterName) {
-        // if(!Boolean(adapterName)) {
-        //   sails.log.warn(`MediaFile adapter not defined: ${adapterName}`);
-        //   return 
-        // }
-        if (!adapterName) {
-            adapterName = await Settings.get("MEDIAFILE_ADAPTER");
-        }
-        let adapter;
-        // Use default adapter local Imagemagick
-        if (!adapterName || "imagemagick-local") {
-            adapter = require("./mediafile/default/im-local");
-        }
-        else {
-            let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
-            adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
-            try {
-                adapter = require(adapterLocation);
-            }
-            catch (e) {
-                sails.log.error("CORE > getAdapter MediaFileA > error; ", e);
-                throw new Error("Module " + adapterLocation + " not found");
-            }
-        }
-        return adapter.default;
-    }
-}
-exports.Media = Media;
 /**
  * retruns Payment-adapter
  */
@@ -240,6 +210,48 @@ class Adapter {
         }
         catch (e) {
             sails.log.error("CORE > getAdapter RMS >  error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
+    /**
+   * retruns MediaFile-adapter
+   */
+    static async getMediaFileAdapter(adapter, initParams) {
+        // Return the singleon
+        if (this.instanceMF) {
+            return this.instanceMF;
+        }
+        let adapterName;
+        if (adapter) {
+            if (typeof adapter === "string") {
+                adapterName = adapter;
+            }
+            else if (adapter instanceof MediaFileAdapter_1.default) {
+                this.instanceMF = adapter;
+                return this.instanceMF;
+            }
+            else {
+                throw new Error("Adapter should be a string or instance of rmsadapter");
+            }
+        }
+        let adapterLocation = "";
+        if (!adapterName) {
+            adapterName = await Settings.get("DEFAULT_MEDIAFILE_ADAPTER");
+            if (!adapterName) {
+                adapterLocation = path.resolve(__dirname, "mediafile/default/local");
+            }
+        }
+        if (!adapterLocation) {
+            adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-mediafile-adapter";
+            adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-mediafile-adapter";
+        }
+        try {
+            const adapterModule = require(adapterLocation);
+            this.instanceMF = new adapterModule.MediaFileAdapter(initParams);
+            return this.instanceMF;
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter MediaFile >  error; ", e);
             throw new Error("Module " + adapterLocation + " not found");
         }
     }

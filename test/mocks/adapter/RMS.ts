@@ -8,6 +8,9 @@ import groupGenerator from "../../generators/group.generator";
 
 
 export class TestRMS  extends RMSAdapter {
+    protected customInitialize(): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
     protected loadOutOfStocksDishes(concept?: string): Promise<Dish[]> {
         throw new Error("Method not implemented.");
     }

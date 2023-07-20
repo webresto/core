@@ -1,9 +1,11 @@
+
 import Order from "../../models/Order";
 import Dish from "../../models/Dish";
 import Group from "../../models/Group";
 export type ConfigRMSAdapter = {
   [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };
+
 
 /**
  * Responce from RMS
@@ -121,6 +123,22 @@ export default abstract class RMSAdapter {
         for (let product of productsToUpdate) {
           emitter.emit("rms-sync:before-each-product-item", product);
           
+          // Load images
+          if(product.images && product.images.length) {
+            const isURL = (str) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
+            for (let image of product.images){
+              if (isURL(image)){
+                // load image
+                let mfAdater = await Adapter.getMediaFileAdapter()
+                let mediaFileImage = await mfAdater.toDownload(image as string, 'dish', 'image');
+                await Dish.addToCollection(product.id, 'images').members([mediaFileImage.id]);
+              } else {
+                sails.log.debug(`Image not url on sync products ${image}`);
+                continue;
+              }
+            }
+          }
+
           // Update or create product
           const productData = { ...product, isDeleted: false };
           await Dish.createOrUpdate(productData);

@@ -2,14 +2,14 @@ import RMSAdapter, { ConfigRMSAdapter } from "./rms/RMSAdapter";
 import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
-import * as LocalMediaFileAdapter from "./mediafile/default/im-local"
 import { DefaultOTP } from "./otp/default/defaultOTP";
 import OTPAdapter from "./otp/OneTimePasswordAdapter"
-import MediaFileAdapter from "./mediafile/MediaFileAdapter";
+import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
+import path = require("path");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -68,38 +68,6 @@ export class Map {
       sails.log.error("CORE > getAdapter Map > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
-  }
-}
-
-/**
- * retruns MediaFile-adapter
- */
-export class Media {
-  public static async getAdapter(adapterName: string): Promise<typeof MediaFileAdapter> {
-
-    // if(!Boolean(adapterName)) {
-    //   sails.log.warn(`MediaFile adapter not defined: ${adapterName}`);
-    //   return 
-    // }
-
-    if(!adapterName) {
-      adapterName = await Settings.get("MEDIAFILE_ADAPTER") as string;
-    }
-    let adapter: {default: typeof MediaFileAdapter}
-    // Use default adapter local Imagemagick
-    if (!adapterName || "imagemagick-local") {
-      adapter = require("./mediafile/default/im-local");
-    } else {
-      let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-image-adapter";
-      adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-image-adapter";
-      try {
-        adapter = require(adapterLocation);
-      } catch (e) {
-        sails.log.error("CORE > getAdapter MediaFileA > error; ", e);
-        throw new Error("Module " + adapterLocation + " not found");
-      }
-    }
-    return adapter.default;
   }
 }
 
@@ -192,6 +160,7 @@ export class Adapter {
   
   // Singletons
   private static instanceRMS: RMSAdapter;
+  private static instanceMF: MediaFileAdapter;
 
   public static async getDiscountAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<DiscountAdapter> {
   
@@ -278,5 +247,49 @@ export class Adapter {
     }
   }
   
+    /**
+   * retruns MediaFile-adapter
+   */ 
+    public static async getMediaFileAdapter(adapter?: string | MediaFileAdapter, initParams?: ConfigMediaFileAdapter): Promise<MediaFileAdapter> {
+      // Return the singleon
+      if (this.instanceMF) {
+        return this.instanceMF;
+      }
+    
+      let adapterName: string;
+      if(adapter) {
+        if(typeof adapter === "string") {
+            adapterName = adapter;
+        } else if(adapter instanceof MediaFileAdapter) {
+          this.instanceMF = adapter;
+          return this.instanceMF;
+        } else {
+          throw new Error("Adapter should be a string or instance of rmsadapter");
+        }
+      
+      }
+  
+      let adapterLocation: string = "";
 
+      if(!adapterName) {
+        adapterName = await Settings.get("DEFAULT_MEDIAFILE_ADAPTER") as string;
+        if (!adapterName) {
+          adapterLocation = path.resolve(__dirname, "mediafile/default/local")
+        }
+      }
+    
+      if (!adapterLocation) {
+        adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-mediafile-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-mediafile-adapter";
+      }
+    
+      try {
+        const adapterModule = require(adapterLocation);
+        this.instanceMF = new adapterModule.MediaFileAdapter(initParams);
+        return this.instanceMF;
+      } catch (e) {
+        sails.log.error("CORE > getAdapter MediaFile >  error; ", e);
+        throw new Error("Module " + adapterLocation + " not found");
+      }
+    }
 }
