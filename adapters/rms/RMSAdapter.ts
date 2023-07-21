@@ -43,6 +43,14 @@ export default abstract class RMSAdapter {
   }
   
   private async initialize(): Promise<void> {
+
+    try {
+      await this.customInitialize();
+    } catch (error) {
+      sails.log.error('RMS inittialization error >> ', error)
+      return
+    }
+
     // Run product sync interval
     const NO_SYNC_NOMENCLATURE = await Settings.get("NO_SYNC_NOMENCLATURE") as boolean ?? false;
     if(!NO_SYNC_NOMENCLATURE) {
@@ -54,6 +62,11 @@ export default abstract class RMSAdapter {
         },
         SYNC_PRODUCTS_INTERVAL_SECOUNDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECOUNDS * 1000 || 120000
       );
+    }
+
+    // Run on load
+    if (process.env.NODE_ENV !== "production") {
+      this.syncProducts();
     }
 
     // Run sync OutOfStock
@@ -69,7 +82,6 @@ export default abstract class RMSAdapter {
       );
     }
 
-    await this.customInitialize();
   }
 
 
@@ -129,14 +141,12 @@ export default abstract class RMSAdapter {
           const SKIP_LOAD_PRODUCT_IMAGES = await Settings.get("SKIP_LOAD_PRODUCT_IMAGES") as boolean ?? false
           // Load images
           if(product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
-            console.log(product.images)
             const isURL = (str) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
             for (let image of product.images){
               if (isURL(image)){
                 // load image
                 const mfAdater = await Adapter.getMediaFileAdapter()
                 const mediaFileImage = await mfAdater.toDownload(image as string, 'dish', 'image');
-                console.log(mediaFileImage)
                 await Dish.addToCollection(product.id, 'images').members([mediaFileImage.id]);
               } else {
                 sails.log.debug(`Image not url on sync products ${image}`);

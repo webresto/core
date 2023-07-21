@@ -144,7 +144,7 @@ class Adapter {
         if (!adapterName) {
             return discountAdapter_1.DiscountAdapter.getInstance();
         }
-        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
+        let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-discount-adapter";
         try {
             const adapter = require(adapterLocation);
@@ -164,7 +164,7 @@ class Adapter {
             if (!defaultAdapterName)
                 throw 'BonusProgramAdapter is not set ';
         }
-        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
+        let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-bonus-adapter";
         try {
             const adapter = require(adapterLocation);
@@ -201,7 +201,7 @@ class Adapter {
             if (!adapterName)
                 throw 'RMS adapter is not installed';
         }
-        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
+        let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
         try {
             const adapterModule = require(adapterLocation);
@@ -243,7 +243,7 @@ class Adapter {
             }
         }
         if (!adapterLocation) {
-            adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-mediafile-adapter";
+            adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-mediafile-adapter";
             adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-mediafile-adapter";
         }
         try {
@@ -257,4 +257,5 @@ class Adapter {
         }
     }
 }
+Adapter.WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 exports.Adapter = Adapter;

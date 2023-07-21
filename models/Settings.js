@@ -60,7 +60,7 @@ let Model = {
                 value = JSON.parse(process.env[key]);
             }
             catch (e) {
-                sails.log.error("CORE > Settings > use ENV parse error: ", e);
+                // sails.log.error("CORE > Settings > use ENV parse error: ", e);
                 value = process.env[key];
             }
             finally {

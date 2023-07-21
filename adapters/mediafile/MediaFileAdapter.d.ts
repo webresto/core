@@ -19,7 +19,7 @@ export default abstract class MediaFileAdapter {
      */
     wait(): Promise<void>;
     toDownload(url: string, target: string, type: MediaFileTypes, force?: boolean): Promise<MediaFile>;
-    abstract load(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{
+    abstract process(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{
         origin: string;
         small: string;
         large: string;

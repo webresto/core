@@ -39,6 +39,7 @@ export default abstract class MediaFileAdapter {
 
   public async toDownload(url: string, target: string, type: MediaFileTypes, force: boolean = false): Promise<MediaFile> {
     await this.wait()
+    sails.log.silly(`Adapter > Mediafile > toDownload: ${url}`)
     let imageId = uuidv5(url, this.UUID_NAMESPACE);
     let mediaFile = await MediaFile.findOne({ id: imageId });
     
@@ -56,7 +57,7 @@ export default abstract class MediaFileAdapter {
       switch (type)
       {
         case "image":
-          mediaFile.images = this.load(url, "image", loadConfig);
+          mediaFile.images = this.process(url, "image", loadConfig);
         break;
 
         case "video": 
@@ -78,5 +79,5 @@ export default abstract class MediaFileAdapter {
   };
 
 
-  public abstract load(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{ origin: string, small: string, large: string }>;
+  public abstract process(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{ origin: string, small: string, large: string }>;
 }

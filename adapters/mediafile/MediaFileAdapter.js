@@ -21,6 +21,7 @@ class MediaFileAdapter {
     }
     async toDownload(url, target, type, force = false) {
         await this.wait();
+        sails.log.silly(`Adapter > Mediafile > toDownload: ${url}`);
         let imageId = (0, uuid_1.v5)(url, this.UUID_NAMESPACE);
         let mediaFile = await MediaFile.findOne({ id: imageId });
         let loadConfig;
@@ -34,7 +35,7 @@ class MediaFileAdapter {
             };
             switch (type) {
                 case "image":
-                    mediaFile.images = this.load(url, "image", loadConfig);
+                    mediaFile.images = this.process(url, "image", loadConfig);
                     break;
                 case "video":
                     // mediaFile.video = ???

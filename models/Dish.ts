@@ -342,6 +342,7 @@ let Model = {
    * @return Updated or created dish
    */
   async createOrUpdate(values: Dish): Promise<Dish> {
+    sails.log.silly(`Core > Dish > createOrUpdate: ${values.name}`)
     let hash = hashCode(JSON.stringify(values));
     const dish = await Dish.findOne({ id: values.id });
     if (!dish) {

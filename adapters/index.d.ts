@@ -40,6 +40,7 @@ export declare class OTP {
 export declare class Adapter {
     private static instanceRMS;
     private static instanceMF;
+    static WEBRESTO_MODULES_PATH: string;
     static getDiscountAdapter(adapterName?: string, initParams?: {
         [key: string]: string | number | boolean;
     }): Promise<DiscountAdapter>;

@@ -18,6 +18,13 @@ class RMSAdapter {
         await this.initializationPromise;
     }
     async initialize() {
+        try {
+            await this.customInitialize();
+        }
+        catch (error) {
+            sails.log.error('RMS inittialization error >> ', error);
+            return;
+        }
         // Run product sync interval
         const NO_SYNC_NOMENCLATURE = await Settings.get("NO_SYNC_NOMENCLATURE") ?? false;
         if (!NO_SYNC_NOMENCLATURE) {
@@ -27,6 +34,10 @@ class RMSAdapter {
             RMSAdapter.syncProductsInterval = setInterval(async () => {
                 this.syncProducts();
             }, SYNC_PRODUCTS_INTERVAL_SECOUNDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECOUNDS * 1000 || 120000);
+        }
+        // Run on load
+        if (process.env.NODE_ENV !== "production") {
+            this.syncProducts();
         }
         // Run sync OutOfStock
         const NO_SYNC_OUT_OF_STOCKS = await Settings.get("NO_SYNC_OUT_OF_STOCKS") ?? false;
@@ -38,7 +49,6 @@ class RMSAdapter {
                 this.syncOutOfStocks();
             }, SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS * 1000 || 60000);
         }
-        await this.customInitialize();
     }
     /**
      * Menu synchronization with RMS system
@@ -84,14 +94,12 @@ class RMSAdapter {
                     const SKIP_LOAD_PRODUCT_IMAGES = await Settings.get("SKIP_LOAD_PRODUCT_IMAGES") ?? false;
                     // Load images
                     if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
-                        console.log(product.images);
                         const isURL = (str) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
                         for (let image of product.images) {
                             if (isURL(image)) {
                                 // load image
                                 const mfAdater = await Adapter.getMediaFileAdapter();
                                 const mediaFileImage = await mfAdater.toDownload(image, 'dish', 'image');
-                                console.log(mediaFileImage);
                                 await Dish.addToCollection(product.id, 'images').members([mediaFileImage.id]);
                             }
                             else {

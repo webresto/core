@@ -26,14 +26,17 @@ interface LoadMediaFilesProcess {
     config: MediaFileConfigInner;
 }
 export default class LocalMediaFileAdapter extends MediaFileAdapter {
+    private processing;
+    private processingTimeout;
     loadMediaFilesProcessQueue: LoadMediaFilesProcess[];
     constructor(config: BaseConfig);
     getNameByUrl(url: string, ext: string, options?: any, salt?: boolean): string;
-    load(url: string, type: MediaFileTypes, config: BaseConfig): Promise<{
+    process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<{
         origin: string;
         small: string;
         large: string;
     }>;
+    protected getPrefix(type: string): string;
     protected download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<void>;
     private loadMediaFiles;
 }
