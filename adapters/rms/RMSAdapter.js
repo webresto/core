@@ -22,13 +22,13 @@ class RMSAdapter {
             await this.customInitialize();
         }
         catch (error) {
-            sails.log.error('RMS inittialization error >> ', error);
+            sails.log.error("RMS inittialization error >> ", error);
             return;
         }
         // Run product sync interval
-        const NO_SYNC_NOMENCLATURE = await Settings.get("NO_SYNC_NOMENCLATURE") ?? false;
+        const NO_SYNC_NOMENCLATURE = (await Settings.get("NO_SYNC_NOMENCLATURE")) ?? false;
         if (!NO_SYNC_NOMENCLATURE) {
-            const SYNC_PRODUCTS_INTERVAL_SECOUNDS = await Settings.get("SYNC_PRODUCTS_INTERVAL_SECOUNDS");
+            const SYNC_PRODUCTS_INTERVAL_SECOUNDS = (await Settings.get("SYNC_PRODUCTS_INTERVAL_SECOUNDS"));
             if (RMSAdapter.syncProductsInterval)
                 clearInterval(RMSAdapter.syncProductsInterval);
             RMSAdapter.syncProductsInterval = setInterval(async () => {
@@ -40,9 +40,9 @@ class RMSAdapter {
             this.syncProducts();
         }
         // Run sync OutOfStock
-        const NO_SYNC_OUT_OF_STOCKS = await Settings.get("NO_SYNC_OUT_OF_STOCKS") ?? false;
+        const NO_SYNC_OUT_OF_STOCKS = (await Settings.get("NO_SYNC_OUT_OF_STOCKS")) ?? false;
         if (!NO_SYNC_OUT_OF_STOCKS) {
-            const SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS = await Settings.get("SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS");
+            const SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS = (await Settings.get("SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS"));
             if (RMSAdapter.syncOutOfStocksInterval)
                 clearInterval(RMSAdapter.syncOutOfStocksInterval);
             RMSAdapter.syncOutOfStocksInterval = setInterval(async () => {
@@ -58,71 +58,78 @@ class RMSAdapter {
      * There can be no dishes in the root.
      */
     async syncProducts(concept, force = false) {
-        // TODO: implement concept 
         if (this.syncProductsExecuted) {
-            sails.log.info(`Method "syncProducts" was already executed and won't be executed again`);
-            return;
+            sails.log.silly(`Method "syncProducts" was already executed and won't be executed again`);
+            return this.syncProductsPromise;
         }
-        this.syncProductsExecuted = true;
-        let rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC");
-        if (typeof rootGroupsToSync === "string")
-            rootGroupsToSync = rootGroupsToSync.split(";");
-        if (!rootGroupsToSync)
-            rootGroupsToSync = [];
-        const rmsAdapter = await Adapter.getRMSAdapter();
-        if (await rmsAdapter.nomenclatureHasUpdated() || force) {
-            const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
-            // Get ids of all current RMS groups
-            const rmsGroupIds = currentRMSGroupsFlatTree.map(group => group.rmsId);
-            // Set all groups not in the list to inactive
-            await Group.update({ where: { rmsId: { "!=": rmsGroupIds } } }, { isDeleted: true }).fetch();
-            for (const group of currentRMSGroupsFlatTree) {
-                emitter.emit("rms-sync:before-each-group-item", group);
-                // Update or create group
-                const groupData = { ...group, isDeleted: false };
-                await Group.createOrUpdate(groupData);
-            }
-            // Collect all product ids
-            let allProductIds = [];
-            for (const group of currentRMSGroupsFlatTree) {
-                const productsToUpdate = await rmsAdapter.loadProductsByGroup(group);
-                // Get ids of all current products in group
-                const productIds = productsToUpdate.map(product => product.rmsId);
-                allProductIds = allProductIds.concat(productIds);
-                for (let product of productsToUpdate) {
-                    emitter.emit("rms-sync:before-each-product-item", product);
-                    const SKIP_LOAD_PRODUCT_IMAGES = await Settings.get("SKIP_LOAD_PRODUCT_IMAGES") ?? false;
-                    // Load images
-                    if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
-                        const isURL = (str) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
-                        for (let image of product.images) {
-                            if (isURL(image)) {
-                                // load image
-                                const mfAdater = await Adapter.getMediaFileAdapter();
-                                const mediaFileImage = await mfAdater.toDownload(image, 'dish', 'image');
-                                await Dish.addToCollection(product.id, 'images').members([mediaFileImage.id]);
+        this.syncProductsPromise = new Promise(async (resolve, reject) => {
+            try {
+                // TODO: implement concept
+                this.syncProductsExecuted = true;
+                let rootGroupsToSync = (await Settings.get("ROOT_GROUPS_RMS_TO_SYNC"));
+                if (typeof rootGroupsToSync === "string")
+                    rootGroupsToSync = rootGroupsToSync.split(";");
+                if (!rootGroupsToSync)
+                    rootGroupsToSync = [];
+                const rmsAdapter = await Adapter.getRMSAdapter();
+                if ((await rmsAdapter.nomenclatureHasUpdated()) || force) {
+                    const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
+                    // Get ids of all current RMS groups
+                    const rmsGroupIds = currentRMSGroupsFlatTree.map((group) => group.rmsId);
+                    // Set all groups not in the list to inactive
+                    await Group.update({ where: { rmsId: { "!=": rmsGroupIds } } }, { isDeleted: true }).fetch();
+                    for (const group of currentRMSGroupsFlatTree) {
+                        emitter.emit("rms-sync:before-each-group-item", group);
+                        // Update or create group
+                        const groupData = { ...group, isDeleted: false };
+                        await Group.createOrUpdate(groupData);
+                    }
+                    // Collect all product ids
+                    let allProductIds = [];
+                    for (const group of currentRMSGroupsFlatTree) {
+                        const productsToUpdate = await rmsAdapter.loadProductsByGroup(group);
+                        // Get ids of all current products in group
+                        const productIds = productsToUpdate.map((product) => product.rmsId);
+                        allProductIds = allProductIds.concat(productIds);
+                        for (let product of productsToUpdate) {
+                            emitter.emit("rms-sync:before-each-product-item", product);
+                            const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
+                            // Load images
+                            if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
+                                const isURL = (str) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
+                                for (let image of product.images) {
+                                    if (isURL(image)) {
+                                        // load image
+                                        const mfAdater = await Adapter.getMediaFileAdapter();
+                                        const mediaFileImage = await mfAdater.toDownload(image, "dish", "image");
+                                        await Dish.addToCollection(product.id, "images").members([mediaFileImage.id]);
+                                    }
+                                    else {
+                                        sails.log.debug(`Image not url on sync products ${image}`);
+                                        continue;
+                                    }
+                                }
                             }
-                            else {
-                                sails.log.debug(`Image not url on sync products ${image}`);
-                                continue;
-                            }
+                            // Update or create product
+                            const productData = { ...product, isDeleted: false };
+                            await Dish.createOrUpdate(productData);
                         }
                     }
-                    // Update or create product
-                    const productData = { ...product, isDeleted: false };
-                    await Dish.createOrUpdate(productData);
+                    // Find all inactive groups
+                    const inactiveGroups = await Group.find({ isDeleted: true });
+                    const inactiveGroupIds = inactiveGroups.map((group) => group.id);
+                    // Delete all dishes in inactive groups or not in the updated list
+                    await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true });
                 }
+                this.syncProductsExecuted = false;
+                return resolve();
             }
-            // Find all inactive groups
-            const inactiveGroups = await Group.find({ isDeleted: true });
-            const inactiveGroupIds = inactiveGroups.map(group => group.id);
-            // Delete all dishes in inactive groups or not in the updated list
-            await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true });
-        }
-        this.syncProductsExecuted = false;
-        return;
+            catch (error) {
+                return reject(error);
+            }
+        });
+        return this.syncProductsPromise;
     }
-    ;
     /**
      * Synchronizing the balance of dishes with the RMS adapter
      */
@@ -130,6 +137,5 @@ class RMSAdapter {
         // Consider the concepts
         return;
     }
-    ;
 }
 exports.default = RMSAdapter;
