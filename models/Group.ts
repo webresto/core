@@ -97,7 +97,7 @@ let attributes = {
   images: {
     collection: "mediafile",
     via: "group",
-  } as unknown as MediaFile[],
+  } as unknown as MediaFile[] | string[],
 
   /** PlaySholder for group dishes */
   dishesPlaceholder: {
