@@ -54,7 +54,11 @@ class RMSAdapter {
             return;
         }
         this.syncProductsExecuted = true;
-        const rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC");
+        let rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC");
+        if (typeof rootGroupsToSync === "string")
+            rootGroupsToSync = rootGroupsToSync.split(";");
+        if (!rootGroupsToSync)
+            rootGroupsToSync = [];
         const rmsAdapter = await Adapter.getRMSAdapter();
         if (await rmsAdapter.nomenclatureHasUpdated() || force) {
             const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
@@ -77,14 +81,17 @@ class RMSAdapter {
                 allProductIds = allProductIds.concat(productIds);
                 for (let product of productsToUpdate) {
                     emitter.emit("rms-sync:before-each-product-item", product);
+                    const SKIP_LOAD_PRODUCT_IMAGES = await Settings.get("SKIP_LOAD_PRODUCT_IMAGES") ?? false;
                     // Load images
-                    if (product.images && product.images.length) {
+                    if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
+                        console.log(product.images);
                         const isURL = (str) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
                         for (let image of product.images) {
                             if (isURL(image)) {
                                 // load image
-                                let mfAdater = await Adapter.getMediaFileAdapter();
-                                let mediaFileImage = await mfAdater.toDownload(image, 'dish', 'image');
+                                const mfAdater = await Adapter.getMediaFileAdapter();
+                                const mediaFileImage = await mfAdater.toDownload(image, 'dish', 'image');
+                                console.log(mediaFileImage);
                                 await Dish.addToCollection(product.id, 'images').members([mediaFileImage.id]);
                             }
                             else {

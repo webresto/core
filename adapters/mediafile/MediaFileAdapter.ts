@@ -40,16 +40,19 @@ export default abstract class MediaFileAdapter {
   public async toDownload(url: string, target: string, type: MediaFileTypes, force: boolean = false): Promise<MediaFile> {
     await this.wait()
     let imageId = uuidv5(url, this.UUID_NAMESPACE);
-    const mediaFile = await MediaFile.findOne({ id: imageId });
+    let mediaFile = await MediaFile.findOne({ id: imageId });
     
     let loadConfig: BaseConfigProperty;
-    if (target && this.config[target]){
+    if (target && this.config  && this.config[target]){
       loadConfig = this.config[target];
     }
     
     
     // image     
     if (mediaFile === undefined || force) {
+      mediaFile = {
+        id: imageId
+      };
       switch (type)
       {
         case "image":
@@ -68,10 +71,9 @@ export default abstract class MediaFileAdapter {
           throw `mediaFile type not known ${type}`
         break;
       }
-
-      // DOWNLOAD
+      mediaFile = await MediaFile.create(mediaFile).fetch()
     }
-
+    
     return mediaFile;
   };
 

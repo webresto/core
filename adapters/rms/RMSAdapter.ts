@@ -90,7 +90,10 @@ export default abstract class RMSAdapter {
     }
     this.syncProductsExecuted = true;
 
-    const rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC") as string[];
+    let rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC") as string | string[];
+    if(typeof rootGroupsToSync === "string") rootGroupsToSync = rootGroupsToSync.split(";");
+    if (!rootGroupsToSync) rootGroupsToSync = [];
+
     const rmsAdapter = await Adapter.getRMSAdapter();
   
     if (await rmsAdapter.nomenclatureHasUpdated() || force) {
@@ -123,14 +126,17 @@ export default abstract class RMSAdapter {
         for (let product of productsToUpdate) {
           emitter.emit("rms-sync:before-each-product-item", product);
           
+          const SKIP_LOAD_PRODUCT_IMAGES = await Settings.get("SKIP_LOAD_PRODUCT_IMAGES") as boolean ?? false
           // Load images
-          if(product.images && product.images.length) {
+          if(product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
+            console.log(product.images)
             const isURL = (str) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
             for (let image of product.images){
               if (isURL(image)){
                 // load image
-                let mfAdater = await Adapter.getMediaFileAdapter()
-                let mediaFileImage = await mfAdater.toDownload(image as string, 'dish', 'image');
+                const mfAdater = await Adapter.getMediaFileAdapter()
+                const mediaFileImage = await mfAdater.toDownload(image as string, 'dish', 'image');
+                console.log(mediaFileImage)
                 await Dish.addToCollection(product.id, 'images').members([mediaFileImage.id]);
               } else {
                 sails.log.debug(`Image not url on sync products ${image}`);

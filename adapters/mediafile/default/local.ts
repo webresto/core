@@ -134,39 +134,44 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
   }
 
   private async loadMediaFiles() {
-    while (this.loadMediaFilesProcessQueue.length) {
-        const loadMediaFilesProcess = this.loadMediaFilesProcessQueue.shift();
+      const MEDIAFILE_PARALEL_TO_DOWNLOAD = await Settings.get('MEDIAFILE_PARALEL_TO_DOWNLOAD') as number  ?? 3;
 
-        const prefix = await this.download(loadMediaFilesProcess);
+      while (this.loadMediaFilesProcessQueue.length) {
+          const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALEL_TO_DOWNLOAD);
 
-        switch (loadMediaFilesProcess.type)
-        {
-          case "image":
-            for (let size in loadMediaFilesProcess.config.resize) {
-              if (size === "origin") continue;
-    
-              const mediafileItem = <Size>loadMediaFilesProcess.config.resize[size];
-              if (!mediafileItem.width && !mediafileItem.height) {
-                throw "Not valid mediafile config. Must have name (key) and one of width or height";
+          const downloadPromises = loadMediaFilesProcesses.map(async (loadMediaFilesProcess) => {
+              const prefix = await this.download(loadMediaFilesProcess);
+
+              switch (loadMediaFilesProcess.type) {
+                  case "image":
+                      for (let size in loadMediaFilesProcess.config.resize) {
+                          if (size === "origin") continue;
+                          const mediafileItem = <Size>loadMediaFilesProcess.config.resize[size];
+                          if (!mediafileItem.width && !mediafileItem.height) {
+                              throw "Not valid mediafile config. Must have name (key) and one of width or height";
+                          }
+                          mediafileItem.width = mediafileItem.width || mediafileItem.height;
+                          mediafileItem.height = mediafileItem.height || mediafileItem.width;
+
+                          await resizeMediaFile({
+                              srcPath: path.normalize(prefix + loadMediaFilesProcess.name.origin),
+                              dstPath: path.normalize(prefix + loadMediaFilesProcess.name[size]),
+                              width: mediafileItem.width,
+                              height: mediafileItem.height,
+                              customArgs: ["-background", loadMediaFilesProcess.config.background || "white", "-flatten"],
+                          });
+                      }
+                  break;
+                  default:
+                  break;
               }
-    
-              mediafileItem.width = mediafileItem.width || mediafileItem.height;
-              mediafileItem.height = mediafileItem.height || mediafileItem.width;
-    
-              await resizeMediaFile({
-                srcPath: path.normalize(prefix + loadMediaFilesProcess.name.origin),
-                dstPath: path.normalize(prefix + loadMediaFilesProcess.name[size]),
-                width: mediafileItem.width,
-                height: mediafileItem.height,
-                customArgs: ["-background", loadMediaFilesProcess.config.background || "white", "-flatten"],
-              });
-            }
-          break;
-          default:
-          break;
-        }
-    }
-    setTimeout(this.loadMediaFiles.bind(this), 60000);
+          });
+
+          // Wait for all downloads and processing to complete
+          await Promise.all(downloadPromises);
+      }
+
+      setTimeout(this.loadMediaFiles.bind(this), 10000);
   }
 }
 

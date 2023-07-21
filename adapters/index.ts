@@ -3,6 +3,7 @@ import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
 import { DefaultOTP } from "./otp/default/defaultOTP";
+import LocalMediaFileAdapter from "./mediafile/default/local";
 import OTPAdapter from "./otp/OneTimePasswordAdapter"
 import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
@@ -274,7 +275,8 @@ export class Adapter {
       if(!adapterName) {
         adapterName = await Settings.get("DEFAULT_MEDIAFILE_ADAPTER") as string;
         if (!adapterName) {
-          adapterLocation = path.resolve(__dirname, "mediafile/default/local")
+          this.instanceMF = new LocalMediaFileAdapter(initParams);
+          return this.instanceMF;
         }
       }
     

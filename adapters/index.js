@@ -4,10 +4,10 @@ exports.Adapter = exports.OTP = exports.Captcha = exports.Payment = exports.Map 
 const RMSAdapter_1 = require("./rms/RMSAdapter");
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
+const local_1 = require("./mediafile/default/local");
 const MediaFileAdapter_1 = require("./mediafile/MediaFileAdapter");
 const fs = require("fs");
 const discountAdapter_1 = require("./discount/default/discountAdapter");
-const path = require("path");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
@@ -238,7 +238,8 @@ class Adapter {
         if (!adapterName) {
             adapterName = await Settings.get("DEFAULT_MEDIAFILE_ADAPTER");
             if (!adapterName) {
-                adapterLocation = path.resolve(__dirname, "mediafile/default/local");
+                this.instanceMF = new local_1.default(initParams);
+                return this.instanceMF;
             }
         }
         if (!adapterLocation) {
