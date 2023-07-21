@@ -17,13 +17,6 @@ export default async function () {
     const timeSyncStreets = await Settings.use("timeSyncStreets","restocore") as number;
     const timeSyncPayments = await Settings.use("timeSyncPayments","restocore") as number;
 
-    // /**
-    //  * run instance RMSadapter
-    //  */
-    // if (rmsAdapterName) {
-    //   const rmsAdapter = await RMS.getAdapter(rmsAdapterName);
-    //   rmsAdapter.getInstance(rmsAdapterConfig, imagesConfig, timeSyncMenu, timeSyncBalance, timeSyncStreets);
-    // }
 
     /**
      * TIMEZONE
@@ -66,6 +59,11 @@ export default async function () {
      */
     await Settings.setDefault("PASSWORD_REQUIRED", true, "core");
 
+  
+    /**
+     * Run instance RMS 
+     */
+    Adapter.getRMSAdapter();
   } catch (e) {
     sails.log.error("core > afterHook > error1", e);
   }

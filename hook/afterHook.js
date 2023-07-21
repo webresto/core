@@ -15,13 +15,6 @@ async function default_1() {
         const timeSyncBalance = await Settings.use("timeSyncBalance", "restocore");
         const timeSyncStreets = await Settings.use("timeSyncStreets", "restocore");
         const timeSyncPayments = await Settings.use("timeSyncPayments", "restocore");
-        // /**
-        //  * run instance RMSadapter
-        //  */
-        // if (rmsAdapterName) {
-        //   const rmsAdapter = await RMS.getAdapter(rmsAdapterName);
-        //   rmsAdapter.getInstance(rmsAdapterConfig, imagesConfig, timeSyncMenu, timeSyncBalance, timeSyncStreets);
-        // }
         /**
          * TIMEZONE
          */
@@ -55,6 +48,10 @@ async function default_1() {
          * @setting PASSWORD_REQUIRED Check password (Login only by OTP if false)
          */
         await Settings.setDefault("PASSWORD_REQUIRED", true, "core");
+        /**
+         * Run instance RMS
+         */
+        Adapter.getRMSAdapter();
     }
     catch (e) {
         sails.log.error("core > afterHook > error1", e);
