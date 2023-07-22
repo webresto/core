@@ -75,7 +75,13 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             name: name,
             config: cfg
         });
-        return name;
+        let result = {};
+        for (const key in name) {
+            if (typeof name[key] === "string") {
+                result[key] = "/" + type + "/" + name[key];
+            }
+        }
+        return result;
     }
     getPrefix(type) {
         return path.join(process.cwd(), ".tmp/public", type);
@@ -114,7 +120,6 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             MEDIAFILE_PARALEL_TO_DOWNLOAD = this.loadMediaFilesProcessQueue.length;
         while (this.loadMediaFilesProcessQueue.length) {
             const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALEL_TO_DOWNLOAD);
-            console.log(this.loadMediaFilesProcessQueue.length, 10000);
             const downloadPromises = loadMediaFilesProcesses.map((loadMediaFilesProcess) => {
                 return this.download(loadMediaFilesProcess).then(async () => {
                     const prefix = this.getPrefix(loadMediaFilesProcess.type);

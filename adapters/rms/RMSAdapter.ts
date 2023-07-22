@@ -138,7 +138,12 @@ export default abstract class RMSAdapter {
             allProductIds = allProductIds.concat(productIds);
 
             for (let product of productsToUpdate) {
+              
               emitter.emit("rms-sync:before-each-product-item", product);
+              
+              // Update or create product
+              const productData = { ...product, isDeleted: false };
+              let createdProduct = await Dish.createOrUpdate(productData);
 
               const SKIP_LOAD_PRODUCT_IMAGES = ((await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) as boolean) ?? false;
               // Load images
@@ -149,7 +154,7 @@ export default abstract class RMSAdapter {
                     // load image
                     const mfAdater = await Adapter.getMediaFileAdapter();
                     const mediaFileImage = await mfAdater.toDownload(image as string, "dish", "image");
-                    await Dish.addToCollection(product.id, "images").members([mediaFileImage.id]);
+                    await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
                   } else {
                     sails.log.debug(`Image not url on sync products ${image}`);
                     continue;
@@ -157,9 +162,6 @@ export default abstract class RMSAdapter {
                 }
               }
 
-              // Update or create product
-              const productData = { ...product, isDeleted: false };
-              await Dish.createOrUpdate(productData);
             }
           }
 

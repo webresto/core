@@ -96,7 +96,9 @@ let attributes = {
         type: "number",
         allowNull: true
     },
-    /** The group identifier in which the dish is located */
+    /** The group identifier in which the dish is located
+     * @deprecated will  be deleted in v2
+    */
     groupId: {
         type: "string",
         allowNull: true,
@@ -273,7 +275,14 @@ let Model = {
     async createOrUpdate(values) {
         sails.log.silly(`Core > Dish > createOrUpdate: ${values.name}`);
         let hash = (0, hashCode_1.default)(JSON.stringify(values));
-        const dish = await Dish.findOne({ id: values.id });
+        let criteria = {};
+        if (values.id) {
+            criteria['id'] = values.id;
+        }
+        else {
+            criteria['rmsId'] = values.rmsId;
+        }
+        const dish = await Dish.findOne(criteria);
         if (!dish) {
             return Dish.create({ hash, ...values }).fetch();
         }

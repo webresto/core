@@ -35,7 +35,7 @@ class MediaFileAdapter {
             };
             switch (type) {
                 case "image":
-                    mediaFile.images = this.process(url, "image", loadConfig);
+                    mediaFile.images = await this.process(url, "image", loadConfig);
                     break;
                 case "video":
                     // mediaFile.video = ???

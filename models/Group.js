@@ -269,7 +269,14 @@ let Model = {
      */
     async createOrUpdate(values) {
         sails.log.silly(`Core > Group > createOrUpdate: ${values.name}`);
-        const group = await Group.findOne({ id: values.id });
+        let criteria = {};
+        if (values.id) {
+            criteria['id'] = values.id;
+        }
+        else {
+            criteria['rmsId'] = values.rmsId;
+        }
+        const group = await Group.findOne(criteria);
         if (!group) {
             return Group.create(values).fetch();
         }

@@ -43,7 +43,9 @@ declare let attributes: {
     fiberAmount: number;
     /** The amount of proteins in the dish */
     fiberFullAmount: number;
-    /** The group identifier in which the dish is located */
+    /** The group identifier in which the dish is located
+     * @deprecated will  be deleted in v2
+    */
     groupId: string;
     /** Unit of measurement of goods (kg, l, pcs, port.)*/
     measureUnit: string;
@@ -69,7 +71,7 @@ declare let attributes: {
     /** Balance for sale, if -1, then as much as you like */
     balance: number;
     /**List of images of the dish*/
-    images: string[] | MediaFile[];
+    images: MediaFile[] | string[];
     /** Слаг */
     slug: string;
     /** The concept to which the dish belongs */
