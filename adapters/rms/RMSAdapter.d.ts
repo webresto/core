@@ -19,7 +19,6 @@ export default abstract class RMSAdapter {
     private static syncProductsInterval;
     private static syncOutOfStocksInterval;
     private initializationPromise;
-    private syncProductsExecuted;
     private syncProductsPromise;
     constructor(config?: ConfigRMSAdapter);
     /**

@@ -1,4 +1,4 @@
-declare class ObservablePromise<T> {
+export declare class ObservablePromise<T> {
     private _status;
     private _promise;
     constructor(promise: Promise<T>);

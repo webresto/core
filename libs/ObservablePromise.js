@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ObservablePromise = void 0;
 class ObservablePromise {
     constructor(promise) {
         this._status = 'pending';
@@ -17,3 +20,4 @@ class ObservablePromise {
         return this._status;
     }
 }
+exports.ObservablePromise = ObservablePromise;

@@ -1,6 +1,7 @@
 import Order from "../../models/Order";
 import Dish from "../../models/Dish";
 import Group from "../../models/Group";
+import { ObservablePromise } from "../../libs/ObservablePromise";
 export type ConfigRMSAdapter = {
   [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };
@@ -23,8 +24,8 @@ export default abstract class RMSAdapter {
   private static syncProductsInterval: ReturnType<typeof setInterval>;
   private static syncOutOfStocksInterval: ReturnType<typeof setInterval>;
   private initializationPromise: Promise<void>;
-  private syncProductsExecuted: boolean = false;
-  private syncProductsPromise: Promise<void>;
+
+  private syncProductsPromise: ObservablePromise<void>;
   public constructor(config?: ConfigRMSAdapter) {
     this.config = config;
 
@@ -87,23 +88,29 @@ export default abstract class RMSAdapter {
    * There can be no dishes in the root.
    */
   public async syncProducts(concept?: string, force: boolean = false): Promise<void> {
-    if (this.syncProductsExecuted) {
-      sails.log.silly(`Method "syncProducts" was already executed and won't be executed again`);
-      return this.syncProductsPromise;
+    sails.log.debug("ADAPTER RMS > syncProducts")
+    if (this.syncProductsPromise && this.syncProductsPromise.status === "pending") {
+      sails.log.debug(`Method "syncProducts" was already executed and won't be executed again`);
+      // sails.log.debug("ADAPTER RMS > syncProducts, return promise");
+      return this.syncProductsPromise.promise;
     }
+    
 
-    this.syncProductsPromise = new Promise(async (resolve, reject) => {
+    const promise = new Promise<void>(async (resolve, reject) => {
       try {
         // TODO: implement concept
-        this.syncProductsExecuted = true;
-
+        
         let rootGroupsToSync = (await Settings.get("ROOT_GROUPS_RMS_TO_SYNC")) as string | string[];
         if (typeof rootGroupsToSync === "string") rootGroupsToSync = rootGroupsToSync.split(";");
         if (!rootGroupsToSync) rootGroupsToSync = [];
 
         const rmsAdapter = await Adapter.getRMSAdapter();
+        
 
-        if ((await rmsAdapter.nomenclatureHasUpdated()) || force) {
+        const nomenclatureHasUpdated = await rmsAdapter.nomenclatureHasUpdated()
+        sails.log.debug("ADAPTER RMS > syncProducts, nomenclatureHasUpdated", nomenclatureHasUpdated);
+
+        if ( nomenclatureHasUpdated || force) {
           const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
 
           // Get ids of all current RMS groups
@@ -163,14 +170,14 @@ export default abstract class RMSAdapter {
           // Delete all dishes in inactive groups or not in the updated list
           await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true });
         }
-        this.syncProductsExecuted = false;
         return resolve();
       } catch (error) {
         return reject(error);
       }
-    });
 
-    return this.syncProductsPromise
+    });
+    this.syncProductsPromise = new ObservablePromise(promise)
+    return promise;
   }
 
   /**
