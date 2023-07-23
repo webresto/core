@@ -29,7 +29,9 @@ let attributes = {
     group: {
         collection: "group",
         via: "images",
-    }
+    },
+    /** upload date */
+    uploadDate: "string",
 };
 let Model = {
     beforeCreate(imageInit, cb) {
