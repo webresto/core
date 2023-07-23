@@ -230,7 +230,7 @@ export class Adapter {
     }
 
     if(!adapterName) {
-      adapterName = await Settings.get("DEFAULT_RMS_ADAPTER") as string;
+      adapterName = await Settings.get("RMS_ADAPTER") as string;
       if (!adapterName) throw 'RMS adapter is not installed';
     }
   

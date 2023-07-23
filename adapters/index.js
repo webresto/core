@@ -197,7 +197,7 @@ class Adapter {
             }
         }
         if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_RMS_ADAPTER");
+            adapterName = await Settings.get("RMS_ADAPTER");
             if (!adapterName)
                 throw 'RMS adapter is not installed';
         }
