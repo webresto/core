@@ -17,7 +17,9 @@ declare let attributes: {
     sortOrder: number;
     /** Group relation */
     group: Group[];
-    /** upload date */
+    /** upload date
+     * @deprecated (del in v2)
+    */
     uploadDate: string;
 };
 type attributes = typeof attributes;

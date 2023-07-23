@@ -30,7 +30,9 @@ let attributes = {
         collection: "group",
         via: "images",
     },
-    /** upload date */
+    /** upload date
+     * @deprecated (del in v2)
+    */
     uploadDate: "string",
 };
 let Model = {
