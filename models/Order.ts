@@ -474,7 +474,7 @@ let Model = {
    */
   async setSelfService(criteria: CriteriaQuery<Order>, selfService: boolean = true): Promise<Order> {
     
-    sails.log.verbose("Order > setSelfService >", selfService);
+    sails.log.silly("Order > setSelfService >", selfService);
     const order = await Order.findOne(criteria);
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
 
@@ -817,7 +817,7 @@ let Model = {
       data.state = "ORDER";
 
       /** ⚠️ If the preservation of the model is caused to NEXT, then there will be an endless cycle */
-      sails.log.verbose("Order > order > before save order", order);
+      sails.log.silly("Order > order > before save order", order);
       // await Order.update({id: order.id}).fetch();
       await Order.update({ id: order.id }, data).fetch();
 
@@ -846,7 +846,7 @@ let Model = {
     var backLinkSuccess: string = (await Settings.use("FrontendOrderPage")) + order.shortId;
     var backLinkFail: string = await Settings.use("FrontendCheckoutPage") as string;
     let paymentMethodId = await order.paymentMethod
-    sails.log.verbose("Order > payment > before payment register", order);
+    sails.log.silly("Order > payment > before payment register", order);
 
     var params = {
       backLinkSuccess: backLinkSuccess,

@@ -189,7 +189,7 @@ let Model = {
     let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
     sails.log.debug("PaymentDocumnet > register [paymentAdapter]", paymentMethodId, paymentAdapter);
     try {
-      sails.log.verbose("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
+      sails.log.silly("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
       let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
 
       await PaymentDocument.update(
