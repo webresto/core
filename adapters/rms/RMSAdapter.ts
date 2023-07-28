@@ -88,10 +88,9 @@ export default abstract class RMSAdapter {
    * There can be no dishes in the root.
    */
   public async syncProducts(concept?: string, force: boolean = false): Promise<void> {
-    sails.log.debug("ADAPTER RMS > syncProducts")
+    sails.log.silly("ADAPTER RMS > syncProducts")
     if (this.syncProductsPromise && this.syncProductsPromise.status === "pending") {
-      sails.log.debug(`Method "syncProducts" was already executed and won't be executed again`);
-      // sails.log.debug("ADAPTER RMS > syncProducts, return promise");
+      sails.log.warn(`Method "syncProducts" was already executed and won't be executed again`);
       return this.syncProductsPromise.promise;
     }
     
@@ -108,9 +107,9 @@ export default abstract class RMSAdapter {
         
 
         const nomenclatureHasUpdated = await rmsAdapter.nomenclatureHasUpdated()
-        sails.log.debug("ADAPTER RMS > syncProducts, nomenclatureHasUpdated", nomenclatureHasUpdated);
-
+        sails.log.silly("ADAPTER RMS > syncProducts, nomenclatureHasUpdated", nomenclatureHasUpdated);
         if ( nomenclatureHasUpdated || force) {
+          sails.log.debug("ADAPTER RMS > syncProducts, nomenclatureHasUpdated", nomenclatureHasUpdated, "SYNC STARTED");
           const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
 
           // Get ids of all current RMS groups
@@ -159,7 +158,7 @@ export default abstract class RMSAdapter {
                     const mediaFileImage = await mfAdater.toDownload(image as string, "dish", "image");
                     await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
                   } else {
-                    sails.log.debug(`Image not url on sync products ${image}`);
+                    sails.log.silly(`Image not url on sync products ${image}`);
                     continue;
                   }
                 }
