@@ -365,7 +365,7 @@ let Model = {
      * @param selfService
      */
     async setSelfService(criteria, selfService = true) {
-        sails.log.verbose("Order > setSelfService >", selfService);
+        sails.log.silly("Order > setSelfService >", selfService);
         const order = await Order.findOne(criteria);
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
@@ -616,6 +616,9 @@ let Model = {
         else {
             emitter.emit("core-order-order-delivery", order);
         }
+        /**
+         * @deprecated Event `core-order-order` will be deleted in v2
+         */
         const results = await emitter.emit("core-order-order", order);
         sails.log.silly("Order > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
@@ -660,14 +663,14 @@ let Model = {
             data.orderDate = new Date();
             data.state = "ORDER";
             /** ⚠️ If the preservation of the model is caused to NEXT, then there will be an endless cycle */
-            sails.log.verbose("Order > order > before save order", order);
+            sails.log.silly("Order > order > before save order", order);
             // await Order.update({id: order.id}).fetch();
             await Order.update({ id: order.id }, data).fetch();
             /** Here core just make emit,
              * instead call directly in RMSadapter.
              * But i think we need select default adpater,
              * and make order here */
-            // TODO: entry for RMSadapter make new order
+            (await Adapter.getRMSAdapter()).createOrder(order);
             emitter.emit("core-order-after-order", order);
             if (order.user) {
                 UserOrderHistory.save(order.id);
@@ -683,7 +686,7 @@ let Model = {
         var backLinkSuccess = (await Settings.use("FrontendOrderPage")) + order.shortId;
         var backLinkFail = await Settings.use("FrontendCheckoutPage");
         let paymentMethodId = await order.paymentMethod;
-        sails.log.verbose("Order > payment > before payment register", order);
+        sails.log.silly("Order > payment > before payment register", order);
         var params = {
             backLinkSuccess: backLinkSuccess,
             backLinkFail: backLinkFail,

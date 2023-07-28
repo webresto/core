@@ -118,7 +118,7 @@ let Model = {
             knownPaymentMethod = await PaymentMethod.create({ ...paymentAdapter.InitPaymentAdapter, enable: false }).fetch();
         }
         alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
-        sails.log.verbose("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
+        sails.log.silly("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
         return;
     },
     /**
@@ -179,7 +179,7 @@ let Model = {
             throw `PaymentPromise adapter: (${paymentMethod.adapter}) not have adapter`;
         }
         if (alivedPaymentMethods[paymentMethod.adapter]) {
-            sails.log.verbose("Core > PaymentMethod > getAdapterById", alivedPaymentMethods[paymentMethod.adapter]);
+            sails.log.silly("Core > PaymentMethod > getAdapterById", alivedPaymentMethods[paymentMethod.adapter]);
             return alivedPaymentMethods[paymentMethod.adapter];
         }
         else {

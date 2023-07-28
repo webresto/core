@@ -767,6 +767,9 @@ let Model = {
       emitter.emit("core-order-order-delivery", order);
     }
 
+    /**
+     * @deprecated Event `core-order-order` will be deleted in v2
+     */
     const results = await emitter.emit("core-order-order", order);
 
     sails.log.silly("Order > order > after wait general emitter results: ", results);
@@ -826,14 +829,12 @@ let Model = {
        * But i think we need select default adpater, 
        * and make order here */
 
-      // TODO: entry for RMSadapter make new order
+      (await Adapter.getRMSAdapter()).createOrder(order);
       emitter.emit("core-order-after-order", order);
 
       if (order.user) {
         UserOrderHistory.save(order.id);
       }
-
-
     }
   },
 

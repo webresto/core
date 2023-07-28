@@ -96,7 +96,7 @@ let Model = {
         }
         bonusProgramAdapter.setORMId(knownBonusProgram.id);
         alivedBonusPrograms[bonusProgramAdapter.adapter] = bonusProgramAdapter;
-        sails.log.verbose("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.adapter]);
+        sails.log.silly("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.adapter]);
         return;
     },
     /**
