@@ -3,15 +3,23 @@ import ORM from "../interfaces/ORM";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { PaymentMethodType } from "../libs/enums/PaymentMethodTypes";
-declare let attributes: {
-    /** ID платежного метода */
+interface ExternalPayment {
+    name: string;
     id: string;
-    /** Название платежного метода */
+}
+declare let attributes: {
+    /** ID of the payment method */
+    id: string;
+    externalId: {
+        type: string;
+        allowNull: boolean;
+    };
+    /** The name of the payment method */
     title: string;
     /**
-     * Типы платежей, internal - внутренние (когда не требуется запрос во внешнюю систему)
-     * external - Когда надо ожидать подтверждение платежа во внешней системе
-     * promise - Типы оплат при получении
+     * Types of payments, internal - internal (when a request to the external system is not required)
+     * external - when to expect confirmation of payment in the external system
+     * Promise - types of payment upon receipt
      */
     type: PaymentMethodType;
     isCash: boolean;
@@ -26,40 +34,45 @@ interface PaymentMethod extends RequiredField<OptionalAll<attributes>, "type" | 
 export default PaymentMethod;
 declare let Model: {
     /**
-     * Возвращает инстанс платежного adapterа по известному названию adapterа
+     * Returns the authority of payment Adapter by the famous name Adapter
      * @param  paymentMethodId
      * @return
      */
     getAdapter(adapter?: string): Promise<PaymentAdapter>;
     beforeCreate: (paymentMethod: any, cb: (err?: string) => void) => void;
     /**
-     * Возвращает true если платежный метод является обещанием платежа
+     * Returns True if the payment method is a promise of payment
      * @param  paymentMethodId
      * @return
      */
     isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
     /**
-     * Добавляет в список возможных к использованию платежные adapterы при их старте.
-     * Если  платежный метод не сушетсвует в базе то создает его
+       * returns list of externalPaymentId
+       * @param  paymentMethodId
+       * @return { name: string, id: string }
+       */
+    getExternalPaymentMethods(): Promise<ExternalPayment[]>;
+    /**
+     * Adds to the list possible to use payment ADAPTERs at their start.
+     * If the payment method does not dry in the database, it creates it
      * @param paymentMethod
      * @return
      */
     alive(paymentAdapter: PaymentAdapter): Promise<string[]>;
     /**
-     * Возвращает массив с возможными на текущий момент способами оплаты отсортированный по order
-     * @param  нету
-     * @return массив типов оплат
+     * Returns an array with possible methods of payment for ORDER
+     * @return array of types of payments
      */
     getAvailable(): Promise<PaymentMethod[]>;
     /**
-     * Проверяет платежную систему на доступность, и включенность,
-     *  для пейментПромис систем только включенность.
+     * Checks the payment system for accessibility, and inclusion,
+     * For the system of systems, only inclusion.
      * @param paymentMethodId
      * @return
      */
     checkAvailable(paymentMethodId: string): Promise<boolean>;
     /**
-     * Возвращает инстанс платежного adapterа по известному ID PaymentMethod
+     * Returns the authority of payment Adapter by the famous ID PaymentMethod
      * @param  paymentMethodId
      * @return PaymentAdapter
      * @throws

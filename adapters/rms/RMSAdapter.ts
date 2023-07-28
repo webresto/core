@@ -118,6 +118,8 @@ export default abstract class RMSAdapter {
 
           // Set all groups not in the list to inactive
           await Group.update({ where: { rmsId: { "!=": rmsGroupIds } } }, { isDeleted: true }).fetch();
+          
+          sails.log.debug("ADAPTER RMS > syncProducts Groups:", currentRMSGroupsFlatTree.length)
 
           for (const group of currentRMSGroupsFlatTree) {
             emitter.emit("rms-sync:before-each-group-item", group);
@@ -136,7 +138,8 @@ export default abstract class RMSAdapter {
             // Get ids of all current products in group
             const productIds = productsToUpdate.map((product) => product.rmsId);
             allProductIds = allProductIds.concat(productIds);
-
+            
+            sails.log.debug("ADAPTER RMS > syncProducts sync Group dishes:", productsToUpdate.length)
             for (let product of productsToUpdate) {
               
               emitter.emit("rms-sync:before-each-product-item", product);
