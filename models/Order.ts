@@ -1189,10 +1189,10 @@ async function checkCustomerInfo(customer) {
 }
 
 function checkAddress(address) {
-  if (!address.street) {
+  if (!address.street && !address.streetId) {
     throw {
       code: 5,
-      error: "address.street  is required",
+      error: "address.street or streetId  is required",
     };
   }
 
@@ -1203,12 +1203,12 @@ function checkAddress(address) {
     };
   }
 
-  if (!address.city) {
-    throw {
-      code: 7,
-      error: "address.city is required",
-    };
-  }
+  // if (!address.city) {
+  //   throw {
+  //     code: 7,
+  //     error: "address.city is required",
+  //   };
+  // }
 }
 
 async function checkPaymentMethod(paymentMethodId) {
