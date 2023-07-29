@@ -1,4 +1,4 @@
-import RMSAdapter, { OrderResponse } from "../../../adapters/rms/RMSAdapter";
+import RMSAdapter from "../../../adapters/rms/RMSAdapter";
 import Dish from "../../../models/Dish";
 import Group from "../../../models/Group";
 import Order from "../../../models/Order";
@@ -54,11 +54,11 @@ export class TestRMS  extends RMSAdapter {
     }
 
 
-    public createOrder(orderData: Order): Promise<OrderResponse> {
+    public createOrder(orderData: Order): Promise<Order> {
         throw new Error("Method not implemented.");
     }
     
-    public checkOrder(orderData: Order): Promise<OrderResponse> {
+    public checkOrder(orderData: Order): Promise<Order> {
         throw new Error("Method not implemented.");
     }
 

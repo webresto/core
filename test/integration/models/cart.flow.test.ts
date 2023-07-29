@@ -7,23 +7,13 @@ import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
 import Settings from "../../../models/Settings";
 import Dish from "../../../models/Dish";
+import { address, customer } from "../../mocks/customer";
 
 describe("Flows: Checkout", function () {
   this.timeout(10000);
   var order: Order;
 
-  let customer: Customer = {
-    phone: "+99999999999",
-    name: "Freeman Morgan",
-  };
-  let address: Address = {
-    streetId: "1234",
-    city: "New York",
-    street: "Green Road",
-    home: "42",
-    comment: "",
-  };
-
+  
   let dishes;
 
   it("Check dishescount", async function () {
@@ -196,11 +186,6 @@ describe("Flows: Checkout", function () {
       await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
       order = await Order.findOne({id: order.id});
   
-      let customer: Customer = {
-        phone: "+99999999999",
-        name: "Freeman Morgan",
-      };
-
       try {
         await Order.check({id: order.id}, customer, true);
       } catch (e) {
@@ -227,7 +212,10 @@ describe("Flows: Checkout", function () {
 
       // @ts-ignore
       badCustomer = {
-        phone: "+79998882244",
+        phone: {
+          code: "+7",
+          number: "9998882244"
+        }
       };
 
       error = null;
