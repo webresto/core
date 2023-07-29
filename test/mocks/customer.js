@@ -2,7 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.address = exports.customer = void 0;
 exports.customer = {
-    phone: "+99999999999",
+    phone: {
+        code: "+1",
+        number: "9999999999"
+    },
     name: "Freeman Morgan",
 };
 exports.address = {

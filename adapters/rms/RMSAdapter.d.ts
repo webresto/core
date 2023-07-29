@@ -5,13 +5,6 @@ export type ConfigRMSAdapter = {
     [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };
 /**
- * Responce from RMS
- */
-export interface OrderResponse {
-    code: number;
-    body: any;
-}
-/**
  * An abstract RMS adapter class. Used to create new RMS adapters.
  */
 export default abstract class RMSAdapter {
@@ -60,13 +53,13 @@ export default abstract class RMSAdapter {
      * @param orderData - webresto order
      * @return Order response
      */
-    abstract createOrder(orderData: Order): Promise<OrderResponse>;
+    abstract createOrder(orderData: Order): Promise<Order>;
     /**
      * Order check before order
      * @param orderData - webresto order
      * @return Order response
      */
-    abstract checkOrder(orderData: Order): Promise<OrderResponse>;
+    abstract checkOrder(orderData: Order): Promise<Order>;
     /**
      * Direct request to the RMS API
      * @param method - method name

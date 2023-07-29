@@ -33,7 +33,9 @@ let attributes = {
   /** the basket contains mixed types of concepts */
   isMixedConcept: "boolean" as unknown as boolean, 
   
-  /** */
+  /**
+   * @deprecated will be rename to `Items` in **v2**
+   */
   dishes: {
     collection: "OrderDish",
     via: "order",
@@ -611,7 +613,7 @@ let Model = {
     /** if pickup, then you do not need to check the address*/
     if (isSelfService) {
       emitter.emit("core-order-is-self-service", order, customer, isSelfService, address);
-      await Order.setSelfService({id: order.id}, true);
+      order.selfService = true;
     } else {
       if (address) {
         checkAddress(address);
@@ -745,7 +747,7 @@ let Model = {
   /** Basket design*/
   async order(criteria: CriteriaQuery<Order>): Promise<void> {
     const order = await Order.findOne(criteria);
-
+    console.log(order,999)
     // Check maintenance
     if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
 
@@ -829,9 +831,17 @@ let Model = {
        * But i think we need select default adpater, 
        * and make order here */
 
-      (await Adapter.getRMSAdapter()).createOrder(order);
-      emitter.emit("core-order-after-order", order);
+      try {
+        await (await Adapter.getRMSAdapter()).createOrder(order);
+      } catch (error) {
+        const orderError = { 
+          rmsErrorCode: error.code ?? "Error",
+          rmsErrorMessage: error.message ?? JSON.stringify(error)
+        }
+        await Order.update({id: order.id}, orderError)
+      }
 
+      emitter.emit("core-order-after-order", order);
       if (order.user) {
         UserOrderHistory.save(order.id);
       }

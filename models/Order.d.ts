@@ -20,7 +20,9 @@ declare let attributes: {
     concept: string;
     /** the basket contains mixed types of concepts */
     isMixedConcept: boolean;
-    /** */
+    /**
+     * @deprecated will be rename to `Items` in **v2**
+     */
     dishes: number[] | OrderDish[];
     paymentMethod: any;
     /** */

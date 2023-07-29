@@ -1,8 +1,9 @@
+import { Phone } from "../models/User";
 /**
  * Описывает данные о заказчике для доставки
  */
 export default interface Customer {
-    phone: string;
+    phone: Phone;
     mail?: string;
     name: string;
 }

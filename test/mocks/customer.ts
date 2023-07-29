@@ -2,7 +2,10 @@ import Customer from "../../interfaces/Customer";
 import Address from "../../interfaces/Address";
 
 export const customer: Customer = {
-  phone: "+99999999999",
+  phone:  {
+    code: "+1",
+    number: "9999999999"
+  },
   name: "Freeman Morgan",
 };
 
