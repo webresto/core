@@ -65,7 +65,7 @@ let attributes = {
   uniqueDishes: "number" as unknown as number,
   modifiers: "json" as any,
   customer: "json" as any,
-  address: "json" as any,
+  address: "json" as unknown as Address,
   comment: "string",
   personsCount: "string",
 
@@ -747,7 +747,6 @@ let Model = {
   /** Basket design*/
   async order(criteria: CriteriaQuery<Order>): Promise<void> {
     const order = await Order.findOne(criteria);
-    console.log(order,999)
     // Check maintenance
     if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
 
@@ -832,7 +831,13 @@ let Model = {
        * and make order here */
 
       try {
-        await (await Adapter.getRMSAdapter()).createOrder(order);
+        let orderWithRMS = await (await Adapter.getRMSAdapter()).createOrder(order);
+        await Order.update({id: order.id}, {
+          rmsId: orderWithRMS.rmsId,
+          rmsOrderNumber: orderWithRMS.rmsOrderNumber,
+          rmsOrderData: orderWithRMS.rmsOrderData
+        })
+
       } catch (error) {
         const orderError = { 
           rmsErrorCode: error.code ?? "Error",

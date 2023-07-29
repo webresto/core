@@ -4,6 +4,7 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import hashCode from "../libs/hashCode";
 import { RequiredField } from "../interfaces/toolsTS";
+import City from "./City";
 
 let attributes = {
   /** ID */
@@ -28,6 +29,10 @@ let attributes = {
     type:'boolean'
   } as unknown as boolean,
   
+  city: {
+    model: 'city'
+  } as unknown as City | string,
+
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,

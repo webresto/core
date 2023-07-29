@@ -20,6 +20,9 @@ let attributes = {
     isDeleted: {
         type: 'boolean'
     },
+    city: {
+        model: 'city'
+    },
     customData: "json",
 };
 let Model = {

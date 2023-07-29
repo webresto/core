@@ -35,7 +35,7 @@ declare let attributes: {
     uniqueDishes: number;
     modifiers: any;
     customer: any;
-    address: any;
+    address: Address;
     comment: string;
     personsCount: string;
     /** The desired date and delivery time*/
@@ -142,7 +142,7 @@ declare let Model: {
         uniqueDishes?: number;
         modifiers?: any;
         customer?: any;
-        address?: any;
+        address?: Address;
         comment?: string;
         personsCount?: string;
         date?: string;

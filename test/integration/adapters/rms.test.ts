@@ -10,7 +10,6 @@ describe("RMS adapter", function () {
   before(async function() {
     let adapter  = new TestRMS() ///File = path.resolve(__dirname, "../../mocks/adapter/RMS.js");
     rmsAdapter = await Adapter.getRMSAdapter(adapter);
-    console.log(rmsAdapter,999)
   });
 
   it("SyncProducts", async () => {

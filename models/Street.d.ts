@@ -1,6 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { RequiredField } from "../interfaces/toolsTS";
+import City from "./City";
 declare let attributes: {
     /** ID */
     id: string;
@@ -12,6 +13,7 @@ declare let attributes: {
     hash: string;
     /** Street has delited */
     isDeleted: boolean;
+    city: string | City;
     customData: string | {
         [key: string]: string | number | boolean;
     };

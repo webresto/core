@@ -598,7 +598,6 @@ let Model = {
     /** Basket design*/
     async order(criteria) {
         const order = await Order.findOne(criteria);
-        console.log(order, 999);
         // Check maintenance
         if (await Maintenance.getActiveMaintenance() !== undefined)
             throw `Currently site is off`;
@@ -674,7 +673,12 @@ let Model = {
              * But i think we need select default adpater,
              * and make order here */
             try {
-                await (await Adapter.getRMSAdapter()).createOrder(order);
+                let orderWithRMS = await (await Adapter.getRMSAdapter()).createOrder(order);
+                await Order.update({ id: order.id }, {
+                    rmsId: orderWithRMS.rmsId,
+                    rmsOrderNumber: orderWithRMS.rmsOrderNumber,
+                    rmsOrderData: orderWithRMS.rmsOrderData
+                });
             }
             catch (error) {
                 const orderError = {

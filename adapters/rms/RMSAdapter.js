@@ -95,7 +95,7 @@ class RMSAdapter {
                         // Get ids of all current products in group
                         const productIds = productsToUpdate.map((product) => product.rmsId);
                         allProductIds = allProductIds.concat(productIds);
-                        sails.log.debug("ADAPTER RMS > syncProducts sync Group dishes:", productsToUpdate.length);
+                        sails.log.silly("ADAPTER RMS > syncProducts sync Group dishes:", productsToUpdate.length);
                         for (let product of productsToUpdate) {
                             emitter.emit("rms-sync:before-each-product-item", product);
                             // Update or create product

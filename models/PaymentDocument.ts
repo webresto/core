@@ -228,7 +228,7 @@ let Model = {
 
   /** Payment check cycle*/
   processor: async function (timeout: number) {
-    sails.log.info("PaymentDocument.processor > started with timeout: " + timeout ?? 120000);
+    sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 120000);
     return (payment_processor_interval = setInterval(async () => {
       let actualTime = new Date();
 
