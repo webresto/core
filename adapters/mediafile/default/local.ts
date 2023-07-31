@@ -2,7 +2,10 @@ import MediaFileAdapter, { BaseConfig, BaseConfigProperty, ConfigMediaFileAdapte
 import * as fs  from "fs";
 import axios from 'axios';
 import { v5 as uuidv5 } from "uuid";
-const IM = require("imagemagick");
+
+const gm = require('gm');
+const imageMagick = gm.subClass({ imageMagick: true });
+
 import * as path  from "path";
 
 export interface MediaFileConfig {
@@ -221,7 +224,7 @@ interface ResizeMediaFileOptions {
 
 function resizeMediaFile({ srcPath, dstPath, size, customArgs }: ResizeMediaFileOptions): Promise<void> {
   return new Promise((resolve, reject) => {
-    IM(srcPath)
+    imageMagick(srcPath)
       .size((err, dimensions) => {
         if (err) {
           console.log(err);

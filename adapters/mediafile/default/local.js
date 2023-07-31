@@ -4,7 +4,8 @@ const MediaFileAdapter_1 = require("../MediaFileAdapter");
 const fs = require("fs");
 const axios_1 = require("axios");
 const uuid_1 = require("uuid");
-const IM = require("imagemagick");
+const gm = require('gm');
+const imageMagick = gm.subClass({ imageMagick: true });
 const path = require("path");
 // images: {
 //   adapter: 'imagemagick-local',
@@ -167,7 +168,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
 exports.default = LocalMediaFileAdapter;
 function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
     return new Promise((resolve, reject) => {
-        IM(srcPath)
+        imageMagick(srcPath)
             .size((err, dimensions) => {
             if (err) {
                 console.log(err);
