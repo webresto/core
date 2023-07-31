@@ -185,7 +185,7 @@ function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
                 resizeWidth = size;
                 resizeHeight = Math.round(size * (dimensions.height / dimensions.width));
             }
-            imageMagick.resize(resizeWidth, resizeHeight)
+            imageMagick(srcPath).resize(resizeWidth, resizeHeight)
                 .out(...customArgs)
                 .write(dstPath, (err) => {
                 if (err) {
