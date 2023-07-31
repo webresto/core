@@ -60,11 +60,15 @@ export default async function () {
     await Settings.setDefault("PASSWORD_REQUIRED", true, "core");
 
   
-    /**
-     * Run instance RMS 
-     */
-    Adapter.getRMSAdapter();
+    try {
+      /**
+       * Run instance RMS 
+       */
+      await Adapter.getRMSAdapter();
+    } catch (error) {
+      sails.log.warn(" RestoCore > RMS adapter is not set ");
+    }
   } catch (e) {
-    sails.log.error("core > afterHook > error1", e);
+    sails.log.error("RestoCore > initialization error > ", e);
   }
 }

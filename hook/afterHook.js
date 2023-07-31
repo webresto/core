@@ -48,13 +48,18 @@ async function default_1() {
          * @setting PASSWORD_REQUIRED Check password (Login only by OTP if false)
          */
         await Settings.setDefault("PASSWORD_REQUIRED", true, "core");
-        /**
-         * Run instance RMS
-         */
-        Adapter.getRMSAdapter();
+        try {
+            /**
+             * Run instance RMS
+             */
+            await Adapter.getRMSAdapter();
+        }
+        catch (error) {
+            sails.log.warn(" RestoCore > RMS adapter is not set ");
+        }
     }
     catch (e) {
-        sails.log.error("core > afterHook > error1", e);
+        sails.log.error("RestoCore > initialization error > ", e);
     }
 }
 exports.default = default_1;
