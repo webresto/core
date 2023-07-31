@@ -82,8 +82,8 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     const baseConfig: MediaFileConfigInner = {
       format: "webp",
       resize: {
-        small: 360,
-        large: 720
+        small: 512,
+        large: 1024
       },
       background: "white"
     } 

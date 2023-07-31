@@ -48,8 +48,8 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         const baseConfig = {
             format: "webp",
             resize: {
-                small: 360,
-                large: 720
+                small: 512,
+                large: 1024
             },
             background: "white"
         };
