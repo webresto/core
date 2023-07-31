@@ -8,14 +8,10 @@ interface MediaFileConfigInner {
     format: string;
     background: string;
     resize: {
-        small: Size;
-        large: Size;
-        [x: string]: Size;
+        small: number;
+        large: number;
+        [x: string]: number;
     };
-}
-interface Size {
-    width?: number;
-    height?: number;
 }
 interface LoadMediaFilesProcess {
     url: string;

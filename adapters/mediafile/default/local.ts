@@ -15,16 +15,12 @@ interface MediaFileConfigInner {
   format: string;
   background: string; 
   resize: { 
-    small: Size
-    large: Size
-    [x: string]: Size 
+    small: number
+    large: number
+    [x: string]: number 
   };
 }
 
-interface Size {
-  width?: number;
-  height?: number;
-}
 
 interface LoadMediaFilesProcess {
   url: string; 
@@ -83,14 +79,8 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     const baseConfig: MediaFileConfigInner = {
       format: "webp",
       resize: {
-        small: {
-          width: 360,
-          height: 360
-        },
-        large: {
-          width: 720,
-          height: 720
-        }
+        small: 360,
+        large: 720
       },
       background: "white"
     } 
@@ -182,18 +172,16 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
                             const dstPath = path.join(prefix,loadMediaFilesProcess.name[size])
                             if (!fs.existsSync(dstPath)) {
                               if (size === "origin") continue;
-                              const mediafileItem = <Size>loadMediaFilesProcess.config.resize[size];
-                              if (!mediafileItem.width && !mediafileItem.height) {
-                                  throw "Not valid mediafile config. Must have name (key) and one of width or height";
+                              let mediafileItem = loadMediaFilesProcess.config.resize[size];
+                              if (!mediafileItem) {
+                                  mediafileItem = 240;
+                                  sails.log.warn(`MediaFile size is not set for ${size}`)
                               }
-                              mediafileItem.width = mediafileItem.width || mediafileItem.height;
-                              mediafileItem.height = mediafileItem.height || mediafileItem.width;
     
                               await resizeMediaFile({
                                   srcPath: path.join(prefix, loadMediaFilesProcess.name.origin),
                                   dstPath: path.join(prefix,loadMediaFilesProcess.name[size]),
-                                  width: mediafileItem.width,
-                                  height: mediafileItem.height,
+                                  size: mediafileItem,
                                   customArgs: ["-background", loadMediaFilesProcess.config.background || "white", "-flatten"],
                               });
                               sails.log.silly(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`)  
@@ -224,13 +212,43 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
   }  
 }
 
-function resizeMediaFile(opts: any) {
+interface ResizeMediaFileOptions {
+  srcPath: string;
+  dstPath: string;
+  size: number;
+  customArgs: string[];
+}
+
+function resizeMediaFile({ srcPath, dstPath, size, customArgs }: ResizeMediaFileOptions): Promise<void> {
   return new Promise((resolve, reject) => {
-    IM.resize(opts, function(err, stdout, stderr){
-      if (err) {
-        reject(err);
-      }
-      resolve(stdout);
-    });
+    IM(srcPath)
+      .size((err, dimensions) => {
+        if (err) {
+          console.log(err);
+          reject(err);
+          return;
+        }
+
+        // Определяем, какая сторона меньше
+        let resizeWidth, resizeHeight;
+        if (dimensions.width > dimensions.height) {
+          resizeWidth = Math.round(size * (dimensions.width / dimensions.height));
+          resizeHeight = size;
+        } else {
+          resizeWidth = size;
+          resizeHeight = Math.round(size * (dimensions.height / dimensions.width));
+        }
+
+        this.resize(resizeWidth, resizeHeight)
+          .out(...customArgs)
+          .write(dstPath, (err) => {
+            if (err) {
+              console.log(err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+      });
   });
 }
