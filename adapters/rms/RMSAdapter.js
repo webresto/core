@@ -32,12 +32,12 @@ class RMSAdapter {
             if (RMSAdapter.syncProductsInterval)
                 clearInterval(RMSAdapter.syncProductsInterval);
             RMSAdapter.syncProductsInterval = setInterval(async () => {
-                this.syncProducts();
+                await this.syncProducts();
             }, SYNC_PRODUCTS_INTERVAL_SECOUNDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECOUNDS * 1000 || 120000);
         }
         // Run on load
         if (process.env.NODE_ENV !== "production") {
-            this.syncProducts();
+            await this.syncProducts();
         }
         // Run sync OutOfStock
         const NO_SYNC_OUT_OF_STOCKS = (await Settings.get("NO_SYNC_OUT_OF_STOCKS")) ?? false;
@@ -46,8 +46,14 @@ class RMSAdapter {
             if (RMSAdapter.syncOutOfStocksInterval)
                 clearInterval(RMSAdapter.syncOutOfStocksInterval);
             RMSAdapter.syncOutOfStocksInterval = setInterval(async () => {
-                this.syncOutOfStocks();
+                await this.syncOutOfStocks();
             }, SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS * 1000 || 60000);
+        }
+        try {
+            await this.initialized();
+        }
+        catch (error) {
+            sails.log.error("RMS initialized error >> ", error);
         }
     }
     /**
@@ -139,8 +145,26 @@ class RMSAdapter {
      * Synchronizing the balance of dishes with the RMS adapter
      */
     async syncOutOfStocks() {
-        // Consider the concepts
-        return;
+        sails.log.silly("ADAPTER RMS > syncOutOfStocks");
+        if (this.syncOutOfStocksPromise && this.syncOutOfStocksPromise.status === "pending") {
+            sails.log.warn(`Method "syncOutOfStocks" was already executed and won't be executed again`);
+            return this.syncOutOfStocksPromise.promise;
+        }
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                let outOfStocksDishes = await this.loadOutOfStocksDishes();
+                for (let item of outOfStocksDishes) {
+                    emitter.emit("rms-sync-out-of-stocks:before-each-product-item", item);
+                    await Dish.update({ rmsId: item.rmsId }, { balance: Math.round(item.balance) }).fetch();
+                }
+                return resolve();
+            }
+            catch (error) {
+                return reject(error);
+            }
+        });
+        this.syncOutOfStocksPromise = new ObservablePromise_1.ObservablePromise(promise);
+        return promise;
     }
 }
 exports.default = RMSAdapter;

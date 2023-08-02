@@ -13,6 +13,7 @@ export default abstract class RMSAdapter {
     private static syncOutOfStocksInterval;
     private initializationPromise;
     private syncProductsPromise;
+    private syncOutOfStocksPromise;
     constructor(config?: ConfigRMSAdapter);
     /**
      * Waiting for initialization
@@ -32,10 +33,15 @@ export default abstract class RMSAdapter {
      */
     syncOutOfStocks(): Promise<void>;
     /**
-     * This method will start after the main initialization
+     * This method will call before the main initialization
      * @returns boolean
      */
     protected abstract customInitialize(): Promise<void>;
+    /**
+     * This method will call after the main initialization
+     * @returns boolean
+     */
+    protected abstract initialized(): Promise<void>;
     /**
      * Checks whether the nomenclature was updated if the last time something has changed will return to True
      * @returns boolean
@@ -47,7 +53,7 @@ export default abstract class RMSAdapter {
      */
     protected abstract loadNomenclatureTree(rmsGroupIds?: string[]): Promise<Group[]>;
     protected abstract loadProductsByGroup(group: Group): Promise<Dish[]>;
-    protected abstract loadOutOfStocksDishes(concept?: string): Promise<Dish[]>;
+    protected abstract loadOutOfStocksDishes(concept?: string): Promise<Pick<Dish, "balance" | "rmsId">[]>;
     /**
      * Create an order
      * @param orderData - webresto order

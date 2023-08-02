@@ -18,6 +18,8 @@ export default abstract class RMSAdapter {
   private initializationPromise: Promise<void>;
 
   private syncProductsPromise: ObservablePromise<void>;
+  private syncOutOfStocksPromise: ObservablePromise<void>;
+
   public constructor(config?: ConfigRMSAdapter) {
     this.config = config;
 
@@ -47,7 +49,7 @@ export default abstract class RMSAdapter {
       if (RMSAdapter.syncProductsInterval) clearInterval(RMSAdapter.syncProductsInterval);
       RMSAdapter.syncProductsInterval = setInterval(
         async () => {
-          this.syncProducts();
+          await this.syncProducts();
         },
         SYNC_PRODUCTS_INTERVAL_SECOUNDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECOUNDS * 1000 || 120000
       );
@@ -55,7 +57,7 @@ export default abstract class RMSAdapter {
 
     // Run on load
     if (process.env.NODE_ENV !== "production") {
-      this.syncProducts();
+      await this.syncProducts();
     }
 
     // Run sync OutOfStock
@@ -65,10 +67,16 @@ export default abstract class RMSAdapter {
       if (RMSAdapter.syncOutOfStocksInterval) clearInterval(RMSAdapter.syncOutOfStocksInterval);
       RMSAdapter.syncOutOfStocksInterval = setInterval(
         async () => {
-          this.syncOutOfStocks();
+          await this.syncOutOfStocks();
         },
         SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS * 1000 || 60000
       );
+    }
+
+    try {
+      await this.initialized();
+    } catch (error) {
+      sails.log.error("RMS initialized error >> ", error);
     }
   }
 
@@ -180,15 +188,42 @@ export default abstract class RMSAdapter {
    * Synchronizing the balance of dishes with the RMS adapter
    */
   public async syncOutOfStocks(): Promise<void> {
-    // Consider the concepts
-    return;
+    sails.log.silly("ADAPTER RMS > syncOutOfStocks")
+    if (this.syncOutOfStocksPromise && this.syncOutOfStocksPromise.status === "pending") {
+      sails.log.warn(`Method "syncOutOfStocks" was already executed and won't be executed again`);
+      return this.syncOutOfStocksPromise.promise;
+    }
+    
+    const promise = new Promise<void>(async (resolve, reject) => {
+      try {
+        let outOfStocksDishes = await this.loadOutOfStocksDishes();
+    
+        for(let item of outOfStocksDishes) {
+          emitter.emit("rms-sync-out-of-stocks:before-each-product-item", item);
+          await Dish.update({rmsId: item.rmsId}, {balance: Math.round(item.balance)}).fetch()
+        }
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+
+    this.syncOutOfStocksPromise = new ObservablePromise(promise)
+    return promise;
   }
 
   /**
-   * This method will start after the main initialization
+   * This method will call before the main initialization
    * @returns boolean
    */
   protected abstract customInitialize(): Promise<void>;
+
+
+  /**
+   * This method will call after the main initialization
+   * @returns boolean
+   */
+    protected abstract initialized(): Promise<void>;
 
   /**
    * Checks whether the nomenclature was updated if the last time something has changed will return to True
@@ -204,7 +239,7 @@ export default abstract class RMSAdapter {
 
   protected abstract loadProductsByGroup(group: Group): Promise<Dish[]>;
 
-  protected abstract loadOutOfStocksDishes(concept?: string): Promise<Dish[]>;
+  protected abstract loadOutOfStocksDishes(concept?: string): Promise<Pick<Dish, "balance" | "rmsId">[]>;
 
   /**
    * Create an order
