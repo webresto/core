@@ -115,7 +115,8 @@ let Model = {
             adapter: paymentAdapter.InitPaymentAdapter.adapter,
         });
         if (!knownPaymentMethod) {
-            knownPaymentMethod = await PaymentMethod.create({ ...paymentAdapter.InitPaymentAdapter, enable: false }).fetch();
+            let defaultEnable = Boolean(await Settings.get("DEFAULT_ENABLE_PAYMENT_METHODS")) ?? false;
+            knownPaymentMethod = await PaymentMethod.create({ ...paymentAdapter.InitPaymentAdapter, enable: defaultEnable }).fetch();
         }
         alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
         sails.log.silly("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
