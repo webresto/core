@@ -5,15 +5,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 async function default_1() {
     try {
-        /**
-         * rmsAdapter
-         */
-        const rmsAdapterName = await Settings.use("rmsAdapter", "restocore");
-        const rmsAdapterConfig = await Settings.use("rmsAdapterName", "restocore");
-        const imagesConfig = await Settings.use("images", "restocore");
-        const timeSyncMenu = await Settings.use("timeSyncMenu", "restocore");
-        const timeSyncBalance = await Settings.use("timeSyncBalance", "restocore");
-        const timeSyncStreets = await Settings.use("timeSyncStreets", "restocore");
         const timeSyncPayments = await Settings.use("timeSyncPayments", "restocore");
         /**
          * TIMEZONE

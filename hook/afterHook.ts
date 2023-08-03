@@ -1,18 +1,10 @@
+
 /**
  * Initial RMS and set timezone if it given
  */
 export default async function () {
   try {
 
-    /**
-     * rmsAdapter
-     */
-    const rmsAdapterName = await Settings.use("rmsAdapter", "restocore") as string;
-    const rmsAdapterConfig = await Settings.use("rmsAdapterName", "restocore") as any;
-    const imagesConfig = await Settings.use("images","restocore") as any;
-    const timeSyncMenu = await Settings.use("timeSyncMenu","restocore") as number;
-    const timeSyncBalance = await Settings.use("timeSyncBalance","restocore") as number;
-    const timeSyncStreets = await Settings.use("timeSyncStreets","restocore") as number;
     const timeSyncPayments = await Settings.use("timeSyncPayments","restocore") as number;
 
 
