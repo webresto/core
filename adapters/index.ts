@@ -11,6 +11,7 @@ import * as fs from "fs";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 import path = require("path");
+import { Config } from "../interfaces/Config";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -238,7 +239,7 @@ export class Adapter {
     /**
      * retruns PaymentAdapter-adapter
      */ 
-    public static async getPaymentAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<PaymentAdapter> {
+    public static async getPaymentAdapter(adapterName?: string, initParams?: Config): Promise<PaymentAdapter> {
       if(!adapterName) {
         let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER") as string;
         if (!defaultAdapterName) throw 'BonusProgramAdapter is not set '

@@ -72,6 +72,7 @@ export default abstract class BonusProgramAdapter {
   /**
    * A method for creating and obtaining an existing Bonus Adapter
    * @param params - Parameters for initialization
+   * @deprecated
    */
   static getInstance(...params): BonusProgramAdapter {
     return BonusProgramAdapter.prototype;
