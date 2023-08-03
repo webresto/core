@@ -7,22 +7,10 @@ import PaymentAdapter from "./payment/PaymentAdapter";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 /**
- * // TODO: delete  getAdapter RMS after release new adapter RMS
- */
-export declare class RMS {
-    static getAdapter(adapterName: string): Promise<typeof RMSAdapter>;
-}
-/**
  * retruns Map-adapter
  */
 export declare class Map {
     static getAdapter(adapterName: string): Promise<typeof MapAdapter>;
-}
-/**
- * retruns Payment-adapter
- */
-export declare class Payment {
-    static getAdapter(adapterName: string): Promise<PaymentAdapter>;
 }
 /**
  * retruns Captcha-adapter
@@ -58,4 +46,10 @@ export declare class Adapter {
    * retruns MediaFile-adapter
    */
     static getMediaFileAdapter(adapter?: string | MediaFileAdapter, initParams?: ConfigMediaFileAdapter): Promise<MediaFileAdapter>;
+    /**
+     * retruns PaymentAdapter-adapter
+     */
+    static getPaymentAdapter(adapterName?: string, initParams?: {
+        [key: string]: string | number | boolean;
+    }): Promise<PaymentAdapter>;
 }

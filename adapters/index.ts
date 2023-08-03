@@ -15,40 +15,6 @@ import path = require("path");
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
 /**
- * // TODO: delete  getAdapter RMS after release new adapter RMS
- */ 
-export class RMS {
-
-  public static async getAdapter(adapterName: string): Promise<typeof RMSAdapter> {
-    
-    // if(!Boolean(adapterName)) {
-    //   sails.log.warn(`RMS adapter not defined: ${adapterName}`);
-    //   return 
-    // }
-
-    // For factory we use different dirrectory for modules
-
-    if(!adapterName) {
-      adapterName = await Settings.get("DEFAULT_RMS_ADAPTER") as string;
-    }
-
-    // if(!adapterName) {
-    //   // RUN DUMMY ADAPTER
-    // }
-
-    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
-    try {
-      const adapter = require(adapterLocation);
-      return adapter.RMS.default;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter RMS > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-}
-
-/**
  * retruns Map-adapter
  */
 export class Map {
@@ -67,34 +33,6 @@ export class Map {
       return adapter.MapAdapter.default;
     } catch (e) {
       sails.log.error("CORE > getAdapter Map > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-}
-
-/**
- * retruns Payment-adapter
- */
-export class Payment {
-  public static async getAdapter(adapterName: string): Promise<PaymentAdapter> {
-
-    // if(!Boolean(adapterName)) {
-    //   sails.log.warn(`Payment adapter not defined: ${adapterName}`);
-    //   return 
-    // }
-
-    if(!adapterName) {
-      adapterName = await Settings.get("DEFAULT_PAYMENT_ADAPTER") as string;
-    }
-
-    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
-
-    try {
-      const adapter = require(adapterLocation);
-      return adapter.PaymentAdapter[adapterName.toUpperCase()];
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Payment > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
   }
@@ -194,14 +132,14 @@ export class Adapter {
       if (!defaultAdapterName) throw 'BonusProgramAdapter is not set '
     }
 
-    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
+    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-bonus-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-bonus-adapter";
 
     try {
       const adapter = require(adapterLocation);
       return adapter.BonusProgramAdapter[adapterName].getInstance(initParams) as BonusProgramAdapter;
     } catch (e) {
-      sails.log.error("CORE > getAdapter Discount > error; ", e);
+      sails.log.error("CORE > getAdapter Bonus > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
   }
@@ -291,6 +229,29 @@ export class Adapter {
         return this.instanceMF;
       } catch (e) {
         sails.log.error("CORE > getAdapter MediaFile >  error; ", e);
+        throw new Error("Module " + adapterLocation + " not found");
+      }
+    }
+
+
+
+    /**
+     * retruns PaymentAdapter-adapter
+     */ 
+    public static async getPaymentAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<PaymentAdapter> {
+      if(!adapterName) {
+        let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER") as string;
+        if (!defaultAdapterName) throw 'BonusProgramAdapter is not set '
+      }
+
+      let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
+      adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
+
+      try {
+        const adapter = require(adapterLocation);
+        return adapter.PaymentProgramAdapter[adapterName].getInstance(initParams) as PaymentAdapter;
+      } catch (e) {
+        sails.log.error("CORE > getAdapter Payment > error; ", e);
         throw new Error("Module " + adapterLocation + " not found");
       }
     }

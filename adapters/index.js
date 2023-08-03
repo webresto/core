@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Adapter = exports.OTP = exports.Captcha = exports.Payment = exports.Map = exports.RMS = void 0;
+exports.Adapter = exports.OTP = exports.Captcha = exports.Map = void 0;
 const RMSAdapter_1 = require("./rms/RMSAdapter");
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
@@ -10,35 +10,6 @@ const fs = require("fs");
 const discountAdapter_1 = require("./discount/default/discountAdapter");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
-/**
- * // TODO: delete  getAdapter RMS after release new adapter RMS
- */
-class RMS {
-    static async getAdapter(adapterName) {
-        // if(!Boolean(adapterName)) {
-        //   sails.log.warn(`RMS adapter not defined: ${adapterName}`);
-        //   return 
-        // }
-        // For factory we use different dirrectory for modules
-        if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_RMS_ADAPTER");
-        }
-        // if(!adapterName) {
-        //   // RUN DUMMY ADAPTER
-        // }
-        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
-        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
-        try {
-            const adapter = require(adapterLocation);
-            return adapter.RMS.default;
-        }
-        catch (e) {
-            sails.log.error("CORE > getAdapter RMS > error; ", e);
-            throw new Error("Module " + adapterLocation + " not found");
-        }
-    }
-}
-exports.RMS = RMS;
 /**
  * retruns Map-adapter
  */
@@ -60,31 +31,6 @@ class Map {
     }
 }
 exports.Map = Map;
-/**
- * retruns Payment-adapter
- */
-class Payment {
-    static async getAdapter(adapterName) {
-        // if(!Boolean(adapterName)) {
-        //   sails.log.warn(`Payment adapter not defined: ${adapterName}`);
-        //   return 
-        // }
-        if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_PAYMENT_ADAPTER");
-        }
-        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
-        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
-        try {
-            const adapter = require(adapterLocation);
-            return adapter.PaymentAdapter[adapterName.toUpperCase()];
-        }
-        catch (e) {
-            sails.log.error("CORE > getAdapter Payment > error; ", e);
-            throw new Error("Module " + adapterLocation + " not found");
-        }
-    }
-}
-exports.Payment = Payment;
 /**
  * retruns Captcha-adapter
  */
@@ -164,14 +110,14 @@ class Adapter {
             if (!defaultAdapterName)
                 throw 'BonusProgramAdapter is not set ';
         }
-        let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
+        let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-bonus-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-bonus-adapter";
         try {
             const adapter = require(adapterLocation);
             return adapter.BonusProgramAdapter[adapterName].getInstance(initParams);
         }
         catch (e) {
-            sails.log.error("CORE > getAdapter Discount > error; ", e);
+            sails.log.error("CORE > getAdapter Bonus > error; ", e);
             throw new Error("Module " + adapterLocation + " not found");
         }
     }
@@ -253,6 +199,26 @@ class Adapter {
         }
         catch (e) {
             sails.log.error("CORE > getAdapter MediaFile >  error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
+    /**
+     * retruns PaymentAdapter-adapter
+     */
+    static async getPaymentAdapter(adapterName, initParams) {
+        if (!adapterName) {
+            let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
+            if (!defaultAdapterName)
+                throw 'BonusProgramAdapter is not set ';
+        }
+        let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
+        try {
+            const adapter = require(adapterLocation);
+            return adapter.PaymentProgramAdapter[adapterName].getInstance(initParams);
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter Payment > error; ", e);
             throw new Error("Module " + adapterLocation + " not found");
         }
     }
