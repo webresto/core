@@ -1,11 +1,22 @@
 import { Payment, PaymentResponse } from "../../interfaces/Payment";
-import { InitPaymentAdapter } from "../../interfaces/InitPaymentAdapter";
 import PaymentDocument from "../../models/PaymentDocument";
+import { PaymentMethodType } from "../../libs/enums/PaymentMethodTypes";
 /**
  * The abstract class of the Payment adapter. Used to create new payment system adapters.
  */
+export type Config = {
+    [key: string]: Config | number | boolean | string | null | undefined;
+};
+export interface InitPaymentAdapter {
+    title: string;
+    type: PaymentMethodType;
+    adapter: string;
+    description?: string;
+    config: Config;
+}
 export default abstract class PaymentAdapter {
     readonly InitPaymentAdapter: InitPaymentAdapter;
+    config: Config;
     protected constructor(InitPaymentAdapter: InitPaymentAdapter);
     /**
      * Make new payment
