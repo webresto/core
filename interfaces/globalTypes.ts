@@ -1,5 +1,5 @@
 import sails from "@42pub/typed-sails";
-import Config from "./Config";
+import { Config } from "./Config";
 import AwaitEmitter from "../libs/AwaitEmitter";
 
 type sailsConfig = typeof sails.config;

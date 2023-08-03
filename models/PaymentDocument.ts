@@ -44,14 +44,7 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
   DECLINE - Authorization is rejected.
 */
 
-enum PaymentDocumentStatus {
-  NEW = "NEW",
-  REGISTRED = "REGISTRED",
-  PAID = "PAID",
-  CANCEL = "CANCEL",
-  REFUND = "REFUND",
-  DECLINE = "DECLINE"
-}
+type PaymentDocumentStatus = "NEW" | "REGISTRED" | "PAID" | "CANCEL" | "REFUND" | "DECLINE"
 
 let payment_processor_interval: ReturnType<typeof setInterval>;
 
@@ -195,7 +188,7 @@ let Model = {
       await PaymentDocument.update(
         { id: paymentResponse.id },
         {
-          status: PaymentDocumentStatus.REGISTRED,
+          status: "REGISTRED",
           externalId: paymentResponse.externalId,
           redirectLink: paymentResponse.redirectLink,
         }
@@ -232,13 +225,13 @@ let Model = {
     return (payment_processor_interval = setInterval(async () => {
       let actualTime = new Date();
 
-      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({ status: PaymentDocumentStatus.REGISTRED });
+      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({ status: "REGISTRED" });
 
       /**If the date of creation of a payment document more than an hour ago, we put the status expired */
       actualTime.setHours(actualTime.getHours() - 1);
       for await (let actualPaymentDocument of actualPaymentDocuments) {
         if (actualPaymentDocument.createdAt < actualTime) {
-          await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: PaymentDocumentStatus.DECLINE }).fetch();
+          await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" }).fetch();
         } else {
           sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
           await PaymentDocument.doCheck({id: actualPaymentDocument.id}) ;

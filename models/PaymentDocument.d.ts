@@ -37,14 +37,7 @@ import { OptionalAll } from "../interfaces/toolsTS";
   REFUND - the transaction was carried out by the return operation;
   DECLINE - Authorization is rejected.
 */
-declare enum PaymentDocumentStatus {
-    NEW = "NEW",
-    REGISTRED = "REGISTRED",
-    PAID = "PAID",
-    CANCEL = "CANCEL",
-    REFUND = "REFUND",
-    DECLINE = "DECLINE"
-}
+type PaymentDocumentStatus = "NEW" | "REGISTRED" | "PAID" | "CANCEL" | "REFUND" | "DECLINE";
 declare let attributes: {
     /** Unique ID in PaymentDocument */
     id: string;

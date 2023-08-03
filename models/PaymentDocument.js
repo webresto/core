@@ -1,49 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-/** on the example of the basket (Order):
- * 1. Model Conducting Internal/External (for example: Order) creates PaymentDocument
- *
- * 2. PaymentDocument, when creating a new payment order, finds the desired payment method
- * and creates payment in the payment system (there is a redirect for a payment form)
- *
- * 3. When a person paid, depending on the logic of the work of the payment gateway.PaymentProcessor or
- * Getting a call from the payment system
- * Or we will interview the payment system until we find out the state of the payment.
- * PaymentProcessor has a timer in order to interview payment systems about the state of payment,
- * Thus, in the payment system, an additional survey does not need to be implemented, only the Check function
- *
- * 4. At the time when a person completed the work with the gateway and made payment, he will return to the page indicated
- * In the payment Adapter as a page for a successful return.It is assumed that the redirect to the page will occur
- * an order where a person can see the state of his order.During the load of this page, a call will be made
- * Controller API Getorder (/Api/0.5/order ::::
- *
- * 5. If the payment was successful, then PaymentProcessor will set the PAID status in accordance with PaymentDocument,
- * This, in turn, means that PaymentDocument will try to put the ISPAID: true in the model and make EMIT ('Core-Payment-Document-Paid', Document)
- * Corresponding Originmodel of the current PaymentDocument.(In the service with ORDER, Next ();)
- *
- * 6. In the event of a change in payment status, an EMIT ('Core-Payment-Document-Status', Document) will occur where any system can be able
- * to register for changes in status,
- *
- * 7. In the event of unsuccessful payment, the user will be returned to the page of the notification of unsuccessful payment and then there will be a redirect to the page
- * placing an order so that the user can try to pay the order again.
- */
-/**
-  REGISTRED - the order is registered, but not paid;
-  PAID - complete authorization of the amount of the order was carried out;
-  CANCEL - authorization canceled;
-  REFUND - the transaction was carried out by the return operation;
-  DECLINE - Authorization is rejected.
-*/
-var PaymentDocumentStatus;
-(function (PaymentDocumentStatus) {
-    PaymentDocumentStatus["NEW"] = "NEW";
-    PaymentDocumentStatus["REGISTRED"] = "REGISTRED";
-    PaymentDocumentStatus["PAID"] = "PAID";
-    PaymentDocumentStatus["CANCEL"] = "CANCEL";
-    PaymentDocumentStatus["REFUND"] = "REFUND";
-    PaymentDocumentStatus["DECLINE"] = "DECLINE";
-})(PaymentDocumentStatus || (PaymentDocumentStatus = {}));
 let payment_processor_interval;
 let attributes = {
     /** Unique ID in PaymentDocument */
@@ -156,7 +113,7 @@ let Model = {
             sails.log.silly("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
             let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
             await PaymentDocument.update({ id: paymentResponse.id }, {
-                status: PaymentDocumentStatus.REGISTRED,
+                status: "REGISTRED",
                 externalId: paymentResponse.externalId,
                 redirectLink: paymentResponse.redirectLink,
             }).fetch();
@@ -192,12 +149,12 @@ let Model = {
         sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 120000);
         return (payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
-            let actualPaymentDocuments = await PaymentDocument.find({ status: PaymentDocumentStatus.REGISTRED });
+            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED" });
             /**If the date of creation of a payment document more than an hour ago, we put the status expired */
             actualTime.setHours(actualTime.getHours() - 1);
             for await (let actualPaymentDocument of actualPaymentDocuments) {
                 if (actualPaymentDocument.createdAt < actualTime) {
-                    await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: PaymentDocumentStatus.DECLINE }).fetch();
+                    await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" }).fetch();
                 }
                 else {
                     sails.log.info("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);

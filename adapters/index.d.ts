@@ -6,6 +6,7 @@ import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileA
 import PaymentAdapter from "./payment/PaymentAdapter";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
+import { Config } from "../interfaces/Config";
 /**
  * retruns Map-adapter
  */
@@ -49,7 +50,5 @@ export declare class Adapter {
     /**
      * retruns PaymentAdapter-adapter
      */
-    static getPaymentAdapter(adapterName?: string, initParams?: {
-        [key: string]: string | number | boolean;
-    }): Promise<PaymentAdapter>;
+    static getPaymentAdapter(adapterName?: string, initParams?: Config): Promise<PaymentAdapter>;
 }
