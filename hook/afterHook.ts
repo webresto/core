@@ -1,5 +1,3 @@
-import { RMS } from "../adapters/index";
-
 /**
  * Initial RMS and set timezone if it given
  */

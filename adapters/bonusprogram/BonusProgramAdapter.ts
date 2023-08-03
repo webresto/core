@@ -70,7 +70,7 @@ export default abstract class BonusProgramAdapter {
   public abstract getTransactions(user: User, afterTime: Date, limit?: number, skip?: number): Promise<BonusTransaction[]>;
 
   /**
-   * A method for creating and obtaining an existing Payment Adapter
+   * A method for creating and obtaining an existing Bonus Adapter
    * @param params - Parameters for initialization
    */
   static getInstance(...params): BonusProgramAdapter {

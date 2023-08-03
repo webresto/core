@@ -8,6 +8,9 @@ import groupGenerator from "../../generators/group.generator";
 
 
 export class TestRMS  extends RMSAdapter {
+    protected initialized(): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
     protected customInitialize(): Promise<void> {
         throw new Error("Method not implemented.");
     }

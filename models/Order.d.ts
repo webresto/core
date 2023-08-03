@@ -23,7 +23,7 @@ declare let attributes: {
     /**
      * @deprecated will be rename to `Items` in **v2**
      */
-    dishes: number[] | OrderDish[];
+    dishes: OrderDish[] | number[];
     paymentMethod: any;
     /** */
     paymentMethodTitle: string;
@@ -90,7 +90,7 @@ export default Order;
 declare let Model: {
     beforeCreate(orderInit: any, cb: (err?: string) => void): void;
     /** Add dish into order */
-    addDish(criteria: CriteriaQuery<Order>, dish: string | Dish, amount: number, modifiers: OrderModifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: CriteriaQuery<Order>, dish: Dish | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void>;
@@ -133,7 +133,7 @@ declare let Model: {
         shortId?: string;
         concept?: string;
         isMixedConcept?: boolean;
-        dishes?: number[] | OrderDish[];
+        dishes?: OrderDish[] | number[];
         paymentMethod?: any;
         paymentMethodTitle?: string;
         paid?: boolean;
