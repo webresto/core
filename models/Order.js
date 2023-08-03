@@ -710,7 +710,7 @@ let Model = {
         };
         await Order.countCart({ id: order.id });
         await emitter.emit("core-order-payment", order, params);
-        sails.log.info("Order > payment > order before register:", order);
+        sails.log.silly("Order > payment > order before register:", order);
         try {
             paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
         }
@@ -890,7 +890,7 @@ let Model = {
     async doPaid(criteria, paymentDocument) {
         let order = await Order.findOne(criteria);
         if (order.paid) {
-            sails.log.info(`Order > doPaid: Order with id ${order.id} is paid`);
+            sails.log.debug(`Order > doPaid: Order with id ${order.id} is paid`);
             return;
         }
         try {
@@ -900,7 +900,7 @@ let Model = {
                 paymentMethod: paymentDocument.paymentMethod,
                 paymentMethodTitle: paymentMethodTitle,
             }).fetch();
-            sails.log.info("Order > doPaid: ", order.id, order.state, order.total, paymentDocument.amount);
+            sails.log.debug("Order > doPaid: ", order.id, order.state, order.total, paymentDocument.amount);
             if (order.state !== "PAYMENT") {
                 sails.log.error("Order > doPaid: is strange order state is not PAYMENT", order);
             }

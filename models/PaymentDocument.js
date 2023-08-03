@@ -53,7 +53,7 @@ let Model = {
         try {
             let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
             let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
-            sails.log.debug("checkedPaymentDocument >> ", checkedPaymentDocument);
+            sails.log.silly("checkedPaymentDocument >> ", checkedPaymentDocument);
             if (checkedPaymentDocument.status === "PAID") {
                 await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status, paid: true }).fetch();
                 checkedPaymentDocument.paid = true;

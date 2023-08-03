@@ -36,8 +36,9 @@ import { OptionalAll } from "../interfaces/toolsTS";
   CANCEL - authorization canceled;
   REFUND - the transaction was carried out by the return operation;
   DECLINE - Authorization is rejected.
+  WAIT_CAPTURE - Waiting for the frozen money to be debited from the account
 */
-type PaymentDocumentStatus = "NEW" | "REGISTRED" | "PAID" | "CANCEL" | "REFUND" | "DECLINE";
+type PaymentDocumentStatus = "NEW" | "REGISTRED" | "PAID" | "CANCEL" | "REFUND" | "DECLINE" | "WAIT_CAPTURE";
 declare let attributes: {
     /** Unique ID in PaymentDocument */
     id: string;

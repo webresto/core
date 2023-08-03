@@ -871,7 +871,7 @@ let Model = {
     };
     await Order.countCart({id: order.id});
     await emitter.emit("core-order-payment", order, params);
-    sails.log.info("Order > payment > order before register:", order);
+    sails.log.silly("Order > payment > order before register:", order);
     try {
       paymentResponse = await PaymentDocument.register(
         order.id, 
@@ -1097,7 +1097,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
     let order = await Order.findOne(criteria);
     
     if(order.paid) {
-      sails.log.info(`Order > doPaid: Order with id ${order.id} is paid`);
+      sails.log.debug(`Order > doPaid: Order with id ${order.id} is paid`);
       return
     }
 
@@ -1112,7 +1112,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
         }
       ).fetch();
 
-      sails.log.info("Order > doPaid: ", order.id, order.state, order.total, paymentDocument.amount);
+      sails.log.debug("Order > doPaid: ", order.id, order.state, order.total, paymentDocument.amount);
 
 
       if (order.state !== "PAYMENT") {
