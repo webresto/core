@@ -95,7 +95,6 @@ describe('Dish', function () {
     'rmsId',
     'additionalInfo',
     'code',
-    'description',
     'name',
     'seoDescription',
     'seoKeywords',
@@ -103,7 +102,6 @@ describe('Dish', function () {
     'seoTitle',
     'carbohydrateAmount',
     'carbohydrateFullAmount',
-    'doNotPrintInCheque',
     'energyAmount',
     'energyFullAmount',
     'fatAmount',
@@ -130,7 +128,13 @@ describe('Dish', function () {
     'visible',
     'modifier',
     'promo',
-    'worktime')
+    'worktime',
+    'concept',
+    'ingredients',
+    'updatedAt',
+    'createdAt'
+
+    )
   });
 
   it('getDishes', function(){

@@ -116,7 +116,7 @@ let attributes = {
         allowNull: true,
     },
     /** Type */
-    // type: "string", //TODO: ???
+    type: "string",
     /** Weight  */
     weight: {
         type: "number",

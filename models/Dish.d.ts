@@ -54,6 +54,7 @@ declare let attributes: {
     /**  */
     productCategoryId: string;
     /** Type */
+    type: string;
     /** Weight  */
     weight: number;
     /** Sorting order */

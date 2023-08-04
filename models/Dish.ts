@@ -149,7 +149,7 @@ let attributes = {
   } as unknown as string,
 
   /** Type */
-  // type: "string", //TODO: ???
+  type: "string", //TODO: product, dish, service
 
   /** Weight  */
   weight: {

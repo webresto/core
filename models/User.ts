@@ -344,7 +344,7 @@ let Model = {
 
     // Check OTP
     let checkOTPResult = false;
-    if (OTP && typeof OTP === "string" && OTP.length > 0) { 
+    if (Boolean(OTP) && typeof OTP === "string" && OTP.length > 0) { 
       if(await OneTimePassword.check(login, OTP)) {
         checkOTPResult = true
       }

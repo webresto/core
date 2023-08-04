@@ -38,7 +38,7 @@ describe("Maintenance", function () {
   });
 
   after(async function() {
-    await Maintenance.destroy({id: "maintenance-test"}).fetch();
+    await Maintenance.destroy({}).fetch();
   })
 });
 

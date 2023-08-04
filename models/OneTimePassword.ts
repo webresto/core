@@ -48,7 +48,6 @@ let Model = {
     
     let OTP = (await OneTimePassword.find({login: login}).sort('createdAt DESC'))[0]
     if (OTP === undefined) return false
-
     if (password === OTP.password) {
       await OneTimePassword.destroy({id: OTP.id})
       return true

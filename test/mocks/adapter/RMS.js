@@ -5,14 +5,14 @@ const RMSAdapter_1 = require("../../../adapters/rms/RMSAdapter");
 const dish_generator_1 = require("../../generators/dish.generator");
 const group_generator_1 = require("../../generators/group.generator");
 class TestRMS extends RMSAdapter_1.default {
-    initialized() {
-        throw new Error("Method not implemented.");
+    async initialized() {
+        return;
     }
-    customInitialize() {
-        throw new Error("Method not implemented.");
+    async customInitialize() {
+        return;
     }
-    loadOutOfStocksDishes(concept) {
-        throw new Error("Method not implemented.");
+    async loadOutOfStocksDishes(concept) {
+        return;
     }
     async nomenclatureHasUpdated() {
         return true;
