@@ -96,13 +96,11 @@ describe("User", function () {
 
 
     it("create user with specific password", async function () {
-      console.log("start !!!!!!!!!!!")
       await Settings.set("PASSWORD_POLICY", "required") 
       await Settings.set("LOGIN_FIELD", "email") 
 
       let OTPAdapter = await OTP.getAdapter();
       let otp = await OTPAdapter.get("test@mail.com");
-      console.log(otp)
 
       let login = await User.login("test@mail.com", null,"deviceId-test", "device-name", "password01", otp.password, "agent", "IP");
       let _user = await User.findOne({login: "test@mail.com"})
