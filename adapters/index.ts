@@ -16,30 +16,6 @@ import { Config } from "../interfaces/Config";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
 /**
- * retruns Map-adapter
- */
-export class Map {
-  public static async getAdapter(adapterName: string): Promise<typeof MapAdapter> {
-
-    if(!adapterName) {
-      adapterName = await Settings.get("DEFAULT_MAP_ADAPTER") as string;
-    }
-
-    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-map-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-map-adapter";
-    try {
-      const adapter: {
-        MapAdapter: { default: new (config) => MapAdapter };
-      } = require(adapterLocation);
-      return adapter.MapAdapter.default;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Map > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-}
-
-/**
  * retruns Captcha-adapter
  */
 export class Captcha {
