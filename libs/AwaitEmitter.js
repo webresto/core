@@ -7,6 +7,9 @@ const sleep = require("util").promisify(setTimeout);
  * с ошибкой или время ожидания вышло).
  */
 class AwaitEmitter {
+    events;
+    name;
+    timeout;
     /**
      * @param name - название нового эмиттера
      * @param timeout - указывает сколько милисекунд ожидать функции, которые возвращают Promise.
@@ -139,6 +142,8 @@ exports.default = AwaitEmitter;
  * Объект собятия, хранит название события и его слушателей
  */
 class Event {
+    name;
+    fns;
     constructor(name) {
         this.name = name;
         this.fns = [];
@@ -149,6 +154,10 @@ class Event {
  * ошибку, которые вернула или вызвала функция
  */
 class Response {
+    label;
+    state;
+    result;
+    error;
     constructor(label, result, error, timeout) {
         this.label = label;
         this.result = result;

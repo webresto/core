@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Adapter = exports.OTP = exports.Captcha = exports.Map = void 0;
+exports.Adapter = exports.OTP = exports.Captcha = void 0;
 const RMSAdapter_1 = require("./rms/RMSAdapter");
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
@@ -10,27 +10,6 @@ const fs = require("fs");
 const discountAdapter_1 = require("./discount/default/discountAdapter");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
-/**
- * retruns Map-adapter
- */
-class Map {
-    static async getAdapter(adapterName) {
-        if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_MAP_ADAPTER");
-        }
-        let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-map-adapter";
-        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-map-adapter";
-        try {
-            const adapter = require(adapterLocation);
-            return adapter.MapAdapter.default;
-        }
-        catch (e) {
-            sails.log.error("CORE > getAdapter Map > error; ", e);
-            throw new Error("Module " + adapterLocation + " not found");
-        }
-    }
-}
-exports.Map = Map;
 /**
  * retruns Captcha-adapter
  */
@@ -83,6 +62,10 @@ class OTP {
 exports.OTP = OTP;
 /** TODO: move other Adapters to one class adapter */
 class Adapter {
+    // Singletons
+    static instanceRMS;
+    static instanceMF;
+    static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
     static async getDiscountAdapter(adapterName, initParams) {
         if (!adapterName) {
             adapterName = await Settings.get("DEFAULT_DISCOUNT_ADAPTER");
@@ -223,5 +206,4 @@ class Adapter {
         }
     }
 }
-Adapter.WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 exports.Adapter = Adapter;

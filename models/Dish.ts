@@ -357,7 +357,7 @@ let Model = {
     const dish = await Dish.findOne(criteria);
     
     if (!dish) {
-      return Dish.create({ hash, ...values }).fetch();
+      return await Dish.create({ hash, ...values }).fetch();
     } else {
       if (hash === dish.hash) {
         return dish;

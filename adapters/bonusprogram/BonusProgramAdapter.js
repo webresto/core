@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class BonusProgramAdapter {
+    id;
+    config = {};
     constructor(config) {
-        this.config = {};
         this.config = config;
     }
     /**

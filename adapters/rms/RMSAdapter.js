@@ -5,8 +5,13 @@ const ObservablePromise_1 = require("../../libs/ObservablePromise");
  * An abstract RMS adapter class. Used to create new RMS adapters.
  */
 class RMSAdapter {
+    config = {};
+    static syncProductsInterval;
+    static syncOutOfStocksInterval;
+    initializationPromise;
+    syncProductsPromise;
+    syncOutOfStocksPromise;
     constructor(config) {
-        this.config = {};
         this.config = config;
         // Run async initialization
         this.initializationPromise = this.initialize();

@@ -25,6 +25,22 @@ class configuredDiscount extends AbstractDiscount_1.default {
         // this.displayGroupDiscount = discount.displayGroupDiscount;
         // this.displayGroupDish = discount.displayGroupDish;
     }
+    id;
+    isJoint;
+    name;
+    isPublic;
+    description;
+    concept;
+    configDiscount;
+    discount;
+    discountType;
+    actions;
+    enable;
+    isDeleted;
+    sortOrder;
+    productCategoryDiscounts;
+    hash;
+    worktime;
     condition(order) {
         throw new Error("Method not implemented.");
     }
