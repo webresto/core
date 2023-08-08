@@ -20,7 +20,7 @@ export * from './models/UserBonusTransaction';
 export * from './models/UserDevice';
 export * from './models/UserLocation';
 export * from './models/UserOrderHistory';
-export * from './models/Discount';
+export * from './models/Promotion';
 
 module.exports = function (sails) {
   return {

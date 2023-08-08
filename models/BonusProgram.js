@@ -148,16 +148,15 @@ let Model = {
     async getAvailable() {
         return await BonusProgram.find({
             where: {
-                or: [
-                    {
-                        adapter: Object.keys(alivedBonusPrograms),
-                        enable: true,
-                    }
-                ],
+                // @ts-ignore TODO: First fix types
+                and: [
+                    { adapter: { in: Object.keys(alivedBonusPrograms) } },
+                    { enable: true }
+                ]
             },
-            sort: "sortOrder ASC",
+            sort: "sortOrder ASC"
         });
-    },
+    }
 };
 module.exports = {
     primaryKey: "id",

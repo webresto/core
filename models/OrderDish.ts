@@ -20,6 +20,7 @@ let attributes = {
   // Есть идея что нужно отдельно запекать заказы.
 
   /**Блюдо, которое содержится в корзине */
+  /** any problem */
   dish: {
     model: "Dish",
   } as unknown as Dish | any,
@@ -41,17 +42,11 @@ let attributes = {
   /** цена позиции до применения скидок */
   itemTotalBeforeDiscount: "number",
 
-  /** Скидка */
-  discount: "json" as unknown as any,
-
   /**Общая сумма скидки */
   discountTotal: "number" as unknown as number,
 
   /** Тип скидки */
   discountType: 'string',
-
-  /** Сообщение скидки */
-  discountMessage: "string",
 
   /** Сумма скидки */
   discountAmount: "number",

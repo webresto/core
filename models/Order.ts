@@ -15,6 +15,9 @@ import PaymentMethod from "./PaymentMethod";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
+import { SpendDiscount } from "../interfaces/SpendDiscount";
+import { IconfigDiscount } from "../interfaces/ConfigDiscount";
+import { PromotionAdapter } from "../adapters/promotion/default/promotionAdapter";
 
 
 let attributes = {
@@ -25,9 +28,14 @@ let attributes = {
 
   /** last 8 chars from id */
   shortId: "string",
+  
 
   /** Concept string */
+  // TODO: rework type to string[]
   concept: "string",
+  // concept: {
+  //   type: "json",
+  // } as unknown as string[],
 
   /** the basket contains mixed types of concepts */
   isMixedConcept: "boolean" as unknown as boolean, 
@@ -556,8 +564,12 @@ let Model = {
         throw `User not found in Order, applyBonuses failed`
       }
     },
-    
-  
+
+    // TODO: implement clearOfPromotion
+    async clearOfPromotion(){
+        // remove from collection
+    },
+
 
   ////////////////////////////////////////////////////////////////////////////////////
 
@@ -972,6 +984,8 @@ async countCart(criteria: CriteriaQuery<Order>) {
       let uniqueDishes = 0;
       let totalWeight = new Decimal(0);
 
+      // TODO: clear the order
+
       for await (let orderDish of orderDishes) {
         try {
           if (orderDish.dish) {
@@ -1071,10 +1085,13 @@ async countCart(criteria: CriteriaQuery<Order>) {
           sails.log.error("Order > count > iterate orderDish error", e);
         }
       } 
-
+      // --------------------------------- clearOfPromotion ------------------------------------
       await emitter.emit("core-order-count-discount-apply", order);
       delete(order.dishes);
+      PromotionAdapter.clearOfPromotion(order.id)
 
+
+      
       order.dishesCount = dishesCount;
       order.uniqueDishes = uniqueDishes;
       order.totalWeight = totalWeight.toNumber();
@@ -1221,6 +1238,10 @@ async function checkPaymentMethod(paymentMethodId) {
       error: "paymentMethod not available",
     };
   }
+}
+
+async function orderAction() {
+  
 }
 
 async function checkDate(order: Order) {

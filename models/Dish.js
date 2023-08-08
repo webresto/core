@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const hashCode_1 = require("../libs/hashCode");
 const uuid_1 = require("uuid");
+const adapters_1 = require("../adapters");
 let attributes = {
     /** */
     id: {
@@ -265,6 +266,20 @@ let Model = {
             }
         }
         return dish;
+    },
+    async display(criteria) {
+        const dishes = await Dish.find(criteria);
+        const discountAdapter = await adapters_1.Adapter.getPromotionAdapter();
+        for (let i; i < dishes.length; i++) {
+            try {
+                await discountAdapter.displayDish(dishes[i]);
+            }
+            catch (error) {
+                sails.log(error);
+                continue;
+            }
+        }
+        return dishes;
     },
     /**
      * Checks whether the dish exists, if it does not exist, then creates a new one and returns it.If exists, then checks

@@ -8,6 +8,7 @@ declare let attributes: {
     /** Количество данного блюда с его модификаторами в корзине */
     amount: number;
     /**Блюдо, которое содержится в корзине */
+    /** any problem */
     dish: any;
     /** Selected modifiers */
     modifiers: OrderModifier[];
@@ -19,14 +20,10 @@ declare let attributes: {
     itemTotal: number;
     /** цена позиции до применения скидок */
     itemTotalBeforeDiscount: string;
-    /** Скидка */
-    discount: any;
     /**Общая сумма скидки */
     discountTotal: number;
     /** Тип скидки */
     discountType: string;
-    /** Сообщение скидки */
-    discountMessage: string;
     /** Сумма скидки */
     discountAmount: string;
     /** Comment to dish in order */

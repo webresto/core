@@ -3,7 +3,7 @@ import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import MediaFile from "./MediaFile";
 import hashCode from "../libs/hashCode";
 
-import { ORMModel } from "../interfaces/ORMModel";
+import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 
 import ORM from "../interfaces/ORM";
 import * as _ from "lodash";
@@ -11,6 +11,8 @@ import { WorkTime } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier, Modifier } from "../interfaces/Modifier";
+import { PromotionAdapter } from "../adapters/discount/default/promotionAdapter";
+import { Adapter } from "../adapters";
 
 let attributes = {
   /** */
@@ -339,6 +341,21 @@ let Model = {
         }
     }
     return dish
+  },
+
+  async display(criteria: CriteriaQuery<Dish>): Promise<Dish[]> {
+    const dishes = await Dish.find(criteria);
+    const discountAdapter = await Adapter.getPromotionAdapter()
+    
+    for(let i:number; i < dishes.length; i++) {
+        try {
+          await discountAdapter.displayDish(dishes[i])
+        } catch (error) {
+          sails.log(error)
+          continue
+        }
+    }
+    return dishes;
   },
 
   /**

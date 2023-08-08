@@ -3,10 +3,10 @@ import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import OTPAdapter from "./otp/OneTimePasswordAdapter";
 import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
-import { DiscountAdapter } from "./discount/default/discountAdapter";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 import { Config } from "../interfaces/Config";
 import DeliveryAdapter from "./delivery/DeliveryAdapter";
+import { PromotionAdapter } from "./promotion/default/promotionAdapter";
 /**
  * retruns Captcha-adapter
  */
@@ -25,9 +25,9 @@ export declare class Adapter {
     private static instanceDeliveryAdapter;
     private static instanceMF;
     static WEBRESTO_MODULES_PATH: string;
-    static getDiscountAdapter(adapterName?: string, initParams?: {
+    static getPromotionAdapter(adapterName?: string, initParams?: {
         [key: string]: string | number | boolean;
-    }): Promise<DiscountAdapter>;
+    }): Promise<PromotionAdapter>;
     /**
      * retruns BonusProgram-adapter
      */

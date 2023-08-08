@@ -11,6 +11,7 @@ let attributes = {
     // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
     // Есть идея что нужно отдельно запекать заказы.
     /**Блюдо, которое содержится в корзине */
+    /** any problem */
     dish: {
         model: "Dish",
     },
@@ -26,14 +27,10 @@ let attributes = {
     itemTotal: "number",
     /** цена позиции до применения скидок */
     itemTotalBeforeDiscount: "number",
-    /** Скидка */
-    discount: "json",
     /**Общая сумма скидки */
     discountTotal: "number",
     /** Тип скидки */
     discountType: 'string',
-    /** Сообщение скидки */
-    discountMessage: "string",
     /** Сумма скидки */
     discountAmount: "number",
     /** Comment to dish in order */

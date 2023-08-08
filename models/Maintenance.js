@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const CHECK_INTERVAL = 60000;
+/** Idea: move subcribe to worktime events in worktime library */
 sails.on("lifted", function () {
     setInterval(async function () {
         checkMaintenance();

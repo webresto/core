@@ -124,6 +124,7 @@ declare let Model: {
   
      */
     checkBonus(orderId: any, spendBonus: SpendBonus): Promise<void>;
+    clearOfPromotion(): Promise<void>;
     check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, spendBonus?: SpendBonus): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<Order>): Promise<void>;

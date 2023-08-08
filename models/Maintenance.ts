@@ -7,6 +7,7 @@ import { WorkTime } from "@webresto/worktime";
 
 const CHECK_INTERVAL = 60000;
 
+/** Idea: move subcribe to worktime events in worktime library */
 sails.on("lifted", function () {
   setInterval(async function () {
     checkMaintenance();

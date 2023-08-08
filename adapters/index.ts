@@ -8,14 +8,15 @@ import OTPAdapter from "./otp/OneTimePasswordAdapter";
 import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
-import { DiscountAdapter } from "./discount/default/discountAdapter";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 import path = require("path");
 import { Config } from "../interfaces/Config";
 import DeliveryAdapter from "./delivery/DeliveryAdapter";
 import { DefaultDeliveryAdapter } from "./delivery/default/defaultDelivery";
+import { PromotionAdapter } from "./promotion/default/promotionAdapter";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
+
 
 /**
  * retruns Captcha-adapter
@@ -78,23 +79,24 @@ export class Adapter {
   private static instanceDeliveryAdapter: DeliveryAdapter;
   private static instanceMF: MediaFileAdapter;
   public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
-  public static async getDiscountAdapter(adapterName?: string, initParams?: { [key: string]: string | number | boolean }): Promise<DiscountAdapter> {
-    if (!adapterName) {
-      adapterName = (await Settings.get("DEFAULT_DISCOUNT_ADAPTER")) as string;
+  public static async getPromotionAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<PromotionAdapter> {
+  
+    if(!adapterName) {
+      adapterName = await Settings.get("DEFAULT_PROMOTION_ADAPTER") as string;
     }
 
     if (!adapterName) {
-      return DiscountAdapter.getInstance();
+      return PromotionAdapter.initialize();
     }
 
-    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-discount-adapter";
+    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-promotion-adapter";
+    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-promotion-adapter";
 
     try {
       const adapter = require(adapterLocation);
-      return adapter.DiscountAdapter[adapterName].getInstance(initParams) as DiscountAdapter;
+      return adapter.PromotionAdapter[adapterName].initialize(initParams);
     } catch (e) {
-      sails.log.error("CORE > getAdapter Discount > error; ", e);
+      sails.log.error("CORE > getAdapter Promotion > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
   }

@@ -179,19 +179,18 @@ let Model = {
    * Returns an array with currently possible bonus programs by order
    * @return BonusProgram[]
    */
-    async getAvailable(): Promise<BonusProgram[]> {
-      return await BonusProgram.find({
+  async getAvailable(): Promise<BonusProgram[]> {
+    return await BonusProgram.find({
         where: {
-          or: [
-            {
-              adapter: Object.keys(alivedBonusPrograms),
-              enable: true,
-            }
-          ],
+          // @ts-ignore TODO: First fix types
+            and: [
+                {adapter: {in: Object.keys(alivedBonusPrograms)}},
+                {enable: true}
+            ]
         },
-        sort: "sortOrder ASC",
-      });
-    },
+        sort: "sortOrder ASC"
+    });
+  }
 };
 
 module.exports = {

@@ -76,6 +76,7 @@
   },
   "scripts": {
     "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
+    "test:discount": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=discount",
     "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
     "test:init": "cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
     "build": "tsc",

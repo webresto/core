@@ -1,5 +1,5 @@
 import MediaFile from "./MediaFile";
-import { ORMModel } from "../interfaces/ORMModel";
+import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { WorkTime } from "@webresto/worktime";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
@@ -113,6 +113,7 @@ declare let Model: {
      * @param dish
      */
     getDishModifiers(dish: Dish): Promise<Dish>;
+    display(criteria: CriteriaQuery<Dish>): Promise<Dish[]>;
     /**
      * Checks whether the dish exists, if it does not exist, then creates a new one and returns it.If exists, then checks
      * Hesh of the existing dish and new data, if they are identical, then immediately gives the dishes, if not, it updates its data

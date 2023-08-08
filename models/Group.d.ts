@@ -1,4 +1,4 @@
-import { ORMModel } from "../interfaces/ORMModel";
+import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
@@ -98,6 +98,7 @@ declare let Model: {
      * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     getGroupBySlug(groupSlug: string): Promise<Group>;
+    display(criteria: CriteriaQuery<Group>): Promise<Group[]>;
     /**
      * Menu for navbar
      * */

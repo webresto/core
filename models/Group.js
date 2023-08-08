@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
 const slugify_1 = require("slugify");
 const uuid_1 = require("uuid");
+const adapters_1 = require("../adapters");
 let attributes = {
     /**Id */
     id: {
@@ -218,6 +219,22 @@ let Model = {
         }
         const group = result.groups;
         return group[0] ? group[0] : null;
+    },
+    // use this method to get group modified by adapters
+    // https://github.com/balderdashy/waterline/pull/902
+    async display(criteria) {
+        const discountAdapter = await adapters_1.Adapter.getPromotionAdapter();
+        const groups = await Group.find(criteria);
+        for (let i; i < groups.length; i++) {
+            try {
+                await discountAdapter.displayGroup(groups[i]);
+            }
+            catch (error) {
+                sails.log(error);
+                continue;
+            }
+        }
+        return groups;
     },
     /**
      * Menu for navbar

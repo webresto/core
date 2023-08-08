@@ -7,9 +7,9 @@ const defaultOTP_1 = require("./otp/default/defaultOTP");
 const local_1 = require("./mediafile/default/local");
 const MediaFileAdapter_1 = require("./mediafile/MediaFileAdapter");
 const fs = require("fs");
-const discountAdapter_1 = require("./discount/default/discountAdapter");
 const DeliveryAdapter_1 = require("./delivery/DeliveryAdapter");
 const defaultDelivery_1 = require("./delivery/default/defaultDelivery");
+const promotionAdapter_1 = require("./promotion/default/promotionAdapter");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
@@ -64,21 +64,21 @@ class OTP {
 exports.OTP = OTP;
 /** TODO: move other Adapters to one class adapter */
 class Adapter {
-    static async getDiscountAdapter(adapterName, initParams) {
+    static async getPromotionAdapter(adapterName, initParams) {
         if (!adapterName) {
-            adapterName = (await Settings.get("DEFAULT_DISCOUNT_ADAPTER"));
+            adapterName = await Settings.get("DEFAULT_PROMOTION_ADAPTER");
         }
         if (!adapterName) {
-            return discountAdapter_1.DiscountAdapter.getInstance();
+            return promotionAdapter_1.PromotionAdapter.initialize();
         }
-        let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-discount-adapter";
-        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-discount-adapter";
+        let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-promotion-adapter";
+        adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-promotion-adapter";
         try {
             const adapter = require(adapterLocation);
-            return adapter.DiscountAdapter[adapterName].getInstance(initParams);
+            return adapter.PromotionAdapter[adapterName].initialize(initParams);
         }
         catch (e) {
-            sails.log.error("CORE > getAdapter Discount > error; ", e);
+            sails.log.error("CORE > getAdapter Promotion > error; ", e);
             throw new Error("Module " + adapterLocation + " not found");
         }
     }

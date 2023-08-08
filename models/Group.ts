@@ -1,6 +1,6 @@
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 
-import { ORMModel } from "../interfaces/ORMModel";
+import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 
 import ORM from "../interfaces/ORM";
 import MediaFile from "../models/MediaFile";
@@ -9,6 +9,8 @@ import { WorkTime } from "@webresto/worktime";
 import slugify from "slugify"
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
+import { DiscountAdapter } from "../adapters/discount/default/discountAdapter";
+import { Adapter } from "../adapters";
 
 let attributes = {
   /**Id */
@@ -273,6 +275,22 @@ let Model = {
 
     const group = result.groups;
     return group[0] ? group[0] : null;
+  },
+
+  // use this method to get group modified by adapters
+  // https://github.com/balderdashy/waterline/pull/902
+  async display(criteria: CriteriaQuery<Group>): Promise<Group[]> {
+    const discountAdapter = await Adapter.getPromotionAdapter()
+    const groups = await Group.find(criteria);
+    for(let i:number; i < groups.length; i++) {
+      try {
+        await discountAdapter.displayGroup(groups[i])
+      } catch (error) {
+        sails.log(error)
+        continue
+      }
+    }
+    return groups;
   },
 
   /**

@@ -24,19 +24,19 @@ describe("RMS adapter", function () {
     order = await Order.findOne({id: order.id});
     
 
-    const deliveryCost = 2.75;
-    await Settings.set("DELIVERY_COST", deliveryCost)
+    // const deliveryCost = 2.75;
+    // await Settings.set("DELIVERY_COST", deliveryCost)
     
     
-    const deliveryItem = dishes[0].id
-    await Settings.set("DELIVERY_ITEM", deliveryItem);
+    // const deliveryItem = dishes[0].id
+    // await Settings.get("DELIVERY_ITEM");
     
-    const deliveryMessage = "Test123 123 %%%"
-    await Settings.set("DELIVERY_MESSAGE", deliveryMessage)
+    // const deliveryMessage = "Test123 123 %%%"
+    // await Settings.set("DELIVERY_MESSAGE", deliveryMessage)
 
     
-    const freeDeliveryFrom = 200
-    await Settings.set("FREE_DELIVERY_FROM", freeDeliveryFrom)
+    // const freeDeliveryFrom = 200
+    // await Settings.set("FREE_DELIVERY_FROM", freeDeliveryFrom)
 
 
     // 

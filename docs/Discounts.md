@@ -5,7 +5,7 @@ Discounts are implemented through a **singleton** discountadapter. Each discount
 
 
 
-> ⚠️ Any Discount must be passed to the `Discount` model in the `DiscountAdapter.add()` method. Example: `await DiscountAdapter.add(new Discount());`
+> ⚠️ Any Discount must be passed to the `Discount` model in the `DiscountAdapter.addDiscountHandler()` method. Example: `await DiscountAdapter.addDiscountHandler(new Discount());`
 
 Discount model has this props:
 - `configDiscount`: Json, has fields discount: string; and discountType: string;
@@ -27,7 +27,7 @@ Discount model has this props:
 ### Default discount adapter
 The discount adapter is provided with the core, but can be replaced through the variable settings `Default_discount_adapter`.
 
-If you decide to replace the discount adapter, you will have to implement it as `AbstractbonusProgramadapter` from`@Webresto/Core/Adapters/Discount/Abstractonusprogramadapter.ts`.
+If you decide to replace the discount adapter, you will have to implement it as `AbstractbonusProgramadapter` from`@Webresto/Core/Adapters/Discount/Abstractbonusprogramadapter.ts`.
 
 > ⚠️ Please note that the discount adapter is implemented as Singleton
 
@@ -71,5 +71,5 @@ The Discount should be implemented as an adapter from the abstract class `@webre
 
 ### to do:
 1. Add condition, action, displayGroupDiscount, displayGroupDish abstract methods and implementation
-2. Check DiscountAdapter.apply(...), DiscountAdapter.checkDiscount(...) DiscountAdapter.add() methods
-3. Add discount to Order
+2. Add discount to Order
+3. tests

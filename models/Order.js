@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = require("decimal.js");
+const promotionAdapter_1 = require("../adapters/promotion/default/promotionAdapter");
 let attributes = {
     /** Id  */
     id: {
@@ -10,7 +11,11 @@ let attributes = {
     /** last 8 chars from id */
     shortId: "string",
     /** Concept string */
+    // TODO: rework type to string[]
     concept: "string",
+    // concept: {
+    //   type: "json",
+    // } as unknown as string[],
     /** the basket contains mixed types of concepts */
     isMixedConcept: "boolean",
     /**
@@ -438,6 +443,10 @@ let Model = {
             throw `User not found in Order, applyBonuses failed`;
         }
     },
+    // TODO: implement clearOfPromotion
+    async clearOfPromotion() {
+        // remove from collection
+    },
     ////////////////////////////////////////////////////////////////////////////////////
     // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
     async check(criteria, customer, isSelfService, address, paymentMethodId, spendBonus) {
@@ -790,6 +799,7 @@ let Model = {
             let dishesCount = 0;
             let uniqueDishes = 0;
             let totalWeight = new decimal_js_1.default(0);
+            // TODO: clear the order
             for await (let orderDish of orderDishes) {
                 try {
                     if (orderDish.dish) {
@@ -872,8 +882,10 @@ let Model = {
                     sails.log.error("Order > count > iterate orderDish error", e);
                 }
             }
+            // --------------------------------- clearOfPromotion ------------------------------------
             await emitter.emit("core-order-count-discount-apply", order);
             delete (order.dishes);
+            promotionAdapter_1.PromotionAdapter.clearOfPromotion(order.id);
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
             order.totalWeight = totalWeight.toNumber();
@@ -991,6 +1003,8 @@ async function checkPaymentMethod(paymentMethodId) {
             error: "paymentMethod not available",
         };
     }
+}
+async function orderAction() {
 }
 async function checkDate(order) {
     if (order.date) {
