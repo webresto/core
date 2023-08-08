@@ -13,7 +13,7 @@ import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 import path = require("path");
 import { Config } from "../interfaces/Config";
 import DeliveryAdapter from "./delivery/DeliveryAdapter";
-import DefaultDeliveryAdapter from "./delivery/default/defaultDelivery";
+import { DefaultDeliveryAdapter } from "./delivery/default/defaultDelivery";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -168,10 +168,6 @@ export class Adapter {
       return this.instanceDeliveryAdapter;
     }
 
-    if (!adapterName) {
-      this.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
-      this.instanceDeliveryAdapter;
-    }
 
     let adapterName: string;
     if (adapter) {
@@ -181,7 +177,8 @@ export class Adapter {
         this.instanceDeliveryAdapter = adapter;
         return this.instanceDeliveryAdapter;
       } else {
-        throw new Error("Adapter should be a string or instance of rmsadapter");
+        this.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
+        return this.instanceDeliveryAdapter;
       }
     }
 

@@ -29,7 +29,7 @@ describe("RMS adapter", function () {
     
     
     const deliveryItem = dishes[0].id
-    await Settings.get("DELIVERY_ITEM", deliveryItem);
+    await Settings.set("DELIVERY_ITEM", deliveryItem);
     
     const deliveryMessage = "Test123 123 %%%"
     await Settings.set("DELIVERY_MESSAGE", deliveryMessage)

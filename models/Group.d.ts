@@ -50,6 +50,9 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 type attributes = typeof attributes;
 interface Group extends OptionalAll<attributes>, ORM {

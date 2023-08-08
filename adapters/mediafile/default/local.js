@@ -28,11 +28,10 @@ const path = require("path");
 //   }
 // },
 class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
-    processing = false;
-    processingTimeout; // TODO: rewrite by proxy
-    loadMediaFilesProcessQueue = [];
     constructor(config) {
         super(config);
+        this.processing = false;
+        this.loadMediaFilesProcessQueue = [];
         this.loadMediaFiles();
     }
     getNameByUrl(url, ext, options, salt = false) {

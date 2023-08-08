@@ -55,6 +55,10 @@ declare let attributes: {
     selfService: boolean;
     deliveryDescription: string;
     message: string;
+    /** Notification about delivery
+     * ex: time increased due to traffic jams
+     * */
+    deliveryMessage: string;
     deliveryItem: string | Dish;
     deliveryCost: number;
     /** order total weight */
@@ -159,6 +163,7 @@ declare let Model: {
         selfService?: boolean;
         deliveryDescription?: string;
         message?: string;
+        deliveryMessage?: string;
         deliveryItem?: string | Dish;
         deliveryCost?: number;
         totalWeight?: number;

@@ -64,11 +64,6 @@ class OTP {
 exports.OTP = OTP;
 /** TODO: move other Adapters to one class adapter */
 class Adapter {
-    // Singletons
-    static instanceRMS;
-    static instanceDeliveryAdapter;
-    static instanceMF;
-    static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
     static async getDiscountAdapter(adapterName, initParams) {
         if (!adapterName) {
             adapterName = (await Settings.get("DEFAULT_DISCOUNT_ADAPTER"));
@@ -153,10 +148,6 @@ class Adapter {
         if (this.instanceDeliveryAdapter) {
             return this.instanceDeliveryAdapter;
         }
-        if (!adapterName) {
-            this.instanceDeliveryAdapter = new defaultDelivery_1.default();
-            this.instanceDeliveryAdapter;
-        }
         let adapterName;
         if (adapter) {
             if (typeof adapter === "string") {
@@ -167,7 +158,8 @@ class Adapter {
                 return this.instanceDeliveryAdapter;
             }
             else {
-                throw new Error("Adapter should be a string or instance of rmsadapter");
+                this.instanceDeliveryAdapter = new defaultDelivery_1.DefaultDeliveryAdapter();
+                return this.instanceDeliveryAdapter;
             }
         }
         if (!adapterName) {
@@ -254,4 +246,5 @@ class Adapter {
         }
     }
 }
+Adapter.WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 exports.Adapter = Adapter;

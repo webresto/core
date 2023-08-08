@@ -6,6 +6,7 @@ import PaymentAdapter from "./payment/PaymentAdapter";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 import { Config } from "../interfaces/Config";
+import DeliveryAdapter from "./delivery/DeliveryAdapter";
 /**
  * retruns Captcha-adapter
  */
@@ -21,6 +22,7 @@ export declare class OTP {
 /** TODO: move other Adapters to one class adapter */
 export declare class Adapter {
     private static instanceRMS;
+    private static instanceDeliveryAdapter;
     private static instanceMF;
     static WEBRESTO_MODULES_PATH: string;
     static getDiscountAdapter(adapterName?: string, initParams?: {
@@ -37,8 +39,12 @@ export declare class Adapter {
      */
     static getRMSAdapter(adapter?: string | RMSAdapter, initParams?: ConfigRMSAdapter): Promise<RMSAdapter>;
     /**
-   * retruns MediaFile-adapter
-   */
+     * retruns Delivery-adapter
+     */
+    static getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter>;
+    /**
+     * retruns MediaFile-adapter
+     */
     static getMediaFileAdapter(adapter?: string | MediaFileAdapter, initParams?: ConfigMediaFileAdapter): Promise<MediaFileAdapter>;
     /**
      * retruns PaymentAdapter-adapter

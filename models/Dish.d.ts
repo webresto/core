@@ -87,6 +87,9 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 type attributes = typeof attributes;
 interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, ORM {
