@@ -1,5 +1,4 @@
 import RMSAdapter, { ConfigRMSAdapter } from "./rms/RMSAdapter";
-import MapAdapter from "./map/MapAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import OTPAdapter from "./otp/OneTimePasswordAdapter";
 import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
@@ -7,12 +6,6 @@ import PaymentAdapter from "./payment/PaymentAdapter";
 import { DiscountAdapter } from "./discount/default/discountAdapter";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
 import { Config } from "../interfaces/Config";
-/**
- * retruns Map-adapter
- */
-export declare class Map {
-    static getAdapter(adapterName: string): Promise<typeof MapAdapter>;
-}
 /**
  * retruns Captcha-adapter
  */

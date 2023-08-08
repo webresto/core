@@ -3,7 +3,6 @@ import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import OrderDish from "./OrderDish";
 import PaymentDocument from "./PaymentDocument";
-import actions from "../libs/actions";
 
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
@@ -480,7 +479,6 @@ let Model = {
     const order = await Order.findOne(criteria);
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
 
-    await actions.reset(order);
     return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
   },
 

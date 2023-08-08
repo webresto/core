@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const actions_1 = require("../libs/actions");
 const uuid_1 = require("uuid");
 const decimal_js_1 = require("decimal.js");
 let attributes = {
@@ -371,7 +370,6 @@ let Model = {
         const order = await Order.findOne(criteria);
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
-        await actions_1.default.reset(order);
         return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
     },
     /**

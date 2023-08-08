@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class PaymentAdapter {
-    InitPaymentAdapter;
-    config;
     constructor(InitPaymentAdapter) {
         this.InitPaymentAdapter = InitPaymentAdapter;
         this.config = InitPaymentAdapter.config;

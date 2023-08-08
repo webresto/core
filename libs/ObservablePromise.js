@@ -2,9 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ObservablePromise = void 0;
 class ObservablePromise {
-    _status = 'pending';
-    _promise;
     constructor(promise) {
+        this._status = 'pending';
         this._promise = promise
             .then((value) => {
             this._status = 'fulfilled';

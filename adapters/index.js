@@ -62,10 +62,6 @@ class OTP {
 exports.OTP = OTP;
 /** TODO: move other Adapters to one class adapter */
 class Adapter {
-    // Singletons
-    static instanceRMS;
-    static instanceMF;
-    static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
     static async getDiscountAdapter(adapterName, initParams) {
         if (!adapterName) {
             adapterName = await Settings.get("DEFAULT_DISCOUNT_ADAPTER");
@@ -206,4 +202,5 @@ class Adapter {
         }
     }
 }
+Adapter.WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 exports.Adapter = Adapter;
