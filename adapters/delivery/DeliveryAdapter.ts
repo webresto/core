@@ -17,7 +17,7 @@ export default abstract class DeliveryAdapter {
 
   /**
    * Reset order
-   * @returns boolean
+   * @returns void
    */
   public abstract reset(order: Order): Promise<void>;
 }

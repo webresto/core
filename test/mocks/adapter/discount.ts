@@ -1,5 +1,5 @@
 import { WorkTime } from "@webresto/worktime";
-import Order from './../../../models/Order.d';
+import Order from './../../../models/Order';
 import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
 import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
 import Group from './../../../models/Group';

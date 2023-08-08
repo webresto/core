@@ -14,6 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/// <reference path="./types/globalTypes.d.ts" />
 __exportStar(require("./models/BonusProgram"), exports);
 __exportStar(require("./models/Dish"), exports);
 __exportStar(require("./models/Group"), exports);

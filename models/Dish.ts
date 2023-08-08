@@ -11,7 +11,6 @@ import { WorkTime } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier, Modifier } from "../interfaces/Modifier";
-import { PromotionAdapter } from "../adapters/discount/default/promotionAdapter";
 import { Adapter } from "../adapters";
 
 let attributes = {

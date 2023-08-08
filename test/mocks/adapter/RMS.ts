@@ -50,8 +50,9 @@ export class TestRMS  extends RMSAdapter {
         let dishes = [];
         for(let i = 0; i < 7; i++) {
             dishes.push(dishGenerator({
-                parentGroup: group.id, 
-                price: 100.1
+                parentGroup: group.id,
+                price: 100.1,
+                name: undefined
             }));
         }
         return dishes;

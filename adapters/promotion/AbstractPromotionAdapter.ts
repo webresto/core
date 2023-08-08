@@ -7,7 +7,7 @@ import AbstractPromotionHandler from "./AbstractPromotion";
 // import  Promotion  from '@webresto/core/models/Promotion';
 import Group from './../../models/Group';
 import Dish from './../../models/Dish';
-import Promotion from './../../models/Promotion.d';
+import Promotion from './../../models/Promotion';
 import { IconfigDiscount } from './../../interfaces/ConfigDiscount';
 import { PromotionAdapter } from "./default/promotionAdapter";
 
