@@ -5,6 +5,13 @@ exports.DiscountAdapter = void 0;
 const configuredDiscount_1 = require("./configuredDiscount");
 const worktime_1 = require("@webresto/worktime");
 class DiscountAdapter {
+    // constructor all discounts isDeleted: true
+    // public readonly DiscountA: AbstractDiscount;
+    // protected constructor() {
+    //   // this.DiscountA = DiscountA;
+    //   Discount.setDelete();
+    // }
+    static discounts = {};
     static async apply(order) {
         // Order.concept : string
         // when apply => use only discounts from this.discounts
@@ -96,11 +103,4 @@ class DiscountAdapter {
         return DiscountAdapter.prototype;
     }
 }
-// constructor all discounts isDeleted: true
-// public readonly DiscountA: AbstractDiscount;
-// protected constructor() {
-//   // this.DiscountA = DiscountA;
-//   Discount.setDelete();
-// }
-DiscountAdapter.discounts = {};
 exports.DiscountAdapter = DiscountAdapter;

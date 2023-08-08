@@ -3,16 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryBonusProgramAdapter = void 0;
 const BonusProgramAdapter_1 = require("../../../adapters/bonusprogram/BonusProgramAdapter");
 class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
+    transactions = new Map();
+    users = new Map();
+    name = "test bonus adapter name";
+    adapter = "test";
+    exchangeRate = 10;
+    coveragePercentage = 0.5;
+    decimals = 1;
+    description = "In-memory BonusProgramAdapter";
     constructor(config) {
         super(config);
-        this.transactions = new Map();
-        this.users = new Map();
-        this.name = "test bonus adapter name";
-        this.adapter = "test";
-        this.exchangeRate = 10;
-        this.coveragePercentage = 0.5;
-        this.decimals = 1;
-        this.description = "In-memory BonusProgramAdapter";
     }
     async registration(user) {
         if (!this.users.has(user.id)) {
