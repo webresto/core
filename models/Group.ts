@@ -9,7 +9,6 @@ import { WorkTime } from "@webresto/worktime";
 import slugify from "slugify"
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
-import { DiscountAdapter } from "../adapters/discount/default/discountAdapter";
 import { Adapter } from "../adapters";
 
 let attributes = {

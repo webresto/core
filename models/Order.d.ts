@@ -23,7 +23,7 @@ declare let attributes: {
     /**
      * @deprecated will be rename to `Items` in **v2**
      */
-    dishes: number[] | OrderDish[];
+    dishes: OrderDish[] | number[];
     paymentMethod: any;
     /** */
     paymentMethodTitle: string;
@@ -53,12 +53,12 @@ declare let attributes: {
     rmsStatusCode: string;
     deliveryStatus: string;
     selfService: boolean;
-    deliveryDescription: string;
-    message: string;
     /** Notification about delivery
      * ex: time increased due to traffic jams
+     * @deprecated should changed for deliveryMessage
      * */
-    deliveryMessage: string;
+    deliveryDescription: string;
+    message: string;
     deliveryItem: string | Dish;
     deliveryCost: number;
     /** order total weight */
@@ -138,7 +138,7 @@ declare let Model: {
         shortId?: string;
         concept?: string;
         isMixedConcept?: boolean;
-        dishes?: number[] | OrderDish[];
+        dishes?: OrderDish[] | number[];
         paymentMethod?: any;
         paymentMethodTitle?: string;
         paid?: boolean;
@@ -164,7 +164,6 @@ declare let Model: {
         selfService?: boolean;
         deliveryDescription?: string;
         message?: string;
-        deliveryMessage?: string;
         deliveryItem?: string | Dish;
         deliveryCost?: number;
         totalWeight?: number;

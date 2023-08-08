@@ -12,7 +12,7 @@ export default abstract class DeliveryAdapter {
     abstract calculate(order: Order): Promise<Delivery>;
     /**
      * Reset order
-     * @returns boolean
+     * @returns void
      */
     abstract reset(order: Order): Promise<void>;
 }

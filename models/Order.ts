@@ -106,17 +106,16 @@ let attributes = {
     defaultsTo: false,
   } as unknown as boolean,
 
+  /** Notification about delivery 
+   * ex: time increased due to traffic jams 
+   * @deprecated should changed for deliveryMessage
+   * */
   deliveryDescription: {
     type: "string",
-    defaultsTo: "",
+    allowNull: true
   } as unknown as string,
 
   message: "string", // deprecated
-
-  /** Notification about delivery 
-   * ex: time increased due to traffic jams 
-   * */
-  deliveryMessage: 'string',
 
   deliveryItem: {
     model: "Dish",
@@ -643,8 +642,33 @@ let Model = {
       }
     }
 
-    emitter.emit("core-order-check-delivery", order, customer, isSelfService, address);
-    
+
+    let deliveryAdapter = await Adapter.getDeliveryAdapter();
+    deliveryAdapter.reset(order);
+    // Check and calculate delivery
+    emitter.emit("core-order-check-delivery", order);
+    try {
+      /**
+        * Calling the calculation check and delivery suggests that it will come empty.
+       * If something was changed in the order in the delivery fields, the adapter should not be launched.
+       */
+      if(!order.deliveryCost && !order.deliveryItem) {
+        let delivery = await deliveryAdapter.calculate(order);
+        if(!delivery.item) {
+          order.deliveryCost = delivery.cost
+        } else {
+          order.deliveryItem = delivery.item
+          order.deliveryCost = (await Dish.findOne({id: delivery.item})).price
+        }
+        order.deliveryDescription = delivery.message
+      } else {
+        sails.log.debug(`Core > order > skip delivery calculate: ${order.deliveryCost}: ${order.deliveryItem}`)
+      }
+    } catch (error) {
+      sails.log.error(`Core > order > delivery calculate fail: `, error)
+    }
+    emitter.emit("core-order-after-check-delivery", order);
+
     /**
      *  Bonus spending
      * */ 
@@ -656,6 +680,8 @@ let Model = {
       const bonusProgram = await BonusProgram.findOne({id: spendBonus.bonusProgramId});
       spendBonus.amount = parseFloat(new Decimal(spendBonus.amount).toFixed(bonusProgram.decimals))
 
+
+      // TODO: rewrite for Decimal.js
       let amountToDeduct = 0;
       switch (bonusSpendingStrategy) {
         case 'bonus_from_order_total':

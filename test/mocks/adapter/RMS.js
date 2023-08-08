@@ -45,7 +45,8 @@ class TestRMS extends RMSAdapter_1.default {
         for (let i = 0; i < 7; i++) {
             dishes.push((0, dish_generator_1.default)({
                 parentGroup: group.id,
-                price: 100.1
+                price: 100.1,
+                name: undefined
             }));
         }
         return dishes;
