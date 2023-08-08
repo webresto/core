@@ -8,6 +8,7 @@ import Order from '../../../models/Order';
 import User from '../../../models/User';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import Decimal from "decimal.js";
+import { stringsInArray } from "../../../libs/stringsInArray";
 
 export default class configuredPromotion extends AbstractPromotionHandler {
     constructor(promotion:AbstractPromotionHandler, config?: IconfigDiscount) {
@@ -71,6 +72,11 @@ export default class configuredPromotion extends AbstractPromotionHandler {
             sails.log.error("orderDish", orderDish.id, "has no such dish");
             continue;
           }
+
+          if(!stringsInArray(orderDish.dish.concept,this.concept)){
+            continue
+          }
+
           // TODO: if concept:arrays
            // ------------------------------------------ Decimal ------------------------------------------
           if(this.configDiscount.discountType === "flat"){

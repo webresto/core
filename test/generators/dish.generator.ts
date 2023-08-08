@@ -21,6 +21,7 @@ export default function dishGenerator(
     parentGroup: config?.parentGroup || null,
     weight: 100,
     price: config?.price === undefined ? faker.random.number(500) : config.price,
+    concept: config.concept,
     sortOrder: autoincrement,
     images: config?.images || [],
     name: config?.name || `${faker.commerce.productAdjective()} ${faker.commerce.productMaterial()} ${Date.now()}`,

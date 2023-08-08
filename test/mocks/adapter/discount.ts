@@ -6,7 +6,7 @@ import Group from './../../../models/Group';
 import Dish from './../../../models/Dish';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import { PromotionAdapter } from './../../../adapters/promotion/default/promotionAdapter';
-
+import { stringsInArray } from "../../../libs/stringsInArray";
 
 export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public id: string = "aaaa";
@@ -32,17 +32,18 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     // public worktime?: WorkTime[] = null;
 
     public condition(arg: Group | Dish | Order): boolean {
-        if (findModelInstanceByAttributes(arg) === "Order" && this.concept.includes(arg.concept)) {
+        // this.concept.includes(arg.concept)
+        if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept) ) {
             // Order.populate()
             return true;
         }
         
-        if (findModelInstanceByAttributes(arg) === "Dish" && this.concept.includes(arg.concept)) {
+        if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, this.concept)) {
             // TODO: check if includes in IconfigDish
             return true;
         }
         
-        if (findModelInstanceByAttributes(arg) === "Group" && this.concept.includes(arg.concept)) {
+        if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, this.concept)) {
              // TODO: check if includes in IconfigG
             return true;
         }

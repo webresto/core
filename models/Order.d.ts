@@ -23,7 +23,7 @@ declare let attributes: {
     /**
      * @deprecated will be rename to `Items` in **v2**
      */
-    dishes: OrderDish[] | number[];
+    dishes: number[] | OrderDish[];
     paymentMethod: any;
     /** */
     paymentMethodTitle: string;
@@ -138,7 +138,7 @@ declare let Model: {
         shortId?: string;
         concept?: string;
         isMixedConcept?: boolean;
-        dishes?: OrderDish[] | number[];
+        dishes?: number[] | OrderDish[];
         paymentMethod?: any;
         paymentMethodTitle?: string;
         paid?: boolean;

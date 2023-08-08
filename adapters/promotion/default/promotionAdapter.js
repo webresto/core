@@ -5,6 +5,7 @@ const decimal_js_1 = require("decimal.js");
 const AbstractPromotionAdapter_1 = require("../AbstractPromotionAdapter");
 const configuredPromotion_1 = require("./configuredPromotion");
 const worktime_1 = require("@webresto/worktime");
+const stringsInArray_1 = require("../../../libs/stringsInArray");
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     async processOrder(order) {
         // Order.populate()
@@ -152,7 +153,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                     continue;
                 }
                 // TODO: if concept:arrays
-                if (!promotion.concept.includes(orderDish.dish.concept)) {
+                if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, promotion.concept)) {
                     continue;
                 }
                 // ------------------------------------------ Decimal ------------------------------------------

@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const AbstractPromotion_1 = require("../AbstractPromotion");
 const findModelInstance_1 = require("../../../libs/findModelInstance");
 const decimal_js_1 = require("decimal.js");
+const stringsInArray_1 = require("../../../libs/stringsInArray");
 class configuredPromotion extends AbstractPromotion_1.default {
     constructor(promotion, config) {
         super();
@@ -48,6 +49,9 @@ class configuredPromotion extends AbstractPromotion_1.default {
                 let orderDishDiscountCost = 0;
                 if (!orderDish.dish) {
                     sails.log.error("orderDish", orderDish.id, "has no such dish");
+                    continue;
+                }
+                if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, this.concept)) {
                     continue;
                 }
                 // TODO: if concept:arrays

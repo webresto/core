@@ -8,6 +8,7 @@ import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import Promotion from "../../../models/Promotion";
 import Group from '../../../models/Group';
 import Dish from '../../../models/Dish';
+import { stringsInArray } from "../../../libs/stringsInArray";
 
 export class PromotionAdapter extends AbstractPromotionHandlerINSTANCE {
   static promotions: { [key: string]: AbstractPromotionHandler } = {};
@@ -183,9 +184,11 @@ export class PromotionAdapter extends AbstractPromotionHandlerINSTANCE {
             continue;
           }
           // TODO: if concept:arrays
-          if(!promotion.concept.includes(orderDish.dish.concept)){
+          if(!stringsInArray(orderDish.dish.concept,promotion.concept)){
+            
             continue
           }
+          
            // ------------------------------------------ Decimal ------------------------------------------
           if(spendDiscount.discountType === "flat"){
             orderDishDiscountCost = new Decimal(spendDiscount.discountAmount).mul(orderDish.amount).toNumber()
