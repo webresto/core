@@ -8,6 +8,8 @@ const local_1 = require("./mediafile/default/local");
 const MediaFileAdapter_1 = require("./mediafile/MediaFileAdapter");
 const fs = require("fs");
 const discountAdapter_1 = require("./discount/default/discountAdapter");
+const DeliveryAdapter_1 = require("./delivery/DeliveryAdapter");
+const defaultDelivery_1 = require("./delivery/default/defaultDelivery");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
@@ -16,17 +18,17 @@ const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? 
 class Captcha {
     static async getAdapter(adapterName) {
         if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_CAPTCHA_ADAPTER");
+            adapterName = (await Settings.get("DEFAULT_CAPTCHA_ADAPTER"));
         }
         // Use default adapter POW (crypto-puzzle)
         if (!adapterName) {
-            return new pow_1.POW;
+            return new pow_1.POW();
         }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-captcha-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-captcha-adapter";
         try {
             const adapter = require(adapterLocation);
-            return new adapter.CaptchaAdapter[adapterName];
+            return new adapter.CaptchaAdapter[adapterName]();
         }
         catch (e) {
             sails.log.error("CORE > getAdapter Captcha > error; ", e);
@@ -41,17 +43,17 @@ exports.Captcha = Captcha;
 class OTP {
     static async getAdapter(adapterName) {
         if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_OTP_ADAPTER");
+            adapterName = (await Settings.get("DEFAULT_OTP_ADAPTER"));
         }
         // Use default adapter POW (crypto-puzzle)
         if (!adapterName) {
-            return new defaultOTP_1.DefaultOTP;
+            return new defaultOTP_1.DefaultOTP();
         }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-otp-adapter";
         try {
             const adapter = require(adapterLocation);
-            return new adapter.OTPAdapter[adapterName];
+            return new adapter.OTPAdapter[adapterName]();
         }
         catch (e) {
             sails.log.error("CORE > getAdapter OTP > error; ", e);
@@ -64,11 +66,12 @@ exports.OTP = OTP;
 class Adapter {
     // Singletons
     static instanceRMS;
+    static instanceDeliveryAdapter;
     static instanceMF;
     static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
     static async getDiscountAdapter(adapterName, initParams) {
         if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_DISCOUNT_ADAPTER");
+            adapterName = (await Settings.get("DEFAULT_DISCOUNT_ADAPTER"));
         }
         if (!adapterName) {
             return discountAdapter_1.DiscountAdapter.getInstance();
@@ -89,9 +92,9 @@ class Adapter {
      */
     static async getBonusProgramAdapter(adapterName, initParams) {
         if (!adapterName) {
-            let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
+            let defaultAdapterName = (await Settings.get("DEFAULT_BONUS_ADAPTER"));
             if (!defaultAdapterName)
-                throw 'BonusProgramAdapter is not set ';
+                throw "BonusProgramAdapter is not set ";
         }
         let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-bonus-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-bonus-adapter";
@@ -126,9 +129,9 @@ class Adapter {
             }
         }
         if (!adapterName) {
-            adapterName = await Settings.get("RMS_ADAPTER");
+            adapterName = (await Settings.get("RMS_ADAPTER"));
             if (!adapterName)
-                throw 'RMS adapter is not installed';
+                throw "RMS adapter is not installed";
         }
         let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-rms-adapter";
@@ -143,8 +146,53 @@ class Adapter {
         }
     }
     /**
-   * retruns MediaFile-adapter
-   */
+     * retruns Delivery-adapter
+     */
+    static async getDeliveryAdapter(adapter) {
+        // Return the singleon
+        if (this.instanceDeliveryAdapter) {
+            return this.instanceDeliveryAdapter;
+        }
+        if (!adapterName) {
+            this.instanceDeliveryAdapter = new defaultDelivery_1.default();
+            this.instanceDeliveryAdapter;
+        }
+        let adapterName;
+        if (adapter) {
+            if (typeof adapter === "string") {
+                adapterName = adapter;
+            }
+            else if (adapter instanceof DeliveryAdapter_1.default) {
+                this.instanceDeliveryAdapter = adapter;
+                return this.instanceDeliveryAdapter;
+            }
+            else {
+                throw new Error("Adapter should be a string or instance of rmsadapter");
+            }
+        }
+        if (!adapterName) {
+            adapterName = (await Settings.get("DELIVERY_ADAPTER"));
+            if (!adapterName)
+                throw "DELIVERY adapter is not installed";
+        }
+        let adapterLocation = fs.existsSync(this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
+            ? this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
+            : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
+                ? "@webresto/" + adapterName.toLowerCase() + "-delivery-adapter"
+                : adapterName;
+        try {
+            const adapterModule = require(adapterLocation);
+            this.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
+            return this.instanceDeliveryAdapter;
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
+    /**
+     * retruns MediaFile-adapter
+     */
     static async getMediaFileAdapter(adapter, initParams) {
         // Return the singleon
         if (this.instanceMF) {
@@ -165,7 +213,7 @@ class Adapter {
         }
         let adapterLocation = "";
         if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_MEDIAFILE_ADAPTER");
+            adapterName = (await Settings.get("DEFAULT_MEDIAFILE_ADAPTER"));
             if (!adapterName) {
                 this.instanceMF = new local_1.default(initParams);
                 return this.instanceMF;
@@ -190,9 +238,9 @@ class Adapter {
      */
     static async getPaymentAdapter(adapterName, initParams) {
         if (!adapterName) {
-            let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
+            let defaultAdapterName = (await Settings.get("DEFAULT_BONUS_ADAPTER"));
             if (!defaultAdapterName)
-                throw 'BonusProgramAdapter is not set ';
+                throw "BonusProgramAdapter is not set ";
         }
         let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
