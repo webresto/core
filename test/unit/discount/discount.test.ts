@@ -1,4 +1,4 @@
-import dishGenerator from './../../../../../@webresto/core/test/generators/dish.generator';
+import dishGenerator from '@webresto/core/test/generators/dish.generator';
 import { expect } from 'chai';
 
 // import AbstractPromotionHandler from '@webresto/core/adapters/discount/AbstractPromotion';
