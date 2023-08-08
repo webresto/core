@@ -74,6 +74,10 @@ let attributes = {
         defaultsTo: "",
     },
     message: "string",
+    /** Notification about delivery
+     * ex: time increased due to traffic jams
+     * */
+    deliveryMessage: 'string',
     deliveryItem: {
         model: "Dish",
     },

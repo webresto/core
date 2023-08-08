@@ -105,6 +105,11 @@ let attributes = {
 
   message: "string", // deprecated
 
+  /** Notification about delivery 
+   * ex: time increased due to traffic jams 
+   * */
+  deliveryMessage: 'string',
+
   deliveryItem: {
     model: "Dish",
   } as unknown as Dish | string,

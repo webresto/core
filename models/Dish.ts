@@ -216,6 +216,10 @@ let attributes = {
 
   /** Working hours */
   worktime: "json" as unknown as WorkTime[],
+
+  customData: "json" as unknown as {
+    [key: string]: string | boolean | number;
+  } | string,
 };
 
 type attributes = typeof attributes;

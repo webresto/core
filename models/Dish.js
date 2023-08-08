@@ -167,6 +167,7 @@ let attributes = {
     promo: "boolean",
     /** Working hours */
     worktime: "json",
+    customData: "json",
 };
 let Model = {
     beforeCreate(init, cb) {
