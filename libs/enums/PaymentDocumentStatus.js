@@ -16,4 +16,4 @@ var PaymentDocumentStatus;
     PaymentDocumentStatus["CANCEL"] = "CANCEL";
     PaymentDocumentStatus["REFUND"] = "REFUND";
     PaymentDocumentStatus["DECLINE"] = "DECLINE";
-})(PaymentDocumentStatus = exports.PaymentDocumentStatus || (exports.PaymentDocumentStatus = {}));
+})(PaymentDocumentStatus || (exports.PaymentDocumentStatus = PaymentDocumentStatus = {}));

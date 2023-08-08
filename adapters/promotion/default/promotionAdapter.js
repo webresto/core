@@ -186,5 +186,5 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         return PromotionAdapter.prototype;
     }
 }
-PromotionAdapter.promotions = {};
 exports.PromotionAdapter = PromotionAdapter;
+PromotionAdapter.promotions = {};
