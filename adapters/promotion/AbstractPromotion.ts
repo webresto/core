@@ -31,9 +31,9 @@ export default abstract class AbstractPromotionHandler {
   // id for outside system
   public abstract externalId?: string;
 
-  public abstract condition?(arg1: Group | Dish | Order): boolean
+  public abstract condition(arg1: Group | Dish | Order): boolean
 
-  public abstract action?(order: Order): Promise<void>;
+  public abstract action(order: Order): Promise<void>;
   
   public abstract displayGroup?(group: Group, user?: string | User): Promise<Group[]>;
 

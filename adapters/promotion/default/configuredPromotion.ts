@@ -61,51 +61,51 @@ export default class configuredPromotion extends AbstractPromotionHandler {
         // return await PromotionAdapter.applyPromotion(order.id, this.config, this.id)
         // return Promise.resolve()
 
-    if (order.user && typeof order.user === "string") {
-        // order.dishes
-        const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-        let discountCost: Decimal = new Decimal(0);
-        
-        for (const orderDish of orderDishes) {
-          let orderDishDiscountCost: number = 0;
-          if (!orderDish.dish) {
-            sails.log.error("orderDish", orderDish.id, "has no such dish");
-            continue;
-          }
-
-          if(!stringsInArray(orderDish.dish.concept,this.concept)){
-            continue
-          }
-
-          // TODO: if concept:arrays
-           // ------------------------------------------ Decimal ------------------------------------------
-          if(this.configDiscount.discountType === "flat"){
-            orderDishDiscountCost = new Decimal(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber()
-            discountCost = new Decimal(orderDishDiscountCost).add(discountCost)
-            // discountCost += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(spendDiscount.discountAmount * orderDish.dish.amount ).toNumber();
-          } 
-
-          if(this.configDiscount.discountType === "percentage") {
-            // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+spendDiscount.discountAmount / 100).toNumber();
-            orderDishDiscountCost = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber()
-            discountCost = new Decimal(orderDishDiscountCost).add(discountCost)
-          }
-
-          let orderDishDiscount:number = new Decimal(orderDish.discountTotal).add(orderDishDiscountCost).toNumber()
-          await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscount, discountType: this.configDiscount.discountType}).fetch();
-       
-          // await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscountCost, discountType: spendDiscount.discountType}).fetch();
-          // await OrderDish.update({ id: orderDish.id }, { amount: orderDish.dish.price, discount: discountCost}).fetch();
+        if (order.user && typeof order.user === "string") {
+            // order.dishes
+            const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
+            let discountCost: Decimal = new Decimal(0);
+            
+            for (const orderDish of orderDishes) {
+              let orderDishDiscountCost: number = 0;
+              if (!orderDish.dish) {
+                sails.log.error("orderDish", orderDish.id, "has no such dish");
+                continue;
+              }
+    
+              if(!stringsInArray(orderDish.dish.concept,this.concept)){
+                continue
+              }
+    
+              // TODO: if concept:arrays
+               // ------------------------------------------ Decimal ------------------------------------------
+              if(this.configDiscount.discountType === "flat"){
+                orderDishDiscountCost = new Decimal(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber()
+                discountCost = new Decimal(orderDishDiscountCost).add(discountCost)
+                // discountCost += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(spendDiscount.discountAmount * orderDish.dish.amount ).toNumber();
+              } 
+    
+              if(this.configDiscount.discountType === "percentage") {
+                // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+spendDiscount.discountAmount / 100).toNumber();
+                orderDishDiscountCost = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber()
+                discountCost = new Decimal(orderDishDiscountCost).add(discountCost)
+              }
+    
+              let orderDishDiscount:number = new Decimal(orderDish.discountTotal).add(orderDishDiscountCost).toNumber()
+              await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscount, discountType: this.configDiscount.discountType}).fetch();
+           
+              // await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscountCost, discountType: spendDiscount.discountType}).fetch();
+              // await OrderDish.update({ id: orderDish.id }, { amount: orderDish.dish.price, discount: discountCost}).fetch();
+            }
+            // Update the order with new total
+            let orderDiscount:number = new Decimal(order.discountTotal).add(discountCost.toNumber()).toNumber()
+            await Order.updateOne({id: order.id}, {discountTotal: orderDiscount})
+    
+            // let discountCoverage: Decimal;
+            // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
+        } else {
+          throw `User not found in Order, applyDiscount failed`
         }
-        // Update the order with new total
-        let orderDiscount:number = new Decimal(order.discountTotal).add(discountCost.toNumber()).toNumber()
-        await Order.updateOne({id: order.id}, {discountTotal: orderDiscount})
-
-        // let discountCoverage: Decimal;
-        // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
-    } else {
-      throw `User not found in Order, applyDiscount failed`
-    }
 
     }
  

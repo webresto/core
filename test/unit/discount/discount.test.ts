@@ -89,6 +89,12 @@ describe('Discount', function () {
         groups: [],
         excludeModifiers: true
       },
+      condition: function (arg1: Group | Dish | Order): boolean {
+        throw new Error('Function not implemented.');
+      },
+      action: function (order: Order): Promise<void> {
+        throw new Error('Function not implemented.');
+      }
     })
 
       it("discount add ", async function () {
@@ -406,6 +412,10 @@ describe('Discount', function () {
         // console.log(orderDishes)
         expect(orderDishes[0].discountTotal).to.equal(0);
       });
+
+      // if promotion returns
+      
+
 
       /**
        * create 5 test groups() and create 3 discounts(1 isJoint=false, 1 for first 3 groups, 1 for 1 group from second case + 1)

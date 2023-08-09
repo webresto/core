@@ -9,19 +9,25 @@ import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion
 var autoincrement: number = 0;
 
 export default function discountGenerator(config: AbstractPromotionHandler = {
-    id: "",
-    isJoint: true,
-    name: "",
-    isPublic: false,
-    // enable: false,
-    // isDeleted: false,
-    // createdByUser: false,
-    description: "",
-    concept: [],
-    configDiscount: undefined,
-    // sortOrder: 0,
-    // productCategoryDiscounts: undefined,
-    externalId: ""
+  id: "",
+  isJoint: true,
+  name: "",
+  isPublic: false,
+  // enable: false,
+  // isDeleted: false,
+  // createdByUser: false,
+  description: "",
+  concept: [],
+  configDiscount: undefined,
+  // sortOrder: 0,
+  // productCategoryDiscounts: undefined,
+  externalId: "",
+  condition: function (arg1: Group | Dish | Order): boolean {
+    throw new Error("Function not implemented.");
+  },
+  action: function (order: Order): Promise<void> {
+    throw new Error("Function not implemented.");
+  }
 }): AbstractPromotionHandler {
   autoincrement++;
   return {

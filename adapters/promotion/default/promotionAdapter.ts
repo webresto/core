@@ -124,7 +124,6 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       ...(promotionToAdd.concept && { concept: promotionToAdd.concept }),
       configDiscount: promotionToAdd.configDiscount,
       sortOrder: 0, // discountToAdd.sortOrder,
-      // productCategoryDiscounts: {},// discountToAdd.productCategoryDiscounts,
       externalId: promotionToAdd.externalId,
       worktime: null, // promotionToAdd.worktime
     };
@@ -154,6 +153,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return Object.keys(PromotionAdapter.promotions);
   }
 
+  // TODO: remove
   public static async applyPromotion(orderId, spendDiscount: IconfigDiscount, promotionId): Promise<void> {
     const order = await Order.findOne({ id: orderId });
 
@@ -169,9 +169,8 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
           sails.log.error("orderDish", orderDish.id, "has no such dish");
           continue;
         }
-        // TODO: if concept:arrays
+
         if (!stringsInArray(orderDish.dish.concept, promotion.concept)) {
-          // console.log("stringsInArray: ==== ", orderDish.dish.concept, promotion.concept);
           continue;
         }
 
