@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = require("decimal.js");
-const promotionAdapter_1 = require("../adapters/promotion/default/promotionAdapter");
 let attributes = {
     /** Id  */
     id: {
@@ -49,6 +48,13 @@ let attributes = {
      */
     promotionState: {
         type: "json"
+    },
+    /**
+     ** Means that the basket was modified by the adapter,
+     * It also prevents the repeat call of the action of the handler of the handler
+     * */
+    isPromoted: {
+        type: "boolean"
     },
     /** */
     dishesCount: "number",
@@ -899,27 +905,25 @@ let Model = {
                     sails.log.error("Order > count > iterate orderDish error", e);
                 }
             }
-            // --------------------------------- clearOfPromotion ------------------------------------
-            await emitter.emit("core-order-count-discount-apply", order);
-            delete (order.dishes);
-            promotionAdapter_1.PromotionAdapter.clearOfPromotion(order.id);
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
             order.totalWeight = totalWeight.toNumber();
             order.orderTotal = basketTotal.toNumber();
             order.basketTotal = basketTotal.toNumber();
-            emitter.emit("core:count-before-promotion", order);
             // Calcualte promotion cost
-            let promotionAdapter = await Adapter.getPromotionAdapter();
-            try {
-                await promotionAdapter.processOrder(order);
+            if (!order.isPromoted) {
+                emitter.emit("core:count-before-promotion", order);
+                let promotionAdapter = await Adapter.getPromotionAdapter();
+                try {
+                    await promotionAdapter.processOrder(order);
+                }
+                catch (error) {
+                    sails.log.error(`Core > order > promotion calculate fail: `, error);
+                }
+                emitter.emit("core-order-after-promotion", order);
             }
-            catch (error) {
-                sails.log.error(`Core > order > promotion calculate fail: `, error);
-            }
-            emitter.emit("core-order-after-promotion", order);
+            // Calcualte delivery costs
             emitter.emit("core:count-before-delivery-cost", order);
-            // Calcualte delivery cost
             let deliveryAdapter = await Adapter.getDeliveryAdapter();
             await deliveryAdapter.reset(order);
             if (order.selfService === false) {
