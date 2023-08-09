@@ -5,7 +5,7 @@ import Dish from './../../models/Dish';
 import Promotion from './../../models/Promotion';
 import { IconfigDiscount } from './../../interfaces/ConfigDiscount';
 import { PromotionAdapter } from "./default/promotionAdapter";
-export default abstract class AbstractPromotionHandlerINSTANCE {
+export default abstract class AbstractPromotionAdapter {
     static promotions: {
         [key: string]: AbstractPromotionHandler;
     };
@@ -27,5 +27,5 @@ export default abstract class AbstractPromotionHandlerINSTANCE {
     static getPromotionHandlerById: (id: string) => Promise<AbstractPromotionHandler | undefined>;
     static getInstance: (initParams?: {
         [key: string]: string | number | boolean;
-    }) => AbstractPromotionHandlerINSTANCE;
+    }) => AbstractPromotionAdapter;
 }

@@ -1,11 +1,11 @@
 import Order from "../../../models/Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
-import AbstractPromotionHandlerINSTANCE from "../AbstractPromotionAdapter";
+import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import Promotion from "../../../models/Promotion";
 import Group from "../../../models/Group";
 import Dish from "../../../models/Dish";
-export declare class PromotionAdapter extends AbstractPromotionHandlerINSTANCE {
+export declare class PromotionAdapter extends AbstractPromotionAdapter {
     static promotions: {
         [key: string]: AbstractPromotionHandler;
     };

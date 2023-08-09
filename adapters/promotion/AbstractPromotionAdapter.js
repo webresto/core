@@ -1,5 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class AbstractPromotionHandlerINSTANCE {
+class AbstractPromotionAdapter {
 }
-exports.default = AbstractPromotionHandlerINSTANCE;
+exports.default = AbstractPromotionAdapter;

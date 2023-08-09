@@ -1,7 +1,7 @@
 import Decimal from "decimal.js";
 import Order from "../../../models/Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
-import AbstractPromotionHandlerINSTANCE from "../AbstractPromotionAdapter";
+import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
 import configuredPromotion from "./configuredPromotion";
 import { WorkTimeValidator } from "@webresto/worktime";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
@@ -10,7 +10,7 @@ import Group from "../../../models/Group";
 import Dish from "../../../models/Dish";
 import { stringsInArray } from "../../../libs/stringsInArray";
 
-export class PromotionAdapter extends AbstractPromotionHandlerINSTANCE {
+export class PromotionAdapter extends AbstractPromotionAdapter {
   static promotions: { [key: string]: AbstractPromotionHandler } = {};
 
   public async processOrder(order: Order): Promise<void> {

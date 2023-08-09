@@ -11,7 +11,7 @@ import Promotion from './../../models/Promotion';
 import { IconfigDiscount } from './../../interfaces/ConfigDiscount';
 import { PromotionAdapter } from "./default/promotionAdapter";
 
-export default abstract class AbstractPromotionHandlerINSTANCE {
+export default abstract class AbstractPromotionAdapter {
         static promotions: { [key: string]: AbstractPromotionHandler};
 
         public abstract processOrder(order: Order): Promise<void>;
@@ -39,5 +39,5 @@ export default abstract class AbstractPromotionHandlerINSTANCE {
 
         static getInstance:(initParams?: {
             [key: string]: string | number | boolean;
-        })=> AbstractPromotionHandlerINSTANCE;
+        })=> AbstractPromotionAdapter;
 }
