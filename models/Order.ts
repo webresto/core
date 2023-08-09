@@ -900,8 +900,8 @@ let Model = {
 
     var paymentResponse: PaymentResponse;
     let comment: string = "";
-    var backLinkSuccess: string = (await Settings.use("FrontendOrderPage")) + order.shortId;
-    var backLinkFail: string = await Settings.use("FrontendCheckoutPage") as string;
+    var backLinkSuccess: string = (await Settings.use("FRONTEND_ORDER_PAGE")) + order.shortId;
+    var backLinkFail: string = await Settings.use("FRONTEND_CHECKOUT_PAGE") as string;
     let paymentMethodId = await order.paymentMethod
     sails.log.silly("Order > payment > before payment register", order);
 
