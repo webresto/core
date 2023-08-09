@@ -1155,7 +1155,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
       emitter.emit("core:count-before-delivery-cost", order);
       let deliveryAdapter = await Adapter.getDeliveryAdapter();
       await deliveryAdapter.reset(order);
-      if (order.selfService === false) {
+      if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
         emitter.emit("core-order-check-delivery", order);
         try {
           let delivery = await deliveryAdapter.calculate(order);

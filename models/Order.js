@@ -924,10 +924,14 @@ let Model = {
                 emitter.emit("core-order-after-promotion", order);
             }
             // Calcualte delivery costs
+            /**
+             * // TODO: Better move to new method add address to Order, because is not every time needed
+             * planned v2
+             */
             emitter.emit("core:count-before-delivery-cost", order);
             let deliveryAdapter = await Adapter.getDeliveryAdapter();
             await deliveryAdapter.reset(order);
-            if (order.selfService === false) {
+            if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
                 emitter.emit("core-order-check-delivery", order);
                 try {
                     let delivery = await deliveryAdapter.calculate(order);

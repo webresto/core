@@ -143,6 +143,9 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         }
         await Order.updateOne({ id: order.id }, { discountTotal: 0 });
     }
+    /**
+     * @deprecated //TODO: move to configured discount
+     */
     static async applyPromotion(orderId, spendDiscount, promotionId) {
         const order = await Order.findOne({ id: orderId });
         if (order.user && typeof order.user === "string") {
