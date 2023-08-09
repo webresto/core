@@ -26,6 +26,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
         promotionStates.push(state);
       }
     }
+    
     return promotionStates
   }
 

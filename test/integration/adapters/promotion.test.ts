@@ -89,6 +89,10 @@ describe("Promotion adapter integration test", function () {
 
   it("Check flat and percentage discount for specific dish/group", ()=>{})
 
+  it("Check prepend recursion", ()=>{
+    // for call recursion we should add dish from action in promotionHandler
+    
+  })
 });
 
 function sleep(ms) {

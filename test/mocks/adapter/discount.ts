@@ -13,9 +13,6 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public isJoint: boolean = true;
     public name: string = "New Year";
     public isPublic: boolean = false;
-    // public enable: boolean = true;
-    // public isDeleted: boolean = false;
-    // public createdByUser: boolean = false;
     public description: string = "some text";
     public concept: string[] = ["NewYear", "Happy Birthday","origin"];
     public configDiscount: IconfigDiscount = {

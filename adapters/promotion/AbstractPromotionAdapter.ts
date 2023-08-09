@@ -37,7 +37,7 @@ export default abstract class AbstractPromotionAdapter {
               await OrderDish.update({ id: orderDish.id }, { discountTotal: 0, discountType: "" }).fetch();
             }
         
-            await Order.updateOne({ id: order.id }, { discountTotal: 0}) // isPromoted: false
+            await Order.updateOne({ id: order.id }, { discountTotal: 0}) // isPromoting: false
         }
 
         public static applyPromotion: (orderId: any, spendPromotion: IconfigDiscount, promotionId: any) => Promise<void>;

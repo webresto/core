@@ -22,12 +22,6 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
   // sortOrder: 0,
   // productCategoryDiscounts: undefined,
   externalId: "",
-  condition: function (arg1: Group | Dish | Order): boolean {
-    throw new Error("Function not implemented.");
-  },
-  action: function (order: Order): Promise<void> {
-    throw new Error("Function not implemented.");
-  }
 }): AbstractPromotionHandler {
   autoincrement++;
   return {
