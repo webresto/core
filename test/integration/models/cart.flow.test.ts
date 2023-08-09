@@ -46,7 +46,7 @@ describe("Flows: Checkout", function () {
 
   it("awaitEmiter order events", async function () {
     //@ts-ignore
-    await Settings.set("check", { notRequired: true });
+    await Settings.set("CHECKOUT_STRATEGY", { notRequired: true });
 
     let core_order_before_check = 0;
     let core_order_check_delivery = 0;
@@ -65,7 +65,7 @@ describe("Flows: Checkout", function () {
       core_order_check = 1;
     });
 
-    getEmitter().on("core-order-after-check", function () {
+    getEmitter().on("core-order-after-check-counting", function () {
       core_order_after_check = 1;
     });
 
@@ -133,7 +133,7 @@ describe("Flows: Checkout", function () {
     await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
     order = await Order.findOne({id: order.id});
 
-    await Settings.set("check", {});
+    await Settings.set("CHECKOUT_STRATEGY", {});
 
     try {
       await Order.check({id: order.id}, customer, true);
@@ -151,7 +151,7 @@ describe("Flows: Checkout", function () {
   });
 
   it("test checkConfig (notRequired)", async function () {
-    await Settings.set("check", { notRequired: true });
+    await Settings.set("CHECKOUT_STRATEGY", { notRequired: true });
     
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-notrequired"}).fetch();
@@ -162,6 +162,7 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check({id: order.id}, customer, true);
     } catch (e) {
+      console.log(9988,e)
       expect(e).be.undefined;
     }
 

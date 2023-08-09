@@ -14,21 +14,23 @@ declare let attributes: {
     modifiers: OrderModifier[];
     /** */
     order: any;
-    /** Количество уникальных блюд в корзине */
+    /** The number of unique dishes in the basket */
     uniqueItems: number;
-    /** цена позиции */
+    /** Position price*/
     itemTotal: number;
-    /** цена позиции до применения скидок */
+    /** Position price before the use of discounts */
     itemTotalBeforeDiscount: string;
-    /**Общая сумма скидки */
+    /**The total amount of the discount */
     discountTotal: number;
-    /** Тип скидки */
+    /** Type discount */
     discountType: string;
-    /** Сумма скидки */
+    /** Discount amount */
     discountAmount: string;
+    /** postDiscounts */
+    discountMessage: string;
     /** Comment to dish in order */
     comment: string;
-    /** Метка кто добавил */
+    /** The label who added */
     addedBy: string;
     /** Вес */
     weight: number;

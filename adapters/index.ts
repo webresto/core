@@ -170,6 +170,10 @@ export class Adapter {
       return this.instanceDeliveryAdapter;
     }
 
+    if (!adapter) {
+      this.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
+      return this.instanceDeliveryAdapter;
+    }
 
     let adapterName: string;
     if (adapter) {
@@ -178,16 +182,10 @@ export class Adapter {
       } else if (adapter instanceof DeliveryAdapter) {
         this.instanceDeliveryAdapter = adapter;
         return this.instanceDeliveryAdapter;
-      } else {
-        this.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
-        return this.instanceDeliveryAdapter;
       }
     }
 
-    if (!adapterName) {
-      adapterName = (await Settings.get("DELIVERY_ADAPTER")) as string;
-      if (!adapterName) throw "DELIVERY adapter is not installed";
-    }
+    
 
     let adapterLocation = fs.existsSync(this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
       ? this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
