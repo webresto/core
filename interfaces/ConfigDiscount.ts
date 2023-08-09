@@ -3,7 +3,8 @@ export interface IconfigDiscount {
     discountAmount: number,
     dishes: string[],
     groups: string[],
-    /** examples:
+    /** // TODO: implement excludeModifiers
+     * examples:
      * Buy cofee for $1 with 20% discount and modifier milk for $0.5 without this discount.
      * excludeModifiers: true  $1.30
      * excludeModifiers: false  $1.20

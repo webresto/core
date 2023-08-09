@@ -48,6 +48,11 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
     }
     async action(order) {
         await promotionAdapter_1.PromotionAdapter.applyPromotion(order.id, this.configDiscount, this.id);
+        return {
+            message: "test",
+            type: "test",
+            state: {}
+        };
     }
     async displayGroup(group, user) {
         // Implement the displayGroupDiscount method logic

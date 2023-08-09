@@ -2,7 +2,7 @@ import AbstractPromotionHandler from "../AbstractPromotion";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import Group from '../../../models/Group';
 import Dish from '../../../models/Dish';
-import Order from '../../../models/Order';
+import Order, { PromotionState } from '../../../models/Order';
 import User from '../../../models/User';
 export default class configuredPromotion extends AbstractPromotionHandler {
     constructor(promotion: AbstractPromotionHandler, config?: IconfigDiscount);
@@ -16,7 +16,7 @@ export default class configuredPromotion extends AbstractPromotionHandler {
     configDiscount: IconfigDiscount;
     externalId: string;
     condition(arg: Group | Dish | Order): boolean;
-    action(order: Order): Promise<void>;
+    action(order: Order): Promise<PromotionState>;
     displayGroup(group: Group, user?: string | User): Promise<Group[]>;
     displayDish(dish: Dish, user?: string | User): Promise<Dish[]>;
 }

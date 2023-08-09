@@ -12,7 +12,7 @@ import { Adapter } from './../../../adapters/index';
 import AbstractPromotionAdapter from '../../../adapters/promotion/AbstractPromotionAdapter';
 import Group from './../../../models/Group';
 import Dish from './../../../models/Dish';
-import Order from './../../../models/Order';
+import Order, { PromotionState } from './../../../models/Order';
 import { stringsInArray } from '../../../libs/stringsInArray';
 
 describe('Discount', function () {
@@ -54,9 +54,14 @@ describe('Discount', function () {
         
         return false
       },
-        action: async (order: Order) => {
+        action: async (order: Order): Promise<PromotionState> => {
             // console.log("ACTION ================awdawdawd")
              await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
+          return {
+            message: "test",
+            type: "test",
+            state: {}
+          }  
         },
         isPublic: true,
         isJoint: true,
