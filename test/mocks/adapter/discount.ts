@@ -1,5 +1,5 @@
 import { WorkTime } from "@webresto/worktime";
-import Order from './../../../models/Order';
+import Order, { PromotionState } from './../../../models/Order';
 import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
 import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
 import Group from './../../../models/Group';
@@ -51,8 +51,13 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
         return false
     }
 
-    public async action(order: Order): Promise<void> {
+    public async action(order: Order): Promise<PromotionState> {
         await PromotionAdapter.applyPromotion(order.id, this.configDiscount, this.id)
+        return {
+            message: "test",
+            type: "test",
+            state: {}
+          }  
     }
     
     public async displayGroup(group:Group, user?: string): Promise<Group[]> {

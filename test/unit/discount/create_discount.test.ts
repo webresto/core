@@ -40,7 +40,11 @@ describe('Create_Discount', function () {
                 
                 return false
             },
-            action: () => Promise.resolve(),
+            action: () => Promise.resolve({
+                message:"",
+                 state: {},
+                 type: "test"
+            }),
             isPublic: true,
             isJoint: true,
             // sortOrder: 0,

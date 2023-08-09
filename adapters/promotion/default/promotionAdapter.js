@@ -8,15 +8,18 @@ const worktime_1 = require("@webresto/worktime");
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     async processOrder(order) {
+        const promotionStates = [];
         // Order.populate()
         await PromotionAdapter.clearOfPromotion(order.id);
         let filteredPromotion = await PromotionAdapter.filterByConcept(order.concept);
         let promotionByConcept = await PromotionAdapter.filterPromotions(filteredPromotion, order);
         if (promotionByConcept[0] !== undefined) {
             for (const promotion of promotionByConcept) {
-                await PromotionAdapter.promotions[promotion.id].action(order);
+                let state = await PromotionAdapter.promotions[promotion.id].action(order);
+                promotionStates.push(state);
             }
         }
+        return promotionStates;
     }
     // one method to get all promotions and id's
     async displayDish(dish) {

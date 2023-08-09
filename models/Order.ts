@@ -21,8 +21,9 @@ import { PromotionAdapter } from "../adapters/promotion/default/promotionAdapter
 
 
 export interface PromotionState {
-  type: string
-  state: any
+  type: string;
+  message: string;
+  state: any;
 }
 let attributes = {
   /** Id  */
@@ -79,7 +80,7 @@ let attributes = {
    */
   promotionState: {
     type: "json"
-  } as unknown as PromotionState,
+  } as unknown as PromotionState[],
 
   /**
    ** Means that the basket was modified by the adapter,
@@ -1138,7 +1139,8 @@ async countCart(criteria: CriteriaQuery<Order>) {
         emitter.emit("core:count-before-promotion", order);
         let promotionAdapter = await Adapter.getPromotionAdapter();
           try {
-            await promotionAdapter.processOrder(order);
+            order.promotionState = await promotionAdapter.processOrder(order);
+            order.isPromoted = true;
           } catch (error) {
             sails.log.error(`Core > order > promotion calculate fail: `, error)
           }

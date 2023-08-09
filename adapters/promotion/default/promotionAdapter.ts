@@ -1,5 +1,5 @@
 import Decimal from "decimal.js";
-import Order from "../../../models/Order";
+import Order, { PromotionState } from "../../../models/Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
 import configuredPromotion from "./configuredPromotion";
@@ -12,8 +12,8 @@ import { stringsInArray } from "../../../libs/stringsInArray";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
   static promotions: { [key: string]: AbstractPromotionHandler } = {};
-
-  public async processOrder(order: Order): Promise<void> {
+  public async processOrder(order: Order): Promise<PromotionState[]> {
+    const promotionStates = [] as PromotionState[]
     // Order.populate()
     await PromotionAdapter.clearOfPromotion(order.id);
 
@@ -22,9 +22,11 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
-        await PromotionAdapter.promotions[promotion.id].action(order);
+        let state = await PromotionAdapter.promotions[promotion.id].action(order);
+        promotionStates.push(state);
       }
     }
+    return promotionStates
   }
 
   // one method to get all promotions and id's

@@ -13,6 +13,7 @@ import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 export interface PromotionState {
     type: string;
+    message: string;
     state: any;
 }
 declare let attributes: {
@@ -40,7 +41,7 @@ declare let attributes: {
      *
      * This property can be used to portray the representations of promotions at the front
      */
-    promotionState: PromotionState;
+    promotionState: PromotionState[];
     /**
      ** Means that the basket was modified by the adapter,
      * It also prevents the repeat call of the action of the handler of the handler
@@ -159,7 +160,7 @@ declare let Model: {
         paymentMethodTitle?: string;
         paid?: boolean;
         isPaymentPromise?: boolean;
-        promotionState?: PromotionState;
+        promotionState?: PromotionState[];
         isPromoted?: boolean;
         dishesCount?: number;
         uniqueDishes?: number;

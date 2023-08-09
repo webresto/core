@@ -80,6 +80,11 @@ class configuredPromotion extends AbstractPromotion_1.default {
         else {
             throw `User not found in Order, applyDiscount failed`;
         }
+        return {
+            message: `Configured promotion`,
+            type: "configured-promotion",
+            state: {}
+        };
     }
     async displayGroup(group, user) {
         if (user) {

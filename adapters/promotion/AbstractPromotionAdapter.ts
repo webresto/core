@@ -1,4 +1,4 @@
-import Order from "../../models/Order"
+import Order, { PromotionState } from "../../models/Order"
 import AbstractPromotionHandler from "./AbstractPromotion";
 // import Group  from '@webresto/core/models/Group';
 // import Dish  from '@webresto/core/models/Dish';
@@ -14,7 +14,7 @@ import { PromotionAdapter } from "./default/promotionAdapter";
 export default abstract class AbstractPromotionAdapter {
         static promotions: { [key: string]: AbstractPromotionHandler};
 
-        public abstract processOrder(order: Order): Promise<void>;
+        public abstract processOrder(order: Order): Promise<PromotionState[]>
         public abstract displayDish(dish: Dish): Promise<AbstractPromotionHandler | undefined>;
         public abstract displayGroup(group: Group): Promise<AbstractPromotionHandler | undefined>;
 

@@ -1,7 +1,7 @@
 import * as faker from "faker";
 import Group from './../../models/Group';
 import Dish  from './../../models/Dish';
-import Order from './../../models/Order';
+import Order, { PromotionState } from './../../models/Order';
 import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
 import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
@@ -61,8 +61,13 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
     
     return false
   },
-    action: async function (order: Order):Promise<void> {
-         await PromotionAdapter.applyPromotion(order.id, this.configDiscount, this.id)
+    action: async function (order: Order):Promise<PromotionState> {
+      await PromotionAdapter.applyPromotion(order.id, this.configDiscount, this.id)
+      return {
+        message: this.id,
+        type: this.id,
+        state: {}
+      }
     },
     // sortOrder: 0,
     displayGroup: async function (group:Group, user?: string): Promise<Group[]> {
