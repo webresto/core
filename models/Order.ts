@@ -1117,8 +1117,6 @@ async countCart(criteria: CriteriaQuery<Order>) {
       // --------------------------------- clearOfPromotion ------------------------------------
       await emitter.emit("core-order-count-discount-apply", order);
       delete(order.dishes);
-      PromotionAdapter.clearOfPromotion(order.id)
-
 
       
       order.dishesCount = dishesCount;

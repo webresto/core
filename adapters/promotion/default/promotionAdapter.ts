@@ -154,21 +154,6 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return Object.keys(PromotionAdapter.promotions);
   }
 
-  public static async clearOfPromotion(orderId) {
-    const order = await Order.findOne({ id: orderId });
-    // if Order.status ="PAYMENT" or "ORDER" can't clear promotions
-    if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
-    if (order.state === "PAYMENT") throw "order with orderId " + order.id + "in state PAYMENT";
-
-    // ------------------------------------------ OrderDish update ------------------------------------------
-    const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-    for (const orderDish of orderDishes) {
-      await OrderDish.update({ id: orderDish.id }, { discountTotal: 0, discountType: "" }).fetch();
-    }
-
-    await Order.updateOne({ id: order.id }, { discountTotal: 0 })
-  }
-
   public static async applyPromotion(orderId, spendDiscount: IconfigDiscount, promotionId): Promise<void> {
     const order = await Order.findOne({ id: orderId });
 

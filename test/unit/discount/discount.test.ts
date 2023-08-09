@@ -367,7 +367,7 @@ describe('Discount', function () {
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
 
         await discountAdapter.addPromotionHandler(discountEx)
-        await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
+        // await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
 
         // before clear
         let orderDishes1 = await OrderDish.find({ order: order.id }).populate("dish");

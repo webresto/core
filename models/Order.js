@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = require("decimal.js");
-const promotionAdapter_1 = require("../adapters/promotion/default/promotionAdapter");
 let attributes = {
     /** Id  */
     id: {
@@ -902,7 +901,6 @@ let Model = {
             // --------------------------------- clearOfPromotion ------------------------------------
             await emitter.emit("core-order-count-discount-apply", order);
             delete (order.dishes);
-            promotionAdapter_1.PromotionAdapter.clearOfPromotion(order.id);
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
             order.totalWeight = totalWeight.toNumber();
