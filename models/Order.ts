@@ -81,6 +81,14 @@ let attributes = {
     type: "json"
   } as unknown as PromotionState,
 
+  /**
+   ** Means that the basket was modified by the adapter,
+   * It also prevents the repeat call of the action of the handler of the handler
+   * */
+  isPromoted: {
+    type: "boolean"
+  } as unknown as boolean,
+
   /** */
   dishesCount: "number" as unknown as number,
   uniqueDishes: "number" as unknown as number,
@@ -1114,10 +1122,6 @@ async countCart(criteria: CriteriaQuery<Order>) {
           sails.log.error("Order > count > iterate orderDish error", e);
         }
       } 
-      // --------------------------------- clearOfPromotion ------------------------------------
-      await emitter.emit("core-order-count-discount-apply", order);
-      delete(order.dishes);
-
       
       order.dishesCount = dishesCount;
       order.uniqueDishes = uniqueDishes;
@@ -1126,20 +1130,23 @@ async countCart(criteria: CriteriaQuery<Order>) {
       order.orderTotal = basketTotal.toNumber();
       order.basketTotal = basketTotal.toNumber();
       
-      emitter.emit("core:count-before-promotion", order);
-
+      
+      
+      
       // Calcualte promotion cost
-      let promotionAdapter = await Adapter.getPromotionAdapter();
-        try {
-          await promotionAdapter.processOrder(order);
-        } catch (error) {
-          sails.log.error(`Core > order > promotion calculate fail: `, error)
-        }
-      emitter.emit("core-order-after-promotion", order);
+      if(!order.isPromoted){
+        emitter.emit("core:count-before-promotion", order);
+        let promotionAdapter = await Adapter.getPromotionAdapter();
+          try {
+            await promotionAdapter.processOrder(order);
+          } catch (error) {
+            sails.log.error(`Core > order > promotion calculate fail: `, error)
+          }
+        emitter.emit("core-order-after-promotion", order);
+      }
 
-
+      // Calcualte delivery costs
       emitter.emit("core:count-before-delivery-cost", order);
-      // Calcualte delivery cost
       let deliveryAdapter = await Adapter.getDeliveryAdapter();
       await deliveryAdapter.reset(order);
       if (order.selfService === false) {

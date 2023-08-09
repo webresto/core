@@ -41,6 +41,11 @@ declare let attributes: {
      * This property can be used to portray the representations of promotions at the front
      */
     promotionState: PromotionState;
+    /**
+     ** Means that the basket was modified by the adapter,
+     * It also prevents the repeat call of the action of the handler of the handler
+     * */
+    isPromoted: boolean;
     /** */
     dishesCount: number;
     uniqueDishes: number;
@@ -155,6 +160,7 @@ declare let Model: {
         paid?: boolean;
         isPaymentPromise?: boolean;
         promotionState?: PromotionState;
+        isPromoted?: boolean;
         dishesCount?: number;
         uniqueDishes?: number;
         modifiers?: any;
