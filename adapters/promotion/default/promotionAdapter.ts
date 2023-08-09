@@ -171,6 +171,9 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     await Order.updateOne({ id: order.id }, { discountTotal: 0 })
   }
 
+  /**
+   * @deprecated //TODO: move to configured discount 
+   */
   public static async applyPromotion(orderId, spendDiscount: IconfigDiscount, promotionId): Promise<void> {
     const order = await Order.findOne({ id: orderId });
 
