@@ -1,4 +1,4 @@
-import dishGenerator from '@webresto/core/test/generators/dish.generator';
+import dishGenerator from '../../generators/dish.generator';
 import { expect } from 'chai';
 
 // import AbstractPromotionHandler from '@webresto/core/adapters/discount/AbstractPromotion';
@@ -222,7 +222,7 @@ describe('Discount', function () {
       it("discount test dishes with flat and percentage types of discounts but same concept", async function () {
         let discountAdapter:AbstractPromotionHandlerINSTANCE = PromotionAdapter.initialize()
         let order = await Order.create({id: "test-discounts-on-different-types"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"}).fetch();
+        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin"}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin"}));
@@ -251,7 +251,7 @@ describe('Discount', function () {
       it("discount test dishes with flat and percentage types of discounts but different concept", async function () {
         let discountAdapter:AbstractPromotionHandlerINSTANCE = PromotionAdapter.initialize()
         let order = await Order.create({id: "test-different-types-and-concept"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"}).fetch();
+        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin"}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "NewYear"}));
@@ -280,7 +280,7 @@ describe('Discount', function () {
       it("discount test dishes with 3 dif type of discount", async function () {
         let discountAdapter:AbstractPromotionHandlerINSTANCE = PromotionAdapter.initialize()
         let order = await Order.create({id: "test-3-types-of-discount"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"}).fetch();
+        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin"}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin"}));
@@ -310,7 +310,7 @@ describe('Discount', function () {
       it("discount test displayDish", async function () {
         let discountAdapter:AbstractPromotionHandlerINSTANCE = PromotionAdapter.initialize()
         let order = await Order.create({id: "test-display-dish"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"}).fetch();
+        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin"}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin"}));
@@ -329,7 +329,7 @@ describe('Discount', function () {
       it("discount test displayGroup", async function () {
         let discountAdapter:AbstractPromotionHandlerINSTANCE = PromotionAdapter.initialize()
         let order = await Order.create({id: "test-display-group"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"}).fetch();
+        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
         await discountAdapter.addPromotionHandler(discountEx)
 
@@ -343,7 +343,7 @@ describe('Discount', function () {
       
       it("discount test clearDiscount", async function () {
         let order = await Order.create({id: "test-clear-discount"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"}).fetch();
+        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
         let discountAdapter:AbstractPromotionHandlerINSTANCE = PromotionAdapter.initialize()
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin"}));
@@ -360,7 +360,7 @@ describe('Discount', function () {
 
       it("discount test clearDiscount orderDish", async function () {
         let order = await Order.create({id: "test-clear-discount-OrderDish"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"}).fetch();
+        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
         let discountAdapter:AbstractPromotionHandlerINSTANCE = PromotionAdapter.initialize()
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin"}));
@@ -383,7 +383,7 @@ describe('Discount', function () {
 
       it("discount test Adapter.getDiscount ", async function () {
         let order = await Order.create({id: "test-clear-discount-order-dish-adapter"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"}).fetch();
+        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
         // let promotionAdapter:AbstractPromotionHandlerINSTANCE = DiscountAdapter.initialize()
         
         let a:AbstractPromotionHandlerINSTANCE = await Adapter.getPromotionAdapter()

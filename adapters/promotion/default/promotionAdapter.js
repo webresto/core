@@ -138,7 +138,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         for (const orderDish of orderDishes) {
             await OrderDish.update({ id: orderDish.id }, { discountTotal: 0, discountType: "" }).fetch();
         }
-        await Order.updateOne({ id: order.id }, { discountTotal: 0 }).fetch();
+        await Order.updateOne({ id: order.id }, { discountTotal: 0 });
     }
     static async applyPromotion(orderId, spendDiscount, promotionId) {
         const order = await Order.findOne({ id: orderId });
@@ -155,7 +155,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                 }
                 // TODO: if concept:arrays
                 if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, promotion.concept)) {
-                    console.log("stringsInArray: ==== ", orderDish.dish.concept, promotion.concept);
+                    // console.log("stringsInArray: ==== ", orderDish.dish.concept, promotion.concept);
                     continue;
                 }
                 // ------------------------------------------ Decimal ------------------------------------------
@@ -179,7 +179,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
             }
             // Update the order with new total
             let orderDiscount = new decimal_js_1.default(order.discountTotal).add(discountCost.toNumber()).toNumber();
-            await Order.updateOne({ id: orderId }, { discountTotal: orderDiscount }).fetch();
+            await Order.updateOne({ id: orderId }, { discountTotal: orderDiscount });
             // let discountCoverage: Decimal;
             // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
         }

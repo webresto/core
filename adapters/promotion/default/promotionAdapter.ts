@@ -166,7 +166,7 @@ export class PromotionAdapter extends AbstractPromotionHandlerINSTANCE {
       await OrderDish.update({ id: orderDish.id }, { discountTotal: 0, discountType: "" }).fetch();
     }
 
-    await Order.updateOne({ id: order.id }, { discountTotal: 0 }).fetch();
+    await Order.updateOne({ id: order.id }, { discountTotal: 0 })
   }
 
   public static async applyPromotion(orderId, spendDiscount: IconfigDiscount, promotionId): Promise<void> {
@@ -214,7 +214,7 @@ export class PromotionAdapter extends AbstractPromotionHandlerINSTANCE {
       }
       // Update the order with new total
       let orderDiscount: number = new Decimal(order.discountTotal).add(discountCost.toNumber()).toNumber();
-      await Order.updateOne({ id: orderId }, { discountTotal: orderDiscount }).fetch();
+      await Order.updateOne({ id: orderId }, { discountTotal: orderDiscount })
 
       // let discountCoverage: Decimal;
       // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
