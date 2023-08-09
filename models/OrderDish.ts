@@ -33,28 +33,31 @@ let attributes = {
     model: "Order",
   } as unknown as Order | any,
 
-  /** Количество уникальных блюд в корзине */
+  /** The number of unique dishes in the basket */
   uniqueItems: "number" as unknown as number,
 
-  /** цена позиции */
+  /** Position price*/
   itemTotal: "number" as unknown as number,
 
-  /** цена позиции до применения скидок */
+  /** Position price before the use of discounts */
   itemTotalBeforeDiscount: "number",
 
-  /**Общая сумма скидки */
+  /**The total amount of the discount */
   discountTotal: "number" as unknown as number,
 
-  /** Тип скидки */
+  /** Type discount */
   discountType: 'string',
 
-  /** Сумма скидки */
+  /** Discount amount */
   discountAmount: "number",
+
+  /** postDiscounts */
+  discountMessage: "string",
 
   /** Comment to dish in order */
   comment: "string",
 
-  /** Метка кто добавил */
+  /** The label who added */
   addedBy: {
     type: "string",
     defaultsTo: "user",

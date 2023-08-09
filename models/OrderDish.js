@@ -33,6 +33,8 @@ let attributes = {
     discountType: 'string',
     /** Сумма скидки */
     discountAmount: "number",
+    /** Сообщение скидки */
+    discountMessage: "string",
     /** Comment to dish in order */
     comment: "string",
     /** Метка кто добавил */

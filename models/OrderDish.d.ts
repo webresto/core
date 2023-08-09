@@ -26,6 +26,8 @@ declare let attributes: {
     discountType: string;
     /** Сумма скидки */
     discountAmount: string;
+    /** Сообщение скидки */
+    discountMessage: string;
     /** Comment to dish in order */
     comment: string;
     /** Метка кто добавил */
