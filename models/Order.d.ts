@@ -11,6 +11,10 @@ import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
+export interface PromotionState {
+    type: string;
+    state: any;
+}
 declare let attributes: {
     /** Id  */
     id: string;
@@ -30,6 +34,13 @@ declare let attributes: {
     paid: boolean;
     /** */
     isPaymentPromise: boolean;
+    /**
+     * The property displays the state of promotion.
+     * In order to understand what was happening with the order in the adapter of promoters.
+     *
+     * This property can be used to portray the representations of promotions at the front
+     */
+    promotionState: PromotionState;
     /** */
     dishesCount: number;
     uniqueDishes: number;
@@ -143,6 +154,7 @@ declare let Model: {
         paymentMethodTitle?: string;
         paid?: boolean;
         isPaymentPromise?: boolean;
+        promotionState?: PromotionState;
         dishesCount?: number;
         uniqueDishes?: number;
         modifiers?: any;

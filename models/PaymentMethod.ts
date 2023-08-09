@@ -131,13 +131,11 @@ let Model = {
    * @return
    */
   async alive(paymentAdapter: PaymentAdapter): Promise<string[]> {
-    let knownPaymentMethod = await PaymentMethod.findOne({
+    let defaultEnable = Boolean(await Settings.get("DEFAULT_ENABLE_PAYMENT_METHODS")) ?? false;
+    let knownPaymentMethod = await PaymentMethod.findOrCreate({
       adapter: paymentAdapter.InitPaymentAdapter.adapter,
-    });
-    if (!knownPaymentMethod) {
-      let defaultEnable = Boolean(await Settings.get("DEFAULT_ENABLE_PAYMENT_METHODS")) ?? false;
-      knownPaymentMethod = await PaymentMethod.create({ ...paymentAdapter.InitPaymentAdapter, enable: defaultEnable }).fetch();
-    }
+    },{ ...paymentAdapter.InitPaymentAdapter, enable: defaultEnable } );
+
     alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
     sails.log.silly("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
     return;

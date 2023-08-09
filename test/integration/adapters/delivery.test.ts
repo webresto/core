@@ -1,4 +1,3 @@
-/// <reference path="./../../../index.d.ts" />
 import path = require("path");
 import { TestRMS } from "../../mocks/adapter/RMS";
 import { Adapter } from "../../../adapters"; 
