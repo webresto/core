@@ -20,6 +20,10 @@ import { IconfigDiscount } from "../interfaces/ConfigDiscount";
 import { PromotionAdapter } from "../adapters/promotion/default/promotionAdapter";
 
 
+export interface PromotionState {
+  type: string
+  state: any
+}
 let attributes = {
   /** Id  */
   id: {
@@ -66,6 +70,16 @@ let attributes = {
     type: "boolean",
     defaultsTo: true,
   } as unknown as boolean,
+
+  /**
+   * The property displays the state of promotion.
+   * In order to understand what was happening with the order in the adapter of promoters.
+   * 
+   * This property can be used to portray the representations of promotions at the front 
+   */
+  promotionState: {
+    type: "json"
+  } as unknown as PromotionState,
 
   /** */
   dishesCount: "number" as unknown as number,

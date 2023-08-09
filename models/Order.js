@@ -41,6 +41,15 @@ let attributes = {
         type: "boolean",
         defaultsTo: true,
     },
+    /**
+     * The property displays the state of promotion.
+     * In order to understand what was happening with the order in the adapter of promoters.
+     *
+     * This property can be used to portray the representations of promotions at the front
+     */
+    promotionState: {
+        type: "json"
+    },
     /** */
     dishesCount: "number",
     uniqueDishes: "number",
