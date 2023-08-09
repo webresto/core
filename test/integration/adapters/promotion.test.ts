@@ -89,6 +89,8 @@ describe("Promotion adapter integration test", function () {
 
   it("Check flat and percentage discount for specific dish/group", ()=>{})
 
+  it("Promotion states should passed in order", ()=>{})
+
 });
 
 function sleep(ms) {
