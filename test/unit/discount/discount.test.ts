@@ -94,7 +94,7 @@ describe('Discount', function () {
       it("discount add ", async function () {
         // let a = await Adapter.getDiscountAdapter()
         let promotionAdapter:AbstractPromotionHandlerINSTANCE = PromotionAdapter.initialize()
-        console.log(promotionAdapter, "----------------------------------------")
+        // console.log(promotionAdapter, "----------------------------------------")
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin"}));
         promotionAdapter.displayDish(dish1)
 
@@ -175,7 +175,7 @@ describe('Discount', function () {
 
         let result = await Order.findOne(order.id) //.populate("dishes");
 
-        console.log(result)
+        // console.log(result)
         // console.log(result, "get discount order")
         expect(result.discountTotal).to.equal(11.97);
 

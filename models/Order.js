@@ -908,6 +908,16 @@ let Model = {
             order.totalWeight = totalWeight.toNumber();
             order.orderTotal = basketTotal.toNumber();
             order.basketTotal = basketTotal.toNumber();
+            emitter.emit("core:count-before-promotion", order);
+            // Calcualte promotion cost
+            let promotionAdapter = await Adapter.getPromotionAdapter();
+            try {
+                await promotionAdapter.processOrder(order);
+            }
+            catch (error) {
+                sails.log.error(`Core > order > promotion calculate fail: `, error);
+            }
+            emitter.emit("core-order-after-promotion", order);
             emitter.emit("core:count-before-delivery-cost", order);
             // Calcualte delivery cost
             let deliveryAdapter = await Adapter.getDeliveryAdapter();
