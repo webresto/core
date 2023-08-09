@@ -1,5 +1,4 @@
 'use strict';
-/// <reference path="./interfaces/globalTypes.d.ts" />
 
 export * from './models/BonusProgram';
 export * from './models/Dish';
