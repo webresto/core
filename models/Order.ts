@@ -581,7 +581,18 @@ let Model = {
     paymentMethodId?: string,
     spendBonus?: SpendBonus
     ): Promise<void> {
-    const order: Order = await Order.countCart(criteria);
+    
+
+    let order: Order = await Order.findOne(criteria);
+
+    // CHECKING
+    // Check order empty
+    if (order.dishesCount === 0) {
+      throw {
+        code: 13,
+        error: "order is empty",
+      };
+    }
 
     if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
@@ -626,9 +637,10 @@ let Model = {
 
     /** if pickup, then you do not need to check the address*/
     if (isSelfService) {
-      emitter.emit("core-order-is-self-service", order, customer, isSelfService, address);
       order.selfService = true;
+      emitter.emit("core-order-is-self-service", order, customer, isSelfService, address);
     } else {
+      order.selfService = false;
       if (address) {
         checkAddress(address);
         order.address = {...address};
@@ -642,33 +654,17 @@ let Model = {
       }
     }
 
+    // Custom emmitters checks
+    const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
 
-    let deliveryAdapter = await Adapter.getDeliveryAdapter();
-    deliveryAdapter.reset(order);
-    // Check and calculate delivery
-    emitter.emit("core-order-check-delivery", order);
-    try {
-      /**
-        * Calling the calculation check and delivery suggests that it will come empty.
-       * If something was changed in the order in the delivery fields, the adapter should not be launched.
-       */
-      if(!order.deliveryCost && !order.deliveryItem) {
-        let delivery = await deliveryAdapter.calculate(order);
-        if(!delivery.item) {
-          order.deliveryCost = delivery.cost
-        } else {
-          order.deliveryItem = delivery.item
-          order.deliveryCost = (await Dish.findOne({id: delivery.item})).price
-        }
-        order.deliveryDescription = delivery.message
-      } else {
-        sails.log.debug(`Core > order > skip delivery calculate: ${order.deliveryCost}: ${order.deliveryItem}`)
-      }
-    } catch (error) {
-      sails.log.error(`Core > order > delivery calculate fail: `, error)
-    }
-    emitter.emit("core-order-after-check-delivery", order);
+    delete(order.dishes);
+    await Order.update({ id: order.id }, {...order});
+    
+    ////////////////////
+    // CHECKOUT COUNTING
 
+    order = await Order.countCart({id: order.id});
+    
     /**
      *  Bonus spending
      * */ 
@@ -717,32 +713,24 @@ let Model = {
       order.bonusesTotal = bonusCoverage.toNumber();
     }
 
-    const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
-
-    // Check order empty
-    if (order.dishesCount === 0) {
-      throw {
-        code: 13,
-        error: "order is empty",
-      };
-    }
-
-    /** save after updates in emiter 
-    * there are doubts that it is needed here
-    */
+    
+    
+    sails.log.silly("Order > check > after wait general emitter", order, results);
+    emitter.emit("core-order-after-check-counting", order);
+    
     delete(order.dishes);
     await Order.update({ id: order.id }, {...order});
 
-    sails.log.silly("Order > check > after wait general emitter", order, results);
-
-    emitter.emit("core-order-after-check", order, customer, isSelfService, address);
 
     /** The check can pass without listeners, because the check itself is minimal
     * has basic checks. And is self-sufficient, but
     * is still set by default so all checks must be passed
     */
-    const checkConfig = (await Settings.use("check")) as any;
+    const checkConfig = (await Settings.use("CHECKOUT_STRATEGY")) as any;
 
+    /**
+     * If checkout policy not required then push next
+     */
     if (checkConfig && checkConfig.notRequired) {
       if ((await Order.getState(order.id)) !== "CHECKOUT") {
         await Order.next(order.id, "CHECKOUT");
@@ -775,6 +763,7 @@ let Model = {
         error: `one or more results from core-order-check was not sucessed\n last error: ${error}`,
       };
     }
+
     /**
      * Here, there should be the logic of the success of at least one listener, but
      * At the moment, no practical application was found.
@@ -1127,10 +1116,32 @@ async countCart(criteria: CriteriaQuery<Order>) {
       
       emitter.emit("core:count-before-delivery-cost", order);
 
+      // Calcualte delivery cost
+      let deliveryAdapter = await Adapter.getDeliveryAdapter();
+      await deliveryAdapter.reset(order);
+      if (order.selfService === false) {
+        emitter.emit("core-order-check-delivery", order);
+        try {
+          let delivery = await deliveryAdapter.calculate(order);
+          if(!delivery.item) {
+            order.deliveryCost = delivery.cost
+          } else {
+            order.deliveryItem = delivery.item
+            order.deliveryCost = (await Dish.findOne({id: delivery.item})).price
+          }
+          order.deliveryDescription = delivery.message
+        } catch (error) {
+          sails.log.error(`Core > order > delivery calculate fail: `, error)
+        }
+        emitter.emit("core-order-after-check-delivery", order);
+      }
+      // END calculate delivery cost
+
       order.total = new Decimal(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
 
       order = (await Order.update({ id: order.id }, order).fetch())[0];
-     
+      
+
       emitter.emit("core-order-after-count", order);
       return order;
     } catch (error) {

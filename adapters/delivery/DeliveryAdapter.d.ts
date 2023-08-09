@@ -1,6 +1,6 @@
 import Order from "../../models/Order";
 export interface Delivery {
-    cost: number | null;
+    cost: number;
     item: string | undefined;
     message?: string;
 }
@@ -14,5 +14,5 @@ export default abstract class DeliveryAdapter {
      * Reset order
      * @returns void
      */
-    abstract reset(order: Order): Promise<void>;
+    reset(order: Order): Promise<void>;
 }
