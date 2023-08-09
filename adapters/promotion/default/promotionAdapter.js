@@ -18,7 +18,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
             }
         }
     }
-    // one method to get all promotions and id's 
+    // one method to get all promotions and id's
     async displayDish(dish) {
         let filteredPromotion = await PromotionAdapter.filterByConcept(dish.concept);
         let promotionByConcept = await PromotionAdapter.filterPromotions(filteredPromotion, dish);
@@ -42,7 +42,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     }
     static async filterByConcept(concept) {
         let modifiedConcept;
-        typeof concept === 'string' ? modifiedConcept = [concept] : modifiedConcept = concept;
+        typeof concept === "string" ? (modifiedConcept = [concept]) : (modifiedConcept = concept);
         return await Promotion.getAllByConcept(modifiedConcept);
     }
     static async filterPromotions(promotionsByConcept, target) {
@@ -59,13 +59,15 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         })
             .sort((a, b) => b.sortOrder - a.sortOrder);
         const filteredByCondition = await PromotionAdapter.filterByCondition(filteredPromotionsToApply, target);
-        // return first isJoint = false 
-        let filteredByJointPromotions = [filteredByCondition.find((promotion) => {
+        // return first isJoint = false
+        let filteredByJointPromotions = [
+            filteredByCondition.find((promotion) => {
                 return promotion.isJoint === false;
-            })];
+            }),
+        ];
         // return all isJoint = true
         if (!filteredByJointPromotions[0]) {
-            filteredByJointPromotions = filteredByCondition.filter(promotion => {
+            filteredByJointPromotions = filteredByCondition.filter((promotion) => {
                 return promotion.isJoint === true;
             });
         }
@@ -87,7 +89,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     // }
     // for configured discounts
     async addPromotionHandler(promotionToAdd) {
-        const DISCOUNT_ENABLE_BY_DEFAULT = await Settings.get("Promotion_ENABLE_BY_DEFAULT") ?? true;
+        const DISCOUNT_ENABLE_BY_DEFAULT = (await Settings.get("Promotion_ENABLE_BY_DEFAULT")) ?? true;
         let createInModelPromotion = {
             id: promotionToAdd.id,
             isJoint: promotionToAdd.isJoint,
@@ -96,8 +98,8 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
             enable: Boolean(DISCOUNT_ENABLE_BY_DEFAULT),
             isDeleted: false,
             createdByUser: false,
-            ...promotionToAdd.description && { description: promotionToAdd.description },
-            ...promotionToAdd.concept && { concept: promotionToAdd.concept },
+            ...(promotionToAdd.description && { description: promotionToAdd.description }),
+            ...(promotionToAdd.concept && { concept: promotionToAdd.concept }),
             configDiscount: promotionToAdd.configDiscount,
             sortOrder: 0,
             // productCategoryDiscounts: {},// discountToAdd.productCategoryDiscounts,
@@ -119,8 +121,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         return PromotionAdapter.promotions[id];
     }
     async getAllConcept(concept) {
-        return await Promotion
-            .getAllByConcept(concept);
+        return await Promotion.getAllByConcept(concept);
     }
     getActivePromotionsIds() {
         return Object.keys(PromotionAdapter.promotions);
@@ -135,7 +136,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         // ------------------------------------------ OrderDish update ------------------------------------------
         const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         for (const orderDish of orderDishes) {
-            await OrderDish.update({ id: orderDish.id }, { discountTotal: 0, discountType: '' }).fetch();
+            await OrderDish.update({ id: orderDish.id }, { discountTotal: 0, discountType: "" }).fetch();
         }
         await Order.updateOne({ id: order.id }, { discountTotal: 0 }).fetch();
     }
@@ -154,6 +155,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                 }
                 // TODO: if concept:arrays
                 if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, promotion.concept)) {
+                    console.log("stringsInArray: ==== ", orderDish.dish.concept, promotion.concept);
                     continue;
                 }
                 // ------------------------------------------ Decimal ------------------------------------------
@@ -164,7 +166,10 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                 }
                 if (spendDiscount.discountType === "percentage") {
                     // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+spendDiscount.discountAmount / 100).toNumber();
-                    orderDishDiscountCost = new decimal_js_1.default(orderDish.dish.price).mul(orderDish.amount).mul(+spendDiscount.discountAmount / 100).toNumber();
+                    orderDishDiscountCost = new decimal_js_1.default(orderDish.dish.price)
+                        .mul(orderDish.amount)
+                        .mul(+spendDiscount.discountAmount / 100)
+                        .toNumber();
                     discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
                 }
                 let orderDishDiscount = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
