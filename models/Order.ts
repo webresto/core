@@ -1148,6 +1148,10 @@ async countCart(criteria: CriteriaQuery<Order>) {
       }
 
       // Calcualte delivery costs
+      /**
+       * // TODO: Better move to new method add address to Order, because is not every time needed
+       * planned v2
+       */
       emitter.emit("core:count-before-delivery-cost", order);
       let deliveryAdapter = await Adapter.getDeliveryAdapter();
       await deliveryAdapter.reset(order);
