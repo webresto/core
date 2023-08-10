@@ -40,7 +40,7 @@ export default abstract class AbstractPromotionAdapter {
             await Order.updateOne({ id: order.id }, { discountTotal: 0}) // isPromoting: false
         }
 
-        public static applyPromotion: (orderId: any, spendPromotion: IconfigDiscount, promotionId: any) => Promise<void>;
+        public static applyPromotion: (orderId: any, spendPromotion: IconfigDiscount, promotionId: any) => Promise<PromotionState>;
         public static initialize:(initParams?: {
             [key: string]: string | number | boolean;
         }) => PromotionAdapter;

@@ -7,6 +7,7 @@ import Dish from './../../../models/Dish';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import { PromotionAdapter } from './../../../adapters/promotion/default/promotionAdapter';
 import { stringsInArray } from "../../../libs/stringsInArray";
+import configuredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 
 export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public id: string = "aaaa";
@@ -49,7 +50,7 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     }
 
     public async action(order: Order): Promise<PromotionState> {
-        await PromotionAdapter.applyPromotion(order.id, this.configDiscount, this.id)
+        await configuredPromotion.applyPromotion(order.id, this.configDiscount, this.id)
         return {
             message: "test",
             type: "test",

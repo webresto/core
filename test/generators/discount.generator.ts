@@ -5,6 +5,7 @@ import Order, { PromotionState } from './../../models/Order';
 import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
 import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
+import configuredPromotion from "../../adapters/promotion/default/configuredPromotion";
 
 var autoincrement: number = 0;
 
@@ -62,12 +63,7 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
     return false
   },
     action: async function (order: Order):Promise<PromotionState> {
-      await PromotionAdapter.applyPromotion(order.id, this.configDiscount, this.id)
-      return {
-        message: this.id,
-        type: this.id,
-        state: {}
-      }
+      return await configuredPromotion.applyPromotion(order.id, this.configDiscount, this.id)
     },
     // sortOrder: 0,
     displayGroup: async function (group:Group, user?: string): Promise<Group[]> {

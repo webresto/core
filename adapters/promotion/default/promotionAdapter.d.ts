@@ -1,7 +1,6 @@
 import Order, { PromotionState } from "../../../models/Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
-import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import Promotion from "../../../models/Promotion";
 import Group from "../../../models/Group";
 import Dish from "../../../models/Dish";
@@ -20,11 +19,6 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
     static getPromotionHandlerById(id: string): Promise<AbstractPromotionHandler | undefined>;
     getAllConcept(concept: string[]): Promise<AbstractPromotionHandler[]>;
     getActivePromotionsIds(): string[];
-    static clearOfPromotion(orderId: any): Promise<void>;
-    /**
-     * @deprecated //TODO: move to configured discount
-     */
-    static applyPromotion(orderId: any, spendDiscount: IconfigDiscount, promotionId: any): Promise<void>;
     static initialize(initParams?: {
         [key: string]: string | number | boolean;
     }): PromotionAdapter;

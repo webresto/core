@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryDiscountAdapter = void 0;
 const AbstractPromotion_1 = require("../../../adapters/promotion/AbstractPromotion");
 const findModelInstance_1 = require("../../../libs/findModelInstance");
-const promotionAdapter_1 = require("./../../../adapters/promotion/default/promotionAdapter");
 const stringsInArray_1 = require("../../../libs/stringsInArray");
+const configuredPromotion_1 = require("../../../adapters/promotion/default/configuredPromotion");
 class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
     constructor() {
         super(...arguments);
@@ -12,9 +12,6 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
         this.isJoint = true;
         this.name = "New Year";
         this.isPublic = false;
-        // public enable: boolean = true;
-        // public isDeleted: boolean = false;
-        // public createdByUser: boolean = false;
         this.description = "some text";
         this.concept = ["NewYear", "Happy Birthday", "origin"];
         this.configDiscount = {
@@ -47,7 +44,7 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
         return false;
     }
     async action(order) {
-        await promotionAdapter_1.PromotionAdapter.applyPromotion(order.id, this.configDiscount, this.id);
+        await configuredPromotion_1.default.applyPromotion(order.id, this.configDiscount, this.id);
         return {
             message: "test",
             type: "test",

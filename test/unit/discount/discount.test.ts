@@ -14,6 +14,7 @@ import Group from './../../../models/Group';
 import Dish from './../../../models/Dish';
 import Order, { PromotionState } from './../../../models/Order';
 import { stringsInArray } from '../../../libs/stringsInArray';
+import configuredPromotion from '../../../adapters/promotion/default/configuredPromotion';
 
 describe('Discount', function () {
    // TODO: tests throw get adapter
@@ -34,7 +35,7 @@ describe('Discount', function () {
           },
         name: "1-name",
         description: "string",
-        concept: ["origin","clear"],
+        concept: ["origin","clear","Happy Birthday"],
         condition: (arg: Group | Dish | Order): boolean =>{
           if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, discountEx.concept) ) {
             // Order.populate()
@@ -56,12 +57,7 @@ describe('Discount', function () {
       },
         action: async (order: Order): Promise<PromotionState> => {
             // console.log("ACTION ================awdawdawd")
-             await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
-          return {
-            message: "test",
-            type: "test",
-            state: {}
-          }  
+             return await configuredPromotion.applyPromotion(order.id, discountEx.configDiscount, discountEx.id) 
         },
         isPublic: true,
         isJoint: true,
@@ -108,7 +104,7 @@ describe('Discount', function () {
         // await DiscountAdapter.addPromotionHandler(discInMemory)
         let discount = await Promotion.find({});
         let discountById = await PromotionAdapter.getPromotionHandlerById(discountEx.id)
-        // console.log(discount);
+        // console.log(discountById);
 
         expect(discount[0]).to.be.an("object");
         expect(discountById).to.be.an("object");
@@ -126,7 +122,7 @@ describe('Discount', function () {
 
         await discountAdapter.addPromotionHandler(discountEx)
 
-        await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
+        await configuredPromotion.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
 
         // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         // console.log(orderDishes)
@@ -152,7 +148,8 @@ describe('Discount', function () {
         // let result1 = await Dish.findOne(dish1.id)
 
         // DiscountAdapter.applyToOrder(order)
-        await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
+        await configuredPromotion.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
+        // await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
 
         let result = await Order.findOne(order.id) //.populate("dishes");
         // console.log(result, "get discount order")
@@ -165,8 +162,8 @@ describe('Discount', function () {
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
         //Decimal check 15.2,  10.1
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "origin"}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "origin"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "clear"}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "clear"}));
         
 
         await Order.addDish({id: order.id}, dish1, 5, [], "", "testa");
@@ -184,10 +181,10 @@ describe('Discount', function () {
         // console.log(result, "get discount order")
         expect(result.discountTotal).to.equal(11.97);
 
-        // let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10, concept: "a"}));
-        // let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15, concept: "a"}));
-        // await Order.addDish({id: order.id}, dish3, 5, [], "", "test");
-        // await Order.addDish({id: order.id}, dish4, 4, [], "", "test");
+        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10, concept: "a"}));
+        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15, concept: "a"}));
+        await Order.addDish({id: order.id}, dish3, 5, [], "", "test");
+        await Order.addDish({id: order.id}, dish4, 4, [], "", "test");
 
         order = await Order.findOne(order.id)
 
@@ -217,7 +214,7 @@ describe('Discount', function () {
         // let result1 = await Dish.findOne(dish1.id)
 
         // DiscountAdapter.applyToOrder(order)
-        await PromotionAdapter.applyPromotion(order.id, discInMemory.configDiscount, discInMemory.id)
+        await configuredPromotion.applyPromotion(order.id, discInMemory.configDiscount, discInMemory.id)
 
         let result = await Order.findOne(order.id) //.populate("dishes");
         // console.log(result, "get discount order")
@@ -229,11 +226,11 @@ describe('Discount', function () {
         let order = await Order.create({id: "test-discounts-on-different-types"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin"}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin"}));
-        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "origin"}));
-        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "origin"}));
-        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "origin"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Happy Birthday"}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Happy Birthday"}));
+        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "Happy Birthday"}));
+        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "Happy Birthday"}));
+        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "Happy Birthday"}));
         
         await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
         await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
@@ -258,11 +255,11 @@ describe('Discount', function () {
         let order = await Order.create({id: "test-different-types-and-concept"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Happy Birthday"}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "NewYear"}));
-        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "origin"}));
+        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "Happy Birthday"}));
         let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "NewYear"}));
-        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "origin"}));
+        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "Happy Birthday"}));
         
         await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2"); 
         await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");

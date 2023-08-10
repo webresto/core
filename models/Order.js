@@ -53,7 +53,7 @@ let attributes = {
      ** Means that the basket was modified by the adapter,
      * It also prevents the repeat call of the action of the handler of the handler
      * */
-    isPromoted: {
+    isPromoting: {
         type: "boolean"
     },
     /** */
@@ -926,12 +926,12 @@ let Model = {
             order.orderTotal = basketTotal.toNumber();
             order.basketTotal = basketTotal.toNumber();
             // Calcualte promotion cost
-            if (!order.isPromoted) {
+            if (!order.isPromoting) {
                 emitter.emit("core:count-before-promotion", order);
                 let promotionAdapter = await Adapter.getPromotionAdapter();
                 try {
                     order.promotionState = await promotionAdapter.processOrder(order);
-                    order.isPromoted = true;
+                    order.isPromoting = true;
                 }
                 catch (error) {
                     sails.log.error(`Core > order > promotion calculate fail: `, error);

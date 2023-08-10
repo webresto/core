@@ -20,17 +20,18 @@ class configuredPromotion extends AbstractPromotion_1.default {
         this.externalId = promotion.externalId;
     }
     condition(arg) {
-        if ((0, findModelInstance_1.default)(arg) === "Order" && this.concept.includes(arg.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             // order not used for configuredPromotion
             // Order.populate()
+            console.log("condition");
             return true;
         }
-        if ((0, findModelInstance_1.default)(arg) === "Dish" && this.concept.includes(arg.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             if (this.config.dishes.includes(arg.id)) {
                 return true;
             }
         }
-        if ((0, findModelInstance_1.default)(arg) === "Group" && this.concept.includes(arg.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             if (this.config.groups.includes(arg.id)) {
                 return true;
             }
@@ -39,52 +40,8 @@ class configuredPromotion extends AbstractPromotion_1.default {
     }
     async action(order) {
         console.log(this.config + "  action");
-        // return await PromotionAdapter.applyPromotion(order.id, this.config, this.id)
-        // return Promise.resolve()
-        if (order.user && typeof order.user === "string") {
-            // order.dishes
-            const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-            let discountCost = new decimal_js_1.default(0);
-            for (const orderDish of orderDishes) {
-                let orderDishDiscountCost = 0;
-                if (!orderDish.dish) {
-                    sails.log.error("orderDish", orderDish.id, "has no such dish");
-                    continue;
-                }
-                if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, this.concept)) {
-                    continue;
-                }
-                // TODO: if concept:arrays
-                // ------------------------------------------ Decimal ------------------------------------------
-                if (this.configDiscount.discountType === "flat") {
-                    orderDishDiscountCost = new decimal_js_1.default(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
-                    discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
-                    // discountCost += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(spendDiscount.discountAmount * orderDish.dish.amount ).toNumber();
-                }
-                if (this.configDiscount.discountType === "percentage") {
-                    // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+spendDiscount.discountAmount / 100).toNumber();
-                    orderDishDiscountCost = new decimal_js_1.default(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
-                    discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
-                }
-                let orderDishDiscount = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
-                await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType }).fetch();
-                // await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscountCost, discountType: spendDiscount.discountType}).fetch();
-                // await OrderDish.update({ id: orderDish.id }, { amount: orderDish.dish.price, discount: discountCost}).fetch();
-            }
-            // Update the order with new total
-            let orderDiscount = new decimal_js_1.default(order.discountTotal).add(discountCost.toNumber()).toNumber();
-            await Order.updateOne({ id: order.id }, { discountTotal: orderDiscount });
-            // let discountCoverage: Decimal;
-            // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
-        }
-        else {
-            throw `User not found in Order, applyDiscount failed`;
-        }
-        return {
-            message: `Configured promotion`,
-            type: "configured-promotion",
-            state: {}
-        };
+        let mass = await configuredPromotion.applyPromotion(order.id, this.config, this.id);
+        return mass;
     }
     async displayGroup(group, user) {
         if (user) {
@@ -97,6 +54,56 @@ class configuredPromotion extends AbstractPromotion_1.default {
             //  return await Dish.display(this.concept, group.id)
             return await Dish.display(dish);
         }
+    }
+    static async applyPromotion(orderId, spendDiscount, promotionId) {
+        const order = await Order.findOne({ id: orderId });
+        if (order.user && typeof order.user === "string") {
+            const promotion = await Promotion.findOne({ id: promotionId });
+            // order.dishes
+            const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
+            let discountCost = new decimal_js_1.default(0);
+            for (const orderDish of orderDishes) {
+                let orderDishDiscountCost = 0;
+                if (!orderDish.dish) {
+                    sails.log.error("orderDish", orderDish.id, "has no such dish");
+                    continue;
+                }
+                if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, promotion.concept)) {
+                    continue;
+                }
+                // ------------------------------------------ Decimal ------------------------------------------
+                if (spendDiscount.discountType === "flat") {
+                    orderDishDiscountCost = new decimal_js_1.default(spendDiscount.discountAmount).mul(orderDish.amount).toNumber();
+                    discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
+                    // discountCost += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(spendDiscount.discountAmount * orderDish.dish.amount ).toNumber();
+                }
+                if (spendDiscount.discountType === "percentage") {
+                    // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+spendDiscount.discountAmount / 100).toNumber();
+                    orderDishDiscountCost = new decimal_js_1.default(orderDish.dish.price)
+                        .mul(orderDish.amount)
+                        .mul(+spendDiscount.discountAmount / 100)
+                        .toNumber();
+                    discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
+                }
+                let orderDishDiscount = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
+                await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: spendDiscount.discountType }).fetch();
+                // await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscountCost, discountType: spendDiscount.discountType}).fetch();
+                // await OrderDish.update({ id: orderDish.id }, { amount: orderDish.dish.price, discount: discountCost}).fetch();
+            }
+            // Update the order with new total
+            let orderDiscount = new decimal_js_1.default(order.discountTotal).add(discountCost.toNumber()).toNumber();
+            await Order.updateOne({ id: orderId }, { discountTotal: orderDiscount });
+            // let discountCoverage: Decimal;
+            // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
+        }
+        else {
+            throw `User not found in Order, applyDiscount failed`;
+        }
+        return {
+            message: `Configured promotion`,
+            type: "configured-promotion",
+            state: {}
+        };
     }
 }
 exports.default = configuredPromotion;

@@ -19,4 +19,5 @@ export default class configuredPromotion extends AbstractPromotionHandler {
     action(order: Order): Promise<PromotionState>;
     displayGroup(group: Group, user?: string | User): Promise<Group[]>;
     displayDish(dish: Dish, user?: string | User): Promise<Dish[]>;
+    static applyPromotion(orderId: any, spendDiscount: IconfigDiscount, promotionId: any): Promise<PromotionState>;
 }

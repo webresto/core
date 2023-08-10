@@ -19,7 +19,7 @@ export default abstract class AbstractPromotionAdapter {
     static getAllConcept: (concept: string[]) => Promise<AbstractPromotionHandler[]>;
     abstract getActivePromotionsIds(): string[];
     static clearOfPromotion(orderId: any): Promise<void>;
-    static applyPromotion: (orderId: any, spendPromotion: IconfigDiscount, promotionId: any) => Promise<void>;
+    static applyPromotion: (orderId: any, spendPromotion: IconfigDiscount, promotionId: any) => Promise<PromotionState>;
     static initialize: (initParams?: {
         [key: string]: string | number | boolean;
     }) => PromotionAdapter;
