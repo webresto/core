@@ -687,6 +687,7 @@ let Model = {
       }
     }
 
+
     // Custom emmitters checks
     const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
 
@@ -1175,7 +1176,18 @@ async countCart(criteria: CriteriaQuery<Order>) {
       if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
         emitter.emit("core-order-check-delivery", order);
         try {
-          let delivery = await deliveryAdapter.calculate(order);
+          let delivery: Delivery
+          try {
+            delivery = await deliveryAdapter.calculate(order);
+          } catch (error) {
+            delivery = {
+              allowed: false,
+              cost: 0,
+              item: undefined,
+              message: error,
+              deliveryTimeMinutes: Infinity
+            }
+          }
           order.delivery = delivery
           if(!delivery.item) {
             order.deliveryCost = delivery.cost
@@ -1185,6 +1197,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
           }
           order.deliveryDescription = delivery.message
         } catch (error) {
+
           sails.log.error(`Core > order > delivery calculate fail: `, error)
         }
         emitter.emit("core-order-after-check-delivery", order);

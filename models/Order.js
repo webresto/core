@@ -949,7 +949,19 @@ let Model = {
             if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
                 emitter.emit("core-order-check-delivery", order);
                 try {
-                    let delivery = await deliveryAdapter.calculate(order);
+                    let delivery;
+                    try {
+                        delivery = await deliveryAdapter.calculate(order);
+                    }
+                    catch (error) {
+                        delivery = {
+                            allowed: false,
+                            cost: 0,
+                            item: undefined,
+                            message: error,
+                            deliveryTimeMinutes: Infinity
+                        };
+                    }
                     order.delivery = delivery;
                     if (!delivery.item) {
                         order.deliveryCost = delivery.cost;
