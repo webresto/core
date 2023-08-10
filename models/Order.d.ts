@@ -11,6 +11,7 @@ import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
+import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 export interface PromotionState {
     type: string;
     message: string;
@@ -70,13 +71,20 @@ declare let attributes: {
     rmsStatusCode: string;
     deliveryStatus: string;
     selfService: boolean;
+    delivery: Delivery;
     /** Notification about delivery
      * ex: time increased due to traffic jams
-     * @deprecated should changed for deliveryMessage
+     * @deprecated should changed for order.delivery.message
      * */
     deliveryDescription: string;
     message: string;
+    /**
+     * @deprecated use order.delivery.item
+     */
     deliveryItem: string | Dish;
+    /**
+     * @deprecated use order.delivery.cost
+     */
     deliveryCost: number;
     /** order total weight */
     totalWeight: number;
@@ -181,6 +189,7 @@ declare let Model: {
         rmsStatusCode?: string;
         deliveryStatus?: string;
         selfService?: boolean;
+        delivery?: Delivery;
         deliveryDescription?: string;
         message?: string;
         deliveryItem?: string | Dish;

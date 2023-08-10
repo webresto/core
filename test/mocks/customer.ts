@@ -6,13 +6,13 @@ export const customer: Customer = {
     code: "+1",
     number: "9999999999"
   },
-  name: "Freeman Morgan",
+  name: "Piter Parker",
 };
 
 export const address: Address = {
   streetId: "1234",
   city: "New York",
-  street: "Green Road",
-  home: "42",
-  comment: "",
+  street: "Courtlandt Ave",
+  home: "681",
+  comment: "My Bronx",
 };

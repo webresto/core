@@ -2,9 +2,11 @@ import Order from "../../models/Order";
 
 
 export interface Delivery {
+  deliveryTimeMinutes: number
+  allowed: boolean
   cost: number
   item: string | undefined
-  message?: string
+  message: string
 }
 
 export default abstract class DeliveryAdapter {
@@ -20,6 +22,7 @@ export default abstract class DeliveryAdapter {
    * @returns void
    */
   public async reset(order: Order): Promise<void> {
+    order.delivery = null
     order.deliveryCost = 0;
     order.deliveryItem = null;
     order.deliveryDescription = '';

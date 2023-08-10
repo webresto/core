@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import {ORMModel} from "../interfaces/ORMModel";
 import Order from "../models/Order";
-import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+import { OptionalAll } from "../interfaces/toolsTS";
 import User from "../models/User"
 import { v4 as uuid } from "uuid";
 

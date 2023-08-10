@@ -3,7 +3,7 @@ import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import OrderDish from "./OrderDish";
 import PaymentDocument from "./PaymentDocument";
-
+import Maintenance from "./Maintenance"
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
@@ -12,12 +12,10 @@ import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import PaymentMethod from "./PaymentMethod";
-import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
-import { SpendDiscount } from "../interfaces/SpendDiscount";
-import { IconfigDiscount } from "../interfaces/ConfigDiscount";
-import { PromotionAdapter } from "../adapters/promotion/default/promotionAdapter";
+import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 
 
 export interface PromotionState {
@@ -129,9 +127,14 @@ let attributes = {
     defaultsTo: false,
   } as unknown as boolean,
 
+
+  delivery: {
+    type: "json"
+  } as unknown as Delivery | null,
+
   /** Notification about delivery 
    * ex: time increased due to traffic jams 
-   * @deprecated should changed for deliveryMessage
+   * @deprecated should changed for order.delivery.message
    * */
   deliveryDescription: {
     type: "string",
@@ -140,10 +143,17 @@ let attributes = {
 
   message: "string", // deprecated
 
+  /**
+   * @deprecated use order.delivery.item
+   */
   deliveryItem: {
     model: "Dish",
   } as unknown as Dish | string,
 
+
+  /**
+   * @deprecated use order.delivery.cost
+   */
   deliveryCost: {
     type: "number",
     defaultsTo: 0,
@@ -663,7 +673,7 @@ let Model = {
       order.selfService = true;
       emitter.emit("core-order-is-self-service", order, customer, isSelfService, address);
     } else {
-      order.selfService = false;
+      order.selfService = false;  
       if (address) {
         checkAddress(address);
         order.address = {...address};
@@ -688,6 +698,13 @@ let Model = {
 
     order = await Order.countCart({id: order.id});
     
+    if(!order.selfService && !order.delivery.allowed) {
+      throw {
+        code: 11,
+        error: "Delivery not allowed",
+      };
+    }
+
     /**
      *  Bonus spending
      * */ 
@@ -1159,6 +1176,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
         emitter.emit("core-order-check-delivery", order);
         try {
           let delivery = await deliveryAdapter.calculate(order);
+          order.delivery = delivery
           if(!delivery.item) {
             order.deliveryCost = delivery.cost
           } else {
@@ -1296,12 +1314,12 @@ function checkAddress(address) {
     };
   }
 
-  // if (!address.city) {
-  //   throw {
-  //     code: 7,
-  //     error: "address.city is required",
-  //   };
-  // }
+  if (!address.city) {
+    throw {
+      code: 7,
+      error: "address.city is required",
+    };
+  }
 }
 
 async function checkPaymentMethod(paymentMethodId) {

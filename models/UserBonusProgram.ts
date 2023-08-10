@@ -2,8 +2,6 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
-import Dish from "./Dish";
-import Order from "./Order";
 import User from "../models/User"
 import BonusProgram from "./BonusProgram";
 import Decimal from "decimal.js";
