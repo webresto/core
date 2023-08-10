@@ -20,6 +20,10 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
     static getPromotionHandlerById(id: string): Promise<AbstractPromotionHandler | undefined>;
     getAllConcept(concept: string[]): Promise<AbstractPromotionHandler[]>;
     getActivePromotionsIds(): string[];
+    static clearOfPromotion(orderId: any): Promise<void>;
+    /**
+     * @deprecated //TODO: move to configured discount
+     */
     static applyPromotion(orderId: any, spendDiscount: IconfigDiscount, promotionId: any): Promise<void>;
     static initialize(initParams?: {
         [key: string]: string | number | boolean;

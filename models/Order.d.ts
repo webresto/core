@@ -11,6 +11,7 @@ import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
+import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 export interface PromotionState {
     type: string;
     message: string;
@@ -28,7 +29,7 @@ declare let attributes: {
     /**
      * @deprecated will be rename to `Items` in **v2**
      */
-    dishes: number[] | OrderDish[];
+    dishes: OrderDish[] | number[];
     paymentMethod: any;
     /** */
     paymentMethodTitle: string;
@@ -70,13 +71,20 @@ declare let attributes: {
     rmsStatusCode: string;
     deliveryStatus: string;
     selfService: boolean;
+    delivery: Delivery;
     /** Notification about delivery
      * ex: time increased due to traffic jams
-     * @deprecated should changed for deliveryMessage
+     * @deprecated should changed for order.delivery.message
      * */
     deliveryDescription: string;
     message: string;
+    /**
+     * @deprecated use order.delivery.item
+     */
     deliveryItem: string | Dish;
+    /**
+     * @deprecated use order.delivery.cost
+     */
     deliveryCost: number;
     /** order total weight */
     totalWeight: number;
@@ -111,7 +119,7 @@ export default Order;
 declare let Model: {
     beforeCreate(orderInit: any, cb: (err?: string) => void): void;
     /** Add dish into order */
-    addDish(criteria: CriteriaQuery<Order>, dish: string | Dish, amount: number, modifiers: OrderModifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: CriteriaQuery<Order>, dish: Dish | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void>;
@@ -155,7 +163,7 @@ declare let Model: {
         shortId?: string;
         concept?: string;
         isMixedConcept?: boolean;
-        dishes?: number[] | OrderDish[];
+        dishes?: OrderDish[] | number[];
         paymentMethod?: any;
         paymentMethodTitle?: string;
         paid?: boolean;
@@ -181,6 +189,7 @@ declare let Model: {
         rmsStatusCode?: string;
         deliveryStatus?: string;
         selfService?: boolean;
+        delivery?: Delivery;
         deliveryDescription?: string;
         message?: string;
         deliveryItem?: string | Dish;

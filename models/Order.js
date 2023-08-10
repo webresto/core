@@ -89,18 +89,27 @@ let attributes = {
         type: "boolean",
         defaultsTo: false,
     },
+    delivery: {
+        type: "json"
+    },
     /** Notification about delivery
      * ex: time increased due to traffic jams
-     * @deprecated should changed for deliveryMessage
+     * @deprecated should changed for order.delivery.message
      * */
     deliveryDescription: {
         type: "string",
         allowNull: true
     },
     message: "string",
+    /**
+     * @deprecated use order.delivery.item
+     */
     deliveryItem: {
         model: "Dish",
     },
+    /**
+     * @deprecated use order.delivery.cost
+     */
     deliveryCost: {
         type: "number",
         defaultsTo: 0,
@@ -537,6 +546,12 @@ let Model = {
         ////////////////////
         // CHECKOUT COUNTING
         order = await Order.countCart({ id: order.id });
+        if (!order.selfService && !order.delivery.allowed) {
+            throw {
+                code: 11,
+                error: "Delivery not allowed",
+            };
+        }
         /**
          *  Bonus spending
          * */
@@ -924,13 +939,30 @@ let Model = {
                 emitter.emit("core-order-after-promotion", order);
             }
             // Calcualte delivery costs
+            /**
+             * // TODO: Better move to new method add address to Order, because is not every time needed
+             * planned v2
+             */
             emitter.emit("core:count-before-delivery-cost", order);
             let deliveryAdapter = await Adapter.getDeliveryAdapter();
             await deliveryAdapter.reset(order);
-            if (order.selfService === false) {
+            if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
                 emitter.emit("core-order-check-delivery", order);
                 try {
-                    let delivery = await deliveryAdapter.calculate(order);
+                    let delivery;
+                    try {
+                        delivery = await deliveryAdapter.calculate(order);
+                    }
+                    catch (error) {
+                        delivery = {
+                            allowed: false,
+                            cost: 0,
+                            item: undefined,
+                            message: error,
+                            deliveryTimeMinutes: Infinity
+                        };
+                    }
+                    order.delivery = delivery;
                     if (!delivery.item) {
                         order.deliveryCost = delivery.cost;
                     }
@@ -1043,12 +1075,12 @@ function checkAddress(address) {
             error: "address.home is required",
         };
     }
-    // if (!address.city) {
-    //   throw {
-    //     code: 7,
-    //     error: "address.city is required",
-    //   };
-    // }
+    if (!address.city) {
+        throw {
+            code: 7,
+            error: "address.city is required",
+        };
+    }
 }
 async function checkPaymentMethod(paymentMethodId) {
     if (!(await PaymentMethod.checkAvailable(paymentMethodId))) {

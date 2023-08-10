@@ -8,8 +8,21 @@ class DefaultDeliveryAdapter extends DeliveryAdapter_1.default {
         const deliveryItem = await Settings.get("DELIVERY_ITEM");
         const deliveryMessage = await Settings.get("DELIVERY_MESSAGE");
         const freeDeliveryFrom = await Settings.get("FREE_DELIVERY_FROM");
+        const minDeliveryAmount = await Settings.get("MIN_DELIVERY_AMOUNT");
+        const minDeliveryTimeInMinutes = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
+        if (order.basketTotal < minDeliveryAmount ?? 0) {
+            return {
+                allowed: false,
+                deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,
+                cost: 0,
+                item: undefined,
+                message: `Minimum amount not allowed`
+            };
+        }
         if (order.basketTotal > (parseFloat(freeDeliveryFrom) ?? Infinity)) {
             return {
+                allowed: true,
+                deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,
                 cost: 0,
                 item: undefined,
                 message: ''
@@ -17,6 +30,8 @@ class DefaultDeliveryAdapter extends DeliveryAdapter_1.default {
         }
         else {
             return {
+                allowed: true,
+                deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,
                 cost: deliveryCost ? parseFloat(deliveryCost) : 0,
                 item: deliveryItem ?? undefined,
                 message: deliveryMessage ?? ''

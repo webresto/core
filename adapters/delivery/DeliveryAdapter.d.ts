@@ -1,8 +1,10 @@
 import Order from "../../models/Order";
 export interface Delivery {
+    deliveryTimeMinutes: number;
+    allowed: boolean;
     cost: number;
     item: string | undefined;
-    message?: string;
+    message: string;
 }
 export default abstract class DeliveryAdapter {
     /**

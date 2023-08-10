@@ -42,6 +42,8 @@ describe("RMS adapter", function () {
     // check self service 
     await Order.check({id: order.id}, customer, true);
     order = await Order.findOne(order.id)
+
+    expect(order.delivery).to.equal(null);
     expect(order.deliveryDescription).to.equal('');
     expect(order.deliveryCost).to.equal(0);
     expect(order.deliveryItem).to.equal(null);
@@ -52,6 +54,7 @@ describe("RMS adapter", function () {
     await Settings.set("DELIVERY_ITEM", deliveryItem.id);
     await Order.check({id: order.id}, customer, false, address);
     order = await Order.findOne(order.id)
+    expect(order.delivery.allowed).to.equal(true);
     expect(order.deliveryCost).to.equal(deliveryItem.price);
     expect(order.deliveryItem).to.equal(deliveryItem.id);
     
@@ -60,6 +63,7 @@ describe("RMS adapter", function () {
     await Settings.set("DELIVERY_MESSAGE", deliveryMessage)
     await Order.check({id: order.id}, customer, false, address);
     order = await Order.findOne(order.id)
+    expect(order.delivery.allowed).to.equal(true);
     expect(order.deliveryDescription).to.equal(deliveryMessage);
     
     
@@ -68,10 +72,27 @@ describe("RMS adapter", function () {
     await Order.addDish({id: order.id}, dishes[3], Math.ceil(freeDeliveryFrom/dishes[3].price), [], "", "user");
     await Order.check({id: order.id}, customer, false, address);
     order = await Order.findOne(order.id)
+
+    expect(order.delivery.allowed).to.equal(true);
     expect(order.deliveryDescription).to.equal('');
     expect(order.deliveryCost).to.equal(0);
     expect(order.deliveryItem).to.equal(null);    
 
+
+    order = await Order.findOne(order.id)
+    const minDeliveryAmount = order.basketTotal + 100;
+    await Settings.set("MIN_DELIVERY_AMOUNT", minDeliveryAmount)
+    
+    let error = null
+    try {
+      await Order.check({id: order.id}, customer, false, address);
+    } catch (_error) {
+      error = _error      
+    }
+    order = await Order.findOne(order.id)
+    expect(error).to.not.equal(null);
+    expect(order.delivery.allowed).to.equal(false);
+    await Settings.set("MIN_DELIVERY_AMOUNT", 0)
   });
 });
 

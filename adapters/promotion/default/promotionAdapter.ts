@@ -156,7 +156,9 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return Object.keys(PromotionAdapter.promotions);
   }
 
-  // TODO: remove
+  /**
+   * @deprecated //TODO: move to configured discount 
+   */
   public static async applyPromotion(orderId, spendDiscount: IconfigDiscount, promotionId): Promise<void> {
     const order = await Order.findOne({ id: orderId });
 
