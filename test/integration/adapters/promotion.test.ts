@@ -178,8 +178,7 @@ describe("Promotion adapter integration test", function () {
     },
       action: async (order: Order): Promise<PromotionState> => {
           // console.log("ACTION ================awdawdawd")
-          let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Recursion"}));
-        
+          let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Recursion"}));
           await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
 
           return await configuredPromotion.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
