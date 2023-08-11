@@ -180,6 +180,7 @@ export class Adapter {
       if (typeof adapter === "string") {
         adapterName = adapter;
       } else if (adapter instanceof DeliveryAdapter) {
+        console.log(">>>")
         this.instanceDeliveryAdapter = adapter;
         return this.instanceDeliveryAdapter;
       }

@@ -158,6 +158,7 @@ class Adapter {
                 adapterName = adapter;
             }
             else if (adapter instanceof DeliveryAdapter_1.default) {
+                console.log(">>>");
                 this.instanceDeliveryAdapter = adapter;
                 return this.instanceDeliveryAdapter;
             }
