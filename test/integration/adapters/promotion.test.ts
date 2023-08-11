@@ -205,7 +205,7 @@ describe("Promotion adapter integration test", function () {
     let createInModelPromotion: Promotion = {
       id: 'config2addaw-id',
       isJoint: false,
-      name: "AWDAW",
+      name: "Promotion",
       isPublic: true,
       isDeleted: false,
       createdByUser: true,
@@ -213,7 +213,7 @@ describe("Promotion adapter integration test", function () {
       concept: ["amongus"],
       configDiscount: config,
       sortOrder: 1,
-      externalId: "awdawd213123",
+      externalId: "Promotion3",
       worktime: null,
       enable: true
     };
@@ -300,11 +300,50 @@ describe("Promotion adapter integration test", function () {
 
   })
 
-  it("Promotion states should passed in order", async ()=>{
+  it("Promotion states should passed in order discount", async ()=>{
 
+    let promotion10state:AbstractPromotionHandler = discountGenerator({
+      concept: ["Promotion states"],
+      id: 'flat2aaa-id',
+      isJoint: true,
+      name: 'awdaawad',
+      isPublic: true,
+      configDiscount: {
+        discountType: "flat",
+        discountAmount: 1,
+        dishes: [],
+        groups: [],
+        excludeModifiers: true
+      },
+    })
+
+    let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
+
+    let order = await Order.create({id: "configured-promotion-integration-promotion-states"}).fetch();
+    await Order.updateOne({id: order.id}, {concept: "Promotion states",user: "user"});
+
+    let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Promotion states"}));
+    let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Promotion states"}));
+        
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+
+    await discountAdapter.addPromotionHandler(promotion10state)
+
+    order = await Order.findOne(order.id)
+    let promotionStates = await discountAdapter.processOrder(order)
+    let example = {
+      message: `Configured promotion`,
+      type: "configured-promotion",
+      state: {}
+    } 
+    // console.log(promotionStates[0], "PROMOTION STATE =======================================")
+    expect(promotionStates[0].message).to.equal(example.message);
+    expect(promotionStates[0].type).to.equal(example.type);
+    // expect(promotionStates[0].state).to.equal(example.state);
   })
 
-  it("Check prepend recursion", async ()=>{
+  it("Check prepend recursion discount", async ()=>{
     // for call recursion we should add dish from action in promotionHandler
     
     let discountEx:AbstractPromotionHandler =  {
@@ -381,7 +420,7 @@ describe("Promotion adapter integration test", function () {
     let result = await Order.findOne(order.id) 
     // console.log(result)
 
-    expect(result.discountTotal).to.equal(11.13);
+    expect(result.discountTotal).to.equal(18.73);
 
 
   })
