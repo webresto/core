@@ -244,9 +244,65 @@ describe("Promotion adapter integration test", function () {
      * Here need add 2 discount for cross group and check what is stop after first found
      */
 
-  it("Check flat and percentage discount for specific dish/group", ()=>{})
+  it("Check flat and percentage discount for specific dish/group", async ()=>{
+    
+    let flatDiscount:AbstractPromotionHandler = discountGenerator({
+      concept: ["specific"],
+      id: 'flat2-id',
+      isJoint: true,
+      name: 'awdaawd',
+      isPublic: true,
+      configDiscount: {
+        discountType: "flat",
+        discountAmount: 1,
+        dishes: [],
+        groups: [],
+        excludeModifiers: true
+      },
+    })
 
-  it("Promotion states should passed in order", ()=>{})
+    let percentDiscount:AbstractPromotionHandler = discountGenerator({
+      concept: ["specific"],
+      id: 'percent2-id',
+      isJoint: true,
+      name: 'awdaawd',
+      isPublic: true,
+      configDiscount: {
+        discountType: "percentage",
+        discountAmount: 10,
+        dishes: [],
+        groups: [],
+        excludeModifiers: true
+      },
+    })
+
+    let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
+
+    let order = await Order.create({id: "configured-promotion-integration-specific"}).fetch();
+    await Order.updateOne({id: order.id}, {concept: "specific",user: "user"});
+
+    let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "specific"}));
+    let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "specific"}));
+        
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+
+    await discountAdapter.addPromotionHandler(flatDiscount)
+    await discountAdapter.addPromotionHandler(percentDiscount)
+
+    order = await Order.findOne(order.id)
+    await discountAdapter.processOrder(order)
+    
+    let result = await Order.findOne(order.id) 
+    // console.log(result)
+
+    expect(result.discountTotal).to.equal(20.13);
+
+  })
+
+  it("Promotion states should passed in order", async ()=>{
+
+  })
 
   it("Check prepend recursion", async ()=>{
     // for call recursion we should add dish from action in promotionHandler
