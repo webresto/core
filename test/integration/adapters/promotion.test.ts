@@ -16,6 +16,9 @@ import { PromotionState } from "../../../models/Order";
 import Group from './../../../models/Group';
 import Dish from './../../../models/Dish';
 import Order  from './../../../models/Order';
+import Promotion  from './../../../models/Promotion';
+import discountGenerator from "../../generators/discount.generator";
+
 
 
 describe("Promotion adapter integration test", function () {
@@ -131,9 +134,112 @@ describe("Promotion adapter integration test", function () {
 
   });
 
-  it("IsJoint: false configured discount over total discount for specific dish", ()=>{})
+  it("IsJoint: false configured discount over total discount for specific dish", async ()=>{
+    
+    let config:IconfigDiscount = {
+      discountType: "percentage",
+      discountAmount: 10,
+      dishes: [],
+      groups: [],
+      excludeModifiers: true
+    }
+
+    let promotion10 = new configuredPromotion({
+      concept: ["jointfalse"],
+      id: 'config2-id',
+      isJoint: false,
+      name: 'awdawd',
+      isPublic: true,
+      configDiscount: null,
+      description: "aaa",
+      externalId: "externalID2"
+    }, 
+    config)
+
+    let promotion1flat:AbstractPromotionHandler = discountGenerator({
+      concept: ["jointfalse"],
+      id: 'aa22-id',
+      isJoint: true,
+      name: 'awdaawd',
+      isPublic: true,
+      configDiscount: {
+        discountType: "flat",
+        discountAmount: 1,
+        dishes: [],
+        groups: [],
+        excludeModifiers: true
+      },
+    })
+
+    let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
+    let order = await Order.create({id: "configured-promotion-integration-test-joint-false"}).fetch();
+    await Order.updateOne({id: order.id}, {concept: "jointfalse",user: "user"});
+
+    let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "jointfalse"}));
+    let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "jointfalse"}));
+        
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+
+    await discountAdapter.addPromotionHandler(promotion10)
+    await discountAdapter.addPromotionHandler(promotion1flat)
+
+    order = await Order.findOne(order.id)
+    await discountAdapter.processOrder(order)
+    
+    let result = await Order.findOne(order.id) 
+    expect(result.discountTotal).to.equal(11.13);
+  })
   
-  it("configured discount for specific dish/group, over total discount with sortOrder", ()=>{})
+  it("configured discount for specific dish/group, over total discount with sortOrder", async ()=>{
+    let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
+
+    let config:IconfigDiscount = {
+      discountType: "percentage",
+      discountAmount: 10,
+      dishes: [],
+      groups: [],
+      excludeModifiers: true
+    }
+
+    let createInModelPromotion: Promotion = {
+      id: 'config2addaw-id',
+      isJoint: false,
+      name: "AWDAW",
+      isPublic: true,
+      isDeleted: false,
+      createdByUser: true,
+      description: "aaa",
+      concept: ["amongus"],
+      configDiscount: config,
+      sortOrder: 1,
+      externalId: "awdawd213123",
+      worktime: null,
+      enable: true
+    };
+
+    //setORMID
+    await Promotion.createOrUpdate(createInModelPromotion);
+
+    let order = await Order.create({id: "configured-promotion-integration-test-diff"}).fetch();
+    await Order.updateOne({id: order.id}, {concept: "amongus",user: "user"});
+
+    let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "amongus"}));
+    let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "amongus"}));
+        
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+
+    // await discountAdapter.addPromotionHandler(promotion10)
+
+    order = await Order.findOne(order.id)
+    await discountAdapter.processOrder(order)
+    
+    let result = await Order.findOne(order.id) 
+    // console.log(result)
+
+    expect(result.discountTotal).to.equal(11.13);
+  })
     /**
      * Here need add 2 discount for cross group and check what is stop after first found
      */
