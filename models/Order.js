@@ -527,6 +527,8 @@ let Model = {
         else {
             order.selfService = false;
             if (address) {
+                if (!address.city)
+                    address.city = await Settings.get("city");
                 checkAddress(address);
                 order.address = { ...address };
             }

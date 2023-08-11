@@ -675,6 +675,7 @@ let Model = {
     } else {
       order.selfService = false;  
       if (address) {
+        if (!address.city) address.city = await Settings.get("city") as string
         checkAddress(address);
         order.address = {...address};
       } else {
@@ -1195,7 +1196,6 @@ async countCart(criteria: CriteriaQuery<Order>) {
           }
           order.deliveryDescription = delivery.message
         } catch (error) {
-
           sails.log.error(`Core > order > delivery calculate fail: `, error)
         }
         emitter.emit("core-order-after-check-delivery", order);
