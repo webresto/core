@@ -17,7 +17,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                 promotionStates.push(state);
             }
         }
-        return promotionStates;
+        return Promise.resolve(promotionStates);
     }
     // one method to get all promotions and id's
     async displayDish(dish) {
@@ -25,6 +25,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         let promotionByConcept = await PromotionAdapter.filterPromotions(filteredPromotion, dish);
         if (promotionByConcept[0] === undefined)
             return undefined;
+        // TODO: this should work on first condition isJoint and isPublic should be true
         if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
             return PromotionAdapter.promotions[promotionByConcept[0].id];
         }
@@ -36,6 +37,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         let promotionByConcept = await PromotionAdapter.filterPromotions(filteredPromotion, group);
         if (promotionByConcept[0] === undefined)
             return undefined;
+        // TODO: this should work on first condition isJoint and isPublic should be true
         if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
             return PromotionAdapter.promotions[promotionByConcept[0].id];
         }
@@ -111,9 +113,18 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         // await Discount.setAlive([...id])
         PromotionAdapter.promotions[promotionToAdd.id] = promotionToAdd; // = new configuredDiscount(discountToAdd)
     }
-    static async recreatePromotionHandler(promotionToAdd) {
-        if (!PromotionAdapter.promotions[promotionToAdd.id]) {
-            PromotionAdapter.promotions[promotionToAdd.id] = new configuredPromotion_1.default(promotionToAdd, promotionToAdd.configDiscount);
+    static async recreateConfiguredPromotionHandler(promotionToAdd) {
+        if (promotionToAdd.enable === false && PromotionAdapter.promotions[promotionToAdd.id]) {
+            delete PromotionAdapter.promotions[promotionToAdd.id];
+            return;
+        }
+        try {
+            if (!PromotionAdapter.promotions[promotionToAdd.id]) {
+                PromotionAdapter.promotions[promotionToAdd.id] = new configuredPromotion_1.default(promotionToAdd, promotionToAdd.configDiscount);
+            }
+        }
+        catch (e) {
+            sails.log.error("recreateConfiguredPromotionHandler", e);
         }
     }
     static async getPromotionHandlerById(id) {

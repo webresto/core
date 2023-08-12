@@ -4,7 +4,7 @@ import Group from '../../../models/Group';
 import Dish from '../../../models/Dish';
 import Order, { PromotionState } from '../../../models/Order';
 import User from '../../../models/User';
-export default class configuredPromotion extends AbstractPromotionHandler {
+export default class ConfiguredPromotion extends AbstractPromotionHandler {
     constructor(promotion: AbstractPromotionHandler, config?: IconfigDiscount);
     private config;
     id: string;
@@ -19,5 +19,5 @@ export default class configuredPromotion extends AbstractPromotionHandler {
     action(order: Order): Promise<PromotionState>;
     displayGroup(group: Group, user?: string | User): Promise<Group[]>;
     displayDish(dish: Dish, user?: string | User): Promise<Dish[]>;
-    static applyPromotion(orderId: any, spendDiscount: IconfigDiscount, promotionId: any): Promise<PromotionState>;
+    applyPromotion(orderId: any): Promise<PromotionState>;
 }

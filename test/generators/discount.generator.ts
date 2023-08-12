@@ -6,6 +6,7 @@ import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdap
 import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
 import configuredPromotion from "../../adapters/promotion/default/configuredPromotion";
+import ConfiguredPromotion from "../../adapters/promotion/default/configuredPromotion";
 
 var autoincrement: number = 0;
 
@@ -27,7 +28,7 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
   autoincrement++;
   return {
     id: config.id || faker.random.uuid(),
-    description: faker.random.words(25),
+    description: "Discount generator description",
     // sortOrder: autoincrement,
     name: config.name || faker.commerce.productName(),
     // isDeleted: config.isDeleted || false,
@@ -39,8 +40,8 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
     configDiscount: config.configDiscount || {
       discountAmount: 1.33,
       discountType: "flat",
-      dishes: [],
-      groups: [],
+      dishes: ["a"],
+      groups: ["a"],
       excludeModifiers: false
   },
     // productCategoryDiscounts: undefined,
@@ -63,7 +64,9 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
     return false
   },
     action: async function (order: Order):Promise<PromotionState> {
-      return await configuredPromotion.applyPromotion(order.id, this.configDiscount, this.id)
+      let configuredPromotion: ConfiguredPromotion = new ConfiguredPromotion(this, this.configDiscount)
+      return await configuredPromotion.applyPromotion(order.id)
+      // return await configuredPromotion.applyPromotion(order.id, this.configDiscount, this.id)
     },
     // sortOrder: 0,
     displayGroup: async function (group:Group, user?: string): Promise<Group[]> {

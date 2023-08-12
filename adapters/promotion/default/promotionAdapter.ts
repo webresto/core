@@ -9,7 +9,6 @@ import Promotion from "../../../models/Promotion";
 import Group from "../../../models/Group";
 import Dish from "../../../models/Dish";
 
-
 export class PromotionAdapter extends AbstractPromotionAdapter {
   static promotions: { [key: string]: AbstractPromotionHandler } = {};
   
@@ -28,7 +27,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       }
     }
     
-    return promotionStates
+    return Promise.resolve(promotionStates)
   }
 
   // one method to get all promotions and id's
@@ -38,6 +37,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
     if (promotionByConcept[0] === undefined) return undefined;
 
+    // TODO: this should work on first condition isJoint and isPublic should be true
     if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
       return PromotionAdapter.promotions[promotionByConcept[0].id];
     }
@@ -50,7 +50,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     let promotionByConcept: Promotion[] | undefined = await PromotionAdapter.filterPromotions(filteredPromotion, group);
 
     if (promotionByConcept[0] === undefined) return undefined;
-
+    // TODO: this should work on first condition isJoint and isPublic should be true
     if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
       return PromotionAdapter.promotions[promotionByConcept[0].id];
     }
@@ -138,10 +138,22 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     PromotionAdapter.promotions[promotionToAdd.id] = promotionToAdd; // = new configuredDiscount(discountToAdd)
   }
 
-  public static async recreatePromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void> {
-    if (!PromotionAdapter.promotions[promotionToAdd.id]) {
-      PromotionAdapter.promotions[promotionToAdd.id] = new configuredPromotion(promotionToAdd, promotionToAdd.configDiscount);
+  public static async recreateConfiguredPromotionHandler(promotionToAdd: Promotion): Promise<void> {
+    
+    if(promotionToAdd.enable === false && PromotionAdapter.promotions[promotionToAdd.id]){
+      delete PromotionAdapter.promotions[promotionToAdd.id]
+      return 
     }
+
+    try{
+      if (!PromotionAdapter.promotions[promotionToAdd.id] ) {
+        PromotionAdapter.promotions[promotionToAdd.id] = new configuredPromotion(promotionToAdd, promotionToAdd.configDiscount);
+      }
+    } catch(e){
+      sails.log.error("recreateConfiguredPromotionHandler", e)
+
+    }
+
   }
 
   public static async getPromotionHandlerById(id: string): Promise<AbstractPromotionHandler | undefined> {

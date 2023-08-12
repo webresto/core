@@ -17,8 +17,8 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
         this.configDiscount = {
             discountAmount: 10,
             discountType: "percentage",
-            dishes: [],
-            groups: [],
+            dishes: ["a"],
+            groups: ["a"],
             excludeModifiers: false
         };
         // public sortOrder: number = 1;
@@ -44,7 +44,8 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
         return false;
     }
     async action(order) {
-        await configuredPromotion_1.default.applyPromotion(order.id, this.configDiscount, this.id);
+        let configuredPromotion = new configuredPromotion_1.default(this, this.configDiscount);
+        await configuredPromotion.applyPromotion(order.id);
         return {
             message: "test",
             type: "test",

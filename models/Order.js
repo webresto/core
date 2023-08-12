@@ -932,8 +932,9 @@ let Model = {
                 emitter.emit("core:count-before-promotion", order);
                 let promotionAdapter = await Adapter.getPromotionAdapter();
                 try {
-                    order.promotionState = await promotionAdapter.processOrder(order);
                     order.isPromoting = true;
+                    order.promotionState = await promotionAdapter.processOrder(order);
+                    order.isPromoting = false;
                 }
                 catch (error) {
                     sails.log.error(`Core > order > promotion calculate fail: `, error);

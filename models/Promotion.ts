@@ -18,6 +18,14 @@ import AbstractPromotionHandler from "../adapters/promotion/AbstractPromotion";
 //   }, CHECK_INTERVAL);
 // });
 
+sails.on("lifted", async ()=>{
+  let promotions = await Promotion.find({ enable:true })
+  
+  for(let i=0; i<promotions.length; i++){
+    PromotionAdapter.recreatePromotionHandler(promotions[i]);
+  }
+})
+
 let attributes = {
   id: {
     type: "string",

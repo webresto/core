@@ -5,10 +5,17 @@ const AbstractPromotion_1 = require("../AbstractPromotion");
 const findModelInstance_1 = require("../../../libs/findModelInstance");
 const decimal_js_1 = require("decimal.js");
 const stringsInArray_1 = require("../../../libs/stringsInArray");
-class configuredPromotion extends AbstractPromotion_1.default {
+class ConfiguredPromotion extends AbstractPromotion_1.default {
     constructor(promotion, config) {
         super();
         this.config = {};
+        if (config === undefined) {
+            throw new Error("ConfiguredPromotion: Config not defined");
+        }
+        if ((config.dishes.length + config.groups.length) === 0
+            || !config.discountType || !config.discountAmount) {
+            throw new Error("ConfiguredPromotion: bad config");
+        }
         this.config = config;
         this.id = promotion.id,
             this.isJoint = promotion.isJoint,
@@ -23,7 +30,7 @@ class configuredPromotion extends AbstractPromotion_1.default {
         if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             // order not used for configuredPromotion
             // Order.populate()
-            console.log("condition");
+            // TODO: check if includes groups and dishes
             return true;
         }
         if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
@@ -40,25 +47,26 @@ class configuredPromotion extends AbstractPromotion_1.default {
     }
     async action(order) {
         console.log(this.config + "  action");
-        let mass = await configuredPromotion.applyPromotion(order.id, this.config, this.id);
+        let mass = await this.applyPromotion(order.id);
         return mass;
     }
     async displayGroup(group, user) {
         if (user) {
             //  return await Group.display(this.concept, group.id)
+            // TODO: show discount for group
             return await Group.display(group);
         }
     }
     async displayDish(dish, user) {
         if (user) {
             //  return await Dish.display(this.concept, group.id)
+            //  TODO: show discount for dish
             return await Dish.display(dish);
         }
     }
-    static async applyPromotion(orderId, spendDiscount, promotionId) {
+    async applyPromotion(orderId) {
         const order = await Order.findOne({ id: orderId });
         if (order.user && typeof order.user === "string") {
-            const promotion = await Promotion.findOne({ id: promotionId });
             // order.dishes
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             let discountCost = new decimal_js_1.default(0);
@@ -68,26 +76,26 @@ class configuredPromotion extends AbstractPromotion_1.default {
                     sails.log.error("orderDish", orderDish.id, "has no such dish");
                     continue;
                 }
-                if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, promotion.concept)) {
+                if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, this.concept)) {
                     continue;
                 }
                 // ------------------------------------------ Decimal ------------------------------------------
-                if (spendDiscount.discountType === "flat") {
-                    orderDishDiscountCost = new decimal_js_1.default(spendDiscount.discountAmount).mul(orderDish.amount).toNumber();
+                if (this.configDiscount.discountType === "flat") {
+                    orderDishDiscountCost = new decimal_js_1.default(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
                     discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
-                    // discountCost += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(spendDiscount.discountAmount * orderDish.dish.amount ).toNumber();
+                    // discountCost += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(this.configDiscount.discountAmount * orderDish.dish.amount ).toNumber();
                 }
-                if (spendDiscount.discountType === "percentage") {
-                    // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+spendDiscount.discountAmount / 100).toNumber();
+                if (this.configDiscount.discountType === "percentage") {
+                    // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
                     orderDishDiscountCost = new decimal_js_1.default(orderDish.dish.price)
                         .mul(orderDish.amount)
-                        .mul(+spendDiscount.discountAmount / 100)
+                        .mul(+this.configDiscount.discountAmount / 100)
                         .toNumber();
                     discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
                 }
                 let orderDishDiscount = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
-                await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: spendDiscount.discountType }).fetch();
-                // await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscountCost, discountType: spendDiscount.discountType}).fetch();
+                await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType }).fetch();
+                // await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscountCost, discountType: this.configDiscount.discountType}).fetch();
                 // await OrderDish.update({ id: orderDish.id }, { amount: orderDish.dish.price, discount: discountCost}).fetch();
             }
             // Update the order with new total
@@ -100,10 +108,10 @@ class configuredPromotion extends AbstractPromotion_1.default {
             throw `User not found in Order, applyDiscount failed`;
         }
         return {
-            message: `Configured promotion`,
+            message: `${this.description}`,
             type: "configured-promotion",
             state: {}
         };
     }
 }
-exports.default = configuredPromotion;
+exports.default = ConfiguredPromotion;

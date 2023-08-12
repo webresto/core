@@ -8,6 +8,7 @@ import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import { PromotionAdapter } from './../../../adapters/promotion/default/promotionAdapter';
 import { stringsInArray } from "../../../libs/stringsInArray";
 import configuredPromotion from "../../../adapters/promotion/default/configuredPromotion";
+import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 
 export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public id: string = "aaaa";
@@ -19,8 +20,8 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public configDiscount: IconfigDiscount = {
         discountAmount: 10,
         discountType: "percentage",
-        dishes: [],
-        groups: [],
+        dishes: ["a"],
+        groups: ["a"],
         excludeModifiers: false
     };
     // public sortOrder: number = 1;
@@ -50,7 +51,8 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     }
 
     public async action(order: Order): Promise<PromotionState> {
-        await configuredPromotion.applyPromotion(order.id, this.configDiscount, this.id)
+        let configuredPromotion: ConfiguredPromotion = new ConfiguredPromotion(this, this.configDiscount)
+        await configuredPromotion.applyPromotion(order.id)
         return {
             message: "test",
             type: "test",

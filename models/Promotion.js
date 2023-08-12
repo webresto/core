@@ -9,6 +9,12 @@ const promotionAdapter_1 = require("./../adapters/promotion/default/promotionAda
 //     checkMaintenance();
 //   }, CHECK_INTERVAL);
 // });
+sails.on("lifted", async () => {
+    let promotions = await Promotion.find({ enable: true });
+    for (let i = 0; i < promotions.length; i++) {
+        promotionAdapter_1.PromotionAdapter.recreatePromotionHandler(promotions[i]);
+    }
+});
 let attributes = {
     id: {
         type: "string",
