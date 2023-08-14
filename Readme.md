@@ -1,4 +1,4 @@
-# Webresto/Core 
+# RestoCore 
 <span class="badge-npmversion"><a href="https://npmjs.org/package/@webresto/core" title="View this project on NPM"><img src="https://img.shields.io/npm/v/@webresto/core.svg" alt="NPM version" /></a></span>
 
 Food E-Commerce backend core repository.
