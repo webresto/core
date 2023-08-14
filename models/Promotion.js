@@ -37,6 +37,10 @@ let attributes = {
     sortOrder: {
         type: "number",
     },
+    // teaser: {
+    //   type: "string",
+    //   required: true,
+    // } as unknown as string,
     description: {
         type: "string",
         required: true,
