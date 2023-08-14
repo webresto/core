@@ -779,7 +779,10 @@ let Model = {
     },
     /**  given populated Order instance  by criteria*/
     async populate(criteria) {
-        let order = await Order.findOne(criteria);
+        let order = await Order.findOne(criteria)
+            .populate('paymentMethod')
+            .populate('deliveryItem')
+            .populate('user');
         if (!order)
             throw `order by criteria: ${criteria},  not found`;
         let fullOrder;
