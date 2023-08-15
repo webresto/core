@@ -233,13 +233,27 @@ let Model = {
                 let childIndex = 0;
                 let childModifiers = [];
                 // assign group
-                if (dish.modifiers[index].modifierId !== undefined) {
-                    dish.modifiers[index].group = await Group.findOne({ id: modifier.modifierId });
+                if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined) {
+                    dish.modifiers[index].group = await Group.find({
+                        where: {
+                            or: [
+                                { id: modifier.modifierId },
+                                { rmsId: modifier.id }
+                            ]
+                        }
+                    }).limit(1)[0];
                 }
                 if (!modifier.childModifiers)
                     modifier.childModifiers = [];
                 for await (let childModifier of modifier.childModifiers) {
-                    let childModifierDish = await Dish.findOne({ id: childModifier.modifierId }).populate('images');
+                    let childModifierDish = await Dish.findOne({
+                        where: {
+                            or: [
+                                { id: childModifier.modifierId },
+                                { rmsId: childModifier.id }
+                            ]
+                        }
+                    }).populate('images');
                     if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)) {
                         // delete if dish not found
                         sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");

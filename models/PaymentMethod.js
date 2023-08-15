@@ -10,7 +10,7 @@ let attributes = {
     },
     externalId: {
         type: "string",
-        allowNull: true
+        allowNull: true,
     },
     /** The name of the payment method */
     title: "string",
@@ -25,7 +25,7 @@ let attributes = {
         required: true,
     },
     isCash: {
-        type: "boolean"
+        type: "boolean",
     },
     adapter: {
         type: "string",
@@ -91,12 +91,12 @@ let Model = {
         return false;
     },
     /**
-       * returns list of externalPaymentId
-       * @param  paymentMethodId
-       * @return { name: string, id: string }
-       */
+     * returns list of externalPaymentId
+     * @param  paymentMethodId
+     * @return { name: string, id: string }
+     */
     async getExternalPaymentMethods() {
-        let externalPayments = await Settings.get("EXTERNAL_PAYMENTS");
+        let externalPayments = (await Settings.get("EXTERNAL_PAYMENTS"));
         if (externalPayments) {
             return externalPayments;
         }

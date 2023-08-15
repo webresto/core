@@ -47,10 +47,10 @@ declare let Model: {
      */
     isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
     /**
-       * returns list of externalPaymentId
-       * @param  paymentMethodId
-       * @return { name: string, id: string }
-       */
+     * returns list of externalPaymentId
+     * @param  paymentMethodId
+     * @return { name: string, id: string }
+     */
     getExternalPaymentMethods(): Promise<ExternalPayment[]>;
     /**
      * Adds to the list possible to use payment ADAPTERs at their start.
