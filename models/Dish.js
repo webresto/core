@@ -234,26 +234,26 @@ let Model = {
                 let childModifiers = [];
                 // assign group
                 if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined) {
-                    dish.modifiers[index].group = await Group.find({
-                        where: {
-                            or: [
-                                { id: modifier.modifierId },
-                                { rmsId: modifier.id }
-                            ]
-                        }
-                    }).limit(1)[0];
+                    let orr = [];
+                    if (modifier.modifierId)
+                        orr.push({ id: modifier.modifierId });
+                    if (modifier.id)
+                        orr.push({ rmsId: modifier.id });
+                    dish.modifiers[index].group = await Group.find({ where: { or: orr } }).limit(1)[0];
                 }
                 if (!modifier.childModifiers)
                     modifier.childModifiers = [];
                 for await (let childModifier of modifier.childModifiers) {
-                    let childModifierDish = await Dish.findOne({
+                    let orr = [];
+                    if (childModifier.modifierId)
+                        orr.push({ id: childModifier.modifierId });
+                    if (childModifier.id)
+                        orr.push({ rmsId: childModifier.id });
+                    let childModifierDish = await Dish.find({
                         where: {
-                            or: [
-                                { id: childModifier.modifierId },
-                                { rmsId: childModifier.id }
-                            ]
+                            or: orr
                         }
-                    }).populate('images');
+                    }).populate('images').limit(1)[0];
                     if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)) {
                         // delete if dish not found
                         sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
