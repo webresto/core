@@ -33,20 +33,27 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public condition(arg: Group | Dish | Order): boolean {
         // this.concept.includes(arg.concept)
         if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept) ) {
+            // order not used for configuredPromotion
             // Order.populate()
+            // TODO: check if includes groups and dishes
+           // where to get groups?
+           
+
             return true;
         }
         
         if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, this.concept)) {
-            // TODO: check if includes in IconfigDish
-            return true;
+            if(this.configDiscount.dishes.includes(arg.id)){
+                return true;
+            }
         }
         
         if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, this.concept)) {
-             // TODO: check if includes in IconfigG
-            return true;
+            if(this.configDiscount.groups.includes(arg.id)){
+                return true;
+            }
         }
-        
+
         return false
     }
 

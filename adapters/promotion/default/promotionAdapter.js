@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PromotionAdapter = void 0;
 const AbstractPromotionAdapter_1 = require("../AbstractPromotionAdapter");
-const configuredPromotion_1 = require("./configuredPromotion");
 const worktime_1 = require("@webresto/worktime");
+const configuredPromotion_1 = require("./configuredPromotion");
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     async processOrder(order) {
         const promotionStates = [];
@@ -90,7 +90,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     //   await Discount.clear()
     //   DiscountAdapter.discounts = {};
     // }
-    // for configured discounts
+    // for Configured discounts
     async addPromotionHandler(promotionToAdd) {
         const DISCOUNT_ENABLE_BY_DEFAULT = (await Settings.get("Promotion_ENABLE_BY_DEFAULT")) ?? true;
         let createInModelPromotion = {
@@ -111,7 +111,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         //setORMID
         await Promotion.createOrUpdate(createInModelPromotion);
         // await Discount.setAlive([...id])
-        PromotionAdapter.promotions[promotionToAdd.id] = promotionToAdd; // = new configuredDiscount(discountToAdd)
+        PromotionAdapter.promotions[promotionToAdd.id] = promotionToAdd; // = new ConfiguredDiscount(discountToAdd)
     }
     static async recreateConfiguredPromotionHandler(promotionToAdd) {
         if (promotionToAdd.enable === false && PromotionAdapter.promotions[promotionToAdd.id]) {

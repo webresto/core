@@ -104,7 +104,7 @@ describe('Discount', function () {
         excludeModifiers: true
       },
     })
-
+      
       it("discount add ", async function () {
         // let a = await Adapter.getDiscountAdapter()
         let promotionAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
@@ -125,7 +125,7 @@ describe('Discount', function () {
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin"}));
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
-
+        await PromotionAdapter.clearOfPromotion(order.id)
         await discountAdapter.addPromotionHandler(discountEx)
         await configuredPromotion.applyPromotion(order.id)
 
@@ -146,6 +146,7 @@ describe('Discount', function () {
 
         await discountAdapter.addPromotionHandler(discountEx)
         // let result1 = await Dish.findOne(dish1.id)
+        await PromotionAdapter.clearOfPromotion(order.id)
         await configuredPromotion.applyPromotion(order.id)
 
         let result = await Order.findOne(order.id) 
@@ -210,6 +211,7 @@ describe('Discount', function () {
         // let result1 = await Dish.findOne(dish1.id)
 
         // DiscountAdapter.applyToOrder(order)
+        await PromotionAdapter.clearOfPromotion(order.id)
         await configuredPromotionFromMemory.applyPromotion(order.id)
 
         let result = await Order.findOne(order.id) //.populate("dishes");
@@ -383,7 +385,6 @@ describe('Discount', function () {
         let order = await Order.create({id: "test-clear-discount-order-dish-adapter"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "clear",user: "user"});
         // let promotionAdapter:AbstractPromotionAdapter = DiscountAdapter.initialize()
-        
         let a:AbstractPromotionAdapter = await Adapter.getPromotionAdapter()
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear"}));
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
@@ -406,7 +407,8 @@ describe('Discount', function () {
       });
 
 
-
+      
+     
       // if promotion returns
       
 

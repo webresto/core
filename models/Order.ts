@@ -16,6 +16,8 @@ import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
+import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
+import { PromotionAdapter } from "../adapters/promotion/default/promotionAdapter";
 
 
 export interface PromotionState {
@@ -1152,12 +1154,23 @@ async countCart(criteria: CriteriaQuery<Order>) {
       
 
       // Calcualte promotion cost
+      // let promotionAdapter = await Adapter.getPromotionAdapter()
+      // order.promotionState = await promotionAdapter.processOrder(order);
       if(!order.isPromoting){
         emitter.emit("core:count-before-promotion", order);
-        let promotionAdapter = await Adapter.getPromotionAdapter();
+        let promotionAdapter:AbstractPromotionAdapter = await Adapter.getPromotionAdapter();
+
           try {
             order.isPromoting = true;
+            await Order.updateOne({id: order.id}, {isPromoting: true});
+            // let orderPopulate = await Order.find({id: order.id}).populate("dishes")
+            // console.log(orderPopulate[0])
             order.promotionState = await promotionAdapter.processOrder(order);
+            let a = await Order.findOne(order.id) 
+
+            order.discountTotal = a.discountTotal
+            await Order.updateOne({id: order.id}, {isPromoting: false});
+
             order.isPromoting = false;
           } catch (error) {
             sails.log.error(`Core > order > promotion calculate fail: `, error)

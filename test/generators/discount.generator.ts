@@ -7,6 +7,8 @@ import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
 import configuredPromotion from "../../adapters/promotion/default/configuredPromotion";
 import ConfiguredPromotion from "../../adapters/promotion/default/configuredPromotion";
+import Decimal from "decimal.js";
+import { stringsInArray } from "../../libs/stringsInArray";
 
 var autoincrement: number = 0;
 
@@ -47,7 +49,6 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
     // productCategoryDiscounts: undefined,
     condition: function (arg: Group | Dish | Order): boolean {
       if (findModelInstanceByAttributes(arg) === "Order" && this.concept.includes(arg.concept)) {
-        // Order.populate()
         return true;
     }
     
@@ -66,7 +67,7 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
     action: async function (order: Order):Promise<PromotionState> {
       let configuredPromotion: ConfiguredPromotion = new ConfiguredPromotion(this, this.configDiscount)
       return await configuredPromotion.applyPromotion(order.id)
-      // return await configuredPromotion.applyPromotion(order.id, this.configDiscount, this.id)
+
     },
     // sortOrder: 0,
     displayGroup: async function (group:Group, user?: string): Promise<Group[]> {

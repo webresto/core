@@ -30,16 +30,21 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
     condition(arg) {
         // this.concept.includes(arg.concept)
         if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+            // order not used for configuredPromotion
             // Order.populate()
+            // TODO: check if includes groups and dishes
+            // where to get groups?
             return true;
         }
         if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-            // TODO: check if includes in IconfigDish
-            return true;
+            if (this.configDiscount.dishes.includes(arg.id)) {
+                return true;
+            }
         }
         if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-            // TODO: check if includes in IconfigG
-            return true;
+            if (this.configDiscount.groups.includes(arg.id)) {
+                return true;
+            }
         }
         return false;
     }

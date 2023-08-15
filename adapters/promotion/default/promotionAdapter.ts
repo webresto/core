@@ -2,12 +2,12 @@ import Decimal from "decimal.js";
 import Order, { PromotionState } from "../../../models/Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
-import configuredPromotion from "./configuredPromotion";
 import { WorkTimeValidator } from "@webresto/worktime";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import Promotion from "../../../models/Promotion";
 import Group from "../../../models/Group";
 import Dish from "../../../models/Dish";
+import ConfiguredPromotion from "./configuredPromotion";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
   static promotions: { [key: string]: AbstractPromotionHandler } = {};
@@ -19,7 +19,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
     let filteredPromotion = await PromotionAdapter.filterByConcept(order.concept);
     let promotionByConcept: Promotion[] | undefined = await PromotionAdapter.filterPromotions(filteredPromotion, order);
-
+    
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
         let state = await PromotionAdapter.promotions[promotion.id].action(order);
@@ -113,7 +113,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   //   DiscountAdapter.discounts = {};
   // }
 
-  // for configured discounts
+  // for Configured discounts
   public async addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void> {
     const DISCOUNT_ENABLE_BY_DEFAULT = (await Settings.get("Promotion_ENABLE_BY_DEFAULT")) ?? true;
     let createInModelPromotion: Promotion = {
@@ -135,7 +135,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     //setORMID
     await Promotion.createOrUpdate(createInModelPromotion);
     // await Discount.setAlive([...id])
-    PromotionAdapter.promotions[promotionToAdd.id] = promotionToAdd; // = new configuredDiscount(discountToAdd)
+    PromotionAdapter.promotions[promotionToAdd.id] = promotionToAdd; // = new ConfiguredDiscount(discountToAdd)
   }
 
   public static async recreateConfiguredPromotionHandler(promotionToAdd: Promotion): Promise<void> {
@@ -147,7 +147,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
     try{
       if (!PromotionAdapter.promotions[promotionToAdd.id] ) {
-        PromotionAdapter.promotions[promotionToAdd.id] = new configuredPromotion(promotionToAdd, promotionToAdd.configDiscount);
+        PromotionAdapter.promotions[promotionToAdd.id] = new ConfiguredPromotion(promotionToAdd, promotionToAdd.configDiscount);
       }
     } catch(e){
       sails.log.error("recreateConfiguredPromotionHandler", e)

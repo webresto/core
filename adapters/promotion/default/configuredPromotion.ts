@@ -43,10 +43,20 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     public externalId: string;
 
     public  condition(arg: Group | Dish | Order): boolean {
+        // console.log(arg, "CONFIGURED CONDITION")
         if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept) ) {
+            // let res:Order = arg as Order
             // order not used for configuredPromotion
-            // Order.populate()
             // TODO: check if includes groups and dishes
+            // where to get groups?
+
+            // const orderDishes = await OrderDish.find({ order: arg.id }).populate("dish");
+            // for (const orderDish of orderDishes) {
+            //   this.config.dishes.includes(orderDish.id + "")
+            //   this.config.groups.includes(orderDish)
+            // }
+            
+            // console.log(res.dishes," CONDITION RES")
             return true;
         }
         
@@ -66,14 +76,13 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     }
     
     public async action(order: Order): Promise<PromotionState> {
-        console.log(this.config + "  action")
+        // console.log(this.config + "  action")
         let mass:PromotionState = await this.applyPromotion(order.id)
         return mass
     }
  
     public async displayGroup(group: Group, user?: string | User): Promise<Group[]> {
         if(user){
-            //  return await Group.display(this.concept, group.id)
             // TODO: show discount for group
             return await Group.display(group)
         }
@@ -81,7 +90,6 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
     public async displayDish(dish: Dish, user?: string | User): Promise<Dish[]> {
         if(user){
-            //  return await Dish.display(this.concept, group.id)
             //  TODO: show discount for dish
             
             return await Dish.display(dish)
@@ -125,24 +133,24 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     
             let orderDishDiscount: number = new Decimal(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
             await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType }).fetch();
-    
-            // await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscountCost, discountType: this.configDiscount.discountType}).fetch();
-            // await OrderDish.update({ id: orderDish.id }, { amount: orderDish.dish.price, discount: discountCost}).fetch();
+  
           }
           // Update the order with new total
           let orderDiscount: number = new Decimal(order.discountTotal).add(discountCost.toNumber()).toNumber();
+          // console.log(orderDiscount, "===================== UPDATE ORDER ========================")
           await Order.updateOne({ id: orderId }, { discountTotal: orderDiscount })
-    
+ 
           // let discountCoverage: Decimal;
           // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
         } else {
           throw `User not found in Order, applyDiscount failed`;
         }
         return {
-            message: `${this.description}`,
-            type: "configured-promotion",
-            state: {}
-        }  
+          message: `${this.description}`,
+          type: "configured-promotion",
+          state: {}
+      } 
+        
       }
    
 }

@@ -27,7 +27,7 @@ describe("Promotion adapter integration test", function () {
   before(async function() {
 
   });
-
+  
   it("Configured discount total: 10% for all group", async () => {
     // // If item is added, then see that it stood in line.
     // // Pass the test response of Messaja
@@ -38,10 +38,21 @@ describe("Promotion adapter integration test", function () {
     const groups = await Group.find({})
     const groupsId = groups.map(group => group.id)
 
+    let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
+    let order = await Order.create({id: "configured-promotion-integration-testa"}).fetch();
+    await Order.updateOne({id: order.id}, {concept: "road",user: "user"});
+
+    let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "road"}));
+    let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "road"}));
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+    let dishes = await Dish.find({})
+    const dishesId = dishes.map(dish => dish.id)
+
     let config:IconfigDiscount = {
       discountType: "percentage",
       discountAmount: 10,
-      dishes: ["Aaa"],
+      dishes: dishesId,
       groups: groupsId,
       excludeModifiers: true
     }
@@ -58,22 +69,13 @@ describe("Promotion adapter integration test", function () {
     }, 
     config)
 
-    let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
-    let order = await Order.create({id: "configured-promotion-integration-testa"}).fetch();
-    await Order.updateOne({id: order.id}, {concept: "road",user: "user"});
-
-    let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "road"}));
-    let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "road"}));
-        
-    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
-    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
-
     await discountAdapter.addPromotionHandler(promotion10Percent)
 
     order = await Order.findOne(order.id)
     await discountAdapter.processOrder(order)
   
     let result = await Order.findOne(order.id) 
+    // console.log(result)
     expect(result.discountTotal).to.equal(11.13);
 
 
@@ -129,7 +131,7 @@ describe("Promotion adapter integration test", function () {
     // expect(order.deliveryItem).to.equal(null);    
 
   });
-
+  
   it("IsJoint: false configured discount over total discount for specific dish", async ()=>{
     
     // check specific group and dish for joint:false
@@ -248,10 +250,14 @@ describe("Promotion adapter integration test", function () {
 
     expect(result.discountTotal).to.equal(11.13);
   })
+
+
   //   /**
   //    * Here need add 2 discount for cross group and check what is stop after first found
   //    */
 
+
+  
   it("Check flat and percentage discount for specific dish/group and sortOrder", async ()=>{
     
     let flatDiscount:AbstractPromotionHandler = discountGenerator({
@@ -307,10 +313,11 @@ describe("Promotion adapter integration test", function () {
     expect(result.discountTotal).to.equal(20.13);
 
   })
-
+  
+  
   it("Promotion states should passed in order discount", async ()=>{
     let promotion10state:AbstractPromotionHandler = discountGenerator({
-      concept: ["Promotion states"],
+      concept: ["PromotionStatess"],
       id: 'flat2aaawa-id',
       isJoint: true,
       name: 'awdaawad',
@@ -327,116 +334,119 @@ describe("Promotion adapter integration test", function () {
     let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
     await discountAdapter.addPromotionHandler(promotion10state)
 
-    let order = await Order.create({id: "configured-promotion-integration-promotion-states"}).fetch();
-    await Order.updateOne({id: order.id}, {concept: "Promotion states",user: "user"});
+    let order = await Order.create({id: "configured-promotion-integration-states"}).fetch();
+    await Order.updateOne({id: order.id}, {concept: "PromotionStatess",user: "user"});
 
-    let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Promotion states"}));
-    let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Promotion states"}));
+    let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "PromotionStatess"}));
+    let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "PromotionStatess"}));
         
     await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
     await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
-    order = await Order.findOne(order.id)
-    // await discountAdapter.processOrder(order)
 
+    let res = await Order.findOne(order.id) 
+
+    // await discountAdapter.processOrder(res)
+    // res = await Order.findOne(order.id) 
+    
     let example = {
       message: `Discount generator description`,
       type: "configured-promotion",
       state: {}
     } 
-
-    expect(order.promotionState[0].message).to.equal(example.message);
-    expect(order.promotionState[0].type).to.equal(example.type);
+    expect(res.discountTotal).to.equal(9);
+    expect(res.promotionState[0].message).to.equal(example.message);
+    expect(res.promotionState[0].type).to.equal(example.type);
     // expect(order.promotionState[0].state).to.equal(example.state);
   })
 
-  it("Check display group and display dish", async ()=>{
+  // it("Check display group and display dish", async ()=>{
+  //     await Dish.display({id: "my-displayed-dish"})
 
-      await Dish.display({id: "my-displayed-dish"})
-
-  })
-
-  // it("Check prepend recursion discount", async ()=>{
-  //   // for call recursion we should add dish from action in promotionHandler
-    
-  //   let discountEx:AbstractPromotionHandler =  {
-  //     id: "1-id",
-  //     configDiscount: {
-  //         discountType: "percentage",
-  //         discountAmount: 10,
-  //         dishes: ["a"],
-  //         groups: ["a"],
-  //         excludeModifiers: true
-  //       },
-  //     name: "1-name",
-  //     description: "string",
-  //     concept: ["origin","clear","Happy Birthday","Recursion"],
-  //     condition: (arg: Group | Dish | Order): boolean =>{
-  //       if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, discountEx.concept) ) {
-  //         // Order.populate()
-  //         //discountEx.concept.includes(arg.concept)
-  //         return true;
-  //     }
-      
-  //     if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, discountEx.concept)) {
-  //         // TODO: check if includes in IconfigDish
-  //         return true;
-  //     }
-      
-  //     if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, discountEx.concept) ) {
-  //          // TODO: check if includes in IconfigG
-  //         return true;
-  //     }
-      
-  //     return false
-  //   },
-  //     action: async (order: Order): Promise<PromotionState> => {
-  //         // console.log("ACTION ================awdawdawd")
-
-  //         // let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Recursion"}));
-  //         // await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
-
-  //         let configuredPromotion: ConfiguredPromotion = new ConfiguredPromotion(discountEx, discountEx.configDiscount)
-  //         return await configuredPromotion.applyPromotion(order.id)
-  //         // return await this.applyPromotion(order.id, discountEx.configDiscount)
-  //     },
-  //     isPublic: true,
-  //     isJoint: true,
-  //     // sortOrder: 0,
-  //     displayGroup: async function (group:Group, user?: string): Promise<Group[]> {
-  //       if(user){
-  //         //  return await Dish.display(this.concept, group.id)
-  //         return await Group.display(group)
-  //       }
-  //     },
-  //     displayDish: async function (dish:Dish, user?: string): Promise<Dish[]> {
-  //       if(user){
-  //         //  return await Dish.display(this.concept, group.id)
-  //         return await Dish.display(dish)
-  //       }
-  //     },
-  //     externalId: "1-externalId",
-  // }
-
-  //   let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
-  //   let order = await Order.create({id: "configured-promotion-integration-recursion"}).fetch();
-  //   await Order.updateOne({id: order.id}, {concept: "Recursion",user: "user"});
-
-  //   let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Recursion"}));
-  //   let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Recursion"}));
-        
-  //   await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
-  //   await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
-
-  //   await discountAdapter.addPromotionHandler(discountEx)
-
-  //   order = await Order.findOne(order.id)
-  //   await discountAdapter.processOrder(order)
-    
-  //   let result = await Order.findOne(order.id) 
-  //   // console.log(result)
-
-  //   expect(result.discountTotal).to.equal(18.73);
   // })
+ 
+  
+
+  it("Check prepend recursion discount", async ()=>{
+    // for call recursion we should add dish from action in promotionHandler
+
+    let discountEx1:AbstractPromotionHandler =  {
+      id: "1aw42-idaaa",
+      configDiscount: {
+          discountType: "flat",
+          discountAmount: 1,
+          dishes: ["a"],
+          groups: ["a"],
+          excludeModifiers: true
+        },
+      name: "1124-name",
+      description: "sawdad",
+      concept: ["recursion"],
+      condition: (arg: Group | Dish | Order): boolean =>{
+        if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, discountEx1.concept) ) {
+          // let res:Order = arg as Order
+          // Order.populate()
+          //discountEx.concept.includes(arg.concept)
+          // console.log(arg, "ARGG===============================================")
+          // console.log(res.dishes," CONDITION RES")
+          return true;
+      }
+      
+      if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, discountEx1.concept)) {
+          // TODO: check if includes in IconfigDish
+          return true;
+      }
+      
+      if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, discountEx1.concept) ) {
+           // TODO: check if includes in IconfigG
+          return true;
+      }
+      
+      return false
+    },
+      action: async (order: Order): Promise<PromotionState> => {
+          // console.log("ACTION ================awdawdawd")
+  
+          let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "recursion"}));
+          await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+  
+          let configPromotion: ConfiguredPromotion = new ConfiguredPromotion(discountEx1, discountEx1.configDiscount)
+          return await configPromotion.applyPromotion(order.id)
+      },
+      isPublic: true,
+      isJoint: true,
+      // sortOrder: 0,
+      displayGroup: async function (group:Group, user?: string): Promise<Group[]> {
+        if(user){
+          //  return await Dish.display(this.concept, group.id)
+          return await Group.display(group)
+        }
+      },
+      displayDish: async function (dish:Dish, user?: string): Promise<Dish[]> {
+        if(user){
+          //  return await Dish.display(this.concept, group.id)
+          return await Dish.display(dish)
+        }
+      },
+      externalId: "1-externalIdaw",
+  }
+    
+    let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
+    await discountAdapter.addPromotionHandler(discountEx1)
+
+    let order = await Order.create({id: "configured-promotion-integration-recursion"}).fetch();
+    await Order.updateOne({id: order.id}, {concept: "recursion",user: "user"});
+
+    let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "recursion"}));
+    let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "recursion"}));
+        
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+    // 5 dishes + 5 from action
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+    // 4 dishes + 5 from action
+    
+    let result = await Order.findOne(order.id) 
+    expect(result.discountTotal).to.equal(19);
+  })
 });
 
 function sleep(ms) {

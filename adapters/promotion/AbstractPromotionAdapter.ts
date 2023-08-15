@@ -36,7 +36,6 @@ export default abstract class AbstractPromotionAdapter {
             for (const orderDish of orderDishes) {
               await OrderDish.update({ id: orderDish.id }, { discountTotal: 0, discountType: "" }).fetch();
             }
-        
             await Order.updateOne({ id: order.id }, { discountTotal: 0}) // isPromoting: false
         }
 

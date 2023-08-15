@@ -27,10 +27,18 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         this.externalId = promotion.externalId;
     }
     condition(arg) {
+        // console.log(arg, "CONFIGURED CONDITION")
         if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+            // let res:Order = arg as Order
             // order not used for configuredPromotion
-            // Order.populate()
             // TODO: check if includes groups and dishes
+            // where to get groups?
+            // const orderDishes = await OrderDish.find({ order: arg.id }).populate("dish");
+            // for (const orderDish of orderDishes) {
+            //   this.config.dishes.includes(orderDish.id + "")
+            //   this.config.groups.includes(orderDish)
+            // }
+            // console.log(res.dishes," CONDITION RES")
             return true;
         }
         if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
@@ -46,20 +54,18 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         return false;
     }
     async action(order) {
-        console.log(this.config + "  action");
+        // console.log(this.config + "  action")
         let mass = await this.applyPromotion(order.id);
         return mass;
     }
     async displayGroup(group, user) {
         if (user) {
-            //  return await Group.display(this.concept, group.id)
             // TODO: show discount for group
             return await Group.display(group);
         }
     }
     async displayDish(dish, user) {
         if (user) {
-            //  return await Dish.display(this.concept, group.id)
             //  TODO: show discount for dish
             return await Dish.display(dish);
         }
@@ -95,11 +101,10 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 }
                 let orderDishDiscount = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
                 await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType }).fetch();
-                // await OrderDish.update({ id: orderDish.id }, { discountTotal:  orderDishDiscountCost, discountType: this.configDiscount.discountType}).fetch();
-                // await OrderDish.update({ id: orderDish.id }, { amount: orderDish.dish.price, discount: discountCost}).fetch();
             }
             // Update the order with new total
             let orderDiscount = new decimal_js_1.default(order.discountTotal).add(discountCost.toNumber()).toNumber();
+            // console.log(orderDiscount, "===================== UPDATE ORDER ========================")
             await Order.updateOne({ id: orderId }, { discountTotal: orderDiscount });
             // let discountCoverage: Decimal;
             // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
