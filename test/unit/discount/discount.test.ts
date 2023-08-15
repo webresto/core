@@ -104,7 +104,7 @@ describe('Discount', function () {
         excludeModifiers: true
       },
     })
-      
+     
       it("discount add ", async function () {
         // let a = await Adapter.getDiscountAdapter()
         let promotionAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
@@ -117,21 +117,25 @@ describe('Discount', function () {
         expect(discountById).to.be.an("object");
       });
 
-      
+
       it("discount applyPromotion flat on order", async function () {
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
         let order = await Order.create({id: "add-dish-with-discount"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin"}));
-        await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
-        await PromotionAdapter.clearOfPromotion(order.id)
+        discountEx.configDiscount.dishes.push(dish1.id)
         await discountAdapter.addPromotionHandler(discountEx)
+
+        await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+
+        await PromotionAdapter.clearOfPromotion(order.id)
         await configuredPromotion.applyPromotion(order.id)
 
         let result = await Order.findOne(order.id) 
         expect(result.discountTotal).to.equal(6.65);
       });
+
 
       it("discount applyPromotion flat on order with different dishes", async function () {
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
@@ -141,10 +145,13 @@ describe('Discount', function () {
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin"}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin"}));
         
+        discountEx.configDiscount.dishes.push(dish1.id)
+        discountEx.configDiscount.dishes.push(dish2.id)
+        await discountAdapter.addPromotionHandler(discountEx)
+
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
         await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
 
-        await discountAdapter.addPromotionHandler(discountEx)
         // let result1 = await Dish.findOne(dish1.id)
         await PromotionAdapter.clearOfPromotion(order.id)
         await configuredPromotion.applyPromotion(order.id)
@@ -161,12 +168,14 @@ describe('Discount', function () {
         //Decimal check 15.2,  10.1
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "clear"}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "clear"}));
-        
+        discountEx.configDiscount.dishes.push(dish1.id)
+        discountEx.configDiscount.dishes.push(dish2.id)
+
+        await discountAdapter.addPromotionHandler(discountEx)
 
         await Order.addDish({id: order.id}, dish1, 5, [], "", "testa");
         await Order.addDish({id: order.id}, dish2, 4, [], "", "testa");
 
-        await discountAdapter.addPromotionHandler(discountEx)
 
         order = await Order.findOne(order.id)
 
@@ -195,6 +204,8 @@ describe('Discount', function () {
 
       });
 
+            
+
       it("discount applyPromotion percentage on order with different dishes", async function () {
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
         let order = await Order.create({id: "add-dish-with-discountsa"}).fetch();
@@ -203,10 +214,14 @@ describe('Discount', function () {
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin"}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin"}));
         
+        discInMemory.configDiscount.dishes.push(dish1.id)
+        discInMemory.configDiscount.dishes.push(dish2.id)
+
+        await discountAdapter.addPromotionHandler(discInMemory)
+
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
         await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
         // console.log(discInMemory)
-        await discountAdapter.addPromotionHandler(discInMemory)
 
         // let result1 = await Dish.findOne(dish1.id)
 
@@ -218,7 +233,7 @@ describe('Discount', function () {
         // console.log(result, "get discount order")
         expect(result.discountTotal).to.equal(11.13);
       });
-
+      
       it("discount test dishes with flat and percentage types of discounts but same concept", async function () {
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
         let order = await Order.create({id: "test-discounts-on-different-types"}).fetch();
@@ -230,6 +245,21 @@ describe('Discount', function () {
         let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "Happy Birthday"}));
         let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "Happy Birthday"}));
         
+        discInMemory.configDiscount.dishes.push(dish1.id)
+        discInMemory.configDiscount.dishes.push(dish2.id)
+        discInMemory.configDiscount.dishes.push(dish3.id)
+        discInMemory.configDiscount.dishes.push(dish4.id)
+        discInMemory.configDiscount.dishes.push(dish5.id)
+
+        discountEx.configDiscount.dishes.push(dish1.id)
+        discountEx.configDiscount.dishes.push(dish2.id)
+        discountEx.configDiscount.dishes.push(dish3.id)
+        discountEx.configDiscount.dishes.push(dish4.id)
+        discountEx.configDiscount.dishes.push(dish5.id)
+
+        await discountAdapter.addPromotionHandler(discInMemory)
+        await discountAdapter.addPromotionHandler(discountEx)
+
         await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
         await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
         await Order.addDish({id: order.id}, dish3, 5, [], "", "testa");
@@ -237,8 +267,6 @@ describe('Discount', function () {
         await Order.addDish({id: order.id}, dish5, 5, [], "", "testa1");
 
         // 29.86 + 30.59 = 60.45
-        await discountAdapter.addPromotionHandler(discInMemory)
-        await discountAdapter.addPromotionHandler(discountEx)
         
         order = await Order.findOne(order.id)
         await discountAdapter.processOrder(order)
@@ -259,15 +287,32 @@ describe('Discount', function () {
         let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "NewYear"}));
         let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "Happy Birthday"}));
         
+        discInMemory.configDiscount.dishes.push(dish1.id)
+        discInMemory.configDiscount.dishes.push(dish2.id)
+        discInMemory.configDiscount.dishes.push(dish3.id)
+        discInMemory.configDiscount.dishes.push(dish4.id)
+        discInMemory.configDiscount.dishes.push(dish5.id)
+
+        discountEx.configDiscount.dishes.push(dish1.id)
+        discountEx.configDiscount.dishes.push(dish2.id)
+        discountEx.configDiscount.dishes.push(dish3.id)
+        discountEx.configDiscount.dishes.push(dish4.id)
+        discountEx.configDiscount.dishes.push(dish5.id)
+
+        await discountAdapter.addPromotionHandler(discInMemory)
+        await discountAdapter.addPromotionHandler(discountEx)
+
+
         await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2"); 
         await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
         await Order.addDish({id: order.id}, dish3, 5, [], "", "testa"); 
         await Order.addDish({id: order.id}, dish4, 4, [], "", "test");
         await Order.addDish({id: order.id}, dish5, 5, [], "", "testa1");
 
+
         //  17.7 + 12.16 + 19.95 = 49.81
-        await discountAdapter.addPromotionHandler(discInMemory)
-        await discountAdapter.addPromotionHandler(discountEx)
+        // await discountAdapter.addPromotionHandler(discInMemory)
+        // await discountAdapter.addPromotionHandler(discountEx)
         
         order = await Order.findOne(order.id)
         await discountAdapter.processOrder(order)
@@ -287,7 +332,21 @@ describe('Discount', function () {
         let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test dish4a", price: 10.1, concept: "origin"}));
         let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha5", price: 15.2, concept: "NewYear"}));
         let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw6", price: 15.2, concept: "NewYear"}));
-        
+
+        let dishes = await Dish.find({})
+        const dishesId = dishes.map(dish => dish.id)
+
+        discInMemory.configDiscount.dishes = dishesId
+
+        discountEx.configDiscount.dishes = dishesId
+
+        disc1.configDiscount.dishes = dishesId
+
+
+        await discountAdapter.addPromotionHandler(disc1)
+        await discountAdapter.addPromotionHandler(discInMemory)
+        await discountAdapter.addPromotionHandler(discountEx)
+
         await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
         await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
         await Order.addDish({id: order.id}, dish3, 5, [], "", "testa");
@@ -295,18 +354,19 @@ describe('Discount', function () {
         await Order.addDish({id: order.id}, dish5, 5, [], "", "testa1");
 
         // 18.62  + 136.8 - 10% = 18.62 + 13,68 = 32.3+ (101 +60.8) - 10% = 32.3 + 16.18 = 48.48 + 14 = 62.48
-        await discountAdapter.addPromotionHandler(disc1)
-        await discountAdapter.addPromotionHandler(discInMemory)
-        await discountAdapter.addPromotionHandler(discountEx)
+        // await discountAdapter.addPromotionHandler(disc1)
+        // await discountAdapter.addPromotionHandler(discInMemory)
+        // await discountAdapter.addPromotionHandler(discountEx)
 
         order = await Order.findOne(order.id)
-        await discountAdapter.processOrder(order)
+        let orderPopulate: Order[] = await Order.find({id: order.id}).populate("dishes")
+        await discountAdapter.processOrder(orderPopulate[0])
         
         let result = await Order.findOne(order.id) //.populate("dishes");
         // console.log(result, "get discount order")
         expect(result.discountTotal).to.equal(62.48);
       });
-
+      
       it("discount test displayDish", async function () {
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
         let order = await Order.create({id: "test-display-dish"}).fetch();
@@ -315,22 +375,28 @@ describe('Discount', function () {
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin"}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin"}));
 
-        await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
-        await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
+        discInMemory.configDiscount.dishes.push(dish1.id)
+        discInMemory.configDiscount.dishes.push(dish2.id)
+
+        discountEx.configDiscount.dishes.push(dish1.id)
+        discountEx.configDiscount.dishes.push(dish2.id)
 
         await discountAdapter.addPromotionHandler(discInMemory)
         await discountAdapter.addPromotionHandler(discountEx)
+
+        await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
+        await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
         
         let display = await Dish.display({ id: dish1.id })
 
         expect(display[0].id).to.equal(dish1.id);
       });
-
+      
       it("discount test displayGroup", async function () {
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
         let order = await Order.create({id: "test-display-group"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
-
+        
         await discountAdapter.addPromotionHandler(discountEx)
 
         let group1:Group = groupGenerator()
@@ -347,9 +413,13 @@ describe('Discount', function () {
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin"}));
-        await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+
+        discountEx.configDiscount.dishes.push(dish1.id)
 
         await discountAdapter.addPromotionHandler(discountEx)
+        
+        await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+
         await discountAdapter.processOrder(order)
         
         await PromotionAdapter.clearOfPromotion(order.id)
@@ -357,16 +427,18 @@ describe('Discount', function () {
         let result = await Order.findOne(order.id) 
         expect(result.discountTotal).to.equal(0);
       });
-
+      
       it("discount test clearDiscount orderDish", async function () {
         let order = await Order.create({id: "test-clear-discount-OrderDish"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "clear",user: "user"});
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear"}));
-        await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+        discountEx.configDiscount.dishes.push(dish1.id)
 
         await discountAdapter.addPromotionHandler(discountEx)
+        await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+
         // await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
 
         // before clear
@@ -387,9 +459,11 @@ describe('Discount', function () {
         // let promotionAdapter:AbstractPromotionAdapter = DiscountAdapter.initialize()
         let a:AbstractPromotionAdapter = await Adapter.getPromotionAdapter()
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear"}));
+        discountEx.configDiscount.dishes.push(dish1.id)
+
+        await a.addPromotionHandler(discountEx)
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
          
-        await a.addPromotionHandler(discountEx)
         // await discountAdapter.addPromotionHandler(discountEx)
 
         // await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
@@ -406,7 +480,7 @@ describe('Discount', function () {
         expect(orderDishes[0].discountTotal).to.equal(0);
       });
 
-
+      
       
      
       // if promotion returns

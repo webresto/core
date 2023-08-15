@@ -29,7 +29,15 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
     condition(arg) {
         // console.log(arg, "CONFIGURED CONDITION")
         if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-            // let res:Order = arg as Order
+            let order = arg;
+            // TODO:  if order.dishes type number[]
+            let orderDishes = order.dishes;
+            for (let i = 0; i < orderDishes.length; i++) {
+                if (!this.config.dishes.includes(orderDishes[i].dish)) {
+                    console.log("This id doesn't include in this promotion");
+                    return false;
+                }
+            }
             // order not used for configuredPromotion
             // TODO: check if includes groups and dishes
             // where to get groups?
@@ -38,7 +46,6 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             //   this.config.dishes.includes(orderDish.id + "")
             //   this.config.groups.includes(orderDish)
             // }
-            // console.log(res.dishes," CONDITION RES")
             return true;
         }
         if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {

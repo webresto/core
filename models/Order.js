@@ -936,9 +936,9 @@ let Model = {
                 try {
                     order.isPromoting = true;
                     await Order.updateOne({ id: order.id }, { isPromoting: true });
-                    // let orderPopulate = await Order.find({id: order.id}).populate("dishes")
-                    // console.log(orderPopulate[0])
-                    order.promotionState = await promotionAdapter.processOrder(order);
+                    let orderPopulate = await Order.find({ id: order.id }).populate("dishes");
+                    // console.log(orderPopulate[0], "=====================ORDER POPULATE ====================")
+                    order.promotionState = await promotionAdapter.processOrder(orderPopulate[0]);
                     let a = await Order.findOne(order.id);
                     order.discountTotal = a.discountTotal;
                     await Order.updateOne({ id: order.id }, { isPromoting: false });

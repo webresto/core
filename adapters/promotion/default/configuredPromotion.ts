@@ -4,6 +4,7 @@ import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import { PromotionAdapter } from "./promotionAdapter";
 import Group from '../../../models/Group';
 import Dish from '../../../models/Dish';
+import OrderDish  from '../../../models/OrderDish';
 import Order, { PromotionState } from '../../../models/Order';
 import User from '../../../models/User';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
@@ -11,7 +12,6 @@ import Decimal from "decimal.js";
 import { stringsInArray } from "../../../libs/stringsInArray";
 
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
-    
     constructor(promotion:AbstractPromotionHandler, config?: IconfigDiscount) {
       super();
       if(config === undefined){
@@ -45,7 +45,16 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     public  condition(arg: Group | Dish | Order): boolean {
         // console.log(arg, "CONFIGURED CONDITION")
         if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept) ) {
-            // let res:Order = arg as Order
+          let order:Order = arg as Order
+          // TODO:  if order.dishes type number[]
+          let orderDishes:OrderDish[] = order.dishes as OrderDish[]
+          
+          for (let i = 0; i < orderDishes.length; i++){
+            if(!this.config.dishes.includes(orderDishes[i].dish)){
+              console.log("This id doesn't include in this promotion")
+              return false
+            }
+          }
             // order not used for configuredPromotion
             // TODO: check if includes groups and dishes
             // where to get groups?
@@ -56,7 +65,6 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
             //   this.config.groups.includes(orderDish)
             // }
             
-            // console.log(res.dishes," CONDITION RES")
             return true;
         }
         

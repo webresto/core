@@ -1,6 +1,7 @@
 import * as faker from "faker";
 import Group from './../../models/Group';
 import Dish  from './../../models/Dish';
+import OrderDish  from './../../models/OrderDish';
 import Order, { PromotionState } from './../../models/Order';
 import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
 import findModelInstanceByAttributes from "../../libs/findModelInstance";
@@ -49,6 +50,26 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
     // productCategoryDiscounts: undefined,
     condition: function (arg: Group | Dish | Order): boolean {
       if (findModelInstanceByAttributes(arg) === "Order" && this.concept.includes(arg.concept)) {
+        let order:Order = arg as Order
+        // TODO:  if order.dishes type number[]
+        let orderDishes:OrderDish[] = order.dishes as OrderDish[]
+        
+        for (let i = 0; i < orderDishes.length; i++){
+          if(!this.configDiscount.dishes.includes(orderDishes[i].dish)){
+            console.log("This id doesn't include in this promotion")
+            return false
+          }
+        }
+
+        // where to get groups?
+
+        // for (let i = 0; i < orderDishes.dishes.length; i++){
+        //   if(this.config.dishes.includes(orderDishes[i].dish)){
+           
+        //   }
+
+        //   // this.config.groups.includes(orderDishes[i].dish)
+        // }
         return true;
     }
     
