@@ -698,7 +698,14 @@ let Model = {
     ////////////////////
     // CHECKOUT COUNTING
 
-    order = await Order.countCart({id: order.id});
+    try {
+      order = await Order.countCart({id: order.id});
+    } catch (error) {
+      throw {
+        code: 14,
+        error: "Problem with counting cart",
+      };
+    }
     
     if(!order.selfService && !order.delivery.allowed) {
       throw {
