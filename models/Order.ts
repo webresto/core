@@ -701,6 +701,7 @@ let Model = {
     try {
       order = await Order.countCart({id: order.id});
     } catch (error) {
+      sails.log.error("Check countcart error:", error);
       throw {
         code: 14,
         error: "Problem with counting cart",
