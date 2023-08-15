@@ -1087,7 +1087,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
 
             if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
               for await (let modifier of orderDish.modifiers) {
-                const modifierObj = (await Dish.find({id: modifier.id}).limit(1))[0];
+                const modifierObj = (await Dish.find({where: { or: [{id: modifier.id}, {rmsId: modifier.id}]}}).limit(1))[0];
 
                 if (!modifierObj) {
                   sails.log.error("Dish with id " + modifier.id + " not found!");
