@@ -1200,7 +1200,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
             order.deliveryItem = delivery.item
             order.deliveryCost = (await Dish.findOne({id: delivery.item})).price
           }
-          order.deliveryDescription = delivery.message
+          order.deliveryDescription = typeof delivery.message === "string" ? delivery.message : JSON.stringify(delivery.message);
         } catch (error) {
           sails.log.error(`Core > order > delivery calculate fail: `, error)
         }
