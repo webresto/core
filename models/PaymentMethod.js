@@ -38,6 +38,7 @@ let attributes = {
         type: "boolean",
         required: true,
     },
+    customData: "json",
 };
 let Model = {
     /**

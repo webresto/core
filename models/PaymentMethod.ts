@@ -51,6 +51,10 @@ let attributes = {
     type: "boolean",
     required: true,
   } as unknown as boolean,
+  
+  customData: "json" as unknown as {
+    [key: string]: string | boolean | number;
+  } | string,
 };
 
 type attributes = typeof attributes;
