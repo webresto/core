@@ -1020,7 +1020,7 @@ let Model = {
             }
             if (order.total !== paymentDocument.amount) {
                 order.problem = true;
-                order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
+                order.comment = order.comment + "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount;
             }
             await Order.order({ id: order.id });
             emitter.emit("core-order-after-dopaid", order);

@@ -146,7 +146,7 @@ let Model = {
     },
     /** Payment check cycle*/
     processor: async function (timeout) {
-        sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 120000);
+        sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 45000);
         return (payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
             let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED" });
@@ -161,7 +161,7 @@ let Model = {
                     await PaymentDocument.doCheck({ id: actualPaymentDocument.id });
                 }
             }
-        }, timeout || 120000));
+        }, timeout || 45000));
     },
 };
 module.exports = {
