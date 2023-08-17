@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
+import Dish from "../models/Dish";
 import { OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 declare let attributes: {
@@ -9,7 +10,7 @@ declare let attributes: {
     amount: number;
     /**Блюдо, которое содержится в корзине */
     /** any problem */
-    dish: any;
+    dish: string | Dish;
     /** Selected modifiers */
     modifiers: OrderModifier[];
     /** */
