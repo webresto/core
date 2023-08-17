@@ -157,7 +157,7 @@ let Model = {
                     await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" }).fetch();
                 }
                 else {
-                    sails.log.debug("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
+                    sails.log.silly("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
                     await PaymentDocument.doCheck({ id: actualPaymentDocument.id });
                 }
             }
