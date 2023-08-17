@@ -73,26 +73,26 @@ let attributes = {
     worktime: "json",
 };
 let Model = {
-    async afterUpdate(record, next) {
+    afterUpdate(record, cb) {
         if (record.createdByUser) {
             // call recreate of discountHandler
-            promotionAdapter_1.PromotionAdapter.recreatePromotionHandler(record);
+            promotionAdapter_1.PromotionAdapter.recreateConfiguredPromotionHandler(record);
         }
-        next();
+        cb();
     },
-    async afterCreate(record, next) {
+    afterCreate(record, cb) {
         if (record.createdByUser) {
             // call recreate of discountHandler
-            promotionAdapter_1.PromotionAdapter.recreatePromotionHandler(record);
+            promotionAdapter_1.PromotionAdapter.recreateConfiguredPromotionHandler(record);
         }
-        next();
+        cb();
     },
-    async beforeUpdate(init, next) {
-        next();
+    beforeUpdate(init, cb) {
+        cb();
     },
-    async beforeCreate(init, next) {
+    beforeCreate(init, cb) {
         // init.setORMId("a")
-        next();
+        cb();
     },
     async createOrUpdate(values) {
         let hash = (0, hashCode_1.default)(JSON.stringify(values));

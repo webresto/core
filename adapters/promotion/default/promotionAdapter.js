@@ -9,6 +9,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         const promotionStates = [];
         // Order.populate()
         await PromotionAdapter.clearOfPromotion(order.id);
+        // console.log(order, " ===================== ORDER")
         let filteredPromotion = await PromotionAdapter.filterByConcept(order.concept);
         let promotionByConcept = await PromotionAdapter.filterPromotions(filteredPromotion, order);
         if (promotionByConcept[0] !== undefined) {
@@ -24,24 +25,28 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         let filteredPromotion = await PromotionAdapter.filterByConcept(dish.concept);
         let promotionByConcept = await PromotionAdapter.filterPromotions(filteredPromotion, dish);
         if (promotionByConcept[0] === undefined)
-            return undefined;
+            return dish;
         // TODO: this should work on first condition isJoint and isPublic should be true
         if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
-            return PromotionAdapter.promotions[promotionByConcept[0].id];
+            dish.discountAmount = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountAmount;
+            dish.discountType = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountType;
+            return dish;
         }
-        return undefined;
+        return dish;
     }
     async displayGroup(group) {
         // check isJoint = true, isPublic = true
         let filteredPromotion = await PromotionAdapter.filterByConcept(group.concept);
         let promotionByConcept = await PromotionAdapter.filterPromotions(filteredPromotion, group);
         if (promotionByConcept[0] === undefined)
-            return undefined;
+            return group;
         // TODO: this should work on first condition isJoint and isPublic should be true
         if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
-            return PromotionAdapter.promotions[promotionByConcept[0].id];
+            group.discountAmount = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountAmount;
+            group.discountType = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountType;
+            return group;
         }
-        return undefined;
+        return group;
     }
     static async filterByConcept(concept) {
         let modifiedConcept;
@@ -113,7 +118,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         // await Discount.setAlive([...id])
         PromotionAdapter.promotions[promotionToAdd.id] = promotionToAdd; // = new ConfiguredDiscount(discountToAdd)
     }
-    static async recreateConfiguredPromotionHandler(promotionToAdd) {
+    static recreateConfiguredPromotionHandler(promotionToAdd) {
         if (promotionToAdd.enable === false && PromotionAdapter.promotions[promotionToAdd.id]) {
             delete PromotionAdapter.promotions[promotionToAdd.id];
             return;
@@ -121,11 +126,14 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         try {
             if (!PromotionAdapter.promotions[promotionToAdd.id]) {
                 PromotionAdapter.promotions[promotionToAdd.id] = new configuredPromotion_1.default(promotionToAdd, promotionToAdd.configDiscount);
+                return;
             }
+            return;
         }
         catch (e) {
             sails.log.error("recreateConfiguredPromotionHandler", e);
         }
+        return;
     }
     static async getPromotionHandlerById(id) {
         // let disc: AbstractDiscountHandler = await Discount.getById(id);

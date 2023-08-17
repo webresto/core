@@ -218,13 +218,26 @@ let attributes = {
   /** Working hours */
   worktime: "json" as unknown as WorkTime[],
 
+  /* 
+  helper.addCustomField("Dish", "discountAmount: Float");
+  helper.addCustomField("Dish", "discountType: String");
+  helper.addCustomField("Dish", "oldPrice: Float");
+  */
+
+
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
 };
 
+interface IVirtualFields {
+  discountAmount?: number;
+  discountType?: "flat" | "percentage"
+  oldPrice?: number;
+}
+
 type attributes = typeof attributes;
-interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, ORM {}
+interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {}
 export default Dish;
 
 let Model = {
@@ -345,16 +358,17 @@ let Model = {
   async display(criteria: CriteriaQuery<Dish>): Promise<Dish[]> {
     const dishes = await Dish.find(criteria);
     const discountAdapter = await Adapter.getPromotionAdapter()
-    
-    for(let i:number; i < dishes.length; i++) {
+    let updatedDishes = [] as Dish[]
+
+    for(let i:number= 0; i < dishes.length; i++) {
         try {
-          await discountAdapter.displayDish(dishes[i])
+          updatedDishes.push(await discountAdapter.displayDish(dishes[i]))
         } catch (error) {
           sails.log(error)
           continue
         }
     }
-    return dishes;
+    return updatedDishes;
   },
 
   /**

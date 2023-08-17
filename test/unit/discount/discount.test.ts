@@ -26,7 +26,7 @@ describe('Discount', function () {
 
 
     let discInMemory = new InMemoryDiscountAdapter
-
+  
     let discountEx:AbstractPromotionHandler =  {
         id: "1-id",
         configDiscount: {
@@ -38,7 +38,7 @@ describe('Discount', function () {
           },
         name: "1-name",
         description: "string",
-        concept: ["origin","clear","Happy Birthday"],
+        concept: ["origin","clear","Happy Birthday","3dif"],
         condition: (arg: Group | Dish | Order): boolean =>{
           if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, discountEx.concept) ) {
             // Order.populate()
@@ -82,16 +82,11 @@ describe('Discount', function () {
 
     let configuredPromotion: ConfiguredPromotion
     let configuredPromotionFromMemory: ConfiguredPromotion
-
-    before(async () =>{
-       configuredPromotion = new ConfiguredPromotion(discountEx, discountEx.configDiscount)
-       configuredPromotionFromMemory = new ConfiguredPromotion(discInMemory, discInMemory.configDiscount)
-    })
-  
+    let groupsId = []
 
 
     let disc1:AbstractPromotionHandler = discountGenerator({
-      concept: ["origin"],
+      concept: ["origin","3dif"],
       id: 'aa2-id',
       isJoint: true,
       name: 'awdawd',
@@ -100,11 +95,20 @@ describe('Discount', function () {
         discountType: "flat",
         discountAmount: 1,
         dishes: ["Aaa"],
-        groups: ["Aaa"],
+        groups: [],
         excludeModifiers: true
       },
     })
-     
+    before(async () =>{
+      configuredPromotion = new ConfiguredPromotion(discountEx, discountEx.configDiscount)
+      configuredPromotionFromMemory = new ConfiguredPromotion(discInMemory, discInMemory.configDiscount)
+      const groups = await Group.find({})
+      groupsId = groups.map(group => group.id)
+      discountEx.configDiscount.groups = groupsId
+      discInMemory.configDiscount.groups = groupsId
+      disc1.configDiscount.groups = groupsId
+   })  
+    
       it("discount add ", async function () {
         // let a = await Adapter.getDiscountAdapter()
         let promotionAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
@@ -123,7 +127,7 @@ describe('Discount', function () {
         let order = await Order.create({id: "add-dish-with-discount"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin",parentGroup:groupsId[0]}));
         discountEx.configDiscount.dishes.push(dish1.id)
         await discountAdapter.addPromotionHandler(discountEx)
 
@@ -142,8 +146,8 @@ describe('Discount', function () {
         let order = await Order.create({id: "add-dish-with-discounts"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin"}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
         
         discountEx.configDiscount.dishes.push(dish1.id)
         discountEx.configDiscount.dishes.push(dish2.id)
@@ -166,8 +170,8 @@ describe('Discount', function () {
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
         //Decimal check 15.2,  10.1
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "clear"}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "clear"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "clear",parentGroup:groupsId[0]}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "clear",parentGroup:groupsId[0]}));
         discountEx.configDiscount.dishes.push(dish1.id)
         discountEx.configDiscount.dishes.push(dish2.id)
 
@@ -187,8 +191,8 @@ describe('Discount', function () {
         // console.log(result, "get discount order")
         expect(result.discountTotal).to.equal(11.97);
 
-        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10, concept: "a"}));
-        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15, concept: "a"}));
+        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10, concept: "a",parentGroup:groupsId[0]}));
+        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15, concept: "a",parentGroup:groupsId[0]}));
         await Order.addDish({id: order.id}, dish3, 5, [], "", "test");
         await Order.addDish({id: order.id}, dish4, 4, [], "", "test");
 
@@ -211,8 +215,8 @@ describe('Discount', function () {
         let order = await Order.create({id: "add-dish-with-discountsa"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin"}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
         
         discInMemory.configDiscount.dishes.push(dish1.id)
         discInMemory.configDiscount.dishes.push(dish2.id)
@@ -239,23 +243,19 @@ describe('Discount', function () {
         let order = await Order.create({id: "test-discounts-on-different-types"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Happy Birthday"}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Happy Birthday"}));
-        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "Happy Birthday"}));
-        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "Happy Birthday"}));
-        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "Happy Birthday"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Happy Birthday",parentGroup:groupsId[0]}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Happy Birthday",parentGroup:groupsId[0]}));
+        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "Happy Birthday",parentGroup:groupsId[0]}));
+        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "Happy Birthday",parentGroup:groupsId[0]}));
+        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "Happy Birthday",parentGroup:groupsId[0]}));
         
-        discInMemory.configDiscount.dishes.push(dish1.id)
-        discInMemory.configDiscount.dishes.push(dish2.id)
-        discInMemory.configDiscount.dishes.push(dish3.id)
-        discInMemory.configDiscount.dishes.push(dish4.id)
-        discInMemory.configDiscount.dishes.push(dish5.id)
+        let dishes = await Dish.find({})
+        const dishesId = dishes.map(dish => dish.id)
 
-        discountEx.configDiscount.dishes.push(dish1.id)
-        discountEx.configDiscount.dishes.push(dish2.id)
-        discountEx.configDiscount.dishes.push(dish3.id)
-        discountEx.configDiscount.dishes.push(dish4.id)
-        discountEx.configDiscount.dishes.push(dish5.id)
+        discInMemory.configDiscount.dishes = dishesId
+
+        discountEx.configDiscount.dishes = dishesId
+
 
         await discountAdapter.addPromotionHandler(discInMemory)
         await discountAdapter.addPromotionHandler(discountEx)
@@ -281,23 +281,18 @@ describe('Discount', function () {
         let order = await Order.create({id: "test-different-types-and-concept"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Happy Birthday"}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "NewYear"}));
-        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "Happy Birthday"}));
-        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "NewYear"}));
-        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "Happy Birthday"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Happy Birthday",parentGroup:groupsId[0]}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "NewYear",parentGroup:groupsId[0]}));
+        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "Happy Birthday",parentGroup:groupsId[0]}));
+        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha", price: 15.2, concept: "NewYear",parentGroup:groupsId[0]}));
+        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw", price: 15.2, concept: "Happy Birthday",parentGroup:groupsId[0]}));
         
-        discInMemory.configDiscount.dishes.push(dish1.id)
-        discInMemory.configDiscount.dishes.push(dish2.id)
-        discInMemory.configDiscount.dishes.push(dish3.id)
-        discInMemory.configDiscount.dishes.push(dish4.id)
-        discInMemory.configDiscount.dishes.push(dish5.id)
+        let dishes = await Dish.find({})
+        const dishesId = dishes.map(dish => dish.id)
 
-        discountEx.configDiscount.dishes.push(dish1.id)
-        discountEx.configDiscount.dishes.push(dish2.id)
-        discountEx.configDiscount.dishes.push(dish3.id)
-        discountEx.configDiscount.dishes.push(dish4.id)
-        discountEx.configDiscount.dishes.push(dish5.id)
+        discInMemory.configDiscount.dishes = dishesId
+
+        discountEx.configDiscount.dishes = dishesId
 
         await discountAdapter.addPromotionHandler(discInMemory)
         await discountAdapter.addPromotionHandler(discountEx)
@@ -325,23 +320,20 @@ describe('Discount', function () {
       it("discount test dishes with 3 dif type of discount", async function () {
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
         let order = await Order.create({id: "test-3-types-of-discount"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
+        await Order.updateOne({id: order.id}, {concept: "3dif",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin"}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin"}));
-        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test dish4a", price: 10.1, concept: "origin"}));
-        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha5", price: 15.2, concept: "NewYear"}));
-        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw6", price: 15.2, concept: "NewYear"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
+        let dish3 = await Dish.createOrUpdate(dishGenerator({name: "test dish4a", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
+        let dish4 = await Dish.createOrUpdate(dishGenerator({name: "test fisha5", price: 15.2, concept: "NewYear",parentGroup:groupsId[0]}));
+        let dish5 = await Dish.createOrUpdate(dishGenerator({name: "test fishw6", price: 15.2, concept: "NewYear",parentGroup:groupsId[0]}));
 
         let dishes = await Dish.find({})
         const dishesId = dishes.map(dish => dish.id)
 
         discInMemory.configDiscount.dishes = dishesId
-
         discountEx.configDiscount.dishes = dishesId
-
         disc1.configDiscount.dishes = dishesId
-
 
         await discountAdapter.addPromotionHandler(disc1)
         await discountAdapter.addPromotionHandler(discInMemory)
@@ -354,16 +346,7 @@ describe('Discount', function () {
         await Order.addDish({id: order.id}, dish5, 5, [], "", "testa1");
 
         // 18.62  + 136.8 - 10% = 18.62 + 13,68 = 32.3+ (101 +60.8) - 10% = 32.3 + 16.18 = 48.48 + 14 = 62.48
-        // await discountAdapter.addPromotionHandler(disc1)
-        // await discountAdapter.addPromotionHandler(discInMemory)
-        // await discountAdapter.addPromotionHandler(discountEx)
-
-        order = await Order.findOne(order.id)
-        let orderPopulate: Order[] = await Order.find({id: order.id}).populate("dishes")
-        await discountAdapter.processOrder(orderPopulate[0])
-        
         let result = await Order.findOne(order.id) //.populate("dishes");
-        // console.log(result, "get discount order")
         expect(result.discountTotal).to.equal(62.48);
       });
       
@@ -372,8 +355,8 @@ describe('Discount', function () {
         let order = await Order.create({id: "test-display-dish"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin"}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
 
         discInMemory.configDiscount.dishes.push(dish1.id)
         discInMemory.configDiscount.dishes.push(dish2.id)
@@ -390,6 +373,8 @@ describe('Discount', function () {
         let display = await Dish.display({ id: dish1.id })
 
         expect(display[0].id).to.equal(dish1.id);
+        expect(display[0].discountAmount).to.equal(1.33);
+        expect(display[0].discountType).to.equal("flat");
       });
       
       it("discount test displayGroup", async function () {
@@ -401,18 +386,20 @@ describe('Discount', function () {
 
         let group1:Group = groupGenerator()
         await Group.create(group1)
-        // let ar = await discountAdapter.displayGroup(group1)
-        let display = await Group.display({ id: group1.id })
 
+        let display = await Group.display({ id: group1.id })
         expect(display[0].id).to.equal(group1.id);
       });
       
+
+
+
       it("discount test clearDiscount", async function () {
         let order = await Order.create({id: "test-clear-discount"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin",parentGroup:groupsId[0]}));
 
         discountEx.configDiscount.dishes.push(dish1.id)
 
@@ -420,7 +407,7 @@ describe('Discount', function () {
         
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
 
-        await discountAdapter.processOrder(order)
+        // await discountAdapter.processOrder(order)
         
         await PromotionAdapter.clearOfPromotion(order.id)
 
@@ -433,7 +420,7 @@ describe('Discount', function () {
         await Order.updateOne({id: order.id}, {concept: "clear",user: "user"});
         let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear",parentGroup:groupsId[0]}));
         discountEx.configDiscount.dishes.push(dish1.id)
 
         await discountAdapter.addPromotionHandler(discountEx)
@@ -458,7 +445,7 @@ describe('Discount', function () {
         await Order.updateOne({id: order.id}, {concept: "clear",user: "user"});
         // let promotionAdapter:AbstractPromotionAdapter = DiscountAdapter.initialize()
         let a:AbstractPromotionAdapter = await Adapter.getPromotionAdapter()
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear"}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear",parentGroup:groupsId[0]}));
         discountEx.configDiscount.dishes.push(dish1.id)
 
         await a.addPromotionHandler(discountEx)
@@ -479,7 +466,7 @@ describe('Discount', function () {
         // console.log(orderDishes)
         expect(orderDishes[0].discountTotal).to.equal(0);
       });
-
+      
       
       
      

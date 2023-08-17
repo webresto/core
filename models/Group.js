@@ -225,16 +225,17 @@ let Model = {
     async display(criteria) {
         const discountAdapter = await adapters_1.Adapter.getPromotionAdapter();
         const groups = await Group.find(criteria);
-        for (let i; i < groups.length; i++) {
+        let updatedDishes = [];
+        for (let i = 0; i < groups.length; i++) {
             try {
-                await discountAdapter.displayGroup(groups[i]);
+                updatedDishes.push(await discountAdapter.displayGroup(groups[i]));
             }
             catch (error) {
                 sails.log(error);
                 continue;
             }
         }
-        return groups;
+        return updatedDishes;
     },
     /**
      * Menu for navbar

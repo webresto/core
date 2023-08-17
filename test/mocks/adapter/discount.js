@@ -13,7 +13,7 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
         this.name = "New Year";
         this.isPublic = false;
         this.description = "some text";
-        this.concept = ["NewYear", "Happy Birthday", "origin"];
+        this.concept = ["NewYear", "Happy Birthday", "origin", "3dif"];
         this.configDiscount = {
             discountAmount: 10,
             discountType: "percentage",

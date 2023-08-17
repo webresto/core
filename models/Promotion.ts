@@ -119,31 +119,31 @@ interface Promotion
 export default Promotion;
 
 let Model = {
-  async afterUpdate(record: Promotion, next: Function) {
+   afterUpdate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreate of discountHandler
-      PromotionAdapter.recreatePromotionHandler(record);
+      PromotionAdapter.recreateConfiguredPromotionHandler(record);
     }
 
-    next();
+    cb();
   },
 
-  async afterCreate(record: Promotion, next: Function) {
+   afterCreate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreate of discountHandler
-      PromotionAdapter.recreatePromotionHandler(record);
+      PromotionAdapter.recreateConfiguredPromotionHandler(record);
     }
 
-    next();
+    cb();
   },
 
-  async beforeUpdate(init: Promotion, next: Function) {
-    next();
+  beforeUpdate(init: Promotion, cb:  (err?: string) => void) {
+    cb();
   },
 
-  async beforeCreate(init: Promotion, next: Function) {
+  beforeCreate(init: Promotion, cb:  (err?: string) => void) {
     // init.setORMId("a")
-    next();
+    cb();
   },
 
   async createOrUpdate(values: Promotion): Promise<Promotion> {

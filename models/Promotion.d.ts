@@ -31,10 +31,10 @@ interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "confi
 }
 export default Promotion;
 declare let Model: {
-    afterUpdate(record: Promotion, next: Function): Promise<void>;
-    afterCreate(record: Promotion, next: Function): Promise<void>;
-    beforeUpdate(init: Promotion, next: Function): Promise<void>;
-    beforeCreate(init: Promotion, next: Function): Promise<void>;
+    afterUpdate(record: Promotion, cb: (err?: string) => void): void;
+    afterCreate(record: Promotion, cb: (err?: string) => void): void;
+    beforeUpdate(init: Promotion, cb: (err?: string) => void): void;
+    beforeCreate(init: Promotion, cb: (err?: string) => void): void;
     createOrUpdate(values: Promotion): Promise<Promotion>;
     getAllByConcept(concept: string[]): Promise<Promotion[]>;
     setAlive(idArray: string[]): Promise<void>;

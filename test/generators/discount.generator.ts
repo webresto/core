@@ -6,9 +6,7 @@ import Order, { PromotionState } from './../../models/Order';
 import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
 import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
-import configuredPromotion from "../../adapters/promotion/default/configuredPromotion";
 import ConfiguredPromotion from "../../adapters/promotion/default/configuredPromotion";
-import Decimal from "decimal.js";
 import { stringsInArray } from "../../libs/stringsInArray";
 
 var autoincrement: number = 0;
@@ -49,36 +47,38 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
   },
     // productCategoryDiscounts: undefined,
     condition: function (arg: Group | Dish | Order): boolean {
-      if (findModelInstanceByAttributes(arg) === "Order" && this.concept.includes(arg.concept)) {
+      if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept)) {
         let order:Order = arg as Order
         // TODO:  if order.dishes type number[]
         let orderDishes:OrderDish[] = order.dishes as OrderDish[]
         
-        for (let i = 0; i < orderDishes.length; i++){
-          if(!this.configDiscount.dishes.includes(orderDishes[i].dish)){
-            console.log("This id doesn't include in this promotion")
-            return false
-          }
-        }
-
-        // where to get groups?
-
-        // for (let i = 0; i < orderDishes.dishes.length; i++){
-        //   if(this.config.dishes.includes(orderDishes[i].dish)){
-           
-        //   }
-
-        //   // this.config.groups.includes(orderDishes[i].dish)
+        // .parentGroup
+        // for (let i = 0; i < orderDishes.length; i++){
+        //     if(!this.configDiscount.dishes.includes(orderDishes[i].dish.id)){
+        //       sails.log.error("This dish id doesn't include in this promotion`s dishes")
+        //       return false
+        //     }
+            
+        //     if(!stringsInArray(orderDishes[0].dish.parentGroup, this.configDiscount.groups)){
+        //       sails.log.error("This dish doesn't include in this promotion`s group")
+        //       return false
+        //     }
         // }
-        return true;
+
+        let checkDishes = orderDishes.map(order =>order.dish).some(dish => this.configDiscount.dishes.includes(dish.id))
+        let checkGroups = orderDishes.map(order =>order.dish).some(dish => this.configDiscount.groups.includes(dish.parentGroup))
+
+        if(checkDishes && checkGroups) return true
+        
+        return false;
     }
     
-    if (findModelInstanceByAttributes(arg) === "Dish" && this.concept.includes(arg.concept)) {
+    if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, this.concept)) {
         // TODO: check if includes in IconfigDish
         return true;
     }
     
-    if (findModelInstanceByAttributes(arg) === "Group" && this.concept.includes(arg.concept)) {
+    if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, this.concept)) {
          // TODO: check if includes in IconfigG
         return true;
     }

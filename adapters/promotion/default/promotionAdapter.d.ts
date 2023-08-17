@@ -9,13 +9,13 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
         [key: string]: AbstractPromotionHandler;
     };
     processOrder(order: Order): Promise<PromotionState[]>;
-    displayDish(dish: Dish): Promise<AbstractPromotionHandler | undefined>;
-    displayGroup(group: Group): Promise<AbstractPromotionHandler | undefined>;
+    displayDish(dish: Dish): Promise<Dish>;
+    displayGroup(group: Group): Promise<Group>;
     static filterByConcept(concept: string): Promise<Promotion[]>;
     static filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promise<Promotion[] | undefined>;
     static filterByCondition(promotions: Promotion[], target: Group | Dish | Order): Promise<Promotion[]>;
     addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void>;
-    static recreateConfiguredPromotionHandler(promotionToAdd: Promotion): Promise<void>;
+    static recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void;
     static getPromotionHandlerById(id: string): Promise<AbstractPromotionHandler | undefined>;
     getAllConcept(concept: string[]): Promise<AbstractPromotionHandler[]>;
     getActivePromotionsIds(): string[];

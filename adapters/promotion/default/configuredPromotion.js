@@ -27,26 +27,25 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         this.externalId = promotion.externalId;
     }
     condition(arg) {
-        // console.log(arg, "CONFIGURED CONDITION")
         if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             let order = arg;
             // TODO:  if order.dishes type number[]
             let orderDishes = order.dishes;
-            for (let i = 0; i < orderDishes.length; i++) {
-                if (!this.config.dishes.includes(orderDishes[i].dish)) {
-                    console.log("This id doesn't include in this promotion");
-                    return false;
-                }
-            }
-            // order not used for configuredPromotion
-            // TODO: check if includes groups and dishes
-            // where to get groups?
-            // const orderDishes = await OrderDish.find({ order: arg.id }).populate("dish");
-            // for (const orderDish of orderDishes) {
-            //   this.config.dishes.includes(orderDish.id + "")
-            //   this.config.groups.includes(orderDish)
+            // for (let i = 0; i < orderDishes.length; i++){
+            //   if(!this.config.dishes.includes(orderDishes[i].dish.id)){
+            //     sails.log.error("This dish id doesn't include in this promotion`s dishes")
+            //     return false
+            //   }
+            //   if(!stringsInArray(orderDishes[0].dish.parentGroup, this.config.groups)){
+            //     sails.log.error("This dish doesn't include in this promotion`s group")
+            //     return false
+            //   }
             // }
-            return true;
+            let checkDishes = orderDishes.map(order => order.dish).some(dish => this.config.dishes.includes(dish.id));
+            let checkGroups = orderDishes.map(order => order.dish).some(dish => this.config.groups.includes(dish.parentGroup));
+            if (checkDishes && checkGroups)
+                return true;
+            return false;
         }
         if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             if (this.config.dishes.includes(arg.id)) {
@@ -92,6 +91,10 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, this.concept)) {
                     continue;
                 }
+                let checkDishes = (0, stringsInArray_1.stringsInArray)(orderDish.dish.id, this.config.dishes);
+                let checkGroups = (0, stringsInArray_1.stringsInArray)(orderDish.dish.parentGroup, this.config.groups);
+                if (!checkDishes && !checkGroups)
+                    continue;
                 // ------------------------------------------ Decimal ------------------------------------------
                 if (this.configDiscount.discountType === "flat") {
                     orderDishDiscountCost = new decimal_js_1.default(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();

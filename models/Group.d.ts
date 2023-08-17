@@ -54,8 +54,13 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
 };
+interface IVirtualFields {
+    discountAmount?: number;
+    discountType?: "flat" | "percentage";
+    oldPrice?: number;
+}
 type attributes = typeof attributes;
-interface Group extends OptionalAll<attributes>, ORM {
+interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {
 }
 export default Group;
 declare let Model: {

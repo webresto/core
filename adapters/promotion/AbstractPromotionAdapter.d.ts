@@ -10,12 +10,12 @@ export default abstract class AbstractPromotionAdapter {
         [key: string]: AbstractPromotionHandler;
     };
     abstract processOrder(order: Order): Promise<PromotionState[]>;
-    abstract displayDish(dish: Dish): Promise<AbstractPromotionHandler | undefined>;
-    abstract displayGroup(group: Group): Promise<AbstractPromotionHandler | undefined>;
+    abstract displayDish(dish: Dish): Promise<Dish>;
+    abstract displayGroup(group: Group): Promise<Group>;
     static filterByConcept: (concept: string) => Promise<Promotion[]>;
     static filterPromotions: (promotionsByConcept: Promotion[], target: Group | Dish | Order) => Promise<Promotion[] | undefined>;
     static filterByCondition: (promotions: Promotion[], target: Group | Dish | Order) => Promise<Promotion[]>;
-    static recreatePromotionHandler: (promotionToAdd: AbstractPromotionHandler) => Promise<void>;
+    static recreatePromotionHandler: (promotionToAdd: AbstractPromotionHandler) => void;
     static getAllConcept: (concept: string[]) => Promise<AbstractPromotionHandler[]>;
     abstract getActivePromotionsIds(): string[];
     static clearOfPromotion(orderId: any): Promise<void>;

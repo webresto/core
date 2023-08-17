@@ -168,6 +168,11 @@ let attributes = {
     promo: "boolean",
     /** Working hours */
     worktime: "json",
+    /*
+    helper.addCustomField("Dish", "discountAmount: Float");
+    helper.addCustomField("Dish", "discountType: String");
+    helper.addCustomField("Dish", "oldPrice: Float");
+    */
     customData: "json",
 };
 let Model = {
@@ -270,16 +275,17 @@ let Model = {
     async display(criteria) {
         const dishes = await Dish.find(criteria);
         const discountAdapter = await adapters_1.Adapter.getPromotionAdapter();
-        for (let i; i < dishes.length; i++) {
+        let updatedDishes = [];
+        for (let i = 0; i < dishes.length; i++) {
             try {
-                await discountAdapter.displayDish(dishes[i]);
+                updatedDishes.push(await discountAdapter.displayDish(dishes[i]));
             }
             catch (error) {
                 sails.log(error);
                 continue;
             }
         }
-        return dishes;
+        return updatedDishes;
     },
     /**
      * Checks whether the dish exists, if it does not exist, then creates a new one and returns it.If exists, then checks

@@ -16,7 +16,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     const promotionStates = [] as PromotionState[]
     // Order.populate()
     await PromotionAdapter.clearOfPromotion(order.id);
-
+    // console.log(order, " ===================== ORDER")
     let filteredPromotion = await PromotionAdapter.filterByConcept(order.concept);
     let promotionByConcept: Promotion[] | undefined = await PromotionAdapter.filterPromotions(filteredPromotion, order);
     
@@ -31,30 +31,36 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   }
 
   // one method to get all promotions and id's
-  public async displayDish(dish: Dish): Promise<AbstractPromotionHandler | undefined> {
+  public async displayDish(dish: Dish): Promise<Dish> {
+
     let filteredPromotion = await PromotionAdapter.filterByConcept(dish.concept);
     let promotionByConcept: Promotion[] | undefined = await PromotionAdapter.filterPromotions(filteredPromotion, dish);
 
-    if (promotionByConcept[0] === undefined) return undefined;
-
+    if (promotionByConcept[0] === undefined) return dish;
+  
     // TODO: this should work on first condition isJoint and isPublic should be true
     if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
-      return PromotionAdapter.promotions[promotionByConcept[0].id];
+      dish.discountAmount = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountAmount;
+      dish.discountType = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountType;
+      return dish
     }
-    return undefined;
+
+    return dish;
   }
 
-  public async displayGroup(group: Group): Promise<AbstractPromotionHandler | undefined> {
+  public async displayGroup(group: Group): Promise< Group> {
     // check isJoint = true, isPublic = true
     let filteredPromotion = await PromotionAdapter.filterByConcept(group.concept);
     let promotionByConcept: Promotion[] | undefined = await PromotionAdapter.filterPromotions(filteredPromotion, group);
 
-    if (promotionByConcept[0] === undefined) return undefined;
+    if (promotionByConcept[0] === undefined) return group;
     // TODO: this should work on first condition isJoint and isPublic should be true
     if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
-      return PromotionAdapter.promotions[promotionByConcept[0].id];
+      group.discountAmount = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountAmount;
+      group.discountType = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountType;
+      return group
     }
-    return undefined;
+    return group;
   }
 
   public static async filterByConcept(concept: string): Promise<Promotion[]> {
@@ -138,8 +144,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     PromotionAdapter.promotions[promotionToAdd.id] = promotionToAdd; // = new ConfiguredDiscount(discountToAdd)
   }
 
-  public static async recreateConfiguredPromotionHandler(promotionToAdd: Promotion): Promise<void> {
-    
+  public static recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void {
     if(promotionToAdd.enable === false && PromotionAdapter.promotions[promotionToAdd.id]){
       delete PromotionAdapter.promotions[promotionToAdd.id]
       return 
@@ -148,12 +153,15 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     try{
       if (!PromotionAdapter.promotions[promotionToAdd.id] ) {
         PromotionAdapter.promotions[promotionToAdd.id] = new ConfiguredPromotion(promotionToAdd, promotionToAdd.configDiscount);
+        return
       }
+      return
     } catch(e){
       sails.log.error("recreateConfiguredPromotionHandler", e)
 
     }
-
+    
+    return
   }
 
   public static async getPromotionHandlerById(id: string): Promise<AbstractPromotionHandler | undefined> {

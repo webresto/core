@@ -91,8 +91,13 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
 };
+interface IVirtualFields {
+    discountAmount?: number;
+    discountType?: "flat" | "percentage";
+    oldPrice?: number;
+}
 type attributes = typeof attributes;
-interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, ORM {
+interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {
 }
 export default Dish;
 declare let Model: {

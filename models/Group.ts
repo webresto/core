@@ -132,8 +132,14 @@ let attributes = {
   } | string,
 };
 
+interface IVirtualFields {
+  discountAmount?: number;
+  discountType?: "flat" | "percentage"
+  oldPrice?: number;
+}
+
 type attributes = typeof attributes;
-interface Group extends OptionalAll<attributes>, ORM {}
+interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {}
 export default Group;
 
 let Model = {
@@ -281,15 +287,16 @@ let Model = {
   async display(criteria: CriteriaQuery<Group>): Promise<Group[]> {
     const discountAdapter = await Adapter.getPromotionAdapter()
     const groups = await Group.find(criteria);
-    for(let i:number; i < groups.length; i++) {
+    let updatedDishes = [] as Group[]
+    for(let i:number=0; i < groups.length; i++) {
       try {
-        await discountAdapter.displayGroup(groups[i])
+        updatedDishes.push(await discountAdapter.displayGroup(groups[i]))
       } catch (error) {
         sails.log(error)
         continue
       }
     }
-    return groups;
+    return updatedDishes;
   },
 
   /**

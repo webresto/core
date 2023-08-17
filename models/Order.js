@@ -840,6 +840,7 @@ let Model = {
             let uniqueDishes = 0;
             let totalWeight = new decimal_js_1.default(0);
             // TODO: clear the order
+            const orderDishesForPopulate = [];
             for await (let orderDish of orderDishes) {
                 try {
                     if (orderDish.dish) {
@@ -912,6 +913,7 @@ let Model = {
                         orderDish.dish = orderDish.dish.id;
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
+                        orderDishesForPopulate.push({ ...orderDish });
                     }
                     basketTotal = basketTotal.plus(orderDish.itemTotal);
                     dishesCount += orderDish.amount;
@@ -935,10 +937,13 @@ let Model = {
                 let promotionAdapter = await Adapter.getPromotionAdapter();
                 try {
                     order.isPromoting = true;
+                    let orderPopulate = { ...order };
+                    orderPopulate.dishes = orderDishesForPopulate;
+                    // console.log(orderDishesForPopulate)
                     await Order.updateOne({ id: order.id }, { isPromoting: true });
-                    let orderPopulate = await Order.find({ id: order.id }).populate("dishes");
+                    // console.log(orderPopulate)
                     // console.log(orderPopulate[0], "=====================ORDER POPULATE ====================")
-                    order.promotionState = await promotionAdapter.processOrder(orderPopulate[0]);
+                    order.promotionState = await promotionAdapter.processOrder(orderPopulate);
                     let a = await Order.findOne(order.id);
                     order.discountTotal = a.discountTotal;
                     await Order.updateOne({ id: order.id }, { isPromoting: false });

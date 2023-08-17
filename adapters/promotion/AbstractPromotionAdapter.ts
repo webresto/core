@@ -10,14 +10,14 @@ export default abstract class AbstractPromotionAdapter {
         static promotions: { [key: string]: AbstractPromotionHandler};
 
         public abstract processOrder(order: Order): Promise<PromotionState[]>
-        public abstract displayDish(dish: Dish): Promise<AbstractPromotionHandler | undefined>;
-        public abstract displayGroup(group: Group): Promise<AbstractPromotionHandler | undefined>;
+        public abstract displayDish(dish: Dish): Promise<Dish>;
+        public abstract displayGroup(group: Group): Promise<Group>;
 
         public static filterByConcept:(concept: string) => Promise<Promotion[]>;
         public static filterPromotions:(promotionsByConcept: Promotion[], target: Group | Dish | Order) => Promise<Promotion[] | undefined>;
         public static filterByCondition:(promotions: Promotion[], target: Group | Dish | Order)=> Promise<Promotion[]>;
 
-        public static recreatePromotionHandler:(promotionToAdd: AbstractPromotionHandler) => Promise<void>;
+        public static recreatePromotionHandler:(promotionToAdd: AbstractPromotionHandler) => void;
 
         public static getAllConcept:(concept: string[]) => Promise<AbstractPromotionHandler[]>;
 

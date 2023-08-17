@@ -43,29 +43,30 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     public externalId: string;
 
     public  condition(arg: Group | Dish | Order): boolean {
-        // console.log(arg, "CONFIGURED CONDITION")
         if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept) ) {
           let order:Order = arg as Order
           // TODO:  if order.dishes type number[]
           let orderDishes:OrderDish[] = order.dishes as OrderDish[]
-          
-          for (let i = 0; i < orderDishes.length; i++){
-            if(!this.config.dishes.includes(orderDishes[i].dish)){
-              console.log("This id doesn't include in this promotion")
-              return false
-            }
-          }
-            // order not used for configuredPromotion
-            // TODO: check if includes groups and dishes
-            // where to get groups?
 
-            // const orderDishes = await OrderDish.find({ order: arg.id }).populate("dish");
-            // for (const orderDish of orderDishes) {
-            //   this.config.dishes.includes(orderDish.id + "")
-            //   this.config.groups.includes(orderDish)
-            // }
+          
+          // for (let i = 0; i < orderDishes.length; i++){
+          //   if(!this.config.dishes.includes(orderDishes[i].dish.id)){
+          //     sails.log.error("This dish id doesn't include in this promotion`s dishes")
+          //     return false
+          //   }
             
-            return true;
+          //   if(!stringsInArray(orderDishes[0].dish.parentGroup, this.config.groups)){
+          //     sails.log.error("This dish doesn't include in this promotion`s group")
+          //     return false
+          //   }
+          // }
+
+          let checkDishes = orderDishes.map(order =>order.dish).some(dish => this.config.dishes.includes(dish.id))
+          let checkGroups = orderDishes.map(order =>order.dish).some(dish => this.config.groups.includes(dish.parentGroup))
+
+          if(checkDishes && checkGroups) return true
+            
+          return false;
         }
         
         if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, this.concept)) {
@@ -99,7 +100,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     public async displayDish(dish: Dish, user?: string | User): Promise<Dish[]> {
         if(user){
             //  TODO: show discount for dish
-            
+
             return await Dish.display(dish)
         }
     }
@@ -122,6 +123,12 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
             if (!stringsInArray(orderDish.dish.concept, this.concept)) {
               continue;
             }
+
+          let checkDishes = stringsInArray(orderDish.dish.id,  this.config.dishes) 
+          let checkGroups = stringsInArray(orderDish.dish.parentGroup,  this.config.groups)
+
+          if(!checkDishes && !checkGroups) continue
+          
     
             // ------------------------------------------ Decimal ------------------------------------------
             if (this.configDiscount.discountType === "flat") {
@@ -159,6 +166,10 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           state: {}
       } 
         
-      }
+    }
+
+    // public async getDisplayDish() {
+
+    // }
    
 }

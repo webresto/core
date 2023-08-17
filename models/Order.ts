@@ -1044,8 +1044,10 @@ async countCart(criteria: CriteriaQuery<Order>) {
       let totalWeight = new Decimal(0);
 
       // TODO: clear the order
+      const orderDishesForPopulate = [] as OrderDish[]
 
       for await (let orderDish of orderDishes) {
+
         try {
           if (orderDish.dish) {
             const dish = (await Dish.find(orderDish.dish.id).limit(1))[0];
@@ -1129,11 +1131,13 @@ async countCart(criteria: CriteriaQuery<Order>) {
 
             orderDish.totalWeight = new Decimal(orderDish.weight).times(orderDish.amount).toNumber();
             orderDish.itemTotal = new Decimal(orderDish.itemTotal).times(orderDish.amount).toNumber();
-            
+
+
             orderDish.dish = orderDish.dish.id;
+
             await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
             orderDish.dish = dish;
-
+            orderDishesForPopulate.push({...orderDish})
           } 
 
           basketTotal = basketTotal.plus(orderDish.itemTotal);
@@ -1162,10 +1166,14 @@ async countCart(criteria: CriteriaQuery<Order>) {
 
           try {
             order.isPromoting = true;
+            let orderPopulate: Order = {...order}
+            orderPopulate.dishes = orderDishesForPopulate
+            // console.log(orderDishesForPopulate)
             await Order.updateOne({id: order.id}, {isPromoting: true});
-            let orderPopulate: Order[] = await Order.find({id: order.id}).populate("dishes")
+            // console.log(orderPopulate)
+            
             // console.log(orderPopulate[0], "=====================ORDER POPULATE ====================")
-            order.promotionState = await promotionAdapter.processOrder(orderPopulate[0]);
+            order.promotionState = await promotionAdapter.processOrder(orderPopulate);
             let a = await Order.findOne(order.id) 
 
             order.discountTotal = a.discountTotal

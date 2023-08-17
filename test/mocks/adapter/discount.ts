@@ -16,7 +16,7 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public name: string = "New Year";
     public isPublic: boolean = false;
     public description: string = "some text";
-    public concept: string[] = ["NewYear", "Happy Birthday","origin"];
+    public concept: string[] = ["NewYear", "Happy Birthday","origin","3dif"];
     public configDiscount: IconfigDiscount = {
         discountAmount: 10,
         discountType: "percentage",
