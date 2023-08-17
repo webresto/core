@@ -1299,6 +1299,7 @@ async function checkCustomerInfo(customer) {
     };
   }
 
+  // TODO: updte regex
   try {
     const nameRegex = await Settings.use("nameRegex") as string;
     const phoneRegex = await Settings.use("phoneRegex") as string;

@@ -1052,6 +1052,7 @@ async function checkCustomerInfo(customer) {
             error: "customer.phone is required",
         };
     }
+    // TODO: updte regex
     try {
         const nameRegex = await Settings.use("nameRegex");
         const phoneRegex = await Settings.use("phoneRegex");
