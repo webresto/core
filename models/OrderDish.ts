@@ -23,7 +23,7 @@ let attributes = {
   /** any problem */
   dish: {
     model: "Dish",
-  } as unknown as Dish | any,
+  } as unknown as Dish | string,
   
   /** Selected modifiers */
   modifiers: "json" as unknown as OrderModifier[],
