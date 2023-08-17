@@ -31,16 +31,6 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             let order = arg;
             // TODO:  if order.dishes type number[]
             let orderDishes = order.dishes;
-            // for (let i = 0; i < orderDishes.length; i++){
-            //   if(!this.config.dishes.includes(orderDishes[i].dish.id)){
-            //     sails.log.error("This dish id doesn't include in this promotion`s dishes")
-            //     return false
-            //   }
-            //   if(!stringsInArray(orderDishes[0].dish.parentGroup, this.config.groups)){
-            //     sails.log.error("This dish doesn't include in this promotion`s group")
-            //     return false
-            //   }
-            // }
             let checkDishes = orderDishes.map(order => order.dish).some(dish => this.config.dishes.includes(dish.id));
             let checkGroups = orderDishes.map(order => order.dish).some(dish => this.config.groups.includes(dish.parentGroup));
             if (checkDishes && checkGroups)
@@ -93,7 +83,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 }
                 let checkDishes = (0, stringsInArray_1.stringsInArray)(orderDish.dish.id, this.config.dishes);
                 let checkGroups = (0, stringsInArray_1.stringsInArray)(orderDish.dish.parentGroup, this.config.groups);
-                if (!checkDishes && !checkGroups)
+                if (!checkDishes || !checkGroups)
                     continue;
                 // ------------------------------------------ Decimal ------------------------------------------
                 if (this.configDiscount.discountType === "flat") {

@@ -51,19 +51,6 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
         let order:Order = arg as Order
         // TODO:  if order.dishes type number[]
         let orderDishes:OrderDish[] = order.dishes as OrderDish[]
-        
-        // .parentGroup
-        // for (let i = 0; i < orderDishes.length; i++){
-        //     if(!this.configDiscount.dishes.includes(orderDishes[i].dish.id)){
-        //       sails.log.error("This dish id doesn't include in this promotion`s dishes")
-        //       return false
-        //     }
-            
-        //     if(!stringsInArray(orderDishes[0].dish.parentGroup, this.configDiscount.groups)){
-        //       sails.log.error("This dish doesn't include in this promotion`s group")
-        //       return false
-        //     }
-        // }
 
         let checkDishes = orderDishes.map(order =>order.dish).some(dish => this.configDiscount.dishes.includes(dish.id))
         let checkGroups = orderDishes.map(order =>order.dish).some(dish => this.configDiscount.groups.includes(dish.parentGroup))

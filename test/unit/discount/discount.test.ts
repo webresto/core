@@ -389,6 +389,8 @@ describe('Discount', function () {
 
         let display = await Group.display({ id: group1.id })
         expect(display[0].id).to.equal(group1.id);
+        expect(display[0].discountAmount).to.equal(1.33);
+        expect(display[0].discountType).to.equal("flat");
       });
       
 
