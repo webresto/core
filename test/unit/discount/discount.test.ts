@@ -24,7 +24,9 @@ describe('Discount', function () {
     // let order: Order;
     // let dishes: Dish[];
     // let fullOrder: Order;
-
+    after(async function() {
+      await Promotion.destroy({})
+    })
 
     let discInMemory = new InMemoryDiscountAdapter
   

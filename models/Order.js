@@ -851,7 +851,8 @@ let Model = {
             // const orderDishesClone = {}
             let basketTotal = new decimal_js_1.default(0);
             let dishesCount = 0;
-            let uniqueDishes = orderDishes.length;
+            // let uniqueDishes = orderDishes.length;
+            let uniqueDishes = 0;
             let totalWeight = new decimal_js_1.default(0);
             // TODO: clear the order
             const orderDishesForPopulate = [];
@@ -921,8 +922,9 @@ let Model = {
                                 itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight).toNumber();
                             }
                         }
-                        orderDish.totalWeight = new decimal_js_1.default(orderDish.weight).times(orderDish.amount).toNumber();
-                        orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).times(orderDish.amount).toNumber();
+                        orderDish.totalWeight = new decimal_js_1.default(itemWeight).times(orderDish.amount).toNumber();
+                        // itemCost => orderDish.itemTotal
+                        orderDish.itemTotal = new decimal_js_1.default(itemCost).times(orderDish.amount).toNumber();
                         orderDish.dish = orderDish.dish.id;
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
@@ -932,6 +934,7 @@ let Model = {
                     dishesCount += orderDish.amount;
                     uniqueDishes++;
                     totalWeight = totalWeight.plus(orderDish.totalWeight);
+                    // console.log(totalWeight, "TOTAL WEIGTH IN THE END =====================")
                 }
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);

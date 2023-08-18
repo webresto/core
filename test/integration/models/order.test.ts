@@ -205,7 +205,7 @@ describe("Order", function () {
     // Add dish with modifier with zero price
     await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "test");
     
-    // Modifier with price
+    // // Modifier with price
     await Order.addDish({id: order.id}, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "test");
 
 

@@ -1052,7 +1052,8 @@ async countCart(criteria: CriteriaQuery<Order>) {
       // const orderDishesClone = {}
       let basketTotal = new Decimal(0);
       let dishesCount = 0;
-      let uniqueDishes = orderDishes.length;
+      // let uniqueDishes = orderDishes.length;
+      let uniqueDishes = 0
       let totalWeight = new Decimal(0);
 
       // TODO: clear the order
@@ -1144,9 +1145,9 @@ async countCart(criteria: CriteriaQuery<Order>) {
               }
             }
 
-            orderDish.totalWeight = new Decimal(orderDish.weight).times(orderDish.amount).toNumber();
-            orderDish.itemTotal = new Decimal(orderDish.itemTotal).times(orderDish.amount).toNumber();
-
+            orderDish.totalWeight = new Decimal(itemWeight).times(orderDish.amount).toNumber();
+            // itemCost => orderDish.itemTotal
+            orderDish.itemTotal = new Decimal(itemCost).times(orderDish.amount).toNumber();
 
             orderDish.dish = orderDish.dish.id;
 
@@ -1159,6 +1160,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
           dishesCount += orderDish.amount;
           uniqueDishes++;
           totalWeight = totalWeight.plus(orderDish.totalWeight);
+          // console.log(totalWeight, "TOTAL WEIGTH IN THE END =====================")
         } catch (e) {
           sails.log.error("Order > count > iterate orderDish error", e);
           await OrderDish.destroy({ id: orderDish.id });
@@ -1177,10 +1179,10 @@ async countCart(criteria: CriteriaQuery<Order>) {
 
       // Calcualte promotion cost
       // order.promotionState = await promotionAdapter.processOrder(order);
+
       if(!order.isPromoting){
         emitter.emit("core:count-before-promotion", order);
         let promotionAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter();
-
           try {
             order.isPromoting = true;
             let orderPopulate: Order = {...order}
@@ -1202,6 +1204,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
         emitter.emit("core-order-after-promotion", order);
       }
 
+      
       // Calcualte delivery costs
       /**
        * // TODO: Better move to new method add address to Order, because is not every time needed

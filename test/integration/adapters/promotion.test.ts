@@ -29,6 +29,10 @@ describe("Promotion adapter integration test", function () {
 
   });
 
+  after(async function() {
+    await Promotion.destroy({})
+  })
+
   
   it("Configured discount total: 10% for all group", async () => {
     // // If item is added, then see that it stood in line.
@@ -474,3 +478,4 @@ describe("Promotion adapter integration test", function () {
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
