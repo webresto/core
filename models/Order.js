@@ -289,7 +289,7 @@ let Model = {
         if (stack) {
             amount = 1;
             orderDish = await OrderDish.findOne({
-                where: { order: order.id, dish: dish.id },
+                where: { order: order.id, dish: dish.dish },
                 sort: "createdAt ASC",
             }).populate("dish");
         }
@@ -319,11 +319,12 @@ let Model = {
     },
     async setCount(criteria, dish, amount) {
         await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
-        if (dish.dish.balance !== -1)
-            if (amount > dish.dish.balance) {
+        const _dish = dish.dish;
+        if (_dish.balance !== -1)
+            if (amount > _dish.balance) {
                 await emitter.emit.apply(emitter, ["core-order-set-count-reject-amount", ...arguments]);
                 throw {
-                    body: `There is no so mush dishes with id ${dish.dish.id}`,
+                    body: `There is no so mush dishes with id ${dish.id}`,
                     code: 1,
                 };
             }
@@ -811,8 +812,9 @@ let Model = {
                 //   sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
                 //   continue;
                 // }
+                const _dish = orderDish.dish;
                 const dish = await Dish.findOne({
-                    id: orderDish.dish.id,
+                    id: _dish.id,
                     // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
                     // isDeleted: false,
                 })
@@ -854,11 +856,11 @@ let Model = {
             // TODO: clear the order
             for await (let orderDish of orderDishes) {
                 try {
-                    if (orderDish.dish) {
+                    if (orderDish.dish && typeof orderDish.dish !== "string") {
                         // Item OrderDish calcualte
                         let itemCost = orderDish.dish.price;
                         let itemWeight = orderDish.dish.weight;
-                        const dish = (await Dish.find(orderDish.dish.id).limit(1))[0];
+                        const dish = (await Dish.find({ id: orderDish.dish.id }).limit(1))[0];
                         // Checks that the dish is available for sale
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
