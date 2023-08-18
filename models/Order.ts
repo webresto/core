@@ -1050,7 +1050,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
       // const orderDishesClone = {}
       let basketTotal = new Decimal(0);
       let dishesCount = 0;
-      let uniqueDishes = 0;
+      let uniqueDishes = orderDishes.length;
       let totalWeight = new Decimal(0);
 
       // TODO: clear the order
@@ -1058,13 +1058,19 @@ async countCart(criteria: CriteriaQuery<Order>) {
       for await (let orderDish of orderDishes) {
         try {
           if (orderDish.dish) {
+            
+            // Item OrderDish calcualte
+            let itemCost = orderDish.dish.price;
+            let itemWeight = orderDish.dish.weight;
+          
+            
             const dish = (await Dish.find(orderDish.dish.id).limit(1))[0];
 
             // Checks that the dish is available for sale
             if (!dish) {
               sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
               emitter.emit("core-order-return-full-order-destroy-orderdish", dish, order);
-              await OrderDish.destroy({ id: orderDish.dish.id });
+              await OrderDish.destroy({ id: orderDish.id });
               continue;
             }
 
@@ -1080,9 +1086,13 @@ async countCart(criteria: CriteriaQuery<Order>) {
 
             
             orderDish.uniqueItems += orderDish.amount; // deprecated
-            orderDish.itemTotal = orderDish.dish.price;
-            orderDish.weight = orderDish.dish.weight;
+            
+
+
+            orderDish.itemTotal = 0;
+            orderDish.weight = 0;
             orderDish.totalWeight = 0;
+            
             // orderDish.dishId = dish.id
 
             if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
@@ -1090,21 +1100,17 @@ async countCart(criteria: CriteriaQuery<Order>) {
                 const modifierObj = (await Dish.find({where: { or: [{id: modifier.id}, {rmsId: modifier.id}]}}).limit(1))[0];
 
                 if (!modifierObj) {
-                  sails.log.error("Dish with id " + modifier.id + " not found!");
-                  continue;
+                  throw "Dish with id " + modifier.id + " not found!";
                 }
 
-                let opts:  any = {} 
-                await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
+                // let opts:  any = {} 
+                // await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
 
                 // const modifierCopy = {
                 //   amount: modifier.amount,
                 //   id: modifier.id
                 // }
                 // await emitter.emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
-
-
-
 
                 /** // TODO:
                  * Initial modification checking logic, now it's ugly.
@@ -1113,45 +1119,49 @@ async countCart(criteria: CriteriaQuery<Order>) {
                  * Here by opts we can pass options for modifiers
                  */
 
-                orderDish.itemTotal += modifier.amount * modifierObj.price;
-                // TODO: discountPrice
-                
+                const modifierCost = new Decimal(modifier.amount).times(modifierObj.price).toNumber();
+                itemCost = new Decimal(itemCost).plus(modifierCost).toNumber();
 
-                // FreeAmount modiefires support
-                if (opts.freeAmount && typeof opts.freeAmount === "number") {
-                  if (opts.freeAmount < modifier.amount) {
-                    let freePrice = new Decimal(modifierObj.price).times(opts.freeAmount)
-                    orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
-                  } else {
-                    // If more just calc
-                    let freePrice = new Decimal(modifierObj.price).times(modifier.amount)
-                    orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
-                  }
-                }                
+                // TODO: discountPrice && freeAmount
+                // // FreeAmount modiefires support
+                // if (opts.freeAmount && typeof opts.freeAmount === "number") {
+                //   if (opts.freeAmount < modifier.amount) {
+                //     let freePrice = new Decimal(modifierObj.price).times(opts.freeAmount)
+                //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
+                //   } else {
+                //     // If more just calc
+                //     let freePrice = new Decimal(modifierObj.price).times(modifier.amount)
+                //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
+                //   }
+                // }                
 
-                if (!Number(orderDish.itemTotal)) throw `orderDish.itemTotal is NaN ${JSON.stringify(modifier)}.`
-
-                orderDish.weight = new Decimal(orderDish.weight).plus(modifierObj.weight).toNumber();
+                if (!Number(itemCost)) throw `itemCost is NaN ${JSON.stringify(modifier)}.`
+                itemWeight = new Decimal(itemWeight).plus(modifierObj.weight).toNumber();
               }
-            } else {
-              throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish.modifiers, undefined, 2)} <<`
             }
 
-            orderDish.totalWeight = new Decimal(orderDish.weight).times(orderDish.amount).toNumber();
-            orderDish.itemTotal = new Decimal(orderDish.itemTotal).times(orderDish.amount).toNumber();
-            
+            // Set orderDish
             orderDish.dish = orderDish.dish.id;
+            orderDish.itemTotal = new Decimal(itemCost).times(orderDish.amount).toNumber();
+            orderDish.totalWeight = new Decimal(itemWeight).times(orderDish.amount).toNumber();
             await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
-            orderDish.dish = dish;
-
-          } 
-
-          basketTotal = basketTotal.plus(orderDish.itemTotal);
-          dishesCount += orderDish.amount;
-          uniqueDishes++;
-          totalWeight = totalWeight.plus(orderDish.totalWeight);
+            
+            // set order
+            basketTotal = basketTotal.plus(orderDish.itemTotal);
+            totalWeight = totalWeight.plus(orderDish.totalWeight);
+            dishesCount += orderDish.amount;
+            
+          } else {
+            sails.log.error("CountCart > dish not found", orderDish)
+            await OrderDish.destroy({ id: orderDish.id });
+            uniqueDishes-=1;
+            continue;
+          }
         } catch (e) {
           sails.log.error("Order > count > iterate orderDish error", e);
+          await OrderDish.destroy({ id: orderDish.id });
+          uniqueDishes-=1;
+          continue;
         }
       } 
       
@@ -1193,6 +1203,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
           try {
             delivery = await deliveryAdapter.calculate(order);
           } catch (error) {
+            sails.log.error("deliveryAdapter.calculate error:", error)
             delivery = {
               allowed: false,
               cost: 0,

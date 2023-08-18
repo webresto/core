@@ -849,18 +849,21 @@ let Model = {
             // const orderDishesClone = {}
             let basketTotal = new decimal_js_1.default(0);
             let dishesCount = 0;
-            let uniqueDishes = 0;
+            let uniqueDishes = orderDishes.length;
             let totalWeight = new decimal_js_1.default(0);
             // TODO: clear the order
             for await (let orderDish of orderDishes) {
                 try {
                     if (orderDish.dish) {
+                        // Item OrderDish calcualte
+                        let itemCost = orderDish.dish.price;
+                        let itemWeight = orderDish.dish.weight;
                         const dish = (await Dish.find(orderDish.dish.id).limit(1))[0];
                         // Checks that the dish is available for sale
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
                             emitter.emit("core-order-return-full-order-destroy-orderdish", dish, order);
-                            await OrderDish.destroy({ id: orderDish.dish.id });
+                            await OrderDish.destroy({ id: orderDish.id });
                             continue;
                         }
                         if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
@@ -873,19 +876,18 @@ let Model = {
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
                         orderDish.uniqueItems += orderDish.amount; // deprecated
-                        orderDish.itemTotal = orderDish.dish.price;
-                        orderDish.weight = orderDish.dish.weight;
+                        orderDish.itemTotal = 0;
+                        orderDish.weight = 0;
                         orderDish.totalWeight = 0;
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
                             for await (let modifier of orderDish.modifiers) {
                                 const modifierObj = (await Dish.find({ where: { or: [{ id: modifier.id }, { rmsId: modifier.id }] } }).limit(1))[0];
                                 if (!modifierObj) {
-                                    sails.log.error("Dish with id " + modifier.id + " not found!");
-                                    continue;
+                                    throw "Dish with id " + modifier.id + " not found!";
                                 }
-                                let opts = {};
-                                await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
+                                // let opts:  any = {} 
+                                // await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
                                 // const modifierCopy = {
                                 //   amount: modifier.amount,
                                 //   id: modifier.id
@@ -897,41 +899,47 @@ let Model = {
                                  * Also all checks modifiers need process in current loop thread. Currently we not have access to modifer options
                                  * Here by opts we can pass options for modifiers
                                  */
-                                orderDish.itemTotal += modifier.amount * modifierObj.price;
-                                // TODO: discountPrice
-                                // FreeAmount modiefires support
-                                if (opts.freeAmount && typeof opts.freeAmount === "number") {
-                                    if (opts.freeAmount < modifier.amount) {
-                                        let freePrice = new decimal_js_1.default(modifierObj.price).times(opts.freeAmount);
-                                        orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).minus(freePrice).toNumber();
-                                    }
-                                    else {
-                                        // If more just calc
-                                        let freePrice = new decimal_js_1.default(modifierObj.price).times(modifier.amount);
-                                        orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).minus(freePrice).toNumber();
-                                    }
-                                }
-                                if (!Number(orderDish.itemTotal))
-                                    throw `orderDish.itemTotal is NaN ${JSON.stringify(modifier)}.`;
-                                orderDish.weight = new decimal_js_1.default(orderDish.weight).plus(modifierObj.weight).toNumber();
+                                const modifierCost = new decimal_js_1.default(modifier.amount).times(modifierObj.price).toNumber();
+                                itemCost = new decimal_js_1.default(itemCost).plus(modifierCost).toNumber();
+                                // TODO: discountPrice && freeAmount
+                                // // FreeAmount modiefires support
+                                // if (opts.freeAmount && typeof opts.freeAmount === "number") {
+                                //   if (opts.freeAmount < modifier.amount) {
+                                //     let freePrice = new Decimal(modifierObj.price).times(opts.freeAmount)
+                                //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
+                                //   } else {
+                                //     // If more just calc
+                                //     let freePrice = new Decimal(modifierObj.price).times(modifier.amount)
+                                //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
+                                //   }
+                                // }                
+                                if (!Number(itemCost))
+                                    throw `itemCost is NaN ${JSON.stringify(modifier)}.`;
+                                itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight).toNumber();
                             }
                         }
-                        else {
-                            throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish.modifiers, undefined, 2)} <<`;
-                        }
-                        orderDish.totalWeight = new decimal_js_1.default(orderDish.weight).times(orderDish.amount).toNumber();
-                        orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).times(orderDish.amount).toNumber();
+                        // Set orderDish
                         orderDish.dish = orderDish.dish.id;
+                        orderDish.itemTotal = new decimal_js_1.default(itemCost).times(orderDish.amount).toNumber();
+                        orderDish.totalWeight = new decimal_js_1.default(itemWeight).times(orderDish.amount).toNumber();
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
-                        orderDish.dish = dish;
+                        // set order
+                        basketTotal = basketTotal.plus(orderDish.itemTotal);
+                        totalWeight = totalWeight.plus(orderDish.totalWeight);
+                        dishesCount += orderDish.amount;
                     }
-                    basketTotal = basketTotal.plus(orderDish.itemTotal);
-                    dishesCount += orderDish.amount;
-                    uniqueDishes++;
-                    totalWeight = totalWeight.plus(orderDish.totalWeight);
+                    else {
+                        sails.log.error("CountCart > dish not found", orderDish);
+                        await OrderDish.destroy({ id: orderDish.id });
+                        uniqueDishes -= 1;
+                        continue;
+                    }
                 }
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);
+                    await OrderDish.destroy({ id: orderDish.id });
+                    uniqueDishes -= 1;
+                    continue;
                 }
             }
             order.dishesCount = dishesCount;
@@ -968,6 +976,7 @@ let Model = {
                         delivery = await deliveryAdapter.calculate(order);
                     }
                     catch (error) {
+                        sails.log.error("deliveryAdapter.calculate error:", error);
                         delivery = {
                             allowed: false,
                             cost: 0,
