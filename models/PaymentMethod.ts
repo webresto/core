@@ -7,9 +7,9 @@ import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { PaymentMethodType } from "../libs/enums/PaymentMethodTypes";
 
-interface ExternalPayment { 
-  name: string 
-  id: string 
+interface ExternalPayment {
+  name: string;
+  id: string;
 }
 
 let attributes = {
@@ -18,10 +18,10 @@ let attributes = {
     type: "string",
     //required: true,
   } as unknown as string,
-  
+
   externalId: {
     type: "string",
-    allowNull: true 
+    allowNull: true,
   },
 
   /** The name of the payment method */
@@ -38,7 +38,7 @@ let attributes = {
     required: true,
   } as unknown as PaymentMethodType,
   isCash: {
-    type: "boolean"
+    type: "boolean",
   } as unknown as boolean,
   adapter: {
     type: "string",
@@ -51,6 +51,10 @@ let attributes = {
     type: "boolean",
     required: true,
   } as unknown as boolean,
+  
+  customData: "json" as unknown as {
+    [key: string]: string | boolean | number;
+  } | string,
 };
 
 type attributes = typeof attributes;
@@ -80,7 +84,7 @@ let Model = {
     }
   },
 
-  beforeCreate: function (paymentMethod, cb:  (err?: string) => void) {
+  beforeCreate: function (paymentMethod, cb: (err?: string) => void) {
     if (!paymentMethod.id) {
       paymentMethod.id = uuid();
     }
@@ -110,19 +114,18 @@ let Model = {
   },
 
   /**
-     * returns list of externalPaymentId
-     * @param  paymentMethodId
-     * @return { name: string, id: string }
-     */
+   * returns list of externalPaymentId
+   * @param  paymentMethodId
+   * @return { name: string, id: string }
+   */
   async getExternalPaymentMethods(): Promise<ExternalPayment[]> {
-    let externalPayments = await Settings.get("EXTERNAL_PAYMENTS") as unknown as ExternalPayment[]
-    if(externalPayments) {
-      return externalPayments
+    let externalPayments = (await Settings.get("EXTERNAL_PAYMENTS")) as unknown as ExternalPayment[];
+    if (externalPayments) {
+      return externalPayments;
     } else {
       return [];
     }
   },
-
 
   /**
    * Adds to the list possible to use payment ADAPTERs at their start.
@@ -132,9 +135,12 @@ let Model = {
    */
   async alive(paymentAdapter: PaymentAdapter): Promise<string[]> {
     let defaultEnable = Boolean(await Settings.get("DEFAULT_ENABLE_PAYMENT_METHODS")) ?? false;
-    let knownPaymentMethod = await PaymentMethod.findOrCreate({
-      adapter: paymentAdapter.InitPaymentAdapter.adapter,
-    },{ ...paymentAdapter.InitPaymentAdapter, enable: defaultEnable } );
+    let knownPaymentMethod = await PaymentMethod.findOrCreate(
+      {
+        adapter: paymentAdapter.InitPaymentAdapter.adapter,
+      },
+      { ...paymentAdapter.InitPaymentAdapter, enable: defaultEnable }
+    );
 
     alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
     sails.log.silly("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
@@ -198,17 +204,17 @@ let Model = {
    * @throws
    */
   async getAdapterById(paymentMethodId: string): Promise<PaymentAdapter> {
-    const paymentMethod = await PaymentMethod.findOne({id: paymentMethodId});
+    const paymentMethod = await PaymentMethod.findOne({ id: paymentMethodId });
 
-    if (await PaymentMethod.isPaymentPromise(paymentMethod.id)){
-      throw `PaymentPromise adapter: (${paymentMethod.adapter}) not have adapter`
+    if (await PaymentMethod.isPaymentPromise(paymentMethod.id)) {
+      throw `PaymentPromise adapter: (${paymentMethod.adapter}) not have adapter`;
     }
 
-    if (alivedPaymentMethods[paymentMethod.adapter]){
+    if (alivedPaymentMethods[paymentMethod.adapter]) {
       sails.log.silly("Core > PaymentMethod > getAdapterById", alivedPaymentMethods[paymentMethod.adapter]);
-      return alivedPaymentMethods[paymentMethod.adapter]
+      return alivedPaymentMethods[paymentMethod.adapter];
     } else {
-      throw `${paymentMethod.adapter} is not alived`
+      throw `${paymentMethod.adapter} is not alived`;
     }
   },
 };

@@ -1,6 +1,9 @@
 import Group from "../models/Group";
 import Dish from "../models/Dish";
 interface BaseModifier {
+    /**
+     * restocore dishId
+    */
     modifierId: string;
     amount?: number;
     dish?: Dish | string;
@@ -18,6 +21,9 @@ export interface OrderModifier {
     modifierId?: string;
 }
 export interface Modifier extends BaseModifier {
+    /**
+    * rmsId
+    */
     id: string;
 }
 export interface GroupModifier extends BaseModifier {

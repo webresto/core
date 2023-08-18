@@ -87,7 +87,7 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
-    customData: string | {
+    customData: {
         [key: string]: string | number | boolean;
     };
 };

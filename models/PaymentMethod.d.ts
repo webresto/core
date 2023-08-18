@@ -27,6 +27,9 @@ declare let attributes: {
     sortOrder: number;
     description: string;
     enable: boolean;
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 type attributes = typeof attributes;
 interface PaymentMethod extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {
@@ -47,10 +50,10 @@ declare let Model: {
      */
     isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
     /**
-       * returns list of externalPaymentId
-       * @param  paymentMethodId
-       * @return { name: string, id: string }
-       */
+     * returns list of externalPaymentId
+     * @param  paymentMethodId
+     * @return { name: string, id: string }
+     */
     getExternalPaymentMethods(): Promise<ExternalPayment[]>;
     /**
      * Adds to the list possible to use payment ADAPTERs at their start.

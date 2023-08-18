@@ -227,7 +227,7 @@ let attributes = {
 
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
-  } | string,
+  },
 };
 
 interface IVirtualFields {
@@ -318,15 +318,40 @@ let Model = {
         
         
         // assign group
-        if (dish.modifiers[index].modifierId !== undefined){
-            dish.modifiers[index].group = await Group.findOne({id: modifier.modifierId});
+        console.log("GETMMM",        
+            {
+              id: modifier.modifierId,
+              rmsId: modifier.id}
+              )
+
+        if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined){
+            let criteria = {}
+
+            if( modifier.modifierId){
+              criteria["id"] = modifier.modifierId
+            } else if(modifier.id) {
+              criteria["rmsId"] = modifier.id
+            } else {
+              throw `Group modifierId or rmsId not found`
+            }
+
+            dish.modifiers[index].group = await Group.findOne(criteria);
           }
           
           if (!modifier.childModifiers) modifier.childModifiers = [];
           
           for await(let childModifier of modifier.childModifiers){
+            let criteria = {}
 
-            let childModifierDish = await Dish.findOne({id: childModifier.modifierId}).populate('images')
+            if( childModifier.modifierId){
+              criteria["id"] = childModifier.modifierId
+            } else if(childModifier.id) {
+              criteria["rmsId"] = childModifier.id
+            } else {
+              throw `Dish modifierId or rmsId not found`
+            }
+
+            let childModifierDish = await Dish.findOne(criteria).populate('images')
             if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)){
               // delete if dish not found
               sails.log.warn("DISH > getDishModifiers: Modifier "+ childModifier.modifierId +" from dish:"+dish.name+" not found")

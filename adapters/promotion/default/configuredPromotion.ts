@@ -48,8 +48,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           // TODO:  if order.dishes type number[]
           let orderDishes:OrderDish[] = order.dishes as OrderDish[]
 
-          let checkDishes = orderDishes.map(order =>order.dish).some(dish => this.config.dishes.includes(dish.id))
-          let checkGroups = orderDishes.map(order =>order.dish).some(dish => this.config.groups.includes(dish.parentGroup))
+          let checkDishes = orderDishes.map(order =>order.dish).some((dish:Dish) => this.config.dishes.includes(dish.id))
+          let checkGroups = orderDishes.map(order =>order.dish).some((dish:Dish) => this.config.groups.includes(dish.parentGroup))
 
           if(checkDishes && checkGroups) return true
             
@@ -115,6 +115,11 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           let discountCost: Decimal = new Decimal(0);
     
           for (const orderDish of orderDishes) {
+            
+            if(typeof orderDish.dish === "string"){
+              throw new Error("Type error dish: applyPromotion")
+            }
+
             let orderDishDiscountCost: number = 0;
             if (!orderDish.dish) {
               sails.log.error("orderDish", orderDish.id, "has no such dish");

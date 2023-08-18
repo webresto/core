@@ -32,8 +32,8 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             let order = arg;
             // TODO:  if order.dishes type number[]
             let orderDishes = order.dishes;
-            let checkDishes = orderDishes.map(order => order.dish).some(dish => this.config.dishes.includes(dish.id));
-            let checkGroups = orderDishes.map(order => order.dish).some(dish => this.config.groups.includes(dish.parentGroup));
+            let checkDishes = orderDishes.map(order => order.dish).some((dish) => this.config.dishes.includes(dish.id));
+            let checkGroups = orderDishes.map(order => order.dish).some((dish) => this.config.groups.includes(dish.parentGroup));
             if (checkDishes && checkGroups)
                 return true;
             return false;
@@ -86,6 +86,9 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             let discountCost = new decimal_js_1.default(0);
             for (const orderDish of orderDishes) {
+                if (typeof orderDish.dish === "string") {
+                    throw new Error("Type error dish: applyPromotion");
+                }
                 let orderDishDiscountCost = 0;
                 if (!orderDish.dish) {
                     sails.log.error("orderDish", orderDish.id, "has no such dish");

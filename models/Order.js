@@ -289,7 +289,7 @@ let Model = {
         if (stack) {
             amount = 1;
             orderDish = await OrderDish.findOne({
-                where: { order: order.id, dish: dish.id },
+                where: { order: order.id, dish: dish.dish },
                 sort: "createdAt ASC",
             }).populate("dish");
         }
@@ -319,11 +319,12 @@ let Model = {
     },
     async setCount(criteria, dish, amount) {
         await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
-        if (dish.dish.balance !== -1)
-            if (amount > dish.dish.balance) {
+        const _dish = dish.dish;
+        if (_dish.balance !== -1)
+            if (amount > _dish.balance) {
                 await emitter.emit.apply(emitter, ["core-order-set-count-reject-amount", ...arguments]);
                 throw {
-                    body: `There is no so mush dishes with id ${dish.dish.id}`,
+                    body: `There is no so mush dishes with id ${dish.id}`,
                     code: 1,
                 };
             }
@@ -547,7 +548,16 @@ let Model = {
         await Order.update({ id: order.id }, { ...order });
         ////////////////////
         // CHECKOUT COUNTING
-        order = await Order.countCart({ id: order.id });
+        try {
+            order = await Order.countCart({ id: order.id });
+        }
+        catch (error) {
+            sails.log.error("Check countcart error:", error);
+            throw {
+                code: 14,
+                error: "Problem with counting cart",
+            };
+        }
         if (!order.selfService && !order.delivery.allowed) {
             throw {
                 code: 11,
@@ -779,7 +789,10 @@ let Model = {
     },
     /**  given populated Order instance  by criteria*/
     async populate(criteria) {
-        let order = await Order.findOne(criteria);
+        let order = await Order.findOne(criteria)
+            .populate('paymentMethod')
+            .populate('deliveryItem')
+            .populate('user');
         if (!order)
             throw `order by criteria: ${criteria},  not found`;
         let fullOrder;
@@ -799,8 +812,9 @@ let Model = {
                 //   sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
                 //   continue;
                 // }
+                const _dish = orderDish.dish;
                 const dish = await Dish.findOne({
-                    id: orderDish.dish.id,
+                    id: _dish.id,
                     // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
                     // isDeleted: false,
                 })
@@ -837,19 +851,22 @@ let Model = {
             // const orderDishesClone = {}
             let basketTotal = new decimal_js_1.default(0);
             let dishesCount = 0;
-            let uniqueDishes = 0;
+            let uniqueDishes = orderDishes.length;
             let totalWeight = new decimal_js_1.default(0);
             // TODO: clear the order
             const orderDishesForPopulate = [];
             for await (let orderDish of orderDishes) {
                 try {
-                    if (orderDish.dish) {
-                        const dish = (await Dish.find(orderDish.dish.id).limit(1))[0];
+                    if (orderDish.dish && typeof orderDish.dish !== "string") {
+                        // Item OrderDish calcualte
+                        let itemCost = orderDish.dish.price;
+                        let itemWeight = orderDish.dish.weight;
+                        const dish = (await Dish.find({ id: orderDish.dish.id }).limit(1))[0];
                         // Checks that the dish is available for sale
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
                             emitter.emit("core-order-return-full-order-destroy-orderdish", dish, order);
-                            await OrderDish.destroy({ id: orderDish.dish.id });
+                            await OrderDish.destroy({ id: orderDish.id });
                             continue;
                         }
                         if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
@@ -862,19 +879,18 @@ let Model = {
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
                         orderDish.uniqueItems += orderDish.amount; // deprecated
-                        orderDish.itemTotal = orderDish.dish.price;
-                        orderDish.weight = orderDish.dish.weight;
+                        orderDish.itemTotal = 0;
+                        orderDish.weight = 0;
                         orderDish.totalWeight = 0;
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
                             for await (let modifier of orderDish.modifiers) {
-                                const modifierObj = (await Dish.find({ id: modifier.id }).limit(1))[0];
+                                const modifierObj = (await Dish.find({ where: { or: [{ id: modifier.id }, { rmsId: modifier.id }] } }).limit(1))[0];
                                 if (!modifierObj) {
-                                    sails.log.error("Dish with id " + modifier.id + " not found!");
-                                    continue;
+                                    throw "Dish with id " + modifier.id + " not found!";
                                 }
-                                let opts = {};
-                                await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
+                                // let opts:  any = {} 
+                                // await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
                                 // const modifierCopy = {
                                 //   amount: modifier.amount,
                                 //   id: modifier.id
@@ -886,27 +902,24 @@ let Model = {
                                  * Also all checks modifiers need process in current loop thread. Currently we not have access to modifer options
                                  * Here by opts we can pass options for modifiers
                                  */
-                                orderDish.itemTotal += modifier.amount * modifierObj.price;
-                                // TODO: discountPrice
-                                // FreeAmount modiefires support
-                                if (opts.freeAmount && typeof opts.freeAmount === "number") {
-                                    if (opts.freeAmount < modifier.amount) {
-                                        let freePrice = new decimal_js_1.default(modifierObj.price).times(opts.freeAmount);
-                                        orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).minus(freePrice).toNumber();
-                                    }
-                                    else {
-                                        // If more just calc
-                                        let freePrice = new decimal_js_1.default(modifierObj.price).times(modifier.amount);
-                                        orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).minus(freePrice).toNumber();
-                                    }
-                                }
-                                if (!Number(orderDish.itemTotal))
-                                    throw `orderDish.itemTotal is NaN ${JSON.stringify(modifier)}.`;
-                                orderDish.weight = new decimal_js_1.default(orderDish.weight).plus(modifierObj.weight).toNumber();
+                                const modifierCost = new decimal_js_1.default(modifier.amount).times(modifierObj.price).toNumber();
+                                itemCost = new decimal_js_1.default(itemCost).plus(modifierCost).toNumber();
+                                // TODO: discountPrice && freeAmount
+                                // // FreeAmount modiefires support
+                                // if (opts.freeAmount && typeof opts.freeAmount === "number") {
+                                //   if (opts.freeAmount < modifier.amount) {
+                                //     let freePrice = new Decimal(modifierObj.price).times(opts.freeAmount)
+                                //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
+                                //   } else {
+                                //     // If more just calc
+                                //     let freePrice = new Decimal(modifierObj.price).times(modifier.amount)
+                                //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
+                                //   }
+                                // }                
+                                if (!Number(itemCost))
+                                    throw `itemCost is NaN ${JSON.stringify(modifier)}.`;
+                                itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight).toNumber();
                             }
-                        }
-                        else {
-                            throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish.modifiers, undefined, 2)} <<`;
                         }
                         orderDish.totalWeight = new decimal_js_1.default(orderDish.weight).times(orderDish.amount).toNumber();
                         orderDish.itemTotal = new decimal_js_1.default(orderDish.itemTotal).times(orderDish.amount).toNumber();
@@ -922,6 +935,9 @@ let Model = {
                 }
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);
+                    await OrderDish.destroy({ id: orderDish.id });
+                    uniqueDishes -= 1;
+                    continue;
                 }
             }
             order.dishesCount = dishesCount;
@@ -968,6 +984,7 @@ let Model = {
                         delivery = await deliveryAdapter.calculate(order);
                     }
                     catch (error) {
+                        sails.log.error("deliveryAdapter.calculate error:", error);
                         delivery = {
                             allowed: false,
                             cost: 0,
@@ -984,7 +1001,7 @@ let Model = {
                         order.deliveryItem = delivery.item;
                         order.deliveryCost = (await Dish.findOne({ id: delivery.item })).price;
                     }
-                    order.deliveryDescription = delivery.message;
+                    order.deliveryDescription = typeof delivery.message === "string" ? delivery.message : JSON.stringify(delivery.message);
                 }
                 catch (error) {
                     sails.log.error(`Core > order > delivery calculate fail: `, error);
@@ -1020,7 +1037,7 @@ let Model = {
             }
             if (order.total !== paymentDocument.amount) {
                 order.problem = true;
-                order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
+                order.comment = order.comment + "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount;
             }
             await Order.order({ id: order.id });
             emitter.emit("core-order-after-dopaid", order);
@@ -1052,6 +1069,7 @@ async function checkCustomerInfo(customer) {
             error: "customer.phone is required",
         };
     }
+    // TODO: updte regex
     try {
         const nameRegex = await Settings.use("nameRegex");
         const phoneRegex = await Settings.use("phoneRegex");

@@ -53,8 +53,8 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
         // TODO:  if order.dishes type number[]
         let orderDishes:OrderDish[] = order.dishes as OrderDish[]
 
-        let checkDishes = orderDishes.map(order =>order.dish).some(dish => this.configDiscount.dishes.includes(dish.id))
-        let checkGroups = orderDishes.map(order =>order.dish).some(dish => this.configDiscount.groups.includes(dish.parentGroup))
+        let checkDishes = orderDishes.map(order =>order.dish).some((dish:Dish) => this.configDiscount.dishes.includes(dish.id))
+        let checkGroups = orderDishes.map(order =>order.dish).some((dish:Dish) => this.configDiscount.groups.includes(dish.parentGroup))
 
         if(checkDishes && checkGroups) return true
         

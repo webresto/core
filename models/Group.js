@@ -268,12 +268,16 @@ let Model = {
             }
             groups = await Group.find({
                 parentGroup: topLevelGroupId ?? null,
-                ...concept && { concept: concept }
+                ...concept && { concept: concept },
+                modifier: false,
+                visible: true
             });
             // Check subgroups when one group in top menu
             if (groups.length === 1 && topLevelGroupId === undefined) {
                 let childs = await Group.find({
                     parentGroup: groups[0].id,
+                    modifier: false,
+                    visible: true
                 });
                 if (childs)
                     groups = childs;

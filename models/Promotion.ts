@@ -64,6 +64,11 @@ let attributes = {
     type: "number",
   } as unknown as number,
 
+  // teaser: {
+  //   type: "string",
+  //   required: true,
+  // } as unknown as string,
+
   description: {
     type: "string",
     required: true,

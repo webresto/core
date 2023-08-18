@@ -222,7 +222,7 @@ let Model = {
 
   /** Payment check cycle*/
   processor: async function (timeout: number) {
-    sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 120000);
+    sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 45000);
     return (payment_processor_interval = setInterval(async () => {
       let actualTime = new Date();
 
@@ -234,11 +234,11 @@ let Model = {
         if (actualPaymentDocument.createdAt < actualTime) {
           await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" }).fetch();
         } else {
-          sails.log.debug("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
+          sails.log.silly("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
           await PaymentDocument.doCheck({id: actualPaymentDocument.id}) ;
         }
       }
-    }, timeout || 120000));
+    }, timeout || 45000));
   },
 };
 
