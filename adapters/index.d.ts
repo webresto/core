@@ -22,12 +22,13 @@ export declare class OTP {
 /** TODO: move other Adapters to one class adapter */
 export declare class Adapter {
     private static instanceRMS;
+    private static instancePromotion;
     private static instanceDeliveryAdapter;
     private static instanceMF;
     static WEBRESTO_MODULES_PATH: string;
     static getPromotionAdapter(adapterName?: string, initParams?: {
         [key: string]: string | number | boolean;
-    }): Promise<PromotionAdapter>;
+    }): PromotionAdapter;
     /**
      * retruns BonusProgram-adapter
      */

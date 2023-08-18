@@ -8,6 +8,7 @@ import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
 import ConfiguredPromotion from "../../adapters/promotion/default/configuredPromotion";
 import { stringsInArray } from "../../libs/stringsInArray";
+import Decimal from "decimal.js";
 
 var autoincrement: number = 0;
 
@@ -78,17 +79,29 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
 
     },
     // sortOrder: 0,
-    displayGroup: async function (group:Group, user?: string): Promise<Group[]> {
-      if(user){
-        //  return await Dish.display(this.concept, group.id)
-        return await Group.display(group)
-      }
+    displayGroup: function (group:Group, user?: string): Group {
+      if (this.isJoint === true && this.isPublic === true) {
+        // 
+        group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+        group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+       }
+       
+      return group
     },
-    displayDish: async function (dish:Dish, user?: string): Promise<Dish[]> {
-      if(user){
-        //  return await Dish.display(this.concept, group.id)
-        return await Dish.display(dish)
+    displayDish: function (dish:Dish, user?: string): Dish {
+      if (this.isJoint === true && this.isPublic === true) {
+        // 
+        dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+        dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+        dish.oldPrice = dish.price
+
+        dish.price = this.configDiscount.discountType === "flat" 
+        ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
+        : new Decimal(dish.price)
+            .mul(+this.configDiscount.discountAmount / 100)
+            .toNumber()  
       }
+      return dish
     },
     externalId: faker.random.uuid()
   };

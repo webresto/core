@@ -77,19 +77,33 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
         return mass
     }
  
-    public async displayGroup(group: Group, user?: string | User): Promise<Group[]> {
-        if(user){
-            // TODO: show discount for group
-            return await Group.display(group)
-        }
+    public  displayGroup(group: Group, user?: string | User): Group {
+         // TODO: user implement logic personal discount
+         if (this.isJoint === true && this.isPublic === true) {
+          // 
+          group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+          group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+         }
+         
+        return group
     }
 
-    public async displayDish(dish: Dish, user?: string | User): Promise<Dish[]> {
-        if(user){
-            //  TODO: show discount for dish
+    public  displayDish(dish: Dish, user?: string | User): Dish {
+        // TODO: user implement logic personal discount
 
-            return await Dish.display(dish)
+        if (this.isJoint === true && this.isPublic === true) {
+          // 
+          dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+          dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+          dish.oldPrice = dish.price
+
+          dish.price = this.configDiscount.discountType === "flat" 
+          ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
+          : new Decimal(dish.price)
+              .mul(+this.configDiscount.discountAmount / 100)
+              .toNumber()  
         }
+        return dish
     }
 
     public async applyPromotion(orderId): Promise<PromotionState> {

@@ -31,13 +31,13 @@ interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "confi
 }
 export default Promotion;
 declare let Model: {
-    afterUpdate(record: Promotion, cb: (err?: string) => void): void;
-    afterCreate(record: Promotion, cb: (err?: string) => void): void;
+    afterUpdate(record: Promotion, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: Promotion, cb: (err?: string) => void): Promise<void>;
+    afterDestroy(record: Promotion, cb: (err?: string) => void): Promise<void>;
     beforeUpdate(init: Promotion, cb: (err?: string) => void): void;
     beforeCreate(init: Promotion, cb: (err?: string) => void): void;
     createOrUpdate(values: Promotion): Promise<Promotion>;
-    getAllByConcept(concept: string[]): Promise<Promotion[]>;
-    setAlive(idArray: string[]): Promise<void>;
+    getAllByConcept(concept: string[]): Promotion[];
 };
 declare global {
     const Promotion: typeof Model & ORMModel<Promotion, "concept">;

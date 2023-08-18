@@ -9,6 +9,7 @@ import { Adapter } from "../adapters";
 import { IconfigDiscount } from "../interfaces/ConfigDiscount";
 import { PromotionAdapter } from './../adapters/promotion/default/promotionAdapter';
 import AbstractPromotionHandler from "../adapters/promotion/AbstractPromotion";
+import { stringsInArray } from "../libs/stringsInArray";
 
 
 // import Decimal from "decimal.js";
@@ -17,6 +18,8 @@ import AbstractPromotionHandler from "../adapters/promotion/AbstractPromotion";
 //     checkMaintenance();
 //   }, CHECK_INTERVAL);
 // });
+
+let promotionRAM = []
 
 sails.on("lifted", async ()=>{
   let promotions = await Promotion.find({ enable:true })
@@ -119,30 +122,42 @@ interface Promotion
 export default Promotion;
 
 let Model = {
-   afterUpdate(record: Promotion, cb:  (err?: string) => void) {
+   async afterUpdate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreate of discountHandler
       PromotionAdapter.recreateConfiguredPromotionHandler(record);
     }
 
+    promotionRAM = await Promotion.find({enable: true, isDeleted: false})
+    // console.log(promotionRAM, "================= after UPDATE ===========")
     cb();
   },
 
-   afterCreate(record: Promotion, cb:  (err?: string) => void) {
+  async afterCreate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreate of discountHandler
       PromotionAdapter.recreateConfiguredPromotionHandler(record);
     }
 
+    promotionRAM = await Promotion.find({enable: true, isDeleted: false})
+    // console.log(promotionRAM, "================= after Create ===========")
     cb();
   },
+
+  async afterDestroy(record: Promotion, cb:  (err?: string) => void) {
+    // delete promotion in adapter
+    PromotionAdapter.deletePromotion(record.id)
+    promotionRAM = await Promotion.find({enable: true, isDeleted: false})
+
+    cb();
+  },
+
 
   beforeUpdate(init: Promotion, cb:  (err?: string) => void) {
     cb();
   },
 
   beforeCreate(init: Promotion, cb:  (err?: string) => void) {
-    // init.setORMId("a")
     cb();
   },
 
@@ -158,46 +173,21 @@ let Model = {
     return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
   },
 
-  async getAllByConcept(concept: string[]): Promise<Promotion[]> {
-    // TODO: get all active by concept
-    const promotionAdapter = await Adapter.getPromotionAdapter()
-    // discountAdapter.getAllConcept(concept)
-    // discountAdapter.processOrder()
+  getAllByConcept(concept: string[]): Promotion[] {
+    const promotionAdapter = Adapter.getPromotionAdapter()
 
-    
     if (!concept) throw "concept is required";
     let activePromotionIds = promotionAdapter.getActivePromotionsIds()
 
-    const promotion: Promotion[] = await Promotion.find({
-      where: {
-        // @ts-ignore TODO: First fix types
-          and: [
-              { id: { in: activePromotionIds }},
-              { enable: true },
-              { concept: concept }
-          ]
-      },
-      sort: "sortOrder ASC"
-     }
-   );
+    let filteredRAM = promotionRAM.filter(promotion => 
+      stringsInArray(promotion.concept,concept)
+      && stringsInArray(promotion.id,activePromotionIds))
 
-    if (!promotion) throw "Promotion with concept: " + concept + " not found";
+    if (!filteredRAM) throw "Promotion with concept: " + concept + " not found";
 
-    let filtredPromotion = promotion.filter((promotion) => {
-      return promotion.enable === true && promotion.isDeleted === false;
-    });
-
-    return filtredPromotion;
+    return filteredRAM;
   },
 
-  async setAlive(idArray: string[]): Promise<void> {
-    //
-  },
-
-  // async getHandler(id: string): Promise<any> {
-  //   const adapter = Adapter.getDiscountAdapter()
-  //   return adapter.getHandlerById(id)
-  // },
 };
 
 module.exports = {

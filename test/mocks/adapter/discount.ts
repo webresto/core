@@ -9,6 +9,7 @@ import { PromotionAdapter } from './../../../adapters/promotion/default/promotio
 import { stringsInArray } from "../../../libs/stringsInArray";
 import configuredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
+import Decimal from "decimal.js";
 
 export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public id: string = "aaaa";
@@ -67,15 +68,30 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
           }  
     }
     
-    public async displayGroup(group:Group, user?: string): Promise<Group[]> {
-        // Implement the displayGroupDiscount method logic
-        // Display the group discount
-        // console.log("displayGroupDish")\
-        throw new Error("Method not implemented.");
+    public displayGroup(group:Group, user?: string): Group {
+        if (this.isJoint === true && this.isPublic === true) {
+          
+            group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+            group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+           }
+           
+          return group
     }
 
-    public async displayDish?(dish:Dish, user?: string): Promise<Dish[]> {
-        throw new Error("Method not implemented.");
+    public displayDish(dish:Dish, user?: string): Dish {
+        if (this.isJoint === true && this.isPublic === true) {
+            // 
+            dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+            dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+            dish.oldPrice = dish.price
+  
+            dish.price = this.configDiscount.discountType === "flat" 
+            ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
+            : new Decimal(dish.price)
+                .mul(+this.configDiscount.discountAmount / 100)
+                .toNumber()  
+          }
+          return dish
     }
     
 

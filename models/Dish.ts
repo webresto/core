@@ -357,12 +357,12 @@ let Model = {
 
   async display(criteria: CriteriaQuery<Dish>): Promise<Dish[]> {
     const dishes = await Dish.find(criteria);
-    const discountAdapter = await Adapter.getPromotionAdapter()
+    const discountAdapter = Adapter.getPromotionAdapter()
     let updatedDishes = [] as Dish[]
 
     for(let i:number= 0; i < dishes.length; i++) {
         try {
-          updatedDishes.push(await discountAdapter.displayDish(dishes[i]))
+          updatedDishes.push(discountAdapter.displayDish(dishes[i]))
         } catch (error) {
           sails.log(error)
           continue

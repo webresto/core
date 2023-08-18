@@ -7,6 +7,7 @@ import { expect } from "chai";
 import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';
 import { PromotionAdapter } from './../../../adapters/promotion/default/promotionAdapter';
 import findModelInstanceByAttributes from './../../../libs/findModelInstance';
+import Decimal from 'decimal.js';
 
 describe('Create_Discount', function () {
     it("Create discount test", async function () {
@@ -48,22 +49,33 @@ describe('Create_Discount', function () {
             isPublic: true,
             isJoint: true,
             // sortOrder: 0,
-            displayGroup: async function (group:Group, user?: string): Promise<Group[]> {
-                if(user){
-                    //  return await Dish.display(this.concept, group.id)
-                    return await Group.display(group)
+            displayGroup:  function (group:Group, user?: string): Group {
+                if (this.isJoint === true && this.isPublic === true) {
+                
+                  group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+                  group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                 }
+                 
+                return group
+              },
+              displayDish: function (dish:Dish, user?: string): Dish {
+                if (this.isJoint === true && this.isPublic === true) {
+                  // 
+                  dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+                  dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                  dish.oldPrice = dish.price
+        
+                  dish.price = this.configDiscount.discountType === "flat" 
+                  ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
+                  : new Decimal(dish.price)
+                      .mul(+this.configDiscount.discountAmount / 100)
+                      .toNumber()  
                 }
-            },
-
-            displayDish: async function (dish:Dish, user?: string): Promise<Dish[]> {
-                    if(user){
-                        //  return await Dish.display(this.concept, group.id)
-                        return await Dish.display(dish)
-                    }
-            },
+                return dish
+              },
             externalId: "1-externalId",
         }
-        let discountAdapter = await Adapter.getPromotionAdapter()
+        let discountAdapter = Adapter.getPromotionAdapter()
         await discountAdapter.addPromotionHandler(discountEx)
 
         let discountById = await PromotionAdapter.getPromotionHandlerById(discountEx.id)

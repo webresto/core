@@ -17,9 +17,8 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     // Order.populate()
     await PromotionAdapter.clearOfPromotion(order.id);
     // console.log(order, " ===================== ORDER")
-    let filteredPromotion = await PromotionAdapter.filterByConcept(order.concept);
-    let promotionByConcept: Promotion[] | undefined = await PromotionAdapter.filterPromotions(filteredPromotion, order);
-    
+    let filteredPromotion = PromotionAdapter.filterByConcept(order.concept);
+    let promotionByConcept: Promotion[] | undefined =   PromotionAdapter.filterPromotions(filteredPromotion, order);
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
         let state = await PromotionAdapter.promotions[promotion.id].action(order);
@@ -31,27 +30,28 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   }
 
   // one method to get all promotions and id's
-  public async displayDish(dish: Dish): Promise<Dish> {
+  public displayDish(dish: Dish): Dish {
 
-    let filteredPromotion = await PromotionAdapter.filterByConcept(dish.concept);
-    let promotionByConcept: Promotion[] | undefined = await PromotionAdapter.filterPromotions(filteredPromotion, dish);
+    let filteredPromotion = PromotionAdapter.filterByConcept(dish.concept);
+    let promotionByConcept: Promotion[] | undefined =  PromotionAdapter.filterPromotions(filteredPromotion, dish);
 
     if (promotionByConcept[0] === undefined) return dish;
-  
+    
     // TODO: this should work on first condition isJoint and isPublic should be true
-    if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
-      dish.discountAmount = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountAmount;
-      dish.discountType = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountType;
-      return dish
+    try {
+      PromotionAdapter.promotions[promotionByConcept[0].id].displayDish(dish)
+    } catch (error) {
+    
+      sails.log.error("Promotion Adapter display Dish error",error);
     }
 
     return dish;
   }
 
-  public async displayGroup(group: Group): Promise< Group> {
+  public displayGroup(group: Group):  Group {
     // check isJoint = true, isPublic = true
-    let filteredPromotion = await PromotionAdapter.filterByConcept(group.concept);
-    let promotionByConcept: Promotion[] | undefined = await PromotionAdapter.filterPromotions(filteredPromotion, group);
+    let filteredPromotion =  PromotionAdapter.filterByConcept(group.concept);
+    let promotionByConcept: Promotion[] | undefined =  PromotionAdapter.filterPromotions(filteredPromotion, group);
 
     if (promotionByConcept[0] === undefined) return group;
     // TODO: this should work on first condition isJoint and isPublic should be true
@@ -63,14 +63,14 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return group;
   }
 
-  public static async filterByConcept(concept: string): Promise<Promotion[]> {
+  public static  filterByConcept(concept: string): Promotion[] {
     let modifiedConcept: string[];
     typeof concept === "string" ? (modifiedConcept = [concept]) : (modifiedConcept = concept);
-    return await Promotion.getAllByConcept(modifiedConcept);
+    return Promotion.getAllByConcept(modifiedConcept);
   }
 
-  public static async filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promise<Promotion[] | undefined> {
-    let filteredPromotionsToApply: Promotion[] | undefined[] = Object.values(promotionsByConcept)
+  public static  filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[] {
+    let filteredPromotionsToApply: Promotion[] = Object.values(promotionsByConcept)
       .filter((record) => {
         if (!record.worktime) return true;
         try {
@@ -79,12 +79,12 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
           sails.log.error("Promotion > helper > error: ", error);
         }
       })
-      .sort((a, b) => b.sortOrder - a.sortOrder);
+      .sort((a, b) => a.sortOrder - b.sortOrder);
 
-    const filteredByCondition: Promotion[] = await PromotionAdapter.filterByCondition(filteredPromotionsToApply, target);
+    const filteredByCondition: Promotion[] =  PromotionAdapter.filterByCondition(filteredPromotionsToApply, target);
 
     // return first isJoint = false
-    let filteredByJointPromotions: Promotion[] | undefined[] = [
+    let filteredByJointPromotions: Promotion[] = [
       filteredByCondition.find((promotion) => {
         return promotion.isJoint === false;
       }),
@@ -100,7 +100,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return filteredByJointPromotions;
   }
 
-  public static async filterByCondition(promotions: Promotion[], target: Group | Dish | Order): Promise<Promotion[]> {
+  public static filterByCondition(promotions: Promotion[], target: Group | Dish | Order): Promotion[] {
     const filteredPromotions = [];
 
     for (const promotion of promotions) {
@@ -171,6 +171,11 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
   public async getAllConcept(concept: string[]): Promise<AbstractPromotionHandler[]> {
     return await Promotion.getAllByConcept(concept);
+  }
+
+  public deletePromotion(id:string): void{
+    // PromotionAdapter.promotions(id)
+    return
   }
 
   public getActivePromotionsIds(): string[] {

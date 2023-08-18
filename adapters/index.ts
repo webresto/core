@@ -76,14 +76,12 @@ export class OTP {
 export class Adapter {
   // Singletons
   private static instanceRMS: RMSAdapter;
+  private static instancePromotion: PromotionAdapter;
   private static instanceDeliveryAdapter: DeliveryAdapter;
   private static instanceMF: MediaFileAdapter;
+
   public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
-  public static async getPromotionAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): Promise<PromotionAdapter> {
-  
-    if(!adapterName) {
-      adapterName = await Settings.get("DEFAULT_PROMOTION_ADAPTER") as string;
-    }
+  public static getPromotionAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): PromotionAdapter {
 
     if (!adapterName) {
       return PromotionAdapter.initialize();

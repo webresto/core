@@ -223,12 +223,12 @@ let Model = {
     // use this method to get group modified by adapters
     // https://github.com/balderdashy/waterline/pull/902
     async display(criteria) {
-        const discountAdapter = await adapters_1.Adapter.getPromotionAdapter();
+        const discountAdapter = adapters_1.Adapter.getPromotionAdapter();
         const groups = await Group.find(criteria);
         let updatedDishes = [];
         for (let i = 0; i < groups.length; i++) {
             try {
-                updatedDishes.push(await discountAdapter.displayGroup(groups[i]));
+                updatedDishes.push(discountAdapter.displayGroup(groups[i]));
             }
             catch (error) {
                 sails.log(error);

@@ -1158,11 +1158,10 @@ async countCart(criteria: CriteriaQuery<Order>) {
       
 
       // Calcualte promotion cost
-      // let promotionAdapter = await Adapter.getPromotionAdapter()
       // order.promotionState = await promotionAdapter.processOrder(order);
       if(!order.isPromoting){
         emitter.emit("core:count-before-promotion", order);
-        let promotionAdapter:AbstractPromotionAdapter = await Adapter.getPromotionAdapter();
+        let promotionAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter();
 
           try {
             order.isPromoting = true;
@@ -1171,8 +1170,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
             // console.log(orderDishesForPopulate)
             await Order.updateOne({id: order.id}, {isPromoting: true});
             // console.log(orderPopulate)
-            
-            // console.log(orderPopulate[0], "=====================ORDER POPULATE ====================")
+
             order.promotionState = await promotionAdapter.processOrder(orderPopulate);
             let a = await Order.findOne(order.id) 
 

@@ -64,10 +64,7 @@ class OTP {
 exports.OTP = OTP;
 /** TODO: move other Adapters to one class adapter */
 class Adapter {
-    static async getPromotionAdapter(adapterName, initParams) {
-        if (!adapterName) {
-            adapterName = await Settings.get("DEFAULT_PROMOTION_ADAPTER");
-        }
+    static getPromotionAdapter(adapterName, initParams) {
         if (!adapterName) {
             return promotionAdapter_1.PromotionAdapter.initialize();
         }

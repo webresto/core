@@ -37,7 +37,7 @@ export default abstract class AbstractPromotionHandler {
 
   public abstract action?(order: Order): Promise<PromotionState>;
   
-  public abstract displayGroup?(group: Group, user?: string | User): Promise<Group[]>;
+  public abstract displayGroup?(group: Group, user?: string | User): Group;
 
-  public abstract displayDish?(dish: Dish, user?:string | User): Promise<Dish[]>;
+  public abstract displayDish?(dish: Dish, user?:string | User): Dish;
 }

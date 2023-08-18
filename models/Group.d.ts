@@ -57,7 +57,6 @@ declare let attributes: {
 interface IVirtualFields {
     discountAmount?: number;
     discountType?: "flat" | "percentage";
-    oldPrice?: number;
 }
 type attributes = typeof attributes;
 interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {

@@ -274,11 +274,11 @@ let Model = {
     },
     async display(criteria) {
         const dishes = await Dish.find(criteria);
-        const discountAdapter = await adapters_1.Adapter.getPromotionAdapter();
+        const discountAdapter = adapters_1.Adapter.getPromotionAdapter();
         let updatedDishes = [];
         for (let i = 0; i < dishes.length; i++) {
             try {
-                updatedDishes.push(await discountAdapter.displayDish(dishes[i]));
+                updatedDishes.push(discountAdapter.displayDish(dishes[i]));
             }
             catch (error) {
                 sails.log(error);

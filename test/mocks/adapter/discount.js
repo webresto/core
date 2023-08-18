@@ -3,8 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryDiscountAdapter = void 0;
 const AbstractPromotion_1 = require("../../../adapters/promotion/AbstractPromotion");
 const findModelInstance_1 = require("../../../libs/findModelInstance");
+const promotionAdapter_1 = require("./../../../adapters/promotion/default/promotionAdapter");
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 const configuredPromotion_1 = require("../../../adapters/promotion/default/configuredPromotion");
+const decimal_js_1 = require("decimal.js");
 class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
     constructor() {
         super(...arguments);
@@ -57,14 +59,26 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
             state: {}
         };
     }
-    async displayGroup(group, user) {
-        // Implement the displayGroupDiscount method logic
-        // Display the group discount
-        // console.log("displayGroupDish")\
-        throw new Error("Method not implemented.");
+    displayGroup(group, user) {
+        if (this.isJoint === true && this.isPublic === true) {
+            group.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+            group.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+        }
+        return group;
     }
-    async displayDish(dish, user) {
-        throw new Error("Method not implemented.");
+    displayDish(dish, user) {
+        if (this.isJoint === true && this.isPublic === true) {
+            // 
+            dish.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+            dish.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+            dish.oldPrice = dish.price;
+            dish.price = this.configDiscount.discountType === "flat"
+                ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
+                : new decimal_js_1.default(dish.price)
+                    .mul(+this.configDiscount.discountAmount / 100)
+                    .toNumber();
+        }
+        return dish;
     }
 }
 exports.InMemoryDiscountAdapter = InMemoryDiscountAdapter;

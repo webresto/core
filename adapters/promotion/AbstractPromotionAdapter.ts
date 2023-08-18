@@ -10,12 +10,12 @@ export default abstract class AbstractPromotionAdapter {
         static promotions: { [key: string]: AbstractPromotionHandler};
 
         public abstract processOrder(order: Order): Promise<PromotionState[]>
-        public abstract displayDish(dish: Dish): Promise<Dish>;
-        public abstract displayGroup(group: Group): Promise<Group>;
+        public abstract displayDish(dish: Dish): Dish;
+        public abstract displayGroup(group: Group): Group;
 
-        public static filterByConcept:(concept: string) => Promise<Promotion[]>;
-        public static filterPromotions:(promotionsByConcept: Promotion[], target: Group | Dish | Order) => Promise<Promotion[] | undefined>;
-        public static filterByCondition:(promotions: Promotion[], target: Group | Dish | Order)=> Promise<Promotion[]>;
+        public static filterByConcept:(concept: string) => Promotion[];
+        public static filterPromotions:(promotionsByConcept: Promotion[], target: Group | Dish | Order) => Promotion[];
+        public static filterByCondition:(promotions: Promotion[], target: Group | Dish | Order)=> Promotion[];
 
         public static recreatePromotionHandler:(promotionToAdd: AbstractPromotionHandler) => void;
 
@@ -44,6 +44,8 @@ export default abstract class AbstractPromotionAdapter {
             [key: string]: string | number | boolean;
         }) => PromotionAdapter;
         
+        public static deletePromotion: (id:string) => void
+
         public abstract addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void>;
 
         public static  getPromotionHandlerById:(id: string) => Promise<AbstractPromotionHandler | undefined>;

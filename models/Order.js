@@ -930,11 +930,10 @@ let Model = {
             order.orderTotal = basketTotal.toNumber();
             order.basketTotal = basketTotal.toNumber();
             // Calcualte promotion cost
-            // let promotionAdapter = await Adapter.getPromotionAdapter()
             // order.promotionState = await promotionAdapter.processOrder(order);
             if (!order.isPromoting) {
                 emitter.emit("core:count-before-promotion", order);
-                let promotionAdapter = await Adapter.getPromotionAdapter();
+                let promotionAdapter = Adapter.getPromotionAdapter();
                 try {
                     order.isPromoting = true;
                     let orderPopulate = { ...order };
@@ -942,7 +941,6 @@ let Model = {
                     // console.log(orderDishesForPopulate)
                     await Order.updateOne({ id: order.id }, { isPromoting: true });
                     // console.log(orderPopulate)
-                    // console.log(orderPopulate[0], "=====================ORDER POPULATE ====================")
                     order.promotionState = await promotionAdapter.processOrder(orderPopulate);
                     let a = await Order.findOne(order.id);
                     order.discountTotal = a.discountTotal;

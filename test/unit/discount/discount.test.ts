@@ -15,6 +15,7 @@ import Dish from './../../../models/Dish';
 import Order, { PromotionState } from './../../../models/Order';
 import { stringsInArray } from '../../../libs/stringsInArray';
 import ConfiguredPromotion from '../../../adapters/promotion/default/configuredPromotion';
+import Decimal from 'decimal.js';
 
 describe('Discount', function () {
    
@@ -65,17 +66,29 @@ describe('Discount', function () {
         isPublic: true,
         isJoint: true,
         // sortOrder: 0,
-        displayGroup: async function (group:Group, user?: string): Promise<Group[]> {
-          if(user){
-            //  return await Dish.display(this.concept, group.id)
-            return await Group.display(group)
-          }
+        displayGroup:  function (group:Group, user?: string): Group {
+          if (this.isJoint === true && this.isPublic === true) {
+          
+            group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+            group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+           }
+           
+          return group
         },
-        displayDish: async function (dish:Dish, user?: string): Promise<Dish[]> {
-          if(user){
-            //  return await Dish.display(this.concept, group.id)
-            return await Dish.display(dish)
+        displayDish: function (dish:Dish, user?: string): Dish {
+          if (this.isJoint === true && this.isPublic === true) {
+            // 
+            dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
+            dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+            dish.oldPrice = dish.price
+  
+            dish.price = this.configDiscount.discountType === "flat" 
+            ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
+            : new Decimal(dish.price)
+                .mul(+this.configDiscount.discountAmount / 100)
+                .toNumber()  
           }
+          return dish
         },
         externalId: "1-externalId",
     }
@@ -446,7 +459,7 @@ describe('Discount', function () {
         let order = await Order.create({id: "test-clear-discount-order-dish-adapter"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "clear",user: "user"});
         // let promotionAdapter:AbstractPromotionAdapter = DiscountAdapter.initialize()
-        let a:AbstractPromotionAdapter = await Adapter.getPromotionAdapter()
+        let a:AbstractPromotionAdapter =  Adapter.getPromotionAdapter()
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear",parentGroup:groupsId[0]}));
         discountEx.configDiscount.dishes.push(dish1.id)
 

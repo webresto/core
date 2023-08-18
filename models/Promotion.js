@@ -3,12 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const hashCode_1 = require("../libs/hashCode");
 const adapters_1 = require("../adapters");
 const promotionAdapter_1 = require("./../adapters/promotion/default/promotionAdapter");
+const stringsInArray_1 = require("../libs/stringsInArray");
 // import Decimal from "decimal.js";
 // sails.on("lifted", function () {
 //   setInterval(async function () {
 //     checkMaintenance();
 //   }, CHECK_INTERVAL);
 // });
+let promotionRAM = [];
 sails.on("lifted", async () => {
     let promotions = await Promotion.find({ enable: true });
     for (let i = 0; i < promotions.length; i++) {
@@ -73,25 +75,34 @@ let attributes = {
     worktime: "json",
 };
 let Model = {
-    afterUpdate(record, cb) {
+    async afterUpdate(record, cb) {
         if (record.createdByUser) {
             // call recreate of discountHandler
             promotionAdapter_1.PromotionAdapter.recreateConfiguredPromotionHandler(record);
         }
+        promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
+        // console.log(promotionRAM, "================= after UPDATE ===========")
         cb();
     },
-    afterCreate(record, cb) {
+    async afterCreate(record, cb) {
         if (record.createdByUser) {
             // call recreate of discountHandler
             promotionAdapter_1.PromotionAdapter.recreateConfiguredPromotionHandler(record);
         }
+        promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
+        // console.log(promotionRAM, "================= after Create ===========")
+        cb();
+    },
+    async afterDestroy(record, cb) {
+        // delete promotion in adapter
+        promotionAdapter_1.PromotionAdapter.deletePromotion(record.id);
+        promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
         cb();
     },
     beforeUpdate(init, cb) {
         cb();
     },
     beforeCreate(init, cb) {
-        // init.setORMId("a")
         cb();
     },
     async createOrUpdate(values) {
@@ -103,39 +114,17 @@ let Model = {
             return promotion;
         return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
     },
-    async getAllByConcept(concept) {
-        // TODO: get all active by concept
-        const promotionAdapter = await adapters_1.Adapter.getPromotionAdapter();
-        // discountAdapter.getAllConcept(concept)
-        // discountAdapter.processOrder()
+    getAllByConcept(concept) {
+        const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
         if (!concept)
             throw "concept is required";
         let activePromotionIds = promotionAdapter.getActivePromotionsIds();
-        const promotion = await Promotion.find({
-            where: {
-                // @ts-ignore TODO: First fix types
-                and: [
-                    { id: { in: activePromotionIds } },
-                    { enable: true },
-                    { concept: concept }
-                ]
-            },
-            sort: "sortOrder ASC"
-        });
-        if (!promotion)
+        let filteredRAM = promotionRAM.filter(promotion => (0, stringsInArray_1.stringsInArray)(promotion.concept, concept)
+            && (0, stringsInArray_1.stringsInArray)(promotion.id, activePromotionIds));
+        if (!filteredRAM)
             throw "Promotion with concept: " + concept + " not found";
-        let filtredPromotion = promotion.filter((promotion) => {
-            return promotion.enable === true && promotion.isDeleted === false;
-        });
-        return filtredPromotion;
+        return filteredRAM;
     },
-    async setAlive(idArray) {
-        //
-    },
-    // async getHandler(id: string): Promise<any> {
-    //   const adapter = Adapter.getDiscountAdapter()
-    //   return adapter.getHandlerById(id)
-    // },
 };
 module.exports = {
     primaryKey: "id",
