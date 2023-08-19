@@ -54,7 +54,8 @@ Promotions that are displayed in the interface cannot be single, for the flag `i
 The public promotion can turn on a banner, or make some other action if such a connection is available through Emmiter `Emmit (` Apply-Promotion`, Promotion) `
 
 **Example**
-First we have to create promotion. We can use `discountGenerator` which have 1 argument config with type `AbstractPromotionHandler` and return promotion with type `AbstractPromotionHandler`
+First we have to create promotion. We can use `discountGenerator` which have 1 argument config with type `AbstractPromotionHandler` 
+and return promotion with type `AbstractPromotionHandler`
 
 let promotionflat:AbstractPromotionHandler = discountGenerator({
       concept: ["origin"],
@@ -106,9 +107,12 @@ let createInModelPromotion: Promotion = {
 And add it with 
 `await Promotion.createOrUpdate(createInModelPromotion);`
 
-After we add promotion this way it's check with `afterCreate()` if PromotionAdater has this promotion and add to PromotionAdapter this promotion as `ConfiguredPromotion` 
+After we add promotion this way it's check with `afterCreate()` if PromotionAdater has this promotion and add to PromotionAdapter this
+ promotion as `ConfiguredPromotion` 
 
-Then each time countCart is trigged (for example after `Order.addDish()`) it calls `PromotionAdapter.processOrder()` which filter the promotions to find which fit to current order and then call actions of promotions to calculate discount and update Order and OrderDish with new discountTotal
+Then each time countCart is trigged (for example after `Order.addDish()`) it calls `PromotionAdapter.processOrder()` which filter the 
+promotions to find which fit to current order (if find promotion with field isJoint: false which fit current order then stop searching and
+call only this promotion) and then call actions of promotions to calculate discount and update Order and OrderDish with new discountTotal
 
 
 
@@ -116,7 +120,8 @@ Then each time countCart is trigged (for example after `Order.addDish()`) it cal
 
 **Completed**
 The adapter supplied with the core has support for promotion configurations for certain groups, or/and dishes
-Each record in the model will create a copy of the custom promotion.So that such a promotion created by the user through the admin panel is distinguishable, we use a sign of `Creedby: 'adminpanel'`
+Each record in the model will create a copy of the custom promotion.So that such a promotion created by the user through the admin panel is
+distinguishable, we use a sign of `Creedby: 'adminpanel'`
 
 
 **Programmable**
@@ -124,7 +129,9 @@ Since the promotion is a copy of the class, we can realize any logic of such a p
 
 > ⚠️ We do not recommend using promotions to describe complex promotions, use the Promotions adapter for this
 
-The Promotion should be implemented as an adapter from the abstract class `@webresto/core/adapters/promotion/AbstractPromotion.ts` and added to the model via> `PromotionAdapter.addPromotionHandler()`. The adapter is responsible for recording transactions in an external source or syncing from an external source by implementing the abstract class `AbstractPromotionAdapter`.
+The Promotion should be implemented as an adapter from the abstract class `@webresto/core/adapters/promotion/AbstractPromotion.ts` and added to
+the model via> `PromotionAdapter.addPromotionHandler()`. The adapter is responsible for recording transactions in an external source or syncing
+from an external source by implementing the abstract class `AbstractPromotionAdapter`.
 
 
 
