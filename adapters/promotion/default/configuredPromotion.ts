@@ -57,15 +57,17 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
         }
         
         if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, this.concept)) {
-            if(this.config.dishes.includes(arg.id)){
-                return true;
-            }
+            return stringsInArray(arg.id, this.config.dishes)
+            // if(this.config.dishes.includes(arg.id)){
+            //     return true;
+            // }
         }
         
         if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, this.concept)) {
-            if(this.config.groups.includes(arg.id)){
-                return true;
-            }
+            return stringsInArray(arg.id, this.config.groups)
+            // if(this.config.groups.includes(arg.id)){
+            //     return true;
+            // }
         }
 
         return false

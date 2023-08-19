@@ -62,13 +62,17 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
     }
     
     if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, this.concept)) {
-        // TODO: check if includes in IconfigDish
-        return true;
+      return stringsInArray(arg.id, this.configDiscount.dishes)
+      // if(this.config.dishes.includes(arg.id)){
+      //   return true;
+      // }
     }
     
     if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, this.concept)) {
-         // TODO: check if includes in IconfigG
-        return true;
+      return stringsInArray(arg.id, this.configDiscount.groups)
+      // if(this.config.groups.includes(arg.id)){
+      //   return true;
+      // }
     }
     
     return false

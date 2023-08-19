@@ -114,6 +114,7 @@ describe('Discount', function () {
         excludeModifiers: true
       },
     })
+    
     before(async () =>{
       configuredPromotion = new ConfiguredPromotion(discountEx, discountEx.configDiscount)
       configuredPromotionFromMemory = new ConfiguredPromotion(discInMemory, discInMemory.configDiscount)

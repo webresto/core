@@ -39,14 +39,16 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             return false;
         }
         if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-            if (this.config.dishes.includes(arg.id)) {
-                return true;
-            }
+            return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.dishes);
+            // if(this.config.dishes.includes(arg.id)){
+            //     return true;
+            // }
         }
         if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-            if (this.config.groups.includes(arg.id)) {
-                return true;
-            }
+            return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.groups);
+            // if(this.config.groups.includes(arg.id)){
+            //     return true;
+            // }
         }
         return false;
     }
