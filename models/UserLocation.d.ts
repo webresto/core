@@ -1,5 +1,7 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+import User from "../models/User";
+import Street from "./Street";
 declare let attributes: {
     /** ID */
     id: string;
@@ -12,23 +14,25 @@ declare let attributes: {
     floor: string;
     apartment: string;
     doorphone: string;
-    street: string;
-    user: {
-        model: string;
-        via: string;
-    };
+    street: string | Street;
+    /**
+     * Set as default for specific user
+     * */
+    isDefault: boolean;
+    user: string | User;
     comment: string;
     customData: string | {
         [key: string]: string | number | boolean;
     };
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface UserLocation extends attributes, ORM {
 }
 export default UserLocation;
 declare let Model: {
-    beforeCreate(UserLocationInit: any, next: any): void;
+    beforeUpdate(record: UserLocation, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(init: UserLocation, cb: (err?: string) => void): Promise<void>;
 };
 declare global {
-    const UserLocation: typeof Model & ORMModel<UserLocation>;
+    const UserLocation: typeof Model & ORMModel<UserLocation, null>;
 }

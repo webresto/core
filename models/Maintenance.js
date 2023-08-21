@@ -1,17 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const getEmitter_1 = require("../libs/getEmitter");
 const CHECK_INTERVAL = 60000;
+/** Idea: move subcribe to worktime events in worktime library */
 sails.on("lifted", function () {
     setInterval(async function () {
-        const maintenance = await Maintenance.getActiveMaintenance();
-        if (maintenance) {
-            (0, getEmitter_1.default)().emit("core-maintenance-enabled", maintenance);
-        }
-        else {
-            (0, getEmitter_1.default)().emit("core-maintenance-disabled");
-        }
+        checkMaintenance();
     }, CHECK_INTERVAL);
 });
 let attributes = {
@@ -34,9 +28,21 @@ let attributes = {
     stopDate: "string",
 };
 let Model = {
-    beforeCreate: function (paymentMethod, next) {
-        paymentMethod.id = (0, uuid_1.v4)();
-        next();
+    afterCreate: function (maintenance, cb) {
+        checkMaintenance();
+        cb();
+    },
+    afterUpdate: function (maintenance, cb) {
+        checkMaintenance();
+        cb();
+    },
+    afterDestroy: function (maintenance, cb) {
+        checkMaintenance();
+        cb();
+    },
+    beforeCreate: function (maintenance, cb) {
+        maintenance.id = (0, uuid_1.v4)();
+        cb();
     },
     siteIsOff: async function () {
         const maintenances = await Maintenance.getActiveMaintenance();
@@ -48,6 +54,14 @@ let Model = {
         let maintenances = await Maintenance.find({ enable: true });
         maintenances = maintenances.filter((maintenance) => {
             let start, stop;
+            // When dates interval not set is active maintenance
+            if (!maintenance.startDate && !maintenance.stopDate)
+                return true;
+            // When start or stop date not set, is infinity
+            if (!maintenance.startDate)
+                maintenance.startDate = "0000";
+            if (!maintenance.stopDate)
+                maintenance.stopDate = "9999";
             if (maintenance.startDate) {
                 start = new Date(maintenance.startDate).getTime();
             }
@@ -67,4 +81,13 @@ module.exports = {
 };
 function between(from, to, a) {
     return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
+}
+async function checkMaintenance() {
+    const maintenance = await Maintenance.getActiveMaintenance();
+    if (maintenance) {
+        emitter.emit("core-maintenance-enabled", maintenance);
+    }
+    else {
+        emitter.emit("core-maintenance-disabled");
+    }
 }

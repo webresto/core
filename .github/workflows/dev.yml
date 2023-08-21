@@ -3,6 +3,7 @@ on:
   push:
     branches-ignore:
       - master
+      - alpha
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,6 +12,6 @@ jobs:
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm run test:init 2>&1 || true  npm run test

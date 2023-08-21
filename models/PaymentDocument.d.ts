@@ -1,80 +1,74 @@
 /// <reference types="node" />
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
-/** На примере корзины (Order):
- * 1. Модель проводящяя оплату internal/external (например: Order) создает PaymentDocument
+/** on the example of the basket (Order):
+ * 1. Model Conducting Internal/External (for example: Order) creates PaymentDocument
  *
- * 2. PaymentDocument при создании нового платежного поручения находит нужный платежный метод
- *    и создает оплату в платежной системе (происходит редирект на платежную форму)
+ * 2. PaymentDocument, when creating a new payment order, finds the desired payment method
+ * and creates payment in the payment system (there is a redirect for a payment form)
  *
- * 3. Когда человек оплатил в зависимости от логики работы платежного шлюза. PaymentProcessor либо
- *    получет вызов  от платежной системы когда PaymentAdapter создаст емит emitter.on('payment'),
- *    либо будем опрашивать платежную систему пока не выясним состояние платежа.
- *    PaymentProcessor имеет таймер для того чтобы опрашивать платежные системы о состоянии платежа,
- *    таким образом  в платежной системе дополнительно опрос не нужно реализовывать, только функцию check
+ * 3. When a person paid, depending on the logic of the work of the payment gateway.PaymentProcessor or
+ * Getting a call from the payment system
+ * Or we will interview the payment system until we find out the state of the payment.
+ * PaymentProcessor has a timer in order to interview payment systems about the state of payment,
+ * Thus, in the payment system, an additional survey does not need to be implemented, only the Check function
  *
- * 4. В то время когда человек завершил работу со шлюзом и произвел оплату, его вернет на страницу указанную
- *    в платежном adapterе как страницу для успешного возврата. Предполагается что произойдет редирект на страницу
- *    заказа, где человек сможет увидеть состояние своего заказа. Во время загрузки этой страницы будет произведен вызов
- *    контроллера API getOrder(/api/0.5/order/:number)
+ * 4. At the time when a person completed the work with the gateway and made payment, he will return to the page indicated
+ * In the payment Adapter as a page for a successful return.It is assumed that the redirect to the page will occur
+ * an order where a person can see the state of his order.During the load of this page, a call will be made
+ * Controller API Getorder (/Api/0.5/order ::::
  *
- * 5. Если оплата прошла успешно то PaymentProcessor  установит статус PAID в соответвующий PaymentDocument,
- *    это в свою очередь означает что PaymentDocument попытается поставить флаг isPaid: true в моделе  и совершит emit('core-payment-document-paid', document)
- *    соответсвующей originModel текущего PaymentDocument. ( В случе с Order произойдет next(); )
+ * 5. If the payment was successful, then PaymentProcessor will set the PAID status in accordance with PaymentDocument,
+ * This, in turn, means that PaymentDocument will try to put the ISPAID: true in the model and make EMIT ('Core-Payment-Document-Paid', Document)
+ * Corresponding Originmodel of the current PaymentDocument.(In the service with ORDER, Next ();)
  *
- * 6. В случае изменения статуса оплаты произойдет вызов  emit('core-payment-document-status', document) где любая система сможет
- *    отрегировать на изменения статуса,
+ * 6. In the event of a change in payment status, an EMIT ('Core-Payment-Document-Status', Document) will occur where any system can be able
+ * to register for changes in status,
  *
- * 7. В случае неуспешной оплаты пользователь будет возвращен на страницу уведомения о неуспешной оплате и далее будет редирект на страницу
- *    оформления заказа, для того чтобы пользователь смог попытатся оплатить заказ еще раз.
+ * 7. In the event of unsuccessful payment, the user will be returned to the page of the notification of unsuccessful payment and then there will be a redirect to the page
+ * placing an order so that the user can try to pay the order again.
  */
 /**
-  REGISTRED - заказ зарегистрирован, но не оплачен;
-  PAID - проведена полная авторизация суммы заказа;
-  CANCEL - авторизация отменена;
-  REFUND - по транзакции была проведена операция возврата;
-  DECLINE - авторизация отклонена.
+  REGISTRED - the order is registered, but not paid;
+  PAID - complete authorization of the amount of the order was carried out;
+  CANCEL - authorization canceled;
+  REFUND - the transaction was carried out by the return operation;
+  DECLINE - Authorization is rejected.
+  WAIT_CAPTURE - Waiting for the frozen money to be debited from the account
 */
-declare enum PaymentDocumentStatus {
-    NEW = "NEW",
-    REGISTRED = "REGISTRED",
-    PAID = "PAID",
-    CANCEL = "CANCEL",
-    REFUND = "REFUND",
-    DECLINE = "DECLINE"
-}
+type PaymentDocumentStatus = "NEW" | "REGISTRED" | "PAID" | "CANCEL" | "REFUND" | "DECLINE" | "WAIT_CAPTURE";
 declare let attributes: {
-    /** Уникальный id в моделе PaymentDocument */
+    /** Unique ID in PaymentDocument */
     id: string;
-    /** соответсвует id из модели originModel */
+    /** corresponds to ID from the Origin Model model */
     paymentId: string;
-    /** ID во внешней системе */
+    /** ID in the external system */
     externalId: string;
-    /** Модель из которой делается платеж */
+    /** Model from which payment is made*/
     originModel: string;
-    /** Платежный метод */
+    /** Payment method */
     paymentMethod: any;
-    /** Сумма к оплате */
+    /** The amount for payment*/
     amount: number;
-    /** Флаг установлен что оплата произведена */
+    /** The flag is established that payment was made*/
     paid: boolean;
     status: PaymentDocumentStatus;
-    /** Комментари для платежной системы */
+    /** Comments for payment system */
     comment: string;
-    /** ВЕРОЯТНО ТУТ ЭТО НЕ НУЖНО */
+    /** It is probably not necessary here */
     redirectLink: string;
-    /** Текст ошибки */
+    /** Error text */
     error: string;
     data: any;
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface PaymentDocument extends OptionalAll<attributes>, ORM {
 }
 export default PaymentDocument;
 declare let Model: {
-    beforeCreate(paymentDocumentInit: any, next: any): void;
+    beforeCreate(paymentDocumentInit: any, cb: (err?: string) => void): void;
     doCheck: (criteria: any) => Promise<PaymentDocument>;
     /**
      * Registred new payment
@@ -90,9 +84,9 @@ declare let Model: {
      */
     register: (paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: any) => Promise<void>;
-    /** Цикл проверки платежей */
+    /** Payment check cycle*/
     processor: (timeout: number) => Promise<NodeJS.Timeout>;
 };
 declare global {
-    const PaymentDocument: typeof Model & ORMModel<PaymentDocument>;
+    const PaymentDocument: typeof Model & ORMModel<PaymentDocument, null>;
 }

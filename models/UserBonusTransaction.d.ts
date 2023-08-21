@@ -1,37 +1,49 @@
 import ORM from "../interfaces/ORM";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import User from "../models/User";
-import { BonusTransactionType } from "../libs/enums/BonusTransactionType";
+import BonusProgram from "../models/BonusProgram";
 declare let attributes: {
     /** ID */
     id: string;
-    /** Type of bonuses
-    * came is incoming (positive transaction)
-    * gone is outgoin (negative transaction)
-    */
-    type: BonusTransactionType;
+    /**
+     * ID transaction in 3dparty system
+     * */
+    externalId: string;
+    /** Type of bonuses (default: true)
+     * came is incoming (positive transaction)
+     * gone is outgoin (negative transaction)
+     */
+    isNegative: boolean;
     /** Custom badges */
     group: string;
-    /**
-     * binary sign of transaction type
-     */
-    isPositive: boolean;
     amount: number;
+    /** automatic recalculate */
     balanceAfter: number;
+    /** User can delete transaction */
     isDeleted: boolean;
-    user: User;
+    /**
+     * Indicates whether the call was made after creation. If so, this means that the bonus adapter worked without errors
+     */
+    isStable: boolean;
+    /** UTC time */
+    time: string;
+    bonusProgram: string | BonusProgram;
+    user: string | User;
     customData: string | {
         [key: string]: string | number | boolean;
     };
 };
-declare type attributes = typeof attributes;
-interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "id">, ORM {
+type attributes = typeof attributes;
+interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "isNegative" | "bonusProgram" | "user" | "amount">, ORM {
 }
 export default UserBonusTransaction;
 declare let Model: {
-    beforeCreate(UserBonusTransactionInit: any, next: any): void;
+    beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
+    beforeDestroy(): never;
+    beforeUpdate(record: OptionalAll<UserBonusTransaction>, cb: (err?: string) => void): void;
 };
 declare global {
-    const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction>;
+    const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "user" | "amount" | "bonusProgram">;
 }

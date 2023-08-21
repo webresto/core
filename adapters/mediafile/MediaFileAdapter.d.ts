@@ -1,10 +1,27 @@
-import MediaFileConfig from "./MediaFileConfig";
+import MediaFile from "../../models/MediaFile";
+export type BaseConfigProperty = BaseConfig | BaseConfig[] | number | boolean | string | null | undefined;
+export interface BaseConfig {
+    [key: string]: BaseConfigProperty;
+}
+export type ConfigMediaFileAdapter = BaseConfig;
+export type MediaFileTypes = 'image' | 'video' | 'sound' | '3d';
 export default abstract class MediaFileAdapter {
-    protected readonly config: MediaFileConfig;
-    protected constructor(config: MediaFileConfig);
-    abstract load(url: string, key: string): Promise<{
+    private config;
+    private initializationPromise;
+    UUID_NAMESPACE: string;
+    constructor(config: ConfigMediaFileAdapter);
+    /**
+     * Async constructor
+     */
+    private initialize;
+    /**
+     * Waiting for initialization
+     */
+    wait(): Promise<void>;
+    toDownload(url: string, target: string, type: MediaFileTypes, force?: boolean): Promise<MediaFile>;
+    abstract process(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{
         origin: string;
+        small: string;
+        large: string;
     }>;
-    abstract uploadMediaFile(uploadFile: any, key: string): Promise<any>;
-    abstract uploadBase64MediaFile(base64: string, filetype: string, key: string): Promise<any>;
 }

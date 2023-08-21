@@ -1,4 +1,4 @@
-/**
+/**label
  * An abstract Captcha adapter class. Used to create new Captcha adapters.
  */
 
@@ -7,9 +7,19 @@ export type CaptchaJob = {
   task: string | number
 }
 
+export type ResolvedCaptcha = {
+  id: string
+  solution: string
+}
+
 export type TaskStorage  = {
-  [key: string]: { 
+  [key: string]: {
+    
+    /** Captcha Job */
     task: CaptchaJob
+
+    /** Identifies the action for which it was resolved */
+    label: string
     time: number
     [key: string]: string | boolean | number | any
   } 
@@ -21,10 +31,10 @@ export default abstract class CaptchaAdapter {
   /**
    * get work for captcha
    */
-  public abstract getJob(): Promise<CaptchaJob>;
+  public abstract getJob(label: string): Promise<CaptchaJob>;
 
   /**
    * check results
    */
-  public abstract check(id: string, result: string): Promise<boolean>;
+  public abstract check(resolvedCaptcha: ResolvedCaptcha, label: string): Promise<boolean>;
 }

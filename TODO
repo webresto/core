@@ -22,3 +22,16 @@ https://github.com/building5/sails-db-migrate
 20. persistent OrderDish history
 21. Modifiers is model
 22. Imporeve Product model instead Dish
+
+
+
+
+Modifiers:Sizes support:
+- Now the sizes are supported at the level of modifiers, but we need to consider that the dish is a wrapper, and add different icons for the size, and can even set them globall. To do this, we can rename Dish to ITEM and add 5 types: SERVICE, DISH,  WRAPPER, PRODUCT, MODIFIER. 
+- the wrapper may contain: dishes or products, or services, and sizes (sizes are different dishes or products, the service does not contain sizes)
+- The dish may contain modifiers.
+- The subtract cannot contain modifiers.
+- modifiers are not added to the basket separately
+- Unscepepers are not added to the basket not added
+- Bulda and services can be intersect in the scope and modifiers
+- dish, service contains modifiers setting up

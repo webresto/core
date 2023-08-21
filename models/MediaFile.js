@@ -2,34 +2,45 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 let attributes = {
-    /** ID картинки */
+    /** ID */
     id: {
         type: "string",
         //required: true,
     },
-    /** Данные о картинках, что содержит данная модель */
+    /** Type of media content */
+    //type: {
+    //  type: "string",
+    //  isIn: ['video', 'image']
+    //} as unknown as "video" | "image",
+    /** Video/Photo items */
+    //content: "json" as unknown as any,
+    // DEPRECATED use content instead
+    /** Image items */
     images: "json",
-    /** Блюдо, которому принадлежит картинка */
+    original: "string",
+    /** Dish relation */
     dish: {
         collection: "dish",
         via: "images",
     },
-    /** Порядок сортировки */
-    order: "number",
-    /** */
+    /** Sort order */
+    sortOrder: "number",
+    /** Group relation */
     group: {
         collection: "group",
         via: "images",
     },
-    /** Группа, которой принажлежит картинка */
+    /** upload date
+     * @deprecated (del in v2)
+    */
     uploadDate: "string",
 };
 let Model = {
-    beforeCreate(imageInit, next) {
+    beforeCreate(imageInit, cb) {
         if (!imageInit.id) {
             imageInit.id = (0, uuid_1.v4)();
         }
-        next();
+        cb();
     },
 };
 module.exports = {

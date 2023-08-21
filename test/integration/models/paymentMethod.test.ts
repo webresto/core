@@ -6,7 +6,7 @@ var paymentMethodSeed: PaymentMethod = {
   title: "Cash",
   type: "promise",
   adapter: "not_adapter_cache",
-  order: 2,
+  sortOrder: 2,
   description: "Pay by cash",
   enable: true
 };

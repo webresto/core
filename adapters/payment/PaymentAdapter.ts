@@ -1,37 +1,47 @@
 import { Payment, PaymentResponse } from "../../interfaces/Payment";
-import { InitPaymentAdapter } from "../../interfaces/InitPaymentAdapter";
 import PaymentDocument from "../../models/PaymentDocument";
-/**
- * The abstract class of the Payment adapter. Used to create new payment system adapters.
- */
+import { PaymentMethodType } from "../../libs/enums/PaymentMethodTypes";
+import { Config  }from "../../interfaces/Config";
+
+
+export interface InitPaymentAdapter {
+  title: string;
+  type: PaymentMethodType;
+  adapter: string;
+  description?: string;
+  config?: Config
+}
 
 export default abstract class PaymentAdapter {
   public readonly InitPaymentAdapter: InitPaymentAdapter;
-
+  public config: Config
   protected constructor(InitPaymentAdapter: InitPaymentAdapter) {
     this.InitPaymentAdapter = InitPaymentAdapter;
+    this.config = InitPaymentAdapter.config
     PaymentMethod.alive(this);
   }
 
   /**
    * Make new payment
    * @param Payment - payment document
-   * @return Результат работы функции, тело ответа и код результата
+   * @return The result of the function of the function, the body of the response and the result of the result
    */
   public abstract createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string): Promise<PaymentResponse>;
 
   /**
-   * Проверка Оплаты
+   * Verification of payment
    * @param paymentDocument - Платежный документ
-   * @return результат работы функции, тело ответа и код результата (сохранять модель не нужно)
+   * @return the result of the function, the body of the answer and the result of the result (you do not need to save the model)
    */
   public abstract checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
 
   /**
-   * Метод для создания и получения уже существующего Payment adapterа
-   * @param params - параметры для инициализации
+   * Method for creating and obtaining an existing Payment Adapter
+   * Since there can be a lot of an adapter, this is a direct way to obtain an adapter from his class
+   * @param params - Parameters for initialization
+   * @deprecated
    */
-  static getInstance(...params: any[]): PaymentAdapter {
+  static getInstance(init: InitPaymentAdapter): PaymentAdapter {
     return PaymentAdapter.prototype;
   }
 }

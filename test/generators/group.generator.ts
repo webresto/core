@@ -12,9 +12,9 @@ export default function groupGenerator(config: Group = {}): Group {
     code: config.code || null,
     description: faker.random.words(25),
     parentGroup: config.parentGroup || null,
-    order: autoincrement,
+    sortOrder: autoincrement,
     images: config.images || [],
-    name: config.name || faker.commerce.productName(),
+    name: config.name || `${faker.commerce.productAdjective()} ${faker.commerce.productMaterial()} ${Date.now()}`,
     isDeleted: config.isDeleted || false,
     dishes: config.dishes || [],
     visible: config.visible || true

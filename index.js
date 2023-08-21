@@ -19,18 +19,22 @@ __exportStar(require("./models/Dish"), exports);
 __exportStar(require("./models/Group"), exports);
 __exportStar(require("./models/Maintenance"), exports);
 __exportStar(require("./models/MediaFile"), exports);
+__exportStar(require("./models/OneTimePassword"), exports);
 __exportStar(require("./models/Order"), exports);
 __exportStar(require("./models/OrderDish"), exports);
 __exportStar(require("./models/PaymentDocument"), exports);
 __exportStar(require("./models/PaymentMethod"), exports);
 __exportStar(require("./models/Place"), exports);
 __exportStar(require("./models/Settings"), exports);
+__exportStar(require("./models/City"), exports);
 __exportStar(require("./models/Street"), exports);
 __exportStar(require("./models/User"), exports);
 __exportStar(require("./models/UserBonusProgram"), exports);
 __exportStar(require("./models/UserBonusTransaction"), exports);
 __exportStar(require("./models/UserDevice"), exports);
 __exportStar(require("./models/UserLocation"), exports);
+__exportStar(require("./models/UserOrderHistory"), exports);
+__exportStar(require("./models/Promotion"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),

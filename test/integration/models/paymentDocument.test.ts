@@ -5,7 +5,6 @@ import { Payment } from "../../../interfaces/Payment";
 import generate_payment from "../../generators/payment.generator";
 import PaymentDocument from "../../../models/PaymentDocument";
 //import Order from '../../../models/Order';
-import { create } from "lodash";
 
 describe("PaymentDocument", function () {
   this.timeout(31000);

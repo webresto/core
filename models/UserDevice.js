@@ -7,25 +7,62 @@ let attributes = {
         type: "string",
         //required: true,
     },
+    /** Generated name from OS type, and location */
     name: 'string',
     userAgent: 'string',
-    isActive: "boolean",
+    isLogined: "boolean",
     user: {
         model: 'user',
-        via: 'devices'
     },
     lastIP: "string",
-    loginTime: "number",
-    lastActivity: "number",
+    loginTime: { type: "number" },
+    lastActivity: { type: "number" },
+    /**  (not jwt-token)  */
+    sessionId: {
+        type: "string",
+        allowNull: true
+    },
     customData: "json",
 };
 let Model = {
-    beforeCreate(UserLocationInit, next) {
-        if (!UserLocationInit.id) {
-            UserLocationInit.id = (0, uuid_1.v4)();
+    beforeUpdate(record, cb) {
+        record.lastActivity = Date.now();
+        if (record.user)
+            delete record.user;
+        if (record.isLogined === false) {
+            record.sessionId = null;
         }
-        next();
+        cb();
     },
+    /**
+     * For each request from user device to core
+     */
+    afterUpdate(record, cb) {
+        UserBonusProgram.syncAll(record.user);
+        return cb();
+    },
+    beforeCreate(record, cb) {
+        record.lastActivity = Date.now();
+        if (!record.id) {
+            record.id = (0, uuid_1.v4)();
+        }
+        cb();
+    },
+    /** Method set lastActiity  for device */
+    async setActivity(criteria, client = {}) {
+        await UserDevice.update(criteria, client);
+    },
+    async checkSession(sessionId, userId, client = {}) {
+        let ud = await UserDevice.findOne({ sessionId: sessionId });
+        if (!ud) {
+            return false;
+        }
+        if (ud.user === userId && ud.isLogined) {
+            await UserDevice.setActivity({ id: ud.id }, client);
+            return true;
+        }
+        return false;
+    }
 };
 module.exports = {
     primaryKey: "id",

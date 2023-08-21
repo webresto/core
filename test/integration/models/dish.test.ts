@@ -80,7 +80,7 @@ describe('Dish', function () {
   it('Test DishGenerator', async () => {
     for (let index = 0; index < 3; index++) {
       try {
-        var result =  dishGenerator({name: "test"});
+        var result =  dishGenerator({name: "test", price: 100.1});
       } catch (error) {
     
       }
@@ -89,13 +89,12 @@ describe('Dish', function () {
   });
   
   it('Dish Model attributes', async () => {
-    let dish = (await Dish.find({}).limit(1).populate('images'))[0];
+    let dish = (await Dish.find({}).limit(1).populate("images"))[0];
     expect(dish).to.include.all.keys(
     'id',
     'rmsId',
     'additionalInfo',
     'code',
-    'description',
     'name',
     'seoDescription',
     'seoKeywords',
@@ -103,7 +102,6 @@ describe('Dish', function () {
     'seoTitle',
     'carbohydrateAmount',
     'carbohydrateFullAmount',
-    'doNotPrintInCheque',
     'energyAmount',
     'energyFullAmount',
     'fatAmount',
@@ -116,7 +114,7 @@ describe('Dish', function () {
     'productCategoryId',
     'type',
     'weight',
-    'order',
+    'sortOrder',
     'isDeleted',
     'isModificable',
     'modifiers',
@@ -130,7 +128,13 @@ describe('Dish', function () {
     'visible',
     'modifier',
     'promo',
-    'worktime')
+    'worktime',
+    'concept',
+    'ingredients',
+    'updatedAt',
+    'createdAt'
+
+    )
   });
 
   it('getDishes', function(){
@@ -146,9 +150,10 @@ describe('Dish', function () {
     
     let modifiers = [{modifierId: group.id, childModifiers: [{id: dishes[0].id, modifierId: dishes[0].id}]}];
 
-    let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers }) );
+    let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers, price: 100.1 }) );
     dish = await Dish.getDishModifiers(dish);
         
+    if(typeof dish.modifiers[0].group === "string" || typeof dish.modifiers[0].childModifiers[0].dish === "string") throw `Bad type`
     expect(dish.modifiers.length).to.equal(1);
     expect(dish.modifiers[0].childModifiers[0].dish.id).to.equal(dishes[0].id);
     expect(dish.modifiers[0].group.id).to.equal(group.id);
@@ -157,7 +162,7 @@ describe('Dish', function () {
   it('createOrUpdate', async function(){
     expect(Dish.createOrUpdate).to.not.equals(undefined);
     
-    let dish = await Dish.createOrUpdate(dishGenerator({name: "test dish"}));
+    let dish = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 100.1}));
 
     dish.name = 'New Dish Name';
     dish.price = 100.1;

@@ -7,23 +7,13 @@ import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
 import Settings from "../../../models/Settings";
 import Dish from "../../../models/Dish";
+import { address, customer } from "../../mocks/customer";
 
 describe("Flows: Checkout", function () {
   this.timeout(10000);
   var order: Order;
 
-  let customer: Customer = {
-    phone: "+99999999999",
-    name: "Freeman Morgan",
-  };
-  let address: Address = {
-    streetId: "1234",
-    city: "New York",
-    street: "Green Road",
-    home: "42",
-    comment: "",
-  };
-
+  
   let dishes;
 
   it("Check dishescount", async function () {
@@ -56,7 +46,7 @@ describe("Flows: Checkout", function () {
 
   it("awaitEmiter order events", async function () {
     //@ts-ignore
-    await Settings.set("check", { notRequired: true });
+    await Settings.set("CHECKOUT_STRATEGY", { notRequired: true });
 
     let core_order_before_check = 0;
     let core_order_check_delivery = 0;
@@ -75,7 +65,7 @@ describe("Flows: Checkout", function () {
       core_order_check = 1;
     });
 
-    getEmitter().on("core-order-after-check", function () {
+    getEmitter().on("core-order-after-check-counting", function () {
       core_order_after_check = 1;
     });
 
@@ -143,7 +133,7 @@ describe("Flows: Checkout", function () {
     await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
     order = await Order.findOne({id: order.id});
 
-    await Settings.set("check", {});
+    await Settings.set("CHECKOUT_STRATEGY", {});
 
     try {
       await Order.check({id: order.id}, customer, true);
@@ -161,7 +151,7 @@ describe("Flows: Checkout", function () {
   });
 
   it("test checkConfig (notRequired)", async function () {
-    await Settings.set("check", { notRequired: true });
+    await Settings.set("CHECKOUT_STRATEGY", { notRequired: true });
     
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-notrequired"}).fetch();
@@ -172,6 +162,7 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check({id: order.id}, customer, true);
     } catch (e) {
+      console.log(9988,e)
       expect(e).be.undefined;
     }
 
@@ -196,11 +187,6 @@ describe("Flows: Checkout", function () {
       await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
       order = await Order.findOne({id: order.id});
   
-      let customer: Customer = {
-        phone: "+99999999999",
-        name: "Freeman Morgan",
-      };
-
       try {
         await Order.check({id: order.id}, customer, true);
       } catch (e) {
@@ -227,7 +213,10 @@ describe("Flows: Checkout", function () {
 
       // @ts-ignore
       badCustomer = {
-        phone: "+79998882244",
+        phone: {
+          code: "+7",
+          number: "9998882244"
+        }
       };
 
       error = null;

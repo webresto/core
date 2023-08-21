@@ -1,18 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * The abstract class of the Payment adapter. Used to create new payment system adapters.
- */
 class PaymentAdapter {
     constructor(InitPaymentAdapter) {
         this.InitPaymentAdapter = InitPaymentAdapter;
+        this.config = InitPaymentAdapter.config;
         PaymentMethod.alive(this);
     }
     /**
-     * Метод для создания и получения уже существующего Payment adapterа
-     * @param params - параметры для инициализации
+     * Method for creating and obtaining an existing Payment Adapter
+     * Since there can be a lot of an adapter, this is a direct way to obtain an adapter from his class
+     * @param params - Parameters for initialization
+     * @deprecated
      */
-    static getInstance(...params) {
+    static getInstance(init) {
         return PaymentAdapter.prototype;
     }
 }

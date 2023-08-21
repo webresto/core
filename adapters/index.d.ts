@@ -1,35 +1,54 @@
-import RMSAdapter from "./rms/RMSAdapter";
-import MapAdapter from "./map/MapAdapter";
+import RMSAdapter, { ConfigRMSAdapter } from "./rms/RMSAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
-import MediaFileAdapter from "./mediafile/MediaFileAdapter";
+import OTPAdapter from "./otp/OneTimePasswordAdapter";
+import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
-/**
- * retruns RMS-adapter
- */
-export declare class RMS {
-    static getAdapter(adapterName: string): typeof RMSAdapter;
-}
-/**
- * retruns Map-adapter
- */
-export declare class Map {
-    static getAdapter(adapterName: string): new (config: any) => MapAdapter;
-}
-/**
- * retruns MediaFile-adapter
- */
-export declare class MediaFileA {
-    static getAdapter(adapterName: string): MediaFileAdapter;
-}
-/**
- * retruns Payment-adapter
- */
-export declare class Payment {
-    static getAdapter(adapterName: string): PaymentAdapter;
-}
+import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
+import { Config } from "../interfaces/Config";
+import DeliveryAdapter from "./delivery/DeliveryAdapter";
+import { PromotionAdapter } from "./promotion/default/promotionAdapter";
 /**
  * retruns Captcha-adapter
  */
 export declare class Captcha {
-    static getAdapter(adapterName?: string): CaptchaAdapter;
+    static getAdapter(adapterName?: string): Promise<CaptchaAdapter>;
+}
+/**
+ * retruns OTP-adapter
+ */
+export declare class OTP {
+    static getAdapter(adapterName?: string): Promise<OTPAdapter>;
+}
+/** TODO: move other Adapters to one class adapter */
+export declare class Adapter {
+    private static instanceRMS;
+    private static instancePromotion;
+    private static instanceDeliveryAdapter;
+    private static instanceMF;
+    static WEBRESTO_MODULES_PATH: string;
+    static getPromotionAdapter(adapterName?: string, initParams?: {
+        [key: string]: string | number | boolean;
+    }): PromotionAdapter;
+    /**
+     * retruns BonusProgram-adapter
+     */
+    static getBonusProgramAdapter(adapterName?: string, initParams?: {
+        [key: string]: string | number | boolean;
+    }): Promise<BonusProgramAdapter>;
+    /**
+     * retruns RMS-adapter
+     */
+    static getRMSAdapter(adapter?: string | RMSAdapter, initParams?: ConfigRMSAdapter): Promise<RMSAdapter>;
+    /**
+     * retruns Delivery-adapter
+     */
+    static getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter>;
+    /**
+     * retruns MediaFile-adapter
+     */
+    static getMediaFileAdapter(adapter?: string | MediaFileAdapter, initParams?: ConfigMediaFileAdapter): Promise<MediaFileAdapter>;
+    /**
+     * retruns PaymentAdapter-adapter
+     */
+    static getPaymentAdapter(adapterName?: string, initParams?: Config): Promise<PaymentAdapter>;
 }

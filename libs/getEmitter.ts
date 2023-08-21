@@ -8,7 +8,7 @@ let emitter: AwaitEmitter;
 export default function getEmitter(): AwaitEmitter {
   if (!emitter) {
     const awaitEmitterTimeout = sails.config.restocore ? sails.config.restocore.awaitEmitterTimeout || 60000 : 60000;
-    emitter = new AwaitEmitter("core", awaitEmitterTimeout);
+    emitter = new AwaitEmitter("core", parseInt(awaitEmitterTimeout as string));
   }
   return emitter;
 }

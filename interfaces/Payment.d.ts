@@ -12,6 +12,9 @@ export interface Payment {
     id?: string;
     paid?: boolean;
     amount: number;
+    /**
+     * Origin model id
+     */
     paymentId: string;
     externalId?: string;
     originModel: string;

@@ -1,0 +1,4479 @@
+[
+  {
+    "phoneCode": "+376",
+    "iso": "AD",
+    "name": "Andorra",
+    "nativeCountryName": "Andorra",
+    "language": [
+      "ca"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-###"
+    ],
+    "flag": "/restocore/assets/flags/ad.svg"
+  },
+  {
+    "phoneCode": "+971",
+    "iso": "AE",
+    "name": "United Arab Emirates",
+    "nativeCountryName": "دولة الإمارات العربيّة المتّحدة",
+    "language": [
+      "ar"
+    ],
+    "currency": "United Arab Emirates dirham",
+    "currencySymbol": "د.إ",
+    "currencyISO": "AED",
+    "currencyUnit": "Fils",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-####",
+      "5#-###-####"
+    ],
+    "flag": "/restocore/assets/flags/ae.svg"
+  },
+  {
+    "phoneCode": "+93",
+    "iso": "AF",
+    "name": "Afghanistan",
+    "nativeCountryName": "د افغانستان اسلامي دولتدولت اسلامی افغانستان, جمهوری اسلامی افغانستان",
+    "language": [
+      "fa",
+      "ps"
+    ],
+    "currency": "Afghan afghani",
+    "currencySymbol": "؋",
+    "currencyISO": "AFN",
+    "currencyUnit": "Pul",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/af.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "AG",
+    "name": "Antigua and Barbuda",
+    "nativeCountryName": "Antigua and Barbuda",
+    "language": [
+      "en"
+    ],
+    "currency": "Eastern Caribbean dollar",
+    "currencySymbol": "$",
+    "currencyISO": "XCD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(268)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ag.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "AI",
+    "name": "Anguilla",
+    "nativeCountryName": "Anguilla",
+    "language": [
+      "en"
+    ],
+    "currency": "Eastern Caribbean dollar",
+    "currencySymbol": "$",
+    "currencyISO": "XCD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(264)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ai.svg"
+  },
+  {
+    "phoneCode": "+355",
+    "iso": "AL",
+    "name": "Albania",
+    "nativeCountryName": "Shqipëria",
+    "language": [
+      "sq"
+    ],
+    "currency": "Albanian lek",
+    "currencySymbol": "L",
+    "currencyISO": "ALL",
+    "currencyUnit": "Qindarkë",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/al.svg"
+  },
+  {
+    "phoneCode": "+374",
+    "iso": "AM",
+    "name": "Armenia",
+    "nativeCountryName": "Հայաստան",
+    "language": [
+      "hy"
+    ],
+    "currency": "Armenian dram",
+    "currencySymbol": "֏",
+    "currencyISO": "AMD",
+    "currencyUnit": "Luma",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/am.svg"
+  },
+  {
+    "phoneCode": "+244",
+    "iso": "AO",
+    "name": "Angola",
+    "nativeCountryName": "Angola",
+    "language": [
+      "pt"
+    ],
+    "currency": "Angolan kwanza",
+    "currencySymbol": "Kz",
+    "currencyISO": "AOA",
+    "currencyUnit": "Cêntimo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/ao.svg"
+  },
+  {
+    "phoneCode": "+672",
+    "iso": "AQ",
+    "name": "Antarctica",
+    "nativeCountryName": "Antarctica, Antártico, Antarctique, Антарктике",
+    "language": [
+      "en",
+      "es",
+      " fr",
+      " ru"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "1##-###"
+    ],
+    "flag": "/restocore/assets/flags/aq.svg"
+  },
+  {
+    "phoneCode": "+54",
+    "iso": "AR",
+    "name": "Argentina",
+    "nativeCountryName": "Argentina",
+    "language": [
+      "es"
+    ],
+    "currency": "Argentine peso",
+    "currencySymbol": "$",
+    "currencyISO": "ARS",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ar.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "AS",
+    "name": "American Samoa",
+    "nativeCountryName": "American Samoa",
+    "language": [
+      "en",
+      "sm"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(684)###-####"
+    ],
+    "flag": "/restocore/assets/flags/as.svg"
+  },
+  {
+    "phoneCode": "+43",
+    "iso": "AT",
+    "name": "Austria",
+    "nativeCountryName": "Österreich",
+    "language": [
+      "de"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/at.svg"
+  },
+  {
+    "phoneCode": "+61",
+    "iso": "AU",
+    "name": "Australia",
+    "nativeCountryName": "Australia",
+    "language": [
+      "en"
+    ],
+    "currency": "Australian dollar",
+    "currencySymbol": "$",
+    "currencyISO": "AUD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-####-####"
+    ],
+    "flag": "/restocore/assets/flags/au.svg"
+  },
+  {
+    "phoneCode": "+297",
+    "iso": "AW",
+    "name": "Aruba",
+    "nativeCountryName": "Aruba",
+    "language": [
+      "nl",
+      "pap"
+    ],
+    "currency": "Aruban florin",
+    "currencySymbol": "ƒ",
+    "currencyISO": "AWG",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/aw.svg"
+  },
+  {
+    "phoneCode": "+994",
+    "iso": "AZ",
+    "name": "Azerbaijan",
+    "nativeCountryName": "Azərbaycan",
+    "language": [
+      "az"
+    ],
+    "currency": "Azerbaijani manat",
+    "currencySymbol": "₼",
+    "currencyISO": "AZN",
+    "currencyUnit": "Qəpik",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-##-##"
+    ],
+    "flag": "/restocore/assets/flags/az.svg"
+  },
+  {
+    "phoneCode": "+387",
+    "iso": "BA",
+    "name": "Bosnia and Herzegovina",
+    "nativeCountryName": "Bosna i Hercegovina",
+    "language": [
+      "bs",
+      "hr",
+      " sr"
+    ],
+    "currency": "Bosnia and Herzegovina convertible mark",
+    "currencySymbol": "KM",
+    "currencyISO": "BAM",
+    "currencyUnit": "Fening",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-####",
+      "##-#####"
+    ],
+    "flag": "/restocore/assets/flags/ba.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "BB",
+    "name": "Barbados",
+    "nativeCountryName": "Barbados",
+    "language": [
+      "en"
+    ],
+    "currency": "Barbadian dollar",
+    "currencySymbol": "$",
+    "currencyISO": "BBD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(246)###-####"
+    ],
+    "flag": "/restocore/assets/flags/bb.svg"
+  },
+  {
+    "phoneCode": "+880",
+    "iso": "BD",
+    "name": "Bangladesh",
+    "nativeCountryName": "গণপ্রজাতন্ত্রী বাংলাদেশ",
+    "language": [
+      "bn"
+    ],
+    "currency": "Bangladeshi taka",
+    "currencySymbol": "৳",
+    "currencyISO": "BDT",
+    "currencyUnit": "Poisha",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "1###-######"
+    ],
+    "flag": "/restocore/assets/flags/bd.svg"
+  },
+  {
+    "phoneCode": "+32",
+    "iso": "BE",
+    "name": "Belgium",
+    "nativeCountryName": "België, Belgique, Belgien",
+    "language": [
+      "nl",
+      "fr",
+      " de"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/be.svg"
+  },
+  {
+    "phoneCode": "+226",
+    "iso": "BF",
+    "name": "Burkina Faso",
+    "nativeCountryName": "Burkina Faso",
+    "language": [
+      "fr"
+    ],
+    "currency": "West African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XOF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/bf.svg"
+  },
+  {
+    "phoneCode": "+359",
+    "iso": "BG",
+    "name": "Bulgaria",
+    "nativeCountryName": "България",
+    "language": [
+      "bg"
+    ],
+    "currency": "Bulgarian lev",
+    "currencySymbol": "лв.",
+    "currencyISO": "BGN",
+    "currencyUnit": "Stotinka",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/bg.svg"
+  },
+  {
+    "phoneCode": "+973",
+    "iso": "BH",
+    "name": "Bahrain",
+    "nativeCountryName": "البحرين",
+    "language": [
+      "ar"
+    ],
+    "currency": "Bahraini dinar",
+    "currencySymbol": ".د.ب",
+    "currencyISO": "BHD",
+    "currencyUnit": "Fils",
+    "currencyDenomination": 1000,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/bh.svg"
+  },
+  {
+    "phoneCode": "+257",
+    "iso": "BI",
+    "name": "Burundi",
+    "nativeCountryName": "Burundi",
+    "language": [
+      "fr"
+    ],
+    "currency": "Burundian franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "BIF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/bi.svg"
+  },
+  {
+    "phoneCode": "+229",
+    "iso": "BJ",
+    "name": "Benin",
+    "nativeCountryName": "Bénin",
+    "language": [
+      "fr"
+    ],
+    "currency": "West African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XOF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/bj.svg"
+  },
+  {
+    "phoneCode": "+590",
+    "iso": "BL",
+    "name": "Saint-Barthélemy",
+    "nativeCountryName": "Saint-Barthélemy",
+    "language": [
+      "fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "###-##-##-##"
+    ],
+    "flag": "/restocore/assets/flags/bl.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "BM",
+    "name": "Bermuda",
+    "nativeCountryName": "Bermuda",
+    "language": [
+      "en"
+    ],
+    "currency": "Bermudian dollar",
+    "currencySymbol": "$",
+    "currencyISO": "BMD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(441)###-####"
+    ],
+    "flag": "/restocore/assets/flags/bm.svg"
+  },
+  {
+    "phoneCode": "+673",
+    "iso": "BN",
+    "name": "Brunei Darussalam",
+    "nativeCountryName": "Brunei Darussalam",
+    "language": [
+      "ms"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/bn.svg"
+  },
+  {
+    "phoneCode": "+591",
+    "iso": "BO",
+    "name": "Bolivia",
+    "nativeCountryName": "Bolivia, Bulibiya, Volívia, Wuliwya",
+    "language": [
+      "es",
+      "qu",
+      " gn",
+      " ay"
+    ],
+    "currency": "Bolivian boliviano",
+    "currencySymbol": "Bs.",
+    "currencyISO": "BOB",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-####"
+    ],
+    "flag": "/restocore/assets/flags/bo.svg"
+  },
+  {
+    "phoneCode": "+55",
+    "iso": "BR",
+    "name": "Brazil",
+    "nativeCountryName": "Brasil",
+    "language": [
+      "pt"
+    ],
+    "currency": "Brazilian real",
+    "currencySymbol": "R$",
+    "currencyISO": "BRL",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(##)####-####",
+      "(##)#####-####"
+    ],
+    "flag": "/restocore/assets/flags/br.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "BS",
+    "name": "Bahamas",
+    "nativeCountryName": "Bahamas",
+    "language": [
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(242)###-####"
+    ],
+    "flag": "/restocore/assets/flags/bs.svg"
+  },
+  {
+    "phoneCode": "+975",
+    "iso": "BT",
+    "name": "Bhutan",
+    "nativeCountryName": "འབྲུག་ཡུལ",
+    "language": [
+      "dz"
+    ],
+    "currency": "Indian rupee",
+    "currencySymbol": "₹",
+    "currencyISO": "INR",
+    "currencyUnit": "Paisa",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "17-###-###",
+      "77-###-###",
+      "#-###-###"
+    ],
+    "flag": "/restocore/assets/flags/bt.svg"
+  },
+  {
+    "phoneCode": "+267",
+    "iso": "BW",
+    "name": "Botswana",
+    "nativeCountryName": "Botswana",
+    "language": [
+      "en",
+      "tn"
+    ],
+    "currency": "Botswana pula",
+    "currencySymbol": "P",
+    "currencyISO": "BWP",
+    "currencyUnit": "Thebe",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/bw.svg"
+  },
+  {
+    "phoneCode": "+375",
+    "iso": "BY",
+    "name": "Belarus",
+    "nativeCountryName": "Беларусь",
+    "language": [
+      "be",
+      "ru"
+    ],
+    "currency": "Belarusian ruble",
+    "currencySymbol": "Br",
+    "currencyISO": "BYN",
+    "currencyUnit": "Kapyeyka",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(##)###-##-##"
+    ],
+    "flag": "/restocore/assets/flags/by.svg"
+  },
+  {
+    "phoneCode": "+501",
+    "iso": "BZ",
+    "name": "Belize",
+    "nativeCountryName": "Belize",
+    "language": [
+      "en"
+    ],
+    "currency": "Belize dollar",
+    "currencySymbol": "$",
+    "currencyISO": "BZD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/bz.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "CA",
+    "name": "Canada",
+    "nativeCountryName": "Canada",
+    "language": [
+      "en",
+      "fr"
+    ],
+    "currency": "Canadian dollar",
+    "currencySymbol": "$",
+    "currencyISO": "CAD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ca.svg"
+  },
+  {
+    "phoneCode": "+61",
+    "iso": "CC",
+    "name": "Cocos (Keeling) Islands",
+    "nativeCountryName": "Cocos (Keeling) Islands",
+    "language": [
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "#-####-####"
+    ],
+    "flag": "/restocore/assets/flags/cc.svg"
+  },
+  {
+    "phoneCode": "+243",
+    "iso": "CD",
+    "name": "Democratic Republic of the Congo (Congo-Kinshasa, former Zaire)",
+    "nativeCountryName": "République Démocratique du Congo",
+    "language": [
+      "fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/cd.svg"
+  },
+  {
+    "phoneCode": "+236",
+    "iso": "CF",
+    "name": "Centrafrican Republic",
+    "nativeCountryName": "République centrafricaine, Ködörösêse tî Bêafrîka",
+    "language": [
+      "fr",
+      "sg"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/cf.svg"
+  },
+  {
+    "phoneCode": "+242",
+    "iso": "CG",
+    "name": "Republic of the Congo (Congo-Brazzaville)",
+    "nativeCountryName": "République du Congo",
+    "language": [
+      "fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-#####"
+    ],
+    "flag": "/restocore/assets/flags/cg.svg"
+  },
+  {
+    "phoneCode": "+41",
+    "iso": "CH",
+    "name": "Switzerland",
+    "nativeCountryName": "Schweiz, Suisse, Svizzera, Svizra",
+    "language": [
+      "de",
+      "fr",
+      " it",
+      " rm"
+    ],
+    "currency": "Swiss franc",
+    "currencySymbol": "Fr.",
+    "currencyISO": "CHF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/ch.svg"
+  },
+  {
+    "phoneCode": "+225",
+    "iso": "CI",
+    "name": "Côte d'Ivoire",
+    "nativeCountryName": "Côte d'Ivoire",
+    "language": [
+      "fr"
+    ],
+    "currency": "West African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XOF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/ci.svg"
+  },
+  {
+    "phoneCode": "+682",
+    "iso": "CK",
+    "name": "Cook Islands",
+    "nativeCountryName": "Cook Islands, Kūki ʻĀirani",
+    "language": [
+      "en",
+      "rar"
+    ],
+    "currency": "New Zealand dollar",
+    "currencySymbol": "$",
+    "currencyISO": "NZD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###"
+    ],
+    "flag": "/restocore/assets/flags/ck.svg"
+  },
+  {
+    "phoneCode": "+56",
+    "iso": "CL",
+    "name": "Chile",
+    "nativeCountryName": "Chile",
+    "language": [
+      "es"
+    ],
+    "currency": "Chilean peso",
+    "currencySymbol": "$",
+    "currencyISO": "CLP",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-####-####"
+    ],
+    "flag": "/restocore/assets/flags/cl.svg"
+  },
+  {
+    "phoneCode": "+237",
+    "iso": "CM",
+    "name": "Cameroon",
+    "nativeCountryName": "Cameroun, Cameroon",
+    "language": [
+      "fr",
+      "en"
+    ],
+    "currency": "Central African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XAF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/cm.svg"
+  },
+  {
+    "phoneCode": "+86",
+    "iso": "CN",
+    "name": "China",
+    "nativeCountryName": "中国",
+    "language": [
+      "zh-hans"
+    ],
+    "currency": "Chinese yuan",
+    "currencySymbol": "元",
+    "currencyISO": "CNY",
+    "currencyUnit": "Jiao",
+    "currencyDenomination": 10,
+    "phoneMask": [
+      "(###)####-###",
+      "(###)####-####",
+      "##-#####-#####"
+    ],
+    "flag": "/restocore/assets/flags/cn.svg"
+  },
+  {
+    "phoneCode": "+57",
+    "iso": "CO",
+    "name": "Colombia",
+    "nativeCountryName": "Colombia",
+    "language": [
+      "es"
+    ],
+    "currency": "Colombian peso",
+    "currencySymbol": "$",
+    "currencyISO": "COP",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/co.svg"
+  },
+  {
+    "phoneCode": "+506",
+    "iso": "CR",
+    "name": "Costa Rica",
+    "nativeCountryName": "Costa Rica",
+    "language": [
+      "es"
+    ],
+    "currency": "Costa Rican colón",
+    "currencySymbol": "₡",
+    "currencyISO": "CRC",
+    "currencyUnit": "Céntimo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/cr.svg"
+  },
+  {
+    "phoneCode": "+53",
+    "iso": "CU",
+    "name": "Cuba",
+    "nativeCountryName": "Cuba",
+    "language": [
+      "es"
+    ],
+    "currency": "Cuban peso",
+    "currencySymbol": "$",
+    "currencyISO": "CUP",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-####"
+    ],
+    "flag": "/restocore/assets/flags/cu.svg"
+  },
+  {
+    "phoneCode": "+238",
+    "iso": "CV",
+    "name": "Cabo Verde",
+    "nativeCountryName": "Cabo Verde",
+    "language": [
+      "pt"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(###)##-##"
+    ],
+    "flag": "/restocore/assets/flags/cv.svg"
+  },
+  {
+    "phoneCode": "+599",
+    "iso": "CW",
+    "name": "Curaçao",
+    "nativeCountryName": "Curaçao",
+    "language": [
+      "nl",
+      "en"
+    ],
+    "currency": "Netherlands Antillean guilder",
+    "currencySymbol": "ƒ",
+    "currencyISO": "ANG",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####",
+      "9###-####"
+    ],
+    "flag": "/restocore/assets/flags/an.svg"
+  },
+  {
+    "phoneCode": "+61",
+    "iso": "CX",
+    "name": "Christmas Island",
+    "nativeCountryName": "Christmas Island",
+    "language": [
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "#-####-####"
+    ],
+    "flag": "/restocore/assets/flags/cx.svg"
+  },
+  {
+    "phoneCode": "+357",
+    "iso": "CY",
+    "name": "Cyprus",
+    "nativeCountryName": "Κύπρος, Kibris",
+    "language": [
+      "el",
+      "tr"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/cy.svg"
+  },
+  {
+    "phoneCode": "+420",
+    "iso": "CZ",
+    "name": "Czech Republic",
+    "nativeCountryName": "Česká republika",
+    "language": [
+      "cs"
+    ],
+    "currency": "Czech koruna",
+    "currencySymbol": "Kč",
+    "currencyISO": "CZK",
+    "currencyUnit": "Haléř",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/cz.svg"
+  },
+  {
+    "phoneCode": "+49",
+    "iso": "DE",
+    "name": "Germany",
+    "nativeCountryName": "Deutschland",
+    "language": [
+      "de"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-###",
+      "(###)##-##",
+      "(###)##-###",
+      "(###)##-####",
+      "(###)###-####",
+      "(####)###-####"
+    ],
+    "flag": "/restocore/assets/flags/de.svg"
+  },
+  {
+    "phoneCode": "+253",
+    "iso": "DJ",
+    "name": "Djibouti",
+    "nativeCountryName": "Djibouti, جيبوتي, Jabuuti, Gabuutih",
+    "language": [
+      "fr",
+      "ar",
+      " so",
+      " aa"
+    ],
+    "currency": "Djiboutian franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "DJF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-##-##"
+    ],
+    "flag": "/restocore/assets/flags/dj.svg"
+  },
+  {
+    "phoneCode": "+45",
+    "iso": "DK",
+    "name": "Denmark",
+    "nativeCountryName": "Danmark",
+    "language": [
+      "da"
+    ],
+    "currency": "Danish krone",
+    "currencySymbol": "kr",
+    "currencyISO": "DKK",
+    "currencyUnit": "Øre",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-##-##"
+    ],
+    "flag": "/restocore/assets/flags/dk.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "DM",
+    "name": "Dominica",
+    "nativeCountryName": "Dominica",
+    "language": [
+      "en"
+    ],
+    "currency": "Eastern Caribbean dollar",
+    "currencySymbol": "$",
+    "currencyISO": "XCD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(767)###-####"
+    ],
+    "flag": "/restocore/assets/flags/dm.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "DO",
+    "name": "Dominican Republic",
+    "nativeCountryName": "República Dominicana",
+    "language": [
+      "es"
+    ],
+    "currency": "Dominican peso",
+    "currencySymbol": "RD$",
+    "currencyISO": "DOP",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(809)###-####",
+      "(829)###-####",
+      "(849)###-####"
+    ],
+    "flag": "/restocore/assets/flags/do.svg"
+  },
+  {
+    "phoneCode": "+213",
+    "iso": "DZ",
+    "name": "Algeria",
+    "nativeCountryName": "الجزائر",
+    "language": [
+      "ar"
+    ],
+    "currency": "Algerian dinar",
+    "currencySymbol": "د.ج",
+    "currencyISO": "DZD",
+    "currencyUnit": "Santeem",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/dz.svg"
+  },
+  {
+    "phoneCode": "+593",
+    "iso": "EC",
+    "name": "Ecuador",
+    "nativeCountryName": "Ecuador",
+    "language": [
+      "es"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": "Centavo",
+    "currencyDenomination": null,
+    "phoneMask": [
+      "#-###-####",
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/ec.svg"
+  },
+  {
+    "phoneCode": "+372",
+    "iso": "EE",
+    "name": "Estonia",
+    "nativeCountryName": "Eesti",
+    "language": [
+      "et"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####",
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/ee.svg"
+  },
+  {
+    "phoneCode": "+20",
+    "iso": "EG",
+    "name": "Egypt",
+    "nativeCountryName": "مصر",
+    "language": [
+      "ar"
+    ],
+    "currency": "Egyptian pound",
+    "currencySymbol": "ج.م",
+    "currencyISO": "EGP",
+    "currencyUnit": "Piastre",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/eg.svg"
+  },
+  {
+    "phoneCode": "+212",
+    "iso": "EH",
+    "name": "Western Sahara",
+    "nativeCountryName": "Sahara Occidental",
+    "language": [
+      "ar",
+      "es",
+      " fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-####-###"
+    ],
+    "flag": "/restocore/assets/flags/ma.svg"
+  },
+  {
+    "phoneCode": "+291",
+    "iso": "ER",
+    "name": "Eritrea",
+    "nativeCountryName": "ኤርትራ, إرتريا, Eritrea",
+    "language": [
+      "ti",
+      "ar",
+      " en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "#-###-###"
+    ],
+    "flag": "/restocore/assets/flags/er.svg"
+  },
+  {
+    "phoneCode": "+34",
+    "iso": "ES",
+    "name": "Spain",
+    "nativeCountryName": "España",
+    "language": [
+      "ast",
+      "ca",
+      " es",
+      " eu",
+      " gl"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/es.svg"
+  },
+  {
+    "phoneCode": "+251",
+    "iso": "ET",
+    "name": "Ethiopia",
+    "nativeCountryName": "ኢትዮጵያ, Itoophiyaa",
+    "language": [
+      "am",
+      "om"
+    ],
+    "currency": "Ethiopian birr",
+    "currencySymbol": "Br",
+    "currencyISO": "ETB",
+    "currencyUnit": "Santim",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/et.svg"
+  },
+  {
+    "phoneCode": "+358",
+    "iso": "FI",
+    "name": "Finland",
+    "nativeCountryName": "Suomi",
+    "language": [
+      "fi",
+      "sv",
+      " se"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Sentti",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-##-##"
+    ],
+    "flag": "/restocore/assets/flags/fi.svg"
+  },
+  {
+    "phoneCode": "+679",
+    "iso": "FJ",
+    "name": "Fiji",
+    "nativeCountryName": "Fiji",
+    "language": [
+      "en"
+    ],
+    "currency": "Fijian dollar",
+    "currencySymbol": "$",
+    "currencyISO": "FJD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-#####"
+    ],
+    "flag": "/restocore/assets/flags/fj.svg"
+  },
+  {
+    "phoneCode": "+500",
+    "iso": "FK",
+    "name": "Falkland Islands",
+    "nativeCountryName": "Falkland Islands",
+    "language": [
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "#####"
+    ],
+    "flag": "/restocore/assets/flags/fk.svg"
+  },
+  {
+    "phoneCode": "+691",
+    "iso": "FM",
+    "name": "Micronesia (Federated States of)",
+    "nativeCountryName": "Micronesia",
+    "language": [
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/fm.svg"
+  },
+  {
+    "phoneCode": "+298",
+    "iso": "FO",
+    "name": "Faroe Islands",
+    "nativeCountryName": "Føroyar, Færøerne",
+    "language": [
+      "fo",
+      "da"
+    ],
+    "currency": "Dath króna",
+    "currencySymbol": "kr",
+    "currencyISO": "DKK",
+    "currencyUnit": "Oyra",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-###"
+    ],
+    "flag": "/restocore/assets/flags/fo.svg"
+  },
+  {
+    "phoneCode": "+33",
+    "iso": "FR",
+    "name": "France",
+    "nativeCountryName": "France",
+    "language": [
+      "fr"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/fr.svg"
+  },
+  {
+    "phoneCode": "+241",
+    "iso": "GA",
+    "name": "Gabon",
+    "nativeCountryName": "Gabon",
+    "language": [
+      "fr"
+    ],
+    "currency": "Central African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XAF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-##-##-##"
+    ],
+    "flag": "/restocore/assets/flags/ga.svg"
+  },
+  {
+    "phoneCode": "+44",
+    "iso": "GB",
+    "name": "United Kingdom",
+    "nativeCountryName": "United Kingdom",
+    "language": [
+      "en",
+      "ga",
+      " cy",
+      " gd",
+      " kw"
+    ],
+    "currency": "British pound",
+    "currencySymbol": "£",
+    "currencyISO": "GBP",
+    "currencyUnit": "Penny",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-####-####"
+    ],
+    "flag": "/restocore/assets/flags/gb.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "GD",
+    "name": "Grenada",
+    "nativeCountryName": "Grenada",
+    "language": [
+      "en"
+    ],
+    "currency": "Eastern Caribbean dollar",
+    "currencySymbol": "$",
+    "currencyISO": "XCD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(473)###-####"
+    ],
+    "flag": "/restocore/assets/flags/gd.svg"
+  },
+  {
+    "phoneCode": "+995",
+    "iso": "GE",
+    "name": "Georgia",
+    "nativeCountryName": "საქართველო",
+    "language": [
+      "ka"
+    ],
+    "currency": "Georgian lari",
+    "currencySymbol": "₾",
+    "currencyISO": "GEL",
+    "currencyUnit": "Tetri",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/ge.svg"
+  },
+  {
+    "phoneCode": "+44",
+    "iso": "GG",
+    "name": "Guernsey",
+    "nativeCountryName": "Guernsey",
+    "language": [
+      "en"
+    ],
+    "currency": "British pound",
+    "currencySymbol": "£",
+    "currencyISO": "GBP",
+    "currencyUnit": "Penny",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(####)######"
+    ],
+    "flag": "/restocore/assets/flags/gg.svg"
+  },
+  {
+    "phoneCode": "+233",
+    "iso": "GH",
+    "name": "Ghana",
+    "nativeCountryName": "Ghana",
+    "language": [
+      "en"
+    ],
+    "currency": "Ghanaian cedi",
+    "currencySymbol": "₵",
+    "currencyISO": "GHS",
+    "currencyUnit": "Pesewa",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/gh.svg"
+  },
+  {
+    "phoneCode": "+350",
+    "iso": "GI",
+    "name": "Gibraltar",
+    "nativeCountryName": "Gibraltar",
+    "language": [
+      "en"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-#####"
+    ],
+    "flag": "/restocore/assets/flags/gi.svg"
+  },
+  {
+    "phoneCode": "+299",
+    "iso": "GL",
+    "name": "Greenland",
+    "nativeCountryName": "Kalaallit Nunaat, Grønland",
+    "language": [
+      "kl",
+      "da"
+    ],
+    "currency": "Danish krone",
+    "currencySymbol": "kr",
+    "currencyISO": "DKK",
+    "currencyUnit": "Øre",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-##"
+    ],
+    "flag": "/restocore/assets/flags/gl.svg"
+  },
+  {
+    "phoneCode": "+220",
+    "iso": "GM",
+    "name": "The Gambia",
+    "nativeCountryName": "The Gambia",
+    "language": [
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(###)##-##"
+    ],
+    "flag": "/restocore/assets/flags/gm.svg"
+  },
+  {
+    "phoneCode": "+224",
+    "iso": "GN",
+    "name": "Guinea",
+    "nativeCountryName": "Guinée",
+    "language": [
+      "fr"
+    ],
+    "currency": "Guinean franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "GNF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/gn.svg"
+  },
+  {
+    "phoneCode": "+240",
+    "iso": "GQ",
+    "name": "Equatorial Guinea",
+    "nativeCountryName": "Guiena ecuatorial, Guinée équatoriale, Guiné Equatorial",
+    "language": [
+      "es",
+      "fr",
+      " pt"
+    ],
+    "currency": "Central African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XAF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/gq.svg"
+  },
+  {
+    "phoneCode": "+30",
+    "iso": "GR",
+    "name": "Greece",
+    "nativeCountryName": "Ελλάδα",
+    "language": [
+      "el"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/gr.svg"
+  },
+  {
+    "phoneCode": "+502",
+    "iso": "GT",
+    "name": "Guatemala",
+    "nativeCountryName": "Guatemala",
+    "language": [
+      "es"
+    ],
+    "currency": "Guatemalan quetzal",
+    "currencySymbol": "Q",
+    "currencyISO": "GTQ",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-####"
+    ],
+    "flag": "/restocore/assets/flags/gt.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "GU",
+    "name": "Guam",
+    "nativeCountryName": "Guam, Guåhån",
+    "language": [
+      "en",
+      "ch"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(671)###-####"
+    ],
+    "flag": "/restocore/assets/flags/gu.svg"
+  },
+  {
+    "phoneCode": "+245",
+    "iso": "GW",
+    "name": "Guinea Bissau",
+    "nativeCountryName": "Guiné-Bissau",
+    "language": [
+      "pt"
+    ],
+    "currency": "West African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XOF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-######"
+    ],
+    "flag": "/restocore/assets/flags/gw.svg"
+  },
+  {
+    "phoneCode": "+592",
+    "iso": "GY",
+    "name": "Guyana",
+    "nativeCountryName": "Guyana",
+    "language": [
+      "en"
+    ],
+    "currency": "Guyanese dollar",
+    "currencySymbol": "$",
+    "currencyISO": "GYD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/gy.svg"
+  },
+  {
+    "phoneCode": "+852",
+    "iso": "HK",
+    "name": "Hong Kong (SAR of China)",
+    "nativeCountryName": "香港, Hong Kong",
+    "language": [
+      "zh-hant",
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/hk.svg"
+  },
+  {
+    "phoneCode": "+504",
+    "iso": "HN",
+    "name": "Honduras",
+    "nativeCountryName": "Honduras",
+    "language": [
+      "es"
+    ],
+    "currency": "Honduran lempira",
+    "currencySymbol": "L",
+    "currencyISO": "HNL",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/hn.svg"
+  },
+  {
+    "phoneCode": "+385",
+    "iso": "HR",
+    "name": "Croatia",
+    "nativeCountryName": "Hrvatska",
+    "language": [
+      "hr"
+    ],
+    "currency": "Croatian kuna",
+    "currencySymbol": "kn",
+    "currencyISO": "HRK",
+    "currencyUnit": "Lipa",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/hr.svg"
+  },
+  {
+    "phoneCode": "+509",
+    "iso": "HT",
+    "name": "Haiti",
+    "nativeCountryName": "Haïti, Ayiti",
+    "language": [
+      "fr",
+      "ht"
+    ],
+    "currency": "Haitian gourde",
+    "currencySymbol": "G",
+    "currencyISO": "HTG",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/ht.svg"
+  },
+  {
+    "phoneCode": "+36",
+    "iso": "HU",
+    "name": "Hungary",
+    "nativeCountryName": "Magyarország",
+    "language": [
+      "hu"
+    ],
+    "currency": "Hungarian forint",
+    "currencySymbol": "Ft",
+    "currencyISO": "HUF",
+    "currencyUnit": "Fillér",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/hu.svg"
+  },
+  {
+    "phoneCode": "+62",
+    "iso": "ID",
+    "name": "Indonesia",
+    "nativeCountryName": "Indonesia",
+    "language": [
+      "id"
+    ],
+    "currency": "Indonesian rupiah",
+    "currencySymbol": "Rp",
+    "currencyISO": "IDR",
+    "currencyUnit": "Sen",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-##",
+      "##-###-###",
+      "##-###-####",
+      "(8##)###-###",
+      "(8##)###-##-###"
+    ],
+    "flag": "/restocore/assets/flags/id.svg"
+  },
+  {
+    "phoneCode": "+353",
+    "iso": "IE",
+    "name": "Ireland",
+    "nativeCountryName": "Ireland, Éire",
+    "language": [
+      "en",
+      "ga"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/ie.svg"
+  },
+  {
+    "phoneCode": "+972",
+    "iso": "IL",
+    "name": "Israel",
+    "nativeCountryName": "ישראל",
+    "language": [
+      "he"
+    ],
+    "currency": "Israeli new shekel",
+    "currencySymbol": "₪",
+    "currencyISO": "ILS",
+    "currencyUnit": "Agora",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-####",
+      "5#-###-####"
+    ],
+    "flag": "/restocore/assets/flags/il.svg"
+  },
+  {
+    "phoneCode": "+44",
+    "iso": "IM",
+    "name": "Isle of Man",
+    "nativeCountryName": "Isle of Man",
+    "language": [
+      "en"
+    ],
+    "currency": "British pound",
+    "currencySymbol": "£",
+    "currencyISO": "GBP",
+    "currencyUnit": "Penny",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(####)######"
+    ],
+    "flag": "/restocore/assets/flags/im.svg"
+  },
+  {
+    "phoneCode": "+91",
+    "iso": "IN",
+    "name": "India",
+    "nativeCountryName": "भारत, India",
+    "language": [
+      "hi",
+      "en"
+    ],
+    "currency": "Indian rupee",
+    "currencySymbol": "₹",
+    "currencyISO": "INR",
+    "currencyUnit": "Paisa",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(####)###-###"
+    ],
+    "flag": "/restocore/assets/flags/in.svg"
+  },
+  {
+    "phoneCode": "+246",
+    "iso": "IO",
+    "name": "British Indian Ocean Territory",
+    "nativeCountryName": "British Indian Ocean Territory",
+    "language": [
+      "en"
+    ],
+    "currency": "United States dollar",
+    "currencySymbol": "$",
+    "currencyISO": "USD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/io.svg"
+  },
+  {
+    "phoneCode": "+924",
+    "iso": "IQ",
+    "name": "Iraq",
+    "nativeCountryName": "العراق, Iraq",
+    "language": [
+      "ar",
+      "ku"
+    ],
+    "currency": "Iraqi dinar",
+    "currencySymbol": "ع.د",
+    "currencyISO": "IQD",
+    "currencyUnit": "Fils",
+    "currencyDenomination": 1000,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/iq.svg"
+  },
+  {
+    "phoneCode": "+98",
+    "iso": "IR",
+    "name": "Iran",
+    "nativeCountryName": "ایران",
+    "language": [
+      "fa"
+    ],
+    "currency": "Iranian rial",
+    "currencySymbol": "﷼",
+    "currencyISO": "IRR",
+    "currencyUnit": "Rial",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ir.svg"
+  },
+  {
+    "phoneCode": "+354",
+    "iso": "IS",
+    "name": "Iceland",
+    "nativeCountryName": "Ísland",
+    "language": [
+      "is"
+    ],
+    "currency": "Icelandic króna",
+    "currencySymbol": "kr",
+    "currencyISO": "ISK",
+    "currencyUnit": "Eyrir",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/is.svg"
+  },
+  {
+    "phoneCode": "+39",
+    "iso": "IT",
+    "name": "Italy",
+    "nativeCountryName": "Italia",
+    "language": [
+      "it",
+      "de",
+      " fr"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)####-###"
+    ],
+    "flag": "/restocore/assets/flags/it.svg"
+  },
+  {
+    "phoneCode": "+44",
+    "iso": "JE",
+    "name": "Jersey",
+    "nativeCountryName": "Jersey",
+    "language": [
+      "en"
+    ],
+    "currency": "British pound",
+    "currencySymbol": "£",
+    "currencyISO": "GBP",
+    "currencyUnit": "Penny",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(####)####-######"
+    ],
+    "flag": "/restocore/assets/flags/je.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "JM",
+    "name": "Jamaica",
+    "nativeCountryName": "Jamaica",
+    "language": [
+      "en"
+    ],
+    "currency": "Jamaican dollar",
+    "currencySymbol": "$",
+    "currencyISO": "JMD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(876)###-####"
+    ],
+    "flag": "/restocore/assets/flags/jm.svg"
+  },
+  {
+    "phoneCode": "+962",
+    "iso": "JO",
+    "name": "Jordan",
+    "nativeCountryName": "الأُرْدُن",
+    "language": [
+      "ar"
+    ],
+    "currency": "Jordanian dinar",
+    "currencySymbol": "د.ا",
+    "currencyISO": "JOD",
+    "currencyUnit": "Piastre",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-####-####"
+    ],
+    "flag": "/restocore/assets/flags/jo.svg"
+  },
+  {
+    "phoneCode": "+81",
+    "iso": "JP",
+    "name": "Japan",
+    "nativeCountryName": "日本",
+    "language": [
+      "ja"
+    ],
+    "currency": "Japanese yen",
+    "currencySymbol": "¥",
+    "currencyISO": "JPY",
+    "currencyUnit": "Sen",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###",
+      "##-####-####"
+    ],
+    "flag": "/restocore/assets/flags/jp.svg"
+  },
+  {
+    "phoneCode": "+254",
+    "iso": "KE",
+    "name": "Kenya",
+    "nativeCountryName": "Kenya",
+    "language": [
+      "sw",
+      "en"
+    ],
+    "currency": "Kenyan shilling",
+    "currencySymbol": "Sh",
+    "currencyISO": "KES",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-######"
+    ],
+    "flag": "/restocore/assets/flags/ke.svg"
+  },
+  {
+    "phoneCode": "+996",
+    "iso": "KG",
+    "name": "Kyrgyzstan",
+    "nativeCountryName": "Кыргызстан, Киргизия",
+    "language": [
+      "ky",
+      "ru"
+    ],
+    "currency": "Kyrgyzstani som",
+    "currencySymbol": "с",
+    "currencyISO": "KGS",
+    "currencyUnit": "Tyiyn",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/kg.svg"
+  },
+  {
+    "phoneCode": "+855",
+    "iso": "KH",
+    "name": "Cambodia",
+    "nativeCountryName": "កម្ពុជា",
+    "language": [
+      "km"
+    ],
+    "currency": "Cambodian riel",
+    "currencySymbol": "៛",
+    "currencyISO": "KHR",
+    "currencyUnit": "Sen",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/kh.svg"
+  },
+  {
+    "phoneCode": "+686",
+    "iso": "KI",
+    "name": "Kiribati",
+    "nativeCountryName": "Kiribati",
+    "language": [
+      "en"
+    ],
+    "currency": "Australian dollar",
+    "currencySymbol": "$",
+    "currencyISO": "AUD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###"
+    ],
+    "flag": "/restocore/assets/flags/ki.svg"
+  },
+  {
+    "phoneCode": "+269",
+    "iso": "KM",
+    "name": "Comores",
+    "nativeCountryName": "ﺍﻟﻘﻤﺮي, Comores, Komori",
+    "language": [
+      "ar",
+      "fr",
+      " sw"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-#####"
+    ],
+    "flag": "/restocore/assets/flags/km.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "KN",
+    "name": "Saint Kitts and Nevis",
+    "nativeCountryName": "Saint Kitts and Nevis",
+    "language": [
+      "en"
+    ],
+    "currency": "Eastern Caribbean dollar",
+    "currencySymbol": "$",
+    "currencyISO": "XCD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(869)###-####"
+    ],
+    "flag": "/restocore/assets/flags/kn.svg"
+  },
+  {
+    "phoneCode": "+850",
+    "iso": "KP",
+    "name": "North Korea",
+    "nativeCountryName": "북조선",
+    "language": [
+      "ko"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "###-###",
+      "####-####",
+      "##-###-###",
+      "###-####-###",
+      "191-###-####",
+      "####-#############"
+    ],
+    "flag": "/restocore/assets/flags/kp.svg"
+  },
+  {
+    "phoneCode": "+82",
+    "iso": "KR",
+    "name": "South Korea",
+    "nativeCountryName": "대한민국",
+    "language": [
+      "ko",
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/kr.svg"
+  },
+  {
+    "phoneCode": "+965",
+    "iso": "KW",
+    "name": "Kuwait",
+    "nativeCountryName": "الكويت",
+    "language": [
+      "ar"
+    ],
+    "currency": "Kuwaiti dinar",
+    "currencySymbol": "د.ك",
+    "currencyISO": "KWD",
+    "currencyUnit": "Fils",
+    "currencyDenomination": 1000,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/kw.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "KY",
+    "name": "Cayman Islands",
+    "nativeCountryName": "Cayman Islands",
+    "language": [
+      "en"
+    ],
+    "currency": "Cayman Islands dollar",
+    "currencySymbol": "$",
+    "currencyISO": "KYD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(345)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ky.svg"
+  },
+  {
+    "phoneCode": "+77",
+    "iso": "KZ",
+    "name": "Kazakhstan",
+    "nativeCountryName": "Қазақстан, Казахстан",
+    "language": [
+      "kk",
+      "ru"
+    ],
+    "currency": "Kazakhstani tenge",
+    "currencySymbol": "₸",
+    "currencyISO": "KZT",
+    "currencyUnit": "Tıyn",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(6##)###-##-##",
+      "(7##)###-##-##"
+    ],
+    "flag": "/restocore/assets/flags/kz.svg"
+  },
+  {
+    "phoneCode": "+856",
+    "iso": "LA",
+    "name": "Laos",
+    "nativeCountryName": "ປະຊາຊົນລາວ",
+    "language": [
+      "lo"
+    ],
+    "currency": "Lao kip",
+    "currencySymbol": "₭",
+    "currencyISO": "LAK",
+    "currencyUnit": "Att",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###",
+      "(20##)###-###"
+    ],
+    "flag": "/restocore/assets/flags/la.svg"
+  },
+  {
+    "phoneCode": "+961",
+    "iso": "LB",
+    "name": "Lebanon",
+    "nativeCountryName": "لبنان, Liban",
+    "language": [
+      "ar",
+      "fr"
+    ],
+    "currency": "Lebanese pound",
+    "currencySymbol": "ل.ل",
+    "currencyISO": "LBP",
+    "currencyUnit": "Piastre",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-###",
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/lb.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "LC",
+    "name": "Saint Lucia",
+    "nativeCountryName": "Saint Lucia",
+    "language": [
+      "en"
+    ],
+    "currency": "Eastern Caribbean dollar",
+    "currencySymbol": "$",
+    "currencyISO": "XCD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(758)###-####"
+    ],
+    "flag": "/restocore/assets/flags/lc.svg"
+  },
+  {
+    "phoneCode": "+423",
+    "iso": "LI",
+    "name": "Liechtenstein",
+    "nativeCountryName": "Liechtenstein",
+    "language": [
+      "de"
+    ],
+    "currency": "Swiss franc",
+    "currencySymbol": "Fr.",
+    "currencyISO": "CHF",
+    "currencyUnit": "Rappen",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/li.svg"
+  },
+  {
+    "phoneCode": "+94",
+    "iso": "LK",
+    "name": "Sri Lanka",
+    "nativeCountryName": "ශ්‍රී ලංකා, இலங்கை",
+    "language": [
+      "si",
+      "ta"
+    ],
+    "currency": "Sri Lankan rupee",
+    "currencySymbol": "ரூ",
+    "currencyISO": "LKR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/lk.svg"
+  },
+  {
+    "phoneCode": "+231",
+    "iso": "LR",
+    "name": "Liberia",
+    "nativeCountryName": "Liberia",
+    "language": [
+      "en"
+    ],
+    "currency": "Liberian dollar",
+    "currencySymbol": "$",
+    "currencyISO": "LRD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/lr.svg"
+  },
+  {
+    "phoneCode": "+266",
+    "iso": "LS",
+    "name": "Lesotho",
+    "nativeCountryName": "Lesotho",
+    "language": [
+      "en",
+      "st"
+    ],
+    "currency": "South African rand",
+    "currencySymbol": "R",
+    "currencyISO": "ZAR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-####"
+    ],
+    "flag": "/restocore/assets/flags/ls.svg"
+  },
+  {
+    "phoneCode": "+370",
+    "iso": "LT",
+    "name": "Lithuania",
+    "nativeCountryName": "Lietuva",
+    "language": [
+      "lt"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)##-###"
+    ],
+    "flag": "/restocore/assets/flags/lt.svg"
+  },
+  {
+    "phoneCode": "+352",
+    "iso": "LU",
+    "name": "Luxembourg",
+    "nativeCountryName": "Lëtzebuerg, Luxembourg, Luxemburg",
+    "language": [
+      "lb",
+      "fr",
+      " de"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/lu.svg"
+  },
+  {
+    "phoneCode": "+371",
+    "iso": "LV",
+    "name": "Latvia",
+    "nativeCountryName": "Latvija",
+    "language": [
+      "lv"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/lv.svg"
+  },
+  {
+    "phoneCode": "+218",
+    "iso": "LY",
+    "name": "Libya",
+    "nativeCountryName": "ليبيا",
+    "language": [
+      "ar"
+    ],
+    "currency": "Libyan dinar",
+    "currencySymbol": "ل.د",
+    "currencyISO": "LYD",
+    "currencyUnit": "Dirham",
+    "currencyDenomination": 1000,
+    "phoneMask": [
+      "##-###-###",
+      "21-###-####"
+    ],
+    "flag": "/restocore/assets/flags/ly.svg"
+  },
+  {
+    "phoneCode": "+212",
+    "iso": "MA",
+    "name": "Morocco",
+    "nativeCountryName": "Maroc, ⵍⵎⵖⵔⵉⴱ, المغرب",
+    "language": [
+      "fr",
+      "zgh",
+      " ar"
+    ],
+    "currency": "Moroccan dirham",
+    "currencySymbol": "د.م.",
+    "currencyISO": "MAD",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-####-###"
+    ],
+    "flag": "/restocore/assets/flags/ma.svg"
+  },
+  {
+    "phoneCode": "+377",
+    "iso": "MC",
+    "name": "Monaco",
+    "nativeCountryName": "Monaco",
+    "language": [
+      "fr"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###",
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/mc.svg"
+  },
+  {
+    "phoneCode": "+373",
+    "iso": "MD",
+    "name": "Moldova",
+    "nativeCountryName": "Moldova, Молдавия",
+    "language": [
+      "ro",
+      "ru",
+      " uk"
+    ],
+    "currency": "Moldovan leu",
+    "currencySymbol": "L",
+    "currencyISO": "MDL",
+    "currencyUnit": "Ban",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/md.svg"
+  },
+  {
+    "phoneCode": "+382",
+    "iso": "ME",
+    "name": "Montenegro",
+    "nativeCountryName": "Crna Gora, Црна Гора",
+    "language": [
+      "srp",
+      "sr",
+      " hr",
+      " bs",
+      " sq"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/me.svg"
+  },
+  {
+    "phoneCode": "+590",
+    "iso": "MF",
+    "name": "Saint Martin (French part)",
+    "nativeCountryName": "Saint-Martin",
+    "language": [
+      "fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/mf.svg"
+  },
+  {
+    "phoneCode": "+261",
+    "iso": "MG",
+    "name": "Madagascar",
+    "nativeCountryName": "Madagasikara, Madagascar",
+    "language": [
+      "mg",
+      "fr"
+    ],
+    "currency": "Malagasy ariary",
+    "currencySymbol": "Ar",
+    "currencyISO": "MGA",
+    "currencyUnit": "Iraimbilanja",
+    "currencyDenomination": 5,
+    "phoneMask": [
+      "##-##-#####"
+    ],
+    "flag": "/restocore/assets/flags/mg.svg"
+  },
+  {
+    "phoneCode": "+692",
+    "iso": "MH",
+    "name": "Marshall Islands",
+    "nativeCountryName": "Marshall Islands",
+    "language": [
+      "en",
+      "mh"
+    ],
+    "currency": "United States dollar",
+    "currencySymbol": "$",
+    "currencyISO": "USD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/mh.svg"
+  },
+  {
+    "phoneCode": "+389",
+    "iso": "MK",
+    "name": "Macedonia (Former Yugoslav Republic of)",
+    "nativeCountryName": "Македонија",
+    "language": [
+      "mk"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/mk.svg"
+  },
+  {
+    "phoneCode": "+223",
+    "iso": "ML",
+    "name": "Mali",
+    "nativeCountryName": "Mali",
+    "language": [
+      "fr"
+    ],
+    "currency": "West African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XOF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/ml.svg"
+  },
+  {
+    "phoneCode": "+95",
+    "iso": "MM",
+    "name": "Myanmar",
+    "nativeCountryName": "မြန်မာ",
+    "language": [
+      "my"
+    ],
+    "currency": "Burmese kyat",
+    "currencySymbol": "Ks",
+    "currencyISO": "MMK",
+    "currencyUnit": "Pya",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-###",
+      "#-###-###",
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/mm.svg"
+  },
+  {
+    "phoneCode": "+976",
+    "iso": "MN",
+    "name": "Mongolia",
+    "nativeCountryName": "Монгол Улс",
+    "language": [
+      "mn"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/mn.svg"
+  },
+  {
+    "phoneCode": "+853",
+    "iso": "MO",
+    "name": "Macao (SAR of China)",
+    "nativeCountryName": "澳門, Macau",
+    "language": [
+      "zh-hant",
+      "pt"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/mo.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "MP",
+    "name": "Northern Mariana Islands",
+    "nativeCountryName": "Northern Mariana Islands",
+    "language": [
+      "en",
+      "ch"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(670)###-####"
+    ],
+    "flag": "/restocore/assets/flags/mp.svg"
+  },
+  {
+    "phoneCode": "+222",
+    "iso": "MR",
+    "name": "Mauritania",
+    "nativeCountryName": "موريتانيا, Mauritanie",
+    "language": [
+      "ar",
+      "fr"
+    ],
+    "currency": "Mauritanian ouguiya",
+    "currencySymbol": "UM",
+    "currencyISO": "MRU",
+    "currencyUnit": "Khoums",
+    "currencyDenomination": 5,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/mr.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "MS",
+    "name": "Montserrat",
+    "nativeCountryName": "Montserrat",
+    "language": [
+      "en"
+    ],
+    "currency": "Eastern Caribbean dollar",
+    "currencySymbol": "$",
+    "currencyISO": "XCD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(664)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ms.svg"
+  },
+  {
+    "phoneCode": "+356",
+    "iso": "MT",
+    "name": "Malta",
+    "nativeCountryName": "Malta",
+    "language": [
+      "mt",
+      "en"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/mt.svg"
+  },
+  {
+    "phoneCode": "+230",
+    "iso": "MU",
+    "name": "Mauritius",
+    "nativeCountryName": "Maurice, Mauritius",
+    "language": [
+      "mfe",
+      "fr",
+      " en"
+    ],
+    "currency": "Mauritian rupee",
+    "currencySymbol": "₨",
+    "currencyISO": "MUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/mu.svg"
+  },
+  {
+    "phoneCode": "+960",
+    "iso": "MV",
+    "name": "Maldives",
+    "nativeCountryName": "",
+    "language": [
+      "dv"
+    ],
+    "currency": "Maldivian rufiyaa",
+    "currencySymbol": ".ރ",
+    "currencyISO": "MVR",
+    "currencyUnit": "Laari",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/mv.svg"
+  },
+  {
+    "phoneCode": "+265",
+    "iso": "MW",
+    "name": "Malawi",
+    "nativeCountryName": "Malawi",
+    "language": [
+      "en",
+      "ny"
+    ],
+    "currency": "Malawian kwacha",
+    "currencySymbol": "MK",
+    "currencyISO": "MWK",
+    "currencyUnit": "Tambala",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "1-###-###",
+      "#-####-####"
+    ],
+    "flag": "/restocore/assets/flags/mw.svg"
+  },
+  {
+    "phoneCode": "+52",
+    "iso": "MX",
+    "name": "Mexico",
+    "nativeCountryName": "México",
+    "language": [
+      "es"
+    ],
+    "currency": "Mexican peso",
+    "currencySymbol": "$",
+    "currencyISO": "MXN",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-####",
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/mx.svg"
+  },
+  {
+    "phoneCode": "+60",
+    "iso": "MY",
+    "name": "Malaysia",
+    "nativeCountryName": "",
+    "language": [
+      "ms"
+    ],
+    "currency": "Malaysian ringgit",
+    "currencySymbol": "RM",
+    "currencyISO": "MYR",
+    "currencyUnit": "Sen",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-###",
+      "##-###-###",
+      "(###)###-###",
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/my.svg"
+  },
+  {
+    "phoneCode": "+258",
+    "iso": "MZ",
+    "name": "Mozambique",
+    "nativeCountryName": "Mozambique",
+    "language": [
+      "pt"
+    ],
+    "currency": "Mozambican metical",
+    "currencySymbol": "MT",
+    "currencyISO": "MZN",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/mz.svg"
+  },
+  {
+    "phoneCode": "+224",
+    "iso": "NA",
+    "name": "Namibia",
+    "nativeCountryName": "Namibia",
+    "language": [
+      "en",
+      "sf",
+      " de"
+    ],
+    "currency": "South African rand",
+    "currencySymbol": "R",
+    "currencyISO": "ZAR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/na.svg"
+  },
+  {
+    "phoneCode": "+687",
+    "iso": "NC",
+    "name": "New Caledonia",
+    "nativeCountryName": "Nouvelle-Calédonie",
+    "language": [
+      "fr"
+    ],
+    "currency": "CFP franc",
+    "currencySymbol": "₣",
+    "currencyISO": "XPF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-####"
+    ],
+    "flag": "/restocore/assets/flags/nc.svg"
+  },
+  {
+    "phoneCode": "+227",
+    "iso": "NE",
+    "name": "Niger",
+    "nativeCountryName": "Niger",
+    "language": [
+      "fr"
+    ],
+    "currency": "West African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XOF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/ne.svg"
+  },
+  {
+    "phoneCode": "+234",
+    "iso": "NG",
+    "name": "Nigeria",
+    "nativeCountryName": "Nigeria",
+    "language": [
+      "en"
+    ],
+    "currency": "Nigerian naira",
+    "currencySymbol": "₦",
+    "currencyISO": "NGN",
+    "currencyUnit": "Kobo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-##",
+      "##-###-###",
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ng.svg"
+  },
+  {
+    "phoneCode": "+505",
+    "iso": "NI",
+    "name": "Nicaragua",
+    "nativeCountryName": "Nicaragua",
+    "language": [
+      "es"
+    ],
+    "currency": "Nicaraguan córdoba",
+    "currencySymbol": "C$",
+    "currencyISO": "NIO",
+    "currencyUnit": "Centavo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/ni.svg"
+  },
+  {
+    "phoneCode": "+31",
+    "iso": "NL",
+    "name": "The Netherlands",
+    "nativeCountryName": "Nederland",
+    "language": [
+      "nl"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/nl.svg"
+  },
+  {
+    "phoneCode": "+47",
+    "iso": "NO",
+    "name": "Norway",
+    "nativeCountryName": "Norge, Noreg",
+    "language": [
+      "nb",
+      "nn",
+      " no",
+      " se"
+    ],
+    "currency": "Norwegian krone",
+    "currencySymbol": "kr",
+    "currencyISO": "NOK",
+    "currencyUnit": "Øre",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)##-###"
+    ],
+    "flag": "/restocore/assets/flags/no.svg"
+  },
+  {
+    "phoneCode": "+977",
+    "iso": "NP",
+    "name": "Nepal",
+    "nativeCountryName": "",
+    "language": [
+      "ne"
+    ],
+    "currency": "Nepalese rupee",
+    "currencySymbol": "रू",
+    "currencyISO": "NPR",
+    "currencyUnit": "Paisa",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/np.svg"
+  },
+  {
+    "phoneCode": "+674",
+    "iso": "NR",
+    "name": "Nauru",
+    "nativeCountryName": "Nauru",
+    "language": [
+      "na",
+      "en"
+    ],
+    "currency": "Australian dollar",
+    "currencySymbol": "$",
+    "currencyISO": "AUD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/nr.svg"
+  },
+  {
+    "phoneCode": "+683",
+    "iso": "NU",
+    "name": "Niue",
+    "nativeCountryName": "Niue",
+    "language": [
+      "niu",
+      "en"
+    ],
+    "currency": "Niue dollar",
+    "currencySymbol": "$",
+    "currencyISO": null,
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####"
+    ],
+    "flag": "/restocore/assets/flags/nu.svg"
+  },
+  {
+    "phoneCode": "+24",
+    "iso": "NZ",
+    "name": "New Zealand",
+    "nativeCountryName": "New Zealand",
+    "language": [
+      "mi",
+      "en"
+    ],
+    "currency": "New Zealand dollar",
+    "currencySymbol": "$",
+    "currencyISO": "NZD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-###",
+      "(###)###-###",
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/nz.svg"
+  },
+  {
+    "phoneCode": "+968",
+    "iso": "OM",
+    "name": "Oman",
+    "nativeCountryName": "سلطنة عُمان",
+    "language": [
+      "ar"
+    ],
+    "currency": "Omani rial",
+    "currencySymbol": "ر.ع.",
+    "currencyISO": "OMR",
+    "currencyUnit": "Baisa",
+    "currencyDenomination": 1000,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/om.svg"
+  },
+  {
+    "phoneCode": "+507",
+    "iso": "PA",
+    "name": "Panama",
+    "nativeCountryName": "Panama",
+    "language": [
+      "es"
+    ],
+    "currency": "United States dollar",
+    "currencySymbol": "$",
+    "currencyISO": "USD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/pa.svg"
+  },
+  {
+    "phoneCode": "+51",
+    "iso": "PE",
+    "name": "Peru",
+    "nativeCountryName": "Perú",
+    "language": [
+      "es"
+    ],
+    "currency": "Peruvian sol",
+    "currencySymbol": "S/.",
+    "currencyISO": "PEN",
+    "currencyUnit": "Céntimo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/pe.svg"
+  },
+  {
+    "phoneCode": "+689",
+    "iso": "PF",
+    "name": "French Polynesia",
+    "nativeCountryName": "Polynésie française",
+    "language": [
+      "fr"
+    ],
+    "currency": "CFP franc",
+    "currencySymbol": "₣",
+    "currencyISO": "XPF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-##"
+    ],
+    "flag": "/restocore/assets/flags/pf.svg"
+  },
+  {
+    "phoneCode": "+675",
+    "iso": "PG",
+    "name": "Papua New Guinea",
+    "nativeCountryName": "Papua New Guinea",
+    "language": [
+      "en",
+      "tpi",
+      " ho"
+    ],
+    "currency": "Papua New Guinean kina",
+    "currencySymbol": "K",
+    "currencyISO": "PGK",
+    "currencyUnit": "Toea",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)##-###"
+    ],
+    "flag": "/restocore/assets/flags/pg.svg"
+  },
+  {
+    "phoneCode": "+63",
+    "iso": "PH",
+    "name": "Philippines",
+    "nativeCountryName": "Philippines",
+    "language": [
+      "en",
+      "tl"
+    ],
+    "currency": "Philippine peso",
+    "currencySymbol": "₱",
+    "currencyISO": "PHP",
+    "currencyUnit": "Sentimo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ph.svg"
+  },
+  {
+    "phoneCode": "+92",
+    "iso": "PK",
+    "name": "Pakistan",
+    "nativeCountryName": "پاکستان",
+    "language": [
+      "en",
+      "ur"
+    ],
+    "currency": "Pakistani rupee",
+    "currencySymbol": "₨",
+    "currencyISO": "PKR",
+    "currencyUnit": "Paisa",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/pk.svg"
+  },
+  {
+    "phoneCode": "+48",
+    "iso": "PL",
+    "name": "Poland",
+    "nativeCountryName": "Polska",
+    "language": [
+      "pl"
+    ],
+    "currency": "Polish złoty",
+    "currencySymbol": "zł",
+    "currencyISO": "PLN",
+    "currencyUnit": "Grosz",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/pl.svg"
+  },
+  {
+    "phoneCode": "+508",
+    "iso": "PM",
+    "name": "Saint Pierre and Miquelon",
+    "nativeCountryName": "Saint-Pierre-et-Miquelon",
+    "language": [
+      "fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-####"
+    ],
+    "flag": "/restocore/assets/flags/pm.svg"
+  },
+  {
+    "phoneCode": "+870",
+    "iso": "PN",
+    "name": "Pitcairn",
+    "nativeCountryName": "Pitcairn",
+    "language": [
+      "en",
+      "pih"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "###-###-###"
+    ],
+    "flag": "/restocore/assets/flags/pn.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "PR",
+    "name": "Puerto Rico",
+    "nativeCountryName": "Puerto Rico",
+    "language": [
+      "es",
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(787) ### ####",
+      "(939) ### ####"
+    ],
+    "flag": "/restocore/assets/flags/pr.svg"
+  },
+  {
+    "phoneCode": "+970",
+    "iso": "PS",
+    "name": "Palestinian Territory",
+    "nativeCountryName": "Palestinian Territory",
+    "language": [
+      "ar",
+      "he"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/ps.svg"
+  },
+  {
+    "phoneCode": "+351",
+    "iso": "PT",
+    "name": "Portugal",
+    "nativeCountryName": "Portugal",
+    "language": [
+      "pt"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/pt.svg"
+  },
+  {
+    "phoneCode": "+680",
+    "iso": "PW",
+    "name": "Palau",
+    "nativeCountryName": "Palau",
+    "language": [
+      "en",
+      "pau",
+      " ja",
+      " sov",
+      " tox"
+    ],
+    "currency": "United States dollar",
+    "currencySymbol": "$",
+    "currencyISO": "USD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/pw.svg"
+  },
+  {
+    "phoneCode": "+595",
+    "iso": "PY",
+    "name": "Paraguay",
+    "nativeCountryName": "Paraguay",
+    "language": [
+      "es",
+      "gn"
+    ],
+    "currency": "Paraguayan guaraní",
+    "currencySymbol": "₲",
+    "currencyISO": "PYG",
+    "currencyUnit": "Céntimo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/py.svg"
+  },
+  {
+    "phoneCode": "+974",
+    "iso": "QA",
+    "name": "Qatar",
+    "nativeCountryName": "قطر",
+    "language": [
+      "ar"
+    ],
+    "currency": "Qatari riyal",
+    "currencySymbol": "ر.ق",
+    "currencyISO": "QAR",
+    "currencyUnit": "Dirham",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/qa.svg"
+  },
+  {
+    "phoneCode": "+262",
+    "iso": "RE",
+    "name": "Reunion",
+    "nativeCountryName": "La Réunion",
+    "language": [
+      "fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "#####-####"
+    ],
+    "flag": "/restocore/assets/flags/re.svg"
+  },
+  {
+    "phoneCode": "+40",
+    "iso": "RO",
+    "name": "Romania",
+    "nativeCountryName": "România",
+    "language": [
+      "ro"
+    ],
+    "currency": "Romanian leu",
+    "currencySymbol": "lei",
+    "currencyISO": "RON",
+    "currencyUnit": "Ban",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/ro.svg"
+  },
+  {
+    "phoneCode": "+381",
+    "iso": "RS",
+    "name": "Serbia",
+    "nativeCountryName": "Србија",
+    "language": [
+      "sr",
+      "sr-Latn"
+    ],
+    "currency": "Serbian dinar",
+    "currencySymbol": "din",
+    "currencyISO": "RSD",
+    "currencyUnit": "Para",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/rs.svg"
+  },
+  {
+    "phoneCode": "+7",
+    "iso": "RU",
+    "name": "Russia",
+    "nativeCountryName": "Россия",
+    "language": [
+      "ru"
+    ],
+    "currency": "Russian ruble",
+    "currencySymbol": "₽",
+    "currencyISO": "RUB",
+    "currencyUnit": "Kopek",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-##-##"
+    ],
+    "flag": "/restocore/assets/flags/ru.svg"
+  },
+  {
+    "phoneCode": "+250",
+    "iso": "RW",
+    "name": "Rwanda",
+    "nativeCountryName": "Rwanda",
+    "language": [
+      "rw",
+      "fr",
+      " en"
+    ],
+    "currency": "Rwandan franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "RWF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/rw.svg"
+  },
+  {
+    "phoneCode": "+966",
+    "iso": "SA",
+    "name": "Saudi Arabia",
+    "nativeCountryName": "السعودية",
+    "language": [
+      "ar"
+    ],
+    "currency": "Saudi riyal",
+    "currencySymbol": "﷼",
+    "currencyISO": "SAR",
+    "currencyUnit": "Halala",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-####",
+      "5#-####-####"
+    ],
+    "flag": "/restocore/assets/flags/sa.svg"
+  },
+  {
+    "phoneCode": "+677",
+    "iso": "SB",
+    "name": "Solomon Islands",
+    "nativeCountryName": "Solomon Islands",
+    "language": [
+      "en"
+    ],
+    "currency": "Solomon Islands dollar",
+    "currencySymbol": "$",
+    "currencyISO": "SBD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#####",
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/sb.svg"
+  },
+  {
+    "phoneCode": "+248",
+    "iso": "SC",
+    "name": "Seychelles",
+    "nativeCountryName": "Seychelles",
+    "language": [
+      "fr",
+      "en",
+      " crs"
+    ],
+    "currency": "Seychellois rupee",
+    "currencySymbol": "₨",
+    "currencyISO": "SCR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-###"
+    ],
+    "flag": "/restocore/assets/flags/sc.svg"
+  },
+  {
+    "phoneCode": "+249",
+    "iso": "SD",
+    "name": "Sudan",
+    "nativeCountryName": "السودان",
+    "language": [
+      "ar",
+      "en"
+    ],
+    "currency": "Sudanese pound",
+    "currencySymbol": "ج.س.",
+    "currencyISO": "SDG",
+    "currencyUnit": "Piastre",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/sd.svg"
+  },
+  {
+    "phoneCode": "+46",
+    "iso": "SE",
+    "name": "Sweden",
+    "nativeCountryName": "Sverige",
+    "language": [
+      "sv"
+    ],
+    "currency": "Swedish krona",
+    "currencySymbol": "kr",
+    "currencyISO": "SEK",
+    "currencyUnit": "Öre",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/se.svg"
+  },
+  {
+    "phoneCode": "+65",
+    "iso": "SG",
+    "name": "Singapore",
+    "nativeCountryName": "Singapore",
+    "language": [
+      "zh-hans",
+      "en",
+      " ms",
+      " ta"
+    ],
+    "currency": "Brunei dollar",
+    "currencySymbol": "$",
+    "currencyISO": "BND",
+    "currencyUnit": "Sen",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-####"
+    ],
+    "flag": "/restocore/assets/flags/sg.svg"
+  },
+  {
+    "phoneCode": "+290",
+    "iso": "SH",
+    "name": "Saint Helena",
+    "nativeCountryName": "Saint Helena",
+    "language": [
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "####"
+    ],
+    "flag": "/restocore/assets/flags/sh.svg"
+  },
+  {
+    "phoneCode": "+386",
+    "iso": "SI",
+    "name": "Slovenia",
+    "nativeCountryName": "Slovenija",
+    "language": [
+      "sl"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/si.svg"
+  },
+  {
+    "phoneCode": "+47",
+    "iso": "SJ",
+    "name": "Svalbard and Jan Mayen",
+    "nativeCountryName": "Svalbard and Jan Mayen",
+    "language": [
+      "no"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(###)##-###"
+    ],
+    "flag": "/restocore/assets/flags/sj.svg"
+  },
+  {
+    "phoneCode": "+421",
+    "iso": "SK",
+    "name": "Slovakia",
+    "nativeCountryName": "Slovensko",
+    "language": [
+      "sk"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/sk.svg"
+  },
+  {
+    "phoneCode": "+232",
+    "iso": "SL",
+    "name": "Sierra Leone",
+    "nativeCountryName": "Sierra Leone",
+    "language": [
+      "en"
+    ],
+    "currency": "Sierra Leonean leone",
+    "currencySymbol": "Le",
+    "currencyISO": "SLL",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-######"
+    ],
+    "flag": "/restocore/assets/flags/sl.svg"
+  },
+  {
+    "phoneCode": "+378",
+    "iso": "SM",
+    "name": "San Marino",
+    "nativeCountryName": "San Marino",
+    "language": [
+      "it"
+    ],
+    "currency": "Euro",
+    "currencySymbol": "€",
+    "currencyISO": "EUR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-######"
+    ],
+    "flag": "/restocore/assets/flags/sm.svg"
+  },
+  {
+    "phoneCode": "+221",
+    "iso": "SN",
+    "name": "Sénégal",
+    "nativeCountryName": "Sénégal",
+    "language": [
+      "fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/sn.svg"
+  },
+  {
+    "phoneCode": "+252",
+    "iso": "SO",
+    "name": "Somalia",
+    "nativeCountryName": "Somalia, الصومال",
+    "language": [
+      "so",
+      "ar"
+    ],
+    "currency": "Somali shilling",
+    "currencySymbol": "Sh",
+    "currencyISO": "SOS",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-###",
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/so.svg"
+  },
+  {
+    "phoneCode": "+597",
+    "iso": "SR",
+    "name": "Suriname",
+    "nativeCountryName": "Suriname",
+    "language": [
+      "nl"
+    ],
+    "currency": "Surinamese dollar",
+    "currencySymbol": "$",
+    "currencyISO": "SRD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "###-###",
+      "###-####"
+    ],
+    "flag": "/restocore/assets/flags/sr.svg"
+  },
+  {
+    "phoneCode": "+239",
+    "iso": "ST",
+    "name": "São Tomé and Príncipe",
+    "nativeCountryName": "São Tomé e Príncipe",
+    "language": [
+      "pt"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-#####"
+    ],
+    "flag": "/restocore/assets/flags/st.svg"
+  },
+  {
+    "phoneCode": "+211",
+    "iso": "SS",
+    "name": "South Sudan",
+    "nativeCountryName": "South Sudan",
+    "language": [
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/ss.svg"
+  },
+  {
+    "phoneCode": "+503",
+    "iso": "SV",
+    "name": "El Salvador",
+    "nativeCountryName": "El Salvador",
+    "language": [
+      "es"
+    ],
+    "currency": "United States dollar",
+    "currencySymbol": "$",
+    "currencyISO": "USD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/sv.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "SX",
+    "name": "Saint Martin (Dutch part)",
+    "nativeCountryName": "Sint Maarten",
+    "language": [
+      "nl",
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(721)###-####"
+    ],
+    "flag": "/restocore/assets/flags/sx.svg"
+  },
+  {
+    "phoneCode": "+963",
+    "iso": "SY",
+    "name": "Syria",
+    "nativeCountryName": "سوريا, Sūriyya",
+    "language": [
+      "ar"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-####-###"
+    ],
+    "flag": "/restocore/assets/flags/sy.svg"
+  },
+  {
+    "phoneCode": "+268",
+    "iso": "SZ",
+    "name": "Swaziland",
+    "nativeCountryName": "Swaziland",
+    "language": [
+      "en",
+      "ss"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-##-####"
+    ],
+    "flag": "/restocore/assets/flags/sz.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "TC",
+    "name": "Turks and Caicos Islands",
+    "nativeCountryName": "Turks and Caicos Islands",
+    "language": [
+      "en"
+    ],
+    "currency": "United States dollar",
+    "currencySymbol": "$",
+    "currencyISO": "USD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(249)###-###"
+    ],
+    "flag": "/restocore/assets/flags/tc.svg"
+  },
+  {
+    "phoneCode": "+235",
+    "iso": "TD",
+    "name": "Chad",
+    "nativeCountryName": "Tchad, تشاد",
+    "language": [
+      "fr",
+      "ar"
+    ],
+    "currency": "Central African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XAF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-##-##-##"
+    ],
+    "flag": "/restocore/assets/flags/td.svg"
+  },
+  {
+    "phoneCode": "+228",
+    "iso": "TG",
+    "name": "Togo",
+    "nativeCountryName": "Togo",
+    "language": [
+      "fr"
+    ],
+    "currency": "West African CFA franc",
+    "currencySymbol": "Fr",
+    "currencyISO": "XOF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/tg.svg"
+  },
+  {
+    "phoneCode": "+66",
+    "iso": "TH",
+    "name": "Thailand",
+    "nativeCountryName": "ประเทศไทย",
+    "language": [
+      "th"
+    ],
+    "currency": "Thai baht",
+    "currencySymbol": "฿",
+    "currencyISO": "THB",
+    "currencyUnit": "Satang",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-###",
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/th.svg"
+  },
+  {
+    "phoneCode": "+992",
+    "iso": "TJ",
+    "name": "Tajikistan",
+    "nativeCountryName": ",",
+    "language": [
+      "tg",
+      "ru"
+    ],
+    "currency": "Tajikistani somoni",
+    "currencySymbol": "с.",
+    "currencyISO": "TJS",
+    "currencyUnit": "Diram",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/tj.svg"
+  },
+  {
+    "phoneCode": "+690",
+    "iso": "TK",
+    "name": "Tokelau",
+    "nativeCountryName": "Tokelau",
+    "language": [
+      "tkl",
+      "en",
+      " sm"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "####"
+    ],
+    "flag": "/restocore/assets/flags/tk.svg"
+  },
+  {
+    "phoneCode": "+670",
+    "iso": "TL",
+    "name": "Timor-Leste",
+    "nativeCountryName": "Timor-Leste, Timor Lorosa'e",
+    "language": [
+      "pt",
+      "tet"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "###-####",
+      "77#-#####",
+      "78#-#####"
+    ],
+    "flag": "/restocore/assets/flags/tl.svg"
+  },
+  {
+    "phoneCode": "+993",
+    "iso": "TM",
+    "name": "Turkmenistan",
+    "nativeCountryName": "Türkmenistan",
+    "language": [
+      "tk"
+    ],
+    "currency": "Turkmenistan manat",
+    "currencySymbol": "m.",
+    "currencyISO": "TMT",
+    "currencyUnit": "Tennesi",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-####"
+    ],
+    "flag": "/restocore/assets/flags/tm.svg"
+  },
+  {
+    "phoneCode": "+216",
+    "iso": "TN",
+    "name": "Tunisia",
+    "nativeCountryName": "تونس, Tunisie",
+    "language": [
+      "ar",
+      "fr"
+    ],
+    "currency": "Tunisian dinar",
+    "currencySymbol": "د.ت",
+    "currencyISO": "TND",
+    "currencyUnit": "Millime",
+    "currencyDenomination": 1000,
+    "phoneMask": [
+      "##-###-###"
+    ],
+    "flag": "/restocore/assets/flags/tn.svg"
+  },
+  {
+    "phoneCode": "+676",
+    "iso": "TO",
+    "name": "Tonga",
+    "nativeCountryName": "Tonga",
+    "language": [
+      "en"
+    ],
+    "currency": "Tongan paʻanga",
+    "currencySymbol": "T$",
+    "currencyISO": "TOP",
+    "currencyUnit": "Seniti",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#####"
+    ],
+    "flag": "/restocore/assets/flags/to.svg"
+  },
+  {
+    "phoneCode": "+90",
+    "iso": "TR",
+    "name": "Turkey",
+    "nativeCountryName": "Türkiye",
+    "language": [
+      "tr"
+    ],
+    "currency": "Turkish lira",
+    "currencySymbol": "₺",
+    "currencyISO": "TRY",
+    "currencyUnit": "Kuruş",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/tr.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "TT",
+    "name": "Trinidad and Tobago",
+    "nativeCountryName": "Trinidad and Tobago",
+    "language": [
+      "en"
+    ],
+    "currency": "Trinidad and Tobago dollar",
+    "currencySymbol": "$",
+    "currencyISO": "TTD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(868)###-####"
+    ],
+    "flag": "/restocore/assets/flags/tt.svg"
+  },
+  {
+    "phoneCode": "+688",
+    "iso": "TV",
+    "name": "Tuvalu",
+    "nativeCountryName": "Tuvalu",
+    "language": [
+      "en"
+    ],
+    "currency": "Australian dollar",
+    "currencySymbol": "$",
+    "currencyISO": "AUD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "2####",
+      "90####"
+    ],
+    "flag": "/restocore/assets/flags/tv.svg"
+  },
+  {
+    "phoneCode": "+886",
+    "iso": "TW",
+    "name": "Taiwan",
+    "nativeCountryName": "Taiwan",
+    "language": [
+      "zh-hant"
+    ],
+    "currency": "New Taiwan dollar",
+    "currencySymbol": "$",
+    "currencyISO": "TWD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "####-####",
+      "#-####-####"
+    ],
+    "flag": "/restocore/assets/flags/tw.svg"
+  },
+  {
+    "phoneCode": "+255",
+    "iso": "TZ",
+    "name": "Tanzania",
+    "nativeCountryName": "Tanzania",
+    "language": [
+      "sw",
+      "en"
+    ],
+    "currency": "Tanzanian shilling",
+    "currencySymbol": "Sh",
+    "currencyISO": "TZS",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/tz.svg"
+  },
+  {
+    "phoneCode": "+380",
+    "iso": "UA",
+    "name": "Ukraine",
+    "nativeCountryName": "Україна",
+    "language": [
+      "uk",
+      "ru"
+    ],
+    "currency": "Ukrainian hryvnia",
+    "currencySymbol": "₴",
+    "currencyISO": "UAH",
+    "currencyUnit": "Kopiyka",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(##)###-##-##"
+    ],
+    "flag": "/restocore/assets/flags/ua.svg"
+  },
+  {
+    "phoneCode": "+256",
+    "iso": "UG",
+    "name": "Uganda",
+    "nativeCountryName": "Uganda",
+    "language": [
+      "en",
+      "sw"
+    ],
+    "currency": "Ugandan shilling",
+    "currencySymbol": "Sh",
+    "currencyISO": "UGX",
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(###)###-###"
+    ],
+    "flag": "/restocore/assets/flags/ug.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "US",
+    "name": "United States of America",
+    "nativeCountryName": "United States of America",
+    "language": [
+      "en"
+    ],
+    "currency": "United States dollar",
+    "currencySymbol": "$",
+    "currencyISO": "USD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/us.svg"
+  },
+  {
+    "phoneCode": "+598",
+    "iso": "UY",
+    "name": "Uruguay",
+    "nativeCountryName": "Uruguay",
+    "language": [
+      "es"
+    ],
+    "currency": "Uruguayan peso",
+    "currencySymbol": "$",
+    "currencyISO": "UYU",
+    "currencyUnit": "Centésimo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-##-##"
+    ],
+    "flag": "/restocore/assets/flags/uy.svg"
+  },
+  {
+    "phoneCode": "+998",
+    "iso": "UZ",
+    "name": "Uzbekistan",
+    "nativeCountryName": "",
+    "language": [
+      "uz",
+      "kaa",
+      " ru"
+    ],
+    "currency": "Uzbekistani soʻm",
+    "currencySymbol": "Sʻ",
+    "currencyISO": "UZS",
+    "currencyUnit": "Tiyin",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/uz.svg"
+  },
+  {
+    "phoneCode": "+39",
+    "iso": "VA",
+    "name": "City of the Vatican",
+    "nativeCountryName": "Città del Vaticano",
+    "language": [
+      "it"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "06 698#####"
+    ],
+    "flag": "/restocore/assets/flags/va.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "VC",
+    "name": "Saint Vincent and the Grenadines",
+    "nativeCountryName": "Saint Vincent and the Grenadines",
+    "language": [
+      "en"
+    ],
+    "currency": "Eastern Caribbean dollar",
+    "currencySymbol": "$",
+    "currencyISO": "XCD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(784)###-####"
+    ],
+    "flag": "/restocore/assets/flags/vc.svg"
+  },
+  {
+    "phoneCode": "+58",
+    "iso": "VE",
+    "name": "Venezuela",
+    "nativeCountryName": "Venezuela",
+    "language": [
+      "es"
+    ],
+    "currency": "Venezuelan bolívar soberano",
+    "currencySymbol": "Bs",
+    "currencyISO": "VES",
+    "currencyUnit": "Céntimo",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(###)###-####"
+    ],
+    "flag": "/restocore/assets/flags/ve.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "VG",
+    "name": "British Virgin Islands",
+    "nativeCountryName": "British Virgin Islands",
+    "language": [
+      "en"
+    ],
+    "currency": "United States dollar",
+    "currencySymbol": "$",
+    "currencyISO": "USD",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "(284)###-####"
+    ],
+    "flag": "/restocore/assets/flags/vg.svg"
+  },
+  {
+    "phoneCode": "+1",
+    "iso": "VI",
+    "name": "United States Virgin Islands",
+    "nativeCountryName": "United States Virgin Islands",
+    "language": [
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "(340)###-####"
+    ],
+    "flag": "/restocore/assets/flags/vi.svg"
+  },
+  {
+    "phoneCode": "+84",
+    "iso": "VN",
+    "name": "Vietnam",
+    "nativeCountryName": "Việt Nam",
+    "language": [
+      "vi"
+    ],
+    "currency": "Vietnamese đồng",
+    "currencySymbol": "₫",
+    "currencyISO": "VND",
+    "currencyUnit": "Hào",
+    "currencyDenomination": 10,
+    "phoneMask": [
+      "##-####-###",
+      "(###)####-###"
+    ],
+    "flag": "/restocore/assets/flags/vn.svg"
+  },
+  {
+    "phoneCode": "+678",
+    "iso": "VU",
+    "name": "Vanuatu",
+    "nativeCountryName": "Vanuatu",
+    "language": [
+      "bi",
+      "en",
+      " fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "#####",
+      "##-#####"
+    ],
+    "flag": "/restocore/assets/flags/vu.svg"
+  },
+  {
+    "phoneCode": "+681",
+    "iso": "WF",
+    "name": "Wallis and Futuna",
+    "nativeCountryName": "Wallis-et-Futuna",
+    "language": [
+      "fr"
+    ],
+    "currency": "CFP franc",
+    "currencySymbol": "₣",
+    "currencyISO": "XPF",
+    "currencyUnit": "Centime",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-####"
+    ],
+    "flag": "/restocore/assets/flags/wf.svg"
+  },
+  {
+    "phoneCode": "+685",
+    "iso": "WS",
+    "name": "Samoa",
+    "nativeCountryName": "Samoa",
+    "language": [
+      "sm",
+      "en"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "##-####"
+    ],
+    "flag": "/restocore/assets/flags/ws.svg"
+  },
+  {
+    "phoneCode": "+967",
+    "iso": "YE",
+    "name": "Yemen",
+    "nativeCountryName": "اليَمَن",
+    "language": [
+      "ar"
+    ],
+    "currency": "Yemeni rial",
+    "currencySymbol": "﷼",
+    "currencyISO": "YER",
+    "currencyUnit": "Fils",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "#-###-###",
+      "##-###-###",
+      "###-###-###"
+    ],
+    "flag": "/restocore/assets/flags/ye.svg"
+  },
+  {
+    "phoneCode": "+262",
+    "iso": "YT",
+    "name": "Mayotte",
+    "nativeCountryName": "Mayotte",
+    "language": [
+      "fr"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "#####-####"
+    ],
+    "flag": "/restocore/assets/flags/yt.svg"
+  },
+  {
+    "phoneCode": "+27",
+    "iso": "ZA",
+    "name": "South Africa",
+    "nativeCountryName": "South Africa",
+    "language": [
+      "en",
+      "af",
+      " st",
+      " tn",
+      " xh",
+      " zu"
+    ],
+    "currency": "South African rand",
+    "currencySymbol": "R",
+    "currencyISO": "ZAR",
+    "currencyUnit": "Cent",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/za.svg"
+  },
+  {
+    "phoneCode": "+260",
+    "iso": "ZM",
+    "name": "Zambia",
+    "nativeCountryName": "Zambia",
+    "language": [
+      "en"
+    ],
+    "currency": "Zambian kwacha",
+    "currencySymbol": "ZK",
+    "currencyISO": "ZMW",
+    "currencyUnit": "Ngwee",
+    "currencyDenomination": 100,
+    "phoneMask": [
+      "##-###-####"
+    ],
+    "flag": "/restocore/assets/flags/zm.svg"
+  },
+  {
+    "phoneCode": "+263",
+    "iso": "ZW",
+    "name": "Zimbabwe",
+    "nativeCountryName": "Zimbabwe",
+    "language": [
+      "en",
+      "sn",
+      " nd"
+    ],
+    "currency": null,
+    "currencySymbol": null,
+    "currencyISO": null,
+    "currencyUnit": null,
+    "currencyDenomination": null,
+    "phoneMask": [
+      "#-######"
+    ],
+    "flag": "/restocore/assets/flags/zw.svg"
+  }
+]

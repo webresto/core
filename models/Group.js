@@ -1,12 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = require("../libs/checkExpression");
-const getEmitter_1 = require("../libs/getEmitter");
 const slugify_1 = require("slugify");
 const uuid_1 = require("uuid");
+const adapters_1 = require("../adapters");
 let attributes = {
     /**Id */
     id: {
+        type: "string",
+        //required: true,
+    },
+    /** ID in external system */
+    rmsId: {
         type: "string",
         //required: true,
     },
@@ -48,7 +53,7 @@ let attributes = {
         allowNull: true,
     },
     /** Sorting weight */
-    order: "number",
+    sortOrder: "number",
     dishes: {
         collection: "dish",
         via: "parentGroup",
@@ -60,33 +65,41 @@ let attributes = {
         collection: "group",
         via: "parentGroup",
     },
-    /** Изображения */
+    /** Icon */
+    icon: {
+        type: "string",
+        allowNull: true
+    },
+    /** Images */
     images: {
         collection: "mediafile",
         via: "group",
     },
-    /** Плейсхолдер для блюд группы */
+    /** PlaySholder for group dishes */
     dishesPlaceholder: {
         model: "mediafile",
     },
-    /** Человеко читаемый АйДи */
+    /** The person readable isii*/
     slug: {
         type: "string",
     },
-    /** Концепт к которому относится группа */
+    /** The concept to which the group belongs */
     concept: "string",
-    /** Гурппа отображается */
+    /** The group is displayed*/
     visible: "boolean",
-    /** Группа модификаторов */
+    /**A group of modifiers */
     modifier: "boolean",
-    /** Промо группа */
+    /**  A sign that this is a promo group
+     *  The promo group cannot be added from the user.
+     */
     promo: "boolean",
-    /** Время работы гыруппы */
+    /** Working hours */
     worktime: "json",
+    customData: "json",
 };
 let Model = {
-    beforeCreate(init, next) {
-        (0, getEmitter_1.default)().emit('core:group-before-create', init);
+    beforeCreate(init, cb) {
+        emitter.emit('core:group-before-create', init);
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
@@ -94,31 +107,32 @@ let Model = {
             init.concept = "origin";
         }
         init.slug = (0, slugify_1.default)(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
-        next();
+        cb();
     },
-    beforeUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-before-update', record);
-        return proceed();
+    beforeUpdate: function (record, cb) {
+        emitter.emit('core:group-before-update', record);
+        return cb();
     },
-    afterUpdate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-after-update', record);
-        return proceed();
+    afterUpdate: function (record, cb) {
+        emitter.emit('core:group-after-update', record);
+        return cb();
     },
-    afterCreate: function (record, proceed) {
-        (0, getEmitter_1.default)().emit('core:group-after-create', record);
-        return proceed();
+    afterCreate: function (record, cb) {
+        emitter.emit('core:group-after-create', record);
+        return cb();
     },
     /**
-     * Возвращает объект с группами и ошибками получения этих самых групп.
-     * @param groupsId - массив id групп, которые следует получить
+     * Returns an object with groups and errors of obtaining these very groups.
+     * @deprecated not used
+     * @param groupsId - array of ID groups that should be obtained
      * @return Object {
      *   groups: [],
      *   errors: {}
      * }
-     * где groups это массив, запрошеных групп с полным отображением вложенности, то есть с их блюдами, у блюд их модфикаторы
-     * и картинки, есть картинки группы и тд, а errors это объект, в котором ключи это группы, которые невозможно получить
-     * по некоторой приниче, значения этого объекта это причины по которым группа не была получена.
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * where Groups is an array, requested groups with a complete display of investment, that is, with their dishes, the dishes are their modifiers
+     * and pictures, there are pictures of the group, etc., and errors is an object in which the keys are groups that cannot be obtained
+     * According to some dinich, the values of this object are the reasons why the group was not obtained.
+     * @fires group:core-group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     async getGroups(groupsId) {
         let menu = {};
@@ -153,7 +167,7 @@ let Model = {
                     delete menu[group.id].childGroups;
                     menu[group.id].childGroups = childGroups;
                     if (menu[group.id].childGroups.length > 1)
-                        menu[group.id].childGroups.sort((a, b) => a.order - b.order);
+                        menu[group.id].childGroups.sort((a, b) => a.sortOrder - b.sortOrder);
                 }
                 menu[group.id].dishesList = await Dish.getDishes({
                     parentGroup: group.id
@@ -163,17 +177,18 @@ let Model = {
                 errors[group.id] = reason;
             }
         }
-        await (0, getEmitter_1.default)().emit("core-group-get-groups", menu, errors);
+        await emitter.emit("core-group-get-groups", menu, errors);
         const res = Object.values(menu);
         //TODO: rewrite with throw
         return { groups: res, errors: errors };
     },
     /**
-     * Возвращает группу с заданным id
-     * @param groupId - id группы
-     * @return запрашиваемая группа
-     * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * Returns a group with a given ID
+     * @deprecated not used
+     * @param groupId - ID groups
+     * @return The requested group
+     * @throws The error of obtaining a group
+     * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     async getGroup(groupId) {
         const result = await Group.getGroups([groupId]);
@@ -184,11 +199,12 @@ let Model = {
         return group[0] ? group[0] : null;
     },
     /**
-     * Возвращает группу с заданным slug'ом
-     * @param groupSlug - slug группы
-     * @return запрашиваемая группа
-     * @throws ошибка получения группы
-     * @fires group:core-group-get-groups - результат выполнения в формате {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * Returns a group with a given Slug
+     * @deprecated not used
+     * @param groupSlug - Slug groups
+     * @return The requested group
+     * @throws The error of obtaining a group
+     * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     async getGroupBySlug(groupSlug) {
         if (!groupSlug)
@@ -204,13 +220,86 @@ let Model = {
         const group = result.groups;
         return group[0] ? group[0] : null;
     },
+    // use this method to get group modified by adapters
+    // https://github.com/balderdashy/waterline/pull/902
+    async display(criteria) {
+        const discountAdapter = adapters_1.Adapter.getPromotionAdapter();
+        const groups = await Group.find(criteria);
+        let updatedDishes = [];
+        for (let i = 0; i < groups.length; i++) {
+            try {
+                updatedDishes.push(discountAdapter.displayGroup(groups[i]));
+            }
+            catch (error) {
+                sails.log(error);
+                continue;
+            }
+        }
+        return updatedDishes;
+    },
     /**
-     * Проверяет существует ли группа, если не сущестует, то создаёт новую и возвращает её.
+     * Menu for navbar
+     * */
+    async getMenuGroups(concept, topLevelGroupId) {
+        let groups = [];
+        emitter.emit('core:group-get-menu', groups, concept);
+        // Default logic
+        if (!groups.length) {
+            /**
+             * Check all option from settings to detect TopLevelGroupId
+             */
+            if (!topLevelGroupId) {
+                let menuTopLevelSlug = undefined;
+                if (concept !== undefined) {
+                    menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`);
+                }
+                if (menuTopLevelSlug === undefined) {
+                    menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL`);
+                }
+                if (menuTopLevelSlug) {
+                    let menuTopLevelGroup = await Group.findOne({
+                        slug: menuTopLevelSlug,
+                        ...concept && { concept: concept }
+                    });
+                    if (menuTopLevelGroup) {
+                        topLevelGroupId = menuTopLevelGroup.id;
+                    }
+                }
+            }
+            groups = await Group.find({
+                parentGroup: topLevelGroupId ?? null,
+                ...concept && { concept: concept },
+                modifier: false,
+                visible: true
+            });
+            // Check subgroups when one group in top menu
+            if (groups.length === 1 && topLevelGroupId === undefined) {
+                let childs = await Group.find({
+                    parentGroup: groups[0].id,
+                    modifier: false,
+                    visible: true
+                });
+                if (childs)
+                    groups = childs;
+            }
+        }
+        return groups;
+    },
+    /**
+     * Checks whether the group exists, if it does not exist, then creates a new one and returns it.
      * @param values
-     * @return обновлённая или созданная группа
+     * @return Updated or created group
      */
     async createOrUpdate(values) {
-        const group = await Group.findOne({ id: values.id });
+        sails.log.silly(`Core > Group > createOrUpdate: ${values.name}`);
+        let criteria = {};
+        if (values.id) {
+            criteria['id'] = values.id;
+        }
+        else {
+            criteria['rmsId'] = values.rmsId;
+        }
+        const group = await Group.findOne(criteria);
         if (!group) {
             return Group.create(values).fetch();
         }

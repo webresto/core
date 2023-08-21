@@ -1,36 +1,53 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+
 import Dish from "./Dish";
 import Group from "./Group";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 
 let attributes = {
-  /** ID картинки */
+  /** ID */
   id: {
     type: "string",
     //required: true,
   } as unknown as string,
 
-  /** Данные о картинках, что содержит данная модель */
+
+  /** Type of media content */
+  //type: {
+  //  type: "string",
+  //  isIn: ['video', 'image']
+  //} as unknown as "video" | "image",
+  
+  /** Video/Photo items */
+  //content: "json" as unknown as any,
+
+  // DEPRECATED use content instead
+  /** Image items */
   images: "json" as unknown as any,
 
-  /** Блюдо, которому принадлежит картинка */
+
+  
+  original: "string",
+  /** Dish relation */
   dish: {
     collection: "dish",
     via: "images",
   } as unknown as Dish[],
 
-  /** Порядок сортировки */
-  order: "number" as unknown as number,
+  /** Sort order */
+  sortOrder: "number" as unknown as number,
 
-  /** */
+  /** Group relation */
   group: {
     collection: "group",
     via: "images",
   } as unknown as Group[],
 
-  /** Группа, которой принажлежит картинка */
+  /** upload date 
+   * @deprecated (del in v2)
+  */
   uploadDate: "string",
 };
 type attributes = typeof attributes;
@@ -38,12 +55,12 @@ interface MediaFile extends OptionalAll<attributes>, ORM {}
 export default MediaFile;
 
 let Model = {
-  beforeCreate(imageInit: any, next: any) {
+  beforeCreate(imageInit: any, cb:  (err?: string) => void) {
     if (!imageInit.id) {
       imageInit.id = uuid();
     }
 
-    next();
+    cb();
   },
 };
 
@@ -55,5 +72,5 @@ module.exports = {
 
 declare global {
   //@ts-ignore //TODO: need rename model of images maybe ProductCover
-  const MediaFile: typeof Model & ORMModel<MediaFile>;
+  const MediaFile: typeof Model & ORMModel<MediaFile, null>;
 }

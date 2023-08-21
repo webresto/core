@@ -1,19 +1,16 @@
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
-import getEmitter from "../libs/getEmitter";
+
 import { WorkTime } from "@webresto/worktime";
 
 const CHECK_INTERVAL = 60000;
 
+/** Idea: move subcribe to worktime events in worktime library */
 sails.on("lifted", function () {
   setInterval(async function () {
-    const maintenance = await Maintenance.getActiveMaintenance();
-    if (maintenance) {
-      getEmitter().emit("core-maintenance-enabled", maintenance);
-    } else {
-      getEmitter().emit("core-maintenance-disabled");
-    }
+    checkMaintenance();
   }, CHECK_INTERVAL);
 });
 
@@ -44,9 +41,24 @@ interface Maintenance extends attributes, ORM {}
 export default Maintenance;
 
 let Model = {
-  beforeCreate: function (paymentMethod, next) {
-    paymentMethod.id = uuid();
-    next();
+  afterCreate: function (maintenance, cb:  (err?: string) => void) {
+    checkMaintenance()
+    cb();
+  },
+
+  afterUpdate: function (maintenance, cb:  (err?: string) => void) {
+    checkMaintenance()
+    cb();
+  },
+
+  afterDestroy: function (maintenance, cb:  (err?: string) => void) {
+    checkMaintenance();
+    cb();
+  },
+
+  beforeCreate: function (maintenance, cb:  (err?: string) => void) {
+    maintenance.id = uuid();
+    cb();
   },
 
   siteIsOff: async function () {
@@ -55,13 +67,21 @@ let Model = {
   },
 
   // TODO: add turnSiteOff method
-
+  
   getActiveMaintenance: async function () {
     // TODO: here need add worktime support
     let maintenances = await Maintenance.find({ enable: true });
 
     maintenances = maintenances.filter((maintenance) => {
       let start: number, stop: number;
+      // When dates interval not set is active maintenance
+      if (!maintenance.startDate && !maintenance.stopDate) return true
+      
+
+      // When start or stop date not set, is infinity
+      if (!maintenance.startDate) maintenance.startDate = "0000";
+      if (!maintenance.stopDate) maintenance.stopDate = "9999";
+       
       if (maintenance.startDate) {
         start = new Date(maintenance.startDate).getTime();
       }
@@ -83,9 +103,18 @@ module.exports = {
 };
 
 declare global {
-  const Maintenance: typeof Model & ORMModel<Maintenance>;
+  const Maintenance: typeof Model & ORMModel<Maintenance, null>;
 }
 
 function between(from: number, to: number, a: number): boolean {
   return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
+}
+
+async function checkMaintenance(){
+  const maintenance = await Maintenance.getActiveMaintenance();
+  if (maintenance) {
+    emitter.emit("core-maintenance-enabled", maintenance);
+  } else {
+    emitter.emit("core-maintenance-disabled");
+  }
 }

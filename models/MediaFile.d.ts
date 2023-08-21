@@ -1,29 +1,34 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
 import Dish from "./Dish";
 import Group from "./Group";
 import { OptionalAll } from "../interfaces/toolsTS";
 declare let attributes: {
-    /** ID картинки */
+    /** ID */
     id: string;
-    /** Данные о картинках, что содержит данная модель */
+    /** Type of media content */
+    /** Video/Photo items */
+    /** Image items */
     images: any;
-    /** Блюдо, которому принадлежит картинка */
+    original: string;
+    /** Dish relation */
     dish: Dish[];
-    /** Порядок сортировки */
-    order: number;
-    /** */
+    /** Sort order */
+    sortOrder: number;
+    /** Group relation */
     group: Group[];
-    /** Группа, которой принажлежит картинка */
+    /** upload date
+     * @deprecated (del in v2)
+    */
     uploadDate: string;
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM {
 }
 export default MediaFile;
 declare let Model: {
-    beforeCreate(imageInit: any, next: any): void;
+    beforeCreate(imageInit: any, cb: (err?: string) => void): void;
 };
 declare global {
-    const MediaFile: typeof Model & ORMModel<MediaFile>;
+    const MediaFile: typeof Model & ORMModel<MediaFile, null>;
 }

@@ -9,19 +9,10 @@ import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentS
 import getEmitter from "../../../libs/getEmitter";
 import PaymentDocument from "../../../models/PaymentDocument";
 import OrderDish from "../../../models/OrderDish";
+import Decimal from "decimal.js";
+import { customer, address } from "../../mocks/customer"
 
 describe("Order", function () {
-  let customer: Customer = {
-    phone: "+99999999999",
-    name: "Freeman Morgan",
-  };
-  let address: Address = {
-    streetId: "1234",
-    city: "New York",
-    street: "Green Road",
-    home: "42",
-    comment: "",
-  };
 
   this.timeout(10000);
   let order: Order;
@@ -214,7 +205,7 @@ describe("Order", function () {
     // Add dish with modifier with zero price
     await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "test");
     
-    // Modifier with price
+    // // Modifier with price
     await Order.addDish({id: order.id}, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "test");
 
 
@@ -222,8 +213,14 @@ describe("Order", function () {
     console.dir(changedOrder)
     expect(changedOrder.uniqueDishes).to.equal(5);
     expect(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1 + 1); // 18
-    expect(changedOrder.totalWeight).to.equal(changedOrder.dishesCount * 100 + (100 + 100 /** from mofifiers */)); 
-    expect(changedOrder.orderTotal).to.equal(changedOrder.dishesCount * 100.1 + ( 100.1  + 0 /** from mofifiers */));
+   
+   
+    expect(changedOrder.totalWeight).to.equal(new Decimal(100).times(changedOrder.dishesCount).plus(200).toNumber());
+    expect(changedOrder.orderTotal).to.equal(new Decimal(100.1).times(changedOrder.dishesCount).plus(100.1).toNumber());
+
+   
+    // expect(changedOrder.totalWeight).to.equal(changedOrder.dishesCount * 100 + (100 + 100 /** from mofifiers */)); 
+    // expect(changedOrder.orderTotal).to.equal(changedOrder.dishesCount * 100.1 + ( 100.1  + 0 /** from mofifiers */));
   });
 
   it("order", async function () {

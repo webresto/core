@@ -1,30 +1,45 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
+import User from "../models/User";
 declare let attributes: {
     /** ID */
     id: string;
+    /** Generated name from OS type, and location */
     name: string;
     userAgent: string;
-    isActive: boolean;
-    user: {
-        model: string;
-        via: string;
-    };
+    isLogined: boolean;
+    user: String | User;
     lastIP: string;
-    loginTime: string;
-    lastActivity: string;
+    loginTime: number;
+    lastActivity: number;
+    /**  (not jwt-token)  */
+    sessionId: string;
     customData: string | {
         [key: string]: string | number | boolean;
     };
 };
-declare type attributes = typeof attributes;
-interface UserDevice extends RequiredField<OptionalAll<attributes>, "lastIP" | "lastActivity">, ORM {
+type attributes = typeof attributes;
+interface UserDevice extends RequiredField<OptionalAll<attributes>, null>, ORM {
 }
 export default UserDevice;
 declare let Model: {
-    beforeCreate(UserLocationInit: any, next: any): void;
+    beforeUpdate(record: UserDevice, cb: (err?: string) => void): void;
+    /**
+     * For each request from user device to core
+     */
+    afterUpdate(record: UserDevice, cb: (err?: string) => void): void;
+    beforeCreate(record: any, cb: (err?: string) => void): void;
+    /** Method set lastActiity  for device */
+    setActivity(criteria: CriteriaQuery<UserDevice>, client?: {
+        lastIP?: string;
+        userAgent?: string;
+    }): Promise<void>;
+    checkSession(sessionId: string, userId: string, client?: {
+        lastIP?: string;
+        userAgent?: string;
+    }): Promise<boolean>;
 };
 declare global {
-    const UserDevice: typeof Model & ORMModel<UserDevice>;
+    const UserDevice: typeof Model & ORMModel<UserDevice, "lastIP">;
 }

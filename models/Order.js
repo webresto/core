@@ -1,24 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const actions_1 = require("../libs/actions");
-const getEmitter_1 = require("../libs/getEmitter");
 const uuid_1 = require("uuid");
-const emitter = (0, getEmitter_1.default)();
+const decimal_js_1 = require("decimal.js");
 let attributes = {
     /** Id  */
     id: {
         type: "string",
-        /** Для тестовой системы есть хак (@webresto/core/hacks/waterline.js: )
-         *  который гасит проблему в sails-disk, а для постгри это не нужно
-        required: true,
-        ^^^^^^^^^^^^^^^
-        */
     },
     /** last 8 chars from id */
     shortId: "string",
-    /** Концепт к которому относится группа */
+    /** Concept string */
+    // TODO: rework type to string[]
     concept: "string",
-    /** */
+    // concept: {
+    //   type: "json",
+    // } as unknown as string[],
+    /** the basket contains mixed types of concepts */
+    isMixedConcept: "boolean",
+    /**
+     * @deprecated will be rename to `Items` in **v2**
+     */
     dishes: {
         collection: "OrderDish",
         via: "order",
@@ -39,6 +40,22 @@ let attributes = {
         type: "boolean",
         defaultsTo: true,
     },
+    /**
+     * The property displays the state of promotion.
+     * In order to understand what was happening with the order in the adapter of promoters.
+     *
+     * This property can be used to portray the representations of promotions at the front
+     */
+    promotionState: {
+        type: "json"
+    },
+    /**
+     ** Means that the basket was modified by the adapter,
+     * It also prevents the repeat call of the action of the handler of the handler
+     * */
+    isPromoting: {
+        type: "boolean"
+    },
     /** */
     dishesCount: "number",
     uniqueDishes: "number",
@@ -47,7 +64,7 @@ let attributes = {
     address: "json",
     comment: "string",
     personsCount: "string",
-    /** Желаемая дата и время доставки */
+    /** The desired date and delivery time*/
     date: "string",
     problem: {
         type: "boolean",
@@ -72,14 +89,27 @@ let attributes = {
         type: "boolean",
         defaultsTo: false,
     },
+    delivery: {
+        type: "json"
+    },
+    /** Notification about delivery
+     * ex: time increased due to traffic jams
+     * @deprecated should changed for order.delivery.message
+     * */
     deliveryDescription: {
         type: "string",
-        defaultsTo: "",
+        allowNull: true
     },
     message: "string",
+    /**
+     * @deprecated use order.delivery.item
+     */
     deliveryItem: {
         model: "Dish",
     },
+    /**
+     * @deprecated use order.delivery.cost
+     */
     deliveryCost: {
         type: "number",
         defaultsTo: 0,
@@ -99,21 +129,23 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
-    /** total = orderTotal + deliveryCost - discountTotal - bonusesTotal */
+    spendBonus: {
+        type: "json"
+    },
+    /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
     total: {
         type: "number",
         defaultsTo: 0,
     },
-    // TODO: Uncoment after impl migrations
-    // /** 
-    // * Sum dishes in raw order 
-    // */
-    // orderCost: {
-    //   type: "number",
-    //   defaultsTo: 0,
-    // } as unknown as number,
     /**
-    *   @deprecated orderTotal use orderCost
+      * Sum dishes user added
+      */
+    basketTotal: {
+        type: "number",
+        defaultsTo: 0,
+    },
+    /**
+    *   @deprecated orderTotal use basketTotal
     */
     orderTotal: {
         type: "number",
@@ -125,14 +157,14 @@ let attributes = {
     },
     orderDate: "string",
     // orderDateLimit: "string",
-    /** Родительская группа */
+    deviceId: "string",
     user: {
         model: "user",
     },
     customData: "json",
 };
 let Model = {
-    beforeCreate(orderInit, next) {
+    beforeCreate(orderInit, cb) {
         if (!orderInit.id) {
             orderInit.id = (0, uuid_1.v4)();
         }
@@ -140,7 +172,7 @@ let Model = {
             orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
         }
         orderInit = "CART";
-        next();
+        cb();
     },
     /** Add dish into order */
     async addDish(criteria, dish, amount, modifiers, comment, addedBy, replace, orderDishId) {
@@ -158,14 +190,16 @@ let Model = {
         else {
             dishObj = dish;
         }
-        if (dishObj.balance !== -1)
+        // TODO: In core you can add any amount dish, only in checkout it should show which not allowed
+        if (dishObj.balance !== -1) {
             if (amount > dishObj.balance) {
                 await emitter.emit.apply(emitter, ["core-order-add-dish-reject-amount", ...arguments]);
-                throw {
+                console.error({
                     body: `There is no so mush dishes with id ${dishObj.id}`,
                     code: 1,
-                };
+                });
             }
+        }
         let order = await Order.findOne(criteria).populate("dishes");
         if (order.dishes.length > 99)
             throw "99 max dishes amount";
@@ -246,7 +280,7 @@ let Model = {
     },
     //** Delete dish from order */
     async removeDish(criteria, dish, amount, stack) {
-        // TODO: удалить стек
+        // TODO: delete stack
         await emitter.emit.apply(emitter, ["core-order-before-remove-dish", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
@@ -255,7 +289,7 @@ let Model = {
         if (stack) {
             amount = 1;
             orderDish = await OrderDish.findOne({
-                where: { order: order.id, dish: dish.id },
+                where: { order: order.id, dish: dish.dish },
                 sort: "createdAt ASC",
             }).populate("dish");
         }
@@ -285,11 +319,12 @@ let Model = {
     },
     async setCount(criteria, dish, amount) {
         await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
-        if (dish.dish.balance !== -1)
-            if (amount > dish.dish.balance) {
+        const _dish = dish.dish;
+        if (_dish.balance !== -1)
+            if (amount > _dish.balance) {
                 await emitter.emit.apply(emitter, ["core-order-set-count-reject-amount", ...arguments]);
                 throw {
-                    body: `There is no so mush dishes with id ${dish.dish.id}`,
+                    body: `There is no so mush dishes with id ${dish.id}`,
                     code: 1,
                 };
             }
@@ -339,20 +374,118 @@ let Model = {
         }
     },
     /**
+     * Clone dishes in new order
+     * @param source Order findOne criteria
+     * @returns new order
+     */
+    async clone(source) {
+        // Find the original order by ID
+        const originalOrder = await Order.findOne(source).populate("dishes");
+        // Check if the original order exists
+        if (!originalOrder) {
+            throw new Error(`Order with ID ${originalOrder.id} not found.`);
+        }
+        const newOrder = await Order.create({}).fetch();
+        // Clone the order dishes from the original order to the new order
+        const originalOrderDishes = originalOrder.dishes;
+        // Iterate through the original order dishes and add them to the new order
+        for (const originalOrderDish of originalOrderDishes) {
+            // Assuming you have an addDish method that takes an order ID and a dish object as parameters
+            await Order.addDish({ id: newOrder.id }, originalOrderDish.dish, originalOrderDish.amount, originalOrderDish.modifiers, null, "order-clone");
+        }
+        return newOrder;
+    },
+    /**
      * Set order selfService field. Use this method to change selfService.
      * @param selfService
      */
     async setSelfService(criteria, selfService = true) {
-        sails.log.verbose("Order > setSelfService >", selfService);
+        sails.log.silly("Order > setSelfService >", selfService);
         const order = await Order.findOne(criteria);
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
-        await actions_1.default.reset(order);
         return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
     },
+    /**
+     * !! Not for external use, only in Order.check
+     * The use of bonuses in the cart implies that this order has a user.
+     * Then all checks will be made and a record will be written in the transaction of user bonuses
+     *
+     Bonus spending strategies :
+      1) 'bonus_from_order_total': (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
+      2) 'bonus_from_basket_delivery_discount': writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
+      3) 'bonus_from_basket_and_delivery': writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
+      4) 'bonus_from_basket': write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
+  
+      Current implement logic for only one strategy
+  
+     */
+    async checkBonus(orderId, spendBonus) {
+        const order = await Order.findOne({ id: orderId });
+        if (order.user && typeof order.user === "string") {
+            // Fetch the bonus program for this bonus spend
+            const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+            const bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? "bonus_from_order_total";
+            let amountToDeduct = 0;
+            switch (bonusSpendingStrategy) {
+                case 'bonus_from_order_total':
+                    amountToDeduct = order.total;
+                    break;
+                case 'bonus_from_basket_delivery_discount':
+                    amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+                    break;
+                case 'bonus_from_basket_and_delivery':
+                    amountToDeduct = order.basketTotal + order.deliveryCost;
+                    break;
+                case 'bonus_from_basket':
+                    amountToDeduct = order.basketTotal;
+                    break;
+                default:
+                    throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+            }
+            // Calculate maximum allowed bonus coverage
+            const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul(bonusProgram.coveragePercentage);
+            // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+            let bonusCoverage;
+            if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThan(maxBonusCoverage)) {
+                bonusCoverage = new decimal_js_1.default(spendBonus.amount);
+            }
+            else {
+                bonusCoverage = maxBonusCoverage;
+            }
+            // Deduct the bonus from the order total
+            order.total = new decimal_js_1.default(order.total).sub(bonusCoverage).toNumber();
+            // Throw if User not have bonuses to cover this 
+            await UserBonusTransaction.create({
+                amount: bonusCoverage.toNumber(),
+                bonusProgram: bonusProgram.id,
+                user: order.user
+            }).fetch();
+            // Update the order with new total
+            await Order.updateOne({ id: orderId }, { total: order.total, bonusesTotal: bonusCoverage.toNumber() });
+        }
+        else {
+            throw `User not found in Order, applyBonuses failed`;
+        }
+    },
+    // TODO: implement clearOfPromotion
+    async clearOfPromotion() {
+        // remove from collection
+    },
     ////////////////////////////////////////////////////////////////////////////////////
-    async check(criteria, customer, isSelfService, address, paymentMethodId) {
-        const order = await Order.countCart(criteria);
+    // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
+    async check(criteria, customer, isSelfService, address, paymentMethodId, spendBonus) {
+        let order = await Order.findOne(criteria);
+        // CHECKING
+        // Check order empty
+        if (order.dishesCount === 0) {
+            throw {
+                code: 13,
+                error: "order is empty",
+            };
+        }
+        if (await Maintenance.getActiveMaintenance() !== undefined)
+            throw `Currently site is off`;
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
         //const order: Order = await Order.findOne(criteria);
@@ -364,9 +497,9 @@ let Model = {
             };
         }
         /**
-         *  // IDEA Возможно надо добавить параметр Время Жизни  для чека (Сделать глобально понятие ревизии системы int если оно меньше версии чека, то надо проходить чек заново)
+         *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
          */
-        (0, getEmitter_1.default)().emit("core-order-before-check", order, customer, isSelfService, address);
+        emitter.emit("core-order-before-check", order, customer, isSelfService, address);
         sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
         if (customer) {
             await checkCustomerInfo(customer);
@@ -387,13 +520,16 @@ let Model = {
             order.paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
             order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
         }
-        /** Если самовывоз то не нужно проверять адресс */
+        /** if pickup, then you do not need to check the address*/
         if (isSelfService) {
-            (0, getEmitter_1.default)().emit("core-order-is-self-service", order, customer, isSelfService, address);
-            await Order.setSelfService({ id: order.id }, true);
+            order.selfService = true;
+            emitter.emit("core-order-is-self-service", order, customer, isSelfService, address);
         }
         else {
+            order.selfService = false;
             if (address) {
+                if (!address.city)
+                    address.city = await Settings.get("city");
                 checkAddress(address);
                 order.address = { ...address };
             }
@@ -406,33 +542,89 @@ let Model = {
                 }
             }
         }
-        (0, getEmitter_1.default)().emit("core-order-check-delivery", order, customer, isSelfService, address);
-        const results = await (0, getEmitter_1.default)().emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
-        if (order.dishesCount === 0) {
-            throw {
-                code: 13,
-                error: "order is empty",
-            };
-        }
-        /** save after updates in emiter
-         * есть сомнения что это тут нужно
-        */
+        // Custom emmitters checks
+        const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
         delete (order.dishes);
         await Order.update({ id: order.id }, { ...order });
+        ////////////////////
+        // CHECKOUT COUNTING
+        try {
+            order = await Order.countCart({ id: order.id });
+        }
+        catch (error) {
+            sails.log.error("Check countcart error:", error);
+            throw {
+                code: 14,
+                error: "Problem with counting cart",
+            };
+        }
+        if (!order.selfService && !order.delivery.allowed) {
+            throw {
+                code: 11,
+                error: "Delivery not allowed",
+            };
+        }
+        /**
+         *  Bonus spending
+         * */
+        if (order.user && typeof order.user === "string" && spendBonus.bonusProgramId) {
+            // load bonus strategy
+            let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
+            // Fetch the bonus program for this bonus spend
+            const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+            spendBonus.amount = parseFloat(new decimal_js_1.default(spendBonus.amount).toFixed(bonusProgram.decimals));
+            // TODO: rewrite for Decimal.js
+            let amountToDeduct = 0;
+            switch (bonusSpendingStrategy) {
+                case 'bonus_from_order_total':
+                    amountToDeduct = order.total;
+                    break;
+                case 'bonus_from_basket_delivery_discount':
+                    amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+                    break;
+                case 'bonus_from_basket_and_delivery':
+                    amountToDeduct = order.basketTotal + order.deliveryCost;
+                    break;
+                case 'bonus_from_basket':
+                    amountToDeduct = order.basketTotal;
+                    break;
+                default:
+                    throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+            }
+            // Calculate maximum allowed bonus coverage
+            const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul(bonusProgram.coveragePercentage);
+            // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+            let bonusCoverage;
+            if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThan(maxBonusCoverage)) {
+                bonusCoverage = new decimal_js_1.default(spendBonus.amount);
+            }
+            else {
+                bonusCoverage = maxBonusCoverage;
+            }
+            // Deduct the bonus from the order total
+            order.spendBonus = spendBonus;
+            order.total = new decimal_js_1.default(order.total).sub(bonusCoverage).toNumber();
+            order.bonusesTotal = bonusCoverage.toNumber();
+        }
         sails.log.silly("Order > check > after wait general emitter", order, results);
-        (0, getEmitter_1.default)().emit("core-order-after-check", order, customer, isSelfService, address);
+        emitter.emit("core-order-after-check-counting", order);
+        delete (order.dishes);
+        await Order.update({ id: order.id }, { ...order });
         /** The check can pass without listeners, because the check itself is minimal
         * has basic checks. And is self-sufficient, but
         * is still set by default so all checks must be passed
         */
-        const checkConfig = (await Settings.use("check"));
+        const checkConfig = (await Settings.use("CHECKOUT_STRATEGY"));
+        /**
+         * If checkout policy not required then push next
+         */
         if (checkConfig && checkConfig.notRequired) {
             if ((await Order.getState(order.id)) !== "CHECKOUT") {
                 await Order.next(order.id, "CHECKOUT");
             }
             return;
         }
-        /** Успех во всех слушателях по умолчанию */
+        /** Success in all listeners by default */
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
         if (resultsCount === successCount) {
@@ -457,34 +649,40 @@ let Model = {
             };
         }
         /**
-         * Тут поидее должна быть логика успех хотябы одного слушателя, но
-         * на текущий момент практического применения не встречалось.
+         * Here, there should be the logic of the success of at least one listener, but
+         * At the moment, no practical application was found.
          *
-         * if(checkConfig.justOne) ...
+         * if (checkconfig.justone) ...
          */
     },
     ////////////////////////////////////////////////////////////////////////////////////
-    /** Оформление корзины */
+    /** Basket design*/
     async order(criteria) {
         const order = await Order.findOne(criteria);
-        //  TODO: Реализовать через стейтфлоу
+        // Check maintenance
+        if (await Maintenance.getActiveMaintenance() !== undefined)
+            throw `Currently site is off`;
+        //  TODO: impl with stateflow
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
         if (order.state === "CART")
             throw "order with orderId " + order.id + "in state CART";
         // await Order.update({id: order.id}).fetch();
-        // PTODO: проверка эта нужна
+        // TODO: this check is needed
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
         //   return 3
-        (0, getEmitter_1.default)().emit("core-order-before-order", order);
+        emitter.emit("core-order-before-order", order);
         sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
         if (order.selfService) {
-            (0, getEmitter_1.default)().emit("core-order-order-self-service", order);
+            emitter.emit("core-order-order-self-service", order);
         }
         else {
-            (0, getEmitter_1.default)().emit("core-order-order-delivery", order);
+            emitter.emit("core-order-order-delivery", order);
         }
-        const results = await (0, getEmitter_1.default)().emit("core-order-order", order);
+        /**
+         * @deprecated Event `core-order-order` will be deleted in v2
+         */
+        const results = await emitter.emit("core-order-order", order);
         sails.log.silly("Order > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
@@ -496,7 +694,7 @@ let Model = {
                     return;
                 }
                 else {
-                    throw "по крайней мере один слушатель не выполнил заказ.";
+                    throw "At least one listener did not complete the order.";
                 }
             }
             if (orderConfig.justOne) {
@@ -505,7 +703,7 @@ let Model = {
                     return;
                 }
                 else {
-                    throw "ни один слушатель не выполнил заказ";
+                    throw "No listener completed the order";
                 }
             }
             throw "Bad orderConfig";
@@ -513,20 +711,47 @@ let Model = {
         await orderIt();
         return;
         async function orderIt() {
+            if (order.user && order.bonusesTotal) {
+                // Throw if User not have bonuses to cover this 
+                await UserBonusTransaction.create({
+                    isNegative: true,
+                    amount: order.bonusesTotal,
+                    bonusProgram: order.spendBonus.bonusProgramId,
+                    user: order.user
+                }).fetch();
+            }
             // await Order.next(order.id,'ORDER');
-            // TODO: переписать на stateFlow
+            // TODO: Rewrite on stateflow
             let data = {};
             data.orderDate = new Date();
             data.state = "ORDER";
-            /** Если сохранние модели вызвать до next то будет бесконечный цикл */
-            sails.log.verbose("Order > order > before save order", order);
+            /** ⚠️ If the preservation of the model is caused to NEXT, then there will be an endless cycle */
+            sails.log.silly("Order > order > before save order", order);
             // await Order.update({id: order.id}).fetch();
             await Order.update({ id: order.id }, data).fetch();
             /** Here core just make emit,
              * instead call directly in RMSadapter.
              * But i think we need select default adpater,
              * and make order here */
-            (0, getEmitter_1.default)().emit("core-order-after-order", order);
+            try {
+                let orderWithRMS = await (await Adapter.getRMSAdapter()).createOrder(order);
+                await Order.update({ id: order.id }, {
+                    rmsId: orderWithRMS.rmsId,
+                    rmsOrderNumber: orderWithRMS.rmsOrderNumber,
+                    rmsOrderData: orderWithRMS.rmsOrderData
+                });
+            }
+            catch (error) {
+                const orderError = {
+                    rmsErrorCode: error.code ?? "Error",
+                    rmsErrorMessage: error.message ?? JSON.stringify(error)
+                };
+                await Order.update({ id: order.id }, orderError);
+            }
+            emitter.emit("core-order-after-order", order);
+            if (order.user) {
+                UserOrderHistory.save(order.id);
+            }
         }
     },
     async payment(criteria) {
@@ -535,23 +760,23 @@ let Model = {
             throw "order with orderId " + order.id + "in state ${order.state} but need CHECKOUT";
         var paymentResponse;
         let comment = "";
-        var backLinkSuccess = (await Settings.use("FrontendOrderPage")) + order.shortId;
-        var backLinkFail = await Settings.use("FrontendCheckoutPage");
+        var backLinkSuccess = (await Settings.use("FRONTEND_ORDER_PAGE")) + order.shortId;
+        var backLinkFail = await Settings.use("FRONTEND_CHECKOUT_PAGE");
         let paymentMethodId = await order.paymentMethod;
-        sails.log.verbose("Order > payment > before payment register", order);
+        sails.log.silly("Order > payment > before payment register", order);
         var params = {
             backLinkSuccess: backLinkSuccess,
             backLinkFail: backLinkFail,
             comment: comment,
         };
         await Order.countCart({ id: order.id });
-        await (0, getEmitter_1.default)().emit("core-order-payment", order, params);
-        sails.log.info("Order > payment > order before register:", order);
+        await emitter.emit("core-order-payment", order, params);
+        sails.log.silly("Order > payment > order before register:", order);
         try {
             paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
         }
         catch (e) {
-            (0, getEmitter_1.default)().emit("error", "order>payment", e);
+            emitter.emit("error", "order>payment", e);
             sails.log.error("Order > payment: ", e);
         }
         await Order.next(order.id, "PAYMENT");
@@ -564,7 +789,10 @@ let Model = {
     },
     /**  given populated Order instance  by criteria*/
     async populate(criteria) {
-        let order = await Order.findOne(criteria);
+        let order = await Order.findOne(criteria)
+            .populate('paymentMethod')
+            .populate('deliveryItem')
+            .populate('user');
         if (!order)
             throw `order by criteria: ${criteria},  not found`;
         let fullOrder;
@@ -584,8 +812,9 @@ let Model = {
                 //   sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
                 //   continue;
                 // }
+                const _dish = orderDish.dish;
                 const dish = await Dish.findOne({
-                    id: orderDish.dish.id,
+                    id: _dish.id,
                     // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
                     // isDeleted: false,
                 })
@@ -612,123 +841,180 @@ let Model = {
         }
         return { ...fullOrder };
     },
-    /**
-     * Считает количество, вес и прочие данные о корзине в зависимости от полоенных блюд
-     * Подсчет должен происходить только до перехода на чекаут
-     * @param order
-     */
     async countCart(criteria) {
         try {
             let order = await Order.findOne(criteria);
-            (0, getEmitter_1.default)().emit("core-order-before-count", order);
+            emitter.emit("core-order-before-count", order);
             if (!["CART", "CHECKOUT"].includes(order.state))
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             // const orderDishesClone = {}
-            let orderTotal = 0;
+            let basketTotal = new decimal_js_1.default(0);
             let dishesCount = 0;
+            // let uniqueDishes = orderDishes.length;
             let uniqueDishes = 0;
-            let totalWeight = 0;
+            let totalWeight = new decimal_js_1.default(0);
+            // TODO: clear the order
+            const orderDishesForPopulate = [];
             for await (let orderDish of orderDishes) {
                 try {
-                    if (orderDish.dish) {
-                        const dish = (await Dish.find(orderDish.dish.id).limit(1))[0];
-                        // Проверяет что блюдо доступно к продаже
+                    if (orderDish.dish && typeof orderDish.dish !== "string") {
+                        // Item OrderDish calcualte
+                        let itemCost = orderDish.dish.price;
+                        let itemWeight = orderDish.dish.weight;
+                        const dish = (await Dish.find({ id: orderDish.dish.id }).limit(1))[0];
+                        // Checks that the dish is available for sale
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
-                            (0, getEmitter_1.default)().emit("core-order-return-full-order-destroy-orderdish", dish, order);
-                            await OrderDish.destroy({ id: orderDish.dish.id });
+                            emitter.emit("core-order-return-full-order-destroy-orderdish", dish, order);
+                            await OrderDish.destroy({ id: orderDish.id });
                             continue;
                         }
                         if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
                             orderDish.amount = dish.balance;
-                            // Нужно удалять если количество 0
+                            //It is necessary to delete if the amount is 0
                             if (orderDish.amount >= 0) {
                                 await Order.removeDish({ id: order.id }, orderDish, 999999);
                             }
-                            (0, getEmitter_1.default)().emit("core-orderdish-change-amount", orderDish);
+                            emitter.emit("core-orderdish-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
                         orderDish.uniqueItems += orderDish.amount; // deprecated
-                        orderDish.itemTotal = orderDish.dish.price;
-                        orderDish.weight = orderDish.dish.weight;
+                        orderDish.itemTotal = 0;
+                        orderDish.weight = 0;
                         orderDish.totalWeight = 0;
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
                             for await (let modifier of orderDish.modifiers) {
-                                const modifierObj = (await Dish.find({ id: modifier.id }).limit(1))[0];
+                                const modifierObj = (await Dish.find({ where: { or: [{ id: modifier.id }, { rmsId: modifier.id }] } }).limit(1))[0];
                                 if (!modifierObj) {
-                                    sails.log.error("Dish with id " + modifier.id + " not found!");
-                                    continue;
+                                    throw "Dish with id " + modifier.id + " not found!";
                                 }
-                                let opts = {};
-                                await (0, getEmitter_1.default)().emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
+                                // let opts:  any = {} 
+                                // await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
                                 // const modifierCopy = {
                                 //   amount: modifier.amount,
                                 //   id: modifier.id
                                 // }
-                                // await getEmitter().emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
+                                // await emitter.emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
                                 /** // TODO:
                                  * Initial modification checking logic, now it's ugly.
                                  * Needed review architecture modifiers to keep it in model.
                                  * Also all checks modifiers need process in current loop thread. Currently we not have access to modifer options
                                  * Here by opts we can pass options for modifiers
                                  */
-                                orderDish.itemTotal += modifier.amount * modifierObj.price;
-                                // TODO: discountPrice
-                                // FreeAmount modiefires support
-                                if (opts.freeAmount && typeof opts.freeAmount === "number") {
-                                    if (opts.freeAmount < modifier.amount) {
-                                        orderDish.itemTotal -= opts.freeAmount * modifierObj.price;
-                                    }
-                                    else {
-                                        orderDish.itemTotal -= modifier.amount * modifierObj.price;
-                                    }
-                                }
-                                if (!Number(orderDish.itemTotal))
-                                    throw `orderDish.itemTotal is NaN ${JSON.stringify(modifier)}.`;
-                                orderDish.weight += modifierObj.weight;
+                                const modifierCost = new decimal_js_1.default(modifier.amount).times(modifierObj.price).toNumber();
+                                itemCost = new decimal_js_1.default(itemCost).plus(modifierCost).toNumber();
+                                // TODO: discountPrice && freeAmount
+                                // // FreeAmount modiefires support
+                                // if (opts.freeAmount && typeof opts.freeAmount === "number") {
+                                //   if (opts.freeAmount < modifier.amount) {
+                                //     let freePrice = new Decimal(modifierObj.price).times(opts.freeAmount)
+                                //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
+                                //   } else {
+                                //     // If more just calc
+                                //     let freePrice = new Decimal(modifierObj.price).times(modifier.amount)
+                                //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
+                                //   }
+                                // }                
+                                if (!Number(itemCost))
+                                    throw `itemCost is NaN ${JSON.stringify(modifier)}.`;
+                                itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight).toNumber();
                             }
                         }
-                        else {
-                            throw `orderDish.modifiers not iterable dish: ${JSON.stringify(orderDish.modifiers, undefined, 2)} <<`;
-                        }
-                        orderDish.totalWeight = orderDish.weight * orderDish.amount;
-                        orderDish.itemTotal *= orderDish.amount;
+                        orderDish.totalWeight = new decimal_js_1.default(itemWeight).times(orderDish.amount).toNumber();
+                        // itemCost => orderDish.itemTotal
+                        orderDish.itemTotal = new decimal_js_1.default(itemCost).times(orderDish.amount).toNumber();
                         orderDish.dish = orderDish.dish.id;
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
-                    } // for disches
-                    orderTotal += orderDish.itemTotal;
+                        orderDishesForPopulate.push({ ...orderDish });
+                    }
+                    basketTotal = basketTotal.plus(orderDish.itemTotal);
                     dishesCount += orderDish.amount;
                     uniqueDishes++;
-                    totalWeight += orderDish.totalWeight;
+                    totalWeight = totalWeight.plus(orderDish.totalWeight);
+                    // console.log(totalWeight, "TOTAL WEIGTH IN THE END =====================")
                 }
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);
+                    await OrderDish.destroy({ id: orderDish.id });
+                    uniqueDishes -= 1;
+                    continue;
                 }
-            } // for orderDish
-            // Discount calc
-            /**
-             * TODO: здесь точка входа для расчета дискаунтов, т.к. они не должны конкурировать, нужно написать adapterом.
-             * Скидки должны быть массивом, и они должны хранится в каждом блюде OrderDish чтобы при выключении скидки не исчезали скидки на Ордере
-             */
-            order.dishes = orderDishes;
-            await (0, getEmitter_1.default)().emit("core-order-count-discount-apply", order);
-            delete (order.dishes);
-            ///////////////////////////////////
-            /**
-             * Карт тотал это чистая стоимость корзины
-             */
+            }
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
-            order.totalWeight = totalWeight;
-            order.orderTotal = orderTotal;
-            (0, getEmitter_1.default)().emit("core:count-before-delivery-cost", order);
-            // @deprecated orderTotal use orderCost
-            order.total = orderTotal + order.deliveryCost - order.discountTotal;
+            order.totalWeight = totalWeight.toNumber();
+            order.orderTotal = basketTotal.toNumber();
+            order.basketTotal = basketTotal.toNumber();
+            // Calcualte promotion cost
+            // order.promotionState = await promotionAdapter.processOrder(order);
+            if (!order.isPromoting) {
+                emitter.emit("core:count-before-promotion", order);
+                let promotionAdapter = Adapter.getPromotionAdapter();
+                try {
+                    order.isPromoting = true;
+                    let orderPopulate = { ...order };
+                    orderPopulate.dishes = orderDishesForPopulate;
+                    // console.log(orderDishesForPopulate)
+                    await Order.updateOne({ id: order.id }, { isPromoting: true });
+                    // console.log(orderPopulate)
+                    order.promotionState = await promotionAdapter.processOrder(orderPopulate);
+                    let a = await Order.findOne(order.id);
+                    order.discountTotal = a.discountTotal;
+                    await Order.updateOne({ id: order.id }, { isPromoting: false });
+                    order.isPromoting = false;
+                }
+                catch (error) {
+                    sails.log.error(`Core > order > promotion calculate fail: `, error);
+                }
+                emitter.emit("core-order-after-promotion", order);
+            }
+            // Calcualte delivery costs
+            /**
+             * // TODO: Better move to new method add address to Order, because is not every time needed
+             * planned v2
+             */
+            emitter.emit("core:count-before-delivery-cost", order);
+            let deliveryAdapter = await Adapter.getDeliveryAdapter();
+            await deliveryAdapter.reset(order);
+            if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
+                emitter.emit("core-order-check-delivery", order);
+                try {
+                    let delivery;
+                    try {
+                        delivery = await deliveryAdapter.calculate(order);
+                    }
+                    catch (error) {
+                        sails.log.error("deliveryAdapter.calculate error:", error);
+                        delivery = {
+                            allowed: false,
+                            cost: 0,
+                            item: undefined,
+                            message: error,
+                            deliveryTimeMinutes: Infinity
+                        };
+                    }
+                    order.delivery = delivery;
+                    if (!delivery.item) {
+                        order.deliveryCost = delivery.cost;
+                    }
+                    else {
+                        order.deliveryItem = delivery.item;
+                        order.deliveryCost = (await Dish.findOne({ id: delivery.item })).price;
+                    }
+                    order.deliveryDescription = typeof delivery.message === "string" ? delivery.message : JSON.stringify(delivery.message);
+                }
+                catch (error) {
+                    sails.log.error(`Core > order > delivery calculate fail: `, error);
+                }
+                emitter.emit("core-order-after-check-delivery", order);
+            }
+            // END calculate delivery cost
+            order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
             order = (await Order.update({ id: order.id }, order).fetch())[0];
-            (0, getEmitter_1.default)().emit("core-order-after-count", order);
+            emitter.emit("core-order-after-count", order);
             return order;
         }
         catch (error) {
@@ -738,7 +1024,7 @@ let Model = {
     async doPaid(criteria, paymentDocument) {
         let order = await Order.findOne(criteria);
         if (order.paid) {
-            sails.log.info(`Order > doPaid: Order with id ${order.id} is paid`);
+            sails.log.debug(`Order > doPaid: Order with id ${order.id} is paid`);
             return;
         }
         try {
@@ -748,16 +1034,16 @@ let Model = {
                 paymentMethod: paymentDocument.paymentMethod,
                 paymentMethodTitle: paymentMethodTitle,
             }).fetch();
-            sails.log.info("Order > doPaid: ", order.id, order.state, order.total, paymentDocument.amount);
+            sails.log.debug("Order > doPaid: ", order.id, order.state, order.total, paymentDocument.amount);
             if (order.state !== "PAYMENT") {
                 sails.log.error("Order > doPaid: is strange order state is not PAYMENT", order);
             }
             if (order.total !== paymentDocument.amount) {
                 order.problem = true;
-                order.comment = order.comment + " !!! ВНИМАНИЕ, состав заказа был изменен, на счет в банке поступило :" + paymentDocument.amount;
+                order.comment = order.comment + "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount;
             }
             await Order.order({ id: order.id });
-            (0, getEmitter_1.default)().emit("core-order-after-dopaid", order);
+            emitter.emit("core-order-after-dopaid", order);
         }
         catch (e) {
             sails.log.error("Order > doPaid error: ", e);
@@ -786,6 +1072,7 @@ async function checkCustomerInfo(customer) {
             error: "customer.phone is required",
         };
     }
+    // TODO: updte regex
     try {
         const nameRegex = await Settings.use("nameRegex");
         const phoneRegex = await Settings.use("phoneRegex");
@@ -811,10 +1098,10 @@ async function checkCustomerInfo(customer) {
     }
 }
 function checkAddress(address) {
-    if (!address.street) {
+    if (!address.street && !address.streetId) {
         throw {
             code: 5,
-            error: "address.street  is required",
+            error: "address.street or streetId  is required",
         };
     }
     if (!address.home) {
@@ -837,6 +1124,8 @@ async function checkPaymentMethod(paymentMethodId) {
             error: "paymentMethod not available",
         };
     }
+}
+async function orderAction() {
 }
 async function checkDate(order) {
     if (order.date) {
@@ -861,12 +1150,12 @@ async function checkDate(order) {
  * Return Date in future
  * default 1 day
  */
-// TODO: refactor periodPossibleForOrder from seconds to full work days
+// TODO: refactor possibleToOrderInMinutes from seconds to full work days
 async function getOrderDateLimit() {
     let date = new Date();
-    let periodPossibleForOrder = await Settings.use("PeriodPossibleForOrder"); //minutes
-    if (!periodPossibleForOrder)
-        periodPossibleForOrder = "1440";
-    date.setSeconds(date.getSeconds() + (parseInt(periodPossibleForOrder) * 60));
+    let possibleToOrderInMinutes = await Settings.use("possibleToOrderInMinutes"); //minutes
+    if (!possibleToOrderInMinutes)
+        possibleToOrderInMinutes = "1440";
+    date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));
     return date;
 }

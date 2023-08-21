@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+
 import Dish from "../models/Dish";
 import Order from "../models/Order";
 import { Modifier, OrderModifier } from "../interfaces/Modifier";
@@ -19,10 +20,11 @@ let attributes = {
   // Есть идея что нужно отдельно запекать заказы.
 
   /**Блюдо, которое содержится в корзине */
+  /** any problem */
   dish: {
     model: "Dish",
-  } as unknown as Dish | any,
-
+  } as unknown as Dish | string,
+  
   /** Selected modifiers */
   modifiers: "json" as unknown as OrderModifier[],
 
@@ -31,34 +33,31 @@ let attributes = {
     model: "Order",
   } as unknown as Order | any,
 
-  /** Количество уникальных блюд в корзине */
+  /** The number of unique dishes in the basket */
   uniqueItems: "number" as unknown as number,
 
-  /** цена позиции */
+  /** Position price*/
   itemTotal: "number" as unknown as number,
 
-  /** цена позиции до применения скидок */
+  /** Position price before the use of discounts */
   itemTotalBeforeDiscount: "number",
 
-  /** Скидка */
-  discount: "json" as unknown as any,
-
-  /**Общая сумма скидки */
+  /**The total amount of the discount */
   discountTotal: "number" as unknown as number,
 
-  /** Тип скидки */
+  /** Type discount */
   discountType: 'string',
 
-  /** Сообщение скидки */
-  discountMessage: "string",
-
-  /** Сумма скидки */
+  /** Discount amount */
   discountAmount: "number",
+
+  /** postDiscounts */
+  discountMessage: "string",
 
   /** Comment to dish in order */
   comment: "string",
 
-  /** Метка кто добавил */
+  /** The label who added */
   addedBy: {
     type: "string",
     defaultsTo: "user",
@@ -84,5 +83,5 @@ module.exports = {
 };
 
 declare global {
-  const OrderDish: typeof Model & ORMModel<OrderDish>;
+  const OrderDish: typeof Model & ORMModel<OrderDish, "dish" | "amount">;
 }

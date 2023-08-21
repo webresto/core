@@ -1,14 +1,37 @@
-import HookTools from "../libs/hookTools";
+import  HookTools from "../libs/hookTools";
 import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
+import bindAssets from "./bindAssets"
+import bindDictonaries from "./bindDictonaries";
+/**
+ * Set global emmiter
+ */
+import getEmitter from "../libs/getEmitter";
+// @ts-ignore
+global.emitter = getEmitter();
+   
+/**
+ * Set global NotificationManager
+ */
+import { NotificationManager } from "../libs/NotificationManager";
+// @ts-ignore
+global.NotificationManager = new NotificationManager
+
+/**
+ * Set global NotificationManager
+ */
+import { Adapter } from "../adapters/index";
+// @ts-ignore
+global.Adapter = Adapter
+
 
 export default function ToInitialize(sails: Sails) {
   /**
    * Required hooks
    */
   const requiredHooks = ["blueprints", "http", "orm", "policies", "stateflow"];
-
+  
   return function initialize(cb) {
 
     if(process.env.WEBRESTO_CORE_DISABLED){
@@ -34,6 +57,11 @@ export default function ToInitialize(sails: Sails) {
       sails.log.error(error)
     }
 
+    // Bind assets
+    bindAssets();
+
+    // Bind dictonaries
+    bindDictonaries();
     /**
      * Bind models
      */

@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
-import ORMModel from "../interfaces/ORMModel";
+import { ORMModel } from "../interfaces/ORMModel";
+import Dish from "../models/Dish";
 import { OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 declare let attributes: {
@@ -8,41 +9,40 @@ declare let attributes: {
     /** Количество данного блюда с его модификаторами в корзине */
     amount: number;
     /**Блюдо, которое содержится в корзине */
-    dish: any;
+    /** any problem */
+    dish: string | Dish;
     /** Selected modifiers */
     modifiers: OrderModifier[];
     /** */
     order: any;
-    /** Количество уникальных блюд в корзине */
+    /** The number of unique dishes in the basket */
     uniqueItems: number;
-    /** цена позиции */
+    /** Position price*/
     itemTotal: number;
-    /** цена позиции до применения скидок */
+    /** Position price before the use of discounts */
     itemTotalBeforeDiscount: string;
-    /** Скидка */
-    discount: any;
-    /**Общая сумма скидки */
+    /**The total amount of the discount */
     discountTotal: number;
-    /** Тип скидки */
+    /** Type discount */
     discountType: string;
-    /** Сообщение скидки */
-    discountMessage: string;
-    /** Сумма скидки */
+    /** Discount amount */
     discountAmount: string;
+    /** postDiscounts */
+    discountMessage: string;
     /** Comment to dish in order */
     comment: string;
-    /** Метка кто добавил */
+    /** The label who added */
     addedBy: string;
     /** Вес */
     weight: number;
     /** Полный вес */
     totalWeight: number;
 };
-declare type attributes = typeof attributes;
+type attributes = typeof attributes;
 interface OrderDish extends RequiredField<OptionalAll<attributes>, "dish" | "amount">, ORM {
 }
 export default OrderDish;
 declare let Model: {};
 declare global {
-    const OrderDish: typeof Model & ORMModel<OrderDish>;
+    const OrderDish: typeof Model & ORMModel<OrderDish, "dish" | "amount">;
 }

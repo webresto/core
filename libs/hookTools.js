@@ -86,7 +86,7 @@ class HookTools {
      * @param method - GET or POST ot etc.
      */
     static bindRouter(path, action, method) {
-        sails.log.verbose("restocore > bindRouter: ", path);
+        sails.log.silly("restocore > bindRouter: ", path);
         if (!path || !action) {
             throw "Cannot bind undefined path to undefined action";
         }

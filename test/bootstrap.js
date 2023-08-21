@@ -1,4 +1,5 @@
 "use strict";
+/// <reference path="./../interfaces/globalTypes.ts" />
 Object.defineProperty(exports, "__esModule", { value: true });
 require("mocha");
 require("dotenv").config();
