@@ -1186,7 +1186,7 @@ exports.up = function (db, callback) {
 },
     ifNotExists: true
   }, cb),
-(cb) => db.createTable('group_childGroups__group_parentGroup', {
+(cb) => db.createTable('group_childgroups__group_parentgroup', {
     columns: {
     "id": {
         "type": "int",
@@ -1218,7 +1218,7 @@ exports.up = function (db, callback) {
 },
     ifNotExists: true
   }, cb),
-(cb) => db.createTable('order_dishes__OrderDish_order', {
+(cb) => db.createTable('order_dishes__orderdish_order', {
     columns: {
     "id": {
         "type": "int",
@@ -1228,7 +1228,7 @@ exports.up = function (db, callback) {
     "order_dishes": {
         "type": "string"
     },
-    "OrderDish_order": {
+    "orderdish_order": {
         "type": "string"
     }
 },
@@ -1266,7 +1266,7 @@ exports.up = function (db, callback) {
 },
     ifNotExists: true
   }, cb),
-(cb) => db.createTable('user_history__UserOrderHistory_user', {
+(cb) => db.createTable('user_history__userorderhistory_user', {
     columns: {
     "id": {
         "type": "int",
@@ -1276,13 +1276,13 @@ exports.up = function (db, callback) {
     "user_history": {
         "type": "string"
     },
-    "UserOrderHistory_user": {
+    "userorderhistory_user": {
         "type": "string"
     }
 },
     ifNotExists: true
   }, cb),
-(cb) => db.createTable('user_locations__UserLocation_user', {
+(cb) => db.createTable('user_locations__userlocation_user', {
     columns: {
     "id": {
         "type": "int",
@@ -1292,13 +1292,13 @@ exports.up = function (db, callback) {
     "user_locations": {
         "type": "string"
     },
-    "UserLocation_user": {
+    "userlocation_user": {
         "type": "string"
     }
 },
     ifNotExists: true
   }, cb),
-(cb) => db.createTable('user_devices__UserDevice_user', {
+(cb) => db.createTable('user_devices__userdevice_user', {
     columns: {
     "id": {
         "type": "int",
@@ -1308,7 +1308,7 @@ exports.up = function (db, callback) {
     "user_devices": {
         "type": "string"
     },
-    "UserDevice_user": {
+    "userdevice_user": {
         "type": "string"
     }
 },
