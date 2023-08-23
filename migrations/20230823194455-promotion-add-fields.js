@@ -35,8 +35,38 @@ exports.up = function (db, callback) {
 },
     ifNotExists: true
   }, cb),
-(cb) => db.changeColumn('order_dishes__orderdish_order', 'order_dishes', {"type":"bigint"}, cb),
-(cb) => db.changeColumn('order_dishes__orderdish_order', 'orderdish_order', {"type":"bigint"}, cb),
+(cb) => db.createTable('group_childgroups__group_parentgroup', {
+    columns: {
+    "id": {
+        "type": "int",
+        "notNull": true,
+        "autoIncrement": true
+    },
+    "group_childGroups": {
+        "type": "string"
+    },
+    "group_parentGroup": {
+        "type": "string"
+    }
+},
+    ifNotExists: true
+  }, cb),
+(cb) => db.createTable('order_dishes__orderdish_order', {
+    columns: {
+    "id": {
+        "type": "int",
+        "notNull": true,
+        "autoIncrement": true
+    },
+    "order_dishes": {
+        "type": "bigint"
+    },
+    "orderdish_order": {
+        "type": "bigint"
+    }
+},
+    ifNotExists: true
+  }, cb),
 (cb) => db.createTable('user_bonusprogram__userbonusprogram_user', {
     columns: {
     "id": {
@@ -53,9 +83,62 @@ exports.up = function (db, callback) {
 },
     ifNotExists: true
   }, cb),
+(cb) => db.createTable('user_history__userorderhistory_user', {
+    columns: {
+    "id": {
+        "type": "int",
+        "notNull": true,
+        "autoIncrement": true
+    },
+    "user_history": {
+        "type": "string"
+    },
+    "userorderhistory_user": {
+        "type": "string"
+    }
+},
+    ifNotExists: true
+  }, cb),
+(cb) => db.createTable('user_locations__userlocation_user', {
+    columns: {
+    "id": {
+        "type": "int",
+        "notNull": true,
+        "autoIncrement": true
+    },
+    "user_locations": {
+        "type": "string"
+    },
+    "userlocation_user": {
+        "type": "string"
+    }
+},
+    ifNotExists: true
+  }, cb),
+(cb) => db.createTable('user_devices__userdevice_user', {
+    columns: {
+    "id": {
+        "type": "int",
+        "notNull": true,
+        "autoIncrement": true
+    },
+    "user_devices": {
+        "type": "string"
+    },
+    "userdevice_user": {
+        "type": "string"
+    }
+},
+    ifNotExists: true
+  }, cb),
 (cb) => db.removeColumn('order', 'isPromoted', cb),
 (cb) => db.dropTable('group_dishes__dish_parentGroup', cb),
+(cb) => db.dropTable('group_childGroups__group_parentGroup', cb),
+(cb) => db.dropTable('order_dishes__OrderDish_order', cb),
 (cb) => db.dropTable('user_bonusProgram__userbonusprogram_user', cb),
+(cb) => db.dropTable('user_history__UserOrderHistory_user', cb),
+(cb) => db.dropTable('user_locations__UserLocation_user', cb),
+(cb) => db.dropTable('user_devices__UserDevice_user', cb),
 
   ], callback);
 }
