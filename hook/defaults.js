@@ -15,7 +15,7 @@ module.exports.restocore = {
                 states: {
                     CART: ["CHECKOUT"],
                     CHECKOUT: ["CART", "PAYMENT", "ORDER"],
-                    PAYMENT: ["ORDER", "CHECKOUT"],
+                    PAYMENT: ["CART", "ORDER", "CHECKOUT"],
                     ORDER: [],
                 },
             },
