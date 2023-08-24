@@ -12,7 +12,7 @@ export default async function () {
       return;
     } 
 
-    const translations = fs.readdirSync(`../libs/locales`).filter(function (file) {
+    const translations = fs.readdirSync(path.resolve(__dirname, `../libs/locales`)).filter(function (file) {
       return path.extname(file).toLowerCase() === ".json";
     });
 

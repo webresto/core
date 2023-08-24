@@ -22,6 +22,8 @@ global.NotificationManager = new NotificationManager_1.NotificationManager;
  * Set global NotificationManager
  */
 const index_1 = require("../adapters/index");
+const bindAdminpanel_1 = require("./bindAdminpanel");
+const bindLocales_1 = require("./bindLocales");
 // @ts-ignore
 global.Adapter = index_1.Adapter;
 function ToInitialize(sails) {
@@ -54,9 +56,11 @@ function ToInitialize(sails) {
         (0, bindAssets_1.default)();
         // Bind dictonaries
         (0, bindDictonaries_1.default)();
-        /**
-         * Bind models
-         */
+        // Bind locales
+        (0, bindLocales_1.default)();
+        // Bind sails-adminpanel configuraton
+        (0, bindAdminpanel_1.default)();
+        // Bind models
         hookTools_1.default.bindModels((0, path_1.resolve)(__dirname, "../models")).then(cb);
     };
 }
