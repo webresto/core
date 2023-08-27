@@ -13,6 +13,8 @@ declare let attributes: {
     hash: string;
     /** Street has delited */
     isDeleted: boolean;
+    /** Street has delited */
+    enable: boolean;
     city: string | City;
     customData: string | {
         [key: string]: string | number | boolean;

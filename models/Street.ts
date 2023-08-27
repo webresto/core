@@ -29,6 +29,12 @@ let attributes = {
     type:'boolean'
   } as unknown as boolean,
   
+  /** Street has delited */
+  enable: { 
+    type:'boolean'
+  } as unknown as boolean,
+  
+  
   city: {
     model: 'city'
   } as unknown as City | string,
@@ -50,6 +56,10 @@ let Model = {
 
     if(streetInit.isDeleted === undefined) {
       streetInit.isDeleted = false
+    }
+
+    if(streetInit.enable === undefined) {
+      streetInit.enable = true
     }
     
     cb();

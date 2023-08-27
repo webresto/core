@@ -22,7 +22,8 @@ https://github.com/building5/sails-db-migrate
 20. persistent OrderDish history
 21. Modifiers is model
 22. Imporeve Product model instead Dish
-
+23. partial paid order
+24. Cancel payment document from core
 
 
 

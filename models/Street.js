@@ -20,6 +20,10 @@ let attributes = {
     isDeleted: {
         type: 'boolean'
     },
+    /** Street has delited */
+    enable: {
+        type: 'boolean'
+    },
     city: {
         model: 'city'
     },
@@ -32,6 +36,9 @@ let Model = {
         }
         if (streetInit.isDeleted === undefined) {
             streetInit.isDeleted = false;
+        }
+        if (streetInit.enable === undefined) {
+            streetInit.enable = true;
         }
         cb();
     },
