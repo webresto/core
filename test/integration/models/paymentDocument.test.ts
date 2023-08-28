@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import getEmitter from "../../../libs/getEmitter";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 import { Payment } from "../../../interfaces/Payment";
 import generate_payment from "../../generators/payment.generator";
@@ -19,13 +18,13 @@ describe("PaymentDocument", function () {
   });
 
   it("doPaid TODO", async function () {
-    getEmitter().on("core-payment-document-paid", function () {});
+    emitter.on("core-payment-document-paid", function () {});
     // создать документ с status = "PAID" и paid !== true . Проверить сохраниение документа, проверить вызов эмита
   });
 
   it("doCheck TODO", async function () {
-    getEmitter().on("core-payment-document-check", function () {});
-    getEmitter().on("core-payment-document-checked-document", function () {});
+    emitter.on("core-payment-document-check", function () {});
+    emitter.on("core-payment-document-checked-document", function () {});
     // создать платежный документ для тестировочной платежной системы. Провести оплату в тестовой платежной системе. Выполнить doCheck. Проверить результат всех вариантов событий (не проведенная оплата, проведенная оплата)
   });
 
@@ -40,7 +39,7 @@ describe("PaymentDocument", function () {
      */
 
     // let count = [];
-    // getEmitter().on("core-payment-document-check", function (paymentDocument) {
+    // emitter.on("core-payment-document-check", function (paymentDocument) {
     //   count.push(paymentDocument);
     // });
 

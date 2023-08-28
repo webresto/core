@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Отдаёт хеш строки
- * @param str - строка для хеширования
+ * Returns the hash of a string
+ * @param str - string to hash
  */
 const crypto = require("crypto");
 function hashCode(str) {

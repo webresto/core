@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import getEmitter from "../../../libs/getEmitter";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 
 import Order from "../../../models/Order";
@@ -53,19 +52,19 @@ describe("Flows: Checkout", function () {
     let core_order_check = 0;
     let core_order_after_check = 0;
 
-    getEmitter().on("core-order-before-check", function () {
+    emitter.on("core-order-before-check", function () {
       core_order_before_check = 1;
     });
 
-    getEmitter().on("core-order-check-delivery", function () {
+    emitter.on("core-order-check-delivery", function () {
       core_order_check_delivery = 1;
     });
 
-    getEmitter().on("core-order-check", function () {
+    emitter.on("core-order-check", function () {
       core_order_check = 1;
     });
 
-    getEmitter().on("core-order-after-check-counting", function () {
+    emitter.on("core-order-after-check-counting", function () {
       core_order_after_check = 1;
     });
 
@@ -85,7 +84,7 @@ describe("Flows: Checkout", function () {
     let emitSelfService;
     let emitAddress;
 
-    getEmitter().on("core-order-is-self-service", function (self, cust, serv, addr) {
+    emitter.on("core-order-is-self-service", function (self, cust, serv, addr) {
       core_order_is_self_service = 1;
       emitCustomer = cust;
       emitSelfService = serv;
@@ -123,7 +122,7 @@ describe("Flows: Checkout", function () {
 
   it("test checkConfig (default - requireAll)", async function () {
     
-    getEmitter().on("core-order-check", "test checkConfig (default - requireAll)", function () {
+    emitter.on("core-order-check", "test checkConfig (default - requireAll)", function () {
       throw "test";
     });
     

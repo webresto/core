@@ -6,7 +6,6 @@ import Dish from "../../../models/Dish";
 import Customer from "../../../interfaces/Customer";
 import { Payment } from "../../../interfaces/Payment";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
-import getEmitter from "../../../libs/getEmitter";
 import PaymentDocument from "../../../models/PaymentDocument";
 import OrderDish from "../../../models/OrderDish";
 import Decimal from "decimal.js";
@@ -229,18 +228,18 @@ describe("Order", function () {
     let count3 = 0;
     let count4 = 0;
 
-    getEmitter().on("core-order-before-order", function () {
+    emitter.on("core-order-before-order", function () {
       count1++;
     });
 
-    getEmitter().on("core-order-order-self-service", function () {
+    emitter.on("core-order-order-self-service", function () {
       count2++;
     });
 
-    getEmitter().on("core-order-order", function () {
+    emitter.on("core-order-order", function () {
       count3++;
     });
-    getEmitter().on('core-order-after-order', function(){
+    emitter.on('core-order-after-order', function(){
       count4++;
     });
 
@@ -263,7 +262,7 @@ describe("Order", function () {
     }
     expect(error).to.not.equal(null);
 
-    getEmitter().on("core-order-order-delivery", function () {
+    emitter.on("core-order-order-delivery", function () {
       // count1++;
     });
   });
