@@ -23,6 +23,9 @@ type attributes = typeof attributes;
 interface Street extends RequiredField<Partial<attributes>, "name">, ORM {
 }
 export default Street;
+/**
+ * Pelase emit core:streets:updated after finish update streets
+ */
 declare let Model: {
     beforeUpdate(value: Street, cb: (err?: string) => void): Promise<void>;
     beforeCreate(streetInit: any, cb: (err?: string) => void): void;

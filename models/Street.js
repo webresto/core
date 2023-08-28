@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const hashCode_1 = require("../libs/hashCode");
+const CustomData_1 = require("../interfaces/CustomData");
 let attributes = {
     /** ID */
     id: {
@@ -29,14 +30,20 @@ let attributes = {
     },
     customData: "json",
 };
+/**
+ * Pelase emit core:streets:updated after finish update streets
+ */
 let Model = {
     async beforeUpdate(value, cb) {
-        if (value.customData !== undefined) {
+        if (value.customData) {
             if (value.id !== undefined) {
                 let current = await Street.findOne({ id: value.id });
                 let customData = { ...current.customData, ...value.customData };
                 value.customData = customData;
             }
+        }
+        else {
+            value.customData = {};
         }
         cb();
     },
@@ -49,6 +56,9 @@ let Model = {
         }
         if (streetInit.enable === undefined) {
             streetInit.enable = true;
+        }
+        if (!(0, CustomData_1.isCustomData)(streetInit.customData)) {
+            streetInit.customData = {};
         }
         cb();
     },

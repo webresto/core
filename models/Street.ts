@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 import hashCode from "../libs/hashCode";
 import { RequiredField } from "../interfaces/toolsTS";
 import City from "./City";
-import { CustomData } from "../interfaces/CustomData";
+import { CustomData, isCustomData } from "../interfaces/CustomData";
 
 let attributes = {
   /** ID */
@@ -47,14 +47,20 @@ type attributes = typeof attributes;
 interface Street extends RequiredField<Partial<attributes>, "name">, ORM {}
 export default Street;
 
+
+/**
+ * Pelase emit core:streets:updated after finish update streets
+ */
 let Model = {
   async beforeUpdate(value: Street, cb:  (err?: string) => void) {
-    if(value.customData !== undefined) {
+    if(value.customData) {
       if (value.id !== undefined) {
         let current = await Street.findOne({id: value.id});
         let customData = {...current.customData, ...value.customData} 
         value.customData = customData;
       }
+    } else {
+      value.customData = {}
     }
     cb();
   },
@@ -72,6 +78,10 @@ let Model = {
       streetInit.enable = true
     }
     
+    if(!isCustomData(streetInit.customData)){
+      streetInit.customData = {}
+    }
+
     cb();
   },
 
