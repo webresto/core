@@ -30,6 +30,16 @@ let attributes = {
     customData: "json",
 };
 let Model = {
+    async beforeUpdate(value, cb) {
+        if (value.customData !== undefined) {
+            if (value.id !== undefined) {
+                let current = await Street.findOne({ id: value.id });
+                let customData = { ...current.customData, ...value.customData };
+                value.customData = customData;
+            }
+        }
+        cb();
+    },
     beforeCreate(streetInit, cb) {
         if (!streetInit.id) {
             streetInit.id = (0, uuid_1.v4)();

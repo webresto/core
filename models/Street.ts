@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 import hashCode from "../libs/hashCode";
 import { RequiredField } from "../interfaces/toolsTS";
 import City from "./City";
+import { CustomData } from "../interfaces/CustomData";
 
 let attributes = {
   /** ID */
@@ -39,9 +40,7 @@ let attributes = {
     model: 'city'
   } as unknown as City | string,
 
-  customData: "json" as unknown as {
-    [key: string]: string | boolean | number;
-  } | string,
+  customData: "json" as unknown as CustomData,
 };
 
 type attributes = typeof attributes;
@@ -49,6 +48,17 @@ interface Street extends RequiredField<Partial<attributes>, "name">, ORM {}
 export default Street;
 
 let Model = {
+  async beforeUpdate(value: Street, cb:  (err?: string) => void) {
+    if(value.customData !== undefined) {
+      if (value.id !== undefined) {
+        let current = await Street.findOne({id: value.id});
+        let customData = {...current.customData, ...value.customData} 
+        value.customData = customData;
+      }
+    }
+    cb();
+  },
+
   beforeCreate(streetInit: any, cb:  (err?: string) => void) {
     if (!streetInit.id) {
       streetInit.id = uuid();
