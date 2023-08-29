@@ -4,6 +4,7 @@ const checkExpression_1 = require("../libs/checkExpression");
 const hashCode_1 = require("../libs/hashCode");
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
+const CustomData_1 = require("../interfaces/CustomData");
 let attributes = {
     /** */
     id: {
@@ -184,10 +185,22 @@ let Model = {
         if (!init.concept) {
             init.concept = "origin";
         }
+        if (!(0, CustomData_1.isCustomData)(init.customData)) {
+            init.customData = {};
+        }
         cb();
     },
-    beforeUpdate: function (record, cb) {
-        emitter.emit('core:dish-before-update', record);
+    beforeUpdate: async function (value, cb) {
+        emitter.emit('core:dish-before-update', value);
+        if (value.customData) {
+            if (value.id !== undefined) {
+                let current = await Dish.findOne({ id: value.id });
+                if (!(0, CustomData_1.isCustomData)(current.customData))
+                    current.customData = {};
+                let customData = { ...current.customData, ...value.customData };
+                value.customData = customData;
+            }
+        }
         return cb();
     },
     afterUpdate: function (record, cb) {

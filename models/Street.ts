@@ -56,11 +56,10 @@ let Model = {
     if(value.customData) {
       if (value.id !== undefined) {
         let current = await Street.findOne({id: value.id});
+        if(!isCustomData(current.customData)) current.customData = {}
         let customData = {...current.customData, ...value.customData} 
         value.customData = customData;
       }
-    } else {
-      value.customData = {}
     }
     cb();
   },
