@@ -50,10 +50,10 @@ let Model = {
         if (!streetInit.id) {
             streetInit.id = (0, uuid_1.v4)();
         }
-        if (streetInit.isDeleted === undefined) {
+        if (streetInit.isDeleted === undefined || streetInit.isDeleted === null) {
             streetInit.isDeleted = false;
         }
-        if (streetInit.enable === undefined) {
+        if (streetInit.enable === undefined || streetInit.enable === null) {
             streetInit.enable = true;
         }
         if (!(0, CustomData_1.isCustomData)(streetInit.customData)) {
