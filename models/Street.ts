@@ -32,7 +32,8 @@ let attributes = {
   
   /** Street has delited */
   enable: { 
-    type:'boolean'
+    type:'boolean',
+    allowNull: true
   } as unknown as boolean,
   
   

@@ -23,7 +23,8 @@ let attributes = {
     },
     /** Street has delited */
     enable: {
-        type: 'boolean'
+        type: 'boolean',
+        allowNull: true
     },
     city: {
         model: 'city'
