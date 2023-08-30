@@ -297,11 +297,56 @@ let Model = {
     }
     return updatedDishes;
   },
+  
 
+
+  // Recursive function to get all child groups
+  async getMenuTree(menu?: Group[], option: "only_ids" | "tree" | "flat_tree" = "only_ids"): Promise<string[]> {
+    
+    if(option === "tree") {
+      throw `not implemented yet`
+    }
+
+    if(!menu) {
+      menu = await Group.getMenuGroups();
+    }
+
+    let allGroups = [];
+    for (let group of menu) {
+      const groupId = group.id
+      const initialGroup = await Group.findOne({ id: groupId });
+      if (initialGroup) {
+        allGroups.push(initialGroup);
+        const childGroups = await getAllChildGroups(groupId);
+        allGroups = allGroups.concat(childGroups);
+      }
+    }
+
+    async function getAllChildGroups(groupId) {
+      let childGroups = await Group.find({ parentGroup: groupId });
+      let allChildGroups = [];
+    
+      for (let group of childGroups) {
+        allChildGroups.push(group);
+        const subChildGroups = await getAllChildGroups(group.id);
+        allChildGroups = allChildGroups.concat(subChildGroups);
+      }
+    
+      return allChildGroups;
+    }
+
+    if(option === "flat_tree") {
+      return allGroups;
+    }
+
+    if(option === "only_ids") {
+      return allGroups.map(group => group.id);
+    }
+  },
   /**
    * Menu for navbar
    * */
-  async getMenuGroups(concept: string, topLevelGroupId?: string): Promise<Group[]> {
+  async getMenuGroups(concept?: string, topLevelGroupId?: string): Promise<Group[]> {
     let groups = [] as Group[]
     emitter.emit('core:group-get-menu', groups, concept);
 
