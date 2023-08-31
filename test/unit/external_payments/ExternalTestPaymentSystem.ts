@@ -48,7 +48,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
 
     return new Promise((resolve) => {
       setTimeout(() => {
-        database[payment.paymentId] = payment;
+        database[payment.originModelId] = payment;
         this.paid(payment, paid_latency);
         resolve(response);
       }, latency);
@@ -59,7 +59,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
     let latency = Math.floor(Math.random() * 500) + 1;
     return new Promise((resolve) => {
       setTimeout(() => {
-        let response = database[payment.paymentId];
+        let response = database[payment.originModelId];
         resolve(response);
       }, latency);
     });
@@ -78,7 +78,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
 
   private paid(payment: Payment, latency: number) {
     setTimeout(() => {
-      database[payment.paymentId].status = "PAID";
+      database[payment.originModelId].status = "PAID";
     }, latency);
     return;
   }

@@ -1271,7 +1271,7 @@ let Model = {
     try {
       let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
       await Order.update(
-        { id: paymentDocument.paymentId },
+        { id: paymentDocument.originModelId },
         {
           paid: true,
           paymentMethod: paymentDocument.paymentMethod,

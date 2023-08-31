@@ -289,7 +289,7 @@ describe("Order", function () {
 
     const paymentMethod = (await PaymentMethod.find({}))[0];
     let newPaymentDocument = {
-      paymentId: order.id,
+      originModelId: order.id,
       externalId: "string",
       originModel: "string",
       paymentMethod: paymentMethod.id,

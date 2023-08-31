@@ -57,7 +57,7 @@ let attributes = {
   } as unknown as string,
 
   /** corresponds to ID from the Origin Model model */
-  paymentId: "string",
+  originModelId: "string",
 
   /** ID in the external system */
   externalId: "string",
@@ -131,20 +131,9 @@ let Model = {
       sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
     }
   },
-  /**
-   * Registred new payment
-   * @param paymentId 
-   * @param originModel 
-   * @param amount 
-   * @param paymentMethodId 
-   * @param backLinkSuccess 
-   * @param backLinkFail 
-   * @param comment 
-   * @param data 
-   * @returns 
-   */
+
   register: async function (
-    paymentId: string,
+    originModelId: string,
     originModel: string,
     amount: number,
     paymentMethodId: string,
@@ -154,13 +143,13 @@ let Model = {
     data: any
   ): Promise<PaymentResponse> {
     checkAmount(amount);
-    await checkOrigin(originModel, paymentId);
+    await checkOrigin(originModel, originModelId);
     await checkPaymentMethod(paymentMethodId);
     var id: string = uuid();
     id = id.replace(/-/g, '').toUpperCase();
     let payment: Payment = {
       id: id,
-      paymentId: paymentId,
+      originModelId: originModelId,
       originModel: originModel,
       paymentMethod: paymentMethodId,
       amount: amount,
@@ -208,11 +197,11 @@ let Model = {
     sails.log.silly("PaymentDocument > afterUpdate > ", JSON.stringify(values));
     if (values.paid && values.status === "PAID") {
       try {
-        if (!values.amount || !values.paymentMethod || !values.paymentId) {
+        if (!values.amount || !values.paymentMethod || !values.originModelId) {
           sails.log.error("PaymentDocument > afterUpdate, not have requried fields :", values);
           throw "PaymentDocument > afterUpdate, not have requried fields";
         }
-        await sails.models[values.originModel].doPaid({id: values.paymentId},values);
+        await sails.models[values.originModel].doPaid({id: values.originModelId},values);
       } catch (e) {
         sails.log.error("Error in PaymentDocument.afterUpdate :", e);
       }
@@ -254,11 +243,11 @@ declare global {
 
 ////////////////////////////// LOCAL
 
-async function checkOrigin(originModel: string, paymentId: string) {
-  if (!(await sails.models[originModel].findOne({ id: paymentId }))) {
+async function checkOrigin(originModel: string, originModelId: string) {
+  if (!(await sails.models[originModel].findOne({ id: originModelId }))) {
     throw {
       code: 1,
-      error: "incorrect paymentId or originModel",
+      error: "incorrect originModelId or originModel",
     };
   }
 }
