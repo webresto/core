@@ -11,7 +11,11 @@ let attributes = {
     /** corresponds to ID from the Origin Model model */
     originModelId: "string",
     /** ID in the external system */
-    externalId: "string",
+    externalId: {
+        type: "string",
+        unique: true,
+        allowNull: true // Only for NEW state
+    },
     /** Model from which payment is made*/
     originModel: "string",
     /** Payment method */
@@ -100,7 +104,7 @@ let Model = {
         try {
             sails.log.silly("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
             let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
-            sails.log.silly("PaymentDocumnet > register [after paymentAdapter.createPayment]", PaymentResponse);
+            sails.log.silly("PaymentDocumnet > register [after paymentAdapter.createPayment]", paymentResponse);
             await PaymentDocument.update({ id: paymentResponse.id }, {
                 status: "REGISTRED",
                 externalId: paymentResponse.externalId,
