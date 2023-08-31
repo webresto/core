@@ -14,7 +14,7 @@ async function default_1() {
         const translations = fs.readdirSync(path.resolve(__dirname, `../libs/locales`)).filter(function (file) {
             return path.extname(file).toLowerCase() === ".json";
         });
-        for (let locale of sails.config.adminpanel.translation.locales) {
+        for (let locale of sails.config.i18n?.locales ?? []) {
             if (translations.includes(`${locale}.json`)) {
                 try {
                     let jsonData = require(`../libs/locales/${locale}.json`);
