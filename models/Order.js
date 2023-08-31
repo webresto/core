@@ -845,7 +845,7 @@ let Model = {
         try {
             let order = await Order.findOne(criteria);
             emitter.emit("core-order-before-count", order);
-            if (!["CART", "CHECKOUT"].includes(order.state))
+            if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state))
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             // const orderDishesClone = {}
