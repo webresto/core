@@ -174,6 +174,7 @@ let Model = {
     try {
       sails.log.silly("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
       let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
+      sails.log.silly("PaymentDocumnet > register [after paymentAdapter.createPayment]", PaymentResponse);
 
       await PaymentDocument.update(
         { id: paymentResponse.id },
