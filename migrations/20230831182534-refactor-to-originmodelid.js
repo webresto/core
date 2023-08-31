@@ -18,7 +18,7 @@ exports.setup = function(options, seedLink) {
 
 exports.up = function (db, callback) {
   async.series([
-    (cb) => db.renameColumn('paymentdocument', 'paymentId','originModelId', {"type":"string"}, cb),
+    (cb) => db.renameColumn('paymentdocument', 'paymentId','originModelId', cb),
   ], callback);
 }
 
