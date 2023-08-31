@@ -180,6 +180,10 @@ let Model = {
       let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
       sails.log.silly("PaymentDocumnet > register [after paymentAdapter.createPayment]", paymentResponse);
 
+      if(!paymentResponse.id) {
+        throw `PaymentDocumnet > register [after paymentAdapter.createPayment] paymentResponse from external payment system is required`
+      }
+      
       await PaymentDocument.update(
         { id: paymentResponse.id },
         {

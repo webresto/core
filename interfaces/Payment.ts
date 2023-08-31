@@ -10,7 +10,7 @@
  */
 
 export interface Payment {
-  id?: string;
+  id: string;
   paid?: boolean;
   amount: number;
   originModelId: string;
