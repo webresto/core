@@ -1046,6 +1046,9 @@ let Model = {
 
       emitter.emit("core-order-before-count", order);
 
+      /**
+       *  // TODO: If countCart from payment or other changes from payment it should cancel all payment request
+       */
       if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
 
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
