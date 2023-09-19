@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const decimal_js_1 = require("decimal.js");
+const decimal_js_1 = __importDefault(require("decimal.js"));
 let attributes = {
     /** Id  */
     id: {
@@ -845,7 +848,10 @@ let Model = {
         try {
             let order = await Order.findOne(criteria);
             emitter.emit("core-order-before-count", order);
-            if (!["CART", "CHECKOUT"].includes(order.state))
+            /**
+             *  // TODO: If countCart from payment or other changes from payment it should cancel all payment request
+             */
+            if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state))
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             // const orderDishesClone = {}
@@ -1029,7 +1035,7 @@ let Model = {
         }
         try {
             let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
-            await Order.update({ id: paymentDocument.paymentId }, {
+            await Order.update({ id: paymentDocument.originModelId }, {
                 paid: true,
                 paymentMethod: paymentDocument.paymentMethod,
                 paymentMethodTitle: paymentMethodTitle,

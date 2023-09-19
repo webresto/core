@@ -14,6 +14,7 @@
     "sourceMap": false,
     "declaration": true,
     "removeComments": false,
+    "esModuleInterop": true,
     "skipLibCheck": true,
     // TODO: ts with "strict": true,
     // "alwaysStrict": true

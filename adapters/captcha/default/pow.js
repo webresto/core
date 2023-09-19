@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.POW = void 0;
-const CaptchaAdapter_1 = require("../CaptchaAdapter");
+const CaptchaAdapter_1 = __importDefault(require("../CaptchaAdapter"));
 // import Puzzle from "crypto-puzzle" https://github.com/fabiospampinato/crypto-puzzle/issues/1
 let Puzzle = require("fix-esm").require("crypto-puzzle").default; // https://github.com/fabiospampinato/crypto-puzzle/issues/2
 const uuid_1 = require("uuid");

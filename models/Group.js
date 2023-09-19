@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../libs/checkExpression");
-const slugify_1 = require("slugify");
+const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
+const slugify_1 = __importDefault(require("slugify"));
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 let attributes = {

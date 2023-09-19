@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const hashCode_1 = require("../libs/hashCode");
+const hashCode_1 = __importDefault(require("../libs/hashCode"));
 const CustomData_1 = require("../interfaces/CustomData");
 let attributes = {
     /** ID */
