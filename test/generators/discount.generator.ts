@@ -1,4 +1,4 @@
-import * as faker from "faker";
+import faker from "faker";
 import Group from './../../models/Group';
 import Dish  from './../../models/Dish';
 import OrderDish  from './../../models/OrderDish';

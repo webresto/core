@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryBonusProgramAdapter = void 0;
-const BonusProgramAdapter_1 = require("../../../adapters/bonusprogram/BonusProgramAdapter");
+const BonusProgramAdapter_1 = __importDefault(require("../../../adapters/bonusprogram/BonusProgramAdapter"));
 class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
     constructor(config) {
         super(config);

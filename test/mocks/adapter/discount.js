@@ -1,12 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryDiscountAdapter = void 0;
-const AbstractPromotion_1 = require("../../../adapters/promotion/AbstractPromotion");
-const findModelInstance_1 = require("../../../libs/findModelInstance");
+const AbstractPromotion_1 = __importDefault(require("../../../adapters/promotion/AbstractPromotion"));
+const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 const promotionAdapter_1 = require("./../../../adapters/promotion/default/promotionAdapter");
 const stringsInArray_1 = require("../../../libs/stringsInArray");
-const configuredPromotion_1 = require("../../../adapters/promotion/default/configuredPromotion");
-const decimal_js_1 = require("decimal.js");
+const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
+const decimal_js_1 = __importDefault(require("decimal.js"));
 class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
     constructor() {
         super(...arguments);

@@ -1,9 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PromotionAdapter = void 0;
-const AbstractPromotionAdapter_1 = require("../AbstractPromotionAdapter");
+const AbstractPromotionAdapter_1 = __importDefault(require("../AbstractPromotionAdapter"));
 const worktime_1 = require("@webresto/worktime");
-const configuredPromotion_1 = require("./configuredPromotion");
+const configuredPromotion_1 = __importDefault(require("./configuredPromotion"));
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     async processOrder(order) {
         const promotionStates = [];

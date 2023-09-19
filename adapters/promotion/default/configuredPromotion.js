@@ -1,10 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // import { WorkTime } from "@webresto/worktime";
-const AbstractPromotion_1 = require("../AbstractPromotion");
+const AbstractPromotion_1 = __importDefault(require("../AbstractPromotion"));
 const promotionAdapter_1 = require("./promotionAdapter");
-const findModelInstance_1 = require("../../../libs/findModelInstance");
-const decimal_js_1 = require("decimal.js");
+const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
+const decimal_js_1 = __importDefault(require("decimal.js"));
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 class ConfiguredPromotion extends AbstractPromotion_1.default {
     constructor(promotion, config) {

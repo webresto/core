@@ -6,6 +6,9 @@ import PaymentDocument from "../../../models/PaymentDocument";
 var database: any = {};
 
 export default class TestPaymentSystem extends PaymentAdapter {
+  public cancelPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument> {
+    throw new Error("Method not implemented.");
+  }
   private static instance: TestPaymentSystem;
 
   public async createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string, testing?: string): Promise<PaymentResponse> {

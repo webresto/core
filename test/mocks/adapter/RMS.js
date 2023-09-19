@@ -1,9 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TestRMS = void 0;
-const RMSAdapter_1 = require("../../../adapters/rms/RMSAdapter");
-const dish_generator_1 = require("../../generators/dish.generator");
-const group_generator_1 = require("../../generators/group.generator");
+const RMSAdapter_1 = __importDefault(require("../../../adapters/rms/RMSAdapter"));
+const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
+const group_generator_1 = __importDefault(require("../../generators/group.generator"));
 class TestRMS extends RMSAdapter_1.default {
     async initialized() {
         return;
