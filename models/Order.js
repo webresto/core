@@ -88,6 +88,9 @@ let attributes = {
     rmsStatusCode: "string",
     deliveryStatus: "string",
     //state: "string",
+    pickupPoint: {
+        model: "Place",
+    },
     selfService: {
         type: "boolean",
         defaultsTo: false,

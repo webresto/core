@@ -8,6 +8,7 @@ import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
 import Dish from "./Dish";
+import Place from "./Place";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
@@ -123,6 +124,9 @@ let attributes = {
   deliveryStatus: "string",
 
   //state: "string",
+  pickupPoint: {
+      model: "Place",
+  } as unknown as Place | string,
 
   selfService: {
     type: "boolean",
