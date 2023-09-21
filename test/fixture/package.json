@@ -6,7 +6,6 @@
   "keywords": [],
   "dependencies": {
     "@webresto/core": "file:../..",
-    "sails-hook-stateflow": "latest",
     "dark-sails": "^1.0.0",
     "include-all": "^1.0.8",
     "patch-package": "^6.4.7",
@@ -14,8 +13,9 @@
     "request": "^2.88.2",
     "sails": "^1.5.3",
     "sails-hook-orm": "^4.0.1",
-    "sails-postgresql": "^4.0.0",
-    "sails-memory": "^0.10.7"
+    "sails-hook-stateflow": "latest",
+    "sails-memory": "^0.10.7",
+    "sails-postgresql": "^4.0.0"
   },
   "scripts": {
     "debug": "node debug app.js",
@@ -28,5 +28,8 @@
     "url": "git://github.com/webresto/app.git"
   },
   "author": "webresto",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "db-migrate-pg": "^1.5.2"
+  }
 }
