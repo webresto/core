@@ -46,6 +46,7 @@
     "@types/node": "^14.17.11",
     "@types/uuid": "^8.0.0",
     "@types/waterline": "^0.13.4",
+    "async": "^3.2.4",
     "chai": "^4.2.0",
     "dotenv": "^8.2.0",
     "faker": "^4.1.0",
@@ -76,16 +77,13 @@
   },
   "scripts": {
     "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
-    
     "test:init": "cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
     "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
     "test:win": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
     "test:install": "cd ./test/fixture && npm i --no-package-lock --prefix ./",
     "test:updb": "cd ./test/fixture && npx db-migrate up",
     "test:release": "DATASTORE=postgres PG_HOST=127.0.0.1 mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
-    
     "build": "tsc",
-
     "format": "npx prettier --write \"**/*.ts\""
   },
   "version": "1.4.0"
