@@ -507,6 +507,8 @@ let Model = {
          */
         emitter.emit("core-order-before-check", order, customer, isSelfService, address);
         sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
+        // Start checking
+        await Order.next(order.id, "CART");
         if (customer) {
             await checkCustomerInfo(customer);
             order.customer = { ...customer };

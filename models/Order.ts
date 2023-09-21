@@ -636,6 +636,7 @@ let Model = {
     if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
 
+
     //const order: Order = await Order.findOne(criteria);
     if (order.paid) {
       sails.log.error("CART > Check > error", order.id, "order is paid");
@@ -653,6 +654,8 @@ let Model = {
 
     sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
 
+    // Start checking
+    await Order.next(order.id, "CART");
     if (customer) {
       await checkCustomerInfo(customer);
       order.customer = {...customer};
