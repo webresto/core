@@ -1,0 +1,75 @@
+{
+    "type": "array",
+    "items": {
+        "$ref": "#/Modifiers"
+    },
+    "Modifiers": {
+        "type": "object",
+        "properties": {
+            "maxAmount": {"$ref": "#/Types/maxAmount"},
+            "minAmount": {"$ref": "#/Types/minAmount"},
+            "modifierId":{"$ref": "#/Types/modifierId"},
+            "required": {"$ref": "#/Types/required"},
+            "childModifiers": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/ChildModifier"
+                }
+            },
+            "childModifiersHaveMinMaxRestrictions": {
+                "type": "boolean"
+            }
+        },
+        "required": [
+            "childModifiers",
+            "maxAmount",
+            "minAmount",
+            "modifierId",
+            "required"
+        ],
+        "title": "Modifiers"
+    },
+    "definitions": {
+        "ChildModifier": {
+            "type": "object",
+            "properties": {
+                "maxAmount": {"$ref": "#/Types/maxAmount"},
+                "minAmount": {"$ref": "#/Types/minAmount"},
+                "modifierId":{"$ref": "#/Types/modifierId"},
+                "required": {"$ref": "#/Types/required"},
+                "defaultAmount":  {"$ref": "#/Types/defaultAmount"}
+            },
+            "required": [
+                "defaultAmount",
+                "maxAmount",
+                "minAmount",
+                "modifierId",
+                "required"
+            ],
+            "title": "ChildModifier"
+        }
+    },
+    "Types": {
+        "maxAmount": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "minAmount": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "modifierId": {
+            "type": "string"
+        },
+        "required": {
+            "type": "boolean"
+        },
+        "defaultAmount": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "hideIfDefaultAmount": {
+            "type": "boolean"
+        }
+    }
+}

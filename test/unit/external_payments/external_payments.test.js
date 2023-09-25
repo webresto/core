@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const ExternalTestPaymentSystem_1 = require("./ExternalTestPaymentSystem");
-const payment_generator_1 = require("../../generators/payment.generator");
+const ExternalTestPaymentSystem_1 = __importDefault(require("./ExternalTestPaymentSystem"));
+const payment_generator_1 = __importDefault(require("../../generators/payment.generator"));
 const chai_1 = require("chai");
 var paymentDocument;
 describe("TestPaymentSystem & PaymentAdapter basic testing", function () {

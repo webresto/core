@@ -4,6 +4,7 @@ import ORM from "../interfaces/ORM";
 import { WorkTime } from "@webresto/worktime";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier } from "../interfaces/Modifier";
+import { CustomData } from "../interfaces/CustomData";
 declare let attributes: {
     /** */
     id: string;
@@ -87,9 +88,7 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
-    customData: {
-        [key: string]: string | number | boolean;
-    };
+    customData: CustomData;
 };
 interface IVirtualFields {
     discountAmount?: number;
@@ -101,8 +100,8 @@ interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">,
 }
 export default Dish;
 declare let Model: {
-    beforeCreate(init: any, cb: (err?: string) => void): void;
-    beforeUpdate: (record: any, cb: (err?: string) => void) => void;
+    beforeCreate(init: Dish, cb: (err?: string) => void): void;
+    beforeUpdate: (value: Dish, cb: (err?: string) => void) => Promise<void>;
     afterUpdate: (record: any, cb: (err?: string) => void) => void;
     afterCreate: (record: any, cb: (err?: string) => void) => void;
     /**

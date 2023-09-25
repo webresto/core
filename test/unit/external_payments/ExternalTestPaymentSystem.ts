@@ -6,6 +6,9 @@ import PaymentDocument from "../../../models/PaymentDocument";
 var database: any = {};
 
 export default class TestPaymentSystem extends PaymentAdapter {
+  public cancelPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument> {
+    throw new Error("Method not implemented.");
+  }
   private static instance: TestPaymentSystem;
 
   public async createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string, testing?: string): Promise<PaymentResponse> {
@@ -48,7 +51,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
 
     return new Promise((resolve) => {
       setTimeout(() => {
-        database[payment.paymentId] = payment;
+        database[payment.originModelId] = payment;
         this.paid(payment, paid_latency);
         resolve(response);
       }, latency);
@@ -59,7 +62,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
     let latency = Math.floor(Math.random() * 500) + 1;
     return new Promise((resolve) => {
       setTimeout(() => {
-        let response = database[payment.paymentId];
+        let response = database[payment.originModelId];
         resolve(response);
       }, latency);
     });
@@ -78,7 +81,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
 
   private paid(payment: Payment, latency: number) {
     setTimeout(() => {
-      database[payment.paymentId].status = "PAID";
+      database[payment.originModelId].status = "PAID";
     }, latency);
     return;
   }

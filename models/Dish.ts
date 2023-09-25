@@ -12,6 +12,7 @@ import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier, Modifier } from "../interfaces/Modifier";
 import { Adapter } from "../adapters";
+import { CustomData, isCustomData } from "../interfaces/CustomData";
 
 let attributes = {
   /** */
@@ -225,9 +226,8 @@ let attributes = {
   */
 
 
-  customData: "json" as unknown as {
-    [key: string]: string | boolean | number;
-  },
+  customData: "json" as unknown as CustomData,
+
 };
 
 interface IVirtualFields {
@@ -241,7 +241,7 @@ interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">,
 export default Dish;
 
 let Model = {
-  beforeCreate(init: any, cb:  (err?: string) => void) {
+  beforeCreate(init: Dish, cb:  (err?: string) => void) {
     emitter.emit('core:dish-before-create', init);
     if (!init.id) {
       init.id = uuid();
@@ -250,11 +250,24 @@ let Model = {
     if (!init.concept) {
       init.concept = "origin"
     }
+
+    if(!isCustomData(init.customData)){
+      init.customData = {}
+    }
+
     cb();
   },
 
-  beforeUpdate: function (record, cb:  (err?: string) => void) {
-    emitter.emit('core:dish-before-update', record);
+  beforeUpdate: async function (value: Dish, cb:  (err?: string) => void) {
+    emitter.emit('core:dish-before-update', value);
+    if(value.customData) {
+      if (value.id !== undefined) {
+        let current = await Dish.findOne({id: value.id});
+        if(!isCustomData(current.customData)) current.customData = {}
+        let customData = {...current.customData, ...value.customData} 
+        value.customData = customData;
+      }
+    }
     return cb();
   },
 

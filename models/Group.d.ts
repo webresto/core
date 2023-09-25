@@ -103,10 +103,11 @@ declare let Model: {
      */
     getGroupBySlug(groupSlug: string): Promise<Group>;
     display(criteria: CriteriaQuery<Group>): Promise<Group[]>;
+    getMenuTree(menu?: Group[], option?: "only_ids" | "tree" | "flat_tree"): Promise<string[]>;
     /**
      * Menu for navbar
      * */
-    getMenuGroups(concept: string, topLevelGroupId?: string): Promise<Group[]>;
+    getMenuGroups(concept?: string, topLevelGroupId?: string): Promise<Group[]>;
     /**
      * Checks whether the group exists, if it does not exist, then creates a new one and returns it.
      * @param values

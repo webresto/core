@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../libs/checkExpression");
-const slugify_1 = require("slugify");
+const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
+const slugify_1 = __importDefault(require("slugify"));
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 let attributes = {
@@ -236,6 +239,41 @@ let Model = {
             }
         }
         return updatedDishes;
+    },
+    // Recursive function to get all child groups
+    async getMenuTree(menu, option = "only_ids") {
+        if (option === "tree") {
+            throw `not implemented yet`;
+        }
+        if (!menu) {
+            menu = await Group.getMenuGroups();
+        }
+        let allGroups = [];
+        for (let group of menu) {
+            const groupId = group.id;
+            const initialGroup = await Group.findOne({ id: groupId });
+            if (initialGroup) {
+                allGroups.push(initialGroup);
+                const childGroups = await getAllChildGroups(groupId);
+                allGroups = allGroups.concat(childGroups);
+            }
+        }
+        async function getAllChildGroups(groupId) {
+            let childGroups = await Group.find({ parentGroup: groupId });
+            let allChildGroups = [];
+            for (let group of childGroups) {
+                allChildGroups.push(group);
+                const subChildGroups = await getAllChildGroups(group.id);
+                allChildGroups = allChildGroups.concat(subChildGroups);
+            }
+            return allChildGroups;
+        }
+        if (option === "flat_tree") {
+            return allGroups;
+        }
+        if (option === "only_ids") {
+            return allGroups.map(group => group.id);
+        }
     },
     /**
      * Menu for navbar

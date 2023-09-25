@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 import hashCode from "../libs/hashCode";
 import { RequiredField } from "../interfaces/toolsTS";
 import City from "./City";
+import { CustomData, isCustomData } from "../interfaces/CustomData";
 
 let attributes = {
   /** ID */
@@ -29,29 +30,58 @@ let attributes = {
     type:'boolean'
   } as unknown as boolean,
   
+  /** Street has delited */
+  enable: { 
+    type:'boolean',
+    allowNull: true
+  } as unknown as boolean,
+  
+  
   city: {
     model: 'city'
   } as unknown as City | string,
 
-  customData: "json" as unknown as {
-    [key: string]: string | boolean | number;
-  } | string,
+  customData: "json" as unknown as CustomData,
 };
 
 type attributes = typeof attributes;
 interface Street extends RequiredField<Partial<attributes>, "name">, ORM {}
 export default Street;
 
+
+/**
+ * Pelase emit core:streets:updated after finish update streets
+ */
 let Model = {
+  async beforeUpdate(value: Street, cb:  (err?: string) => void) {
+    if(value.customData) {
+      if (value.id !== undefined) {
+        let current = await Street.findOne({id: value.id});
+        if(!isCustomData(current.customData)) current.customData = {}
+        let customData = {...current.customData, ...value.customData} 
+        value.customData = customData;
+      }
+    }
+    cb();
+  },
+
   beforeCreate(streetInit: any, cb:  (err?: string) => void) {
     if (!streetInit.id) {
       streetInit.id = uuid();
     }
 
-    if(streetInit.isDeleted === undefined) {
+    if(streetInit.isDeleted === undefined || streetInit.isDeleted === null) {
       streetInit.isDeleted = false
     }
+
+    if(streetInit.enable === undefined || streetInit.enable === null) {
+      streetInit.enable = true
+    }
     
+    if(!isCustomData(streetInit.customData)){
+      streetInit.customData = {}
+    }
+
     cb();
   },
 

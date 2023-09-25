@@ -30,10 +30,17 @@ export default abstract class PaymentAdapter {
 
   /**
    * Verification of payment
-   * @param paymentDocument - Платежный документ
+   * @param paymentDocument - Payment document
    * @return the result of the function, the body of the answer and the result of the result (you do not need to save the model)
    */
   public abstract checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
+
+  /**
+   * Cancel of payment
+   * @param paymentDocument - Payment document
+   * @return the result of the function, the body of the answer and the result of the result (you do not need to save the model)
+   */
+  public abstract cancelPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
 
   /**
    * Method for creating and obtaining an existing Payment Adapter

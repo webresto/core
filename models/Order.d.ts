@@ -7,6 +7,7 @@ import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
 import Dish from "./Dish";
+import Place from "./Place";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
@@ -70,6 +71,7 @@ declare let attributes: {
     rmsErrorCode: string;
     rmsStatusCode: string;
     deliveryStatus: string;
+    pickupPoint: string | Place;
     selfService: boolean;
     delivery: Delivery;
     /** Notification about delivery
@@ -188,6 +190,7 @@ declare let Model: {
         rmsErrorCode?: string;
         rmsStatusCode?: string;
         deliveryStatus?: string;
+        pickupPoint?: string | Place;
         selfService?: boolean;
         delivery?: Delivery;
         deliveryDescription?: string;

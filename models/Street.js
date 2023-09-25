@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const hashCode_1 = require("../libs/hashCode");
+const hashCode_1 = __importDefault(require("../libs/hashCode"));
+const CustomData_1 = require("../interfaces/CustomData");
 let attributes = {
     /** ID */
     id: {
@@ -20,18 +24,44 @@ let attributes = {
     isDeleted: {
         type: 'boolean'
     },
+    /** Street has delited */
+    enable: {
+        type: 'boolean',
+        allowNull: true
+    },
     city: {
         model: 'city'
     },
     customData: "json",
 };
+/**
+ * Pelase emit core:streets:updated after finish update streets
+ */
 let Model = {
+    async beforeUpdate(value, cb) {
+        if (value.customData) {
+            if (value.id !== undefined) {
+                let current = await Street.findOne({ id: value.id });
+                if (!(0, CustomData_1.isCustomData)(current.customData))
+                    current.customData = {};
+                let customData = { ...current.customData, ...value.customData };
+                value.customData = customData;
+            }
+        }
+        cb();
+    },
     beforeCreate(streetInit, cb) {
         if (!streetInit.id) {
             streetInit.id = (0, uuid_1.v4)();
         }
-        if (streetInit.isDeleted === undefined) {
+        if (streetInit.isDeleted === undefined || streetInit.isDeleted === null) {
             streetInit.isDeleted = false;
+        }
+        if (streetInit.enable === undefined || streetInit.enable === null) {
+            streetInit.enable = true;
+        }
+        if (!(0, CustomData_1.isCustomData)(streetInit.customData)) {
+            streetInit.customData = {};
         }
         cb();
     },

@@ -1,3 +1,6 @@
+/**
+ * // TODO: Abandoned because we gone to global chages from Dish to Item
+ */
 import { AdditionalInfo } from "./checkExpression";
 import Dish from "../models/Dish";
 import Group from "../models/Group";

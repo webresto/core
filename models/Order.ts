@@ -8,6 +8,7 @@ import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
 import Dish from "./Dish";
+import Place from "./Place";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
@@ -123,6 +124,9 @@ let attributes = {
   deliveryStatus: "string",
 
   //state: "string",
+  pickupPoint: {
+      model: "Place",
+  } as unknown as Place | string,
 
   selfService: {
     type: "boolean",
@@ -632,6 +636,7 @@ let Model = {
     if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
     if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
 
+
     //const order: Order = await Order.findOne(criteria);
     if (order.paid) {
       sails.log.error("CART > Check > error", order.id, "order is paid");
@@ -649,6 +654,8 @@ let Model = {
 
     sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
 
+    // Start checking
+    await Order.next(order.id, "CART");
     if (customer) {
       await checkCustomerInfo(customer);
       order.customer = {...customer};
@@ -1039,14 +1046,17 @@ let Model = {
   },
 
 
-async countCart(criteria: CriteriaQuery<Order>) {
+  async countCart(criteria: CriteriaQuery<Order>) {
     try {
       
       let order = await Order.findOne(criteria);
 
       emitter.emit("core-order-before-count", order);
 
-      if (!["CART", "CHECKOUT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
+      /**
+       *  // TODO: If countCart from payment or other changes from payment it should cancel all payment request
+       */
+      if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
 
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
       // const orderDishesClone = {}
@@ -1268,7 +1278,7 @@ async countCart(criteria: CriteriaQuery<Order>) {
     try {
       let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
       await Order.update(
-        { id: paymentDocument.paymentId },
+        { id: paymentDocument.originModelId },
         {
           paid: true,
           paymentMethod: paymentDocument.paymentMethod,

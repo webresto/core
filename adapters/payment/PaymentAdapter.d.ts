@@ -21,10 +21,16 @@ export default abstract class PaymentAdapter {
     abstract createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string): Promise<PaymentResponse>;
     /**
      * Verification of payment
-     * @param paymentDocument - Платежный документ
+     * @param paymentDocument - Payment document
      * @return the result of the function, the body of the answer and the result of the result (you do not need to save the model)
      */
     abstract checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
+    /**
+     * Cancel of payment
+     * @param paymentDocument - Payment document
+     * @return the result of the function, the body of the answer and the result of the result (you do not need to save the model)
+     */
+    abstract cancelPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
     /**
      * Method for creating and obtaining an existing Payment Adapter
      * Since there can be a lot of an adapter, this is a direct way to obtain an adapter from his class

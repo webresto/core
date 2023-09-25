@@ -22,6 +22,8 @@ global.NotificationManager = new NotificationManager
  * Set global NotificationManager
  */
 import { Adapter } from "../adapters/index";
+import bindAdminpanel from "./bindAdminpanel";
+import bindLocales from "./bindLocales";
 // @ts-ignore
 global.Adapter = Adapter
 
@@ -62,9 +64,14 @@ export default function ToInitialize(sails: Sails) {
 
     // Bind dictonaries
     bindDictonaries();
-    /**
-     * Bind models
-     */
+    
+    // Bind locales
+    bindLocales();
+
+    // Bind sails-adminpanel configuraton
+    bindAdminpanel();
+
+    // Bind models
     HookTools.bindModels(resolve(__dirname, "../models")).then(cb);
   };
 }

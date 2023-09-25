@@ -43,7 +43,7 @@ declare let attributes: {
     /** Unique ID in PaymentDocument */
     id: string;
     /** corresponds to ID from the Origin Model model */
-    paymentId: string;
+    originModelId: string;
     /** ID in the external system */
     externalId: string;
     /** Model from which payment is made*/
@@ -70,19 +70,7 @@ export default PaymentDocument;
 declare let Model: {
     beforeCreate(paymentDocumentInit: any, cb: (err?: string) => void): void;
     doCheck: (criteria: any) => Promise<PaymentDocument>;
-    /**
-     * Registred new payment
-     * @param paymentId
-     * @param originModel
-     * @param amount
-     * @param paymentMethodId
-     * @param backLinkSuccess
-     * @param backLinkFail
-     * @param comment
-     * @param data
-     * @returns
-     */
-    register: (paymentId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;
+    register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: any) => Promise<void>;
     /** Payment check cycle*/
     processor: (timeout: number) => Promise<NodeJS.Timeout>;

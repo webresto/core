@@ -1,44 +1,44 @@
 type func = (...args: any) => any | Promise<any>;
 /**
- * Класс, позволяющий создавать события и ожидать исполнения их подписок, будь то синхронная функция или функция, возвращающая
- * Promise. В момент выполнения события запускает все подписки на исполнение, запоминая результат работы каждой (успешный,
- * с ошибкой или время ожидания вышло).
+ * A class that allows you to create events and wait for the execution of their subscriptions, whether it is a synchronous function or a function that returns
+ * Promise.At the moment of execution of the event, it starts all execution subscriptions, remembering the result of each (successful,
+ * with an error or timed out).
  */
 export default class AwaitEmitter {
     events: Event[];
     name: string;
     timeout: number;
     /**
-     * @param name - название нового эмиттера
-     * @param timeout - указывает сколько милисекунд ожидать функции, которые возвращают Promise.
+     * @param name - name of the new emitter
+     * @param timeout - specifies how many milliseconds to wait for functions that return a Promise.
      */
     constructor(name: string, timeout?: number);
     /**
-     * Подписка на событие
-     * @param name - название события
-     * @param fn - функция подписчик
+     * Event subscription
+     * @param name - event name
+     * @param fn - subscriber function
      */
     on(name: string, fn: func): AwaitEmitter;
     /**
      * Подписка на событие
-     * @param name - название события
-     * @param label - метка подписчика (используется для отладки)
-     * @param fn - функция подписчика
+     * @param name - event name
+     * @param label - subscriber label (used for debugging)
+     * @param fn - subscriber function
      */
     on(name: string, label: string, fn: func): AwaitEmitter;
     /**
-     * Эмиттит событие с названием name иаргументами args. Если функция подписчик отдаёт не Promise, то она считается синхронной
-     * и выполняется сразу же, если же функция слушатель возвращает Promise, то она вместе с остальными такими же слушателями
-     * выполняется параллельно, при этом может быть превышено время ожидание. Если слушатель при этом выполнится после
-     * превышения времени ожидания, то будет выведенно соответствующее сообщение
-     * @param name - название события
-     * @param args - аргументы
-     * @return Массив объектов Response
+      * Emits an event with name name and args.If the subscriber function does not return a Promise, then it is considered synchronous
+     * and is executed immediately, if the listener function returns a Promise, then it, along with the rest of the same listeners
+     * runs in parallel and may time out.If the listener is then executed after
+     * timeout, an appropriate message will be displayed
+     * @param name - event name
+     * @param args - arguments
+     * @return Array of Response objects
      */
     emit(name: string, ...args: any): Promise<Response[]>;
 }
 /**
- * Объект собятия, хранит название события и его слушателей
+ * Event object, stores the name of the event and its listeners
  */
 declare class Event {
     name: string;
@@ -49,8 +49,8 @@ declare class Event {
     constructor(name: string);
 }
 /**
- * Объект ответа, содержит пометку откуда был слушатель, состояние результат (успех, ошибка, таймаут) и результат или
- * ошибку, которые вернула или вызвала функция
+ * Response object, contains a mark where the listener came from, the state of the result (success, error, timeout) and the result or
+ * error returned or called by the function
  */
 declare class Response {
     label: string;
