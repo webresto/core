@@ -399,7 +399,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('onetimepassword', {
     columns: {
     "id": {
-        "type": "bigint",
+        "type": "int",
         "autoIncrement": true,
         "primaryKey": true
     },
@@ -591,7 +591,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('orderdish', {
     columns: {
     "id": {
-        "type": "bigint",
+        "type": "int",
         "autoIncrement": true,
         "primaryKey": true
     },
@@ -853,7 +853,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('settings', {
     columns: {
     "id": {
-        "type": "bigint",
+        "type": "int",
         "autoIncrement": true,
         "primaryKey": true
     },
@@ -1223,7 +1223,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('dish_images__mediafile_dish', {
     columns: {
     "id": {
-        "type": "bigint",
+        "type": "int",
         "notNull": true,
         "autoIncrement": true
     },
@@ -1239,7 +1239,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('group_images__mediafile_group', {
     columns: {
     "id": {
-        "type": "bigint",
+        "type": "int",
         "notNull": true,
         "autoIncrement": true
     },
