@@ -123,6 +123,11 @@ let Model = {
         if (!concept)
             throw "concept is required";
         let activePromotionIds = promotionAdapter.getActivePromotionsIds();
+        if (concept[0] === "") {
+            let filteredRAM = promotionRAM.filter(promotion => (promotion.concept === undefined || promotion.concept === "")
+                && (0, stringsInArray_1.stringsInArray)(promotion.id, activePromotionIds));
+            return filteredRAM;
+        }
         let filteredRAM = promotionRAM.filter(promotion => (0, stringsInArray_1.stringsInArray)(promotion.concept, concept)
             && (0, stringsInArray_1.stringsInArray)(promotion.id, activePromotionIds));
         if (!filteredRAM)
