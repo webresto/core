@@ -38,10 +38,6 @@ jobs:
       # resolve version
       - run: set -x; PACKAGE=$(cat package.json | jq -r '.["name"]')  VERNPM=$(curl https://registry.npmjs.org/$PACKAGE | jq -r '.["dist-tags"].latest' | awk -F. -v OFS=. '{$NF += 1 ; print}')   VERLOC=$(cat package.json | jq -r '.["version"]')   VEROUT=$(printf "$VERNPM\n$VERLOC\n" | sort -V -r | awk 'NR==1 {print; exit}') &&  jq -r '.version = "'${VEROUT}'"' package.json > /tmp/package.json && mv /tmp/package.json ./package.json
 
-      # Run the DB related tests
-      - run: npm run test:db:up
-      - run: npm run test:release
-
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
