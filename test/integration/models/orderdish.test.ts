@@ -22,19 +22,21 @@ describe("OrderDish", function () {
     const orderDish = await OrderDish.create(orderDishExample).fetch();
     orderDishId = orderDish.id;
     expect(orderDish).to.include.all.keys(
-      "amount",
-      "dish",
-      "modifiers",
-      "order",
-      "discount",
-      "parent",
-      "uniqueItems",
-      "itemTotal",
-      "discountTotal",
-      "comment",
-      "addedBy",
-      "weight",
-      "totalWeight"
+    "amount",
+    "dish",
+    "modifiers",
+    "order",
+    "uniqueItems",
+    "itemTotal",
+    "itemTotalBeforeDiscount",
+    "discountTotal",
+    "discountType",
+    "discountAmount",
+    "discountMessage",
+    "comment",
+    "addedBy",
+    "weight",
+    "totalWeight"
     );
   });
 });
