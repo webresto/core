@@ -20,6 +20,6 @@ describe("OrderDish", function () {
     it("create", async function () {
         const orderDish = await OrderDish.create(orderDishExample).fetch();
         orderDishId = orderDish.id;
-        (0, chai_1.expect)(orderDish).to.include.all.keys("amount", "dish", "modifiers", "order", "discount", "parent", "uniqueItems", "itemTotal", "discountTotal", "comment", "addedBy", "weight", "totalWeight");
+        (0, chai_1.expect)(orderDish).to.include.all.keys("amount", "dish", "modifiers", "order", "uniqueItems", "itemTotal", "itemTotalBeforeDiscount", "discountTotal", "discountType", "discountAmount", "discountMessage", "comment", "addedBy", "weight", "totalWeight");
     });
 });
