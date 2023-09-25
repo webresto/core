@@ -21,14 +21,14 @@ exports.up = function (db, callback) {
     (cb) => db.createTable('bonusprogram', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "name": {
-        "type": "string"
+        "type": "text"
     },
     "adapter": {
-        "type": "string",
+        "type": "text",
         "unique": true
     },
     "exchangeRate": {
@@ -44,13 +44,13 @@ exports.up = function (db, callback) {
         "type": "real"
     },
     "description": {
-        "type": "string"
+        "type": "text"
     },
     "iconLink": {
-        "type": "string"
+        "type": "text"
     },
     "detailInfoLink": {
-        "type": "string"
+        "type": "text"
     },
     "enable": {
         "type": "boolean"
@@ -73,14 +73,14 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('city', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "externalId": {
-        "type": "string"
+        "type": "text"
     },
     "name": {
-        "type": "string"
+        "type": "text"
     },
     "isDeleted": {
         "type": "boolean"
@@ -100,45 +100,45 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('dish', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "rmsId": {
-        "type": "string"
+        "type": "text"
     },
     "additionalInfo": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "code": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "description": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "ingredients": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "name": {
-        "type": "string"
+        "type": "text"
     },
     "seoDescription": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "seoKeywords": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "seoText": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "seoTitle": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "carbohydrateAmount": {
@@ -173,22 +173,22 @@ exports.up = function (db, callback) {
         "notNull": false
     },
     "groupId": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "measureUnit": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "price": {
         "type": "real"
     },
     "productCategoryId": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "type": {
-        "type": "string"
+        "type": "text"
     },
     "weight": {
         "type": "real",
@@ -206,6 +206,9 @@ exports.up = function (db, callback) {
     "modifiers": {
         "type": "json"
     },
+    "parentGroup": {
+        "type": "string"
+    },
     "tags": {
         "type": "json"
     },
@@ -214,13 +217,13 @@ exports.up = function (db, callback) {
         "defaultValue": -1
     },
     "slug": {
-        "type": "string"
+        "type": "text"
     },
     "concept": {
-        "type": "string"
+        "type": "text"
     },
     "hash": {
-        "type": "string"
+        "type": "text"
     },
     "visible": {
         "type": "boolean"
@@ -249,58 +252,64 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('group', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "rmsId": {
-        "type": "string"
+        "type": "text"
     },
     "additionalInfo": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "code": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "description": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "isDeleted": {
         "type": "boolean"
     },
     "name": {
-        "type": "string"
+        "type": "text"
     },
     "seoDescription": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "seoKeywords": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "seoText": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "seoTitle": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "sortOrder": {
         "type": "real"
     },
+    "parentGroup": {
+        "type": "string"
+    },
     "icon": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
-    "slug": {
+    "dishesPlaceholder": {
         "type": "string"
     },
+    "slug": {
+        "type": "text"
+    },
     "concept": {
-        "type": "string"
+        "type": "text"
     },
     "visible": {
         "type": "boolean"
@@ -329,14 +338,14 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('maintenance', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "title": {
-        "type": "string"
+        "type": "text"
     },
     "description": {
-        "type": "string"
+        "type": "text"
     },
     "enable": {
         "type": "boolean",
@@ -346,10 +355,10 @@ exports.up = function (db, callback) {
         "type": "json"
     },
     "startDate": {
-        "type": "string"
+        "type": "text"
     },
     "stopDate": {
-        "type": "string"
+        "type": "text"
     },
     "createdAt": {
         "type": "bigint"
@@ -363,20 +372,20 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('mediafile', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "images": {
         "type": "json"
     },
     "original": {
-        "type": "string"
+        "type": "text"
     },
     "sortOrder": {
         "type": "real"
     },
     "uploadDate": {
-        "type": "string"
+        "type": "text"
     },
     "createdAt": {
         "type": "bigint"
@@ -395,10 +404,10 @@ exports.up = function (db, callback) {
         "primaryKey": true
     },
     "login": {
-        "type": "string"
+        "type": "text"
     },
     "password": {
-        "type": "string"
+        "type": "text"
     },
     "expires": {
         "type": "real"
@@ -415,20 +424,23 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('order', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "shortId": {
-        "type": "string"
+        "type": "text"
     },
     "concept": {
-        "type": "string"
+        "type": "text"
     },
     "isMixedConcept": {
         "type": "boolean"
     },
+    "paymentMethod": {
+        "type": "int"
+    },
     "paymentMethodTitle": {
-        "type": "string"
+        "type": "text"
     },
     "paid": {
         "type": "boolean",
@@ -441,7 +453,7 @@ exports.up = function (db, callback) {
     "promotionState": {
         "type": "json"
     },
-    "isPromoted": {
+    "isPromoting": {
         "type": "boolean"
     },
     "dishesCount": {
@@ -460,13 +472,13 @@ exports.up = function (db, callback) {
         "type": "json"
     },
     "comment": {
-        "type": "string"
+        "type": "text"
     },
     "personsCount": {
-        "type": "string"
+        "type": "text"
     },
     "date": {
-        "type": "string"
+        "type": "text"
     },
     "problem": {
         "type": "boolean",
@@ -477,28 +489,31 @@ exports.up = function (db, callback) {
         "defaultValue": false
     },
     "rmsId": {
-        "type": "string"
+        "type": "text"
     },
     "rmsOrderNumber": {
-        "type": "string"
+        "type": "text"
     },
     "rmsOrderData": {
         "type": "json"
     },
     "rmsDeliveryDate": {
-        "type": "string"
+        "type": "text"
     },
     "rmsErrorMessage": {
-        "type": "string"
+        "type": "text"
     },
     "rmsErrorCode": {
-        "type": "string"
+        "type": "text"
     },
     "rmsStatusCode": {
-        "type": "string"
+        "type": "text"
     },
     "deliveryStatus": {
-        "type": "string"
+        "type": "text"
+    },
+    "pickupPoint": {
+        "type": "int"
     },
     "selfService": {
         "type": "boolean",
@@ -508,11 +523,14 @@ exports.up = function (db, callback) {
         "type": "json"
     },
     "deliveryDescription": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "message": {
-        "type": "string"
+        "type": "text"
+    },
+    "deliveryItem": {
+        "type": "int"
     },
     "deliveryCost": {
         "type": "real",
@@ -550,9 +568,12 @@ exports.up = function (db, callback) {
         "defaultValue": 0
     },
     "orderDate": {
-        "type": "string"
+        "type": "text"
     },
     "deviceId": {
+        "type": "text"
+    },
+    "user": {
         "type": "string"
     },
     "customData": {
@@ -577,8 +598,14 @@ exports.up = function (db, callback) {
     "amount": {
         "type": "real"
     },
+    "dish": {
+        "type": "int"
+    },
     "modifiers": {
         "type": "json"
+    },
+    "order": {
+        "type": "int"
     },
     "uniqueItems": {
         "type": "real"
@@ -593,19 +620,19 @@ exports.up = function (db, callback) {
         "type": "real"
     },
     "discountType": {
-        "type": "string"
+        "type": "text"
     },
     "discountAmount": {
         "type": "real"
     },
     "discountMessage": {
-        "type": "string"
+        "type": "text"
     },
     "comment": {
-        "type": "string"
+        "type": "text"
     },
     "addedBy": {
-        "type": "string",
+        "type": "text",
         "defaultValue": "user"
     },
     "weight": {
@@ -626,17 +653,22 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('paymentdocument', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
-    "paymentId": {
-        "type": "string"
+    "originModelId": {
+        "type": "text"
     },
     "externalId": {
-        "type": "string"
+        "type": "text",
+        "unique": true,
+        "notNull": false
     },
     "originModel": {
-        "type": "string"
+        "type": "text"
+    },
+    "paymentMethod": {
+        "type": "int"
     },
     "amount": {
         "type": "real"
@@ -646,17 +678,17 @@ exports.up = function (db, callback) {
         "defaultValue": false
     },
     "status": {
-        "type": "string",
+        "type": "text",
         "defaultValue": "NEW"
     },
     "comment": {
-        "type": "string"
+        "type": "text"
     },
     "redirectLink": {
-        "type": "string"
+        "type": "text"
     },
     "error": {
-        "type": "string"
+        "type": "text"
     },
     "data": {
         "type": "json"
@@ -673,34 +705,37 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('paymentmethod', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "externalId": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "title": {
-        "type": "string"
+        "type": "text"
     },
     "type": {
-        "type": "string"
+        "type": "text"
     },
     "isCash": {
         "type": "boolean"
     },
     "adapter": {
-        "type": "string",
+        "type": "text",
         "unique": true
     },
     "sortOrder": {
         "type": "real"
     },
     "description": {
-        "type": "string"
+        "type": "text"
     },
     "enable": {
         "type": "boolean"
+    },
+    "customData": {
+        "type": "json"
     },
     "createdAt": {
         "type": "bigint"
@@ -714,20 +749,20 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('place', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "title": {
-        "type": "string"
+        "type": "text"
     },
     "address": {
-        "type": "string"
+        "type": "text"
     },
     "order": {
         "type": "real"
     },
     "phone": {
-        "type": "string"
+        "type": "text"
     },
     "enable": {
         "type": "boolean"
@@ -759,12 +794,12 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('promotion', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "unique": true,
         "primaryKey": true
     },
     "externalId": {
-        "type": "string",
+        "type": "text",
         "unique": true
     },
     "configDiscount": {
@@ -774,7 +809,7 @@ exports.up = function (db, callback) {
         "type": "boolean"
     },
     "name": {
-        "type": "string"
+        "type": "text"
     },
     "concept": {
         "type": "json"
@@ -783,7 +818,7 @@ exports.up = function (db, callback) {
         "type": "real"
     },
     "description": {
-        "type": "string"
+        "type": "text"
     },
     "isPublic": {
         "type": "boolean"
@@ -801,7 +836,7 @@ exports.up = function (db, callback) {
         "type": "boolean"
     },
     "hash": {
-        "type": "string"
+        "type": "text"
     },
     "worktime": {
         "type": "json"
@@ -823,20 +858,20 @@ exports.up = function (db, callback) {
         "primaryKey": true
     },
     "key": {
-        "type": "string",
+        "type": "text",
         "unique": true
     },
     "description": {
-        "type": "string"
+        "type": "text"
     },
     "value": {
         "type": "json"
     },
     "section": {
-        "type": "string"
+        "type": "text"
     },
     "from": {
-        "type": "string"
+        "type": "text"
     },
     "readOnly": {
         "type": "boolean"
@@ -853,20 +888,27 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('street', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "externalId": {
-        "type": "string"
+        "type": "text"
     },
     "name": {
-        "type": "string"
+        "type": "text"
     },
     "hash": {
-        "type": "string"
+        "type": "text"
     },
     "isDeleted": {
         "type": "boolean"
+    },
+    "enable": {
+        "type": "boolean",
+        "notNull": false
+    },
+    "city": {
+        "type": "string"
     },
     "customData": {
         "type": "json"
@@ -883,29 +925,29 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('user', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "unique": true,
         "primaryKey": true
     },
     "login": {
-        "type": "string"
+        "type": "text"
     },
     "firstName": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "lastName": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "email": {
-        "type": "string"
+        "type": "text"
     },
     "phone": {
         "type": "json"
     },
     "birthday": {
-        "type": "string"
+        "type": "text"
     },
     "verified": {
         "type": "boolean"
@@ -914,14 +956,14 @@ exports.up = function (db, callback) {
         "type": "boolean"
     },
     "passwordHash": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "lastPasswordChange": {
         "type": "real"
     },
     "temporaryCode": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "orderCount": {
@@ -948,7 +990,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('userbonusprogram', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "balance": {
@@ -960,8 +1002,14 @@ exports.up = function (db, callback) {
     "isActive": {
         "type": "boolean"
     },
-    "syncedToTime": {
+    "user": {
         "type": "string"
+    },
+    "bonusProgram": {
+        "type": "string"
+    },
+    "syncedToTime": {
+        "type": "text"
     },
     "customData": {
         "type": "json"
@@ -978,17 +1026,17 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('userbonustransaction', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "externalId": {
-        "type": "string"
+        "type": "text"
     },
     "isNegative": {
         "type": "boolean"
     },
     "group": {
-        "type": "string"
+        "type": "text"
     },
     "amount": {
         "type": "real"
@@ -1003,6 +1051,12 @@ exports.up = function (db, callback) {
         "type": "boolean"
     },
     "time": {
+        "type": "text"
+    },
+    "bonusProgram": {
+        "type": "string"
+    },
+    "user": {
         "type": "string"
     },
     "customData": {
@@ -1020,20 +1074,23 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('userdevice', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "name": {
-        "type": "string"
+        "type": "text"
     },
     "userAgent": {
-        "type": "string"
+        "type": "text"
     },
     "isLogined": {
         "type": "boolean"
     },
-    "lastIP": {
+    "user": {
         "type": "string"
+    },
+    "lastIP": {
+        "type": "text"
     },
     "loginTime": {
         "type": "real"
@@ -1042,7 +1099,7 @@ exports.up = function (db, callback) {
         "type": "real"
     },
     "sessionId": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "customData": {
@@ -1060,50 +1117,56 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('userlocation', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "name": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "city": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "home": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "housing": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "index": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "entrance": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "floor": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "apartment": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "doorphone": {
-        "type": "string",
+        "type": "text",
         "notNull": false
+    },
+    "street": {
+        "type": "string"
     },
     "isDefault": {
         "type": "boolean"
     },
+    "user": {
+        "type": "string"
+    },
     "comment": {
-        "type": "string",
+        "type": "text",
         "notNull": false
     },
     "customData": {
@@ -1121,7 +1184,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('userorderhistory', {
     columns: {
     "id": {
-        "type": "string",
+        "type": "text",
         "primaryKey": true
     },
     "uniqueItems": {
@@ -1140,10 +1203,13 @@ exports.up = function (db, callback) {
         "type": "real"
     },
     "comment": {
-        "type": "string"
+        "type": "text"
     },
     "totalWeight": {
         "type": "real"
+    },
+    "user": {
+        "type": "string"
     },
     "createdAt": {
         "type": "bigint"
@@ -1170,38 +1236,6 @@ exports.up = function (db, callback) {
 },
     ifNotExists: true
   }, cb),
-(cb) => db.createTable('group_dishes__dish_parentGroup', {
-    columns: {
-    "id": {
-        "type": "int",
-        "notNull": true,
-        "autoIncrement": true
-    },
-    "group_dishes": {
-        "type": "string"
-    },
-    "dish_parentGroup": {
-        "type": "string"
-    }
-},
-    ifNotExists: true
-  }, cb),
-(cb) => db.createTable('group_childGroups__group_parentGroup', {
-    columns: {
-    "id": {
-        "type": "int",
-        "notNull": true,
-        "autoIncrement": true
-    },
-    "group_childGroups": {
-        "type": "string"
-    },
-    "group_parentGroup": {
-        "type": "string"
-    }
-},
-    ifNotExists: true
-  }, cb),
 (cb) => db.createTable('group_images__mediafile_group', {
     columns: {
     "id": {
@@ -1213,102 +1247,6 @@ exports.up = function (db, callback) {
         "type": "string"
     },
     "mediafile_group": {
-        "type": "string"
-    }
-},
-    ifNotExists: true
-  }, cb),
-(cb) => db.createTable('order_dishes__OrderDish_order', {
-    columns: {
-    "id": {
-        "type": "int",
-        "notNull": true,
-        "autoIncrement": true
-    },
-    "order_dishes": {
-        "type": "string"
-    },
-    "OrderDish_order": {
-        "type": "string"
-    }
-},
-    ifNotExists: true
-  }, cb),
-(cb) => db.createTable('user_favorites__dish_id', {
-    columns: {
-    "id": {
-        "type": "int",
-        "notNull": true,
-        "autoIncrement": true
-    },
-    "user_favorites": {
-        "type": "string"
-    },
-    "dish_id": {
-        "type": "string"
-    }
-},
-    ifNotExists: true
-  }, cb),
-(cb) => db.createTable('user_bonusProgram__userbonusprogram_user', {
-    columns: {
-    "id": {
-        "type": "int",
-        "notNull": true,
-        "autoIncrement": true
-    },
-    "user_bonusProgram": {
-        "type": "string"
-    },
-    "userbonusprogram_user": {
-        "type": "string"
-    }
-},
-    ifNotExists: true
-  }, cb),
-(cb) => db.createTable('user_history__UserOrderHistory_user', {
-    columns: {
-    "id": {
-        "type": "int",
-        "notNull": true,
-        "autoIncrement": true
-    },
-    "user_history": {
-        "type": "string"
-    },
-    "UserOrderHistory_user": {
-        "type": "string"
-    }
-},
-    ifNotExists: true
-  }, cb),
-(cb) => db.createTable('user_locations__UserLocation_user', {
-    columns: {
-    "id": {
-        "type": "int",
-        "notNull": true,
-        "autoIncrement": true
-    },
-    "user_locations": {
-        "type": "string"
-    },
-    "UserLocation_user": {
-        "type": "string"
-    }
-},
-    ifNotExists: true
-  }, cb),
-(cb) => db.createTable('user_devices__UserDevice_user', {
-    columns: {
-    "id": {
-        "type": "int",
-        "notNull": true,
-        "autoIncrement": true
-    },
-    "user_devices": {
-        "type": "string"
-    },
-    "UserDevice_user": {
         "type": "string"
     }
 },
