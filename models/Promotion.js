@@ -126,8 +126,13 @@ let Model = {
         if (!concept)
             throw "concept is required";
         let activePromotionIds = promotionAdapter.getActivePromotionsIds();
+        console.log("getAllByConcept ", concept);
         if (concept[0] === "") {
+<<<<<<< HEAD
             // console.log("")
+=======
+            console.log("getAllByConcept ", concept);
+>>>>>>> origin/HEAD
             let filteredRAM = promotionRAM.filter(promotion => (promotion.concept[0] === undefined || promotion.concept[0] === "")
                 && (0, stringsInArray_1.stringsInArray)(promotion.id, activePromotionIds));
             return filteredRAM;
