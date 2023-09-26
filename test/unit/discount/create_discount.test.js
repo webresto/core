@@ -21,7 +21,7 @@ describe('Create_Discount', function () {
             },
             name: "1-name",
             description: "string",
-            concept: ["a", "b", "c", "d", "e"],
+            concept: [],
             condition: (arg) => {
                 if ((0, findModelInstance_1.default)(arg) === "Order" && discountEx.concept.includes(arg.concept)) {
                     // Order.populate()

@@ -31,7 +31,10 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         this.externalId = promotion.externalId;
     }
     condition(arg) {
-        if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+        // console.log("==================================== aaaaa")
+        if ((0, findModelInstance_1.default)(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
+            ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+            // console.log("==================================== ")
             let order = arg;
             // TODO:  if order.dishes type number[]
             let orderDishes = order.dishes;
@@ -41,13 +44,15 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 return true;
             return false;
         }
-        if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "")
+            ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.dishes);
             // if(this.config.dishes.includes(arg.id)){
             //     return true;
             // }
         }
-        if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "")
+            ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.groups);
             // if(this.config.groups.includes(arg.id)){
             //     return true;
@@ -56,7 +61,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         return false;
     }
     async action(order) {
-        // console.log(this.config + "  action")
+        //  console.log(this.config + "  action")
         let mass = await this.applyPromotion(order.id);
         return mass;
     }
@@ -99,7 +104,8 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                     sails.log.error("orderDish", orderDish.id, "has no such dish");
                     continue;
                 }
-                if (!(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, this.concept)) {
+                if ((this.concept[0] === undefined || this.concept[0] === "") ?
+                    false : !(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, this.concept)) {
                     continue;
                 }
                 let checkDishes = (0, stringsInArray_1.stringsInArray)(orderDish.dish.id, this.config.dishes);
@@ -136,7 +142,17 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         return {
             message: `${this.description}`,
             type: "configured-promotion",
-            state: {}
+            state: {
+                currentModeName: "Mode name",
+                currentThresholdDescription: "description",
+                icon: undefined,
+                message: "description",
+                thresholdDeliveryTimeInMinutes: 30,
+                thresholds: {
+                    fromBasketAmount: 112,
+                    description: "thresholds",
+                }
+            }
         };
     }
 }

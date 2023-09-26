@@ -43,7 +43,10 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     public externalId: string;
 
     public  condition(arg: Group | Dish | Order): boolean {
-        if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept) ) {
+      // console.log("==================================== aaaaa")
+        if (findModelInstanceByAttributes(arg) === "Order" &&  (this.concept[0] === undefined || this.concept[0] === "") 
+              ? true : stringsInArray(arg.concept, this.concept) ) {
+          // console.log("==================================== ")
           let order:Order = arg as Order
           // TODO:  if order.dishes type number[]
           let orderDishes:OrderDish[] = order.dishes as OrderDish[]
@@ -56,14 +59,16 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           return false;
         }
         
-        if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, this.concept)) {
+        if (findModelInstanceByAttributes(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") 
+        ? true : stringsInArray(arg.concept, this.concept)) {
             return stringsInArray(arg.id, this.config.dishes)
             // if(this.config.dishes.includes(arg.id)){
             //     return true;
             // }
         }
         
-        if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, this.concept)) {
+        if (findModelInstanceByAttributes(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "") 
+        ? true : stringsInArray(arg.concept, this.concept)) {
             return stringsInArray(arg.id, this.config.groups)
             // if(this.config.groups.includes(arg.id)){
             //     return true;
@@ -74,7 +79,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     }
     
     public async action(order: Order): Promise<PromotionState> {
-        // console.log(this.config + "  action")
+        //  console.log(this.config + "  action")
         let mass:PromotionState = await this.applyPromotion(order.id)
         return mass
     }
@@ -128,7 +133,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
               continue;
             }
     
-            if (!stringsInArray(orderDish.dish.concept, this.concept)) {
+            if ((this.concept[0] === undefined || this.concept[0] === "") ?
+               false : !stringsInArray(orderDish.dish.concept, this.concept)) {
               continue;
             }
 
@@ -171,7 +177,17 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
         return {
           message: `${this.description}`,
           type: "configured-promotion",
-          state: {}
+          state: {
+              currentModeName: "Mode name",
+              currentThresholdDescription: "description",
+              icon:  undefined,
+              message: "description",
+              thresholdDeliveryTimeInMinutes: 30,
+              thresholds: {
+                fromBasketAmount: 112,
+                description: "thresholds",
+              }
+          }
       } 
         
     }

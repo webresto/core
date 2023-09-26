@@ -127,11 +127,12 @@ let Model = {
             throw "concept is required";
         let activePromotionIds = promotionAdapter.getActivePromotionsIds();
         if (concept[0] === "") {
-            let filteredRAM = promotionRAM.filter(promotion => (promotion.concept === undefined || promotion.concept === "")
+            // console.log("")
+            let filteredRAM = promotionRAM.filter(promotion => (promotion.concept[0] === undefined || promotion.concept[0] === "")
                 && (0, stringsInArray_1.stringsInArray)(promotion.id, activePromotionIds));
             return filteredRAM;
         }
-        let filteredRAM = promotionRAM.filter(promotion => (0, stringsInArray_1.stringsInArray)(promotion.concept, concept)
+        let filteredRAM = promotionRAM.filter(promotion => (0, stringsInArray_1.stringsInArray)(promotion.concept, concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
             && (0, stringsInArray_1.stringsInArray)(promotion.id, activePromotionIds));
         if (!filteredRAM)
             throw "Promotion with concept: " + concept + " not found";

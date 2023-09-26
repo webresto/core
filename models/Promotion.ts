@@ -183,18 +183,16 @@ let Model = {
 
     if (!concept) throw "concept is required";
     let activePromotionIds = promotionAdapter.getActivePromotionsIds()
-    
-    // TODO DELETE THIS
     if(concept[0] === ""){
-      console.log("")
+      // console.log("")
       let filteredRAM = promotionRAM.filter(promotion => 
-        (promotion.concept === undefined || promotion.concept === "")
+        (promotion.concept[0] === undefined || promotion.concept[0] === "")
         && stringsInArray(promotion.id,activePromotionIds))
         return filteredRAM;
     }
 
     let filteredRAM = promotionRAM.filter(promotion => 
-      stringsInArray(promotion.concept,concept)
+      stringsInArray(promotion.concept,concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
       && stringsInArray(promotion.id,activePromotionIds))
 
     if (!filteredRAM) throw "Promotion with concept: " + concept + " not found";

@@ -22,7 +22,7 @@ describe('Create_Discount', function () {
               },
             name: "1-name",
             description: "string",
-            concept: ["a", "b", "c", "d", "e"],
+            concept: [],
             condition:  (arg: Group | Dish | Order): boolean => {
                 if (findModelInstanceByAttributes(arg) === "Order" && discountEx.concept.includes(arg.concept)) {
                     // Order.populate()
