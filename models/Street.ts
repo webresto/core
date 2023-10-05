@@ -16,7 +16,8 @@ let attributes = {
 
   /** Id in external system */
   externalId: {
-    type: "string"
+    type: "string",
+    allowNull: true
   } as unknown as string,
   
   /** Name of street */

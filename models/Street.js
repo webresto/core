@@ -14,7 +14,8 @@ let attributes = {
     },
     /** Id in external system */
     externalId: {
-        type: "string"
+        type: "string",
+        allowNull: true
     },
     /** Name of street */
     name: "string",
