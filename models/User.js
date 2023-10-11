@@ -48,6 +48,10 @@ let attributes = {
         allowNull: true,
         isNotEmptyString: true
     },
+    sex: {
+        type: 'number',
+        allowNull: true,
+    },
     email: {
         type: 'string',
         isEmail: true

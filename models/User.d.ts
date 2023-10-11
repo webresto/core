@@ -17,6 +17,7 @@ declare let attributes: {
     login: string;
     firstName: string;
     lastName: string;
+    sex: number;
     email: string;
     /**
      * Its a basic login field

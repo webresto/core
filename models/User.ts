@@ -45,6 +45,11 @@ let attributes = {
     isNotEmptyString: true
   } as unknown as string,
 
+  sex: {
+    type: 'number',
+    allowNull: true,
+  } as unknown as number,
+
   email: {
     type: 'string',
     isEmail: true
