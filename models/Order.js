@@ -68,7 +68,10 @@ let attributes = {
     comment: "string",
     personsCount: "string",
     /** The desired date and delivery time*/
-    date: "string",
+    date: {
+        type: "string",
+        allowNull: true
+    },
     problem: {
         type: "boolean",
         defaultsTo: false,

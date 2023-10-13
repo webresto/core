@@ -101,7 +101,10 @@ let attributes = {
   personsCount: "string",
 
   /** The desired date and delivery time*/  
-  date: "string",
+  date: {
+    type: "string",
+    allowNull: true
+  } as unknown as string,
 
   problem: {
     type: "boolean",
