@@ -177,7 +177,8 @@ let Model = {
         if (!orderInit.shortId) {
             orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
         }
-        orderInit = "CART";
+        orderInit.promotionState = [];
+        orderInit.state = "CART";
         cb();
     },
     /** Add dish into order */
