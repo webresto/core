@@ -101,7 +101,10 @@ let attributes = {
   personsCount: "string",
 
   /** The desired date and delivery time*/  
-  date: "string",
+  date: {
+    type: "string",
+    allowNull: true
+  } as unknown as string,
 
   problem: {
     type: "boolean",
@@ -238,7 +241,7 @@ interface Order extends ORM, OptionalAll<attributes> {}
 export default Order;
 
 let Model = {
-  beforeCreate(orderInit: any, cb:  (err?: string) => void) {
+  beforeCreate(orderInit: Order, cb:  (err?: string) => void) {
     if (!orderInit.id) {
       orderInit.id = uuid();
     }
@@ -247,7 +250,9 @@ let Model = {
       orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
     }
 
-    orderInit = "CART";
+    orderInit.promotionState = []
+
+    orderInit.state = "CART";
     cb();
   },
 

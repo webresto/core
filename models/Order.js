@@ -68,7 +68,10 @@ let attributes = {
     comment: "string",
     personsCount: "string",
     /** The desired date and delivery time*/
-    date: "string",
+    date: {
+        type: "string",
+        allowNull: true
+    },
     problem: {
         type: "boolean",
         defaultsTo: false,
@@ -177,7 +180,8 @@ let Model = {
         if (!orderInit.shortId) {
             orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
         }
-        orderInit = "CART";
+        orderInit.promotionState = [];
+        orderInit.state = "CART";
         cb();
     },
     /** Add dish into order */
