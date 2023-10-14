@@ -32,7 +32,7 @@ export declare class Adapter {
     /**
      * retruns BonusProgram-adapter
      */
-    static getBonusProgramAdapter(adapterName?: string, initParams?: {
+    static getBonusProgramAdapter(adapter?: string | BonusProgramAdapter, initParams?: {
         [key: string]: string | number | boolean;
     }): Promise<BonusProgramAdapter>;
     /**

@@ -33,6 +33,7 @@ const defaultOTP_1 = require("./otp/default/defaultOTP");
 const local_1 = __importDefault(require("./mediafile/default/local"));
 const MediaFileAdapter_1 = __importDefault(require("./mediafile/MediaFileAdapter"));
 const fs = __importStar(require("fs"));
+const BonusProgramAdapter_1 = __importDefault(require("./bonusprogram/BonusProgramAdapter"));
 const DeliveryAdapter_1 = __importDefault(require("./delivery/DeliveryAdapter"));
 const defaultDelivery_1 = require("./delivery/default/defaultDelivery");
 const promotionAdapter_1 = require("./promotion/default/promotionAdapter");
@@ -108,7 +109,19 @@ class Adapter {
     /**
      * retruns BonusProgram-adapter
      */
-    static async getBonusProgramAdapter(adapterName, initParams) {
+    static async getBonusProgramAdapter(adapter, initParams) {
+        let adapterName;
+        if (adapter) {
+            if (typeof adapter === "string") {
+                adapterName = adapter;
+            }
+            else if (adapter instanceof BonusProgramAdapter_1.default) {
+                return adapter;
+            }
+            else {
+                throw new Error("Adapter should be a string or instance of BonusProgramAdapter");
+            }
+        }
         if (!adapterName) {
             let defaultAdapterName = (await Settings.get("DEFAULT_BONUS_ADAPTER"));
             if (!defaultAdapterName)

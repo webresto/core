@@ -102,7 +102,19 @@ export class Adapter {
   /**
    * retruns BonusProgram-adapter
    */
-  public static async getBonusProgramAdapter(adapterName?: string, initParams?: { [key: string]: string | number | boolean }): Promise<BonusProgramAdapter> {
+  public static async getBonusProgramAdapter(adapter?: string | BonusProgramAdapter, initParams?: { [key: string]: string | number | boolean }): Promise<BonusProgramAdapter> {
+    
+    let adapterName: string;
+    if (adapter) {
+      if (typeof adapter === "string") {
+        adapterName = adapter;
+      } else if (adapter instanceof BonusProgramAdapter) {
+        return adapter;
+      } else {
+        throw new Error("Adapter should be a string or instance of BonusProgramAdapter");
+      }
+    }
+
     if (!adapterName) {
       let defaultAdapterName = (await Settings.get("DEFAULT_BONUS_ADAPTER")) as string;
       if (!defaultAdapterName) throw "BonusProgramAdapter is not set ";
