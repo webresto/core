@@ -68,6 +68,8 @@ Bonuses will be added to the order during the order check, but they will be dedu
 
 In the event that the external bonus system fails to deduct bonuses but the site has deducted them, the UserBonusTransaction model will have a transaction record flagged as `isStable: false`. Such transactions should be handled by the bonus system adapter. In case of an error, the bonus system can be disabled from the core using the property `DISABLE_BONUSPROGRAM_ON_ERROR`.
 
+**[todo:]** - If external system has method for check stability, core should check it after 
+
 ### User
 
 For a user to utilize the bonus system, it needs to be enabled for them. By default, all activated bonus systems will be available to the user. However, if a bonus system is disabled for a specific user, it should be turned off from the adapter (i.e., from the external system). This is managed through the UserBonusProgram model property `active`.

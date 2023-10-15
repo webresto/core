@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryBonusProgramAdapter = void 0;
 const BonusProgramAdapter_1 = __importDefault(require("../../../adapters/bonusprogram/BonusProgramAdapter"));
+const fakerStatic = require("faker");
 class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
     constructor(config) {
         super(config);
@@ -22,6 +23,7 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
             this.users.set(user.id, user);
             this.transactions.set(user.id, []);
         }
+        return fakerStatic.random.uuid();
     }
     async delete(user) {
         if (this.users.has(user.id)) {
@@ -40,7 +42,7 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
         const transactions = this.transactions.get(user.id) || [];
         return transactions.filter((transaction) => new Date(transaction.time) > afterTime).slice(skip, limit || undefined);
     }
-    async writeTransaction(bonusProgram, user, userBonusTransaction) {
+    async writeTransaction(user, _ubp, userBonusTransaction) {
         if (!this.users.has(user.id)) {
             throw new Error("User not found");
         }

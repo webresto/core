@@ -15,6 +15,7 @@ let attributes = {
      * */
     externalId: {
         type: "string",
+        allowNull: true
     },
     /** Type of bonuses (default: true)
      * came is incoming (positive transaction)
@@ -23,6 +24,8 @@ let attributes = {
     isNegative: "boolean",
     /** Custom badges */
     group: "string",
+    /** Text */
+    comment: "string",
     amount: {
         type: "number",
     },
@@ -115,7 +118,7 @@ let Model = {
                 let bonusProgramAdapterTransaction = {};
                 if (record.isStable !== true) {
                     try {
-                        bonusProgramAdapterTransaction = await bonusProgramAdapter.writeTransaction(bonusProgram, user, record);
+                        bonusProgramAdapterTransaction = await bonusProgramAdapter.writeTransaction(user, userBonus, record);
                     }
                     catch (error) {
                         if ((await Settings.get("DISABLE_BONUS_PROGRAM_ON_FAIL")) === true) {

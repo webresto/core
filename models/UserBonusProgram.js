@@ -14,6 +14,14 @@ let attributes = {
         type: "string",
         //required: true,
     },
+    /** External id for bonus program */
+    externalId: {
+        type: "string"
+    },
+    /** id for customer in external program */
+    externalCustomerId: {
+        type: "string"
+    },
     balance: {
         type: 'number'
     },
@@ -46,10 +54,11 @@ let Model = {
         if (typeof user === "string") {
             user = await User.findOne({ id: user });
         }
-        await bp.registration(user);
+        let extId = await bp.registration(user);
         return await UserBonusProgram.create({
             user: user.id,
             balance: 0,
+            externalId: extId,
             isActive: true,
             isDeleted: false,
             bonusProgram: bp.id,

@@ -7,12 +7,14 @@ import { ORMModel } from "../interfaces/ORMModel";
 declare let attributes: {
     /** ID */
     id: string;
+    externalId: string;
     name: string;
     adapter: string;
     /** Exchange price for website currency */
     exchangeRate: number;
     /** How much can you spend from the amount of the order */
     coveragePercentage: number;
+    hasTransactionSupport: boolean;
     decimals: number;
     sortOrder: number;
     description: string;

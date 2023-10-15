@@ -17,6 +17,8 @@ declare let attributes: {
     isNegative: boolean;
     /** Custom badges */
     group: string;
+    /** Text */
+    comment: string;
     amount: number;
     /** automatic recalculate */
     balanceAfter: number;

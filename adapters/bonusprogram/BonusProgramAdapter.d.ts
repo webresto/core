@@ -1,5 +1,5 @@
 import UserBonusTransaction from "../../models/UserBonusTransaction";
-import BonusProgram from "../../models/BonusProgram";
+import UserBonusProgram from "../../models/UserBonusProgram";
 import User from "../../models/User";
 export type ConfigBonusProgramAdapter = {
     [key: string]: number | boolean | string;
@@ -10,14 +10,29 @@ interface optionalId {
 export interface BonusTransaction extends Pick<UserBonusTransaction, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter">, optionalId {
 }
 export default abstract class BonusProgramAdapter {
+    /** Id program in external system */
+    externalId: string;
     id: string;
     readonly config: ConfigBonusProgramAdapter;
     /** Adapter name */
     abstract readonly name: string;
     abstract readonly adapter: string;
+    /**
+     * Excahange rate for main currency in core
+     */
     abstract readonly exchangeRate: number;
+    /**
+     * How many bonuses can be spent for order
+     */
     abstract readonly coveragePercentage: number;
+    /**
+     * Fixed after dot eg: 1.22, 0.9, 123
+     */
     abstract readonly decimals: number;
+    /**
+     * If external bonus program not have transaction list support, it disable core algorythms for check transactions.
+     */
+    abstract readonly hasTransactionSupport: boolean;
     abstract readonly description: string;
     constructor(config?: ConfigBonusProgramAdapter);
     /**
@@ -32,7 +47,7 @@ export default abstract class BonusProgramAdapter {
     /**
      * Registration user
      */
-    abstract registration(user: User): Promise<void>;
+    abstract registration(user: User): Promise<string>;
     /**
      * Delete user
      */
@@ -44,7 +59,7 @@ export default abstract class BonusProgramAdapter {
     /**
      * write user transaction
      */
-    abstract writeTransaction(bonusProgram: BonusProgram, user: User, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction>;
+    abstract writeTransaction(user: User, userBonusProgram: UserBonusProgram, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction>;
     /**
      * Return user
      * @param afterTime - UNIX seconds

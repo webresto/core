@@ -19,6 +19,7 @@ let attributes = {
    * */ 
   externalId: {
     type: "string",
+    allowNull: true
   } as unknown as string,
 
   /** Type of bonuses (default: true)
@@ -29,6 +30,9 @@ let attributes = {
 
   /** Custom badges */
   group: "string",
+
+  /** Text */
+  comment: "string",
 
   amount: {
     type: "number",
@@ -149,7 +153,7 @@ let Model = {
         let bonusProgramAdapterTransaction = {} as BonusTransaction;
         if (record.isStable !== true) {
           try {
-           bonusProgramAdapterTransaction = await bonusProgramAdapter.writeTransaction(bonusProgram, user, record);
+           bonusProgramAdapterTransaction = await bonusProgramAdapter.writeTransaction(user, userBonus, record);
           } catch (error) {
             if ((await Settings.get("DISABLE_BONUS_PROGRAM_ON_FAIL")) === true) {
               await BonusProgram.updateOne({ id: bonusProgram.id }, { enable: false });

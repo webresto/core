@@ -21,6 +21,17 @@ let attributes = {
     //required: true,
   } as unknown as Readonly<string>,
 
+  /** External id for bonus program */
+  externalId: {
+    type: "string"
+  } as unknown as string,
+
+  /** id for customer in external program */
+  externalCustomerId: {
+    type: "string"
+  } as unknown as string,
+
+
   balance: {
     type: 'number'
   } as unknown as number,
@@ -73,11 +84,12 @@ let Model = {
       user = await User.findOne({id: user})
     }
     
-    await bp.registration(user);
+    let extId = await bp.registration(user);
 
     return await UserBonusProgram.create({
       user: user.id, 
       balance: 0,
+      externalId: extId,
       isActive: true,
       isDeleted: false,
       bonusProgram: bp.id,

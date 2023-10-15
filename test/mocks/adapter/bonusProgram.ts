@@ -2,8 +2,10 @@ import BonusProgramAdapter, { BonusTransaction, ConfigBonusProgramAdapter } from
 import User from "../../../models/User";
 import BonusProgram from "../../../models/BonusProgram";
 import UserBonusTransaction from "../../../models/UserBonusTransaction";
-
+import UserBonusProgram from "../../../models/UserBonusProgram";
+import fakerStatic = require("faker");
 export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
+  public hasTransactionSupport: boolean;
   private transactions: Map<string, BonusTransaction[]> = new Map();
   private users: Map<string, User> = new Map();
 
@@ -18,11 +20,12 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     super(config);
   }
 
-  public async registration(user: User): Promise<void> {
+  public async registration(user: User): Promise<string> {
     if (!this.users.has(user.id)) {
       this.users.set(user.id, user);
       this.transactions.set(user.id, []);
     }
+    return fakerStatic.random.uuid()
   }
 
   public async delete(user: User): Promise<void> {
@@ -46,7 +49,7 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     return transactions.filter((transaction) => new Date(transaction.time) > afterTime).slice(skip, limit || undefined);
   }
 
-  public async writeTransaction(bonusProgram: BonusProgram, user: User, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction> {
+  public async writeTransaction(user: User, _ubp: UserBonusProgram, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction> {
     if (!this.users.has(user.id)) {
       throw new Error("User not found");
     }

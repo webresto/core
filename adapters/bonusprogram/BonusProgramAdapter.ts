@@ -1,4 +1,5 @@
 import UserBonusTransaction from "../../models/UserBonusTransaction";
+import UserBonusProgram from "../../models/UserBonusProgram";
 import BonusProgram from "../../models/BonusProgram";
 import User from "../../models/User";
 
@@ -12,6 +13,9 @@ interface optionalId {
 export interface BonusTransaction extends Pick<UserBonusTransaction, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter" >, optionalId {}
 
 export default abstract class BonusProgramAdapter {
+  /** Id program in external system */
+  public externalId: string;
+
   public id: string;
   public readonly config: ConfigBonusProgramAdapter = {};
 
@@ -20,9 +24,26 @@ export default abstract class BonusProgramAdapter {
 
   public abstract readonly adapter: string;
 
+
+  /** 
+   * Excahange rate for main currency in core
+   */
   public abstract readonly exchangeRate: number;
+
+  /** 
+   * How many bonuses can be spent for order
+   */
   public abstract readonly coveragePercentage: number;
+
+  /**
+   * Fixed after dot eg: 1.22, 0.9, 123
+   */
   public abstract readonly decimals: number;
+
+  /**
+   * If external bonus program not have transaction list support, it disable core algorythms for check transactions.
+   */
+  public abstract readonly hasTransactionSupport: boolean;
   public abstract readonly description: string;
 
   public constructor(config?: ConfigBonusProgramAdapter) {
@@ -46,7 +67,7 @@ export default abstract class BonusProgramAdapter {
   /**
    * Registration user
    */
-  public abstract registration(user: User): Promise<void>;
+  public abstract registration(user: User): Promise<string>;
 
   /**
    * Delete user
@@ -61,7 +82,7 @@ export default abstract class BonusProgramAdapter {
   /**
    * write user transaction
    */
-  public abstract writeTransaction(bonusProgram: BonusProgram, user: User, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction>;
+  public abstract writeTransaction(user: User, userBonusProgram: UserBonusProgram, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction>;
 
   /**
    * Return user

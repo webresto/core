@@ -12,6 +12,9 @@ let attributes = {
         type: "string",
         //required: true,
     },
+    externalId: {
+        type: "string"
+    },
     name: {
         type: "string",
         required: true,
@@ -25,6 +28,7 @@ let attributes = {
     exchangeRate: "number",
     /** How much can you spend from the amount of the order */
     coveragePercentage: "number",
+    hasTransactionSupport: "boolean",
     decimals: "number",
     sortOrder: "number",
     description: "string",
@@ -86,11 +90,13 @@ let Model = {
         if (!knownBonusProgram) {
             knownBonusProgram = await BonusProgram.create({
                 name: bonusProgramAdapter.name,
+                externalId: bonusProgramAdapter.id,
                 adapter: bonusProgramAdapter.adapter,
                 exchangeRate: bonusProgramAdapter.exchangeRate,
                 coveragePercentage: bonusProgramAdapter.coveragePercentage,
                 decimals: bonusProgramAdapter.decimals,
                 description: bonusProgramAdapter.description,
+                hasTransactionSupport: bonusProgramAdapter.hasTransactionSupport,
                 enable: process.env.NODE_ENV !== "production" //For production adapter should be off on strart
             }).fetch();
         }
