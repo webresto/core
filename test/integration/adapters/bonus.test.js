@@ -7,11 +7,12 @@ let user;
 let bp;
 let bonusProgram;
 let order1;
-describe("bonus program adapter", function () {
+describe("bonus program adapter (with transaction support)", function () {
     this.timeout(60000);
     before(async function () {
         try {
             var testBA = new bonusProgram_1.InMemoryBonusProgramAdapter();
+            var testBA_noTransactions = new bonusProgram_1.InMemoryBonusProgramAdapter({ hasGetTransactionsSupport: false });
             await BonusProgram.alive(testBA);
             bonusProgram = (await BonusProgram.update({ adapter: "test" }, { enable: true }).fetch())[0];
             user = await User.create({ id: "handletestapply-bonus-id", login: "7723555", lastName: 'TESThandleTestApply', firstName: "test", phone: { code: "77", number: "23555" } }).fetch();

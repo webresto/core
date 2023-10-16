@@ -3,7 +3,7 @@ import User from "../../../models/User";
 import UserBonusTransaction from "../../../models/UserBonusTransaction";
 import UserBonusProgram from "../../../models/UserBonusProgram";
 export declare class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
-    hasTransactionSupport: boolean;
+    hasGetTransactionSupport: boolean;
     private transactions;
     private users;
     name: string;

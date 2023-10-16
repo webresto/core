@@ -28,7 +28,7 @@ let attributes = {
     exchangeRate: "number",
     /** How much can you spend from the amount of the order */
     coveragePercentage: "number",
-    hasTransactionSupport: "boolean",
+    hasGetTransactionSupport: "boolean",
     decimals: "number",
     sortOrder: "number",
     description: "string",
@@ -96,7 +96,7 @@ let Model = {
                 coveragePercentage: bonusProgramAdapter.coveragePercentage,
                 decimals: bonusProgramAdapter.decimals,
                 description: bonusProgramAdapter.description,
-                hasTransactionSupport: bonusProgramAdapter.hasTransactionSupport,
+                hasGetTransactionSupport: bonusProgramAdapter.hasGetTransactionSupport,
                 enable: process.env.NODE_ENV !== "production" //For production adapter should be off on strart
             }).fetch();
         }

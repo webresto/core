@@ -32,7 +32,7 @@ export default abstract class BonusProgramAdapter {
     /**
      * If external bonus program not have transaction list support, it disable core algorythms for check transactions.
      */
-    abstract readonly hasTransactionSupport: boolean;
+    abstract readonly hasGetTransactionSupport: boolean;
     abstract readonly description: string;
     constructor(config?: ConfigBonusProgramAdapter);
     /**

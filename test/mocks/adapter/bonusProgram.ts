@@ -5,7 +5,7 @@ import UserBonusTransaction from "../../../models/UserBonusTransaction";
 import UserBonusProgram from "../../../models/UserBonusProgram";
 import fakerStatic = require("faker");
 export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
-  public hasTransactionSupport: boolean;
+  public hasGetTransactionSupport: boolean = true;
   private transactions: Map<string, BonusTransaction[]> = new Map();
   private users: Map<string, User> = new Map();
 
@@ -14,10 +14,22 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
   public exchangeRate: number = 10;
   public coveragePercentage: number = 0.5;
   public decimals: number = 1;
-  public description: string = "In-memory BonusProgramAdapter";
+  public description: string = "In-memory BonusProgramAdapter (with transactions support)";
 
   public constructor(config?: ConfigBonusProgramAdapter) {
     super(config);
+
+    // for checking transaction support
+    if (config.hasGetTransactionSupport === false) {
+      this.hasGetTransactionSupport = false;
+    }
+
+    config.name  !== undefined ? this.name = config.name as string : "";
+    config.adapter !== undefined  ? this.adapter = config.adapter as string : "";
+    config.exchangeRate !== undefined  ? this.exchangeRate = config.exchangeRate as number : "";
+    config.coveragePercentage !== undefined  ? this.coveragePercentage = config.coveragePercentage as number : "";
+    config.decimals !== undefined  ? this.decimals = config.decimals as number : "";
+    config.description !== undefined ? this.description = config.description as string : "";
   }
 
   public async registration(user: User): Promise<string> {
@@ -45,6 +57,10 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
   }
 
   public async getTransactions(user: User, afterTime: Date, limit: number = 0, skip: number = 0): Promise<BonusTransaction[]> {
+    if(!this.hasGetTransactionSupport){
+      throw `this system is not support  get transactions`
+    }
+
     const transactions = this.transactions.get(user.id) || [];
     return transactions.filter((transaction) => new Date(transaction.time) > afterTime).slice(skip, limit || undefined);
   }
