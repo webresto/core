@@ -40,7 +40,6 @@ let attributes = {
   /** How much can you spend from the amount of the order */
   coveragePercentage: "number" as unknown as number,
 
-  hasGetTransactionSupport: "boolean" as unknown as boolean,
   decimals: "number" as unknown as number,
   
   sortOrder: "number" as unknown as number,
@@ -129,7 +128,6 @@ let Model = {
         coveragePercentage: bonusProgramAdapter.coveragePercentage,
         decimals: bonusProgramAdapter.decimals,
         description: bonusProgramAdapter.description,
-        hasGetTransactionSupport: bonusProgramAdapter.hasGetTransactionSupport,
         enable: process.env.NODE_ENV !== "production" //For production adapter should be off on strart
       }).fetch();
     }

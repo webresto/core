@@ -5,7 +5,6 @@ import UserBonusTransaction from "../../../models/UserBonusTransaction";
 import UserBonusProgram from "../../../models/UserBonusProgram";
 import fakerStatic = require("faker");
 export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
-  public hasGetTransactionSupport: boolean = true;
   private transactions: Map<string, BonusTransaction[]> = new Map();
   private users: Map<string, User> = new Map();
 
@@ -20,11 +19,6 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     super(config);
 
     if(config) {
-      // for checking transaction support
-      if (config.hasGetTransactionSupport === false) {
-        this.hasGetTransactionSupport = false;
-      }
-  
       config.name  !== undefined ? this.name = config.name as string : "";
       config.adapter !== undefined  ? this.adapter = config.adapter as string : "";
       config.exchangeRate !== undefined  ? this.exchangeRate = config.exchangeRate as number : "";
@@ -59,10 +53,6 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
   }
 
   public async getTransactions(user: User, afterTime: Date, limit: number = 0, skip: number = 0): Promise<BonusTransaction[]> {
-    if(!this.hasGetTransactionSupport){
-      throw `this system is not support  get transactions`
-    }
-
     const transactions = this.transactions.get(user.id) || [];
     return transactions.filter((transaction) => new Date(transaction.time) > afterTime).slice(skip, limit || undefined);
   }

@@ -9,7 +9,6 @@ const fakerStatic = require("faker");
 class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
     constructor(config) {
         super(config);
-        this.hasGetTransactionSupport = true;
         this.transactions = new Map();
         this.users = new Map();
         this.name = "test bonus adapter name";
@@ -19,10 +18,6 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
         this.decimals = 1;
         this.description = "In-memory BonusProgramAdapter (with transactions support)";
         if (config) {
-            // for checking transaction support
-            if (config.hasGetTransactionSupport === false) {
-                this.hasGetTransactionSupport = false;
-            }
             config.name !== undefined ? this.name = config.name : "";
             config.adapter !== undefined ? this.adapter = config.adapter : "";
             config.exchangeRate !== undefined ? this.exchangeRate = config.exchangeRate : "";
@@ -52,9 +47,6 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
         return transactions.reduce((total, transaction) => total + (transaction.isNegative ? -transaction.amount : transaction.amount), 0);
     }
     async getTransactions(user, afterTime, limit = 0, skip = 0) {
-        if (!this.hasGetTransactionSupport) {
-            throw `this system is not support  get transactions`;
-        }
         const transactions = this.transactions.get(user.id) || [];
         return transactions.filter((transaction) => new Date(transaction.time) > afterTime).slice(skip, limit || undefined);
     }

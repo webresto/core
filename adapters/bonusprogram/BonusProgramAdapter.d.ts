@@ -29,10 +29,6 @@ export default abstract class BonusProgramAdapter {
      * Fixed after dot eg: 1.22, 0.9, 123
      */
     abstract readonly decimals: number;
-    /**
-     * If external bonus program not have transaction list support, it disable core algorythms for check transactions.
-     */
-    abstract readonly hasGetTransactionSupport: boolean;
     abstract readonly description: string;
     constructor(config?: ConfigBonusProgramAdapter);
     /**

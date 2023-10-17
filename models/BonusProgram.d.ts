@@ -14,7 +14,6 @@ declare let attributes: {
     exchangeRate: number;
     /** How much can you spend from the amount of the order */
     coveragePercentage: number;
-    hasGetTransactionSupport: boolean;
     decimals: number;
     sortOrder: number;
     description: string;
