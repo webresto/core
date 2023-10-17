@@ -19,17 +19,19 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
   public constructor(config?: ConfigBonusProgramAdapter) {
     super(config);
 
-    // for checking transaction support
-    if (config.hasGetTransactionSupport === false) {
-      this.hasGetTransactionSupport = false;
+    if(config) {
+      // for checking transaction support
+      if (config.hasGetTransactionSupport === false) {
+        this.hasGetTransactionSupport = false;
+      }
+  
+      config.name  !== undefined ? this.name = config.name as string : "";
+      config.adapter !== undefined  ? this.adapter = config.adapter as string : "";
+      config.exchangeRate !== undefined  ? this.exchangeRate = config.exchangeRate as number : "";
+      config.coveragePercentage !== undefined  ? this.coveragePercentage = config.coveragePercentage as number : "";
+      config.decimals !== undefined  ? this.decimals = config.decimals as number : "";
+      config.description !== undefined ? this.description = config.description as string : "";
     }
-
-    config.name  !== undefined ? this.name = config.name as string : "";
-    config.adapter !== undefined  ? this.adapter = config.adapter as string : "";
-    config.exchangeRate !== undefined  ? this.exchangeRate = config.exchangeRate as number : "";
-    config.coveragePercentage !== undefined  ? this.coveragePercentage = config.coveragePercentage as number : "";
-    config.decimals !== undefined  ? this.decimals = config.decimals as number : "";
-    config.description !== undefined ? this.description = config.description as string : "";
   }
 
   public async registration(user: User): Promise<string> {

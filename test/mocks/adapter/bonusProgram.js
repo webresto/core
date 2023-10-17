@@ -18,16 +18,18 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
         this.coveragePercentage = 0.5;
         this.decimals = 1;
         this.description = "In-memory BonusProgramAdapter (with transactions support)";
-        // for checking transaction support
-        if (config.hasGetTransactionSupport === false) {
-            this.hasGetTransactionSupport = false;
+        if (config) {
+            // for checking transaction support
+            if (config.hasGetTransactionSupport === false) {
+                this.hasGetTransactionSupport = false;
+            }
+            config.name !== undefined ? this.name = config.name : "";
+            config.adapter !== undefined ? this.adapter = config.adapter : "";
+            config.exchangeRate !== undefined ? this.exchangeRate = config.exchangeRate : "";
+            config.coveragePercentage !== undefined ? this.coveragePercentage = config.coveragePercentage : "";
+            config.decimals !== undefined ? this.decimals = config.decimals : "";
+            config.description !== undefined ? this.description = config.description : "";
         }
-        config.name !== undefined ? this.name = config.name : "";
-        config.adapter !== undefined ? this.adapter = config.adapter : "";
-        config.exchangeRate !== undefined ? this.exchangeRate = config.exchangeRate : "";
-        config.coveragePercentage !== undefined ? this.coveragePercentage = config.coveragePercentage : "";
-        config.decimals !== undefined ? this.decimals = config.decimals : "";
-        config.description !== undefined ? this.description = config.description : "";
     }
     async registration(user) {
         if (!this.users.has(user.id)) {

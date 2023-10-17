@@ -14,6 +14,10 @@ let bonusProgram: BonusProgram;
 let bonusProgramNoTx: BonusProgram;
 let order1: Order;
 let order2: Order;
+
+let UBP: string;
+let UBPnoTX: string;
+
 describe("bonus program adapter (with transaction support)", function () {
   this.timeout(60000)
 
@@ -35,8 +39,9 @@ describe("bonus program adapter (with transaction support)", function () {
 
       user = await User.create({ id: "handletestapply-bonus-id", login: "7723555", lastName: 'TESThandleTestApply', firstName: "test", phone: { code: "77", number: "23555" } }).fetch();
       bp = await BonusProgram.getAdapter("test")
-      await UserBonusProgram.registration(user, "test");
-      await UserBonusProgram.registration(user, "test-notx");
+      
+      UBP = (await UserBonusProgram.registration(user, "test")).id;
+      UBPnoTX = (await UserBonusProgram.registration(user, "test-notx")).id;
 
       await UserBonusTransaction.create({bonusProgram: bp.id, user: user.id, isStable: true, amount: 100500, isNegative: false}).fetch()
       await UserBonusTransaction.create({bonusProgram: bp.id, user: user.id, isStable: true, amount: 123456, isNegative: false}).fetch()
@@ -47,8 +52,11 @@ describe("bonus program adapter (with transaction support)", function () {
   });
 
   it("bonus user must be registered and have balance", async () => {
-    const userBP = await UserBonusProgram.find({user: user.id});
-    expect(userBP[0].balance + userBP[1].balance).to.equal(100500+123456);
+    const userBP = await UserBonusProgram.findOne({id: UBP});
+    expect(userBP.balance + userBP.balance).to.equal(100500);
+
+    const userBPnoTX = await UserBonusProgram.findOne({id: UBPnoTX});
+    expect(userBP.balance + userBPnoTX.balance).to.equal(123456);
   });
 
   it("apply bonus in order on check (with tx)", async () => {
@@ -108,14 +116,15 @@ describe("bonus program adapter (with transaction support)", function () {
   it("order with bonus (with tx)", async () => {
     bonusProgram = (await BonusProgram.update({adapter: "test"}, {enable: true}).fetch())[0];
     await Order.order({id: order1.id})
-    let userBP = await UserBonusProgram.findOne({user: user.id});
+
+    let userBP = await UserBonusProgram.findOne({id: UBP});
 
     expect(userBP.balance).to.equal(100500 - 5.2);
   });
 
   it("order with bonus (with notx)", async () => {
     await Order.order({id: order2.id})
-    let userBP = await UserBonusProgram.findOne({user: user.id});
+    let userBP = await UserBonusProgram.findOne({id: UBPnoTX});
 
     expect(userBP.balance).to.equal(123456 - 6.5);
   });
