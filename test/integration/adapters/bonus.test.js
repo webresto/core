@@ -32,7 +32,7 @@ describe("bonus program adapter", function () {
     });
     it("bonus user must be registered and have balance", async () => {
         const userBP = await UserBonusProgram.findOne({ id: UBP });
-        (0, chai_1.expect)(userBP.balance + userBP.balance).to.equal(100500);
+        (0, chai_1.expect)(userBP.balance).to.equal(100500);
     });
     it("apply bonus in order on check", async () => {
         const dishes = await Dish.find({});

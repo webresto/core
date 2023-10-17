@@ -42,7 +42,7 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
     async isRegistred(user) {
         return this.users.has(user.id);
     }
-    async getBalance(user) {
+    async getBalance(user, _userBonusProgram) {
         const transactions = this.transactions.get(user.id) || [];
         return transactions.reduce((total, transaction) => total + (transaction.isNegative ? -transaction.amount : transaction.amount), 0);
     }
