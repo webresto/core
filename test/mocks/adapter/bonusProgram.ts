@@ -47,7 +47,7 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     return this.users.has(user.id);
   }
 
-  public async getBalance(user: User): Promise<number> {
+  public async getBalance(user: User, _userBonusProgram: UserBonusProgram): Promise<number> {
     const transactions = this.transactions.get(user.id) || [];
     return transactions.reduce((total, transaction) => total + (transaction.isNegative ? -transaction.amount : transaction.amount), 0);
   }
