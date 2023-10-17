@@ -225,7 +225,7 @@ let Model = {
             return parseFloat(balanceAfter.toFixed(fix))
       }
 
-      let balance =  parseFloat(new Decimal(await adapter.getBalance(user)).toFixed(bonusProgram.decimals));
+      let balance =  parseFloat(new Decimal(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
 
       if( balance !== lastTransaction.balanceAfter) {
         sails.log.warn(`balances for User: ${user.login}: ${user.id} not matched with external system ( ${balance} !== ${lastTransaction.balanceAfter})`)
@@ -268,7 +268,7 @@ let Model = {
     let adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
     if (!adapter) throw `No adapter ${bonusProgram.adapter}`
 
-    const externalBalance = new Decimal((await adapter.getBalance(user)).toFixed(bonusProgram.decimals));
+    const externalBalance = new Decimal((await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
     const userBalance = new Decimal(userBonusProgram.balance);
     
     /**

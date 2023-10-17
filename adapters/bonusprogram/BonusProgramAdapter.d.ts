@@ -39,7 +39,7 @@ export default abstract class BonusProgramAdapter {
     /**
      * Return user balance
      */
-    abstract getBalance(user: User): Promise<number>;
+    abstract getBalance(user: User, userBonusProgram: UserBonusProgram): Promise<number>;
     /**
      * Registration user
      */

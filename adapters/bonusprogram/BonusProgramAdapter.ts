@@ -56,7 +56,7 @@ export default abstract class BonusProgramAdapter {
   /**
    * Return user balance
    */
-  public abstract getBalance(user: User): Promise<number>;
+  public abstract getBalance(user: User, userBonusProgram: UserBonusProgram): Promise<number>;
 
 
   /**
