@@ -32,6 +32,7 @@ let attributes = {
     /** automatic recalculate */
     balanceAfter: {
         type: "number",
+        required: true
     },
     /** User can delete transaction */
     isDeleted: {

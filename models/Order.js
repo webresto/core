@@ -52,6 +52,11 @@ let attributes = {
     promotionState: {
         type: "json"
     },
+    promotionCode: {
+        model: "promotionCode",
+        allowNull: true
+    },
+    promotionCodeString: "string",
     /**
      ** Means that the basket was modified by the adapter,
      * It also prevents the repeat call of the action of the handler of the handler

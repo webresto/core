@@ -169,7 +169,7 @@ let Model = {
             }
             let balance = parseFloat(new decimal_js_1.default(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
             if (balance !== lastTransaction.balanceAfter) {
-                sails.log.warn(`balances for User: ${user.login}: ${user.id} not matched with external system ( ${balance} !== ${lastTransaction.balanceAfter})`);
+                sails.log.warn(`balances for user: ${user.login}: ${user.id} not matched with external system ( ${balance} !== ${lastTransaction.balanceAfter})`);
                 // Emmiter
             }
             await UserBonusProgram.update({ user: user.id }, { balance: balance }).fetch();

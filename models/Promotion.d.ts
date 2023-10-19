@@ -3,6 +3,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { IconfigDiscount } from "../interfaces/ConfigDiscount";
+import PromotionCode from "../models/PromotionCode";
 declare let attributes: {
     id: string;
     externalId: string;
@@ -20,6 +21,7 @@ declare let attributes: {
     productCategoryPromotions: any;
     /** User can disable this discount*/
     enable: boolean;
+    promotionCode: PromotionCode[];
     /** No active class in Discount Adapter */
     isDeleted: boolean;
     /** Хеш обекта скидки */

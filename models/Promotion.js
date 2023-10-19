@@ -72,6 +72,10 @@ let attributes = {
         type: "boolean",
         required: true,
     },
+    promotionCode: {
+        collection: "promotioncode",
+        via: "promotion",
+    },
     /** No active class in Discount Adapter */
     isDeleted: "boolean",
     /** Хеш обекта скидки */

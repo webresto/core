@@ -10,7 +10,7 @@ import { IconfigDiscount } from "../interfaces/ConfigDiscount";
 import { PromotionAdapter } from './../adapters/promotion/default/promotionAdapter';
 import AbstractPromotionHandler from "../adapters/promotion/AbstractPromotion";
 import { stringsInArray } from "../libs/stringsInArray";
-
+import PromotionCode from "../models/PromotionCode";
 
 // import Decimal from "decimal.js";
 // sails.on("lifted", function () {
@@ -93,6 +93,11 @@ let attributes = {
     type: "boolean",
     required: true,
   } as unknown as boolean,
+
+  promotionCode: {
+    collection: "promotioncode",
+    via: "promotion",
+  } as unknown as PromotionCode[],
 
   /** No active class in Discount Adapter */
   isDeleted: "boolean" as unknown as boolean,

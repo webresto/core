@@ -8,7 +8,8 @@ import Promotion from "../../../models/Promotion";
 import Group from "../../../models/Group";
 import Dish from "../../../models/Dish";
 import ConfiguredPromotion from "./configuredPromotion";
-
+import findModelInstanceByAttributes from "../../../libs/findModelInstance";
+import PromotionCode from "../../../models/PromotionCode";
 export class PromotionAdapter extends AbstractPromotionAdapter {
   static promotions: { [key: string]: AbstractPromotionHandler } = {};
   
@@ -18,7 +19,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     await PromotionAdapter.clearOfPromotion(order.id);
     // console.log(order, " ===================== ORDER")
     let filteredPromotion = PromotionAdapter.filterByConcept(order.concept);
-    let promotionByConcept: Promotion[] | undefined =   PromotionAdapter.filterPromotions(filteredPromotion, order);
+    let promotionByConcept: Promotion[] | undefined = PromotionAdapter.filterPromotions(filteredPromotion, order);
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
         let state = await PromotionAdapter.promotions[promotion.id].action(order);
@@ -63,13 +64,20 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return group;
   }
 
-  public static  filterByConcept(concept: string): Promotion[] {
+  public static filterByConcept(concept: string): Promotion[] {
     let modifiedConcept: string[];
     typeof concept === "string" ? (modifiedConcept = [concept]) : (modifiedConcept = concept);
     return Promotion.getAllByConcept(modifiedConcept);
   }
 
-  public static  filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[] {
+  public static filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[] {
+    /**
+     * If promotion enabled by promocode notJoint it will be disable all promotions and set promocode promotion
+     * If promocode promotion is joint it just will be applied by order
+     */
+    
+
+
     let filteredPromotionsToApply: Promotion[] = Object.values(promotionsByConcept)
       .filter((record) => {
         if (!record.worktime) return true;
@@ -82,6 +90,21 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const filteredByCondition: Promotion[] =  PromotionAdapter.filterByCondition(filteredPromotionsToApply, target);
+
+
+    // Promotion by PromotionCode not need filtred
+    if (findModelInstanceByAttributes(target) === "Order") {
+      const order = target as Order;
+      if (order.promotionCode) {
+        const promotionCode = order.promotionCode as PromotionCode
+        if (promotionCode.promotion.length) {
+          promotionCode.promotion.forEach((p)=>{
+            p.sortOrder = -Infinity;
+            promotionsByConcept.push(p)
+          });
+        }
+      }
+    }
 
     // return first isJoint = false
     let filteredByJointPromotions: Promotion[] = [
