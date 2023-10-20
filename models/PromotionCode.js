@@ -17,7 +17,7 @@ let attributes = {
         type: 'string',
         /**
         static - just one promocode
-        generated - uses promocodeGeneratorAdapter
+        generated - uses promocodeGeneratorAdapter TODO: see test/experiments dir
         serial - maybe pregenrated, need store
         external - connect to external system (bad way becose need make request)
          * */
@@ -41,7 +41,6 @@ let attributes = {
     },
     generateConfig: {
         type: "json",
-        allowNull: true
     },
     customData: "json",
 };
@@ -52,6 +51,12 @@ let Model = {
         }
         cb();
     },
+    /**
+     * Check promocode is work now
+     */
+    async getValidPromotionCode(promotionCodeString) {
+        return null;
+    }
 };
 module.exports = {
     primaryKey: "id",

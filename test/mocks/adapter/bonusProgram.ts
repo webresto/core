@@ -65,6 +65,7 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
       ...userBonusTransaction,
       id: `${Date.now()}-${Math.random()}`, // generating a random id
       time: new Date().toISOString(),
+      balanceAfter: 0
     };
     this.transactions.get(user.id).push(transaction);
     return transaction;

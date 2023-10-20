@@ -45,8 +45,13 @@ declare let attributes: {
      * This property can be used to portray the representations of promotions at the front
      */
     promotionState: PromotionState[];
-    promotionCode: PromotionCode;
+    promotionCode: string | PromotionCode;
     promotionCodeString: string;
+    /**
+     * Date untill promocode is valid
+     * This need for calculate promotion in realtime without request in DB
+     */
+    promotionCodeCheckValidTill: string;
     /**
      ** Means that the basket was modified by the adapter,
      * It also prevents the repeat call of the action of the handler of the handler
@@ -174,8 +179,9 @@ declare let Model: {
         paid?: boolean;
         isPaymentPromise?: boolean;
         promotionState?: PromotionState[];
-        promotionCode?: PromotionCode;
+        promotionCode?: string | PromotionCode;
         promotionCodeString?: string;
+        promotionCodeCheckValidTill?: string;
         isPromoting?: boolean;
         dishesCount?: number;
         uniqueDishes?: number;
@@ -218,6 +224,7 @@ declare let Model: {
     }>;
     countCart(criteria: CriteriaQuery<Order>): Promise<Order>;
     doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
+    applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string): Promise<void>;
 };
 declare global {
     const Order: typeof Model & ORMModel<Order, null> & StateFlowModel;

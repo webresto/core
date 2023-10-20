@@ -7,6 +7,7 @@ exports.PromotionAdapter = void 0;
 const AbstractPromotionAdapter_1 = __importDefault(require("../AbstractPromotionAdapter"));
 const worktime_1 = require("@webresto/worktime");
 const configuredPromotion_1 = __importDefault(require("./configuredPromotion"));
+const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     async processOrder(order) {
         const promotionStates = [];
@@ -58,6 +59,10 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         return Promotion.getAllByConcept(modifiedConcept);
     }
     static filterPromotions(promotionsByConcept, target) {
+        /**
+         * If promotion enabled by promocode notJoint it will be disable all promotions and set promocode promotion
+         * If promocode promotion is joint it just will be applied by order
+         */
         let filteredPromotionsToApply = Object.values(promotionsByConcept)
             .filter((record) => {
             if (!record.worktime)
@@ -71,6 +76,19 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         })
             .sort((a, b) => a.sortOrder - b.sortOrder);
         const filteredByCondition = PromotionAdapter.filterByCondition(filteredPromotionsToApply, target);
+        // Promotion by PromotionCode not need filtred
+        if ((0, findModelInstance_1.default)(target) === "Order") {
+            const order = target;
+            if (order.promotionCode) {
+                const promotionCode = order.promotionCode;
+                if (promotionCode.promotion.length) {
+                    promotionCode.promotion.forEach((p) => {
+                        p.sortOrder = -Infinity;
+                        promotionsByConcept.push(p);
+                    });
+                }
+            }
+        }
         // return first isJoint = false
         let filteredByJointPromotions = [
             filteredByCondition.find((promotion) => {

@@ -53,7 +53,6 @@ let attributes = {
 
   generateConfig: {
     type: "json",
-    allowNull: true
   } as unknown as any,
 
   customData: "json" as unknown as {

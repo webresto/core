@@ -27,6 +27,10 @@ interface PromotionCode extends attributes, ORM {
 export default PromotionCode;
 declare let Model: {
     beforeCreate(promotionCodeInit: any, cb: (err?: string) => void): void;
+    /**
+     * Check promocode is work now
+     */
+    getValidPromotionCode(promotionCodeString: string): Promise<PromotionCode>;
 };
 declare global {
     const PromotionCode: typeof Model & ORMModel<PromotionCode, null>;

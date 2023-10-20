@@ -85,15 +85,21 @@ let attributes = {
 
   promotionCode: {
     model: "promotionCode",
-    allowNull: true
   } as unknown as PromotionCode | string,
-  promotionCodeString: "string",
+
+  promotionCodeString: { 
+    type: "string",
+    allowNull: true
+  } as unknown as string,
   
   /**
    * Date untill promocode is valid
    * This need for calculate promotion in realtime without request in DB
    */
-  promotionCodeCheckValidTill: "string",
+  promotionCodeCheckValidTill: { 
+    type: "string",
+    allowNull: true
+  } as unknown as string,
 
   /**
    ** Means that the basket was modified by the adapter,

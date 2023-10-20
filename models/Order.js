@@ -54,9 +54,19 @@ let attributes = {
     },
     promotionCode: {
         model: "promotionCode",
+    },
+    promotionCodeString: {
+        type: "string",
         allowNull: true
     },
-    promotionCodeString: "string",
+    /**
+     * Date untill promocode is valid
+     * This need for calculate promotion in realtime without request in DB
+     */
+    promotionCodeCheckValidTill: {
+        type: "string",
+        allowNull: true
+    },
     /**
      ** Means that the basket was modified by the adapter,
      * It also prevents the repeat call of the action of the handler of the handler
@@ -975,6 +985,29 @@ let Model = {
                 let promotionAdapter = Adapter.getPromotionAdapter();
                 try {
                     order.isPromoting = true;
+                    // If promocode is valid and allowed 
+                    if (order.promotionCode !== null && order.promotionCodeString !== null && order.promotionCodeCheckValidTill !== null) {
+                        const currentDate = new Date();
+                        try {
+                            const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
+                            if (promotionEndDate > currentDate) {
+                                order.promotionCode = await PromotionCode.findOne({ id: order.promotionCode }).populate('promotion');
+                            }
+                            else {
+                                order.promotionCode = null;
+                                order.promotionCodeString = null;
+                                order.promotionCodeCheckValidTill = null;
+                            }
+                        }
+                        catch (error) {
+                            sails.log.error(`PromotionAdapter > Problem with parse Date`);
+                        }
+                    }
+                    else {
+                        order.promotionCode = null;
+                        order.promotionCodeString = null;
+                        order.promotionCodeCheckValidTill = null;
+                    }
                     let orderPopulate = { ...order };
                     orderPopulate.dishes = orderDishesForPopulate;
                     // console.log(orderDishesForPopulate)
@@ -1070,6 +1103,18 @@ let Model = {
             throw e;
         }
     },
+    async applyPromotionCode(criteria, promotionCodeString) {
+        let order = await Order.findOne(criteria);
+        const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
+        const isValidTill = "2099-01-01T00:00:00.000Z"; // TODO: recursive check Codes and Promotions
+        if (validPromotionCode) {
+            await Order.update({ id: order.id }, {
+                promotionCode: validPromotionCode.id,
+                promotionCodeCheckValidTill: isValidTill,
+                promotionCodeString: promotionCodeString
+            }).fetch();
+        }
+    }
 };
 // Waterline model export
 module.exports = {

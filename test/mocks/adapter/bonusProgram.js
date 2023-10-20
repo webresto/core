@@ -58,6 +58,7 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
             ...userBonusTransaction,
             id: `${Date.now()}-${Math.random()}`,
             time: new Date().toISOString(),
+            balanceAfter: 0
         };
         this.transactions.get(user.id).push(transaction);
         return transaction;
