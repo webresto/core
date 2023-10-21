@@ -145,13 +145,13 @@ let Model = {
         throw `User or BonusProgram not found: user: [${user}] bonusProgram: [${bonusProgram}]`
       }
   
-    
       const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
       const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
       let balance =  parseFloat(new Decimal(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
 
       // Should sync when balance is not equals
       force = balance !== userBonusProgram.balance;
+      console.log(force, balance, userBonusProgram.balance)
       if (!force) {
         // No sync if time not more 5 min
         const diffInMinutes: number = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60);  // Разница в миллисекундах
@@ -161,13 +161,12 @@ let Model = {
           return
         }
       }
-
+      
       if (!user || !bonusProgram || !userBonusProgram) {
         throw `sync > user, bonusprogram, userBonusProgram not found`
       }      
       
       let afterTime = new Date(0);
-    
       if(userBonusProgram.syncedToTime && userBonusProgram.syncedToTime !== "0"){
         try {
           afterTime = new Date(userBonusProgram.syncedToTime);
@@ -175,25 +174,17 @@ let Model = {
       } else {
         try {
           // Sync transaction after time from Settings SYNC_BONUSTRANSACTION_AFTER_TIME
-          const SYNC_BONUSTRANSACTION_AFTER_TIME = await Settings.get('SYNC_BONUSTRANSACTION_AFTER_TIME') as string;
+          const SYNC_BONUSTRANSACTION_AFTER_TIME = await Settings.get('SYNC_BONUSTRANSACTION_AFTER_TIME') as string ?? '0';
           afterTime = new Date(SYNC_BONUSTRANSACTION_AFTER_TIME);
         } catch {}
       }
 
       let skip = 0;
-      const limit = 100;
+      const limit = 10;
       let lastTransaction = { } as UserBonusTransaction;
 
-        // Method for recalculate transacton balance
-        async function localBalanceAfter(transaction: BonusTransaction, fix: number): Promise<number>{
-          let balanceAfter = new Decimal(await UserBonusProgram.sumCurrentBalance(user, bonusProgram))
-              balanceAfter = transaction.isNegative ? balanceAfter.minus(transaction.amount) : balanceAfter.plus(transaction.amount);
-              return parseFloat(balanceAfter.toFixed(fix))
-        }
-      
-      while (true) {
+        while (true) {
           const transactions: BonusTransaction[] = await adapter.getTransactions(user, afterTime, limit, skip);
-
           if (transactions.length === 0) {
               break;
           }
@@ -205,7 +196,7 @@ let Model = {
               externalId: transaction.externalId,
               group: transaction.group,
               amount: transaction.amount,
-              balanceAfter: transaction.balanceAfter ?? await localBalanceAfter(transaction, bonusProgram.decimals),
+              balanceAfter: transaction.balanceAfter,
               isDeleted: false,
               isStable: true,
               bonusProgram: bonusProgram.id,
@@ -216,22 +207,29 @@ let Model = {
             if(transaction.externalId) {
               lastTransaction = await UserBonusTransaction.findOrCreate({externalId: transaction.externalId}, userBonusTransaction)
             } else {
-              lastTransaction = await UserBonusTransaction.create(userBonusTransaction);
+              lastTransaction = await UserBonusTransaction.create(userBonusTransaction).fetch();
             }
           }
   
           // Если возвращается меньше транзакций, чем лимит, значит, мы получили все транзакции
           if (transactions.length < limit) {
-              await UserBonusProgram.update({id: userBonusProgram.id}, {syncedToTime: new Date().toISOString()})
+              await UserBonusProgram.update({id: userBonusProgram.id}, {syncedToTime: new Date().toISOString()}).fetch()
               break;
           }
   
           skip += limit;
       }
-      const lastTransactionBalance = lastTransaction?.balanceAfter ?? 0;
-      if( lastTransactionBalance !== balance) {
-        sails.log.error(`balances for user: [${user.login} - ${user.id}] not matched with external system ( ${lastTransactionBalance} !== ${balance})`)
-        // Emmiter
+
+      const _lastTransaction = await UserBonusTransaction.find({sort: "createdAt DESC", limit: 1})
+      lastTransaction = _lastTransaction[0];
+      console.log(lastTransaction)
+      const sumCurrentBalance = await UserBonusProgram.sumCurrentBalance(user, bonusProgram);
+      
+      if (sumCurrentBalance === balance && sumCurrentBalance === lastTransaction.balanceAfter) {
+          // Emmiter
+          await UserBonusProgram.update({ user: user.id }, { balance: balance }).fetch();
+      } else { 
+          sails.log.error(`balances for user: [${user.login}, id:${user.id}] not matched with external system (sum:${sumCurrentBalance}, external:${balance}, lastAfter:${lastTransaction.balanceAfter})`);
       }
 
       await UserBonusProgram.update({user: user.id}, {balance: balance}).fetch();
@@ -257,46 +255,48 @@ let Model = {
       if(!user || !bonusProgram){
         throw `User or BonusProgram not found: user: ${user} bonusProgram: ${bonusProgram}`
       }
-  
-      // Sync force before spend
-      await UserBonusProgram.sync(user, bonusProgram, true);
       
-  
-      const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
-  
       const bonusProgramAdapterExist = await BonusProgram.isAlived(bonusProgram.adapter);
       if (!bonusProgramAdapterExist) throw `No BonusProgram ${bonusProgram.adapter} exist`
-  
-  
+      
+      // Sync force before spend
+      await UserBonusProgram.sync(user, bonusProgram);
+      const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
+       
+      if(!userBonusProgram) {
+        throw `UserBonusProgram not found: user: ${user} bonusProgram: ${bonusProgram}`
+      }
+
       let adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
       if (!adapter) throw `No adapter ${bonusProgram.adapter}`
-  
+      
       const externalBalance = new Decimal((await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
       const userBalance = new Decimal(userBonusProgram.balance);
+      console.log(externalBalance, userBalance, "===",userBonusProgram, 12341234)
       
 
       /**
        * ok if all is ok
        */
   
-      if(userBalance.equals(externalBalance) && externalBalance.equals(amount)) {
+      if(userBalance.equals(externalBalance) && userBalance.greaterThanOrEqualTo(externalBalance)) {
         return true
   
         /**
          * Stop bonus program when balance not matched 
          */
-      } else if(!userBalance.equals(externalBalance) && Boolean(await Settings.get("DISABLE_BONUS_PROGRAM_ON_FAIL")) === true) {
-        sails.log.error(`User [${user.login}] balance not matched with external BonusSystem [${externalBalance}] expected: [${userBalance}]`)
-        await BonusProgram.update({id: bonusProgram.id }, {enable: false}).fetch();
+      } else if(!userBalance.equals(externalBalance) && Boolean(await Settings.get("DISABLE_USER_BONUS_PROGRAM_ON_FAIL")) === true) {
+        sails.log.error(`User [${user.login}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] `)
+        await UserBonusProgram.update({id: userBonusProgram.id }, {isActive: false}).fetch();
         return false
   
         /**
          * Only external system check balance
          */
-      } else if(externalBalance.greaterThan(amount) && Boolean(await Settings.get("ONLY_EXTERNAL_BONUS_SPEND_CHECK")) === true){
+      } else if(externalBalance.greaterThanOrEqualTo(amount) && Boolean(await Settings.get("ONLY_EXTERNAL_BONUS_SPEND_CHECK")) === true){
         return true
-      } else if(externalBalance.greaterThan(amount) && userBalance.greaterThan(amount) ) {
-        sails.log.error(`User [${user.login}] balance not matched with external BonusSystem [${externalBalance}] expected: [${userBalance}] but greater than ${amount}`)
+      } else if(externalBalance.greaterThanOrEqualTo(amount) && userBalance.greaterThanOrEqualTo(amount) ) {
+        sails.log.error(`User [${user.login}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] but greater than ${amount} politic: "ONLY_EXTERNAL_BONUS_SPEND_CHECK"`)
         return true
       }
       return false
@@ -323,8 +323,9 @@ let Model = {
       throw `recalculateBalance > user or bonusprogram not found`
     }
 
+
     // Retrieve the relevant transactions for the user and bonus program
-    const transactions: UserBonusTransaction[] = await UserBonusTransaction.find({ id: user.id, bonusProgram: bonusProgram.id});
+    const transactions: UserBonusTransaction[] = await UserBonusTransaction.find({ user: user.id, bonusProgram: bonusProgram.id});
     // Initialize the balance with 0
     let balance = new Decimal(0);
 

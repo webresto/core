@@ -61,9 +61,6 @@ let Model = {
             if (!init.id) {
                 init.id = (0, uuid_1.v4)();
             }
-            let userBonus = await UserBonusProgram.findOne({ bonusProgram: init.bonusProgram, user: init.user });
-            if (!userBonus)
-                return cb("beforeCreate: Bonus program not found for user");
             init.isStable = false;
             // set negative by default
             if (init.isNegative === undefined) {
@@ -76,7 +73,13 @@ let Model = {
                 cb(`Bonus program not alived`);
             if (init.isNegative === true) {
                 if (bonusProgramAdapterExist && init.user !== undefined && typeof init.user === "string") {
-                    if (await UserBonusProgram.checkEnoughToSpend(init.user, init.bonusProgram, init.amount) !== true) {
+                    let enough = await UserBonusProgram.checkEnoughToSpend(init.user, init.bonusProgram, init.amount);
+                    console.log(enough);
+                    if (enough !== true) {
+                        // Maybe not needed it for print
+                        let userBonus = await UserBonusProgram.findOne({ bonusProgram: init.bonusProgram, user: init.user });
+                        if (!userBonus)
+                            return cb("beforeCreate: Bonus program not found for user");
                         return cb(`UserBonusTransaction beforeCreate > user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`);
                     }
                 }
