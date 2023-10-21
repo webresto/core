@@ -144,10 +144,8 @@ let Model = {
                 balanceAfter = transaction.isNegative ? balanceAfter.minus(transaction.amount) : balanceAfter.plus(transaction.amount);
                 return parseFloat(balanceAfter.toFixed(fix));
             }
-            console.log("START WHILE");
             while (true) {
                 const transactions = await adapter.getTransactions(user, afterTime, limit, skip);
-                console.log("TRANSACTIONS,", transactions);
                 if (transactions.length === 0) {
                     break;
                 }
@@ -178,7 +176,6 @@ let Model = {
                 }
                 skip += limit;
             }
-            console.log("Abalance", balance);
             const lastTransactionBalance = lastTransaction?.balanceAfter ?? 0;
             if (lastTransactionBalance !== balance) {
                 sails.log.error(`balances for user: [${user.login} - ${user.id}] not matched with external system ( ${lastTransactionBalance} !== ${balance})`);
@@ -213,7 +210,6 @@ let Model = {
                 throw `No adapter ${bonusProgram.adapter}`;
             const externalBalance = new decimal_js_1.default((await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
             const userBalance = new decimal_js_1.default(userBonusProgram.balance);
-            console.log(11111, externalBalance, userBalance, userBonusProgram.balance);
             /**
              * ok if all is ok
              */
