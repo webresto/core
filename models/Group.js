@@ -85,6 +85,7 @@ let attributes = {
     /** The person readable isii*/
     slug: {
         type: "string",
+        required: true
     },
     /** The concept to which the group belongs */
     concept: "string",
@@ -109,7 +110,10 @@ let Model = {
         if (!init.concept) {
             init.concept = "origin";
         }
-        init.slug = (0, slugify_1.default)(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+        if (!init.slug) {
+            const postfix = init.concept === "origin" ? "" : "-" + init.concept;
+            init.slug = (0, slugify_1.default)(`${init.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+        }
         cb();
     },
     beforeUpdate: function (record, cb) {

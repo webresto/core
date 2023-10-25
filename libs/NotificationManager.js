@@ -1,33 +1,53 @@
 "use strict";
-/**
- * WebPush
- */
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NotificationManager = void 0;
-class NotificationManager {
+exports.NotificationManager = exports.Channel = void 0;
+class Channel {
     constructor() {
+        this.type = null;
+        // TODO: Add readStatus
+        // public hasReadStatus: boolean = false;
+        /**
+         * If forceSend true it should send anytime
+         */
+        this.forceSend = false;
+        this.forGroupTo = [];
+        this.sortOrder = 0;
     }
-    isChannelExist(channel) {
-        return true;
+    async trySendMessage(badge, user, message, subject, data) {
+        try {
+            await this.send(badge, user, message, subject, data);
+            return true;
+        }
+        catch (error) {
+            console.error(`Failed to send message through channel with sortOrder ${this.sortOrder}. Error: ${error}`);
+            return false;
+        }
     }
-    async sendMessageToUser(badge, user, message, subject, channel, data) {
-    }
-    ;
-    // IDEA
-    // public async sendMessageToUserGroup(badge: Badge, group: UserGroup, message: string, subject?: string, channel?: string, data?: object): Promise<void> {
-    // };
-    async sendMessageToDeliveryManager(badge, message, data) {
-        console.log("NotificationManager > sendMessageToDeliveryManager", badge, message, data);
-    }
-    ;
-    // IDEA
-    // public async sendMessageToEmployee(badge: Badge, message: string, data?: object): Promise<void> {
-    // };
-    async sendMessageToEmployeeGroup(badge, message, data) {
-    }
-    ;
-    registerChannel(channelName, sortOrder, type, handler) {
-    }
-    ;
 }
+exports.Channel = Channel;
+class NotificationManager {
+}
+_a = NotificationManager;
+NotificationManager.channels = [];
+NotificationManager.send = async (badge, groupTo, message, user, type, subject, data) => {
+    let sent = false;
+    for (const channel of _a.channels) {
+        if (!channel.forGroupTo.includes(groupTo))
+            continue;
+        if (type && channel.type !== type)
+            continue;
+        if (sent && channel.forceSend !== true) {
+            continue;
+        }
+        sent = await channel.trySendMessage(badge, user, message, subject, data);
+    }
+    if (!sent) {
+        throw new Error(`Failed to send message to user ${user.id}`);
+    }
+};
+NotificationManager.registerChannel = (channel) => {
+    NotificationManager.channels.push(channel);
+    NotificationManager.channels.sort((a, b) => a.sortOrder - b.sortOrder);
+};
 exports.NotificationManager = NotificationManager;

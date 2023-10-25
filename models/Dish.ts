@@ -13,6 +13,7 @@ import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier, Modifier } from "../interfaces/Modifier";
 import { Adapter } from "../adapters";
 import { CustomData, isCustomData } from "../interfaces/CustomData";
+import slugify from "slugify";
 
 let attributes = {
   /** */
@@ -199,6 +200,7 @@ let attributes = {
   /** Слаг */
   slug: {
     type: "string",
+    required: true
   } as unknown as string,
 
   /** The concept to which the dish belongs */
@@ -249,6 +251,11 @@ let Model = {
 
     if (!init.concept) {
       init.concept = "origin"
+    }
+
+    if (!init.slug) {
+      const postfix = init.concept === "origin" ? "" : "-"+init.concept;
+      init.slug = slugify(`${init.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
     }
 
     if(!isCustomData(init.customData)){

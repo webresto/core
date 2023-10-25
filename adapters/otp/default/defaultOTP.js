@@ -6,6 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultOTP = void 0;
 const OneTimePasswordAdapter_1 = __importDefault(require("../OneTimePasswordAdapter"));
 class DefaultOTP extends OneTimePasswordAdapter_1.default {
+    /**
+     * Send and retrun OTP code
+     * Send if delivery channel to user exit, else it delivery to manager, for calling and speech
+     * @param login
+     * @returns OTP
+     */
     async get(login) {
         let otp = await OneTimePassword.create({ login: login }).fetch();
         if (!otp.password || !login) {
@@ -19,8 +25,10 @@ class DefaultOTP extends OneTimePasswordAdapter_1.default {
             user[mainLoginField] = login;
             await NotificationManager.sendMessageToUser("OTP", user, `Your code is ${otp.password}`);
         }
-        await NotificationManager.sendMessageToDeliveryManager("OTP", `Please inform client ${login} OPT code ${otp.password}`);
-        return otp;
+        else {
+            await NotificationManager.sendMessageToDeliveryManager("OTP", `Please inform client ${login} OPT code ${otp.password}`);
+            return otp;
+        }
     }
 }
 exports.DefaultOTP = DefaultOTP;
