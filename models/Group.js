@@ -113,7 +113,7 @@ let Model = {
         }
         if (!init.slug) {
             const postfix = init.concept === "origin" ? "" : "-" + init.concept;
-            init.slug = (0, slugify_1.default)(`${init.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+            init.slug = (0, slugify_1.default)(`${init.name}${postfix}-${init.id.substr(init.id.length - 4).toUpperCase()}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         }
         cb();
     },
@@ -121,7 +121,7 @@ let Model = {
         emitter.emit('core:group-before-update', value);
         if (!value.slug) {
             const postfix = value.concept === "origin" ? "" : "-" + value.concept;
-            value.slug = (0, slugify_1.default)(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+            value.slug = (0, slugify_1.default)(`${value.name}${postfix}-${value.id.substr(value.id.length - 4).toUpperCase()}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         }
         return cb();
     },
