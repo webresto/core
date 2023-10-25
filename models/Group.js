@@ -37,7 +37,7 @@ let attributes = {
     /** Dishes group name*/
     name: {
         type: "string",
-        //required: true,
+        required: true,
     },
     seoDescription: {
         type: "string",
@@ -85,6 +85,7 @@ let attributes = {
     /** The person readable isii*/
     slug: {
         type: "string",
+        unique: true,
         required: true
     },
     /** The concept to which the group belongs */
@@ -116,8 +117,12 @@ let Model = {
         }
         cb();
     },
-    beforeUpdate: function (record, cb) {
-        emitter.emit('core:group-before-update', record);
+    beforeUpdate: function (value, cb) {
+        emitter.emit('core:group-before-update', value);
+        if (!value.slug) {
+            const postfix = value.concept === "origin" ? "" : "-" + value.concept;
+            value.slug = (0, slugify_1.default)(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+        }
         return cb();
     },
     afterUpdate: function (record, cb) {

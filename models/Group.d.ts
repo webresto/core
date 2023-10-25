@@ -63,8 +63,8 @@ interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {
 }
 export default Group;
 declare let Model: {
-    beforeCreate(init: any, cb: (err?: string) => void): void;
-    beforeUpdate: (record: any, cb: (err?: string) => void) => void;
+    beforeCreate(init: Group, cb: (err?: string) => void): void;
+    beforeUpdate: (value: any, cb: (err?: string) => void) => void;
     afterUpdate: (record: any, cb: (err?: string) => void) => void;
     afterCreate: (record: any, cb: (err?: string) => void) => void;
     /**

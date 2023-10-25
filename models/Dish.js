@@ -160,6 +160,7 @@ let attributes = {
     /** Слаг */
     slug: {
         type: "string",
+        unique: true,
         required: true
     },
     /** The concept to which the dish belongs */
@@ -209,6 +210,10 @@ let Model = {
                 let customData = { ...current.customData, ...value.customData };
                 value.customData = customData;
             }
+        }
+        if (!value.slug) {
+            const postfix = value.concept === "origin" ? "" : "-" + value.concept;
+            value.slug = (0, slugify_1.default)(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         }
         return cb();
     },

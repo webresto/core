@@ -48,7 +48,7 @@ let attributes = {
   /** Dishes group name*/
   name: {
     type: "string",
-    //required: true,
+    required: true,
   } as unknown as string,
 
   seoDescription: {
@@ -108,6 +108,7 @@ let attributes = {
   /** The person readable isii*/
   slug: {
     type: "string",
+    unique: true,
     required: true
   } as unknown as string,
 
@@ -143,7 +144,7 @@ interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {}
 export default Group;
 
 let Model = {
-  beforeCreate(init: any, cb:  (err?: string) => void) {
+  beforeCreate(init: Group, cb:  (err?: string) => void) {
     emitter.emit('core:group-before-create', init);
     if (!init.id) {
       init.id = uuid();
@@ -159,8 +160,13 @@ let Model = {
     }
     cb();
   },
-  beforeUpdate: function (record, cb:  (err?: string) => void) {
-    emitter.emit('core:group-before-update', record);
+  beforeUpdate: function (value, cb:  (err?: string) => void) {
+    emitter.emit('core:group-before-update', value);
+    if (!value.slug) {
+      const postfix = value.concept === "origin" ? "" : "-"+value.concept;
+      value.slug = slugify(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
+    }
+
     return cb();
   },
 

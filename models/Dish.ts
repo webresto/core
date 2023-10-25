@@ -200,6 +200,7 @@ let attributes = {
   /** Слаг */
   slug: {
     type: "string",
+    unique: true,
     required: true
   } as unknown as string,
 
@@ -275,6 +276,12 @@ let Model = {
         value.customData = customData;
       }
     }
+
+    if (!value.slug) {
+      const postfix = value.concept === "origin" ? "" : "-"+value.concept;
+      value.slug = slugify(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
+    }
+
     return cb();
   },
 
