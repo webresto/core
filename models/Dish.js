@@ -194,8 +194,8 @@ let Model = {
         if (!init.slug) {
             const postfix = init.concept === "origin" ? "" : "-" + init.concept;
             init.slug = (0, slugify_1.default)(`${init.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+            init.slug = init.slug + "-" + init.id.substr(init.id.length - 4).toLowerCase();
         }
-        init.slug = init.slug + "-" + init.id.substr(init.id.length - 4).toLowerCase();
         if (!(0, CustomData_1.isCustomData)(init.customData)) {
             init.customData = {};
         }
@@ -216,7 +216,6 @@ let Model = {
             const postfix = value.concept === "origin" ? "" : "-" + value.concept;
             value.slug = (0, slugify_1.default)(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         }
-        value.slug = value.slug + "-" + value.id.substr(value.id.length - 4).toLowerCase();
         return cb();
     },
     afterUpdate: function (record, cb) {
