@@ -85,8 +85,7 @@ let attributes = {
     /** The person readable isii*/
     slug: {
         type: "string",
-        unique: true,
-        required: true
+        unique: true
     },
     /** The concept to which the group belongs */
     concept: "string",
