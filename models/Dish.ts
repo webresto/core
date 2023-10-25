@@ -256,8 +256,9 @@ let Model = {
 
     if (!init.slug) {
       const postfix = init.concept === "origin" ? "" : "-"+init.concept;
-      init.slug = slugify(`${init.name}${postfix}-${init.id.substr(init.id.length - 4).toUpperCase()}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
+      init.slug = slugify(`${init.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
     }
+    init.slug = init.slug+"-"+init.id.substr(init.id.length - 4).toLowerCase();
 
 
     if(!isCustomData(init.customData)){
@@ -280,9 +281,9 @@ let Model = {
 
     if (!value.slug) {
       const postfix = value.concept === "origin" ? "" : "-"+value.concept;
-      value.slug = slugify(`${value.name}${postfix}-${value.id.substr(value.id.length - 4).toUpperCase()}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
+      value.slug = slugify(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
     }
-
+    value.slug = value.slug+"-"+value.id.substr(value.id.length - 4).toLowerCase();
     return cb();
   },
 
