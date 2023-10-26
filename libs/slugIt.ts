@@ -1,0 +1,16 @@
+import slugify from "slugify";
+
+export async function slugIt(model: string, name: string, slugField = 'slug', opts?: string[]): Promise<string>{
+  if(!Object.keys(sails.models).includes(model)) throw `Sails not have models [${model}]`
+  if (!Object.keys(sails.models.attributes).includes(slugField)) throw `Model with name [${model}] has not field field [${slugField}]`
+
+
+  const postfix = opts.length ? opts.join(' ') : '';
+  let slug = slugify(`${name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
+
+  let criteria = {}
+  criteria[slugField] = slug
+  const count = sails.models[model].count(criteria)
+  slug = count === 0 ? slug : slug+"-"+count
+  return slug;
+}

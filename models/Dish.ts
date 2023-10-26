@@ -14,6 +14,7 @@ import { GroupModifier, Modifier } from "../interfaces/Modifier";
 import { Adapter } from "../adapters";
 import { CustomData, isCustomData } from "../interfaces/CustomData";
 import slugify from "slugify";
+import { slugIt } from "../libs/slugIt";
 
 let attributes = {
   /** */
@@ -243,22 +244,20 @@ interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">,
 export default Dish;
 
 let Model = {
-  beforeCreate(init: Dish, cb:  (err?: string) => void) {
+  beforeCreate: async function(init: Dish, cb:  (err?: string) => void) {
     emitter.emit('core:dish-before-create', init);
     if (!init.id) {
       init.id = uuid();
     }
 
+    const slugOpts = [];
     if (!init.concept) {
       init.concept = "origin"
+    } else {
+      slugOpts.push(init.concept)
     }
 
-    if (!init.slug) {
-      const postfix = init.concept === "origin" ? "" : "-"+init.concept;
-      init.slug = slugify(`${init.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
-      init.slug = init.slug+"-"+init.id.substr(init.id.length - 4).toLowerCase();
-    }
-
+    init.slug = await slugIt("dish", init.name, "slug", slugOpts)
 
     if(!isCustomData(init.customData)){
       init.customData = {}
@@ -276,11 +275,6 @@ let Model = {
         let customData = {...current.customData, ...value.customData} 
         value.customData = customData;
       }
-    }
-
-    if (!value.slug) {
-      const postfix = value.concept === "origin" ? "" : "-"+value.concept;
-      value.slug = slugify(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
     }
     return cb();
   },

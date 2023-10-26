@@ -6,10 +6,10 @@ import ORM from "../interfaces/ORM";
 import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
-import slugify from "slugify"
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { Adapter } from "../adapters";
+import { slugIt } from "../libs/slugIt";
 
 let attributes = {
   /**Id */
@@ -48,7 +48,7 @@ let attributes = {
   /** Dishes group name*/
   name: {
     type: "string",
-    required: true,
+    //required: true,
   } as unknown as string,
 
   seoDescription: {
@@ -108,7 +108,6 @@ let attributes = {
   /** The person readable isii*/
   slug: {
     type: "string",
-    unique: true
   } as unknown as string,
 
   /** The concept to which the group belongs */
@@ -143,31 +142,25 @@ interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {}
 export default Group;
 
 let Model = {
-  beforeCreate(init: Group, cb:  (err?: string) => void) {
+  beforeCreate: async function(init: any, cb:  (err?: string) => void) {
     emitter.emit('core:group-before-create', init);
     if (!init.id) {
       init.id = uuid();
     }
 
+    const slugOpts = [];
     if (!init.concept) {
       init.concept = "origin"
+    } else {
+      slugOpts.push(init.concept)
     }
 
-    if (!init.slug) {
-      const postfix = init.concept === "origin" ? "" : "-"+init.concept;
-      init.slug = slugify(`${init.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
-      init.slug = init.slug+"-"+init.id.substr(init.id.length - 4).toLowerCase();
-    }
-
+    init.slug = await slugIt("group", init.name, "slug", slugOpts)
     cb();
   },
-  beforeUpdate: function (value, cb:  (err?: string) => void) {
-    emitter.emit('core:group-before-update', value);
-    if (!value.slug) {
-      const postfix = value.concept === "origin" ? "" : "-"+value.concept;
-      value.slug = slugify(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
-    }
-    
+ 
+  beforeUpdate: function (record, cb:  (err?: string) => void) {
+    emitter.emit('core:group-before-update', record);
     return cb();
   },
 

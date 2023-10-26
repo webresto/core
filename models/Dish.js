@@ -8,7 +8,7 @@ const hashCode_1 = __importDefault(require("../libs/hashCode"));
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 const CustomData_1 = require("../interfaces/CustomData");
-const slugify_1 = __importDefault(require("slugify"));
+const slugIt_1 = require("../libs/slugIt");
 let attributes = {
     /** */
     id: {
@@ -182,19 +182,19 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate(init, cb) {
+    beforeCreate: async function (init, cb) {
         emitter.emit('core:dish-before-create', init);
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
+        const slugOpts = [];
         if (!init.concept) {
             init.concept = "origin";
         }
-        if (!init.slug) {
-            const postfix = init.concept === "origin" ? "" : "-" + init.concept;
-            init.slug = (0, slugify_1.default)(`${init.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
-            init.slug = init.slug + "-" + init.id.substr(init.id.length - 4).toLowerCase();
+        else {
+            slugOpts.push(init.concept);
         }
+        init.slug = await (0, slugIt_1.slugIt)("dish", init.name, "slug", slugOpts);
         if (!(0, CustomData_1.isCustomData)(init.customData)) {
             init.customData = {};
         }
@@ -210,10 +210,6 @@ let Model = {
                 let customData = { ...current.customData, ...value.customData };
                 value.customData = customData;
             }
-        }
-        if (!value.slug) {
-            const postfix = value.concept === "origin" ? "" : "-" + value.concept;
-            value.slug = (0, slugify_1.default)(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         }
         return cb();
     },

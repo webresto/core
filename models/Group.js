@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
-const slugify_1 = __importDefault(require("slugify"));
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
+const slugIt_1 = require("../libs/slugIt");
 let attributes = {
     /**Id */
     id: {
@@ -37,7 +37,7 @@ let attributes = {
     /** Dishes group name*/
     name: {
         type: "string",
-        required: true,
+        //required: true,
     },
     seoDescription: {
         type: "string",
@@ -85,7 +85,6 @@ let attributes = {
     /** The person readable isii*/
     slug: {
         type: "string",
-        unique: true
     },
     /** The concept to which the group belongs */
     concept: "string",
@@ -102,27 +101,23 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate(init, cb) {
+    beforeCreate: async function (init, cb) {
         emitter.emit('core:group-before-create', init);
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
+        const slugOpts = [];
         if (!init.concept) {
             init.concept = "origin";
         }
-        if (!init.slug) {
-            const postfix = init.concept === "origin" ? "" : "-" + init.concept;
-            init.slug = (0, slugify_1.default)(`${init.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
-            init.slug = init.slug + "-" + init.id.substr(init.id.length - 4).toLowerCase();
+        else {
+            slugOpts.push(init.concept);
         }
+        init.slug = await (0, slugIt_1.slugIt)("group", init.name, "slug", slugOpts);
         cb();
     },
-    beforeUpdate: function (value, cb) {
-        emitter.emit('core:group-before-update', value);
-        if (!value.slug) {
-            const postfix = value.concept === "origin" ? "" : "-" + value.concept;
-            value.slug = (0, slugify_1.default)(`${value.name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
-        }
+    beforeUpdate: function (record, cb) {
+        emitter.emit('core:group-before-update', record);
         return cb();
     },
     afterUpdate: function (record, cb) {

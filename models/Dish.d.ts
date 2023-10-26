@@ -100,7 +100,7 @@ interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">,
 }
 export default Dish;
 declare let Model: {
-    beforeCreate(init: Dish, cb: (err?: string) => void): void;
+    beforeCreate: (init: Dish, cb: (err?: string) => void) => Promise<void>;
     beforeUpdate: (value: Dish, cb: (err?: string) => void) => Promise<void>;
     afterUpdate: (record: any, cb: (err?: string) => void) => void;
     afterCreate: (record: any, cb: (err?: string) => void) => void;
