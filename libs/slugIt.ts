@@ -9,8 +9,8 @@ export async function slugIt(model: string, name: string, slugField = 'slug', op
   let slug = slugify(`${name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
 
   let criteria = {}
-  criteria[slugField] = slug
+  criteria[slugField] = { contains: slug };
   const count = await sails.models[model].count(criteria)
-  slug = count === 0 ? slug : slug+"-"+(count+1)
+  slug = count === 0 ? slug : slug+"-"+count
   return slug;
 }
