@@ -15,7 +15,7 @@ async function slugIt(model, name, slugField = 'slug', opts) {
     let criteria = {};
     criteria[slugField] = slug;
     const count = await sails.models[model].count(criteria);
-    slug = count === 0 ? slug : slug + "-" + count;
+    slug = count === 0 ? slug : slug + "-" + (count + 1);
     return slug;
 }
 exports.slugIt = slugIt;
