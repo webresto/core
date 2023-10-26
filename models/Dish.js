@@ -187,11 +187,11 @@ let Model = {
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
-        const slugOpts = [];
         if (!init.concept) {
             init.concept = "origin";
         }
-        else {
+        const slugOpts = [];
+        if (init.concept !== "origin") {
             slugOpts.push(init.concept);
         }
         init.slug = await (0, slugIt_1.slugIt)("dish", init.name, "slug", slugOpts);

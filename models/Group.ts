@@ -148,10 +148,12 @@ let Model = {
       init.id = uuid();
     }
 
-    const slugOpts = [];
     if (!init.concept) {
       init.concept = "origin"
-    } else {
+    }
+    
+    const slugOpts = [];
+    if(init.concept !== "origin") {
       slugOpts.push(init.concept)
     }
 
