@@ -2,7 +2,7 @@ import slugify from "slugify";
 
 export async function slugIt(model: string, name: string, slugField = 'slug', opts?: string[]): Promise<string>{
   if(!Object.keys(sails.models).includes(model)) throw `Sails not have models [${model}]`
-  if (!Object.keys(sails.models.attributes).includes(slugField)) throw `Model with name [${model}] has not field field [${slugField}]`
+  if (!Object.keys(sails.models[model].attributes).includes(slugField)) throw `Model with name [${model}] has not field field [${slugField}]`
 
 
   const postfix = opts.length ? opts.join(' ') : '';

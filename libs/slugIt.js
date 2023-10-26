@@ -8,7 +8,7 @@ const slugify_1 = __importDefault(require("slugify"));
 async function slugIt(model, name, slugField = 'slug', opts) {
     if (!Object.keys(sails.models).includes(model))
         throw `Sails not have models [${model}]`;
-    if (!Object.keys(sails.models.attributes).includes(slugField))
+    if (!Object.keys(sails.models[model].attributes).includes(slugField))
         throw `Model with name [${model}] has not field field [${slugField}]`;
     const postfix = opts.length ? opts.join(' ') : '';
     let slug = (0, slugify_1.default)(`${name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
