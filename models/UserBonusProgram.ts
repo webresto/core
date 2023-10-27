@@ -114,17 +114,20 @@ let Model = {
 
   // Sync all active user bonusprogram 
   async syncAll(user: User | string): Promise<void>{
-
     if(typeof user === "string") {
       user = await User.findOne({id: user})
       if(!user) throw `syncAll > user not found`
     }
 
     const userBonusPrograms = await UserBonusProgram.find({user: user.id});
-    for (const userBonusProgram of userBonusPrograms){
+    for (const userBonusProgram of userBonusPrograms) {
+      // Skip if  less TIME_TO_SYNC_BONUSES_IN_MINUTES
+      const diffInMinutes: number = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60);
+      const timeToSyncBonusesInMinutes = await Settings.get("TIME_TO_SYNC_BONUSES_IN_MINUTES") as number ?? "5";
+      if(diffInMinutes < parseInt(timeToSyncBonusesInMinutes as string)) continue;
       if (await BonusProgram.isAlived(userBonusProgram.bonusProgram as string)){
         // Not await for paralel sync
-        UserBonusProgram.sync(user.id, userBonusProgram.id)
+        UserBonusProgram.sync(user.id, userBonusProgram.bonusProgram)
       }
     }
   },
@@ -142,12 +145,12 @@ let Model = {
       }
 
       if(!user || !bonusProgram){
-        throw `User or BonusProgram not found: user: [${user}] bonusProgram: [${bonusProgram}]`
+        throw `User or BonusProgram not found: user: [${user.login}] bonusProgram: [${bonusProgram}]`
       }
   
       const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
       if(!userBonusProgram){
-        throw `UserBonusProgram not found: user: [${user}] bonusProgram: [${bonusProgram}]`
+        throw `UserBonusProgram not found: user: [${user.login}] bonusProgram: [${bonusProgram}]`
       }
   
 
@@ -256,7 +259,7 @@ let Model = {
       }
       
       if(!user || !bonusProgram){
-        throw `User or BonusProgram not found: user: ${user} bonusProgram: ${bonusProgram}`
+        throw `User or BonusProgram not found: user: ${user.login} bonusProgram: ${bonusProgram}`
       }
       
       const bonusProgramAdapterExist = await BonusProgram.isAlived(bonusProgram.adapter);
@@ -267,7 +270,7 @@ let Model = {
 
       const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});       
       if(!userBonusProgram) {
-        throw `UserBonusProgram not found: user: ${user} bonusProgram: ${bonusProgram}`
+        throw `UserBonusProgram not found: user: ${user.login} bonusProgram: ${bonusProgram}`
       }
 
 
