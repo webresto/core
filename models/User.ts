@@ -205,11 +205,11 @@ let Model = {
   async afterCreate(record: User, cb:  (err?: string) => void) {
     emitter.emit('core:user-after-create', record);
     
-    // try {
-    //   User.checkRegisteredInBonusPrograms(record.id);
-    // } catch (error) {
-    //   sails.log.error(error)
-    // }
+    try {
+      User.checkRegisteredInBonusPrograms(record.id);
+    } catch (error) {
+      sails.log.error(error)
+    }
     
     return cb();
   },
@@ -401,6 +401,13 @@ let Model = {
     // Set last checked OTP as password
     if (OTP && passwordPolicy === "from_otp") {
       await User.setPassword(user.id, OTP, null, true);
+    }
+
+    try {
+      User.checkRegisteredInBonusPrograms(user.id);
+      
+    } catch (error) {
+      sails.log.error(error)
     }
 
     return await User.authDevice(user.id, deviceId, deviceName, userAgent, IP);
