@@ -108,7 +108,6 @@ let Model = {
             let balance = parseFloat(new decimal_js_1.default(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
             // Should sync when balance is not equals
             force = balance !== userBonusProgram.balance;
-            console.log(force, balance, userBonusProgram.balance);
             if (!force) {
                 // No sync if time not more 5 min
                 const diffInMinutes = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60); // Разница в миллисекундах
@@ -173,7 +172,6 @@ let Model = {
             }
             const _lastTransaction = await UserBonusTransaction.find({ sort: "createdAt DESC", limit: 1 });
             lastTransaction = _lastTransaction[0];
-            console.log(lastTransaction);
             const sumCurrentBalance = await UserBonusProgram.sumCurrentBalance(user, bonusProgram);
             if (sumCurrentBalance === balance && sumCurrentBalance === lastTransaction.balanceAfter) {
                 // Emmiter
@@ -214,7 +212,6 @@ let Model = {
                 throw `No adapter ${bonusProgram.adapter}`;
             const externalBalance = new decimal_js_1.default((await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
             const userBalance = new decimal_js_1.default(userBonusProgram.balance);
-            console.log(externalBalance, userBalance, "===", userBonusProgram, 12341234);
             /**
              * ok if all is ok
              */

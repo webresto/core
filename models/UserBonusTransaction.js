@@ -61,7 +61,9 @@ let Model = {
             if (!init.id) {
                 init.id = (0, uuid_1.v4)();
             }
-            init.isStable = false;
+            if (!init.isStable) {
+                init.isStable = false;
+            }
             // set negative by default
             if (init.isNegative === undefined) {
                 init.isNegative = true;
@@ -124,8 +126,8 @@ let Model = {
                         bonusProgramAdapterTransaction = await bonusProgramAdapter.writeTransaction(user, userBonus, record);
                     }
                     catch (error) {
-                        if ((await Settings.get("DISABLE_BONUS_PROGRAM_ON_FAIL")) === true) {
-                            await BonusProgram.updateOne({ id: bonusProgram.id }, { enable: false });
+                        if ((await Settings.get("DISABLE_USER_BONUS_PROGRAM_ON_FAIL")) === true) {
+                            await UserBonusProgram.updateOne({ id: userBonus.id }, { isActive: false });
                         }
                         return cb(error);
                     }
