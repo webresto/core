@@ -113,8 +113,10 @@ export class NotificationManager {
       sent = await channel.trySendMessage(badge, message, user, subject, data);
     }
 
-    if (!sent) {
-      throw new Error(`Failed to send message to user ${user.id}`);
+    if (groupTo === "user" && user !== undefined && !sent) {
+      throw new Error(`Failed to send message to user ${user.login} with message: ${message}`);
+    } else {
+      throw new Error(`Failed to send message to group ${groupTo}, ${type ? type: ""}, message: ${message}`);
     }
   };
 

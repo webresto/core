@@ -18,7 +18,11 @@ export class DefaultOTP extends OneTimePasswordAdapter {
     // Check channel LOGIN_FIELD
     let mainLoginField = await Settings.get("LOGIN_FIELD") as string;
     if (NotificationManager.isChannelExist(mainLoginField)){
-      await NotificationManager.sendMessageToUser("info", `Your code is ${otp.password}`,login);
+      try {
+        await NotificationManager.sendMessageToUser("info", `Your code is ${otp.password}`,login);
+      } catch (error) {
+        sails.log.error(`SEND OTP ERROR: ${error}`)
+      }
     } else {
       await NotificationManager.sendMessageToDeliveryManager("info", `Please inform client ${login} OPT code ${otp.password}`);
       return otp;
