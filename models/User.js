@@ -378,15 +378,24 @@ let Model = {
         const bps = await BonusProgram.getAvailable();
         for (let bp of bps) {
             let adapter = await BonusProgram.getAdapter(bp.adapter);
-            if (adapter.isRegistred(user)) {
+            const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: bp.id });
+            // If all works
+            if (adapter.isRegistred(user) && userBonusProgram && userBonusProgram.isActive) {
                 // Not need await finish sync
                 UserBonusProgram.sync(userId, bp.id);
+                // If not registred in internal storage
+            }
+            else if (adapter.isRegistred(user) && !userBonusProgram) {
+                await UserBonusProgram.registration(user, bp.adapter);
+                // If not registred but need
+            }
+            else if (!adapter.isRegistred(user) && bp.automaticUserRegistration) {
+                // Registration if Bonus program has automatic registration otion
+                await UserBonusProgram.registration(user, bp.adapter);
+                // if not need registrer
             }
             else {
-                // Registration if Bonus program has automatic registration otion
-                if (bp.automaticUserRegistration) {
-                    await UserBonusProgram.registration(user, bp.adapter);
-                }
+                sails.log.debug(`User should register manual: user[${user.login}], bonusProgram: [${bp.name}]`);
             }
         }
     },

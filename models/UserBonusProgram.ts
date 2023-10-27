@@ -146,6 +146,11 @@ let Model = {
       }
   
       const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
+      if(!userBonusProgram){
+        throw `UserBonusProgram not found: user: [${user}] bonusProgram: [${bonusProgram}]`
+      }
+  
+
       const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
       let balance =  parseFloat(new Decimal(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
 
