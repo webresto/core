@@ -29,7 +29,12 @@ exports.Channel = Channel;
 class NotificationManager {
     static async sendMessageToDeliveryManager(badge, text) {
         // I appologize what delivery message channel is direct to manager, its reason to null user. Time will show
-        await NotificationManager.send(badge, "manager", text, null);
+        try {
+            await NotificationManager.send(badge, "manager", text, null);
+        }
+        catch (error) {
+            sails.log.info(`✉️ Notification manager > console: ${badge}, ${text}`);
+        }
     }
     /**
      *
