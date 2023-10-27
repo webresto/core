@@ -43,7 +43,7 @@ global.emitter = (0, getEmitter_1.default)();
  */
 const NotificationManager_1 = require("../libs/NotificationManager");
 // @ts-ignore
-global.NotificationManager = new NotificationManager_1.NotificationManager;
+global.NotificationManager = NotificationManager_1.NotificationManager;
 /**
  * Set global NotificationManager
  */

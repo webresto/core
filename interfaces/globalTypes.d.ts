@@ -2,7 +2,6 @@ import sails from "@42pub/typed-sails";
 import { Config } from "./Config";
 import AwaitEmitter from "../libs/AwaitEmitter";
 type sailsConfig = typeof sails.config;
-import { NotificationManager } from "../libs/NotificationManager";
 interface RestocoreHook {
     dictionaries: {
         countries: {
@@ -30,7 +29,7 @@ interface SailsHooks {
 }
 declare global {
     const emitter: AwaitEmitter;
-    const NotificationManager: NotificationManager;
+    const NotificationManager: typeof import("../libs/NotificationManager").NotificationManager;
     const Adapter: typeof import("../adapters").Adapter;
     interface Sails extends sails.Sails {
         on: any;

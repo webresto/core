@@ -26,8 +26,9 @@
 import User from "../models/User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string;
+type ChannelType = "sms" | "email" | string;
 export declare abstract class Channel {
-    type: string;
+    type: ChannelType;
     /**
      * If forceSend true it should send anytime
      */
@@ -35,12 +36,24 @@ export declare abstract class Channel {
     forGroupTo: MessageGroupTo[];
     sortOrder: number;
     constructor();
-    protected abstract send(badge: Badge, user: User, message: string, subject?: string, data?: object): Promise<void>;
-    trySendMessage(badge: Badge, user: User, message: string, subject?: string, data?: object): Promise<boolean>;
+    protected abstract send(badge: Badge, message: string, user: User, subject?: string, data?: object): Promise<void>;
+    trySendMessage(badge: Badge, message: string, user: User, subject?: string, data?: object): Promise<boolean>;
 }
 export declare class NotificationManager {
+    static sendMessageToDeliveryManager(badge: Badge, text: string): Promise<void>;
+    /**
+     *
+     * @param badge
+     * @param text
+     * @param user
+     * @param type sms | email if not pass type it was deliver by an channel
+     * @param subject
+     * @param data
+     */
+    static sendMessageToUser(badge: Badge, text: string, user: User | string, type?: ChannelType, subject?: string, data?: object): Promise<void>;
     private static channels;
-    static send: (badge: Badge, groupTo: MessageGroupTo, message: string, user: User, type?: string, subject?: string, data?: object) => Promise<void>;
+    static send: (badge: Badge, groupTo: MessageGroupTo, message: string, user?: User, type?: ChannelType, subject?: string, data?: object) => Promise<void>;
+    static isChannelExist: (channelType: string) => boolean;
     static registerChannel: (channel: Channel) => void;
 }
 export {};

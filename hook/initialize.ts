@@ -16,7 +16,7 @@ global.emitter = getEmitter();
  */
 import { NotificationManager } from "../libs/NotificationManager";
 // @ts-ignore
-global.NotificationManager = new NotificationManager
+global.NotificationManager = NotificationManager
 
 /**
  * Set global NotificationManager
