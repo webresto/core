@@ -20,6 +20,7 @@ declare let attributes: {
     from: string;
     /** Only reading */
     readOnly: boolean;
+    schema: any;
 };
 type attributes = typeof attributes & ORM;
 interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "value"> {

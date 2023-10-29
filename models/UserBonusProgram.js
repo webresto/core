@@ -85,7 +85,7 @@ let Model = {
         }
         const userBonusPrograms = await UserBonusProgram.find({ user: user.id });
         for (const userBonusProgram of userBonusPrograms) {
-            // Skip if  
+            // Skip if  less TIME_TO_SYNC_BONUSES_IN_MINUTES
             const diffInMinutes = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60);
             const timeToSyncBonusesInMinutes = await Settings.get("TIME_TO_SYNC_BONUSES_IN_MINUTES") ?? "5";
             if (diffInMinutes < parseInt(timeToSyncBonusesInMinutes))

@@ -27,6 +27,7 @@ let attributes = {
     readOnly: {
         type: "boolean"
     },
+    schema: "json"
 };
 let Model = {
     beforeCreate: function (record, cb) {

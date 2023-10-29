@@ -43,6 +43,8 @@ let attributes = {
   readOnly: {
     type: "boolean"
   } as unknown as boolean,
+
+  schema: "json" as unknown as any
 };
 
 type attributes = typeof attributes & ORM;
