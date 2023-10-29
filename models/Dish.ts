@@ -433,18 +433,20 @@ let Model = {
     let criteria = {}
     if( values.id) {
       criteria['id'] =  values.id;
-    } else {
+    } else if(values.rmsId) {
       criteria['rmsId'] =  values.rmsId;
+    } else {
+      throw `no id/rmsId provided`
     }
+
     const dish = await Dish.findOne(criteria);
-    
     if (!dish) {
       return await Dish.create({ hash, ...values }).fetch();
     } else {
       if (hash === dish.hash) {
         return dish;
       }
-      return (await Dish.update({ id: values.id }, { hash, ...values }).fetch())[0];
+      return (await Dish.update(criteria, { hash, ...values }).fetch())[0];
     }
   },
 };

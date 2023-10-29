@@ -88,12 +88,11 @@ export default abstract class RMSAdapter {
    * There can be no dishes in the root.
    */
   public async syncProducts(concept?: string, force: boolean = false): Promise<void> {
-    sails.log.silly("ADAPTER RMS > syncProducts")
+    sails.log.silly("ADAPTER RMS > syncProducts");
     if (this.syncProductsPromise && this.syncProductsPromise.status === "pending") {
       sails.log.warn(`Method "syncProducts" was already executed and won't be executed again`);
       return this.syncProductsPromise.promise;
     }
-    
 
     const promise = new Promise<void>(async (resolve, reject) => {
       try {

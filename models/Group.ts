@@ -413,10 +413,12 @@ let Model = {
   async createOrUpdate(values: Group): Promise<Group> {
     sails.log.silly(`Core > Group > createOrUpdate: ${values.name}`)
     let criteria = {}
-    if( values.id) {
+    if(values.id) {
       criteria['id'] =  values.id;
-    } else {
+    } else if(values.rmsId) {
       criteria['rmsId'] =  values.rmsId;
+    } else {
+      throw `no id/rmsId provided`
     }
 
     const group = await Group.findOne(criteria);
@@ -424,7 +426,7 @@ let Model = {
     if (!group) {
       return Group.create(values).fetch();
     } else {
-      return (await Group.update({ id: values.id }, values).fetch())[0];
+      return (await Group.update(criteria, values).fetch())[0];
     }
   },
 };
