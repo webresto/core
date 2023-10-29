@@ -135,6 +135,7 @@ class RMSAdapter {
                 return resolve();
             }
             catch (error) {
+                sails.log.error(`RMS adapter syncProducts error:`, error);
                 return reject(error);
             }
         });
@@ -160,6 +161,7 @@ class RMSAdapter {
                 return resolve();
             }
             catch (error) {
+                sails.log.error(`RMS adapter syncOutOfStocks error:`, error);
                 return reject(error);
             }
         });
