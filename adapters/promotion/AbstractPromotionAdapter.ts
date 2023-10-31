@@ -4,27 +4,22 @@ import Group from './../../models/Group';
 import Dish from './../../models/Dish';
 import Promotion from './../../models/Promotion';
 import { IconfigDiscount } from './../../interfaces/ConfigDiscount';
-import { PromotionAdapter } from "./default/promotionAdapter";
 
 export default abstract class AbstractPromotionAdapter {
-        static promotions: { [key: string]: AbstractPromotionHandler};
+        public abstract promotions: { [key: string]: AbstractPromotionHandler};
 
         public abstract processOrder(order: Order): Promise<PromotionState[]>
         public abstract displayDish(dish: Dish): Dish;
         public abstract displayGroup(group: Group): Group;
 
-        public static filterByConcept:(concept: string) => Promotion[];
-        public static filterPromotions:(promotionsByConcept: Promotion[], target: Group | Dish | Order) => Promotion[];
-        public static filterByCondition:(promotions: Promotion[], target: Group | Dish | Order)=> Promotion[];
-
-        public static recreatePromotionHandler:(promotionToAdd: AbstractPromotionHandler) => void;
-
-        public static getAllConcept:(concept: string[]) => Promise<AbstractPromotionHandler[]>;
+        public abstract recreatePromotionHandler(promotionToAdd: AbstractPromotionHandler): void;
 
         public abstract getActivePromotionsIds(): string[];
-        // public static clearOfPromotion:(orderId: any) => Promise<void>;
 
-        public static async clearOfPromotion(orderId) {
+        /**
+         * Base realization clearOfPromotion
+         */
+        public async clearOfPromotion(orderId) {
             const order = await Order.findOne({ id: orderId });
             // if Order.status ="PAYMENT" or "ORDER" can't clear promotions
             if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
@@ -39,16 +34,13 @@ export default abstract class AbstractPromotionAdapter {
             await Order.updateOne({ id: order.id }, { discountTotal: 0}) // isPromoting: false
         }
 
-        public static applyPromotion: (orderId: any, spendPromotion: IconfigDiscount, promotionId: any) => Promise<PromotionState>;
-        public static initialize:(initParams?: {
-            [key: string]: string | number | boolean;
-        }) => PromotionAdapter;
+        public abstract applyPromotion (orderId: any, spendPromotion: IconfigDiscount, promotionId: any): Promise<PromotionState>;
         
-        public static deletePromotion: (id:string) => void
+        public abstract deletePromotion(id:string): void
 
         public abstract addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void>;
 
-        public static  getPromotionHandlerById:(id: string) => Promise<AbstractPromotionHandler | undefined>;
+        public abstract getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined;
 
         static getInstance:(initParams?: {
             [key: string]: string | number | boolean;
