@@ -68,8 +68,7 @@ let attributes = {
     productCategoryPromotions: "json",
     /** User can disable this discount*/
     enable: {
-        type: "boolean",
-        required: true,
+        type: "boolean"
     },
     promotionCode: {
         collection: "promotioncode",
@@ -110,17 +109,28 @@ let Model = {
     beforeUpdate(init, cb) {
         cb();
     },
-    beforeCreate(init, cb) {
+    async beforeCreate(init, cb) {
+        const PROMOTION_ENABLE_BY_DEFAULT = Boolean(await Settings.get("PROMOTION_ENABLE_BY_DEFAULT")) ?? true;
+        if (init.enable === undefined)
+            init.enable = PROMOTION_ENABLE_BY_DEFAULT;
         cb();
     },
     async createOrUpdate(values) {
+        // Deleting user space variables
+        delete (values.sortOrder);
+        delete (values.isDeleted);
+        delete (values.enable);
+        delete (values.worktime);
         let hash = (0, hashCode_1.default)(JSON.stringify(values));
         const promotion = await Promotion.findOne({ id: values.id });
         if (!promotion)
             return Promotion.create({ hash, ...values }).fetch();
-        if (hash === promotion.hash)
+        if (hash === promotion.hash) {
             return promotion;
-        return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
+        }
+        else {
+            return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
+        }
     },
     getAllByConcept(concept) {
         const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();

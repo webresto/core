@@ -5,14 +5,13 @@ import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
 import Group from './../../../models/Group';
 import Dish from './../../../models/Dish';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
-import { PromotionAdapter } from './../../../adapters/promotion/default/promotionAdapter';
 import { stringsInArray } from "../../../libs/stringsInArray";
 import configuredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import Decimal from "decimal.js";
 
 export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
-    public id: string = "aaaa";
+    public id: string = "InMemoryDiscountAdapterTest";
     public isJoint: boolean = true;
     public name: string = "New Year";
     public isPublic: boolean = false;

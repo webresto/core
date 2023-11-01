@@ -18,7 +18,6 @@ import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
-import { PromotionAdapter } from "../adapters/promotion/default/promotionAdapter";
 import PromotionCode from "./PromotionCode";
 
 export interface PromotionState {

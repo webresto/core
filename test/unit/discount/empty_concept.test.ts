@@ -80,7 +80,9 @@ describe('Discount_Empty', function () {
     let configuredPromotion: ConfiguredPromotion
     let groupsId = []
 
+    let promotionAdapter: PromotionAdapter;
     before(async () =>{
+      promotionAdapter =  Adapter.getPromotionAdapter()
       configuredPromotion = new ConfiguredPromotion(discountEx, discountEx.configDiscount)
       const groups = await Group.find({})
       groupsId = groups.map(group => group.id)
@@ -88,7 +90,7 @@ describe('Discount_Empty', function () {
    })  
 
       it("discount empty concept", async function () {
-        let discountAdapter:AbstractPromotionAdapter = Adapter.getPromotionAdapter()
+        
         let order = await Order.create({id: "add-dish-empty-concept"}).fetch();
         await Order.updateOne({id: order.id}, {user: "user"});
 
@@ -97,7 +99,7 @@ describe('Discount_Empty', function () {
         
         discountEx.configDiscount.dishes.push(dish1.id)
         discountEx.configDiscount.dishes.push(dish2.id)
-        await discountAdapter.addPromotionHandler(discountEx)
+        await promotionAdapter.addPromotionHandler(discountEx)
 
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
         await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
@@ -107,7 +109,7 @@ describe('Discount_Empty', function () {
       });
 
       it("discount empty concept but order with concept", async function () {
-        let discountAdapter:AbstractPromotionAdapter = Adapter.getPromotionAdapter()
+        
         let order = await Order.create({id: "add-dish-empty"}).fetch();
         await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
@@ -116,7 +118,7 @@ describe('Discount_Empty', function () {
         
         discountEx.configDiscount.dishes.push(dish1.id)
         discountEx.configDiscount.dishes.push(dish2.id)
-        await discountAdapter.addPromotionHandler(discountEx)
+        await promotionAdapter.addPromotionHandler(discountEx)
 
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
         await Order.addDish({id: order.id}, dish2, 4, [], "", "test");

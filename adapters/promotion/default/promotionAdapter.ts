@@ -10,17 +10,23 @@ import Dish from "../../../models/Dish";
 import ConfiguredPromotion from "./configuredPromotion";
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import PromotionCode from "../../../models/PromotionCode";
+
 export class PromotionAdapter extends AbstractPromotionAdapter {
+  
   public recreatePromotionHandler(promotionToAdd: AbstractPromotionHandler): void {
     throw new Error("Method not implemented.");
   }
+
   public applyPromotion(orderId: any, spendPromotion: IconfigDiscount, promotionId: any): Promise<PromotionState> {
     throw new Error("Method not implemented.");
   }
-  public promotions: { [key: string]: AbstractPromotionHandler; };
+
+  public promotions: { [key: string]: AbstractPromotionHandler; } = {};
+
   public async processOrder(order: Order): Promise<PromotionState[]> {
     const promotionStates = [] as PromotionState[]
-    // Order.populate()
+    
+    // Should populated order
     await this.clearOfPromotion(order.id);
     let filteredPromotion = this.filterByConcept(order.concept);
     let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, order);
@@ -146,31 +152,35 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   //   DiscountAdapter.discounts = {};
   // }
 
-  // for Configured discounts
+  /**
+   * Method uses for puntime call/pass promotionHandler, not configured 
+   * @param promotionToAdd 
+   */
   public async addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void> {
-    const DISCOUNT_ENABLE_BY_DEFAULT = (await Settings.get("Promotion_ENABLE_BY_DEFAULT")) ?? true;
     let createInModelPromotion: Promotion = {
       id: promotionToAdd.id,
       isJoint: promotionToAdd.isJoint,
       name: promotionToAdd.name,
       isPublic: promotionToAdd.isPublic,
-      enable: Boolean(DISCOUNT_ENABLE_BY_DEFAULT),
       isDeleted: false,
       createdByUser: false,
       ...(promotionToAdd.description && { description: promotionToAdd.description }),
       ...(promotionToAdd.concept && { concept: promotionToAdd.concept }),
       configDiscount: promotionToAdd.configDiscount,
-      sortOrder: 0, // discountToAdd.sortOrder,
+      sortOrder: 0,
       externalId: promotionToAdd.externalId,
       worktime: null, // promotionToAdd.worktime
     };
 
-    //setORMID
     await Promotion.createOrUpdate(createInModelPromotion);
-    // await Discount.setAlive([...id])
-    this.promotions[promotionToAdd.id] = promotionToAdd; // = new ConfiguredDiscount(discountToAdd)
+    this.promotions[promotionToAdd.id] = promotionToAdd;
   }
 
+  /**
+   * Method uses for call from Promotion model, afterCreate/update for update configuredPromotion
+   * @param promotionToAdd 
+   * @returns 
+   */
   public recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void {
     if(promotionToAdd.enable === false && this.promotions[promotionToAdd.id]){
       delete this.promotions[promotionToAdd.id]

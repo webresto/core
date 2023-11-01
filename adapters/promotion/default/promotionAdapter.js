@@ -9,6 +9,10 @@ const worktime_1 = require("@webresto/worktime");
 const configuredPromotion_1 = __importDefault(require("./configuredPromotion"));
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
+    constructor() {
+        super(...arguments);
+        this.promotions = {};
+    }
     recreatePromotionHandler(promotionToAdd) {
         throw new Error("Method not implemented.");
     }
@@ -17,7 +21,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     }
     async processOrder(order) {
         const promotionStates = [];
-        // Order.populate()
+        // Should populated order
         await this.clearOfPromotion(order.id);
         let filteredPromotion = this.filterByConcept(order.concept);
         let promotionByConcept = this.filterPromotions(filteredPromotion, order);
@@ -122,15 +126,16 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     //   await Discount.clear()
     //   DiscountAdapter.discounts = {};
     // }
-    // for Configured discounts
+    /**
+     * Method uses for puntime call/pass promotionHandler, not configured
+     * @param promotionToAdd
+     */
     async addPromotionHandler(promotionToAdd) {
-        const DISCOUNT_ENABLE_BY_DEFAULT = (await Settings.get("Promotion_ENABLE_BY_DEFAULT")) ?? true;
         let createInModelPromotion = {
             id: promotionToAdd.id,
             isJoint: promotionToAdd.isJoint,
             name: promotionToAdd.name,
             isPublic: promotionToAdd.isPublic,
-            enable: Boolean(DISCOUNT_ENABLE_BY_DEFAULT),
             isDeleted: false,
             createdByUser: false,
             ...(promotionToAdd.description && { description: promotionToAdd.description }),
@@ -140,11 +145,14 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
             externalId: promotionToAdd.externalId,
             worktime: null, // promotionToAdd.worktime
         };
-        //setORMID
         await Promotion.createOrUpdate(createInModelPromotion);
-        // await Discount.setAlive([...id])
-        this.promotions[promotionToAdd.id] = promotionToAdd; // = new ConfiguredDiscount(discountToAdd)
+        this.promotions[promotionToAdd.id] = promotionToAdd;
     }
+    /**
+     * Method uses for call from Promotion model, afterCreate/update for update configuredPromotion
+     * @param promotionToAdd
+     * @returns
+     */
     recreateConfiguredPromotionHandler(promotionToAdd) {
         if (promotionToAdd.enable === false && this.promotions[promotionToAdd.id]) {
             delete this.promotions[promotionToAdd.id];

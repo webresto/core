@@ -12,7 +12,7 @@ const decimal_js_1 = __importDefault(require("decimal.js"));
 class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
     constructor() {
         super(...arguments);
-        this.id = "aaaa";
+        this.id = "InMemoryDiscountAdapterTest";
         this.isJoint = true;
         this.name = "New Year";
         this.isPublic = false;

@@ -90,8 +90,7 @@ let attributes = {
 
   /** User can disable this discount*/
   enable: {
-    type: "boolean",
-    required: true,
+    type: "boolean"
   } as unknown as boolean,
 
   promotionCode: {
@@ -122,7 +121,6 @@ interface Promotion
       | "isPublic"
       | "description"
       | "concept"
-      | "enable"
       | "isDeleted"
       | "createdByUser"
       | "externalId"
@@ -165,20 +163,30 @@ let Model = {
     cb();
   },
 
-  beforeCreate(init: Promotion, cb:  (err?: string) => void) {
+  async beforeCreate(init: Promotion, cb:  (err?: string) => void) {
+    const PROMOTION_ENABLE_BY_DEFAULT = Boolean(await Settings.get("PROMOTION_ENABLE_BY_DEFAULT")) ?? true;
+    if(init.enable === undefined) init.enable = PROMOTION_ENABLE_BY_DEFAULT
     cb();
   },
 
   async createOrUpdate(values: Promotion): Promise<Promotion> {
+
+    // Deleting user space variables
+    delete(values.sortOrder);
+    delete(values.isDeleted);
+    delete(values.enable);
+    delete(values.worktime);
+
     let hash = hashCode(JSON.stringify(values));
-
+    
     const promotion = await Promotion.findOne({ id: values.id });
-
     if (!promotion) return Promotion.create({ hash, ...values }).fetch();
 
-    if (hash === promotion.hash) return promotion;
-
-    return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
+    if (hash === promotion.hash) {
+      return promotion;
+    } else {
+      return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
+    }
   },
 
   getAllByConcept(concept: string[]): Promotion[] {

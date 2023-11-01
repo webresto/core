@@ -17,7 +17,16 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
     filterByConcept(concept: string): Promotion[];
     filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[];
     filterByCondition(promotions: Promotion[], target: Group | Dish | Order): Promotion[];
+    /**
+     * Method uses for puntime call/pass promotionHandler, not configured
+     * @param promotionToAdd
+     */
     addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void>;
+    /**
+     * Method uses for call from Promotion model, afterCreate/update for update configuredPromotion
+     * @param promotionToAdd
+     * @returns
+     */
     recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void;
     getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined;
     getAllConcept(concept: string[]): Promise<AbstractPromotionHandler[]>;

@@ -18,14 +18,16 @@ import Promotion from './../../../models/Promotion';
 import discountGenerator from "../../generators/discount.generator";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import Decimal from "decimal.js";
+import { PromotionAdapter } from "../../../adapters/promotion/default/promotionAdapter";
 
 
 
 describe("Promotion adapter integration test", function () {
   this.timeout(60000)
+  let promotionAdapter: PromotionAdapter;
   
   before(async function() {
-
+    promotionAdapter =  Adapter.getPromotionAdapter()
   });
 
   after(async function() {
@@ -41,7 +43,6 @@ describe("Promotion adapter integration test", function () {
 
     // var dishes = await Dish.find({})
 
-    let discountAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter()
     
     let order = await Order.create({id: "configured-promotion-integration-testa"}).fetch();
     await Order.updateOne({id: order.id}, {concept: "road",user: "user"});
@@ -75,7 +76,7 @@ describe("Promotion adapter integration test", function () {
     }, 
     config)
 
-    await discountAdapter.addPromotionHandler(promotion10Percent)
+    await promotionAdapter.addPromotionHandler(promotion10Percent)
     
     await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
     await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
@@ -91,7 +92,7 @@ describe("Promotion adapter integration test", function () {
   
   it("IsJoint: false configured discount over total discount for specific dish", async ()=>{
     // check specific group and dish for joint:false
-    let discountAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter()
+    
 
     let order = await Order.create({id: "configured-promotion-integration-test-joint-false"}).fetch();
     await Order.updateOne({id: order.id}, {concept: "jointfalse",user: "user"});
@@ -140,8 +141,8 @@ describe("Promotion adapter integration test", function () {
       },
     })
 
-    await discountAdapter.addPromotionHandler(promotion10)
-    await discountAdapter.addPromotionHandler(promotion1flat)
+    await promotionAdapter.addPromotionHandler(promotion10)
+    await promotionAdapter.addPromotionHandler(promotion1flat)
 
     await Order.addDish({id: order.id}, dish1, 5, [], "", "test", );
     await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
@@ -151,7 +152,7 @@ describe("Promotion adapter integration test", function () {
   })
   
   it("configured discount for specific dish/group, over total discount with sortOrder", async ()=>{
-    let discountAdapter:AbstractPromotionAdapter = Adapter.getPromotionAdapter()
+    
 
     const groups = await Group.find({})
     const groupsId = groups.map(group => group.id)
@@ -212,7 +213,7 @@ describe("Promotion adapter integration test", function () {
     }, 
     config)
 
-    await discountAdapter.addPromotionHandler(promotion10)
+    await promotionAdapter.addPromotionHandler(promotion10)
 
     await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
     await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
@@ -230,8 +231,6 @@ describe("Promotion adapter integration test", function () {
 
   
   it("Check flat and percentage discount for specific dish/group", async ()=>{
-    let discountAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter()
-
     let order = await Order.create({id: "configured-promotion-integration-specific"}).fetch();
     await Order.updateOne({id: order.id}, {concept: "specific",user: "user"});
 
@@ -304,10 +303,10 @@ describe("Promotion adapter integration test", function () {
       },
     })
 
-    await discountAdapter.addPromotionHandler(flatDiscount)
-    await discountAdapter.addPromotionHandler(percentDiscount)
-    await discountAdapter.addPromotionHandler(percentDiscount2)
-    await discountAdapter.addPromotionHandler(percentDiscount3)
+    await promotionAdapter.addPromotionHandler(flatDiscount)
+    await promotionAdapter.addPromotionHandler(percentDiscount)
+    await promotionAdapter.addPromotionHandler(percentDiscount2)
+    await promotionAdapter.addPromotionHandler(percentDiscount3)
 
     await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
     await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
@@ -320,7 +319,7 @@ describe("Promotion adapter integration test", function () {
   
   
   it("Promotion states should passed in order discount", async ()=>{
-    let discountAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter()
+    
 
     let order = await Order.create({id: "configured-promotion-integration-states"}).fetch();
     await Order.updateOne({id: order.id}, {concept: "PromotionStatess",user: "user"});
@@ -351,14 +350,14 @@ describe("Promotion adapter integration test", function () {
         excludeModifiers: true
       },
     })
-    await discountAdapter.addPromotionHandler(promotion10state)
+    await promotionAdapter.addPromotionHandler(promotion10state)
 
     await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
     await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
 
     let res = await Order.findOne(order.id) 
 
-    // await discountAdapter.processOrder(res)
+    // await promotionAdapter.processOrder(res)
     // res = await Order.findOne(order.id) 
     
     let example = {
@@ -460,9 +459,9 @@ describe("Promotion adapter integration test", function () {
       externalId: "1-externalIdaw",
   }
     
-    let discountAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter()
     
-    await discountAdapter.addPromotionHandler(discountEx1)
+    
+    await promotionAdapter.addPromotionHandler(discountEx1)
 
     await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
     // 5 dishes + 5 from action

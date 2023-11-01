@@ -8,6 +8,10 @@ const chai_1 = require("chai");
 const findModelInstance_1 = __importDefault(require("./../../../libs/findModelInstance"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
 describe('Create_Discount', function () {
+    let promotionAdapter;
+    before(async () => {
+        promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
+    });
     it("Create discount test", async function () {
         let discountEx = {
             id: "1-id",
@@ -46,16 +50,16 @@ describe('Create_Discount', function () {
             // sortOrder: 0,
             displayGroup: function (group, user) {
                 if (this.isJoint === true && this.isPublic === true) {
-                    group.discountAmount = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
-                    group.discountType = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
+                    group.discountAmount = promotionAdapter.promotions[this.id].configDiscount.discountAmount;
+                    group.discountType = promotionAdapter.promotions[this.id].configDiscount.discountType;
                 }
                 return group;
             },
             displayDish: function (dish, user) {
                 if (this.isJoint === true && this.isPublic === true) {
                     // 
-                    dish.discountAmount = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
-                    dish.discountType = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
+                    dish.discountAmount = promotionAdapter.promotions[this.id].configDiscount.discountAmount;
+                    dish.discountType = promotionAdapter.promotions[this.id].configDiscount.discountType;
                     dish.oldPrice = dish.price;
                     dish.price = this.configDiscount.discountType === "flat"
                         ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
@@ -67,9 +71,8 @@ describe('Create_Discount', function () {
             },
             externalId: "1-externalId",
         };
-        let discountAdapter = adapters_1.Adapter.getPromotionAdapter();
-        await discountAdapter.addPromotionHandler(discountEx);
-        let discountById = adapters_1.Adapter.getPromotionAdapter().getPromotionHandlerById(discountEx.id);
+        await promotionAdapter.addPromotionHandler(discountEx);
+        let discountById = promotionAdapter.getPromotionHandlerById(discountEx.id);
         // let byConceptE = await DiscountAdapter.getAllConcept(["E"])
         // let byConceptA = await DiscountAdapter.getAllConcept(["a"])
         (0, chai_1.expect)(discountById.id).to.equal(discountEx.id);

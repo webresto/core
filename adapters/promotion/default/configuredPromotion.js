@@ -30,10 +30,8 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         this.externalId = promotion.externalId;
     }
     condition(arg) {
-        // console.log("==================================== aaaaa")
         if ((0, findModelInstance_1.default)(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
             ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-            // console.log("==================================== ")
             let order = arg;
             // TODO:  if order.dishes type number[]
             let orderDishes = order.dishes;
@@ -43,19 +41,13 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 return true;
             return false;
         }
-        if ((0, findModelInstance_1.default)(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "")
-            ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
+            (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.dishes);
-            // if(this.config.dishes.includes(arg.id)){
-            //     return true;
-            // }
         }
-        if ((0, findModelInstance_1.default)(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "")
-            ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
+            (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.groups);
-            // if(this.config.groups.includes(arg.id)){
-            //     return true;
-            // }
         }
         return false;
     }
