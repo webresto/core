@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class AbstractPromotionAdapter {
-    // public static clearOfPromotion:(orderId: any) => Promise<void>;
     /**
      * Base realization clearOfPromotion
      */

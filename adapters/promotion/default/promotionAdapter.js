@@ -19,12 +19,11 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         const promotionStates = [];
         // Order.populate()
         await this.clearOfPromotion(order.id);
-        // console.log(order, " ===================== ORDER")
         let filteredPromotion = this.filterByConcept(order.concept);
         let promotionByConcept = this.filterPromotions(filteredPromotion, order);
         if (promotionByConcept[0] !== undefined) {
             for (const promotion of promotionByConcept) {
-                let state = await PromotionAdapter.promotions[promotion.id].action(order);
+                let state = await this.promotions[promotion.id].action(order);
                 promotionStates.push(state);
             }
         }
@@ -171,7 +170,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         return await Promotion.getAllByConcept(concept);
     }
     deletePromotion(id) {
-        // PromotionAdapter.promotions(id)
+        // this.promotions(id)
         return;
     }
     getActivePromotionsIds() {

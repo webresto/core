@@ -25,7 +25,7 @@ sails.on("lifted", async ()=>{
   let promotions = await Promotion.find({ enable:true })
   
   for(let i=0; i<promotions.length; i++){
-    PromotionAdapter.recreatePromotionHandler(promotions[i]);
+    Adapter.getPromotionAdapter().recreatePromotionHandler(promotions[i]);
   }
 })
 
@@ -135,28 +135,26 @@ let Model = {
    async afterUpdate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreate of discountHandler
-      PromotionAdapter.recreateConfiguredPromotionHandler(record);
+      Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
     }
 
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
-    // console.log(promotionRAM, "================= after UPDATE ===========")
     cb();
   },
 
   async afterCreate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreate of discountHandler
-      PromotionAdapter.recreateConfiguredPromotionHandler(record);
+      Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
     }
 
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
-    // console.log(promotionRAM, "================= after Create ===========")
     cb();
   },
 
   async afterDestroy(record: Promotion, cb:  (err?: string) => void) {
     // delete promotion in adapter
-    PromotionAdapter.deletePromotion(record.id)
+    Adapter.getPromotionAdapter().deletePromotion(record.id)
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
 
     cb();

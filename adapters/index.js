@@ -91,15 +91,33 @@ class OTP {
 exports.OTP = OTP;
 /** TODO: move other Adapters to one class adapter */
 class Adapter {
-    static getPromotionAdapter(adapterName, initParams) {
+    static getPromotionAdapter(adapter, initParams) {
+        let adapterName;
+        if (adapter) {
+            if (typeof adapter === "string") {
+                adapterName = adapter;
+            }
+            else if (adapter instanceof promotionAdapter_1.PromotionAdapter) {
+                this.instancePromotionAdapter = adapter;
+                return this.instancePromotionAdapter;
+            }
+            else {
+                throw new Error("Adapter should be a string or instance of PromotionAdapter");
+            }
+        }
         if (!adapterName) {
-            return promotionAdapter_1.PromotionAdapter.initialize();
+            this.instancePromotionAdapter = new promotionAdapter_1.PromotionAdapter;
+        }
+        // Return the singleon
+        if (this.instancePromotionAdapter) {
+            return this.instancePromotionAdapter;
         }
         let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-promotion-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-promotion-adapter";
         try {
-            const adapter = require(adapterLocation);
-            return adapter.PromotionAdapter[adapterName].initialize(initParams);
+            const adapterModule = require(adapterLocation);
+            this.instancePromotionAdapter = new adapterModule.PromotionAdapter(initParams);
+            return this.instancePromotionAdapter;
         }
         catch (e) {
             sails.log.error("CORE > getAdapter Promotion > error; ", e);

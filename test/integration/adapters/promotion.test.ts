@@ -5,7 +5,6 @@ import { Adapter } from "../../../adapters";
 import { expect } from "chai";
 import { address, customer } from "../../mocks/customer";
 import AbstractPromotionAdapter from "../../../adapters/promotion/AbstractPromotionAdapter";
-import { PromotionAdapter } from "../../../adapters/promotion/default/promotionAdapter";
 import dishGenerator from "../../generators/dish.generator";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
@@ -42,7 +41,6 @@ describe("Promotion adapter integration test", function () {
 
     // var dishes = await Dish.find({})
 
-    // let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
     let discountAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter()
     
     let order = await Order.create({id: "configured-promotion-integration-testa"}).fetch();
@@ -424,9 +422,7 @@ describe("Promotion adapter integration test", function () {
       
       return false
     },
-      action: async (order: Order): Promise<PromotionState> => {
-          // console.log("ACTION ================awdawdawd")
-  
+      action: async (order: Order): Promise<PromotionState> => { 
           let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "recursion",parentGroup:groupsId[0]}));
           discountEx1.configDiscount.dishes.push(dish1.id)
           await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
@@ -440,8 +436,8 @@ describe("Promotion adapter integration test", function () {
       displayGroup: function (group:Group, user?: string): Group {
         if (this.isJoint === true && this.isPublic === true) {
           
-          group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-          group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+          group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+          group.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
          }
          
         return group
@@ -449,8 +445,8 @@ describe("Promotion adapter integration test", function () {
       displayDish:  function (dish:Dish, user?: string): Dish {
         if (this.isJoint === true && this.isPublic === true) {
           // 
-          dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-          dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+          dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+          dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
           dish.oldPrice = dish.price
 
           dish.price = this.configDiscount.discountType === "flat" 

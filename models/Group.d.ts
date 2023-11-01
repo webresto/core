@@ -33,7 +33,7 @@ declare let attributes: {
         allowNull: boolean;
     };
     /** Images */
-    images: MediaFile[] | string[];
+    images: string[] | MediaFile[];
     /** PlaySholder for group dishes */
     dishesPlaceholder: MediaFile[];
     /** The person readable isii*/

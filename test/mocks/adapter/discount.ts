@@ -71,8 +71,8 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public displayGroup(group:Group, user?: string): Group {
         if (this.isJoint === true && this.isPublic === true) {
           
-            group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-            group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+            group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+            group.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
            }
            
           return group
@@ -81,8 +81,8 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public displayDish(dish:Dish, user?: string): Dish {
         if (this.isJoint === true && this.isPublic === true) {
             // 
-            dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-            dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+            dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+            dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
             dish.oldPrice = dish.price
   
             dish.price = this.configDiscount.discountType === "flat" 

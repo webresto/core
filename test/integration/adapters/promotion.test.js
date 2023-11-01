@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const adapters_1 = require("../../../adapters");
 const chai_1 = require("chai");
-const promotionAdapter_1 = require("../../../adapters/promotion/default/promotionAdapter");
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
@@ -25,7 +24,6 @@ describe("Promotion adapter integration test", function () {
         // // if the Cost is added, he set
         // // if item is borrowed from him
         // var dishes = await Dish.find({})
-        // let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
         let discountAdapter = adapters_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "configured-promotion-integration-testa" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "road", user: "user" });
@@ -322,7 +320,6 @@ describe("Promotion adapter integration test", function () {
                 return false;
             },
             action: async (order) => {
-                // console.log("ACTION ================awdawdawd")
                 let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "recursion", parentGroup: groupsId[0] }));
                 discountEx1.configDiscount.dishes.push(dish1.id);
                 await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
@@ -334,16 +331,16 @@ describe("Promotion adapter integration test", function () {
             // sortOrder: 0,
             displayGroup: function (group, user) {
                 if (this.isJoint === true && this.isPublic === true) {
-                    group.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                    group.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                    group.discountAmount = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                    group.discountType = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
                 }
                 return group;
             },
             displayDish: function (dish, user) {
                 if (this.isJoint === true && this.isPublic === true) {
                     // 
-                    dish.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                    dish.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                    dish.discountAmount = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                    dish.discountType = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
                     dish.oldPrice = dish.price;
                     dish.price = this.configDiscount.discountType === "flat"
                         ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()

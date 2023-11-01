@@ -41,8 +41,4 @@ export default abstract class AbstractPromotionAdapter {
         public abstract addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void>;
 
         public abstract getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined;
-
-        static getInstance:(initParams?: {
-            [key: string]: string | number | boolean;
-        })=> AbstractPromotionAdapter;
 }

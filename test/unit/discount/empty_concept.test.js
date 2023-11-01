@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
 const chai_1 = require("chai");
-const promotionAdapter_1 = require("../../../adapters/promotion/default/promotionAdapter");
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
+const index_1 = require("../../../adapters/index");
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
@@ -36,7 +36,6 @@ describe('Discount_Empty', function () {
             return false;
         },
         action: async (order) => {
-            // console.log("ACTION ================awdawdawd")
             return await configuredPromotion.applyPromotion(order.id);
         },
         isPublic: true,
@@ -44,16 +43,16 @@ describe('Discount_Empty', function () {
         // sortOrder: 0,
         displayGroup: function (group, user) {
             if (this.isJoint === true && this.isPublic === true) {
-                group.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                group.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                group.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                group.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
             }
             return group;
         },
         displayDish: function (dish, user) {
             if (this.isJoint === true && this.isPublic === true) {
                 // 
-                dish.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                dish.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                dish.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                dish.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
                 dish.oldPrice = dish.price;
                 dish.price = this.configDiscount.discountType === "flat"
                     ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
@@ -74,7 +73,7 @@ describe('Discount_Empty', function () {
         discountEx.configDiscount.groups = groupsId;
     });
     it("discount empty concept", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "add-dish-empty-concept" }).fetch();
         await Order.updateOne({ id: order.id }, { user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "a", parentGroup: groupsId[0] }));
@@ -88,7 +87,7 @@ describe('Discount_Empty', function () {
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });
     it("discount empty concept but order with concept", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "add-dish-empty" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "a", parentGroup: groupsId[0] }));

@@ -88,8 +88,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
          // TODO: user implement logic personal discount
          if (this.isJoint === true && this.isPublic === true) {
           // 
-          group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-          group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+          group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+          group.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
          }
          
         return group
@@ -100,8 +100,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
         if (this.isJoint === true && this.isPublic === true) {
           // 
-          dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-          dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+          dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+          dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
           dish.oldPrice = dish.price
 
           dish.price = this.configDiscount.discountType === "flat" 

@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const faker_1 = __importDefault(require("faker"));
-const promotionAdapter_1 = require("../../adapters/promotion/default/promotionAdapter");
 const findModelInstance_1 = __importDefault(require("../../libs/findModelInstance"));
 const configuredPromotion_1 = __importDefault(require("../../adapters/promotion/default/configuredPromotion"));
 const stringsInArray_1 = require("../../libs/stringsInArray");
@@ -78,16 +77,16 @@ function discountGenerator(config = {
         displayGroup: function (group, user) {
             if (this.isJoint === true && this.isPublic === true) {
                 // 
-                group.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                group.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                group.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
             }
             return group;
         },
         displayDish: function (dish, user) {
             if (this.isJoint === true && this.isPublic === true) {
                 // 
-                dish.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                dish.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
                 dish.oldPrice = dish.price;
                 dish.price = this.configDiscount.discountType === "flat"
                     ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()

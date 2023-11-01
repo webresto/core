@@ -9,7 +9,6 @@ const chai_1 = require("chai");
 const discount_1 = require("../../mocks/adapter/discount");
 const discount_generator_1 = __importDefault(require("../../generators/discount.generator"));
 const group_generator_1 = __importDefault(require("../../generators/group.generator"));
-const promotionAdapter_1 = require("./../../../adapters/promotion/default/promotionAdapter");
 const findModelInstance_1 = __importDefault(require("./../../../libs/findModelInstance"));
 const index_1 = require("./../../../adapters/index");
 const stringsInArray_1 = require("../../../libs/stringsInArray");
@@ -61,16 +60,16 @@ describe('Discount', function () {
         // sortOrder: 0,
         displayGroup: function (group, user) {
             if (this.isJoint === true && this.isPublic === true) {
-                group.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                group.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                group.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                group.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
             }
             return group;
         },
         displayDish: function (dish, user) {
             if (this.isJoint === true && this.isPublic === true) {
                 // 
-                dish.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                dish.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                dish.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                dish.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
                 dish.oldPrice = dish.price;
                 dish.price = this.configDiscount.discountType === "flat"
                     ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
@@ -110,28 +109,27 @@ describe('Discount', function () {
     });
     it("discount add ", async function () {
         // let a = await Adapter.getDiscountAdapter()
-        let promotionAdapter = promotionAdapter_1.PromotionAdapter.initialize();
-        await promotionAdapter.addPromotionHandler(discountEx);
+        await index_1.Adapter.getPromotionAdapter().addPromotionHandler(discountEx);
         let discount = await Promotion.find({});
-        let discountById = await promotionAdapter_1.PromotionAdapter.getPromotionHandlerById(discountEx.id);
+        let discountById = await index_1.Adapter.getPromotionAdapter().getPromotionHandlerById(discountEx.id);
         (0, chai_1.expect)(discount[0]).to.be.an("object");
         (0, chai_1.expect)(discountById).to.be.an("object");
     });
     it("discount applyPromotion flat on order", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "add-dish-with-discount" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10, concept: "origin", parentGroup: groupsId[0] }));
         discountEx.configDiscount.dishes.push(dish1.id);
         await discountAdapter.addPromotionHandler(discountEx);
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
-        await promotionAdapter_1.PromotionAdapter.clearOfPromotion(order.id);
+        await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order.id);
         await configuredPromotion.applyPromotion(order.id);
         let result = await Order.findOne(order.id);
         (0, chai_1.expect)(result.discountTotal).to.equal(6.65);
     });
     it("discount applyPromotion flat on order with different dishes", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "add-dish-with-discounts" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "origin", parentGroup: groupsId[0] }));
@@ -142,13 +140,13 @@ describe('Discount', function () {
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
         // let result1 = await Dish.findOne(dish1.id)
-        await promotionAdapter_1.PromotionAdapter.clearOfPromotion(order.id);
+        await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order.id);
         await configuredPromotion.applyPromotion(order.id);
         let result = await Order.findOne(order.id);
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });
-    it("discount PromotionAdapter-applyToOrder on order with different dishes", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+    it("discount Adapter.getPromotionAdapter()-applyToOrder on order with different dishes", async function () {
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "apply-to-ordersa" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
         //Decimal check 15.2,  10.1
@@ -176,7 +174,7 @@ describe('Discount', function () {
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });
     it("discount applyPromotion percentage on order with different dishes", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "add-dish-with-discountsa" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "origin", parentGroup: groupsId[0] }));
@@ -189,14 +187,14 @@ describe('Discount', function () {
         // console.log(discInMemory)
         // let result1 = await Dish.findOne(dish1.id)
         // DiscountAdapter.applyToOrder(order)
-        await promotionAdapter_1.PromotionAdapter.clearOfPromotion(order.id);
+        await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order.id);
         await configuredPromotionFromMemory.applyPromotion(order.id);
         let result = await Order.findOne(order.id); //.populate("dishes");
         // console.log(result, "get discount order")
         (0, chai_1.expect)(result.discountTotal).to.equal(11.13);
     });
     it("discount test dishes with flat and percentage types of discounts but same concept", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "test-discounts-on-different-types" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "Happy Birthday", parentGroup: groupsId[0] }));
@@ -223,7 +221,7 @@ describe('Discount', function () {
         (0, chai_1.expect)(result.discountTotal).to.equal(60.45);
     });
     it("discount test dishes with flat and percentage types of discounts but different concept", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "test-different-types-and-concept" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "Happy Birthday", parentGroup: groupsId[0] }));
@@ -252,7 +250,7 @@ describe('Discount', function () {
         (0, chai_1.expect)(result.discountTotal).to.equal(49.81);
     });
     it("discount test dishes with 3 dif type of discount", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "test-3-types-of-discount" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "3dif", user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish2", price: 10.1, concept: "origin", parentGroup: groupsId[0] }));
@@ -278,7 +276,7 @@ describe('Discount', function () {
         (0, chai_1.expect)(result.discountTotal).to.equal(62.48);
     });
     // it("discount test displayDish", async function () {
-    //   let discountAdapter:AbstractPromotionAdapter = PromotionAdapter.initialize()
+    //   let discountAdapter:AbstractPromotionAdapter = Adapter.getPromotionAdapter()
     //   let order = await Order.create({id: "test-display-dish"}).fetch();
     //   await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
     //   let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
@@ -297,7 +295,7 @@ describe('Discount', function () {
     //   expect(display[0].discountType).to.equal("flat");
     // });
     it("discount test displayGroup", async function () {
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let order = await Order.create({ id: "test-display-group" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
         await discountAdapter.addPromotionHandler(discountEx);
@@ -311,31 +309,31 @@ describe('Discount', function () {
     it("discount test clearDiscount", async function () {
         let order = await Order.create({ id: "test-clear-discount" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10, concept: "origin", parentGroup: groupsId[0] }));
         discountEx.configDiscount.dishes.push(dish1.id);
         await discountAdapter.addPromotionHandler(discountEx);
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
         // await discountAdapter.processOrder(order)
-        await promotionAdapter_1.PromotionAdapter.clearOfPromotion(order.id);
+        await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order.id);
         let result = await Order.findOne(order.id);
         (0, chai_1.expect)(result.discountTotal).to.equal(0);
     });
     it("discount test clearDiscount orderDish", async function () {
         let order = await Order.create({ id: "test-clear-discount-OrderDish" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "clear", user: "user" });
-        let discountAdapter = promotionAdapter_1.PromotionAdapter.initialize();
+        let discountAdapter = index_1.Adapter.getPromotionAdapter();
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10, concept: "clear", parentGroup: groupsId[0] }));
         discountEx.configDiscount.dishes.push(dish1.id);
         await discountAdapter.addPromotionHandler(discountEx);
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
-        // await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
+        // await Adapter.getPromotionAdapter().applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
         // before clear
         let orderDishes1 = await OrderDish.find({ order: order.id }).populate("dish");
         // console.log(orderDishes1)
         (0, chai_1.expect)(orderDishes1[0].discountTotal).to.equal(6.65);
         //after clear
-        await promotionAdapter_1.PromotionAdapter.clearOfPromotion(order.id);
+        await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order.id);
         let orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         // console.log(orderDishes)
         (0, chai_1.expect)(orderDishes[0].discountTotal).to.equal(0);
@@ -343,20 +341,20 @@ describe('Discount', function () {
     it("discount test Adapter.getDiscount ", async function () {
         let order = await Order.create({ id: "test-clear-discount-order-dish-adapter" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "clear", user: "user" });
-        // let promotionAdapter:AbstractPromotionAdapter = DiscountAdapter.initialize()
+        // let Adapter.getPromotionAdapter() = DiscountAdapter.initialize()
         let a = index_1.Adapter.getPromotionAdapter();
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10, concept: "clear", parentGroup: groupsId[0] }));
         discountEx.configDiscount.dishes.push(dish1.id);
         await a.addPromotionHandler(discountEx);
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
         // await discountAdapter.addPromotionHandler(discountEx)
-        // await PromotionAdapter.applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
+        // await Adapter.getPromotionAdapter().applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
         // before clear
         let orderDishes1 = await OrderDish.find({ order: order.id }).populate("dish");
         // console.log(orderDishes1)
         (0, chai_1.expect)(orderDishes1[0].discountTotal).to.equal(6.65);
         //after clear
-        await promotionAdapter_1.PromotionAdapter.clearOfPromotion(order.id);
+        await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order.id);
         let orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         // console.log(orderDishes)
         (0, chai_1.expect)(orderDishes[0].discountTotal).to.equal(0);

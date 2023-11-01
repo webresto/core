@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const hashCode_1 = __importDefault(require("../libs/hashCode"));
 const adapters_1 = require("../adapters");
-const promotionAdapter_1 = require("./../adapters/promotion/default/promotionAdapter");
 const stringsInArray_1 = require("../libs/stringsInArray");
 // import Decimal from "decimal.js";
 // sails.on("lifted", function () {
@@ -17,7 +16,7 @@ let promotionRAM = [];
 sails.on("lifted", async () => {
     let promotions = await Promotion.find({ enable: true });
     for (let i = 0; i < promotions.length; i++) {
-        promotionAdapter_1.PromotionAdapter.recreatePromotionHandler(promotions[i]);
+        adapters_1.Adapter.getPromotionAdapter().recreatePromotionHandler(promotions[i]);
     }
 });
 let attributes = {
@@ -89,24 +88,22 @@ let Model = {
     async afterUpdate(record, cb) {
         if (record.createdByUser) {
             // call recreate of discountHandler
-            promotionAdapter_1.PromotionAdapter.recreateConfiguredPromotionHandler(record);
+            adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
-        // console.log(promotionRAM, "================= after UPDATE ===========")
         cb();
     },
     async afterCreate(record, cb) {
         if (record.createdByUser) {
             // call recreate of discountHandler
-            promotionAdapter_1.PromotionAdapter.recreateConfiguredPromotionHandler(record);
+            adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
-        // console.log(promotionRAM, "================= after Create ===========")
         cb();
     },
     async afterDestroy(record, cb) {
         // delete promotion in adapter
-        promotionAdapter_1.PromotionAdapter.deletePromotion(record.id);
+        adapters_1.Adapter.getPromotionAdapter().deletePromotion(record.id);
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
         cb();
     },

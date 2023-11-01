@@ -5,7 +5,6 @@ import Order from './../../../models/Order';
 import { Adapter } from "../../../adapters";
 import { expect } from "chai";
 import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';
-import { PromotionAdapter } from './../../../adapters/promotion/default/promotionAdapter';
 import findModelInstanceByAttributes from './../../../libs/findModelInstance';
 import Decimal from 'decimal.js';
 
@@ -52,8 +51,8 @@ describe('Create_Discount', function () {
             displayGroup:  function (group:Group, user?: string): Group {
                 if (this.isJoint === true && this.isPublic === true) {
                 
-                  group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                  group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                  group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                  group.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
                  }
                  
                 return group
@@ -61,8 +60,8 @@ describe('Create_Discount', function () {
               displayDish: function (dish:Dish, user?: string): Dish {
                 if (this.isJoint === true && this.isPublic === true) {
                   // 
-                  dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                  dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                  dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+                  dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
                   dish.oldPrice = dish.price
         
                   dish.price = this.configDiscount.discountType === "flat" 
@@ -78,7 +77,7 @@ describe('Create_Discount', function () {
         let discountAdapter = Adapter.getPromotionAdapter()
         await discountAdapter.addPromotionHandler(discountEx)
 
-        let discountById = await PromotionAdapter.getPromotionHandlerById(discountEx.id)
+        let discountById = Adapter.getPromotionAdapter().getPromotionHandlerById(discountEx.id)
 
         // let byConceptE = await DiscountAdapter.getAllConcept(["E"])
         // let byConceptA = await DiscountAdapter.getAllConcept(["a"])
