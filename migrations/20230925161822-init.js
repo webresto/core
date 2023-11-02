@@ -1224,7 +1224,6 @@ exports.up = function (db, callback) {
     columns: {
     "id": {
         "type": "int",
-        "notNull": true,
         "autoIncrement": true
     },
     "dish_images": {
@@ -1240,7 +1239,6 @@ exports.up = function (db, callback) {
     columns: {
     "id": {
         "type": "int",
-        "notNull": true,
         "autoIncrement": true
     },
     "group_images": {

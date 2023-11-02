@@ -74,7 +74,6 @@ exports.up = function (db, callback) {
     columns: {
     "id": {
         "type": "int",
-        "notNull": true,
         "autoIncrement": true
     },
     "promotion_promotionCode": {
