@@ -130,7 +130,7 @@ let Model = {
                     value: value,
                     from: from,
                     readOnly: readOnly
-                });
+                }).fetch();
             }
             else {
                 if (propety.readOnly)

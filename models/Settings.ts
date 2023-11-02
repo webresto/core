@@ -162,7 +162,7 @@ let Model = {
           value: value,
           from: from,
           readOnly: readOnly
-        });
+        }).fetch();
       } else {
         if (propety.readOnly) throw `Property cannot be changed (read only)`
         return (await Settings.update({ key: key }, { value: value }).fetch())[0];
