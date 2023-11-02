@@ -437,7 +437,7 @@ exports.up = function (db, callback) {
         "type": "boolean"
     },
     "paymentMethod": {
-        "type": "int"
+        "type": "text"
     },
     "paymentMethodTitle": {
         "type": "text"
@@ -516,7 +516,7 @@ exports.up = function (db, callback) {
         "type": "text"
     },
     "pickupPoint": {
-        "type": "int"
+        "type": "text"
     },
     "selfService": {
         "type": "boolean",
@@ -533,7 +533,7 @@ exports.up = function (db, callback) {
         "type": "text"
     },
     "deliveryItem": {
-        "type": "int"
+        "type": "text"
     },
     "deliveryCost": {
         "type": "real",
@@ -602,13 +602,13 @@ exports.up = function (db, callback) {
         "type": "real"
     },
     "dish": {
-        "type": "int"
+        "type": "text"
     },
     "modifiers": {
         "type": "json"
     },
     "order": {
-        "type": "int"
+        "type": "text"
     },
     "uniqueItems": {
         "type": "real"
@@ -671,7 +671,7 @@ exports.up = function (db, callback) {
         "type": "text"
     },
     "paymentMethod": {
-        "type": "int"
+        "type": "text"
     },
     "amount": {
         "type": "real"
