@@ -442,6 +442,9 @@ exports.up = function (db, callback) {
     "paymentMethodTitle": {
         "type": "text"
     },
+    "state": {
+        "type": "text"
+    },
     "paid": {
         "type": "boolean",
         "defaultValue": false
