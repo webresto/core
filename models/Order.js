@@ -707,7 +707,10 @@ let Model = {
             emitter.emit("core-order-order-delivery", order);
         }
         /**
-         * @deprecated Event `core-order-order` will be deleted in v2
+         *  I think that this function is unnecessary here, although the entire emitter was created for it.
+         *  Obviously, having an RMS adapter at your disposal, you don’t need a waiting listener at all
+         *  But since it exists, it will be revised in version 2
+         * @deprecated Event `core-order-order`
          */
         const results = await emitter.emit("core-order-order", order);
         sails.log.silly("Order > order > after wait general emitter results: ", results);
@@ -767,12 +770,14 @@ let Model = {
                     rmsOrderNumber: orderWithRMS.rmsOrderNumber,
                     rmsOrderData: orderWithRMS.rmsOrderData
                 });
+                sails.log.info(`RestoCore > new order with id [${orderWithRMS.shortId}] for [${orderWithRMS.customer.phone.code + orderWithRMS.customer.phone.number}] total: ${orderWithRMS.total} has rmsOrderNumber: ${orderWithRMS.rmsOrderNumber}`);
             }
             catch (error) {
                 const orderError = {
                     rmsErrorCode: error.code ?? "Error",
                     rmsErrorMessage: error.message ?? JSON.stringify(error)
                 };
+                sails.log.error(`RestoCore > orderIt error:`, error);
                 await Order.update({ id: order.id }, orderError);
             }
             emitter.emit("core-order-after-order", order);

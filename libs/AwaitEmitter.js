@@ -80,7 +80,7 @@ class AwaitEmitter {
                             return arg;
                         }
                     });
-                }
+                } //silly
                 const r = f.fn.apply(that, args);
                 // If this is a promise, then we are waiting
                 if (!!r && (typeof r === "object" || typeof r === "function") && typeof r.then === "function") {
@@ -105,7 +105,7 @@ class AwaitEmitter {
                             }
                             else {
                                 const listenerName = f.label || "some";
-                                sails.log.warn(listenerName, "event of action", name, "in", that.name, "emitter end after", new Date().getTime() - now.getTime(), "ms");
+                                sails.log.error(listenerName, "event of action", name, "in", that.name, "emitter end after", new Date().getTime() - now.getTime(), "ms");
                             }
                         }
                         catch (e) {
@@ -126,7 +126,6 @@ class AwaitEmitter {
                 }
             }
             catch (e) {
-                sails.log.error("AwaitEmmiter error: ", e);
                 res.push(new Response(f.label, null, e));
             }
         });
@@ -154,5 +153,8 @@ class Response {
         this.result = result;
         this.error = error;
         this.state = timeout ? "timeout" : this.error ? "error" : "success";
+        if (error) {
+            sails.log.error(`Emitter with label [${label ?? 'some'}], was finised with error:`, error);
+        }
     }
 }
