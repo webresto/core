@@ -27,7 +27,6 @@ import bindLocales from "./bindLocales";
 // @ts-ignore
 global.Adapter = Adapter
 
-
 export default function ToInitialize(sails: Sails) {
   /**
    * Required hooks
@@ -35,6 +34,7 @@ export default function ToInitialize(sails: Sails) {
   const requiredHooks = ["blueprints", "http", "orm", "policies", "stateflow"];
   
   return function initialize(cb) {
+    sails.log.info(`RestoCore initialize from dir [${__dirname}]`)
 
     if(process.env.WEBRESTO_CORE_DISABLED){
       return cb();
