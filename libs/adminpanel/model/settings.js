@@ -1,6 +1,26 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
+    user: {
+        title: "User",
+        model: "user",
+        icon: "user"
+    },
+    products: {
+        model: 'dish',
+        title: 'Products',
+        icon: 'hamburger'
+    },
+    groups: {
+        model: 'group',
+        title: 'Группы',
+        icon: 'folder'
+    },
+    orders: {
+        model: 'order',
+        title: 'Заказы',
+        icon: 'shopping-cart'
+    },
     settings: {
         title: "Settings",
         model: "settings",

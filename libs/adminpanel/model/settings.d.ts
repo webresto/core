@@ -1,4 +1,24 @@
 declare const _default: {
+    user: {
+        title: string;
+        model: string;
+        icon: string;
+    };
+    products: {
+        model: string;
+        title: string;
+        icon: string;
+    };
+    groups: {
+        model: string;
+        title: string;
+        icon: string;
+    };
+    orders: {
+        model: string;
+        title: string;
+        icon: string;
+    };
     settings: {
         title: string;
         model: string;
