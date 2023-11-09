@@ -27,8 +27,9 @@ import User from "../models/User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string
 type ChannelType = "sms" | "email" | string
+
 export abstract class Channel {
-  public type: ChannelType = null;
+  public abstract type: ChannelType;
 
   // TODO: Add readStatus
   // public hasReadStatus: boolean = false;
@@ -36,11 +37,9 @@ export abstract class Channel {
   /**
    * If forceSend true it should send anytime
    */
-  public forceSend: boolean = false;
-  public forGroupTo: MessageGroupTo[] = [];
-  public sortOrder: number = 0;
-
-  constructor() { }
+  public abstract forceSend: boolean;
+  public abstract forGroupTo: MessageGroupTo[];
+  public abstract sortOrder: number;
 
   protected abstract send(badge: Badge, message: string, user: User, subject?: string, data?: object): Promise<void>;
 
@@ -91,7 +90,7 @@ export class NotificationManager {
     await NotificationManager.send(badge, "user", text, populatedUser, type, subject, data);
   }
 
-  private static channels: Channel[] = [];
+  public static readonly channels: Channel[] = [];
 
   public static send = async (
     badge: Badge,
