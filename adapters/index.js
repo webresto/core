@@ -105,12 +105,12 @@ class Adapter {
                 throw new Error("Adapter should be a string or instance of PromotionAdapter");
             }
         }
-        if (!adapterName) {
-            this.instancePromotionAdapter = new promotionAdapter_1.PromotionAdapter;
-        }
         // Return the singleon
         if (this.instancePromotionAdapter) {
             return this.instancePromotionAdapter;
+        }
+        if (!adapterName) {
+            this.instancePromotionAdapter = new promotionAdapter_1.PromotionAdapter;
         }
         let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-promotion-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-promotion-adapter";

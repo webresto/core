@@ -95,13 +95,13 @@ export class Adapter {
       }
     }
 
-    if (!adapterName) {
-      this.instancePromotionAdapter = new PromotionAdapter;
-    }
-
     // Return the singleon
     if (this.instancePromotionAdapter) {
       return this.instancePromotionAdapter;
+    }
+
+    if (!adapterName) {
+      this.instancePromotionAdapter = new PromotionAdapter;
     }
 
     let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-promotion-adapter";

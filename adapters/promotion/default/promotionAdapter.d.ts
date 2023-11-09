@@ -8,7 +8,7 @@ import Dish from "../../../models/Dish";
 export declare class PromotionAdapter extends AbstractPromotionAdapter {
     recreatePromotionHandler(promotionToAdd: AbstractPromotionHandler): void;
     applyPromotion(orderId: any, spendPromotion: IconfigDiscount, promotionId: any): Promise<PromotionState>;
-    promotions: {
+    readonly promotions: {
         [key: string]: AbstractPromotionHandler;
     };
     processOrder(order: Order): Promise<PromotionState[]>;
@@ -16,7 +16,7 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
     displayGroup(group: Group): Group;
     filterByConcept(concept: string): Promotion[];
     filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[];
-    filterByCondition(promotions: Promotion[], target: Group | Dish | Order): Promotion[];
+    filterByCondition(promotionsToCheck: Promotion[], target: Group | Dish | Order): Promotion[];
     /**
      * Method uses for puntime call/pass promotionHandler, not configured
      * @param promotionToAdd

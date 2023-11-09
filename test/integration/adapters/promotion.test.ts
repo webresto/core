@@ -31,7 +31,7 @@ describe("Promotion adapter integration test", function () {
   });
 
   after(async function() {
-    await Promotion.destroy({})
+    // await Promotion.destroy({})
   })
 
   
@@ -84,8 +84,6 @@ describe("Promotion adapter integration test", function () {
     let result = await Order.findOne(order.id) 
     // console.log(result)
     expect(result.discountTotal).to.equal(11.13);
-
-
   });
   
 
@@ -151,6 +149,7 @@ describe("Promotion adapter integration test", function () {
     expect(result.discountTotal).to.equal(11.13);
   })
   
+
   it("configured discount for specific dish/group, over total discount with sortOrder", async ()=>{
     
 
@@ -223,13 +222,12 @@ describe("Promotion adapter integration test", function () {
 
     expect(result.discountTotal).to.equal(5);
   })
-  
 
   //   /**
   //    * Here need add 2 discount for cross group and check what is stop after first found
   //    */
 
-  
+
   it("Check flat and percentage discount for specific dish/group", async ()=>{
     let order = await Order.create({id: "configured-promotion-integration-specific"}).fetch();
     await Order.updateOne({id: order.id}, {concept: "specific",user: "user"});
@@ -471,7 +469,7 @@ describe("Promotion adapter integration test", function () {
     let result = await Order.findOne(order.id) 
     expect(result.discountTotal).to.equal(19);
   })
-  
+
 });
 
 function sleep(ms) {

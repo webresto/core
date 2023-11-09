@@ -63,7 +63,8 @@ let attributes = {
   externalId: {
     type: "string",
     unique: true,
-    allowNull: true // Only for NEW state
+    required: true,
+    // allowNull: true // Only for NEW state
   } as unknown as string,
 
   /** Model from which payment is made*/

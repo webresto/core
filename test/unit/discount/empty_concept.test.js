@@ -12,7 +12,7 @@ const configuredPromotion_1 = __importDefault(require("../../../adapters/promoti
 const decimal_js_1 = __importDefault(require("decimal.js"));
 describe('Discount_Empty', function () {
     after(async function () {
-        await Promotion.destroy({});
+        // await Promotion.destroy({})
     });
     let discountEx = {
         id: "1-id",

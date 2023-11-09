@@ -27,6 +27,7 @@ let attributes = {
     externalId: {
         type: "string",
         unique: true,
+        required: true,
     },
     configDiscount: {
         type: "json",
@@ -110,26 +111,34 @@ let Model = {
         cb();
     },
     async beforeCreate(init, cb) {
-        const PROMOTION_ENABLE_BY_DEFAULT = Boolean(await Settings.get("PROMOTION_ENABLE_BY_DEFAULT")) ?? true;
-        if (init.enable === undefined)
-            init.enable = PROMOTION_ENABLE_BY_DEFAULT;
+        const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT");
+        init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) : true;
         cb();
     },
     async createOrUpdate(values) {
+        let sortOrder = values.sortOrder;
+        let isDeleted = values.isDeleted;
+        let enable = values.enable;
+        let worktime = values.worktime;
         // Deleting user space variables
-        delete (values.sortOrder);
-        delete (values.isDeleted);
-        delete (values.enable);
-        delete (values.worktime);
-        let hash = (0, hashCode_1.default)(JSON.stringify(values));
-        const promotion = await Promotion.findOne({ id: values.id });
-        if (!promotion)
-            return Promotion.create({ hash, ...values }).fetch();
-        if (hash === promotion.hash) {
-            return promotion;
+        try {
+            delete (values.sortOrder);
+            delete (values.isDeleted);
+            delete (values.enable);
+            delete (values.worktime);
+            let hash = (0, hashCode_1.default)(JSON.stringify(values));
+            const promotion = await Promotion.findOne({ id: values.id });
+            if (!promotion)
+                return Promotion.create({ hash, ...values, sortOrder, isDeleted, enable, worktime }).fetch();
+            if (hash === promotion.hash) {
+                return promotion;
+            }
+            else {
+                return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
+            }
         }
-        else {
-            return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
+        catch (error) {
+            console.log(error);
         }
     },
     getAllByConcept(concept) {
@@ -138,7 +147,6 @@ let Model = {
             throw "concept is required";
         let activePromotionIds = promotionAdapter.getActivePromotionsIds();
         if (concept[0] === "") {
-            // console.log("")
             let filteredRAM = promotionRAM.filter(promotion => (promotion.concept[0] === undefined || promotion.concept[0] === "")
                 && (0, stringsInArray_1.stringsInArray)(promotion.id, activePromotionIds));
             return filteredRAM;

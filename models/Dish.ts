@@ -201,7 +201,7 @@ let attributes = {
   /** Слаг */
   slug: {
     type: "string",
-    unique: true
+    // unique: true,
   } as unknown as string,
 
   /** The concept to which the dish belongs */

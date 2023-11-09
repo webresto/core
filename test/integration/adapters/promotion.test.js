@@ -18,7 +18,7 @@ describe("Promotion adapter integration test", function () {
         promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
     });
     after(async function () {
-        await Promotion.destroy({});
+        // await Promotion.destroy({})
     });
     it("Configured discount total: 10% for all group", async () => {
         // // If item is added, then see that it stood in line.

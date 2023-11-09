@@ -12,7 +12,6 @@ import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import PromotionCode from "../../../models/PromotionCode";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
-  
   public recreatePromotionHandler(promotionToAdd: AbstractPromotionHandler): void {
     throw new Error("Method not implemented.");
   }
@@ -21,11 +20,10 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     throw new Error("Method not implemented.");
   }
 
-  public promotions: { [key: string]: AbstractPromotionHandler; } = {};
+  public readonly promotions: { [key: string]: AbstractPromotionHandler; } = {};
 
   public async processOrder(order: Order): Promise<PromotionState[]> {
     const promotionStates = [] as PromotionState[]
-    
     // Should populated order
     await this.clearOfPromotion(order.id);
     let filteredPromotion = this.filterByConcept(order.concept);
@@ -101,7 +99,6 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
     const filteredByCondition: Promotion[] =  this.filterByCondition(filteredPromotionsToApply, target);
 
-
     // Promotion by PromotionCode not need filtred
     if (findModelInstanceByAttributes(target) === "Order") {
       const order = target as Order;
@@ -133,24 +130,20 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return filteredByJointPromotions;
   }
 
-  public filterByCondition(promotions: Promotion[], target: Group | Dish | Order): Promotion[] {
+  public filterByCondition(promotionsToCheck: Promotion[], target: Group | Dish | Order): Promotion[] {
     const filteredPromotions = [];
+    for (const promotion of promotionsToCheck) {
+      if(this.promotions[promotion.id]){
+        const conditionMet = this.promotions[promotion.id].condition(target);
 
-    for (const promotion of promotions) {
-      const conditionMet = this.promotions[promotion.id].condition(target);
-
-      if (conditionMet) {
-        filteredPromotions.push(promotion);
+        if (conditionMet) {
+          filteredPromotions.push(promotion);
+        }
       }
     }
 
     return filteredPromotions;
   }
-
-  // public async clearOrderDiscount(): Promise<void> {
-  //   await Discount.clear()
-  //   DiscountAdapter.discounts = {};
-  // }
 
   /**
    * Method uses for puntime call/pass promotionHandler, not configured 

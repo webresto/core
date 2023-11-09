@@ -19,7 +19,7 @@ import Decimal from 'decimal.js';
 
 describe('Discount_Empty', function () {
     after(async function() {
-      await Promotion.destroy({})
+      // await Promotion.destroy({})
     })
 
     let discountEx:AbstractPromotionHandler =  {

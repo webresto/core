@@ -112,20 +112,18 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         }
         return filteredByJointPromotions;
     }
-    filterByCondition(promotions, target) {
+    filterByCondition(promotionsToCheck, target) {
         const filteredPromotions = [];
-        for (const promotion of promotions) {
-            const conditionMet = this.promotions[promotion.id].condition(target);
-            if (conditionMet) {
-                filteredPromotions.push(promotion);
+        for (const promotion of promotionsToCheck) {
+            if (this.promotions[promotion.id]) {
+                const conditionMet = this.promotions[promotion.id].condition(target);
+                if (conditionMet) {
+                    filteredPromotions.push(promotion);
+                }
             }
         }
         return filteredPromotions;
     }
-    // public async clearOrderDiscount(): Promise<void> {
-    //   await Discount.clear()
-    //   DiscountAdapter.discounts = {};
-    // }
     /**
      * Method uses for puntime call/pass promotionHandler, not configured
      * @param promotionToAdd
