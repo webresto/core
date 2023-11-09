@@ -15,9 +15,8 @@ export class DefaultOTP extends OneTimePasswordAdapter {
       throw `otp generation error`
     }
 
-    // Check channel LOGIN_FIELD
     let mainLoginField = await Settings.get("LOGIN_FIELD") as string;
-    if (NotificationManager.isChannelExist(mainLoginField)){
+    if (NotificationManager.isChannelExist(mainLoginField === "phone" ? "sms" : mainLoginField)){
       try {
         await NotificationManager.sendMessageToUser("info", `Your code is ${otp.password}`,login);
       } catch (error) {
@@ -25,7 +24,7 @@ export class DefaultOTP extends OneTimePasswordAdapter {
       }
     } else {
       await NotificationManager.sendMessageToDeliveryManager("info", `Please inform client ${login} OPT code ${otp.password}`);
-      return otp;
     }
+    return otp;
   }
 }

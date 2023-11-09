@@ -3,17 +3,6 @@ var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationManager = exports.Channel = void 0;
 class Channel {
-    constructor() {
-        this.type = null;
-        // TODO: Add readStatus
-        // public hasReadStatus: boolean = false;
-        /**
-         * If forceSend true it should send anytime
-         */
-        this.forceSend = false;
-        this.forGroupTo = [];
-        this.sortOrder = 0;
-    }
     async trySendMessage(badge, message, user, subject, data) {
         try {
             await this.send(badge, message, user, subject, data);

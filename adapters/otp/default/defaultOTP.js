@@ -18,9 +18,8 @@ class DefaultOTP extends OneTimePasswordAdapter_1.default {
             await NotificationManager.sendMessageToDeliveryManager("error", `Failed OPT password generate for ${login}, please contact with him`);
             throw `otp generation error`;
         }
-        // Check channel LOGIN_FIELD
         let mainLoginField = await Settings.get("LOGIN_FIELD");
-        if (NotificationManager.isChannelExist(mainLoginField)) {
+        if (NotificationManager.isChannelExist(mainLoginField === "phone" ? "sms" : mainLoginField)) {
             try {
                 await NotificationManager.sendMessageToUser("info", `Your code is ${otp.password}`, login);
             }
@@ -30,8 +29,8 @@ class DefaultOTP extends OneTimePasswordAdapter_1.default {
         }
         else {
             await NotificationManager.sendMessageToDeliveryManager("info", `Please inform client ${login} OPT code ${otp.password}`);
-            return otp;
         }
+        return otp;
     }
 }
 exports.DefaultOTP = DefaultOTP;
