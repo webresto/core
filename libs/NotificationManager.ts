@@ -78,13 +78,14 @@ export class NotificationManager {
     let populatedUser;
 
     if(typeof user === "string") {
-      populatedUser = await User.find({ where: { or: [{ id: user }, { login: user }] }}).populate('devices');
+      const populatedUsers = await User.find({ where: { or: [{ id: user }, { login: user }] }}).populate('devices');
+      if (populatedUsers.length === 1) {
+        populatedUser = populatedUsers[0];  
+      } else {
+        throw new Error(`User not found`);
+      }
     } else {
       populatedUser = user;
-    }
-  
-    if (populatedUser.length !== 1) {
-      throw new Error(`User not found`);
     }
 
     await NotificationManager.send(badge, "user", text, populatedUser, type, subject, data);

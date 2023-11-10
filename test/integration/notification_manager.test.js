@@ -31,4 +31,11 @@ describe("NotificationManager", function () {
         if (!result)
             throw `Not exist??`;
     });
+    it("OTP recive to user", async () => {
+        const otpAdapter = await Adapter.getOTPAdapter();
+        await otpAdapter.get("1123");
+        var match = testChannel.lastMessage.match(/Your code is (\d+)/);
+        if (!match)
+            throw `Not match with "Your code is ..."`;
+    });
 });

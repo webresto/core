@@ -68,7 +68,18 @@ exports.Captcha = Captcha;
  * retruns OTP-adapter
  */
 class OTP {
+    /**
+     * @deprecated use Adapter.getOTPAdapter instead
+     * @param adapterName
+     */
     static async getAdapter(adapterName) {
+        return Adapter.getOTPAdapter(adapterName);
+    }
+}
+exports.OTP = OTP;
+/** TODO: move other Adapters to one class adapter */
+class Adapter {
+    static async getOTPAdapter(adapterName) {
         if (!adapterName) {
             adapterName = (await Settings.get("DEFAULT_OTP_ADAPTER"));
         }
@@ -87,10 +98,6 @@ class OTP {
             throw new Error("Module " + adapterLocation + " not found");
         }
     }
-}
-exports.OTP = OTP;
-/** TODO: move other Adapters to one class adapter */
-class Adapter {
     static getPromotionAdapter(adapter, initParams) {
         let adapterName;
         if (adapter) {

@@ -17,6 +17,10 @@ export declare class Captcha {
  * retruns OTP-adapter
  */
 export declare class OTP {
+    /**
+     * @deprecated use Adapter.getOTPAdapter instead
+     * @param adapterName
+     */
     static getAdapter(adapterName?: string): Promise<OTPAdapter>;
 }
 /** TODO: move other Adapters to one class adapter */
@@ -26,6 +30,7 @@ export declare class Adapter {
     private static instanceDeliveryAdapter;
     private static instanceMF;
     static WEBRESTO_MODULES_PATH: string;
+    static getOTPAdapter(adapterName?: string): Promise<OTPAdapter>;
     static getPromotionAdapter(adapter?: string | PromotionAdapter, initParams?: {
         [key: string]: string | number | boolean;
     }): PromotionAdapter;

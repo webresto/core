@@ -49,7 +49,26 @@ export class Captcha {
  * retruns OTP-adapter
  */
 export class OTP {
+  /**
+   * @deprecated use Adapter.getOTPAdapter instead
+   * @param adapterName 
+   */
   public static async getAdapter(adapterName?: string): Promise<OTPAdapter> {
+    return Adapter.getOTPAdapter(adapterName);
+  }
+}
+
+/** TODO: move other Adapters to one class adapter */
+export class Adapter {
+  // Singletons
+  private static instanceRMS: RMSAdapter;
+  private static instancePromotionAdapter: PromotionAdapter;
+  private static instanceDeliveryAdapter: DeliveryAdapter;
+  private static instanceMF: MediaFileAdapter;
+
+  public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
+  
+  public static async getOTPAdapter(adapterName?: string): Promise<OTPAdapter> {
     if (!adapterName) {
       adapterName = (await Settings.get("DEFAULT_OTP_ADAPTER")) as string;
     }
@@ -70,17 +89,7 @@ export class OTP {
       throw new Error("Module " + adapterLocation + " not found");
     }
   }
-}
-
-/** TODO: move other Adapters to one class adapter */
-export class Adapter {
-  // Singletons
-  private static instanceRMS: RMSAdapter;
-  private static instancePromotionAdapter: PromotionAdapter;
-  private static instanceDeliveryAdapter: DeliveryAdapter;
-  private static instanceMF: MediaFileAdapter;
-
-  public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
+  
   public static getPromotionAdapter(adapter?: string | PromotionAdapter, initParams?: {[key: string]:string | number | boolean}): PromotionAdapter {
 
     let adapterName: string;
