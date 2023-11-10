@@ -111,6 +111,7 @@ class Adapter {
         }
         if (!adapterName) {
             this.instancePromotionAdapter = new promotionAdapter_1.PromotionAdapter;
+            return this.instancePromotionAdapter;
         }
         let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-promotion-adapter";
         adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-promotion-adapter";

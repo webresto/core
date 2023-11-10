@@ -102,6 +102,7 @@ export class Adapter {
 
     if (!adapterName) {
       this.instancePromotionAdapter = new PromotionAdapter;
+      return this.instancePromotionAdapter
     }
 
     let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-promotion-adapter";
