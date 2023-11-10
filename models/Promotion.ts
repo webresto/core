@@ -25,7 +25,7 @@ sails.on("lifted", async ()=>{
   let promotions = await Promotion.find({ enable:true })
   
   for(let i=0; i<promotions.length; i++){
-    PromotionAdapter.recreatePromotionHandler(promotions[i]);
+    Adapter.getPromotionAdapter().recreatePromotionHandler(promotions[i]);
   }
 })
 
@@ -38,6 +38,7 @@ let attributes = {
   externalId: {
     type: "string",
     unique: true,
+    required: true,
   } as unknown as string,
 
   configDiscount: {
@@ -90,8 +91,7 @@ let attributes = {
 
   /** User can disable this discount*/
   enable: {
-    type: "boolean",
-    required: true,
+    type: "boolean"
   } as unknown as boolean,
 
   promotionCode: {
@@ -122,7 +122,6 @@ interface Promotion
       | "isPublic"
       | "description"
       | "concept"
-      | "enable"
       | "isDeleted"
       | "createdByUser"
       | "externalId"
@@ -135,28 +134,26 @@ let Model = {
    async afterUpdate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreate of discountHandler
-      PromotionAdapter.recreateConfiguredPromotionHandler(record);
+      Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
     }
 
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
-    // console.log(promotionRAM, "================= after UPDATE ===========")
     cb();
   },
 
   async afterCreate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreate of discountHandler
-      PromotionAdapter.recreateConfiguredPromotionHandler(record);
+      Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
     }
 
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
-    // console.log(promotionRAM, "================= after Create ===========")
     cb();
   },
 
   async afterDestroy(record: Promotion, cb:  (err?: string) => void) {
     // delete promotion in adapter
-    PromotionAdapter.deletePromotion(record.id)
+    Adapter.getPromotionAdapter().deletePromotion(record.id)
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
 
     cb();
@@ -167,29 +164,45 @@ let Model = {
     cb();
   },
 
-  beforeCreate(init: Promotion, cb:  (err?: string) => void) {
+  async beforeCreate(init: Promotion, cb:  (err?: string) => void) {
+    const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT")
+    init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) : true;
     cb();
   },
 
   async createOrUpdate(values: Promotion): Promise<Promotion> {
-    let hash = hashCode(JSON.stringify(values));
+    let sortOrder = values.sortOrder
+    let isDeleted = values.isDeleted
+    let enable = values.enable
+    let worktime = values.worktime
+    // Deleting user space variables
+    try {
+      delete(values.sortOrder);
+      delete(values.isDeleted);
+      delete(values.enable);
+      delete(values.worktime);
 
-    const promotion = await Promotion.findOne({ id: values.id });
+      let hash = hashCode(JSON.stringify(values));
+    
+      const promotion = await Promotion.findOne({ id: values.id });
+      if (!promotion) return Promotion.create({ hash, ...values, sortOrder, isDeleted, enable, worktime }).fetch();
 
-    if (!promotion) return Promotion.create({ hash, ...values }).fetch();
+      if (hash === promotion.hash) {
+        return promotion;
+      } else {
+        return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
+      }
 
-    if (hash === promotion.hash) return promotion;
-
-    return (await Promotion.update({ id: values.id }, { hash, ...values }).fetch())[0];
+    } catch (error) {
+      console.log(error);
+    }
   },
 
   getAllByConcept(concept: string[]): Promotion[] {
     const promotionAdapter = Adapter.getPromotionAdapter()
-
     if (!concept) throw "concept is required";
     let activePromotionIds = promotionAdapter.getActivePromotionsIds()
     if(concept[0] === ""){
-      // console.log("")
       let filteredRAM = promotionRAM.filter(promotion => 
         (promotion.concept[0] === undefined || promotion.concept[0] === "")
         && stringsInArray(promotion.id,activePromotionIds))

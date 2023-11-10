@@ -5,11 +5,19 @@ import Order from './../../../models/Order';
 import { Adapter } from "../../../adapters";
 import { expect } from "chai";
 import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';
-import { PromotionAdapter } from './../../../adapters/promotion/default/promotionAdapter';
 import findModelInstanceByAttributes from './../../../libs/findModelInstance';
 import Decimal from 'decimal.js';
+import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
 
 describe('Create_Discount', function () {
+
+    let promotionAdapter: PromotionAdapter;
+
+    before(async () =>{
+      promotionAdapter =  Adapter.getPromotionAdapter()
+    })
+
+
     it("Create discount test", async function () {
         let discountEx:AbstractPromotionHandler =  {
             id: "1-id",
@@ -52,8 +60,8 @@ describe('Create_Discount', function () {
             displayGroup:  function (group:Group, user?: string): Group {
                 if (this.isJoint === true && this.isPublic === true) {
                 
-                  group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                  group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                  group.discountAmount = promotionAdapter.promotions[this.id].configDiscount.discountAmount;
+                  group.discountType = promotionAdapter.promotions[this.id].configDiscount.discountType;
                  }
                  
                 return group
@@ -61,8 +69,8 @@ describe('Create_Discount', function () {
               displayDish: function (dish:Dish, user?: string): Dish {
                 if (this.isJoint === true && this.isPublic === true) {
                   // 
-                  dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-                  dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+                  dish.discountAmount = promotionAdapter.promotions[this.id].configDiscount.discountAmount;
+                  dish.discountType = promotionAdapter.promotions[this.id].configDiscount.discountType;
                   dish.oldPrice = dish.price
         
                   dish.price = this.configDiscount.discountType === "flat" 
@@ -75,10 +83,9 @@ describe('Create_Discount', function () {
               },
             externalId: "1-externalId",
         }
-        let discountAdapter = Adapter.getPromotionAdapter()
-        await discountAdapter.addPromotionHandler(discountEx)
+        await promotionAdapter.addPromotionHandler(discountEx)
 
-        let discountById = await PromotionAdapter.getPromotionHandlerById(discountEx.id)
+        let discountById = promotionAdapter.getPromotionHandlerById(discountEx.id)
 
         // let byConceptE = await DiscountAdapter.getAllConcept(["E"])
         // let byConceptA = await DiscountAdapter.getAllConcept(["a"])

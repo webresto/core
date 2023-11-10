@@ -1,7 +1,6 @@
 // import { WorkTime } from "@webresto/worktime";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
-import { PromotionAdapter } from "./promotionAdapter";
 import Group from '../../../models/Group';
 import Dish from '../../../models/Dish';
 import OrderDish  from '../../../models/OrderDish';
@@ -42,11 +41,9 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     public configDiscount: IconfigDiscount;
     public externalId: string;
 
-    public  condition(arg: Group | Dish | Order): boolean {
-      // console.log("==================================== aaaaa")
+    public condition(arg: Group | Dish | Order): boolean {
         if (findModelInstanceByAttributes(arg) === "Order" &&  (this.concept[0] === undefined || this.concept[0] === "") 
               ? true : stringsInArray(arg.concept, this.concept) ) {
-          // console.log("==================================== ")
           let order:Order = arg as Order
           // TODO:  if order.dishes type number[]
           let orderDishes:OrderDish[] = order.dishes as OrderDish[]
@@ -59,21 +56,15 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           return false;
         }
         
-        if (findModelInstanceByAttributes(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") 
-        ? true : stringsInArray(arg.concept, this.concept)) {
+        if (findModelInstanceByAttributes(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") ? true : 
+          stringsInArray(arg.concept, this.concept)) {
             return stringsInArray(arg.id, this.config.dishes)
-            // if(this.config.dishes.includes(arg.id)){
-            //     return true;
-            // }
-        }
+          }
         
-        if (findModelInstanceByAttributes(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "") 
-        ? true : stringsInArray(arg.concept, this.concept)) {
+        if (findModelInstanceByAttributes(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "") ? true : 
+          stringsInArray(arg.concept, this.concept)) {
             return stringsInArray(arg.id, this.config.groups)
-            // if(this.config.groups.includes(arg.id)){
-            //     return true;
-            // }
-        }
+          }
 
         return false
     }
@@ -88,8 +79,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
          // TODO: user implement logic personal discount
          if (this.isJoint === true && this.isPublic === true) {
           // 
-          group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-          group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+          group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+          group.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
          }
          
         return group
@@ -100,8 +91,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
         if (this.isJoint === true && this.isPublic === true) {
           // 
-          dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-          dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+          dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+          dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
           dish.oldPrice = dish.price
 
           dish.price = this.configDiscount.discountType === "flat" 

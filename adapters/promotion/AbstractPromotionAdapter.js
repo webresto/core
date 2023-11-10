@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class AbstractPromotionAdapter {
-    // public static clearOfPromotion:(orderId: any) => Promise<void>;
-    static async clearOfPromotion(orderId) {
+    /**
+     * Base realization clearOfPromotion
+     */
+    async clearOfPromotion(orderId) {
         const order = await Order.findOne({ id: orderId });
         // if Order.status ="PAYMENT" or "ORDER" can't clear promotions
         if (order.state === "ORDER")

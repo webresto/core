@@ -5,14 +5,13 @@ import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
 import Group from './../../../models/Group';
 import Dish from './../../../models/Dish';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
-import { PromotionAdapter } from './../../../adapters/promotion/default/promotionAdapter';
 import { stringsInArray } from "../../../libs/stringsInArray";
 import configuredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import Decimal from "decimal.js";
 
 export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
-    public id: string = "aaaa";
+    public id: string = "InMemoryDiscountAdapterTest";
     public isJoint: boolean = true;
     public name: string = "New Year";
     public isPublic: boolean = false;
@@ -71,8 +70,8 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public displayGroup(group:Group, user?: string): Group {
         if (this.isJoint === true && this.isPublic === true) {
           
-            group.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-            group.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+            group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+            group.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
            }
            
           return group
@@ -81,8 +80,8 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
     public displayDish(dish:Dish, user?: string): Dish {
         if (this.isJoint === true && this.isPublic === true) {
             // 
-            dish.discountAmount = PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-            dish.discountType = PromotionAdapter.promotions[this.id].configDiscount.discountType;
+            dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+            dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
             dish.oldPrice = dish.price
   
             dish.price = this.configDiscount.discountType === "flat" 

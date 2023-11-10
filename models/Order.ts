@@ -18,7 +18,6 @@ import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
-import { PromotionAdapter } from "../adapters/promotion/default/promotionAdapter";
 import PromotionCode from "./PromotionCode";
 
 export interface PromotionState {
@@ -1250,7 +1249,7 @@ let Model = {
             // console.log(orderDishesForPopulate)
             await Order.updateOne({id: order.id}, {isPromoting: true});
             // console.log(orderPopulate)
-
+            // console.log("====================== GET to promotion ================================", orderPopulate)
             order.promotionState = await promotionAdapter.processOrder(orderPopulate);
             let a = await Order.findOne(order.id) 
 

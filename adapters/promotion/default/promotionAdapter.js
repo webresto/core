@@ -9,16 +9,25 @@ const worktime_1 = require("@webresto/worktime");
 const configuredPromotion_1 = __importDefault(require("./configuredPromotion"));
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
+    constructor() {
+        super(...arguments);
+        this.promotions = {};
+    }
+    recreatePromotionHandler(promotionToAdd) {
+        throw new Error("Method not implemented.");
+    }
+    applyPromotion(orderId, spendPromotion, promotionId) {
+        throw new Error("Method not implemented.");
+    }
     async processOrder(order) {
         const promotionStates = [];
-        // Order.populate()
-        await PromotionAdapter.clearOfPromotion(order.id);
-        // console.log(order, " ===================== ORDER")
-        let filteredPromotion = PromotionAdapter.filterByConcept(order.concept);
-        let promotionByConcept = PromotionAdapter.filterPromotions(filteredPromotion, order);
+        // Should populated order
+        await this.clearOfPromotion(order.id);
+        let filteredPromotion = this.filterByConcept(order.concept);
+        let promotionByConcept = this.filterPromotions(filteredPromotion, order);
         if (promotionByConcept[0] !== undefined) {
             for (const promotion of promotionByConcept) {
-                let state = await PromotionAdapter.promotions[promotion.id].action(order);
+                let state = await this.promotions[promotion.id].action(order);
                 promotionStates.push(state);
             }
         }
@@ -26,13 +35,13 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     }
     // one method to get all promotions and id's
     displayDish(dish) {
-        let filteredPromotion = PromotionAdapter.filterByConcept(dish.concept);
-        let promotionByConcept = PromotionAdapter.filterPromotions(filteredPromotion, dish);
+        let filteredPromotion = this.filterByConcept(dish.concept);
+        let promotionByConcept = this.filterPromotions(filteredPromotion, dish);
         if (promotionByConcept[0] === undefined)
             return dish;
         // TODO: this should work on first condition isJoint and isPublic should be true
         try {
-            PromotionAdapter.promotions[promotionByConcept[0].id].displayDish(dish);
+            this.promotions[promotionByConcept[0].id].displayDish(dish);
         }
         catch (error) {
             sails.log.error("Promotion Adapter display Dish error", error);
@@ -41,24 +50,24 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     }
     displayGroup(group) {
         // check isJoint = true, isPublic = true
-        let filteredPromotion = PromotionAdapter.filterByConcept(group.concept);
-        let promotionByConcept = PromotionAdapter.filterPromotions(filteredPromotion, group);
+        let filteredPromotion = this.filterByConcept(group.concept);
+        let promotionByConcept = this.filterPromotions(filteredPromotion, group);
         if (promotionByConcept[0] === undefined)
             return group;
         // TODO: this should work on first condition isJoint and isPublic should be true
         if (promotionByConcept[0]?.isJoint === true && promotionByConcept[0]?.isPublic === true) {
-            group.discountAmount = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountAmount;
-            group.discountType = PromotionAdapter.promotions[promotionByConcept[0].id].configDiscount.discountType;
+            group.discountAmount = this.promotions[promotionByConcept[0].id].configDiscount.discountAmount;
+            group.discountType = this.promotions[promotionByConcept[0].id].configDiscount.discountType;
             return group;
         }
         return group;
     }
-    static filterByConcept(concept) {
+    filterByConcept(concept) {
         let modifiedConcept;
         typeof concept === "string" ? (modifiedConcept = [concept]) : (modifiedConcept = concept);
         return Promotion.getAllByConcept(modifiedConcept);
     }
-    static filterPromotions(promotionsByConcept, target) {
+    filterPromotions(promotionsByConcept, target) {
         /**
          * If promotion enabled by promocode notJoint it will be disable all promotions and set promocode promotion
          * If promocode promotion is joint it just will be applied by order
@@ -75,7 +84,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
             }
         })
             .sort((a, b) => a.sortOrder - b.sortOrder);
-        const filteredByCondition = PromotionAdapter.filterByCondition(filteredPromotionsToApply, target);
+        const filteredByCondition = this.filterByCondition(filteredPromotionsToApply, target);
         // Promotion by PromotionCode not need filtred
         if ((0, findModelInstance_1.default)(target) === "Order") {
             const order = target;
@@ -103,29 +112,28 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         }
         return filteredByJointPromotions;
     }
-    static filterByCondition(promotions, target) {
+    filterByCondition(promotionsToCheck, target) {
         const filteredPromotions = [];
-        for (const promotion of promotions) {
-            const conditionMet = PromotionAdapter.promotions[promotion.id].condition(target);
-            if (conditionMet) {
-                filteredPromotions.push(promotion);
+        for (const promotion of promotionsToCheck) {
+            if (this.promotions[promotion.id]) {
+                const conditionMet = this.promotions[promotion.id].condition(target);
+                if (conditionMet) {
+                    filteredPromotions.push(promotion);
+                }
             }
         }
         return filteredPromotions;
     }
-    // public async clearOrderDiscount(): Promise<void> {
-    //   await Discount.clear()
-    //   DiscountAdapter.discounts = {};
-    // }
-    // for Configured discounts
+    /**
+     * Method uses for puntime call/pass promotionHandler, not configured
+     * @param promotionToAdd
+     */
     async addPromotionHandler(promotionToAdd) {
-        const DISCOUNT_ENABLE_BY_DEFAULT = (await Settings.get("Promotion_ENABLE_BY_DEFAULT")) ?? true;
         let createInModelPromotion = {
             id: promotionToAdd.id,
             isJoint: promotionToAdd.isJoint,
             name: promotionToAdd.name,
             isPublic: promotionToAdd.isPublic,
-            enable: Boolean(DISCOUNT_ENABLE_BY_DEFAULT),
             isDeleted: false,
             createdByUser: false,
             ...(promotionToAdd.description && { description: promotionToAdd.description }),
@@ -135,19 +143,22 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
             externalId: promotionToAdd.externalId,
             worktime: null, // promotionToAdd.worktime
         };
-        //setORMID
         await Promotion.createOrUpdate(createInModelPromotion);
-        // await Discount.setAlive([...id])
-        PromotionAdapter.promotions[promotionToAdd.id] = promotionToAdd; // = new ConfiguredDiscount(discountToAdd)
+        this.promotions[promotionToAdd.id] = promotionToAdd;
     }
-    static recreateConfiguredPromotionHandler(promotionToAdd) {
-        if (promotionToAdd.enable === false && PromotionAdapter.promotions[promotionToAdd.id]) {
-            delete PromotionAdapter.promotions[promotionToAdd.id];
+    /**
+     * Method uses for call from Promotion model, afterCreate/update for update configuredPromotion
+     * @param promotionToAdd
+     * @returns
+     */
+    recreateConfiguredPromotionHandler(promotionToAdd) {
+        if (promotionToAdd.enable === false && this.promotions[promotionToAdd.id]) {
+            delete this.promotions[promotionToAdd.id];
             return;
         }
         try {
-            if (!PromotionAdapter.promotions[promotionToAdd.id]) {
-                PromotionAdapter.promotions[promotionToAdd.id] = new configuredPromotion_1.default(promotionToAdd, promotionToAdd.configDiscount);
+            if (!this.promotions[promotionToAdd.id]) {
+                this.promotions[promotionToAdd.id] = new configuredPromotion_1.default(promotionToAdd, promotionToAdd.configDiscount);
                 return;
             }
             return;
@@ -157,23 +168,19 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         }
         return;
     }
-    static async getPromotionHandlerById(id) {
+    getPromotionHandlerById(id) {
         // let disc: AbstractDiscountHandler = await Discount.getById(id);
-        return PromotionAdapter.promotions[id];
+        return this.promotions[id];
     }
     async getAllConcept(concept) {
         return await Promotion.getAllByConcept(concept);
     }
     deletePromotion(id) {
-        // PromotionAdapter.promotions(id)
+        // this.promotions(id)
         return;
     }
     getActivePromotionsIds() {
-        return Object.keys(PromotionAdapter.promotions);
-    }
-    static initialize(initParams) {
-        return PromotionAdapter.prototype;
+        return Object.keys(this.promotions);
     }
 }
-PromotionAdapter.promotions = {};
 exports.PromotionAdapter = PromotionAdapter;

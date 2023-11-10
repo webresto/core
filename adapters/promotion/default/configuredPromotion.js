@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // import { WorkTime } from "@webresto/worktime";
 const AbstractPromotion_1 = __importDefault(require("../AbstractPromotion"));
-const promotionAdapter_1 = require("./promotionAdapter");
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const stringsInArray_1 = require("../../../libs/stringsInArray");
@@ -31,10 +30,8 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         this.externalId = promotion.externalId;
     }
     condition(arg) {
-        // console.log("==================================== aaaaa")
         if ((0, findModelInstance_1.default)(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
             ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-            // console.log("==================================== ")
             let order = arg;
             // TODO:  if order.dishes type number[]
             let orderDishes = order.dishes;
@@ -44,19 +41,13 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 return true;
             return false;
         }
-        if ((0, findModelInstance_1.default)(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "")
-            ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
+            (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.dishes);
-            // if(this.config.dishes.includes(arg.id)){
-            //     return true;
-            // }
         }
-        if ((0, findModelInstance_1.default)(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "")
-            ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
+            (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
             return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.groups);
-            // if(this.config.groups.includes(arg.id)){
-            //     return true;
-            // }
         }
         return false;
     }
@@ -69,8 +60,8 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         // TODO: user implement logic personal discount
         if (this.isJoint === true && this.isPublic === true) {
             // 
-            group.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-            group.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+            group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+            group.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
         }
         return group;
     }
@@ -78,8 +69,8 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         // TODO: user implement logic personal discount
         if (this.isJoint === true && this.isPublic === true) {
             // 
-            dish.discountAmount = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountAmount;
-            dish.discountType = promotionAdapter_1.PromotionAdapter.promotions[this.id].configDiscount.discountType;
+            dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+            dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
             dish.oldPrice = dish.price;
             dish.price = this.configDiscount.discountType === "flat"
                 ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()

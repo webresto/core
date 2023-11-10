@@ -76,23 +76,42 @@ export class OTP {
 export class Adapter {
   // Singletons
   private static instanceRMS: RMSAdapter;
-  private static instancePromotion: PromotionAdapter;
+  private static instancePromotionAdapter: PromotionAdapter;
   private static instanceDeliveryAdapter: DeliveryAdapter;
   private static instanceMF: MediaFileAdapter;
 
   public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
-  public static getPromotionAdapter(adapterName?: string, initParams?: {[key: string]:string | number | boolean}): PromotionAdapter {
+  public static getPromotionAdapter(adapter?: string | PromotionAdapter, initParams?: {[key: string]:string | number | boolean}): PromotionAdapter {
+
+    let adapterName: string;
+    if (adapter) {
+      if (typeof adapter === "string") {
+        adapterName = adapter;
+      } else if (adapter instanceof PromotionAdapter) {
+        this.instancePromotionAdapter = adapter;
+        return this.instancePromotionAdapter;
+      } else {
+        throw new Error("Adapter should be a string or instance of PromotionAdapter");
+      }
+    }
+
+    // Return the singleon
+    if (this.instancePromotionAdapter) {
+      return this.instancePromotionAdapter;
+    }
 
     if (!adapterName) {
-      return PromotionAdapter.initialize();
+      this.instancePromotionAdapter = new PromotionAdapter;
+      return this.instancePromotionAdapter
     }
 
     let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-promotion-adapter";
     adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-promotion-adapter";
 
     try {
-      const adapter = require(adapterLocation);
-      return adapter.PromotionAdapter[adapterName].initialize(initParams);
+      const adapterModule = require(adapterLocation);
+      this.instancePromotionAdapter = new adapterModule.PromotionAdapter(initParams);
+      return this.instancePromotionAdapter;
     } catch (e) {
       sails.log.error("CORE > getAdapter Promotion > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");

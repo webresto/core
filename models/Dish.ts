@@ -201,7 +201,7 @@ let attributes = {
   /** Слаг */
   slug: {
     type: "string",
-    unique: true
+    // unique: true,
   } as unknown as string,
 
   /** The concept to which the dish belongs */
@@ -405,12 +405,12 @@ let Model = {
 
   async display(criteria: CriteriaQuery<Dish>): Promise<Dish[]> {
     const dishes = await Dish.find(criteria);
-    const discountAdapter = Adapter.getPromotionAdapter()
+    const promotionAdapter = Adapter.getPromotionAdapter()
     let updatedDishes = [] as Dish[]
 
     for(let i:number= 0; i < dishes.length; i++) {
         try {
-          updatedDishes.push(discountAdapter.displayDish(dishes[i]))
+          updatedDishes.push(promotionAdapter.displayDish(dishes[i]))
         } catch (error) {
           sails.log(error)
           continue

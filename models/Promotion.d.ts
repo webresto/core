@@ -29,7 +29,7 @@ declare let attributes: {
     worktime: WorkTime[];
 };
 type attributes = typeof attributes;
-interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "enable" | "isDeleted" | "createdByUser" | "externalId">, ORM {
+interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "isDeleted" | "createdByUser" | "externalId">, ORM {
 }
 export default Promotion;
 declare let Model: {
@@ -37,7 +37,7 @@ declare let Model: {
     afterCreate(record: Promotion, cb: (err?: string) => void): Promise<void>;
     afterDestroy(record: Promotion, cb: (err?: string) => void): Promise<void>;
     beforeUpdate(init: Promotion, cb: (err?: string) => void): void;
-    beforeCreate(init: Promotion, cb: (err?: string) => void): void;
+    beforeCreate(init: Promotion, cb: (err?: string) => void): Promise<void>;
     createOrUpdate(values: Promotion): Promise<Promotion>;
     getAllByConcept(concept: string[]): Promotion[];
 };

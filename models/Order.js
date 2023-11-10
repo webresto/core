@@ -1018,6 +1018,7 @@ let Model = {
                     // console.log(orderDishesForPopulate)
                     await Order.updateOne({ id: order.id }, { isPromoting: true });
                     // console.log(orderPopulate)
+                    // console.log("====================== GET to promotion ================================", orderPopulate)
                     order.promotionState = await promotionAdapter.processOrder(orderPopulate);
                     let a = await Order.findOne(order.id);
                     order.discountTotal = a.discountTotal;
