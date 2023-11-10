@@ -61,7 +61,7 @@ export class NotificationManager {
     try {
       await NotificationManager.send(badge, "manager", text, null);
     } catch (error) {
-      sails.log.info(`✉️ Notification manager > console: ${badge}, ${text}`)
+      sails.log.warn(`✉️ Notification manager > console: ${badge}, ${text}`)
     }
   }
 
@@ -111,14 +111,10 @@ export class NotificationManager {
         continue;
       }
 
-
-
       sent = await channel.trySendMessage(badge, message, user, subject, data);
     }
 
-    if (groupTo === "user" && user !== undefined && !sent) {
-      throw new Error(`Failed to send message to user ${user.login} with message: ${message}`);
-    } else {
+    if(!sent){
       throw new Error(`Failed to send message to group ${groupTo}, ${type ? type: ""}, message: ${message}`);
     }
   };

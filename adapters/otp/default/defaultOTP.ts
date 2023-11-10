@@ -15,10 +15,10 @@ export class DefaultOTP extends OneTimePasswordAdapter {
       throw `otp generation error`
     }
 
-    let mainLoginField = await Settings.get("LOGIN_FIELD") as string;
+    let mainLoginField = await Settings.get("LOGIN_FIELD") as string ?? 'phone';
     if (NotificationManager.isChannelExist(mainLoginField === "phone" ? "sms" : mainLoginField)){
       try {
-        await NotificationManager.sendMessageToUser("info", `Your code is ${otp.password}`,login);
+        await NotificationManager.sendMessageToUser("info", `Your code is ${otp.password}`,{ phone: { code: "", number:login}});
       } catch (error) {
         sails.log.error(`SEND OTP ERROR: ${error}`)
       }

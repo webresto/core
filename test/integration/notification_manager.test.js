@@ -16,14 +16,19 @@ class TestChannel extends NotificationManager_1.Channel {
 }
 const testChannel = new TestChannel;
 describe("NotificationManager", function () {
-    it("NotificationManager add new channel", () => {
+    it("add new channel", () => {
         NotificationManager_1.NotificationManager.registerChannel(testChannel);
         if (NotificationManager_1.NotificationManager.channels.length !== 1)
             throw `should 1`;
     });
-    it("NotificationManager send message", () => {
+    it("send message", () => {
         NotificationManager_1.NotificationManager.send("info", "user", "test123", null);
         if (testChannel.lastMessage !== "test123")
             throw `Problem in send Ntification`;
+    });
+    it("is exist", () => {
+        let result = NotificationManager_1.NotificationManager.isChannelExist('sms');
+        if (!result)
+            throw `Not exist??`;
     });
 });
