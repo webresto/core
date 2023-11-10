@@ -113,9 +113,9 @@ let Model = {
                 throw `UserBonusProgram not found: user: [${user.login}] bonusProgram: [${bonusProgram}]`;
             }
             const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
-            let balance = parseFloat(new decimal_js_1.default(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
+            let extBalance = parseFloat(new decimal_js_1.default(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
             // Should sync when balance is not equals
-            force = balance !== userBonusProgram.balance;
+            force = extBalance !== userBonusProgram.balance;
             if (!force) {
                 // No sync if time not more 5 min
                 const diffInMinutes = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60); // Разница в миллисекундах
@@ -181,14 +181,14 @@ let Model = {
             const _lastTransaction = await UserBonusTransaction.find({ sort: "createdAt DESC", limit: 1 });
             lastTransaction = _lastTransaction[0];
             const sumCurrentBalance = await UserBonusProgram.sumCurrentBalance(user, bonusProgram);
-            if (sumCurrentBalance === balance && sumCurrentBalance === lastTransaction.balanceAfter) {
+            if (sumCurrentBalance === extBalance && sumCurrentBalance === lastTransaction.balanceAfter) {
                 // Emmiter
-                await UserBonusProgram.update({ user: user.id }, { balance: balance }).fetch();
+                await UserBonusProgram.update({ user: user.id }, { balance: extBalance }).fetch();
             }
             else {
                 sails.log.error(`balances for user: [${user.login}, id:${user.id}] not matched with external system (sum:${sumCurrentBalance}, external:${balance}, lastAfter:${lastTransaction.balanceAfter})`);
             }
-            await UserBonusProgram.update({ user: user.id }, { balance: balance }).fetch();
+            await UserBonusProgram.update({ user: user.id }, { balance: extBalance }).fetch();
         }
         catch (error) {
             sails.log.error(error);

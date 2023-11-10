@@ -38,14 +38,20 @@ describe("bonus program adapter", function () {
       
       UBP = (await UserBonusProgram.registration(user, "test")).id;
 
-      await UserBonusTransaction.create({bonusProgram: bp.id, user: user.id, isStable: true, amount: 100500, isNegative: false}).fetch()
+      let ubt = await UserBonusTransaction.create({bonusProgram: bp.id, user: user.id, isStable: true, amount: 100500, isNegative: false, balanceAfter: 100500}).fetch()
+      const userBP = await UserBonusProgram.findOne({id: UBP});
+      console.log(ubt,123, userBP)
+
     } catch (error) {
       console.error(error)
     }
   });
 
   it("bonus user must be registered and have balance", async () => {
+    const ttt = await UserBonusTransaction.find({})
     const userBP = await UserBonusProgram.findOne({id: UBP});
+    console.log(userBP,999, ttt)
+
     expect(userBP.balance).to.equal(100500);
   });
 

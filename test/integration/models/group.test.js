@@ -30,6 +30,21 @@ describe("Group", function () {
             // throw error
         }
     });
+    /**
+     *  deprecated, please read todo at the end of this file
+    it("getGroups", async function () {
+      // let groups = await Group.find({});
+      let result = await Group.getGroups([exampleGroups[0].id, exampleGroups[1].id, exampleGroups[2].id]);
+      expect(result.groups.length).to.equal(3);
+      await equalGroups(exampleGroups, result.groups);
+    });
+     */
+    it("getGroup", async function () {
+        let group = await Group.getGroup(exampleGroups[0].id);
+        await equalGroup(exampleGroups[0], group);
+        group = await Group.getGroup("bad-id-group");
+        (0, chai_1.expect)(group).to.equal(null);
+    });
     it("getGroupBySlug", async function () {
         let example = await Group.getGroup(exampleGroups[1].id);
         let group = await Group.getGroupBySlug(example.slug);
@@ -63,6 +78,7 @@ describe("Group", function () {
             if (typeof group !== "object")
                 throw "group is not object";
             if (exampleGroup.childGroups && exampleGroup.childGroups.length) {
+                console.log(exampleGroup, group, 12);
                 (0, chai_1.expect)(exampleGroup.childGroups.length).to.equal(group.childGroups.length);
                 equalGroups(exampleGroup.childGroups, group.childGroups);
             }

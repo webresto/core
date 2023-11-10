@@ -47,9 +47,8 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     return this.users.has(user.id);
   }
 
-  public async getBalance(user: User, _userBonusProgram: UserBonusProgram): Promise<number> {
-    const transactions = this.transactions.get(user.id) || [];
-    return transactions.reduce((total, transaction) => total + (transaction.isNegative ? -transaction.amount : transaction.amount), 0);
+  public async getBalance(user: User, _ubp: UserBonusProgram): Promise<number> {
+    return _ubp.balance
   }
 
   public async getTransactions(user: User, afterTime: Date, limit: number = 0, skip: number = 0): Promise<BonusTransaction[]> {
@@ -61,11 +60,12 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     if (!this.users.has(user.id)) {
       throw new Error("User not found");
     }
+    const balanceAfter = _ubp.balance + (userBonusTransaction.isNegative ? -userBonusTransaction.amount : userBonusTransaction.amount);
     const transaction = {
       ...userBonusTransaction,
       id: `${Date.now()}-${Math.random()}`, // generating a random id
       time: new Date().toISOString(),
-      balanceAfter: 0
+      balanceAfter: balanceAfter
     };
     this.transactions.get(user.id).push(transaction);
     return transaction;
