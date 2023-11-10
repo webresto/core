@@ -36,7 +36,7 @@ declare let attributes: {
     images: string[] | MediaFile[];
     /** PlaySholder for group dishes */
     dishesPlaceholder: MediaFile[];
-    /** The person readable isii*/
+    /** The human easy readable*/
     slug: string;
     /** The concept to which the group belongs */
     concept: string;

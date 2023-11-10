@@ -105,9 +105,10 @@ let attributes = {
     model: "mediafile",
   } as unknown as MediaFile[],
 
-  /** The person readable isii*/
+  /** The human easy readable*/
   slug: {
     type: "string",
+    unique: "true"
   } as unknown as string,
 
   /** The concept to which the group belongs */

@@ -19,8 +19,8 @@ function groupGenerator(config = {}) {
         name: config.name || `${faker_1.default.commerce.productAdjective()} ${faker_1.default.commerce.productMaterial()} ${Date.now()}`,
         isDeleted: config.isDeleted || false,
         dishes: config.dishes || [],
-        visible: config.visible || true
-        // slug: faker.random.uuid()
+        visible: config.visible || true,
+        slug: faker_1.default.lorem.slug()
     };
 }
 exports.default = groupGenerator;

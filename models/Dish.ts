@@ -198,10 +198,10 @@ let attributes = {
     via: "dish",
   } as unknown as MediaFile[] | string[],
 
-  /** Слаг */
+  /** The human easy readable */
   slug: {
     type: "string",
-    // unique: true,
+    unique: "true"
   } as unknown as string,
 
   /** The concept to which the dish belongs */

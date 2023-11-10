@@ -157,10 +157,10 @@ let attributes = {
         collection: "mediafile",
         via: "dish",
     },
-    /** Слаг */
+    /** The human easy readable */
     slug: {
         type: "string",
-        // unique: true,
+        unique: "true"
     },
     /** The concept to which the dish belongs */
     concept: "string",

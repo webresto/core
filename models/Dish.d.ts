@@ -74,7 +74,7 @@ declare let attributes: {
     balance: number;
     /**List of images of the dish*/
     images: string[] | MediaFile[];
-    /** Слаг */
+    /** The human easy readable */
     slug: string;
     /** The concept to which the dish belongs */
     concept: string;

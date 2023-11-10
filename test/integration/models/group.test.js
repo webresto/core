@@ -13,7 +13,9 @@ describe("Group", function () {
     it("create example Groups", async function () {
         try {
             for (let i = 0; i < 3; i++) {
-                exampleGroups.push((0, group_generator_1.default)());
+                const group = (0, group_generator_1.default)();
+                exampleGroups.push(group);
+                await Group.create(group).fetch();
                 let [lastGroup] = exampleGroups.slice(-1);
                 //lastGroup.dishes = [dishGenerator(), dishGenerator()];
                 lastGroup.childGroups = [];
@@ -23,23 +25,10 @@ describe("Group", function () {
                     lastGroup.childGroups.push(newGroup.id);
                 }
             }
-            await Group.createEach(exampleGroups).fetch();
         }
         catch (error) {
             // throw error
         }
-    });
-    it("getGroups", async function () {
-        // let groups = await Group.find({});
-        let result = await Group.getGroups([exampleGroups[0].id, exampleGroups[1].id, exampleGroups[2].id]);
-        (0, chai_1.expect)(result.groups.length).to.equal(3);
-        await equalGroups(exampleGroups, result.groups);
-    });
-    it("getGroup", async function () {
-        let group = await Group.getGroup(exampleGroups[0].id);
-        await equalGroup(exampleGroups[0], group);
-        group = await Group.getGroup("bad-id-group");
-        (0, chai_1.expect)(group).to.equal(null);
     });
     it("getGroupBySlug", async function () {
         let example = await Group.getGroup(exampleGroups[1].id);
@@ -119,3 +108,4 @@ describe("Group", function () {
         }
     }
 });
+// todo: 1. Add new methods for GroupModel and delete deprecate

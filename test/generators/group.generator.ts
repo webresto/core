@@ -17,8 +17,8 @@ export default function groupGenerator(config: Group = {}): Group {
     name: config.name || `${faker.commerce.productAdjective()} ${faker.commerce.productMaterial()} ${Date.now()}`,
     isDeleted: config.isDeleted || false,
     dishes: config.dishes || [],
-    visible: config.visible || true
-    // slug: faker.random.uuid()
+    visible: config.visible || true,
+    slug: faker.lorem.slug()
   };
 }
 

@@ -82,9 +82,10 @@ let attributes = {
     dishesPlaceholder: {
         model: "mediafile",
     },
-    /** The person readable isii*/
+    /** The human easy readable*/
     slug: {
         type: "string",
+        unique: "true"
     },
     /** The concept to which the group belongs */
     concept: "string",

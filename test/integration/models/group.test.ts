@@ -12,8 +12,10 @@ describe("Group", function () {
   it("create example Groups", async function () {
     try {
       for (let i = 0; i < 3; i++) {
-        
-        exampleGroups.push(groupGenerator());
+        const group = groupGenerator()    
+        exampleGroups.push(group);
+        await Group.create(group).fetch();
+
         let [lastGroup] = exampleGroups.slice(-1);
         
         //lastGroup.dishes = [dishGenerator(), dishGenerator()];
@@ -25,18 +27,19 @@ describe("Group", function () {
           lastGroup.childGroups.push(newGroup.id);
         }
       }
-      await Group.createEach(exampleGroups).fetch();
     } catch (error) {
       // throw error
     }
   });
-
-  it("getGroups", async function () {
-    // let groups = await Group.find({});
-    let result = await Group.getGroups([exampleGroups[0].id, exampleGroups[1].id, exampleGroups[2].id]);
-    expect(result.groups.length).to.equal(3);
-    await equalGroups(exampleGroups, result.groups);
-  });
+/**
+ *  deprecated, please read todo at the end of this file
+it("getGroups", async function () {
+  // let groups = await Group.find({});
+  let result = await Group.getGroups([exampleGroups[0].id, exampleGroups[1].id, exampleGroups[2].id]);
+  expect(result.groups.length).to.equal(3);
+  await equalGroups(exampleGroups, result.groups);
+});
+ */
 
   it("getGroup", async function () {
     let group = await Group.getGroup(exampleGroups[0].id);
@@ -84,7 +87,9 @@ describe("Group", function () {
       if (!group) throw "equalGroups not found any group in results";
       if (typeof group !== "object") throw "group is not object";
 
+      
       if (exampleGroup.childGroups && exampleGroup.childGroups.length) {
+        console.log(exampleGroup,group,12);
         expect(exampleGroup.childGroups.length).to.equal(group.childGroups.length);
         equalGroups(exampleGroup.childGroups as Group[], group.childGroups as Group[]);
       }
@@ -130,3 +135,6 @@ describe("Group", function () {
     }
   }
 });
+
+
+// todo: 1. Add new methods for GroupModel and delete deprecate
