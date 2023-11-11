@@ -19,6 +19,11 @@ declare const _default: {
         title: string;
         icon: string;
     };
+    bonusprogram: {
+        model: string;
+        title: string;
+        icon: string;
+    };
     userbonusprogram: {
         model: string;
         title: string;

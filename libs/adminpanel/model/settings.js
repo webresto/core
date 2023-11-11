@@ -21,6 +21,11 @@ exports.default = {
         title: 'Orders',
         icon: 'shopping-cart'
     },
+    bonusprogram: {
+        model: 'bonusprogram',
+        title: 'Bonus programs',
+        icon: 'comments-dollar'
+    },
     userbonusprogram: {
         model: 'userbonusprogram',
         title: 'User bonusprograms',
