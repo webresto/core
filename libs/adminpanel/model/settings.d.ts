@@ -19,6 +19,16 @@ declare const _default: {
         title: string;
         icon: string;
     };
+    userbonusprogram: {
+        model: string;
+        title: string;
+        icon: string;
+    };
+    userbonustransaction: {
+        model: string;
+        title: string;
+        icon: string;
+    };
     settings: {
         title: string;
         model: string;

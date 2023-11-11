@@ -11,13 +11,23 @@ export default {
   },
   groups: {
     model: 'group',
-    title: 'Группы',
+    title: 'Groups',
     icon: 'folder'
   },
   orders: {
     model: 'order',
-    title: 'Заказы',
+    title: 'Orders',
     icon: 'shopping-cart'
+  },
+  userbonusprogram: {
+    model: 'userbonusprogram',
+    title: 'User bonusprograms',
+    icon: 'money-bill-wave-alt'
+  },
+  userbonustransaction: {
+    model: 'userbonustransaction',
+    title: 'Userbonus transactions',
+    icon: 'exchange-alt'
   },
   settings: {
     title: "Settings",
