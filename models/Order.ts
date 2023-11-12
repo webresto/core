@@ -34,6 +34,8 @@ let attributes = {
   /** last 8 chars from id */
   shortId: "string",
   
+  /** Stateflow field */
+  state: "string",
 
   /** Concept string */
   // TODO: rework type to string[]
