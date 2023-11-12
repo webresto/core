@@ -749,7 +749,7 @@ let Model = {
     /**
      *  Bonus spending
      * */ 
-    if (order.user && typeof order.user === "string" && spendBonus.bonusProgramId) {
+    if (order.user && typeof order.user === "string" && spendBonus && spendBonus.bonusProgramId) {      
       
       // load bonus strategy
       let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
