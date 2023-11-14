@@ -151,6 +151,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
    */
   public async addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void> {
     let createInModelPromotion: Promotion = {
+      badge: promotionToAdd.badge,
       id: promotionToAdd.id,
       isJoint: promotionToAdd.isJoint,
       name: promotionToAdd.name,
@@ -199,13 +200,17 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return this.promotions[id];
   }
 
-  public async getAllConcept(concept: string[]): Promise<AbstractPromotionHandler[]> {
-    return await Promotion.getAllByConcept(concept);
-  }
-
   public deletePromotion(id:string): void{
     // this.promotions(id)
     return
+  }
+
+  public deletePromotionByBadge(badge:string): void{
+    for (const promotion in this.promotions) {
+      if(this.promotions[promotion].badge === badge){
+        delete(this.promotions[promotion].badge);
+      }
+    }
   }
 
   public getActivePromotionsIds(): string[] {

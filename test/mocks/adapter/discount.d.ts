@@ -8,6 +8,7 @@ export declare class InMemoryDiscountAdapter extends AbstractPromotionHandler {
     isJoint: boolean;
     name: string;
     isPublic: boolean;
+    badge: string;
     description: string;
     concept: string[];
     configDiscount: IconfigDiscount;

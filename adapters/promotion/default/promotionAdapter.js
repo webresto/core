@@ -130,6 +130,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
      */
     async addPromotionHandler(promotionToAdd) {
         let createInModelPromotion = {
+            badge: promotionToAdd.badge,
             id: promotionToAdd.id,
             isJoint: promotionToAdd.isJoint,
             name: promotionToAdd.name,
@@ -172,12 +173,16 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         // let disc: AbstractDiscountHandler = await Discount.getById(id);
         return this.promotions[id];
     }
-    async getAllConcept(concept) {
-        return await Promotion.getAllByConcept(concept);
-    }
     deletePromotion(id) {
         // this.promotions(id)
         return;
+    }
+    deletePromotionByBadge(badge) {
+        for (const promotion in this.promotions) {
+            if (this.promotions[promotion].badge === badge) {
+                delete (this.promotions[promotion].badge);
+            }
+        }
     }
     getActivePromotionsIds() {
         return Object.keys(this.promotions);

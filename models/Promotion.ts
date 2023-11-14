@@ -56,6 +56,11 @@ let attributes = {
     required: true,
   } as unknown as string,
 
+  badge: {
+    type: "string",
+    required: true,
+  } as unknown as string,
+
   concept: {
     type: "json",
     required: true,
@@ -122,6 +127,7 @@ interface Promotion
       | "isPublic"
       | "description"
       | "concept"
+      | "badge"
       | "isDeleted"
       | "createdByUser"
       | "externalId"

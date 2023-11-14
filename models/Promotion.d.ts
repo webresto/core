@@ -11,6 +11,7 @@ declare let attributes: {
     /** created by User */
     createdByUser: boolean;
     name: string;
+    badge: string;
     concept: string[];
     sortOrder: number;
     description: string;
@@ -29,7 +30,7 @@ declare let attributes: {
     worktime: WorkTime[];
 };
 type attributes = typeof attributes;
-interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "isDeleted" | "createdByUser" | "externalId">, ORM {
+interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "badge" | "isDeleted" | "createdByUser" | "externalId">, ORM {
 }
 export default Promotion;
 declare let Model: {

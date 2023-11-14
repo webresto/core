@@ -44,6 +44,7 @@ describe("Promotion adapter integration test", function () {
         let promotion10Percent = new configuredPromotion_1.default({
             concept: ["road"],
             id: 'aa2-id',
+            badge: 'test',
             isJoint: true,
             name: 'awdawd',
             isPublic: true,
@@ -81,6 +82,7 @@ describe("Promotion adapter integration test", function () {
             isJoint: false,
             name: 'awdawd',
             isPublic: true,
+            badge: 'test',
             configDiscount: config,
             description: "aaa",
             externalId: "externalID2"
@@ -88,6 +90,7 @@ describe("Promotion adapter integration test", function () {
         let promotion1flat = (0, discount_generator_1.default)({
             concept: ["jointfalse"],
             id: 'aa22-id',
+            badge: 'test',
             isJoint: true,
             name: 'awdaawd',
             isPublic: true,
@@ -133,6 +136,7 @@ describe("Promotion adapter integration test", function () {
             id: 'config2addaw-idawdawd',
             isJoint: false,
             name: "Promotion",
+            badge: 'test',
             isPublic: true,
             isDeleted: false,
             createdByUser: true,
@@ -149,6 +153,7 @@ describe("Promotion adapter integration test", function () {
         let promotion10 = new configuredPromotion_1.default({
             concept: ["amongus"],
             id: 'config2addawawdaw-id',
+            badge: 'test',
             isJoint: false,
             name: 'Promotion',
             isPublic: true,
@@ -177,6 +182,7 @@ describe("Promotion adapter integration test", function () {
         const dishesId = dishes.map(dish => dish.id);
         let flatDiscount = (0, discount_generator_1.default)({
             concept: ["specific"],
+            badge: 'test',
             id: 'flat2-id',
             isJoint: true,
             name: 'awdaawd',
@@ -190,6 +196,7 @@ describe("Promotion adapter integration test", function () {
             },
         });
         let percentDiscount = (0, discount_generator_1.default)({
+            badge: 'test',
             concept: ["specific"],
             id: 'percent2-id',
             isJoint: true,
@@ -205,6 +212,7 @@ describe("Promotion adapter integration test", function () {
         });
         let percentDiscount2 = (0, discount_generator_1.default)({
             concept: ["specific"],
+            badge: 'test',
             id: 'percent2-idawdawd',
             isJoint: true,
             name: 'awdaawawdd',
@@ -221,6 +229,7 @@ describe("Promotion adapter integration test", function () {
             concept: ["specific"],
             id: 'percent2-idawdawd',
             isJoint: true,
+            badge: 'test',
             name: 'awdaawawdd',
             isPublic: true,
             configDiscount: {
@@ -253,6 +262,7 @@ describe("Promotion adapter integration test", function () {
             concept: ["PromotionStatess"],
             id: 'flat2aaawa-id',
             isJoint: true,
+            badge: 'test',
             name: 'awdaawad',
             isPublic: true,
             configDiscount: {
@@ -292,6 +302,7 @@ describe("Promotion adapter integration test", function () {
         let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "recursion", parentGroup: groupsId[0] }));
         let discountEx1 = {
             id: "1aw42-idaaa",
+            badge: 'test',
             configDiscount: {
                 discountType: "flat",
                 discountAmount: 1,

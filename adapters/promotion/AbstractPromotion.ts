@@ -31,6 +31,10 @@ export default abstract class AbstractPromotionHandler {
   // id for outside system
   public abstract externalId?: string;
 
+  /**
+   * For delete by badge
+   */
+  public abstract badge: string;
 
   // TODO: makes it not optional
   public abstract condition?(arg1: Group | Dish | Order): boolean

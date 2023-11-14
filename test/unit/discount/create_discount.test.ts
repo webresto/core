@@ -28,6 +28,7 @@ describe('Create_Discount', function () {
                 groups: [],
                 excludeModifiers: true
               },
+            badge: 'test',
             name: "1-name",
             description: "string",
             concept: [],

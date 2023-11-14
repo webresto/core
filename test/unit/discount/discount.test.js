@@ -25,6 +25,7 @@ describe('Discount', function () {
     let discInMemory = new discount_1.InMemoryDiscountAdapter;
     let discountEx = {
         id: "1-id",
+        badge: 'test',
         configDiscount: {
             discountType: "flat",
             discountAmount: 1.33,
@@ -89,6 +90,7 @@ describe('Discount', function () {
         id: 'aa2-id',
         isJoint: true,
         name: 'awdawd',
+        badge: 'test',
         isPublic: true,
         configDiscount: {
             discountType: "flat",

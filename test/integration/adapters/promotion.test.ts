@@ -67,6 +67,7 @@ describe("Promotion adapter integration test", function () {
     let promotion10Percent = new ConfiguredPromotion({
       concept: ["road"],
       id: 'aa2-id',
+      badge: 'test',
       isJoint: true,
       name: 'awdawd',
       isPublic: true,
@@ -118,6 +119,7 @@ describe("Promotion adapter integration test", function () {
       isJoint: false,
       name: 'awdawd',
       isPublic: true,
+      badge: 'test',
       configDiscount:  config,
       description: "aaa",
       externalId: "externalID2"
@@ -127,6 +129,7 @@ describe("Promotion adapter integration test", function () {
     let promotion1flat:AbstractPromotionHandler = discountGenerator({
       concept: ["jointfalse"],
       id: 'aa22-id',
+      badge: 'test',
       isJoint: true,
       name: 'awdaawd',
       isPublic: true,
@@ -184,6 +187,7 @@ describe("Promotion adapter integration test", function () {
       id: 'config2addaw-idawdawd',
       isJoint: false,
       name: "Promotion",
+      badge: 'test',
       isPublic: true,
       isDeleted: false,
       createdByUser:  true,
@@ -203,6 +207,7 @@ describe("Promotion adapter integration test", function () {
     let promotion10 = new ConfiguredPromotion({
       concept: ["amongus"],
       id: 'config2addawawdaw-id',
+      badge: 'test',
       isJoint: false,
       name: 'Promotion',
       isPublic: true,
@@ -243,6 +248,7 @@ describe("Promotion adapter integration test", function () {
     
     let flatDiscount:AbstractPromotionHandler = discountGenerator({
       concept: ["specific"],
+      badge: 'test',
       id: 'flat2-id',
       isJoint: true,
       name: 'awdaawd',
@@ -257,6 +263,7 @@ describe("Promotion adapter integration test", function () {
     })
 
     let percentDiscount:AbstractPromotionHandler = discountGenerator({
+      badge: 'test',
       concept: ["specific"],
       id: 'percent2-id',
       isJoint: true,
@@ -273,6 +280,7 @@ describe("Promotion adapter integration test", function () {
     
     let percentDiscount2:AbstractPromotionHandler = discountGenerator({
       concept: ["specific"],
+      badge: 'test',
       id: 'percent2-idawdawd',
       isJoint: true,
       name: 'awdaawawdd',
@@ -290,6 +298,7 @@ describe("Promotion adapter integration test", function () {
       concept: ["specific"],
       id: 'percent2-idawdawd',
       isJoint: true,
+      badge: 'test',
       name: 'awdaawawdd',
       isPublic: true,
       configDiscount: {
@@ -338,6 +347,7 @@ describe("Promotion adapter integration test", function () {
       concept: ["PromotionStatess"],
       id: 'flat2aaawa-id',
       isJoint: true,
+      badge: 'test',
       name: 'awdaawad',
       isPublic: true,
       configDiscount: {
@@ -391,6 +401,7 @@ describe("Promotion adapter integration test", function () {
 
     let discountEx1:AbstractPromotionHandler =  {
       id: "1aw42-idaaa",
+      badge: 'test',
       configDiscount: {
           discountType: "flat",
           discountAmount: 1,

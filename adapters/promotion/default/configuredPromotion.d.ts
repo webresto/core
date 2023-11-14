@@ -5,6 +5,7 @@ import Dish from '../../../models/Dish';
 import Order, { PromotionState } from '../../../models/Order';
 import User from '../../../models/User';
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
+    badge: string;
     constructor(promotion: AbstractPromotionHandler, config?: IconfigDiscount);
     private config;
     id: string;
