@@ -24,6 +24,8 @@ declare let attributes: {
     id: string;
     /** last 8 chars from id */
     shortId: string;
+    /** Stateflow field */
+    state: string;
     /** Concept string */
     concept: string;
     /** the basket contains mixed types of concepts */
@@ -171,6 +173,7 @@ declare let Model: {
         updatedAt?: Date;
         id?: string;
         shortId?: string;
+        state?: string;
         concept?: string;
         isMixedConcept?: boolean;
         dishes?: number[] | OrderDish[];
@@ -220,7 +223,6 @@ declare let Model: {
         deviceId?: string;
         user?: string | User;
         customData?: any;
-        state?: string;
     }>;
     countCart(criteria: CriteriaQuery<Order>): Promise<Order>;
     doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;

@@ -11,6 +11,7 @@ const stringsInArray_1 = require("../../../libs/stringsInArray");
 class ConfiguredPromotion extends AbstractPromotion_1.default {
     constructor(promotion, config) {
         super();
+        this.badge = 'configured-promotion';
         this.config = {};
         if (config === undefined) {
             throw new Error("ConfiguredPromotion: Config not defined");

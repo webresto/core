@@ -29,7 +29,7 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
      */
     recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void;
     getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined;
-    getAllConcept(concept: string[]): Promise<AbstractPromotionHandler[]>;
     deletePromotion(id: string): void;
+    deletePromotionByBadge(badge: string): void;
     getActivePromotionsIds(): string[];
 }

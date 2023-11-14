@@ -13,6 +13,10 @@ export default abstract class AbstractPromotionHandler {
     abstract configDiscount?: IconfigDiscount;
     abstract concept: string[];
     abstract externalId?: string;
+    /**
+     * For delete by badge
+     */
+    abstract badge: string;
     abstract condition?(arg1: Group | Dish | Order): boolean;
     abstract action?(order: Order): Promise<PromotionState>;
     abstract displayGroup?(group: Group, user?: string | User): Group;

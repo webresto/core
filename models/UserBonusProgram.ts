@@ -235,7 +235,7 @@ let Model = {
           // Emmiter
           await UserBonusProgram.update({ user: user.id }, { balance: extBalance }).fetch();
       } else { 
-          sails.log.error(`balances for user: [${user.login}, id:${user.id}] not matched with external system (sum:${sumCurrentBalance}, external:${balance}, lastAfter:${lastTransaction.balanceAfter})`);
+          sails.log.error(`balances for user: [${user.login}, id:${user.id}] not matched with external system (sum:${sumCurrentBalance}, external:${extBalance}, lastAfter:${lastTransaction.balanceAfter})`);
       }
 
       await UserBonusProgram.update({user: user.id}, {balance: extBalance}).fetch();

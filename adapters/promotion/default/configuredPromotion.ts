@@ -11,6 +11,7 @@ import Decimal from "decimal.js";
 import { stringsInArray } from "../../../libs/stringsInArray";
 
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
+    public badge: string = 'configured-promotion';
     constructor(promotion:AbstractPromotionHandler, config?: IconfigDiscount) {
       super();
       if(config === undefined){

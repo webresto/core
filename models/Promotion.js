@@ -41,6 +41,10 @@ let attributes = {
         type: "string",
         required: true,
     },
+    badge: {
+        type: "string",
+        required: true,
+    },
     concept: {
         type: "json",
         required: true,

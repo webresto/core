@@ -31,6 +31,7 @@ describe('Discount_Empty', function () {
             groups: ["a"],
             excludeModifiers: true
           },
+        badge: 'test',
         name: "1-name",
         description: "string",
         concept: [""],

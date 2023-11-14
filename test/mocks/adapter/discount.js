@@ -16,6 +16,7 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
         this.isJoint = true;
         this.name = "New Year";
         this.isPublic = false;
+        this.badge = "test";
         this.description = "some text";
         this.concept = ["NewYear", "Happy Birthday", "origin", "3dif"];
         this.configDiscount = {
