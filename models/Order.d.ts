@@ -50,6 +50,10 @@ declare let attributes: {
     promotionCode: string | PromotionCode;
     promotionCodeString: string;
     /**
+    * The user's locale is a priority, the cart locale may not be installed, then the default locale of the site will be selected.
+    */
+    locale: string;
+    /**
      * Date untill promocode is valid
      * This need for calculate promotion in realtime without request in DB
      */
@@ -184,6 +188,7 @@ declare let Model: {
         promotionState?: PromotionState[];
         promotionCode?: string | PromotionCode;
         promotionCodeString?: string;
+        locale?: string;
         promotionCodeCheckValidTill?: string;
         isPromoting?: boolean;
         dishesCount?: number;
