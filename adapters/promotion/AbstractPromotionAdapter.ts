@@ -2,7 +2,6 @@ import Order, { PromotionState } from "../../models/Order"
 import AbstractPromotionHandler from "./AbstractPromotion";
 import Group from './../../models/Group';
 import Dish from './../../models/Dish';
-import Promotion from './../../models/Promotion';
 import { IconfigDiscount } from './../../interfaces/ConfigDiscount';
 
 export default abstract class AbstractPromotionAdapter {

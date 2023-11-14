@@ -205,9 +205,15 @@ let Model = {
   },
 
   getAllByConcept(concept: string[]): Promotion[] {
+
+    if (concept.length < 1) {
+      sails.warn(`Promotion > getAllByConcept : [concept] array is unstable feature`, concept)
+    }
+    
     const promotionAdapter = Adapter.getPromotionAdapter()
     if (!concept) throw "concept is required";
     let activePromotionIds = promotionAdapter.getActivePromotionsIds()
+
     if(concept[0] === ""){
       let filteredRAM = promotionRAM.filter(promotion => 
         (promotion.concept[0] === undefined || promotion.concept[0] === "")
