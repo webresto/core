@@ -7,7 +7,7 @@ import { IconfigDiscount } from './../../interfaces/ConfigDiscount';
 export default abstract class AbstractPromotionAdapter {
         public abstract promotions: { [key: string]: AbstractPromotionHandler};
 
-        public abstract processOrder(order: Order): Promise<PromotionState[]>
+        public abstract processOrder(order: Order): Promise<Order>
         public abstract displayDish(dish: Dish): Dish;
         public abstract displayGroup(group: Group): Group;
         public abstract getActivePromotionsIds(): string[];

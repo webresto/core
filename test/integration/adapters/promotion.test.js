@@ -332,6 +332,7 @@ describe("Promotion adapter integration test", function () {
                 discountEx1.configDiscount.dishes.push(dish1.id);
                 await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
                 let configPromotion = new configuredPromotion_1.default(discountEx1, discountEx1.configDiscount);
+                order.promotionFlatDiscount = 2;
                 return await configPromotion.applyPromotion(order.id);
             },
             isPublic: true,

@@ -1273,12 +1273,8 @@ let Model = {
             await Order.updateOne({id: order.id}, {isPromoting: true});
             // console.log(orderPopulate)
             // console.log("====================== GET to promotion ================================", orderPopulate)
-            order.promotionState = await promotionAdapter.processOrder(orderPopulate);
-            let a = await Order.findOne(order.id) 
-
-            order.discountTotal = a.discountTotal
+            order = await promotionAdapter.processOrder(orderPopulate);
             await Order.updateOne({id: order.id}, {isPromoting: false});
-
             order.isPromoting = false;
           } catch (error) {
             sails.log.error(`Core > order > promotion calculate fail: `, error)

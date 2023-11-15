@@ -1,4 +1,4 @@
-import Order, { PromotionState } from "../../models/Order";
+import Order from "../../models/Order";
 import AbstractPromotionHandler from "./AbstractPromotion";
 import Group from './../../models/Group';
 import Dish from './../../models/Dish';
@@ -6,7 +6,7 @@ export default abstract class AbstractPromotionAdapter {
     abstract promotions: {
         [key: string]: AbstractPromotionHandler;
     };
-    abstract processOrder(order: Order): Promise<PromotionState[]>;
+    abstract processOrder(order: Order): Promise<Order>;
     abstract displayDish(dish: Dish): Dish;
     abstract displayGroup(group: Group): Group;
     abstract getActivePromotionsIds(): string[];

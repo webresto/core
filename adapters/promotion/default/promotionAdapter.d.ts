@@ -1,4 +1,4 @@
-import Order, { PromotionState } from "../../../models/Order";
+import Order from "../../../models/Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
 import Promotion from "../../../models/Promotion";
@@ -8,7 +8,7 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
     readonly promotions: {
         [key: string]: AbstractPromotionHandler;
     };
-    processOrder(order: Order): Promise<PromotionState[]>;
+    processOrder(order: Order): Promise<Order>;
     displayDish(dish: Dish): Dish;
     displayGroup(group: Group): Group;
     filterByConcept(concept: string): Promotion[];

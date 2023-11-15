@@ -21,12 +21,13 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         let promotionByConcept = this.filterPromotions(filteredPromotion, order);
         if (promotionByConcept[0] !== undefined) {
             for (const promotion of promotionByConcept) {
-                order = await Order.countCart({ id: order.id });
+                // order = await Order.countCart({id: order.id});
                 let state = await this.promotions[promotion.id].action(order);
                 promotionStates.push(state);
             }
         }
-        return Promise.resolve(promotionStates);
+        order.promotionState = promotionStates;
+        return Promise.resolve(order);
     }
     // one method to get all promotions and id's
     displayDish(dish) {

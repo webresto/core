@@ -15,7 +15,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
   public readonly promotions: { [key: string]: AbstractPromotionHandler; } = {};
 
-  public async processOrder(order: Order): Promise<PromotionState[]> {
+  public async processOrder(order: Order): Promise<Order> {
     const promotionStates = [] as PromotionState[]
     // Should populated order
     await this.clearOfPromotion(order.id);
@@ -23,13 +23,13 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, order);
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
-        order = await Order.countCart({id: order.id});
+        // order = await Order.countCart({id: order.id});
         let state = await this.promotions[promotion.id].action(order);
         promotionStates.push(state);
       }
     }
-    
-    return Promise.resolve(promotionStates)
+    order.promotionState = promotionStates;
+    return Promise.resolve(order)
   }
 
   // one method to get all promotions and id's
