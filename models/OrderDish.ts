@@ -60,7 +60,7 @@ let attributes = {
   /** The label who added */
   addedBy: {
     type: "string",
-    defaultsTo: "user",
+    defaultsTo: "user", // promotion
   } as unknown as string,
 
   /** Вес */
