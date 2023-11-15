@@ -1274,6 +1274,7 @@ let Model = {
             // console.log(orderPopulate)
             // console.log("====================== GET to promotion ================================", orderPopulate)
             order = await promotionAdapter.processOrder(orderPopulate);
+            delete(order.dishes);
             await Order.updateOne({id: order.id}, {isPromoting: false});
             order.isPromoting = false;
           } catch (error) {
