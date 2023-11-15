@@ -94,6 +94,15 @@ let attributes = {
   } as unknown as string,
   
   /**
+  * The user's locale is a priority, the cart locale may not be installed, then the default locale of the site will be selected.
+  */
+  locale: { 
+    type: "string",
+    // isIn:  todo
+    allowNull: true
+  } as unknown as string,
+  
+  /**
    * Date untill promocode is valid
    * This need for calculate promotion in realtime without request in DB
    */
