@@ -62,6 +62,14 @@ let attributes = {
         allowNull: true
     },
     /**
+     * The discount will be applied to basketTotal during countCart
+     * This will be cleared before passing promotions count
+     */
+    promotionFlatDiscount: {
+        type: "number",
+        defaultsTo: 0,
+    },
+    /**
     * The user's locale is a priority, the cart locale may not be installed, then the default locale of the site will be selected.
     */
     locale: {
@@ -185,6 +193,9 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
+    /**
+     * Calculated discount, not recomend for changing
+     */
     discountTotal: {
         type: "number",
         defaultsTo: 0,
@@ -1081,6 +1092,9 @@ let Model = {
                 emitter.emit("core-order-after-check-delivery", order);
             }
             // END calculate delivery cost
+            if (order.promotionFlatDiscount > 0) {
+                order.discountTotal = new decimal_js_1.default(order.discountTotal).plus(order.promotionFlatDiscount).toNumber();
+            }
             order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             emitter.emit("core-order-after-count", order);

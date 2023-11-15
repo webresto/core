@@ -31,7 +31,10 @@ let attributes = {
     discountTotal: "number",
     /** Type discount */
     discountType: 'string',
-    /** Discount amount */
+    /** Discount amount
+     * "percentage" | "flat"
+     *
+    */
     discountAmount: "number",
     /** postDiscounts */
     discountMessage: "string",

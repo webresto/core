@@ -50,6 +50,11 @@ declare let attributes: {
     promotionCode: string | PromotionCode;
     promotionCodeString: string;
     /**
+     * The discount will be applied to basketTotal during countCart
+     * This will be cleared before passing promotions count
+     */
+    promotionFlatDiscount: number;
+    /**
     * The user's locale is a priority, the cart locale may not be installed, then the default locale of the site will be selected.
     */
     locale: string;
@@ -119,6 +124,9 @@ declare let attributes: {
     *   @deprecated orderTotal use basketTotal
     */
     orderTotal: number;
+    /**
+     * Calculated discount, not recomend for changing
+     */
     discountTotal: number;
     orderDate: string;
     deviceId: string;
@@ -188,6 +196,7 @@ declare let Model: {
         promotionState?: PromotionState[];
         promotionCode?: string | PromotionCode;
         promotionCodeString?: string;
+        promotionFlatDiscount?: number;
         locale?: string;
         promotionCodeCheckValidTill?: string;
         isPromoting?: boolean;
