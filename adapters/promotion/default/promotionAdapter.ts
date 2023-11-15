@@ -12,13 +12,6 @@ import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import PromotionCode from "../../../models/PromotionCode";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
-  public recreatePromotionHandler(promotionToAdd: AbstractPromotionHandler): void {
-    throw new Error("Method not implemented.");
-  }
-
-  public applyPromotion(orderId: any, spendPromotion: IconfigDiscount, promotionId: any): Promise<PromotionState> {
-    throw new Error("Method not implemented.");
-  }
 
   public readonly promotions: { [key: string]: AbstractPromotionHandler; } = {};
 

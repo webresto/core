@@ -1,13 +1,10 @@
 import Order, { PromotionState } from "../../../models/Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
-import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import Promotion from "../../../models/Promotion";
 import Group from "../../../models/Group";
 import Dish from "../../../models/Dish";
 export declare class PromotionAdapter extends AbstractPromotionAdapter {
-    recreatePromotionHandler(promotionToAdd: AbstractPromotionHandler): void;
-    applyPromotion(orderId: any, spendPromotion: IconfigDiscount, promotionId: any): Promise<PromotionState>;
     readonly promotions: {
         [key: string]: AbstractPromotionHandler;
     };

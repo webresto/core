@@ -14,9 +14,9 @@ const stringsInArray_1 = require("../libs/stringsInArray");
 // });
 let promotionRAM = [];
 sails.on("lifted", async () => {
-    let promotions = await Promotion.find({ enable: true });
+    let promotions = await Promotion.find({ enable: true, createdByUser: true });
     for (let i = 0; i < promotions.length; i++) {
-        adapters_1.Adapter.getPromotionAdapter().recreatePromotionHandler(promotions[i]);
+        adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(promotions[i]);
     }
 });
 let attributes = {

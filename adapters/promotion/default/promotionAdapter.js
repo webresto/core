@@ -13,12 +13,6 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         super(...arguments);
         this.promotions = {};
     }
-    recreatePromotionHandler(promotionToAdd) {
-        throw new Error("Method not implemented.");
-    }
-    applyPromotion(orderId, spendPromotion, promotionId) {
-        throw new Error("Method not implemented.");
-    }
     async processOrder(order) {
         const promotionStates = [];
         // Should populated order

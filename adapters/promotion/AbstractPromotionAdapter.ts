@@ -10,9 +10,6 @@ export default abstract class AbstractPromotionAdapter {
         public abstract processOrder(order: Order): Promise<PromotionState[]>
         public abstract displayDish(dish: Dish): Dish;
         public abstract displayGroup(group: Group): Group;
-
-        public abstract recreatePromotionHandler(promotionToAdd: AbstractPromotionHandler): void;
-
         public abstract getActivePromotionsIds(): string[];
 
         /**
@@ -32,9 +29,7 @@ export default abstract class AbstractPromotionAdapter {
             }
             await Order.updateOne({ id: order.id }, { discountTotal: 0}) // isPromoting: false
         }
-
-        public abstract applyPromotion (orderId: any, spendPromotion: IconfigDiscount, promotionId: any): Promise<PromotionState>;
-        
+                
         public abstract deletePromotion(id:string): void
 
         public abstract addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void>;

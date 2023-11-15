@@ -22,10 +22,10 @@ import PromotionCode from "../models/PromotionCode";
 let promotionRAM = []
 
 sails.on("lifted", async ()=>{
-  let promotions = await Promotion.find({ enable:true })
+  let promotions = await Promotion.find({ enable:true, createdByUser: true })
   
   for(let i=0; i<promotions.length; i++){
-    Adapter.getPromotionAdapter().recreatePromotionHandler(promotions[i]);
+    Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(promotions[i]);
   }
 })
 
