@@ -14,6 +14,9 @@ class AbstractPromotionAdapter {
         // ------------------------------------------ OrderDish update ------------------------------------------
         const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         for (const orderDish of orderDishes) {
+            if (orderDish.addedBy === "promotion") {
+                console.log("ADDDED BY PROMOTION => delete");
+            }
             await OrderDish.update({ id: orderDish.id }, { discountTotal: 0, discountType: "" }).fetch();
         }
         await Order.updateOne({ id: order.id }, { discountTotal: 0 }); // isPromoting: false
