@@ -40,7 +40,7 @@ let attributes = {
     /** The label who added */
     addedBy: {
         type: "string",
-        defaultsTo: "user",
+        defaultsTo: "user", // promotion
     },
     /** Вес */
     weight: "number",
