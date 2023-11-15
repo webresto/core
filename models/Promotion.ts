@@ -37,8 +37,8 @@ let attributes = {
 
   externalId: {
     type: "string",
+    allowNull: false,
     unique: true,
-    required: true,
   } as unknown as string,
 
   configDiscount: {

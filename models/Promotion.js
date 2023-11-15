@@ -26,8 +26,8 @@ let attributes = {
     },
     externalId: {
         type: "string",
+        allowNull: false,
         unique: true,
-        required: true,
     },
     configDiscount: {
         type: "json",
