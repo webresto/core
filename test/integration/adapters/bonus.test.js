@@ -10,7 +10,7 @@ let bonusProgramNoTx;
 let order1;
 let order2;
 let UBP;
-describe("bonus program adapter", function () {
+describe("Bonus program adapter", function () {
     this.timeout(60000);
     before(async function () {
         try {
@@ -24,18 +24,15 @@ describe("bonus program adapter", function () {
             user = await User.create({ id: "handletestapply-bonus-id", login: "7723555", lastName: 'TESThandleTestApply', firstName: "test", phone: { code: "77", number: "23555" } }).fetch();
             bp = await BonusProgram.getAdapter("test");
             UBP = (await UserBonusProgram.registration(user, "test")).id;
-            let ubt = await UserBonusTransaction.create({ bonusProgram: bp.id, user: user.id, isStable: true, amount: 100500, isNegative: false, balanceAfter: 100500 }).fetch();
+            let ubt = await UserBonusTransaction.create({ bonusProgram: bp.id, user: user.id, amount: 100500, isNegative: false, balanceAfter: 100500 }).fetch();
             const userBP = await UserBonusProgram.findOne({ id: UBP });
-            console.log(ubt, 123, userBP);
         }
         catch (error) {
             console.error(error);
         }
     });
     it("bonus user must be registered and have balance", async () => {
-        const ttt = await UserBonusTransaction.find({});
         const userBP = await UserBonusProgram.findOne({ id: UBP });
-        console.log(userBP, 999, ttt);
         (0, chai_1.expect)(userBP.balance).to.equal(100500);
     });
     it("apply bonus in order on check", async () => {

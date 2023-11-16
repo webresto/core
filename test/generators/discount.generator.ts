@@ -53,6 +53,7 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
       if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept)) {
         let order:Order = arg as Order
         // TODO:  if order.dishes type number[]
+        
         let orderDishes:OrderDish[] = order.dishes as OrderDish[]
 
         let checkDishes = orderDishes.map(order =>order.dish).some((dish:Dish) => this.configDiscount.dishes.includes(dish.id))

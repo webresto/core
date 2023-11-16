@@ -41,6 +41,10 @@ interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "i
 }
 export default UserBonusTransaction;
 declare let Model: {
+    /**
+     * Before create, a check is made to see if there are enough funds to write off.
+     * Immediately after create saving the transaction in the local database, the external adapter is called to save the transaction
+     */
     beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
     afterCreate(record: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
     beforeDestroy(): never;

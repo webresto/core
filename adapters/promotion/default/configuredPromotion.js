@@ -81,6 +81,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         }
         return dish;
     }
+    // TODO: rewrite for argument (modificable Order);
     async applyPromotion(orderId) {
         const order = await Order.findOne({ id: orderId });
         if (order.user && typeof order.user === "string") {

@@ -81,6 +81,10 @@ interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "i
 export default UserBonusTransaction;
 
 let Model = {
+  /**
+   * Before create, a check is made to see if there are enough funds to write off.
+   * Immediately after create saving the transaction in the local database, the external adapter is called to save the transaction 
+   */
   async beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void) {
     try {
       if (!init.id) {
@@ -105,7 +109,6 @@ let Model = {
       if (init.isNegative === true) {
         if (bonusProgramAdapterExist && init.user !== undefined && typeof init.user === "string") {
           let enough = await UserBonusProgram.checkEnoughToSpend(init.user, init.bonusProgram, init.amount);
-          console.log(enough);
           if (enough !== true) {
             // Maybe not needed it for print
             let userBonus = await UserBonusProgram.findOne({ bonusProgram: init.bonusProgram as string, user: init.user });
@@ -125,6 +128,7 @@ let Model = {
 
   async afterCreate(record: UserBonusTransaction, cb:  (err?: string) => void) {
     try {
+
       // After writing to the model, core safely calculate new bonuses
       const bonusProgram = await BonusProgram.findOne({ id: record.bonusProgram as string });
       const bonusProgramAdapter = await BonusProgram.getAdapter(bonusProgram.adapter);
@@ -135,7 +139,7 @@ let Model = {
       if (bonusProgramAdapter !== undefined) {
         
         if(record.isNegative === true && await UserBonusProgram.checkEnoughToSpend(record.user, record.bonusProgram, record.amount) !== true ){
-          return cb(`UserBonusTransaction afterCreate > user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
+          return cb(`[panic] UserBonusTransaction afterCreate > user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
         }
 
         let calculate = new Decimal(userBonus.balance);
@@ -162,10 +166,11 @@ let Model = {
             }
             return cb(error);
           }
-          // Set IsStable
+          // Check external ID
           if(bonusProgramAdapterTransaction && !bonusProgramAdapterTransaction.externalId){
-            return cb();
+            return cb(`externalId not defined after write transaction, transaction is not stable`);
           }
+          // Set IsStable
           await UserBonusTransaction.updateOne({ id: record.id }, { externalId: bonusProgramAdapterTransaction.externalId ,isStable: true });
         }
       }

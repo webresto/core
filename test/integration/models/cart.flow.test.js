@@ -137,7 +137,6 @@ describe("Flows: Checkout", function () {
             await Order.check({ id: order.id }, customer_1.customer, true);
         }
         catch (e) {
-            console.log(9988, e);
             (0, chai_1.expect)(e).be.undefined;
         }
         // just user with address

@@ -153,7 +153,7 @@ describe('Discount', function () {
 
       //   await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
 
-      //   await Adapter.getPromotionAdapter().clearOfPromotion(order.id)
+      //   await Adapter.getPromotionAdapter().clearOfPromotion(order)
       //   await configuredPromotion.applyPromotion(order.id)
 
       //   let result = await Order.findOne(order.id) 
@@ -177,7 +177,7 @@ describe('Discount', function () {
         await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
 
         // let result1 = await Dish.findOne(dish1.id)
-        await Adapter.getPromotionAdapter().clearOfPromotion(order.id)
+        await Adapter.getPromotionAdapter().clearOfPromotion(order)
         await configuredPromotion.applyPromotion(order.id)
 
         let result = await Order.findOne(order.id) 
@@ -250,7 +250,7 @@ describe('Discount', function () {
         // let result1 = await Dish.findOne(dish1.id)
 
         // DiscountAdapter.applyToOrder(order)
-        await Adapter.getPromotionAdapter().clearOfPromotion(order.id)
+        await Adapter.getPromotionAdapter().clearOfPromotion(order)
         await configuredPromotionFromMemory.applyPromotion(order.id)
 
         let result = await Order.findOne(order.id) //.populate("dishes");
@@ -431,7 +431,7 @@ describe('Discount', function () {
 
         // await promotionAdapter.processOrder(order)
         
-        await Adapter.getPromotionAdapter().clearOfPromotion(order.id)
+        await Adapter.getPromotionAdapter().clearOfPromotion(order)
 
         let result = await Order.findOne(order.id) 
         expect(result.discountTotal).to.equal(0);
@@ -457,7 +457,7 @@ describe('Discount', function () {
         expect(orderDishes1[0].discountTotal).to.equal(6.65);
 
         //after clear
-        await Adapter.getPromotionAdapter().clearOfPromotion(order.id)
+        await Adapter.getPromotionAdapter().clearOfPromotion(order)
         let orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         // console.log(orderDishes)
         expect(orderDishes[0].discountTotal).to.equal(0);
@@ -484,7 +484,7 @@ describe('Discount', function () {
         expect(orderDishes1[0].discountTotal).to.equal(6.65);
 
         //after clear
-        await Adapter.getPromotionAdapter().clearOfPromotion(order.id)
+        await Adapter.getPromotionAdapter().clearOfPromotion(order)
         let orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         // console.log(orderDishes)
         expect(orderDishes[0].discountTotal).to.equal(0);

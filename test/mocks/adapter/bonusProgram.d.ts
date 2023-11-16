@@ -11,6 +11,9 @@ export declare class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     coveragePercentage: number;
     decimals: number;
     description: string;
+    balance: {
+        [key: string]: number;
+    };
     constructor(config?: ConfigBonusProgramAdapter);
     registration(user: User): Promise<string>;
     delete(user: User): Promise<void>;

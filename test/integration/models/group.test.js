@@ -78,7 +78,6 @@ describe("Group", function () {
             if (typeof group !== "object")
                 throw "group is not object";
             if (exampleGroup.childGroups && exampleGroup.childGroups.length) {
-                console.log(exampleGroup, group, 12);
                 (0, chai_1.expect)(exampleGroup.childGroups.length).to.equal(group.childGroups.length);
                 equalGroups(exampleGroup.childGroups, group.childGroups);
             }

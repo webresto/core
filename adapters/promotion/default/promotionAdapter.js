@@ -16,7 +16,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     async processOrder(order) {
         const promotionStates = [];
         // Should populated order
-        await this.clearOfPromotion(order.id);
+        order = await this.clearOfPromotion(order);
         let filteredPromotion = this.filterByConcept(order.concept);
         let promotionByConcept = this.filterPromotions(filteredPromotion, order);
         if (promotionByConcept[0] !== undefined) {

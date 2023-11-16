@@ -115,7 +115,7 @@ let Model = {
             const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
             let extBalance = parseFloat(new decimal_js_1.default(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
             // Should sync when balance is not equals
-            force = extBalance !== userBonusProgram.balance;
+            force = extBalance === userBonusProgram.balance ? force : false;
             if (!force) {
                 // No sync if time not more 5 min
                 const diffInMinutes = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60); // Разница в миллисекундах
@@ -125,6 +125,7 @@ let Model = {
                     return;
                 }
             }
+            sails.log.debug(`Start full sync UserBonusProgram`);
             if (!user || !bonusProgram || !userBonusProgram) {
                 throw `sync > user, bonusprogram, userBonusProgram not found`;
             }

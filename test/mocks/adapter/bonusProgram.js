@@ -17,6 +17,7 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
         this.coveragePercentage = 0.5;
         this.decimals = 1;
         this.description = "In-memory BonusProgramAdapter (with transactions support)";
+        this.balance = {};
         if (config) {
             config.name !== undefined ? this.name = config.name : "";
             config.adapter !== undefined ? this.adapter = config.adapter : "";
@@ -43,7 +44,12 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
         return this.users.has(user.id);
     }
     async getBalance(user, _ubp) {
-        return _ubp.balance;
+        if (this.balance[user.id]) {
+            return this.balance[user.id];
+        }
+        else {
+            return 0;
+        }
     }
     async getTransactions(user, afterTime, limit = 0, skip = 0) {
         const transactions = this.transactions.get(user.id) || [];
@@ -54,13 +60,16 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
             throw new Error("User not found");
         }
         const balanceAfter = _ubp.balance + (userBonusTransaction.isNegative ? -userBonusTransaction.amount : userBonusTransaction.amount);
+        const extId = `${Date.now()}-${Math.random()}`;
         const transaction = {
             ...userBonusTransaction,
-            id: `${Date.now()}-${Math.random()}`,
+            id: extId,
             time: new Date().toISOString(),
-            balanceAfter: balanceAfter
+            balanceAfter: balanceAfter,
+            externalId: extId
         };
         this.transactions.get(user.id).push(transaction);
+        this.balance[user.id] = balanceAfter;
         return transaction;
     }
     setORMId(id) {

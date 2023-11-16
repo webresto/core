@@ -12,8 +12,11 @@ export default abstract class AbstractPromotionAdapter {
     abstract getActivePromotionsIds(): string[];
     /**
      * Base realization clearOfPromotion
+     * the order attribute will be changed during method execution
+     *
+     * This is in an abstract class because it's essentially part of the core, but you can rewrite it
      */
-    clearOfPromotion(orderId: any): Promise<void>;
+    clearOfPromotion(order: Order): Promise<Order>;
     abstract deletePromotion(id: string): void;
     abstract addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void>;
     abstract getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined;

@@ -89,7 +89,6 @@ it("getGroups", async function () {
 
       
       if (exampleGroup.childGroups && exampleGroup.childGroups.length) {
-        console.log(exampleGroup,group,12);
         expect(exampleGroup.childGroups.length).to.equal(group.childGroups.length);
         equalGroups(exampleGroup.childGroups as Group[], group.childGroups as Group[]);
       }

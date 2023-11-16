@@ -161,7 +161,6 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check({id: order.id}, customer, true);
     } catch (e) {
-      console.log(9988,e)
       expect(e).be.undefined;
     }
 

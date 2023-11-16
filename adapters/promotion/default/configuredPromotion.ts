@@ -105,6 +105,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
         return dish
     }
 
+    // TODO: rewrite for argument (modificable Order);
     public async applyPromotion(orderId): Promise<PromotionState> {
         const order = await Order.findOne({ id: orderId });
         

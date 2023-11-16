@@ -79,11 +79,10 @@ describe("Promotion adapter integration test", function () {
 
     await promotionAdapter.addPromotionHandler(promotion10Percent)
     
-    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
-    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "user");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "user");
   
     let result = await Order.findOne(order.id) 
-    // console.log(result)
     expect(result.discountTotal).to.equal(11.13);
   });
   

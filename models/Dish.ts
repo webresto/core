@@ -337,15 +337,6 @@ let Model = {
         
         let childIndex=0
         let childModifiers = []
-        
-        
-        
-        // assign group
-        console.log("GETMMM",        
-            {
-              id: modifier.modifierId,
-              rmsId: modifier.id}
-              )
 
         if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined){
             let criteria = {}
