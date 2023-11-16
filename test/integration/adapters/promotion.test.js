@@ -368,7 +368,7 @@ describe("Promotion adapter integration test", function () {
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
         // 4 dishes + 5 from action
         let result = await Order.findOne(order.id);
-        (0, chai_1.expect)(result.discountTotal).to.equal(19);
+        (0, chai_1.expect)(result.discountTotal).to.equal(19 + 2 /** 2 is flat discount*/);
     });
 });
 function sleep(ms) {

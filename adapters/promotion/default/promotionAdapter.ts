@@ -27,12 +27,18 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       }
     }
 
-    // TODO: Here need calculate discount total
+    /**
+     * The main idea is not to count discounts in the promotion handler, but only to assign them
+    */
+    
+    // --- CALCULATE DISCOUNTS START --- //
 
-    if(populatedOrder.promotionFlatDiscount > 0) {
+    // TODO: Here need calculate discount total from all promotion handlers
+    if (populatedOrder.promotionFlatDiscount > 0) {
       populatedOrder.discountTotal = new Decimal(populatedOrder.discountTotal).plus(populatedOrder.promotionFlatDiscount).toNumber();
     }
-    
+
+    // --- CALCULATE DISCOUNTS END --- //
 
     populatedOrder.promotionState = promotionStates;
     return Promise.resolve(populatedOrder)
@@ -42,25 +48,25 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   public displayDish(dish: Dish): Dish {
 
     let filteredPromotion = this.filterByConcept(dish.concept);
-    let promotionByConcept: Promotion[] | undefined =  this.filterPromotions(filteredPromotion, dish);
+    let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, dish);
 
     if (promotionByConcept[0] === undefined) return dish;
-    
+
     // TODO: this should work on first condition isJoint and isPublic should be true
     try {
       this.promotions[promotionByConcept[0].id].displayDish(dish)
     } catch (error) {
-    
-      sails.log.error("Promotion Adapter display Dish error",error);
+
+      sails.log.error("Promotion Adapter display Dish error", error);
     }
 
     return dish;
   }
 
-  public displayGroup(group: Group):  Group {
+  public displayGroup(group: Group): Group {
     // check isJoint = true, isPublic = true
-    let filteredPromotion =  this.filterByConcept(group.concept);
-    let promotionByConcept: Promotion[] | undefined =  this.filterPromotions(filteredPromotion, group);
+    let filteredPromotion = this.filterByConcept(group.concept);
+    let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, group);
 
     if (promotionByConcept[0] === undefined) return group;
     // TODO: this should work on first condition isJoint and isPublic should be true
@@ -83,7 +89,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
      * If promotion enabled by promocode notJoint it will be disable all promotions and set promocode promotion
      * If promocode promotion is joint it just will be applied by order
      */
-    
+
 
 
     let filteredPromotionsToApply: Promotion[] = Object.values(promotionsByConcept)
@@ -97,7 +103,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       })
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
-    const filteredByCondition: Promotion[] =  this.filterByCondition(filteredPromotionsToApply, target);
+    const filteredByCondition: Promotion[] = this.filterByCondition(filteredPromotionsToApply, target);
 
     // Promotion by PromotionCode not need filtred
     if (findModelInstanceByAttributes(target) === "Order") {
@@ -105,7 +111,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       if (order.promotionCode) {
         const promotionCode = order.promotionCode as PromotionCode
         if (promotionCode.promotion.length) {
-          promotionCode.promotion.forEach((p)=>{
+          promotionCode.promotion.forEach((p) => {
             p.sortOrder = -Infinity;
             promotionsByConcept.push(p)
           });
@@ -133,7 +139,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   public filterByCondition(promotionsToCheck: Promotion[], target: Group | Dish | Order): Promotion[] {
     const filteredPromotions = [];
     for (const promotion of promotionsToCheck) {
-      if(this.promotions[promotion.id]){
+      if (this.promotions[promotion.id]) {
         const conditionMet = this.promotions[promotion.id].condition(target);
 
         if (conditionMet) {
@@ -176,39 +182,39 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
    * @returns 
    */
   public recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void {
-    if(promotionToAdd.enable === false && this.promotions[promotionToAdd.id]){
+    if (promotionToAdd.enable === false && this.promotions[promotionToAdd.id]) {
       delete this.promotions[promotionToAdd.id]
-      return 
+      return
     }
 
-    try{
-      if (!this.promotions[promotionToAdd.id] ) {
+    try {
+      if (!this.promotions[promotionToAdd.id]) {
         this.promotions[promotionToAdd.id] = new ConfiguredPromotion(promotionToAdd, promotionToAdd.configDiscount);
         return
       }
       return
-    } catch(e){
+    } catch (e) {
       sails.log.error("recreateConfiguredPromotionHandler", e)
 
     }
-    
+
     return
   }
 
-  public  getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined {
+  public getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined {
     // let disc: AbstractDiscountHandler = await Discount.getById(id);
     return this.promotions[id];
   }
 
-  public deletePromotion(id:string): void{
+  public deletePromotion(id: string): void {
     // this.promotions(id)
     return
   }
 
-  public deletePromotionByBadge(badge:string): void{
+  public deletePromotionByBadge(badge: string): void {
     for (const promotion in this.promotions) {
-      if(this.promotions[promotion].badge === badge){
-        delete(this.promotions[promotion].badge);
+      if (this.promotions[promotion].badge === badge) {
+        delete (this.promotions[promotion].badge);
       }
     }
   }

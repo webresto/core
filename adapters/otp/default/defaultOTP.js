@@ -21,6 +21,7 @@ class DefaultOTP extends OneTimePasswordAdapter_1.default {
         let mainLoginField = await Settings.get("LOGIN_FIELD") ?? 'phone';
         if (NotificationManager.isChannelExist(mainLoginField === "phone" ? "sms" : mainLoginField)) {
             try {
+                console.log(">>>>>>>>>>>> to user");
                 await NotificationManager.sendMessageToUser("info", `Your code is ${otp.password}`, { phone: { code: "", number: login } });
             }
             catch (error) {

@@ -1276,7 +1276,6 @@ let Model = {
              * The developer who creates promotions must take care about order in database and order runtime object.
              */
             await promotionAdapter.processOrder(orderPopulate);
-
             delete(orderPopulate.dishes);
             order = orderPopulate;
 

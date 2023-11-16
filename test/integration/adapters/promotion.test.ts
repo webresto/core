@@ -480,7 +480,7 @@ describe("Promotion adapter integration test", function () {
     // 4 dishes + 5 from action
     
     let result = await Order.findOne(order.id) 
-    expect(result.discountTotal).to.equal(19);
+    expect(result.discountTotal).to.equal(19+2 /** 2 is flat discount*/);
   })
 
 });

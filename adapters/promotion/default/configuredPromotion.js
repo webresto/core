@@ -123,6 +123,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             // Update the order with new total
             let orderDiscount = new decimal_js_1.default(order.discountTotal).add(discountCost.toNumber()).toNumber();
             await Order.updateOne({ id: order.id }, { discountTotal: orderDiscount });
+            order.discountTotal = orderDiscount;
             // let discountCoverage: Decimal;
             // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
         }

@@ -17,7 +17,6 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     async processOrder(populatedOrder) {
         const promotionStates = [];
         populatedOrder = await this.clearOfPromotion(populatedOrder);
-        console.log(12333, populatedOrder);
         let filteredPromotion = this.filterByConcept(populatedOrder.concept);
         let promotionByConcept = this.filterPromotions(filteredPromotion, populatedOrder);
         if (promotionByConcept[0] !== undefined) {
@@ -26,10 +25,15 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                 promotionStates.push(state);
             }
         }
-        // TODO: Here need calculate discount total
+        /**
+         * The main idea is not to count discounts in the promotion handler, but only to assign them
+        */
+        // --- CALCULATE DISCOUNTS START --- //
+        // TODO: Here need calculate discount total from all promotion handlers
         if (populatedOrder.promotionFlatDiscount > 0) {
             populatedOrder.discountTotal = new decimal_js_1.default(populatedOrder.discountTotal).plus(populatedOrder.promotionFlatDiscount).toNumber();
         }
+        // --- CALCULATE DISCOUNTS END --- //
         populatedOrder.promotionState = promotionStates;
         return Promise.resolve(populatedOrder);
     }

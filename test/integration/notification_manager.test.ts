@@ -33,8 +33,10 @@ describe("NotificationManager", function () {
 
   it("OTP recive to user", async () => {
     const otpAdapter = await Adapter.getOTPAdapter();
-    await otpAdapter.get("1123");
-    var match = testChannel.lastMessage.match(/Your code is (\d+)/);
-    if(!match) throw `Not match with "Your code is ..."`
+    await Settings.set("LOGIN_FIELD", 'phone');
+    let a = await otpAdapter.get("1123");
+    if(testChannel.lastMessage !== `Your code is ${a.password}`) {
+      throw new Error(`bad message: ${testChannel.lastMessage }`) 
+    }
   });
 });

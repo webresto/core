@@ -157,7 +157,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           // Update the order with new total
           let orderDiscount: number = new Decimal(order.discountTotal).add(discountCost.toNumber()).toNumber();
           await Order.updateOne({ id: order.id }, { discountTotal: orderDiscount })
- 
+          order.discountTotal = orderDiscount;
           // let discountCoverage: Decimal;
           // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
         } else {
