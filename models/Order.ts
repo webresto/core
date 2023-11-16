@@ -1235,16 +1235,15 @@ let Model = {
       order.basketTotal = basketTotal.toNumber();
       
 
-      // Calcualte promotion cost
-      // order.promotionState = await promotionAdapter.processOrder(order);
-
+      // Calcualte promotion & Discount costs
+      // Here calculates all discounts for order
       if(!order.isPromoting){
         emitter.emit("core:count-before-promotion", order);
         let promotionAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter();
           try {
             order.isPromoting = true;
 
-            // If promocode is valid and allowed 
+            // If promocode is valid and allowed
             if (order.promotionCode !== null && order.promotionCodeString !== null && order.promotionCodeCheckValidTill !== null) {
               const currentDate = new Date();
               try {
@@ -1268,12 +1267,20 @@ let Model = {
             
             let orderPopulate: Order = {...order}
             orderPopulate.dishes = orderDishesForPopulate
-            // console.log(orderDishesForPopulate)
+
+            // set lock
             await Order.updateOne({id: order.id}, {isPromoting: true});
-            // console.log(orderPopulate)
-            // console.log("====================== GET to promotion ================================", orderPopulate)
-            order = await promotionAdapter.processOrder(orderPopulate);
-            delete(order.dishes);
+
+            /**
+             * All promotions hadlers are calculated here, the main idea is that the order is modified during execution.
+             * The developer who creates promotions must take care about order in database and order runtime object.
+             */
+            await promotionAdapter.processOrder(orderPopulate);
+
+            delete(orderPopulate.dishes);
+            order = orderPopulate;
+
+            // unset lock
             await Order.updateOne({id: order.id}, {isPromoting: false});
             order.isPromoting = false;
           } catch (error) {
@@ -1321,9 +1328,6 @@ let Model = {
         emitter.emit("core-order-after-check-delivery", order);
       }
       // END calculate delivery cost
-      if(order.promotionFlatDiscount > 0) {
-        order.discountTotal = new Decimal(order.discountTotal).plus(order.promotionFlatDiscount).toNumber();
-      }
 
       order.total = new Decimal(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
 

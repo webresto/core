@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PromotionAdapter = void 0;
+const decimal_js_1 = __importDefault(require("decimal.js"));
 const AbstractPromotionAdapter_1 = __importDefault(require("../AbstractPromotionAdapter"));
 const worktime_1 = require("@webresto/worktime");
 const configuredPromotion_1 = __importDefault(require("./configuredPromotion"));
@@ -13,20 +14,24 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         super(...arguments);
         this.promotions = {};
     }
-    async processOrder(order) {
+    async processOrder(populatedOrder) {
         const promotionStates = [];
-        // Should populated order
-        order = await this.clearOfPromotion(order);
-        let filteredPromotion = this.filterByConcept(order.concept);
-        let promotionByConcept = this.filterPromotions(filteredPromotion, order);
+        populatedOrder = await this.clearOfPromotion(populatedOrder);
+        console.log(12333, populatedOrder);
+        let filteredPromotion = this.filterByConcept(populatedOrder.concept);
+        let promotionByConcept = this.filterPromotions(filteredPromotion, populatedOrder);
         if (promotionByConcept[0] !== undefined) {
             for (const promotion of promotionByConcept) {
-                let state = await this.promotions[promotion.id].action(order);
+                let state = await this.promotions[promotion.id].action(populatedOrder);
                 promotionStates.push(state);
             }
         }
-        order.promotionState = promotionStates;
-        return Promise.resolve(order);
+        // TODO: Here need calculate discount total
+        if (populatedOrder.promotionFlatDiscount > 0) {
+            populatedOrder.discountTotal = new decimal_js_1.default(populatedOrder.discountTotal).plus(populatedOrder.promotionFlatDiscount).toNumber();
+        }
+        populatedOrder.promotionState = promotionStates;
+        return Promise.resolve(populatedOrder);
     }
     // one method to get all promotions and id's
     displayDish(dish) {

@@ -12,7 +12,7 @@ import Decimal from "decimal.js";
 
 var autoincrement: number = 0;
 
-export default function discountGenerator(config: AbstractPromotionHandler = {
+export default function discountGenerator(config: Omit<AbstractPromotionHandler, "action" | "condition"> = {
   id: "",
   isJoint: true,
   name: "",
@@ -82,8 +82,7 @@ export default function discountGenerator(config: AbstractPromotionHandler = {
   },
     action: async function (order: Order):Promise<PromotionState> {
       let configuredPromotion: ConfiguredPromotion = new ConfiguredPromotion(this, this.configDiscount)
-      return await configuredPromotion.applyPromotion(order.id)
-
+      return await configuredPromotion.applyPromotion(order)
     },
     // sortOrder: 0,
     displayGroup: function (group:Group, user?: string): Group {

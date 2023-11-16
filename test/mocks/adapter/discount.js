@@ -55,7 +55,7 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
     }
     async action(order) {
         let configuredPromotion = new configuredPromotion_1.default(this, this.configDiscount);
-        await configuredPromotion.applyPromotion(order.id);
+        await configuredPromotion.applyPromotion(order);
         return {
             message: "test",
             type: "test",

@@ -60,7 +60,7 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
 
     public async action(order: Order): Promise<PromotionState> {
         let configuredPromotion: ConfiguredPromotion = new ConfiguredPromotion(this, this.configDiscount)
-        await configuredPromotion.applyPromotion(order.id)
+        await configuredPromotion.applyPromotion(order)
         return {
             message: "test",
             type: "test",

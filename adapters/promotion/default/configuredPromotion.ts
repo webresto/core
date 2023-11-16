@@ -167,7 +167,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           message: `${this.description}`,
           type: "configured-promotion",
           state: {
-              message: "test",
+            config: this.config
           }
       } 
         

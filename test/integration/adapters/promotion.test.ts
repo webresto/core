@@ -82,8 +82,9 @@ describe("Promotion adapter integration test", function () {
     await Order.addDish({id: order.id}, dish1, 5, [], "", "user");
     await Order.addDish({id: order.id}, dish2, 4, [], "", "user");
   
+    console.log(await OrderDish.find({order: order.id}))
     let result = await Order.findOne(order.id) 
-    console.log(result, result.promotionState)
+    console.log(result, result.promotionState[0])
     expect(result.discountTotal).to.equal(11.13);
   });
   
@@ -437,7 +438,7 @@ describe("Promotion adapter integration test", function () {
   
           let configPromotion: ConfiguredPromotion = new ConfiguredPromotion(discountEx1, discountEx1.configDiscount);
           order.promotionFlatDiscount = 2;
-          return await configPromotion.applyPromotion(order.id)
+          return await configPromotion.applyPromotion(order)
       },
       isPublic: true,
       isJoint: true,

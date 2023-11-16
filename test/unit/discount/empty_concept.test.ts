@@ -46,7 +46,7 @@ describe('Discount_Empty', function () {
         return false
       },
         action: async (order: Order): Promise<PromotionState> => {
-             return await configuredPromotion.applyPromotion(order.id) 
+             return await configuredPromotion.applyPromotion(order) 
         },
         isPublic: true,
         isJoint: true,

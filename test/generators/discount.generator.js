@@ -73,7 +73,7 @@ function discountGenerator(config = {
         },
         action: async function (order) {
             let configuredPromotion = new configuredPromotion_1.default(this, this.configDiscount);
-            return await configuredPromotion.applyPromotion(order.id);
+            return await configuredPromotion.applyPromotion(order);
         },
         // sortOrder: 0,
         displayGroup: function (group, user) {

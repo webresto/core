@@ -54,7 +54,7 @@ describe('Discount', function () {
         },
         action: async (order) => {
             // console.log("ACTION ================awdawdawd")
-            return await configuredPromotion.applyPromotion(order.id);
+            return await configuredPromotion.applyPromotion(order);
         },
         isPublic: true,
         isJoint: true,
@@ -145,7 +145,7 @@ describe('Discount', function () {
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
         // let result1 = await Dish.findOne(dish1.id)
         await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order);
-        await configuredPromotion.applyPromotion(order.id);
+        await configuredPromotion.applyPromotion(order);
         let result = await Order.findOne(order.id);
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });
@@ -190,7 +190,7 @@ describe('Discount', function () {
         // let result1 = await Dish.findOne(dish1.id)
         // DiscountAdapter.applyToOrder(order)
         await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order);
-        await configuredPromotionFromMemory.applyPromotion(order.id);
+        await configuredPromotionFromMemory.applyPromotion(order);
         let result = await Order.findOne(order.id); //.populate("dishes");
         // console.log(result, "get discount order")
         (0, chai_1.expect)(result.discountTotal).to.equal(11.13);

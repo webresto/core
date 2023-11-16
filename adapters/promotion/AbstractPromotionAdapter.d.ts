@@ -6,6 +6,10 @@ export default abstract class AbstractPromotionAdapter {
     abstract promotions: {
         [key: string]: AbstractPromotionHandler;
     };
+    /**
+     * The order must be recorded in model and modified during execution
+     * @param order: Order should populated order
+     */
     abstract processOrder(order: Order): Promise<Order>;
     abstract displayDish(dish: Dish): Dish;
     abstract displayGroup(group: Group): Group;

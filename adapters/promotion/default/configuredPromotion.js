@@ -133,7 +133,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             message: `${this.description}`,
             type: "configured-promotion",
             state: {
-                message: "test",
+                config: this.config
             }
         };
     }

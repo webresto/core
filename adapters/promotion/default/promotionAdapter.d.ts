@@ -8,7 +8,7 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
     readonly promotions: {
         [key: string]: AbstractPromotionHandler;
     };
-    processOrder(order: Order): Promise<Order>;
+    processOrder(populatedOrder: Order): Promise<Order>;
     displayDish(dish: Dish): Dish;
     displayGroup(group: Group): Group;
     filterByConcept(concept: string): Promotion[];

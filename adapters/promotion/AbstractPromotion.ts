@@ -41,6 +41,7 @@ export default abstract class AbstractPromotionHandler {
 
   /**
    * The order must be modified and recorded in model within this method
+   * @param order: Order should populated order
    */
   public abstract action(order: Order): Promise<PromotionState>;
   

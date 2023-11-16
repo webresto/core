@@ -15,20 +15,27 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
   public readonly promotions: { [key: string]: AbstractPromotionHandler; } = {};
 
-  public async processOrder(order: Order): Promise<Order> {
+  public async processOrder(populatedOrder: Order): Promise<Order> {
     const promotionStates = [] as PromotionState[]
-    // Should populated order
-    order = await this.clearOfPromotion(order);
-    let filteredPromotion = this.filterByConcept(order.concept);
-    let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, order);
+    populatedOrder = await this.clearOfPromotion(populatedOrder);
+    let filteredPromotion = this.filterByConcept(populatedOrder.concept);
+    let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, populatedOrder);
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
-        let state = await this.promotions[promotion.id].action(order);
+        let state = await this.promotions[promotion.id].action(populatedOrder);
         promotionStates.push(state);
       }
     }
-    order.promotionState = promotionStates;
-    return Promise.resolve(order)
+
+    // TODO: Here need calculate discount total
+
+    if(populatedOrder.promotionFlatDiscount > 0) {
+      populatedOrder.discountTotal = new Decimal(populatedOrder.discountTotal).plus(populatedOrder.promotionFlatDiscount).toNumber();
+    }
+    
+
+    populatedOrder.promotionState = promotionStates;
+    return Promise.resolve(populatedOrder)
   }
 
   // one method to get all promotions and id's

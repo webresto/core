@@ -37,7 +37,7 @@ describe('Discount_Empty', function () {
             return false;
         },
         action: async (order) => {
-            return await configuredPromotion.applyPromotion(order.id);
+            return await configuredPromotion.applyPromotion(order);
         },
         isPublic: true,
         isJoint: true,

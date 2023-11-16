@@ -7,7 +7,12 @@ import { IconfigDiscount } from './../../interfaces/ConfigDiscount';
 export default abstract class AbstractPromotionAdapter {
         public abstract promotions: { [key: string]: AbstractPromotionHandler};
 
+        /**
+         * The order must be recorded in model and modified during execution
+         * @param order: Order should populated order
+         */
         public abstract processOrder(order: Order): Promise<Order>
+        
         public abstract displayDish(dish: Dish): Dish;
         public abstract displayGroup(group: Group): Group;
         public abstract getActivePromotionsIds(): string[];
