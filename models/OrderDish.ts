@@ -46,16 +46,19 @@ let attributes = {
   discountTotal: "number" as unknown as number,
 
   /** Type discount */
-  discountType: 'string',
+  discountType: {
+    type: "string",
+    isIn: ["percentage", "flat"],
+    allowNull: true
+  } as unknown as string,
 
-  /** Discount amount 
-   * "percentage" | "flat"
-   * 
-  */
-  discountAmount: "number",
+  discountAmount: "number" as unknown as number,
 
   /** postDiscounts */
-  discountMessage: "string",
+  discountMessage: {
+    type: "string",
+    allowNull: true
+  } as unknown as string,
 
   /** Comment to dish in order */
   comment: "string",

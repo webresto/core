@@ -30,14 +30,17 @@ let attributes = {
     /**The total amount of the discount */
     discountTotal: "number",
     /** Type discount */
-    discountType: 'string',
-    /** Discount amount
-     * "percentage" | "flat"
-     *
-    */
+    discountType: {
+        type: "string",
+        isIn: ["percentage", "flat"],
+        allowNull: true
+    },
     discountAmount: "number",
     /** postDiscounts */
-    discountMessage: "string",
+    discountMessage: {
+        type: "string",
+        allowNull: true
+    },
     /** Comment to dish in order */
     comment: "string",
     /** The label who added */

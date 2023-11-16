@@ -16,9 +16,16 @@ class AbstractPromotionAdapter {
         // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");            
         // console.log("ADDDED BY PROMOTION => delete")
         await OrderDish.destroy({ order: order.id, addedBy: "promotion" }).fetch();
-        await OrderDish.update({ order: order.id, addedBy: "user" }, { discountTotal: 0, discountType: "" }).fetch();
-        await Order.updateOne({ id: order.id }, { discountTotal: 0, promotionFlatDiscount: 0 }); // isPromoting: false
-        // for return populated order
+        await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null }).fetch();
+        await Order.updateOne({ id: order.id }, { discountTotal: 0, promotionFlatDiscount: 0 });
+        let dishes = order.dishes ? order.dishes : [];
+        dishes.forEach((orderItem) => {
+            orderItem.discountTotal = 0,
+                orderItem.discountType = null,
+                orderItem.discountAmount = 0,
+                orderItem.discountMessage = null;
+        });
+        order.dishes = dishes;
         order.discountTotal = 0;
         order.promotionFlatDiscount = 0;
         return order;
