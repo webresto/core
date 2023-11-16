@@ -12,7 +12,7 @@ import { stringsInArray } from "../../../libs/stringsInArray";
 
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
     public badge: string = 'configured-promotion';
-    constructor(promotion:AbstractPromotionHandler, config?: IconfigDiscount) {
+    constructor(promotion:Omit<AbstractPromotionHandler, "action" | "condition">, config?: IconfigDiscount) {
       super();
       if(config === undefined){
         throw new Error("ConfiguredPromotion: Config not defined")
@@ -72,7 +72,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     
     public async action(order: Order): Promise<PromotionState> {
         //  console.log(this.config + "  action")
-        let mass: PromotionState = await this.applyPromotion(order.id)
+        let mass: PromotionState = await this.applyPromotion(order)
         return mass
     }
  
@@ -106,8 +106,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     }
 
     // TODO: rewrite for argument (modificable Order);
-    public async applyPromotion(orderId): Promise<PromotionState> {
-        const order = await Order.findOne({ id: orderId });
+    public async applyPromotion(order: Order): Promise<PromotionState> {
         
         if (order.user && typeof order.user === "string") {
           // order.dishes
@@ -136,8 +135,6 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
           if(!checkDishes || !checkGroups) continue
           
-    
-            // ------------------------------------------ Decimal ------------------------------------------
             if (this.configDiscount.discountType === "flat") {
               orderDishDiscountCost = new Decimal(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
               discountCost = new Decimal(orderDishDiscountCost).add(discountCost);
@@ -159,8 +156,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           }
           // Update the order with new total
           let orderDiscount: number = new Decimal(order.discountTotal).add(discountCost.toNumber()).toNumber();
-          // console.log(orderDiscount, "===================== UPDATE ORDER ========================")
-          await Order.updateOne({ id: orderId }, { discountTotal: orderDiscount })
+          await Order.updateOne({ id: order.id }, { discountTotal: orderDiscount })
  
           // let discountCoverage: Decimal;
           // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
@@ -171,15 +167,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           message: `${this.description}`,
           type: "configured-promotion",
           state: {
-              currentModeName: "Mode name",
-              currentThresholdDescription: "description",
-              icon:  undefined,
-              message: "description",
-              thresholdDeliveryTimeInMinutes: 30,
-              thresholds: {
-                fromBasketAmount: 112,
-                description: "thresholds",
-              }
+              message: "test",
           }
       } 
         

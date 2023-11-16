@@ -37,11 +37,20 @@ export default abstract class AbstractPromotionHandler {
   public abstract badge: string;
 
   // TODO: makes it not optional
-  public abstract condition?(arg1: Group | Dish | Order): boolean
+  public abstract condition(arg1: Group | Dish | Order): boolean
 
-  public abstract action?(order: Order): Promise<PromotionState>;
+  /**
+   * The order must be modified and recorded in model within this method
+   */
+  public abstract action(order: Order): Promise<PromotionState>;
   
+  /**
+   * If isPublic === true displayGroup is required
+   */
   public abstract displayGroup?(group: Group, user?: string | User): Group;
 
+  /**
+   * If isPublic === true displayDish is required
+   */
   public abstract displayDish?(dish: Dish, user?:string | User): Dish;
 }

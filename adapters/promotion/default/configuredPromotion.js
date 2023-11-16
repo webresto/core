@@ -54,7 +54,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
     }
     async action(order) {
         //  console.log(this.config + "  action")
-        let mass = await this.applyPromotion(order.id);
+        let mass = await this.applyPromotion(order);
         return mass;
     }
     displayGroup(group, user) {
@@ -82,8 +82,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         return dish;
     }
     // TODO: rewrite for argument (modificable Order);
-    async applyPromotion(orderId) {
-        const order = await Order.findOne({ id: orderId });
+    async applyPromotion(order) {
         if (order.user && typeof order.user === "string") {
             // order.dishes
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
@@ -105,7 +104,6 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 let checkGroups = (0, stringsInArray_1.stringsInArray)(orderDish.dish.parentGroup, this.config.groups);
                 if (!checkDishes || !checkGroups)
                     continue;
-                // ------------------------------------------ Decimal ------------------------------------------
                 if (this.configDiscount.discountType === "flat") {
                     orderDishDiscountCost = new decimal_js_1.default(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
                     discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
@@ -124,8 +122,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             }
             // Update the order with new total
             let orderDiscount = new decimal_js_1.default(order.discountTotal).add(discountCost.toNumber()).toNumber();
-            // console.log(orderDiscount, "===================== UPDATE ORDER ========================")
-            await Order.updateOne({ id: orderId }, { discountTotal: orderDiscount });
+            await Order.updateOne({ id: order.id }, { discountTotal: orderDiscount });
             // let discountCoverage: Decimal;
             // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
         }
@@ -136,15 +133,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             message: `${this.description}`,
             type: "configured-promotion",
             state: {
-                currentModeName: "Mode name",
-                currentThresholdDescription: "description",
-                icon: undefined,
-                message: "description",
-                thresholdDeliveryTimeInMinutes: 30,
-                thresholds: {
-                    fromBasketAmount: 112,
-                    description: "thresholds",
-                }
+                message: "test",
             }
         };
     }

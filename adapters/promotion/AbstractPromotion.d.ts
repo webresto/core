@@ -17,8 +17,17 @@ export default abstract class AbstractPromotionHandler {
      * For delete by badge
      */
     abstract badge: string;
-    abstract condition?(arg1: Group | Dish | Order): boolean;
-    abstract action?(order: Order): Promise<PromotionState>;
+    abstract condition(arg1: Group | Dish | Order): boolean;
+    /**
+     * The order must be modified and recorded in model within this method
+     */
+    abstract action(order: Order): Promise<PromotionState>;
+    /**
+     * If isPublic === true displayGroup is required
+     */
     abstract displayGroup?(group: Group, user?: string | User): Group;
+    /**
+     * If isPublic === true displayDish is required
+     */
     abstract displayDish?(dish: Dish, user?: string | User): Dish;
 }

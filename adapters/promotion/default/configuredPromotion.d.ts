@@ -6,7 +6,7 @@ import Order, { PromotionState } from '../../../models/Order';
 import User from '../../../models/User';
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
     badge: string;
-    constructor(promotion: AbstractPromotionHandler, config?: IconfigDiscount);
+    constructor(promotion: Omit<AbstractPromotionHandler, "action" | "condition">, config?: IconfigDiscount);
     private config;
     id: string;
     isJoint: boolean;
@@ -20,5 +20,5 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     action(order: Order): Promise<PromotionState>;
     displayGroup(group: Group, user?: string | User): Group;
     displayDish(dish: Dish, user?: string | User): Dish;
-    applyPromotion(orderId: any): Promise<PromotionState>;
+    applyPromotion(order: Order): Promise<PromotionState>;
 }

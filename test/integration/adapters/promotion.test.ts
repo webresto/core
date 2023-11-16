@@ -83,6 +83,7 @@ describe("Promotion adapter integration test", function () {
     await Order.addDish({id: order.id}, dish2, 4, [], "", "user");
   
     let result = await Order.findOne(order.id) 
+    console.log(result, result.promotionState)
     expect(result.discountTotal).to.equal(11.13);
   });
   

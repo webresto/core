@@ -435,6 +435,9 @@ exports.up = function (db, callback) {
     "shortId": {
         "type": "text"
     },
+    "state": {
+        "type": "text"
+    },
     "concept": {
         "type": "text"
     },
@@ -464,6 +467,10 @@ exports.up = function (db, callback) {
     "promotionCodeString": {
         "type": "text",
         "notNull": false
+    },
+    "promotionFlatDiscount": {
+        "type": "real",
+        "defaultValue": 0
     },
     "promotionCodeCheckValidTill": {
         "type": "text",
@@ -816,7 +823,8 @@ exports.up = function (db, callback) {
     },
     "externalId": {
         "type": "text",
-        "unique": true
+        "unique": true,
+        "notNull": true
     },
     "configDiscount": {
         "type": "json"
@@ -825,6 +833,9 @@ exports.up = function (db, callback) {
         "type": "boolean"
     },
     "name": {
+        "type": "text"
+    },
+    "badge": {
         "type": "text"
     },
     "concept": {

@@ -56,6 +56,7 @@ describe("Promotion adapter integration test", function () {
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let result = await Order.findOne(order.id);
+        console.log(result, result.promotionState);
         (0, chai_1.expect)(result.discountTotal).to.equal(11.13);
     });
     it("IsJoint: false configured discount over total discount for specific dish", async () => {
