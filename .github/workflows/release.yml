@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
 
     services:
@@ -31,6 +31,7 @@ jobs:
       
       # Set up PostgreSQL client
       - run: sudo apt-get -yqq install postgresql-client
+      - run: npm i -g db-migrate@0.11.13 db-migrate-pg@1.3.2
 
       # waiting https://github.com/ds300/patch-package/issues/339
       - run: npm install 2>&1 || true && npm run test:init 2>&1 || true && npm run test:updb && npm run test:release

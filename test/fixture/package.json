@@ -16,7 +16,8 @@
     "sails-hook-orm": "^4.0.1",
     "sails-hook-stateflow": "latest",
     "sails-memory": "^0.10.7",
-    "sails-postgresql": "^4.0.0"
+    "sails-postgresql": "^4.0.0",
+    "test-app": "file:"
   },
   "scripts": {
     "debug": "node debug app.js",

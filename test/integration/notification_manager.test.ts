@@ -1,5 +1,5 @@
-import { Channel, NotificationManager } from "@webresto/core/libs/NotificationManager"
-import User from "@webresto/core/models/User";
+import User  from './../../models/User';
+import { Channel, NotificationManager } from "./../../libs/NotificationManager"
 
 class TestChannel extends Channel {
   public forceSend: boolean = false;
