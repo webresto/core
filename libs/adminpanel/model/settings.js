@@ -36,6 +36,16 @@ exports.default = {
         title: 'Userbonus transactions',
         icon: 'exchange-alt'
     },
+    promotions: {
+        model: 'promotion',
+        title: 'Promotions',
+        icon: 'gift'
+    },
+    promotioncode: {
+        model: 'promotioncode',
+        title: 'Promotion codes',
+        icon: 'qrcode'
+    },
     settings: {
         title: "Settings",
         model: "settings",

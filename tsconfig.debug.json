@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "lib": [
+      "dom"
+    ],
+    "types": [
+      "bluebird-global",
+      "mocha",
+      "node",
+      "chai"
+    ],
+    "sourceMap": true,
+    "declaration": true,
+    "removeComments": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    // TODO: ts with "strict": true,
+    // "alwaysStrict": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

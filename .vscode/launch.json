@@ -5,6 +5,9 @@
       "type": "node",
       "request": "launch",
       "name": "Debug Test",
+      "stopOnEntry": true,
+      "runtimeExecutable": null,
+      "preLaunchTask": "tsc: build - tsconfig.debug.json",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "args": [
         "-r",
@@ -14,6 +17,7 @@
         "--exit",
         "--grep=displayDish"
       ],
+      "sourceMaps": true,
       "internalConsoleOptions": "openOnSessionStart",
       "skipFiles": [
         "<node_internals>/**"
