@@ -288,6 +288,7 @@ describe('Discount', function () {
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "testa2");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "tes");
         let display = await Dish.display({ id: dish1.id });
+        console.log(display, "========================== display =======================");
         (0, chai_1.expect)(display[0].id).to.equal(dish1.id);
         (0, chai_1.expect)(display[0].discountAmount).to.equal(1.33);
         (0, chai_1.expect)(display[0].discountType).to.equal("flat");
@@ -321,7 +322,7 @@ describe('Discount', function () {
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10, concept: "clear", parentGroup: groupsId[0] }));
         discountEx.configDiscount.dishes.push(dish1.id);
         await promotionAdapter.addPromotionHandler(discountEx);
-        console.log(promotionAdapter.promotions);
+        // console.log(promotionAdapter.promotions)
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
         // await Adapter.getPromotionAdapter().applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
         // before clear

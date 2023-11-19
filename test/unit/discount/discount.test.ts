@@ -392,6 +392,8 @@ describe('Discount', function () {
         
         let display = await Dish.display({ id: dish1.id })
 
+        console.log(display, "========================== display =======================")
+
         expect(display[0].id).to.equal(dish1.id);
         expect(display[0].discountAmount).to.equal(1.33);
         expect(display[0].discountType).to.equal("flat");
@@ -446,7 +448,7 @@ describe('Discount', function () {
         discountEx.configDiscount.dishes.push(dish1.id)
 
         await promotionAdapter.addPromotionHandler(discountEx)
-        console.log(promotionAdapter.promotions)
+        // console.log(promotionAdapter.promotions)
         await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
 
         // await Adapter.getPromotionAdapter().applyPromotion(order.id, discountEx.configDiscount, discountEx.id)
