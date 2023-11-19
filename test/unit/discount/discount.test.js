@@ -71,8 +71,7 @@ describe('Discount', function () {
                 // 
                 dish.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
                 dish.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-                dish.oldPrice = dish.price;
-                dish.price = this.configDiscount.discountType === "flat"
+                dish.salePrice = this.configDiscount.discountType === "flat"
                     ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
                     : new decimal_js_1.default(dish.price)
                         .mul(+this.configDiscount.discountAmount / 100)

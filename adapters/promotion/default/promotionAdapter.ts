@@ -62,8 +62,6 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
       sails.log.error("Promotion Adapter display Dish error", error);
     }
-
-    // return dish;
   }
 
   public displayGroup(group: Group): Group {

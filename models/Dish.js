@@ -316,6 +316,7 @@ let Model = {
     },
     async display(criteria) {
         const dishes = await Dish.find(criteria);
+        // Set virtual default
         dishes.forEach((dish) => {
             dish.discountAmount = 0;
             dish.discountType = null;

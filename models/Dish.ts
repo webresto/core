@@ -401,6 +401,7 @@ let Model = {
   async display(criteria: CriteriaQuery<Dish>): Promise<Dish[]> {
     const dishes = await Dish.find(criteria);
     
+    // Set virtual default
     dishes.forEach((dish)=>{
       dish.discountAmount = 0;
       dish.discountType = null;

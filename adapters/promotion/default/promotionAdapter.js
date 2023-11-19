@@ -52,7 +52,6 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         catch (error) {
             sails.log.error("Promotion Adapter display Dish error", error);
         }
-        // return dish;
     }
     displayGroup(group) {
         // check isJoint = true, isPublic = true
