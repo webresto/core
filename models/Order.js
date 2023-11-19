@@ -1041,8 +1041,9 @@ let Model = {
                      * All promotions hadlers are calculated here, the main idea is that the order is modified during execution.
                      * The developer who creates promotions must take care about order in database and order runtime object.
                      */
-                    await promotionAdapter.processOrder(orderPopulate);
+                    let orederPROM = await promotionAdapter.processOrder(orderPopulate);
                     delete (orderPopulate.dishes);
+                    orderPopulate.discountTotal = orederPROM.discountTotal;
                     order = orderPopulate;
                     // unset lock
                     await Order.updateOne({ id: order.id }, { isPromoting: false });

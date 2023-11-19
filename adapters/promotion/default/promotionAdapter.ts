@@ -41,26 +41,29 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     // --- CALCULATE DISCOUNTS END --- //
 
     populatedOrder.promotionState = promotionStates;
-    return Promise.resolve(populatedOrder)
+    
+    // populatedOrder = await Order.findOne(populatedOrder.id) 
+    // console.log(populatedOrder)
+    return populatedOrder
   }
 
   // one method to get all promotions and id's
   public displayDish(dish: Dish): Dish {
+    try {
+      let filteredPromotion = this.filterByConcept(dish.concept);
+      let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, dish);
 
-    let filteredPromotion = this.filterByConcept(dish.concept);
-    let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, dish);
-
-    if (promotionByConcept[0] === undefined) return dish;
+      if (promotionByConcept[0] === undefined) return dish;
 
     // TODO: this should work on first condition isJoint and isPublic should be true
-    try {
-      this.promotions[promotionByConcept[0].id].displayDish(dish)
+
+      return this.promotions[promotionByConcept[0].id].displayDish(dish)
     } catch (error) {
 
       sails.log.error("Promotion Adapter display Dish error", error);
     }
 
-    return dish;
+    // return dish;
   }
 
   public displayGroup(group: Group): Group {
