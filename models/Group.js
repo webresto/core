@@ -233,6 +233,11 @@ let Model = {
     async display(criteria) {
         const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
         const groups = await Group.find(criteria);
+        // Set virtual default
+        groups.forEach((group) => {
+            group.discountAmount = 0;
+            group.discountType = null;
+        });
         let updatedDishes = [];
         for (let i = 0; i < groups.length; i++) {
             try {

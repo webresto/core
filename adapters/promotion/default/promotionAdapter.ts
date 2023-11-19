@@ -43,7 +43,6 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     populatedOrder.promotionState = promotionStates;
     
     // populatedOrder = await Order.findOne(populatedOrder.id) 
-    // console.log(populatedOrder)
     return populatedOrder
   }
 
@@ -91,8 +90,6 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
      * If promocode promotion is joint it just will be applied by order
      */
 
-
-
     let filteredPromotionsToApply: Promotion[] = Object.values(promotionsByConcept)
       .filter((record) => {
         if (!record.worktime) return true;
@@ -105,7 +102,6 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const filteredByCondition: Promotion[] = this.filterByCondition(filteredPromotionsToApply, target);
-
     // Promotion by PromotionCode not need filtred
     if (findModelInstanceByAttributes(target) === "Order") {
       const order = target as Order;
@@ -119,21 +115,19 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
         }
       }
     }
-
     // return first isJoint = false
     let filteredByJointPromotions: Promotion[] = [
       filteredByCondition.find((promotion) => {
         return promotion.isJoint === false;
       }),
     ];
-
+    
     // return all isJoint = true
     if (!filteredByJointPromotions[0]) {
       filteredByJointPromotions = filteredByCondition.filter((promotion) => {
         return promotion.isJoint === true;
       });
     }
-
     return filteredByJointPromotions;
   }
 

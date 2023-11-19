@@ -36,7 +36,6 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         // --- CALCULATE DISCOUNTS END --- //
         populatedOrder.promotionState = promotionStates;
         // populatedOrder = await Order.findOne(populatedOrder.id) 
-        // console.log(populatedOrder)
         return populatedOrder;
     }
     // one method to get all promotions and id's

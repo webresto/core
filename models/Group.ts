@@ -293,6 +293,12 @@ let Model = {
   async display(criteria: CriteriaQuery<Group>): Promise<Group[]> {
     const promotionAdapter = Adapter.getPromotionAdapter()
     const groups = await Group.find(criteria);
+    // Set virtual default
+    groups.forEach((group)=>{
+      group.discountAmount = 0;
+      group.discountType = null;
+    });
+
     let updatedDishes = [] as Group[]
     for(let i:number=0; i < groups.length; i++) {
       try {

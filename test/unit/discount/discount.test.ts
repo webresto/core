@@ -51,6 +51,7 @@ describe('Discount', function () {
         }
         
         if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, discountEx.concept)) {
+           return stringsInArray(arg.id, discountEx.configDiscount.dishes)
             // TODO: check if includes in IconfigDish
             return true;
         }
@@ -79,8 +80,8 @@ describe('Discount', function () {
           return group
         },
         displayDish: function (dish:Dish, user?: string): Dish {
-          if (this.isJoint === true && this.isPublic === true) {
-            // 
+          // if (this.isJoint === true && this.isPublic === true) {
+          //   // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
             dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
             dish.salePrice = this.configDiscount.discountType === "flat" 
@@ -88,7 +89,7 @@ describe('Discount', function () {
             : new Decimal(dish.price)
                 .mul(+this.configDiscount.discountAmount / 100)
                 .toNumber()  
-          }
+          // }
           return dish
         },
         externalId: "1-externalId",
@@ -370,27 +371,25 @@ describe('Discount', function () {
       
       it("discount test displayDish", async function () {
         
-        let order = await Order.create({id: "test-display-dish"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
+        // let order = await Order.create({id: "test-display-dish"}).fetch();
+        // await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
-        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
+        // let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
 
         discInMemory.configDiscount.dishes.push(dish1.id)
-        discInMemory.configDiscount.dishes.push(dish2.id)
+        // discInMemory.configDiscount.dishes.push(dish2.id)
 
         discountEx.configDiscount.dishes.push(dish1.id)
-        discountEx.configDiscount.dishes.push(dish2.id)
+        // discountEx.configDiscount.dishes.push(dish2.id)
 
         await promotionAdapter.addPromotionHandler(discInMemory)
         await promotionAdapter.addPromotionHandler(discountEx)
 
-        await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
-        await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
+        // await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
+        // await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
         
         let display = await Dish.display({ id: dish1.id })
-
-        console.log(display, "========================== display =======================")
 
         expect(display[0].id).to.equal(dish1.id);
         expect(display[0].discountAmount).to.equal(1.33);

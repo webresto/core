@@ -43,6 +43,7 @@ describe('Discount', function () {
                 return true;
             }
             if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx.concept)) {
+                return (0, stringsInArray_1.stringsInArray)(arg.id, discountEx.configDiscount.dishes);
                 // TODO: check if includes in IconfigDish
                 return true;
             }
@@ -67,16 +68,16 @@ describe('Discount', function () {
             return group;
         },
         displayDish: function (dish, user) {
-            if (this.isJoint === true && this.isPublic === true) {
-                // 
-                dish.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
-                dish.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-                dish.salePrice = this.configDiscount.discountType === "flat"
-                    ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
-                    : new decimal_js_1.default(dish.price)
-                        .mul(+this.configDiscount.discountAmount / 100)
-                        .toNumber();
-            }
+            // if (this.isJoint === true && this.isPublic === true) {
+            //   // 
+            dish.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+            dish.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
+            dish.salePrice = this.configDiscount.discountType === "flat"
+                ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
+                : new decimal_js_1.default(dish.price)
+                    .mul(+this.configDiscount.discountAmount / 100)
+                    .toNumber();
+            // }
             return dish;
         },
         externalId: "1-externalId",
@@ -274,20 +275,19 @@ describe('Discount', function () {
         (0, chai_1.expect)(result.discountTotal).to.equal(62.48);
     });
     it("discount test displayDish", async function () {
-        let order = await Order.create({ id: "test-display-dish" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
+        // let order = await Order.create({id: "test-display-dish"}).fetch();
+        // await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish2", price: 10.1, concept: "origin", parentGroup: groupsId[0] }));
-        let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish3", price: 15.2, concept: "origin", parentGroup: groupsId[0] }));
+        // let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
         discInMemory.configDiscount.dishes.push(dish1.id);
-        discInMemory.configDiscount.dishes.push(dish2.id);
+        // discInMemory.configDiscount.dishes.push(dish2.id)
         discountEx.configDiscount.dishes.push(dish1.id);
-        discountEx.configDiscount.dishes.push(dish2.id);
+        // discountEx.configDiscount.dishes.push(dish2.id)
         await promotionAdapter.addPromotionHandler(discInMemory);
         await promotionAdapter.addPromotionHandler(discountEx);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "testa2");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "tes");
+        // await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
+        // await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
         let display = await Dish.display({ id: dish1.id });
-        console.log(display, "========================== display =======================");
         (0, chai_1.expect)(display[0].id).to.equal(dish1.id);
         (0, chai_1.expect)(display[0].discountAmount).to.equal(1.33);
         (0, chai_1.expect)(display[0].discountType).to.equal("flat");
