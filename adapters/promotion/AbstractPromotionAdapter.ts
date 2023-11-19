@@ -29,7 +29,6 @@ export default abstract class AbstractPromotionAdapter {
         if (order.state === "PAYMENT") throw "order with orderId " + order.id + "in state PAYMENT";
 
         // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");            
-        // console.log("ADDDED BY PROMOTION => delete")
 
         await OrderDish.destroy({ order: order.id, addedBy: "promotion" }).fetch();
         await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null }).fetch();

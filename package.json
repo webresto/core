@@ -81,7 +81,7 @@
     "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=discount",
     "test:win": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
     "test:install": "cd ./test/fixture && npm i --no-package-lock --prefix ./",
-    "test:updb": "cd ./test/fixture && npx db-migrate up",
+    "test:updb": "cd ./test/fixture && db-migrate up",
     "test:release": "DATASTORE=postgres PG_HOST=127.0.0.1 mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
     "build": "tsc",
     "format": "npx prettier --write \"**/*.ts\""
