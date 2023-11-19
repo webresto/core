@@ -1,2 +1,2 @@
-/// <reference types="@webresto/core" />
+/// <reference path="../../../index.d.ts" />
 export {};

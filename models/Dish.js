@@ -177,7 +177,7 @@ let attributes = {
     /*
     helper.addCustomField("Dish", "discountAmount: Float");
     helper.addCustomField("Dish", "discountType: String");
-    helper.addCustomField("Dish", "oldPrice: Float");
+    helper.addCustomField("Dish", "salePrice: Float");
     */
     customData: "json",
 };
@@ -316,6 +316,12 @@ let Model = {
     },
     async display(criteria) {
         const dishes = await Dish.find(criteria);
+        dishes.forEach((dish) => {
+            dish.discountAmount = 0;
+            dish.discountType = null;
+            dish.oldPrice = null;
+            dish.salePrice = null;
+        });
         const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
         let updatedDishes = [];
         for (let i = 0; i < dishes.length; i++) {

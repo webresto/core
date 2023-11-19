@@ -93,7 +93,11 @@ declare let attributes: {
 interface IVirtualFields {
     discountAmount?: number;
     discountType?: "flat" | "percentage";
+    /**
+     * @deprecated change to oldPrice
+     */
     oldPrice?: number;
+    salePrice?: number;
 }
 type attributes = typeof attributes;
 interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {

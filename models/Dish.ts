@@ -225,7 +225,7 @@ let attributes = {
   /* 
   helper.addCustomField("Dish", "discountAmount: Float");
   helper.addCustomField("Dish", "discountType: String");
-  helper.addCustomField("Dish", "oldPrice: Float");
+  helper.addCustomField("Dish", "salePrice: Float");
   */
 
 
@@ -236,7 +236,11 @@ let attributes = {
 interface IVirtualFields {
   discountAmount?: number;
   discountType?: "flat" | "percentage"
+  /**
+   * @deprecated change to oldPrice
+   */
   oldPrice?: number;
+  salePrice?: number;
 }
 
 type attributes = typeof attributes;
@@ -396,6 +400,14 @@ let Model = {
 
   async display(criteria: CriteriaQuery<Dish>): Promise<Dish[]> {
     const dishes = await Dish.find(criteria);
+    
+    dishes.forEach((dish)=>{
+      dish.discountAmount = 0;
+      dish.discountType = null;
+      dish.oldPrice = null;
+      dish.salePrice = null;
+    });
+
     const promotionAdapter = Adapter.getPromotionAdapter()
     let updatedDishes = [] as Dish[]
 
