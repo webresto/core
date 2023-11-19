@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - test-with-postgres
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14.5
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+      
+      # Set up PostgreSQL client
+      - run: sudo apt-get -yqq install postgresql-client
+
+      # waiting https://github.com/ds300/patch-package/issues/339
+      - run: npm install 2>&1 || true && npm run test:init 2>&1 || true && npm run test:updb && npm run test:release
