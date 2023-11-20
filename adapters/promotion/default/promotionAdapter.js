@@ -97,7 +97,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                 if (promotionCode.promotion.length) {
                     promotionCode.promotion.forEach((p) => {
                         p.sortOrder = -Infinity;
-                        promotionsByConcept.push(p);
+                        filteredByCondition.push(p);
                     });
                 }
             }
@@ -178,13 +178,21 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         return this.promotions[id];
     }
     deletePromotion(id) {
-        // this.promotions(id)
+        delete this.promotions[id];
         return;
+    }
+    /**
+     * delete all promotions
+     */
+    deleteAllPromotions() {
+        for (const promotion in this.promotions) {
+            delete this.promotions[promotion];
+        }
     }
     deletePromotionByBadge(badge) {
         for (const promotion in this.promotions) {
             if (this.promotions[promotion].badge === badge) {
-                delete (this.promotions[promotion].badge);
+                delete this.promotions[promotion];
             }
         }
     }

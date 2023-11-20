@@ -15,7 +15,7 @@ declare let attributes: {
     stopDate: string;
     workTime: WorkTime;
     code: string;
-    promotion: Promotion[];
+    promotion: string | Promotion[];
     generateConfig: any;
     customData: string | {
         [key: string]: string | number | boolean;

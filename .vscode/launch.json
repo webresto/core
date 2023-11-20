@@ -15,7 +15,8 @@
         "${workspaceFolder}/test/bootstrap.ts",
         "'${workspaceFolder}/test/{,!(fixture)/**}/*.test.ts'",
         "--exit",
-        "--grep=displayDish"
+        "--timeout=600000",
+        "--grep=PromotionCodes"
       ],
       "sourceMaps": true,
       "internalConsoleOptions": "openOnSessionStart",

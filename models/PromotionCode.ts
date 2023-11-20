@@ -28,7 +28,9 @@ let attributes = {
     external - connect to external system (bad way becose need make request)
      * */ 
 
-    isIn: ['static', 'generated', 'serial', 'external']
+    isIn: ['static', 
+    // 'generated', 'serial', 'external'
+    ]
   } as unknown as string,
 
   /** base for PromotionCode */
@@ -49,7 +51,7 @@ let attributes = {
   promotion: {
     collection: "promotion",
     via: "promotionCode",
-  } as unknown as Promotion[],
+  } as unknown as Promotion[] | string,
 
   generateConfig: {
     type: "json",
@@ -77,7 +79,8 @@ let Model = {
    * Check promocode is work now
    */
   async getValidPromotionCode(promotionCodeString: string): Promise<PromotionCode> {
-    return null
+    return await PromotionCode.findOne({code: promotionCodeString})
+    //return null
   }
 };
 

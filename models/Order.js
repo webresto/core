@@ -1043,6 +1043,7 @@ let Model = {
                      */
                     let orederPROM = await promotionAdapter.processOrder(orderPopulate);
                     delete (orderPopulate.dishes);
+                    orderPopulate.promotionCode = orderPopulate.promotionCode.id;
                     orderPopulate.discountTotal = orederPROM.discountTotal;
                     order = orderPopulate;
                     // unset lock
