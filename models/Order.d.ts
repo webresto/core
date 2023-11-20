@@ -243,7 +243,7 @@ declare let Model: {
     }>;
     countCart(criteria: CriteriaQuery<Order>): Promise<Order>;
     doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
-    applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string): Promise<void>;
+    applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string): Promise<Order>;
 };
 declare global {
     const Order: typeof Model & ORMModel<Order, null> & StateFlowModel;

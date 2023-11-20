@@ -1043,7 +1043,9 @@ let Model = {
                      */
                     let orederPROM = await promotionAdapter.processOrder(orderPopulate);
                     delete (orderPopulate.dishes);
-                    orderPopulate.promotionCode = orderPopulate.promotionCode.id;
+                    if (orderPopulate.promotionCode) {
+                        orderPopulate.promotionCode = orderPopulate.promotionCode.id;
+                    }
                     orderPopulate.discountTotal = orederPROM.discountTotal;
                     order = orderPopulate;
                     // unset lock
@@ -1136,15 +1138,25 @@ let Model = {
     },
     async applyPromotionCode(criteria, promotionCodeString) {
         let order = await Order.findOne(criteria);
-        const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
-        const isValidTill = "2099-01-01T00:00:00.000Z"; // TODO: recursive check Codes and Promotions
-        if (validPromotionCode) {
+        if (!promotionCodeString || promotionCodeString === null) {
             await Order.update({ id: order.id }, {
-                promotionCode: validPromotionCode.id,
-                promotionCodeCheckValidTill: isValidTill,
-                promotionCodeString: promotionCodeString
+                promotionCode: null,
+                promotionCodeCheckValidTill: null,
+                promotionCodeString: null
             }).fetch();
         }
+        else {
+            const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
+            const isValidTill = "2099-01-01T00:00:00.000Z"; // TODO: recursive check Codes and Promotions
+            if (validPromotionCode) {
+                await Order.update({ id: order.id }, {
+                    promotionCode: validPromotionCode.id,
+                    promotionCodeCheckValidTill: isValidTill,
+                    promotionCodeString: promotionCodeString
+                }).fetch();
+            }
+        }
+        return await Order.countCart(criteria);
     }
 };
 // Waterline model export

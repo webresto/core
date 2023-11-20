@@ -1277,7 +1277,11 @@ let Model = {
              */
             let orederPROM =await promotionAdapter.processOrder(orderPopulate);
             delete(orderPopulate.dishes);
-            orderPopulate.promotionCode = (orderPopulate.promotionCode as PromotionCode).id 
+
+            if(orderPopulate.promotionCode){
+              orderPopulate.promotionCode = (orderPopulate.promotionCode as PromotionCode).id 
+            }
+            
             orderPopulate.discountTotal = orederPROM.discountTotal
             order = orderPopulate;
 
@@ -1383,20 +1387,33 @@ let Model = {
     }
   },
 
-  async applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string): Promise<void>{
+  async applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string | null): Promise<Order> {
     let order = await Order.findOne(criteria);
-    const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
-    const isValidTill = "2099-01-01T00:00:00.000Z" // TODO: recursive check Codes and Promotions
-    if(validPromotionCode) {
+    
+    if(!promotionCodeString || promotionCodeString === null) {
       await Order.update(
         { id: order.id },
         {
-          promotionCode: validPromotionCode.id,
-          promotionCodeCheckValidTill: isValidTill,
-          promotionCodeString: promotionCodeString
+          promotionCode: null,
+          promotionCodeCheckValidTill: null,
+          promotionCodeString: null
         }
-      ).fetch(); 
+      ).fetch();
+    } else {
+      const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
+      const isValidTill = "2099-01-01T00:00:00.000Z" // TODO: recursive check Codes and Promotions
+      if(validPromotionCode) {
+        await Order.update(
+          { id: order.id },
+          {
+            promotionCode: validPromotionCode.id,
+            promotionCodeCheckValidTill: isValidTill,
+            promotionCodeString: promotionCodeString
+          }
+        ).fetch(); 
+      }
     }
+    return await Order.countCart(criteria);
   }
 };
 

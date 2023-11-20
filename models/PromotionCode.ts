@@ -91,5 +91,8 @@ module.exports = {
 };
 
 declare global {
+  /**
+   * Promotion by code
+   */
   const PromotionCode: typeof Model & ORMModel<PromotionCode, null>;
 }

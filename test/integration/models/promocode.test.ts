@@ -8,7 +8,7 @@ describe("PromotionCodes", function () {
 
   let dishes;
   let promoAdapter = Adapter.getPromotionAdapter()
-
+  let order;
   before(async ()=>{
     dishes = await Dish.find({});
 
@@ -48,7 +48,7 @@ describe("PromotionCodes", function () {
     });
 
 
-    let order = await Order.create({id: "promocode-test"}).fetch();
+    order = await Order.create({id: "promocode-test"}).fetch();
     await Order.applyPromotionCode({id: order.id}, "TEST100");
     await Order.addDish({id: order.id}, dishes[0], 3, [], "", "user");
     let result = await Order.findOne(order.id) 
@@ -56,7 +56,10 @@ describe("PromotionCodes", function () {
     expect(result.total).to.equal(200.3);
   });
 
-  it("Assign configured promotion", async function () {
-
-  });
+  it("Clear promotional code", async function () {
+    await Order.applyPromotionCode({id: order.id}, null);
+    let result = await Order.findOne(order.id) 
+    expect(result.discountTotal).to.equal(0);
+    expect(result.total).to.equal(300.3);
+  }); 
 });
