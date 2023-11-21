@@ -16,10 +16,10 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         if (config === undefined) {
             throw new Error("ConfiguredPromotion: Config not defined");
         }
-        if ((config.dishes.length + config.groups.length) === 0
-            || !config.discountType || !config.discountAmount) {
-            throw new Error("ConfiguredPromotion: bad config");
-        }
+        // if ((config.dishes.length + config.groups.length) === 0
+        //   || !config.discountType || !config.discountAmount) {
+        //   throw new Error("ConfiguredPromotion: bad config")
+        // }
         this.config = config;
         this.id = promotion.id,
             this.isJoint = promotion.isJoint,
@@ -123,6 +123,9 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         let orderDiscount = new decimal_js_1.default(order.discountTotal).add(discountCost.toNumber()).toNumber();
         await Order.updateOne({ id: order.id }, { discountTotal: orderDiscount });
         order.discountTotal = orderDiscount;
+        if (this.config.promotionFlatDiscount) {
+            order.promotionFlatDiscount = this.config.promotionFlatDiscount;
+        }
         // let discountCoverage: Decimal;
         // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
         return {

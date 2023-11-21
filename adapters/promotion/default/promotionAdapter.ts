@@ -30,7 +30,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     /**
      * The main idea is not to count discounts in the promotion handler, but only to assign them
     */
-    
+
     // --- CALCULATE DISCOUNTS START --- //
 
     // TODO: Here need calculate discount total from all promotion handlers
@@ -41,7 +41,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     // --- CALCULATE DISCOUNTS END --- //
 
     populatedOrder.promotionState = promotionStates;
-    
+
     // populatedOrder = await Order.findOne(populatedOrder.id) 
     return populatedOrder
   }
@@ -54,7 +54,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
       if (promotionByConcept[0] === undefined) return dish;
 
-    // TODO: this should work on first condition isJoint and isPublic should be true
+      // TODO: this should work on first condition isJoint and isPublic should be true
 
       return this.promotions[promotionByConcept[0].id].displayDish(dish)
     } catch (error) {
@@ -108,9 +108,9 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       if (order.promotionCode) {
         const promotionCode = order.promotionCode as PromotionCode
         if (promotionCode.promotion.length) {
-          promotionCode.promotion.forEach((p) => {
+          (promotionCode.promotion as Promotion[]).forEach((p) => {
             p.sortOrder = -Infinity;
-            promotionsByConcept.push(p)
+            filteredByCondition.push(p)
           });
         }
       }
@@ -121,7 +121,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
         return promotion.isJoint === false;
       }),
     ];
-    
+
     // return all isJoint = true
     if (!filteredByJointPromotions[0]) {
       filteredByJointPromotions = filteredByCondition.filter((promotion) => {
@@ -202,14 +202,23 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   }
 
   public deletePromotion(id: string): void {
-    // this.promotions(id)
+    delete this.promotions[id];
     return
+  }
+
+  /**
+   * delete all promotions
+   */
+  public deleteAllPromotions(): void {
+    for (const promotion in this.promotions) {
+      delete this.promotions[promotion];
+    }
   }
 
   public deletePromotionByBadge(badge: string): void {
     for (const promotion in this.promotions) {
       if (this.promotions[promotion].badge === badge) {
-        delete (this.promotions[promotion].badge);
+        delete this.promotions[promotion];
       }
     }
   }

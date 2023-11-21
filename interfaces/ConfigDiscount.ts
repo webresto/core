@@ -1,5 +1,9 @@
 export interface IconfigDiscount {
     discountType: "flat" | "percentage",
+    /**
+     * The discount will be applied to the cart, if you specify `dishes` and `groups` then the discount will be applied only if at least one dish is present in the cart 
+     */
+    promotionFlatDiscount?: number,
     discountAmount: number,
     dishes: string[],
     groups: string[],
@@ -10,5 +14,5 @@ export interface IconfigDiscount {
      * excludeModifiers: false  $1.20
      * by default modifiers will be calculated with discount
      */
-    excludeModifiers: boolean; 
+    excludeModifiers?: boolean; 
   }

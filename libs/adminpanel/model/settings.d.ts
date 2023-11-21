@@ -34,6 +34,16 @@ declare const _default: {
         title: string;
         icon: string;
     };
+    promotions: {
+        model: string;
+        title: string;
+        icon: string;
+    };
+    promotioncode: {
+        model: string;
+        title: string;
+        icon: string;
+    };
     settings: {
         title: string;
         model: string;

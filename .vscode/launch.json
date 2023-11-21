@@ -5,6 +5,9 @@
       "type": "node",
       "request": "launch",
       "name": "Debug Test",
+      "stopOnEntry": true,
+      "runtimeExecutable": null,
+      "preLaunchTask": "tsc: build - tsconfig.debug.json",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "args": [
         "-r",
@@ -12,8 +15,10 @@
         "${workspaceFolder}/test/bootstrap.ts",
         "'${workspaceFolder}/test/{,!(fixture)/**}/*.test.ts'",
         "--exit",
-        "--grep=displayDish"
+        "--timeout=600000",
+        "--grep=PromotionCodes"
       ],
+      "sourceMaps": true,
       "internalConsoleOptions": "openOnSessionStart",
       "skipFiles": [
         "<node_internals>/**"

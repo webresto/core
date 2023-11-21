@@ -94,7 +94,11 @@ let attributes = {
 
   productCategoryPromotions: "json" as unknown as any,
 
-  /** User can disable this discount*/
+  /** 
+   * User can disable this discount
+   * By default is disabled
+   * promocode ignore this field, and apply promotion by code 
+  */
   enable: {
     type: "boolean"
   } as unknown as boolean,
@@ -172,7 +176,9 @@ let Model = {
 
   async beforeCreate(init: Promotion, cb:  (err?: string) => void) {
     const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT")
-    init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) : true;
+    
+    // On create, all promocodes are disabled.
+    init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) : false;
     cb();
   },
 

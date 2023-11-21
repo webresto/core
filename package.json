@@ -53,7 +53,7 @@
     "intermock": "^0.2.2",
     "mocha": "^8.1.1",
     "ts-node": "=8.10.2",
-    "typescript": "^3.9.7"
+    "typescript": "^5.0.0"
   },
   "deprecated": false,
   "description": "webresto core",
@@ -78,7 +78,7 @@
   "scripts": {
     "_preinstall_": "[ -d \".git\" ] && git config core.hooksPath .github/git_hooks",
     "test:init": "cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
-    "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=displayDish",
+    "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
     "test:win": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
     "test:install": "cd ./test/fixture && npm i --no-package-lock --prefix ./",
     "test:updb": "cd ./test/fixture && db-migrate up",

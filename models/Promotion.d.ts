@@ -20,7 +20,11 @@ declare let attributes: {
     /** first use isJoint = false discounts then true */
     isJoint: boolean;
     productCategoryPromotions: any;
-    /** User can disable this discount*/
+    /**
+     * User can disable this discount
+     * By default is disabled
+     * promocode ignore this field, and apply promotion by code
+    */
     enable: boolean;
     promotionCode: PromotionCode[];
     /** No active class in Discount Adapter */
