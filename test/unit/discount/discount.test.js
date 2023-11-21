@@ -35,7 +35,7 @@ describe('Discount', function () {
         },
         name: "1-name",
         description: "string",
-        concept: ["origin", "clear", "Happy Birthday", "3dif"],
+        concept: ["origin", "clear", "Happy Birthday", "3dif", "Display Dish"],
         condition: (arg) => {
             if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx.concept)) {
                 // Order.populate()
@@ -278,7 +278,7 @@ describe('Discount', function () {
     it("discount test displayDish", async function () {
         // let order = await Order.create({id: "test-display-dish"}).fetch();
         // await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
-        let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish2", price: 10.1, concept: "Happy Birthday", parentGroup: groupsId[0] }));
+        let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish2", price: 10.1, concept: "Display Dish", parentGroup: groupsId[0] }));
         // let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
         discInMemory.configDiscount.dishes.push(dish1.id);
         // discInMemory.configDiscount.dishes.push(dish2.id)
