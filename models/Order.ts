@@ -84,6 +84,9 @@ let attributes = {
     type: "json"
   } as unknown as PromotionState[],
 
+  /**
+   * hidden in api
+   */
   promotionCode: {
     model: "promotionCode",
   } as unknown as PromotionCode | string,
