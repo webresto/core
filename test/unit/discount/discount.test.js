@@ -279,16 +279,14 @@ describe('Discount', function () {
         // let order = await Order.create({id: "test-display-dish"}).fetch();
         // await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish2", price: 10.1, concept: "Display Dish", parentGroup: groupsId[0] }));
-        // let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
+        let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish3", price: 15.2, concept: "Display Dish", parentGroup: groupsId[0] }));
         discInMemory.configDiscount.dishes.push(dish1.id);
-        // discInMemory.configDiscount.dishes.push(dish2.id)
+        discInMemory.configDiscount.dishes.push(dish2.id);
         discountEx.configDiscount.dishes.push(dish1.id);
-        // discountEx.configDiscount.dishes.push(dish2.id)
+        discountEx.configDiscount.dishes.push(dish2.id);
         disc1.configDiscount.dishes.push(dish1.id);
         await promotionAdapter.addPromotionHandler(discInMemory);
         await promotionAdapter.addPromotionHandler(discountEx);
-        // await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
-        // await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
         let display = await Dish.display({ id: dish1.id });
         (0, chai_1.expect)(display[0].id).to.equal(dish1.id);
         (0, chai_1.expect)(display[0].discountAmount).to.equal(1.33);
