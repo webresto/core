@@ -55,10 +55,9 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       if (promotionByConcept[0] === undefined) return dish;
 
       // TODO: this should work on first condition isJoint and isPublic should be true
-      console.log(dish, "dish")
       console.log(this.promotions[promotionByConcept[0].id])
       console.log(this.promotions[promotionByConcept[0].id].displayDish(dish), "this.promotions[promotionByConcept[0].id].displayDish(dish)")
-      console.log(dish, "dish")
+
       return this.promotions[promotionByConcept[0].id].displayDish(dish)
     } catch (error) {
 
