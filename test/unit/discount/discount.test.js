@@ -298,6 +298,7 @@ describe('Discount', function () {
         // discInMemory.configDiscount.dishes.push(dish2.id)
         discountEx.configDiscount.dishes.push(dish1.id);
         // discountEx.configDiscount.dishes.push(dish2.id)
+        disc1.configDiscount.dishes.push(dish1.id);
         await promotionAdapter.addPromotionHandler(discInMemory);
         await promotionAdapter.addPromotionHandler(discountEx);
         // await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
