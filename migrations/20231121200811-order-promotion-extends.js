@@ -19,6 +19,7 @@ exports.setup = function(options, seedLink) {
 exports.up = function (db, callback) {
   async.series([
     (cb) => db.addColumn('order', 'promotionDelivery', {"type":"json"}, cb),
+(cb) => db.addColumn('order', 'promotionUnorderable', {"type":"boolean"}, cb),
 
   ], callback);
 }

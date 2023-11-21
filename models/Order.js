@@ -96,6 +96,12 @@ let attributes = {
         allowNull: true
     },
     /**
+     * If you set this field through promotion, then the order will not be possible to order
+     */
+    promotionUnorderable: {
+        type: "boolean",
+    },
+    /**
      ** Means that the basket was modified by the adapter,
      * It also prevents the repeat call of the action of the handler of the handler
      * */
@@ -542,7 +548,9 @@ let Model = {
         if (await Maintenance.getActiveMaintenance() !== undefined)
             throw `Currently site is off`;
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id}in state ORDER`;
+        if (order.promotionUnorderable === true)
+            throw `Order not possible for order by promotion`;
         //const order: Order = await Order.findOne(criteria);
         if (order.paid) {
             sails.log.error("CART > Check > error", order.id, "order is paid");
@@ -1109,6 +1117,11 @@ let Model = {
                     order.deliveryCost = (await Dish.findOne({ id: order.delivery.item })).price;
                 }
                 order.deliveryDescription = typeof order.delivery.message === "string" ? order.delivery.message : JSON.stringify(order.delivery.message);
+            }
+            else {
+                order.deliveryCost = null;
+                order.deliveryItem = null;
+                order.deliveryDescription = null;
             }
             emitter.emit("core:count-after-delivery-cost", order);
             // END calculate delivery cost

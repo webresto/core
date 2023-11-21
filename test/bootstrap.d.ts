@@ -1,4 +1,4 @@
-/// <reference types="@webresto/core/interfaces/globaltypes" />
+/// <reference path="../interfaces/globalTypes.d.ts" />
 import "mocha";
 declare global {
     namespace NodeJS {
