@@ -57,6 +57,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       // TODO: this should work on first condition isJoint and isPublic should be true
       console.log(dish, "dish")
       console.log(this.promotions[promotionByConcept[0].id].displayDish(dish), "this.promotions[promotionByConcept[0].id].displayDish(dish)")
+      console.log(dish)
       return this.promotions[promotionByConcept[0].id].displayDish(dish)
     } catch (error) {
 
