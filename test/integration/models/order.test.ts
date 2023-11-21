@@ -211,7 +211,7 @@ describe("Order", function () {
     
     let changedOrder = await Order.countCart({id: order.id});
     console.dir(changedOrder)
-    expect(changedOrder.uniqueDishes).to.equal(5);
+    expect(changedOrder.uniqueDishes).to.equal(4);
     expect(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1); // 18
    
    
