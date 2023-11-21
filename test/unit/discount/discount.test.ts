@@ -115,6 +115,20 @@ describe('Discount', function () {
         groups: [],
         excludeModifiers: true
       },
+        displayDish: function (dish:Dish, user?: string): Dish {
+          // if (this.isJoint === true && this.isPublic === true) {
+          //   // 
+            dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
+            dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
+            dish.oldPrice = dish.salePrice
+            dish.salePrice = this.configDiscount.discountType === "flat" 
+            ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
+            : new Decimal(dish.price)
+                .mul(+this.configDiscount.discountAmount / 100)
+                .toNumber()  
+          // }
+          return dish
+        },
     })
 
     let promotionAdapter: PromotionAdapter;
