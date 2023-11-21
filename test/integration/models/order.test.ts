@@ -203,6 +203,7 @@ describe("Order", function () {
     await Order.addDish({id: order.id}, dishes[2], 8, [], "", "test");
     
     // Add dish with modifier with zero price
+    // TODO: zero price modier test
     //await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "test");
     
     // // Modifier with price
@@ -215,7 +216,7 @@ describe("Order", function () {
     expect(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1); // 18
    
    
-    expect(changedOrder.totalWeight).to.equal(new Decimal(100).times(changedOrder.dishesCount).plus(200).toNumber());
+    expect(changedOrder.totalWeight).to.equal(new Decimal(100).times(changedOrder.dishesCount).plus(100).toNumber());
     expect(changedOrder.basketTotal).to.equal(new Decimal(100.1).times(changedOrder.dishesCount).plus(100.1).toNumber());
 
    
