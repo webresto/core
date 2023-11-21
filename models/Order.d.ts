@@ -76,6 +76,10 @@ declare let attributes: {
      */
     promotionCodeCheckValidTill: string;
     /**
+     * If you set this field through promotion, then the order will not be possible to order
+     */
+    promotionUnorderable: boolean;
+    /**
      ** Means that the basket was modified by the adapter,
      * It also prevents the repeat call of the action of the handler of the handler
      * */
@@ -211,6 +215,7 @@ declare let Model: {
         promotionFlatDiscount?: number;
         promotionDelivery?: Delivery;
         promotionCodeCheckValidTill?: string;
+        promotionUnorderable?: boolean;
         isPromoting?: boolean;
         dishesCount?: number;
         uniqueDishes?: number;
