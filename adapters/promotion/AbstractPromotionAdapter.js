@@ -27,6 +27,7 @@ class AbstractPromotionAdapter {
         order.dishes = dishes;
         order.discountTotal = 0;
         order.promotionFlatDiscount = 0;
+        order.promotionDelivery = null;
         return order;
     }
 }

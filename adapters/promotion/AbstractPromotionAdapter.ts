@@ -40,11 +40,12 @@ export default abstract class AbstractPromotionAdapter {
                 orderItem.discountType = null,
                 orderItem.discountAmount = 0,
                 orderItem.discountMessage = null
-
         })
+        
         order.dishes = dishes;
         order.discountTotal = 0;
         order.promotionFlatDiscount = 0;
+        order.promotionDelivery = null
         return order
     }
 

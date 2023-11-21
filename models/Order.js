@@ -54,6 +54,9 @@ let attributes = {
     promotionState: {
         type: "json"
     },
+    /**
+     * hidden in api
+     */
     promotionCode: {
         model: "promotionCode",
     },
@@ -68,6 +71,13 @@ let attributes = {
     promotionFlatDiscount: {
         type: "number",
         defaultsTo: 0,
+    },
+    /**
+     * Promotion may estimate shipping costs and if this occurs,
+     * then the calculation of delivery through the adapter will be ignored.
+     */
+    promotionDelivery: {
+        type: "json"
     },
     /**
     * The user's locale is a priority, the cart locale may not be installed, then the default locale of the site will be selected.
@@ -1058,45 +1068,49 @@ let Model = {
                 emitter.emit("core-order-after-promotion", order);
             }
             // Calcualte delivery costs
-            /**
-             * // TODO: Better move to new method add address to Order, because is not every time needed
-             * planned v2
-             */
             emitter.emit("core:count-before-delivery-cost", order);
-            let deliveryAdapter = await Adapter.getDeliveryAdapter();
-            await deliveryAdapter.reset(order);
-            if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
-                emitter.emit("core-order-check-delivery", order);
-                try {
-                    let delivery;
+            if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
+                order.delivery = order.promotionDelivery;
+            }
+            else {
+                let deliveryAdapter = await Adapter.getDeliveryAdapter();
+                await deliveryAdapter.reset(order);
+                if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
+                    emitter.emit("core-order-check-delivery", order);
                     try {
-                        delivery = await deliveryAdapter.calculate(order);
+                        let delivery;
+                        try {
+                            delivery = await deliveryAdapter.calculate(order);
+                        }
+                        catch (error) {
+                            sails.log.error("deliveryAdapter.calculate error:", error);
+                            delivery = {
+                                allowed: false,
+                                cost: 0,
+                                item: undefined,
+                                message: error,
+                                deliveryTimeMinutes: Infinity
+                            };
+                        }
+                        order.delivery = delivery;
                     }
                     catch (error) {
-                        sails.log.error("deliveryAdapter.calculate error:", error);
-                        delivery = {
-                            allowed: false,
-                            cost: 0,
-                            item: undefined,
-                            message: error,
-                            deliveryTimeMinutes: Infinity
-                        };
+                        sails.log.error(`Core > order > delivery calculate fail: `, error);
                     }
-                    order.delivery = delivery;
-                    if (!delivery.item) {
-                        order.deliveryCost = delivery.cost;
-                    }
-                    else {
-                        order.deliveryItem = delivery.item;
-                        order.deliveryCost = (await Dish.findOne({ id: delivery.item })).price;
-                    }
-                    order.deliveryDescription = typeof delivery.message === "string" ? delivery.message : JSON.stringify(delivery.message);
+                    emitter.emit("core-order-after-check-delivery", order);
                 }
-                catch (error) {
-                    sails.log.error(`Core > order > delivery calculate fail: `, error);
-                }
-                emitter.emit("core-order-after-check-delivery", order);
             }
+            if (order.delivery && isValidDelivery(order.delivery)) {
+                if (!order.delivery.item) {
+                    order.deliveryCost = order.delivery.cost;
+                }
+                else {
+                    order.deliveryItem = order.delivery.item;
+                    order.deliveryCost = (await Dish.findOne({ id: order.delivery.item })).price;
+                }
+                order.deliveryDescription = typeof order.delivery.message === "string" ? order.delivery.message : JSON.stringify(order.delivery.message);
+            }
+            emitter.emit("core:count-after-delivery-cost", order);
             // END calculate delivery cost
             order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
             order = (await Order.update({ id: order.id }, order).fetch())[0];
@@ -1266,4 +1280,20 @@ async function getOrderDateLimit() {
         possibleToOrderInMinutes = "1440";
     date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));
     return date;
+}
+function isValidDelivery(delivery) {
+    // Check if the required properties exist and have the correct types
+    if (typeof delivery.deliveryTimeMinutes === 'number' &&
+        typeof delivery.allowed === 'boolean' &&
+        typeof delivery.cost === 'number' &&
+        typeof delivery.message === 'string') {
+        // Check if 'item' is a string when it's defined
+        if (typeof delivery.item !== 'undefined' && typeof delivery.item !== 'string') {
+            sails.log.error(`Check delivery error delivery is not valid:  ${JSON.stringify(delivery)}`);
+            return false; // 'item' should be a string or undefined
+        }
+        return true;
+    }
+    sails.log.error(`Check delivery error delivery is not valid:  ${JSON.stringify(delivery)}`);
+    return false;
 }

@@ -47,6 +47,9 @@ declare let attributes: {
      * This property can be used to portray the representations of promotions at the front
      */
     promotionState: PromotionState[];
+    /**
+     * hidden in api
+     */
     promotionCode: string | PromotionCode;
     promotionCodeString: string;
     /**
@@ -54,6 +57,11 @@ declare let attributes: {
      * This will be cleared before passing promotions count
      */
     promotionFlatDiscount: number;
+    /**
+     * Promotion may estimate shipping costs and if this occurs,
+     * then the calculation of delivery through the adapter will be ignored.
+     */
+    promotionDelivery: Delivery;
     /**
     * The user's locale is a priority, the cart locale may not be installed, then the default locale of the site will be selected.
     locale: {
@@ -201,6 +209,7 @@ declare let Model: {
         promotionCode?: string | PromotionCode;
         promotionCodeString?: string;
         promotionFlatDiscount?: number;
+        promotionDelivery?: Delivery;
         promotionCodeCheckValidTill?: string;
         isPromoting?: boolean;
         dishesCount?: number;
