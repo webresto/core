@@ -1355,9 +1355,9 @@ let Model = {
         }
         order.deliveryDescription = typeof order.delivery.message === "string" ? order.delivery.message : JSON.stringify(order.delivery.message);
       } else {
-        order.deliveryCost = null;
+        order.deliveryCost = 0;
         order.deliveryItem = null;
-        order.deliveryDescription = null;
+        order.deliveryDescription = '';
       }
 
 
