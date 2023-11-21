@@ -1114,8 +1114,15 @@ let Model = {
                 }
                 else {
                     const deliveryItem = await Dish.findOne({ where: { or: [{ id: order.delivery.item }, { rmsId: order.delivery.item }] } });
-                    order.deliveryItem = deliveryItem.id;
-                    order.deliveryCost = deliveryItem.price;
+                    if (deliveryItem) {
+                        order.deliveryItem = deliveryItem.id;
+                        order.deliveryCost = deliveryItem.price;
+                    }
+                    else {
+                        order.deliveryCost = 0;
+                        order.deliveryItem = null;
+                        order.deliveryDescription = '';
+                    }
                 }
                 order.deliveryDescription = typeof order.delivery.message === "string" ? order.delivery.message : JSON.stringify(order.delivery.message);
             }
