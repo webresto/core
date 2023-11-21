@@ -375,7 +375,7 @@ describe('Discount', function () {
         // let order = await Order.create({id: "test-display-dish"}).fetch();
         // await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "Happy Birthday",parentGroup:groupsId[0]}));
         // let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
 
         discInMemory.configDiscount.dishes.push(dish1.id)
