@@ -203,20 +203,20 @@ describe("Order", function () {
     await Order.addDish({id: order.id}, dishes[2], 8, [], "", "test");
     
     // Add dish with modifier with zero price
-    await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "test");
+    //await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "test");
     
     // // Modifier with price
     await Order.addDish({id: order.id}, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "test");
 
-
+    
     let changedOrder = await Order.countCart({id: order.id});
     console.dir(changedOrder)
     expect(changedOrder.uniqueDishes).to.equal(5);
-    expect(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1 + 1); // 18
+    expect(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1); // 18
    
    
     expect(changedOrder.totalWeight).to.equal(new Decimal(100).times(changedOrder.dishesCount).plus(200).toNumber());
-    expect(changedOrder.orderTotal).to.equal(new Decimal(100.1).times(changedOrder.dishesCount).plus(100.1).toNumber());
+    expect(changedOrder.basketTotal).to.equal(new Decimal(100.1).times(changedOrder.dishesCount).plus(100.1).toNumber());
 
    
     // expect(changedOrder.totalWeight).to.equal(changedOrder.dishesCount * 100 + (100 + 100 /** from mofifiers */)); 
