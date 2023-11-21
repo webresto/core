@@ -1350,8 +1350,9 @@ let Model = {
         if(!order.delivery.item) {
           order.deliveryCost = order.delivery.cost
         } else {
-          order.deliveryItem = order.delivery.item
-          order.deliveryCost = (await Dish.findOne({id: order.delivery.item})).price
+          const deliveryItem = await Dish.findOne({where: { or: [{id: order.delivery.item}, {rmsId: order.delivery.item}]}});
+          order.deliveryItem = deliveryItem.id
+          order.deliveryCost = deliveryItem.price
         }
         order.deliveryDescription = typeof order.delivery.message === "string" ? order.delivery.message : JSON.stringify(order.delivery.message);
       } else {
