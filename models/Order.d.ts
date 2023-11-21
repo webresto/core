@@ -47,6 +47,9 @@ declare let attributes: {
      * This property can be used to portray the representations of promotions at the front
      */
     promotionState: PromotionState[];
+    /**
+     * hidden in api
+     */
     promotionCode: string | PromotionCode;
     promotionCodeString: string;
     /**

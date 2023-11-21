@@ -54,6 +54,9 @@ let attributes = {
     promotionState: {
         type: "json"
     },
+    /**
+     * hidden in api
+     */
     promotionCode: {
         model: "promotionCode",
     },
