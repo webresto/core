@@ -43,7 +43,7 @@ describe("Promotion adapter integration test", function () {
         };
         let promotion10Percent = new configuredPromotion_1.default({
             concept: ["road"],
-            id: 'aa2-id',
+            id: 'aa2-id-promotion10',
             badge: 'test',
             isJoint: true,
             name: 'awdawd',

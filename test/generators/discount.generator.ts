@@ -93,22 +93,22 @@ export default function discountGenerator(config: Omit<AbstractPromotionHandler,
        }
        
       return group
-    },
-    displayDish: function (dish:Dish, user?: string): Dish {
-      if (this.isJoint === true && this.isPublic === true) {
-        // 
+    }
+    ,
+      displayDish: function (dish:Dish, user?: string): Dish {
+         // if (this.isJoint === true && this.isPublic === true) {
+        //   // 
         dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
         dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-        dish.oldPrice = dish.price
-
-        dish.price = this.configDiscount.discountType === "flat" 
+        dish.oldPrice = dish.salePrice
+        dish.salePrice = this.configDiscount.discountType === "flat" 
         ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
         : new Decimal(dish.price)
-            .mul(+this.configDiscount.discountAmount / 100)
-            .toNumber()  
-      }
-      return dish
-    },
+          .mul(+this.configDiscount.discountAmount / 100)
+           .toNumber()  
+          // }
+          return dish
+     },
     externalId: faker.random.uuid()
   };
 }

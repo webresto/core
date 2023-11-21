@@ -42,7 +42,7 @@ describe('Discount', function () {
           },
         name: "1-name",
         description: "string",
-        concept: ["origin","clear","Happy Birthday","3dif"],
+        concept: ["origin","clear","Happy Birthday","3dif","Display Dish"],
         condition: (arg: Group | Dish | Order): boolean =>{
           if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, discountEx.concept) ) {
             // Order.populate()
@@ -84,6 +84,7 @@ describe('Discount', function () {
           //   // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
             dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
+            dish.oldPrice = dish.salePrice
             dish.salePrice = this.configDiscount.discountType === "flat" 
             ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
             : new Decimal(dish.price)
@@ -113,7 +114,7 @@ describe('Discount', function () {
         dishes: ["Aaa"],
         groups: [],
         excludeModifiers: true
-      },
+      }
     })
 
     let promotionAdapter: PromotionAdapter;
@@ -374,20 +375,18 @@ describe('Discount', function () {
         // let order = await Order.create({id: "test-display-dish"}).fetch();
         // await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
 
-        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
-        // let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
+        let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "Display Dish",parentGroup:groupsId[0]}));
+        let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "Display Dish",parentGroup:groupsId[0]}));
 
         discInMemory.configDiscount.dishes.push(dish1.id)
-        // discInMemory.configDiscount.dishes.push(dish2.id)
+        discInMemory.configDiscount.dishes.push(dish2.id)
 
         discountEx.configDiscount.dishes.push(dish1.id)
-        // discountEx.configDiscount.dishes.push(dish2.id)
+        discountEx.configDiscount.dishes.push(dish2.id)
+        disc1.configDiscount.dishes.push(dish1.id)
 
         await promotionAdapter.addPromotionHandler(discInMemory)
         await promotionAdapter.addPromotionHandler(discountEx)
-
-        // await Order.addDish({id: order.id}, dish1, 5, [], "", "testa2");
-        // await Order.addDish({id: order.id}, dish2, 4, [], "", "tes");
         
         let display = await Dish.display({ id: dish1.id })
 
