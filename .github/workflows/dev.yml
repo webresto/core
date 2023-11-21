@@ -15,4 +15,4 @@ jobs:
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm run test:init 2>&1 || true && npm run test
+      - run: npm install 2>&1 || true && npm run test:init 2>&1 || true && npm run test
