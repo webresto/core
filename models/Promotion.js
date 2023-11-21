@@ -121,8 +121,7 @@ let Model = {
     async beforeCreate(init, cb) {
         const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT");
         // On create, all promocodes are disabled.
-        init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) :
-            process.env.NODE_ENV !== "production";
+        init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) : process.env.NODE_ENV !== "production";
         cb();
     },
     async createOrUpdate(values) {
