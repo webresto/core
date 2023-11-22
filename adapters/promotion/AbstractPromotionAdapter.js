@@ -24,6 +24,7 @@ class AbstractPromotionAdapter {
                 orderItem.discountAmount = 0,
                 orderItem.discountMessage = null;
         });
+        order.promotionState = [];
         order.promotionDelivery = null;
         order.promotionUnorderable = false;
         order.dishes = dishes;
