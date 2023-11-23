@@ -1234,7 +1234,11 @@ let Model = {
             orderDishesForPopulate.push({...orderDish})
           } 
 
-          basketTotal = basketTotal.plus(orderDish.itemTotal);
+          // TODO: test it
+          if(orderDish.addedBy === "user"){
+            basketTotal = basketTotal.plus(orderDish.itemTotal);
+          }
+
           dishesCount += orderDish.amount;
           uniqueDishes++;
           totalWeight = totalWeight.plus(orderDish.totalWeight);

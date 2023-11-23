@@ -63,7 +63,7 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
         const extId = `${Date.now()}-${Math.random()}`;
         const transaction = {
             ...userBonusTransaction,
-            id: extId,
+            id: extId, // generating a random id
             time: new Date().toISOString(),
             balanceAfter: balanceAfter,
             externalId: extId

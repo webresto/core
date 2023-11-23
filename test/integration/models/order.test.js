@@ -131,7 +131,7 @@ describe("Order", function () {
         // // Modifier with price
         await Order.addDish({ id: order.id }, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "test");
         let changedOrder = await Order.countCart({ id: order.id });
-        console.dir(changedOrder);
+        // console.dir(changedOrder)
         (0, chai_1.expect)(changedOrder.uniqueDishes).to.equal(4);
         (0, chai_1.expect)(changedOrder.dishesCount).to.equal(5 + 3 + 8 + 1); // 18
         (0, chai_1.expect)(changedOrder.totalWeight).to.equal(new decimal_js_1.default(100).times(changedOrder.dishesCount).plus(100).toNumber());

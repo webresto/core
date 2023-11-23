@@ -157,7 +157,7 @@ let attributes = {
         type: "string",
         allowNull: true
     },
-    message: "string",
+    message: "string", // deprecated
     /**
      * @deprecated use order.delivery.item
      */
@@ -1003,7 +1003,10 @@ let Model = {
                         orderDish.dish = dish;
                         orderDishesForPopulate.push({ ...orderDish });
                     }
-                    basketTotal = basketTotal.plus(orderDish.itemTotal);
+                    // TODO: test it
+                    if (orderDish.addedBy === "user") {
+                        basketTotal = basketTotal.plus(orderDish.itemTotal);
+                    }
                     dishesCount += orderDish.amount;
                     uniqueDishes++;
                     totalWeight = totalWeight.plus(orderDish.totalWeight);
