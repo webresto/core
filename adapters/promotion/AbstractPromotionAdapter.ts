@@ -42,6 +42,7 @@ export default abstract class AbstractPromotionAdapter {
                 orderItem.discountMessage = null
         })
         
+        order.promotionState = [];
         order.promotionDelivery = null;
         order.promotionUnorderable = false;
         order.dishes = dishes;
