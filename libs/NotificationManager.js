@@ -19,7 +19,7 @@ class NotificationManager {
     static async sendMessageToDeliveryManager(badge, text) {
         // I appologize what delivery message channel is direct to manager, its reason to null user. Time will show
         try {
-            await NotificationManager.send(badge, "manager", text, null);
+            await _a.send(badge, "manager", text, null);
         }
         catch (error) {
             sails.log.warn(`✉️ Notification manager > console: ${badge}, ${text}`);
@@ -48,9 +48,10 @@ class NotificationManager {
         else {
             populatedUser = user;
         }
-        await NotificationManager.send(badge, "user", text, populatedUser, type, subject, data);
+        await _a.send(badge, "user", text, populatedUser, type, subject, data);
     }
 }
+exports.NotificationManager = NotificationManager;
 _a = NotificationManager;
 NotificationManager.channels = [];
 NotificationManager.send = async (badge, groupTo, message, user, type, subject, data) => {
@@ -71,7 +72,7 @@ NotificationManager.send = async (badge, groupTo, message, user, type, subject, 
 };
 NotificationManager.isChannelExist = (channelType) => {
     let isChannelExist = false;
-    NotificationManager.channels.forEach((ch) => {
+    _a.channels.forEach((ch) => {
         if (ch.type === channelType) {
             isChannelExist = true;
         }
@@ -79,7 +80,6 @@ NotificationManager.isChannelExist = (channelType) => {
     return isChannelExist;
 };
 NotificationManager.registerChannel = (channel) => {
-    NotificationManager.channels.push(channel);
-    NotificationManager.channels.sort((a, b) => a.sortOrder - b.sortOrder);
+    _a.channels.push(channel);
+    _a.channels.sort((a, b) => a.sortOrder - b.sortOrder);
 };
-exports.NotificationManager = NotificationManager;

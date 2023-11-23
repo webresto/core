@@ -24,7 +24,7 @@ export default abstract class AbstractPromotionHandler {
   public abstract description?: string;
 
   // TODO: remove
-  public abstract configDiscount?: IconfigDiscount;
+  public configDiscount?: IconfigDiscount = null;
 
   public abstract concept: string[];
 

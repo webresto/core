@@ -10,7 +10,7 @@ export default abstract class AbstractPromotionHandler {
     abstract name: string;
     abstract isPublic: boolean;
     abstract description?: string;
-    abstract configDiscount?: IconfigDiscount;
+    configDiscount?: IconfigDiscount;
     abstract concept: string[];
     abstract externalId?: string;
     /**
