@@ -1263,10 +1263,12 @@ let Model = {
       // Here calculates all discounts for order
       if(!order.isPromoting){
         emitter.emit("core:count-before-promotion", order);
-        let promotionAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter();
-          try {
+        try {
+            let promotionAdapter:AbstractPromotionAdapter =  Adapter.getPromotionAdapter();
+            // set lock
             order.isPromoting = true;
-
+            await Order.updateOne({id: order.id}, {isPromoting: true});
+            
             // If promocode is valid and allowed
             if (order.promotionCode !== null && order.promotionCodeString !== null && order.promotionCodeCheckValidTill !== null) {
               const currentDate = new Date();
@@ -1292,9 +1294,6 @@ let Model = {
             let orderPopulate: Order = {...order}
             orderPopulate.dishes = orderDishesForPopulate
 
-            // set lock
-            await Order.updateOne({id: order.id}, {isPromoting: true});
-
             /**
              * All promotions hadlers are calculated here, the main idea is that the order is modified during execution.
              * The developer who creates promotions must take care about order in database and order runtime object.
@@ -1308,7 +1307,7 @@ let Model = {
             
             orderPopulate.discountTotal = orederPROM.discountTotal
             order = orderPopulate;
-            
+
             order.isPromoting = false;
 
             let promotionOrderSave = {
@@ -1316,11 +1315,13 @@ let Model = {
               promotionUnorderable: order.promotionUnorderable,
               discountTotal: order.discountTotal,
               promotionFlatDiscount: order.promotionFlatDiscount,
-              promotionDelivery: order.promotionDelivery
+              promotionDelivery: order.promotionDelivery,
+              isPromoting: false
             }
             // unset lock
-            await Order.updateOne({id: order.id}, promotionOrderSave);
+            await Order.update({id: order.id}, promotionOrderSave).fetch();
           } catch (error) {
+            await Order.update({id: order.id}, {isPromoting: false}).fetch();
             sails.log.error(`Core > order > promotion calculate fail: `, error)
           }
         emitter.emit("core-order-after-promotion", order);
