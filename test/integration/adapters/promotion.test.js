@@ -105,8 +105,8 @@ describe("Promotion adapter integration test", function () {
         });
         await promotionAdapter.addPromotionHandler(promotion10);
         await promotionAdapter.addPromotionHandler(promotion1flat);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
+        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
+        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let result = await Order.findOne(order.id);
         (0, chai_1.expect)(result.discountTotal).to.equal(11.13);
     });
@@ -163,8 +163,8 @@ describe("Promotion adapter integration test", function () {
             externalId: "externalID2awdawd"
         }, config);
         await promotionAdapter.addPromotionHandler(promotion10);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
+        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
+        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let result = await Order.findOne(order.id);
         // console.log(result)
         (0, chai_1.expect)(result.discountTotal).to.equal(5);
@@ -245,8 +245,8 @@ describe("Promotion adapter integration test", function () {
         await promotionAdapter.addPromotionHandler(percentDiscount);
         await promotionAdapter.addPromotionHandler(percentDiscount2);
         await promotionAdapter.addPromotionHandler(percentDiscount3);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
+        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
+        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         order = await Order.findOne(order.id);
         (0, chai_1.expect)(order.discountTotal).to.equal(20.13);
     });
@@ -275,8 +275,8 @@ describe("Promotion adapter integration test", function () {
             },
         });
         await promotionAdapter.addPromotionHandler(promotion10state);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
+        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
+        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let res = await Order.findOne(order.id);
         // await promotionAdapter.processOrder(res)
         // res = await Order.findOne(order.id) 
@@ -331,7 +331,7 @@ describe("Promotion adapter integration test", function () {
             action: async (order) => {
                 let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "recursion", parentGroup: groupsId[0] }));
                 discountEx1.configDiscount.dishes.push(dish1.id);
-                await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
+                await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
                 let configPromotion = new configuredPromotion_1.default(discountEx1, discountEx1.configDiscount);
                 order.promotionFlatDiscount = 2;
                 return await configPromotion.applyPromotion(order);
@@ -363,9 +363,9 @@ describe("Promotion adapter integration test", function () {
             externalId: "1-externalIdaw",
         };
         await promotionAdapter.addPromotionHandler(discountEx1);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
+        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
         // 5 dishes + 5 from action
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
+        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         // 4 dishes + 5 from action
         let result = await Order.findOne(order.id);
         (0, chai_1.expect)(result.discountTotal).to.equal(19 + 2 /** 2 is flat discount*/);

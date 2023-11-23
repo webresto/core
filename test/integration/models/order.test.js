@@ -25,16 +25,16 @@ describe("Order", function () {
         (0, chai_1.expect)(order).to.be.an("object");
     });
     it("check model fields", async function () {
-        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "test");
+        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
         order = await Order.findOne(order.id).populate("dishes");
         (0, chai_1.expect)(order).to.include.all.keys("id", "shortId", "state", "dishes", "paymentMethod", "paymentMethodTitle", "paid", "isPaymentPromise", "dishesCount", "uniqueDishes", "modifiers", "customer", "address", "comment", "personsCount", "date", "problem", "rmsDelivered", "rmsId", "rmsOrderNumber", "rmsOrderData", "rmsDeliveryDate", "rmsErrorMessage", "rmsErrorCode", "rmsStatusCode", "deliveryStatus", "selfService", "deliveryDescription", "message", "deliveryItem", "deliveryCost", "totalWeight", "total", "trifleFrom", "orderTotal", "orderTotal", "discountTotal", "orderDate", "customData", "concept");
     });
     it("addDish", async function () {
         order = await Order.create({ id: "add-dish" }).fetch();
-        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "test");
-        await Order.addDish({ id: order.id }, dishes[1], 5, [], "test comment", "test");
-        // /    await Order.addDish({id: order.id}, dishes[1], 5, [], "", "test");
-        //await Order.addDish({id: order.id}, dishes[1], 5, [], "test comment", "test");s
+        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
+        await Order.addDish({ id: order.id }, dishes[1], 5, [], "test comment", "user");
+        // /    await Order.addDish({id: order.id}, dishes[1], 5, [], "", "user");
+        //await Order.addDish({id: order.id}, dishes[1], 5, [], "test comment", "user");s
         let result = await Order.findOne(order.id).populate("dishes");
         (0, chai_1.expect)(result.dishes.length).to.equal(2);
         let orderDish = await OrderDish.find({
@@ -43,11 +43,11 @@ describe("Order", function () {
         }).sort("createdAt ASC");
         (0, chai_1.expect)(orderDish[0].amount).to.equal(1);
         (0, chai_1.expect)(orderDish[0].comment).to.equal("");
-        (0, chai_1.expect)(orderDish[0].addedBy).to.equal("test");
+        (0, chai_1.expect)(orderDish[0].addedBy).to.equal("user");
         orderDish = await OrderDish.find({ order: order.id, dish: dishes[1].id }).sort("createdAt ASC");
         (0, chai_1.expect)(orderDish[0].amount).to.equal(5);
         (0, chai_1.expect)(orderDish[0].comment).to.equal("test comment");
-        (0, chai_1.expect)(orderDish[0].addedBy).to.equal("test");
+        (0, chai_1.expect)(orderDish[0].addedBy).to.equal("user");
     });
     it("addDish SEPARATE_CONCEPTS_ORDERS test", async function () {
         // TODO: test it
@@ -64,16 +64,16 @@ describe("Order", function () {
     });
     it("addDish same dish increase amount", async function () {
         order = await Order.create({ id: "adddish-same-dish-increase-amount-1" }).fetch();
-        await Order.addDish({ id: order.id }, dishes[0], 2, [], "", "test");
-        await Order.addDish({ id: order.id }, dishes[0], 3, [], "", "test");
-        await Order.addDish({ id: order.id }, dishes[0], 1, null, "", "test");
+        await Order.addDish({ id: order.id }, dishes[0], 2, [], "", "user");
+        await Order.addDish({ id: order.id }, dishes[0], 3, [], "", "user");
+        await Order.addDish({ id: order.id }, dishes[0], 1, null, "", "user");
         let orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
         (0, chai_1.expect)(orderDishes.length).to.equals(1);
         (0, chai_1.expect)(orderDishes[0].amount).to.equals(6);
         order = await Order.create({ id: "adddish-same-dish-increase-amount-2" }).fetch();
         await Order.addDish({ id: order.id }, dishes[0], 1, [{ id: dishes[1].id, modifierId: dishes[1].id }], "", "mod");
-        await Order.addDish({ id: order.id }, dishes[0], 1, null, "", "test");
-        await Order.addDish({ id: order.id }, dishes[0], 2, null, "", "test");
+        await Order.addDish({ id: order.id }, dishes[0], 1, null, "", "user");
+        await Order.addDish({ id: order.id }, dishes[0], 2, null, "", "user");
         orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
         (0, chai_1.expect)(orderDishes.length).to.equals(2);
         for (let dish of orderDishes) {
@@ -122,14 +122,14 @@ describe("Order", function () {
     it("countCart", async function () {
         let order = await Order.create({ id: "test--countcart" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
-        await Order.addDish({ id: order.id }, dishes[0], 5, [], "", "test");
-        await Order.addDish({ id: order.id }, dishes[1], 3, [], "", "test");
-        await Order.addDish({ id: order.id }, dishes[2], 8, [], "", "test");
+        await Order.addDish({ id: order.id }, dishes[0], 5, [], "", "user");
+        await Order.addDish({ id: order.id }, dishes[1], 3, [], "", "user");
+        await Order.addDish({ id: order.id }, dishes[2], 8, [], "", "user");
         // Add dish with modifier with zero price
         // TODO: zero price modier test
-        //await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "test");
+        //await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "user");
         // // Modifier with price
-        await Order.addDish({ id: order.id }, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "test");
+        await Order.addDish({ id: order.id }, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "user");
         let changedOrder = await Order.countCart({ id: order.id });
         // console.dir(changedOrder)
         (0, chai_1.expect)(changedOrder.uniqueDishes).to.equal(4);

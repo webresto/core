@@ -34,7 +34,7 @@ describe("Order", function () {
   });
 
   it("check model fields", async function () {
-    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
+    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
     order = await Order.findOne(order.id).populate("dishes");
     expect(order).to.include.all.keys(
       "id",
@@ -83,11 +83,11 @@ describe("Order", function () {
   it("addDish", async function () {
     order = await Order.create({id: "add-dish"}).fetch();
 
-    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
-    await Order.addDish({id: order.id}, dishes[1], 5, [], "test comment", "test");
+    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
+    await Order.addDish({id: order.id}, dishes[1], 5, [], "test comment", "user");
 
-// /    await Order.addDish({id: order.id}, dishes[1], 5, [], "", "test");
-    //await Order.addDish({id: order.id}, dishes[1], 5, [], "test comment", "test");s
+// /    await Order.addDish({id: order.id}, dishes[1], 5, [], "", "user");
+    //await Order.addDish({id: order.id}, dishes[1], 5, [], "test comment", "user");s
     let result = await Order.findOne(order.id).populate("dishes");
 
     expect(result.dishes.length).to.equal(2);
@@ -99,12 +99,12 @@ describe("Order", function () {
 
     expect(orderDish[0].amount).to.equal(1);
     expect(orderDish[0].comment).to.equal("");
-    expect(orderDish[0].addedBy).to.equal("test");
+    expect(orderDish[0].addedBy).to.equal("user");
 
     orderDish = await OrderDish.find({ order: order.id, dish: dishes[1].id }).sort("createdAt ASC");
     expect(orderDish[0].amount).to.equal(5);
     expect(orderDish[0].comment).to.equal("test comment");
-    expect(orderDish[0].addedBy).to.equal("test");
+    expect(orderDish[0].addedBy).to.equal("user");
   });
 
   it("addDish SEPARATE_CONCEPTS_ORDERS test", async function () {
@@ -126,9 +126,9 @@ describe("Order", function () {
 
   it("addDish same dish increase amount", async function () {
     order = await Order.create({id: "adddish-same-dish-increase-amount-1"}).fetch();
-    await Order.addDish({id: order.id}, dishes[0], 2, [], "", "test");
-    await Order.addDish({id: order.id}, dishes[0], 3, [], "", "test");
-    await Order.addDish({id: order.id}, dishes[0], 1, null, "", "test");
+    await Order.addDish({id: order.id}, dishes[0], 2, [], "", "user");
+    await Order.addDish({id: order.id}, dishes[0], 3, [], "", "user");
+    await Order.addDish({id: order.id}, dishes[0], 1, null, "", "user");
 
     let orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
     expect(orderDishes.length).to.equals(1);
@@ -136,8 +136,8 @@ describe("Order", function () {
 
     order = await Order.create({id:"adddish-same-dish-increase-amount-2"}).fetch();
     await Order.addDish({id: order.id}, dishes[0], 1, [{ id: dishes[1].id, modifierId: dishes[1].id }], "", "mod");
-    await Order.addDish({id: order.id}, dishes[0], 1, null, "", "test");
-    await Order.addDish({id: order.id}, dishes[0], 2, null, "", "test");
+    await Order.addDish({id: order.id}, dishes[0], 1, null, "", "user");
+    await Order.addDish({id: order.id}, dishes[0], 2, null, "", "user");
     orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
     expect(orderDishes.length).to.equals(2);
     for (let dish of orderDishes) {
@@ -198,16 +198,16 @@ describe("Order", function () {
     let order = await Order.create({id: "test--countcart"}).fetch();
     await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
     
-    await Order.addDish({id: order.id}, dishes[0], 5, [], "", "test");
-    await Order.addDish({id: order.id}, dishes[1], 3, [], "", "test");
-    await Order.addDish({id: order.id}, dishes[2], 8, [], "", "test");
+    await Order.addDish({id: order.id}, dishes[0], 5, [], "", "user");
+    await Order.addDish({id: order.id}, dishes[1], 3, [], "", "user");
+    await Order.addDish({id: order.id}, dishes[2], 8, [], "", "user");
     
     // Add dish with modifier with zero price
     // TODO: zero price modier test
-    //await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "test");
+    //await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "user");
     
     // // Modifier with price
-    await Order.addDish({id: order.id}, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "test");
+    await Order.addDish({id: order.id}, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "user");
 
     
     let changedOrder = await Order.countCart({id: order.id});

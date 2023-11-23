@@ -146,8 +146,8 @@ describe("Promotion adapter integration test", function () {
     await promotionAdapter.addPromotionHandler(promotion10)
     await promotionAdapter.addPromotionHandler(promotion1flat)
 
-    await Order.addDish({id: order.id}, dish1, 5, [], "", "test", );
-    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "user");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "user");
     
     let result = await Order.findOne(order.id) 
     expect(result.discountTotal).to.equal(11.13);
@@ -220,8 +220,8 @@ describe("Promotion adapter integration test", function () {
 
     await promotionAdapter.addPromotionHandler(promotion10)
 
-    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
-    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "user");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "user");
     
     let result = await Order.findOne(order.id) 
     // console.log(result)
@@ -316,8 +316,8 @@ describe("Promotion adapter integration test", function () {
     await promotionAdapter.addPromotionHandler(percentDiscount2)
     await promotionAdapter.addPromotionHandler(percentDiscount3)
 
-    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
-    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "user");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "user");
 
     order = await Order.findOne(order.id)
 
@@ -361,8 +361,8 @@ describe("Promotion adapter integration test", function () {
     })
     await promotionAdapter.addPromotionHandler(promotion10state)
 
-    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
-    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "user");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "user");
 
     let res = await Order.findOne(order.id) 
 
@@ -434,7 +434,7 @@ describe("Promotion adapter integration test", function () {
       action: async (order: Order): Promise<PromotionState> => { 
           let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "recursion",parentGroup:groupsId[0]}));
           discountEx1.configDiscount.dishes.push(dish1.id)
-          await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+          await Order.addDish({id: order.id}, dish1, 5, [], "", "user");
   
           let configPromotion: ConfiguredPromotion = new ConfiguredPromotion(discountEx1, discountEx1.configDiscount);
           order.promotionFlatDiscount = 2;
@@ -474,9 +474,9 @@ describe("Promotion adapter integration test", function () {
     
     await promotionAdapter.addPromotionHandler(discountEx1)
 
-    await Order.addDish({id: order.id}, dish1, 5, [], "", "test");
+    await Order.addDish({id: order.id}, dish1, 5, [], "", "user");
     // 5 dishes + 5 from action
-    await Order.addDish({id: order.id}, dish2, 4, [], "", "test");
+    await Order.addDish({id: order.id}, dish2, 4, [], "", "user");
     // 4 dishes + 5 from action
     
     let result = await Order.findOne(order.id) 

@@ -1069,9 +1069,16 @@ let Model = {
                     }
                     orderPopulate.discountTotal = orederPROM.discountTotal;
                     order = orderPopulate;
-                    // unset lock
-                    await Order.updateOne({ id: order.id }, { isPromoting: false });
                     order.isPromoting = false;
+                    let promotionOrderSave = {
+                        promotionState: order.promotionState,
+                        promotionUnorderable: order.promotionUnorderable,
+                        discountTotal: order.discountTotal,
+                        promotionFlatDiscount: order.promotionFlatDiscount,
+                        promotionDelivery: order.promotionDelivery
+                    };
+                    // unset lock
+                    await Order.updateOne({ id: order.id }, promotionOrderSave);
                 }
                 catch (error) {
                     sails.log.error(`Core > order > promotion calculate fail: `, error);
