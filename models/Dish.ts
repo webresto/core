@@ -343,9 +343,12 @@ let Model = {
         let childModifiers = []
 
         if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined){
-            let criteria = {}
+            
+            let criteria = {
+              concept: dish.concept ?? undefined
+            }
 
-            if( modifier.modifierId){
+            if( modifier.modifierId) {
               criteria["id"] = modifier.modifierId
             } else if(modifier.id) {
               criteria["rmsId"] = modifier.id
@@ -359,7 +362,9 @@ let Model = {
           if (!modifier.childModifiers) modifier.childModifiers = [];
           
           for await(let childModifier of modifier.childModifiers){
-            let criteria = {}
+            let criteria = {
+              concept: dish.concept ?? undefined
+            }
 
             if( childModifier.modifierId){
               criteria["id"] = childModifier.modifierId

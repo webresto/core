@@ -1123,7 +1123,7 @@ let Model = {
     try {
 
       let order = await Order.findOne(criteria);
-      if( order.isPromoting !== isPromoting ){
+      if( order.isPromoting !== isPromoting ) {
         sails.log.error(`The order status does not match the passed parameters order.isPromoting [${order.isPromoting}], attribute [${isPromoting}], check your promotions`)
       }
       order.isPromoting = isPromoting;
