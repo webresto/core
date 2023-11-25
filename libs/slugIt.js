@@ -12,7 +12,7 @@ async function slugIt(model, name, slugField = 'slug', opts) {
         throw `Model with name [${model}] has not field field [${slugField}]`;
     let postfix = "";
     if (opts.length) {
-        postfix = "-" + opts.length ? opts.join(' ') : '';
+        postfix = " " + opts.join(' ');
     }
     let slug = (0, slugify_1.default)(`${name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
     let criteria = {};

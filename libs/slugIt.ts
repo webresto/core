@@ -7,7 +7,7 @@ export async function slugIt(model: string, name: string, slugField = 'slug', op
 
   let postfix:string = ""
   if (opts.length) { 
-    postfix = "-" + opts.length ? opts.join(' ') : '';
+    postfix = " " + opts.join(' ');
   }
   let slug = slugify(`${name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
 
