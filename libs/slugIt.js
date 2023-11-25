@@ -10,7 +10,10 @@ async function slugIt(model, name, slugField = 'slug', opts) {
         throw `Sails not have models [${model}]`;
     if (!Object.keys(sails.models[model].attributes).includes(slugField))
         throw `Model with name [${model}] has not field field [${slugField}]`;
-    const postfix = opts.length ? opts.join(' ') : '';
+    let postfix = "";
+    if (opts.length) {
+        postfix = "-" + opts.length ? opts.join(' ') : '';
+    }
     let slug = (0, slugify_1.default)(`${name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
     let criteria = {};
     criteria[slugField] = { contains: slug };

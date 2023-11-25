@@ -5,7 +5,10 @@ export async function slugIt(model: string, name: string, slugField = 'slug', op
   if (!Object.keys(sails.models[model].attributes).includes(slugField)) throw `Model with name [${model}] has not field field [${slugField}]`
 
 
-  const postfix = opts.length ? opts.join(' ') : '';
+  let postfix:string = ""
+  if (opts.length) { 
+    postfix = "-" + opts.length ? opts.join(' ') : '';
+  }
   let slug = slugify(`${name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en'});
 
   let criteria = {}
