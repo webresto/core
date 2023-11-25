@@ -90,6 +90,7 @@ class RMSAdapter {
                     sails.log.debug("ADAPTER RMS > syncProducts Groups:", currentRMSGroupsFlatTree.length);
                     for (const group of currentRMSGroupsFlatTree) {
                         emitter.emit("rms-sync:before-each-group-item", group);
+                        group.concept = group.concept ?? "origin";
                         // Update or create group
                         const groupData = { ...group, isDeleted: false };
                         await Group.createOrUpdate(groupData);
@@ -105,6 +106,7 @@ class RMSAdapter {
                         for (let product of productsToUpdate) {
                             emitter.emit("rms-sync:before-each-product-item", product);
                             // Update or create product
+                            product.concept = product.concept ?? "origin";
                             const productData = { ...product, isDeleted: false };
                             let createdProduct = await Dish.createOrUpdate(productData);
                             const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;

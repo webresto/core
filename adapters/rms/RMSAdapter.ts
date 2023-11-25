@@ -121,7 +121,7 @@ export default abstract class RMSAdapter {
 
           for (const group of currentRMSGroupsFlatTree) {
             emitter.emit("rms-sync:before-each-group-item", group);
-
+            group.concept = group.concept ?? "origin"
             // Update or create group
             const groupData = { ...group, isDeleted: false };
             await Group.createOrUpdate(groupData);
@@ -143,6 +143,7 @@ export default abstract class RMSAdapter {
               emitter.emit("rms-sync:before-each-product-item", product);
               
               // Update or create product
+              product.concept = product.concept ?? "origin"
               const productData = { ...product, isDeleted: false };
               let createdProduct = await Dish.createOrUpdate(productData);
 
