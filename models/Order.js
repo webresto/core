@@ -1069,21 +1069,22 @@ let Model = {
                     }
                     orderPopulate.discountTotal = orederPROM.discountTotal;
                     order = orderPopulate;
-                    order.isPromoting = false;
                     let promotionOrderSave = {
                         promotionState: order.promotionState,
                         promotionUnorderable: order.promotionUnorderable,
                         discountTotal: order.discountTotal,
                         promotionFlatDiscount: order.promotionFlatDiscount,
                         promotionDelivery: order.promotionDelivery,
-                        isPromoting: false
                     };
                     // unset lock
                     await Order.update({ id: order.id }, promotionOrderSave).fetch();
                 }
                 catch (error) {
-                    await Order.update({ id: order.id }, { isPromoting: false }).fetch();
                     sails.log.error(`Core > order > promotion calculate fail: `, error);
+                }
+                finally {
+                    order.isPromoting = false;
+                    await Order.update({ id: order.id }, { isPromoting: false }).fetch();
                 }
                 emitter.emit("core-order-after-promotion", order);
             }

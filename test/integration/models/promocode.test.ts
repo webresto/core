@@ -61,5 +61,5 @@ describe("PromotionCodes", function () {
     let result = await Order.findOne(order.id) 
     expect(result.discountTotal).to.equal(0);
     expect(result.total).to.equal(300.3);
-  }); 
+  });
 });
