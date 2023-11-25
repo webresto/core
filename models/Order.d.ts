@@ -255,7 +255,13 @@ declare let Model: {
         user?: string | User;
         customData?: any;
     }>;
-    countCart(criteria: CriteriaQuery<Order>): Promise<Order>;
+    /**
+     * Method for calculating the basket. This is called every time the cart changes.
+     * @param criteria OrderId
+     * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also you should set the isPromoting state in the model
+     * @returns Order
+     */
+    countCart(criteria: CriteriaQuery<Order>, isPromoting?: boolean): Promise<Order>;
     doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
     applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string): Promise<Order>;
 };

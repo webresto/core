@@ -1113,11 +1113,21 @@ let Model = {
     return { ...fullOrder };
   },
 
-
-  async countCart(criteria: CriteriaQuery<Order>) {
+/**
+ * Method for calculating the basket. This is called every time the cart changes.
+ * @param criteria OrderId
+ * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also you should set the isPromoting state in the model
+ * @returns Order
+ */
+  async countCart(criteria: CriteriaQuery<Order>, isPromoting: boolean = false): Promise<Order> {
     try {
 
       let order = await Order.findOne(criteria);
+      if( order.isPromoting !== isPromoting ){
+        sails.log.error(`The order status does not match the passed parameters order.isPromoting [${order.isPromoting}], attribute [${isPromoting}], check your promotions`)
+      }
+      order.isPromoting = isPromoting;
+      
 
       emitter.emit("core-order-before-count", order);
 
@@ -1161,7 +1171,7 @@ let Model = {
               orderDish.amount = dish.balance;
               //It is necessary to delete if the amount is 0
               if (orderDish.amount >= 0) {
-                await Order.removeDish({ id: order.id }, orderDish, 999999);
+                await Order.removeDish({ id: order.id }, orderDish, 99);
               }
               emitter.emit("core-orderdish-change-amount", orderDish);
               sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
