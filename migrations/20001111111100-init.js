@@ -1340,7 +1340,7 @@ exports.up = function (db, callback) {
 },
     ifNotExists: true
   }, cb),
-(cb) => db.createTable('promotion_promotioncode__promotioncode_promotion', {
+(cb) => db.createTable('promotion_promotionCode__promotioncode_promotion', {
     columns: {
     "id": {
         "type": "int",
