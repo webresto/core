@@ -27,6 +27,8 @@ sails.on("lifted", async ()=>{
   for(let i=0; i<promotions.length; i++){
     Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(promotions[i]);
   }
+
+  promotionRAM = await Promotion.find({enable: true, isDeleted: false})
 })
 
 let attributes = {
