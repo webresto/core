@@ -1304,14 +1304,23 @@ async function getOrderDateLimit() {
 }
 function isValidDelivery(delivery) {
     // Check if the required properties exist and have the correct types
+    // {"deliveryTimeMinutes":180,"allowed":true,"message":"","item":"de78c552-71e6-5296-ae07-a5114d4e88bc"}
     if (typeof delivery.deliveryTimeMinutes === 'number' &&
         typeof delivery.allowed === 'boolean' &&
-        typeof delivery.cost === 'number' &&
         typeof delivery.message === 'string') {
-        // Check if 'item' is a string when it's defined
-        if (typeof delivery.item !== 'undefined' && typeof delivery.item !== 'string') {
-            sails.log.error(`Check delivery error delivery is not valid:  ${JSON.stringify(delivery)}`);
-            return false; // 'item' should be a string or undefined
+        if (!delivery.cost && !delivery.item) {
+            sails.log.error(`Check delivery error delivery is not valid:  !delivery.cost && !delivery.item`);
+            return false;
+        }
+        else {
+            if (delivery.cost && typeof delivery.cost !== "number") {
+                sails.log.error(`Check delivery error delivery is not valid:  delivery.cost not number`);
+                return false;
+            }
+            if (delivery.item && typeof delivery.item !== "string") {
+                sails.log.error(`Check delivery error delivery is not valid:  delivery.item not string`);
+                return false;
+            }
         }
         return true;
     }
