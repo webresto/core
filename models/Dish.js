@@ -122,7 +122,7 @@ let attributes = {
         allowNull: true,
     },
     /** Type */
-    type: "string",
+    type: "string", //TODO: product, dish, service
     /** Weight  */
     weight: {
         type: "number",

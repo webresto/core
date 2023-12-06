@@ -157,7 +157,7 @@ let attributes = {
         type: "string",
         allowNull: true
     },
-    message: "string",
+    message: "string", // deprecated
     /**
      * @deprecated use order.delivery.item
      */
@@ -934,7 +934,7 @@ let Model = {
                     if (orderDish.dish && typeof orderDish.dish !== "string") {
                         // Item OrderDish calcualte
                         let itemCost = orderDish.dish.price;
-                        let itemWeight = orderDish.dish.weight;
+                        let itemWeight = orderDish.dish.weight ?? 0;
                         const dish = (await Dish.find({ id: orderDish.dish.id }).limit(1))[0];
                         // Checks that the dish is available for sale
                         if (!dish) {
@@ -992,7 +992,7 @@ let Model = {
                                 // }                
                                 if (!Number(itemCost))
                                     throw `itemCost is NaN ${JSON.stringify(modifier)}.`;
-                                itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight).toNumber();
+                                itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight ?? 0).toNumber();
                             }
                         }
                         orderDish.totalWeight = new decimal_js_1.default(itemWeight).times(orderDish.amount).toNumber();

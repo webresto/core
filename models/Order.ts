@@ -1144,7 +1144,7 @@ let Model = {
             
             // Item OrderDish calcualte
             let itemCost = orderDish.dish.price;
-            let itemWeight = orderDish.dish.weight;
+            let itemWeight = orderDish.dish.weight ?? 0;
           
             
             const dish = (await Dish.find({ id: orderDish.dish.id}).limit(1))[0];
@@ -1219,7 +1219,7 @@ let Model = {
                 // }                
 
                 if (!Number(itemCost)) throw `itemCost is NaN ${JSON.stringify(modifier)}.`
-                itemWeight = new Decimal(itemWeight).plus(modifierObj.weight).toNumber();
+                itemWeight = new Decimal(itemWeight).plus(modifierObj.weight ?? 0).toNumber();
               }
             }
 
