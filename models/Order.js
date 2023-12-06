@@ -235,6 +235,22 @@ let Model = {
         orderInit.state = "CART";
         cb();
     },
+    async afterCreate(order, cb) {
+        /**
+         * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
+         * This creates redundancy in the kernel. But in the current version we will try to run the kernel in this way. Until we switch to stateflow
+         *
+         *  @setting: ORDER_INIT_PRODUCT_ID - Adds a dish to the cart that the user cannot remove, he can only modify it
+         */
+        const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID");
+        if (Boolean(ORDER_INIT_PRODUCT_ID)) {
+            const ORDER_INIT_PRODUCT = (await Dish.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
+            if (ORDER_INIT_PRODUCT !== undefined) {
+                await Order.addDish({ id: order.id }, ORDER_INIT_PRODUCT, 1, [], "", "core");
+            }
+        }
+        cb();
+    },
     /** Add dish into order */
     async addDish(criteria, dish, amount, modifiers, comment, addedBy, replace, orderDishId) {
         await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
@@ -261,6 +277,28 @@ let Model = {
                 });
             }
         }
+        if (dishObj.modifier) {
+            throw new Error(`Dish [${dishObj.id}] is modifier`);
+        }
+        /**
+         * Add defuaul modifiers in add
+         */
+        const dishModifiers = dishObj.modifiers;
+        dishModifiers.forEach(group => {
+            if (group.childModifiers) {
+                group.childModifiers.forEach(modifier => {
+                    if (modifier.defaultAmount) {
+                        const modifierIsAddaed = modifiers.find(m => m.id === modifier.id);
+                        if (!modifierIsAddaed) {
+                            modifiers.push({
+                                id: modifier.id,
+                                amount: modifier.defaultAmount
+                            });
+                        }
+                    }
+                });
+            }
+        });
         let order = await Order.findOne(criteria).populate("dishes");
         if (order.dishes.length > 99)
             throw "99 max dishes amount";
@@ -944,7 +982,7 @@ let Model = {
                     if (orderDish.dish && typeof orderDish.dish !== "string") {
                         // Item OrderDish calcualte
                         let itemCost = orderDish.dish.price;
-                        let itemWeight = orderDish.dish.weight;
+                        let itemWeight = orderDish.dish.weight ?? 0;
                         const dish = (await Dish.find({ id: orderDish.dish.id }).limit(1))[0];
                         // Checks that the dish is available for sale
                         if (!dish) {
@@ -986,8 +1024,29 @@ let Model = {
                                  * Also all checks modifiers need process in current loop thread. Currently we not have access to modifer options
                                  * Here by opts we can pass options for modifiers
                                  */
-                                const modifierCost = new decimal_js_1.default(modifier.amount).times(modifierObj.price).toNumber();
-                                itemCost = new decimal_js_1.default(itemCost).plus(modifierCost).toNumber();
+                                const dishModifiers = dish.modifiers;
+                                let currentModifier = null;
+                                dishModifiers.forEach(group => {
+                                    if (group.childModifiers) {
+                                        group.childModifiers.forEach(_modifier => {
+                                            if (modifier.id === _modifier.id) {
+                                                currentModifier = _modifier;
+                                            }
+                                        });
+                                    }
+                                });
+                                if (!currentModifier) {
+                                    sails.log.error(`Order with id [${order.id}] has unknown modifier [${modifier.id}]`);
+                                }
+                                if (currentModifier.freeOfChargeAmount && typeof currentModifier.freeOfChargeAmount === "number" && currentModifier.freeOfChargeAmount > 0) {
+                                    const freeAmountCost = new decimal_js_1.default(currentModifier.freeOfChargeAmount).times(modifierObj.price).toNumber();
+                                    const modifierCost = new decimal_js_1.default(modifier.amount).times(modifierObj.price).minus(freeAmountCost).toNumber();
+                                    itemCost = new decimal_js_1.default(itemCost).plus(modifierCost).toNumber();
+                                }
+                                else {
+                                    const modifierCost = new decimal_js_1.default(modifier.amount).times(modifierObj.price).toNumber();
+                                    itemCost = new decimal_js_1.default(itemCost).plus(modifierCost).toNumber();
+                                }
                                 // TODO: discountPrice && freeAmount
                                 // // FreeAmount modiefires support
                                 // if (opts.freeAmount && typeof opts.freeAmount === "number") {
@@ -1002,7 +1061,7 @@ let Model = {
                                 // }                
                                 if (!Number(itemCost))
                                     throw `itemCost is NaN ${JSON.stringify(modifier)}.`;
-                                itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight).toNumber();
+                                itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight ?? 0).toNumber();
                             }
                         }
                         orderDish.totalWeight = new decimal_js_1.default(itemWeight).times(orderDish.amount).toNumber();
