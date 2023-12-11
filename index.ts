@@ -1,5 +1,7 @@
 'use strict';
 
+process.env.UNIQUE_SLUG === undefined ? "1" : process.env.UNIQUE_SLUG
+
 export * from './models/BonusProgram';
 export * from './models/Dish';
 export * from './models/Group';
