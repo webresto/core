@@ -15,6 +15,9 @@ async function slugIt(model, name, slugField = 'slug', opts) {
         postfix = " " + opts.join(' ');
     }
     let slug = (0, slugify_1.default)(`${name}${postfix}`, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
+    if (process.env.UNIQUE_SLUG !== "1") {
+        return slug;
+    }
     let criteria = {};
     criteria[slugField] = { contains: slug };
     const count = await sails.models[model].count(criteria);
