@@ -85,7 +85,7 @@ let attributes = {
     /** The human easy readable*/
     slug: {
         type: "string",
-        unique: Boolean(process.env.UNIQUE_SLUG) ?? true
+        unique: process.env.UNIQUE_SLUG === "1"
     },
     /** The concept to which the group belongs */
     concept: "string",
@@ -111,7 +111,7 @@ let Model = {
             init.concept = "origin";
         }
         const slugOpts = [];
-        if (init.concept !== "origin" && Boolean(process.env.UNIQUE_SLUG)) {
+        if (init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
             slugOpts.push(init.concept);
         }
         init.slug = await (0, slugIt_1.slugIt)("group", init.name, "slug", slugOpts);

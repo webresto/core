@@ -201,7 +201,7 @@ let attributes = {
   /** The human easy readable */
   slug: {
     type: "string",
-    unique: Boolean(process.env.UNIQUE_SLUG) ?? true
+    unique: process.env.UNIQUE_SLUG === "1"
   } as unknown as string,
 
   /** The concept to which the dish belongs */
@@ -259,7 +259,7 @@ let Model = {
     } 
     
     const slugOpts = [];
-    if(init.concept !== "origin" && Boolean(process.env.UNIQUE_SLUG)) {
+    if(init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
       slugOpts.push(init.concept)
     }
 
