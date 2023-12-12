@@ -57,7 +57,9 @@ let Model = {
   },
 
   beforeCreate: function (maintenance, cb:  (err?: string) => void) {
-    maintenance.id = uuid();
+    if(!maintenance.id){
+      maintenance.id = uuid();
+    }
     cb();
   },
 

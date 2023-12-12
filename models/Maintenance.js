@@ -41,7 +41,9 @@ let Model = {
         cb();
     },
     beforeCreate: function (maintenance, cb) {
-        maintenance.id = (0, uuid_1.v4)();
+        if (!maintenance.id) {
+            maintenance.id = (0, uuid_1.v4)();
+        }
         cb();
     },
     siteIsOff: async function () {
