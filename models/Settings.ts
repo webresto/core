@@ -67,13 +67,13 @@ let Model = {
 
   afterUpdate: function (record: Settings, cb:  (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
-    settings[record.key] = record.value;
+    settings[record.key] = cleanValue(record.value);
     cb();
   },
 
   afterCreate: function (record: Settings, cb:  (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
-    settings[record.key] = record.value;
+    settings[record.key] = cleanValue(record.value);
     return cb();
   },
 

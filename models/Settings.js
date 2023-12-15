@@ -42,12 +42,12 @@ let Model = {
     },
     afterUpdate: function (record, cb) {
         emitter.emit(`settings:${record.key}`, record);
-        settings[record.key] = record.value;
+        settings[record.key] = cleanValue(record.value);
         cb();
     },
     afterCreate: function (record, cb) {
         emitter.emit(`settings:${record.key}`, record);
-        settings[record.key] = record.value;
+        settings[record.key] = cleanValue(record.value);
         return cb();
     },
     /** retrun setting value by key */

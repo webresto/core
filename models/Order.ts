@@ -1556,19 +1556,24 @@ async function checkDate(order: Order) {
   if (order.date) {
     const date = new Date(order.date);
 
-    function isDateInPast(date, timeZone) {
+    function isDateInPast(date: string, timeZone: string) {
       let currentDate = new Date();
       let currentTimestamp = currentDate.getTime();
       let targetDate = new Date(date);
       
-      if (!timeZone) {
-        timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      //  is eqials timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      let targetTimestamp
+      try {
+        targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
+      } catch (error) {
+        sails.log.error(`TimeZone not defined. TZ: [${timeZone}]`)
+        targetTimestamp = new Date(targetDate.toLocaleString('en')).getTime();
       }
-      let targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone })).getTime();
+
       return targetTimestamp < currentTimestamp;
     }
 
-    const timezone = await Settings.get('TZ') ?? process.env.TZ ?? 'Etc/GMT';
+    const timezone = await Settings.get('TZ') as string ?? 'Etc/GMT';
 
     if (isDateInPast(order.date, timezone)) {
       throw {
