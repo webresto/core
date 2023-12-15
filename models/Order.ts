@@ -19,7 +19,7 @@ import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import PromotionCode from "./PromotionCode";
-import { checkPhoneByMask } from "../libs/checkPhoneByMask";
+import { phoneValidByMask } from "../libs/phoneValidByMask";
 
 export interface PromotionState {
   type: string;
@@ -1499,7 +1499,7 @@ async function checkCustomerInfo(customer) {
 
   for (let countryCode of allowedPhoneCountries) {
     const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-    isValidPhone = checkPhoneByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
+    isValidPhone = phoneValidByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
     if (isValidPhone) break;
   }
 
