@@ -7,7 +7,7 @@ export function phoneValidByMask(phoneNumber: string, countryCode: string, phone
   }
 
   for (const mask of phoneMasks) {
-    const maskDigits: string[] = mask.replace(/-/g, '').split('');
+    const maskDigits: string[] = mask.replace(/[^\d#]/g, '').split('');
     const phoneNumberDigits: string[] = cleanedPhoneNumber.slice(codeWithoutPlus.length).split('');
 
     if (maskDigits.length === phoneNumberDigits.length) {

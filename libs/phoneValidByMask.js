@@ -8,7 +8,7 @@ function phoneValidByMask(phoneNumber, countryCode, phoneMasks) {
         return false;
     }
     for (const mask of phoneMasks) {
-        const maskDigits = mask.replace(/-/g, '').split('');
+        const maskDigits = mask.replace(/[^\d#]/g, '').split('');
         const phoneNumberDigits = cleanedPhoneNumber.slice(codeWithoutPlus.length).split('');
         if (maskDigits.length === phoneNumberDigits.length) {
             let isValid = true;

@@ -1503,24 +1503,20 @@ async function checkCustomerInfo(customer) {
     if (isValidPhone) break;
   }
 
-  try {
-    const nameRegex = await Settings.use("nameRegex") as string;
-    if (nameRegex) {
-      if (!nameRegex.match(customer.name)) {
-        throw {
-          code: 3,
-          error: "customer.name is invalid",
-        };
-      }
-    }
-    if (!isValidPhone) {
+  const nameRegex = await Settings.use("nameRegex") as string;
+  if (nameRegex) {
+    if (!nameRegex.match(customer.name)) {
       throw {
-        code: 4,
-        error: "customer.phone is invalid",
+        code: 3,
+        error: "customer.name is invalid",
       };
     }
-  } catch (error) {
-    sails.log.warn("CART > check user info regex: ", error);
+  }
+  if (!isValidPhone) {
+    throw {
+      code: 4,
+      error: "customer.phone is invalid",
+    };
   }
 }
 
