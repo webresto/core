@@ -127,7 +127,7 @@ let Model = {
   async get(key: string): Promise<SettingValue> { 
     key = toScreamingSnake(key);
     if (settings[key] !== undefined) {
-      return settings[key];
+      return cleanValue(settings[key]);
     } else  {
       const value = await Settings.use(key)
       settings[key] = value

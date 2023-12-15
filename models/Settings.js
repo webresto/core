@@ -96,7 +96,7 @@ let Model = {
     async get(key) {
         key = toScreamingSnake(key);
         if (settings[key] !== undefined) {
-            return settings[key];
+            return cleanValue(settings[key]);
         }
         else {
             const value = await Settings.use(key);
