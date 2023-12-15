@@ -19,6 +19,7 @@ import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import PromotionCode from "./PromotionCode";
+import { checkPhoneByMask } from "../libs/checkPhoneByMask";
 
 export interface PromotionState {
   type: string;
@@ -1215,7 +1216,7 @@ let Model = {
               orderDish.amount = dish.balance;
               //It is necessary to delete if the amount is 0
               if (orderDish.amount >= 0) {
-                await Order.removeDish({ id: order.id }, orderDish, 99);
+                await Order.removeDish({ id: order.id }, orderDish, 999999);
               }
               emitter.emit("core-orderdish-change-amount", orderDish);
               sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
@@ -1562,6 +1563,7 @@ async function checkCustomerInfo(customer) {
       error: "customer.name is required",
     };
   }
+
   if (!customer.phone) {
     throw {
       code: 2,
@@ -1569,11 +1571,27 @@ async function checkCustomerInfo(customer) {
     };
   }
 
-  // TODO: updte regex
+  if (!customer.phone.code || !customer.phone.number) {
+    throw {
+      code: 2,
+      error: "customer.phone is required",
+    };
+  }
+
+
+
+  let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES") as string | string[];
+  if (typeof allowedPhoneCountries === "string") allowedPhoneCountries = [allowedPhoneCountries];
+  let isValidPhone = false;
+
+  for (let countryCode of allowedPhoneCountries) {
+    const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
+    isValidPhone = checkPhoneByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
+    if (isValidPhone) break;
+  }
+
   try {
     const nameRegex = await Settings.use("nameRegex") as string;
-    const phoneRegex = await Settings.use("phoneRegex") as string;
-
     if (nameRegex) {
       if (!nameRegex.match(customer.name)) {
         throw {
@@ -1582,13 +1600,11 @@ async function checkCustomerInfo(customer) {
         };
       }
     }
-    if (phoneRegex) {
-      if (!phoneRegex.match(customer.phone)) {
-        throw {
-          code: 4,
-          error: "customer.phone is invalid",
-        };
-      }
+    if (!isValidPhone) {
+      throw {
+        code: 4,
+        error: "customer.phone is invalid",
+      };
     }
   } catch (error) {
     sails.log.warn("CART > check user info regex: ", error);
@@ -1627,13 +1643,30 @@ async function checkPaymentMethod(paymentMethodId) {
   }
 }
 
-async function orderAction() {
-
-}
-
 async function checkDate(order: Order) {
   if (order.date) {
     const date = new Date(order.date);
+
+    function isDateInPast(date, timeZone) {
+      let currentDate = new Date();
+      let currentTimestamp = currentDate.getTime();
+      let targetDate = new Date(date);
+      
+      if (!timeZone) {
+        timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      }
+      let targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone })).getTime();
+      return targetTimestamp < currentTimestamp;
+    }
+
+    const timezone = await Settings.get('TZ') ?? process.env.TZ ?? 'Etc/GMT';
+
+    if (isDateInPast(order.date, timezone)) {
+      throw {
+        code: 15,
+        error: "date is past",
+      };
+    }
 
     if (date instanceof Date === true && !date.toJSON()) {
       throw {
@@ -1670,17 +1703,28 @@ async function getOrderDateLimit(): Promise<Date> {
 
 function isValidDelivery(delivery: Delivery): boolean {
   // Check if the required properties exist and have the correct types
+  // {"deliveryTimeMinutes":180,"allowed":true,"message":"","item":"de78c552-71e6-5296-ae07-a5114d4e88bc"}
   if (
     typeof delivery.deliveryTimeMinutes === 'number' &&
     typeof delivery.allowed === 'boolean' &&
-    typeof delivery.cost === 'number' &&
     typeof delivery.message === 'string'
   ) {
-    // Check if 'item' is a string when it's defined
-    if (typeof delivery.item !== 'undefined' && typeof delivery.item !== 'string') {
-      sails.log.error(`Check delivery error delivery is not valid:  ${JSON.stringify(delivery)}`)
-      return false; // 'item' should be a string or undefined
+
+    if (!delivery.cost && !delivery.item) {
+      sails.log.error(`Check delivery error delivery is not valid:  !delivery.cost && !delivery.item`)
+      return false
+    } else {
+      if (delivery.cost && typeof delivery.cost !== "number") {
+        sails.log.error(`Check delivery error delivery is not valid:  delivery.cost not number`)
+        return false
+      }
+
+      if (delivery.item && typeof delivery.item !== "string") {
+        sails.log.error(`Check delivery error delivery is not valid:  delivery.item not string`)
+        return false
+      }
     }
+
     return true;
   }
 

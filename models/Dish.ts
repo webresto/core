@@ -356,7 +356,7 @@ let Model = {
               throw `Group modifierId or rmsId not found`
             }
 
-            dish.modifiers[index].group = await Group.find(criteria).limit(1)[0];
+            dish.modifiers[index].group = (await Group.find(criteria).limit(1))[0];
           }
           
           if (!modifier.childModifiers) modifier.childModifiers = [];
@@ -374,7 +374,7 @@ let Model = {
               throw `Dish modifierId or rmsId not found`
             }
 
-            let childModifierDish = await Dish.find(criteria).populate('images').limit(1)[0]
+            let childModifierDish = (await Dish.find({where: criteria, limit: 1}).populate('images'))[0]
             if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)){
               // delete if dish not found
               sails.log.warn("DISH > getDishModifiers: Modifier "+ childModifier.modifierId +" from dish:"+dish.name+" not found")
