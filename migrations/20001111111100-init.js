@@ -220,8 +220,7 @@ exports.up = function (db, callback) {
         "defaultValue": -1
     },
     "slug": {
-        "type": "text",
-        "unique": "true"
+        "type": "text"
     },
     "concept": {
         "type": "text"
@@ -310,8 +309,7 @@ exports.up = function (db, callback) {
         "type": "text"
     },
     "slug": {
-        "type": "text",
-        "unique": "true"
+        "type": "text"
     },
     "concept": {
         "type": "text"
