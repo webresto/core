@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
-const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 let attributes = {
     /** Id  */
     id: {
@@ -236,6 +235,22 @@ let Model = {
         orderInit.state = "CART";
         cb();
     },
+    async afterCreate(order, cb) {
+        /**
+         * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
+         * This creates redundancy in the kernel. But in the current version we will try to run the kernel in this way. Until we switch to stateflow
+         *
+         *  @setting: ORDER_INIT_PRODUCT_ID - Adds a dish to the cart that the user cannot remove, he can only modify it
+         */
+        const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID");
+        if (Boolean(ORDER_INIT_PRODUCT_ID)) {
+            const ORDER_INIT_PRODUCT = (await Dish.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
+            if (ORDER_INIT_PRODUCT !== undefined) {
+                await Order.addDish({ id: order.id }, ORDER_INIT_PRODUCT, 1, [], "", "core");
+            }
+        }
+        cb();
+    },
     /** Add dish into order */
     async addDish(criteria, dish, amount, modifiers, comment, addedBy, replace, orderDishId) {
         await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
@@ -262,6 +277,28 @@ let Model = {
                 });
             }
         }
+        if (dishObj.modifier) {
+            throw new Error(`Dish [${dishObj.id}] is modifier`);
+        }
+        /**
+         * Add defuaul modifiers in add
+         */
+        const dishModifiers = dishObj.modifiers;
+        dishModifiers.forEach(group => {
+            if (group.childModifiers) {
+                group.childModifiers.forEach(modifier => {
+                    if (modifier.defaultAmount) {
+                        const modifierIsAddaed = modifiers.find(m => m.id === modifier.id);
+                        if (!modifierIsAddaed) {
+                            modifiers.push({
+                                id: modifier.id,
+                                amount: modifier.defaultAmount
+                            });
+                        }
+                    }
+                });
+            }
+        });
         let order = await Order.findOne(criteria).populate("dishes");
         if (order.dishes.length > 99)
             throw "99 max dishes amount";
@@ -1228,7 +1265,7 @@ async function checkCustomerInfo(customer) {
     let isValidPhone = false;
     for (let countryCode of allowedPhoneCountries) {
         const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-        isValidPhone = (0, phoneValidByMask_1.phoneValidByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
+        isValidPhone = phoneValidByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
         if (isValidPhone)
             break;
     }
@@ -1283,30 +1320,27 @@ async function checkDate(order) {
             let currentDate = new Date();
             let currentTimestamp = currentDate.getTime();
             let targetDate = new Date(date);
-            //  is eqials timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            let targetTimestamp;
-            try {
-                targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
+            if (!timeZone) {
+                timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             }
-            catch (error) {
-                sails.log.error(`TimeZone not defined. TZ: [${timeZone}]`);
-                targetTimestamp = new Date(targetDate.toLocaleString('en')).getTime();
-            }
+            let targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone })).getTime();
             return targetTimestamp < currentTimestamp;
         }
-        const timezone = await Settings.get('TZ') ?? 'Etc/GMT';
+        const timezone = await Settings.get('TZ') ?? process.env.TZ ?? 'Etc/GMT';
         if (isDateInPast(order.date, timezone)) {
             throw {
                 code: 15,
                 error: "date is past",
             };
         }
+        // date is Date
         if (date instanceof Date === true && !date.toJSON()) {
             throw {
                 code: 9,
                 error: "date is not valid",
             };
         }
+        // Limit order date
         const possibleDatetime = await getOrderDateLimit();
         if (date.getTime() > possibleDatetime.getTime()) {
             sails.log.error(`Order checkDate: ${date.getTime()} > ${possibleDatetime.getTime()} = ${date.getTime() > possibleDatetime.getTime()}`);
@@ -1315,6 +1349,15 @@ async function checkDate(order) {
                 error: "delivery far, far away! allowed not after" + possibleDatetime,
             };
         }
+        // Maintenance date check
+        let maintenance = await Maintenance.getActiveMaintenance(order.date);
+        if (maintenance) {
+            throw {
+                code: 16,
+                error: "date not allowed",
+            };
+        }
+        // Todo: check worktime
     }
 }
 /**
