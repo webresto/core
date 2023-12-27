@@ -220,7 +220,8 @@ exports.up = function (db, callback) {
         "defaultValue": -1
     },
     "slug": {
-        "type": "text"
+        "type": "text",
+        "unique": process.env.UNIQUE_SLUG === "1"
     },
     "concept": {
         "type": "text"
@@ -309,7 +310,8 @@ exports.up = function (db, callback) {
         "type": "text"
     },
     "slug": {
-        "type": "text"
+        "type": "text",
+        "unique": process.env.UNIQUE_SLUG === "1"
     },
     "concept": {
         "type": "text"
