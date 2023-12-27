@@ -1647,6 +1647,7 @@ async function checkDate(order: Order) {
   if (order.date) {
     const date = new Date(order.date);
 
+    // Check past date
     function isDateInPast(date, timeZone) {
       let currentDate = new Date();
       let currentTimestamp = currentDate.getTime();
@@ -1668,6 +1669,7 @@ async function checkDate(order: Order) {
       };
     }
 
+    // date is Date
     if (date instanceof Date === true && !date.toJSON()) {
       throw {
         code: 9,
@@ -1675,6 +1677,7 @@ async function checkDate(order: Order) {
       };
     }
 
+    // Limit order date
     const possibleDatetime = await getOrderDateLimit();
     if (date.getTime() > possibleDatetime.getTime()) {
       sails.log.error(`Order checkDate: ${date.getTime()} > ${possibleDatetime.getTime()} = ${date.getTime() > possibleDatetime.getTime()}`)
@@ -1683,6 +1686,17 @@ async function checkDate(order: Order) {
         error: "delivery far, far away! allowed not after" + possibleDatetime,
       };
     }
+
+    // Maintenance date check
+    let maintenance =  await Maintenance.getActiveMaintenance(order.date);
+    if(maintenance) {
+      throw {
+        code: 16,
+        error: "date not allowed",
+      };
+    }
+
+    // Todo: check worktime
   }
 }
 
