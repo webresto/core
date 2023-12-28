@@ -1,4 +1,4 @@
-import { Modifier, OrderModifier } from "../interfaces/Modifier";
+import { OrderModifier } from "../interfaces/Modifier";
 import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import OrderDish from "./OrderDish";
@@ -19,7 +19,7 @@ import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import PromotionCode from "./PromotionCode";
-import { checkPhoneByMask } from "../libs/checkPhoneByMask";
+import { phoneValidByMask } from "../libs/phoneValidByMask";
 
 export interface PromotionState {
   type: string;
@@ -315,24 +315,6 @@ let Model = {
     cb();
   },
 
-  async afterCreate(order: Order, cb: (err?: string) => void) {
-    /**
-     * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
-     * This creates redundancy in the kernel. But in the current version we will try to run the kernel in this way. Until we switch to stateflow
-     *
-     *  @setting: ORDER_INIT_PRODUCT_ID - Adds a dish to the cart that the user cannot remove, he can only modify it
-     */
-
-    const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID") as string;
-    if (Boolean(ORDER_INIT_PRODUCT_ID)) {
-      const ORDER_INIT_PRODUCT = (await Dish.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
-      if(ORDER_INIT_PRODUCT !== undefined) {
-        await Order.addDish({id: order.id}, ORDER_INIT_PRODUCT, 1, [],"", "core")
-      }
-    }
-    cb();
-  },
-
   /** Add dish into order */
   async addDish(
     criteria: CriteriaQuery<Order>,
@@ -373,32 +355,6 @@ let Model = {
         });
       }
     }
-
-    if(dishObj.modifier){
-      throw new Error(`Dish [${dishObj.id}] is modifier`)
-    }
-
-    /**
-     * Add defuaul modifiers in add
-     */
-    const dishModifiers = dishObj.modifiers;   
-    dishModifiers.forEach(group =>{
-      if(group.childModifiers) {
-        group.childModifiers.forEach( modifier => {
-          if( modifier.defaultAmount ){
-            const modifierIsAddaed = modifiers.find( m => m.id === modifier.id )
-            if(!modifierIsAddaed) {
-              modifiers.push(
-                {
-                  id: modifier.id,
-                  amount: modifier.defaultAmount
-                }
-              )
-            }
-          }
-        })
-      }
-    })
 
     let order = await Order.findOne(criteria).populate("dishes");
 
@@ -1543,7 +1499,7 @@ async function checkCustomerInfo(customer) {
 
   for (let countryCode of allowedPhoneCountries) {
     const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-    isValidPhone = checkPhoneByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
+    isValidPhone = phoneValidByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
     if (isValidPhone) break;
   }
 
@@ -1605,14 +1561,19 @@ async function checkDate(order: Order) {
       let currentTimestamp = currentDate.getTime();
       let targetDate = new Date(date);
       
-      if (!timeZone) {
-        timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      //  is eqials timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      let targetTimestamp
+      try {
+        targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
+      } catch (error) {
+        sails.log.error(`TimeZone not defined. TZ: [${timeZone}]`)
+        targetTimestamp = new Date(targetDate.toLocaleString('en')).getTime();
       }
-      let targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone })).getTime();
+
       return targetTimestamp < currentTimestamp;
     }
 
-    const timezone = await Settings.get('TZ') ?? process.env.TZ ?? 'Etc/GMT';
+    const timezone = await Settings.get('TZ') as string ?? 'Etc/GMT';
 
     if (isDateInPast(order.date, timezone)) {
       throw {
@@ -1621,7 +1582,6 @@ async function checkDate(order: Order) {
       };
     }
 
-    // date is Date
     if (date instanceof Date === true && !date.toJSON()) {
       throw {
         code: 9,
@@ -1629,7 +1589,6 @@ async function checkDate(order: Order) {
       };
     }
 
-    // Limit order date
     const possibleDatetime = await getOrderDateLimit();
     if (date.getTime() > possibleDatetime.getTime()) {
       sails.log.error(`Order checkDate: ${date.getTime()} > ${possibleDatetime.getTime()} = ${date.getTime() > possibleDatetime.getTime()}`)
@@ -1647,8 +1606,6 @@ async function checkDate(order: Order) {
         error: "date not allowed",
       };
     }
-
-    // Todo: check worktime
   }
 }
 
