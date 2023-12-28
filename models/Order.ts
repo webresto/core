@@ -1543,7 +1543,7 @@ async function checkCustomerInfo(customer) {
 
   for (let countryCode of allowedPhoneCountries) {
     const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-    isValidPhone = phoneValidByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
+    isValidPhone = checkPhoneByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
     if (isValidPhone) break;
   }
 

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
+const checkPhoneByMask_1 = require("../libs/checkPhoneByMask");
 let attributes = {
     /** Id  */
     id: {
@@ -1265,7 +1266,7 @@ async function checkCustomerInfo(customer) {
     let isValidPhone = false;
     for (let countryCode of allowedPhoneCountries) {
         const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-        isValidPhone = phoneValidByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
+        isValidPhone = (0, checkPhoneByMask_1.checkPhoneByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
         if (isValidPhone)
             break;
     }
