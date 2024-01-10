@@ -1708,7 +1708,7 @@ async function checkDate(order: Order) {
 // TODO: refactor possibleToOrderInMinutes from seconds to full work days
 async function getOrderDateLimit(): Promise<Date> {
   let date = new Date();
-  let possibleToOrderInMinutes: string = await Settings.use("possibleToOrderInMinutes") as string; //minutes
+  let possibleToOrderInMinutes = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES") as string //minutes
   if (!possibleToOrderInMinutes) possibleToOrderInMinutes = "1440";
 
   date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));
