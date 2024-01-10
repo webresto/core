@@ -1332,7 +1332,7 @@ async function checkDate(order) {
 // TODO: refactor possibleToOrderInMinutes from seconds to full work days
 async function getOrderDateLimit() {
     let date = new Date();
-    let possibleToOrderInMinutes = await Settings.use("possibleToOrderInMinutes"); //minutes
+    let possibleToOrderInMinutes = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES"); //minutes
     if (!possibleToOrderInMinutes)
         possibleToOrderInMinutes = "1440";
     date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));
