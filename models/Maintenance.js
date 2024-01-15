@@ -51,7 +51,7 @@ let Model = {
         return maintenances ? true : false;
     },
     // TODO: add turnSiteOff method
-    getActiveMaintenance: async function () {
+    getActiveMaintenance: async function (date) {
         // TODO: here need add worktime support
         let maintenances = await Maintenance.find({ enable: true });
         maintenances = maintenances.filter((maintenance) => {
@@ -70,7 +70,7 @@ let Model = {
             if (maintenance.stopDate) {
                 stop = new Date(maintenance.stopDate).getTime();
             }
-            const now = new Date().getTime();
+            let now = date === undefined ? new Date().getTime() : new Date(date).getTime();
             return between(start, stop, now);
         });
         return maintenances[0];

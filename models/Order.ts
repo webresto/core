@@ -19,7 +19,7 @@ import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import PromotionCode from "./PromotionCode";
-import { checkPhoneByMask } from "../libs/checkPhoneByMask";
+import { phoneValidByMask } from "../libs/phoneValidByMask";
 
 export interface PromotionState {
   type: string;
@@ -1586,28 +1586,24 @@ async function checkCustomerInfo(customer) {
 
   for (let countryCode of allowedPhoneCountries) {
     const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-    isValidPhone = checkPhoneByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
+    isValidPhone = phoneValidByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
     if (isValidPhone) break;
   }
 
-  try {
-    const nameRegex = await Settings.use("nameRegex") as string;
-    if (nameRegex) {
-      if (!nameRegex.match(customer.name)) {
-        throw {
-          code: 3,
-          error: "customer.name is invalid",
-        };
-      }
-    }
-    if (!isValidPhone) {
+  const nameRegex = await Settings.use("nameRegex") as string;
+  if (nameRegex) {
+    if (!nameRegex.match(customer.name)) {
       throw {
-        code: 4,
-        error: "customer.phone is invalid",
+        code: 3,
+        error: "customer.name is invalid",
       };
     }
-  } catch (error) {
-    sails.log.warn("CART > check user info regex: ", error);
+  }
+  if (!isValidPhone) {
+    throw {
+      code: 4,
+      error: "customer.phone is invalid",
+    };
   }
 }
 
@@ -1647,20 +1643,24 @@ async function checkDate(order: Order) {
   if (order.date) {
     const date = new Date(order.date);
 
-    // Check past date
-    function isDateInPast(date, timeZone) {
+    function isDateInPast(date: string, timeZone: string) {
       let currentDate = new Date();
       let currentTimestamp = currentDate.getTime();
       let targetDate = new Date(date);
       
-      if (!timeZone) {
-        timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      //  is eqials timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      let targetTimestamp
+      try {
+        targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
+      } catch (error) {
+        sails.log.error(`TimeZone not defined. TZ: [${timeZone}]`)
+        targetTimestamp = new Date(targetDate.toLocaleString('en')).getTime();
       }
-      let targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone })).getTime();
+
       return targetTimestamp < currentTimestamp;
     }
 
-    const timezone = await Settings.get('TZ') ?? process.env.TZ ?? 'Etc/GMT';
+    const timezone = await Settings.get('TZ') as string ?? 'Etc/GMT';
 
     if (isDateInPast(order.date, timezone)) {
       throw {
@@ -1695,8 +1695,6 @@ async function checkDate(order: Order) {
         error: "date not allowed",
       };
     }
-
-    // Todo: check worktime
   }
 }
 
@@ -1708,7 +1706,7 @@ async function checkDate(order: Order) {
 // TODO: refactor possibleToOrderInMinutes from seconds to full work days
 async function getOrderDateLimit(): Promise<Date> {
   let date = new Date();
-  let possibleToOrderInMinutes = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES") as string //minutes
+  let possibleToOrderInMinutes: string = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES") as string; //minutes
   if (!possibleToOrderInMinutes) possibleToOrderInMinutes = "1440";
 
   date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));

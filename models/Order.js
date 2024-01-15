@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
-const checkPhoneByMask_1 = require("../libs/checkPhoneByMask");
+const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 let attributes = {
     /** Id  */
     id: {
@@ -1310,29 +1310,24 @@ async function checkCustomerInfo(customer) {
     let isValidPhone = false;
     for (let countryCode of allowedPhoneCountries) {
         const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-        isValidPhone = (0, checkPhoneByMask_1.checkPhoneByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
+        isValidPhone = (0, phoneValidByMask_1.phoneValidByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
         if (isValidPhone)
             break;
     }
-    try {
-        const nameRegex = await Settings.use("nameRegex");
-        if (nameRegex) {
-            if (!nameRegex.match(customer.name)) {
-                throw {
-                    code: 3,
-                    error: "customer.name is invalid",
-                };
-            }
-        }
-        if (!isValidPhone) {
+    const nameRegex = await Settings.use("nameRegex");
+    if (nameRegex) {
+        if (!nameRegex.match(customer.name)) {
             throw {
-                code: 4,
-                error: "customer.phone is invalid",
+                code: 3,
+                error: "customer.name is invalid",
             };
         }
     }
-    catch (error) {
-        sails.log.warn("CART > check user info regex: ", error);
+    if (!isValidPhone) {
+        throw {
+            code: 4,
+            error: "customer.phone is invalid",
+        };
     }
 }
 function checkAddress(address) {
@@ -1370,13 +1365,18 @@ async function checkDate(order) {
             let currentDate = new Date();
             let currentTimestamp = currentDate.getTime();
             let targetDate = new Date(date);
-            if (!timeZone) {
-                timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            //  is eqials timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            let targetTimestamp;
+            try {
+                targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
             }
-            let targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone })).getTime();
+            catch (error) {
+                sails.log.error(`TimeZone not defined. TZ: [${timeZone}]`);
+                targetTimestamp = new Date(targetDate.toLocaleString('en')).getTime();
+            }
             return targetTimestamp < currentTimestamp;
         }
-        const timezone = await Settings.get('TZ') ?? process.env.TZ ?? 'Etc/GMT';
+        const timezone = await Settings.get('TZ') ?? 'Etc/GMT';
         if (isDateInPast(order.date, timezone)) {
             throw {
                 code: 15,
@@ -1397,6 +1397,14 @@ async function checkDate(order) {
                 error: "delivery far, far away! allowed not after" + possibleDatetime,
             };
         }
+        // Maintenance date check
+        let maintenance = await Maintenance.getActiveMaintenance(order.date);
+        if (maintenance) {
+            throw {
+                code: 16,
+                error: "date not allowed",
+            };
+        }
     }
 }
 /**
@@ -1406,7 +1414,7 @@ async function checkDate(order) {
 // TODO: refactor possibleToOrderInMinutes from seconds to full work days
 async function getOrderDateLimit() {
     let date = new Date();
-    let possibleToOrderInMinutes = await Settings.use("possibleToOrderInMinutes"); //minutes
+    let possibleToOrderInMinutes = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES"); //minutes
     if (!possibleToOrderInMinutes)
         possibleToOrderInMinutes = "1440";
     date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));
