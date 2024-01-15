@@ -996,7 +996,7 @@ let Model = {
                             orderDish.amount = dish.balance;
                             //It is necessary to delete if the amount is 0
                             if (orderDish.amount >= 0) {
-                                await Order.removeDish({ id: order.id }, orderDish, 99);
+                                await Order.removeDish({ id: order.id }, orderDish, 999999);
                             }
                             emitter.emit("core-orderdish-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
@@ -1383,12 +1383,14 @@ async function checkDate(order) {
                 error: "date is past",
             };
         }
+        // date is Date
         if (date instanceof Date === true && !date.toJSON()) {
             throw {
                 code: 9,
                 error: "date is not valid",
             };
         }
+        // Limit order date
         const possibleDatetime = await getOrderDateLimit();
         if (date.getTime() > possibleDatetime.getTime()) {
             sails.log.error(`Order checkDate: ${date.getTime()} > ${possibleDatetime.getTime()} = ${date.getTime() > possibleDatetime.getTime()}`);

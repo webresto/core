@@ -332,6 +332,7 @@ let Model = {
         allGroups.push(initialGroup);
         const childGroups = await getAllChildGroups(groupId);
         allGroups = allGroups.concat(childGroups);
+        allGroups.sort((a, b) => a.sortOrder - b.sortOrder);
       }
     }
 
@@ -345,8 +346,11 @@ let Model = {
         allChildGroups = allChildGroups.concat(subChildGroups);
       }
     
+      allChildGroups.sort((a, b) => a.sortOrder - b.sortOrder);
+    
       return allChildGroups;
     }
+    
 
     if(option === "flat_tree") {
       return allGroups;

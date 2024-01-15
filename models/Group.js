@@ -266,6 +266,7 @@ let Model = {
                 allGroups.push(initialGroup);
                 const childGroups = await getAllChildGroups(groupId);
                 allGroups = allGroups.concat(childGroups);
+                allGroups.sort((a, b) => a.sortOrder - b.sortOrder);
             }
         }
         async function getAllChildGroups(groupId) {
@@ -276,6 +277,7 @@ let Model = {
                 const subChildGroups = await getAllChildGroups(group.id);
                 allChildGroups = allChildGroups.concat(subChildGroups);
             }
+            allChildGroups.sort((a, b) => a.sortOrder - b.sortOrder);
             return allChildGroups;
         }
         if (option === "flat_tree") {
