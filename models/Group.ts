@@ -413,7 +413,7 @@ let Model = {
       }
     } 
 
-    return groups
+    return groups.sort((a, b) => a.sortOrder - b.sortOrder);
   },
 
   /**

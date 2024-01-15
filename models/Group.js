@@ -333,7 +333,7 @@ let Model = {
                     groups = childs;
             }
         }
-        return groups;
+        return groups.sort((a, b) => a.sortOrder - b.sortOrder);
     },
     /**
      * Checks whether the group exists, if it does not exist, then creates a new one and returns it.
