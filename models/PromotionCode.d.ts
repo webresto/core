@@ -14,6 +14,7 @@ declare let attributes: {
     startDate: string;
     stopDate: string;
     workTime: WorkTime;
+    description: string;
     code: string;
     promotion: string | Promotion[];
     generateConfig: any;

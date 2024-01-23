@@ -42,12 +42,18 @@ let attributes = {
   startDate: "string",
   stopDate: "string",
   workTime: "json" as unknown as WorkTime,
+  
+  description: {
+    type: "string",
+    required: true,
+  } as unknown as string,
 
   code: {
     type: "string",
     allowNull: true
   } as unknown as string,
-
+ 
+  // TODO: Add interval to allow for use again
   promotion: {
     collection: "promotion",
     via: "promotionCode",

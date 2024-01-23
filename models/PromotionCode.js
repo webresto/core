@@ -33,10 +33,15 @@ let attributes = {
     startDate: "string",
     stopDate: "string",
     workTime: "json",
+    description: {
+        type: "string",
+        required: true,
+    },
     code: {
         type: "string",
         allowNull: true
     },
+    // TODO: Add interval to allow for use again
     promotion: {
         collection: "promotion",
         via: "promotionCode",

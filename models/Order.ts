@@ -92,6 +92,11 @@ let attributes = {
     model: "promotionCode",
   } as unknown as PromotionCode | string,
 
+  promotionCodeDescription: {
+    type: "string",
+    allowNull: true
+  } as unknown as string,
+
   promotionCodeString: {
     type: "string",
     allowNull: true
@@ -326,8 +331,8 @@ let Model = {
     const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID") as string;
     if (Boolean(ORDER_INIT_PRODUCT_ID)) {
       const ORDER_INIT_PRODUCT = (await Dish.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
-      if(ORDER_INIT_PRODUCT !== undefined) {
-        await Order.addDish({id: order.id}, ORDER_INIT_PRODUCT, 1, [],"", "core")
+      if (ORDER_INIT_PRODUCT !== undefined) {
+        await Order.addDish({ id: order.id }, ORDER_INIT_PRODUCT, 1, [], "", "core")
       }
     }
     cb();
@@ -374,20 +379,20 @@ let Model = {
       }
     }
 
-    if(dishObj.modifier){
+    if (dishObj.modifier) {
       throw new Error(`Dish [${dishObj.id}] is modifier`)
     }
 
     /**
      * Add defuaul modifiers in add
      */
-    const dishModifiers = dishObj.modifiers;   
-    dishModifiers.forEach(group =>{
-      if(group.childModifiers) {
-        group.childModifiers.forEach( modifier => {
-          if( modifier.defaultAmount ){
-            const modifierIsAddaed = modifiers.find( m => m.id === modifier.id )
-            if(!modifierIsAddaed) {
+    const dishModifiers = dishObj.modifiers;
+    dishModifiers.forEach(group => {
+      if (group.childModifiers) {
+        group.childModifiers.forEach(modifier => {
+          if (modifier.defaultAmount) {
+            const modifierIsAddaed = modifiers.find(m => m.id === modifier.id)
+            if (!modifierIsAddaed) {
               modifiers.push(
                 {
                   id: modifier.id,
@@ -1158,21 +1163,21 @@ let Model = {
     return { ...fullOrder };
   },
 
-/**
- * Method for calculating the basket. This is called every time the cart changes.
- * @param criteria OrderId
- * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also you should set the isPromoting state in the model
- * @returns Order
- */
+  /**
+   * Method for calculating the basket. This is called every time the cart changes.
+   * @param criteria OrderId
+   * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also you should set the isPromoting state in the model
+   * @returns Order
+   */
   async countCart(criteria: CriteriaQuery<Order>, isPromoting: boolean = false): Promise<Order> {
     try {
 
       let order = await Order.findOne(criteria);
-      if( order.isPromoting !== isPromoting ) {
+      if (order.isPromoting !== isPromoting) {
         sails.log.error(`The order status does not match the passed parameters order.isPromoting [${order.isPromoting}], attribute [${isPromoting}], check your promotions`)
       }
       order.isPromoting = isPromoting;
-      
+
 
       emitter.emit("core-order-before-count", order);
 
@@ -1256,22 +1261,22 @@ let Model = {
                  * Also all checks modifiers need process in current loop thread. Currently we not have access to modifer options
                  * Here by opts we can pass options for modifiers
                  */
-                
+
                 const dishModifiers = dish.modifiers
-                let currentModifier: Modifier = null; 
-                dishModifiers.forEach(group =>{
-                  if(group.childModifiers) {
-                    group.childModifiers.forEach( _modifier => {
-                      if(modifier.id === _modifier.id) {
+                let currentModifier: Modifier = null;
+                dishModifiers.forEach(group => {
+                  if (group.childModifiers) {
+                    group.childModifiers.forEach(_modifier => {
+                      if (modifier.id === _modifier.id) {
                         currentModifier = _modifier;
                       }
                     })
                   }
                 })
-                if(!currentModifier){
+                if (!currentModifier) {
                   sails.log.error(`Order with id [${order.id}] has unknown modifier [${modifier.id}]`)
                 }
-                if(currentModifier.freeOfChargeAmount && typeof currentModifier.freeOfChargeAmount === "number" && currentModifier.freeOfChargeAmount > 0){ 
+                if (currentModifier.freeOfChargeAmount && typeof currentModifier.freeOfChargeAmount === "number" && currentModifier.freeOfChargeAmount > 0) {
                   const freeAmountCost = new Decimal(currentModifier.freeOfChargeAmount).times(modifierObj.price).toNumber();
                   const modifierCost = new Decimal(modifier.amount).times(modifierObj.price).minus(freeAmountCost).toNumber();
                   itemCost = new Decimal(itemCost).plus(modifierCost).toNumber();
@@ -1333,9 +1338,12 @@ let Model = {
       order.orderTotal = basketTotal.toNumber();
       order.basketTotal = basketTotal.toNumber();
 
+      /**
+      * Calcualte promotion & Discount costs
+      * Here calculates all discounts for order
+       */
 
-      // Calcualte promotion & Discount costs
-      // Here calculates all discounts for order
+      // Promotion code
       if (!order.isPromoting) {
         emitter.emit("core:count-before-promotion", order);
         try {
@@ -1345,7 +1353,7 @@ let Model = {
           await Order.updateOne({ id: order.id }, { isPromoting: true });
 
           // If promocode is valid and allowed
-          if (order.promotionCode !== null && order.promotionCodeString !== null && order.promotionCodeCheckValidTill !== null) {
+          if (order.promotionCode !== null && order.promotionCodeCheckValidTill !== null) {
             const currentDate = new Date();
             try {
               const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
@@ -1359,10 +1367,6 @@ let Model = {
             } catch (error) {
               sails.log.error(`PromotionAdapter > Problem with parse Date`)
             }
-          } else {
-            order.promotionCode = null
-            order.promotionCodeString = null;
-            order.promotionCodeCheckValidTill = null
           }
 
 
@@ -1513,32 +1517,48 @@ let Model = {
 
   async applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string | null): Promise<Order> {
     let order = await Order.findOne(criteria);
+    let updateData: any = {};
 
     if (!promotionCodeString || promotionCodeString === null) {
-      await Order.update(
-        { id: order.id },
-        {
-          promotionCode: null,
-          promotionCodeCheckValidTill: null,
-          promotionCodeString: null
-        }
-      ).fetch();
+      updateData = {
+        promotionCode: null,
+        promotionCodeCheckValidTill: null,
+        promotionCodeString: null,
+        promotionCodeDescription: null
+      };
     } else {
       const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
       const isValidTill = "2099-01-01T00:00:00.000Z" // TODO: recursive check Codes and Promotions
+
       if (validPromotionCode) {
-        await Order.update(
-          { id: order.id },
-          {
-            promotionCode: validPromotionCode.id,
-            promotionCodeCheckValidTill: isValidTill,
-            promotionCodeString: promotionCodeString
-          }
-        ).fetch();
+        let description = validPromotionCode.description;
+
+        if (!validPromotionCode.promotion) {
+          sails.log.error(`No valid promotions for ${promotionCodeString}`);
+          description += " [Error]";
+        }
+
+        updateData = {
+          promotionCode: validPromotionCode.id,
+          promotionCodeCheckValidTill: isValidTill,
+          promotionCodeString: promotionCodeString,
+          promotionCodeDescription: description
+        };
+      } else {
+        updateData = {
+          promotionCode: null,
+          promotionCodeCheckValidTill: null,
+          promotionCodeString: promotionCodeString,
+          promotionCodeDescription: `Promocode expired or not valid`
+        };
+        sails.log.debug(`No valid promocodes for ${promotionCodeString} order: [${order.id}]`);
       }
     }
+
+    await Order.update({ id: order.id }, updateData).fetch();
     return await Order.countCart(criteria);
   }
+
 };
 
 // Waterline model export
@@ -1647,7 +1667,7 @@ async function checkDate(order: Order) {
       let currentDate = new Date();
       let currentTimestamp = currentDate.getTime();
       let targetDate = new Date(date);
-      
+
       //  is eqials timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       let targetTimestamp
       try {
@@ -1688,8 +1708,8 @@ async function checkDate(order: Order) {
     }
 
     // Maintenance date check
-    let maintenance =  await Maintenance.getActiveMaintenance(order.date);
-    if(maintenance) {
+    let maintenance = await Maintenance.getActiveMaintenance(order.date);
+    if (maintenance) {
       throw {
         code: 16,
         error: "date not allowed",

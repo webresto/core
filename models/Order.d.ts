@@ -51,6 +51,7 @@ declare let attributes: {
      * hidden in api
      */
     promotionCode: string | PromotionCode;
+    promotionCodeDescription: string;
     promotionCodeString: string;
     /**
      * The discount will be applied to basketTotal during countCart
@@ -212,6 +213,7 @@ declare let Model: {
         isPaymentPromise?: boolean;
         promotionState?: PromotionState[];
         promotionCode?: string | PromotionCode;
+        promotionCodeDescription?: string;
         promotionCodeString?: string;
         promotionFlatDiscount?: number;
         promotionDelivery?: Delivery;

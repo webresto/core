@@ -61,6 +61,10 @@ let attributes = {
     promotionCode: {
         model: "promotionCode",
     },
+    promotionCodeDescription: {
+        type: "string",
+        allowNull: true
+    },
     promotionCodeString: {
         type: "string",
         allowNull: true
@@ -1094,8 +1098,11 @@ let Model = {
             order.totalWeight = totalWeight.toNumber();
             order.orderTotal = basketTotal.toNumber();
             order.basketTotal = basketTotal.toNumber();
-            // Calcualte promotion & Discount costs
-            // Here calculates all discounts for order
+            /**
+            * Calcualte promotion & Discount costs
+            * Here calculates all discounts for order
+             */
+            // Promotion code
             if (!order.isPromoting) {
                 emitter.emit("core:count-before-promotion", order);
                 try {
@@ -1104,7 +1111,7 @@ let Model = {
                     order.isPromoting = true;
                     await Order.updateOne({ id: order.id }, { isPromoting: true });
                     // If promocode is valid and allowed
-                    if (order.promotionCode !== null && order.promotionCodeString !== null && order.promotionCodeCheckValidTill !== null) {
+                    if (order.promotionCode !== null && order.promotionCodeCheckValidTill !== null) {
                         const currentDate = new Date();
                         try {
                             const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
@@ -1120,11 +1127,6 @@ let Model = {
                         catch (error) {
                             sails.log.error(`PromotionAdapter > Problem with parse Date`);
                         }
-                    }
-                    else {
-                        order.promotionCode = null;
-                        order.promotionCodeString = null;
-                        order.promotionCodeCheckValidTill = null;
                     }
                     let orderPopulate = { ...order };
                     orderPopulate.dishes = orderDishesForPopulate;
@@ -1256,24 +1258,42 @@ let Model = {
     },
     async applyPromotionCode(criteria, promotionCodeString) {
         let order = await Order.findOne(criteria);
+        let updateData = {};
         if (!promotionCodeString || promotionCodeString === null) {
-            await Order.update({ id: order.id }, {
+            updateData = {
                 promotionCode: null,
                 promotionCodeCheckValidTill: null,
-                promotionCodeString: null
-            }).fetch();
+                promotionCodeString: null,
+                promotionCodeDescription: null
+            };
         }
         else {
             const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
             const isValidTill = "2099-01-01T00:00:00.000Z"; // TODO: recursive check Codes and Promotions
             if (validPromotionCode) {
-                await Order.update({ id: order.id }, {
+                let description = validPromotionCode.description;
+                if (!validPromotionCode.promotion) {
+                    sails.log.error(`No valid promotions for ${promotionCodeString}`);
+                    description += " [Error]";
+                }
+                updateData = {
                     promotionCode: validPromotionCode.id,
                     promotionCodeCheckValidTill: isValidTill,
-                    promotionCodeString: promotionCodeString
-                }).fetch();
+                    promotionCodeString: promotionCodeString,
+                    promotionCodeDescription: description
+                };
+            }
+            else {
+                updateData = {
+                    promotionCode: null,
+                    promotionCodeCheckValidTill: null,
+                    promotionCodeString: promotionCodeString,
+                    promotionCodeDescription: `Promocode expired or not valid`
+                };
+                sails.log.debug(`No valid promocodes for ${promotionCodeString} order: [${order.id}]`);
             }
         }
+        await Order.update({ id: order.id }, updateData).fetch();
         return await Order.countCart(criteria);
     }
 };
