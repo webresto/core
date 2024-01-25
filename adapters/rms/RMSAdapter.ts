@@ -172,7 +172,7 @@ export default abstract class RMSAdapter {
           const inactiveGroupIds = inactiveGroups.map((group) => group.id);
 
           // Delete all dishes in inactive groups or not in the updated list
-          await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true });
+          await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true }).fetch();
           emitter.emit("rms-sync:after-sync-products");
         }
         return resolve();
