@@ -32,4 +32,4 @@ Join our community to get support for everyone interested in food delivery using
 
 ## License
 
-[MIT License](https://opensource.org/licenses/MIT)  Copyright © 2018-2023, [WebResto](https://webresto.org)
+[MIT License](https://opensource.org/licenses/MIT)  Copyright © 2018-2024, [WebResto](https://webresto.org)
