@@ -26,7 +26,7 @@ export default function dishGenerator(
     images: config?.images || [],
     name: config?.name || `${faker.commerce.productAdjective()} ${faker.commerce.productMaterial()} ${Date.now()}`,
     description: faker.random.words(25),
-    rmsId: "none",
+    rmsId: config?.rmsId || faker.random.uuid(),
     code: null,
     tags: [],
     isDeleted: config?.isDeleted || false
