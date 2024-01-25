@@ -198,8 +198,7 @@ function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
             .size((err, dimensions) => {
             if (err) {
                 console.log(err);
-                reject(err);
-                return;
+                return reject(new Error(err));
             }
             // Определяем, какая сторона меньше
             let resizeWidth, resizeHeight;
@@ -216,7 +215,7 @@ function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
                 .write(dstPath, (err) => {
                 if (err) {
                     console.log(err);
-                    reject(err);
+                    reject(new Error(err));
                 }
                 else {
                     resolve();

@@ -172,13 +172,13 @@ export default abstract class RMSAdapter {
           const inactiveGroupIds = inactiveGroups.map((group) => group.id);
 
           // Delete all dishes in inactive groups or not in the updated list
-          await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true }).fetch();
+          await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true });
           emitter.emit("rms-sync:after-sync-products");
         }
         return resolve();
       } catch (error) {
         sails.log.error(`RMS adapter syncProducts error:`, error);
-        return reject(error);
+        return reject(new Error(error));
       }
 
     });
@@ -207,7 +207,7 @@ export default abstract class RMSAdapter {
         return resolve();
       } catch (error) {
         sails.log.error(`RMS adapter syncOutOfStocks error:`, error);
-        return reject(error);
+        return reject(new Error(error));
       }
     });
 

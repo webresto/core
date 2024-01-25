@@ -44,7 +44,8 @@ class HookTools {
                 flattenDirectories: true,
             }, function (err, models) {
                 if (err)
-                    return reject(err);
+                    return reject(new Error(err));
+                ;
                 sails.models = _.merge(sails.models || {}, models);
                 return resolve();
             });

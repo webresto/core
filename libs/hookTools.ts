@@ -32,7 +32,7 @@ export default class HookTools {
           flattenDirectories: true,
         },
         function (err: any, models: any) {
-          if (err) return reject(err);
+          if (err) return reject(new Error(err));          ;
           sails.models = _.merge(sails.models || {}, models);
           return resolve();
         }
