@@ -27,7 +27,6 @@ describe("RMS adapter", function () {
         product = await Dish.create(product).fetch();
         await rmsAdapter.syncProducts();
         let count = await Dish.count({ isDeleted: false });
-        console.log(product);
         (0, chai_1.expect)(count).to.equal(616);
         let countGroups = await Group.count({ isDeleted: false });
         (0, chai_1.expect)(countGroups).to.equal(88);

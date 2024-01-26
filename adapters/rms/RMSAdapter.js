@@ -131,7 +131,6 @@ class RMSAdapter {
                     // Find all inactive groups
                     const inactiveGroups = await Group.find({ isDeleted: true });
                     const inactiveGroupIds = inactiveGroups.map((group) => group.id);
-                    console.log(JSON.stringify({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, null, 4), 999);
                     // Delete all dishes in inactive groups or not in the updated list
                     await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true });
                     emitter.emit("rms-sync:after-sync-products");

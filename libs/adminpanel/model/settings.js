@@ -46,6 +46,11 @@ exports.default = {
         title: 'Promotion codes',
         icon: 'qrcode'
     },
+    place: {
+        model: 'place',
+        title: 'Places',
+        icon: 'store'
+    },
     settings: {
         title: "Settings",
         model: "settings",

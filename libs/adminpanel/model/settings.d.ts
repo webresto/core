@@ -44,6 +44,11 @@ declare const _default: {
         title: string;
         icon: string;
     };
+    place: {
+        model: string;
+        title: string;
+        icon: string;
+    };
     settings: {
         title: string;
         model: string;
