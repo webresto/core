@@ -174,6 +174,10 @@ let attributes = {
     promo: "boolean",
     /** Working hours */
     worktime: "json",
+    favorites: {
+        collection: 'user',
+        via: 'favorites'
+    },
     /*
     helper.addCustomField("Dish", "discountAmount: Float");
     helper.addCustomField("Dish", "discountType: String");

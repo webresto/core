@@ -90,8 +90,9 @@ let attributes = {
   } as unknown as string,
 
   favorites: {
-    collection: 'dish'
-  } as unknown as Dish[] | undefined,
+    collection: 'dish',
+    via: 'favorites'
+  } as unknown as Dish[],
 
   bonusProgram: {
     collection: 'userbonusprogram',

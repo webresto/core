@@ -15,6 +15,7 @@ import { Adapter } from "../adapters";
 import { CustomData, isCustomData } from "../interfaces/CustomData";
 import slugify from "slugify";
 import { slugIt } from "../libs/slugIt";
+import User from "./User";
 
 let attributes = {
   /** */
@@ -221,6 +222,12 @@ let attributes = {
 
   /** Working hours */
   worktime: "json" as unknown as WorkTime[],
+
+
+  favorites: {
+    collection: 'user',
+    via: 'favorites'
+  } as unknown as User[],
 
   /* 
   helper.addCustomField("Dish", "discountAmount: Float");

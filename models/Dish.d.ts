@@ -5,6 +5,7 @@ import { WorkTime } from "@webresto/worktime";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier } from "../interfaces/Modifier";
 import { CustomData } from "../interfaces/CustomData";
+import User from "./User";
 declare let attributes: {
     /** */
     id: string;
@@ -88,6 +89,7 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
+    favorites: User[];
     customData: CustomData;
 };
 interface IVirtualFields {

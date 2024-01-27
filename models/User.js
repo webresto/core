@@ -88,7 +88,8 @@ let attributes = {
         // isBefore: new Date().setFullYear(new Date().getFullYear()-10)
     },
     favorites: {
-        collection: 'dish'
+        collection: 'dish',
+        via: 'favorites'
     },
     bonusProgram: {
         collection: 'userbonusprogram',
