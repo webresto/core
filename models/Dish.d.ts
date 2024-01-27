@@ -65,16 +65,12 @@ declare let attributes: {
     isDeleted: boolean;
     /** The dish can be modified*/
     isModificable: boolean;
-    /** Модифакторы блюда */
-    modifiers: GroupModifier[];
     /** Parental group */
     parentGroup: any;
     /** Tags for filtering (vegetarian, sharp ...) */
     tags: any;
     /** Balance for sale, if -1, then as much as you like */
     balance: number;
-    /**List of images of the dish*/
-    images: string[] | MediaFile[];
     /** The human easy readable */
     slug: string;
     /** The concept to which the dish belongs */
@@ -89,6 +85,10 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
+    /** Модифакторы блюда */
+    modifiers: GroupModifier[];
+    /**List of images of the dish*/
+    images: string[] | MediaFile[];
     favorites: User[];
     customData: CustomData;
 };

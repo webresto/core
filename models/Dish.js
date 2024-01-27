@@ -134,11 +134,6 @@ let attributes = {
     isDeleted: "boolean",
     /** The dish can be modified*/
     isModificable: "boolean",
-    /** Модифакторы блюда */
-    modifiers: {
-        // collection: 'dish'
-        type: "json",
-    },
     /** Parental group */
     parentGroup: {
         model: "group",
@@ -151,11 +146,6 @@ let attributes = {
     balance: {
         type: "number",
         defaultsTo: -1,
-    },
-    /**List of images of the dish*/
-    images: {
-        collection: "mediafile",
-        via: "dish",
     },
     /** The human easy readable */
     slug: {
@@ -174,6 +164,16 @@ let attributes = {
     promo: "boolean",
     /** Working hours */
     worktime: "json",
+    /** Модифакторы блюда */
+    modifiers: {
+        // collection: 'dish'
+        type: "json",
+    },
+    /**List of images of the dish*/
+    images: {
+        collection: "mediafile",
+        via: "dish",
+    },
     favorites: {
         collection: 'user',
         via: 'favorites'

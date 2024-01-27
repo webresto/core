@@ -171,11 +171,6 @@ let attributes = {
   /** The dish can be modified*/
   isModificable: "boolean" as unknown as boolean,
 
-  /** Модифакторы блюда */
-  modifiers: {
-    // collection: 'dish'
-    type: "json",
-  } as unknown as GroupModifier[],
 
   /** Parental group */
   parentGroup: {
@@ -192,12 +187,6 @@ let attributes = {
     type: "number",
     defaultsTo: -1,
   } as unknown as number,
-
-  /**List of images of the dish*/
-  images: {
-    collection: "mediafile",
-    via: "dish",
-  } as unknown as MediaFile[] | string[],
 
   /** The human easy readable */
   slug: {
@@ -223,6 +212,17 @@ let attributes = {
   /** Working hours */
   worktime: "json" as unknown as WorkTime[],
 
+  /** Модифакторы блюда */
+  modifiers: {
+    // collection: 'dish'
+    type: "json",
+  } as unknown as GroupModifier[],
+
+  /**List of images of the dish*/
+  images: {
+    collection: "mediafile",
+    via: "dish",
+  } as unknown as MediaFile[] | string[],
 
   favorites: {
     collection: 'user',
