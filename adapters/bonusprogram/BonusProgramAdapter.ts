@@ -8,6 +8,8 @@ export type ConfigBonusProgramAdapter = {
   [key: string]: number | boolean | string;
 };
 
+export type ExternalAbstractUser = RequiredField<Partial<Pick<Omit<UserBonusProgram, "id"> & User, "id" | "firstName" | "lastName" | "sex" | "email" | "birthday" | "balance" | "externalId" | "externalCustomerId">>, "id" | "externalId" | "externalCustomerId">;
+
 interface optionalId {
   id?: string;
 }
@@ -78,7 +80,7 @@ export default abstract class BonusProgramAdapter {
   /**
    * Check registred user or not
    */
-  public abstract getUserInfo(user: User): Promise<RequiredField<Partial<Pick<Omit<UserBonusProgram, "id"> & User, "id" | "balance" | "birthday" | "email" | "firstName" | "sex" | "lastName" | "externalId" | "externalCustomerId">>, "id" | "externalId" | "externalCustomerId">>
+  public abstract getUserInfo(user: User): Promise<ExternalAbstractUser>
 
 
   /**
