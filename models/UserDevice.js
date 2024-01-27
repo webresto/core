@@ -13,6 +13,7 @@ let attributes = {
     isLogined: "boolean",
     user: {
         model: 'user',
+        required: true
     },
     lastIP: "string",
     loginTime: { type: "number" },

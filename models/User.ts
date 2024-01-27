@@ -444,7 +444,7 @@ let Model = {
       } else if(adapter.isRegistred(user) && !userBonusProgram) {
         let exUser = await adapter.getUserInfo(user);
         await UserBonusProgram.create({
-          user: exUser.id, 
+          user: user.id, 
           balance: exUser.balance,
           externalId: exUser.externalId,
           isActive: true,

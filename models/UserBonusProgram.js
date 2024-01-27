@@ -32,7 +32,8 @@ let attributes = {
         type: 'boolean',
     },
     user: {
-        model: 'user'
+        model: 'user',
+        required: true
     },
     bonusProgram: {
         model: 'bonusprogram'

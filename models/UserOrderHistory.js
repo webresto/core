@@ -23,6 +23,7 @@ let attributes = {
     totalWeight: "number",
     user: {
         model: 'user',
+        required: true
     },
 };
 let Model = {

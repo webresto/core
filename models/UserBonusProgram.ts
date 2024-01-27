@@ -45,7 +45,8 @@ let attributes = {
   } as unknown as boolean,
 
   user: {
-    model: 'user'
+    model: 'user',
+    required: true
   } as unknown as User | string,
 
   bonusProgram: {

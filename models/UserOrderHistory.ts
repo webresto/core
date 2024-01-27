@@ -36,6 +36,7 @@ let attributes = {
 
   user: {
     model: 'user',
+    required: true
   } as unknown as User | String,
 };
 
