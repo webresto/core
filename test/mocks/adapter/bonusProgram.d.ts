@@ -2,7 +2,9 @@ import BonusProgramAdapter, { BonusTransaction, ConfigBonusProgramAdapter } from
 import User from "../../../models/User";
 import UserBonusTransaction from "../../../models/UserBonusTransaction";
 import UserBonusProgram from "../../../models/UserBonusProgram";
+import { RequiredField } from "../../../interfaces/toolsTS";
 export declare class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
+    getUserInfo(user: User): Promise<RequiredField<Partial<Pick<Omit<UserBonusProgram, "id"> & User, "id" | "firstName" | "lastName" | "sex" | "email" | "birthday" | "externalId" | "externalCustomerId" | "balance">>, "id" | "externalId" | "externalCustomerId">>;
     private transactions;
     private users;
     name: string;

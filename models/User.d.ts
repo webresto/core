@@ -12,7 +12,7 @@ export type Phone = {
     additionalNumber?: string;
 };
 declare let attributes: {
-    /** ID */
+    /** User model ID */
     id: string;
     login: string;
     firstName: string;

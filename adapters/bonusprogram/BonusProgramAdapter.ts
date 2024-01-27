@@ -2,6 +2,7 @@ import UserBonusTransaction from "../../models/UserBonusTransaction";
 import UserBonusProgram from "../../models/UserBonusProgram";
 import BonusProgram from "../../models/BonusProgram";
 import User from "../../models/User";
+import { RequiredField } from "../../interfaces/toolsTS";
 
 export type ConfigBonusProgramAdapter = {
   [key: string]: number | boolean | string;
@@ -10,7 +11,7 @@ export type ConfigBonusProgramAdapter = {
 interface optionalId {
   id?: string;
 }
-export interface BonusTransaction extends Pick<UserBonusTransaction, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter" >, optionalId {}
+export interface BonusTransaction extends Pick<UserBonusTransaction, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter">, optionalId { }
 
 export default abstract class BonusProgramAdapter {
   /** Id program in external system */
@@ -52,7 +53,7 @@ export default abstract class BonusProgramAdapter {
   setORMId(id: string): void {
     this.id = id;
   }
-  
+
   /**
    * Return user balance
    */
@@ -73,6 +74,12 @@ export default abstract class BonusProgramAdapter {
    * Check registred user or not
    */
   public abstract isRegistred(user: User): Promise<boolean>;
+
+  /**
+   * Check registred user or not
+   */
+  public abstract getUserInfo(user: User): Promise<RequiredField<Partial<Pick<Omit<UserBonusProgram, "id"> & User, "id" | "balance" | "birthday" | "email" | "firstName" | "sex" | "lastName" | "externalId" | "externalCustomerId">>, "id" | "externalId" | "externalCustomerId">>
+
 
   /**
    * write user transaction

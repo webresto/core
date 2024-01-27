@@ -4,7 +4,11 @@ import BonusProgram from "../../../models/BonusProgram";
 import UserBonusTransaction from "../../../models/UserBonusTransaction";
 import UserBonusProgram from "../../../models/UserBonusProgram";
 import fakerStatic = require("faker");
+import { RequiredField } from "../../../interfaces/toolsTS";
 export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
+  public getUserInfo(user: User): Promise<RequiredField<Partial<Pick<Omit<UserBonusProgram, "id"> & User, "id" | "firstName" | "lastName" | "sex" | "email" | "birthday" | "externalId" | "externalCustomerId" | "balance">>, "id" | "externalId" | "externalCustomerId">> {
+    throw new Error("Method not implemented.");
+  }
   private transactions: Map<string, BonusTransaction[]> = new Map();
   private users: Map<string, User> = new Map();
 

@@ -9,7 +9,7 @@ const decimal_js_1 = __importDefault(require("decimal.js"));
 //   [P in keyof T]?: T[P];
 // }
 let attributes = {
-    /** ID */
+    /** UserBonusProgram ID */
     id: {
         type: "string",
         //required: true,

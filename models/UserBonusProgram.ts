@@ -15,7 +15,7 @@ import UserBonusTransaction from "./UserBonusTransaction";
 
 let attributes = {
   
-  /** ID */
+  /** UserBonusProgram ID */
   id: {
     type: "string",
     //required: true,
@@ -85,7 +85,7 @@ let Model = {
     }
     
     let extId = await bp.registration(user);
-
+    
     return await UserBonusProgram.create({
       user: user.id, 
       balance: 0,

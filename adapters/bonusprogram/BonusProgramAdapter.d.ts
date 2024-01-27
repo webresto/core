@@ -1,6 +1,7 @@
 import UserBonusTransaction from "../../models/UserBonusTransaction";
 import UserBonusProgram from "../../models/UserBonusProgram";
 import User from "../../models/User";
+import { RequiredField } from "../../interfaces/toolsTS";
 export type ConfigBonusProgramAdapter = {
     [key: string]: number | boolean | string;
 };
@@ -52,6 +53,10 @@ export default abstract class BonusProgramAdapter {
      * Check registred user or not
      */
     abstract isRegistred(user: User): Promise<boolean>;
+    /**
+     * Check registred user or not
+     */
+    abstract getUserInfo(user: User): Promise<RequiredField<Partial<Pick<Omit<UserBonusProgram, "id"> & User, "id" | "balance" | "birthday" | "email" | "firstName" | "sex" | "lastName" | "externalId" | "externalCustomerId">>, "id" | "externalId" | "externalCustomerId">>;
     /**
      * write user transaction
      */

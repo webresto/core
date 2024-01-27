@@ -20,7 +20,7 @@ export type Phone = {
 
 let attributes = {
   
-  /** ID */
+  /** User model ID */
   id: {
     type: "string",
     isNotEmptyString: true,
@@ -441,9 +441,18 @@ let Model = {
       
       // If not registred in internal storage
       } else if(adapter.isRegistred(user) && !userBonusProgram) {
-        await UserBonusProgram.registration(user, bp.adapter);
+        let exUser = await adapter.getUserInfo(user);
+        await UserBonusProgram.create({
+          user: exUser.id, 
+          balance: exUser.balance,
+          externalId: exUser.externalId,
+          isActive: true,
+          isDeleted: false,
+          bonusProgram: adapter.id,
+          syncedToTime: "0"
+        }).fetch();
 
-      // If not registred but need
+        // If not registred but need
       } else if(!adapter.isRegistred(user) && bp.automaticUserRegistration) {
         // Registration if Bonus program has automatic registration otion
         await UserBonusProgram.registration(user, bp.adapter);
