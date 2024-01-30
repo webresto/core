@@ -56,7 +56,7 @@
     "typescript": "^5.0.0"
   },
   "deprecated": false,
-  "description": "webresto core",
+  "description":"Local e-commerce backend core",
   "keywords": [
     "webresto",
     "sails",
