@@ -1358,7 +1358,7 @@ let Model = {
             try {
               const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
               if (promotionEndDate > currentDate) {
-                order.promotionCode = (await PromotionCode.findOne({ id: order.promotionCode as string }).populate('promotion')).id;
+                order.promotionCode = await PromotionCode.findOne({ id: order.promotionCode as string }).populate('promotion');
               } else {
                 order.promotionCode = null
                 order.promotionCodeString = null;
@@ -1382,27 +1382,30 @@ let Model = {
 
           if (orderPopulate.promotionCode) {
             orderPopulate.promotionCode = (orderPopulate.promotionCode as PromotionCode).id
+            order.promotionCode = orderPopulate.promotionCode
           }
 
           orderPopulate.discountTotal = orederPROM.discountTotal
           order = orderPopulate;
 
 
-          let promotionOrderSave = {
+          let promotionOrderToSave = {
             promotionState: order.promotionState,
             promotionUnorderable: order.promotionUnorderable,
             discountTotal: order.discountTotal,
             promotionFlatDiscount: order.promotionFlatDiscount,
             promotionDelivery: order.promotionDelivery,
           }
-          // unset lock
-          await Order.update({ id: order.id }, promotionOrderSave).fetch();
+        
+          await Order.update({ id: order.id }, promotionOrderToSave).fetch();
         } catch (error) {
           sails.log.error(`Core > order > promotion calculate fail: `, error)
-        } finally {
-          order.isPromoting = false;
-          await Order.update({ id: order.id }, { isPromoting: false }).fetch();
         }
+
+        // finaly
+        order.isPromoting = false;
+        await Order.update({ id: order.id }, { isPromoting: false }).fetch();
+        
         emitter.emit("core-order-after-promotion", order);
       }
 
