@@ -26,7 +26,7 @@ declare let attributes: {
      * promocode ignore this field, and apply promotion by code
     */
     enable: boolean;
-    promotionCode: PromotionCode[];
+    promotionCode: string[] | PromotionCode[];
     /** No active class in Discount Adapter */
     isDeleted: boolean;
     /** Хеш обекта скидки */

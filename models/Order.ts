@@ -1358,7 +1358,7 @@ let Model = {
             try {
               const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
               if (promotionEndDate > currentDate) {
-                order.promotionCode = await PromotionCode.findOne({ id: order.promotionCode as string }).populate('promotion');
+                order.promotionCode = (await PromotionCode.findOne({ id: order.promotionCode as string }).populate('promotion')).id;
               } else {
                 order.promotionCode = null
                 order.promotionCodeString = null;
