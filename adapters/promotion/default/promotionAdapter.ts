@@ -108,13 +108,14 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       if (order.promotionCode) {
         const promotionCode = order.promotionCode as PromotionCode
         if (Array.isArray(promotionCode.promotion)) {
-          (promotionCode.promotion as Promotion[]).forEach((p) => {
+          promotionCode.promotion.forEach((p) => {
             p.sortOrder = -Infinity;
-            filteredByCondition.push(p)
+            filteredByCondition.push(p);
           });
-        } else {
-          if(promotionCode.promotion !== null) {
-            sails.log.debug(`PromotionAdapter: promotionCode.promotion should be array: \n${JSON.stringify(promotionCode, null, 2)}`)
+        }
+        else {
+          if (promotionCode.promotion !== null) {
+            sails.log.debug(`PromotionAdapter: promotionCode.promotion should be array: \n${JSON.stringify(promotionCode, null, 2)}`);
           }
         }
       }
