@@ -62,7 +62,7 @@ let Model = {
      * Check promocode is work now
      */
     async getValidPromotionCode(promotionCodeString) {
-        return await PromotionCode.findOne({ code: promotionCodeString });
+        return await PromotionCode.findOne({ code: promotionCodeString }).populate("promotion");
         //return null
     }
 };
