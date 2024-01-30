@@ -109,7 +109,7 @@ let attributes = {
   promotionCode: {
     collection: "promotioncode",
     via: "promotion",
-  } as unknown as PromotionCode[],
+  } as unknown as PromotionCode[] | string[],
 
   /** No active class in Discount Adapter */
   isDeleted: "boolean" as unknown as boolean,

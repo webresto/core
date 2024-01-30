@@ -57,7 +57,7 @@ let attributes = {
   promotion: {
     collection: "promotion",
     via: "promotionCode",
-  } as unknown as Promotion[] | string,
+  } as unknown as Promotion[] | string[],
 
   generateConfig: {
     type: "json",

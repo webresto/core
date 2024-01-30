@@ -21,7 +21,8 @@ exports.up = function (db, callback) {
     (cb) => db.createTable('dish_favorites__user_favorites', {
     columns: {
     "id": {
-        "type": "int",
+        "type": "serial",
+        "primaryKey": true, 
         "autoIncrement": true
     },
     "dish_favorites": {

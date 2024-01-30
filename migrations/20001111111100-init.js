@@ -404,7 +404,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('onetimepassword', {
     columns: {
     "id": {
-        "type": "int",
+        "type": "serial",
         "autoIncrement": true,
         "primaryKey": true
     },
@@ -615,7 +615,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('orderdish', {
     columns: {
     "id": {
-        "type": "int",
+        "type": "serial",
         "autoIncrement": true,
         "primaryKey": true
     },
@@ -925,7 +925,7 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('settings', {
     columns: {
     "id": {
-        "type": "int",
+        "type": "serial",
         "autoIncrement": true,
         "primaryKey": true
     },
@@ -1313,7 +1313,8 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('dish_images__mediafile_dish', {
     columns: {
     "id": {
-        "type": "int",
+        "type": "serial",
+        "primaryKey": true, 
         "autoIncrement": true
     },
     "dish_images": {
@@ -1328,7 +1329,8 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('group_images__mediafile_group', {
     columns: {
     "id": {
-        "type": "int",
+        "type": "serial",
+        "primaryKey": true, 
         "autoIncrement": true
     },
     "group_images": {
@@ -1343,7 +1345,8 @@ exports.up = function (db, callback) {
 (cb) => db.createTable('promotion_promotionCode__promotioncode_promotion', {
     columns: {
     "id": {
-        "type": "int",
+        "type": "serial",
+        "primaryKey": true, 
         "autoIncrement": true
     },
     "promotion_promotionCode": {
