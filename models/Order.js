@@ -1119,14 +1119,19 @@ let Model = {
                                 order.promotionCode = await PromotionCode.findOne({ id: order.promotionCode }).populate('promotion');
                             }
                             else {
+                                sails.log.debug(`Count: promocode [${order.promotionCodeString}] expired, order [${order.id}].`);
                                 order.promotionCode = null;
-                                order.promotionCodeString = null;
+                                order.promotionCodeDescription = "Promocode expired";
                                 order.promotionCodeCheckValidTill = null;
                             }
                         }
                         catch (error) {
                             sails.log.error(`PromotionAdapter > Problem with parse Date`);
                         }
+                    }
+                    else {
+                        order.promotionCode = null;
+                        order.promotionCodeCheckValidTill = null;
                     }
                     let orderPopulate = { ...order };
                     orderPopulate.dishes = orderDishesForPopulate;
@@ -1143,6 +1148,7 @@ let Model = {
                     orderPopulate.discountTotal = orederPROM.discountTotal;
                     order = orderPopulate;
                     let promotionOrderToSave = {
+                        promotionCodeDescription: order.promotionCodeDescription,
                         promotionState: order.promotionState,
                         promotionUnorderable: order.promotionUnorderable,
                         discountTotal: order.discountTotal,

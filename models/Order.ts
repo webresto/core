@@ -1354,19 +1354,23 @@ let Model = {
 
           // If promocode is valid and allowed
           if (order.promotionCode !== null && order.promotionCodeCheckValidTill !== null) {
-            const currentDate = new Date();
+            const currentDate = new Date(); 
             try {
               const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
               if (promotionEndDate > currentDate) {
                 order.promotionCode = await PromotionCode.findOne({ id: order.promotionCode as string }).populate('promotion');
               } else {
+                sails.log.debug(`Count: promocode [${order.promotionCodeString}] expired, order [${order.id}].`)
                 order.promotionCode = null
-                order.promotionCodeString = null;
+                order.promotionCodeDescription = "Promocode expired"
                 order.promotionCodeCheckValidTill = null
               }
             } catch (error) {
               sails.log.error(`PromotionAdapter > Problem with parse Date`)
             }
+          } else {
+            order.promotionCode = null
+            order.promotionCodeCheckValidTill = null
           }
 
 
@@ -1390,6 +1394,7 @@ let Model = {
 
 
           let promotionOrderToSave = {
+            promotionCodeDescription: order.promotionCodeDescription,
             promotionState: order.promotionState,
             promotionUnorderable: order.promotionUnorderable,
             discountTotal: order.discountTotal,

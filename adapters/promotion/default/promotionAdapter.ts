@@ -107,11 +107,13 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       const order = target as Order;
       if (order.promotionCode) {
         const promotionCode = order.promotionCode as PromotionCode
-        if (promotionCode.promotion.length) {
+        if (Array.isArray(promotionCode.promotion)) {
           (promotionCode.promotion as Promotion[]).forEach((p) => {
             p.sortOrder = -Infinity;
             filteredByCondition.push(p)
           });
+        } else {
+          sails.log.debug(`PromotionAdapter: promotionCode.promotion should be array: \n${JSON.stringify(promotionCode, null, 2)}`)
         }
       }
     }
