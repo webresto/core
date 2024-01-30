@@ -101,7 +101,9 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                     });
                 }
                 else {
-                    sails.log.debug(`PromotionAdapter: promotionCode.promotion should be array: \n${JSON.stringify(promotionCode, null, 2)}`);
+                    if (promotionCode.promotion !== null) {
+                        sails.log.debug(`PromotionAdapter: promotionCode.promotion should be array: \n${JSON.stringify(promotionCode, null, 2)}`);
+                    }
                 }
             }
         }

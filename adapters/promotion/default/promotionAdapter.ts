@@ -113,7 +113,9 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
             filteredByCondition.push(p)
           });
         } else {
-          sails.log.debug(`PromotionAdapter: promotionCode.promotion should be array: \n${JSON.stringify(promotionCode, null, 2)}`)
+          if(promotionCode.promotion !== null) {
+            sails.log.debug(`PromotionAdapter: promotionCode.promotion should be array: \n${JSON.stringify(promotionCode, null, 2)}`)
+          }
         }
       }
     }
