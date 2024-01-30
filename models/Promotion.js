@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const hashCode_1 = __importDefault(require("../libs/hashCode"));
 const adapters_1 = require("../adapters");
 const stringsInArray_1 = require("../libs/stringsInArray");
+const uuid_1 = require("uuid");
 // import Decimal from "decimal.js";
 // sails.on("lifted", function () {
 //   setInterval(async function () {
@@ -120,6 +121,9 @@ let Model = {
         cb();
     },
     async beforeCreate(init, cb) {
+        if (!init.id) {
+            init.id = (0, uuid_1.v4)();
+        }
         const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT");
         // On create, all promocodes are disabled.
         init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) : process.env.NODE_ENV !== "production";

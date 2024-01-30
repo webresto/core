@@ -11,6 +11,7 @@ import { PromotionAdapter } from './../adapters/promotion/default/promotionAdapt
 import AbstractPromotionHandler from "../adapters/promotion/AbstractPromotion";
 import { stringsInArray } from "../libs/stringsInArray";
 import PromotionCode from "../models/PromotionCode";
+import { v4 as uuid } from "uuid";
 
 // import Decimal from "decimal.js";
 // sails.on("lifted", function () {
@@ -177,6 +178,10 @@ let Model = {
   },
 
   async beforeCreate(init: Promotion, cb:  (err?: string) => void) {
+    if (!init.id) {
+      init.id = uuid();
+    }
+    
     const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT")
     
     // On create, all promocodes are disabled.
