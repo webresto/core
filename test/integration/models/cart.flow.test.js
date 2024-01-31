@@ -10,7 +10,7 @@ describe("Flows: Checkout", function () {
         await sleep(500);
         order = await Order.create({ id: "test.order.check-dishescount" }).fetch();
         dishes = await Dish.find({});
-        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "test");
+        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
         order = await Order.findOne({ id: "test.order.check-dishescount" });
         if (!order)
             throw "Order not created";
@@ -108,7 +108,7 @@ describe("Flows: Checkout", function () {
         });
         await sleep(500);
         order = await Order.create({ id: "test-checkconfig-default-requireall" }).fetch();
-        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "test");
+        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
         order = await Order.findOne({ id: order.id });
         await Settings.set("CHECKOUT_STRATEGY", {});
         try {
@@ -130,7 +130,7 @@ describe("Flows: Checkout", function () {
         await Settings.set("CHECKOUT_STRATEGY", { notRequired: true });
         await sleep(500);
         order = await Order.create({ id: "test-checkconfig-notrequired" }).fetch();
-        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "test");
+        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
         order = await Order.findOne({ id: order.id });
         // for selfServices
         try {
@@ -156,7 +156,7 @@ describe("Flows: Checkout", function () {
         it("good customer", async function () {
             await sleep(500);
             order = await Order.create({ id: "check-customer" }).fetch();
-            await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "test");
+            await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
             order = await Order.findOne({ id: order.id });
             try {
                 await Order.check({ id: order.id }, customer_1.customer, true);
@@ -214,7 +214,7 @@ describe("Flows: Checkout", function () {
         it("good address", async function () {
             await sleep(500);
             order = await Order.create({ id: "check-address" }).fetch();
-            await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "test");
+            await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
             order = await Order.findOne({ id: order.id });
             let address = {
                 streetId: "1234abcd",

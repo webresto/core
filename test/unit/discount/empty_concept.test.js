@@ -83,8 +83,8 @@ describe('Discount_Empty', function () {
         discountEx.configDiscount.dishes.push(dish1.id);
         discountEx.configDiscount.dishes.push(dish2.id);
         await promotionAdapter.addPromotionHandler(discountEx);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
+        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
+        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let result = await Order.findOne(order.id);
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });
@@ -96,8 +96,8 @@ describe('Discount_Empty', function () {
         discountEx.configDiscount.dishes.push(dish1.id);
         discountEx.configDiscount.dishes.push(dish2.id);
         await promotionAdapter.addPromotionHandler(discountEx);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "test");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "test");
+        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
+        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let result = await Order.findOne(order.id);
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });

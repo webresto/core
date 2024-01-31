@@ -257,7 +257,14 @@ let Model = {
         cb();
     },
     /** Add dish into order */
-    async addDish(criteria, dish, amount, modifiers, comment, addedBy, replace, orderDishId) {
+    async addDish(criteria, dish, amount, modifiers, comment, 
+    /**
+     * user - added manualy by human
+     * promotion - cleaned in each calculate promotions
+     * core - is reserved for
+     * custom - custom integration can process it
+     */
+    addedBy, replace, orderDishId) {
         await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
         // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone 
         let dishObj;
@@ -494,8 +501,10 @@ let Model = {
         const originalOrderDishes = originalOrder.dishes;
         // Iterate through the original order dishes and add them to the new order
         for (const originalOrderDish of originalOrderDishes) {
+            if (originalOrderDish.addedBy !== "user")
+                continue;
             // Assuming you have an addDish method that takes an order ID and a dish object as parameters
-            await Order.addDish({ id: newOrder.id }, originalOrderDish.dish, originalOrderDish.amount, originalOrderDish.modifiers, null, "order-clone");
+            await Order.addDish({ id: newOrder.id }, originalOrderDish.dish, originalOrderDish.amount, originalOrderDish.modifiers, null, "user");
         }
         return newOrder;
     },
@@ -1161,9 +1170,11 @@ let Model = {
                 catch (error) {
                     sails.log.error(`Core > order > promotion calculate fail: `, error);
                 }
-                // finaly
-                order.isPromoting = false;
-                await Order.update({ id: order.id }, { isPromoting: false }).fetch();
+                finally {
+                    // finaly
+                    order.isPromoting = false;
+                    await Order.update({ id: order.id }, { isPromoting: false }).fetch();
+                }
                 emitter.emit("core-order-after-promotion", order);
             }
             // Force unpopulate promotionCode, TODO: debug it why is not unpopulated here?!

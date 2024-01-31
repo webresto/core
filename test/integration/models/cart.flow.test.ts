@@ -19,7 +19,7 @@ describe("Flows: Checkout", function () {
     await sleep(500)
     order = await Order.create({id:"test.order.check-dishescount"}).fetch();
     dishes = await Dish.find({})
-    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
+    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
     order = await Order.findOne({id:"test.order.check-dishescount"});
 
     if (!order) throw "Order not created";
@@ -129,7 +129,7 @@ describe("Flows: Checkout", function () {
 
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-default-requireall"}).fetch();
-    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
+    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
     order = await Order.findOne({id: order.id});
 
     await Settings.set("CHECKOUT_STRATEGY", {});
@@ -154,7 +154,7 @@ describe("Flows: Checkout", function () {
     
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-notrequired"}).fetch();
-    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
+    await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
     order = await Order.findOne({id: order.id});
 
     // for selfServices
@@ -182,7 +182,7 @@ describe("Flows: Checkout", function () {
     it("good customer", async function () {
       await sleep(500)
       order = await Order.create({id: "check-customer"}).fetch();
-      await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
+      await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
       order = await Order.findOne({id: order.id});
   
       try {
@@ -246,7 +246,7 @@ describe("Flows: Checkout", function () {
       await sleep(500)
       order = await Order.create({id:"check-address"}).fetch();
       
-      await Order.addDish({id: order.id}, dishes[0], 1, [], "", "test");
+      await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
       order = await Order.findOne({id: order.id});
 
       let address: Address = {

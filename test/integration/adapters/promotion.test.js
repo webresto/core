@@ -302,7 +302,7 @@ describe("Promotion adapter integration test", function () {
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "recursion", parentGroup: groupsId[0] }));
         let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "recursion", parentGroup: groupsId[0] }));
         let discountEx1 = {
-            id: "1aw42-idaaa",
+            id: "discountEx1-idaaa",
             badge: 'test',
             configDiscount: {
                 discountType: "flat",
@@ -312,7 +312,7 @@ describe("Promotion adapter integration test", function () {
                 excludeModifiers: true
             },
             name: "1124-name",
-            description: "sawdad",
+            description: "discountEx1 flat amount: 1 for 2 dishes",
             concept: ["recursion"],
             condition: (arg) => {
                 if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx1.concept)) {
@@ -331,7 +331,7 @@ describe("Promotion adapter integration test", function () {
             action: async (order) => {
                 let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "recursion", parentGroup: groupsId[0] }));
                 discountEx1.configDiscount.dishes.push(dish1.id);
-                await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
+                await Order.addDish({ id: order.id }, dish1, 5, [], "", "promotion");
                 let configPromotion = new configuredPromotion_1.default(discountEx1, discountEx1.configDiscount);
                 order.promotionFlatDiscount = 2;
                 return await configPromotion.applyPromotion(order);

@@ -345,7 +345,13 @@ let Model = {
     amount: number,
     modifiers: OrderModifier[],
     comment: string,
-    addedBy: string,
+    /**
+     * user - added manualy by human
+     * promotion - cleaned in each calculate promotions
+     * core - is reserved for 
+     * custom - custom integration can process it
+     */
+    addedBy: "user" | "promotion" | "core" | "custom",
     replace?: boolean,
     orderDishId?: number
   ): Promise<void> {
@@ -626,9 +632,9 @@ let Model = {
 
     // Iterate through the original order dishes and add them to the new order
     for (const originalOrderDish of originalOrderDishes) {
-
+      if(originalOrderDish.addedBy !== "user") continue;
       // Assuming you have an addDish method that takes an order ID and a dish object as parameters
-      await Order.addDish({ id: newOrder.id }, originalOrderDish.dish, originalOrderDish.amount, originalOrderDish.modifiers, null, "order-clone");
+      await Order.addDish({ id: newOrder.id }, originalOrderDish.dish, originalOrderDish.amount, originalOrderDish.modifiers, null, "user");
     }
 
     return newOrder;
@@ -1178,9 +1184,8 @@ let Model = {
       }
       order.isPromoting = isPromoting;
 
-
       emitter.emit("core-order-before-count", order);
-
+      
       /**
        *  // TODO: If countCart from payment or other changes from payment it should cancel all payment request
        */
@@ -1407,11 +1412,12 @@ let Model = {
           await Order.update({ id: order.id }, promotionOrderToSave).fetch();
         } catch (error) {
           sails.log.error(`Core > order > promotion calculate fail: `, error)
+        } finally {
+          // finaly
+          order.isPromoting = false;
+          await Order.update({ id: order.id }, { isPromoting: false }).fetch();
         }
 
-        // finaly
-        order.isPromoting = false;
-        await Order.update({ id: order.id }, { isPromoting: false }).fetch();
         
         emitter.emit("core-order-after-promotion", order);
       }
