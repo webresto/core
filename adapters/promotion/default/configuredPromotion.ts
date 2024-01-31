@@ -74,7 +74,6 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   }
 
   public async action(order: Order): Promise<PromotionState> {
-    //  console.log(this.config + "  action")
     let mass: PromotionState = await this.applyPromotion(order)
     return mass
   }

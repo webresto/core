@@ -35,7 +35,6 @@ describe('Discount_Empty', function () {
             return false;
         },
         action: async (order) => {
-            // console.log("ACTION ================awdawdawd")
             return await configuredPromotion.applyPromotion(order.id);
         },
         isPublic: true,

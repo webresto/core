@@ -227,7 +227,6 @@ function resizeMediaFile({ srcPath, dstPath, size, customArgs }: ResizeMediaFile
     imageMagick(srcPath)
       .size((err, dimensions) => {
         if (err) {
-          console.log(err);
           return reject(new Error(err));
         }
 
@@ -245,7 +244,6 @@ function resizeMediaFile({ srcPath, dstPath, size, customArgs }: ResizeMediaFile
           .out(...customArgs)
           .write(dstPath, (err) => {
             if (err) {
-              console.log(err);
               reject(new Error(err));
             } else {
               resolve();

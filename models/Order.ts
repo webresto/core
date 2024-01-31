@@ -1180,7 +1180,9 @@ let Model = {
 
       let order = await Order.findOne(criteria);
       if (order.isPromoting !== isPromoting) {
-        sails.log.error(`The order status does not match the passed parameters order.isPromoting [${order.isPromoting}], attribute [${isPromoting}], check your promotions`)
+        let err = `CountCart: The order status does not match the passed parameters order.isPromoting [${order.isPromoting}], attribute [${isPromoting}], check your promotions`
+        sails.log.error(err);
+        throw new Error(err)
       }
       order.isPromoting = isPromoting;
 
@@ -1327,7 +1329,6 @@ let Model = {
           dishesCount += orderDish.amount;
           uniqueDishes++;
           totalWeight = totalWeight.plus(orderDish.totalWeight);
-          // console.log(totalWeight, "TOTAL WEIGTH IN THE END =====================")
         } catch (e) {
           sails.log.error("Order > count > iterate orderDish error", e);
           await OrderDish.destroy({ id: orderDish.id });

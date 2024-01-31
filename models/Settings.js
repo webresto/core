@@ -162,7 +162,6 @@ module.exports = {
 };
 function toScreamingSnake(str) {
     if (!str) {
-        console.log("STR", str);
         return '';
     }
     // Test123___Test_test -> TEST123_TEST_TEST

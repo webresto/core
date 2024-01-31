@@ -197,7 +197,6 @@ function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
         imageMagick(srcPath)
             .size((err, dimensions) => {
             if (err) {
-                console.log(err);
                 return reject(new Error(err));
             }
             // Определяем, какая сторона меньше
@@ -214,7 +213,6 @@ function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
                 .out(...customArgs)
                 .write(dstPath, (err) => {
                 if (err) {
-                    console.log(err);
                     reject(new Error(err));
                 }
                 else {

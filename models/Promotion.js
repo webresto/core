@@ -152,7 +152,8 @@ let Model = {
             }
         }
         catch (error) {
-            console.log(error);
+            sails.log.error(error);
+            throw new Error(error);
         }
     },
     getAllByConcept(concept) {

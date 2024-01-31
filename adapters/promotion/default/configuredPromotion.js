@@ -53,7 +53,6 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         return false;
     }
     async action(order) {
-        //  console.log(this.config + "  action")
         let mass = await this.applyPromotion(order);
         return mass;
     }

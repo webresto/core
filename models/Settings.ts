@@ -201,7 +201,6 @@ declare global {
 
 function toScreamingSnake(str: string): string {
   if (!str) {
-    console.log("STR", str)
     return '';
   }
 

@@ -13,7 +13,6 @@ function phoneValidByMask(phoneNumber, countryCode, phoneMasks) {
         if (maskDigits.length === phoneNumberDigits.length) {
             let isValid = true;
             for (let i = 0; i < maskDigits.length; i++) {
-                console.log(phoneNumberDigits[i], maskDigits[i]);
                 if (isNaN(parseInt(phoneNumberDigits[i]))) {
                     isValid = false;
                     break;
