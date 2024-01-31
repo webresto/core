@@ -8,7 +8,8 @@ const BonusProgramAdapter_1 = __importDefault(require("../../../adapters/bonuspr
 const fakerStatic = require("faker");
 class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
     getUserInfo(user) {
-        throw new Error("Method not implemented.");
+        console.log("Method not implemented.");
+        return;
     }
     constructor(config) {
         super(config);

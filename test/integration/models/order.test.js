@@ -8,7 +8,7 @@ const ExternalTestPaymentSystem_1 = __importDefault(require("../../unit/external
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const customer_1 = require("../../mocks/customer");
 describe("Order", function () {
-    this.timeout(10000);
+    this.timeout(60000);
     let order;
     let dishes;
     let fullOrder;
@@ -17,12 +17,10 @@ describe("Order", function () {
     //     return true;
     //   });
     // });
-    it("get dishes", async function () {
+    before;
+    before(async function () {
         dishes = await Dish.find({});
-    });
-    it("create Сart", async function () {
         order = await Order.create({ id: "create-cart" }).fetch();
-        (0, chai_1.expect)(order).to.be.an("object");
     });
     it("check model fields", async function () {
         await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");

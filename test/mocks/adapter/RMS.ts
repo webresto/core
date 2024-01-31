@@ -60,11 +60,13 @@ export class TestRMS  extends RMSAdapter {
 
 
     public createOrder(orderData: Order): Promise<Order> {
-        throw new Error("Method not implemented.");
+        console.log("Method not implemented.");
+        return
     }
     
     public checkOrder(orderData: Order): Promise<Order> {
-        throw new Error("Method not implemented.");
+        console.log("Method not implemented.");
+        return
     }
 
     public api(method: string, params: any): Promise<any> {

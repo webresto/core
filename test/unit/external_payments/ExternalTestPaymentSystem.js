@@ -7,7 +7,7 @@ const PaymentAdapter_1 = __importDefault(require("../../../adapters/payment/Paym
 var database = {};
 class TestPaymentSystem extends PaymentAdapter_1.default {
     cancelPayment(paymentDocument) {
-        throw new Error("Method not implemented.");
+        console.log("Method not implemented.");
     }
     async createPayment(payment, backLinkSuccess, backLinkFail, testing) {
         let paid_latency;

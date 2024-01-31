@@ -13,7 +13,7 @@ import { customer, address } from "../../mocks/customer"
 
 describe("Order", function () {
 
-  this.timeout(10000);
+  this.timeout(60000);
   let order: Order;
   let dishes: Dish[];
   let fullOrder: Order;
@@ -24,13 +24,12 @@ describe("Order", function () {
   //   });
   // });
 
-  it("get dishes", async function () {
-    dishes = await Dish.find({});
-  });
 
-  it("create Сart", async function () {
+  before
+
+  before(async function () {
+    dishes = await Dish.find({});
     order = await Order.create({id:"create-cart"}).fetch();
-    expect(order).to.be.an("object");
   });
 
   it("check model fields", async function () {

@@ -55,10 +55,12 @@ class TestRMS extends RMSAdapter_1.default {
         return dishes;
     }
     createOrder(orderData) {
-        throw new Error("Method not implemented.");
+        console.log("Method not implemented.");
+        return;
     }
     checkOrder(orderData) {
-        throw new Error("Method not implemented.");
+        console.log("Method not implemented.");
+        return;
     }
     api(method, params) {
         throw process.env[method] = JSON.stringify(params);

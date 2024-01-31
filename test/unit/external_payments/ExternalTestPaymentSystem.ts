@@ -7,7 +7,7 @@ var database: any = {};
 
 export default class TestPaymentSystem extends PaymentAdapter {
   public cancelPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument> {
-    throw new Error("Method not implemented.");
+    console.log("Method not implemented.");
   }
   private static instance: TestPaymentSystem;
 

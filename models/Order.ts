@@ -468,6 +468,9 @@ let Model = {
       }
 
     }
+    
+    // NOTE: All dishes with modifiers add as uniq dish
+
 
     if (replace) {
       orderDish = (
@@ -1283,7 +1286,7 @@ let Model = {
                 if (!currentModifier) {
                   sails.log.error(`Order with id [${order.id}] has unknown modifier [${modifier.id}]`)
                 }
-                if (currentModifier.freeOfChargeAmount && typeof currentModifier.freeOfChargeAmount === "number" && currentModifier.freeOfChargeAmount > 0) {
+                if (currentModifier && currentModifier.freeOfChargeAmount && typeof currentModifier.freeOfChargeAmount === "number" && currentModifier.freeOfChargeAmount > 0) {
                   const freeAmountCost = new Decimal(currentModifier.freeOfChargeAmount).times(modifierObj.price).toNumber();
                   const modifierCost = new Decimal(modifier.amount).times(modifierObj.price).minus(freeAmountCost).toNumber();
                   itemCost = new Decimal(itemCost).plus(modifierCost).toNumber();
