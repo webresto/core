@@ -23,12 +23,12 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     //   || !config.discountType || !config.discountAmount) {
     //   throw new Error("ConfiguredPromotion: bad config")
     // }
-    
+
     this.config = config
     this.id = promotion.id,
-      this.isJoint = promotion.isJoint,
-      this.name = promotion.name,
-      this.isPublic = promotion.isPublic;
+    this.isJoint = promotion.isJoint,
+    this.name = promotion.name,
+    this.isPublic = promotion.isPublic;
     this.description = promotion.description;
     this.concept = promotion.concept;
     this.configDiscount = promotion.configDiscount;
@@ -98,20 +98,22 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
       dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
       dish.oldPrice = 123456 // TODO: delete it
-      
+
       dish.salePrice = this.configDiscount.discountType === "flat"
-      ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
-      : new Decimal(dish.price)
-        .mul(+this.configDiscount.discountAmount / 100)
-        .toNumber()
+        ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
+        : new Decimal(dish.price)
+          .mul(+this.configDiscount.discountAmount / 100)
+          .toNumber()
 
     }
-    
+
     return dish
   }
 
   // TODO: rewrite for argument (modificable Order);
   public async applyPromotion(order: Order): Promise<PromotionState> {
+    sails.log.debug(`Configured promotion to be applied. name: [${this.name}], id: [${this.id}]`)
+
     // order.dishes
     const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
     let discountCost: Decimal = new Decimal(0);
@@ -162,10 +164,10 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     await Order.updateOne({ id: order.id }, { discountTotal: orderDiscount })
     order.discountTotal = orderDiscount;
 
-    if(this.config.promotionFlatDiscount) {
+    if (this.config.promotionFlatDiscount) {
       order.promotionFlatDiscount = this.config.promotionFlatDiscount;
     }
-    
+
     // let discountCoverage: Decimal;
     // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
     return {

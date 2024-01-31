@@ -1141,6 +1141,7 @@ let Model = {
                      */
                     let orederPROM = await promotionAdapter.processOrder(orderPopulate);
                     delete (orderPopulate.dishes);
+                    delete (order.promotionCode);
                     if (orderPopulate.promotionCode) {
                         orderPopulate.promotionCode = orderPopulate.promotionCode.id;
                         order.promotionCode = orderPopulate.promotionCode;
@@ -1164,6 +1165,10 @@ let Model = {
                 order.isPromoting = false;
                 await Order.update({ id: order.id }, { isPromoting: false }).fetch();
                 emitter.emit("core-order-after-promotion", order);
+            }
+            // Force unpopulate promotionCode, TODO: debug it why is not unpopulated here?!
+            if (typeof order.promotionCode !== "string" && order.promotionCode?.id !== undefined) {
+                order.promotionCode = order.promotionCode.id;
             }
             // Calcualte delivery costs
             emitter.emit("core:count-before-delivery-cost", order);
@@ -1332,12 +1337,14 @@ async function checkCustomerInfo(customer) {
     let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES");
     if (typeof allowedPhoneCountries === "string")
         allowedPhoneCountries = [allowedPhoneCountries];
-    let isValidPhone = false;
-    for (let countryCode of allowedPhoneCountries) {
-        const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-        isValidPhone = (0, phoneValidByMask_1.phoneValidByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
-        if (isValidPhone)
-            break;
+    let isValidPhone = allowedPhoneCountries === undefined;
+    if (Array.isArray(allowedPhoneCountries)) {
+        for (let countryCode of allowedPhoneCountries) {
+            const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
+            isValidPhone = (0, phoneValidByMask_1.phoneValidByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
+            if (isValidPhone)
+                break;
+        }
     }
     const nameRegex = await Settings.use("nameRegex");
     if (nameRegex) {

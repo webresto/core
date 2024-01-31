@@ -33,9 +33,10 @@ describe("Promotion code integration test", function () {
         await PromotionCode.findOrCreate({ id: "promocode-test-123" }, {
             id: "promocode-test-123",
             description: "test 123",
-            code: "TEST123",
-            promotion: "promo-flat-123"
+            code: "TEST123"
         });
+        //@ts-ignore
+        await PromotionCode.addToCollection("promocode-test-123", "promotion", 'promo-flat-123');
     });
     after(async function () {
         // await Promotion.destroy({})

@@ -83,6 +83,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
     }
     // TODO: rewrite for argument (modificable Order);
     async applyPromotion(order) {
+        sails.log.debug(`Configured promotion to be applied. name: [${this.name}], id: [${this.id}]`);
         // order.dishes
         const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         let discountCost = new decimal_js_1.default(0);
