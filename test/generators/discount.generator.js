@@ -17,7 +17,7 @@ function discountGenerator(config = {
     isPublic: false,
     // enable: false,
     // isDeleted: false,
-    // createdByUser: false,
+    // createdByUser: config.createdByUser false,
     description: "",
     concept: [],
     configDiscount: undefined,
@@ -36,7 +36,8 @@ function discountGenerator(config = {
         isJoint: config.isJoint || false,
         isPublic: false,
         // enable: config.enable || false,
-        // createdByUser: config.createdByUser || false,
+        //@ts-ignore
+        createdByUser: true,
         concept: config.concept || [],
         configDiscount: config.configDiscount || {
             discountAmount: 1.33,

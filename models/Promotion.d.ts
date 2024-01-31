@@ -29,7 +29,7 @@ declare let attributes: {
     promotionCode: string[] | PromotionCode[];
     /** No active class in Discount Adapter */
     isDeleted: boolean;
-    /** Хеш обекта скидки */
+    /** Hash object discounts */
     hash: string;
     worktime: WorkTime[];
 };

@@ -73,6 +73,7 @@ describe("Order", function () {
         await Order.addDish({ id: order.id }, dishes[0], 1, null, "", "user");
         await Order.addDish({ id: order.id }, dishes[0], 2, null, "", "user");
         orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
+        // here we test what uniq dishes is any with modifiers
         (0, chai_1.expect)(orderDishes.length).to.equals(2);
         for (let dish of orderDishes) {
             if (dish.modifiers.length == 1) {

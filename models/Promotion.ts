@@ -114,7 +114,7 @@ let attributes = {
   /** No active class in Discount Adapter */
   isDeleted: "boolean" as unknown as boolean,
 
-  /** Хеш обекта скидки */
+  /** Hash object discounts */
   hash: {
     type: "string",
     required: true,
