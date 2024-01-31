@@ -16,7 +16,7 @@
         "'${workspaceFolder}/test/{,!(fixture)/**}/*.test.ts'",
         "--exit",
         "--timeout=600000",
-        "--grep=prepend"
+        "--grep=increase"
       ],
       "sourceMaps": true,
       "internalConsoleOptions": "openOnSessionStart",

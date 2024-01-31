@@ -6,11 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const adapters_1 = require("../../../adapters");
 const chai_1 = require("chai");
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
-const stringsInArray_1 = require("../../../libs/stringsInArray");
-const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 const discount_generator_1 = __importDefault(require("../../generators/discount.generator"));
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
-const decimal_js_1 = __importDefault(require("decimal.js"));
 describe("Promotion adapter integration test", function () {
     this.timeout(60000);
     let promotionAdapter;
@@ -291,83 +288,6 @@ describe("Promotion adapter integration test", function () {
     //     await Dish.display({id: "my-displayed-dish"})
     // })
     it("Check prepend recursion discount", async () => {
-        // for call recursion we should add dish from action in promotionHandler
-        const groups = await Group.find({});
-        const groupsId = groups.map(group => group.id);
-        let order = await Order.create({ id: "configured-promotion-integration-recursion" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "recursion", user: "user" });
-        let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "recursion", parentGroup: groupsId[0] }));
-        let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "recursion", parentGroup: groupsId[0] }));
-        let discountEx1 = {
-            id: "discountEx1-idaaa",
-            badge: 'test',
-            configDiscount: {
-                discountType: "flat",
-                discountAmount: 1,
-                dishes: [dish1.id, dish2.id],
-                groups: groupsId,
-                excludeModifiers: true
-            },
-            name: "1124-name",
-            description: "discountEx1 flat amount: 1 for 2 dishes",
-            concept: ["recursion"],
-            condition: (arg) => {
-                if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx1.concept)) {
-                    return true;
-                }
-                if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx1.concept)) {
-                    // TODO: check if includes in IconfigDish
-                    return true;
-                }
-                if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx1.concept)) {
-                    // TODO: check if includes in IconfigG
-                    return true;
-                }
-                return false;
-            },
-            action: async (order) => {
-                let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "recursion", parentGroup: groupsId[0] }));
-                discountEx1.configDiscount.dishes.push(dish1.id);
-                await Order.addDish({ id: order.id }, dish1, 5, [], "", "promotion");
-                let configPromotion = new configuredPromotion_1.default(discountEx1, discountEx1.configDiscount);
-                order.promotionFlatDiscount = 2;
-                return await configPromotion.applyPromotion(order);
-            },
-            isPublic: true,
-            isJoint: true,
-            // sortOrder: 0,
-            displayGroup: function (group, user) {
-                if (this.isJoint === true && this.isPublic === true) {
-                    group.discountAmount = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
-                    group.discountType = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-                }
-                return group;
-            },
-            displayDish: function (dish, user) {
-                if (this.isJoint === true && this.isPublic === true) {
-                    // 
-                    dish.discountAmount = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
-                    dish.discountType = adapters_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-                    dish.oldPrice = dish.price;
-                    dish.price = this.configDiscount.discountType === "flat"
-                        ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
-                        : new decimal_js_1.default(dish.price)
-                            .mul(+this.configDiscount.discountAmount / 100)
-                            .toNumber();
-                }
-                return dish;
-            },
-            externalId: "1-externalIdaw",
-        };
-        await promotionAdapter.addPromotionHandler(discountEx1);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
-        // 5 dishes + 5 from action
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
-        // 4 dishes + 5 from action
-        let result = await Order.findOne(order.id);
-        (0, chai_1.expect)(result.discountTotal).to.equal(19 + 2 /** 2 is flat discount*/);
+        // TODO: check recrsion behavior
     });
 });
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}

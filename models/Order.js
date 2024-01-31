@@ -381,7 +381,7 @@ let Model = {
         }
         await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
         try {
-            await Order.countCart({ id: order.id });
+            await Order.countCart({ id: order.id }, addedBy === "promotion");
             await Order.next(order.id, "CART");
         }
         catch (error) {
