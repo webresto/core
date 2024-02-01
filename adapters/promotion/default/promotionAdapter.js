@@ -162,21 +162,12 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
      * @returns
      */
     recreateConfiguredPromotionHandler(promotionToAdd) {
-        if (promotionToAdd.enable === false && this.promotions[promotionToAdd.id]) {
+        if (this.promotions[promotionToAdd.id]) {
             delete this.promotions[promotionToAdd.id];
-            return;
         }
-        try {
-            if (!this.promotions[promotionToAdd.id]) {
-                this.promotions[promotionToAdd.id] = new configuredPromotion_1.default(promotionToAdd, promotionToAdd.configDiscount);
-                return;
-            }
-            return;
+        if (promotionToAdd.enable !== false) {
+            this.promotions[promotionToAdd.id] = new configuredPromotion_1.default(promotionToAdd, promotionToAdd.configDiscount);
         }
-        catch (e) {
-            sails.log.error("recreateConfiguredPromotionHandler", e);
-        }
-        return;
     }
     getPromotionHandlerById(id) {
         // let disc: AbstractDiscountHandler = await Discount.getById(id);

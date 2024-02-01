@@ -182,23 +182,13 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
    * @returns 
    */
   public recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void {
-    if (promotionToAdd.enable === false && this.promotions[promotionToAdd.id]) {
+    if(this.promotions[promotionToAdd.id]){
       delete this.promotions[promotionToAdd.id]
-      return
     }
-
-    try {
-      if (!this.promotions[promotionToAdd.id]) {
-        this.promotions[promotionToAdd.id] = new ConfiguredPromotion(promotionToAdd, promotionToAdd.configDiscount);
-        return
-      }
-      return
-    } catch (e) {
-      sails.log.error("recreateConfiguredPromotionHandler", e)
-
+    
+    if (promotionToAdd.enable !== false) {
+      this.promotions[promotionToAdd.id] = new ConfiguredPromotion(promotionToAdd, promotionToAdd.configDiscount);
     }
-
-    return
   }
 
   public getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined {

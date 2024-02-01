@@ -84,40 +84,46 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
     async applyPromotion(order) {
         sails.log.debug(`Configured promotion to be applied. name: [${this.name}], id: [${this.id}]`);
         // order.dishes
-        const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
+        const orderDishes = await OrderDish.find({ order: order.id, addedBy: "user" }).populate("dish");
         let discountCost = new decimal_js_1.default(0);
-        for (const orderDish of orderDishes) {
-            if (typeof orderDish.dish === "string") {
-                throw new Error("Type error dish: applyPromotion");
+        if (!this.config.dishes.length && !this.config.groups.length) {
+            discountCost = new decimal_js_1.default(order.basketTotal)
+                .mul(+this.configDiscount.discountAmount / 100);
+        }
+        else {
+            for (const orderDish of orderDishes) {
+                if (typeof orderDish.dish === "string") {
+                    throw new Error("Type error dish: applyPromotion");
+                }
+                let orderDishDiscountCost = 0;
+                if (!orderDish.dish) {
+                    sails.log.error("orderDish", orderDish.id, "has no such dish");
+                    continue;
+                }
+                if ((this.concept[0] === undefined || this.concept[0] === "") ?
+                    false : !(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, this.concept)) {
+                    continue;
+                }
+                let checkDishes = (0, stringsInArray_1.stringsInArray)(orderDish.dish.id, this.config.dishes);
+                let checkGroups = (0, stringsInArray_1.stringsInArray)(orderDish.dish.parentGroup, this.config.groups);
+                if (!checkDishes || !checkGroups)
+                    continue;
+                if (this.configDiscount.discountType === "flat") {
+                    orderDishDiscountCost = new decimal_js_1.default(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
+                    discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
+                    // discountCost += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(this.configDiscount.discountAmount * orderDish.dish.amount ).toNumber();
+                }
+                if (this.configDiscount.discountType === "percentage") {
+                    // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
+                    orderDishDiscountCost = new decimal_js_1.default(orderDish.dish.price)
+                        .mul(orderDish.amount)
+                        .mul(+this.configDiscount.discountAmount / 100)
+                        .toNumber();
+                    discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
+                }
+                let orderDishDiscount = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
+                await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType }).fetch();
             }
-            let orderDishDiscountCost = 0;
-            if (!orderDish.dish) {
-                sails.log.error("orderDish", orderDish.id, "has no such dish");
-                continue;
-            }
-            if ((this.concept[0] === undefined || this.concept[0] === "") ?
-                false : !(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, this.concept)) {
-                continue;
-            }
-            let checkDishes = (0, stringsInArray_1.stringsInArray)(orderDish.dish.id, this.config.dishes);
-            let checkGroups = (0, stringsInArray_1.stringsInArray)(orderDish.dish.parentGroup, this.config.groups);
-            if (!checkDishes || !checkGroups)
-                continue;
-            if (this.configDiscount.discountType === "flat") {
-                orderDishDiscountCost = new decimal_js_1.default(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
-                discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
-                // discountCost += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(this.configDiscount.discountAmount * orderDish.dish.amount ).toNumber();
-            }
-            if (this.configDiscount.discountType === "percentage") {
-                // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
-                orderDishDiscountCost = new decimal_js_1.default(orderDish.dish.price)
-                    .mul(orderDish.amount)
-                    .mul(+this.configDiscount.discountAmount / 100)
-                    .toNumber();
-                discountCost = new decimal_js_1.default(orderDishDiscountCost).add(discountCost);
-            }
-            let orderDishDiscount = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
-            await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType }).fetch();
         }
         // Update the order with new total
         let orderDiscount = new decimal_js_1.default(order.discountTotal).add(discountCost.toNumber()).toNumber();
