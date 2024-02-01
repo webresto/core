@@ -32,7 +32,7 @@ describe("Promotion code integration test", function () {
   before(async function () {
     promotionAdapter = Adapter.getPromotionAdapter()
 
-    const discountGenerator = require(__dirname + "../generators/discount.generator").default
+    const discountGenerator = require(__dirname + "/../generators/discount.generator").default
     promoCodeDiscount = discountGenerator({
       concept: ["origin", "road"],
       id: 'promo-flat-123',
