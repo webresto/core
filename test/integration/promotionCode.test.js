@@ -14,7 +14,7 @@ describe("Promotion code integration test", function () {
     let dish2 = null;
     before(async function () {
         promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
-        const discountGenerator = require("@webresto/core/test/generators/discount.generator").default;
+        const discountGenerator = require(__dirname + "/../generators/discount.generator").default;
         promoCodeDiscount = discountGenerator({
             concept: ["origin", "road"],
             id: 'promo-flat-123',
