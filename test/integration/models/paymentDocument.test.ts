@@ -7,13 +7,21 @@ import PaymentDocument from "../../../models/PaymentDocument";
 
 describe("PaymentDocument", function () {
   this.timeout(31000);
-
+  let paymentMethod;
   /**
    * 
    */
-  it("register TODO", async function () {
-    TestPaymentSystem.getInstance();
-    //static
+  before(async function () {
+    let testPaymentSystem = TestPaymentSystem.getInstance();
+    await testPaymentSystem.wait();
+
+    paymentMethod = await PaymentMethod.findOne({
+      adapter: "test-payment-system",
+    });
+
+    await PaymentMethod.update({id: paymentMethod.id}, {enable: true}).fetch()
+    
+    // TODO:
     // Проверка суммы. Проверка originModel. Проверка платежного метода. Проверить paymentResponse, сравнить.
   });
 
@@ -32,33 +40,33 @@ describe("PaymentDocument", function () {
     // Создать корзину. В корзине выбрать платежный метод (тестовая система). Поставить оплату и проверить что в корзине status === 'PAID'
   });
 
+//   it("register payment document", async function () {
+    
+//  });
+
   it("check payment processor", async function () {
     /**
-     * Для того чтобы протестировать платежный документ мы создаем два платежа. И подписываемся на
-     * событие doCheck(); если мы получаем эти два платежа через евент, то процессор платежей их вызывает.
+     * In order to test the payment document, we create two payments. And subscribe to
+     * doCheck() event; if we receive these two payments through an event, then the payment processor calls them.
      */
 
-    // let count = [];
-    // emitter.on("core-payment-document-check", function (paymentDocument) {
-    //   count.push(paymentDocument);
-    // });
+     let count = [];
+     emitter.on("core-payment-document-check", function (paymentDocument) {
+       count.push(paymentDocument);
+     });
 
-    // await PaymentDocument.destroy({});
-    // let order = await Order.create({}).fetch();
-    // let paymentMethod = await PaymentMethod.findOne({
-    //   adapter: "test-payment-system",
-    // });
-    
-    // 
-    // if (!paymentMethod) throw "paymentMethod (test-payment-system) was not found "
-    // PaymentDocument.processor(3000);
-    // await PaymentDocument.register(order.id, "order", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
+    await PaymentDocument.destroy({});
+    let order = await Order.create({}).fetch();
 
-    // await sleep(5000);
+    if (!paymentMethod) throw "paymentMethod (test-payment-system) was not found "
+    PaymentDocument.processor(3000);
+    await PaymentDocument.register(order.id, "order", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
+
+    await sleep(5000);
 
     // // back to 120 sec payment processor
-    // PaymentDocument.processor(120000);
-    // //    // expect(count.length).to.equal(1);
+    PaymentDocument.processor(120000);
+    expect(count.length).to.equal(1);
   });
 });
 

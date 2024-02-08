@@ -4,7 +4,16 @@ class PaymentAdapter {
     constructor(InitPaymentAdapter) {
         this.InitPaymentAdapter = InitPaymentAdapter;
         this.config = InitPaymentAdapter.config;
-        PaymentMethod.alive(this);
+        this.initializationPromise = this.initialize();
+    }
+    /**
+     * Waiting for initialization
+     */
+    async wait() {
+        await this.initializationPromise;
+    }
+    async initialize() {
+        await PaymentMethod.alive(this);
     }
     /**
      * Method for creating and obtaining an existing Payment Adapter

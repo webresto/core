@@ -63,7 +63,7 @@ let attributes = {
   externalId: {
     type: "string",
     unique: true,
-    required: true,
+    required: false,
     // allowNull: true // Only for NEW state
   } as unknown as string,
 
@@ -220,7 +220,7 @@ let Model = {
   },
 
   /** Payment check cycle*/
-  processor: async function (timeout: number) {
+  processor: async function (timeout: number): Promise<ReturnType<typeof setInterval>> {
     sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 45000);
     return (payment_processor_interval = setInterval(async () => {
       let actualTime = new Date();

@@ -12,7 +12,13 @@ export interface InitPaymentAdapter {
 export default abstract class PaymentAdapter {
     readonly InitPaymentAdapter: InitPaymentAdapter;
     config: Config;
+    private initializationPromise;
     protected constructor(InitPaymentAdapter: InitPaymentAdapter);
+    /**
+     * Waiting for initialization
+     */
+    wait(): Promise<void>;
+    private initialize;
     /**
      * Make new payment
      * @param Payment - payment document

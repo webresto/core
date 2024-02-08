@@ -15,10 +15,23 @@ export interface InitPaymentAdapter {
 export default abstract class PaymentAdapter {
   public readonly InitPaymentAdapter: InitPaymentAdapter;
   public config: Config
+  private initializationPromise: Promise<void>;
+
   protected constructor(InitPaymentAdapter: InitPaymentAdapter) {
     this.InitPaymentAdapter = InitPaymentAdapter;
     this.config = InitPaymentAdapter.config
-    PaymentMethod.alive(this);
+    this.initializationPromise = this.initialize();
+  }
+
+  /**
+   * Waiting for initialization
+   */
+  public async wait(): Promise<void> {
+    await this.initializationPromise;
+  }
+  
+  private async initialize(): Promise<void> {
+    await PaymentMethod.alive(this);
   }
 
   /**
