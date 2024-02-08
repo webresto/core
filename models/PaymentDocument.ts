@@ -63,7 +63,7 @@ let attributes = {
   externalId: {
     type: "string",
     unique: true,
-    required: true,
+    required: false,
     // allowNull: true // Only for NEW state
   } as unknown as string,
 
