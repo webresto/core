@@ -288,6 +288,10 @@ let attributes = {
 
   deviceId: "string",
 
+  /**
+   * Add IP, UserAgent for anonymouse cart
+   */
+
   user: {
     model: "user",
   } as unknown as User | string,
@@ -740,6 +744,7 @@ let Model = {
     isSelfService?: boolean,
     address?: Address,
     paymentMethodId?: string,
+    userId?: string,
     spendBonus?: SpendBonus
   ): Promise<void> {
 
@@ -789,6 +794,12 @@ let Model = {
           error: "customer is required",
         };
       }
+    }
+
+    if(order.user && userId && order.user !== userId){
+      sails.log.error(`User on basket [${order.shortId}] not equall [${order.user}] passed user [${userId}]`)
+    } else {
+      order.user = userId;
     }
 
     await checkDate(order);

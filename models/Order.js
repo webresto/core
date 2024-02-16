@@ -223,6 +223,9 @@ let attributes = {
     orderDate: "string",
     // orderDateLimit: "string",
     deviceId: "string",
+    /**
+     * Add IP, UserAgent for anonymouse cart
+     */
     user: {
         model: "user",
     },
@@ -588,7 +591,7 @@ let Model = {
     },
     ////////////////////////////////////////////////////////////////////////////////////
     // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
-    async check(criteria, customer, isSelfService, address, paymentMethodId, spendBonus) {
+    async check(criteria, customer, isSelfService, address, paymentMethodId, userId, spendBonus) {
         let order = await Order.findOne(criteria);
         // CHECKING
         // Check order empty
@@ -630,6 +633,12 @@ let Model = {
                     error: "customer is required",
                 };
             }
+        }
+        if (order.user && userId && order.user !== userId) {
+            sails.log.error(`User on basket [${order.shortId}] not equall [${order.user}] passed user [${userId}]`);
+        }
+        else {
+            order.user = userId;
         }
         await checkDate(order);
         if (paymentMethodId) {

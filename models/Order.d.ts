@@ -147,6 +147,9 @@ declare let attributes: {
     discountTotal: number;
     orderDate: string;
     deviceId: string;
+    /**
+     * Add IP, UserAgent for anonymouse cart
+     */
     user: string | User;
     customData: any;
 };
@@ -192,7 +195,7 @@ declare let Model: {
      */
     checkBonus(orderId: any, spendBonus: SpendBonus): Promise<void>;
     clearOfPromotion(): Promise<void>;
-    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, spendBonus?: SpendBonus): Promise<void>;
+    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<Order>): Promise<void>;
     payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;

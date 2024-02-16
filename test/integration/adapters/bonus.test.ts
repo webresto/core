@@ -52,7 +52,7 @@ describe("Bonus program adapter", function () {
 
   it("apply bonus in order on check", async () => {
     const dishes = await Dish.find({});
-    order1 = await Order.create({id: "test--apply--bonus", user: user.id}).fetch();
+    order1 = await Order.create({id: "test--apply--bonus"}).fetch();
     
     await Order.addDish({id: order1.id}, dishes[0], 5, [], "", "user");
     await Order.addDish({id: order1.id}, dishes[1], 3, [], "", "user");
@@ -62,7 +62,7 @@ describe("Bonus program adapter", function () {
       amount: 5.23 // BonusProgram test has 1 decimal 
     }
 
-    await Order.check({id: order1.id}, customer, true, undefined,  undefined, spendBonus);
+    await Order.check({id: order1.id}, customer, true, undefined,  undefined, user.id ,spendBonus);
     
     let checkedOrder = await Order.findOne({id: order1.id});
 
