@@ -870,6 +870,8 @@ let Model = {
 
 
       if(spendBonus.amount === 0) {
+        order.spendBonus.amount = 0;
+        order.bonusesTotal = 0;
         return;
       }
 

@@ -699,6 +699,8 @@ let Model = {
                 spendBonus.amount = 0;
             }
             if (spendBonus.amount === 0) {
+                order.spendBonus.amount = 0;
+                order.bonusesTotal = 0;
                 return;
             }
             // load bonus strategy
