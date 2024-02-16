@@ -327,7 +327,7 @@ let Model = {
     let allGroups = [];
     for (let group of menu) {
       const groupId = group.id
-      const initialGroup = await Group.findOne({ id: groupId });
+      const initialGroup = (await Group.find({ id: groupId }).sort('createdAt DESC')).shift();
       if (initialGroup) {
         allGroups.push(initialGroup);
         const childGroups = await getAllChildGroups(groupId);
