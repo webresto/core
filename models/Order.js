@@ -695,6 +695,12 @@ let Model = {
          *  Bonus spending
          * */
         if (order.user && typeof order.user === "string" && spendBonus && spendBonus.bonusProgramId) {
+            if (spendBonus.amount < 0) {
+                spendBonus.amount = 0;
+            }
+            if (spendBonus.amount === 0) {
+                return;
+            }
             // load bonus strategy
             let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
             // Fetch the bonus program for this bonus spend
