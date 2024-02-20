@@ -31,12 +31,23 @@ describe("RMS adapter", function () {
     
     let count = await Dish.count({isDeleted: false});
     expect(count).to.equal(616)
-    let countGroups = await Group.count({isDeleted: false})
-    expect(countGroups).to.equal(88);  
+    let groups = await Group.find({isDeleted: false})
+    const countGroups = groups.length
+    expect(countGroups).to.equal(88); 
+
+
+    // Should delete unknown products
+    let unknownProduct = dishGenerator({
+      parentGroup: groups[0].id,
+      price: 100,
+      name: "Unknown product"
+    })
+    product = await Dish.create(unknownProduct).fetch();
+    count = await Dish.count({isDeleted: false});
+    expect(count).to.equal(617)
+    await rmsAdapter.syncProducts();
+    count = await Dish.count({isDeleted: false});
+    expect(count).to.equal(616)
   });
   
 });
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
