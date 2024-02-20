@@ -1570,6 +1570,9 @@ let Model = {
     let order = await Order.findOne(criteria);
     let updateData: any = {};
 
+
+    if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - apply promocode on current state: (${order.state})`;
+
     if (!promotionCodeString || promotionCodeString === null) {
       updateData = {
         promotionCode: null,
@@ -1607,9 +1610,10 @@ let Model = {
     }
 
     await Order.update({ id: order.id }, updateData).fetch();
-    return await Order.countCart(criteria);
+    await Order.next(order.id, "CART");
+    const basket = await Order.countCart({ id: order.id });
+    return basket
   }
-
 };
 
 // Waterline model export

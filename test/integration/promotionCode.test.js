@@ -5,7 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const adapters_1 = require("../../adapters");
 const chai_1 = require("chai");
+const customer_1 = require("../mocks/customer");
 const dish_generator_1 = __importDefault(require("../generators/dish.generator"));
+const ExternalTestPaymentSystem_1 = __importDefault(require("../unit/external_payments/ExternalTestPaymentSystem"));
 describe("Promotion code integration test", function () {
     this.timeout(60000);
     let promotionAdapter;
@@ -60,9 +62,17 @@ describe("Promotion code integration test", function () {
         (0, chai_1.expect)(result.discountTotal).to.equal(1.45);
         (0, chai_1.expect)(result.total).to.equal(109.85);
         (0, chai_1.expect)(result.basketTotal).to.equal(111.3);
+        // After go to payment promocode should work, till ORDER state
+        await ExternalTestPaymentSystem_1.default.getInstance();
+        const paymentMethod = (await PaymentMethod.find({}))[0];
+        await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address, paymentMethod.id);
+        await Order.payment({ id: order.id });
+        result = await Order.findOne({ id: order.id });
+        console.log(result, 1);
         // CLEAR PROMOCODE
         await Order.applyPromotionCode({ id: order.id }, null);
         result = await Order.findOne({ id: order.id });
+        console.log(result, 2);
         (0, chai_1.expect)(result.discountTotal).to.equal(0);
         (0, chai_1.expect)(result.total).to.equal(111.3);
         // NOT VALID PROMOCODE

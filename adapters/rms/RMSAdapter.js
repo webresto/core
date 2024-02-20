@@ -100,8 +100,9 @@ class RMSAdapter {
                     for (const group of currentRMSGroupsFlatTree) {
                         const productsToUpdate = await rmsAdapter.loadProductsByGroup(group);
                         // Get ids of all current products in group
-                        const productIds = productsToUpdate.map((product) => product.rmsId);
-                        allProductIds = allProductIds.concat(productIds);
+                        const productIds = productsToUpdate.map((product) => product.id);
+                        const productRMSIds = productsToUpdate.map((product) => product.rmsId);
+                        allProductIds = allProductIds.concat(productRMSIds);
                         sails.log.silly("ADAPTER RMS > syncProducts sync Group dishes:", productsToUpdate.length);
                         for (let product of productsToUpdate) {
                             emitter.emit("rms-sync:before-each-product-item", product);
@@ -109,6 +110,8 @@ class RMSAdapter {
                             product.concept = product.concept ?? "origin";
                             const productData = { ...product, isDeleted: false };
                             let createdProduct = await Dish.createOrUpdate(productData);
+                            // Set isDeleted for absent products in ERP
+                            await Dish.update({ id: { "!=": productIds }, parentGroup: group.id }, { isDeleted: true }).fetch();
                             const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
                             // Load images
                             if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {

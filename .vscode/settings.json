@@ -3,7 +3,7 @@
     // Hide all files that end in .d.ts
     "**/*.d.ts": true,
     // Hide all files that end with .js if they have a .ts file
-    "**/*.js": {
+    "**/*.1js": {
       "when": "$(basename).ts"
     },
   },

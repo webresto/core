@@ -19,6 +19,7 @@ import discountGenerator from "../generators/discount.generator";
 import ConfiguredPromotion from "../../adapters/promotion/default/configuredPromotion";
 import Decimal from "decimal.js";
 import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
+import TestPaymentSystem from "../unit/external_payments/ExternalTestPaymentSystem";
 
 
 
@@ -90,11 +91,26 @@ describe("Promotion code integration test", function () {
     expect(result.total).to.equal(109.85);
     expect(result.basketTotal).to.equal(111.3);
 
+
+    // After go to payment promocode should work, till ORDER state
+    await TestPaymentSystem.getInstance();
+    const paymentMethod = (await PaymentMethod.find({}))[0];
+    await Order.check({id: order.id}, customer, false, address, paymentMethod.id);
+    await Order.payment({id: order.id});
+    result = await Order.findOne({id: order.id})
+    console.log(result,1)
+
+
     // CLEAR PROMOCODE
     await Order.applyPromotionCode({id: order.id}, null);
     result = await Order.findOne({id: order.id})
+    console.log(result,2)
+
     expect(result.discountTotal).to.equal(0);
     expect(result.total).to.equal(111.3);
+    expect(result.state).to.equal("CART");
+
+
 
     // NOT VALID PROMOCODE
     await Order.applyPromotionCode({id: order.id}, "WINTER2024NHATRANG");
