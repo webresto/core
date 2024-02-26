@@ -60,21 +60,17 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         this.loadMediaFilesProcessQueue = [];
         this.loadMediaFiles();
     }
-    getNameByUrl(url, ext, options, salt = false, short = false) {
+    getNameByUrl(url, ext, options, salt = null, short = false) {
         let baseName = url;
         if (options)
             baseName += JSON.stringify(options);
         baseName = (0, uuid_1.v5)(baseName, this.UUID_NAMESPACE);
         if (short) {
             baseName = baseName.replace(/[-\d]+/g, "");
+            baseName += `-${Math.floor(Date.now() / 1000)}`;
         }
         if (salt) {
-            if (typeof salt === "boolean") {
-                baseName += `-${Math.floor(Date.now() / 1000)}`;
-            }
-            else {
-                baseName += `-${salt.toString().toLowerCase().replace(/[^a-zA-Z]+/g, "").substring(0, 7)}`;
-            }
+            baseName += `-${salt.toString().toLowerCase().replace(/[^a-zA-Z]+/g, "").substring(0, 7)}`;
         }
         baseName += `.${ext}`;
         return baseName;
