@@ -60,13 +60,20 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         this.loadMediaFilesProcessQueue = [];
         this.loadMediaFiles();
     }
-    getNameByUrl(url, ext, options, salt = false) {
+    getNameByUrl(url, ext, options, salt = false, short = false) {
         let baseName = url;
         if (options)
             baseName += JSON.stringify(options);
         baseName = (0, uuid_1.v5)(baseName, this.UUID_NAMESPACE);
-        if (salt)
-            baseName += `-${(new Date()).getTime()}`;
+        if (short) {
+            baseName = baseName.replace(/[-\d]+/g, "");
+            if (salt)
+                baseName += `-${Math.floor(Date.now() / 1000)}`;
+        }
+        else {
+            if (salt)
+                baseName += `-${Date.now()}`;
+        }
         baseName += `.${ext}`;
         return baseName;
     }
@@ -88,7 +95,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             large: undefined
         };
         for (let res in cfg.resize) {
-            name[res] = this.getNameByUrl(url, cfg.format, cfg, true);
+            name[res] = this.getNameByUrl(url, cfg.format, cfg, true, true);
         }
         this.loadMediaFilesProcessQueue.push({
             url: url,
