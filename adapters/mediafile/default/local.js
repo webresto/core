@@ -214,8 +214,17 @@ async function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
         }
         // Check if there's a background color and if the image has an alpha channel
         if (customArgs.backgroundColor && channels === 4) {
-            // Composite the resized image onto a solid background
-            await (0, sharp_1.default)({ create: { width: resizeWidth, height: resizeHeight, channels: 4, background: customArgs.backgroundColor } })
+            // Create a blank image with the same dimensions as the resized image and the specified background color
+            const background = await (0, sharp_1.default)({
+                create: {
+                    width: resizeWidth,
+                    height: resizeHeight,
+                    channels: 4,
+                    background: customArgs.backgroundColor
+                }
+            }).toBuffer();
+            // Composite the resized image onto the solid background
+            await (0, sharp_1.default)(background)
                 .composite([{ input: srcPath }])
                 .toFile(dstPath);
         }
@@ -225,10 +234,9 @@ async function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
                 .resize(resizeWidth, resizeHeight)
                 .toFile(dstPath);
         }
-        return Promise.resolve();
     }
     catch (error) {
         console.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size, customArgs);
-        return Promise.reject(new Error(error));
+        throw new Error(error);
     }
 }
