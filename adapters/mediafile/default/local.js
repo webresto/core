@@ -199,31 +199,37 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
 exports.default = LocalMediaFileAdapter;
 function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
     return new Promise((resolve, reject) => {
-        imageMagick(srcPath)
-            .size((err, dimensions) => {
-            if (err) {
-                return reject(new Error(err));
-            }
-            // Determine which side is smaller
-            let resizeWidth, resizeHeight;
-            if (dimensions.width > dimensions.height) {
-                resizeWidth = Math.round(size * (dimensions.width / dimensions.height));
-                resizeHeight = size;
-            }
-            else {
-                resizeWidth = size;
-                resizeHeight = Math.round(size * (dimensions.height / dimensions.width));
-            }
-            imageMagick(srcPath).resize(resizeWidth, resizeHeight)
-                .out(...customArgs)
-                .write(dstPath, (err) => {
+        try {
+            imageMagick(srcPath)
+                .size((err, dimensions) => {
                 if (err) {
-                    reject(new Error(err));
+                    throw new Error(err);
+                }
+                // Determine which side is smaller
+                let resizeWidth, resizeHeight;
+                if (dimensions.width > dimensions.height) {
+                    resizeWidth = Math.round(size * (dimensions.width / dimensions.height));
+                    resizeHeight = size;
                 }
                 else {
-                    resolve();
+                    resizeWidth = size;
+                    resizeHeight = Math.round(size * (dimensions.height / dimensions.width));
                 }
+                imageMagick(srcPath).resize(resizeWidth, resizeHeight)
+                    .out(...customArgs)
+                    .write(dstPath, (err) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    else {
+                        resolve();
+                    }
+                });
             });
-        });
+        }
+        catch (error) {
+            sails.log.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size, customArgs);
+            return reject(new Error(error));
+        }
     });
 }
