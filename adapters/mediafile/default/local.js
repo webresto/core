@@ -161,11 +161,14 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                                         mediafileItem = 240;
                                         sails.log.warn(`MediaFile size is not set for ${size}`);
                                     }
+                                    const customArgs = {
+                                        backgroundColor: loadMediaFilesProcess.config.background || "white"
+                                    };
                                     await resizeMediaFile({
                                         srcPath: path.join(prefix, loadMediaFilesProcess.name.origin),
                                         dstPath: path.join(prefix, loadMediaFilesProcess.name[size]),
                                         size: mediafileItem,
-                                        customArgs: ["-background", loadMediaFilesProcess.config.background || "white", "-flatten"],
+                                        customArgs: customArgs,
                                     });
                                     sails.log.debug(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`);
                                 }
@@ -198,7 +201,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
 exports.default = LocalMediaFileAdapter;
 async function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
     try {
-        const { width, height } = await (0, sharp_1.default)(srcPath).metadata();
+        const { width, height, channels } = await (0, sharp_1.default)(srcPath).metadata();
         // Determine which side is smaller
         let resizeWidth, resizeHeight;
         if (width > height) {
@@ -209,9 +212,19 @@ async function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
             resizeWidth = size;
             resizeHeight = Math.round(size * (height / width));
         }
-        await (0, sharp_1.default)(srcPath)
-            .resize(resizeWidth, resizeHeight)
-            .toFile(dstPath);
+        // Check if there's a background color and if the image has an alpha channel
+        if (customArgs.backgroundColor && channels === 4) {
+            // Composite the resized image onto a solid background
+            await (0, sharp_1.default)({ create: { width: resizeWidth, height: resizeHeight, channels: 4, background: customArgs.backgroundColor } })
+                .composite([{ input: srcPath }])
+                .toFile(dstPath);
+        }
+        else {
+            // If no background color or no alpha channel, simply resize the image
+            await (0, sharp_1.default)(srcPath)
+                .resize(resizeWidth, resizeHeight)
+                .toFile(dstPath);
+        }
         return Promise.resolve();
     }
     catch (error) {
