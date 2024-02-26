@@ -2,11 +2,12 @@ import MediaFileAdapter, { BaseConfig, BaseConfigProperty, ConfigMediaFileAdapte
 import * as fs from "fs";
 import axios from 'axios';
 import { v5 as uuidv5 } from "uuid";
-
-const gm = require('gm');
-const imageMagick = gm.subClass({ imageMagick: true });
-
 import * as path from "path";
+
+
+
+import sharp from 'sharp';
+
 
 export interface MediaFileConfig {
   dish: MediaFileConfigInner;
@@ -230,38 +231,27 @@ interface ResizeMediaFileOptions {
   customArgs: string[];
 }
 
-function resizeMediaFile({ srcPath, dstPath, size, customArgs }: ResizeMediaFileOptions): Promise<void> {
-  return new Promise((resolve, reject) => {
-    try {
-      imageMagick(srcPath)
-        .size((err, dimensions) => {
-          if (err) {
-            throw new Error(err);
-          }
+async function resizeMediaFile({ srcPath, dstPath, size, customArgs }: ResizeMediaFileOptions): Promise<void> {
+  try {
+    const { width, height } = await sharp(srcPath).metadata();
 
-          // Determine which side is smaller
-          let resizeWidth, resizeHeight;
-          if (dimensions.width > dimensions.height) {
-            resizeWidth = Math.round(size * (dimensions.width / dimensions.height));
-            resizeHeight = size;
-          } else {
-            resizeWidth = size;
-            resizeHeight = Math.round(size * (dimensions.height / dimensions.width));
-          }
-
-          imageMagick(srcPath).resize(resizeWidth, resizeHeight)
-            .out(...customArgs)
-            .write(dstPath, (err) => {
-              if (err) {
-                throw new Error(err);
-              } else {
-                resolve();
-              }
-            });
-        });
-    } catch (error) {
-      sails.log.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size, customArgs)
-      return reject(new Error(error));
+    // Determine which side is smaller
+    let resizeWidth, resizeHeight;
+    if (width > height) {
+      resizeWidth = Math.round(size * (width / height));
+      resizeHeight = size;
+    } else {
+      resizeWidth = size;
+      resizeHeight = Math.round(size * (height / width));
     }
-  });
+
+    await sharp(srcPath)
+      .resize(resizeWidth, resizeHeight)
+      .toFile(dstPath);
+
+    return Promise.resolve();
+  } catch (error) {
+    console.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size, customArgs);
+    return Promise.reject(new Error(error));
+  }
 }

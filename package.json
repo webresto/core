@@ -25,7 +25,7 @@
     "crypto-puzzle": "^4.0.0",
     "decimal.js": "^10.4.3",
     "fix-esm": "^1.0.1",
-    "gm": "^1.25.0",
+    "sharp": "^0.33.2",
     "lodash": "^4.17.10",
     "sails-build-dictionary": "^0.10.1",
     "serve-static": "^1.15.0",

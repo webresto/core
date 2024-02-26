@@ -30,9 +30,8 @@ const MediaFileAdapter_1 = __importDefault(require("../MediaFileAdapter"));
 const fs = __importStar(require("fs"));
 const axios_1 = __importDefault(require("axios"));
 const uuid_1 = require("uuid");
-const gm = require('gm');
-const imageMagick = gm.subClass({ imageMagick: true });
 const path = __importStar(require("path"));
+const sharp_1 = __importDefault(require("sharp"));
 // images: {
 //   adapter: 'imagemagick-local',
 //   dish: {
@@ -197,39 +196,26 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
     }
 }
 exports.default = LocalMediaFileAdapter;
-function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
-    return new Promise((resolve, reject) => {
-        try {
-            imageMagick(srcPath)
-                .size((err, dimensions) => {
-                if (err) {
-                    throw new Error(err);
-                }
-                // Determine which side is smaller
-                let resizeWidth, resizeHeight;
-                if (dimensions.width > dimensions.height) {
-                    resizeWidth = Math.round(size * (dimensions.width / dimensions.height));
-                    resizeHeight = size;
-                }
-                else {
-                    resizeWidth = size;
-                    resizeHeight = Math.round(size * (dimensions.height / dimensions.width));
-                }
-                imageMagick(srcPath).resize(resizeWidth, resizeHeight)
-                    .out(...customArgs)
-                    .write(dstPath, (err) => {
-                    if (err) {
-                        throw new Error(err);
-                    }
-                    else {
-                        resolve();
-                    }
-                });
-            });
+async function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
+    try {
+        const { width, height } = await (0, sharp_1.default)(srcPath).metadata();
+        // Determine which side is smaller
+        let resizeWidth, resizeHeight;
+        if (width > height) {
+            resizeWidth = Math.round(size * (width / height));
+            resizeHeight = size;
         }
-        catch (error) {
-            sails.log.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size, customArgs);
-            return reject(new Error(error));
+        else {
+            resizeWidth = size;
+            resizeHeight = Math.round(size * (height / width));
         }
-    });
+        await (0, sharp_1.default)(srcPath)
+            .resize(resizeWidth, resizeHeight)
+            .toFile(dstPath);
+        return Promise.resolve();
+    }
+    catch (error) {
+        console.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size, customArgs);
+        return Promise.reject(new Error(error));
+    }
 }
