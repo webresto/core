@@ -198,7 +198,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
                 }
             }).catch(error => {
                 // Log the error and rethrow it
-                sails.log.error(`Error processing file ${loadMediaFilesProcess.name.origin}: ${error}`);
+                sails.log.error(`MF local Error > processing file ${loadMediaFilesProcess.name.origin}: ${error}`);
             });
         });
   
@@ -207,7 +207,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
             await Promise.all(downloadPromises);
         } catch (error) {
             // Handle errors that occurred during processing
-            sails.log.error(`An error occurred during file processing: ${error}`);
+            sails.log.error(`MF local Error > file processing: ${error}`);
         }
     }
     this.processing = false

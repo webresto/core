@@ -175,7 +175,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                     }
                 }).catch(error => {
                     // Log the error and rethrow it
-                    sails.log.error(`Error processing file ${loadMediaFilesProcess.name.origin}: ${error}`);
+                    sails.log.error(`MF local Error > processing file ${loadMediaFilesProcess.name.origin}: ${error}`);
                 });
             });
             try {
@@ -184,7 +184,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             }
             catch (error) {
                 // Handle errors that occurred during processing
-                sails.log.error(`An error occurred during file processing: ${error}`);
+                sails.log.error(`MF local Error > file processing: ${error}`);
             }
         }
         this.processing = false;
