@@ -6,7 +6,6 @@ export interface MediaFileConfig {
 }
 interface MediaFileConfigInner {
     format: string;
-    background: string;
     resize: {
         small: number;
         large: number;
@@ -26,7 +25,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     private processingTimeout;
     loadMediaFilesProcessQueue: LoadMediaFilesProcess[];
     constructor(config: BaseConfig);
-    getNameByUrl(url: string, ext: string, options?: any, salt?: string, short?: boolean): string;
+    getNameByUrl(url: string, ext: string, options?: any, salt?: string): string;
     process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<{
         origin: string;
         small: string;

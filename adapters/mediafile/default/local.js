@@ -59,17 +59,14 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         this.loadMediaFilesProcessQueue = [];
         this.loadMediaFiles();
     }
-    getNameByUrl(url, ext, options, salt = null, short = false) {
+    getNameByUrl(url, ext, options, salt = null) {
         let baseName = url;
         if (options)
             baseName += JSON.stringify(options);
         baseName = (0, uuid_1.v5)(baseName, this.UUID_NAMESPACE);
-        if (short) {
-            baseName = baseName.replace(/[-\d]+/g, "");
-            baseName += `-${Math.floor(Date.now() / 1000)}`;
-        }
         if (salt) {
             baseName += `-${salt.toString().toLowerCase().replace(/[^a-zA-Z]+/g, "").substring(0, 7)}`;
+            baseName += `-${Math.floor(Date.now() / 1000)}`;
         }
         baseName += `.${ext}`;
         return baseName;
@@ -80,8 +77,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             resize: {
                 small: 512,
                 large: 1024
-            },
-            background: "white"
+            }
         };
         const cfg = { ...baseConfig, ...config };
         const mediafileExtesion = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0].replace('.', '');
@@ -92,7 +88,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             large: undefined
         };
         for (let res in cfg.resize) {
-            name[res] = this.getNameByUrl(url, cfg.format, cfg, res, true);
+            name[res] = this.getNameByUrl(url, cfg.format, cfg, res);
         }
         this.loadMediaFilesProcessQueue.push({
             url: url,
@@ -161,14 +157,10 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                                         mediafileItem = 240;
                                         sails.log.warn(`MediaFile size is not set for ${size}`);
                                     }
-                                    const customArgs = {
-                                        backgroundColor: loadMediaFilesProcess.config.background || "white"
-                                    };
                                     await resizeMediaFile({
                                         srcPath: path.join(prefix, loadMediaFilesProcess.name.origin),
                                         dstPath: path.join(prefix, loadMediaFilesProcess.name[size]),
-                                        size: mediafileItem,
-                                        customArgs: customArgs,
+                                        size: mediafileItem
                                     });
                                     sails.log.debug(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`);
                                 }
@@ -199,9 +191,9 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
     }
 }
 exports.default = LocalMediaFileAdapter;
-async function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
+async function resizeMediaFile({ srcPath, dstPath, size }) {
     try {
-        const { width, height, channels } = await (0, sharp_1.default)(srcPath).metadata();
+        const { width, height } = await (0, sharp_1.default)(srcPath).metadata();
         // Determine which side is smaller
         let resizeWidth, resizeHeight;
         if (width > height) {
@@ -212,31 +204,14 @@ async function resizeMediaFile({ srcPath, dstPath, size, customArgs }) {
             resizeWidth = size;
             resizeHeight = Math.round(size * (height / width));
         }
-        // Check if there's a background color and if the image has an alpha channel
-        if (customArgs.backgroundColor && channels === 4) {
-            // Create a blank image with the same dimensions as the resized image and the specified background color
-            const background = await (0, sharp_1.default)({
-                create: {
-                    width: resizeWidth,
-                    height: resizeHeight,
-                    channels: 4,
-                    background: customArgs.backgroundColor
-                }
-            }).toBuffer();
-            // Composite the resized image onto the solid background
-            await (0, sharp_1.default)(background)
-                .composite([{ input: srcPath }])
-                .toFile(dstPath);
-        }
-        else {
-            // If no background color or no alpha channel, simply resize the image
-            await (0, sharp_1.default)(srcPath)
-                .resize(resizeWidth, resizeHeight)
-                .toFile(dstPath);
-        }
+        // If no background color or no alpha channel, simply resize the image
+        await (0, sharp_1.default)(srcPath)
+            .resize(resizeWidth, resizeHeight)
+            .toFile(dstPath);
     }
     catch (error) {
-        console.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size, customArgs);
+        console.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size);
+        console.error(error);
         throw new Error(error);
     }
 }

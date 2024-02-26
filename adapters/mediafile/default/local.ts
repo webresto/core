@@ -17,7 +17,6 @@ export interface MediaFileConfig {
 
 interface MediaFileConfigInner {
   format: string;
-  background: string;
   resize: {
     small: number
     large: number
@@ -70,17 +69,14 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     this.loadMediaFiles()
   }
 
-  public getNameByUrl(url: string, ext: string, options?: any, salt: string = null, short: boolean = false): string {
+  public getNameByUrl(url: string, ext: string, options?: any, salt: string = null): string {
     let baseName = url;
     if (options) baseName += JSON.stringify(options);
     baseName = uuidv5(baseName, this.UUID_NAMESPACE);
-    if (short) {
-      baseName = baseName.replace(/[-\d]+/g, "")
-      baseName += `-${Math.floor(Date.now() / 1000)}`
-    }
 
     if (salt) {
       baseName += `-${salt.toString().toLowerCase().replace(/[^a-zA-Z]+/g, "").substring(0, 7)}`
+      baseName += `-${Math.floor(Date.now() / 1000)}`
     }
 
     baseName += `.${ext}`;
@@ -93,8 +89,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       resize: {
         small: 512,
         large: 1024
-      },
-      background: "white"
+      }
     }
 
     const cfg = { ...baseConfig, ...config } as unknown as MediaFileConfigInner;
@@ -109,7 +104,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     };
 
     for (let res in cfg.resize) {
-      name[res] = this.getNameByUrl(url, cfg.format, cfg, res, true);
+      name[res] = this.getNameByUrl(url, cfg.format, cfg, res);
     }
 
     this.loadMediaFilesProcessQueue.push({
@@ -190,15 +185,11 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
                     sails.log.warn(`MediaFile size is not set for ${size}`)
                   }
 
-                  const customArgs = {
-                    backgroundColor: loadMediaFilesProcess.config.background || "white"
-                  };
 
                   await resizeMediaFile({
                     srcPath: path.join(prefix, loadMediaFilesProcess.name.origin),
                     dstPath: path.join(prefix, loadMediaFilesProcess.name[size]),
-                    size: mediafileItem,
-                    customArgs: customArgs,
+                    size: mediafileItem
                   });
                   sails.log.debug(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`)
                 } else {
@@ -232,14 +223,11 @@ interface ResizeMediaFileOptions {
   srcPath: string;
   dstPath: string;
   size: number;
-  customArgs: {
-    backgroundColor: string
-  };
 }
 
-async function resizeMediaFile({ srcPath, dstPath, size, customArgs }: ResizeMediaFileOptions): Promise<void> {
+async function resizeMediaFile({ srcPath, dstPath, size  }: ResizeMediaFileOptions): Promise<void> {
   try {
-    const { width, height, channels } = await sharp(srcPath).metadata();
+    const { width, height } = await sharp(srcPath).metadata();
 
     // Determine which side is smaller
     let resizeWidth, resizeHeight;
@@ -251,30 +239,13 @@ async function resizeMediaFile({ srcPath, dstPath, size, customArgs }: ResizeMed
       resizeHeight = Math.round(size * (height / width));
     }
 
-    // Check if there's a background color and if the image has an alpha channel
-    if (customArgs.backgroundColor && channels === 4) {
-      // Create a blank image with the same dimensions as the resized image and the specified background color
-      const background = await sharp({
-        create: {
-          width: resizeWidth,
-          height: resizeHeight,
-          channels: 4,
-          background: customArgs.backgroundColor
-        }
-      }).toBuffer();
-
-      // Composite the resized image onto the solid background
-      await sharp(background)
-        .composite([{ input: srcPath }])
-        .toFile(dstPath);
-    } else {
-      // If no background color or no alpha channel, simply resize the image
-      await sharp(srcPath)
-        .resize(resizeWidth, resizeHeight)
-        .toFile(dstPath);
-    }
+    // If no background color or no alpha channel, simply resize the image
+    await sharp(srcPath)
+      .resize(resizeWidth, resizeHeight)
+      .toFile(dstPath);
   } catch (error) {
-    console.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size, customArgs);
+    console.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size);
+    console.error(error)
     throw new Error(error);
   }
 }
