@@ -69,16 +69,21 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     this.loadMediaFiles()
   }
 
-  public getNameByUrl(url: string, ext: string, options?: any, salt: boolean = false, short: boolean = false): string {
+  public getNameByUrl(url: string, ext: string, options?: any, salt: boolean | string = false, short: boolean = false): string {
     let baseName = url;
     if (options) baseName += JSON.stringify(options);
     baseName = uuidv5(baseName, this.UUID_NAMESPACE);
     if(short) {
       baseName = baseName.replace(/[-\d]+/g, "")
-      if(salt) baseName += `-${Math.floor(Date.now() / 1000)}`;
-    } else {
-      if(salt) baseName += `-${Date.now()}`;
     }
+    
+    if(salt) {
+      if(typeof salt === "boolean"){
+        baseName += `-${Math.floor(Date.now() / 1000)}`;
+      } else {
+        baseName +=`-${salt.toString().toLowerCase().replace(/[^a-zA-Z]+/g,"").substring(0, 7)}`        
+      }
+    } 
 
     baseName += `.${ext}`;
     return baseName;
@@ -106,7 +111,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     };
 
     for (let res in cfg.resize) {
-      name[res] = this.getNameByUrl(url, cfg.format, cfg, true, true);
+      name[res] = this.getNameByUrl(url, cfg.format, cfg, res, true);
     }
 
     this.loadMediaFilesProcessQueue.push({ 

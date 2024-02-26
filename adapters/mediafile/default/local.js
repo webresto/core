@@ -67,12 +67,14 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         baseName = (0, uuid_1.v5)(baseName, this.UUID_NAMESPACE);
         if (short) {
             baseName = baseName.replace(/[-\d]+/g, "");
-            if (salt)
-                baseName += `-${Math.floor(Date.now() / 1000)}`;
         }
-        else {
-            if (salt)
-                baseName += `-${Date.now()}`;
+        if (salt) {
+            if (typeof salt === "boolean") {
+                baseName += `-${Math.floor(Date.now() / 1000)}`;
+            }
+            else {
+                baseName += `-${salt.toString().toLowerCase().replace(/[^a-zA-Z]+/g, "").substring(0, 7)}`;
+            }
         }
         baseName += `.${ext}`;
         return baseName;
@@ -95,7 +97,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             large: undefined
         };
         for (let res in cfg.resize) {
-            name[res] = this.getNameByUrl(url, cfg.format, cfg, true, true);
+            name[res] = this.getNameByUrl(url, cfg.format, cfg, res, true);
         }
         this.loadMediaFilesProcessQueue.push({
             url: url,

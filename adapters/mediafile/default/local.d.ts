@@ -26,7 +26,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     private processingTimeout;
     loadMediaFilesProcessQueue: LoadMediaFilesProcess[];
     constructor(config: BaseConfig);
-    getNameByUrl(url: string, ext: string, options?: any, salt?: boolean, short?: boolean): string;
+    getNameByUrl(url: string, ext: string, options?: any, salt?: boolean | string, short?: boolean): string;
     process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<{
         origin: string;
         small: string;
