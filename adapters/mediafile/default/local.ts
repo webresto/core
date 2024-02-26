@@ -130,7 +130,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     // Check if file exists
     if (!fs.existsSync(fullPathDl)) {
         const response = await axios.get(loadMediaFilesProcess.url, { responseType: 'stream' });
-        sails.log.silly(`MF local > download image: ${fullPathDl}, status: ${response.status}`);  
+        sails.log.debug(`MF local > download image: ${fullPathDl}, status: ${response.status}`);  
 
         fs.mkdirSync(prefix, { recursive: true });
 
@@ -170,7 +170,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
                 const prefix = this.getPrefix(loadMediaFilesProcess.type);
                 switch (loadMediaFilesProcess.type) {
                     case "image":
-                      sails.log.silly(`MF local > process image: ${loadMediaFilesProcess.name.origin}`)  
+                      sails.log.debug(`MF local > process image: ${loadMediaFilesProcess.name.origin}`)  
                       for (let size in loadMediaFilesProcess.config.resize) {
                             const dstPath = path.join(prefix,loadMediaFilesProcess.name[size])
                             if (!fs.existsSync(dstPath)) {
@@ -187,9 +187,9 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
                                   size: mediafileItem,
                                   customArgs: ["-background", loadMediaFilesProcess.config.background || "white", "-flatten"],
                               });
-                              sails.log.silly(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`)  
+                              sails.log.debug(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`)  
                             } else {
-                              sails.log.silly(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`)  
+                              sails.log.debug(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`)  
                             }
                         }
                     break;
@@ -230,7 +230,7 @@ function resizeMediaFile({ srcPath, dstPath, size, customArgs }: ResizeMediaFile
           return reject(new Error(err));
         }
 
-        // Определяем, какая сторона меньше
+        // Determine which side is smaller
         let resizeWidth, resizeHeight;
         if (dimensions.width > dimensions.height) {
           resizeWidth = Math.round(size * (dimensions.width / dimensions.height));

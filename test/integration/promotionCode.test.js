@@ -75,6 +75,7 @@ describe("Promotion code integration test", function () {
         console.log(result, 2);
         (0, chai_1.expect)(result.discountTotal).to.equal(0);
         (0, chai_1.expect)(result.total).to.equal(111.3);
+        (0, chai_1.expect)(result.state).to.equal("CART");
         // NOT VALID PROMOCODE
         await Order.applyPromotionCode({ id: order.id }, "WINTER2024NHATRANG");
         result = await Order.findOne({ id: order.id });
