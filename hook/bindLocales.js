@@ -48,7 +48,7 @@ async function default_1() {
                 }
             }
             else {
-                sails.log.error(`restocore bindTranslations > Cannot find ${locale} locale in translations directory`);
+                sails.log.debug(`restocore bindTranslations > Cannot find ${locale} locale in translations directory`);
             }
         }
     }

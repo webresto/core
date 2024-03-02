@@ -25,7 +25,7 @@ export default async function () {
           sails.log.error(`restocore bindTranslations > Error when reading ${locale}.json: ${error}`);
         }
       } else {
-        sails.log.error(`restocore bindTranslations > Cannot find ${locale} locale in translations directory`);
+        sails.log.debug(`restocore bindTranslations > Cannot find ${locale} locale in translations directory`);
       }
     }
   } catch (e) {
