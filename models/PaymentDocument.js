@@ -14,8 +14,7 @@ let attributes = {
     externalId: {
         type: "string",
         unique: true,
-        required: false,
-        // allowNull: true // Only for NEW state
+        allowNull: true // Only for NEW state
     },
     /** Model from which payment is made*/
     originModel: "string",
@@ -93,6 +92,7 @@ let Model = {
             await PaymentDocument.create(payment);
         }
         catch (e) {
+            emitter.emit("error", "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 3,
@@ -116,6 +116,7 @@ let Model = {
             return paymentResponse;
         }
         catch (e) {
+            emitter.emit("error", "PaymentDocument > register:", e);
             sails.log.error("Error in paymentAdapter.createPayment :", e);
             throw {
                 code: 4,

@@ -25,7 +25,8 @@ declare let attributes: {
     discountTotal: number;
     /** Type discount */
     discountType: string;
-    discountAmount: number;
+    /** Discount amount */
+    discountAmount: string;
     /** postDiscounts */
     discountMessage: string;
     /** Comment to dish in order */

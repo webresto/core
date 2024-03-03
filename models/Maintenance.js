@@ -41,9 +41,7 @@ let Model = {
         cb();
     },
     beforeCreate: function (maintenance, cb) {
-        if (!maintenance.id) {
-            maintenance.id = (0, uuid_1.v4)();
-        }
+        maintenance.id = (0, uuid_1.v4)();
         cb();
     },
     siteIsOff: async function () {
@@ -51,7 +49,7 @@ let Model = {
         return maintenances ? true : false;
     },
     // TODO: add turnSiteOff method
-    getActiveMaintenance: async function (date) {
+    getActiveMaintenance: async function () {
         // TODO: here need add worktime support
         let maintenances = await Maintenance.find({ enable: true });
         maintenances = maintenances.filter((maintenance) => {
@@ -70,7 +68,7 @@ let Model = {
             if (maintenance.stopDate) {
                 stop = new Date(maintenance.stopDate).getTime();
             }
-            let now = date === undefined ? new Date().getTime() : new Date(date).getTime();
+            const now = new Date().getTime();
             return between(start, stop, now);
         });
         return maintenances[0];

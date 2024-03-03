@@ -1661,7 +1661,7 @@ async function checkCustomerInfo(customer) {
 
 
 
-  let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES") as string | string[];
+  let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES") as string | string[] ?? [];
   if (typeof allowedPhoneCountries === "string") allowedPhoneCountries = [allowedPhoneCountries];
   let isValidPhone = allowedPhoneCountries === undefined;
 

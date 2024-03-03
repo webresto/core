@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
+const slugify_1 = __importDefault(require("slugify"));
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
-const slugIt_1 = require("../libs/slugIt");
 let attributes = {
     /**Id */
     id: {
@@ -82,10 +82,9 @@ let attributes = {
     dishesPlaceholder: {
         model: "mediafile",
     },
-    /** The human easy readable*/
+    /** The person readable isii*/
     slug: {
         type: "string",
-        unique: process.env.UNIQUE_SLUG === "1"
     },
     /** The concept to which the group belongs */
     concept: "string",
@@ -102,7 +101,7 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    beforeCreate: async function (init, cb) {
+    beforeCreate(init, cb) {
         emitter.emit('core:group-before-create', init);
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
@@ -110,11 +109,7 @@ let Model = {
         if (!init.concept) {
             init.concept = "origin";
         }
-        const slugOpts = [];
-        if (init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
-            slugOpts.push(init.concept);
-        }
-        init.slug = await (0, slugIt_1.slugIt)("group", init.name, "slug", slugOpts);
+        init.slug = (0, slugify_1.default)(init.name, { remove: /[*+~.()'"!:@\\\/]/g, lower: true, strict: true, locale: 'en' });
         cb();
     },
     beforeUpdate: function (record, cb) {
@@ -231,17 +226,12 @@ let Model = {
     // use this method to get group modified by adapters
     // https://github.com/balderdashy/waterline/pull/902
     async display(criteria) {
-        const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
+        const discountAdapter = adapters_1.Adapter.getPromotionAdapter();
         const groups = await Group.find(criteria);
-        // Set virtual default
-        groups.forEach((group) => {
-            group.discountAmount = 0;
-            group.discountType = null;
-        });
         let updatedDishes = [];
         for (let i = 0; i < groups.length; i++) {
             try {
-                updatedDishes.push(promotionAdapter.displayGroup(groups[i]));
+                updatedDishes.push(discountAdapter.displayGroup(groups[i]));
             }
             catch (error) {
                 sails.log(error);
@@ -261,12 +251,11 @@ let Model = {
         let allGroups = [];
         for (let group of menu) {
             const groupId = group.id;
-            const initialGroup = (await Group.find({ id: groupId }).sort('createdAt DESC')).shift();
+            const initialGroup = await Group.findOne({ id: groupId });
             if (initialGroup) {
                 allGroups.push(initialGroup);
                 const childGroups = await getAllChildGroups(groupId);
                 allGroups = allGroups.concat(childGroups);
-                allGroups.sort((a, b) => a.sortOrder - b.sortOrder);
             }
         }
         async function getAllChildGroups(groupId) {
@@ -277,7 +266,6 @@ let Model = {
                 const subChildGroups = await getAllChildGroups(group.id);
                 allChildGroups = allChildGroups.concat(subChildGroups);
             }
-            allChildGroups.sort((a, b) => a.sortOrder - b.sortOrder);
             return allChildGroups;
         }
         if (option === "flat_tree") {
@@ -333,7 +321,7 @@ let Model = {
                     groups = childs;
             }
         }
-        return groups.sort((a, b) => a.sortOrder - b.sortOrder);
+        return groups;
     },
     /**
      * Checks whether the group exists, if it does not exist, then creates a new one and returns it.
@@ -346,18 +334,15 @@ let Model = {
         if (values.id) {
             criteria['id'] = values.id;
         }
-        else if (values.rmsId) {
-            criteria['rmsId'] = values.rmsId;
-        }
         else {
-            throw `no id/rmsId provided`;
+            criteria['rmsId'] = values.rmsId;
         }
         const group = await Group.findOne(criteria);
         if (!group) {
             return Group.create(values).fetch();
         }
         else {
-            return (await Group.update(criteria, values).fetch())[0];
+            return (await Group.update({ id: values.id }, values).fetch())[0];
         }
     },
 };

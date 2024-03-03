@@ -7,30 +7,21 @@ import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
 import Dish from "./Dish";
-import Place from "./Place";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
-import PromotionCode from "./PromotionCode";
 export interface PromotionState {
     type: string;
     message: string;
     state: any;
 }
-export type PaymentBack = {
-    backLinkSuccess: string;
-    backLinkFail: string;
-    comment: string;
-};
 declare let attributes: {
     /** Id  */
     id: string;
     /** last 8 chars from id */
     shortId: string;
-    /** Stateflow field */
-    state: string;
     /** Concept string */
     concept: string;
     /** the basket contains mixed types of concepts */
@@ -38,7 +29,7 @@ declare let attributes: {
     /**
      * @deprecated will be rename to `Items` in **v2**
      */
-    dishes: number[] | OrderDish[];
+    dishes: OrderDish[] | number[];
     paymentMethod: any;
     /** */
     paymentMethodTitle: string;
@@ -52,39 +43,6 @@ declare let attributes: {
      * This property can be used to portray the representations of promotions at the front
      */
     promotionState: PromotionState[];
-    /**
-     * hidden in api
-     */
-    promotionCode: string | PromotionCode;
-    promotionCodeDescription: string;
-    promotionCodeString: string;
-    /**
-     * The discount will be applied to basketTotal during countCart
-     * This will be cleared before passing promotions count
-     */
-    promotionFlatDiscount: number;
-    /**
-     * Promotion may estimate shipping costs and if this occurs,
-     * then the calculation of delivery through the adapter will be ignored.
-     */
-    promotionDelivery: Delivery;
-    /**
-    * The user's locale is a priority, the cart locale may not be installed, then the default locale of the site will be selected.
-    locale: {
-      type: "string",
-      // isIn:  todo
-      allowNull: true
-    } as unknown as string,
-    */
-    /**
-     * Date untill promocode is valid
-     * This need for calculate promotion in realtime without request in DB
-     */
-    promotionCodeCheckValidTill: string;
-    /**
-     * If you set this field through promotion, then the order will not be possible to order
-     */
-    promotionUnorderable: boolean;
     /**
      ** Means that the basket was modified by the adapter,
      * It also prevents the repeat call of the action of the handler of the handler
@@ -112,7 +70,6 @@ declare let attributes: {
     rmsErrorCode: string;
     rmsStatusCode: string;
     deliveryStatus: string;
-    pickupPoint: string | Place;
     selfService: boolean;
     delivery: Delivery;
     /** Notification about delivery
@@ -146,15 +103,9 @@ declare let attributes: {
     *   @deprecated orderTotal use basketTotal
     */
     orderTotal: number;
-    /**
-     * Calculated discount, not recomend for changing
-     */
     discountTotal: number;
     orderDate: string;
     deviceId: string;
-    /**
-     * Add IP, UserAgent for anonymouse cart
-     */
     user: string | User;
     customData: any;
 };
@@ -166,10 +117,9 @@ interface Order extends ORM, OptionalAll<attributes> {
 }
 export default Order;
 declare let Model: {
-    beforeCreate(orderInit: Order, cb: (err?: string) => void): void;
-    afterCreate(order: Order, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(orderInit: any, cb: (err?: string) => void): void;
     /** Add dish into order */
-    addDish(criteria: CriteriaQuery<Order>, dish: string | Dish, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: CriteriaQuery<Order>, dish: Dish | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: string, replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void>;
@@ -200,7 +150,7 @@ declare let Model: {
      */
     checkBonus(orderId: any, spendBonus: SpendBonus): Promise<void>;
     clearOfPromotion(): Promise<void>;
-    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus): Promise<void>;
+    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, spendBonus?: SpendBonus): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<Order>): Promise<void>;
     payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
@@ -211,22 +161,14 @@ declare let Model: {
         updatedAt?: Date;
         id?: string;
         shortId?: string;
-        state?: string;
         concept?: string;
         isMixedConcept?: boolean;
-        dishes?: number[] | OrderDish[];
+        dishes?: OrderDish[] | number[];
         paymentMethod?: any;
         paymentMethodTitle?: string;
         paid?: boolean;
         isPaymentPromise?: boolean;
         promotionState?: PromotionState[];
-        promotionCode?: string | PromotionCode;
-        promotionCodeDescription?: string;
-        promotionCodeString?: string;
-        promotionFlatDiscount?: number;
-        promotionDelivery?: Delivery;
-        promotionCodeCheckValidTill?: string;
-        promotionUnorderable?: boolean;
         isPromoting?: boolean;
         dishesCount?: number;
         uniqueDishes?: number;
@@ -246,7 +188,6 @@ declare let Model: {
         rmsErrorCode?: string;
         rmsStatusCode?: string;
         deliveryStatus?: string;
-        pickupPoint?: string | Place;
         selfService?: boolean;
         delivery?: Delivery;
         deliveryDescription?: string;
@@ -265,16 +206,10 @@ declare let Model: {
         deviceId?: string;
         user?: string | User;
         customData?: any;
+        state?: string;
     }>;
-    /**
-     * Method for calculating the basket. This is called every time the cart changes.
-     * @param criteria OrderId
-     * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also you should set the isPromoting state in the model
-     * @returns Order
-     */
-    countCart(criteria: CriteriaQuery<Order>, isPromoting?: boolean): Promise<Order>;
+    countCart(criteria: CriteriaQuery<Order>): Promise<Order>;
     doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
-    applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string): Promise<Order>;
 };
 declare global {
     const Order: typeof Model & ORMModel<Order, null> & StateFlowModel;

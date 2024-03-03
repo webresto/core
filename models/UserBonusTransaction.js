@@ -15,7 +15,6 @@ let attributes = {
      * */
     externalId: {
         type: "string",
-        allowNull: true
     },
     /** Type of bonuses (default: true)
      * came is incoming (positive transaction)
@@ -24,14 +23,12 @@ let attributes = {
     isNegative: "boolean",
     /** Custom badges */
     group: "string",
-    /** Text */
-    comment: "string",
     amount: {
         type: "number",
     },
     /** automatic recalculate */
     balanceAfter: {
-        type: "number"
+        type: "number",
     },
     /** User can delete transaction */
     isDeleted: {
@@ -56,18 +53,15 @@ let attributes = {
     customData: "json",
 };
 let Model = {
-    /**
-     * Before create, a check is made to see if there are enough funds to write off.
-     * Immediately after create saving the transaction in the local database, the external adapter is called to save the transaction
-     */
     async beforeCreate(init, cb) {
         try {
             if (!init.id) {
                 init.id = (0, uuid_1.v4)();
             }
-            if (!init.isStable) {
-                init.isStable = false;
-            }
+            let userBonus = await UserBonusProgram.findOne({ bonusProgram: init.bonusProgram, user: init.user });
+            if (!userBonus)
+                return cb("beforeCreate: Bonus program not found for user");
+            init.isStable = false;
             // set negative by default
             if (init.isNegative === undefined) {
                 init.isNegative = true;
@@ -79,12 +73,7 @@ let Model = {
                 cb(`Bonus program not alived`);
             if (init.isNegative === true) {
                 if (bonusProgramAdapterExist && init.user !== undefined && typeof init.user === "string") {
-                    let enough = await UserBonusProgram.checkEnoughToSpend(init.user, init.bonusProgram, init.amount);
-                    if (enough !== true) {
-                        // Maybe not needed it for print
-                        let userBonus = await UserBonusProgram.findOne({ bonusProgram: init.bonusProgram, user: init.user });
-                        if (!userBonus)
-                            return cb("beforeCreate: Bonus program not found for user");
+                    if (await UserBonusProgram.checkEnoughToSpend(init.user, init.bonusProgram, init.amount) !== true) {
                         return cb(`UserBonusTransaction beforeCreate > user [${init.user}] balance [${userBonus.balance}] not enough [${init.amount}]`);
                     }
                 }
@@ -109,7 +98,7 @@ let Model = {
                 return cb("afterCreate: Bonus program not found for user");
             if (bonusProgramAdapter !== undefined) {
                 if (record.isNegative === true && await UserBonusProgram.checkEnoughToSpend(record.user, record.bonusProgram, record.amount) !== true) {
-                    return cb(`[panic] UserBonusTransaction afterCreate > user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
+                    return cb(`UserBonusTransaction afterCreate > user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
                 }
                 let calculate = new decimal_js_1.default(userBonus.balance);
                 if (record.isNegative === true) {
@@ -126,19 +115,18 @@ let Model = {
                 let bonusProgramAdapterTransaction = {};
                 if (record.isStable !== true) {
                     try {
-                        bonusProgramAdapterTransaction = await bonusProgramAdapter.writeTransaction(user, userBonus, record);
+                        bonusProgramAdapterTransaction = await bonusProgramAdapter.writeTransaction(bonusProgram, user, record);
                     }
                     catch (error) {
-                        if ((await Settings.get("DISABLE_USER_BONUS_PROGRAM_ON_FAIL")) === true) {
-                            await UserBonusProgram.updateOne({ id: userBonus.id }, { isActive: false });
+                        if ((await Settings.get("DISABLE_BONUS_PROGRAM_ON_FAIL")) === true) {
+                            await BonusProgram.updateOne({ id: bonusProgram.id }, { enable: false });
                         }
                         return cb(error);
                     }
-                    // Check external ID
-                    if (bonusProgramAdapterTransaction && !bonusProgramAdapterTransaction.externalId) {
-                        return cb(`externalId not defined after write transaction, transaction is not stable`);
-                    }
                     // Set IsStable
+                    if (bonusProgramAdapterTransaction && !bonusProgramAdapterTransaction.externalId) {
+                        return cb();
+                    }
                     await UserBonusTransaction.updateOne({ id: record.id }, { externalId: bonusProgramAdapterTransaction.externalId, isStable: true });
                 }
             }
