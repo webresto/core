@@ -148,6 +148,8 @@ declare let attributes: {
     orderTotal: number;
     /**
      * Calculated discount, not recomend for changing
+     *
+     * !!! This field is for visual display, do not use it for transmission to the payment gateway
      */
     discountTotal: number;
     orderDate: string;

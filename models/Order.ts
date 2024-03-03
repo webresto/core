@@ -284,6 +284,8 @@ let attributes = {
 
   /**
    * Calculated discount, not recomend for changing
+   * 
+   * !!! This field is for visual display, do not use it for transmission to the payment gateway
    */
   discountTotal: {
     type: "number",
@@ -1435,7 +1437,7 @@ let Model = {
 
           orderPopulate.discountTotal = orederPROM.discountTotal
           orderPopulate.promotionFlatDiscount = orederPROM.promotionFlatDiscount
-          
+
           order = orderPopulate;
 
           let promotionOrderToSave = {

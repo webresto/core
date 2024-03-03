@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/// <reference path="./../../../index.ts" />
 const adapters_1 = require("../../../adapters");
 const chai_1 = require("chai");
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
@@ -242,6 +243,7 @@ describe("Promotion adapter integration test", function () {
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         order = await Order.findOne(order.id);
+        console.log(order, 234);
         (0, chai_1.expect)(order.discountTotal).to.equal(20.13);
     });
     it("Promotion states should passed in order discount", async () => {

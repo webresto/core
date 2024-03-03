@@ -1,23 +1,12 @@
 /// <reference path="./../../../index.ts" />
-import path = require("path");
-import { TestRMS } from "../../mocks/adapter/RMS";
 import { Adapter } from "../../../adapters";
 import { expect } from "chai";
-import { address, customer } from "../../mocks/customer";
-import AbstractPromotionAdapter from "../../../adapters/promotion/AbstractPromotionAdapter";
 import dishGenerator from "../../generators/dish.generator";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
-import { stringsInArray } from "../../../libs/stringsInArray";
-import findModelInstanceByAttributes from "../../../libs/findModelInstance";
-import { PromotionState } from "../../../models/Order";
-import Group from './../../../models/Group';
-import Dish from './../../../models/Dish';
-import Order from './../../../models/Order';
-import Promotion from './../../../models/Promotion';
+import Promotion from '../../../models/Promotion';
 import discountGenerator from "../../generators/discount.generator";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
-import Decimal from "decimal.js";
 import { PromotionAdapter } from "../../../adapters/promotion/default/promotionAdapter";
 
 
@@ -65,16 +54,16 @@ describe("Promotion adapter integration test", function () {
     }
 
     let promotion10Percent = new ConfiguredPromotion({
-      concept: ["road"],
-      id: 'aa2-id-promotion10',
-      badge: 'test',
-      isJoint: true,
-      name: 'awdawd',
-      isPublic: true,
-      configDiscount: config,
-      description: "aaa",
-      externalId: "externalID"
-    },
+        concept: ["road"],
+        id: 'aa2-id-promotion10',
+        badge: 'test',
+        isJoint: true,
+        name: 'awdawd',
+        isPublic: true,
+        configDiscount: config,
+        description: "aaa",
+        externalId: "externalID"
+      },
       config)
 
     await promotionAdapter.addPromotionHandler(promotion10Percent)
@@ -317,7 +306,7 @@ describe("Promotion adapter integration test", function () {
     await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
 
     order = await Order.findOne(order.id)
-
+    console.log(order, 234)
     expect(order.discountTotal).to.equal(20.13);
 
   })

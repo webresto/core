@@ -145,10 +145,9 @@ describe('Discount', function () {
         // let result1 = await Dish.findOne(dish1.id)
         await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order);
         await configuredPromotion.applyPromotion(order);
-        let result = await Order.findOne(order.id);
-        (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
+        (0, chai_1.expect)(order.promotionFlatDiscount).to.equal(11.97);
     });
-    it("discount Adapter.getPromotionAdapter()-applyToOrder on order with different dishes", async function () {
+    it("discount decimal check on order with different dishes", async function () {
         let order = await Order.create({ id: "apply-to-ordersa" }).fetch();
         await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
         //Decimal check 15.2,  10.1
@@ -161,16 +160,13 @@ describe('Discount', function () {
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         order = await Order.findOne(order.id);
         await promotionAdapter.processOrder(order);
-        let result = await Order.findOne(order.id); //.populate("dishes");
-        (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
+        (0, chai_1.expect)(order.promotionFlatDiscount).to.equal(11.97);
         let dish3 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test disha", price: 10, concept: "a", parentGroup: groupsId[0] }));
         let dish4 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fisha", price: 15, concept: "a", parentGroup: groupsId[0] }));
         await Order.addDish({ id: order.id }, dish3, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish4, 4, [], "", "user");
-        order = await Order.findOne(order.id);
         await promotionAdapter.processOrder(order);
-        result = await Order.findOne(order.id);
-        (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
+        (0, chai_1.expect)(order.promotionFlatDiscount).to.equal(11.97);
     });
     it("discount applyPromotion percentage on order with different dishes", async function () {
         let order = await Order.create({ id: "add-dish-with-discountsa" }).fetch();
@@ -185,8 +181,8 @@ describe('Discount', function () {
         // DiscountAdapter.applyToOrder(order)
         await index_1.Adapter.getPromotionAdapter().clearOfPromotion(order);
         await configuredPromotionFromMemory.applyPromotion(order);
-        let result = await Order.findOne(order.id); //.populate("dishes");
-        (0, chai_1.expect)(result.discountTotal).to.equal(11.13);
+        //        let result = await Order.findOne(order.id) //.populate("dishes");
+        (0, chai_1.expect)(order.promotionFlatDiscount).to.equal(11.13);
     });
     it("discount test dishes with flat and percentage types of discounts but same concept", async function () {
         let order = await Order.create({ id: "test-discounts-on-different-types" }).fetch();
@@ -210,8 +206,8 @@ describe('Discount', function () {
         // 29.86 + 30.59 = 60.45
         order = await Order.findOne(order.id);
         await promotionAdapter.processOrder(order);
-        let result = await Order.findOne(order.id);
-        (0, chai_1.expect)(result.discountTotal).to.equal(60.45);
+        //   let result = await Order.findOne(order.id)
+        (0, chai_1.expect)(order.promotionFlatDiscount).to.equal(60.45);
     });
     it("discount test dishes with flat and percentage types of discounts but different concept", async function () {
         let order = await Order.create({ id: "test-different-types-and-concept" }).fetch();
@@ -237,8 +233,8 @@ describe('Discount', function () {
         // await promotionAdapter.addPromotionHandler(discountEx)
         order = await Order.findOne(order.id);
         await promotionAdapter.processOrder(order);
-        let result = await Order.findOne(order.id); //.populate("dishes");
-        (0, chai_1.expect)(result.discountTotal).to.equal(49.81);
+        //let result = await Order.findOne(order.id) //.populate("dishes");
+        (0, chai_1.expect)(order.promotionFlatDiscount).to.equal(49.81);
     });
     it("discount test dishes with 3 dif type of discount", async function () {
         let order = await Order.create({ id: "test-3-types-of-discount" }).fetch();

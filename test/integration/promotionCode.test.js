@@ -27,8 +27,7 @@ describe("Promotion code integration test", function () {
             createdByUser: true,
             configDiscount: {
                 discountType: "flat",
-                discountAmount: 0,
-                promotionFlatDiscount: 1.45,
+                discountAmount: 1.45,
                 dishes: [],
                 groups: [],
                 excludeModifiers: true
@@ -59,9 +58,10 @@ describe("Promotion code integration test", function () {
         await Order.applyPromotionCode({ id: order.id }, "TEST123");
         let result = await Order.findOne({ id: order.id });
         (0, chai_1.expect)(result.promotionCodeString).to.equal("TEST123");
-        (0, chai_1.expect)(result.discountTotal).to.equal(1.45);
         (0, chai_1.expect)(result.promotionFlatDiscount).to.equal(1.45);
+        (0, chai_1.expect)(result.discountTotal).to.equal(1.45);
         (0, chai_1.expect)(result.total).to.equal(109.85);
+        console.log(result, 1245);
         (0, chai_1.expect)(result.basketTotal).to.equal(111.3);
         // After go to payment promocode should work, till ORDER state
         await ExternalTestPaymentSystem_1.default.getInstance();
@@ -69,11 +69,9 @@ describe("Promotion code integration test", function () {
         await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address, paymentMethod.id);
         await Order.payment({ id: order.id });
         result = await Order.findOne({ id: order.id });
-        console.log(result, 1);
         // CLEAR PROMOCODE
         await Order.applyPromotionCode({ id: order.id }, null);
         result = await Order.findOne({ id: order.id });
-        console.log(result, 2);
         (0, chai_1.expect)(result.discountTotal).to.equal(0);
         (0, chai_1.expect)(result.total).to.equal(111.3);
         (0, chai_1.expect)(result.state).to.equal("CART");
@@ -95,14 +93,15 @@ describe("Promotion code integration test", function () {
         (0, chai_1.expect)(result.basketTotal).to.equal(111.3);
     });
     it("Percentage discount by promocode (Hot change existing + apply)", async () => {
-        let a = await Promotion.update({ id: "promo-flat-123" }, { configDiscount: {
+        let a = await Promotion.update({ id: "promo-flat-123" }, {
+            configDiscount: {
                 discountType: "percentage",
                 discountAmount: 10,
-                promotionFlatDiscount: 0,
                 dishes: [],
                 groups: [],
                 excludeModifiers: true
-            } }).fetch();
+            }
+        }).fetch();
         let order = await Order.create({ id: "promotion-hot-change-integration-test" }).fetch();
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");

@@ -115,68 +115,71 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     sails.log.debug(`Configured promotion to be applied. name: [${this.name}], id: [${this.id}]`)
 
     // order.dishes
-    const orderDishes = await OrderDish.find({ order: order.id , addedBy: "user"}).populate("dish");
-    let discountCost: Decimal = new Decimal(0);
+    const orderDishes = await OrderDish.find({ order: order.id, addedBy: "user" }).populate("dish");
+    let calculatedDiscountAmount: Decimal = new Decimal(0);
 
-    if(!this.config.dishes.length && !this.config.groups.length){
-      discountCost = new Decimal(order.basketTotal)
-      .mul(+this.configDiscount.discountAmount / 100);
+    if (!this.config.dishes.length && !this.config.groups.length) {
+      if (this.configDiscount.discountType === "percentage") {
+        calculatedDiscountAmount = new Decimal(order.basketTotal)
+          .mul(+this.configDiscount.discountAmount / 100);
+      } else {
+        calculatedDiscountAmount = new Decimal(this.configDiscount.discountAmount ?? this.config.promotionFlatDiscount)
+      }
     } else {
       for (const orderDish of orderDishes) {
 
         if (typeof orderDish.dish === "string") {
           throw new Error("Type error dish: applyPromotion")
         }
-  
+
         let orderDishDiscountCost: number = 0;
         if (!orderDish.dish) {
           sails.log.error("orderDish", orderDish.id, "has no such dish");
           continue;
         }
-  
+
         if ((this.concept[0] === undefined || this.concept[0] === "") ?
           false : !stringsInArray(orderDish.dish.concept, this.concept)) {
           continue;
         }
-  
+
         let checkDishes = stringsInArray(orderDish.dish.id, this.config.dishes)
         let checkGroups = stringsInArray(orderDish.dish.parentGroup, this.config.groups)
-  
+
         if (!checkDishes || !checkGroups) continue
-  
+
         if (this.configDiscount.discountType === "flat") {
           orderDishDiscountCost = new Decimal(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
-          discountCost = new Decimal(orderDishDiscountCost).add(discountCost);
-          // discountCost += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(this.configDiscount.discountAmount * orderDish.dish.amount ).toNumber();
+          calculatedDiscountAmount = new Decimal(orderDishDiscountCost).add(calculatedDiscountAmount);
+          // calculatedDiscountAmount += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(this.configDiscount.discountAmount * orderDish.dish.amount ).toNumber();
         }
-  
+
         if (this.configDiscount.discountType === "percentage") {
           // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
           orderDishDiscountCost = new Decimal(orderDish.dish.price)
             .mul(orderDish.amount)
             .mul(+this.configDiscount.discountAmount / 100)
             .toNumber();
-          discountCost = new Decimal(orderDishDiscountCost).add(discountCost);
+          calculatedDiscountAmount = new Decimal(orderDishDiscountCost).add(calculatedDiscountAmount);
         }
-  
+
         let orderDishDiscount: number = new Decimal(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
         await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType }).fetch();
-  
       }
     }
 
-    
-    // Update the order with new total
-    let orderDiscount: number = new Decimal(order.discountTotal).add(discountCost.toNumber()).toNumber();
-    await Order.updateOne({ id: order.id }, { discountTotal: orderDiscount })
-    order.discountTotal = orderDiscount;
-
-    if (this.config.promotionFlatDiscount) {
-      order.promotionFlatDiscount = this.config.promotionFlatDiscount;
+    /**
+     * Since there can be several promotions, they may already contain promotionFlatDiscount
+     */
+    if(order.promotionFlatDiscount > 0){
+      order.promotionFlatDiscount =  new Decimal(order.promotionFlatDiscount).plus(calculatedDiscountAmount).toNumber();      
+    } else {
+      order.promotionFlatDiscount = calculatedDiscountAmount.toNumber();
     }
 
-    // let discountCoverage: Decimal;
-    // await Order.updateOne({id: orderId}, {total: order.total, discountTotal:  discountCoverage.toNumber()});
+    // TODO: this is call in ORM unwanted
+    // await Order.updateOne({id: order.id}, {promotionFlatDiscount: order.promotionFlatDiscount});
+
     return {
       message: `${this.description}`,
       type: "configured-promotion",
