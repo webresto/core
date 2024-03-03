@@ -14,7 +14,6 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     isPublic: boolean;
     description: string;
     concept: string[];
-    configDiscount: IconfigDiscount;
     externalId: string;
     condition(arg: Group | Dish | Order): boolean;
     action(order: Order): Promise<PromotionState>;

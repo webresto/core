@@ -221,7 +221,7 @@ let Model = {
   getAllByConcept(concept: string[]): Promotion[] {
 
     if (concept.length < 1) {
-      sails.warn(`Promotion > getAllByConcept : [concept] array is unstable feature`, concept)
+      sails.log.warn(`Promotion > getAllByConcept : [concept] array is unstable feature`, concept)
     }
     
     const promotionAdapter = Adapter.getPromotionAdapter()

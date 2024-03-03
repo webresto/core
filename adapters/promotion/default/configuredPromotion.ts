@@ -42,7 +42,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public isPublic: boolean;
   public description: string;
   public concept: string[];
-  public configDiscount: IconfigDiscount;
+  // Look core/adapters/promotion/AbstractPromotion.ts 26L todo
+  // public configDiscount: IconfigDiscount;
   public externalId: string;
 
   public condition(arg: Group | Dish | Order): boolean {
