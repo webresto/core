@@ -166,7 +166,6 @@ let Model = {
     try {
       await PaymentDocument.create(payment as PaymentDocument);
     } catch (e) {
-      emitter.emit("error", "PaymentDocument > register:", e);
       sails.log.error("Error in paymentAdapter.createPayment :", e);
       throw {
         code: 3,
@@ -195,7 +194,6 @@ let Model = {
       ).fetch();
       return paymentResponse;
     } catch (e) {
-      emitter.emit("error", "PaymentDocument > register:", e);
       sails.log.error("Error in paymentAdapter.createPayment :", e);
       throw {
         code: 4,

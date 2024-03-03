@@ -916,7 +916,6 @@ let Model = {
             paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
         }
         catch (e) {
-            emitter.emit("error", "order>payment", e);
             sails.log.error("Order > payment: ", e);
         }
         await Order.next(order.id, "PAYMENT");

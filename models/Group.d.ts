@@ -4,6 +4,9 @@ import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
+export type GetGroupType = {
+    [x: string]: GroupWithAdditionalFields;
+};
 declare let attributes: {
     /**Id */
     id: string;
@@ -26,14 +29,14 @@ declare let attributes: {
     sortOrder: number;
     dishes: Dish[];
     parentGroup: any;
-    childGroups: string[] | Group[];
+    childGroups: Group[] | string[];
     /** Icon */
     icon: {
         type: string;
         allowNull: boolean;
     };
     /** Images */
-    images: string[] | MediaFile[];
+    images: MediaFile[] | string[];
     /** PlaySholder for group dishes */
     dishesPlaceholder: MediaFile[];
     /** The human easy readable*/

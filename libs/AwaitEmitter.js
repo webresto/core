@@ -16,11 +16,12 @@ class AwaitEmitter {
         this.timeout = timeout || 1000;
         this.events = [];
     }
+    /**
+     * Event subscription
+     * @param name - event name
+     * @param fn - subscriber function
+     */
     on(name, label, fn) {
-        if (typeof label === "function") {
-            fn = label;
-            label = "";
-        }
         let event = this.events.filter((l) => l.name === name)[0];
         if (!event) {
             event = new Event(name);
@@ -51,6 +52,7 @@ class AwaitEmitter {
             try {
                 if (sails.config.log && sails.config.log.level === "silly") {
                     let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
+                    //@ts-ignore
                     args = args.map((arg) => {
                         if (typeof arg === "object") {
                             return new Proxy(arg, {

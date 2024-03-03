@@ -1,5 +1,65 @@
 const sleep = require("util").promisify(setTimeout);
 type func = (...args: any) => any | Promise<any>;
+import Group, { GetGroupType } from "../models/Group";
+import Dish from "../models/Dish";
+import PaymentDocument from "../models/PaymentDocument"
+import Order, { PaymentBack } from '../models/Order';
+import Customer from "../interfaces/Customer";
+import Address from "../interfaces/Address";
+import Settings from "../models/Settings"
+import User from "../models/User";
+import { Payment } from "../interfaces/Payment";
+import OrderDish from "../models/OrderDish"
+import Maintenance from "../models/Maintenance"
+
+declare global {
+  interface IAwaitEmitter {
+    "rms-sync:before-each-group-item": [Group],
+    "rms-sync:before-each-product-item": [Dish]
+    "rms-sync:after-sync-products": []
+    "rms-sync-out-of-stocks:before-each-product-item": [Pick<Dish, "balance" | "rmsId">]
+    "core:dish-before-create": [Dish]
+    "core-payment-document-check": [PaymentDocument]
+    "core-payment-document-paid": [PaymentDocument]
+    "core-payment-document-checked-document": [PaymentDocument]
+    "core-order-after-order": [Order]
+    "core-order-order-delivery": [Order]
+    "core-order-before-order": [Order]
+    "core-order-order": [Order]
+    "core-order-order-self-service": [Order]
+    "core-order-is-self-service":  [Order, Customer, boolean, Address]
+    "core-order-check": [Order, Customer, boolean, Address, string]
+    "core-order-after-check-counting": [Order]
+    "core-order-before-check": [Order, Customer, boolean, Address]
+    "core-order-check-delivery": [Order]
+    [key: `settings:${string}`]: [Settings];
+    "core:user-after-create": [User]
+    "core-payment-document-before-create": [Payment]
+    "core-order-after-dopaid": [Order]
+    "core-order-after-count": [Order]
+    "core:count-after-delivery-cost": [Order]
+    "core-order-after-check-delivery": [Order]
+    "core:count-before-delivery-cost": [Order]
+    "core-order-after-promotion": [Order]
+    "core:count-before-promotion": [Order]
+    "core-orderdish-change-amount": [OrderDish]
+    "core-order-return-full-order-destroy-orderdish": [Dish, Order]
+    "core-order-before-count": [Order]
+    "core-order-payment": [Order, PaymentBack]
+    "core-maintenance-enabled": [Maintenance]
+    "core-maintenance-disabled": []
+    "core:group-get-menu": [Group[], string]
+    "core-group-get-groups": [GetGroupType, {[groupId: string]: string}]
+    "core:group-after-create": [Group]
+    "core:group-before-update": [Group]
+    "core:group-after-update": [Group]
+    "core:group-before-create": [Group]
+    'core:dish-after-create': [Dish]
+    'core:dish-after-update': [Dish]
+    'core:dish-before-update': [Dish]
+    "core-dish-get-dishes": [Dish[]]
+  }
+}
 
 /**
  * A class that allows you to create events and wait for the execution of their subscriptions, whether it is a synchronous function or a function that returns
@@ -25,27 +85,15 @@ export default class AwaitEmitter {
    * Event subscription
    * @param name - event name
    * @param fn - subscriber function
-   */
-  on(name: string, fn: func): AwaitEmitter;
-  /**
-   * Подписка на событие
-   * @param name - event name
-   * @param label - subscriber label (used for debugging)
-   * @param fn - subscriber function
-   */
-  on(name: string, label: string, fn: func): AwaitEmitter;
-
-  on(name: string, label: string | func, fn?: func): AwaitEmitter {
-    if (typeof label === "function") {
-      fn = label;
-      label = "";
-    }
+   */  
+    on<N extends keyof IAwaitEmitter>(name: N, label: string, fn: (...args: IAwaitEmitter[N]) => void): AwaitEmitter {
 
     let event = this.events.filter((l) => l.name === name)[0];
     if (!event) {
       event = new Event(name);
       this.events.push(event);
     }
+
     event.fns.push({
       fn: fn,
       label: label,
@@ -62,7 +110,7 @@ export default class AwaitEmitter {
    * @param args - arguments
    * @return Array of Response objects
    */
-  async emit(name: string, ...args: any): Promise<Response[]> {
+  async emit<N extends keyof IAwaitEmitter>(name: N, ...args: IAwaitEmitter[N]): Promise<Response[]> {
     const that = this;
     const event = this.events.find((l) => l.name === name);
     if (!event) return [];
@@ -74,6 +122,7 @@ export default class AwaitEmitter {
           try {
             if (sails.config.log && sails.config.log.level === "silly") {
               let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
+              //@ts-ignore
               args = args.map((arg) => {
                 if (typeof arg === "object") {
                   return new Proxy(arg, {

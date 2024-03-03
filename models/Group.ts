@@ -10,7 +10,7 @@ import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { Adapter } from "../adapters";
 import { slugIt } from "../libs/slugIt";
-
+export type GetGroupType = { [x: string]: GroupWithAdditionalFields }
 let attributes = {
   /**Id */
   id: {
@@ -192,7 +192,7 @@ let Model = {
    */
   async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[]; errors: {} }> {
 
-    let menu = {} as { [x: string]: GroupWithAdditionalFields };
+    let menu = {} as GetGroupType;
     const groups = await Group.find({ where: {
       id: groupsId,
       isDeleted: false

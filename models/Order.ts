@@ -26,6 +26,13 @@ export interface PromotionState {
   message: string;
   state: any;
 }
+
+export type PaymentBack = {
+  backLinkSuccess: string;
+  backLinkFail: string;
+  comment: string;
+};
+
 let attributes = {
   /** Id  */
   id: {
@@ -1121,7 +1128,6 @@ let Model = {
         params.backLinkFail,
         params.comment, order);
     } catch (e) {
-      emitter.emit("error", "order>payment", e);
       sails.log.error("Order > payment: ", e);
     }
     await Order.next(order.id, "PAYMENT");

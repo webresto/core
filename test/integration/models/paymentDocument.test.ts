@@ -26,13 +26,13 @@ describe("PaymentDocument", function () {
   });
 
   it("doPaid TODO", async function () {
-    emitter.on("core-payment-document-paid", function () {});
+    emitter.on("core-payment-document-paid", "test", function (pd) {});
     // создать документ с status = "PAID" и paid !== true . Проверить сохраниение документа, проверить вызов эмита
   });
 
   it("doCheck TODO", async function () {
-    emitter.on("core-payment-document-check", function () {});
-    emitter.on("core-payment-document-checked-document", function () {});
+    emitter.on("core-payment-document-check", "test",function () {});
+    emitter.on("core-payment-document-checked-document", "test", function () {});
     // создать платежный документ для тестировочной платежной системы. Провести оплату в тестовой платежной системе. Выполнить doCheck. Проверить результат всех вариантов событий (не проведенная оплата, проведенная оплата)
   });
 
@@ -51,7 +51,7 @@ describe("PaymentDocument", function () {
      */
 
      let count = [];
-     emitter.on("core-payment-document-check", function (paymentDocument) {
+     emitter.on("core-payment-document-check", "test", function (paymentDocument) {
        count.push(paymentDocument);
      });
 
