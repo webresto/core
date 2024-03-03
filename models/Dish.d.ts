@@ -88,7 +88,7 @@ declare let attributes: {
     /** Модифакторы блюда */
     modifiers: GroupModifier[];
     /**List of images of the dish*/
-    images: MediaFile[] | string[];
+    images: string[] | MediaFile[];
     favorites: User[];
     customData: CustomData;
 };

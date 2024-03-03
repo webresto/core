@@ -58,6 +58,7 @@ declare global {
     'core:dish-after-update': [Dish]
     'core:dish-before-update': [Dish]
     "core-dish-get-dishes": [Dish[]]
+    "core-dish-after-update": [Dish]
   }
 }
 

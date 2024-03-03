@@ -29,14 +29,14 @@ declare let attributes: {
     sortOrder: number;
     dishes: Dish[];
     parentGroup: any;
-    childGroups: Group[] | string[];
+    childGroups: string[] | Group[];
     /** Icon */
     icon: {
         type: string;
         allowNull: boolean;
     };
     /** Images */
-    images: MediaFile[] | string[];
+    images: string[] | MediaFile[];
     /** PlaySholder for group dishes */
     dishesPlaceholder: MediaFile[];
     /** The human easy readable*/

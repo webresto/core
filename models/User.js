@@ -198,7 +198,7 @@ let Model = {
             await User.addToCollection(userId, "favorites").members([dishId]);
         }
     },
-    async delete(userId, OTP, force) {
+    async delete(userId, OTP, force = false) {
         if (!force) {
             if (!OTP) {
                 throw `OTP required for deleting user`;

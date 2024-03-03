@@ -231,7 +231,7 @@ let Model = {
     }
   },
 
-  async delete(userId:string, OTP: string, force: boolean): Promise<void> {
+  async delete(userId:string, OTP: string, force: boolean = false): Promise<void> {
     if (!force){
       if (!OTP) {
         throw `OTP required for deleting user`;
