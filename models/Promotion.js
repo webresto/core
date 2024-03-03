@@ -83,7 +83,6 @@ let attributes = {
     },
     promotionCode: {
         collection: "promotioncode",
-        via: "promotion",
     },
     /** No active class in Discount Adapter */
     isDeleted: "boolean",

@@ -175,17 +175,19 @@ async function checkOrigin(originModel, originModelId) {
 }
 function checkAmount(amount) {
     if (!amount || amount <= 0) {
+        sails.log.debug(`checkAmount (!amount || amount <= 0) ${amount}`);
         throw {
             code: 2,
             error: "incorrect amount",
         };
     }
-    if (!(amount % 1 === 0)) {
-        throw {
-            code: 2,
-            error: "incorrect amount",
-        };
-    }
+    // if (!(amount % 1 === 0)) {
+    //   sails.log.debug(`checkAmount (!(amount % 1 === 0)) ${amount}`)
+    //   throw {
+    //     code: 2,
+    //     error: "incorrect amount",
+    //   };
+    // }
 }
 async function checkPaymentMethod(paymentMethodId) {
     if (!(await PaymentMethod.checkAvailable(paymentMethodId))) {

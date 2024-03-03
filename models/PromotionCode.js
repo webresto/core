@@ -44,7 +44,6 @@ let attributes = {
     // TODO: Add interval to allow for use again
     promotion: {
         collection: "promotion",
-        via: "promotionCode",
     },
     generateConfig: {
         type: "json",

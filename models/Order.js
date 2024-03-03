@@ -1375,6 +1375,7 @@ async function checkCustomerInfo(customer) {
     if (typeof allowedPhoneCountries === "string")
         allowedPhoneCountries = [allowedPhoneCountries];
     let isValidPhone = allowedPhoneCountries === undefined;
+    console.log(isValidPhone, customer, 666);
     if (Array.isArray(allowedPhoneCountries)) {
         for (let countryCode of allowedPhoneCountries) {
             const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
