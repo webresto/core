@@ -262,18 +262,20 @@ async function checkOrigin(originModel: string, originModelId: string) {
 
 function checkAmount(amount: number) {
   if (!amount || amount <= 0) {
+    sails.log.debug(`checkAmount (!amount || amount <= 0) ${amount}`)
     throw {
       code: 2,
       error: "incorrect amount",
     };
   }
 
-  if (!(amount % 1 === 0)) {
-    throw {
-      code: 2,
-      error: "incorrect amount",
-    };
-  }
+  // if (!(amount % 1 === 0)) {
+  //   sails.log.debug(`checkAmount (!(amount % 1 === 0)) ${amount}`)
+  //   throw {
+  //     code: 2,
+  //     error: "incorrect amount",
+  //   };
+  // }
 }
 
 async function checkPaymentMethod(paymentMethodId) {
