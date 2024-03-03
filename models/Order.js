@@ -1371,7 +1371,7 @@ async function checkCustomerInfo(customer) {
             error: "customer.phone is required",
         };
     }
-    let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES");
+    let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES") ?? [];
     if (typeof allowedPhoneCountries === "string")
         allowedPhoneCountries = [allowedPhoneCountries];
     let isValidPhone = allowedPhoneCountries === undefined;
