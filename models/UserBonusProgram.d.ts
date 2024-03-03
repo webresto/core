@@ -3,8 +3,12 @@ import { ORMModel } from "../interfaces/ORMModel";
 import User from "../models/User";
 import BonusProgram from "./BonusProgram";
 declare let attributes: {
-    /** ID */
+    /** UserBonusProgram ID */
     id: string;
+    /** External id for bonus program */
+    externalId: string;
+    /** id for customer in external program */
+    externalCustomerId: string;
     balance: number;
     isDeleted: boolean;
     isActive: boolean;

@@ -3,6 +3,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { IconfigDiscount } from "../interfaces/ConfigDiscount";
+import PromotionCode from "../models/PromotionCode";
 declare let attributes: {
     id: string;
     externalId: string;
@@ -10,6 +11,7 @@ declare let attributes: {
     /** created by User */
     createdByUser: boolean;
     name: string;
+    badge: string;
     concept: string[];
     sortOrder: number;
     description: string;
@@ -18,16 +20,21 @@ declare let attributes: {
     /** first use isJoint = false discounts then true */
     isJoint: boolean;
     productCategoryPromotions: any;
-    /** User can disable this discount*/
+    /**
+     * User can disable this discount
+     * By default is disabled
+     * promocode ignore this field, and apply promotion by code
+    */
     enable: boolean;
+    promotionCode: string[] | PromotionCode[];
     /** No active class in Discount Adapter */
     isDeleted: boolean;
-    /** Хеш обекта скидки */
+    /** Hash object discounts */
     hash: string;
     worktime: WorkTime[];
 };
 type attributes = typeof attributes;
-interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "enable" | "isDeleted" | "createdByUser" | "externalId">, ORM {
+interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "badge" | "isDeleted" | "createdByUser" | "externalId">, ORM {
 }
 export default Promotion;
 declare let Model: {
@@ -35,7 +42,7 @@ declare let Model: {
     afterCreate(record: Promotion, cb: (err?: string) => void): Promise<void>;
     afterDestroy(record: Promotion, cb: (err?: string) => void): Promise<void>;
     beforeUpdate(init: Promotion, cb: (err?: string) => void): void;
-    beforeCreate(init: Promotion, cb: (err?: string) => void): void;
+    beforeCreate(init: Promotion, cb: (err?: string) => void): Promise<void>;
     createOrUpdate(values: Promotion): Promise<Promotion>;
     getAllByConcept(concept: string[]): Promotion[];
 };

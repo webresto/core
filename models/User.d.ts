@@ -12,11 +12,12 @@ export type Phone = {
     additionalNumber?: string;
 };
 declare let attributes: {
-    /** ID */
+    /** User model ID */
     id: string;
     login: string;
     firstName: string;
     lastName: string;
+    sex: number;
     email: string;
     /**
      * Its a basic login field
@@ -80,7 +81,7 @@ declare let Model: {
      * @param dishId
      */
     handleFavoriteDish(userId: string, dishId: string): Promise<void>;
-    delete(userId: string, OTP: string, force: boolean): Promise<void>;
+    delete(userId: string, OTP: string, force?: boolean): Promise<void>;
     /**
      * Returns phone string by user criteria
      * Additional number will be added separated by commas (+19990000000,1234)

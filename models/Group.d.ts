@@ -4,6 +4,9 @@ import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
+export type GetGroupType = {
+    [x: string]: GroupWithAdditionalFields;
+};
 declare let attributes: {
     /**Id */
     id: string;
@@ -36,7 +39,7 @@ declare let attributes: {
     images: string[] | MediaFile[];
     /** PlaySholder for group dishes */
     dishesPlaceholder: MediaFile[];
-    /** The person readable isii*/
+    /** The human easy readable*/
     slug: string;
     /** The concept to which the group belongs */
     concept: string;
@@ -63,7 +66,7 @@ interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {
 }
 export default Group;
 declare let Model: {
-    beforeCreate(init: any, cb: (err?: string) => void): void;
+    beforeCreate: (init: any, cb: (err?: string) => void) => Promise<void>;
     beforeUpdate: (record: any, cb: (err?: string) => void) => void;
     afterUpdate: (record: any, cb: (err?: string) => void) => void;
     afterCreate: (record: any, cb: (err?: string) => void) => void;

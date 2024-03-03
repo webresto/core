@@ -27,6 +27,7 @@ let attributes = {
     readOnly: {
         type: "boolean"
     },
+    schema: "json"
 };
 let Model = {
     beforeCreate: function (record, cb) {
@@ -41,12 +42,12 @@ let Model = {
     },
     afterUpdate: function (record, cb) {
         emitter.emit(`settings:${record.key}`, record);
-        settings[record.key] = record.value;
+        settings[record.key] = cleanValue(record.value);
         cb();
     },
     afterCreate: function (record, cb) {
         emitter.emit(`settings:${record.key}`, record);
-        settings[record.key] = record.value;
+        settings[record.key] = cleanValue(record.value);
         return cb();
     },
     /** retrun setting value by key */
@@ -66,7 +67,7 @@ let Model = {
             finally {
                 if (!(await Settings.find({ key: key }).limit(1))[0])
                     await Settings.set(key, value, "env");
-                return value;
+                return cleanValue(value);
             }
         }
         /** If variable present in database */
@@ -79,14 +80,14 @@ let Model = {
             else {
                 process.env[key] = JSON.stringify(value);
             }
-            return setting.value;
+            return cleanValue(setting.value);
         }
         /** Variable present in sails config */
         if (from) {
             if (sails.config[from] && sails.config[from][key]) {
                 value = sails.config[from][key];
                 await Settings.set(key, value, from);
-                return value;
+                return cleanValue(value);
             }
         }
         sails.log.silly(`Settings: ( ${key} ) not found`);
@@ -95,12 +96,12 @@ let Model = {
     async get(key) {
         key = toScreamingSnake(key);
         if (settings[key] !== undefined) {
-            return settings[key];
+            return cleanValue(settings[key]);
         }
         else {
             const value = await Settings.use(key);
             settings[key] = value;
-            return value;
+            return cleanValue(value);
         }
     },
     /**
@@ -111,6 +112,7 @@ let Model = {
         if (key === undefined || value === undefined)
             throw `Setting set key (${key}) and value (${value}) required`;
         key = toScreamingSnake(key);
+        value = cleanValue(value);
         // Set in local variable
         settings[key] = value;
         // Set in ENV
@@ -129,7 +131,7 @@ let Model = {
                     value: value,
                     from: from,
                     readOnly: readOnly
-                });
+                }).fetch();
             }
             else {
                 if (propety.readOnly)
@@ -146,7 +148,7 @@ let Model = {
         if (!setting) {
             await Settings.create({
                 key: key,
-                value: value,
+                value: cleanValue(value),
                 from: from,
                 readOnly: readOnly
             });
@@ -160,9 +162,14 @@ module.exports = {
 };
 function toScreamingSnake(str) {
     if (!str) {
-        console.log("STR", str);
         return '';
     }
     // Test123___Test_test -> TEST123_TEST_TEST
     return str.replace(/\.?([A-Z]+)/g, function (x, y) { return "_" + y.toLowerCase(); }).replace(/^_/, "").replace(/_{1,}/g, "_").toUpperCase();
+}
+function cleanValue(value) {
+    if (value === "undefined" || value === "NaN" || value === "null") {
+        return undefined;
+    }
+    return value;
 }

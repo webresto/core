@@ -27,7 +27,7 @@ const uuid_1 = require("uuid");
 const bcryptjs = __importStar(require("bcryptjs"));
 const Countries = require("../libs/dictionaries/countries.json");
 let attributes = {
-    /** ID */
+    /** User model ID */
     id: {
         type: "string",
         isNotEmptyString: true,
@@ -47,6 +47,10 @@ let attributes = {
         type: 'string',
         allowNull: true,
         isNotEmptyString: true
+    },
+    sex: {
+        type: 'number',
+        allowNull: true,
     },
     email: {
         type: 'string',
@@ -84,7 +88,8 @@ let attributes = {
         // isBefore: new Date().setFullYear(new Date().getFullYear()-10)
     },
     favorites: {
-        collection: 'dish'
+        collection: 'dish',
+        via: 'favorites'
     },
     bonusProgram: {
         collection: 'userbonusprogram',
@@ -170,11 +175,12 @@ let Model = {
     },
     async afterCreate(record, cb) {
         emitter.emit('core:user-after-create', record);
-        // try {
-        //   User.checkRegisteredInBonusPrograms(record.id);
-        // } catch (error) {
-        //   sails.log.error(error)
-        // }
+        //    It was commented because it broke tests, after login it called, this reason for comment it here
+        //    try {
+        //      User.checkRegisteredInBonusPrograms(record.id);
+        //    } catch (error) {
+        //      sails.log.error(error)
+        //    }
         return cb();
     },
     /**
@@ -192,7 +198,7 @@ let Model = {
             await User.addToCollection(userId, "favorites").members([dishId]);
         }
     },
-    async delete(userId, OTP, force) {
+    async delete(userId, OTP, force = false) {
         if (!force) {
             if (!OTP) {
                 throw `OTP required for deleting user`;
@@ -349,6 +355,12 @@ let Model = {
         if (OTP && passwordPolicy === "from_otp") {
             await User.setPassword(user.id, OTP, null, true);
         }
+        try {
+            User.checkRegisteredInBonusPrograms(user.id);
+        }
+        catch (error) {
+            sails.log.error(error);
+        }
         return await User.authDevice(user.id, deviceId, deviceName, userAgent, IP);
         // TODO: getBalance BonusProgram
     },
@@ -367,15 +379,33 @@ let Model = {
         const bps = await BonusProgram.getAvailable();
         for (let bp of bps) {
             let adapter = await BonusProgram.getAdapter(bp.adapter);
-            if (adapter.isRegistred(user)) {
+            const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: bp.id });
+            // If all works
+            if (adapter.isRegistred(user) && userBonusProgram && userBonusProgram.isActive) {
                 // Not need await finish sync
                 UserBonusProgram.sync(userId, bp.id);
+                // If not registred in internal storage
+            }
+            else if (adapter.isRegistred(user) && !userBonusProgram) {
+                let exUser = await adapter.getUserInfo(user);
+                await UserBonusProgram.create({
+                    user: user.id,
+                    balance: exUser.balance,
+                    externalId: exUser.externalId,
+                    isActive: true,
+                    isDeleted: false,
+                    bonusProgram: adapter.id,
+                    syncedToTime: "0"
+                }).fetch();
+                // If not registred but need
+            }
+            else if (!adapter.isRegistred(user) && bp.automaticUserRegistration) {
+                // Registration if Bonus program has automatic registration otion
+                await UserBonusProgram.registration(user, bp.adapter);
+                // if not need registrer
             }
             else {
-                // Registration if Bonus program has automatic registration otion
-                if (bp.automaticUserRegistration) {
-                    await UserBonusProgram.registration(user, bp.adapter);
-                }
+                sails.log.debug(`User should register manual: user[${user.login}], bonusProgram: [${bp.name}]`);
             }
         }
     },

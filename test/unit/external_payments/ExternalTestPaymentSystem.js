@@ -6,6 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const PaymentAdapter_1 = __importDefault(require("../../../adapters/payment/PaymentAdapter"));
 var database = {};
 class TestPaymentSystem extends PaymentAdapter_1.default {
+    cancelPayment(paymentDocument) {
+        console.log("TestPaymentSystem cancelPayment impl");
+        return;
+    }
     async createPayment(payment, backLinkSuccess, backLinkFail, testing) {
         let paid_latency;
         switch (testing) {
