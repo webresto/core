@@ -1178,6 +1178,7 @@ let Model = {
                         order.promotionCode = orderPopulate.promotionCode;
                     }
                     orderPopulate.discountTotal = orederPROM.discountTotal;
+                    orderPopulate.promotionFlatDiscount = orederPROM.promotionFlatDiscount;
                     order = orderPopulate;
                     let promotionOrderToSave = {
                         promotionCodeDescription: order.promotionCodeDescription,
@@ -1371,11 +1372,10 @@ async function checkCustomerInfo(customer) {
             error: "customer.phone is required",
         };
     }
-    let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES") ?? [];
+    let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES");
     if (typeof allowedPhoneCountries === "string")
         allowedPhoneCountries = [allowedPhoneCountries];
     let isValidPhone = allowedPhoneCountries === undefined;
-    console.log(isValidPhone, customer, 666);
     if (Array.isArray(allowedPhoneCountries)) {
         for (let countryCode of allowedPhoneCountries) {
             const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
