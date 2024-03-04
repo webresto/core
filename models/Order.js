@@ -1018,7 +1018,7 @@ let Model = {
                         // Item OrderDish calcualte
                         let itemCost = orderDish.dish.price;
                         let itemWeight = orderDish.dish.weight ?? 0;
-                        const dish = (await Dish.find({ id: orderDish.dish.id }).limit(1))[0];
+                        const dish = orderDish.dish;
                         // Checks that the dish is available for sale
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
@@ -1041,10 +1041,10 @@ let Model = {
                         orderDish.totalWeight = 0;
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
-                            for await (let modifier of orderDish.modifiers) {
-                                const modifierObj = (await Dish.find({ where: { or: [{ id: modifier.id }, { rmsId: modifier.id }] } }).limit(1))[0];
+                            for await (let selectedModifier of orderDish.modifiers) {
+                                const modifierObj = (await Dish.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.id }] } }).limit(1))[0];
                                 if (!modifierObj) {
-                                    throw "Dish with id " + modifier.id + " not found!";
+                                    throw "Dish with id " + selectedModifier.id + " not found!";
                                 }
                                 // let opts:  any = {} 
                                 // await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
@@ -1059,43 +1059,49 @@ let Model = {
                                  * Also all checks modifiers need process in current loop thread. Currently we not have access to modifer options
                                  * Here by opts we can pass options for modifiers
                                  */
-                                const dishModifiers = dish.modifiers;
+                                // Find original obj modifiers
                                 let currentModifier = null;
-                                dishModifiers.forEach(group => {
-                                    if (group.childModifiers) {
-                                        group.childModifiers.forEach(_modifier => {
-                                            if (modifier.id === _modifier.id) {
-                                                currentModifier = _modifier;
+                                dish.modifiers.forEach(originGroupModifiers => {
+                                    // this block not used
+                                    if (originGroupModifiers.childModifiers) {
+                                        originGroupModifiers.childModifiers.forEach(originChildModifier => {
+                                            if (selectedModifier.dish && selectedModifier.dish.rmsId !== undefined) {
+                                                if (selectedModifier.dish.rmsId === originChildModifier.id /** is rmsId*/) {
+                                                    currentModifier = originChildModifier;
+                                                }
+                                            }
+                                            else {
+                                                sails.log.debug(`countCart can't assign currentModifier: rmsId not defined in selectedModifier ${JSON.stringify(selectedModifier)}`);
                                             }
                                         });
                                     }
                                 });
                                 if (!currentModifier) {
-                                    sails.log.error(`Order with id [${order.id}] has unknown modifier [${modifier.id}]`);
+                                    sails.log.error(`Order with id [${order.id}] has unknown modifier [${selectedModifier.id}]`);
                                 }
                                 if (currentModifier && currentModifier.freeOfChargeAmount && typeof currentModifier.freeOfChargeAmount === "number" && currentModifier.freeOfChargeAmount > 0) {
                                     const freeAmountCost = new decimal_js_1.default(currentModifier.freeOfChargeAmount).times(modifierObj.price).toNumber();
-                                    const modifierCost = new decimal_js_1.default(modifier.amount).times(modifierObj.price).minus(freeAmountCost).toNumber();
+                                    const modifierCost = new decimal_js_1.default(selectedModifier.amount).times(modifierObj.price).minus(freeAmountCost).toNumber();
                                     itemCost = new decimal_js_1.default(itemCost).plus(modifierCost).toNumber();
                                 }
                                 else {
-                                    const modifierCost = new decimal_js_1.default(modifier.amount).times(modifierObj.price).toNumber();
+                                    const modifierCost = new decimal_js_1.default(selectedModifier.amount).times(modifierObj.price).toNumber();
                                     itemCost = new decimal_js_1.default(itemCost).plus(modifierCost).toNumber();
                                 }
                                 // TODO: discountPrice && freeAmount
                                 // // FreeAmount modiefires support
                                 // if (opts.freeAmount && typeof opts.freeAmount === "number") {
-                                //   if (opts.freeAmount < modifier.amount) {
+                                //   if (opts.freeAmount < selectedModifier.amount) {
                                 //     let freePrice = new Decimal(modifierObj.price).times(opts.freeAmount)
                                 //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
                                 //   } else {
                                 //     // If more just calc
-                                //     let freePrice = new Decimal(modifierObj.price).times(modifier.amount)
+                                //     let freePrice = new Decimal(modifierObj.price).times(selectedModifier.amount)
                                 //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
                                 //   }
                                 // }                
                                 if (!Number(itemCost))
-                                    throw `itemCost is NaN ${JSON.stringify(modifier)}.`;
+                                    throw `itemCost is NaN ${JSON.stringify(selectedModifier)}.`;
                                 itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight ?? 0).toNumber();
                             }
                         }
@@ -1106,6 +1112,9 @@ let Model = {
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
                         orderDishesForPopulate.push({ ...orderDish });
+                    }
+                    else {
+                        sails.log.error(`OrderDish.dish is string on countcart`);
                     }
                     // TODO: test it
                     if (orderDish.addedBy === "user") {

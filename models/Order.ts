@@ -481,7 +481,7 @@ let Model = {
       }
 
     }
-    
+
     // NOTE: All dishes with modifiers add as uniq dish
 
 
@@ -648,7 +648,7 @@ let Model = {
 
     // Iterate through the original order dishes and add them to the new order
     for (const originalOrderDish of originalOrderDishes) {
-      if(originalOrderDish.addedBy !== "user") continue;
+      if (originalOrderDish.addedBy !== "user") continue;
       // Assuming you have an addDish method that takes an order ID and a dish object as parameters
       await Order.addDish({ id: newOrder.id }, originalOrderDish.dish, originalOrderDish.amount, originalOrderDish.modifiers, null, "user");
     }
@@ -805,7 +805,7 @@ let Model = {
       }
     }
 
-    if(order.user && userId && order.user !== userId){
+    if (order.user && userId && order.user !== userId) {
       sails.log.error(`User on basket [${order.shortId}] not equall [${order.user}] passed user [${userId}]`)
     } else {
       order.user = userId;
@@ -873,12 +873,12 @@ let Model = {
     if (order.user && typeof order.user === "string" && spendBonus && spendBonus.bonusProgramId) {
 
 
-      if(spendBonus.amount < 0)  {
+      if (spendBonus.amount < 0) {
         spendBonus.amount = 0;
       }
 
 
-      if(spendBonus.amount === 0) {
+      if (spendBonus.amount === 0) {
         order.spendBonus.amount = 0;
         order.bonusesTotal = 0;
         return;
@@ -1221,7 +1221,7 @@ let Model = {
       order.isPromoting = isPromoting;
 
       emitter.emit("core-order-before-count", order);
-      
+
       /**
        *  // TODO: If countCart from payment or other changes from payment it should cancel all payment request
        */
@@ -1246,9 +1246,8 @@ let Model = {
             // Item OrderDish calcualte
             let itemCost = orderDish.dish.price;
             let itemWeight = orderDish.dish.weight ?? 0;
-
-
-            const dish = (await Dish.find({ id: orderDish.dish.id }).limit(1))[0];
+            
+            const dish = orderDish.dish
 
             // Checks that the dish is available for sale
             if (!dish) {
@@ -1280,11 +1279,11 @@ let Model = {
             // orderDish.dishId = dish.id
 
             if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
-              for await (let modifier of orderDish.modifiers) {
-                const modifierObj = (await Dish.find({ where: { or: [{ id: modifier.id }, { rmsId: modifier.id }] } }).limit(1))[0];
+              for await (let selectedModifier of orderDish.modifiers) {
+                const modifierObj = (await Dish.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.id }] } }).limit(1))[0];
 
                 if (!modifierObj) {
-                  throw "Dish with id " + modifier.id + " not found!";
+                  throw "Dish with id " + selectedModifier.id + " not found!";
                 }
 
                 // let opts:  any = {} 
@@ -1303,43 +1302,51 @@ let Model = {
                  * Here by opts we can pass options for modifiers
                  */
 
-                const dishModifiers = dish.modifiers
+                // Find original obj modifiers
                 let currentModifier: Modifier = null;
-                dishModifiers.forEach(group => {
-                  if (group.childModifiers) {
-                    group.childModifiers.forEach(_modifier => {
-                      if (modifier.id === _modifier.id) {
-                        currentModifier = _modifier;
+                dish.modifiers.forEach(originGroupModifiers => {
+
+                  // this block not used
+                  if (originGroupModifiers.childModifiers) {
+                    originGroupModifiers.childModifiers.forEach(originChildModifier => {
+                      if (selectedModifier.dish && selectedModifier.dish.rmsId !== undefined) {
+                        if(selectedModifier.dish.rmsId === originChildModifier.id /** is rmsId*/) {
+                          currentModifier = originChildModifier;
+                        }
+                      } else {
+                        sails.log.debug(`countCart can't assign currentModifier: rmsId not defined in selectedModifier ${JSON.stringify(selectedModifier)}` )
                       }
                     })
                   }
                 })
-                if (!currentModifier) {
-                  sails.log.error(`Order with id [${order.id}] has unknown modifier [${modifier.id}]`)
+
+                if ( !currentModifier) {
+                  sails.log.error(`Order with id [${order.id}] has unknown modifier [${selectedModifier.id}]`)
                 }
+
                 if (currentModifier && currentModifier.freeOfChargeAmount && typeof currentModifier.freeOfChargeAmount === "number" && currentModifier.freeOfChargeAmount > 0) {
                   const freeAmountCost = new Decimal(currentModifier.freeOfChargeAmount).times(modifierObj.price).toNumber();
-                  const modifierCost = new Decimal(modifier.amount).times(modifierObj.price).minus(freeAmountCost).toNumber();
+                  const modifierCost = new Decimal(selectedModifier.amount).times(modifierObj.price).minus(freeAmountCost).toNumber();
                   itemCost = new Decimal(itemCost).plus(modifierCost).toNumber();
                 } else {
-                  const modifierCost = new Decimal(modifier.amount).times(modifierObj.price).toNumber();
+                  const modifierCost = new Decimal(selectedModifier.amount).times(modifierObj.price).toNumber();
                   itemCost = new Decimal(itemCost).plus(modifierCost).toNumber();
                 }
 
                 // TODO: discountPrice && freeAmount
                 // // FreeAmount modiefires support
                 // if (opts.freeAmount && typeof opts.freeAmount === "number") {
-                //   if (opts.freeAmount < modifier.amount) {
+                //   if (opts.freeAmount < selectedModifier.amount) {
                 //     let freePrice = new Decimal(modifierObj.price).times(opts.freeAmount)
                 //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
                 //   } else {
                 //     // If more just calc
-                //     let freePrice = new Decimal(modifierObj.price).times(modifier.amount)
+                //     let freePrice = new Decimal(modifierObj.price).times(selectedModifier.amount)
                 //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
                 //   }
                 // }                
 
-                if (!Number(itemCost)) throw `itemCost is NaN ${JSON.stringify(modifier)}.`
+                if (!Number(itemCost)) throw `itemCost is NaN ${JSON.stringify(selectedModifier)}.`
                 itemWeight = new Decimal(itemWeight).plus(modifierObj.weight ?? 0).toNumber();
               }
             }
@@ -1353,6 +1360,8 @@ let Model = {
             await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
             orderDish.dish = dish;
             orderDishesForPopulate.push({ ...orderDish })
+          } else {
+            sails.log.error(`OrderDish.dish is string on countcart`)
           }
 
           // TODO: test it
@@ -1394,12 +1403,12 @@ let Model = {
 
           // If promocode is valid and allowed
           if (order.promotionCode !== null && order.promotionCodeCheckValidTill !== null) {
-            const currentDate = new Date(); 
+            const currentDate = new Date();
             try {
               const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
               if (promotionEndDate > currentDate) {
                 order.promotionCode = await PromotionCode.findOne({ id: order.promotionCode as string }).populate('promotion');
-                if(!order.promotionCode || !order.promotionCode.promotion || typeof order.promotionCode.promotion !== "object" ){
+                if (!order.promotionCode || !order.promotionCode.promotion || typeof order.promotionCode.promotion !== "object") {
                   throw `No valid promotion for promocode`
                 }
               } else {
@@ -1426,9 +1435,9 @@ let Model = {
            * The developer who creates promotions must take care about order in database and order runtime object.
            */
           let orederPROM = await promotionAdapter.processOrder(orderPopulate);
-          
+
           delete (orderPopulate.dishes);
-          delete(order.promotionCode);
+          delete (order.promotionCode);
 
           if (orderPopulate.promotionCode) {
             orderPopulate.promotionCode = (orderPopulate.promotionCode as PromotionCode).id
@@ -1448,7 +1457,7 @@ let Model = {
             promotionFlatDiscount: order.promotionFlatDiscount,
             promotionDelivery: order.promotionDelivery,
           }
-        
+
           await Order.update({ id: order.id }, promotionOrderToSave).fetch();
         } catch (error) {
           sails.log.error(`Core > order > promotion calculate fail: `, error)
@@ -1458,12 +1467,12 @@ let Model = {
           await Order.update({ id: order.id }, { isPromoting: false }).fetch();
         }
 
-        
+
         emitter.emit("core-order-after-promotion", order);
       }
 
       // Force unpopulate promotionCode, TODO: debug it why is not unpopulated here?!
-      if(typeof order.promotionCode !== "string" && order.promotionCode?.id !== undefined){
+      if (typeof order.promotionCode !== "string" && order.promotionCode?.id !== undefined) {
         order.promotionCode = order.promotionCode.id
       }
 
@@ -1667,7 +1676,7 @@ async function checkCustomerInfo(customer) {
   let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES") as string | string[];
   if (typeof allowedPhoneCountries === "string") allowedPhoneCountries = [allowedPhoneCountries];
   let isValidPhone = allowedPhoneCountries === undefined;
-  if(Array.isArray(allowedPhoneCountries)) {
+  if (Array.isArray(allowedPhoneCountries)) {
     for (let countryCode of allowedPhoneCountries) {
       const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
       isValidPhone = phoneValidByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
