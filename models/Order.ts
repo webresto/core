@@ -3,7 +3,6 @@ import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import OrderDish from "./OrderDish";
 import PaymentDocument from "./PaymentDocument";
-import Maintenance from "./Maintenance"
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
@@ -84,9 +83,9 @@ let attributes = {
 
   /**
    * The property displays the state of promotion.
-   * In order to understand what was happening with the order in the adapter of promoters.
-   * 
-   * This property can be used to portray the representations of promotions at the front 
+   * To understand what was happening with the order in the adapter of promoters.
+   *
+   * This property can be used to portray the representations of promotions at the front
    */
   promotionState: {
     type: "json"
@@ -119,7 +118,7 @@ let attributes = {
   } as unknown as number,
 
   /**
-   * Promotion may estimate shipping costs and if this occurs,
+   * Promotion may estimate shipping costs, and if this occurs,
    * then the calculation of delivery through the adapter will be ignored.
    */
   promotionDelivery: {
@@ -128,7 +127,7 @@ let attributes = {
 
   /**
   * The user's locale is a priority, the cart locale may not be installed, then the default locale of the site will be selected.
-  locale: { 
+  locale: {
     type: "string",
     // isIn:  todo
     allowNull: true
@@ -136,8 +135,8 @@ let attributes = {
   */
 
   /**
-   * Date untill promocode is valid
-   * This need for calculate promotion in realtime without request in DB
+   * Date until promocode is valid
+   * This is needed for calculating promotion in realtime without a request in DB
    */
   promotionCodeCheckValidTill: {
     type: "string",
@@ -209,8 +208,8 @@ let attributes = {
     type: "json"
   } as unknown as Delivery | null,
 
-  /** Notification about delivery 
-   * ex: time increased due to traffic jams 
+  /** Notification about delivery
+   * ex: time increased due to traffic jams
    * @deprecated should changed for order.delivery.message
    * */
   deliveryDescription: {
@@ -249,7 +248,7 @@ let attributes = {
   } as unknown as number,
 
 
-  /** Summ of all bobnuses */
+  /** Sum of all bonuses */
   bonusesTotal: {
     type: "number",
     defaultsTo: 0,
@@ -266,15 +265,15 @@ let attributes = {
     defaultsTo: 0,
   } as unknown as number,
 
-  /** 
-    * Sum dishes user added 
+  /**
+    * Sum dishes user added
     */
   basketTotal: {
     type: "number",
     defaultsTo: 0,
   } as unknown as number,
 
-  /** 
+  /**
   *   @deprecated orderTotal use basketTotal
   */
   orderTotal: {
@@ -283,8 +282,8 @@ let attributes = {
   } as unknown as number,
 
   /**
-   * Calculated discount, not recomend for changing
-   * 
+   * Calculated discount, not recommend for changing
+   *
    * !!! This field is for visual display, do not use it for transmission to the payment gateway
    */
   discountTotal: {
@@ -298,7 +297,7 @@ let attributes = {
   deviceId: "string",
 
   /**
-   * Add IP, UserAgent for anonymouse cart
+   * Add IP, UserAgent for anonymous cart
    */
 
   user: {
@@ -336,12 +335,12 @@ let Model = {
   async afterCreate(order: Order, cb: (err?: string) => void) {
     /**
      * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
-     * This creates redundancy in the kernel. But in the current version we will try to run the kernel in this way. Until we switch to stateflow
+     * This creates redundancy in the kernel. But in the current version, we will try to run the kernel in this way. Until we switch to stateflow
      *
      *  @setting: ORDER_INIT_PRODUCT_ID - Adds a dish to the cart that the user cannot remove, he can only modify it
      */
 
-    const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID") as string;
+    const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID");
     if (Boolean(ORDER_INIT_PRODUCT_ID)) {
       const ORDER_INIT_PRODUCT = (await Dish.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
       if (ORDER_INIT_PRODUCT !== undefined) {
@@ -351,7 +350,7 @@ let Model = {
     cb();
   },
 
-  /** Add dish into order */
+  /** Add a dish into order */
   async addDish(
     criteria: CriteriaQuery<Order>,
     dish: Dish | string,
@@ -359,9 +358,9 @@ let Model = {
     modifiers: OrderModifier[],
     comment: string,
     /**
-     * user - added manualy by human
-     * promotion - cleaned in each calculate promotions
-     * core - is reserved for 
+     * user - added manually by human
+     * promotion - cleaned in each calculated promotion
+     * core - is reserved for
      * custom - custom integration can process it
      */
     addedBy: "user" | "promotion" | "core" | "custom",
@@ -370,7 +369,7 @@ let Model = {
   ): Promise<void> {
     await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
 
-    // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone 
+    // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone
 
     let dishObj: Dish;
 
@@ -403,15 +402,15 @@ let Model = {
     }
 
     /**
-     * Add defuaul modifiers in add
+     * Add default modifiers in add
      */
     const dishModifiers = dishObj.modifiers;
     dishModifiers.forEach(group => {
       if (group.childModifiers) {
         group.childModifiers.forEach(modifier => {
           if (modifier.defaultAmount) {
-            const modifierIsAddaed = modifiers.find(m => m.id === modifier.id)
-            if (!modifierIsAddaed) {
+            const modifierIsAdded = modifiers.find(m => m.id === modifier.id)
+            if (!modifierIsAdded) {
               modifiers.push(
                 {
                   id: modifier.id,
@@ -482,7 +481,7 @@ let Model = {
 
     }
 
-    // NOTE: All dishes with modifiers add as uniq dish
+    // NOTE: All dishes with modifiers add as an uniq dish
 
 
     if (replace) {
@@ -657,6 +656,7 @@ let Model = {
   },
   /**
    * Set order selfService field. Use this method to change selfService.
+   * @param criteria
    * @param selfService
    */
   async setSelfService(criteria: CriteriaQuery<Order>, selfService: boolean = true): Promise<Order> {
@@ -670,9 +670,9 @@ let Model = {
 
   /**
    * !! Not for external use, only in Order.check
-   * The use of bonuses in the cart implies that this order has a user. 
-   * Then all checks will be made and a record will be written in the transaction of user bonuses
-   * 
+   * The use of bonuses in the cart implies that this order has a user.
+   * Then all checks will be made, and a record will be written in the transaction of user bonuses
+   *
    Bonus spending strategies :
     1) 'bonus_from_order_total': (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
     2) 'bonus_from_basket_delivery_discount': writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
@@ -723,7 +723,7 @@ let Model = {
       order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
 
 
-      // Throw if User not have bonuses to cover this 
+      // Throw if User does not have bonuses to cover this
       await UserBonusTransaction.create({
         amount: bonusCoverage.toNumber(),
         bonusProgram: bonusProgram.id,
@@ -740,7 +740,7 @@ let Model = {
 
   // TODO: implement clearOfPromotion
   async clearOfPromotion() {
-    // remove from collection
+    // remove from a collection
   },
 
 
@@ -827,7 +827,7 @@ let Model = {
     } else {
       order.selfService = false;
       if (address) {
-        if (!address.city) address.city = await Settings.get("city") as string
+        if (!address.city) address.city = await Settings.get("city")
         checkAddress(address);
         order.address = { ...address };
       } else {
@@ -841,7 +841,7 @@ let Model = {
     }
 
 
-    // Custom emmitters checks
+    // Custom emitters checks
     const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
 
     delete (order.dishes);
@@ -940,7 +940,7 @@ let Model = {
     * has basic checks. And is self-sufficient, but
     * is still set by default so all checks must be passed
     */
-    const checkConfig = (await Settings.use("CHECKOUT_STRATEGY")) as any;
+    const checkConfig = await Settings.get("CHECKOUT_STRATEGY");
 
     /**
      * If checkout policy not required then push next
@@ -974,7 +974,7 @@ let Model = {
 
       throw {
         code: 0,
-        error: `one or more results from core-order-check was not sucessed\n last error: ${error}`,
+        error: `one or more results from core-order-check was not succeed\n last error: ${error}`,
       };
     }
 
@@ -1024,7 +1024,7 @@ let Model = {
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
 
-    const orderConfig = await Settings.use("order") as unknown as { requireAll: boolean, justOne: boolean };
+    const orderConfig = await Settings.get("order");
     if (orderConfig) {
       if (orderConfig.requireAll) {
         if (resultsCount === successCount) {
@@ -1052,7 +1052,7 @@ let Model = {
     async function orderIt() {
 
       if (order.user && order.bonusesTotal) {
-        // Throw if User not have bonuses to cover this 
+        // Throw if User does not have bonuses to cover this
         await UserBonusTransaction.create({
           isNegative: true,
           amount: order.bonusesTotal,
@@ -1072,10 +1072,9 @@ let Model = {
       // await Order.update({id: order.id}).fetch();
       await Order.update({ id: order.id }, data).fetch();
 
-      /** Here core just make emit, 
-       * instead call directly in RMSadapter. 
-       * But i think we need select default adpater, 
-       * and make order here */
+      /** Here core just makes emit,
+       * instead call directly in RMSadapter.
+       * But I think we need to select default adapter and make order here */
 
       try {
         let orderWithRMS = await (await Adapter.getRMSAdapter()).createOrder(order);
@@ -1107,8 +1106,8 @@ let Model = {
 
     var paymentResponse: PaymentResponse;
     let comment: string = "";
-    var backLinkSuccess: string = (await Settings.use("FRONTEND_ORDER_PAGE")) + order.shortId;
-    var backLinkFail: string = await Settings.use("FRONTEND_CHECKOUT_PAGE") as string;
+    var backLinkSuccess = (await Settings.get("FRONTEND_ORDER_PAGE")) + order.shortId;
+    var backLinkFail = await Settings.get("FRONTEND_CHECKOUT_PAGE");
     let paymentMethodId = await order.paymentMethod
     sails.log.silly("Order > payment > before payment register", order);
 
@@ -1142,7 +1141,7 @@ let Model = {
     return paymentMethod.id;
   },
 
-  /**  given populated Order instance  by criteria*/
+  /**  given populated Order instance by criteria*/
   async populate(criteria: CriteriaQuery<Order>) {
     let order = await Order.findOne(criteria)
       .populate('paymentMethod')
@@ -1166,7 +1165,7 @@ let Model = {
           continue;
         }
 
-        // WHATIS? It seems like test of waterline or check orderDishes not in Order?!
+        // WHAT? It seems like test of waterline or check orderDishes not in Order?!
         // if (!fullOrder.dishes.filter((d: { id: number; }) => d.id === orderDish.id).length) {
         //   sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
         //   continue;
@@ -1206,7 +1205,7 @@ let Model = {
   /**
    * Method for calculating the basket. This is called every time the cart changes.
    * @param criteria OrderId
-   * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also you should set the isPromoting state in the model
+   * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also, you should set the isPromoting state in the model
    * @returns Order
    */
   async countCart(criteria: CriteriaQuery<Order>, isPromoting: boolean = false): Promise<Order> {
@@ -1246,7 +1245,7 @@ let Model = {
             // Item OrderDish calcualte
             let itemCost = orderDish.dish.price;
             let itemWeight = orderDish.dish.weight ?? 0;
-            
+
             const dish = orderDish.dish
 
             // Checks that the dish is available for sale
@@ -1286,7 +1285,7 @@ let Model = {
                   throw "Dish with id " + selectedModifier.id + " not found!";
                 }
 
-                // let opts:  any = {} 
+                // let opts:  any = {}
                 // await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
 
                 // const modifierCopy = {
@@ -1306,7 +1305,7 @@ let Model = {
                 let currentModifier: Modifier = null;
                 dish.modifiers.forEach(originGroupModifiers => {
 
-                  // this block not used
+                  // this block is not used
                   if (originGroupModifiers.childModifiers) {
                     originGroupModifiers.childModifiers.forEach(originChildModifier => {
                       if (selectedModifier.dish && selectedModifier.dish.rmsId !== undefined) {
@@ -1334,7 +1333,7 @@ let Model = {
                 }
 
                 // TODO: discountPrice && freeAmount
-                // // FreeAmount modiefires support
+                // // FreeAmount modifier support
                 // if (opts.freeAmount && typeof opts.freeAmount === "number") {
                 //   if (opts.freeAmount < selectedModifier.amount) {
                 //     let freePrice = new Decimal(modifierObj.price).times(opts.freeAmount)
@@ -1344,7 +1343,7 @@ let Model = {
                 //     let freePrice = new Decimal(modifierObj.price).times(selectedModifier.amount)
                 //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
                 //   }
-                // }                
+                // }
 
                 if (!Number(itemCost)) throw `itemCost is NaN ${JSON.stringify(selectedModifier)}.`
                 itemWeight = new Decimal(itemWeight).plus(modifierObj.weight ?? 0).toNumber();
@@ -1431,8 +1430,8 @@ let Model = {
           orderPopulate.dishes = orderDishesForPopulate
 
           /**
-           * All promotions hadlers are calculated here, the main idea is that the order is modified during execution.
-           * The developer who creates promotions must take care about order in database and order runtime object.
+           * All promotions handlers are calculated here, the main idea is that the order is modified during execution.
+           * The developer who creates promotions must take care of order in database and order runtime object.
            */
           let orederPROM = await promotionAdapter.processOrder(orderPopulate);
 
@@ -1462,7 +1461,7 @@ let Model = {
         } catch (error) {
           sails.log.error(`Core > order > promotion calculate fail: `, error)
         } finally {
-          // finaly
+          // finally
           order.isPromoting = false;
           await Order.update({ id: order.id }, { isPromoting: false }).fetch();
         }
@@ -1471,12 +1470,12 @@ let Model = {
         emitter.emit("core-order-after-promotion", order);
       }
 
-      // Force unpopulate promotionCode, TODO: debug it why is not unpopulated here?!
+      // Force unpopulated promotionCode, TODO: debug it why is not unpopulated here?!
       if (typeof order.promotionCode !== "string" && order.promotionCode?.id !== undefined) {
         order.promotionCode = order.promotionCode.id
       }
 
-      // Calcualte delivery costs
+      // Calculate delivery costs
       emitter.emit("core:count-before-delivery-cost", order);
       if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
         order.delivery = order.promotionDelivery;
@@ -1591,7 +1590,7 @@ let Model = {
 
     if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - apply promocode on current state: (${order.state})`;
 
-    if (!promotionCodeString || promotionCodeString === null) {
+    if (!promotionCodeString) {
       updateData = {
         promotionCode: null,
         promotionCodeCheckValidTill: null,
@@ -1673,7 +1672,7 @@ async function checkCustomerInfo(customer) {
 
 
 
-  let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES") as string | string[];
+  let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES");
   if (typeof allowedPhoneCountries === "string") allowedPhoneCountries = [allowedPhoneCountries];
   let isValidPhone = allowedPhoneCountries === undefined;
   if (Array.isArray(allowedPhoneCountries)) {
@@ -1684,7 +1683,7 @@ async function checkCustomerInfo(customer) {
     }
   }
 
-  const nameRegex = await Settings.use("nameRegex") as string;
+  const nameRegex = await Settings.get("nameRegex");
   if (nameRegex) {
     if (!nameRegex.match(customer.name)) {
       throw {
@@ -1742,7 +1741,7 @@ async function checkDate(order: Order) {
       let currentTimestamp = currentDate.getTime();
       let targetDate = new Date(date);
 
-      //  is eqials timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      //  is equals timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       let targetTimestamp
       try {
         targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
@@ -1754,7 +1753,7 @@ async function checkDate(order: Order) {
       return targetTimestamp < currentTimestamp;
     }
 
-    const timezone = await Settings.get('TZ') as string ?? 'Etc/GMT';
+    const timezone = await Settings.get('TZ') ?? 'Etc/GMT';
 
     if (isDateInPast(order.date, timezone)) {
       throw {
@@ -1764,7 +1763,7 @@ async function checkDate(order: Order) {
     }
 
     // date is Date
-    if (date instanceof Date === true && !date.toJSON()) {
+    if (date instanceof Date && !date.toJSON()) {
       throw {
         code: 9,
         error: "date is not valid",
@@ -1800,7 +1799,7 @@ async function checkDate(order: Order) {
 // TODO: refactor possibleToOrderInMinutes from seconds to full work days
 async function getOrderDateLimit(): Promise<Date> {
   let date = new Date();
-  let possibleToOrderInMinutes: string = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES") as string; //minutes
+  let possibleToOrderInMinutes = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES"); //minutes
   if (!possibleToOrderInMinutes) possibleToOrderInMinutes = "1440";
 
   date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));

@@ -1,5 +1,4 @@
 import RMSAdapter, { ConfigRMSAdapter } from "../adapters/rms/RMSAdapter";
-import MapAdapter from "../adapters/map/MapAdapter";
 import CaptchaAdapter from "../adapters/captcha/CaptchaAdapter";
 import { POW } from "../adapters/captcha/default/pow";
 import { DefaultOTP } from "../adapters/otp/default/defaultOTP";
@@ -9,7 +8,6 @@ import MediaFileAdapter, { ConfigMediaFileAdapter } from "../adapters/mediafile/
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import * as fs from "fs";
 import BonusProgramAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
-import path = require("path");
 import { Config } from "./Config";
 import DeliveryAdapter from "../adapters/delivery/DeliveryAdapter";
 import { DefaultDeliveryAdapter } from "../adapters/delivery/default/defaultDelivery";
@@ -19,12 +17,12 @@ const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? 
 
 
 /**
- * retruns Captcha-adapter
+ * returns Captcha-adapter
  */
 export class Captcha {
   public static async getAdapter(adapterName?: string): Promise<CaptchaAdapter> {
     if (!adapterName) {
-      adapterName = (await Settings.get("DEFAULT_CAPTCHA_ADAPTER")) as string;
+      adapterName = await Settings.get("DEFAULT_CAPTCHA_ADAPTER");
     }
 
     // Use default adapter POW (crypto-puzzle)
@@ -46,12 +44,12 @@ export class Captcha {
 }
 
 /**
- * retruns OTP-adapter
+ * returns OTP-adapter
  */
 export class OTP {
   /**
    * @deprecated use Adapter.getOTPAdapter instead
-   * @param adapterName 
+   * @param adapterName
    */
   public static async getAdapter(adapterName?: string): Promise<OTPAdapter> {
     return Adapter.getOTPAdapter(adapterName);
@@ -67,10 +65,10 @@ export class Adapter {
   private static instanceMF: MediaFileAdapter;
 
   public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
-  
+
   public static async getOTPAdapter(adapterName?: string): Promise<OTPAdapter> {
     if (!adapterName) {
-      adapterName = (await Settings.get("DEFAULT_OTP_ADAPTER")) as string;
+      adapterName = await Settings.get("DEFAULT_OTP_ADAPTER");
     }
 
     // Use default adapter POW (crypto-puzzle)
@@ -89,7 +87,7 @@ export class Adapter {
       throw new Error("Module " + adapterLocation + " not found");
     }
   }
-  
+
   public static getPromotionAdapter(adapter?: string | PromotionAdapter, initParams?: {[key: string]:string | number | boolean}): PromotionAdapter {
 
     let adapterName: string;
@@ -104,7 +102,7 @@ export class Adapter {
       }
     }
 
-    // Return the singleon
+    // Return the singleton
     if (this.instancePromotionAdapter) {
       return this.instancePromotionAdapter;
     }
@@ -128,10 +126,10 @@ export class Adapter {
   }
 
   /**
-   * retruns BonusProgram-adapter
+   * returns BonusProgram-adapter
    */
   public static async getBonusProgramAdapter(adapter?: string | BonusProgramAdapter, initParams?: { [key: string]: string | number | boolean }): Promise<BonusProgramAdapter> {
-    
+
     let adapterName: string;
     if (adapter) {
       if (typeof adapter === "string") {
@@ -144,7 +142,7 @@ export class Adapter {
     }
 
     if (!adapterName) {
-      let defaultAdapterName = (await Settings.get("DEFAULT_BONUS_ADAPTER")) as string;
+      let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
       if (!defaultAdapterName) throw "BonusProgramAdapter is not set ";
     }
 
@@ -161,10 +159,10 @@ export class Adapter {
   }
 
   /**
-   * retruns RMS-adapter
+   * returns RMS-adapter
    */
   public static async getRMSAdapter(adapter?: string | RMSAdapter, initParams?: ConfigRMSAdapter): Promise<RMSAdapter> {
-    // Return the singleon
+    // Return the singleton
     if (this.instanceRMS) {
       return this.instanceRMS;
     }
@@ -182,7 +180,7 @@ export class Adapter {
     }
 
     if (!adapterName) {
-      adapterName = (await Settings.get("RMS_ADAPTER")) as string;
+      adapterName = await Settings.get("RMS_ADAPTER");
       if (!adapterName) throw "RMS adapter is not installed";
     }
 
@@ -200,10 +198,10 @@ export class Adapter {
   }
 
   /**
-   * retruns Delivery-adapter
+   * returns Delivery-adapter
    */
   public static async getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
-    // Return the singleon
+    // Return the singleton
     if (this.instanceDeliveryAdapter) {
       return this.instanceDeliveryAdapter;
     }
@@ -223,8 +221,6 @@ export class Adapter {
       }
     }
 
-    
-
     let adapterLocation = fs.existsSync(this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
       ? this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
       : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
@@ -242,10 +238,10 @@ export class Adapter {
   }
 
   /**
-   * retruns MediaFile-adapter
+   * returns MediaFile-adapter
    */
   public static async getMediaFileAdapter(adapter?: string | MediaFileAdapter, initParams?: ConfigMediaFileAdapter): Promise<MediaFileAdapter> {
-    // Return the singleon
+    // Return the singleton
     if (this.instanceMF) {
       return this.instanceMF;
     }
@@ -265,7 +261,7 @@ export class Adapter {
     let adapterLocation: string = "";
 
     if (!adapterName) {
-      adapterName = (await Settings.get("DEFAULT_MEDIAFILE_ADAPTER")) as string;
+      adapterName = await Settings.get("DEFAULT_MEDIAFILE_ADAPTER");
       if (!adapterName) {
         this.instanceMF = new LocalMediaFileAdapter(initParams);
         return this.instanceMF;
@@ -288,11 +284,11 @@ export class Adapter {
   }
 
   /**
-   * retruns PaymentAdapter-adapter
+   * returns PaymentAdapter-adapter
    */
   public static async getPaymentAdapter(adapterName?: string, initParams?: Config): Promise<PaymentAdapter> {
     if (!adapterName) {
-      let defaultAdapterName = (await Settings.get("DEFAULT_BONUS_ADAPTER")) as string;
+      let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
       if (!defaultAdapterName) throw "BonusProgramAdapter is not set ";
     }
 

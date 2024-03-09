@@ -31,9 +31,10 @@ const path_1 = require("path");
 const afterHook_1 = __importDefault(require("./afterHook"));
 const _ = __importStar(require("lodash"));
 const bindAssets_1 = __importDefault(require("./bindAssets"));
-const bindDictonaries_1 = __importDefault(require("./bindDictonaries"));
+const bindDictionaries_1 = __importDefault(require("./bindDictionaries"));
+process.env.MM_MODELS_TO_SKIP = "settings";
 /**
- * Set global emmiter
+ * Set global emitter
  */
 const getEmitter_1 = __importDefault(require("../libs/getEmitter"));
 // @ts-ignore
@@ -68,8 +69,9 @@ function ToInitialize(sails) {
             sails.config.blueprints.rest = false;
             sails.log.info("Blueprints rest/shortcuts magic is OFF ");
         }
-        if (sails.config.restocore.stateflow)
+        if (sails.config.restocore.stateflow) { // @ts-ignore
             sails.config.stateflow = _.merge(sails.config.stateflow, sails.config.restocore.stateflow);
+        }
         /**
          * AFTER OTHERS HOOKS
          */
@@ -82,7 +84,7 @@ function ToInitialize(sails) {
         // Bind assets
         (0, bindAssets_1.default)();
         // Bind dictonaries
-        (0, bindDictonaries_1.default)();
+        (0, bindDictionaries_1.default)();
         // Bind locales
         (0, bindLocales_1.default)();
         // Bind sails-adminpanel configuraton

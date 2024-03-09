@@ -8,13 +8,13 @@ import { Config } from "./Config";
 import DeliveryAdapter from "../adapters/delivery/DeliveryAdapter";
 import { PromotionAdapter } from "../adapters/promotion/default/promotionAdapter";
 /**
- * retruns Captcha-adapter
+ * returns Captcha-adapter
  */
 export declare class Captcha {
     static getAdapter(adapterName?: string): Promise<CaptchaAdapter>;
 }
 /**
- * retruns OTP-adapter
+ * returns OTP-adapter
  */
 export declare class OTP {
     /**
@@ -35,25 +35,25 @@ export declare class Adapter {
         [key: string]: string | number | boolean;
     }): PromotionAdapter;
     /**
-     * retruns BonusProgram-adapter
+     * returns BonusProgram-adapter
      */
     static getBonusProgramAdapter(adapter?: string | BonusProgramAdapter, initParams?: {
         [key: string]: string | number | boolean;
     }): Promise<BonusProgramAdapter>;
     /**
-     * retruns RMS-adapter
+     * returns RMS-adapter
      */
     static getRMSAdapter(adapter?: string | RMSAdapter, initParams?: ConfigRMSAdapter): Promise<RMSAdapter>;
     /**
-     * retruns Delivery-adapter
+     * returns Delivery-adapter
      */
     static getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter>;
     /**
-     * retruns MediaFile-adapter
+     * returns MediaFile-adapter
      */
     static getMediaFileAdapter(adapter?: string | MediaFileAdapter, initParams?: ConfigMediaFileAdapter): Promise<MediaFileAdapter>;
     /**
-     * retruns PaymentAdapter-adapter
+     * returns PaymentAdapter-adapter
      */
     static getPaymentAdapter(adapterName?: string, initParams?: Config): Promise<PaymentAdapter>;
 }

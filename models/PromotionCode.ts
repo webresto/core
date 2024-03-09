@@ -17,18 +17,18 @@ let attributes = {
     type: "string",
     allowNull: true
   } as unknown as string,
-  
+
   /** Not Generated */
-  type: { 
+  type: {
     type:'string',
     /**
-    static - just one promocode 
+    static - just one promocode
     generated - uses promocodeGeneratorAdapter TODO: see test/experiments dir
-    serial - maybe pregenrated, need store
-    external - connect to external system (bad way becose need make request)
-     * */ 
+    serial - maybe pre-generated, need store
+    external - connect to external system (bad way because need make request)
+     * */
 
-    isIn: ['static', 
+    isIn: ['static',
     // 'generated', 'serial', 'external'
     ]
   } as unknown as string,
@@ -42,7 +42,7 @@ let attributes = {
   startDate: "string",
   stopDate: "string",
   workTime: "json" as unknown as WorkTime,
-  
+
   description: {
     type: "string",
     required: true,
@@ -52,7 +52,7 @@ let attributes = {
     type: "string",
     allowNull: true
   } as unknown as string,
- 
+
   // TODO: Add interval to allow for use again
   promotion: {
     collection: "promotion",
@@ -77,7 +77,7 @@ let Model = {
     if (!promotionCodeInit.id) {
       promotionCodeInit.id = uuid();
     }
-    
+
     cb();
   },
 

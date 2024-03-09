@@ -19,8 +19,8 @@ export default abstract class AbstractPromotionHandler {
     abstract badge: string;
     abstract condition(arg1: Group | Dish | Order): boolean;
     /**
-     * The order must be modified and recorded in model within this method
-     * @param order: Order should populated order
+     * The order must be modified and recorded in a model within this method
+     * @param order Order should populated order
      */
     abstract action(order: Order): Promise<PromotionState>;
     /**

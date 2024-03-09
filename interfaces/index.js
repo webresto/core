@@ -40,12 +40,12 @@ const promotionAdapter_1 = require("../adapters/promotion/default/promotionAdapt
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 /**
- * retruns Captcha-adapter
+ * returns Captcha-adapter
  */
 class Captcha {
     static async getAdapter(adapterName) {
         if (!adapterName) {
-            adapterName = (await Settings.get("DEFAULT_CAPTCHA_ADAPTER"));
+            adapterName = await Settings.get("DEFAULT_CAPTCHA_ADAPTER");
         }
         // Use default adapter POW (crypto-puzzle)
         if (!adapterName) {
@@ -65,7 +65,7 @@ class Captcha {
 }
 exports.Captcha = Captcha;
 /**
- * retruns OTP-adapter
+ * returns OTP-adapter
  */
 class OTP {
     /**
@@ -81,7 +81,7 @@ exports.OTP = OTP;
 class Adapter {
     static async getOTPAdapter(adapterName) {
         if (!adapterName) {
-            adapterName = (await Settings.get("DEFAULT_OTP_ADAPTER"));
+            adapterName = await Settings.get("DEFAULT_OTP_ADAPTER");
         }
         // Use default adapter POW (crypto-puzzle)
         if (!adapterName) {
@@ -112,7 +112,7 @@ class Adapter {
                 throw new Error("Adapter should be a string or instance of PromotionAdapter");
             }
         }
-        // Return the singleon
+        // Return the singleton
         if (this.instancePromotionAdapter) {
             return this.instancePromotionAdapter;
         }
@@ -133,7 +133,7 @@ class Adapter {
         }
     }
     /**
-     * retruns BonusProgram-adapter
+     * returns BonusProgram-adapter
      */
     static async getBonusProgramAdapter(adapter, initParams) {
         let adapterName;
@@ -149,7 +149,7 @@ class Adapter {
             }
         }
         if (!adapterName) {
-            let defaultAdapterName = (await Settings.get("DEFAULT_BONUS_ADAPTER"));
+            let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
             if (!defaultAdapterName)
                 throw "BonusProgramAdapter is not set ";
         }
@@ -165,10 +165,10 @@ class Adapter {
         }
     }
     /**
-     * retruns RMS-adapter
+     * returns RMS-adapter
      */
     static async getRMSAdapter(adapter, initParams) {
-        // Return the singleon
+        // Return the singleton
         if (this.instanceRMS) {
             return this.instanceRMS;
         }
@@ -186,7 +186,7 @@ class Adapter {
             }
         }
         if (!adapterName) {
-            adapterName = (await Settings.get("RMS_ADAPTER"));
+            adapterName = await Settings.get("RMS_ADAPTER");
             if (!adapterName)
                 throw "RMS adapter is not installed";
         }
@@ -203,10 +203,10 @@ class Adapter {
         }
     }
     /**
-     * retruns Delivery-adapter
+     * returns Delivery-adapter
      */
     static async getDeliveryAdapter(adapter) {
-        // Return the singleon
+        // Return the singleton
         if (this.instanceDeliveryAdapter) {
             return this.instanceDeliveryAdapter;
         }
@@ -240,10 +240,10 @@ class Adapter {
         }
     }
     /**
-     * retruns MediaFile-adapter
+     * returns MediaFile-adapter
      */
     static async getMediaFileAdapter(adapter, initParams) {
-        // Return the singleon
+        // Return the singleton
         if (this.instanceMF) {
             return this.instanceMF;
         }
@@ -262,7 +262,7 @@ class Adapter {
         }
         let adapterLocation = "";
         if (!adapterName) {
-            adapterName = (await Settings.get("DEFAULT_MEDIAFILE_ADAPTER"));
+            adapterName = await Settings.get("DEFAULT_MEDIAFILE_ADAPTER");
             if (!adapterName) {
                 this.instanceMF = new local_1.default(initParams);
                 return this.instanceMF;
@@ -283,11 +283,11 @@ class Adapter {
         }
     }
     /**
-     * retruns PaymentAdapter-adapter
+     * returns PaymentAdapter-adapter
      */
     static async getPaymentAdapter(adapterName, initParams) {
         if (!adapterName) {
-            let defaultAdapterName = (await Settings.get("DEFAULT_BONUS_ADAPTER"));
+            let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
             if (!defaultAdapterName)
                 throw "BonusProgramAdapter is not set ";
         }

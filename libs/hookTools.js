@@ -45,14 +45,13 @@ class HookTools {
             }, function (err, models) {
                 if (err)
                     return reject(new Error(err));
-                ;
                 sails.models = _.merge(sails.models || {}, models);
                 return resolve();
             });
         });
     }
     /**
-     * Check that config with name key exists in sails.config
+     * Check that config with a name key exists in sails.config
      * @param key - name of config to check
      * @return true if config exists
      */
@@ -155,8 +154,8 @@ class HookTools {
     }
     /**
      * Load policies from given folder.
-     * Folder must contain index.js file that contain object with {'path/to/': policyName}, where /path/to/ is router or '*'
-     * and policyName is one of others file name.
+     * The folder must contain index.js file that contains object with {'path/to/': policyName}, where /path/to/ is router or '*'
+     * and policyName is one of other file names.
      * For example
      * |
      * * - index.js > module.exports = {

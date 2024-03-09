@@ -51,7 +51,7 @@ let Model = {
     },
     async registration(user, adapterOrId) {
         const bp = await BonusProgram.getAdapter(adapterOrId);
-        // TODO: this new standart call for models methods (Object or string)
+        // TODO: this new standard call for models methods (Object or string)
         if (typeof user === "string") {
             user = await User.findOne({ id: user });
         }
@@ -77,7 +77,7 @@ let Model = {
         }).fetch();
         return;
     },
-    // Sync all active user bonusprogram 
+    // Sync all active user bonusprogram
     async syncAll(user) {
         if (typeof user === "string") {
             user = await User.findOne({ id: user });
@@ -86,13 +86,13 @@ let Model = {
         }
         const userBonusPrograms = await UserBonusProgram.find({ user: user.id });
         for (const userBonusProgram of userBonusPrograms) {
-            // Skip if  less TIME_TO_SYNC_BONUSES_IN_MINUTES
+            // Skip if less TIME_TO_SYNC_BONUSES_IN_MINUTES
             const diffInMinutes = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60);
             const timeToSyncBonusesInMinutes = await Settings.get("TIME_TO_SYNC_BONUSES_IN_MINUTES") ?? "5";
             if (diffInMinutes < parseInt(timeToSyncBonusesInMinutes))
                 continue;
-            if (await BonusProgram.isAlived(userBonusProgram.bonusProgram)) {
-                // Not await for paralel sync
+            if (await BonusProgram.isAlive(userBonusProgram.bonusProgram)) {
+                // Not await for parallel sync
                 UserBonusProgram.sync(user.id, userBonusProgram.bonusProgram);
             }
         }
@@ -184,7 +184,7 @@ let Model = {
             lastTransaction = _lastTransaction[0];
             const sumCurrentBalance = await UserBonusProgram.sumCurrentBalance(user, bonusProgram);
             if (sumCurrentBalance === extBalance && sumCurrentBalance === lastTransaction.balanceAfter) {
-                // Emmiter
+                // Emitter
                 await UserBonusProgram.update({ user: user.id }, { balance: extBalance }).fetch();
             }
             else {
@@ -208,7 +208,7 @@ let Model = {
             if (!user || !bonusProgram) {
                 throw `User or BonusProgram not found: user: ${user.login} bonusProgram: ${bonusProgram}`;
             }
-            const bonusProgramAdapterExist = await BonusProgram.isAlived(bonusProgram.adapter);
+            const bonusProgramAdapterExist = await BonusProgram.isAlive(bonusProgram.adapter);
             if (!bonusProgramAdapterExist)
                 throw `No BonusProgram ${bonusProgram.adapter} exist`;
             // Sync force before spend
@@ -231,7 +231,7 @@ let Model = {
                  * Stop bonus program when balance not matched
                  */
             }
-            else if (!userBalance.equals(externalBalance) && Boolean(await Settings.get("DISABLE_USER_BONUS_PROGRAM_ON_FAIL")) === true) {
+            else if (!userBalance.equals(externalBalance) && (await Settings.get("DISABLE_USER_BONUS_PROGRAM_ON_FAIL")) === true) {
                 sails.log.error(`User [${user.login}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] `);
                 await UserBonusProgram.update({ id: userBonusProgram.id }, { isActive: false }).fetch();
                 return false;
@@ -239,7 +239,7 @@ let Model = {
                  * Only external system check balance
                  */
             }
-            else if (externalBalance.greaterThanOrEqualTo(amount) && Boolean(await Settings.get("ONLY_EXTERNAL_BONUS_SPEND_CHECK")) === true) {
+            else if (externalBalance.greaterThanOrEqualTo(amount) && (await Settings.get("ONLY_EXTERNAL_BONUS_SPEND_CHECK")) === true) {
                 return true;
             }
             else if (externalBalance.greaterThanOrEqualTo(amount) && userBalance.greaterThanOrEqualTo(amount)) {

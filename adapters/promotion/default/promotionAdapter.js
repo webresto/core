@@ -35,7 +35,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         }
         // --- CALCULATE DISCOUNTS END --- //
         populatedOrder.promotionState = promotionStates;
-        // populatedOrder = await Order.findOne(populatedOrder.id) 
+        // populatedOrder = await Order.findOne(populatedOrder.id)
         return populatedOrder;
     }
     // one method to get all promotions and id's
@@ -73,8 +73,8 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     }
     filterPromotions(promotionsByConcept, target) {
         /**
-         * If promotion enabled by promocode notJoint it will be disable all promotions and set promocode promotion
-         * If promocode promotion is joint it just will be applied by order
+         * If promotion enabled by promocode notJoint it disables all promotions and sets promocode promotion,
+         * If promocode promotion is joint, it just will be applied by order
          */
         let filteredPromotionsToApply = Object.values(promotionsByConcept)
             .filter((record) => {
@@ -89,7 +89,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         })
             .sort((a, b) => a.sortOrder - b.sortOrder);
         const filteredByCondition = this.filterByCondition(filteredPromotionsToApply, target);
-        // Promotion by PromotionCode not need filtred
+        // Promotion by PromotionCode doesn't need to be filtered
         if ((0, findModelInstance_1.default)(target) === "Order") {
             const order = target;
             if (order.promotionCode) {
@@ -134,7 +134,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         return filteredPromotions;
     }
     /**
-     * Method uses for puntime call/pass promotionHandler, not configured
+     * Method uses for runtime call/pass promotionHandler, not configured
      * @param promotionToAdd
      */
     async addPromotionHandler(promotionToAdd) {

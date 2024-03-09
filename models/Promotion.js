@@ -97,7 +97,7 @@ let attributes = {
 let Model = {
     async afterUpdate(record, cb) {
         if (record.createdByUser) {
-            // call recreate of discountHandler
+            // call recreation of discountHandler
             adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
@@ -105,7 +105,7 @@ let Model = {
     },
     async afterCreate(record, cb) {
         if (record.createdByUser) {
-            // call recreate of discountHandler
+            // call recreation of discountHandler
             adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
@@ -125,7 +125,7 @@ let Model = {
             init.id = (0, uuid_1.v4)();
         }
         const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT");
-        // On create, all promocodes are disabled.
+        // On creation, all promocodes are disabled.
         init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) : process.env.NODE_ENV !== "production";
         cb();
     },

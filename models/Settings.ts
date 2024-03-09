@@ -1,217 +1,330 @@
+import {OptionalAll, RequiredField} from "../interfaces/toolsTS"
+import {ORMModel} from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import { ORMModel } from "../interfaces/ORMModel";
-
-import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-
+import {ControlElement, Layout} from "@jsonforms/core";
+import Module from "modulemanager/models/Module";
+import ModuleHelper from "modulemanager/helpers/moduleHelper";
+import SettingsHelper from "modulemanager/helpers/settingsHelper";
+import Ajv from 'ajv';
 
 // Memory store
 let settings: SettingValue = {}
-type PlainValie = string | boolean | number | string[] | number[]
+type PlainValie = string | boolean | number | string[] | number[] | SettingValue[]
 type SettingValue = PlainValie | {
-  [key: string]: string | boolean | number;
+  [key: string]: SettingValue;
 };
+type SettingType = "string" | "boolean" | "json" | "number"
 
-///////////////
+interface UISchema {
+  type?: string;
+  elements?: (ControlElement | Layout)[];
+  label?: string;
+  rule?: any;
+  scope?: string;
+  options?: any;
+}
 
 let attributes = {
-  /**Id */
   id: {
     type: "number",
     autoIncrement: true,
   } as unknown as string,
-
-  /** Ключ доступа к свойству */
   key: {
     type: "string",
     unique: true,
     required: true,
-  } as unknown as string,
-
-  /** Описание */
-  description: "string" as string,
-
-  /** Значение свойства */
+  } as unknown as string, // all spaces will be replaced by "_"
+  name: "string",
+  description: "string",
+  tooltip: "string",
   value: "json" as unknown as SettingValue,
-
-  /** Секция, к которой относится свойство */
-  section: "string" as string,
-
-  /** Источника происхождения */
-  from: "string" as string,
-
+  /** In case value is not defined */
+  defaultValue: "json" as unknown as SettingValue, // can be set only by file
+  type: {
+    type: "string",
+    required: true,
+    isIn: ["string", "boolean", "json", "number"]
+  } as unknown as SettingType,
+  /** JSON schema for value and defaultValue */
+  jsonSchema: {
+    type: "json"
+  } as unknown as any,
+  uiSchema: {
+    type: "json"
+  } as unknown as UISchema,
   /** Only reading */
   readOnly: {
     type: "boolean"
   } as unknown as boolean,
-
-  schema: "json" as unknown as any
+  module: {
+    model: "module"
+  } as unknown as Module | string
 };
 
 type attributes = typeof attributes & ORM;
-interface Settings extends  RequiredField<OptionalAll<attributes>, "key" | "value"> {}
+
+interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> {}
+
 export default Settings;
 
 let Model = {
 
-  beforeCreate: function (record: Settings, cb:  (err?: string) => void) {
-    record.key = toScreamingSnake(record.key)
+  beforeCreate: function (record: Settings, cb: (err?: string) => void) {
+    record.key = record.key.replace(/ /g, '_');
     cb();
   },
 
-  beforeUpdate: function (record: Settings, cb:  (err?: string) => void) {
-    if (record.key) {
-      record.key = toScreamingSnake(record.key)
+  beforeUpdate: function (record: Settings, cb: (err?: string) => void) {
+    if (record.key || record.module) {
+      cb("Settings error: Can not change record.key and record.module. Delete and create new setting instead.");
     }
+
     cb();
   },
 
-  afterUpdate: function (record: Settings, cb:  (err?: string) => void) {
+  afterUpdate: async function (record: Settings, cb: (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = cleanValue(record.value);
+
+    let moduleId = record.module as string;
+    await ModuleHelper.checkSettings(moduleId);
     cb();
   },
 
-  afterCreate: function (record: Settings, cb:  (err?: string) => void) {
+  afterCreate: async function (record: Settings, cb: (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = cleanValue(record.value);
-    return cb();
+
+    let moduleId = record.module as string;
+    await ModuleHelper.checkSettings(moduleId);
+    cb();
   },
 
-  /** retrun setting value by key */
-  async use(key: string, from?: string): Promise<SettingValue> {
-    key = toScreamingSnake(key);
-    sails.log.silly("CORE > Settings > use: ", key, from);
+  /** return setting value by unique key */
+  async use(key: string): Promise<SettingValue> {
     let value: SettingValue;
 
-    /** ENV variable is important*/
+    /** ENV variable is more important than a database, but it should match the schema */
     if (process.env[key] !== undefined) {
-      try {
-        value = JSON.parse(process.env[key]);
-      } catch (e) {
-        // sails.log.error("CORE > Settings > use ENV parse error: ", e);
-        value = process.env[key];
-      } finally {
-        if (!(await Settings.find({ key: key }).limit(1))[0]) await Settings.set(key, value, "env");
-
-        return cleanValue(value);
+      // ENV variable should be in database
+      let setting = await Settings.findOne({key: key});
+      if (!setting) {
+        return undefined;
       }
+
+      if (setting.type !== "json") {
+        value = process.env[key];
+
+      } else {
+        try {
+          value = JSON.parse(process.env[key]);
+
+          // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
+          if (!(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
+            const ajv = new Ajv();
+            const validate = ajv.compile(setting.jsonSchema);
+            if (!validate(value)) {
+              console.error('AJV Validation Error: Value from process.env does not match the schema');
+              return undefined;
+            }
+          }
+        } catch (e) {
+          console.error(`Error trying to parse value from process.env: ${e}`);
+          return undefined;
+        }
+      }
+
+      return cleanValue(value);
     }
 
-    /** If variable present in database */
-
-    let setting = (await Settings.find({ key: key }).limit(1))[0];
-    sails.log.silly("CORE > Settings > findOne: ", key, setting);
-    if (setting && setting.value) {
-      if (typeof value === "string") {
-        process.env[key] = value
-      } else {
-        process.env[key] = JSON.stringify(value)
-      }
+    /** If variable present in a database */
+    let setting = await Settings.findOne({key: key});
+    if (setting && (setting.value !== null || setting.defaultValue !== null)) {
+      value = setting.value !== null ? setting.value : setting.defaultValue;
       return cleanValue(setting.value);
-    } 
+    }
 
     /** Variable present in sails config */
-    if (from) {
-      if (sails.config[from] && sails.config[from][key]) {
-        value = sails.config[from][key];
-        await Settings.set(key, value, from);
+    if (setting && setting.module) {
+      let appId = setting.module as string;
+      if (sails.config[appId] && sails.config[appId][key]) {
+        value = sails.config[appId][key];
         return cleanValue(value);
       }
     }
-    sails.log.silly(`Settings: ( ${key} ) not found`);
+
+    sails.log.silly(`Settings: [${key}] not found`);
 
     return undefined;
   },
 
+  async get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T> {
+    let _key: string = key;
+    // return error if setting was not declared by specification
+    if (!SettingsHelper.isInDeclaredSettings(key) && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
+      sails.log.error(`Settings get: Requested setting [${key}] was not declared by specification`);
+      return;
+    }
 
-  async get(key: string): Promise<SettingValue> { 
-    key = toScreamingSnake(key);
-    if (settings[key] !== undefined) {
-      return cleanValue(settings[key]);
-    } else  {
-      const value = await Settings.use(key)
-      settings[key] = value
+    if (settings[_key] !== undefined) {
+      return cleanValue(settings[_key]);
+    } else {
+      const value = await Settings.use(_key);
+      settings[_key] = value;
       return cleanValue(value);
     }
   },
-  
-  /**
-   * Проверяет существует ли настройка, если не сущестует, то создаёт новую и возвращает ее. Если существует, то обновляет его значение (value)
-   * на новые. Также при первом внесении запишется параметр (config), отвечающий за раздел настройки.
-   */
-  async set(key: string, value: any, from?: string, readOnly: boolean = false): Promise<Settings> {
-    if (key === undefined || value === undefined) throw `Setting set key (${key}) and value (${value}) required`;
-    key = toScreamingSnake(key);
 
-    value = cleanValue(value);
-    // Set in local variable
-    settings[key] = value;
+  async set<K extends keyof SettingList, T = SettingList[K]>(key: K, settingsSetInput: SettingsSetInput): Promise<Settings> {
+    if (settingsSetInput["key"] !== key) {
+      throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
+    }
 
-    // Set in ENV
-    if (typeof value === "string") {
-      process.env[key] = value
+    // process non-module setting (contains only key and value)
+    if (Object.keys(settingsSetInput).length === 3) {
+      settings[settingsSetInput.key] = settingsSetInput.value;
+      // Write to Database
+      try {
+        const setting = await Settings.findOne({key: settingsSetInput.key});
+        if (!setting) {
+          return await Settings.create({
+            key: settingsSetInput.key,
+            value: settingsSetInput.value,
+            type: null,
+            module: null,
+            readOnly: settingsSetInput.readOnly || false
+          }).fetch();
+        } else {
+          if (setting.readOnly) throw `Property cannot be changed (read only)`;
+          return (await Settings.update({key: settingsSetInput.key}, {
+            value: settingsSetInput.value
+          }).fetch())[0];
+        }
+      } catch (e) {
+        sails.log.error("CORE > Settings > set: ", settingsSetInput, e);
+        return
+      }
+    }
+
+    // check required fields
+    if (settingsSetInput.appId === undefined || settingsSetInput.key === undefined || settingsSetInput.type === undefined) {
+      sails.log.error(`Setting set error: missed one or more required fields: appId (${settingsSetInput.appId}),
+			 key (${settingsSetInput.key}), type (${settingsSetInput.type}), jsonSchema (${settingsSetInput.jsonSchema}) required`);
+      return;
+    }
+
+    // check that jsonSchema is present for a json type
+    if (settingsSetInput.type === "json" && settingsSetInput.jsonSchema === undefined) {
+      sails.log.error(`Setting set [${settingsSetInput.appId}] error: jsonSchema is missed for type "json"`);
+    }
+
+    // convert some values for boolean type
+    if (settingsSetInput.type === "boolean") {
+      if (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(`${settingsSetInput.value}`)) {
+        settingsSetInput.value = true;
+      } else if (["no", "NO", "No", "0", "false", "FALSE", "False"].includes(`${settingsSetInput.value}`)) {
+        settingsSetInput.value = false;
+      }
+
+      if (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(`${settingsSetInput.defaultValue}`)) {
+        settingsSetInput.defaultValue = true;
+      } else if (["no", "NO", "No", "0", "false", "FALSE", "False"].includes(`${settingsSetInput.defaultValue}`)) {
+        settingsSetInput.defaultValue = false;
+      }
+    }
+
+    // check that value and defaultValue match the schema for json type (if !ALLOW_UNSAFE_SETTINGS)
+    if (settingsSetInput.type === "json" && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
+      const ajv = new Ajv();
+      const validate = ajv.compile(settingsSetInput.jsonSchema);
+      if ((settingsSetInput.value !== undefined && !validate(settingsSetInput.value)) ||
+          (settingsSetInput.defaultValue !== undefined && !validate(settingsSetInput.defaultValue))) {
+        sails.log.error('AJV Validation Error: Value or defaultValue does not match the schema');
+        return;
+      }
+    }
+
+    // Set in local variable (local storage)
+    if (settingsSetInput.appId === null) {
+      settings[settingsSetInput.key] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
     } else {
-      process.env[key] = JSON.stringify(value)
+      settings[`${settingsSetInput.appId}_${settingsSetInput.key}`] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
     }
 
     // Write to Database
     try {
-      const propety = await Settings.findOne({ key: key });
-      if (!propety) {
+      const setting = await Settings.findOne({module: settingsSetInput.appId, key: settingsSetInput.key});
+      if (!setting) {
         return await Settings.create({
-          key: key,
-          value: value,
-          from: from,
-          readOnly: readOnly
+          key: settingsSetInput.key,
+          type: settingsSetInput.type,
+          jsonSchema: settingsSetInput.jsonSchema,
+          module: settingsSetInput.appId,
+          name: settingsSetInput.name,
+          value: settingsSetInput.value,
+          defaultValue: settingsSetInput.defaultValue,
+          description: settingsSetInput.description,
+          tooltip: settingsSetInput.tooltip,
+          uiSchema: settingsSetInput.uiSchema,
+          readOnly: settingsSetInput.readOnly || false
         }).fetch();
       } else {
-        if (propety.readOnly) throw `Property cannot be changed (read only)`
-        return (await Settings.update({ key: key }, { value: value }).fetch())[0];
+        if (setting.readOnly) throw `Property cannot be changed (read only)`;
+        return (await Settings.update({module: settingsSetInput.appId, key: settingsSetInput.key}, {
+          type: settingsSetInput.type,
+          jsonSchema: settingsSetInput.jsonSchema,
+          name: settingsSetInput.name,
+          value: settingsSetInput.value,
+          defaultValue: settingsSetInput.defaultValue,
+          description: settingsSetInput.description,
+          tooltip: settingsSetInput.tooltip,
+          uiSchema: settingsSetInput.uiSchema,
+          readOnly: settingsSetInput.readOnly || false
+        }).fetch())[0];
       }
     } catch (e) {
-      sails.log.error("CORE > Settings > set: ", key, value, from, e);
-    }
-  },  
-  async setDefault(key: string, value: any, from?: string, readOnly: boolean = false): Promise<void> {
-    let setting = (await Settings.find({ key: key }).limit(1))[0];
-    if(!setting){
-      await Settings.create({
-        key: key,
-        value: cleanValue(value),
-        from: from,
-        readOnly: readOnly
-      });
+      sails.log.error("CORE > Settings > set: ", settingsSetInput, e);
     }
   }
 
 };
 
-
-
 module.exports = {
-  primaryKey: "id",
+  primaryKey: "key",
   attributes: attributes,
   ...Model,
 };
 
 declare global {
-    const Settings: typeof Model & ORMModel<Settings,  "key" | "value">;
-}
-
-
-function toScreamingSnake(str: string): string {
-  if (!str) {
-    return '';
+  // TODO даже при том что мы выключили модель Settings в mm, типизация ломается, потому что нельзя 2 раза декларировать модель
+  const Settings: typeof Model & ORMModel<Settings, "key" | "type">;
+  interface SettingList {
+    MODULE_STORAGE_LICENSE: string // system setting
+    /**
+     * Allow settings without strict declaration presented in specification
+     * */
+    ALLOW_UNSAFE_SETTINGS: boolean
   }
-
-  // Test123___Test_test -> TEST123_TEST_TEST
-  return str.replace(/\.?([A-Z]+)/g, function (x,y){return "_" + y.toLowerCase()}).replace(/^_/, "").replace(/_{1,}/g,"_").toUpperCase();
 }
 
 function cleanValue(value) {
-  if(value === "undefined" || value === "NaN" || value === "null") {
+  if (value === "undefined" || value === "NaN" || value === "null") {
     return undefined
-  } 
+  }
 
   return value
+}
+
+interface SettingsSetInput {
+  key: string
+  appId?: string
+  type?: SettingType
+  jsonSchema?: any,
+  name?: string
+  description?: string
+  tooltip?: string
+  value?: SettingValue
+  defaultValue?: SettingValue
+  uiSchema?: UISchema
+  readOnly?: boolean
 }

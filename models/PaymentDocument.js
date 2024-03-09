@@ -32,7 +32,7 @@ let attributes = {
     },
     status: {
         type: "string",
-        isIn: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
+        isIn: ["NEW", "REGISTERED", "PAID", "CANCEL", "REFUND", "DECLINE"],
         defaultsTo: "NEW",
     },
     /** Comments for payment system */
@@ -100,16 +100,16 @@ let Model = {
             };
         }
         let paymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
-        sails.log.debug("PaymentDocumnet > register [paymentAdapter]", paymentMethodId, paymentAdapter);
+        sails.log.debug("PaymentDocument > register [paymentAdapter]", paymentMethodId, paymentAdapter);
         try {
-            sails.log.silly("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
+            sails.log.silly("PaymentDocument > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
             let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
-            sails.log.silly("PaymentDocumnet > register [after paymentAdapter.createPayment]", paymentResponse);
+            sails.log.silly("PaymentDocument > register [after paymentAdapter.createPayment]", paymentResponse);
             if (!paymentResponse.id) {
-                throw `PaymentDocumnet > register [after paymentAdapter.createPayment] paymentResponse from external payment system is required`;
+                throw `PaymentDocument > register [after paymentAdapter.createPayment] paymentResponse from external payment system is required`;
             }
             await PaymentDocument.update({ id: paymentResponse.id }, {
-                status: "REGISTRED",
+                status: "REGISTERED",
                 externalId: paymentResponse.externalId,
                 redirectLink: paymentResponse.redirectLink,
             }).fetch();
@@ -128,8 +128,8 @@ let Model = {
         if (values.paid && values.status === "PAID") {
             try {
                 if (!values.amount || !values.paymentMethod || !values.originModelId) {
-                    sails.log.error("PaymentDocument > afterUpdate, not have requried fields :", values);
-                    throw "PaymentDocument > afterUpdate, not have requried fields";
+                    sails.log.error("PaymentDocument > afterUpdate, not have required fields :", values);
+                    throw "PaymentDocument > afterUpdate, not have required fields";
                 }
                 await sails.models[values.originModel].doPaid({ id: values.originModelId }, values);
             }
@@ -144,7 +144,7 @@ let Model = {
         sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 45000);
         return (payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
-            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTRED" });
+            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTERED" });
             /**If the date of creation of a payment document more than an hour ago, we put the status expired */
             actualTime.setHours(actualTime.getHours() - 1);
             for await (let actualPaymentDocument of actualPaymentDocuments) {

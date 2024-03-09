@@ -1,7 +1,7 @@
 import { Payment, PaymentResponse } from "../../interfaces/Payment";
 import PaymentDocument from "../../models/PaymentDocument";
 import { PaymentMethodType } from "../../libs/enums/PaymentMethodTypes";
-import { Config  }from "../../interfaces/Config";
+import { Config } from "../../interfaces/Config";
 
 
 export interface InitPaymentAdapter {
@@ -29,15 +29,17 @@ export default abstract class PaymentAdapter {
   public async wait(): Promise<void> {
     await this.initializationPromise;
   }
-  
+
   private async initialize(): Promise<void> {
     await PaymentMethod.alive(this);
   }
 
   /**
    * Make new payment
-   * @param Payment - payment document
    * @return The result of the function of the function, the body of the response and the result of the result
+   * @param payment
+   * @param backLinkSuccess
+   * @param backLinkFail
    */
   public abstract createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string): Promise<PaymentResponse>;
 
@@ -57,9 +59,9 @@ export default abstract class PaymentAdapter {
 
   /**
    * Method for creating and obtaining an existing Payment Adapter
-   * Since there can be a lot of an adapter, this is a direct way to obtain an adapter from his class
-   * @param params - Parameters for initialization
+   * Since there can be a lot of adapters, this is a direct way to obtain an adapter from his class
    * @deprecated
+   * @param init
    */
   static getInstance(init: InitPaymentAdapter): PaymentAdapter {
     return PaymentAdapter.prototype;

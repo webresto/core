@@ -28,26 +28,26 @@ class RMSAdapter {
         // Run product sync interval
         const NO_SYNC_NOMENCLATURE = (await Settings.get("NO_SYNC_NOMENCLATURE")) ?? false;
         if (!NO_SYNC_NOMENCLATURE) {
-            const SYNC_PRODUCTS_INTERVAL_SECOUNDS = (await Settings.get("SYNC_PRODUCTS_INTERVAL_SECOUNDS"));
+            const SYNC_PRODUCTS_INTERVAL_SECONDS = await Settings.get("SYNC_PRODUCTS_INTERVAL_SECONDS");
             if (RMSAdapter.syncProductsInterval)
                 clearInterval(RMSAdapter.syncProductsInterval);
             RMSAdapter.syncProductsInterval = setInterval(async () => {
                 await this.syncProducts();
-            }, SYNC_PRODUCTS_INTERVAL_SECOUNDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECOUNDS * 1000 || 120000);
+            }, SYNC_PRODUCTS_INTERVAL_SECONDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECONDS * 1000 || 120000);
         }
-        // Run on load
+        // Run on a load
         if (process.env.NODE_ENV !== "production") {
             await this.syncProducts();
         }
         // Run sync OutOfStock
         const NO_SYNC_OUT_OF_STOCKS = (await Settings.get("NO_SYNC_OUT_OF_STOCKS")) ?? false;
         if (!NO_SYNC_OUT_OF_STOCKS) {
-            const SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS = (await Settings.get("SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS"));
+            const SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS = await Settings.get("SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS");
             if (RMSAdapter.syncOutOfStocksInterval)
                 clearInterval(RMSAdapter.syncOutOfStocksInterval);
             RMSAdapter.syncOutOfStocksInterval = setInterval(async () => {
                 await this.syncOutOfStocks();
-            }, SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECOUNDS * 1000 || 60000);
+            }, SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS * 1000 || 60000);
         }
         try {
             await this.initialized();
@@ -59,7 +59,7 @@ class RMSAdapter {
     /**
      * Menu synchronization with RMS system
      * At first, groups are synchronized, then dishes are synchronized for each of these groups.
-     * When synchronizing groups, those groups that were not on the list will be turned off before the start of synchronization
+     * When synchronizing groups, those groups not on the list will be turned off before the start of synchronization
      * Those dishes that are left without ties will be marked with isDeleted
      * There can be no dishes in the root.
      */
@@ -72,7 +72,7 @@ class RMSAdapter {
         const promise = new Promise(async (resolve, reject) => {
             try {
                 // TODO: implement concept
-                let rootGroupsToSync = (await Settings.get("ROOT_GROUPS_RMS_TO_SYNC"));
+                let rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC");
                 if (typeof rootGroupsToSync === "string")
                     rootGroupsToSync = rootGroupsToSync.split(";");
                 if (!rootGroupsToSync)
@@ -91,7 +91,7 @@ class RMSAdapter {
                     for (const group of currentRMSGroupsFlatTree) {
                         emitter.emit("rms-sync:before-each-group-item", group);
                         group.concept = group.concept ?? "origin";
-                        // Update or create group
+                        // Update or create a group
                         const groupData = { ...group, isDeleted: false };
                         await Group.createOrUpdate(groupData);
                     }
@@ -99,7 +99,7 @@ class RMSAdapter {
                     let allProductIds = [];
                     for (const group of currentRMSGroupsFlatTree) {
                         const productsToUpdate = await rmsAdapter.loadProductsByGroup(group);
-                        // Get ids of all current products in group
+                        // Get ids of all current products in a group
                         const productIds = productsToUpdate.map((product) => product.id);
                         const productRMSIds = productsToUpdate.map((product) => product.rmsId);
                         allProductIds = allProductIds.concat(productRMSIds);

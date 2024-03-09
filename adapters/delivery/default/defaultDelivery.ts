@@ -3,16 +3,15 @@ import DeliveryAdapter, { Delivery } from "../DeliveryAdapter";
 
 export class DefaultDeliveryAdapter extends DeliveryAdapter {
   public async calculate(order: Order): Promise<Delivery> {
-    const deliveryCost = await Settings.get("DELIVERY_COST") as string
-    const deliveryItem = await Settings.get("DELIVERY_ITEM") as string
-    const deliveryMessage = await Settings.get("DELIVERY_MESSAGE") as string    
-    const freeDeliveryFrom = await Settings.get("FREE_DELIVERY_FROM") as string
-    const minDeliveryAmount = await Settings.get("MIN_DELIVERY_AMOUNT") as number
-    const minDeliveryTimeInMinutes = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES") as number
+    const deliveryCost = await Settings.get("DELIVERY_COST");
+    const deliveryItem = await Settings.get("DELIVERY_ITEM");
+    const deliveryMessage = await Settings.get("DELIVERY_MESSAGE");
+    const freeDeliveryFrom = await Settings.get("FREE_DELIVERY_FROM");
+    const minDeliveryAmount = await Settings.get("MIN_DELIVERY_AMOUNT");
+    const minDeliveryTimeInMinutes = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
 
-    
     if(order.basketTotal < minDeliveryAmount ?? 0) {
-      return  { 
+      return  {
         allowed:false,
         deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,
         cost: 0,
@@ -22,13 +21,13 @@ export class DefaultDeliveryAdapter extends DeliveryAdapter {
     }
 
     if (order.basketTotal > ( parseFloat(freeDeliveryFrom) ?? Infinity )) {
-      return  { 
+      return  {
         allowed: true,
         deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,
         cost: 0,
         item: undefined,
         message: ''
-      }  
+      }
     } else {
       return  {
         allowed: true,

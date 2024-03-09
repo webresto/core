@@ -1,5 +1,5 @@
 /**
- * // TODO: Abandoned because we gone to global chages from Dish to Item
+ * // TODO: Abandoned because we have gone to global changes from Dish to Item
  */
 import { AdditionalInfo } from "./checkExpression";
 import Dish from "../models/Dish";
@@ -14,7 +14,7 @@ type importParamObject = {
 let importFns: importParamObject[] = [];
 
 /**
- * Параметры импорта блюд и групп при синхронизации из RMS adapterа
+ * Параметры импорта блюд и групп при синхронизации из RMS adapter
  * @param obj
  */
 export default async function (obj: Dish | Group): Promise<void> {

@@ -1,11 +1,11 @@
 import { ORMModel } from "../interfaces/ORMModel";
-
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
-var alivedPaymentMethods: {} = {};
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { PaymentMethodType } from "../libs/enums/PaymentMethodTypes";
+
+var alivePaymentMethods: {} = {};
 
 interface ExternalPayment {
   name: string;
@@ -51,7 +51,7 @@ let attributes = {
     type: "boolean",
     required: true,
   } as unknown as boolean,
-  
+
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
@@ -63,8 +63,8 @@ export default PaymentMethod;
 let Model = {
   /**
    * Returns the authority of payment Adapter by the famous name Adapter
-   * @param  paymentMethodId
-   * @return
+   * @return PaymentAdapter
+   * @param adapter
    */
   async getAdapter(adapter?: string): Promise<PaymentAdapter> {
     var paymentMethod: PaymentMethod;
@@ -73,12 +73,11 @@ let Model = {
     } else {
       paymentMethod = await PaymentMethod.findOne({ adapter: adapter });
     }
-    //@ts-ignore
-    if (PaymentMethod.isPaymentPromise(paymentMethod.id)) {
+    if (await PaymentMethod.isPaymentPromise(paymentMethod.id)) {
       return undefined;
     }
-    if (alivedPaymentMethods[paymentMethod.adapter] !== undefined) {
-      return alivedPaymentMethods[paymentMethod.adapter];
+    if (alivePaymentMethods[paymentMethod.adapter] !== undefined) {
+      return alivePaymentMethods[paymentMethod.adapter];
     } else {
       return undefined;
     }
@@ -97,17 +96,17 @@ let Model = {
    * @return
    */
   async isPaymentPromise(paymentMethodId?: string): Promise<boolean> {
-    var chekingPaymentMethod: PaymentMethod;
+    var checkingPaymentMethod: PaymentMethod;
 
     if (!paymentMethodId) {
-      chekingPaymentMethod = this;
+      checkingPaymentMethod = this;
     } else {
-      chekingPaymentMethod = await PaymentMethod.findOne({
+      checkingPaymentMethod = await PaymentMethod.findOne({
         id: paymentMethodId,
       });
     }
 
-    if (chekingPaymentMethod.type === "promise") {
+    if (checkingPaymentMethod.type === "promise") {
       return true;
     }
     return false;
@@ -115,11 +114,10 @@ let Model = {
 
   /**
    * returns list of externalPaymentId
-   * @param  paymentMethodId
    * @return { name: string, id: string }
    */
   async getExternalPaymentMethods(): Promise<ExternalPayment[]> {
-    let externalPayments = (await Settings.get("EXTERNAL_PAYMENTS")) as unknown as ExternalPayment[];
+    let externalPayments = await Settings.get("EXTERNAL_PAYMENTS");
     if (externalPayments) {
       return externalPayments;
     } else {
@@ -130,11 +128,11 @@ let Model = {
   /**
    * Adds to the list possible to use payment ADAPTERs at their start.
    * If the payment method does not dry in the database, it creates it
-   * @param paymentMethod
-   * @return
+   * @return string[]
+   * @param paymentAdapter
    */
   async alive(paymentAdapter: PaymentAdapter): Promise<string[]> {
-    let defaultEnable = Boolean(await Settings.get("DEFAULT_ENABLE_PAYMENT_METHODS")) ?? false;
+    let defaultEnable = (await Settings.get("DEFAULT_ENABLE_PAYMENT_METHODS")) ?? false;
     let knownPaymentMethod = await PaymentMethod.findOrCreate(
       {
         adapter: paymentAdapter.InitPaymentAdapter.adapter,
@@ -142,8 +140,8 @@ let Model = {
       { ...paymentAdapter.InitPaymentAdapter, enable: defaultEnable }
     );
 
-    alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
-    sails.log.silly("PaymentMethod > alive", knownPaymentMethod, alivedPaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
+    alivePaymentMethods[paymentAdapter.InitPaymentAdapter.adapter] = paymentAdapter;
+    sails.log.silly("PaymentMethod > alive", knownPaymentMethod, alivePaymentMethods[paymentAdapter.InitPaymentAdapter.adapter]);
     return;
   },
 
@@ -156,7 +154,7 @@ let Model = {
       where: {
         or: [
           {
-            adapter: Object.keys(alivedPaymentMethods),
+            adapter: Object.keys(alivePaymentMethods),
             enable: true,
           },
           {
@@ -175,24 +173,24 @@ let Model = {
    * @return
    */
   async checkAvailable(paymentMethodId: string): Promise<boolean> {
-    const chekingPaymentMethod = await PaymentMethod.findOne({
+    const checkingPaymentMethod = await PaymentMethod.findOne({
       id: paymentMethodId,
     });
     const noAdapterTypes = ["promise", "dummy"];
 
-    if (!chekingPaymentMethod) {
+    if (!checkingPaymentMethod) {
       return false;
     }
 
-    if (!noAdapterTypes.includes(chekingPaymentMethod.type) && alivedPaymentMethods[chekingPaymentMethod.adapter] === undefined) {
+    if (!noAdapterTypes.includes(checkingPaymentMethod.type) && alivePaymentMethods[checkingPaymentMethod.adapter] === undefined) {
       return false;
     }
 
-    if (chekingPaymentMethod.enable === true && !noAdapterTypes.includes(chekingPaymentMethod.type) && alivedPaymentMethods[chekingPaymentMethod.adapter] !== undefined) {
+    if (checkingPaymentMethod.enable === true && !noAdapterTypes.includes(checkingPaymentMethod.type) && alivePaymentMethods[checkingPaymentMethod.adapter] !== undefined) {
       return true;
     }
 
-    if (chekingPaymentMethod.enable === true && noAdapterTypes.includes(chekingPaymentMethod.type)) {
+    if (checkingPaymentMethod.enable === true && noAdapterTypes.includes(checkingPaymentMethod.type)) {
       return true;
     }
     return false;
@@ -210,11 +208,11 @@ let Model = {
       throw `PaymentPromise adapter: (${paymentMethod.adapter}) not have adapter`;
     }
 
-    if (alivedPaymentMethods[paymentMethod.adapter]) {
-      sails.log.silly("Core > PaymentMethod > getAdapterById", alivedPaymentMethods[paymentMethod.adapter]);
-      return alivedPaymentMethods[paymentMethod.adapter];
+    if (alivePaymentMethods[paymentMethod.adapter]) {
+      sails.log.silly("Core > PaymentMethod > getAdapterById", alivePaymentMethods[paymentMethod.adapter]);
+      return alivePaymentMethods[paymentMethod.adapter];
     } else {
-      throw `${paymentMethod.adapter} is not alived`;
+      throw `${paymentMethod.adapter} is not alive`;
     }
   },
 };

@@ -7,8 +7,8 @@ exports.DefaultOTP = void 0;
 const OneTimePasswordAdapter_1 = __importDefault(require("../OneTimePasswordAdapter"));
 class DefaultOTP extends OneTimePasswordAdapter_1.default {
     /**
-     * Send and retrun OTP code
-     * Send if delivery channel to user exit, else it delivery to manager, for calling and speech
+     * Send and return OTP code
+     * Send if delivery channel to user exit, else it delivers to manager, for calling and speech
      * @param login
      * @returns OTP
      */

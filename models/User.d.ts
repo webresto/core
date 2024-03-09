@@ -20,7 +20,7 @@ declare let attributes: {
     sex: number;
     email: string;
     /**
-     * Its a basic login field
+     * It is a basic login field
      *  type Phone {
           code: string
           number: string
@@ -47,11 +47,11 @@ declare let attributes: {
     /** Its temporary code for authorization */
     temporaryCode: string;
     /**
-     * UserGroup (new, best.... )
+     * UserGroup (new, best…)
      * Its Idea for making different promo for users
      */
     /** Mark as kitchen worker
-     * its idea for making delivery message for Employers
+     * its idea for making a delivery message for Employers
      * */
     orderCount: number;
     isDeleted: boolean;
@@ -62,7 +62,7 @@ declare let attributes: {
         [key: string]: string | number | boolean;
     };
     /**
-    * Any data storadge for person
+    * Any data storage for person
     */
     customData: string | {
         [key: string]: string | number | boolean;
@@ -76,7 +76,7 @@ declare let Model: {
     beforeCreate(userInit: User, cb: (err?: string) => void): Promise<void>;
     afterCreate(record: User, cb: (err?: string) => void): Promise<void>;
     /**
-     * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
+     * If a favorite dish exists in a favorites collection, it will be deleted. And vice versa
      * @param userId
      * @param dishId
      */
@@ -85,8 +85,9 @@ declare let Model: {
     /**
      * Returns phone string by user criteria
      * Additional number will be added separated by commas (+19990000000,1234)
-     * @param {WaterlineCriteria} criteria
      * @returns String
+     * @param phone
+     * @param target
      */
     getPhoneString(phone: Phone, target?: "string" | "login" | "print"): Promise<string>;
     /**
@@ -96,8 +97,7 @@ declare let Model: {
      * @param newPassword New password
      * @param oldPassword Old Password
      * @param force Skip check old password
-     *
-     *
+     * @param temporaryCode
      * @setting PasswordSalt - Password salt (default: number42)
      * @setting PasswordRegex - Checking password by regex (default: no check)
      * @setting PasswordMinLength - Checks minimum length password (default: no check)
@@ -108,7 +108,7 @@ declare let Model: {
     login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice>;
     authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDevice>;
     /**
-      check all active bonus program for user
+      check all active bonus programs for user
     */
     checkRegisteredInBonusPrograms(userId: string): Promise<void>;
 };

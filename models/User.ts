@@ -1,9 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-
 import { v4 as uuid } from "uuid";
 import Dish from "../models/Dish";
-import Order from "../models/Order";
 import UserOrderHistory from "./UserOrderHistory";
 import UserDevice from "./UserDevice";
 import UserLocation from "./UserLocation";
@@ -14,12 +12,12 @@ import { OptionalAll } from "../interfaces/toolsTS";
 const Countries: Country[] = require("../libs/dictionaries/countries.json")
 export type Phone = {
   code: string
-  number: string 
-  additionalNumber?: string 
+  number: string
+  additionalNumber?: string
 }
 
 let attributes = {
-  
+
   /** User model ID */
   id: {
     type: "string",
@@ -54,9 +52,9 @@ let attributes = {
     type: 'string',
     isEmail: true
   } as unknown as string,
-  
-    /** 
-     * Its a basic login field
+
+    /**
+     * It is a basic login field
      *  type Phone {
           code: string
           number: string
@@ -69,14 +67,14 @@ let attributes = {
     custom: function(phone: Phone) {
       if (!phone.code || !phone.number) throw `Code or Number of phone not passed`;
 
-      // Check dictonary
-      let isCounryCode = false
+      // Check dictionary
+      let isCountryCode = false
       for (let country of Countries) {
-        
-        if (phone.code.replace(/\D/g, '') === country.phoneCode.replace(/\D/g, '')) isCounryCode = true;
+
+        if (phone.code.replace(/\D/g, '') === country.phoneCode.replace(/\D/g, '')) isCountryCode = true;
       }
 
-      if(typeof phone.code !== "string" || typeof phone.number !== "string" || typeof phone.number !== "string" || isCounryCode === false) {        
+      if (typeof phone.code !== "string" || typeof phone.number !== "string" || isCountryCode === false) {
         return false
       }
       return true
@@ -113,7 +111,7 @@ let attributes = {
     collection: 'UserDevice',
     via: 'user'
   } as unknown as UserDevice[],
-  
+
   /**
    *  Has success verification Phone
    */
@@ -122,7 +120,7 @@ let attributes = {
   } as unknown as boolean,
 
   /**
-   * Indicate filled all required custom fields 
+   * Indicate filled all required custom fields
    */
   allRequiredCustomFieldsAreFilled: {
     type: 'boolean'
@@ -143,15 +141,15 @@ let attributes = {
   } as unknown as string,
 
   /**
-   * UserGroup (new, best.... ) 
-   * Its Idea for making different promo for users   
+   * UserGroup (new, best…)
+   * Its Idea for making different promo for users
    */
-  // group:  "string",
+  // group: "string",
 
-  /** Mark as kitchen worker 
-   * its idea for making delivery message for Employers
+  /** Mark as kitchen worker
+   * its idea for making a delivery message for Employers
    * */
-  // isEmployee: { 
+  // isEmployee: {
   //   type:'boolean'
   // } as unknown as boolean,
 
@@ -159,19 +157,19 @@ let attributes = {
     type: 'number',
   } as unknown as number,
 
-  isDeleted: { 
+  isDeleted: {
     type:'boolean'
   } as unknown as boolean,
-  
-  /** 
+
+  /**
    * Object with filed custom user fields
   */
   customFields: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
 
-  /** 
-  * Any data storadge for person
+  /**
+  * Any data storage for person
   */
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
@@ -212,14 +210,14 @@ let Model = {
 //    } catch (error) {
 //      sails.log.error(error)
 //    }
-    
+
     return cb();
   },
 
   /**
-   * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
-   * @param userId 
-   * @param dishId 
+   * If a favorite dish exists in a favorites collection, it will be deleted. And vice versa
+   * @param userId
+   * @param dishId
    */
   async handleFavoriteDish(userId: string, dishId: string): Promise<void> {
     let user = await User.findOne({id: userId}).populate("favorites");
@@ -243,18 +241,19 @@ let Model = {
       }
 
       if(await OneTimePassword.check(user.login, OTP)) {
-        throw `OTP checks failed`  
+        throw `OTP checks failed`
       }
     }
-    await UserDevice.update({ user: userId }, { isLogined: false });
+    await UserDevice.update({ user: userId }, { isLoggedIn: false });
     User.update({id: userId}, {isDeleted: true});
   },
 
   /**
    * Returns phone string by user criteria
    * Additional number will be added separated by commas (+19990000000,1234)
-   * @param {WaterlineCriteria} criteria
    * @returns String
+   * @param phone
+   * @param target
    */
   async getPhoneString(phone: Phone, target: "login" | "print" | "string" = "login") {
     if (target === "login") {
@@ -274,8 +273,7 @@ let Model = {
    * @param newPassword New password
    * @param oldPassword Old Password
    * @param force Skip check old password
-   *
-   *
+   * @param temporaryCode
    * @setting PasswordSalt - Password salt (default: number42)
    * @setting PasswordRegex - Checking password by regex (default: no check)
    * @setting PasswordMinLength - Checks minimum length password (default: no check)
@@ -286,14 +284,14 @@ let Model = {
     if (!userId || !newPassword) throw "UserId and newPassword is required";
 
     if (!(await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
-      let paswordRegex = await Settings.get("PASSWORD_REGEX");
+      let passwordRegex = await Settings.get("PASSWORD_REGEX");
       let passwordMinLength = await Settings.get("PASSWORD_MIN_LENGTH");
 
-      let passwordPolicy = await Settings.get("PASSWORD_POLICY") as "required" | "from_otp" | "disabled";
+      let passwordPolicy = await Settings.get("PASSWORD_POLICY");
       if (!passwordPolicy) passwordPolicy = "from_otp";
-      if(passwordPolicy === "required"){
+      if (passwordPolicy === "required") {
         if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength)) throw `Password less than minimum length`;
-        if (paswordRegex && !newPassword.match(paswordRegex as string)) throw `Password not match with regex`;
+        if (passwordRegex && !newPassword.match(passwordRegex)) throw `Password not match with regex`;
       }
     }
 
@@ -304,14 +302,14 @@ let Model = {
     let user = await User.findOne({ id: userId });
 
     /**
-     * If not force, it should check new/old paswords
-     * If user not have oldPassword
+     * If not force, it should check new/old passwords
+     * If user does not have oldPassword
      */
     if (!force) {
       if (user.passwordHash) {
         if (!oldPassword) throw "oldPassword is required";
         if (!(await bcryptjs.compare(oldPassword, user.passwordHash))) {
-          throw `Old pasword not accepted`;
+          throw `Old password is not accepted`;
         }
       } else if (temporaryCode) {
         let login = await User.getPhoneString(user.phone);
@@ -322,12 +320,12 @@ let Model = {
       }
     }
 
-    let passwordHash = bcryptjs.hashSync(newPassword, salt as string | number);
+    let passwordHash = bcryptjs.hashSync(newPassword, salt);
     return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: Date.now() });
   },
 
   async login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice> {
-  
+
     // Stop login when password or OTP not passed
     if (!(password || OTP)) {
       throw `Password or OTP required`;
@@ -339,7 +337,7 @@ let Model = {
     }
 
     // Define password policy
-    let passwordPolicy = await Settings.get("PASSWORD_POLICY") as "required" | "from_otp" | "disabled";
+    let passwordPolicy = await Settings.get("PASSWORD_POLICY");
     if (!passwordPolicy) passwordPolicy = "from_otp";
 
     // Check password
@@ -351,7 +349,7 @@ let Model = {
 
     // Check OTP
     let checkOTPResult = false;
-    if (Boolean(OTP) && typeof OTP === "string" && OTP.length > 0) { 
+    if (Boolean(OTP) && typeof OTP === "string" && OTP.length > 0) {
       if(await OneTimePassword.check(login, OTP)) {
         checkOTPResult = true
       }
@@ -362,27 +360,26 @@ let Model = {
 
     // When password is disabled Login possibly only by OTP
     if (passwordPolicy === "disabled"  && !checkOTPResult) throw `Password policy [disabled] (OTP check failed)`
-    
-    
+
     // Create user if not exist and only with verified OTP
     let CREATE_USER_IF_NOT_EXIST = await Settings.get("CREATE_USER_IF_NOT_EXIST") || true;
     if (!user && CREATE_USER_IF_NOT_EXIST && checkOTPResult) {
       let loginFiled = await Settings.get("LOGIN_FIELD") || "phone"
-      if (loginFiled === "phone") { 
+      if (loginFiled === "phone") {
         if (!phone) {
           throw `Phone is required for LOGIN_FIELD: phone`
         }
       }
 
       user = await User.create({
-        login: login, 
+        login: login,
         verified: true,
         ...(loginFiled === "phone" || phone !== undefined) && {phone: phone}
       }).fetch()
 
       if (passwordPolicy === "required")  {
         user = await User.setPassword(user.id, password, null, true);
-      }      
+      }
 
       if (passwordPolicy === "from_otp")  {
         user = await User.setPassword(user.id, OTP, null, true);
@@ -399,7 +396,7 @@ let Model = {
         throw `Password not match`;
       }
     }
-    
+
     // Set last checked OTP as password
     if (OTP && passwordPolicy === "from_otp") {
       await User.setPassword(user.id, OTP, null, true);
@@ -407,7 +404,7 @@ let Model = {
 
     try {
       User.checkRegisteredInBonusPrograms(user.id);
-      
+
     } catch (error) {
       sails.log.error(error)
     }
@@ -420,12 +417,12 @@ let Model = {
 
   async authDevice(userId: string, deviceId: string,  deviceName: string, userAgent: string, IP: string): Promise<UserDevice> {
     let userDevice = await UserDevice.findOrCreate({id: deviceId }, {id: deviceId, user: userId, name: deviceName });
-    // Need pass sessionId here for except paralells login with one name
-    return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: uuid() });
+    // Need pass sessionId here for except parallels login with one name
+    return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: uuid() });
   },
 
-  /** 
-    check all active bonus program for user
+  /**
+    check all active bonus programs for user
   */
   async checkRegisteredInBonusPrograms(userId: string): Promise<void> {
     let user = await User.findOne({id: userId})
@@ -434,17 +431,17 @@ let Model = {
     for (let bp of bps) {
       let adapter = await BonusProgram.getAdapter(bp.adapter);
       const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bp.id});
-      
+
       // If all works
-      if (adapter.isRegistred(user) && userBonusProgram && userBonusProgram.isActive) {
+      if (adapter.isRegistered(user) && userBonusProgram && userBonusProgram.isActive) {
         // Not need await finish sync
         UserBonusProgram.sync(userId, bp.id);
-      
-      // If not registred in internal storage
-      } else if(adapter.isRegistred(user) && !userBonusProgram) {
+
+      // If not registered in internal storage
+      } else if(adapter.isRegistered(user) && !userBonusProgram) {
         let exUser = await adapter.getUserInfo(user);
         await UserBonusProgram.create({
-          user: user.id, 
+          user: user.id,
           balance: exUser.balance,
           externalId: exUser.externalId,
           isActive: true,
@@ -453,16 +450,16 @@ let Model = {
           syncedToTime: "0"
         }).fetch();
 
-        // If not registred but need
-      } else if(!adapter.isRegistred(user) && bp.automaticUserRegistration) {
-        // Registration if Bonus program has automatic registration otion
+        // If not registered but needed
+      } else if(!adapter.isRegistered(user) && bp.automaticUserRegistration) {
+        // Registration if Bonus program has an automatic registration option
         await UserBonusProgram.registration(user, bp.adapter);
 
-      // if not need registrer
+      // if not need register
       } else {
         sails.log.debug(`User should register manual: user[${user.login}], bonusProgram: [${bp.name}]`)
       }
-    } 
+    }
   },
 };
 

@@ -3,14 +3,17 @@ import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
 import bindAssets from "./bindAssets"
-import bindDictonaries from "./bindDictonaries";
+import bindDictionaries from "./bindDictionaries";
+
+process.env.MM_MODELS_TO_SKIP = "settings";
+
 /**
- * Set global emmiter
+ * Set global emitter
  */
 import getEmitter from "../libs/getEmitter";
 // @ts-ignore
 global.emitter = getEmitter();
-   
+
 /**
  * Set global NotificationManager
  */
@@ -32,7 +35,7 @@ export default function ToInitialize(sails: Sails) {
    * Required hooks
    */
   const requiredHooks = ["blueprints", "http", "orm", "policies", "stateflow"];
-  
+
   return function initialize(cb) {
     sails.log.info(`RestoCore initialize from dir [${__dirname}]`)
 
@@ -47,9 +50,11 @@ export default function ToInitialize(sails: Sails) {
       sails.log.info("Blueprints rest/shortcuts magic is OFF ");
     }
 
-    if (sails.config.restocore.stateflow) sails.config.stateflow = _.merge(sails.config.stateflow, sails.config.restocore.stateflow);
+    if (sails.config.restocore.stateflow) { // @ts-ignore
+      sails.config.stateflow = _.merge(sails.config.stateflow, sails.config.restocore.stateflow);
+    }
 
-    
+
     /**
      * AFTER OTHERS HOOKS
      */
@@ -63,8 +68,8 @@ export default function ToInitialize(sails: Sails) {
     bindAssets();
 
     // Bind dictonaries
-    bindDictonaries();
-    
+    bindDictionaries();
+
     // Bind locales
     bindLocales();
 

@@ -7,7 +7,7 @@ declare let attributes: {
     externalId: string;
     /** Name of street */
     name: string;
-    /** City has delited */
+    /** City was deleted */
     isDeleted: boolean;
     customData: string | {
         [key: string]: string | number | boolean;

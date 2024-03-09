@@ -12,10 +12,10 @@ class POW extends CaptchaAdapter_1.default {
     async getJob(label) {
         const id = (0, uuid_1.v4)();
         /**
-         * Action: as example captcha adater recive label `login:12025550184` sent task, and client solve it
-         * When client pass solved captcha to login user, Method User.login pass same label, and if this not matched
-         * Capthca adapter reject login.
-         * To prevent brute force the adapter increases the complexity after several attempts.
+         * Action: as example captcha adapter receive label `login:12025550184` sent task, and a client solves it
+         * When a client pass solved captcha to login user, Method User.login pass same label, and if this not matched
+         * Captcha adapter reject login.
+         * To prevent brute force, the adapter increases the complexity after several attempts.
          */
         if (!label)
             throw `label not provided`;

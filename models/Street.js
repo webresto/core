@@ -21,11 +21,11 @@ let attributes = {
     name: "string",
     /** dataHash */
     hash: "string",
-    /** Street has delited */
+    /** Street has deleted */
     isDeleted: {
         type: 'boolean'
     },
-    /** Street has delited */
+    /** Street has deleted */
     enable: {
         type: 'boolean',
         allowNull: true
@@ -36,7 +36,7 @@ let attributes = {
     customData: "json",
 };
 /**
- * Pelase emit core:streets:updated after finish update streets
+ * Please emit core:streets:updated after finish update streets
  */
 let Model = {
     async beforeUpdate(value, cb) {
@@ -68,7 +68,7 @@ let Model = {
     },
     /**
    * Checks whether the street exists, if it does not exist, then creates a new one and returns it.If exists, then checks
-   * Hesh of the existing street and new data, if they are identical, then immediately gives the streetes, if not, it updates its data
+   * Hash of the existing street and new data, if they are identical, then immediately gives the streets, if not, it updates its data
    * for new ones
    * @param values
    * @return Updated or created street

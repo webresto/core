@@ -5,10 +5,10 @@ import User from "../models/User";
 declare let attributes: {
     /** ID */
     id: string;
-    /** Generated name from OS type, and location */
+    /** Generated name from an OS type, and location */
     name: string;
     userAgent: string;
-    isLogined: boolean;
+    isLoggedIn: boolean;
     user: String | User;
     lastIP: string;
     loginTime: number;
@@ -30,7 +30,7 @@ declare let Model: {
      */
     afterUpdate(record: UserDevice, cb: (err?: string) => void): void;
     beforeCreate(record: any, cb: (err?: string) => void): void;
-    /** Method set lastActiity  for device */
+    /** Method set lastActivity for a device */
     setActivity(criteria: CriteriaQuery<UserDevice>, client?: {
         lastIP?: string;
         userAgent?: string;

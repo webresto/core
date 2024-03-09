@@ -77,11 +77,12 @@ export default class AwaitEmitter {
     /**
      * Event subscription
      * @param name - event name
+     * @param label
      * @param fn - subscriber function
      */
     on<N extends keyof IAwaitEmitter>(name: N, label: string, fn: (...args: IAwaitEmitter[N]) => void): AwaitEmitter;
     /**
-      * Emits an event with name name and args.If the subscriber function does not return a Promise, then it is considered synchronous
+      * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
      * and is executed immediately, if the listener function returns a Promise, then it, along with the rest of the same listeners
      * runs in parallel and may time out.If the listener is then executed after
      * timeout, an appropriate message will be displayed
@@ -103,7 +104,7 @@ declare class Event {
     constructor(name: string);
 }
 /**
- * Response object, contains a mark where the listener came from, the state of the result (success, error, timeout) and the result or
+ * Response object, contains a mark where the listener came from, the state of the result (success, error, timeout), and the result or
  * error returned or called by the function
  */
 declare class Response {

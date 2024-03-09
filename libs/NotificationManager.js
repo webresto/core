@@ -17,7 +17,7 @@ class Channel {
 exports.Channel = Channel;
 class NotificationManager {
     static async sendMessageToDeliveryManager(badge, text) {
-        // I appologize what delivery message channel is direct to manager, its reason to null user. Time will show
+        // I apologize what delivery message channel is direct to manager, its reason to null user. Time will show
         try {
             await _a.send(badge, "manager", text, null);
         }
@@ -30,7 +30,7 @@ class NotificationManager {
      * @param badge
      * @param text
      * @param user
-     * @param type sms | email if not pass type it was deliver by an channel
+     * @param type sms | email if not pass type it was delivered by a channel
      * @param subject
      * @param data
      */

@@ -6,7 +6,7 @@ export type BaseConfigProperty =  BaseConfig | BaseConfig[] | number | boolean |
 
 export interface BaseConfig {
   [key: string]: BaseConfigProperty;
-};
+}
 
 export type ConfigMediaFileAdapter = BaseConfig;
 
@@ -27,7 +27,7 @@ export default abstract class MediaFileAdapter {
    * Async constructor
    */
   private async initialize(){
-    this.UUID_NAMESPACE = await Settings.get("UUID_NAMESPACE") as string ?? "9dbceb30-26c3-11ee-be56-0242ac120002"
+    this.UUID_NAMESPACE = await Settings.get("UUID_NAMESPACE") ?? "9dbceb30-26c3-11ee-be56-0242ac120002"
   }
 
   /**
@@ -42,14 +42,14 @@ export default abstract class MediaFileAdapter {
     sails.log.silly(`Adapter > Mediafile > toDownload: ${url}`)
     let imageId = uuidv5(url, this.UUID_NAMESPACE);
     let mediaFile = await MediaFile.findOne({ id: imageId });
-    
+
     let loadConfig: BaseConfigProperty;
     if (target && this.config  && this.config[target]){
       loadConfig = this.config[target];
     }
-    
-    
-    // image     
+
+
+    // image
     if (mediaFile === undefined || force) {
       mediaFile = {
         id: imageId
@@ -60,7 +60,7 @@ export default abstract class MediaFileAdapter {
           mediaFile.images = await this.process(url, "image", loadConfig);
         break;
 
-        case "video": 
+        case "video":
           // mediaFile.video = ???
         break;
 

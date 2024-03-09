@@ -28,7 +28,7 @@ export default abstract class AbstractPromotionHandler {
 
   public abstract concept: string[];
 
-  // id for outside system
+  // id for an outside system
   public abstract externalId?: string;
 
   /**
@@ -40,11 +40,11 @@ export default abstract class AbstractPromotionHandler {
   public abstract condition(arg1: Group | Dish | Order): boolean
 
   /**
-   * The order must be modified and recorded in model within this method
-   * @param order: Order should populated order
+   * The order must be modified and recorded in a model within this method
+   * @param order Order should populated order
    */
   public abstract action(order: Order): Promise<PromotionState>;
-  
+
   /**
    * If isPublic === true displayGroup is required
    */

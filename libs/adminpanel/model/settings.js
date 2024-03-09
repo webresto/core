@@ -58,11 +58,18 @@ exports.default = {
         fields: {
             id: false,
             key: "Key",
+            name: "Name",
             description: "Description",
+            tooltip: "Tooltip",
             value: "Value",
-            section: "Section",
+            defaultValue: "Default value",
+            type: "Type",
+            jsonSchema: "JSON Schema",
+            readOnly: "Read only",
+            uiSchema: "UI Schema",
+            module: "Module",
             createdAt: false,
-            updatedAt: false,
+            updatedAt: false
         },
         list: {
             fields: {

@@ -56,9 +56,16 @@ declare const _default: {
         fields: {
             id: boolean;
             key: string;
+            name: string;
             description: string;
+            tooltip: string;
             value: string;
-            section: string;
+            defaultValue: string;
+            type: string;
+            jsonSchema: string;
+            readOnly: string;
+            uiSchema: string;
+            module: string;
             createdAt: boolean;
             updatedAt: boolean;
         };

@@ -4,19 +4,19 @@ import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import User from "../models/User"
 let attributes = {
-  
+
   /** ID */
   id: {
     type: "string",
     //required: true,
   } as unknown as string,
 
-  /** Generated name from OS type, and location */
+  /** Generated name from an OS type, and location */
   name: 'string',
-  
+
   userAgent: 'string',
 
-  isLogined: "boolean" as unknown as boolean,
+  isLoggedIn: "boolean" as unknown as boolean,
 
   user: {
     model: 'user',
@@ -25,7 +25,7 @@ let attributes = {
   lastIP: "string",
   loginTime:  { type: "number"} as unknown as number,
   lastActivity: { type: "number"} as unknown as number,
-  
+
   /**  (not jwt-token)  */
   sessionId:  {
     type: "string",
@@ -44,7 +44,7 @@ let Model = {
   beforeUpdate(record: UserDevice, cb:  (err?: string) => void){
     record.lastActivity = Date.now();
     if(record.user) delete record.user
-    if (record.isLogined === false) {
+    if (record.isLoggedIn === false) {
       record.sessionId = null
     }
     cb();
@@ -67,19 +67,19 @@ let Model = {
     cb();
   },
 
-  /** Method set lastActiity  for device */
+  /** Method set lastActivity for a device */
   async setActivity(criteria: CriteriaQuery<UserDevice>, client:  { lastIP?: string , userAgent?: string } = {}): Promise<void> {
     await UserDevice.update(criteria, client);
   },
 
   async checkSession(sessionId: string, userId: string, client: { lastIP?: string , userAgent?: string } = {}): Promise<boolean> {
     let ud = await UserDevice.findOne({sessionId: sessionId})
-    
+
     if (!ud) {
       return false;
     }
 
-    if(ud.user === userId && ud.isLogined) {
+    if(ud.user === userId && ud.isLoggedIn) {
       await UserDevice.setActivity({id: ud.id}, client)
       return true;
     }

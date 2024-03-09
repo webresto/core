@@ -21,8 +21,10 @@ export default abstract class PaymentAdapter {
     private initialize;
     /**
      * Make new payment
-     * @param Payment - payment document
      * @return The result of the function of the function, the body of the response and the result of the result
+     * @param payment
+     * @param backLinkSuccess
+     * @param backLinkFail
      */
     abstract createPayment(payment: Payment, backLinkSuccess: string, backLinkFail: string): Promise<PaymentResponse>;
     /**
@@ -39,9 +41,9 @@ export default abstract class PaymentAdapter {
     abstract cancelPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
     /**
      * Method for creating and obtaining an existing Payment Adapter
-     * Since there can be a lot of an adapter, this is a direct way to obtain an adapter from his class
-     * @param params - Parameters for initialization
+     * Since there can be a lot of adapters, this is a direct way to obtain an adapter from his class
      * @deprecated
+     * @param init
      */
     static getInstance(init: InitPaymentAdapter): PaymentAdapter;
 }

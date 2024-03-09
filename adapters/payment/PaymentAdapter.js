@@ -17,9 +17,9 @@ class PaymentAdapter {
     }
     /**
      * Method for creating and obtaining an existing Payment Adapter
-     * Since there can be a lot of an adapter, this is a direct way to obtain an adapter from his class
-     * @param params - Parameters for initialization
+     * Since there can be a lot of adapters, this is a direct way to obtain an adapter from his class
      * @deprecated
+     * @param init
      */
     static getInstance(init) {
         return PaymentAdapter.prototype;

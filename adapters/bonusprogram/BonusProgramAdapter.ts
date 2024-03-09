@@ -1,6 +1,5 @@
 import UserBonusTransaction from "../../models/UserBonusTransaction";
 import UserBonusProgram from "../../models/UserBonusProgram";
-import BonusProgram from "../../models/BonusProgram";
 import User from "../../models/User";
 import { RequiredField } from "../../interfaces/toolsTS";
 
@@ -16,7 +15,7 @@ interface optionalId {
 export interface BonusTransaction extends Pick<UserBonusTransaction, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter">, optionalId { }
 
 export default abstract class BonusProgramAdapter {
-  /** Id program in external system */
+  /** Program's id in an external system */
   public externalId: string;
 
   public id: string;
@@ -28,12 +27,12 @@ export default abstract class BonusProgramAdapter {
   public abstract readonly adapter: string;
 
 
-  /** 
-   * Excahange rate for main currency in core
+  /**
+   * Exchange rate for the main currency in core
    */
   public abstract readonly exchangeRate: number;
 
-  /** 
+  /**
    * How many bonuses can be spent for order
    */
   public abstract readonly coveragePercentage: number;
@@ -73,12 +72,12 @@ export default abstract class BonusProgramAdapter {
   public abstract delete(user: User): Promise<void>;
 
   /**
-   * Check registred user or not
+   * Check if user registered or not
    */
-  public abstract isRegistred(user: User): Promise<boolean>;
+  public abstract isRegistered(user: User): Promise<boolean>;
 
   /**
-   * Check registred user or not
+   * Check registered user or not
    */
   public abstract getUserInfo(user: User): Promise<ExternalAbstractUser>
 
@@ -89,15 +88,18 @@ export default abstract class BonusProgramAdapter {
   public abstract writeTransaction(user: User, userBonusProgram: UserBonusProgram, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction>;
 
   /**
-   * Return user
+   * Return BonusTransaction
+   * @param user
    * @param afterTime - UNIX seconds
+   * @param limit
+   * @param skip
    */
   public abstract getTransactions(user: User, afterTime: Date, limit?: number, skip?: number): Promise<BonusTransaction[]>;
 
   /**
    * A method for creating and obtaining an existing Bonus Adapter
-   * @param params - Parameters for initialization
-   * 
+   *
+   * @param config
    */
   static getInstance(config: ConfigBonusProgramAdapter): BonusProgramAdapter {
     return BonusProgramAdapter.prototype;

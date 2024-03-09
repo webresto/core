@@ -15,7 +15,7 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
     filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[];
     filterByCondition(promotionsToCheck: Promotion[], target: Group | Dish | Order): Promotion[];
     /**
-     * Method uses for puntime call/pass promotionHandler, not configured
+     * Method uses for runtime call/pass promotionHandler, not configured
      * @param promotionToAdd
      */
     addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void>;

@@ -11,8 +11,8 @@ class AbstractPromotionAdapter {
         // if Order.status ="PAYMENT" or "ORDER" can't clear promotions
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
-        //if (order.state === "PAYMENT") throw "order with orderId " + order.id + "in state PAYMENT";
-        // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");            
+        //if (order.state === "PAYMENT") throw "order with orderId" + order.id + "in state PAYMENT";
+        // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         await OrderDish.destroy({ order: order.id, addedBy: "promotion" }).fetch();
         await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null }).fetch();
         await Order.updateOne({ id: order.id }, { discountTotal: 0, promotionFlatDiscount: 0 });

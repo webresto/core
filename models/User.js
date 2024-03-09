@@ -57,7 +57,7 @@ let attributes = {
         isEmail: true
     },
     /**
-     * Its a basic login field
+     * It is a basic login field
      *  type Phone {
           code: string
           number: string
@@ -70,13 +70,13 @@ let attributes = {
         custom: function (phone) {
             if (!phone.code || !phone.number)
                 throw `Code or Number of phone not passed`;
-            // Check dictonary
-            let isCounryCode = false;
+            // Check dictionary
+            let isCountryCode = false;
             for (let country of Countries) {
                 if (phone.code.replace(/\D/g, '') === country.phoneCode.replace(/\D/g, ''))
-                    isCounryCode = true;
+                    isCountryCode = true;
             }
-            if (typeof phone.code !== "string" || typeof phone.number !== "string" || typeof phone.number !== "string" || isCounryCode === false) {
+            if (typeof phone.code !== "string" || typeof phone.number !== "string" || isCountryCode === false) {
                 return false;
             }
             return true;
@@ -131,14 +131,14 @@ let attributes = {
         allowNull: true
     },
     /**
-     * UserGroup (new, best.... )
+     * UserGroup (new, best…)
      * Its Idea for making different promo for users
      */
-    // group:  "string",
+    // group: "string",
     /** Mark as kitchen worker
-     * its idea for making delivery message for Employers
+     * its idea for making a delivery message for Employers
      * */
-    // isEmployee: { 
+    // isEmployee: {
     //   type:'boolean'
     // } as unknown as boolean,
     orderCount: {
@@ -152,7 +152,7 @@ let attributes = {
     */
     customFields: "json",
     /**
-    * Any data storadge for person
+    * Any data storage for person
     */
     customData: "json",
 };
@@ -184,7 +184,7 @@ let Model = {
         return cb();
     },
     /**
-     * If favorite dish exist in fovorites collection, it will be deleted. And vice versa
+     * If a favorite dish exists in a favorites collection, it will be deleted. And vice versa
      * @param userId
      * @param dishId
      */
@@ -211,14 +211,15 @@ let Model = {
                 throw `OTP checks failed`;
             }
         }
-        await UserDevice.update({ user: userId }, { isLogined: false });
+        await UserDevice.update({ user: userId }, { isLoggedIn: false });
         User.update({ id: userId }, { isDeleted: true });
     },
     /**
      * Returns phone string by user criteria
      * Additional number will be added separated by commas (+19990000000,1234)
-     * @param {WaterlineCriteria} criteria
      * @returns String
+     * @param phone
+     * @param target
      */
     async getPhoneString(phone, target = "login") {
         if (target === "login") {
@@ -239,8 +240,7 @@ let Model = {
      * @param newPassword New password
      * @param oldPassword Old Password
      * @param force Skip check old password
-     *
-     *
+     * @param temporaryCode
      * @setting PasswordSalt - Password salt (default: number42)
      * @setting PasswordRegex - Checking password by regex (default: no check)
      * @setting PasswordMinLength - Checks minimum length password (default: no check)
@@ -251,7 +251,7 @@ let Model = {
         if (!userId || !newPassword)
             throw "UserId and newPassword is required";
         if (!(await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
-            let paswordRegex = await Settings.get("PASSWORD_REGEX");
+            let passwordRegex = await Settings.get("PASSWORD_REGEX");
             let passwordMinLength = await Settings.get("PASSWORD_MIN_LENGTH");
             let passwordPolicy = await Settings.get("PASSWORD_POLICY");
             if (!passwordPolicy)
@@ -259,7 +259,7 @@ let Model = {
             if (passwordPolicy === "required") {
                 if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength))
                     throw `Password less than minimum length`;
-                if (paswordRegex && !newPassword.match(paswordRegex))
+                if (passwordRegex && !newPassword.match(passwordRegex))
                     throw `Password not match with regex`;
             }
         }
@@ -269,15 +269,15 @@ let Model = {
             salt = 8;
         let user = await User.findOne({ id: userId });
         /**
-         * If not force, it should check new/old paswords
-         * If user not have oldPassword
+         * If not force, it should check new/old passwords
+         * If user does not have oldPassword
          */
         if (!force) {
             if (user.passwordHash) {
                 if (!oldPassword)
                     throw "oldPassword is required";
                 if (!(await bcryptjs.compare(oldPassword, user.passwordHash))) {
-                    throw `Old pasword not accepted`;
+                    throw `Old password is not accepted`;
                 }
             }
             else if (temporaryCode) {
@@ -366,11 +366,11 @@ let Model = {
     },
     async authDevice(userId, deviceId, deviceName, userAgent, IP) {
         let userDevice = await UserDevice.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
-        // Need pass sessionId here for except paralells login with one name
-        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLogined: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
+        // Need pass sessionId here for except parallels login with one name
+        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
     },
     /**
-      check all active bonus program for user
+      check all active bonus programs for user
     */
     async checkRegisteredInBonusPrograms(userId) {
         let user = await User.findOne({ id: userId });
@@ -381,12 +381,12 @@ let Model = {
             let adapter = await BonusProgram.getAdapter(bp.adapter);
             const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: bp.id });
             // If all works
-            if (adapter.isRegistred(user) && userBonusProgram && userBonusProgram.isActive) {
+            if (adapter.isRegistered(user) && userBonusProgram && userBonusProgram.isActive) {
                 // Not need await finish sync
                 UserBonusProgram.sync(userId, bp.id);
-                // If not registred in internal storage
+                // If not registered in internal storage
             }
-            else if (adapter.isRegistred(user) && !userBonusProgram) {
+            else if (adapter.isRegistered(user) && !userBonusProgram) {
                 let exUser = await adapter.getUserInfo(user);
                 await UserBonusProgram.create({
                     user: user.id,
@@ -397,12 +397,12 @@ let Model = {
                     bonusProgram: adapter.id,
                     syncedToTime: "0"
                 }).fetch();
-                // If not registred but need
+                // If not registered but needed
             }
-            else if (!adapter.isRegistred(user) && bp.automaticUserRegistration) {
-                // Registration if Bonus program has automatic registration otion
+            else if (!adapter.isRegistered(user) && bp.automaticUserRegistration) {
+                // Registration if Bonus program has an automatic registration option
                 await UserBonusProgram.registration(user, bp.adapter);
-                // if not need registrer
+                // if not need register
             }
             else {
                 sails.log.debug(`User should register manual: user[${user.login}], bonusProgram: [${bp.name}]`);

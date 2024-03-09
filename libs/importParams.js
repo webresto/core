@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.addImportParam = void 0;
 let importFns = [];
 /**
- * Параметры импорта блюд и групп при синхронизации из RMS adapterа
+ * Параметры импорта блюд и групп при синхронизации из RMS adapter
  * @param obj
  */
 async function default_1(obj) {

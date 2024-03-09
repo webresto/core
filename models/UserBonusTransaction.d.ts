@@ -7,12 +7,12 @@ declare let attributes: {
     /** ID */
     id: string;
     /**
-     * ID transaction in 3dparty system
+     * ID transaction in 3d party system
      * */
     externalId: string;
     /** Type of bonuses (default: true)
      * came is incoming (positive transaction)
-     * gone is outgoin (negative transaction)
+     * gone is outgoing (negative transaction)
      */
     isNegative: boolean;
     /** Custom badges */

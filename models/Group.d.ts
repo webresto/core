@@ -12,7 +12,7 @@ declare let attributes: {
     id: string;
     /** ID in external system */
     rmsId: string;
-    /** Addishinal info */
+    /** Additional info */
     additionalInfo: string;
     /** */
     code: string;
@@ -37,7 +37,7 @@ declare let attributes: {
     };
     /** Images */
     images: string[] | MediaFile[];
-    /** PlaySholder for group dishes */
+    /** Placeholder for group dishes */
     dishesPlaceholder: MediaFile[];
     /** The human easy readable*/
     slug: string;

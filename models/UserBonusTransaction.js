@@ -11,7 +11,7 @@ let attributes = {
         type: "string",
     },
     /**
-     * ID transaction in 3dparty system
+     * ID transaction in 3d party system
      * */
     externalId: {
         type: "string",
@@ -19,7 +19,7 @@ let attributes = {
     },
     /** Type of bonuses (default: true)
      * came is incoming (positive transaction)
-     * gone is outgoin (negative transaction)
+     * gone is outgoing (negative transaction)
      */
     isNegative: "boolean",
     /** Custom badges */
@@ -74,9 +74,9 @@ let Model = {
             }
             // If Bonus program not active, should stop
             let bonusProgram = await BonusProgram.findOne({ id: init.bonusProgram });
-            const bonusProgramAdapterExist = await BonusProgram.isAlived(bonusProgram.adapter);
+            const bonusProgramAdapterExist = await BonusProgram.isAlive(bonusProgram.adapter);
             if (!bonusProgramAdapterExist)
-                cb(`Bonus program not alived`);
+                cb(`Bonus program not alive`);
             if (init.isNegative === true) {
                 if (bonusProgramAdapterExist && init.user !== undefined && typeof init.user === "string") {
                     let enough = await UserBonusProgram.checkEnoughToSpend(init.user, init.bonusProgram, init.amount);
@@ -101,7 +101,7 @@ let Model = {
     },
     async afterCreate(record, cb) {
         try {
-            // After writing to the model, core safely calculate new bonuses
+            // After writing to the model, core safely calculates new bonuses
             const bonusProgram = await BonusProgram.findOne({ id: record.bonusProgram });
             const bonusProgramAdapter = await BonusProgram.getAdapter(bonusProgram.adapter);
             let userBonus = await UserBonusProgram.findOne({ bonusProgram: bonusProgram.id, user: record.user });
@@ -122,7 +122,7 @@ let Model = {
                 const user = await User.findOne({ id: record.user });
                 // First write transaction
                 await UserBonusProgram.updateOne({ id: userBonus.id }, { balance: newBalance });
-                // Exec write unstabled transaction in external system
+                // Exec writes unstable transaction in external system
                 let bonusProgramAdapterTransaction = {};
                 if (record.isStable !== true) {
                     try {
@@ -150,7 +150,7 @@ let Model = {
         }
     },
     beforeDestroy() {
-        throw "destory bonus transaction not allowed";
+        throw "destroy bonus transaction not allowed";
     },
     beforeUpdate(record, cb) {
         /**
@@ -166,12 +166,12 @@ let Model = {
             throw "update bonus transaction not allowed";
         }
         if (Object.keys(record).length !== 2)
-            throw "only isStable allwed for update";
+            throw "only isStable allowed for update";
         return cb();
     }
 };
 /**
- * When paying or accruing a transaction, core write it to the UserBonusTransaction model.
+ * When paying or accruing a transaction, core writes it to the UserBonusTransaction model.
  * Further, the systems that will be docked must themselves implement synchronization with the external system,
  * to replenish and withdraw bonuses.
  *

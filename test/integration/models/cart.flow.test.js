@@ -110,7 +110,7 @@ describe("Flows: Checkout", function () {
         order = await Order.create({ id: "test-checkconfig-default-requireall" }).fetch();
         await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
         order = await Order.findOne({ id: order.id });
-        await Settings.set("CHECKOUT_STRATEGY", {});
+        await Settings.set("CHECKOUT_STRATEGY", { key: "CHECKOUT_STRATEGY", value: {} });
         try {
             await Order.check({ id: order.id }, customer_1.customer, true);
         }
@@ -127,7 +127,7 @@ describe("Flows: Checkout", function () {
         }
     });
     it("test checkConfig (notRequired)", async function () {
-        await Settings.set("CHECKOUT_STRATEGY", { notRequired: true });
+        await Settings.set("CHECKOUT_STRATEGY", { key: "CHECKOUT_STRATEGY", value: { notRequired: true } });
         await sleep(500);
         order = await Order.create({ id: "test-checkconfig-notrequired" }).fetch();
         await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");

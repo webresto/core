@@ -80,8 +80,8 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             }
         };
         const cfg = { ...baseConfig, ...config };
-        const mediafileExtesion = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0].replace('.', '');
-        const origin = this.getNameByUrl(url, mediafileExtesion);
+        const mediafileExtension = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0].replace('.', '');
+        const origin = this.getNameByUrl(url, mediafileExtension);
         const name = {
             origin: origin,
             small: undefined,
@@ -136,13 +136,14 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             return;
         }
         this.processing = true;
-        let MEDIAFILE_PARALEL_TO_DOWNLOAD = await Settings.get('MEDIAFILE_PARALEL_TO_DOWNLOAD') ?? 3;
-        if (MEDIAFILE_PARALEL_TO_DOWNLOAD > this.loadMediaFilesProcessQueue.length)
-            MEDIAFILE_PARALEL_TO_DOWNLOAD = this.loadMediaFilesProcessQueue.length;
+        let MEDIAFILE_PARALLEL_TO_DOWNLOAD = await Settings.get('MEDIAFILE_PARALLEL_TO_DOWNLOAD') ?? 3;
+        if (MEDIAFILE_PARALLEL_TO_DOWNLOAD > this.loadMediaFilesProcessQueue.length)
+            MEDIAFILE_PARALLEL_TO_DOWNLOAD = this.loadMediaFilesProcessQueue.length;
         while (this.loadMediaFilesProcessQueue.length) {
-            const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALEL_TO_DOWNLOAD);
-            const downloadPromises = loadMediaFilesProcesses.map((loadMediaFilesProcess) => {
-                return this.download(loadMediaFilesProcess).then(async () => {
+            const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALLEL_TO_DOWNLOAD);
+            const downloadPromises = loadMediaFilesProcesses.map(async (loadMediaFilesProcess) => {
+                try {
+                    await this.download(loadMediaFilesProcess);
                     const prefix = this.getPrefix(loadMediaFilesProcess.type);
                     switch (loadMediaFilesProcess.type) {
                         case "image":
@@ -172,10 +173,11 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                         default:
                             break;
                     }
-                }).catch(error => {
+                }
+                catch (error) {
                     // Log the error and rethrow it
                     sails.log.error(`MF local Error > processing file ${loadMediaFilesProcess.name.origin}: ${error}`);
-                });
+                }
             });
             try {
                 // Wait for all downloads and processing to complete
