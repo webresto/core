@@ -1,5 +1,3 @@
-import Module from "modulemanager/models/Module";
-
 export default {
   user: {
     title: "User",
