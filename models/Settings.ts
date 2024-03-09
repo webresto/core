@@ -1,16 +1,17 @@
+/**
+ * Attention! We use MM "Settings" model in production mode, but for tests and core integrity, we support this model
+ * */
+
 import {OptionalAll, RequiredField} from "../interfaces/toolsTS"
 import {ORMModel} from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import {ControlElement, Layout} from "@jsonforms/core";
-import Module from "modulemanager/models/Module";
-import ModuleHelper from "modulemanager/helpers/moduleHelper";
-import SettingsHelper from "modulemanager/helpers/settingsHelper";
 import Ajv from 'ajv';
 
 // Memory store
 let settings: SettingValue = {}
-type PlainValie = string | boolean | number | string[] | number[] | SettingValue[]
-type SettingValue = PlainValie | {
+type PlainValue = string | boolean | number | string[] | number[] | SettingValue[]
+type SettingValue = PlainValue | {
   [key: string]: SettingValue;
 };
 type SettingType = "string" | "boolean" | "json" | "number"
@@ -57,8 +58,8 @@ let attributes = {
     type: "boolean"
   } as unknown as boolean,
   module: {
-    model: "module"
-  } as unknown as Module | string
+    type: "string"
+  } as unknown as string
 };
 
 type attributes = typeof attributes & ORM;
@@ -86,8 +87,8 @@ let Model = {
     emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = cleanValue(record.value);
 
-    let moduleId = record.module as string;
-    await ModuleHelper.checkSettings(moduleId);
+    // let moduleId = record.module as string;
+    // await ModuleHelper.checkSettings(moduleId);
     cb();
   },
 
@@ -95,8 +96,8 @@ let Model = {
     emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = cleanValue(record.value);
 
-    let moduleId = record.module as string;
-    await ModuleHelper.checkSettings(moduleId);
+    // let moduleId = record.module as string;
+    // await ModuleHelper.checkSettings(moduleId);
     cb();
   },
 
@@ -161,10 +162,10 @@ let Model = {
   async get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T> {
     let _key: string = key;
     // return error if setting was not declared by specification
-    if (!SettingsHelper.isInDeclaredSettings(key) && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
-      sails.log.error(`Settings get: Requested setting [${key}] was not declared by specification`);
-      return;
-    }
+    // if (!SettingsHelper.isInDeclaredSettings(key) && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
+    //   sails.log.error(`Settings get: Requested setting [${key}] was not declared by specification`);
+    //   return;
+    // }
 
     if (settings[_key] !== undefined) {
       return cleanValue(settings[_key]);
@@ -297,6 +298,7 @@ module.exports = {
 
 declare global {
   // TODO даже при том что мы выключили модель Settings в mm, типизация ломается, потому что нельзя 2 раза декларировать модель
+  // @ts-ignore
   const Settings: typeof Model & ORMModel<Settings, "key" | "type">;
   interface SettingList {
     MODULE_STORAGE_LICENSE: string // system setting

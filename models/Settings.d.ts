@@ -1,10 +1,12 @@
+/**
+ * Attention! We use MM "Settings" model in production mode, but for tests and core integrity, we support this model
+ * */
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { ControlElement, Layout } from "@jsonforms/core";
-import Module from "modulemanager/models/Module";
-type PlainValie = string | boolean | number | string[] | number[] | SettingValue[];
-type SettingValue = PlainValie | {
+type PlainValue = string | boolean | number | string[] | number[] | SettingValue[];
+type SettingValue = PlainValue | {
     [key: string]: SettingValue;
 };
 type SettingType = "string" | "boolean" | "json" | "number";
@@ -31,7 +33,7 @@ declare let attributes: {
     uiSchema: UISchema;
     /** Only reading */
     readOnly: boolean;
-    module: string | Module;
+    module: string;
 };
 type attributes = typeof attributes & ORM;
 interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> {

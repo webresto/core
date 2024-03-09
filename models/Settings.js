@@ -1,10 +1,11 @@
 "use strict";
+/**
+ * Attention! We use MM "Settings" model in production mode, but for tests and core integrity, we support this model
+ * */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const moduleHelper_1 = __importDefault(require("modulemanager/helpers/moduleHelper"));
-const settingsHelper_1 = __importDefault(require("modulemanager/helpers/settingsHelper"));
 const ajv_1 = __importDefault(require("ajv"));
 // Memory store
 let settings = {};
@@ -41,7 +42,7 @@ let attributes = {
         type: "boolean"
     },
     module: {
-        model: "module"
+        type: "string"
     }
 };
 let Model = {
@@ -58,15 +59,15 @@ let Model = {
     afterUpdate: async function (record, cb) {
         emitter.emit(`settings:${record.key}`, record);
         settings[record.key] = cleanValue(record.value);
-        let moduleId = record.module;
-        await moduleHelper_1.default.checkSettings(moduleId);
+        // let moduleId = record.module as string;
+        // await ModuleHelper.checkSettings(moduleId);
         cb();
     },
     afterCreate: async function (record, cb) {
         emitter.emit(`settings:${record.key}`, record);
         settings[record.key] = cleanValue(record.value);
-        let moduleId = record.module;
-        await moduleHelper_1.default.checkSettings(moduleId);
+        // let moduleId = record.module as string;
+        // await ModuleHelper.checkSettings(moduleId);
         cb();
     },
     /** return setting value by unique key */
@@ -122,10 +123,10 @@ let Model = {
     async get(key) {
         let _key = key;
         // return error if setting was not declared by specification
-        if (!settingsHelper_1.default.isInDeclaredSettings(key) && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
-            sails.log.error(`Settings get: Requested setting [${key}] was not declared by specification`);
-            return;
-        }
+        // if (!SettingsHelper.isInDeclaredSettings(key) && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
+        //   sails.log.error(`Settings get: Requested setting [${key}] was not declared by specification`);
+        //   return;
+        // }
         if (settings[_key] !== undefined) {
             return cleanValue(settings[_key]);
         }
