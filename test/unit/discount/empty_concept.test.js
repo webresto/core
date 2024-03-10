@@ -51,7 +51,7 @@ describe('Discount_Empty', function () {
         },
         displayDish: function (dish, user) {
             if (this.isJoint === true && this.isPublic === true) {
-                // 
+                //
                 dish.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
                 dish.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
                 dish.oldPrice = dish.price;
@@ -104,7 +104,7 @@ describe('Discount_Empty', function () {
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let result = await Order.findOne(order.id);
-        console.log(JSON.stringify(result, null, 2));
+        // console.log(JSON.stringify(result, null, 2))
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });
 });

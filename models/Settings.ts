@@ -58,7 +58,8 @@ let attributes = {
     type: "boolean"
   } as unknown as boolean,
   module: {
-    type: "string"
+    type: "string",
+    allowNull: true
   } as unknown as string
 };
 
@@ -181,67 +182,35 @@ let Model = {
       throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
     }
 
-    // process non-module setting (does not contain appId)
-    if (!Object.keys(settingsSetInput).includes("appId")) {
-      settings[settingsSetInput.key] = settingsSetInput.value;
-      // Write to Database
-      try {
-        const setting = await Settings.findOne({key: settingsSetInput.key});
-        if (!setting) {
-          // calculate 'type' by value (if value was given)
-          let settingType = settingsSetInput.type;
-          if (!settingType) {
-            switch (typeof settingsSetInput.value) {
-              case 'object':
-                settingType = 'json'
-                break;
-              case 'boolean':
-                settingType = 'boolean';
-                break;
-              case 'number':
-                settingType = 'number';
-                break;
-              case 'string':
-                settingType = 'string';
-                break;
-              default:
-                throw "Settings set error: Cannot calculate type by given value, but type is required field"
-            }
-          }
-
-          return await Settings.create({
-            key: settingsSetInput.key,
-            value: settingsSetInput.value,
-            type: settingType,
-            module: null,
-            readOnly: settingsSetInput.readOnly || false
-          }).fetch();
-        } else {
-          if (setting.readOnly) throw `Property cannot be changed (read only)`;
-          return (await Settings.update({key: settingsSetInput.key}, {
-            value: settingsSetInput.value
-          }).fetch())[0];
-        }
-      } catch (e) {
-        sails.log.error("CORE > Settings > set: ", settingsSetInput, e);
-        return
+    // calculate 'type' by value (if value was given)
+    let settingType = settingsSetInput.type;
+    if (!settingType) {
+      switch (typeof settingsSetInput.value) {
+        case 'object':
+          settingType = 'json'
+          break;
+        case 'boolean':
+          settingType = 'boolean';
+          break;
+        case 'number':
+          settingType = 'number';
+          break;
+        case 'string':
+          settingType = 'string';
+          break;
+        default:
+          sails.log.error('Settings set error: Can not calculate type by given value, but type is required field')
+          return;
       }
     }
 
-    // check required fields
-    if (settingsSetInput.appId === undefined || settingsSetInput.key === undefined || settingsSetInput.type === undefined) {
-      sails.log.error(`Setting set error: missed one or more required fields: appId (${settingsSetInput.appId}),
-			 key (${settingsSetInput.key}), type (${settingsSetInput.type}), jsonSchema (${settingsSetInput.jsonSchema}) required`);
-      return;
-    }
-
     // check that jsonSchema is present for a json type
-    if (settingsSetInput.type === "json" && settingsSetInput.jsonSchema === undefined) {
-      sails.log.error(`Setting set [${settingsSetInput.appId}] error: jsonSchema is missed for type "json"`);
+    if (settingType === "json" && settingsSetInput.jsonSchema === undefined) {
+      sails.log.error(`Setting set [${settingsSetInput.key}] error: jsonSchema is missed for type "json"`);
     }
 
     // convert some values for boolean type
-    if (settingsSetInput.type === "boolean") {
+    if (settingType === "boolean") {
       if (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(`${settingsSetInput.value}`)) {
         settingsSetInput.value = true;
       } else if (["no", "NO", "No", "0", "false", "FALSE", "False"].includes(`${settingsSetInput.value}`)) {
@@ -256,7 +225,7 @@ let Model = {
     }
 
     // check that value and defaultValue match the schema for json type (if !ALLOW_UNSAFE_SETTINGS)
-    if (settingsSetInput.type === "json" && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
+    if (settingType === "json" && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
       const ajv = new Ajv();
       const validate = ajv.compile(settingsSetInput.jsonSchema);
       if ((settingsSetInput.value !== undefined && !validate(settingsSetInput.value)) ||
@@ -267,21 +236,17 @@ let Model = {
     }
 
     // Set in local variable (local storage)
-    if (settingsSetInput.appId === null) {
-      settings[settingsSetInput.key] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
-    } else {
-      settings[`${settingsSetInput.appId}_${settingsSetInput.key}`] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
-    }
+    settings[settingsSetInput.key] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
 
     // Write to Database
     try {
-      const setting = await Settings.findOne({module: settingsSetInput.appId, key: settingsSetInput.key});
+      const setting = await Settings.findOne({key: settingsSetInput.key});
       if (!setting) {
         return await Settings.create({
           key: settingsSetInput.key,
-          type: settingsSetInput.type,
+          type: settingType,
           jsonSchema: settingsSetInput.jsonSchema,
-          module: settingsSetInput.appId,
+          module: settingsSetInput.appId || null,
           name: settingsSetInput.name,
           value: settingsSetInput.value,
           defaultValue: settingsSetInput.defaultValue,
@@ -292,8 +257,8 @@ let Model = {
         }).fetch();
       } else {
         if (setting.readOnly) throw `Property cannot be changed (read only)`;
-        return (await Settings.update({module: settingsSetInput.appId, key: settingsSetInput.key}, {
-          type: settingsSetInput.type,
+        return (await Settings.update({key: settingsSetInput.key}, {
+          type: settingType,
           jsonSchema: settingsSetInput.jsonSchema,
           name: settingsSetInput.name,
           value: settingsSetInput.value,
@@ -303,9 +268,11 @@ let Model = {
           uiSchema: settingsSetInput.uiSchema,
           readOnly: settingsSetInput.readOnly || false
         }).fetch())[0];
+
       }
     } catch (e) {
       sails.log.error("CORE > Settings > set: ", settingsSetInput, e);
+      return
     }
   }
 

@@ -10,21 +10,36 @@ describe("Settings", function () {
   });
 
   it("Get from memory afterCreate", async function () {
-    await Settings.set("test", {key: "test", value: {test: true}});
+    await Settings.set("test", {key: "test", value: {test: true}, jsonSchema: {
+        type: "object",
+        properties: {
+          test: {
+            type: "boolean"
+          }
+        }
+      }});
     let setting = await Settings.get("test") as unknown as {test: boolean};
     expect(setting.test).to.equal(true)
   });
 
   it("Get from memory afterUpdate", async function () {
-    await Settings.update({ key: "TEST"}, {value: "yep"}).fetch();
+    await Settings.set("test", {key: "test", value: {test: false}, jsonSchema: {
+        type: "object",
+        properties: {
+          test: {
+            type: "boolean"
+          }
+        }
+      }});
     let setting = await Settings.get("test");
-    expect(setting).to.equal("yep")
+    expect(setting.test).to.equal(false)
   });
 
-  it("Should set process.env", async function () {
-    await Settings.set("test_123Test", {key: "test_123Test", value: true});
-    expect(process.env.TEST_123_TEST).to.equal('true')
-  });
+  // Deprecated, Settings.set does not write values to process.env anymore
+  // it("Should set process.env", async function () {
+  //   await Settings.set("test_123Test", {key: "test_123Test", value: true});
+  //   expect(process.env.TEST_123_TEST).to.equal('true')
+  // });
 
 
 });

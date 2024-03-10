@@ -77,7 +77,7 @@ describe("Promotion code integration test", function () {
 
     expect(result.discountTotal).to.equal(1.45);    expect(result.total).to.equal(109.85);
 
-    console.log(result,1245)
+    console.log("ORDER WITH PROMOTION", result)
     expect(result.basketTotal).to.equal(111.3);
 
 
@@ -89,6 +89,7 @@ describe("Promotion code integration test", function () {
     result = await Order.findOne({ id: order.id }
     )
 
+    console.log("ORDER WITH PROMOTION 2", result)
 
     // CLEAR PROMOCODE
     await Order.applyPromotionCode({ id: order.id }, null);

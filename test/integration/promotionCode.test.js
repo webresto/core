@@ -61,7 +61,7 @@ describe("Promotion code integration test", function () {
         (0, chai_1.expect)(result.promotionFlatDiscount).to.equal(1.45);
         (0, chai_1.expect)(result.discountTotal).to.equal(1.45);
         (0, chai_1.expect)(result.total).to.equal(109.85);
-        console.log(result, 1245);
+        console.log("ORDER WITH PROMOTION", result);
         (0, chai_1.expect)(result.basketTotal).to.equal(111.3);
         // After go to payment promocode should work, till ORDER state
         await ExternalTestPaymentSystem_1.default.getInstance();
@@ -69,6 +69,7 @@ describe("Promotion code integration test", function () {
         await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address, paymentMethod.id);
         await Order.payment({ id: order.id });
         result = await Order.findOne({ id: order.id });
+        console.log("ORDER WITH PROMOTION 2", result);
         // CLEAR PROMOCODE
         await Order.applyPromotionCode({ id: order.id }, null);
         result = await Order.findOne({ id: order.id });

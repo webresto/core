@@ -243,7 +243,7 @@ describe("Promotion adapter integration test", function () {
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         order = await Order.findOne(order.id);
-        console.log(order, 234);
+        // console.log(order, 234)
         (0, chai_1.expect)(order.discountTotal).to.equal(20.13);
     });
     it("Promotion states should passed in order discount", async () => {
@@ -275,7 +275,7 @@ describe("Promotion adapter integration test", function () {
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let res = await Order.findOne(order.id);
         // await promotionAdapter.processOrder(res)
-        // res = await Order.findOne(order.id) 
+        // res = await Order.findOne(order.id)
         let example = {
             message: `Discount generator description`,
             type: "configured-promotion",

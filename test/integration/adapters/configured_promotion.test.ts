@@ -306,7 +306,7 @@ describe("Promotion adapter integration test", function () {
     await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
 
     order = await Order.findOne(order.id)
-    console.log(order, 234)
+    // console.log(order, 234)
     expect(order.discountTotal).to.equal(20.13);
 
   })
@@ -353,7 +353,7 @@ describe("Promotion adapter integration test", function () {
     let res = await Order.findOne(order.id)
 
     // await promotionAdapter.processOrder(res)
-    // res = await Order.findOne(order.id) 
+    // res = await Order.findOne(order.id)
 
     let example = {
       message: `Discount generator description`,

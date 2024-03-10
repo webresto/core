@@ -42,13 +42,14 @@ export default class TestPaymentSystem extends PaymentAdapter {
         break;
     }
 
-    // Imitation http latency of external system 
+    // Imitation http latency of external system
     let latency = Math.floor(Math.random() * 1000) + 600;
     let response: any;
     response = payment;
     response.error = null;
     response.paid = false;
     response.redirectLink = "http://redirect_link.com";
+    response.externalId = latency + "";
 
     return new Promise((resolve) => {
       setTimeout(() => {

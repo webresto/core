@@ -43,9 +43,16 @@ describe("Flows: Checkout", function () {
     }
   });
 
-  it("awaitEmiter order events", async function () {
+  it("awaitEmitter order events", async function () {
     //@ts-ignore
-    await Settings.set("CHECKOUT_STRATEGY", { notRequired: true });
+    await Settings.set("CHECKOUT_STRATEGY", {key: "CHECKOUT_STRATEGY", value: { notRequired: true }, jsonSchema: {
+      type: "object",
+      properties: {
+        notRequired: {
+          type: "boolean"
+        }
+      }
+    }});
 
     let core_order_before_check = 0;
     let core_order_check_delivery = 0;
@@ -132,7 +139,7 @@ describe("Flows: Checkout", function () {
     await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
     order = await Order.findOne({id: order.id});
 
-    await Settings.set("CHECKOUT_STRATEGY", {key: "CHECKOUT_STRATEGY", value: {}});
+    await Settings.set("CHECKOUT_STRATEGY", {key: "CHECKOUT_STRATEGY", value: {}, jsonSchema: {"type": "object"}});
 
     try {
       await Order.check({id: order.id}, customer, true);
@@ -150,7 +157,14 @@ describe("Flows: Checkout", function () {
   });
 
   it("test checkConfig (notRequired)", async function () {
-    await Settings.set("CHECKOUT_STRATEGY", {key: "CHECKOUT_STRATEGY", value: { notRequired: true }});
+    await Settings.set("CHECKOUT_STRATEGY", {key: "CHECKOUT_STRATEGY", value: { notRequired: true }, jsonSchema: {
+      type: "object",
+          properties: {
+        notRequired: {
+          type: "boolean"
+        }
+      }
+    }});
 
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-notrequired"}).fetch();
