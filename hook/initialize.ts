@@ -5,8 +5,6 @@ import * as _ from "lodash";
 import bindAssets from "./bindAssets"
 import bindDictionaries from "./bindDictionaries";
 
-process.env.MM_MODELS_TO_SKIP = "settings";
-
 /**
  * Set global emitter
  */
@@ -77,6 +75,7 @@ export default function ToInitialize(sails: Sails) {
     bindAdminpanel();
 
     // Bind models
-    HookTools.bindModels(resolve(__dirname, "../models")).then(cb);
+    let modelsToSkip = process.env.CORE_MODELS_TO_SKIP !== undefined ? process.env.CORE_MODELS_TO_SKIP.split(";") : [];
+    HookTools.bindModels(resolve(__dirname, "../models"), modelsToSkip).then(cb);
   };
 }

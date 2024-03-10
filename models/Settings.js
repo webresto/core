@@ -140,17 +140,37 @@ let Model = {
         if (settingsSetInput["key"] !== key) {
             throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
         }
-        // process non-module setting (contains only key and value)
-        if (Object.keys(settingsSetInput).length === 3) {
+        // process non-module setting (does not contain appId)
+        if (!Object.keys(settingsSetInput).includes("appId")) {
             settings[settingsSetInput.key] = settingsSetInput.value;
             // Write to Database
             try {
                 const setting = await Settings.findOne({ key: settingsSetInput.key });
                 if (!setting) {
+                    // calculate 'type' by value (if value was given)
+                    let settingType = settingsSetInput.type;
+                    if (!settingType) {
+                        switch (typeof settingsSetInput.value) {
+                            case 'object':
+                                settingType = 'json';
+                                break;
+                            case 'boolean':
+                                settingType = 'boolean';
+                                break;
+                            case 'number':
+                                settingType = 'number';
+                                break;
+                            case 'string':
+                                settingType = 'string';
+                                break;
+                            default:
+                                throw "Settings set error: Cannot calculate type by given value, but type is required field";
+                        }
+                    }
                     return await Settings.create({
                         key: settingsSetInput.key,
                         value: settingsSetInput.value,
-                        type: null,
+                        type: settingType,
                         module: null,
                         readOnly: settingsSetInput.readOnly || false
                     }).fetch();

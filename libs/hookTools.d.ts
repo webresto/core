@@ -13,8 +13,9 @@ export default class HookTools {
     /**
      * Bind models from folder. Folder must be full path.
      * @param folder - path to models
+     * @param modelsToSkip - list of models that needed to be skipped
      */
-    static bindModels(folder: string): Promise<void>;
+    static bindModels(folder: string, modelsToSkip?: string[]): Promise<void>;
     /**
      * Check that config with a name key exists in sails.config
      * @param key - name of config to check

@@ -34,8 +34,9 @@ class HookTools {
     /**
      * Bind models from folder. Folder must be full path.
      * @param folder - path to models
+     * @param modelsToSkip - list of models that needed to be skipped
      */
-    static async bindModels(folder) {
+    static async bindModels(folder, modelsToSkip) {
         return new Promise((resolve, reject) => {
             buildDictionary.optional({
                 dirname: path.resolve(__dirname, folder),
@@ -45,6 +46,12 @@ class HookTools {
             }, function (err, models) {
                 if (err)
                     return reject(new Error(err));
+                // skip models declared in modelsToSkip
+                if (modelsToSkip && modelsToSkip.length) {
+                    for (const modelToSkip of modelsToSkip) {
+                        delete models[modelToSkip];
+                    }
+                }
                 sails.models = _.merge(sails.models || {}, models);
                 return resolve();
             });

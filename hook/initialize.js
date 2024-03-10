@@ -32,7 +32,6 @@ const afterHook_1 = __importDefault(require("./afterHook"));
 const _ = __importStar(require("lodash"));
 const bindAssets_1 = __importDefault(require("./bindAssets"));
 const bindDictionaries_1 = __importDefault(require("./bindDictionaries"));
-process.env.MM_MODELS_TO_SKIP = "settings";
 /**
  * Set global emitter
  */
@@ -90,7 +89,8 @@ function ToInitialize(sails) {
         // Bind sails-adminpanel configuraton
         (0, bindAdminpanel_1.default)();
         // Bind models
-        hookTools_1.default.bindModels((0, path_1.resolve)(__dirname, "../models")).then(cb);
+        let modelsToSkip = process.env.CORE_MODELS_TO_SKIP !== undefined ? process.env.CORE_MODELS_TO_SKIP.split(";") : [];
+        hookTools_1.default.bindModels((0, path_1.resolve)(__dirname, "../models"), modelsToSkip).then(cb);
     };
 }
 exports.default = ToInitialize;
