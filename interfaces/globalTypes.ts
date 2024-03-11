@@ -111,6 +111,7 @@ declare global {
     SYNC_BONUSTRANSACTION_AFTER_TIME: string
     DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean
     ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean
+    JWT_SECRET: string
 
     // for tests
     projectName: string

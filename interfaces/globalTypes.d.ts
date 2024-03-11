@@ -109,6 +109,7 @@ declare global {
         SYNC_BONUSTRANSACTION_AFTER_TIME: string;
         DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean;
         ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean;
+        JWT_SECRET: string;
         projectName: string;
         test: any;
         test_123Test: boolean;
