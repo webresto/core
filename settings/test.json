@@ -1,0 +1,7 @@
+{
+  "key": "core-setting1",
+  "type": "number",
+  "name": "Core Setting 1",
+  "description": "Test setting Core Setting 1",
+  "tooltip": "Only number"
+}
