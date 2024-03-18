@@ -1,0 +1,7 @@
+{
+  "key": "PROMOTION_ENABLE_BY_DEFAULT",
+  "type": "boolean",
+  "name": "Promotion Enable By Default",
+  "description": "",
+  "defaultValue": false
+}

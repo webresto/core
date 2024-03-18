@@ -1,0 +1,7 @@
+{
+  "key": "SYNC_PRODUCTS_INTERVAL_SECONDS",
+  "type": "number",
+  "name": "Sync Products Interval Seconds",
+  "description": "",
+  "defaultValue": 120
+}

@@ -1673,7 +1673,6 @@ async function checkCustomerInfo(customer) {
 
 
   let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES");
-  if (typeof allowedPhoneCountries === "string") allowedPhoneCountries = [allowedPhoneCountries];
   let isValidPhone = allowedPhoneCountries === undefined;
   if (Array.isArray(allowedPhoneCountries)) {
     for (let countryCode of allowedPhoneCountries) {

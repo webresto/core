@@ -33,7 +33,7 @@ describe("NotificationManager", function () {
 
   it("OTP recive to user", async () => {
     const otpAdapter = await Adapter.getOTPAdapter();
-    await Settings.set("LOGIN_FIELD", {key: "LOGIN_FIELD", value: "phone"});
+    await Settings.set("CORE_LOGIN_FIELD", {key: "CORE_LOGIN_FIELD", value: "phone"});
     let a = await otpAdapter.get("1123");
     if(testChannel.lastMessage !== `Your code is ${a.password}`) {
       throw new Error(`bad message: ${testChannel.lastMessage }`)

@@ -1,0 +1,17 @@
+{
+  "key": "CHECKOUT_STRATEGY",
+  "type": "json",
+  "name": "Checkout Strategy",
+  "description": "",
+  "defaultValue": {
+    "notRequired": true
+  },
+  "jsonSchema": {
+    "type": "object",
+    "properties": {
+      "notRequired": {
+        "type": "boolean"
+      }
+    }
+  }
+}

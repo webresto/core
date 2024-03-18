@@ -1,0 +1,6 @@
+{
+  "key": "RMS_ADAPTER",
+  "type": "string",
+  "name": "RMS Adapter",
+  "description": "Should not be required"
+}

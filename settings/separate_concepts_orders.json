@@ -1,0 +1,7 @@
+{
+  "key": "SEPARATE_CONCEPTS_ORDERS",
+  "type": "boolean",
+  "name": "Separate Concepts Orders",
+  "description": "",
+  "defaultValue": false
+}

@@ -1,0 +1,7 @@
+{
+  "key": "CREATE_USER_IF_NOT_EXIST",
+  "type": "boolean",
+  "name": "Create User If Not Exist",
+  "description": "",
+  "defaultValue": true
+}

@@ -1,0 +1,7 @@
+{
+  "key": "CORE_LOGIN_FIELD",
+  "type": "string",
+  "name": "Core Login Field",
+  "description": "Will be considered like a login. Should be forbidden for changing",
+  "defaultValue": "phone"
+}

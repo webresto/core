@@ -1,0 +1,7 @@
+{
+  "key": "POSSIBLE_TO_ORDER_IN_MINUTES",
+  "type": "string",
+  "name": "Possible To Order In Minutes",
+  "description": "",
+  "defaultValue": "20160"
+}

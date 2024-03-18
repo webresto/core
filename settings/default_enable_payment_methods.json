@@ -1,0 +1,7 @@
+{
+  "key": "DEFAULT_ENABLE_PAYMENT_METHODS",
+  "type": "boolean",
+  "name": "Default Enable Payment Methods",
+  "description": "",
+  "defaultValue": false
+}

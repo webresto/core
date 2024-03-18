@@ -12,7 +12,7 @@ let attributes = {
   } as unknown as number,
 
   /**
-   * relation by LOGIN_FIELD setting
+   * relation by CORE_LOGIN_FIELD setting
    */
   login: {
     type: 'string',

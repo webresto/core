@@ -1,0 +1,6 @@
+{
+  "key": "DELIVERY_MESSAGE",
+  "type": "string",
+  "name": "Delivery Message",
+  "description": "Not required"
+}

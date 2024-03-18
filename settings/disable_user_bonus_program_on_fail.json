@@ -1,0 +1,7 @@
+{
+  "key": "DISABLE_USER_BONUS_PROGRAM_ON_FAIL",
+  "type": "boolean",
+  "name": "Disable User Bonus Program On Fail",
+  "description": "",
+  "defaultValue": true
+}

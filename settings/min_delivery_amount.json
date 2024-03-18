@@ -1,0 +1,6 @@
+{
+  "key": "MIN_DELIVERY_AMOUNT",
+  "type": "number",
+  "name": "Min Delivery Amount",
+  "description": "Not required"
+}

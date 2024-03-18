@@ -102,7 +102,7 @@ describe("User", function () {
         });
         it("create user with specific password", async function () {
             await Settings.set("PASSWORD_POLICY", { key: "PASSWORD_POLICY", value: "required" });
-            await Settings.set("LOGIN_FIELD", { key: "LOGIN_FIELD", value: "email" });
+            await Settings.set("CORE_LOGIN_FIELD", { key: "CORE_LOGIN_FIELD", value: "email" });
             let OTPAdapter = await adapters_1.OTP.getAdapter();
             let otp = await OTPAdapter.get("test@mail.com");
             let login = await User.login("test@mail.com", null, "deviceId-test", "device-name", "password01", otp.password, "agent", "IP");

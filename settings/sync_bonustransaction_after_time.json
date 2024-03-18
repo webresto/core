@@ -1,0 +1,7 @@
+{
+  "key": "SYNC_BONUSTRANSACTION_AFTER_TIME",
+  "type": "string",
+  "name": "Sync BonusTransaction After Time",
+  "description": "",
+  "defaultValue": "0"
+}

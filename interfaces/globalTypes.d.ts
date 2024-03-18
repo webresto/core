@@ -69,12 +69,11 @@ declare global {
         MIN_DELIVERY_TIME_IN_MINUTES: number;
         MEDIAFILE_PARALLEL_TO_DOWNLOAD: number;
         UUID_NAMESPACE: string;
-        LOGIN_FIELD: string;
         NO_SYNC_NOMENCLATURE: boolean;
         SYNC_PRODUCTS_INTERVAL_SECONDS: number;
         NO_SYNC_OUT_OF_STOCKS: boolean;
         SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS: number;
-        ROOT_GROUPS_RMS_TO_SYNC: string | string[];
+        ROOT_GROUPS_RMS_TO_SYNC: string[];
         SKIP_LOAD_PRODUCT_IMAGES: boolean;
         ShowUnavailableDishes: boolean;
         [key: `SLUG_MENU_TOP_LEVEL_CONCEPT_${string}`]: string;
@@ -84,25 +83,26 @@ declare global {
         SEPARATE_CONCEPTS_ORDERS: boolean;
         BONUS_SPENDING_STRATEGY: string;
         city: string;
-        CHECKOUT_STRATEGY: any;
+        CHECKOUT_STRATEGY: {
+            notRequired: boolean;
+        };
         order: {
             requireAll: boolean;
             justOne: boolean;
         };
         FRONTEND_ORDER_PAGE: string;
         FRONTEND_CHECKOUT_PAGE: string;
-        ALLOWED_PHONE_COUNTRIES: string | string[];
+        ALLOWED_PHONE_COUNTRIES: string[];
         nameRegex: string;
         TZ: string;
         POSSIBLE_TO_ORDER_IN_MINUTES: string;
         EXTERNAL_PAYMENTS: ExternalPayment[];
         DEFAULT_ENABLE_PAYMENT_METHODS: boolean;
         PROMOTION_ENABLE_BY_DEFAULT: boolean;
-        SET_LAST_OTP_AS_PASSWORD: boolean;
         PASSWORD_REGEX: string;
         PASSWORD_MIN_LENGTH: number;
         PASSWORD_POLICY: "required" | "from_otp" | "disabled";
-        PasswordSalt: string | number;
+        PasswordSalt: number;
         LOGIN_OTP_REQUIRED: boolean;
         CREATE_USER_IF_NOT_EXIST: boolean;
         TIME_TO_SYNC_BONUSES_IN_MINUTES: string;

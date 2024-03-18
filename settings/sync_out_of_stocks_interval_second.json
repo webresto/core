@@ -1,0 +1,7 @@
+{
+  "key": "SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS",
+  "type": "number",
+  "name": "Sync Out Of Stocks Interval Seconds",
+  "description": "",
+  "defaultValue": 120
+}

@@ -38,7 +38,7 @@ declare let attributes: {
     /**
      * @deprecated will be rename to `Items` in **v2**
      */
-    dishes: number[] | OrderDish[];
+    dishes: OrderDish[] | number[];
     paymentMethod: any;
     /** */
     paymentMethodTitle: string;
@@ -171,7 +171,7 @@ declare let Model: {
     beforeCreate(orderInit: Order, cb: (err?: string) => void): void;
     afterCreate(order: Order, cb: (err?: string) => void): Promise<void>;
     /** Add a dish into order */
-    addDish(criteria: CriteriaQuery<Order>, dish: string | Dish, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: CriteriaQuery<Order>, dish: Dish | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void>;
@@ -217,7 +217,7 @@ declare let Model: {
         state?: string;
         concept?: string;
         isMixedConcept?: boolean;
-        dishes?: number[] | OrderDish[];
+        dishes?: OrderDish[] | number[];
         paymentMethod?: any;
         paymentMethodTitle?: string;
         paid?: boolean;
@@ -277,7 +277,7 @@ declare let Model: {
      */
     countCart(criteria: CriteriaQuery<Order>, isPromoting?: boolean): Promise<Order>;
     doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
-    applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string): Promise<Order>;
+    applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string | null): Promise<Order>;
 };
 declare global {
     const Order: typeof Model & ORMModel<Order, null> & StateFlowModel;

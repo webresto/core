@@ -1,0 +1,7 @@
+{
+  "key": "TIME_TO_SYNC_BONUSES_IN_MINUTES",
+  "type": "string",
+  "name": "Time To Sync Bonuses In Minutes",
+  "description": "",
+  "defaultValue": "15"
+}

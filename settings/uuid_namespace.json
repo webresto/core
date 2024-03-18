@@ -1,0 +1,7 @@
+{
+  "key": "UUID_NAMESPACE",
+  "type": "string",
+  "name": "UUID Namespace",
+  "description": "Should be generated once during start",
+  "defaultValue": "GENERATE_ME"
+}

@@ -1,0 +1,13 @@
+{
+  "key": "ALLOWED_PHONE_COUNTRIES",
+  "type": "json",
+  "name": "Allowed Phone Countries",
+  "description": "Choose country from the list",
+  "jsonSchema": {
+    "type": "array",
+    "items": {
+      "type": "string",
+      "enum": ["AR", "AE", "RU", "VN", "TW", "US", "UA", "CN"]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "key": "MEDIAFILE_PARALLEL_TO_DOWNLOAD",
+  "type": "number",
+  "name": "Mediafile Parallel To Download",
+  "description": "",
+  "defaultValue": 2
+}

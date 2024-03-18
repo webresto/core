@@ -1,0 +1,7 @@
+{
+  "key": "ORDER_INIT_PRODUCT_ID",
+  "type": "string",
+  "name": "Order Init Product ID",
+  "description": "",
+  "defaultValue": ""
+}

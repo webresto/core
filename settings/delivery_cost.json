@@ -1,0 +1,6 @@
+{
+  "key": "DELIVERY_COST",
+  "type": "string",
+  "name": "Delivery Cost",
+  "description": "Not required"
+}

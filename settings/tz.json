@@ -1,0 +1,6 @@
+{
+  "key": "TZ",
+  "type": "string",
+  "name": "Timezone",
+  "description": "Choose from the list"
+}

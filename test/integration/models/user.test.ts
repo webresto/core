@@ -97,7 +97,7 @@ describe("User", function () {
 
     it("create user with specific password", async function () {
       await Settings.set("PASSWORD_POLICY", {key: "PASSWORD_POLICY", value: "required"})
-      await Settings.set("LOGIN_FIELD", {key: "LOGIN_FIELD", value: "email"});
+      await Settings.set("CORE_LOGIN_FIELD", {key: "CORE_LOGIN_FIELD", value: "email"});
 
       let OTPAdapter = await OTP.getAdapter();
       let otp = await OTPAdapter.get("test@mail.com");

@@ -1,0 +1,6 @@
+{
+  "key": "nameRegex",
+  "type": "string",
+  "name": "Name Regex",
+  "description": "Not required"
+}
