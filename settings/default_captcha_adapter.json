@@ -2,5 +2,7 @@
   "key": "DEFAULT_CAPTCHA_ADAPTER",
   "type": "string",
   "name": "Default Captcha Adapter",
-  "description": ""
+  "description": "",
+  "defaultValue": "default",
+  "isRequired": true
 }

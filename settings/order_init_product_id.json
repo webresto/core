@@ -2,6 +2,5 @@
   "key": "ORDER_INIT_PRODUCT_ID",
   "type": "string",
   "name": "Order Init Product ID",
-  "description": "",
-  "defaultValue": ""
+  "description": "Product that will be added to basket automatically"
 }

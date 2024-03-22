@@ -3,5 +3,6 @@
   "type": "boolean",
   "name": "No Sync Out Of Stocks",
   "description": "",
-  "defaultValue": false
+  "defaultValue": false,
+  "isRequired": true
 }

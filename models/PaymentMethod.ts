@@ -113,11 +113,13 @@ let Model = {
   },
 
   /**
+   * @deprecated, not used
    * returns list of externalPaymentId
    * @return { name: string, id: string }
    */
   async getExternalPaymentMethods(): Promise<ExternalPayment[]> {
-    let externalPayments = await Settings.get("EXTERNAL_PAYMENTS");
+    // @ts-ignore
+    let externalPayments = await Settings.get("EXTERNAL_PAYMENTS") ?? [];
     if (externalPayments) {
       return externalPayments;
     } else {

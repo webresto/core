@@ -61,7 +61,7 @@ declare global {
         DEFAULT_BONUS_ADAPTER: string;
         RMS_ADAPTER: string;
         DEFAULT_MEDIAFILE_ADAPTER: string;
-        DELIVERY_COST: string;
+        DELIVERY_COST: number;
         DELIVERY_ITEM: string;
         DELIVERY_MESSAGE: string;
         FREE_DELIVERY_FROM: string;
@@ -95,8 +95,7 @@ declare global {
         ALLOWED_PHONE_COUNTRIES: string[];
         nameRegex: string;
         TZ: string;
-        POSSIBLE_TO_ORDER_IN_MINUTES: string;
-        EXTERNAL_PAYMENTS: ExternalPayment[];
+        POSSIBLE_TO_ORDER_IN_MINUTES: number;
         DEFAULT_ENABLE_PAYMENT_METHODS: boolean;
         PROMOTION_ENABLE_BY_DEFAULT: boolean;
         PASSWORD_REGEX: string;
@@ -105,8 +104,8 @@ declare global {
         PasswordSalt: number;
         LOGIN_OTP_REQUIRED: boolean;
         CREATE_USER_IF_NOT_EXIST: boolean;
-        TIME_TO_SYNC_BONUSES_IN_MINUTES: string;
-        SYNC_BONUSTRANSACTION_AFTER_TIME: string;
+        TIME_TO_SYNC_BONUSES_IN_MINUTES: number;
+        SYNC_BONUSTRANSACTION_AFTER_TIME: number;
         DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean;
         ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean;
         projectName: string;
@@ -115,9 +114,5 @@ declare global {
         PasswordRegex: string;
         PasswordMinLength: string;
     }
-}
-interface ExternalPayment {
-    name: string;
-    id: string;
 }
 export {};

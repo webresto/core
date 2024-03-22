@@ -16,7 +16,7 @@ The Bonus Program should be implemented as an adapter from the abstract class `@
 
 > ⚠️ Automatic user registration `automaticUserRegistration` (default for production: `false`)
 
-> ⚠️ Bonuses will be synchronized every time the user is active but no more than `TIME_TO_SYNC_BONUSES_IN_MINUTES` (default 2 minutes)
+> ⚠️ Bonuses will be synchronized every time the user is active but no more than `TIME_TO_SYNC_BONUSES_IN_MINUTES` (default 15 minutes)
 
 
 ## Check enough balance cases

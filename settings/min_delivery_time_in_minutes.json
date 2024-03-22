@@ -3,5 +3,10 @@
   "type": "number",
   "name": "Min Delivery Time In Minutes",
   "description": "",
-  "defaultValue": 40
+  "defaultValue": 40,
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 0
+  },
+  "isRequired": true
 }

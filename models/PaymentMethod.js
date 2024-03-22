@@ -91,11 +91,13 @@ let Model = {
         return false;
     },
     /**
+     * @deprecated, not used
      * returns list of externalPaymentId
      * @return { name: string, id: string }
      */
     async getExternalPaymentMethods() {
-        let externalPayments = await Settings.get("EXTERNAL_PAYMENTS");
+        // @ts-ignore
+        let externalPayments = await Settings.get("EXTERNAL_PAYMENTS") ?? [];
         if (externalPayments) {
             return externalPayments;
         }

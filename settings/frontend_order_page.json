@@ -2,6 +2,7 @@
   "key": "FRONTEND_ORDER_PAGE",
   "type": "string",
   "name": "Frontend Order Page",
-  "description": "",
-  "defaultValue": "localhost"
+  "description": "Points on basket url",
+  "defaultValue": "http://localhost",
+  "isRequired": true
 }

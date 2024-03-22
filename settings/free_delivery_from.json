@@ -2,5 +2,6 @@
   "key": "FREE_DELIVERY_FROM",
   "type": "string",
   "name": "Free Delivery From",
-  "description": "Not required, should be a number"
+  "description": "Basket amount for free delivery",
+  "isRequired": true
 }

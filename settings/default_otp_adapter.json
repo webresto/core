@@ -2,5 +2,7 @@
   "key": "DEFAULT_OTP_ADAPTER",
   "type": "string",
   "name": "Default OTP Adapter",
-  "description": ""
+  "description": "",
+  "defaultValue": "default",
+  "isRequired": true
 }

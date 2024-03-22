@@ -2,6 +2,5 @@
   "key": "SLUG_MENU_TOP_LEVEL",
   "type": "string",
   "name": "Slug Menu Top Level",
-  "description": "",
-  "defaultValue": ""
+  "description": ""
 }

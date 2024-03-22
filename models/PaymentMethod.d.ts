@@ -50,6 +50,7 @@ declare let Model: {
      */
     isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
     /**
+     * @deprecated, not used
      * returns list of externalPaymentId
      * @return { name: string, id: string }
      */

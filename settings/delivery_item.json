@@ -2,5 +2,5 @@
   "key": "DELIVERY_ITEM",
   "type": "string",
   "name": "Delivery Item",
-  "description": "Not required"
+  "description": "Optional setting for delivery service item"
 }

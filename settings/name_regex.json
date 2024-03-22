@@ -2,5 +2,5 @@
   "key": "nameRegex",
   "type": "string",
   "name": "Name Regex",
-  "description": "Not required"
+  "description": "Optional, regex for new user name"
 }

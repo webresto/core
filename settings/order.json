@@ -9,9 +9,14 @@
   "jsonSchema": {
     "type": "object",
     "properties": {
-      "requireAll": { "type": "boolean" },
-      "justOne": { "type": "boolean" }
+      "requireAll": {
+        "type": "boolean"
+      },
+      "justOne": {
+        "type": "boolean"
+      }
     },
     "additionalProperties": false
-  }
+  },
+  "deprecated": true
 }

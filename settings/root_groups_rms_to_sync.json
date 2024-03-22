@@ -2,7 +2,7 @@
   "key": "ROOT_GROUPS_RMS_TO_SYNC",
   "type": "json",
   "name": "Root groups RMS To Sync",
-  "description": "Required",
+  "description": "",
   "jsonSchema": {
     "type": "array",
     "items": {

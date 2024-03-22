@@ -26,7 +26,7 @@ export class Captcha {
     }
 
     // Use default adapter POW (crypto-puzzle)
-    if (!adapterName) {
+    if (!adapterName || adapterName === "default") {
       return new POW();
     }
 
@@ -72,7 +72,7 @@ export class Adapter {
     }
 
     // Use default adapter POW (crypto-puzzle)
-    if (!adapterName) {
+    if (!adapterName || adapterName === "default") {
       return new DefaultOTP();
     }
 
@@ -262,7 +262,7 @@ export class Adapter {
 
     if (!adapterName) {
       adapterName = await Settings.get("DEFAULT_MEDIAFILE_ADAPTER");
-      if (!adapterName) {
+      if (!adapterName || adapterName === "default") {
         this.instanceMF = new LocalMediaFileAdapter(initParams);
         return this.instanceMF;
       }

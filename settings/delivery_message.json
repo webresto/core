@@ -2,5 +2,5 @@
   "key": "DELIVERY_MESSAGE",
   "type": "string",
   "name": "Delivery Message",
-  "description": "Not required"
+  "description": "Optional setting, message for user on the checkout"
 }

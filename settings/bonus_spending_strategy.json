@@ -3,5 +3,6 @@
   "type": "string",
   "name": "Bonus Spending Strategy",
   "description": "",
-  "defaultValue": "bonus_from_order_total"
+  "defaultValue": "bonus_from_order_total",
+  "isRequired": true
 }

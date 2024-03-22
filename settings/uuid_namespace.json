@@ -3,6 +3,9 @@
   "type": "string",
   "name": "UUID Namespace",
   "description": "Should be generated once during start",
-  "defaultValue": "GENERATE_ME",
-  "readOnly": true
+  "isRequired": true,
+  "jsonSchema": {
+    "type": "string",
+    "pattern": "^[a-z]+$"
+  }
 }

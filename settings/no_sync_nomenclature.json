@@ -3,5 +3,6 @@
   "type": "boolean",
   "name": "No Sync Nomenclature",
   "description": "Do not synchronise nomenclature",
-  "defaultValue": false
+  "defaultValue": false,
+  "isRequired": true
 }

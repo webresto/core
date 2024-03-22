@@ -2,5 +2,6 @@
   "key": "city",
   "type": "string",
   "name": "City",
-  "description": ""
+  "description": "",
+  "isRequired": true
 }

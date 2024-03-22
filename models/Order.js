@@ -1497,8 +1497,8 @@ async function getOrderDateLimit() {
     let date = new Date();
     let possibleToOrderInMinutes = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES"); //minutes
     if (!possibleToOrderInMinutes)
-        possibleToOrderInMinutes = "1440";
-    date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));
+        possibleToOrderInMinutes = 1440;
+    date.setSeconds(date.getSeconds() + (possibleToOrderInMinutes * 60));
     return date;
 }
 function isValidDelivery(delivery) {
