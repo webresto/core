@@ -6,6 +6,7 @@
   "isRequired": true,
   "jsonSchema": {
     "type": "string",
-    "pattern": "^[a-z]+$"
+    "pattern": "^[a-z]+$",
+    "minLength": 36
   }
 }
