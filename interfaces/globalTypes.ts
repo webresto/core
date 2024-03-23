@@ -1,6 +1,7 @@
 import sails from "@42pub/typed-sails";
 import { Config } from "./Config";
 import AwaitEmitter from "../libs/AwaitEmitter";
+import { WorkTime } from "@webresto/worktime";
 
 type sailsConfig = typeof sails.config;
 
@@ -109,6 +110,12 @@ declare global {
     SYNC_BONUSTRANSACTION_AFTER_TIME: number
     DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean
     ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean
+
+    // from graphql
+    ALLOW_BONUS_SPENDING: boolean
+    DELIVERY_DESCRIPTION: string
+    FIRSTNAME_REQUIRED: boolean
+    WORK_TIME: WorkTime[]
 
     // for tests
     projectName: string

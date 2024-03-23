@@ -1,0 +1,8 @@
+{
+  "key": "ALLOW_BONUS_SPENDING",
+  "type": "boolean",
+  "name": "Allow Bonus Spending",
+  "description": "",
+  "defaultValue": false,
+  "isRequired": true
+}

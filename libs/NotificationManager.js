@@ -50,6 +50,23 @@ class NotificationManager {
         }
         await _a.send(badge, "user", text, populatedUser, type, subject, data);
     }
+    test() {
+        let dialog = {
+            description: "test",
+            image: null,
+            title: "????",
+            optionsType: "button",
+            options: [
+                {
+                    id: "111",
+                    label: "232",
+                    of: null
+                }
+            ]
+        };
+    }
+    ask(dialog, user, deviceId, timeout) {
+    }
 }
 exports.NotificationManager = NotificationManager;
 _a = NotificationManager;
