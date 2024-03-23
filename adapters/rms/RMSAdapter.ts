@@ -99,7 +99,6 @@ export default abstract class RMSAdapter {
         // TODO: implement concept
 
         let rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC");
-        if (typeof rootGroupsToSync === "string") rootGroupsToSync = rootGroupsToSync.split(";");
         if (!rootGroupsToSync) rootGroupsToSync = [];
 
         const rmsAdapter = await Adapter.getRMSAdapter();

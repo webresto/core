@@ -1,0 +1,11 @@
+{
+  "key": "UUID_NAMESPACE",
+  "type": "string",
+  "name": "UUID Namespace",
+  "description": "Should be generated once during start",
+  "isRequired": true,
+  "jsonSchema": {
+    "type": "string",
+    "pattern": "^[a-z]+$"
+  }
+}

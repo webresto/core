@@ -165,7 +165,7 @@ let Model = {
             userInit.isDeleted = false;
         userInit.orderCount = 0;
         // Phone required
-        if ((await Settings.get("LOGIN_FIELD")) === undefined || (await Settings.get("LOGIN_FIELD")) === "phone") {
+        if ((await Settings.get("CORE_LOGIN_FIELD")) === undefined || (await Settings.get("CORE_LOGIN_FIELD")) === "phone") {
             if (!userInit.phone) {
                 sails.log.error(`User with login: ${userInit.login} should has phone on creation`);
                 throw `User phone is required`;
@@ -250,7 +250,7 @@ let Model = {
     async setPassword(userId, newPassword, oldPassword, force = false, temporaryCode) {
         if (!userId || !newPassword)
             throw "UserId and newPassword is required";
-        if (!(await Settings.get("SET_LAST_OTP_AS_PASSWORD"))) {
+        if (!(await Settings.get("CORE_SET_LAST_OTP_AS_PASSWORD"))) {
             let passwordRegex = await Settings.get("PASSWORD_REGEX");
             let passwordMinLength = await Settings.get("PASSWORD_MIN_LENGTH");
             let passwordPolicy = await Settings.get("PASSWORD_POLICY");
@@ -324,10 +324,10 @@ let Model = {
         // Create user if not exist and only with verified OTP
         let CREATE_USER_IF_NOT_EXIST = await Settings.get("CREATE_USER_IF_NOT_EXIST") || true;
         if (!user && CREATE_USER_IF_NOT_EXIST && checkOTPResult) {
-            let loginFiled = await Settings.get("LOGIN_FIELD") || "phone";
+            let loginFiled = await Settings.get("CORE_LOGIN_FIELD") || "phone";
             if (loginFiled === "phone") {
                 if (!phone) {
-                    throw `Phone is required for LOGIN_FIELD: phone`;
+                    throw `Phone is required for CORE_LOGIN_FIELD: phone`;
                 }
             }
             user = await User.create({

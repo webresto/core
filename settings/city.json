@@ -1,0 +1,7 @@
+{
+  "key": "city",
+  "type": "string",
+  "name": "City",
+  "description": "",
+  "isRequired": true
+}

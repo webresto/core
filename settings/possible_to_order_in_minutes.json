@@ -1,0 +1,12 @@
+{
+  "key": "POSSIBLE_TO_ORDER_IN_MINUTES",
+  "type": "number",
+  "name": "Possible To Order In Minutes",
+  "description": "",
+  "defaultValue": 20160,
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 0
+  },
+  "isRequired": true
+}

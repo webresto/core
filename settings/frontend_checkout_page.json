@@ -1,0 +1,9 @@
+{
+  "key": "FRONTEND_CHECKOUT_PAGE",
+  "type": "string",
+  "name": "Frontend Checkout Page",
+  "description": "",
+  "defaultValue": "http://localhost",
+  "TODO": "Will give you an error trying to return backward link during payment",
+  "isRequired": true
+}

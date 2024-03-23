@@ -48,7 +48,7 @@ class Captcha {
             adapterName = await Settings.get("DEFAULT_CAPTCHA_ADAPTER");
         }
         // Use default adapter POW (crypto-puzzle)
-        if (!adapterName) {
+        if (!adapterName || adapterName === "default") {
             return new pow_1.POW();
         }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-captcha-adapter";
@@ -84,7 +84,7 @@ class Adapter {
             adapterName = await Settings.get("DEFAULT_OTP_ADAPTER");
         }
         // Use default adapter POW (crypto-puzzle)
-        if (!adapterName) {
+        if (!adapterName || adapterName === "default") {
             return new defaultOTP_1.DefaultOTP();
         }
         let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
@@ -263,7 +263,7 @@ class Adapter {
         let adapterLocation = "";
         if (!adapterName) {
             adapterName = await Settings.get("DEFAULT_MEDIAFILE_ADAPTER");
-            if (!adapterName) {
+            if (!adapterName || adapterName === "default") {
                 this.instanceMF = new local_1.default(initParams);
                 return this.instanceMF;
             }

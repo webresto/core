@@ -1,0 +1,7 @@
+{
+  "key": "RMS_ADAPTER",
+  "type": "string",
+  "name": "RMS Adapter",
+  "description": "",
+  "TODO": "There is a problem that core is arguing if this field is not set"
+}

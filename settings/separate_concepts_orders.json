@@ -1,0 +1,8 @@
+{
+  "key": "SEPARATE_CONCEPTS_ORDERS",
+  "type": "boolean",
+  "name": "Separate Concepts Orders",
+  "description": "Strictly checks basket products by same concept",
+  "defaultValue": false,
+  "isRequired": true
+}

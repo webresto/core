@@ -1,0 +1,8 @@
+{
+  "key": "DEFAULT_ENABLE_PAYMENT_METHODS",
+  "type": "boolean",
+  "name": "Default Enable Payment Methods",
+  "description": "After installation payment provider it will be enabled",
+  "defaultValue": true,
+  "isRequired": true
+}

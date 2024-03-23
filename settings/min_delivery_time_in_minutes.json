@@ -1,0 +1,12 @@
+{
+  "key": "MIN_DELIVERY_TIME_IN_MINUTES",
+  "type": "number",
+  "name": "Min Delivery Time In Minutes",
+  "description": "",
+  "defaultValue": 40,
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 0
+  },
+  "isRequired": true
+}

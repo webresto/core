@@ -1,0 +1,12 @@
+{
+  "key": "SYNC_PRODUCTS_INTERVAL_SECONDS",
+  "type": "number",
+  "name": "Sync Products Interval Seconds",
+  "description": "",
+  "defaultValue": 120,
+  "jsonSchema": {
+    "type": "number",
+    "minimum": 120
+  },
+  "isRequired": true
+}

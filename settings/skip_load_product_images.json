@@ -1,0 +1,7 @@
+{
+  "key": "SKIP_LOAD_PRODUCT_IMAGES",
+  "type": "boolean",
+  "name": "Skip Load Product Images",
+  "description": "",
+  "defaultValue": false
+}

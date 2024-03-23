@@ -1,0 +1,7 @@
+{
+  "key": "FREE_DELIVERY_FROM",
+  "type": "string",
+  "name": "Free Delivery From",
+  "description": "Basket amount for free delivery",
+  "isRequired": true
+}

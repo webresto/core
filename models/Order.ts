@@ -1683,7 +1683,6 @@ async function checkCustomerInfo(customer) {
 
 
   let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES");
-  if (typeof allowedPhoneCountries === "string") allowedPhoneCountries = [allowedPhoneCountries];
   let isValidPhone = allowedPhoneCountries === undefined;
   if (Array.isArray(allowedPhoneCountries)) {
     for (let countryCode of allowedPhoneCountries) {
@@ -1810,9 +1809,9 @@ async function checkDate(order: Order) {
 async function getOrderDateLimit(): Promise<Date> {
   let date = new Date();
   let possibleToOrderInMinutes = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES"); //minutes
-  if (!possibleToOrderInMinutes) possibleToOrderInMinutes = "1440";
+  if (!possibleToOrderInMinutes) possibleToOrderInMinutes = 1440;
 
-  date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));
+  date.setSeconds(date.getSeconds() + (possibleToOrderInMinutes * 60));
   return date;
 }
 

@@ -1,0 +1,8 @@
+{
+  "key": "ONLY_CONCEPTS_DISHES",
+  "type": "boolean",
+  "name": "Only concepts dishes",
+  "description": "Prevent ordering from origin concept",
+  "defaultValue": false,
+  "isRequired": true
+}

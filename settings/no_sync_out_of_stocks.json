@@ -1,0 +1,8 @@
+{
+  "key": "NO_SYNC_OUT_OF_STOCKS",
+  "type": "boolean",
+  "name": "No Sync Out Of Stocks",
+  "description": "",
+  "defaultValue": false,
+  "isRequired": true
+}

@@ -88,8 +88,8 @@ let Model = {
         for (const userBonusProgram of userBonusPrograms) {
             // Skip if less TIME_TO_SYNC_BONUSES_IN_MINUTES
             const diffInMinutes = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60);
-            const timeToSyncBonusesInMinutes = await Settings.get("TIME_TO_SYNC_BONUSES_IN_MINUTES") ?? "5";
-            if (diffInMinutes < parseInt(timeToSyncBonusesInMinutes))
+            const timeToSyncBonusesInMinutes = await Settings.get("TIME_TO_SYNC_BONUSES_IN_MINUTES") ?? 15;
+            if (diffInMinutes < timeToSyncBonusesInMinutes)
                 continue;
             if (await BonusProgram.isAlive(userBonusProgram.bonusProgram)) {
                 // Not await for parallel sync
@@ -120,8 +120,8 @@ let Model = {
             if (!force) {
                 // No sync if time not more 5 min
                 const diffInMinutes = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60); // Разница в миллисекундах
-                let timeToSyncBonusesInMinutes = await Settings.get("TIME_TO_SYNC_BONUSES_IN_MINUTES") ?? "5";
-                if (diffInMinutes < parseInt(timeToSyncBonusesInMinutes)) {
+                let timeToSyncBonusesInMinutes = await Settings.get("TIME_TO_SYNC_BONUSES_IN_MINUTES") ?? 5;
+                if (diffInMinutes < timeToSyncBonusesInMinutes) {
                     sails.log.debug(`SYNC > time for sync ubp ${userBonusProgram.id} lest than ${timeToSyncBonusesInMinutes}`);
                     return;
                 }
@@ -140,7 +140,7 @@ let Model = {
             else {
                 try {
                     // Sync transaction after time from Settings SYNC_BONUSTRANSACTION_AFTER_TIME
-                    const SYNC_BONUSTRANSACTION_AFTER_TIME = await Settings.get('SYNC_BONUSTRANSACTION_AFTER_TIME') ?? '0';
+                    const SYNC_BONUSTRANSACTION_AFTER_TIME = await Settings.get('SYNC_BONUSTRANSACTION_AFTER_TIME') ?? 0;
                     afterTime = new Date(SYNC_BONUSTRANSACTION_AFTER_TIME);
                 }
                 catch { }
