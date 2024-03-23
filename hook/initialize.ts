@@ -20,8 +20,15 @@ import { NotificationManager } from "../libs/NotificationManager";
 global.NotificationManager = NotificationManager
 
 /**
- * Set global NotificationManager
+ * Set global DialogBox
  */
+import { DialogBox } from "../libs/DialogBox";
+// @ts-ignore
+global.DialogBox = DialogBox
+
+
+
+
 import { Adapter } from "../adapters/index";
 import bindAdminpanel from "./bindAdminpanel";
 import bindLocales from "./bindLocales";
