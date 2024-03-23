@@ -23,7 +23,7 @@ describe('DialogBox', () => {
   });
 
   it('should initialize config, user, and askId properties', () => {
-    const dialogBox = new DialogBox(dialogConfig, user);
+    const dialogBox = new DialogBox(dialogConfig, user, "device123");
     expect(dialogBox.config).to.deep.equal(dialogConfig);
     expect(dialogBox.user).to.deep.equal(user);
     expect(dialogBox.askId).to.be.a('string');
@@ -39,12 +39,12 @@ describe('DialogBox', () => {
       }, 750);
     })
 
-    const result = await DialogBox.ask(dialogConfig, user);
+    const result = await DialogBox.ask(dialogConfig, user, "device123");
     expect(result).to.equal(dialog.config.options[0].id);
   });
 
   it('should return null when no answer received within timeout', async () => {
-    const result = await DialogBox.ask(dialogConfig, user, undefined, 1000);
+    const result = await DialogBox.ask(dialogConfig, user, "device123", 1000);
     expect(result).to.be.null;
   });
 });

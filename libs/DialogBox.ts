@@ -7,16 +7,18 @@ export class DialogBox {
   public user: User;
   public answerId: string = null;
   public askId: string
-
+  public deviceId: string
+  
   static dialogs: { [askId: string]: DialogBox } = {};
 
-  constructor(config: DialogBoxConfig, user: User) {
+  constructor(config: DialogBoxConfig, user: User, deviceId: string) {
     this.config = config;
     this.user = user;
     this.askId = uuid();
+    this.deviceId = deviceId;
   }
 
-  public static async ask(dialog: DialogBoxConfig, user: User, deviceId?: string, timeout?: number): Promise<string | null> {
+  public static async ask(dialog: DialogBoxConfig, user: User, deviceId: string, timeout?: number): Promise<string | null> {
     function sleep(ms: number): Promise<void> {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -24,7 +26,7 @@ export class DialogBox {
     if (!timeout) timeout = 30 * 1000;
     const startTime = Date.now();
     
-    const dialogBox = new DialogBox(dialog, user);
+    const dialogBox = new DialogBox(dialog, user, deviceId);
     DialogBox.dialogs[dialogBox.askId] = dialogBox;
     emitter.emit("dialog-box:new", dialogBox)
 
