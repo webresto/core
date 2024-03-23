@@ -45,8 +45,11 @@ const NotificationManager_1 = require("../libs/NotificationManager");
 // @ts-ignore
 global.NotificationManager = NotificationManager_1.NotificationManager;
 /**
- * Set global NotificationManager
+ * Set global DialogBox
  */
+const DialogBox_1 = require("../libs/DialogBox");
+// @ts-ignore
+global.DialogBox = DialogBox_1.DialogBox;
 const index_1 = require("../adapters/index");
 const bindAdminpanel_1 = __importDefault(require("./bindAdminpanel"));
 const bindLocales_1 = __importDefault(require("./bindLocales"));
