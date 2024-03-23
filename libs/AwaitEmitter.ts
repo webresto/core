@@ -11,6 +11,7 @@ import User from "../models/User";
 import { Payment } from "../interfaces/Payment";
 import OrderDish from "../models/OrderDish"
 import Maintenance from "../models/Maintenance"
+import { DialogBox } from "./DialogBox";
 
 declare global {
   interface IAwaitEmitter {
@@ -58,6 +59,8 @@ declare global {
     'core:dish-after-update': [Dish]
     'core:dish-before-update': [Dish]
     "core-dish-get-dishes": [Dish[]]
+    "dialog-box:new": [DialogBox]
+    "dialog-box:answer-received": [string, string]
   }
 }
 

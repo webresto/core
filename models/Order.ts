@@ -371,6 +371,16 @@ let Model = {
 
     // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone
 
+    let youSure = await NotificationManager.askUser({
+      type: "ask-user",
+      name: "Хотители вы точно добить блюдо?"
+      buttons : [
+        {name, color}
+      ]
+    })
+
+    
+    
     let dishObj: Dish;
 
     if (!addedBy) addedBy = "user";
