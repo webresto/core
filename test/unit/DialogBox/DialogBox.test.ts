@@ -6,13 +6,10 @@ describe('DialogBox', () => {
   let dialogConfig: DialogBoxConfig = {
     message: 'Test message',
     title: 'Test title',
-    description: 'Test description',
     optionsType: 'button',
-    image: "",
     options: [{
       id: 'button1',
-      label: 'Button 1',
-      of: null
+      label: 'Button 1'
     }]
   };
 

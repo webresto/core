@@ -12,6 +12,13 @@ export class DialogBox {
   static dialogs: { [askId: string]: DialogBox } = {};
 
   private constructor(config: DialogBoxConfig, deviceId: string) {
+    if(config.type === undefined) config.type = "routine"
+    if(config.allowClosing === undefined) config.allowClosing = true
+    
+    if(config.options.length < 1 ){
+      throw `Options for DialogBox should be defined`
+    }
+
     this.config = config;
     this.askId = uuid();
     this.deviceId = deviceId;

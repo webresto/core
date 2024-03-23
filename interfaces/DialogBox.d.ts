@@ -1,19 +1,44 @@
 import Dish from "../models/Dish";
-type DialogBoxConfig = DialogBoxButton | DialogBoxProduct
+export type DialogBoxConfig = DialogBoxButton | DialogBoxProduct
 interface DialogBoxBase {
+  /**
+   * Allowed to close dialog box
+   * 
+   * by deafult: should be `true`
+   */
+  allowClosing?: boolean
+
+  /**
+   * type of interactive dialogue
+   * by default `routine`
+   */
+  type?: 
+    /**
+     * Informational, regular dialog boxes
+     */
+    "routine" |
+
+    /**
+     * Critical Events
+     */
+    "critical"
+
+
   message: string;
   title: string;
-  description: string;
   options: OptionType
-  image: string;
+  /**
+   * Event icon
+   */
+  icon?: string;
 }
 
-interface DialogBoxButton extends DialogBoxBase {
+export interface DialogBoxButton extends DialogBoxBase {
   options: DialogOptionButton[];
   optionsType: "button";
 }
 
-interface DialogBoxProduct extends DialogBoxBase {
+export interface DialogBoxProduct extends DialogBoxBase {
   options: DialogOptionProduct[];
   optionsType: "product";
 }
@@ -23,13 +48,21 @@ type OptionType = "button" | "product"
 interface DialogOptionBase {
   id: string;
   label: string;
-  of: Dish 
 }
 
 interface DialogOptionProduct extends DialogOptionBase {
-  of: Dish 
+  product: Dish 
 }
 
 interface DialogOptionButton extends DialogOptionBase {
-  of: 
+  /**
+   * By default: 
+   * * 1st - primary, 2st - secondary, 3 - link, 4 - abort
+   * * 1st - primary, 2st - secondary, 3 - abort
+   * * 1st - primary, 2st - secondary
+   * * 1st - primary
+   */
+  button?: {
+    type: "primary" | "secondary" | "link" | "abort"
+  }
 }
