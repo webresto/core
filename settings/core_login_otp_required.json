@@ -3,5 +3,6 @@
   "type": "boolean",
   "name": "Core Login OTP Required",
   "description": "Is it necessary to get OTP during login",
-  "defaultValue": true
+  "defaultValue": true,
+  "isRequired": true
 }

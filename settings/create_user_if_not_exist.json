@@ -3,5 +3,6 @@
   "type": "boolean",
   "name": "Create User If Not Exist",
   "description": "",
-  "defaultValue": true
+  "defaultValue": true,
+  "isRequired": true
 }
