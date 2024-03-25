@@ -666,7 +666,7 @@ let Model = {
             order.selfService = false;
             if (address) {
                 if (!address.city)
-                    address.city = await Settings.get("city");
+                    address.city = await Settings.get("CITY");
                 checkAddress(address);
                 order.address = { ...address };
             }
@@ -834,7 +834,7 @@ let Model = {
         sails.log.silly("Order > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
-        const orderConfig = await Settings.get("order");
+        const orderConfig = await Settings.get("ORDER");
         if (orderConfig) {
             if (orderConfig.requireAll) {
                 if (resultsCount === successCount) {
@@ -1400,7 +1400,7 @@ async function checkCustomerInfo(customer) {
                 break;
         }
     }
-    const nameRegex = await Settings.get("nameRegex");
+    const nameRegex = await Settings.get("NAME_REGEX");
     if (nameRegex) {
         if (!nameRegex.match(customer.name)) {
             throw {

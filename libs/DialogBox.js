@@ -5,6 +5,13 @@ const uuid_1 = require("uuid");
 class DialogBox {
     constructor(config, deviceId) {
         this.answerId = null;
+        if (config.type === undefined)
+            config.type = "routine";
+        if (config.allowClosing === undefined)
+            config.allowClosing = true;
+        if (config.options.length < 1) {
+            throw `Options for DialogBox should be defined`;
+        }
         this.config = config;
         this.askId = (0, uuid_1.v4)();
         this.deviceId = deviceId;

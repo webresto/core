@@ -52,8 +52,7 @@ declare global {
     type ResType = sails.Response;
     type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
     interface SettingList {
-        restocore_timeSyncPayments: number;
-        timezone: string;
+        RESTOCORE_TIME_SYNC_PAYMENTS: number;
         CORE_LOGIN_FIELD: string;
         CORE_LOGIN_OTP_REQUIRED: boolean;
         CORE_SET_LAST_OTP_AS_PASSWORD: boolean;
@@ -77,25 +76,25 @@ declare global {
         SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS: number;
         ROOT_GROUPS_RMS_TO_SYNC: string[];
         SKIP_LOAD_PRODUCT_IMAGES: boolean;
-        ShowUnavailableDishes: boolean;
+        SHOW_UNAVAILABLE_DISHES: boolean;
         [key: `SLUG_MENU_TOP_LEVEL_CONCEPT_${string}`]: string;
         SLUG_MENU_TOP_LEVEL: string;
         ORDER_INIT_PRODUCT_ID: string;
         ONLY_CONCEPTS_DISHES: boolean;
         SEPARATE_CONCEPTS_ORDERS: boolean;
         BONUS_SPENDING_STRATEGY: string;
-        city: string;
+        CITY: string;
         CHECKOUT_STRATEGY: {
             notRequired: boolean;
         };
-        order: {
+        ORDER: {
             requireAll: boolean;
             justOne: boolean;
         };
         FRONTEND_ORDER_PAGE: string;
         FRONTEND_CHECKOUT_PAGE: string;
         ALLOWED_PHONE_COUNTRIES: string[];
-        nameRegex: string;
+        NAME_REGEX: string;
         TZ: string;
         POSSIBLE_TO_ORDER_IN_MINUTES: number;
         DEFAULT_ENABLE_PAYMENT_METHODS: boolean;
@@ -103,7 +102,7 @@ declare global {
         PASSWORD_REGEX: string;
         PASSWORD_MIN_LENGTH: number;
         PASSWORD_POLICY: "required" | "from_otp" | "disabled";
-        PasswordSalt: number;
+        PASSWORD_SALT: number;
         LOGIN_OTP_REQUIRED: boolean;
         CREATE_USER_IF_NOT_EXIST: boolean;
         TIME_TO_SYNC_BONUSES_IN_MINUTES: number;

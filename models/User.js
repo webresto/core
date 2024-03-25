@@ -264,7 +264,7 @@ let Model = {
             }
         }
         // salt
-        let salt = await Settings.get("PasswordSalt");
+        let salt = await Settings.get("PASSWORD_SALT");
         if (!salt)
             salt = 8;
         let user = await User.findOne({ id: userId });

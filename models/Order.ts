@@ -373,14 +373,14 @@ let Model = {
 
     let youSure = await NotificationManager.askUser({
       type: "ask-user",
-      name: "Хотители вы точно добить блюдо?"
+      name: "Хотители вы точно добить блюдо?",
       buttons : [
         {name, color}
       ]
     })
 
-    
-    
+
+
     let dishObj: Dish;
 
     if (!addedBy) addedBy = "user";
@@ -837,7 +837,7 @@ let Model = {
     } else {
       order.selfService = false;
       if (address) {
-        if (!address.city) address.city = await Settings.get("city")
+        if (!address.city) address.city = await Settings.get("CITY")
         checkAddress(address);
         order.address = { ...address };
       } else {
@@ -1034,7 +1034,7 @@ let Model = {
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
 
-    const orderConfig = await Settings.get("order");
+    const orderConfig = await Settings.get("ORDER");
     if (orderConfig) {
       if (orderConfig.requireAll) {
         if (resultsCount === successCount) {
@@ -1692,7 +1692,7 @@ async function checkCustomerInfo(customer) {
     }
   }
 
-  const nameRegex = await Settings.get("nameRegex");
+  const nameRegex = await Settings.get("NAME_REGEX");
   if (nameRegex) {
     if (!nameRegex.match(customer.name)) {
       throw {

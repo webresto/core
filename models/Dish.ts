@@ -305,7 +305,7 @@ let Model = {
   async getDishes(criteria: any = {}): Promise<Dish[]> {
     criteria.isDeleted = false;
 
-    if (!(await Settings.get("ShowUnavailableDishes"))) {
+    if (!(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) {
       criteria.balance = { "!=": 0 };
     }
 

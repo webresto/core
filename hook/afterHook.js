@@ -5,11 +5,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 async function default_1() {
     try {
-        const timeSyncPayments = await Settings.get("restocore_timeSyncPayments");
+        const timeSyncPayments = await Settings.get("RESTOCORE_TIME_SYNC_PAYMENTS");
         /**
          * TIMEZONE
          */
-        const timezone = await Settings.get("timezone");
+        const timezone = await Settings.get("TZ");
         process.env.TZ = timezone;
         await PaymentDocument.processor(timeSyncPayments);
         /**
