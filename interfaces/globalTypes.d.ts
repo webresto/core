@@ -109,6 +109,10 @@ declare global {
         SYNC_BONUSTRANSACTION_AFTER_TIME: number;
         DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean;
         ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean;
+        RESTOCORE_URL: string;
+        IMAGES_URL: string;
+        PROJECT_NAME: string;
+        DEFAULT_CURRENCY_ISO: string;
         ALLOW_BONUS_SPENDING: boolean;
         DELIVERY_DESCRIPTION: string;
         FIRSTNAME_REQUIRED: boolean;

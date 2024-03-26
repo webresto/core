@@ -110,6 +110,12 @@ declare global {
     DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean
     ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean
 
+    // from base modules
+    RESTOCORE_URL: string
+    IMAGES_URL: string
+    PROJECT_NAME: string
+    DEFAULT_CURRENCY_ISO: string
+
     // from graphql
     ALLOW_BONUS_SPENDING: boolean
     DELIVERY_DESCRIPTION: string

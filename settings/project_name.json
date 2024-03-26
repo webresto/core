@@ -1,0 +1,11 @@
+{
+  "key": "PROJECT_NAME",
+  "type": "string",
+  "name": "Project Name",
+  "description": "Allowed only domain name pattern 'a-z' and '-' sign",
+  "jsonSchema": {
+    "type": "string",
+    "pattern": "^[a-z\\-]+$",
+    "minLength": 3
+  }
+}
