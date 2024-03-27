@@ -9,7 +9,7 @@ type sailsConfig = typeof sails.config;
 interface RestocoreHook {
   dictionaries: {
     countries: {
-      [key:string]: {
+      [key: string]: {
         phoneCode: string;
         iso: string;
         name: string;
@@ -25,12 +25,12 @@ interface RestocoreHook {
       }
     }
   }
-  [key:string]: any | object | Function;
+  [key: string]: any | object | Function;
 }
 
 interface SailsHooks {
   restocore: RestocoreHook;
-  [key:string]: any | object | Function;
+  [key: string]: any | object | Function;
 }
 
 
@@ -50,17 +50,18 @@ declare global {
     config: _sailsConfig;
     log: any;
     after: any;
-    dictionaries: ISailsDictionaries 
+    dictionaries: ISailsDictionaries
+    __: (...args: string[]) => string;
   }
 
   interface ISailsDictionaries {
-    countries: {[iso in CountryISOList]: Country} 
-    currencies: { [iso in CurrencyISOList]: Currency };  
+    countries: { [iso in CountryISOList]: Country }
+    currencies: { [iso in CurrencyISOList]: Currency };
   }
 
   interface _sailsConfig extends sailsConfig {
     restocore: Config;
-    [key:string]: any | object;
+    [key: string]: any | object;
   }
   const sails: Sails;
   type ReqType = sails.Request;
