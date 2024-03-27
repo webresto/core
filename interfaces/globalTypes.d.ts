@@ -2,6 +2,7 @@ import sails from "@42pub/typed-sails";
 import { Config } from "./Config";
 import AwaitEmitter from "../libs/AwaitEmitter";
 import { WorkTime } from "@webresto/worktime";
+import { ISOList } from "./Country";
 type sailsConfig = typeof sails.config;
 interface RestocoreHook {
     dictionaries: {
@@ -113,6 +114,7 @@ declare global {
         IMAGES_URL: string;
         PROJECT_NAME: string;
         DEFAULT_CURRENCY_ISO: string;
+        COUNTRY_ISO: ISOList;
         ALLOW_BONUS_SPENDING: boolean;
         DELIVERY_DESCRIPTION: string;
         FIRSTNAME_REQUIRED: boolean;
