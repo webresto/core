@@ -2,7 +2,7 @@ import sails from "@42pub/typed-sails";
 import { Config } from "./Config";
 import AwaitEmitter from "../libs/AwaitEmitter";
 import { WorkTime } from "@webresto/worktime";
-import { ISOList } from "./Country";
+import { Country, Currency, CountryISOList, CurrencyISOList } from "./Country";
 
 type sailsConfig = typeof sails.config;
 
@@ -33,12 +33,15 @@ interface SailsHooks {
   [key:string]: any | object | Function;
 }
 
+
+
 declare global {
   const emitter: AwaitEmitter;
   const NotificationManager: typeof import("../libs/NotificationManager").NotificationManager
   const DialogBox: typeof import("../libs/DialogBox").DialogBox
   const Adapter: typeof import("../adapters").Adapter
   interface Sails extends sails.Sails {
+    [x: string]: {};
     on: any;
     emit: any;
     router: any;
@@ -47,7 +50,14 @@ declare global {
     config: _sailsConfig;
     log: any;
     after: any;
+    dictionaries: ISailsDictionaries 
   }
+
+  interface ISailsDictionaries {
+    countries: {[iso in CountryISOList]: Country} 
+    currencies: { [iso in CurrencyISOList]: Currency };  
+  }
+
   interface _sailsConfig extends sailsConfig {
     restocore: Config;
     [key:string]: any | object;
@@ -116,7 +126,7 @@ declare global {
     IMAGES_URL: string
     PROJECT_NAME: string
     DEFAULT_CURRENCY_ISO: string
-    COUNTRY_ISO: ISOList
+    COUNTRY_ISO: CountryISOList
 
     // from graphql
     ALLOW_BONUS_SPENDING: boolean
