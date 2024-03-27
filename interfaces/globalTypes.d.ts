@@ -45,6 +45,7 @@ declare global {
         log: any;
         after: any;
         dictionaries: ISailsDictionaries;
+        __: (...args: string[]) => string;
     }
     interface ISailsDictionaries {
         countries: {

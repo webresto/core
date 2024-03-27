@@ -2,7 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 let countries = require("../libs/dictionaries/countries.json");
 function default_1() {
-    sails.dictionaries = {};
+    sails.dictionaries = {
+        countries: {},
+        currencies: {}
+    };
     let countriesHash = {};
     countries.forEach((country) => {
         countriesHash[country.iso] = country;

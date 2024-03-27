@@ -2,7 +2,10 @@ let countries = require("../libs/dictionaries/countries.json")
 import { Country } from "../interfaces/Country";
 export default function() {
     
-    sails.dictionaries = {} as ISailsDictionaries
+    sails.dictionaries = {
+        countries: {},
+        currencies: {}
+    } as ISailsDictionaries
 
     let countriesHash = {};
     countries.forEach((country: Country) => {

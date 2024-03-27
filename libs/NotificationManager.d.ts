@@ -23,7 +23,6 @@
 
   The channel adapter itself should be an abstract class and will be checked by the notification manager.
  */
-import { DialogBox } from "../interfaces/DialogBox";
 import User from "../models/User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string;
@@ -55,8 +54,5 @@ export declare class NotificationManager {
     static send: (badge: Badge, groupTo: MessageGroupTo, message: string, user?: User, type?: ChannelType, subject?: string, data?: object) => Promise<void>;
     static isChannelExist: (channelType: string) => boolean;
     static registerChannel: (channel: Channel) => void;
-    test(): void;
-    ask(dialog: DialogBox, user: User, deviceId?: string, timeout?: number): void;
-    answerProcess: (askId: string, optionId: string) => {};
 }
 export {};
