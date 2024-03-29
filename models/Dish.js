@@ -133,7 +133,7 @@ let attributes = {
     /** The dish is removed */
     isDeleted: "boolean",
     /** The dish can be modified*/
-    isModifiable: "boolean",
+    isModificable: "boolean",
     /** Parental group */
     parentGroup: {
         model: "group",

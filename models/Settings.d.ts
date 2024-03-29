@@ -34,6 +34,7 @@ declare let attributes: {
     /** Only reading */
     readOnly: boolean;
     module: string;
+    isRequired: boolean;
 };
 type attributes = typeof attributes & ORM;
 interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> {

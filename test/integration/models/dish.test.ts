@@ -116,7 +116,7 @@ describe('Dish', function () {
     'weight',
     'sortOrder',
     'isDeleted',
-    'isModifiable',
+    'isModificable',
     'modifiers',
     'parentGroup',
     'tags',

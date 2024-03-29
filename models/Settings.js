@@ -44,7 +44,8 @@ let attributes = {
     module: {
         type: "string",
         allowNull: true
-    }
+    },
+    isRequired: "boolean"
 };
 let Model = {
     beforeCreate: function (record, cb) {
@@ -234,7 +235,7 @@ let Model = {
     }
 };
 module.exports = {
-    primaryKey: "key",
+    primaryKey: "id",
     attributes: attributes,
     ...Model,
 };

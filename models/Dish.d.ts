@@ -64,7 +64,7 @@ declare let attributes: {
     /** The dish is removed */
     isDeleted: boolean;
     /** The dish can be modified*/
-    isModifiable: boolean;
+    isModificable: boolean;
     /** Parental group */
     parentGroup: any;
     /** Tags for filtering (vegetarian, sharp ...) */

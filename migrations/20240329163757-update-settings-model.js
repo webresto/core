@@ -18,7 +18,6 @@ exports.setup = function(options, seedLink) {
 
 exports.up = function (db, callback) {
   async.series([
-    (cb) => db.addColumn('dish', 'isModifiable', {"type":"boolean"}, cb),
 (cb) => db.addColumn('settings', 'name', {"type":"text"}, cb),
 (cb) => db.addColumn('settings', 'tooltip', {"type":"text"}, cb),
 (cb) => db.addColumn('settings', 'defaultValue', {"type":"json"}, cb),
@@ -26,12 +25,11 @@ exports.up = function (db, callback) {
 (cb) => db.addColumn('settings', 'jsonSchema', {"type":"json"}, cb),
 (cb) => db.addColumn('settings', 'uiSchema', {"type":"json"}, cb),
 (cb) => db.addColumn('settings', 'module', {"type":"text","notNull":false}, cb),
-(cb) => db.addColumn('userdevice', 'isLoggedIn', {"type":"boolean"}, cb),
-(cb) => db.removeColumn('dish', 'isModificable', cb),
+(cb) => db.addColumn('settings', 'isRequired', {"type":"boolean"}, cb),
+(cb) => db.renameColumn('userdevice', 'isLogined', 'isLoggedIn', cb),
 (cb) => db.removeColumn('settings', 'section', cb),
 (cb) => db.removeColumn('settings', 'from', cb),
 (cb) => db.removeColumn('settings', 'schema', cb),
-(cb) => db.removeColumn('userdevice', 'isLogined', cb),
 
   ], callback);
 }

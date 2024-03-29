@@ -60,7 +60,8 @@ let attributes = {
   module: {
     type: "string",
     allowNull: true
-  } as unknown as string
+  } as unknown as string,
+  isRequired: "boolean" as unknown as boolean
 };
 
 type attributes = typeof attributes & ORM;
@@ -279,7 +280,7 @@ let Model = {
 };
 
 module.exports = {
-  primaryKey: "key",
+  primaryKey: "id",
   attributes: attributes,
   ...Model,
 };

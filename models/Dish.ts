@@ -165,7 +165,7 @@ let attributes = {
   isDeleted: "boolean" as unknown as boolean,
 
   /** The dish can be modified*/
-  isModifiable: "boolean" as unknown as boolean,
+  isModificable: "boolean" as unknown as boolean,
 
   /** Parental group */
   parentGroup: {
