@@ -1,17 +1,26 @@
 export type Country = {
   phoneCode: String
-  iso: String
+  iso: CountryISOList
   name: String
   nativeCountryName: String
   language: String
   currency: String
   currencySymbol: String
-  currencyISO: String
+  currencyISO: CurrencyISOList
   currencyUnit: String
   currencyDenomination: Number
 }
 
-export type ISOList = "AD" | "AE" | "AF" | "AG" | "AI" | "AL" | "AM" | "AO" | "AQ" | "AR" | "AS" | "AT" | "AU" | "AW" |
+export type Currency = {
+  currency: String
+  currencySymbol: String
+  currencyISO: String
+  currencyUnit: String
+}
+
+export type CurrencyISOList =  'EUR" | "AED" | "AFN" | "XCD" | "ALL" | "AMD" | "AOA" | "ARS" | "AUD" | "AWG" | "AZN" | "BAM" | "BBD" | "BDT" | "XOF" | "BGN" | "BHD" | "BIF" | "BMD" | "BOB" | "BRL" | "INR" | "BWP" | "BYN" | "BZD" | "CAD" | "CHF" | "NZD" | "CLP" | "XAF" | "CNY" | "COP" | "CRC" | "CUP" | "ANG" | "CZK" | "DJF" | "DKK" | "DOP" | "DZD" | "EGP" | "ETB" | "FJD" | "GBP" | "GEL" | "GHS" | "GNF" | "GTQ" | "GYD" | "HNL" | "HRK" | "HTG" | "HUF" | "IDR" | "ILS" | "USD" | "IQD" | "IRR" | "ISK" | "JMD" | "JOD" | "JPY" | "KES" | "KGS" | "KHR" | "KWD" | "KYD" | "KZT" | "LAK" | "LBP" | "LKR" | "LRD" | "ZAR" | "LYD" | "MAD" | "MDL" | "MGA" | "MMK" | "MRU" | "MUR" | "MVR" | "MWK" | "MXN" | "MYR" | "MZN" | "XPF" | "NGN" | "NIO" | "NOK" | "NPR" | "OMR" | "PEN" | "PGK" | "PHP" | "PKR" | "PLN" | "PYG" | "QAR" | "RON" | "RSD" | "RUB" | "RWF" | "SAR" | "SBD" | "SCR" | "SDG" | "SEK" | "BND" | "SLL" | "SOS" | "SRD" | "THB" | "TJS" | "TMT" | "TND" | "TOP" | "TRY" | "TTD" | "TWD" | "TZS" | "UAH" | "UGX" | "UYU" | "UZS" | "VES" | "VND" | "YER" | "ZMW'
+ 
+export type CountryISOList = "AD" | "AE" | "AF" | "AG" | "AI" | "AL" | "AM" | "AO" | "AQ" | "AR" | "AS" | "AT" | "AU" | "AW" |
     "AZ" | "BA" | "BB" | "BD" | "BE" | "BF" | "BG" | "BH" | "BI" | "BJ" | "BL" | "BM" | "BN" | "BO" | "BR" | "BS" |
     "BT" | "BW" | "BY" | "BZ" | "CA" | "CC" | "CD" | "CF" | "CG" | "CH" | "CI" | "CK" | "CL" | "CM" | "CN" |  "CO" |
     "CR" | "CU" | "CV" | "CW" | "CX" | "CY" | "CZ" | "DE" | "DJ" | "DK" | "DM" | "DO" | "DZ" | "EC" | "EE" | "EG" |

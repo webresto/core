@@ -23,7 +23,6 @@
 
   The channel adapter itself should be an abstract class and will be checked by the notification manager.
  */
-import { DialogBox } from "../interfaces/DialogBox";
 import User from "../models/User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string
@@ -135,30 +134,4 @@ export class NotificationManager {
     NotificationManager.channels.push(channel);
     NotificationManager.channels.sort((a, b) => a.sortOrder - b.sortOrder);
   };
-
-
-  test(){
-    let dialog: DialogBox = {
-      description: "test",
-      image: null,
-      title: "????",
-      optionsType: "button",
-      options: [
-        {
-          id: "111",
-          label: "232",
-          of: null
-        }
-      ]
-    }
-    
-  }
-
-  ask(dialog: DialogBox, user: User, deviceId?: string, timeout?: number) {
-
-  }
-
-  answerProcess: (askId: string, optionId: string) {
-
-  }
 }
