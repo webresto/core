@@ -20,7 +20,7 @@ export class DefaultDeliveryAdapter extends DeliveryAdapter {
       }
     }
 
-    if (order.basketTotal > ( parseFloat(freeDeliveryFrom) ?? Infinity )) {
+    if (order.basketTotal > ( freeDeliveryFrom ?? Infinity )) {
       return  {
         allowed: true,
         deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,

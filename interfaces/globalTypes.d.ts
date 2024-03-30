@@ -77,7 +77,7 @@ declare global {
         DELIVERY_COST: number;
         DELIVERY_ITEM: string;
         DELIVERY_MESSAGE: string;
-        FREE_DELIVERY_FROM: string;
+        FREE_DELIVERY_FROM: number;
         MIN_DELIVERY_AMOUNT: number;
         MIN_DELIVERY_TIME_IN_MINUTES: number;
         MEDIAFILE_PARALLEL_TO_DOWNLOAD: number;
