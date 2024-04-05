@@ -14,14 +14,13 @@ export default async function () {
     const timezone = await Settings.get("TZ");
     process.env.TZ = timezone;
 
-    if(!await Settings.get("UUID_NAMESPACE")) {
-      await Settings.set("UUID_NAMESPACE", {
-        key: "UUID_NAMESPACE",
-        value: 1//generateRandomString(64)
-      }
-      )
+    if (!await Settings.get("UUID_NAMESPACE")) {
+      await Settings.set("CITY", {
+//        value: generateRandomString(64)
+        defaultValue: "sdsd"
+})
     }
-    
+
 
     await PaymentDocument.processor(timeSyncPayments);
 
@@ -40,22 +39,22 @@ export default async function () {
     /**
      * @setting CORE_LOGIN_FIELD User login field source (ex: "phone", "email" ...) [read-only by default]
      */
-    await Settings.set("CORE_LOGIN_FIELD", {key: "CORE_LOGIN_FIELD", value: "phone", readOnly: true});
+    await Settings.set("CORE_LOGIN_FIELD", { key: "CORE_LOGIN_FIELD", value: "phone", readOnly: true });
 
     /**
      * @setting CORE_LOGIN_OTP_REQUIRED check OTP on a login process
      */
-    await Settings.set("CORE_LOGIN_OTP_REQUIRED", {key: "CORE_LOGIN_OTP_REQUIRED", value: true});
+    await Settings.set("CORE_LOGIN_OTP_REQUIRED", { key: "CORE_LOGIN_OTP_REQUIRED", value: true });
 
     /**
      * @setting CORE_SET_LAST_OTP_AS_PASSWORD setting last OTP as password
      */
-    await Settings.set("CORE_SET_LAST_OTP_AS_PASSWORD", {key: "CORE_SET_LAST_OTP_AS_PASSWORD", value: true});
+    await Settings.set("CORE_SET_LAST_OTP_AS_PASSWORD", { key: "CORE_SET_LAST_OTP_AS_PASSWORD", value: true });
 
     /**
      * @setting CORE_PASSWORD_REQUIRED Check password (Login only by OTP if false)
      */
-    await Settings.set("CORE_PASSWORD_REQUIRED", {key: "CORE_PASSWORD_REQUIRED", value: true});
+    await Settings.set("CORE_PASSWORD_REQUIRED", { key: "CORE_PASSWORD_REQUIRED", value: true });
 
 
     try {

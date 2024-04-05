@@ -101,7 +101,7 @@ declare global {
     SEPARATE_CONCEPTS_ORDERS: boolean
     BONUS_SPENDING_STRATEGY: string
     CITY: string
-    CHECKOUT_STRATEGY: { notRequired: boolean }
+    CHECKOUT_STRATEGY: { notRequired?: boolean }
     ORDER: { requireAll: boolean, justOne: boolean }
     FRONTEND_ORDER_PAGE: string
     FRONTEND_CHECKOUT_PAGE: string

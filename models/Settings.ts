@@ -2,17 +2,17 @@
  * Attention! We use MM "Settings" model in production mode, but for tests and core integrity, we support this model
  * */
 
-import {OptionalAll, RequiredField} from "../interfaces/toolsTS"
-import {ORMModel} from "../interfaces/ORMModel";
+import { OptionalAll, RequiredField } from "../interfaces/toolsTS"
+import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import {ControlElement, Layout} from "@jsonforms/core";
+import { ControlElement, Layout } from "@jsonforms/core";
 import Ajv from 'ajv';
 
 // Memory store
 let settings: SettingValue = {}
 type PlainValue = string | boolean | number | string[] | number[] | SettingValue[]
 type SettingValue = PlainValue | {
-  [key: string]:  SettingList[keyof SettingList];
+  [key: string]: SettingList[keyof SettingList];
 };
 type SettingType = "string" | "boolean" | "json" | "number"
 
@@ -66,7 +66,7 @@ let attributes = {
 
 type attributes = typeof attributes & ORM;
 
-interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> {}
+interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> { }
 
 export default Settings;
 
@@ -110,7 +110,7 @@ let Model = {
     /** ENV variable is more important than a database, but it should match the schema */
     if (process.env[key] !== undefined) {
       // ENV variable should be in database
-      let setting = await Settings.findOne({key: key});
+      let setting = await Settings.findOne({ key: key });
       if (!setting) {
         return undefined;
       }
@@ -141,7 +141,7 @@ let Model = {
     }
 
     /** If variable present in a database */
-    let setting = await Settings.findOne({key: key});
+    let setting = await Settings.findOne({ key: key });
     if (setting && (setting.value !== null || setting.defaultValue !== null)) {
       value = setting.value !== null ? setting.value : setting.defaultValue;
       return cleanValue(setting.value);
@@ -178,31 +178,39 @@ let Model = {
     }
   },
 
-  async set<K extends keyof SettingList, T = SettingList[K]>(key: K, settingsSetInput: SettingsSetInput<K, T>): Promise<Settings> {
+  async set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings> {
     if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
       throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
     }
 
     // calculate 'type' by value (if value was given)
     let settingType = settingsSetInput.type;
-    if (!settingType) {
-      switch (typeof settingsSetInput.value) {
-        case 'object':
-          settingType = 'json'
-          break;
-        case 'boolean':
-          settingType = 'boolean';
-          break;
-        case 'number':
-          settingType = 'number';
-          break;
-        case 'string':
-          settingType = 'string';
-          break;
-        default:
-          sails.log.error('Settings set error: Can not calculate type by given value, but type is required field')
-          return;
+
+    // Detect type if not defined
+    if (!settingType && settingsSetInput.jsonSchema && settingsSetInput.jsonSchema.type) {
+      settingType = settingsSetInput.jsonSchema.type;
+    }
+
+    if (!settingType && settingsSetInput.value) {
+      let detectedType = typeof settingsSetInput.value
+      if (["string", "boolean", "json", "number"].includes(detectedType)) {
+        //@ts-ignore
+        settingType = typeof settingsSetInput.value
       }
+    }
+
+    if (!settingType && settingsSetInput.defaultValue) {
+      let detectedType = typeof settingsSetInput.defaultValue
+      if (["string", "boolean", "json", "number"].includes(detectedType)) {
+        //@ts-ignore
+        settingType = typeof settingsSetInput.value
+      }
+    }
+
+    if (!settingType) {
+      const errorMessage = 'Settings set error: Can not calculate type by given value, but type is required field'
+      sails.log.error(errorMessage)
+      throw new Error(errorMessage)
     }
 
     // check that jsonSchema is present for a json type
@@ -219,9 +227,9 @@ let Model = {
       }
 
       if (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(`${settingsSetInput.defaultValue}`)) {
-        settingsSetInput.defaultValue = true;
+        settingsSetInput.defaultValue = true as unknown as any;
       } else if (["no", "NO", "No", "0", "false", "FALSE", "False"].includes(`${settingsSetInput.defaultValue}`)) {
-        settingsSetInput.defaultValue = false;
+        settingsSetInput.defaultValue = false as unknown as any;
       }
     }
 
@@ -230,7 +238,7 @@ let Model = {
       const ajv = new Ajv();
       const validate = ajv.compile(settingsSetInput.jsonSchema);
       if ((settingsSetInput.value !== undefined && !validate(settingsSetInput.value)) ||
-          (settingsSetInput.defaultValue !== undefined && !validate(settingsSetInput.defaultValue))) {
+        (settingsSetInput.defaultValue !== undefined && !validate(settingsSetInput.defaultValue))) {
         sails.log.error('AJV Validation Error: Value or defaultValue does not match the schema');
         return;
       }
@@ -241,33 +249,33 @@ let Model = {
 
     // Write to Database
     try {
-      const setting = await Settings.findOne({key: settingsSetInput.key});
+      const setting = await Settings.findOne({ key:key });
       if (!setting) {
         return await Settings.create({
           key: key,
           type: settingType,
-          jsonSchema: settingsSetInput.jsonSchema,
           module: settingsSetInput.appId || null,
-          name: settingsSetInput.name,
-          value: settingsSetInput.value,
-          defaultValue: settingsSetInput.defaultValue,
-          description: settingsSetInput.description,
-          tooltip: settingsSetInput.tooltip,
-          uiSchema: settingsSetInput.uiSchema,
-          readOnly: settingsSetInput.readOnly || false
+          ...settingsSetInput.jsonSchema && { jsonSchema: settingsSetInput.jsonSchema },
+          ...settingsSetInput.name && {name: settingsSetInput.name},
+          ...settingsSetInput.value && {value: settingsSetInput.value},
+          ...settingsSetInput.defaultValue && {defaultValue: settingsSetInput.defaultValue},
+          ...settingsSetInput.description && {description: settingsSetInput.description},
+          ...settingsSetInput.tooltip && { tooltip: settingsSetInput.tooltip},
+          ...settingsSetInput.uiSchema && {uiSchema: settingsSetInput.uiSchema},
+          readOnly: settingsSetInput.readOnly ?? false
         }).fetch();
       } else {
         if (setting.readOnly) throw `Property cannot be changed (read only)`;
-        return (await Settings.update({key: settingsSetInput.key}, {
+        return (await Settings.update({ key: key }, {
           type: settingType,
-          jsonSchema: settingsSetInput.jsonSchema,
-          name: settingsSetInput.name,
-          value: settingsSetInput.value,
-          defaultValue: settingsSetInput.defaultValue,
-          description: settingsSetInput.description,
-          tooltip: settingsSetInput.tooltip,
-          uiSchema: settingsSetInput.uiSchema,
-          readOnly: settingsSetInput.readOnly || false
+          ...settingsSetInput.jsonSchema && { jsonSchema: settingsSetInput.jsonSchema },
+          ...settingsSetInput.name && {name: settingsSetInput.name},
+          ...settingsSetInput.value && {value: settingsSetInput.value},
+          ...settingsSetInput.defaultValue && {defaultValue: settingsSetInput.defaultValue},
+          ...settingsSetInput.description && {description: settingsSetInput.description},
+          ...settingsSetInput.tooltip && { tooltip: settingsSetInput.tooltip},
+          ...settingsSetInput.uiSchema && {uiSchema: settingsSetInput.uiSchema},
+          ...settingsSetInput.readOnly && {readOnly: settingsSetInput.readOnly }
         }).fetch())[0];
 
       }
@@ -305,16 +313,21 @@ function cleanValue(value) {
   return value
 }
 
-interface SettingsSetInput<K extends string, T> {
+
+
+
+interface SettingsSetInputBase<K extends string, F> {
+  type?: SettingType
   key?: `${K}`
   appId?: string
-  type?: SettingType
   jsonSchema?: any,
   name?: string
   description?: string
   tooltip?: string
-  value?: T
-  defaultValue?: SettingValue
   uiSchema?: UISchema
   readOnly?: boolean
 }
+
+type SettingsSetInput<K extends string, F> = 
+  | ({ value: F, defaultValue?: F } & SettingsSetInputBase<K, F>)
+  | ({ value?: F,defaultValue: F } & SettingsSetInputBase<K, F>);

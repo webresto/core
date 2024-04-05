@@ -97,7 +97,7 @@ declare global {
         BONUS_SPENDING_STRATEGY: string;
         CITY: string;
         CHECKOUT_STRATEGY: {
-            notRequired: boolean;
+            notRequired?: boolean;
         };
         ORDER: {
             requireAll: boolean;

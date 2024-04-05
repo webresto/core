@@ -144,24 +144,28 @@ let Model = {
         }
         // calculate 'type' by value (if value was given)
         let settingType = settingsSetInput.type;
-        if (!settingType) {
-            switch (typeof settingsSetInput.value) {
-                case 'object':
-                    settingType = 'json';
-                    break;
-                case 'boolean':
-                    settingType = 'boolean';
-                    break;
-                case 'number':
-                    settingType = 'number';
-                    break;
-                case 'string':
-                    settingType = 'string';
-                    break;
-                default:
-                    sails.log.error('Settings set error: Can not calculate type by given value, but type is required field');
-                    return;
+        // Detect type if not defined
+        if (!settingType && settingsSetInput.jsonSchema && settingsSetInput.jsonSchema.type) {
+            settingType = settingsSetInput.jsonSchema.type;
+        }
+        if (!settingType && settingsSetInput.value) {
+            let detectedType = typeof settingsSetInput.value;
+            if (["string", "boolean", "json", "number"].includes(detectedType)) {
+                //@ts-ignore
+                settingType = typeof settingsSetInput.value;
             }
+        }
+        if (!settingType && settingsSetInput.defaultValue) {
+            let detectedType = typeof settingsSetInput.defaultValue;
+            if (["string", "boolean", "json", "number"].includes(detectedType)) {
+                //@ts-ignore
+                settingType = typeof settingsSetInput.value;
+            }
+        }
+        if (!settingType) {
+            const errorMessage = 'Settings set error: Can not calculate type by given value, but type is required field';
+            sails.log.error(errorMessage);
+            throw new Error(errorMessage);
         }
         // check that jsonSchema is present for a json type
         if (settingType === "json" && settingsSetInput.jsonSchema === undefined) {
@@ -196,35 +200,35 @@ let Model = {
         settings[key.toString()] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
         // Write to Database
         try {
-            const setting = await Settings.findOne({ key: settingsSetInput.key });
+            const setting = await Settings.findOne({ key: key });
             if (!setting) {
                 return await Settings.create({
                     key: key,
                     type: settingType,
-                    jsonSchema: settingsSetInput.jsonSchema,
                     module: settingsSetInput.appId || null,
-                    name: settingsSetInput.name,
-                    value: settingsSetInput.value,
-                    defaultValue: settingsSetInput.defaultValue,
-                    description: settingsSetInput.description,
-                    tooltip: settingsSetInput.tooltip,
-                    uiSchema: settingsSetInput.uiSchema,
-                    readOnly: settingsSetInput.readOnly || false
+                    ...settingsSetInput.jsonSchema && { jsonSchema: settingsSetInput.jsonSchema },
+                    ...settingsSetInput.name && { name: settingsSetInput.name },
+                    ...settingsSetInput.value && { value: settingsSetInput.value },
+                    ...settingsSetInput.defaultValue && { defaultValue: settingsSetInput.defaultValue },
+                    ...settingsSetInput.description && { description: settingsSetInput.description },
+                    ...settingsSetInput.tooltip && { tooltip: settingsSetInput.tooltip },
+                    ...settingsSetInput.uiSchema && { uiSchema: settingsSetInput.uiSchema },
+                    readOnly: settingsSetInput.readOnly ?? false
                 }).fetch();
             }
             else {
                 if (setting.readOnly)
                     throw `Property cannot be changed (read only)`;
-                return (await Settings.update({ key: settingsSetInput.key }, {
+                return (await Settings.update({ key: key }, {
                     type: settingType,
-                    jsonSchema: settingsSetInput.jsonSchema,
-                    name: settingsSetInput.name,
-                    value: settingsSetInput.value,
-                    defaultValue: settingsSetInput.defaultValue,
-                    description: settingsSetInput.description,
-                    tooltip: settingsSetInput.tooltip,
-                    uiSchema: settingsSetInput.uiSchema,
-                    readOnly: settingsSetInput.readOnly || false
+                    ...settingsSetInput.jsonSchema && { jsonSchema: settingsSetInput.jsonSchema },
+                    ...settingsSetInput.name && { name: settingsSetInput.name },
+                    ...settingsSetInput.value && { value: settingsSetInput.value },
+                    ...settingsSetInput.defaultValue && { defaultValue: settingsSetInput.defaultValue },
+                    ...settingsSetInput.description && { description: settingsSetInput.description },
+                    ...settingsSetInput.tooltip && { tooltip: settingsSetInput.tooltip },
+                    ...settingsSetInput.uiSchema && { uiSchema: settingsSetInput.uiSchema },
+                    ...settingsSetInput.readOnly && { readOnly: settingsSetInput.readOnly }
                 }).fetch())[0];
             }
         }

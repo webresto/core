@@ -48,7 +48,7 @@ declare let Model: {
     /** return setting value by unique key */
     use(key: string): Promise<SettingValue>;
     get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T>;
-    set<K_1 extends keyof SettingList, T_1 = SettingList[K_1]>(key: K_1, settingsSetInput: SettingsSetInput<K_1, T_1>): Promise<Settings>;
+    set<K_1 extends keyof SettingList>(key: K_1, settingsSetInput: SettingsSetInput<K_1, SettingList[K_1]>): Promise<Settings>;
 };
 declare global {
     const Settings: typeof Model & ORMModel<Settings, "key" | "type">;
@@ -60,16 +60,21 @@ declare global {
         ALLOW_UNSAFE_SETTINGS: boolean;
     }
 }
-interface SettingsSetInput<K extends string, T> {
+interface SettingsSetInputBase<K extends string, F> {
+    type?: SettingType;
     key?: `${K}`;
     appId?: string;
-    type?: SettingType;
     jsonSchema?: any;
     name?: string;
     description?: string;
     tooltip?: string;
-    value?: T;
-    defaultValue?: SettingValue;
     uiSchema?: UISchema;
     readOnly?: boolean;
 }
+type SettingsSetInput<K extends string, F> = ({
+    value: F;
+    defaultValue?: F;
+} & SettingsSetInputBase<K, F>) | ({
+    value?: F;
+    defaultValue: F;
+} & SettingsSetInputBase<K, F>);
