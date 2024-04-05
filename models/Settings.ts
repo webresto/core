@@ -178,7 +178,7 @@ let Model = {
     }
   },
 
-  async set<K extends keyof SettingList, T = SettingList[K]>(key: K, settingsSetInput: SettingsSetInput): Promise<Settings> {
+  async set<K extends keyof SettingList, T = SettingList[K]>(key: K, settingsSetInput: SettingsSetInput<K, T>): Promise<Settings> {
     if (settingsSetInput["key"] !== key) {
       throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
     }
@@ -305,15 +305,15 @@ function cleanValue(value) {
   return value
 }
 
-interface SettingsSetInput {
-  key: string
+interface SettingsSetInput<K extends string, T> {
+  key: `${K}`
   appId?: string
   type?: SettingType
   jsonSchema?: any,
   name?: string
   description?: string
   tooltip?: string
-  value?: SettingValue
+  value?: T
   defaultValue?: SettingValue
   uiSchema?: UISchema
   readOnly?: boolean

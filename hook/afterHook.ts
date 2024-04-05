@@ -1,3 +1,4 @@
+import { generateRandomString } from "../libs/hashCode";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -12,6 +13,15 @@ export default async function () {
      */
     const timezone = await Settings.get("TZ");
     process.env.TZ = timezone;
+
+    if(!await Settings.get("UUID_NAMESPACE")) {
+      await Settings.set("UUID_NAMESPACE", {
+        key: "UUID_NAMESPACE",
+        value: 1//generateRandomString(64)
+      }
+      )
+    }
+    
 
     await PaymentDocument.processor(timeSyncPayments);
 
