@@ -139,7 +139,7 @@ let Model = {
         }
     },
     async set(key, settingsSetInput) {
-        if (settingsSetInput["key"] !== key) {
+        if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
             throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
         }
         // calculate 'type' by value (if value was given)
@@ -193,13 +193,13 @@ let Model = {
             }
         }
         // Set in local variable (local storage)
-        settings[settingsSetInput.key] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
+        settings[key.toString()] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
         // Write to Database
         try {
             const setting = await Settings.findOne({ key: settingsSetInput.key });
             if (!setting) {
                 return await Settings.create({
-                    key: settingsSetInput.key,
+                    key: key,
                     type: settingType,
                     jsonSchema: settingsSetInput.jsonSchema,
                     module: settingsSetInput.appId || null,

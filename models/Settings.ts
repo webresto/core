@@ -12,7 +12,7 @@ import Ajv from 'ajv';
 let settings: SettingValue = {}
 type PlainValue = string | boolean | number | string[] | number[] | SettingValue[]
 type SettingValue = PlainValue | {
-  [key: string]: SettingValue;
+  [key: string]:  SettingList[keyof SettingList];
 };
 type SettingType = "string" | "boolean" | "json" | "number"
 
@@ -179,7 +179,7 @@ let Model = {
   },
 
   async set<K extends keyof SettingList, T = SettingList[K]>(key: K, settingsSetInput: SettingsSetInput<K, T>): Promise<Settings> {
-    if (settingsSetInput["key"] !== key) {
+    if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
       throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
     }
 
@@ -213,9 +213,9 @@ let Model = {
     // convert some values for boolean type
     if (settingType === "boolean") {
       if (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(`${settingsSetInput.value}`)) {
-        settingsSetInput.value = true;
+        settingsSetInput.value = true as unknown as any;
       } else if (["no", "NO", "No", "0", "false", "FALSE", "False"].includes(`${settingsSetInput.value}`)) {
-        settingsSetInput.value = false;
+        settingsSetInput.value = false as unknown as any;
       }
 
       if (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(`${settingsSetInput.defaultValue}`)) {
@@ -237,14 +237,14 @@ let Model = {
     }
 
     // Set in local variable (local storage)
-    settings[settingsSetInput.key] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
+    settings[key.toString()] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
 
     // Write to Database
     try {
       const setting = await Settings.findOne({key: settingsSetInput.key});
       if (!setting) {
         return await Settings.create({
-          key: settingsSetInput.key,
+          key: key,
           type: settingType,
           jsonSchema: settingsSetInput.jsonSchema,
           module: settingsSetInput.appId || null,
@@ -306,7 +306,7 @@ function cleanValue(value) {
 }
 
 interface SettingsSetInput<K extends string, T> {
-  key: `${K}`
+  key?: `${K}`
   appId?: string
   type?: SettingType
   jsonSchema?: any,
