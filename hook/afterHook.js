@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const hashCode_1 = require("../libs/hashCode");
 /**
  * Initial RMS and set timezone if it was given
  */
@@ -13,8 +14,7 @@ async function default_1() {
         process.env.TZ = timezone;
         if (!await Settings.get("UUID_NAMESPACE")) {
             await Settings.set("CITY", {
-                //        value: generateRandomString(64)
-                defaultValue: "sdsd"
+                value: (0, hashCode_1.generateRandomString)(64)
             });
         }
         await PaymentDocument.processor(timeSyncPayments);

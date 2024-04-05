@@ -16,9 +16,8 @@ export default async function () {
 
     if (!await Settings.get("UUID_NAMESPACE")) {
       await Settings.set("CITY", {
-//        value: generateRandomString(64)
-        defaultValue: "sdsd"
-})
+        value: generateRandomString(64)
+      })
     }
 
 
