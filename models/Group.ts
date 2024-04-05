@@ -335,7 +335,7 @@ let Model = {
     }
 
     async function getAllChildGroups(groupId) {
-      let childGroups = await Group.find({ parentGroup: groupId });
+      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: !true });
       let allChildGroups = [];
 
       for (let group of childGroups) {
