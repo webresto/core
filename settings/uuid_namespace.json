@@ -7,6 +7,6 @@
   "jsonSchema": {
     "type": "string",
     "pattern": "^[a-z]+$",
-    "minLength": 36
+    "minLength": 16
   }
 }

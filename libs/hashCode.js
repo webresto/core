@@ -11,6 +11,7 @@ function hashCode(str) {
 }
 exports.default = hashCode;
 function generateRandomString(length) {
-    return crypto.randomBytes(Math.ceil(length / 2)).toString('hex').slice(0, length);
+    const bytes = crypto.randomBytes(Math.ceil(length / 2));
+    return bytes.toString('hex').slice(0, length);
 }
 exports.generateRandomString = generateRandomString;
