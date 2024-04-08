@@ -80,10 +80,10 @@ export default class AwaitEmitter {
     /**
      * Event subscription
      * @param name - event name
-     * @param label
+     * @param id
      * @param fn - subscriber function
      */
-    on<N extends keyof IAwaitEmitter>(name: N, label: string, fn: (...args: IAwaitEmitter[N]) => void): AwaitEmitter;
+    on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: IAwaitEmitter[N]) => void): AwaitEmitter;
     /**
       * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
      * and is executed immediately, if the listener function returns a Promise, then it, along with the rest of the same listeners
@@ -102,7 +102,7 @@ declare class Event {
     name: string;
     fns: {
         fn: func;
-        label: string;
+        id: string;
     }[];
     constructor(name: string);
 }
@@ -111,10 +111,10 @@ declare class Event {
  * error returned or called by the function
  */
 declare class Response {
-    label: string;
+    id: string;
     state: "success" | "error" | "timeout";
     result: any;
     error: any;
-    constructor(label: string, result: any, error?: any, timeout?: boolean);
+    constructor(id: string, result: any, error?: any, timeout?: boolean);
 }
 export {};

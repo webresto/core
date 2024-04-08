@@ -19,19 +19,22 @@ class AwaitEmitter {
     /**
      * Event subscription
      * @param name - event name
-     * @param label
+     * @param id
      * @param fn - subscriber function
      */
-    on(name, label, fn) {
-        let event = this.events.filter((l) => l.name === name)[0];
+    on(name, id, fn) {
+        let event = this.events.find((e) => e.name === name);
         if (!event) {
             event = new Event(name);
             this.events.push(event);
         }
-        event.fns.push({
-            fn: fn,
-            label: label,
-        });
+        const index = event.fns.findIndex((f) => f.id === id);
+        if (index !== -1) {
+            event.fns[index] = { fn: fn, id: id };
+        }
+        else {
+            event.fns.push({ fn: fn, id: id });
+        }
         return this;
     }
     /**
@@ -58,9 +61,9 @@ class AwaitEmitter {
                         if (typeof arg === "object") {
                             return new Proxy(arg, {
                                 set: function (target, key, value) {
-                                    let label = `
+                                    let id = `
   -----------------------------------------------------------------
-  Event: \x1b[40m\x1b[33m\x1b[5m ${name} <- ${f.label}  \x1b[0m : ${debugRay}
+  Event: \x1b[40m\x1b[33m\x1b[5m ${name} <- ${f.id}  \x1b[0m : ${debugRay}
   \x1b[33m${key} : ${JSON.stringify(value, null, 2)} \x1b[0m
     
   method listing:
@@ -73,7 +76,7 @@ class AwaitEmitter {
   
   TRACE: 
                       `;
-                                    console.trace(label);
+                                    console.trace(id);
                                     target[key] = value;
                                     return true;
                                 },
@@ -95,7 +98,7 @@ class AwaitEmitter {
                         await sleep(that.timeout);
                         if (!successEnd) {
                             timeoutEnd = true;
-                            res.push(new Response(f.label, null, null, true));
+                            res.push(new Response(f.id, null, null, true));
                         }
                     };
                     const decorator = async function () {
@@ -104,16 +107,16 @@ class AwaitEmitter {
                             const res1 = await r;
                             if (!timeoutEnd) {
                                 successEnd = true;
-                                res.push(new Response(f.label, res1));
+                                res.push(new Response(f.id, res1));
                             }
                             else {
-                                const listenerName = f.label || "some";
+                                const listenerName = f.id || "some";
                                 sails.log.error(listenerName, "event of action", name, "in", that.name, "emitter end after", new Date().getTime() - now.getTime(), "ms");
                             }
                         }
                         catch (e) {
                             successEnd = true;
-                            res.push(new Response(f.label, null, e));
+                            res.push(new Response(f.id, null, e));
                         }
                     };
                     await Promise.race([timeout(), decorator()]);
@@ -121,15 +124,15 @@ class AwaitEmitter {
                 }
                 else {
                     try {
-                        res.push(new Response(f.label, r));
+                        res.push(new Response(f.id, r));
                     }
                     catch (e) {
-                        res.push(new Response(f.label, null, e));
+                        res.push(new Response(f.id, null, e));
                     }
                 }
             }
             catch (e) {
-                res.push(new Response(f.label, null, e));
+                res.push(new Response(f.id, null, e));
             }
         });
         await Promise.all(executor.map((f) => f()));
@@ -151,13 +154,13 @@ class Event {
  * error returned or called by the function
  */
 class Response {
-    constructor(label, result, error, timeout) {
-        this.label = label;
+    constructor(id, result, error, timeout) {
+        this.id = id;
         this.result = result;
         this.error = error;
         this.state = timeout ? "timeout" : this.error ? "error" : "success";
         if (error) {
-            sails.log.error(`Emitter with label [${label ?? 'some'}], was finished with error:`, error);
+            sails.log.error(`Emitter with id [${id ?? 'some'}], was finished with error:`, error);
         }
     }
 }
