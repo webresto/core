@@ -2,11 +2,8 @@
 /**
  * Attention! We use MM "Settings" model in production mode, but for tests and core integrity, we support this model
  * */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const ajv_1 = __importDefault(require("ajv"));
+const ajv_1 = require("ajv");
 // Memory store
 let settings = {};
 let attributes = {
@@ -145,11 +142,10 @@ let Model = {
             //@ts-ignore
             settingsSetInput = origSettings;
         }
-        
+        console.log(origSettings);
         if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
             throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
         }
-        
         // calculate 'type' by value (if value was given)
         let settingType = settingsSetInput.type;
         if (!settingType && origSettings) {
@@ -176,11 +172,13 @@ let Model = {
         if (!settingType) {
             const errorMessage = `Settings set error: Can not calculate type by given value [${settingType}], but type is required field`;
             sails.log.error(errorMessage);
-            throw new Error(errorMessage);
+            throw errorMessage;
         }
         // check that jsonSchema is present for a json type
         if (settingType === "json" && settingsSetInput.jsonSchema === undefined) {
-            sails.log.error(`Setting set [${settingsSetInput.key}] error: jsonSchema is missed for type "json"`);
+            const errorMessage = `Setting set [${settingsSetInput.key}] error: jsonSchema is missed for type "json"`;
+            sails.log.error(errorMessage);
+            throw errorMessage;
         }
         // convert some values for boolean type
         if (settingType === "boolean") {
@@ -201,10 +199,15 @@ let Model = {
         if (settingType === "json" && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
             const ajv = new ajv_1.default();
             const validate = ajv.compile(settingsSetInput.jsonSchema);
-            if ((settingsSetInput.value !== undefined && !validate(settingsSetInput.value)) ||
-                (settingsSetInput.defaultValue !== undefined && !validate(settingsSetInput.defaultValue))) {
-                sails.log.error('AJV Validation Error: Value or defaultValue does not match the schema');
-                return;
+            if (settingsSetInput.value !== undefined && !validate(settingsSetInput.value)) {
+                let mErr = 'AJV Validation Error: Value does not match the schema';
+                sails.log.error(mErr);
+                throw mErr;
+            }
+            if (settingsSetInput.defaultValue !== undefined && !validate(settingsSetInput.defaultValue)) {
+                let mErr = 'AJV Validation Error: DefaultValue does not match the schema';
+                sails.log.error(mErr);
+                throw mErr;
             }
         }
         // Set in local variable (local storage)
@@ -244,8 +247,8 @@ let Model = {
             }
         }
         catch (e) {
-            sails.log.error("CORE > Settings > set: ", settingsSetInput, e);
-            return;
+            sails.log.error("CORE > Settings > set DB error: ", settingsSetInput, e);
+            throw `Error Set settings in DB`;
         }
     }
 };
