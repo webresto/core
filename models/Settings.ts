@@ -179,13 +179,21 @@ let Model = {
   },
 
   async set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings> {
+
+    let origSettings: Settings = null;
+    if(await Settings.get(key)){
+      origSettings = await Settings.get(key);
+    }
+
     if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
       throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
     }
 
     // calculate 'type' by value (if value was given)
-    let settingType = settingsSetInput.type;
-
+    let settingType = settingsSetInput.type 
+    if(!settingType && origSettings) {
+      settingType = origSettings.type
+    }
     // Detect type if not defined
     if (!settingType && settingsSetInput.jsonSchema && settingsSetInput.jsonSchema.type) {
       settingType = settingsSetInput.jsonSchema.type;
