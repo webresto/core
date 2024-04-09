@@ -13,7 +13,7 @@ class DialogBox {
             throw `Options for DialogBox should be defined`;
         }
         this.config = config;
-        this.askId = (0, uuid_1.v4)();
+        this.askId = config.askId ?? (0, uuid_1.v4)();
         this.deviceId = deviceId;
     }
     static async ask(dialog, deviceId, timeout) {
@@ -23,6 +23,7 @@ class DialogBox {
         if (!timeout)
             timeout = 30 * 1000;
         const startTime = Date.now();
+        console.log(dialog, deviceId);
         const dialogBox = new DialogBox(dialog, deviceId);
         DialogBox.dialogs[dialogBox.askId] = dialogBox;
         emitter.emit("dialog-box:new", dialogBox);

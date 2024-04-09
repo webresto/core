@@ -20,7 +20,7 @@ export class DialogBox {
     }
 
     this.config = config;
-    this.askId = uuid();
+    this.askId = config.askId ?? uuid();
     this.deviceId = deviceId;
   }
 
@@ -31,7 +31,7 @@ export class DialogBox {
   
     if (!timeout) timeout = 30 * 1000;
     const startTime = Date.now();
-    
+    console.log(dialog, deviceId)
     const dialogBox = new DialogBox(dialog, deviceId);
     DialogBox.dialogs[dialogBox.askId] = dialogBox;
     emitter.emit("dialog-box:new", dialogBox);

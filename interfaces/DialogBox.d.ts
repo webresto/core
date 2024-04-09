@@ -1,6 +1,7 @@
 import Dish from "../models/Dish";
 export type DialogBoxConfig = DialogBoxButton | DialogBoxProduct
 interface DialogBoxBase {
+  askId?: string
   /**
    * Allowed to close dialog box
    * 
