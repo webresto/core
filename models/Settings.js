@@ -139,13 +139,17 @@ let Model = {
         }
     },
     async set(key, settingsSetInput) {
-        let origSettings = null;
-        if (await Settings.get(key)) {
-            origSettings = await Settings.get(key);
+        let origSettings = await Settings.findOne({ key: key });
+        if (origSettings) {
+            Object.assign(origSettings, settingsSetInput);
+            //@ts-ignore
+            settingsSetInput = origSettings;
         }
+        
         if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
             throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
         }
+        
         // calculate 'type' by value (if value was given)
         let settingType = settingsSetInput.type;
         if (!settingType && origSettings) {
@@ -170,7 +174,7 @@ let Model = {
             }
         }
         if (!settingType) {
-            const errorMessage = 'Settings set error: Can not calculate type by given value, but type is required field';
+            const errorMessage = `Settings set error: Can not calculate type by given value [${settingType}], but type is required field`;
             sails.log.error(errorMessage);
             throw new Error(errorMessage);
         }
