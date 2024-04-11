@@ -3,6 +3,7 @@ import * as fs from "fs";
 import axios from 'axios';
 import { v5 as uuidv5 } from "uuid";
 import * as path from "path";
+//@ts-ignore
 import sharp from 'sharp';
 
 

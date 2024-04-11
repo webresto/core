@@ -31,6 +31,7 @@ const fs = __importStar(require("fs"));
 const axios_1 = __importDefault(require("axios"));
 const uuid_1 = require("uuid");
 const path = __importStar(require("path"));
+//@ts-ignore
 const sharp_1 = __importDefault(require("sharp"));
 // images: {
 //   adapter: 'imagemagick-local',

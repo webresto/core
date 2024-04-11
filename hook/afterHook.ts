@@ -15,7 +15,7 @@ export default async function () {
     process.env.TZ = timezone;
 
     if (!await Settings.get("UUID_NAMESPACE")) {
-      await Settings.set("CITY", {
+      await Settings.set("UUID_NAMESPACE", {
         value: generateRandomString(64)
       })
     }

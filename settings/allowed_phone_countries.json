@@ -8,7 +8,9 @@
     "items": {
       "type": "string",
       "enum": ["AR", "AE", "RU", "VN", "TW", "US", "UA", "CN"]
-    }
+    },
+    "minItems": 1,
+    "maxItems": 10
   },
   "isRequired": true
 }
