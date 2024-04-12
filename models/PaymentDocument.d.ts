@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
@@ -73,7 +72,7 @@ declare let Model: {
     register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: any) => Promise<void>;
     /** Payment check cycle*/
-    processor: (timeout: number) => Promise<NodeJS.Timeout>;
+    processor: (timeout: number) => Promise<ReturnType<typeof setInterval>>;
 };
 declare global {
     const PaymentDocument: typeof Model & ORMModel<PaymentDocument, null>;

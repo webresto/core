@@ -100,9 +100,9 @@ export default class AwaitEmitter {
      * @param id
      * @param fn - subscriber function
      */
-    on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: IAwaitEmitter[N]) => void): AwaitEmitter;
+    on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: [...IAwaitEmitter[N], number]) => void): AwaitEmitter;
     /**
-      * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
+     * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
      * and is executed immediately, if the listener function returns a Promise, then it, along with the rest of the same listeners
      * runs in parallel and may time out.If the listener is then executed after
      * timeout, an appropriate message will be displayed
@@ -110,7 +110,7 @@ export default class AwaitEmitter {
      * @param args - arguments
      * @return Array of Response objects
      */
-    emit<N extends keyof IAwaitEmitter>(name: N, ...args: IAwaitEmitter[N]): Promise<Response[]>;
+    emit<N extends keyof IAwaitEmitter>(name: N, ...args: IAwaitEmitter[N] | [number, ...IAwaitEmitter[N]]): Promise<Response[]>;
 }
 /**
  * Event object, stores the name of the event and its listeners

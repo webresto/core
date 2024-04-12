@@ -4,7 +4,7 @@ interface DialogBoxBase {
   askId?: string
   /**
    * Allowed to close dialog box
-   * 
+   * If the dialogue closes, then there is no need to respond to it. You're just allowed to close it and that's it
    * by deafult: should be `true`
    */
   allowClosing?: boolean
@@ -32,6 +32,18 @@ interface DialogBoxBase {
    * Event icon
    */
   icon?: string;
+  /**
+   * If passed;
+   * After this moment the dialogue will fade away
+   * It is recommended to close it automaticaly
+   */
+  timeout?: number;
+  /**
+   * If no response comes, the backend will do it automatically
+   * Also the frontend can send this by default
+   * In conjunction with timeout, this could be a countdown on a button
+   */
+  defaultOptionId?: string
 }
 
 export interface DialogBoxButton extends DialogBoxBase {

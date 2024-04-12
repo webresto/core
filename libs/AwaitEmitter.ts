@@ -119,13 +119,12 @@ export default class AwaitEmitter {
    * @param id
    * @param fn - subscriber function
    */
-  on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: IAwaitEmitter[N]) => void): AwaitEmitter {
+  on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: [...IAwaitEmitter[N], number]) => void): AwaitEmitter {
     const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
     let event = this.events.find((e) => e.name === _name);
     if (!event) {
       event = new Event(_name);
       this.events.push(event);
-      console.log(this.events,111)
     }
 
     const index = event.fns.findIndex((f) => f.id === id);
@@ -139,7 +138,7 @@ export default class AwaitEmitter {
   }
 
   /**
-    * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
+   * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
    * and is executed immediately, if the listener function returns a Promise, then it, along with the rest of the same listeners
    * runs in parallel and may time out.If the listener is then executed after
    * timeout, an appropriate message will be displayed
@@ -147,11 +146,20 @@ export default class AwaitEmitter {
    * @param args - arguments
    * @return Array of Response objects
    */
-  async emit<N extends keyof IAwaitEmitter>(name: N, ...args: IAwaitEmitter[N]): Promise<Response[]> {
+
+  async emit<N extends keyof IAwaitEmitter>(name: N, ...args: IAwaitEmitter[N] | [number,...IAwaitEmitter[N]]): Promise<Response[]>
+  async emit<N extends keyof IAwaitEmitter>(name: N, timeout: number, ...args: IAwaitEmitter[N]): Promise<Response[]> 
+  {
     const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
     const that = this;
     const event = this.events.find((l) => l.name === _name);
     if (!event) return [];
+
+    if (typeof arguments[1] === "number"){
+      timeout = arguments[1];
+    } else {
+      timeout = that.timeout;
+    }
 
     const res: Response[] = [];
     const executor = event.fns.map(
@@ -191,6 +199,9 @@ export default class AwaitEmitter {
               });
             } //silly
 
+            // @ts-ignore
+            args.push(timeout)
+
             const r = f.fn.apply(that, args);
 
             // If this is a promise, then we are waiting
@@ -201,7 +212,7 @@ export default class AwaitEmitter {
 
               // stop timer
               const timeout = async function () {
-                await sleep(that.timeout);
+                await sleep(timeout);
                 if (!successEnd) {
                   timeoutEnd = true;
                   res.push(new Response(f.id, null, null, true));
