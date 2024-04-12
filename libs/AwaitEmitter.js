@@ -17,6 +17,22 @@ class AwaitEmitter {
         this.events = [];
     }
     /**
+     * Remove event subscription
+     * @param name - event name
+     * @param id - subscriber ID to remove
+     */
+    off(name, id) {
+        const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+        const event = this.events.find((e) => e.name === name);
+        if (event) {
+            const index = event.fns.findIndex((f) => f.id === id);
+            if (index !== -1) {
+                event.fns.splice(index, 1); // Remove the subscriber
+            }
+        }
+        return this;
+    }
+    /**
      * Event subscription
      * @param name - event name
      * @param id
@@ -24,10 +40,11 @@ class AwaitEmitter {
      */
     on(name, id, fn) {
         const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
-        let event = this.events.find((e) => e.name === name);
+        let event = this.events.find((e) => e.name === _name);
         if (!event) {
             event = new Event(_name);
             this.events.push(event);
+            console.log(this.events, 111);
         }
         const index = event.fns.findIndex((f) => f.id === id);
         if (index !== -1) {

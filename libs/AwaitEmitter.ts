@@ -97,6 +97,23 @@ export default class AwaitEmitter {
   }
 
   /**
+   * Remove event subscription
+   * @param name - event name
+   * @param id - subscriber ID to remove
+   */
+  off<N extends keyof IAwaitEmitter>(name: N, id: string): AwaitEmitter {
+    const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+    const event = this.events.find((e) => e.name === name);
+    if (event) {
+      const index = event.fns.findIndex((f) => f.id === id);
+      if (index !== -1) {
+        event.fns.splice(index, 1); // Remove the subscriber
+      }
+    }
+    return this;
+  }
+
+  /**
    * Event subscription
    * @param name - event name
    * @param id
@@ -104,21 +121,22 @@ export default class AwaitEmitter {
    */
   on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: IAwaitEmitter[N]) => void): AwaitEmitter {
     const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
-    let event = this.events.find((e) => e.name === name);
+    let event = this.events.find((e) => e.name === _name);
     if (!event) {
-        event = new Event(_name);
-        this.events.push(event);
+      event = new Event(_name);
+      this.events.push(event);
+      console.log(this.events,111)
     }
 
     const index = event.fns.findIndex((f) => f.id === id);
     if (index !== -1) {
-        event.fns[index] = { fn: fn, id: id };
+      event.fns[index] = { fn: fn, id: id };
     } else {
-        event.fns.push({ fn: fn, id: id });
+      event.fns.push({ fn: fn, id: id });
     }
 
     return this;
-}
+  }
 
   /**
     * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous

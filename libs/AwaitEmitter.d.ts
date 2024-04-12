@@ -89,6 +89,12 @@ export default class AwaitEmitter {
      */
     constructor(name: string, timeout?: number);
     /**
+     * Remove event subscription
+     * @param name - event name
+     * @param id - subscriber ID to remove
+     */
+    off<N extends keyof IAwaitEmitter>(name: N, id: string): AwaitEmitter;
+    /**
      * Event subscription
      * @param name - event name
      * @param id
