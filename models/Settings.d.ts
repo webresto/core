@@ -42,7 +42,7 @@ interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"
 export default Settings;
 declare let Model: {
     beforeCreate: (record: Settings, cb: (err?: string) => void) => void;
-    beforeUpdate: (record: Settings, cb: (err?: string) => void) => void;
+    beforeUpdate: (record: Settings, cb: (err?: string) => void) => Promise<void>;
     afterUpdate: (record: Settings, cb: (err?: string) => void) => Promise<void>;
     afterCreate: (record: Settings, cb: (err?: string) => void) => Promise<void>;
     /** return setting value by unique key */
@@ -70,6 +70,7 @@ interface SettingsSetInputBase<K extends string, F> {
     tooltip?: string;
     uiSchema?: UISchema;
     readOnly?: boolean;
+    isRequired?: boolean;
 }
 type SettingsSetInput<K extends string, F> = ({
     value: F;
