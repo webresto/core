@@ -250,7 +250,7 @@ export default Dish;
 
 let Model = {
   beforeCreate: async function(init: Dish, cb:  (err?: string) => void) {
-    emitter.emit('core:dish-before-create', init);
+    emitter.emit('core:product-before-create', init);
     if (!init.id) {
       init.id = uuid();
     }
@@ -274,7 +274,7 @@ let Model = {
   },
 
   beforeUpdate: async function (value: Dish, cb:  (err?: string) => void) {
-    emitter.emit('core:dish-before-update', value);
+    emitter.emit('core:product-before-update', value);
     if(value.customData) {
       if (value.id !== undefined) {
         let current = await Dish.findOne({id: value.id});
@@ -287,12 +287,12 @@ let Model = {
   },
 
   afterUpdate: function (record, cb:  (err?: string) => void) {
-    emitter.emit('core:dish-after-update', record);
+    emitter.emit('core:product-after-update', record);
     return cb();
   },
 
   afterCreate: function (record, cb:  (err?: string) => void) {
-    emitter.emit('core:dish-after-create', record);
+    emitter.emit('core:product-after-create', record);
     return cb();
   },
 
@@ -323,7 +323,7 @@ let Model = {
 
     dishes.sort((a, b) => a.sortOrder - b.sortOrder);
 
-    await emitter.emit("core-dish-get-dishes", dishes);
+    await emitter.emit("core:product-get-dishes", dishes);
     return dishes;
   },
 

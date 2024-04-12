@@ -21,10 +21,10 @@ import { OptionalAll } from "../interfaces/toolsTS";
  * Controller API Getorder (/Api/0.5/order ::::
  *
  * 5. If the payment was successful, then PaymentProcessor will set the PAID status in accordance with PaymentDocument,
- * This, in turn, means that PaymentDocument will try to put the ISPAID: true in the model and make EMIT ('Core-Payment-Document-Paid', Document)
+ * This, in turn, means that PaymentDocument will try to put the ISPAID: true in the model and make EMIT ('core:payment-Document-Paid', Document)
  * Corresponding Originmodel of the current PaymentDocument.(In the service with ORDER, Next ();)
  *
- * 6. In the event of a change in payment status, an EMIT ('Core-Payment-Document-Status', Document) will occur where any system can be able
+ * 6. In the event of a change in payment status, an EMIT ('core:payment-Document-Status', Document) will occur where any system can be able
  * to register for changes in status.
  *
  * 7. In the event of unsuccessful payment, the user will be returned to the page of the notification of unsuccessful payment and then there will be a redirect to the page

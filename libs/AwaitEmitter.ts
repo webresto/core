@@ -13,54 +13,66 @@ import OrderDish from "../models/OrderDish"
 import Maintenance from "../models/Maintenance"
 import { DialogBox } from "./DialogBox";
 
+
+/**
+ * Naming conventions can greatly enhance the readability and understanding of code, especially for those who may not be familiar with it. Using a structured approach like "module:action-before/after-read/write" can make it intuitive. Let's break down the example "core:add-dish-before-write":
+
+    "core" refers to the module or core functionality involved.
+    "add-dish" indicates the action being performed, which is adding a dish.
+    "before-write" suggests when this action occurs, in this case, it's before a write operation.
+
+  So, this name indicates that within the core module, there's a function or process for adding a dish, and it happens before a write operation.
+ *  
+ */
 declare global {
   interface IAwaitEmitter {
     "rms-sync:before-each-group-item": [Group],
     "rms-sync:before-each-product-item": [Dish]
     "rms-sync:after-sync-products": []
-    "rms-sync-out-of-stocks:before-each-product-item": [Pick<Dish, "balance" | "rmsId">]
-    "core:dish-before-create": [Dish]
-    "core-payment-document-check": [PaymentDocument]
-    "core-payment-document-paid": [PaymentDocument]
-    "core-payment-document-checked-document": [PaymentDocument]
-    "core-order-after-order": [Order]
-    "core-order-order-delivery": [Order]
-    "core-order-before-order": [Order]
-    "core-order-order": [Order]
-    "core-order-order-self-service": [Order]
-    "core-order-is-self-service": [Order, Customer, boolean, Address]
-    "core-order-check": [Order, Customer, boolean, Address, string]
-    "core-order-after-check-counting": [Order]
-    "core-order-before-check": [Order, Customer, boolean, Address]
-    "core-order-check-delivery": [Order]
+    "rms-sync:out-of-stocks-before-each-product-item": [Pick<Dish, "balance" | "rmsId">]
+    "core:product-before-create": [Dish]
+    "core:payment-document-check": [PaymentDocument]
+    "core:payment-document-paid": [PaymentDocument]
+    "core:payment-document-checked-document": [PaymentDocument]
+    "core:order-after-order": [Order]
+    "core:order-order-delivery": [Order]
+    "core:order-before-order": [Order]
+    "core:order-order": [Order]
+    "core:order-order-self-service": [Order]
+    "core:order-is-self-service": [Order, Customer, boolean, Address]
+    "core:order-check": [Order, Customer, boolean, Address, string]
+    "core:order-after-check-counting": [Order]
+    "core:order-before-check": [Order, Customer, boolean, Address]
+    "core:order-check-delivery": [Order]
     [key: `settings:${string}`]: [Settings];
     "core:user-after-create": [User]
-    "core-payment-document-before-create": [Payment]
-    "core-order-after-dopaid": [Order]
-    "core-order-after-count": [Order]
+    "core:payment-document-before-create": [Payment]
+    "core:order-after-dopaid": [Order]
+    "core:order-after-count": [Order]
     "core:count-after-delivery-cost": [Order]
-    "core-order-after-check-delivery": [Order]
+    "core:order-after-check-delivery": [Order]
     "core:count-before-delivery-cost": [Order]
-    "core-order-after-promotion": [Order]
+    "core:order-after-promotion": [Order]
     "core:count-before-promotion": [Order]
-    "core-orderdish-change-amount": [OrderDish]
-    "core-order-return-full-order-destroy-orderdish": [Dish, Order]
-    "core-order-before-count": [Order]
-    "core-order-payment": [Order, PaymentBack]
-    "core-maintenance-enabled": [Maintenance]
-    "core-maintenance-disabled": []
+    "core:orderproduct-change-amount": [OrderDish]
+    "core:order-return-full-order-destroy-orderdish": [Dish, Order]
+    "core:order-before-count": [Order]
+    "core:order-payment": [Order, PaymentBack]
+    "core:maintenance-enabled": [Maintenance]
+    "core:maintenance-disabled": []
     "core:group-get-menu": [Group[], string]
-    "core-group-get-groups": [GetGroupType, { [groupId: string]: string }]
+    "core:group-get-groups": [GetGroupType, { [groupId: string]: string }]
     "core:group-after-create": [Group]
     "core:group-before-update": [Group]
     "core:group-after-update": [Group]
     "core:group-before-create": [Group]
-    'core:dish-after-create': [Dish]
-    'core:dish-after-update': [Dish]
-    'core:dish-before-update': [Dish]
-    "core-dish-get-dishes": [Dish[]]
+    'core:product-after-create': [Dish]
+    'core:product-after-update': [Dish]
+    'core:product-before-update': [Dish]
+    "core:product-get-dishes": [Dish[]]
     "dialog-box:new": [DialogBox]
     "dialog-box:answer-received": [string, string]
+    "core:add-product-before-write": [Order, Dish]
   }
 }
 
@@ -91,9 +103,10 @@ export default class AwaitEmitter {
    * @param fn - subscriber function
    */
   on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: IAwaitEmitter[N]) => void): AwaitEmitter {
+    const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
     let event = this.events.find((e) => e.name === name);
     if (!event) {
-        event = new Event(name);
+        event = new Event(_name);
         this.events.push(event);
     }
 
@@ -117,8 +130,9 @@ export default class AwaitEmitter {
    * @return Array of Response objects
    */
   async emit<N extends keyof IAwaitEmitter>(name: N, ...args: IAwaitEmitter[N]): Promise<Response[]> {
+    const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
     const that = this;
-    const event = this.events.find((l) => l.name === name);
+    const event = this.events.find((l) => l.name === _name);
     if (!event) return [];
 
     const res: Response[] = [];

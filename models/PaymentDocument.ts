@@ -26,10 +26,10 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
  * Controller API Getorder (/Api/0.5/order ::::
  *
  * 5. If the payment was successful, then PaymentProcessor will set the PAID status in accordance with PaymentDocument,
- * This, in turn, means that PaymentDocument will try to put the ISPAID: true in the model and make EMIT ('Core-Payment-Document-Paid', Document)
+ * This, in turn, means that PaymentDocument will try to put the ISPAID: true in the model and make EMIT ('core:payment-Document-Paid', Document)
  * Corresponding Originmodel of the current PaymentDocument.(In the service with ORDER, Next ();)
  *
- * 6. In the event of a change in payment status, an EMIT ('Core-Payment-Document-Status', Document) will occur where any system can be able
+ * 6. In the event of a change in payment status, an EMIT ('core:payment-Document-Status', Document) will occur where any system can be able
  * to register for changes in status.
  *
  * 7. In the event of unsuccessful payment, the user will be returned to the page of the notification of unsuccessful payment and then there will be a redirect to the page
@@ -116,7 +116,7 @@ let Model = {
     const self: PaymentDocument = (await PaymentDocument.find(criteria).limit(1))[0];
     if (!self) throw `PaymentDocument is not found`
 
-    emitter.emit("core-payment-document-check", self);
+    emitter.emit("core:payment-document-check", self);
     try {
       let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
       let checkedPaymentDocument: PaymentDocument = await paymentAdapter.checkPayment(self);
@@ -130,7 +130,7 @@ let Model = {
       } else {
         await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status }).fetch();
       }
-      emitter.emit("core-payment-document-checked-document", checkedPaymentDocument);
+      emitter.emit("core:payment-document-checked-document", checkedPaymentDocument);
       return checkedPaymentDocument;
     } catch (e) {
       sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
@@ -162,7 +162,7 @@ let Model = {
       data: data,
     };
 
-    emitter.emit("core-payment-document-before-create", payment);
+    emitter.emit("core:payment-document-before-create", payment);
     try {
       await PaymentDocument.create(payment as PaymentDocument);
     } catch (e) {

@@ -270,7 +270,7 @@ let Model = {
      * custom - custom integration can process it
      */
     addedBy, replace, orderDishId) {
-        await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-before-add-dish", ...arguments]);
         // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone
         let dishObj;
         if (!addedBy)
@@ -287,7 +287,7 @@ let Model = {
         // TODO: In core you can add any amount dish, only in checkout it should show which not allowed
         if (dishObj.balance !== -1) {
             if (amount > dishObj.balance) {
-                await emitter.emit.apply(emitter, ["core-order-add-dish-reject-amount", ...arguments]);
+                await emitter.emit.apply(emitter, ["core:order-add-dish-reject-amount", ...arguments]);
                 console.error({
                     body: `There is no so mush dishes with id ${dishObj.id}`,
                     code: 1,
@@ -330,7 +330,6 @@ let Model = {
         else {
             modifiers = [];
         }
-        await emitter.emit.apply(emitter, ["core-order-add-dish-before-create-orderdish", ...arguments]);
         /**
          * @setting: ONLY_CONCEPTS_DISHES - Prevents ordering from origin concept
          */
@@ -365,6 +364,12 @@ let Model = {
             }
         }
         // NOTE: All dishes with modifiers add as an uniq dish
+        let results = await emitter.emit("core:add-product-before-write", order, dishObj);
+        const resultsCount = results.length;
+        const successCount = results.filter((r) => r.state === "success").length;
+        if (resultsCount !== successCount) {
+            return;
+        }
         if (replace) {
             orderDish = (await OrderDish.update({ id: orderDishId }, {
                 dish: dishObj.id,
@@ -385,7 +390,7 @@ let Model = {
                 addedBy: addedBy
             }).fetch();
         }
-        await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-after-add-dish", orderDish, ...arguments]);
         try {
             await Order.countCart({ id: order.id }, addedBy === "promotion");
             await Order.next(order.id, "CART");
@@ -398,7 +403,7 @@ let Model = {
     //** Delete dish from order */
     async removeDish(criteria, dish, amount, stack) {
         // TODO: delete stack
-        await emitter.emit.apply(emitter, ["core-order-before-remove-dish", ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-before-remove-dish", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
@@ -417,7 +422,7 @@ let Model = {
             }).populate("dish");
         }
         if (!orderDish) {
-            await emitter.emit.apply(emitter, ["core-order-remove-dish-reject-no-orderdish", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-remove-dish-reject-no-orderdish", ...arguments]);
             throw {
                 body: `OrderDish with id ${dish.id} in order with id ${order.id} not found`,
                 code: 1,
@@ -430,16 +435,16 @@ let Model = {
         else {
             await OrderDish.destroy({ id: orderDish.id }).fetch();
         }
-        await emitter.emit.apply(emitter, ["core-order-after-remove-dish", ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-after-remove-dish", ...arguments]);
         await Order.next(order.id, "CART");
         await Order.countCart({ id: order.id });
     },
     async setCount(criteria, dish, amount) {
-        await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-before-set-count", ...arguments]);
         const _dish = dish.dish;
         if (_dish.balance !== -1)
             if (amount > _dish.balance) {
-                await emitter.emit.apply(emitter, ["core-order-set-count-reject-amount", ...arguments]);
+                await emitter.emit.apply(emitter, ["core:order-set-count-reject-amount", ...arguments]);
                 throw {
                     body: `There is no so mush dishes with id ${dish.id}`,
                     code: 1,
@@ -462,15 +467,15 @@ let Model = {
             await Order.next(order.id, "CART");
             await Order.countCart({ id: order.id });
             Order.update({ id: order.id }, order).fetch();
-            await emitter.emit.apply(emitter, ["core-order-after-set-count", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-after-set-count", ...arguments]);
         }
         else {
-            await emitter.emit.apply(emitter, ["core-order-set-count-reject-no-orderdish", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-set-count-reject-no-orderdish", ...arguments]);
             throw { body: `OrderDish dish id ${dish.id} not found`, code: 2 };
         }
     },
     async setComment(criteria, dish, comment) {
-        await emitter.emit.apply(emitter, ["core-order-before-set-comment", ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
             throw "order with orderId " + order.id + "in state ORDER";
@@ -483,10 +488,10 @@ let Model = {
             await Order.next(order.id, "CART");
             await Order.countCart({ id: order.id });
             Order.update({ id: order.id }, order).fetch();
-            await emitter.emit.apply(emitter, ["core-order-after-set-comment", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-after-set-comment", ...arguments]);
         }
         else {
-            await emitter.emit.apply(emitter, ["core-order-set-comment-reject-no-orderdish", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-set-comment-reject-no-orderdish", ...arguments]);
             throw { body: `OrderDish with id ${dish.id} not found`, code: 1 };
         }
     },
@@ -621,7 +626,7 @@ let Model = {
         /**
          *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
          */
-        emitter.emit("core-order-before-check", order, customer, isSelfService, address);
+        emitter.emit("core:order-before-check", order, customer, isSelfService, address);
         sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
         // Start checking
         await Order.next(order.id, "CART");
@@ -653,7 +658,7 @@ let Model = {
         /** if pickup, then you do not need to check the address*/
         if (isSelfService) {
             order.selfService = true;
-            emitter.emit("core-order-is-self-service", order, customer, isSelfService, address);
+            emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
         }
         else {
             order.selfService = false;
@@ -673,7 +678,7 @@ let Model = {
             }
         }
         // Custom emitters checks
-        const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
+        const results = await emitter.emit("core:order-check", order, customer, isSelfService, address, paymentMethodId);
         delete (order.dishes);
         await Order.update({ id: order.id }, { ...order });
         ////////////////////
@@ -745,7 +750,7 @@ let Model = {
             order.bonusesTotal = bonusCoverage.toNumber();
         }
         sails.log.silly("Order > check > after wait general emitter", order, results);
-        emitter.emit("core-order-after-check-counting", order);
+        emitter.emit("core:order-after-check-counting", order);
         delete (order.dishes);
         await Order.update({ id: order.id }, { ...order });
         /** The check can pass without listeners, because the check itself is minimal
@@ -776,14 +781,14 @@ let Model = {
             // Find error reason
             results.forEach(result => {
                 if (result.state === 'error' && result.error) {
-                    sails.log.error(`Order > core-order-check error: ${result.error}`);
+                    sails.log.error(`Order > core:order-check error: ${result.error}`);
                     sails.log.error(result);
                     error = result.error;
                 }
             });
             throw {
                 code: 0,
-                error: `one or more results from core-order-check was not succeed\n last error: ${error}`,
+                error: `one or more results from core:order-check was not succeed\n last error: ${error}`,
             };
         }
         /**
@@ -809,21 +814,21 @@ let Model = {
         // TODO: this check is needed
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
         //   return 3
-        emitter.emit("core-order-before-order", order);
+        emitter.emit("core:order-before-order", order);
         sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
         if (order.selfService) {
-            emitter.emit("core-order-order-self-service", order);
+            emitter.emit("core:order-order-self-service", order);
         }
         else {
-            emitter.emit("core-order-order-delivery", order);
+            emitter.emit("core:order-order-delivery", order);
         }
         /**
          *  I think that this function is unnecessary here, although the entire emitter was created for it.
          *  Obviously, having an RMS adapter at your disposal, you don’t need a waiting listener at all
          *  But since it exists, it will be revised in version 2
-         * @deprecated Event `core-order-order`
+         * @deprecated Event `core:order-order`
          */
-        const results = await emitter.emit("core-order-order", order);
+        const results = await emitter.emit("core:order-order", order);
         sails.log.silly("Order > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
@@ -890,7 +895,7 @@ let Model = {
                 sails.log.error(`RestoCore > orderIt error:`, error);
                 await Order.update({ id: order.id }, orderError);
             }
-            emitter.emit("core-order-after-order", order);
+            emitter.emit("core:order-after-order", order);
             if (order.user) {
                 UserOrderHistory.save(order.id);
             }
@@ -912,7 +917,7 @@ let Model = {
             comment: comment,
         };
         await Order.countCart({ id: order.id });
-        await emitter.emit("core-order-payment", order, params);
+        await emitter.emit("core:order-payment", order, params);
         sails.log.silly("Order > payment > order before register:", order);
         try {
             paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
@@ -997,7 +1002,7 @@ let Model = {
                 throw new Error(err);
             }
             order.isPromoting = isPromoting;
-            emitter.emit("core-order-before-count", order);
+            emitter.emit("core:order-before-count", order);
             /**
              *  // TODO: If countCart from payment or other changes from payment it should cancel all payment request
              */
@@ -1022,7 +1027,7 @@ let Model = {
                         // Checks that the dish is available for sale
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
-                            emitter.emit("core-order-return-full-order-destroy-orderdish", dish, order);
+                            emitter.emit("core:order-return-full-order-destroy-orderdish", dish, order);
                             await OrderDish.destroy({ id: orderDish.id });
                             continue;
                         }
@@ -1032,7 +1037,7 @@ let Model = {
                             if (orderDish.amount >= 0) {
                                 await Order.removeDish({ id: order.id }, orderDish, 999999);
                             }
-                            emitter.emit("core-orderdish-change-amount", orderDish);
+                            emitter.emit("core:orderproduct-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
                         orderDish.uniqueItems += orderDish.amount; // deprecated
@@ -1047,12 +1052,12 @@ let Model = {
                                     throw "Dish with id " + selectedModifier.id + " not found!";
                                 }
                                 // let opts:  any = {}
-                                // await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
+                                // await emitter.emit("core:order-countcart-before-calc-modifier", modifier, modifierObj, opts);
                                 // const modifierCopy = {
                                 //   amount: modifier.amount,
                                 //   id: modifier.id
                                 // }
-                                // await emitter.emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
+                                // await emitter.emit('core:order-countcart-before-calc-modifier', modifierCopy, modifierObj);
                                 /** // TODO:
                                  * Initial modification checking logic, now it's ugly.
                                  * Needed review architecture modifiers to keep it in model.
@@ -1209,7 +1214,7 @@ let Model = {
                     order.isPromoting = false;
                     await Order.update({ id: order.id }, { isPromoting: false }).fetch();
                 }
-                emitter.emit("core-order-after-promotion", order);
+                emitter.emit("core:order-after-promotion", order);
             }
             // Force unpopulated promotionCode, TODO: debug it why is not unpopulated here?!
             if (typeof order.promotionCode !== "string" && order.promotionCode?.id !== undefined) {
@@ -1224,7 +1229,7 @@ let Model = {
                 let deliveryAdapter = await Adapter.getDeliveryAdapter();
                 await deliveryAdapter.reset(order);
                 if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
-                    emitter.emit("core-order-check-delivery", order);
+                    emitter.emit("core:order-check-delivery", order);
                     try {
                         let delivery;
                         try {
@@ -1245,7 +1250,7 @@ let Model = {
                     catch (error) {
                         sails.log.error(`Core > order > delivery calculate fail: `, error);
                     }
-                    emitter.emit("core-order-after-check-delivery", order);
+                    emitter.emit("core:order-after-check-delivery", order);
                 }
             }
             if (order.delivery && isValidDelivery(order.delivery)) {
@@ -1275,7 +1280,7 @@ let Model = {
             // END calculate delivery cost
             order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
             order = (await Order.update({ id: order.id }, order).fetch())[0];
-            emitter.emit("core-order-after-count", order);
+            emitter.emit("core:order-after-count", order);
             return order;
         }
         catch (error) {
@@ -1304,7 +1309,7 @@ let Model = {
                 order.comment = order.comment + "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount;
             }
             await Order.order({ id: order.id });
-            emitter.emit("core-order-after-dopaid", order);
+            emitter.emit("core:order-after-dopaid", order);
         }
         catch (e) {
             sails.log.error("Order > doPaid error: ", e);

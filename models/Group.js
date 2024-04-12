@@ -140,7 +140,7 @@ let Model = {
      * where Groups is an array, requested groups with a complete display of investment, that is, with their dishes, the dishes are their modifiers
      * and pictures, there are pictures of the group, etc., and errors is an object in which the keys are groups that cannot be obtained
      * According to some dinich, the values of this object are the reasons why the group was not obtained.
-     * @fires group:core-group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
      */
     async getGroups(groupsId) {
         let menu = {};
@@ -185,7 +185,7 @@ let Model = {
                 errors[group.id] = reason;
             }
         }
-        await emitter.emit("core-group-get-groups", menu, errors);
+        await emitter.emit("core:group-get-groups", menu, errors);
         const res = Object.values(menu);
         //TODO: rewrite with throw
         return { groups: res, errors: errors };
@@ -196,7 +196,7 @@ let Model = {
      * @param groupId - ID groups
      * @return The requested group
      * @throws The error of obtaining a group
-     * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
+     * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     async getGroup(groupId) {
         const result = await Group.getGroups([groupId]);
@@ -212,7 +212,7 @@ let Model = {
      * @param groupSlug - Slug groups
      * @return The requested group
      * @throws The error of obtaining a group
-     * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
+     * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     async getGroupBySlug(groupSlug) {
         if (!groupSlug)

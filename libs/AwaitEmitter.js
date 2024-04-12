@@ -23,9 +23,10 @@ class AwaitEmitter {
      * @param fn - subscriber function
      */
     on(name, id, fn) {
+        const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
         let event = this.events.find((e) => e.name === name);
         if (!event) {
-            event = new Event(name);
+            event = new Event(_name);
             this.events.push(event);
         }
         const index = event.fns.findIndex((f) => f.id === id);
@@ -47,8 +48,9 @@ class AwaitEmitter {
      * @return Array of Response objects
      */
     async emit(name, ...args) {
+        const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
         const that = this;
-        const event = this.events.find((l) => l.name === name);
+        const event = this.events.find((l) => l.name === _name);
         if (!event)
             return [];
         const res = [];

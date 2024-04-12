@@ -187,8 +187,8 @@ module.exports = {
 // async function checkMaintenance(){
 //   const maintenance = await Maintenance.getActiveMaintenance();
 //   if (maintenance) {
-//     emitter.emit("core-maintenance-enabled", maintenance);
+//     emitter.emit("core:maintenance-enabled", maintenance);
 //   } else {
-//     emitter.emit("core-maintenance-disabled");
+//     emitter.emit("core:maintenance-disabled");
 //   }
 // }
