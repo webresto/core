@@ -54,17 +54,28 @@ class AwaitEmitter {
         }
         return this;
     }
-    async emit(name, timeout, ...args) {
+    /**
+     * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
+     * and is executed immediately, if the listener function returns a Promise, then it, along with the rest of the same listeners
+     * runs in parallel and may time out.If the listener is then executed after
+     * timeout, an appropriate message will be displayed
+     * @param name - event name
+     * @param args - arguments
+     * @return Array of Response objects
+     */
+    async emit(name, ...args) {
         const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
         const that = this;
         const event = this.events.find((l) => l.name === _name);
         if (!event)
             return [];
-        if (typeof arguments[1] === "number") {
-            timeout = arguments[1];
+        let timeout;
+        if (typeof args[args.length - 1] === "number") {
+            timeout = args[args.length - 1];
         }
         else {
             timeout = that.timeout;
+            args.push(timeout);
         }
         const res = [];
         const executor = event.fns.map((f) => async function () {
@@ -102,8 +113,6 @@ class AwaitEmitter {
                         }
                     });
                 } //silly
-                // @ts-ignore
-                args.push(timeout);
                 const r = f.fn.apply(that, args);
                 // If this is a promise, then we are waiting
                 if (!!r && (typeof r === "object" || typeof r === "function") && typeof r.then === "function") {

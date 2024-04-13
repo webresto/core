@@ -23,7 +23,6 @@ interface DialogBoxBase {
     "critical";
     message: string;
     title: string;
-    optionsType: "button" | "product";
     /**
      * Event icon
      */

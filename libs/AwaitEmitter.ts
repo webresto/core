@@ -147,18 +147,18 @@ export default class AwaitEmitter {
    * @return Array of Response objects
    */
 
-  async emit<N extends keyof IAwaitEmitter>(name: N, ...args: IAwaitEmitter[N] | [number,...IAwaitEmitter[N]]): Promise<Response[]>
-  async emit<N extends keyof IAwaitEmitter>(name: N, timeout: number, ...args: IAwaitEmitter[N]): Promise<Response[]> 
+  async emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N],number]): Promise<Response[]> 
   {
     const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
     const that = this;
     const event = this.events.find((l) => l.name === _name);
     if (!event) return [];
-
-    if (typeof arguments[1] === "number"){
-      timeout = arguments[1];
+    let timeout;
+    if (typeof args[args.length-1] === "number"){
+      timeout = args[args.length-1];
     } else {
       timeout = that.timeout;
+      args.push(timeout)
     }
 
     const res: Response[] = [];
@@ -198,9 +198,6 @@ export default class AwaitEmitter {
                 }
               });
             } //silly
-
-            // @ts-ignore
-            args.push(timeout)
 
             const r = f.fn.apply(that, args);
 

@@ -31,9 +31,19 @@ export class DialogBox {
   }
 
   public static async ask(dialog: DialogBoxConfig, deviceId: string, timeout?: number): Promise<string | null> {
+
+    if(!dialog) {
+      throw `DialogBox config not defined [${dialog}]`
+    }
+
+    if(!deviceId) {
+      throw `deviceId not defined [${dialog}]`
+    }
+
     // Check JsonSchema
     if(!validate(dialog)) {
-      sails.log.debug(`${dialog} not match with config schema`)
+      sails.log.error(`${dialog} not match with config schema`)
+      sails.log.error(validate.errors)
       throw `DialogBox config not valid`
     }
     

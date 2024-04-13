@@ -89,7 +89,7 @@ declare let Model: {
      * @param phone
      * @param target
      */
-    getPhoneString(phone: Phone, target?: "login" | "print" | "string"): Promise<string>;
+    getPhoneString(phone: Phone, target?: "string" | "login" | "print"): Promise<string>;
     /**
      * Update user password
      *

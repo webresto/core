@@ -9,20 +9,31 @@ describe('DialogBox', () => {
     optionsType: 'button',
     options: [{
       id: 'button1',
-      label: 'Button 1'
+      label: 'Button 1',
+      button: {
+       type: 'primary' 
+      } 
+    },
+    {
+      id: 'button2',
+      label: 'Button 2',
+      button: {
+       type: 'secondary' 
+      } 
     }]
   };
 
   it('full circut', async () => {
     let dialog;
 
-    emitter.on("dialog-box:new", "test-dialog-box", function (_dialog) {
+    emitter.on("dialog-box:new", "test-dialog-box", function (_dialog,test) {
       dialog = _dialog
       setTimeout(() => {
         DialogBox.answerProcess(dialog.askId, dialog.config.options[0].id);
       }, 750);
     })
 
+    console.log(dialogConfig)
     const result = await DialogBox.ask(dialogConfig, "device123");
     expect(result).to.equal(dialog.config.options[0].id);
   });

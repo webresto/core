@@ -1,5 +1,5 @@
 import Dish from "../models/Dish";
-export type DialogBoxConfig = DialogBoxButton | DialogBoxProduct
+export type DialogBoxConfig = DialogBoxButton | DialogBoxProduct;
 interface DialogBoxBase {
   askId?: string
   /**
@@ -27,7 +27,6 @@ interface DialogBoxBase {
 
   message: string;
   title: string;
-  optionsType: "button" | "product"
   /**
    * Event icon
    */

@@ -18,29 +18,34 @@
     "defaultOptionId": { "type": "string" },
     "options": {
       "type": "array",
+      "minItems": 2,
       "items": {
         "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string" },
-          "product": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "button": {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": ["primary", "secondary", "link", "abort"]
-              }
-            }
-          }
-        },
-        "required": ["id", "label"],
         "oneOf": [
-          { "required": ["product"] },
-          { "required": ["button"] }
+          {
+            "properties": {
+              "button": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["primary", "secondary", "link", "abort"]
+                  }
+                },
+                "required": ["type"]
+              }
+            },
+            "required": ["button"]
+          },
+          {
+            "properties": {
+              "product": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": ["product"]
+          }
         ]
       }
     }
