@@ -480,7 +480,7 @@ let Model = {
     }
 
     // NOTE: All dishes with modifiers add as an uniq dish
-    let results = await emitter.emit("core:add-product-before-write",15*1000, order, dishObj);
+    let results = await emitter.emit("core:add-product-before-write", order, dishObj, 15*1000);
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
     if(resultsCount !== successCount) {

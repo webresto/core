@@ -147,7 +147,7 @@ export default class AwaitEmitter {
    * @return Array of Response objects
    */
 
-  async emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N],number]): Promise<Response[]> 
+  async emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N],number?]): Promise<Response[]> 
   {
     const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
     const that = this;

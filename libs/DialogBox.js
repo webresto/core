@@ -54,8 +54,13 @@ class DialogBox {
             }
             await sleep(500);
         }
-        delete DialogBox.dialogs[dialogBox.askId]; // Cleanup if timed out
-        return null; // Return null if timed out without receiving an answer
+        let answerId = null;
+        // retruns defaultOption if timer exceded
+        if (DialogBox.dialogs[dialogBox.askId].config.defaultOptionId) {
+            answerId = DialogBox.dialogs[dialogBox.askId].config.defaultOptionId;
+        }
+        delete DialogBox.dialogs[dialogBox.askId];
+        return answerId;
     }
     static answerProcess(askId, answerId) {
         if (DialogBox.dialogs[askId] !== undefined) {

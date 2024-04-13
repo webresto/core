@@ -110,7 +110,7 @@ export default class AwaitEmitter {
      * @param args - arguments
      * @return Array of Response objects
      */
-    emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N], number]): Promise<Response[]>;
+    emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N], number?]): Promise<Response[]>;
 }
 /**
  * Event object, stores the name of the event and its listeners
