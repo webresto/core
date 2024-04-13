@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "properties": {
+    "askId": { "type": "string" },
+    "allowClosing": { "type": "boolean" },
+    "type": {
+      "type": "string",
+      "enum": ["routine", "critical"]
+    },
+    "message": { "type": "string" },
+    "title": { "type": "string" },
+    "optionsType": {
+      "type": "string",
+      "enum": ["button", "product"]
+    },
+    "icon": { "type": "string" },
+    "timeout": { "type": "number" },
+    "defaultOptionId": { "type": "string" },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "product": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "button": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["primary", "secondary", "link", "abort"]
+              }
+            }
+          }
+        },
+        "required": ["id", "label"],
+        "oneOf": [
+          { "required": ["product"] },
+          { "required": ["button"] }
+        ]
+      }
+    }
+  },
+  "required": ["message", "title", "optionsType", "options"]
+}

@@ -2,6 +2,12 @@ import { DialogBoxConfig } from "../interfaces/DialogBox";
 import User from "../models/User";
 import { v4 as uuid } from "uuid";
 
+import Ajv from 'ajv';
+const ajv = new Ajv();
+let jsonSchema = require("./schemas/dialogBoxConfig.json")
+const validate = ajv.compile(jsonSchema);
+
+
 export class DialogBox {
   public config: DialogBoxConfig;
   public user: User;
@@ -25,13 +31,18 @@ export class DialogBox {
   }
 
   public static async ask(dialog: DialogBoxConfig, deviceId: string, timeout?: number): Promise<string | null> {
+    // Check JsonSchema
+    if(!validate(dialog)) {
+      sails.log.debug(`${dialog} not match with config schema`)
+      throw `DialogBox config not valid`
+    }
+    
     function sleep(ms: number): Promise<void> {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
   
     if (!timeout) timeout = 30 * 1000;
     const startTime = Date.now();
-    console.log(dialog, deviceId)
     const dialogBox = new DialogBox(dialog, deviceId);
     DialogBox.dialogs[dialogBox.askId] = dialogBox;
     emitter.emit("dialog-box:new", dialogBox);
