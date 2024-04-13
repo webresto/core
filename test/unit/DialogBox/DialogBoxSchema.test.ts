@@ -38,10 +38,8 @@ describe('DialogBoxSchema', () => {
   
 
   it("check schema", async () => {
-    try {
-     console.log(validate(dialogConfig),1111);
-    } catch (error) {
-      console.log(error)
+    if(validate(dialogConfig) === true) {
+      throw `Config has diferent types in options, please check schema libs/schemas/dialogBoxConfig.json`
     }
   });
 });
