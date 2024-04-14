@@ -24,10 +24,6 @@ interface DialogBoxBase {
     message: string;
     title: string;
     /**
-     * Event icon
-     */
-    icon?: string;
-    /**
      * If passed;
      * After this moment the dialogue will fade away
      * It is recommended to close it automaticaly

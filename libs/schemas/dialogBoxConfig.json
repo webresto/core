@@ -13,7 +13,6 @@
       "type": "string",
       "enum": ["button", "product"]
     },
-    "icon": { "type": "string" },
     "timeout": { "type": "number" },
     "defaultOptionId": { "type": "string" },
     "options": {
