@@ -69,21 +69,17 @@ let Model = {
     afterUpdate: async function (record, cb) {
         emitter.emit(`settings:${record.key}`, record);
         settings[record.key] = cleanValue(record.value);
-        // let moduleId = record.module as string;
-        // await ModuleHelper.checkSettings(moduleId);
         cb();
     },
     afterCreate: async function (record, cb) {
         emitter.emit(`settings:${record.key}`, record);
         settings[record.key] = cleanValue(record.value);
-        // let moduleId = record.module as string;
-        // await ModuleHelper.checkSettings(moduleId);
         cb();
     },
     /** return setting value by unique key */
     async use(key) {
         let value;
-        /** ENV variable is more important than a database, but it should match the schema */
+        /** ENV variable is more important than database, but it should match the schema */
         if (process.env[key] !== undefined) {
             // ENV variable should be in database
             let setting = await Settings.findOne({ key: key });
@@ -113,7 +109,7 @@ let Model = {
             }
             return cleanValue(value);
         }
-        /** If variable present in a database */
+        /** If variable present in database */
         let setting = await Settings.findOne({ key: key });
         if (setting && (setting.value !== null || setting.defaultValue !== null)) {
             value = setting.value !== null ? setting.value : setting.defaultValue;
@@ -154,6 +150,7 @@ let Model = {
             settingsSetInput = origSettings;
         }
         console.log(`Original settings for ${key}`, origSettings);
+        // @ts-ignore
         if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
             throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
         }
@@ -164,48 +161,42 @@ let Model = {
         }
         // calculate type by value
         if (!settingType && settingsSetInput.value) {
-            let detectedType = typeof settingsSetInput.value;
-            if (!detectedType) {
-                switch (typeof settingsSetInput.value) {
-                    case 'object':
-                        settingType = 'json';
-                        break;
-                    case 'boolean':
-                        settingType = 'boolean';
-                        break;
-                    case 'number':
-                        settingType = 'number';
-                        break;
-                    case 'string':
-                        settingType = 'string';
-                        break;
-                    default:
-                        sails.log.error('Settings set error: Can not calculate type by given value, but type is required field');
-                        return;
-                }
+            switch (typeof settingsSetInput.value) {
+                case 'object':
+                    settingType = 'json';
+                    break;
+                case 'boolean':
+                    settingType = 'boolean';
+                    break;
+                case 'number':
+                    settingType = 'number';
+                    break;
+                case 'string':
+                    settingType = 'string';
+                    break;
+                default:
+                    sails.log.error('Settings set error: Can not calculate type by given value, but type is required field');
+                    return;
             }
         }
         // if type was not calculated by value, calculate type by defaultValue
         if (!settingType && settingsSetInput.defaultValue) {
-            let detectedType = typeof settingsSetInput.defaultValue;
-            if (!detectedType) {
-                switch (typeof settingsSetInput.defaultValue) {
-                    case 'object':
-                        settingType = 'json';
-                        break;
-                    case 'boolean':
-                        settingType = 'boolean';
-                        break;
-                    case 'number':
-                        settingType = 'number';
-                        break;
-                    case 'string':
-                        settingType = 'string';
-                        break;
-                    default:
-                        sails.log.error('Settings set error: Can not calculate type by given defaultValue, but type is required field');
-                        return;
-                }
+            switch (typeof settingsSetInput.defaultValue) {
+                case 'object':
+                    settingType = 'json';
+                    break;
+                case 'boolean':
+                    settingType = 'boolean';
+                    break;
+                case 'number':
+                    settingType = 'number';
+                    break;
+                case 'string':
+                    settingType = 'string';
+                    break;
+                default:
+                    sails.log.error('Settings set error: Can not calculate type by given defaultValue, but type is required field');
+                    return;
             }
         }
         if (!settingType) {
@@ -240,14 +231,13 @@ let Model = {
             const validate = ajv.compile(settingsSetInput.jsonSchema);
             // undefined if value is from input, null if value is from origSettings
             if (settingsSetInput.value !== undefined && settingsSetInput.value !== null && !validate(settingsSetInput.value)) {
-                let mErr = 'AJV Validation Error: Value does not match the schema';
-                sails.log.error(mErr);
+                let mErr = 'AJV Validation Error: Value does not match the schema, see logs for more info';
+                sails.log.error(mErr, validate.errors);
                 throw mErr;
             }
             if (settingsSetInput.defaultValue !== undefined && settingsSetInput.defaultValue !== null && !validate(settingsSetInput.defaultValue)) {
-                console.log("DEFAULT VALUE IS", settingsSetInput.defaultValue);
-                let mErr = 'AJV Validation Error: DefaultValue does not match the schema';
-                sails.log.error(mErr);
+                let mErr = 'AJV Validation Error: DefaultValue does not match the schema, see logs for more info';
+                sails.log.error(mErr, validate.errors);
                 throw mErr;
             }
         }
@@ -256,18 +246,19 @@ let Model = {
         // Write to Database
         try {
             const setting = await Settings.findOne({ key: key });
+            let inputValue = settingsSetInput.isRequired ? settingsSetInput.value ?? settingsSetInput.defaultValue : settingsSetInput.value;
             if (!setting) {
                 return await Settings.create({
                     key: key,
                     type: settingType,
                     module: settingsSetInput.appId || null,
-                    ...settingsSetInput.jsonSchema && { jsonSchema: settingsSetInput.jsonSchema },
-                    ...settingsSetInput.name && { name: settingsSetInput.name },
-                    ...settingsSetInput.value && { value: settingsSetInput.value },
-                    ...settingsSetInput.defaultValue && { defaultValue: settingsSetInput.defaultValue },
-                    ...settingsSetInput.description && { description: settingsSetInput.description },
-                    ...settingsSetInput.tooltip && { tooltip: settingsSetInput.tooltip },
-                    ...settingsSetInput.uiSchema && { uiSchema: settingsSetInput.uiSchema },
+                    jsonSchema: settingsSetInput.jsonSchema,
+                    name: settingsSetInput.name,
+                    value: inputValue,
+                    defaultValue: settingsSetInput.defaultValue,
+                    description: settingsSetInput.description,
+                    tooltip: settingsSetInput.tooltip,
+                    uiSchema: settingsSetInput.uiSchema,
                     readOnly: settingsSetInput.readOnly ?? false,
                     isRequired: settingsSetInput.isRequired ?? false
                 }).fetch();
@@ -276,15 +267,15 @@ let Model = {
                 return (await Settings.update({ key: key }, {
                     key: key,
                     type: settingType,
-                    ...settingsSetInput.jsonSchema && { jsonSchema: settingsSetInput.jsonSchema },
-                    ...settingsSetInput.name && { name: settingsSetInput.name },
-                    ...settingsSetInput.value && { value: settingsSetInput.value },
-                    ...settingsSetInput.defaultValue && { defaultValue: settingsSetInput.defaultValue },
-                    ...settingsSetInput.description && { description: settingsSetInput.description },
-                    ...settingsSetInput.tooltip && { tooltip: settingsSetInput.tooltip },
-                    ...settingsSetInput.uiSchema && { uiSchema: settingsSetInput.uiSchema },
-                    ...settingsSetInput.readOnly && { readOnly: settingsSetInput.readOnly },
-                    ...settingsSetInput.isRequired && { isRequired: settingsSetInput.isRequired }
+                    ...(settingsSetInput.jsonSchema !== undefined ? { jsonSchema: settingsSetInput.jsonSchema } : {}),
+                    ...(settingsSetInput.name !== undefined ? { name: settingsSetInput.name } : {}),
+                    ...(inputValue !== undefined ? { value: inputValue } : {}),
+                    ...(settingsSetInput.defaultValue !== undefined ? { defaultValue: settingsSetInput.defaultValue } : {}),
+                    ...(settingsSetInput.description !== undefined ? { description: settingsSetInput.description } : {}),
+                    ...(settingsSetInput.tooltip !== undefined ? { tooltip: settingsSetInput.tooltip } : {}),
+                    ...(settingsSetInput.uiSchema !== undefined ? { uiSchema: settingsSetInput.uiSchema } : {}),
+                    ...(settingsSetInput.readOnly !== undefined ? { readOnly: settingsSetInput.readOnly } : {}),
+                    ...(settingsSetInput.isRequired !== undefined ? { isRequired: settingsSetInput.isRequired } : {}),
                 }).fetch())[0];
             }
         }
