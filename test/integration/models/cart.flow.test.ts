@@ -59,19 +59,19 @@ describe("Flows: Checkout", function () {
     let core_order_check = 0;
     let core_order_after_check = 0;
 
-    emitter.on("core-order-before-check","test", function () {
+    emitter.on("core:order-before-check","test", function () {
       core_order_before_check = 1;
     });
 
-    emitter.on("core-order-check-delivery","test", function () {
+    emitter.on("core:order-check-delivery","test", function () {
       core_order_check_delivery = 1;
     });
 
-    emitter.on("core-order-check","test", function () {
+    emitter.on("core:order-check","test", function () {
       core_order_check = 1;
     });
 
-    emitter.on("core-order-after-check-counting","test", function () {
+    emitter.on("core:order-after-check-counting","test", function () {
       core_order_after_check = 1;
     });
 
@@ -91,7 +91,7 @@ describe("Flows: Checkout", function () {
     let emitSelfService;
     let emitAddress;
 
-    emitter.on("core-order-is-self-service", "test", function (self, cust, serv, addr) {
+    emitter.on("core:order-is-self-service", "test", function (self, cust, serv, addr) {
       core_order_is_self_service = 1;
       emitCustomer = cust;
       emitSelfService = serv;
@@ -129,7 +129,7 @@ describe("Flows: Checkout", function () {
 
   it("test checkConfig (default - requireAll)", async function () {
 
-    emitter.on("core-order-check", "test checkConfig (default - requireAll)", function () {
+    emitter.on("core:order-check", "test checkConfig (default - requireAll)", function () {
       throw "test";
     });
 

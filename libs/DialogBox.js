@@ -1,7 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DialogBox = void 0;
 const uuid_1 = require("uuid");
+const ajv_1 = __importDefault(require("ajv"));
+const ajv = new ajv_1.default();
+let jsonSchema = require("./schemas/dialogBoxConfig.json");
+const validate = ajv.compile(jsonSchema);
 class DialogBox {
     constructor(config, deviceId) {
         this.answerId = null;
@@ -17,13 +24,24 @@ class DialogBox {
         this.deviceId = deviceId;
     }
     static async ask(dialog, deviceId, timeout) {
+        if (!dialog) {
+            throw `DialogBox config not defined [${dialog}]`;
+        }
+        if (!deviceId) {
+            throw `deviceId not defined [${dialog}]`;
+        }
+        // Check JsonSchema
+        if (!validate(dialog)) {
+            sails.log.error(`${dialog} not match with config schema`);
+            sails.log.error(validate.errors);
+            throw `DialogBox config not valid`;
+        }
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
         if (!timeout)
             timeout = 30 * 1000;
         const startTime = Date.now();
-        console.log(dialog, deviceId);
         const dialogBox = new DialogBox(dialog, deviceId);
         DialogBox.dialogs[dialogBox.askId] = dialogBox;
         emitter.emit("dialog-box:new", dialogBox);
@@ -36,8 +54,13 @@ class DialogBox {
             }
             await sleep(500);
         }
-        delete DialogBox.dialogs[dialogBox.askId]; // Cleanup if timed out
-        return null; // Return null if timed out without receiving an answer
+        let answerId = null;
+        // retruns defaultOption if timer exceded
+        if (DialogBox.dialogs[dialogBox.askId].config.defaultOptionId) {
+            answerId = DialogBox.dialogs[dialogBox.askId].config.defaultOptionId;
+        }
+        delete DialogBox.dialogs[dialogBox.askId];
+        return answerId;
     }
     static answerProcess(askId, answerId) {
         if (DialogBox.dialogs[askId] !== undefined) {

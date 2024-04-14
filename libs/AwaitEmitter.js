@@ -17,15 +17,32 @@ class AwaitEmitter {
         this.events = [];
     }
     /**
+     * Remove event subscription
+     * @param name - event name
+     * @param id - subscriber ID to remove
+     */
+    off(name, id) {
+        const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+        const event = this.events.find((e) => e.name === name);
+        if (event) {
+            const index = event.fns.findIndex((f) => f.id === id);
+            if (index !== -1) {
+                event.fns.splice(index, 1); // Remove the subscriber
+            }
+        }
+        return this;
+    }
+    /**
      * Event subscription
      * @param name - event name
      * @param id
      * @param fn - subscriber function
      */
     on(name, id, fn) {
-        let event = this.events.find((e) => e.name === name);
+        const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+        let event = this.events.find((e) => e.name === _name);
         if (!event) {
-            event = new Event(name);
+            event = new Event(_name);
             this.events.push(event);
         }
         const index = event.fns.findIndex((f) => f.id === id);
@@ -38,7 +55,7 @@ class AwaitEmitter {
         return this;
     }
     /**
-      * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
+     * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
      * and is executed immediately, if the listener function returns a Promise, then it, along with the rest of the same listeners
      * runs in parallel and may time out.If the listener is then executed after
      * timeout, an appropriate message will be displayed
@@ -47,10 +64,19 @@ class AwaitEmitter {
      * @return Array of Response objects
      */
     async emit(name, ...args) {
+        const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
         const that = this;
-        const event = this.events.find((l) => l.name === name);
+        const event = this.events.find((l) => l.name === _name);
         if (!event)
             return [];
+        let timeout;
+        if (typeof args[args.length - 1] === "number") {
+            timeout = args[args.length - 1];
+        }
+        else {
+            timeout = that.timeout;
+            args.push(timeout);
+        }
         const res = [];
         const executor = event.fns.map((f) => async function () {
             try {
@@ -95,7 +121,7 @@ class AwaitEmitter {
                     let successEnd = false;
                     // stop timer
                     const timeout = async function () {
-                        await sleep(that.timeout);
+                        await sleep(timeout);
                         if (!successEnd) {
                             timeoutEnd = true;
                             res.push(new Response(f.id, null, null, true));

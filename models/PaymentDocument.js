@@ -54,7 +54,7 @@ let Model = {
         const self = (await PaymentDocument.find(criteria).limit(1))[0];
         if (!self)
             throw `PaymentDocument is not found`;
-        emitter.emit("core-payment-document-check", self);
+        emitter.emit("core:payment-document-check", self);
         try {
             let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
             let checkedPaymentDocument = await paymentAdapter.checkPayment(self);
@@ -66,7 +66,7 @@ let Model = {
             else {
                 await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status }).fetch();
             }
-            emitter.emit("core-payment-document-checked-document", checkedPaymentDocument);
+            emitter.emit("core:payment-document-checked-document", checkedPaymentDocument);
             return checkedPaymentDocument;
         }
         catch (e) {
@@ -88,7 +88,7 @@ let Model = {
             comment: comment,
             data: data,
         };
-        emitter.emit("core-payment-document-before-create", payment);
+        emitter.emit("core:payment-document-before-create", payment);
         try {
             await PaymentDocument.create(payment);
         }

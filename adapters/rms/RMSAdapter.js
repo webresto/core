@@ -159,7 +159,7 @@ class RMSAdapter {
             try {
                 let outOfStocksDishes = await this.loadOutOfStocksDishes();
                 for (let item of outOfStocksDishes) {
-                    emitter.emit("rms-sync-out-of-stocks:before-each-product-item", item);
+                    emitter.emit("rms-sync:out-of-stocks-before-each-product-item", item);
                     await Dish.update({ rmsId: item.rmsId }, { balance: Math.round(item.balance) }).fetch();
                 }
                 return resolve();
