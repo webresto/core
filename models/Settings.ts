@@ -37,7 +37,10 @@ let attributes = {
   } as unknown as string, // all spaces will be replaced by "_"
   name: "string",
   description: "string",
-  tooltip: "string",
+  tooltip: {
+		type: "string",
+		allowNull: true 
+	},
   value: "json" as unknown as SettingValue,
   /** In case value is not defined */
   defaultValue: "json" as unknown as SettingValue, // can be set only by file

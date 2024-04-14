@@ -21,7 +21,10 @@ let attributes = {
     }, // all spaces will be replaced by "_"
     name: "string",
     description: "string",
-    tooltip: "string",
+    tooltip: {
+        type: "string",
+        allowNull: true
+    },
     value: "json",
     /** In case value is not defined */
     defaultValue: "json", // can be set only by file

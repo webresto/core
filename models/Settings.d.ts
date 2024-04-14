@@ -23,7 +23,10 @@ declare let attributes: {
     key: string;
     name: string;
     description: string;
-    tooltip: string;
+    tooltip: {
+        type: string;
+        allowNull: boolean;
+    };
     value: SettingValue;
     /** In case value is not defined */
     defaultValue: SettingValue;
