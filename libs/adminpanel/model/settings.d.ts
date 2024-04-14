@@ -68,6 +68,7 @@ declare const _default: {
             module: string;
             createdAt: boolean;
             updatedAt: boolean;
+            isRequired: string;
         };
         list: {
             fields: {

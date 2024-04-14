@@ -69,7 +69,8 @@ exports.default = {
             uiSchema: "UI Schema",
             module: "Module",
             createdAt: false,
-            updatedAt: false
+            updatedAt: false,
+            isRequired: "Is required"
         },
         list: {
             fields: {
@@ -96,7 +97,7 @@ exports.default = {
                     disabled: true,
                 },
                 value: {
-                    title: "Description",
+                    title: "Value",
                     type: "json",
                 },
             },
