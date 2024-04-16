@@ -100,14 +100,14 @@ let Model = {
 
   afterUpdate: async function (record: Settings, cb: (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
-    settings[record.key] = cleanValue(record.value);
+    settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
 
 		cb();
 	},
 
   afterCreate: async function (record: Settings, cb: (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
-    settings[record.key] = cleanValue(record.value);
+    settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
 
 		cb();
 	},
