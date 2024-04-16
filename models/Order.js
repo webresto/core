@@ -837,9 +837,9 @@ let Model = {
         sails.log.silly("Order > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
-        const orderConfig = await Settings.get("ORDER");
+        const orderConfig = await Settings.get("EMITTER_ORDER_STRATEGY");
         if (orderConfig) {
-            if (orderConfig.requireAll) {
+            if (orderConfig === "ALL_REQUIRED") {
                 if (resultsCount === successCount) {
                     await orderIt();
                     return;
@@ -848,7 +848,7 @@ let Model = {
                     throw "At least one listener did not complete the order.";
                 }
             }
-            if (orderConfig.justOne) {
+            if (orderConfig === "JUST_ONE") {
                 if (successCount > 0) {
                     await orderIt();
                     return;
@@ -857,7 +857,6 @@ let Model = {
                     throw "No listener completed the order";
                 }
             }
-            throw "Bad orderConfig";
         }
         await orderIt();
         return;
