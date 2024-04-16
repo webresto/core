@@ -3,6 +3,14 @@
   "type": "json",
   "name": "Work Time",
   "description": "Complex object, required",
+  "defaultValue": [
+    {
+      "dayOfWeek": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+      "start": "10:00",
+      "stop": "20:00",
+      "break": "00:00-00:00"
+    }
+  ],
   "jsonSchema": {
     "type": "array",
     "items": {

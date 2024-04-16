@@ -56,13 +56,14 @@ let Model = {
         cb();
     },
     beforeUpdate: async function (record, cb) {
-        if (!record.id) {
-            cb("Settings error: Setting.id is required for update");
-        }
-        let setting = await Settings.findOne({ id: record.id });
-        if (setting.readOnly && setting.value !== null) {
-            cb(`Settings error: Setting [${record.key}] cannot be changed (read only)`);
-        }
+        // Todo: IN adminpanel it produce error becuse we not know id in beforeUpdate
+        // if (!record.id) {
+        // 	cb("Settings error: Setting.id is required for update");
+        // }
+        // let setting = await Settings.findOne({ id: record.id });
+        // if (setting.readOnly && setting.value !== null) {
+        // 	cb(`Settings error: Setting [${record.key}] cannot be changed (read only)`);
+        // }
         delete record.key;
         if (record.module) {
             cb("Settings error: Can not change record.module. Delete and create new setting instead");

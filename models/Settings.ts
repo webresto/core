@@ -80,15 +80,16 @@ let Model = {
   },
 
   beforeUpdate: async function (record: Settings, cb: (err?: string) => void) {
-    if (!record.id) {
-      cb("Settings error: Setting.id is required for update");
-    }
+		// Todo: IN adminpanel it produce error becuse we not know id in beforeUpdate
+		// if (!record.id) {
+		// 	cb("Settings error: Setting.id is required for update");
+		// }
 
-    let setting = await Settings.findOne({ id: record.id });
-    if (setting.readOnly && setting.value !== null) {
-      cb(`Settings error: Setting [${record.key}] cannot be changed (read only)`);
-    }
-
+		// let setting = await Settings.findOne({ id: record.id });
+		// if (setting.readOnly && setting.value !== null) {
+		// 	cb(`Settings error: Setting [${record.key}] cannot be changed (read only)`);
+		// }
+    
     delete record.key;
 
     if (record.module) {
