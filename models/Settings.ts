@@ -80,11 +80,11 @@ let Model = {
   },
 
   beforeUpdate: async function (record: Settings, cb: (err?: string) => void) {
-    if (!record.key) {
-      cb("Settings error: Setting.key is required for update");
+    if (!record.id) {
+      cb("Settings error: Setting.id is required for update");
     }
 
-    let setting = await Settings.findOne({ key: record.key });
+    let setting = await Settings.findOne({ id: record.id });
     if (setting.readOnly && setting.value !== null) {
       cb(`Settings error: Setting [${record.key}] cannot be changed (read only)`);
     }
