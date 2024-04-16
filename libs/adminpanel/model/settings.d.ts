@@ -73,7 +73,14 @@ declare const _default: {
         list: {
             fields: {
                 id: boolean;
-                value: boolean;
+                defaultValue: boolean;
+                description: boolean;
+                tooltip: boolean;
+                uiSchema: boolean;
+                readOnly: boolean;
+                isRequired: boolean;
+                jsonSchema: boolean;
+                type: boolean;
             };
         };
         add: {

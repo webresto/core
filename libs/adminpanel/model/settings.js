@@ -75,7 +75,14 @@ exports.default = {
         list: {
             fields: {
                 id: false,
-                value: false,
+                defaultValue: false,
+                description: false,
+                tooltip: false,
+                uiSchema: false,
+                readOnly: false,
+                isRequired: false,
+                jsonSchema: false,
+                type: false
             },
         },
         add: {
