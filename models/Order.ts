@@ -944,19 +944,20 @@ let Model = {
     * has basic checks. And is self-sufficient, but
     * is still set by default so all checks must be passed
     */
-    const checkConfig = await Settings.get("CHECKOUT_STRATEGY");
+    const checkConfig = await Settings.get("EMITTER_CHECKOUT_STRATEGY");
 
     /**
      * If checkout policy not required then push next
      * default is notRequired === undefined, then skip
      * Because we have RMS adapter who has garaties for order Delivery
      */
-    if (checkConfig && checkConfig.notRequired !== false) {
+    if (!checkConfig || checkConfig === "NOT_REQUIRED") {
       if ((await Order.getState(order.id)) !== "CHECKOUT") {
         await Order.next(order.id, "CHECKOUT");
       }
       return;
     }
+
 
 
     /** Success in all listeners by default */
@@ -968,7 +969,7 @@ let Model = {
         await Order.next(order.id, "CHECKOUT");
       }
       return;
-    } else {
+    } else if (checkConfig === "ALL_REQUIRED") {
       let error: string
       // Find error reason
       results.forEach(result => {
@@ -983,6 +984,8 @@ let Model = {
         code: 0,
         error: `one or more results from core:order-check was not succeed\n last error: ${error}`,
       };
+    } else {
+      // Todo: implement logic for "JUST_ONE"
     }
 
     /**

@@ -141,5 +141,6 @@ declare global {
     test_123Test: boolean
     PasswordRegex: string
     PasswordMinLength: string
+    EMITTER_CHECKOUT_STRATEGY: "JUST_ONE" | "NOT_REQUIRED" | "ALL_REQUIRED"
   }
 }
