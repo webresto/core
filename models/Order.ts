@@ -480,10 +480,10 @@ let Model = {
     }
 
     // NOTE: All dishes with modifiers add as an uniq dish
-    let results = await emitter.emit("core:add-product-before-write", order, dishObj, 15*1000);
+    let results = await emitter.emit("core:add-product-before-write", order, dishObj, 15 * 1000);
     const resultsCount = results.length;
     const successCount = results.filter((r) => r.state === "success").length;
-    if(resultsCount !== successCount) {
+    if (resultsCount !== successCount) {
       return
     }
 
@@ -946,16 +946,17 @@ let Model = {
     */
     const checkConfig = await Settings.get("CHECKOUT_STRATEGY");
 
-  /**
+    /**
      * If checkout policy not required then push next
      * default is notRequired === undefined, then skip
+     * Because we have RMS adapter who has garaties for order Delivery
      */
-  if (checkConfig && checkConfig.notRequired !== false) {
-    if ((await Order.getState(order.id)) !== "CHECKOUT") {
-      await Order.next(order.id, "CHECKOUT");
+    if (checkConfig && checkConfig.notRequired !== false) {
+      if ((await Order.getState(order.id)) !== "CHECKOUT") {
+        await Order.next(order.id, "CHECKOUT");
+      }
+      return;
     }
-    return;
-  }
 
     /** Success in all listeners by default */
     const resultsCount = results.length;
@@ -1314,17 +1315,17 @@ let Model = {
                   if (originGroupModifiers.childModifiers) {
                     originGroupModifiers.childModifiers.forEach(originChildModifier => {
                       if (selectedModifier.dish && selectedModifier.dish.rmsId !== undefined) {
-                        if(selectedModifier.dish.rmsId === originChildModifier.id /** is rmsId*/) {
+                        if (selectedModifier.dish.rmsId === originChildModifier.id /** is rmsId*/) {
                           currentModifier = originChildModifier;
                         }
                       } else {
-                        sails.log.debug(`countCart can't assign currentModifier: rmsId not defined in selectedModifier ${JSON.stringify(selectedModifier)}` )
+                        sails.log.debug(`countCart can't assign currentModifier: rmsId not defined in selectedModifier ${JSON.stringify(selectedModifier)}`)
                       }
                     })
                   }
                 })
 
-                if ( !currentModifier) {
+                if (!currentModifier) {
                   sails.log.error(`Order with id [${order.id}] has unknown modifier [${selectedModifier.id}]`)
                 }
 
