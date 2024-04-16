@@ -759,9 +759,10 @@ let Model = {
         */
         const checkConfig = await Settings.get("CHECKOUT_STRATEGY");
         /**
-           * If checkout policy not required then push next
-           * default is notRequired === undefined, then skip
-           */
+         * If checkout policy not required then push next
+         * default is notRequired === undefined, then skip
+         * Because we have RMS adapter who has garaties for order Delivery
+         */
         if (checkConfig && checkConfig.notRequired !== false) {
             if ((await Order.getState(order.id)) !== "CHECKOUT") {
                 await Order.next(order.id, "CHECKOUT");

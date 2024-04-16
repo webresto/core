@@ -22,7 +22,7 @@ class AwaitEmitter {
      * @param id - subscriber ID to remove
      */
     off(name, id) {
-        const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+        const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
         const event = this.events.find((e) => e.name === name);
         if (event) {
             const index = event.fns.findIndex((f) => f.id === id);
@@ -39,7 +39,7 @@ class AwaitEmitter {
      * @param fn - subscriber function
      */
     on(name, id, fn) {
-        const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+        const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
         let event = this.events.find((e) => e.name === _name);
         if (!event) {
             event = new Event(_name);
@@ -64,7 +64,7 @@ class AwaitEmitter {
      * @return Array of Response objects
      */
     async emit(name, ...args) {
-        const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+        const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
         const that = this;
         const event = this.events.find((l) => l.name === _name);
         if (!event)

@@ -102,7 +102,7 @@ export default class AwaitEmitter {
    * @param id - subscriber ID to remove
    */
   off<N extends keyof IAwaitEmitter>(name: N, id: string): AwaitEmitter {
-    const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+    const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
     const event = this.events.find((e) => e.name === name);
     if (event) {
       const index = event.fns.findIndex((f) => f.id === id);
@@ -120,7 +120,7 @@ export default class AwaitEmitter {
    * @param fn - subscriber function
    */
   on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: [...IAwaitEmitter[N], number]) => void): AwaitEmitter {
-    const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+    const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
     let event = this.events.find((e) => e.name === _name);
     if (!event) {
       event = new Event(_name);
@@ -149,7 +149,7 @@ export default class AwaitEmitter {
 
   async emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N],number?]): Promise<Response[]> 
   {
-    const _name = name.toLowerCase().replace(/[^a-z]/ig, '');
+    const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
     const that = this;
     const event = this.events.find((l) => l.name === _name);
     if (!event) return [];
