@@ -99,7 +99,7 @@ export default class AwaitEmitter {
    * @param name - event name
    * @param id - subscriber ID to remove
    */
-    declare<N extends keyof IAwaitEmitter>(name: N, description: string): void;
+    declare<N extends keyof IAwaitEmitter>(name: N, description?: string): void;
     /**
      * Issues one declaration per event
      * @param name event name

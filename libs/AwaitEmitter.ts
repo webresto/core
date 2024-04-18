@@ -105,7 +105,7 @@ export default class AwaitEmitter {
  * @param name - event name
  * @param id - subscriber ID to remove
  */
-  declare<N extends keyof IAwaitEmitter>(name: N, description: string): void {
+  declare<N extends keyof IAwaitEmitter>(name: N, description: string = "unknown event"): void {
     const index = this.declarations.findIndex((_declaration) => _declaration.name === name);
     if (index !== -1) {
       this.declarations.splice(index, 1);
@@ -185,6 +185,7 @@ export default class AwaitEmitter {
     
     if(!this.getDeclaration(name)) {
       sails.log.warn(`There are no declarations for event [${name}].\nPlease add a declaration using the (emitter.declare) method`)
+      this.declare(name)
     }
     
     const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
