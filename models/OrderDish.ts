@@ -40,7 +40,7 @@ let attributes = {
   itemTotal: "number" as unknown as number,
 
   /** Position price before the use of discounts */
-  itemTotalBeforeDiscount: "number",
+  itemTotalBeforeDiscount: "number" as unknown as number,
 
   /** Price for product */
   itemCost: "number" as unknown as number,
