@@ -82,9 +82,11 @@ declare global {
  * with an error or timed out).
  */
 export default class AwaitEmitter {
-  events: Event[];
-  name: string;
-  timeout: number;
+  readonly events: Event[];
+  /** @deprecated not used */
+  readonly name: string;
+  readonly timeout: number;
+  readonly declarations: { name: string, description: string }[]
 
   /**
    * @param name - name of the new emitter
@@ -94,6 +96,38 @@ export default class AwaitEmitter {
     this.name = name;
     this.timeout = timeout || 1000;
     this.events = [];
+    this.declarations = [];
+  }
+
+  /**
+ * Declare event
+ * Declarations are needed so that we can get a list of system events
+ * @param name - event name
+ * @param id - subscriber ID to remove
+ */
+  declare<N extends keyof IAwaitEmitter>(name: N, description: string): void {
+    const index = this.declarations.findIndex((_declaration) => _declaration.name === name);
+    if (index !== -1) {
+      this.declarations.splice(index, 1);
+    }
+    this.declarations.push({ name, description })
+  }
+
+  /**
+   * Issues one declaration per event
+   * @param name event name
+   * @returns 
+   */
+  getDeclaration<N extends keyof IAwaitEmitter>(name: N) {
+    return this.declarations.find((_declaration) => _declaration.name === name);
+  }
+
+  /**
+   *Issuer of all declarations
+   * @returns 
+   */
+  getDeclarations() {
+    return this.declarations
   }
 
   /**
@@ -105,9 +139,9 @@ export default class AwaitEmitter {
     const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
     const event = this.events.find((e) => e.name === name);
     if (event) {
-      const index = event.fns.findIndex((f) => f.id === id);
+      const index = event.subscribers.findIndex((subscriber) => subscriber.id === id);
       if (index !== -1) {
-        event.fns.splice(index, 1); // Remove the subscriber
+        event.subscribers.splice(index, 1); // Remove the subscriber
       }
     }
     return this;
@@ -116,10 +150,10 @@ export default class AwaitEmitter {
   /**
    * Event subscription
    * @param name - event name
-   * @param id
-   * @param fn - subscriber function
+   * @param id - subscriber id
+   * @param handler - handler function
    */
-  on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: [...IAwaitEmitter[N], number]) => void): AwaitEmitter {
+  on<N extends keyof IAwaitEmitter>(name: N, id: string, handler: (...args: [...IAwaitEmitter[N], number]) => void): AwaitEmitter {
     const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
     let event = this.events.find((e) => e.name === _name);
     if (!event) {
@@ -127,11 +161,11 @@ export default class AwaitEmitter {
       this.events.push(event);
     }
 
-    const index = event.fns.findIndex((f) => f.id === id);
+    const index = event.subscribers.findIndex((subscriber) => subscriber.id === id);
     if (index !== -1) {
-      event.fns[index] = { fn: fn, id: id };
+      event.subscribers[index] = { handler: handler, id: id };
     } else {
-      event.fns.push({ fn: fn, id: id });
+      event.subscribers.push({ handler: handler, id: id });
     }
 
     return this;
@@ -144,50 +178,40 @@ export default class AwaitEmitter {
    * timeout, an appropriate message will be displayed
    * @param name - event name
    * @param args - arguments
-   * @return Array of Response objects
+   * @return Array of HandlerResponse objects
    */
 
-  async emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N],number?]): Promise<Response[]> 
-  {
+  async emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N], number?]): Promise<HandlerResponse[]> {
+    
+    if(!this.getDeclaration(name)) {
+      sails.log.warn(`There are no declarations for event [${name}].\nPlease add a declaration using the (emitter.declare) method`)
+    }
+    
     const _name = name.toLowerCase().replace(/[^a-z]/ig, '-');
     const that = this;
     const event = this.events.find((l) => l.name === _name);
     if (!event) return [];
     let timeout;
-    if (typeof args[args.length-1] === "number"){
-      timeout = args[args.length-1];
+    if (typeof args[args.length - 1] === "number") {
+      timeout = args[args.length - 1];
     } else {
       timeout = that.timeout;
       args.push(timeout)
     }
 
-    const res: Response[] = [];
-    const executor = event.fns.map(
-      (f) =>
+    const res: HandlerResponse[] = [];
+    const executor = event.subscribers.map(
+      (subscriber) =>
         async function () {
           try {
-            if (sails.config.log && sails.config.log.level === "silly") {
+            if (sails.config.log && sails.config.log.level === "silly" && process.env.AWAIT_EMITTER_SILLY) {
               let debugRay = "ROUND: " + Math.floor(Math.random() * 1000000000) + 1 + " < " + new Date();
               //@ts-ignore
               args = args.map((arg) => {
                 if (typeof arg === "object") {
                   return new Proxy(arg, {
                     set: function (target, key, value) {
-                      let id = `
-  -----------------------------------------------------------------
-  Event: \x1b[40m\x1b[33m\x1b[5m ${name} <- ${f.id}  \x1b[0m : ${debugRay}
-  \x1b[33m${key as string} : ${JSON.stringify(value, null, 2)} \x1b[0m
-    
-  method listing:
-  
-  ${f.fn}
-  
-  \x1b[32m ↷↷↷↷↷↷↷↷↷↷↷
-  ${JSON.stringify(target, null, 2)}
-  
-  
-  TRACE: 
-                      `
+                      let id = formatTrace(name, subscriber, debugRay, key, value, target);
                       console.trace(id)
                       target[key] = value;
                       return true;
@@ -199,10 +223,10 @@ export default class AwaitEmitter {
               });
             } //silly
 
-            const r = f.fn.apply(that, args);
+            const handlerResult = subscriber.handler.apply(that, args);
 
             // If this is a promise, then we are waiting
-            if (!!r && (typeof r === "object" || typeof r === "function") && typeof r.then === "function") {
+            if (!!handlerResult && (typeof handlerResult === "object" || typeof handlerResult === "function") && typeof handlerResult.then === "function") {
               // from isPromise
               let timeoutEnd = false;
               let successEnd = false;
@@ -212,24 +236,25 @@ export default class AwaitEmitter {
                 await sleep(timeout);
                 if (!successEnd) {
                   timeoutEnd = true;
-                  res.push(new Response(f.id, null, null, true));
+                  res.push(new HandlerResponse(subscriber.id, null, null, true));
                 }
               };
 
               const decorator = async function () {
                 const now = new Date();
                 try {
-                  const res1 = await r;
+
+                  const result = await handlerResult;
                   if (!timeoutEnd) {
                     successEnd = true;
-                    res.push(new Response(f.id, res1));
+                    res.push(new HandlerResponse(subscriber.id, result));
                   } else {
-                    const listenerName = f.id || "some";
-                    sails.log.error(listenerName, "event of action", name, "in", that.name, "emitter end after", new Date().getTime() - now.getTime(), "ms");
+                    const listenerName = subscriber.id;
+                    sails.log.silly(`[${listenerName}] event of action [${name}] in [${that.name}] emitter end after [${new Date().getTime() - now.getTime()}] ms`);
                   }
                 } catch (e) {
                   successEnd = true;
-                  res.push(new Response(f.id, null, e));
+                  res.push(new HandlerResponse(subscriber.id, null, e));
                 }
               };
 
@@ -238,18 +263,18 @@ export default class AwaitEmitter {
               // If the function is not a promise, then execute it immediately
             } else {
               try {
-                res.push(new Response(f.id, r));
+                res.push(new HandlerResponse(subscriber.id, handlerResult));
               } catch (e) {
-                res.push(new Response(f.id, null, e));
+                res.push(new HandlerResponse(subscriber.id, null, e));
               }
             }
           } catch (e) {
-            res.push(new Response(f.id, null, e));
+            res.push(new HandlerResponse(subscriber.id, null, e));
           }
         }
     );
 
-    await Promise.all(executor.map((f) => f()));
+    await Promise.all(executor.map((subscriber) => subscriber()));
 
     return res;
   }
@@ -260,22 +285,22 @@ export default class AwaitEmitter {
  */
 class Event {
   name: string;
-  fns: {
-    fn: func;
+  subscribers: {
+    handler: func;
     id: string;
   }[];
 
   constructor(name: string) {
     this.name = name;
-    this.fns = [];
+    this.subscribers = [];
   }
 }
 
 /**
- * Response object, contains a mark where the listener came from, the state of the result (success, error, timeout), and the result or
+ * HandlerResponse object, contains a mark where the listener came from, the state of the result (success, error, timeout), and the result or
  * error returned or called by the function
  */
-class Response {
+class HandlerResponse {
   id: string;
   state: "success" | "error" | "timeout";
   result: any;
@@ -290,4 +315,23 @@ class Response {
       sails.log.error(`Emitter with id [${id ?? 'some'}], was finished with error:`, error)
     }
   }
+}
+
+
+function formatTrace(name, subscriber, debugRay, key, value, target) {
+  return `
+-----------------------------------------------------------------
+Event: \x1b[40m\x1b[33m\x1b[5m ${name} <- ${subscriber.id}  \x1b[0m : ${debugRay}
+\x1b[33m${key as string} : ${JSON.stringify(value, null, 2)} \x1b[0m
+  
+method listing:
+
+${subscriber.handler}
+
+\x1b[32m ↷↷↷↷↷↷↷↷↷↷↷
+${JSON.stringify(target, null, 2)}
+
+
+TRACE: 
+                    `
 }

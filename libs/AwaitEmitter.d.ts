@@ -80,14 +80,43 @@ declare global {
  * with an error or timed out).
  */
 export default class AwaitEmitter {
-    events: Event[];
-    name: string;
-    timeout: number;
+    readonly events: Event[];
+    /** @deprecated not used */
+    readonly name: string;
+    readonly timeout: number;
+    readonly declarations: {
+        name: string;
+        description: string;
+    }[];
     /**
      * @param name - name of the new emitter
      * @param timeout - specifies how many milliseconds to wait for functions that return a Promise.
      */
     constructor(name: string, timeout?: number);
+    /**
+   * Declare event
+   * Declarations are needed so that we can get a list of system events
+   * @param name - event name
+   * @param id - subscriber ID to remove
+   */
+    declare<N extends keyof IAwaitEmitter>(name: N, description: string): void;
+    /**
+     * Issues one declaration per event
+     * @param name event name
+     * @returns
+     */
+    getDeclaration<N extends keyof IAwaitEmitter>(name: N): {
+        name: string;
+        description: string;
+    };
+    /**
+     *Issuer of all declarations
+     * @returns
+     */
+    getDeclarations(): {
+        name: string;
+        description: string;
+    }[];
     /**
      * Remove event subscription
      * @param name - event name
@@ -97,10 +126,10 @@ export default class AwaitEmitter {
     /**
      * Event subscription
      * @param name - event name
-     * @param id
-     * @param fn - subscriber function
+     * @param id - subscriber id
+     * @param handler - handler function
      */
-    on<N extends keyof IAwaitEmitter>(name: N, id: string, fn: (...args: [...IAwaitEmitter[N], number]) => void): AwaitEmitter;
+    on<N extends keyof IAwaitEmitter>(name: N, id: string, handler: (...args: [...IAwaitEmitter[N], number]) => void): AwaitEmitter;
     /**
      * Emits an event with name and args.If the subscriber function does not return a Promise, then it is considered synchronous
      * and is executed immediately, if the listener function returns a Promise, then it, along with the rest of the same listeners
@@ -108,26 +137,26 @@ export default class AwaitEmitter {
      * timeout, an appropriate message will be displayed
      * @param name - event name
      * @param args - arguments
-     * @return Array of Response objects
+     * @return Array of HandlerResponse objects
      */
-    emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N], number?]): Promise<Response[]>;
+    emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N], number?]): Promise<HandlerResponse[]>;
 }
 /**
  * Event object, stores the name of the event and its listeners
  */
 declare class Event {
     name: string;
-    fns: {
-        fn: func;
+    subscribers: {
+        handler: func;
         id: string;
     }[];
     constructor(name: string);
 }
 /**
- * Response object, contains a mark where the listener came from, the state of the result (success, error, timeout), and the result or
+ * HandlerResponse object, contains a mark where the listener came from, the state of the result (success, error, timeout), and the result or
  * error returned or called by the function
  */
-declare class Response {
+declare class HandlerResponse {
     id: string;
     state: "success" | "error" | "timeout";
     result: any;
