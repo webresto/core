@@ -499,6 +499,7 @@ let Model = {
             modifiers: modifiers,
             comment: comment,
             addedBy: addedBy,
+            itemCost: dishObj.price
           }
         ).fetch()
       )[0];
@@ -509,7 +510,8 @@ let Model = {
         amount: amount,
         modifiers: modifiers,
         comment: comment,
-        addedBy: addedBy
+        addedBy: addedBy,
+        itemCost: dishObj.price
       }).fetch();
     }
 
