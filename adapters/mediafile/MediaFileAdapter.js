@@ -23,7 +23,7 @@ class MediaFileAdapter {
         sails.log.silly(`Adapter > Mediafile > toDownload: ${url}`);
         let imageId = (0, uuid_1.v5)(url, this.UUID_NAMESPACE);
         let mediaFile = await MediaFile.findOne({ id: imageId });
-        if (!this.checkFileExist(mediaFile)) {
+        if (mediaFile && await this.checkFileExist(mediaFile) === false) {
             force = true;
         }
         let loadConfig;
@@ -49,7 +49,9 @@ class MediaFileAdapter {
                     throw `mediaFile type not known ${type}`;
                     break;
             }
-            mediaFile = await MediaFile.create(mediaFile).fetch();
+            if (!mediaFile) {
+                mediaFile = await MediaFile.create(mediaFile).fetch();
+            }
         }
         return mediaFile;
     }

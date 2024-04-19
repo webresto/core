@@ -45,7 +45,7 @@ export default abstract class MediaFileAdapter {
     let imageId = uuidv5(url, this.UUID_NAMESPACE);
     let mediaFile = await MediaFile.findOne({ id: imageId });
 
-    if(!this.checkFileExist(mediaFile)) {
+    if( mediaFile &&  await this.checkFileExist(mediaFile) === false) {
       force = true
     }
 
@@ -76,7 +76,10 @@ export default abstract class MediaFileAdapter {
           throw `mediaFile type not known ${type}`
           break;
       }
-      mediaFile = await MediaFile.create(mediaFile).fetch()
+      
+      if(!mediaFile) {
+        mediaFile = await MediaFile.create(mediaFile).fetch()
+      }
     }
     return mediaFile;
   };
