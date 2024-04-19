@@ -1,4 +1,4 @@
-import { generateRandomString } from "../libs/hashCode";
+import { generateUUID } from "../libs/hashCode";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -16,7 +16,7 @@ export default async function () {
 
     if (!await Settings.get("UUID_NAMESPACE")) {
       await Settings.set("UUID_NAMESPACE", {
-        value: generateRandomString(64)
+        value: generateUUID()
       })
     }
 

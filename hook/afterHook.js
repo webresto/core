@@ -14,7 +14,7 @@ async function default_1() {
         process.env.TZ = timezone;
         if (!await Settings.get("UUID_NAMESPACE")) {
             await Settings.set("UUID_NAMESPACE", {
-                value: (0, hashCode_1.generateRandomString)(64)
+                value: (0, hashCode_1.generateUUID)()
             });
         }
         await PaymentDocument.processor(timeSyncPayments);
