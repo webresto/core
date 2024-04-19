@@ -52,6 +52,9 @@ class MediaFileAdapter {
             if (!mediaFile) {
                 mediaFile = await MediaFile.create(mediaFile).fetch();
             }
+            else {
+                mediaFile = await MediaFile.update({ id: mediaFile.id }, { images: mediaFile.images }).fetch()[0];
+            }
         }
         return mediaFile;
     }
