@@ -31,6 +31,7 @@ const fs = __importStar(require("fs"));
 const axios_1 = __importDefault(require("axios"));
 const uuid_1 = require("uuid");
 const path = __importStar(require("path"));
+//@ts-ignore
 const sharp_1 = __importDefault(require("sharp"));
 // images: {
 //   adapter: 'imagemagick-local',
@@ -53,6 +54,25 @@ const sharp_1 = __importDefault(require("sharp"));
 //   }
 // },
 class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
+    async checkFileExist(mediaFile) {
+        let allFileExist = true;
+        if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && Object.keys(mediaFile.images).length) {
+            const images = mediaFile.images;
+            for (const key in images) {
+                if (images.hasOwnProperty(key)) {
+                    const imageFilePath = images[key];
+                    try {
+                        await fs.promises.access(imageFilePath, fs.constants.F_OK);
+                    }
+                    catch (error) {
+                        // If the file does not exist, set the allFileExist flag to false
+                        allFileExist = false;
+                    }
+                }
+            }
+        }
+        return allFileExist;
+    }
     constructor(config) {
         super(config);
         this.processing = false;
@@ -80,8 +100,8 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             }
         };
         const cfg = { ...baseConfig, ...config };
-        const mediafileExtesion = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0].replace('.', '');
-        const origin = this.getNameByUrl(url, mediafileExtesion);
+        const mediafileExtension = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0].replace('.', '');
+        const origin = this.getNameByUrl(url, mediafileExtension);
         const name = {
             origin: origin,
             small: undefined,
@@ -140,9 +160,10 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         if (MEDIAFILE_PARALEL_TO_DOWNLOAD > this.loadMediaFilesProcessQueue.length)
             MEDIAFILE_PARALEL_TO_DOWNLOAD = this.loadMediaFilesProcessQueue.length;
         while (this.loadMediaFilesProcessQueue.length) {
-            const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALEL_TO_DOWNLOAD);
-            const downloadPromises = loadMediaFilesProcesses.map((loadMediaFilesProcess) => {
-                return this.download(loadMediaFilesProcess).then(async () => {
+            const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALLEL_TO_DOWNLOAD);
+            const downloadPromises = loadMediaFilesProcesses.map(async (loadMediaFilesProcess) => {
+                try {
+                    await this.download(loadMediaFilesProcess);
                     const prefix = this.getPrefix(loadMediaFilesProcess.type);
                     switch (loadMediaFilesProcess.type) {
                         case "image":
@@ -172,10 +193,11 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                         default:
                             break;
                     }
-                }).catch(error => {
+                }
+                catch (error) {
                     // Log the error and rethrow it
                     sails.log.error(`MF local Error > processing file ${loadMediaFilesProcess.name.origin}: ${error}`);
-                });
+                }
             });
             try {
                 // Wait for all downloads and processing to complete

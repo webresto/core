@@ -3,7 +3,9 @@ import * as fs from "fs";
 import axios from 'axios';
 import { v5 as uuidv5 } from "uuid";
 import * as path from "path";
+//@ts-ignore
 import sharp from 'sharp';
+import { IMediaFile } from "../../../models/MediaFile";
 
 
 export interface MediaFileConfig {
@@ -55,6 +57,28 @@ interface LoadMediaFilesProcess {
 // },
 
 export default class LocalMediaFileAdapter extends MediaFileAdapter {
+  public async checkFileExist(mediaFile: IMediaFile): Promise<boolean> {
+    let allFileExist: boolean = true;
+  
+    if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && Object.keys(mediaFile.images).length) {
+      const images = mediaFile.images;
+      
+      for (const key in images) {
+        if (images.hasOwnProperty(key)) {
+          const imageFilePath = images[key];
+          try {
+            await fs.promises.access(imageFilePath, fs.constants.F_OK);
+          } catch (error) {
+            // If the file does not exist, set the allFileExist flag to false
+            allFileExist = false;
+          }
+        }
+      }
+    }
+  
+    return allFileExist;
+  }
+  
   private processing: boolean = false;
 
 
@@ -91,8 +115,8 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
     const cfg = { ...baseConfig, ...config } as unknown as MediaFileConfigInner;
 
-    const mediafileExtesion = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0].replace('.', '');
-    const origin = this.getNameByUrl(url, mediafileExtesion);
+    const mediafileExtension = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0].replace('.', '');
+    const origin = this.getNameByUrl(url, mediafileExtension);
 
     const name = {
       origin: origin,
@@ -165,21 +189,23 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
     while (this.loadMediaFilesProcessQueue.length) {
 
-      const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALEL_TO_DOWNLOAD);
-      const downloadPromises = loadMediaFilesProcesses.map((loadMediaFilesProcess) => {
-        return this.download(loadMediaFilesProcess).then(async () => {
+      const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALLEL_TO_DOWNLOAD);
+      const downloadPromises = loadMediaFilesProcesses.map(async (loadMediaFilesProcess) => {
+        try {
+          await this.download(loadMediaFilesProcess);
           const prefix = this.getPrefix(loadMediaFilesProcess.type);
           switch (loadMediaFilesProcess.type) {
             case "image":
-              sails.log.debug(`MF local > process image: ${loadMediaFilesProcess.name.origin}`)
+              sails.log.debug(`MF local > process image: ${loadMediaFilesProcess.name.origin}`);
               for (let size in loadMediaFilesProcess.config.resize) {
-                const dstPath = path.join(prefix, loadMediaFilesProcess.name[size])
+                const dstPath = path.join(prefix, loadMediaFilesProcess.name[size]);
                 if (!fs.existsSync(dstPath)) {
-                  if (size === "origin") continue;
+                  if (size === "origin")
+                    continue;
                   let mediafileItem = loadMediaFilesProcess.config.resize[size];
                   if (!mediafileItem) {
                     mediafileItem = 240;
-                    sails.log.warn(`MediaFile size is not set for ${size}`)
+                    sails.log.warn(`MediaFile size is not set for ${size}`);
                   }
 
 
@@ -188,19 +214,19 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
                     dstPath: path.join(prefix, loadMediaFilesProcess.name[size]),
                     size: mediafileItem
                   });
-                  sails.log.debug(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`)
+                  sails.log.debug(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`);
                 } else {
-                  sails.log.debug(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`)
+                  sails.log.debug(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`);
                 }
               }
               break;
             default:
               break;
           }
-        }).catch(error => {
+        } catch (error) {
           // Log the error and rethrow it
           sails.log.error(`MF local Error > processing file ${loadMediaFilesProcess.name.origin}: ${error}`);
-        });
+        }
       });
 
       try {

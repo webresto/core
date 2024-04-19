@@ -6,6 +6,7 @@ import Group from "./Group";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import * as fs from "fs"
+
 let attributes = {
   /** ID */
   id: {
@@ -53,7 +54,7 @@ let attributes = {
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM { }
 export default MediaFile;
-
+export type IMediaFile = MediaFile
 let Model = {
   beforeCreate(imageInit: any, cb: (err?: string) => void) {
     if (!imageInit.id) {

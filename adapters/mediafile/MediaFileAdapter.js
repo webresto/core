@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-;
 class MediaFileAdapter {
     constructor(config) {
         this.config = config;
@@ -24,11 +23,14 @@ class MediaFileAdapter {
         sails.log.silly(`Adapter > Mediafile > toDownload: ${url}`);
         let imageId = (0, uuid_1.v5)(url, this.UUID_NAMESPACE);
         let mediaFile = await MediaFile.findOne({ id: imageId });
+        if (!this.checkFileExist(mediaFile)) {
+            force = true;
+        }
         let loadConfig;
         if (target && this.config && this.config[target]) {
             loadConfig = this.config[target];
         }
-        // image     
+        // image
         if (mediaFile === undefined || force) {
             mediaFile = {
                 id: imageId

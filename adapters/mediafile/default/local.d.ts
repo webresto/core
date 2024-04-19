@@ -1,4 +1,5 @@
 import MediaFileAdapter, { BaseConfig, MediaFileTypes } from "../MediaFileAdapter";
+import { IMediaFile } from "../../../models/MediaFile";
 export interface MediaFileConfig {
     dish: MediaFileConfigInner;
     group: MediaFileConfigInner;
@@ -21,6 +22,7 @@ interface LoadMediaFilesProcess {
     config: MediaFileConfigInner;
 }
 export default class LocalMediaFileAdapter extends MediaFileAdapter {
+    checkFileExist(mediaFile: IMediaFile): Promise<boolean>;
     private processing;
     private processingTimeout;
     loadMediaFilesProcessQueue: LoadMediaFilesProcess[];
