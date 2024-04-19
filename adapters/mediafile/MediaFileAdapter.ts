@@ -1,8 +1,8 @@
-import { v5 as uuidv5} from "uuid";
-import MediaFile from "../../models/MediaFile";
+import { v5 as uuidv5 } from "uuid";
+import MediaFile, { IMediaFile } from "../../models/MediaFile";
 
 
-export type BaseConfigProperty =  BaseConfig | BaseConfig[] | number | boolean | string | null | undefined;
+export type BaseConfigProperty = BaseConfig | BaseConfig[] | number | boolean | string | null | undefined;
 
 export interface BaseConfig {
   [key: string]: BaseConfigProperty;
@@ -26,7 +26,7 @@ export default abstract class MediaFileAdapter {
   /**
    * Async constructor
    */
-  private async initialize(){
+  private async initialize() {
     this.UUID_NAMESPACE = await Settings.get("UUID_NAMESPACE") ?? "9dbceb30-26c3-11ee-be56-0242ac120002"
   }
 
@@ -37,40 +37,44 @@ export default abstract class MediaFileAdapter {
     await this.initializationPromise;
   }
 
+  public abstract checkFileExist(mediaFile: IMediaFile): Promise<boolean>
+
   public async toDownload(url: string, target: string, type: MediaFileTypes, force: boolean = false): Promise<MediaFile> {
     await this.wait()
     sails.log.silly(`Adapter > Mediafile > toDownload: ${url}`)
     let imageId = uuidv5(url, this.UUID_NAMESPACE);
     let mediaFile = await MediaFile.findOne({ id: imageId });
 
-    let loadConfig: BaseConfigProperty;
-    if (target && this.config  && this.config[target]){
-      loadConfig = this.config[target];
+    if(!this.checkFileExist(mediaFile)) {
+      force = true
     }
 
+    let loadConfig: BaseConfigProperty;
+    if (target && this.config && this.config[target]) {
+      loadConfig = this.config[target];
+    }
 
     // image
     if (mediaFile === undefined || force) {
       mediaFile = {
         id: imageId
       };
-      switch (type)
-      {
+      switch (type) {
         case "image":
           mediaFile.images = await this.process(url, "image", loadConfig);
-        break;
+          break;
 
         case "video":
           // mediaFile.video = ???
-        break;
+          break;
 
         case "sound":
           // mediaFile.sound = ???
-        break;
+          break;
 
         default:
           throw `mediaFile type not known ${type}`
-        break;
+          break;
       }
       mediaFile = await MediaFile.create(mediaFile).fetch()
     }

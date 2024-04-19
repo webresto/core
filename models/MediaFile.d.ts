@@ -25,6 +25,7 @@ declare let attributes: {
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM {
 }
+export type IMediaFile = MediaFile;
 export default MediaFile;
 declare let Model: {
     beforeCreate(imageInit: any, cb: (err?: string) => void): void;

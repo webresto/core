@@ -1,4 +1,4 @@
-import MediaFile from "../../models/MediaFile";
+import MediaFile, { IMediaFile } from "../../models/MediaFile";
 export type BaseConfigProperty = BaseConfig | BaseConfig[] | number | boolean | string | null | undefined;
 export interface BaseConfig {
     [key: string]: BaseConfigProperty;
@@ -18,6 +18,7 @@ export default abstract class MediaFileAdapter {
      * Waiting for initialization
      */
     wait(): Promise<void>;
+    abstract checkFileExist(mediaFile: IMediaFile): Promise<boolean>;
     toDownload(url: string, target: string, type: MediaFileTypes, force?: boolean): Promise<MediaFile>;
     abstract process(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{
         origin: string;

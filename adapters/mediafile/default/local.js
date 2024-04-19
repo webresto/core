@@ -54,6 +54,25 @@ const sharp_1 = __importDefault(require("sharp"));
 //   }
 // },
 class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
+    async checkFileExist(mediaFile) {
+        let allFileExist = true;
+        if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && Object.keys(mediaFile.images).length) {
+            const images = mediaFile.images;
+            for (const key in images) {
+                if (images.hasOwnProperty(key)) {
+                    const imageFilePath = images[key];
+                    try {
+                        await fs.promises.access(imageFilePath, fs.constants.F_OK);
+                    }
+                    catch (error) {
+                        // If the file does not exist, set the allFileExist flag to false
+                        allFileExist = false;
+                    }
+                }
+            }
+        }
+        return allFileExist;
+    }
     constructor(config) {
         super(config);
         this.processing = false;

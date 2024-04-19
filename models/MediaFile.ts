@@ -27,8 +27,6 @@ let attributes = {
   /** Image items */
   images: "json" as unknown as any,
 
-
-
   original: "string",
   /** Dish relation */
   dish: {
@@ -52,6 +50,7 @@ let attributes = {
 };
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM { }
+export type IMediaFile = MediaFile;
 export default MediaFile;
 
 let Model = {
