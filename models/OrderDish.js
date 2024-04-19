@@ -28,7 +28,7 @@ let attributes = {
     /** Position price before the use of discounts */
     itemTotalBeforeDiscount: "number",
     /** Price for product */
-    itemCost: "number",
+    itemPrice: "number",
     /**The total amount of the discount */
     discountTotal: "number",
     /** Type discount */

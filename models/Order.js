@@ -378,7 +378,7 @@ let Model = {
                 modifiers: modifiers,
                 comment: comment,
                 addedBy: addedBy,
-                itemCost: dishObj.price
+                itemPrice: dishObj.price
             }).fetch())[0];
         }
         else {
@@ -389,7 +389,7 @@ let Model = {
                 modifiers: modifiers,
                 comment: comment,
                 addedBy: addedBy,
-                itemCost: dishObj.price
+                itemPrice: dishObj.price
             }).fetch();
         }
         await emitter.emit.apply(emitter, ["core:order-after-add-dish", orderDish, ...arguments]);

@@ -18,7 +18,7 @@ exports.setup = function(options, seedLink) {
 
 exports.up = function (db, callback) {
   async.series([
-    (cb) => db.addColumn('orderdish', 'itemCost', {"type":"real"}, cb),
+    (cb) => db.addColumn('orderdish', 'itemPrice', {"type":"real"}, cb),
 
   ], callback);
 }
