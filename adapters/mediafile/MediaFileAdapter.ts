@@ -45,20 +45,26 @@ export default abstract class MediaFileAdapter {
     let imageId = uuidv5(url, this.UUID_NAMESPACE);
     let mediaFile = await MediaFile.findOne({ id: imageId });
 
-    if(!this.checkFileExist(mediaFile)) {
-      force = true
-    }
+    let toDownload = force;
 
-    let loadConfig: BaseConfigProperty;
-    if (target && this.config && this.config[target]) {
-      loadConfig = this.config[target];
-    }
-
-    // image
-    if (mediaFile === undefined || force) {
+    if(mediaFile) {
+      if(await this.checkFileExist(mediaFile) === false){
+        toDownload = true;
+      }
+    } else {
       mediaFile = {
         id: imageId
       };
+      mediaFile = await MediaFile.create(mediaFile).fetch()
+      toDownload = true;
+    }
+
+    if (toDownload) {
+      let loadConfig: BaseConfigProperty;
+      if (target && this.config && this.config[target]) {
+        loadConfig = this.config[target];
+      }
+  
       switch (type) {
         case "image":
           mediaFile.images = await this.process(url, "image", loadConfig);
@@ -76,7 +82,11 @@ export default abstract class MediaFileAdapter {
           throw `mediaFile type not known ${type}`
           break;
       }
-      mediaFile = await MediaFile.create(mediaFile).fetch()
+
+      /**
+       * The problem remains that we cannot know whether the picture has loaded or not, and therefore. if it doesn't exist you need to somehow remove MF
+       */
+      mediaFile = (await MediaFile.update({id: mediaFile.id},{images: mediaFile.images}).fetch())[0]
     }
     return mediaFile;
   };
