@@ -29,7 +29,7 @@ declare let attributes: {
     sortOrder: number;
     dishes: Dish[];
     parentGroup: any;
-    childGroups: Group[] | string[];
+    childGroups: string[] | Group[];
     /** Icon */
     icon: {
         type: string;
