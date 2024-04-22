@@ -16,6 +16,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     }
     async processOrder(populatedOrder) {
         const promotionStates = [];
+        const promotionErrors = [];
         populatedOrder = await this.clearOfPromotion(populatedOrder);
         let filteredPromotion = this.filterByConcept(populatedOrder.concept);
         let promotionByConcept = this.filterPromotions(filteredPromotion, populatedOrder);
@@ -26,6 +27,11 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                     promotionStates.push(state);
                 }
                 catch (error) {
+                    promotionErrors.push({
+                        promotion: promotion,
+                        error: error,
+                        stack: error.stack
+                    });
                     console.log(error);
                 }
             }
@@ -40,6 +46,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         }
         // --- CALCULATE DISCOUNTS END --- //
         populatedOrder.promotionState = promotionStates;
+        populatedOrder.promotionErrors = promotionErrors;
         // populatedOrder = await Order.findOne(populatedOrder.id)
         return populatedOrder;
     }

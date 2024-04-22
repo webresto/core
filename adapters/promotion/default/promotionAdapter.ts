@@ -16,6 +16,8 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
   public async processOrder(populatedOrder: Order): Promise<Order> {
     const promotionStates = [] as PromotionState[]
+    const promotionErrors = [];
+
     populatedOrder = await this.clearOfPromotion(populatedOrder);
     let filteredPromotion = this.filterByConcept(populatedOrder.concept);
     let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, populatedOrder);
@@ -25,6 +27,11 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
           const state = await this.promotions[promotion.id].action(populatedOrder);
           promotionStates.push(state);
         } catch (error) {
+          promotionErrors.push({
+            promotion: promotion,
+            error: error,
+            stack: error.stack
+          })
           console.log(error)
         }
       }
@@ -42,8 +49,8 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     }
 
     // --- CALCULATE DISCOUNTS END --- //
-
     populatedOrder.promotionState = promotionStates;
+    populatedOrder.promotionErrors = promotionErrors;
 
     // populatedOrder = await Order.findOne(populatedOrder.id)
     return populatedOrder
@@ -185,7 +192,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
    * @returns
    */
   public recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void {
-    if(this.promotions[promotionToAdd.id]){
+    if (this.promotions[promotionToAdd.id]) {
       delete this.promotions[promotionToAdd.id]
     }
 

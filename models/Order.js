@@ -1211,6 +1211,7 @@ let Model = {
                     let promotionOrderToSave = {
                         promotionCodeDescription: order.promotionCodeDescription,
                         promotionState: order.promotionState,
+                        promotionErrors: order.promotionErrors,
                         promotionUnorderable: order.promotionUnorderable,
                         discountTotal: order.discountTotal,
                         promotionFlatDiscount: order.promotionFlatDiscount,
