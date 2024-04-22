@@ -92,6 +92,13 @@ let attributes = {
   } as unknown as PromotionState[],
 
   /**
+   * It's worth collecting errors to simplify debugging
+   */
+  promotionErrors: {
+    type: "json"
+  } as unknown as any[],
+
+  /**
    * hidden in api
    */
   promotionCode: {

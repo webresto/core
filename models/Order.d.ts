@@ -53,6 +53,10 @@ declare let attributes: {
      */
     promotionState: PromotionState[];
     /**
+     * It's worth collecting errors to simplify debugging
+     */
+    promotionErrors: any[];
+    /**
      * hidden in api
      */
     promotionCode: string | PromotionCode;
@@ -223,6 +227,7 @@ declare let Model: {
         paid?: boolean;
         isPaymentPromise?: boolean;
         promotionState?: PromotionState[];
+        promotionErrors?: any[];
         promotionCode?: string | PromotionCode;
         promotionCodeDescription?: string;
         promotionCodeString?: string;

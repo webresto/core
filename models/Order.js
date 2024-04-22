@@ -56,6 +56,12 @@ let attributes = {
         type: "json"
     },
     /**
+     * It's worth collecting errors to simplify debugging
+     */
+    promotionErrors: {
+        type: "json"
+    },
+    /**
      * hidden in api
      */
     promotionCode: {
