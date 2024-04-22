@@ -17,21 +17,25 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   public async processOrder(populatedOrder: Order): Promise<Order> {
     const promotionStates = [] as PromotionState[]
     const promotionErrors = [];
-
+    let debugCount = 0;
+    emitter.emit("promotion-process:debug", debugCount, populatedOrder, null, null)
     populatedOrder = await this.clearOfPromotion(populatedOrder);
     let filteredPromotion = this.filterByConcept(populatedOrder.concept);
     let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, populatedOrder);
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
+        debugCount++;
         try {
           const state = await this.promotions[promotion.id].action(populatedOrder);
           promotionStates.push(state);
+          emitter.emit("promotion-process:debug", debugCount, populatedOrder, promotion, state);
         } catch (error) {
           promotionErrors.push({
             promotion: promotion,
             error: error,
             stack: error.stack
           })
+          emitter.emit("promotion-process:debug", debugCount, populatedOrder, promotion, error);
           console.log(error)
         }
       }
@@ -53,6 +57,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     populatedOrder.promotionErrors = promotionErrors;
 
     // populatedOrder = await Order.findOne(populatedOrder.id)
+    emitter.emit("promotion-process:debug", debugCount, populatedOrder, null, null);
     return populatedOrder
   }
 

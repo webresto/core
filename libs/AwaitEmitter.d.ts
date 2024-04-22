@@ -11,6 +11,7 @@ import { Payment } from "../interfaces/Payment";
 import OrderDish from "../models/OrderDish";
 import Maintenance from "../models/Maintenance";
 import { DialogBox } from "./DialogBox";
+import Promotion from "../models/Promotion";
 /**
  * Naming conventions can greatly enhance the readability and understanding of code, especially for those who may not be familiar with it. Using a structured approach like "module:action-before/after-read/write" can make it intuitive. Let's break down the example "core:add-dish-before-write":
 
@@ -72,6 +73,7 @@ declare global {
         "dialog-box:new": [DialogBox];
         "dialog-box:answer-received": [string, string];
         "core:add-product-before-write": [Order, Dish];
+        "promotion-process:debug": [number, Order, Promotion, any];
     }
 }
 /**

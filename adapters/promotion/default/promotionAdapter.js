@@ -17,14 +17,18 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     async processOrder(populatedOrder) {
         const promotionStates = [];
         const promotionErrors = [];
+        let debugCount = 0;
+        emitter.emit("promotion-process:debug", debugCount, populatedOrder, null, null);
         populatedOrder = await this.clearOfPromotion(populatedOrder);
         let filteredPromotion = this.filterByConcept(populatedOrder.concept);
         let promotionByConcept = this.filterPromotions(filteredPromotion, populatedOrder);
         if (promotionByConcept[0] !== undefined) {
             for (const promotion of promotionByConcept) {
+                debugCount++;
                 try {
                     const state = await this.promotions[promotion.id].action(populatedOrder);
                     promotionStates.push(state);
+                    emitter.emit("promotion-process:debug", debugCount, populatedOrder, promotion, state);
                 }
                 catch (error) {
                     promotionErrors.push({
@@ -32,6 +36,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                         error: error,
                         stack: error.stack
                     });
+                    emitter.emit("promotion-process:debug", debugCount, populatedOrder, promotion, error);
                     console.log(error);
                 }
             }
@@ -48,6 +53,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
         populatedOrder.promotionState = promotionStates;
         populatedOrder.promotionErrors = promotionErrors;
         // populatedOrder = await Order.findOne(populatedOrder.id)
+        emitter.emit("promotion-process:debug", debugCount, populatedOrder, null, null);
         return populatedOrder;
     }
     // one method to get all promotions and id's
