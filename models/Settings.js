@@ -209,11 +209,11 @@ let Model = {
             throw errorMessage;
         }
         // check that jsonSchema is present for a json type
-        if (settingType === "json" && settingsSetInput.jsonSchema === undefined) {
-            const errorMessage = `Setting set [${key}] error: jsonSchema is missed for type "json"`;
-            sails.log.error(errorMessage);
-            throw errorMessage;
-        }
+        // if (settingType === "json" && settingsSetInput.jsonSchema === undefined) {
+        //   const errorMessage = `Setting set [${key}] error: jsonSchema is missed for type "json"`
+        //   sails.log.error(errorMessage);
+        //   throw errorMessage
+        // }
         // convert some values for boolean type
         if (settingType === "boolean") {
             if (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(`${settingsSetInput.value}`)) {

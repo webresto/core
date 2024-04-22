@@ -21,8 +21,12 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, populatedOrder);
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
-        const state = await this.promotions[promotion.id].action(populatedOrder);
-        promotionStates.push(state);
+        try {
+          const state = await this.promotions[promotion.id].action(populatedOrder);
+          promotionStates.push(state);
+        } catch (error) {
+          console.log(error)
+        }
       }
     }
 
