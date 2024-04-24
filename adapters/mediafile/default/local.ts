@@ -64,7 +64,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       const images = mediaFile.images;
       
       for (const key in images) {
-        const imageFilePath = path.join(this.getPrefix(mediaFile.type), images[key]);
+        const imageFilePath = path.join(this.getPrefix(), images[key]);
         try {
           await fs.promises.access(imageFilePath, fs.constants.F_OK);
         } catch (error) {
@@ -143,8 +143,12 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     return result;
   }
 
-  protected getPrefix(type: MediaFileTypes) {
-    return path.join(process.cwd(), ".tmp/public", type);
+  protected getPrefix(type?: MediaFileTypes) {
+    if(type){
+      return path.join(process.cwd(), ".tmp/public", type);
+    } else {
+      return path.join(process.cwd(), ".tmp/public");
+    }
   }
 
   protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<void> {

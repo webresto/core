@@ -59,7 +59,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && Object.keys(mediaFile.images).length) {
             const images = mediaFile.images;
             for (const key in images) {
-                const imageFilePath = path.join(this.getPrefix(mediaFile.type), images[key]);
+                const imageFilePath = path.join(this.getPrefix(), images[key]);
                 try {
                     await fs.promises.access(imageFilePath, fs.constants.F_OK);
                 }
@@ -124,7 +124,12 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         return result;
     }
     getPrefix(type) {
-        return path.join(process.cwd(), ".tmp/public", type);
+        if (type) {
+            return path.join(process.cwd(), ".tmp/public", type);
+        }
+        else {
+            return path.join(process.cwd(), ".tmp/public");
+        }
     }
     async download(loadMediaFilesProcess) {
         const prefix = this.getPrefix(loadMediaFilesProcess.type);
