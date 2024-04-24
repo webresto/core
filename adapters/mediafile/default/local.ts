@@ -64,7 +64,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       const images = mediaFile.images;
       
       for (const key in images) {
-        const imageFilePath = path.resolve(this.getPrefix(mediaFile.type), images[key]);
+        const imageFilePath = path.join(this.getPrefix(mediaFile.type), images[key]);
         try {
           await fs.promises.access(imageFilePath, fs.constants.F_OK);
         } catch (error) {
@@ -154,7 +154,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     // Check if file exists
     if (!fs.existsSync(fullPathDl)) {
       const response = await axios.get(loadMediaFilesProcess.url, { responseType: 'stream' });
-      sails.log.debug(`MF local > download image: ${fullPathDl}, status: ${response.status}`);
+      sails.log.silly(`MF local > download image: ${fullPathDl}, status: ${response.status}`);
 
       fs.mkdirSync(prefix, { recursive: true });
 
