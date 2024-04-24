@@ -15,10 +15,10 @@ let attributes = {
 
 
   /** Type of media content */
-  //type: {
-  //  type: "string",
-  //  isIn: ['video', 'image']
-  //} as unknown as "video" | "image",
+  type: {
+   type: "string",
+   isIn: ['video', 'image', 'sound']
+  } as unknown as "video" | "image" | "sound",
 
   /** Video/Photo items */
   //content: "json" as unknown as any,

@@ -10,7 +10,7 @@ export interface BaseConfig {
 
 export type ConfigMediaFileAdapter = BaseConfig;
 
-export type MediaFileTypes = 'image' | 'video' | 'sound' | '3d';
+export type MediaFileTypes = 'image' | 'video' | 'sound';
 
 export default abstract class MediaFileAdapter {
   private config: ConfigMediaFileAdapter;
@@ -46,6 +46,11 @@ export default abstract class MediaFileAdapter {
     let mediaFile = await MediaFile.findOne({ id: imageId });
 
     let toDownload = force;
+
+    // Todo: delete it in v3
+    if(!mediaFile.type){
+      mediaFile.type = type;
+    }
 
     if(mediaFile) {
       if(await this.checkFileExist(mediaFile) === false){
@@ -86,7 +91,7 @@ export default abstract class MediaFileAdapter {
       /**
        * The problem remains that we cannot know whether the picture has loaded or not, and therefore. if it doesn't exist you need to somehow remove MF
        */
-      mediaFile = (await MediaFile.update({id: mediaFile.id},{images: mediaFile.images}).fetch())[0]
+      mediaFile = (await MediaFile.update({id: mediaFile.id},{images: mediaFile.images, original: url, type: type}).fetch())[0]
     }
     return mediaFile;
   };

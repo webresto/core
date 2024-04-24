@@ -7,6 +7,7 @@ declare let attributes: {
     /** ID */
     id: string;
     /** Type of media content */
+    type: "video" | "image" | "sound";
     /** Video/Photo items */
     /** Image items */
     images: any;
