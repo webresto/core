@@ -64,14 +64,13 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       const images = mediaFile.images;
       
       for (const key in images) {
-        if (images.hasOwnProperty(key)) {
-          const imageFilePath = path.resolve(this.getPrefix(mediaFile.type), images[key]);
-          try {
-            await fs.promises.access(imageFilePath, fs.constants.F_OK);
-          } catch (error) {
-            // If the file does not exist, set the allFileExist flag to false
-            allFileExist = false;
-          }
+        const imageFilePath = path.resolve(this.getPrefix(mediaFile.type), images[key]);
+        try {
+          await fs.promises.access(imageFilePath, fs.constants.F_OK);
+        } catch (error) {
+          // If the file does not exist, set the allFileExist flag to false
+          sails.log.debug(`LocalMediaFileAdapter > file not exist: ${imageFilePath}`)
+          allFileExist = false;
         }
       }
     }
@@ -97,7 +96,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
     if (salt) {
       baseName += `-${salt.toString().toLowerCase().replace(/[^a-zA-Z]+/g, "").substring(0, 7)}`
-      baseName += `-${Math.floor(Date.now() / 1000)}`
+      //baseName += `-${Math.floor(Date.now() / 1000)}`
     }
 
     baseName += `.${ext}`;
@@ -216,7 +215,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
                       dstPath: path.join(prefix, loadMediaFilesProcess.name[size]),
                       size: mediafileItem
                     });
-                    sails.log.debug(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`);
+                    sails.log.silly(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`);
                   } else {
                     sails.log.debug(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`);
                   }
