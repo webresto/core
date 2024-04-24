@@ -204,6 +204,7 @@ export default abstract class RMSAdapter {
 
         for(let item of outOfStocksDishes) {
           emitter.emit("rms-sync:out-of-stocks-before-each-product-item", item);
+          await Dish.update({rmsId: {"!=": item.rmsId}}, {balance: -1}).fetch()
           await Dish.update({rmsId: item.rmsId}, {balance: item.balance}).fetch()
         }
         return resolve();
