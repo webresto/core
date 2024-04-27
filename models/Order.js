@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const decimal_js_1 = __importDefault(require("decimal.js"));
+const decimal_js_1 = require("decimal.js");
 const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 let attributes = {
     /** Id  */
@@ -369,13 +366,7 @@ let Model = {
                 }
             }
         }
-        // NOTE: All dishes with modifiers add as an uniq dish
-        let results = await emitter.emit("core:add-product-before-write", order, dishObj, 15 * 1000);
-        const resultsCount = results.length;
-        const successCount = results.filter((r) => r.state === "success").length;
-        if (resultsCount !== successCount) {
-            return;
-        }
+        await emitter.emit("core:add-product-before-write", order, dishObj, 15 * 1000);
         if (replace) {
             orderDish = (await OrderDish.update({ id: orderDishId }, {
                 dish: dishObj.id,

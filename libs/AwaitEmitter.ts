@@ -246,7 +246,6 @@ export default class AwaitEmitter {
               const execHandler = async function () {
                 const now = new Date();
                 try {
-
                   const result = await handlerResult;
                   if (!timeoutEnd) {
                     successEnd = true;
