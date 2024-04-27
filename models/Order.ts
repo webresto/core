@@ -1399,8 +1399,8 @@ let Model = {
         if(concepts.length > 1) {
           order.isMixedConcept === true
         }
-        
-        order.concept = concepts;
+
+        order.concept = [...new Set(concepts)];
       }
 
 
