@@ -55,6 +55,7 @@ class AwaitEmitter {
         const event = this.events.find((e) => e.name === name);
         if (event) {
             const index = event.subscribers.findIndex((subscriber) => subscriber.id === id);
+            console.log("index", index);
             if (index !== -1) {
                 event.subscribers.splice(index, 1); // Remove the subscriber
             }
