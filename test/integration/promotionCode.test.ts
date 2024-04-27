@@ -65,7 +65,7 @@ describe("Promotion code integration test", function () {
 
   it("Base countur promocode with flat discount (create new + apply)", async () => {
     let order = await Order.create({ id: "promotion-code-integration-test" }).fetch();
-    await Order.updateOne({ id: order.id }, { concept: "road", user: "user" });
+    await Order.updateOne({ id: order.id }, {  user: "user" });
 
     await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
     await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");

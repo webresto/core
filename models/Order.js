@@ -347,11 +347,11 @@ let Model = {
         * @setting: CORE_SEPARATE_CONCEPTS_ORDERS - Prevents ordering in the same cart from different concepts
         */
         const SEPARATE_CONCEPTS_ORDERS = await Settings.get('SEPARATE_CONCEPTS_ORDERS');
-        if (SEPARATE_CONCEPTS_ORDERS && order.concept && order.concept !== dishObj.concept) {
+        if (SEPARATE_CONCEPTS_ORDERS && order.concept.length && !order.concept.includes(dishObj.concept)) {
             throw { body: `Dish ${dishObj.name} not in same concept as cart`, code: 1 };
         }
         else if (SEPARATE_CONCEPTS_ORDERS && order.dishes.length === 0) {
-            await Order.update({ id: order.id }, { concept: dishObj.concept });
+            //await Order.update({ id: order.id }, { concept: dishObj.concept })
         }
         let orderDish;
         // auto replace and increase amount if same dishes without modifiers

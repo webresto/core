@@ -11,7 +11,7 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
     processOrder(populatedOrder: Order): Promise<Order>;
     displayDish(dish: Dish): Dish;
     displayGroup(group: Group): Group;
-    filterByConcept(concept: string[]): Promotion[];
+    filterByConcept(concept: string | string[]): Promotion[];
     filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[];
     filterByCondition(promotionsToCheck: Promotion[], target: Group | Dish | Order): Promotion[];
     /**

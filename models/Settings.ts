@@ -40,7 +40,7 @@ let attributes = {
   tooltip: {
 		type: "string",
 		allowNull: true 
-	},
+	} as unknown as string,
   value: "json" as unknown as SettingValue,
   /** In case value is not defined */
   defaultValue: "json" as unknown as SettingValue, // can be set only by file

@@ -120,7 +120,7 @@ describe("Order", function () {
     });
     it("countCart", async function () {
         let order = await Order.create({ id: "test--countcart" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         await Order.addDish({ id: order.id }, dishes[0], 5, [], "", "user");
         await Order.addDish({ id: order.id }, dishes[1], 3, [], "", "user");
         await Order.addDish({ id: order.id }, dishes[2], 8, [], "", "user");

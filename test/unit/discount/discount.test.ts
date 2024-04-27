@@ -162,7 +162,7 @@ describe('Discount', function () {
       it("discount applyPromotion flat on order with different dishes", async function () {
         
         let order = await Order.create({id: "add-dish-with-discounts"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
+        await Order.updateOne({id: order.id}, { user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
@@ -183,7 +183,7 @@ describe('Discount', function () {
       it("discount decimal check on order with different dishes", async function () {
         
         let order = await Order.create({id: "apply-to-ordersa"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
+        await Order.updateOne({id: order.id}, {user: "user"});
 
         //Decimal check 15.2,  10.1
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test disha", price: 10.1, concept: "clear",parentGroup:groupsId[0]}));
@@ -218,7 +218,7 @@ describe('Discount', function () {
       it("discount applyPromotion percentage on order with different dishes", async function () {
         
         let order = await Order.create({id: "add-dish-with-discountsa"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
+        await Order.updateOne({id: order.id}, {user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
@@ -242,7 +242,7 @@ describe('Discount', function () {
       it("discount test dishes with flat and percentage types of discounts but same concept", async function () {
         
         let order = await Order.create({id: "test-discounts-on-different-types"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
+        await Order.updateOne({id: order.id}, {user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Happy Birthday",parentGroup:groupsId[0]}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "Happy Birthday",parentGroup:groupsId[0]}));
@@ -279,7 +279,7 @@ describe('Discount', function () {
       it("discount test dishes with flat and percentage types of discounts but different concept", async function () {
         
         let order = await Order.create({id: "test-different-types-and-concept"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
+        await Order.updateOne({id: order.id}, {user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10.1, concept: "Happy Birthday",parentGroup:groupsId[0]}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish", price: 15.2, concept: "NewYear",parentGroup:groupsId[0]}));
@@ -319,7 +319,7 @@ describe('Discount', function () {
       it("discount test dishes with 3 dif type of discount", async function () {
         
         let order = await Order.create({id: "test-3-types-of-discount"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "3dif",user: "user"});
+        await Order.updateOne({id: order.id}, {user: "user"});
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish2", price: 10.1, concept: "origin",parentGroup:groupsId[0]}));
         let dish2 = await Dish.createOrUpdate(dishGenerator({name: "test fish3", price: 15.2, concept: "origin",parentGroup:groupsId[0]}));
@@ -374,7 +374,7 @@ describe('Discount', function () {
       it("discount test displayGroup", async function () {
         
         let order = await Order.create({id: "test-display-group"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
+        await Order.updateOne({id: order.id}, {user: "user"});
         
         await promotionAdapter.addPromotionHandler(discountEx)
 
@@ -392,7 +392,7 @@ describe('Discount', function () {
 
       it("discount test clearDiscount", async function () {
         let order = await Order.create({id: "test-clear-discount"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "origin",user: "user"});
+        await Order.updateOne({id: order.id}, {user: "user"});
         
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "origin",parentGroup:groupsId[0]}));
@@ -413,7 +413,7 @@ describe('Discount', function () {
       
       it("discount test clearDiscount orderDish", async function () {
         let order = await Order.create({id: "test-clear-discount-OrderDish"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "clear",user: "user"});
+        await Order.updateOne({id: order.id}, {user: "user"});
         
 
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear",parentGroup:groupsId[0]}));
@@ -435,7 +435,7 @@ describe('Discount', function () {
 
       it("discount test Adapter.getDiscount ", async function () {
         let order = await Order.create({id: "test-clear-discount-order-dish-adapter"}).fetch();
-        await Order.updateOne({id: order.id}, {concept: "clear",user: "user"});
+        await Order.updateOne({id: order.id}, {user: "user"});
         // let Adapter.getPromotionAdapter() = DiscountAdapter.initialize()
         let a:AbstractPromotionAdapter =  Adapter.getPromotionAdapter()
         let dish1 = await Dish.createOrUpdate(dishGenerator({name: "test dish", price: 10, concept: "clear",parentGroup:groupsId[0]}));

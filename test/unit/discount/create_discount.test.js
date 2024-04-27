@@ -7,6 +7,7 @@ const adapters_1 = require("../../../adapters");
 const chai_1 = require("chai");
 const findModelInstance_1 = __importDefault(require("./../../../libs/findModelInstance"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
+const stringsInArray_1 = require("../../../libs/stringsInArray");
 describe('Create_Discount', function () {
     let promotionAdapter;
     before(async () => {
@@ -27,15 +28,15 @@ describe('Create_Discount', function () {
             description: "string",
             concept: [],
             condition: (arg) => {
-                if ((0, findModelInstance_1.default)(arg) === "Order" && discountEx.concept.includes(arg.concept)) {
+                if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx.concept)) {
                     // Order.populate()
                     return true;
                 }
-                if ((0, findModelInstance_1.default)(arg) === "Dish" && discountEx.concept.includes(arg.concept)) {
+                if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx.concept)) {
                     // TODO: check if includes in IconfigDish
                     return true;
                 }
-                if ((0, findModelInstance_1.default)(arg) === "Group" && discountEx.concept.includes(arg.concept)) {
+                if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx.concept)) {
                     // TODO: check if includes in IconfigG
                     return true;
                 }

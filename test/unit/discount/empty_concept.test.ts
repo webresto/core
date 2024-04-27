@@ -118,7 +118,7 @@ describe('Discount_Empty', function () {
   it("discount empty concept but order with concept", async function () {
 
     let order = await Order.create({ id: "empty-concept" }).fetch();
-    await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
+    await Order.updateOne({ id: order.id }, { user: "user" });
 
     let dish1 = await Dish.createOrUpdate(dishGenerator({ name: "test dish", price: 10.1, concept: "a", parentGroup: groupsId[0] }));
     let dish2 = await Dish.createOrUpdate(dishGenerator({ name: "test fish", price: 15.2, concept: "a", parentGroup: groupsId[0] }));

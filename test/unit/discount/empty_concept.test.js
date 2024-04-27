@@ -95,7 +95,7 @@ describe('Discount_Empty', function () {
     // TODO: move INTEGRATION
     it("discount empty concept but order with concept", async function () {
         let order = await Order.create({ id: "empty-concept" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "a", parentGroup: groupsId[0] }));
         let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "a", parentGroup: groupsId[0] }));
         discountEx.configDiscount.dishes.push(dish1.id);
