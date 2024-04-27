@@ -140,14 +140,14 @@ class AwaitEmitter {
                     let timeoutEnd = false;
                     let successEnd = false;
                     // stop timer
-                    const timeout = async function () {
+                    const execTimeout = async function () {
                         await sleep(timeout);
                         if (!successEnd) {
                             timeoutEnd = true;
                             res.push(new HandlerResponse(subscriber.id, null, null, true));
                         }
                     };
-                    const decorator = async function () {
+                    const execHandler = async function () {
                         const now = new Date();
                         try {
                             const result = await handlerResult;
@@ -165,7 +165,7 @@ class AwaitEmitter {
                             res.push(new HandlerResponse(subscriber.id, null, e));
                         }
                     };
-                    await Promise.race([timeout(), decorator()]);
+                    await Promise.race([execTimeout(), execHandler()]);
                     // If the function is not a promise, then execute it immediately
                 }
                 else {

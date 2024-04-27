@@ -235,7 +235,7 @@ export default class AwaitEmitter {
               let successEnd = false;
 
               // stop timer
-              const timeout = async function () {
+              const execTimeout = async function () {
                 await sleep(timeout);
                 if (!successEnd) {
                   timeoutEnd = true;
@@ -243,7 +243,7 @@ export default class AwaitEmitter {
                 }
               };
 
-              const decorator = async function () {
+              const execHandler = async function () {
                 const now = new Date();
                 try {
 
@@ -261,7 +261,7 @@ export default class AwaitEmitter {
                 }
               };
 
-              await Promise.race([timeout(), decorator()]);
+              await Promise.race([execTimeout(), execHandler()]);
 
               // If the function is not a promise, then execute it immediately
             } else {
