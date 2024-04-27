@@ -46,10 +46,10 @@ let attributes = {
 
   /** Concept string */
   // TODO: rework type to string[]
-  concept: "string",
-  // concept: {
-  //   type: "json",
-  // } as unknown as string[],
+  // concept: "string",
+  concept: {
+    type: "json",
+  } as unknown as string[],
 
   /** the basket contains mixed types of concepts */
   isMixedConcept: "boolean" as unknown as boolean,
@@ -1248,11 +1248,15 @@ let Model = {
 
       // TODO: clear the order
       const orderDishesForPopulate = [] as OrderDish[]
-
+      let concepts = [];
       for await (let orderDish of orderDishes) {
 
         try {
           if (orderDish.dish && typeof orderDish.dish !== "string") {
+            
+            if(orderDish.addedBy === "user" && orderDish.dish.concept){
+              concepts.push(orderDish.dish.concept);
+            }
 
             // Item OrderDish calcualte
             let itemCost = orderDish.dish.price;
@@ -1390,6 +1394,15 @@ let Model = {
           continue;
         }
       }
+
+      if(concepts.length){
+        if(concepts.length > 1) {
+          order.isMixedConcept === true
+        }
+        
+        order.concept = concepts;
+      }
+
 
       order.dishesCount = dishesCount;
       order.uniqueDishes = uniqueDishes;

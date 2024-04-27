@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const decimal_js_1 = require("decimal.js");
+const decimal_js_1 = __importDefault(require("decimal.js"));
 const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 let attributes = {
     /** Id  */
@@ -14,10 +17,10 @@ let attributes = {
     state: "string",
     /** Concept string */
     // TODO: rework type to string[]
-    concept: "string",
-    // concept: {
-    //   type: "json",
-    // } as unknown as string[],
+    // concept: "string",
+    concept: {
+        type: "json",
+    },
     /** the basket contains mixed types of concepts */
     isMixedConcept: "boolean",
     /**
@@ -1020,9 +1023,13 @@ let Model = {
             let totalWeight = new decimal_js_1.default(0);
             // TODO: clear the order
             const orderDishesForPopulate = [];
+            let concepts = [];
             for await (let orderDish of orderDishes) {
                 try {
                     if (orderDish.dish && typeof orderDish.dish !== "string") {
+                        if (orderDish.addedBy === "user" && orderDish.dish.concept) {
+                            concepts.push(orderDish.dish.concept);
+                        }
                         // Item OrderDish calcualte
                         let itemCost = orderDish.dish.price;
                         let itemWeight = orderDish.dish.weight ?? 0;
@@ -1138,6 +1145,12 @@ let Model = {
                     uniqueDishes -= 1;
                     continue;
                 }
+            }
+            if (concepts.length) {
+                if (concepts.length > 1) {
+                    order.isMixedConcept === true;
+                }
+                order.concept = concepts;
             }
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
