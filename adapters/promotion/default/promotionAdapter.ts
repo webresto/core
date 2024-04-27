@@ -93,7 +93,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return group;
   }
 
-  public filterByConcept(concept: string): Promotion[] {
+  public filterByConcept(concept: string[]): Promotion[] {
     let modifiedConcept: string[];
     typeof concept === "string" ? (modifiedConcept = [concept]) : (modifiedConcept = concept);
     return Promotion.getAllByConcept(modifiedConcept);
