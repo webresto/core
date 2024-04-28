@@ -31,9 +31,9 @@
               "type": "object",
               "additionalProperties": true,
               "properties": {
+                "label": { "type": "string" },
                 "type": {
                   "type": "string",
-                  "label": { "type": "string" },
                   "enum": ["primary", "secondary", "link", "abort"]
                 }
               },
