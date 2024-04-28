@@ -54,6 +54,7 @@ export class DialogBox {
     if (!timeout) timeout = 30 * 1000;
     const startTime = Date.now();
     const dialogBox = new DialogBox(dialog, deviceId);
+    dialogBox.config.emitTime = Math.round((startTime)/1000)
     DialogBox.dialogs[dialogBox.askId] = dialogBox;
     emitter.emit("dialog-box:new", dialogBox);
 

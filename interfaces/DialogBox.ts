@@ -27,6 +27,12 @@ interface DialogBoxBase {
 
   message: string;
   title: string;
+
+  /**
+   * Unix time seconds when dialog box was emitted
+   */
+  emitTime?: number;
+  
   /**
    * If passed;
    * After this moment the dialogue will fade away
@@ -53,6 +59,9 @@ export interface DialogBoxProduct extends DialogBoxBase {
 
 interface DialogOptionBase {
   id: string;
+  /**
+   * @deprecated
+   */
   label: string;
 }
 
@@ -69,6 +78,7 @@ interface DialogOptionButton extends DialogOptionBase {
    * * 1st - primary
    */
   button?: {
+    label?: string;
     type: "primary" | "secondary" | "link" | "abort"
   }
 }

@@ -24,6 +24,10 @@ interface DialogBoxBase {
     message: string;
     title: string;
     /**
+     * Unix time seconds when dialog box was emitted
+     */
+    emitTime?: number;
+    /**
      * If passed;
      * After this moment the dialogue will fade away
      * It is recommended to close it automaticaly
@@ -46,6 +50,9 @@ export interface DialogBoxProduct extends DialogBoxBase {
 }
 interface DialogOptionBase {
     id: string;
+    /**
+     * @deprecated
+     */
     label: string;
 }
 interface DialogOptionProduct extends DialogOptionBase {
@@ -60,6 +67,7 @@ interface DialogOptionButton extends DialogOptionBase {
      * * 1st - primary
      */
     button?: {
+        label?: string;
         type: "primary" | "secondary" | "link" | "abort";
     };
 }

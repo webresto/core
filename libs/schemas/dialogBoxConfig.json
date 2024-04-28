@@ -20,36 +20,39 @@
       "minItems": 2,
       "items": {
         "type": "object",
+        "additionalProperties": true,
         "if": {
           "properties": { "optionsType": { "const": "button" } }
         },
         "then": {
           "properties": {
             "id": { "type": "string" },
-            "label": { "type": "string" },
             "button": {
               "type": "object",
+              "additionalProperties": true,
               "properties": {
                 "type": {
                   "type": "string",
+                  "label": { "type": "string" },
                   "enum": ["primary", "secondary", "link", "abort"]
                 }
               },
-              "required": ["type"]
+              "required": ["type", "label"]
             }
           },
-          "required": ["id", "label", "button"]
+          "additionalProperties": true,
+          "required": ["id",  "button"]
         },
         "else": {
           "properties": {
             "id": { "type": "string" },
-            "label": { "type": "string" },
             "product": {
               "type": "object",
               "additionalProperties": true
             }
           },
-          "required": ["id", "label", "product"]
+          "additionalProperties": true,
+          "required": ["id", "product"]
         }
       }
     }

@@ -1,17 +1,19 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DialogBox = void 0;
 const uuid_1 = require("uuid");
-const ajv_1 = __importDefault(require("ajv"));
+const ajv_1 = require("ajv");
 const ajv = new ajv_1.default();
 let jsonSchema = require("./schemas/dialogBoxConfig.json");
 const validate = ajv.compile(jsonSchema);
 class DialogBox {
+    config;
+    user;
+    answerId = null;
+    askId;
+    deviceId;
+    static dialogs = {};
     constructor(config, deviceId) {
-        this.answerId = null;
         if (config.type === undefined)
             config.type = "routine";
         if (config.allowClosing === undefined)
@@ -43,6 +45,7 @@ class DialogBox {
             timeout = 30 * 1000;
         const startTime = Date.now();
         const dialogBox = new DialogBox(dialog, deviceId);
+        dialogBox.config.emitTime = Math.round((startTime) / 1000);
         DialogBox.dialogs[dialogBox.askId] = dialogBox;
         emitter.emit("dialog-box:new", dialogBox);
         while (Date.now() - startTime < timeout) {
@@ -70,4 +73,3 @@ class DialogBox {
     }
 }
 exports.DialogBox = DialogBox;
-DialogBox.dialogs = {};
