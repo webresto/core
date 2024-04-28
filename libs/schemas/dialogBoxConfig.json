@@ -1,4 +1,5 @@
 {
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
     "askId": { "type": "string" },
@@ -14,48 +15,64 @@
       "enum": ["button", "product"]
     },
     "timeout": { "type": "number" },
-    "defaultOptionId": { "type": "string" },
-    "options": {
+    "defaultOptionId": { "type": "string" }
+  },
+  "required": ["message", "title", "optionsType"],
+  "if": {
+    "properties": { "optionsType": { "const": "button" } }
+  },
+  "then": {
+    "properties": {
+      "options": { "$ref": "#/definitions/ButtonOptions" }
+    },
+    "required": ["options"]
+  },
+  "else": {
+    "properties": {
+      "options": { "$ref": "#/definitions/ProductOptions" }
+    },
+    "required": ["options"]
+  },
+  "definitions": {
+    "ButtonOptions": {
       "type": "array",
       "minItems": 2,
       "items": {
         "type": "object",
         "additionalProperties": true,
-        "if": {
-          "properties": { "optionsType": { "const": "button" } }
+        "properties": {
+          "id": { "type": "string" },
+          "button": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "label": { "type": "string" },
+              "type": {
+                "type": "string",
+                "enum": ["primary", "secondary", "link", "abort"]
+              }
+            },
+            "required": ["type", "label"]
+          }
         },
-        "then": {
-          "properties": {
-            "id": { "type": "string" },
-            "button": {
-              "type": "object",
-              "additionalProperties": true,
-              "properties": {
-                "label": { "type": "string" },
-                "type": {
-                  "type": "string",
-                  "enum": ["primary", "secondary", "link", "abort"]
-                }
-              },
-              "required": ["type", "label"]
-            }
-          },
-          "additionalProperties": true,
-          "required": ["id",  "button"]
+        "required": ["id", "button"]
+      }
+    },
+    "ProductOptions": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "product": {
+            "type": "object",
+            "additionalProperties": true
+          }
         },
-        "else": {
-          "properties": {
-            "id": { "type": "string" },
-            "product": {
-              "type": "object",
-              "additionalProperties": true
-            }
-          },
-          "additionalProperties": true,
-          "required": ["id", "product"]
-        }
+        "required": ["id", "product"]
       }
     }
-  },
-  "required": ["message", "title", "optionsType", "options"]
+  }
 }
