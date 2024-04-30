@@ -422,7 +422,7 @@ let Model = {
         try {
           updatedDishes.push(promotionAdapter.displayDish(dishes[i]))
         } catch (error) {
-          sails.log(error)
+          sails.log.error(error)
           continue
         }
     }

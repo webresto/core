@@ -304,7 +304,7 @@ let Model = {
       try {
         updatedDishes.push(promotionAdapter.displayGroup(groups[i]))
       } catch (error) {
-        sails.log(error)
+        sails.log.error(error)
         continue
       }
     }
