@@ -25,7 +25,7 @@ class MediaFileAdapter {
         let mediaFile = await MediaFile.findOne({ id: imageId });
         let toDownload = force;
         // Todo: delete it in v3
-        if (!mediaFile.type) {
+        if (mediaFile !== undefined && !mediaFile.type) {
             mediaFile.type = type;
         }
         if (mediaFile) {

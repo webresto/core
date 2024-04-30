@@ -56,7 +56,7 @@ const sharp_1 = __importDefault(require("sharp"));
 class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
     async checkFileExist(mediaFile) {
         let allFileExist = true;
-        if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && Object.keys(mediaFile.images).length) {
+        if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && mediaFile.images !== null && Object.keys(mediaFile.images).length) {
             const images = mediaFile.images;
             for (const key in images) {
                 const imageFilePath = path.join(this.getPrefix(), images[key]);

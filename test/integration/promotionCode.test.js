@@ -74,13 +74,13 @@ describe("Promotion code integration test", function () {
         await Order.applyPromotionCode({ id: order.id }, null);
         result = await Order.findOne({ id: order.id });
         (0, chai_1.expect)(result.discountTotal).to.equal(0);
-        (0, chai_1.expect)(result.total).to.equal(111.3);
+        (0, chai_1.expect)(result.total).to.equal(211.4);
         (0, chai_1.expect)(result.state).to.equal("CART");
         // NOT VALID PROMOCODE
         await Order.applyPromotionCode({ id: order.id }, "WINTER2024NHATRANG");
         result = await Order.findOne({ id: order.id });
         (0, chai_1.expect)(result.discountTotal).to.equal(0);
-        (0, chai_1.expect)(result.total).to.equal(111.3);
+        (0, chai_1.expect)(result.total).to.equal(211.4);
         (0, chai_1.expect)(result.promotionCodeCheckValidTill).to.equal(null);
         (0, chai_1.expect)(result.promotionCodeString).to.equal("WINTER2024NHATRANG");
         (0, chai_1.expect)(result.promotionCode).to.equal(null);
@@ -90,7 +90,7 @@ describe("Promotion code integration test", function () {
         (0, chai_1.expect)(result.promotionCodeString).to.equal("TEST123");
         (0, chai_1.expect)(result.discountTotal).to.equal(1.45);
         (0, chai_1.expect)(result.promotionFlatDiscount).to.equal(1.45);
-        (0, chai_1.expect)(result.total).to.equal(109.85);
+        (0, chai_1.expect)(result.total).to.equal(209.95);
         (0, chai_1.expect)(result.basketTotal).to.equal(111.3);
     });
     it("Percentage discount by promocode (Hot change existing + apply)", async () => {

@@ -48,12 +48,13 @@ export default abstract class MediaFileAdapter {
     let toDownload = force;
 
     // Todo: delete it in v3
-    if(!mediaFile.type){
+    if (mediaFile !== undefined && !mediaFile.type) {
       mediaFile.type = type;
     }
 
-    if(mediaFile) {
-      if(await this.checkFileExist(mediaFile) === false){
+
+    if (mediaFile) {
+      if (await this.checkFileExist(mediaFile) === false) {
         toDownload = true;
       }
     } else {
@@ -69,7 +70,7 @@ export default abstract class MediaFileAdapter {
       if (target && this.config && this.config[target]) {
         loadConfig = this.config[target];
       }
-  
+
       switch (type) {
         case "image":
           mediaFile.images = await this.process(url, "image", loadConfig);
@@ -91,7 +92,7 @@ export default abstract class MediaFileAdapter {
       /**
        * The problem remains that we cannot know whether the picture has loaded or not, and therefore. if it doesn't exist you need to somehow remove MF
        */
-      mediaFile = (await MediaFile.update({id: mediaFile.id},{images: mediaFile.images, original: url, type: type}).fetch())[0]
+      mediaFile = (await MediaFile.update({ id: mediaFile.id }, { images: mediaFile.images, original: url, type: type }).fetch())[0]
     }
     return mediaFile;
   };
