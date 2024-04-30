@@ -9,7 +9,7 @@
     "async": "^3.2.4",
     "muddy-water": "^1.0.0",
     "include-all": "^1.0.8",
-    "patch-package": "=6.4.7",
+    "patch-package": "^5.0.0",
     "rc": "^1.0.1",
     "request": "^2.88.2",
     "sails": "^1.5.3",
