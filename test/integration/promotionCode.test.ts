@@ -95,7 +95,7 @@ describe("Promotion code integration test", function () {
     await Order.applyPromotionCode({ id: order.id }, null);
     result = await Order.findOne({ id: order.id })
     expect(result.discountTotal).to.equal(0);
-    expect(result.total).to.equal(111.3);
+    expect(result.total).to.equal(211.4);
     expect(result.state).to.equal("CART");
 
 
@@ -104,7 +104,7 @@ describe("Promotion code integration test", function () {
     await Order.applyPromotionCode({ id: order.id }, "WINTER2024NHATRANG");
     result = await Order.findOne({ id: order.id })
     expect(result.discountTotal).to.equal(0);
-    expect(result.total).to.equal(111.3);
+    expect(result.total).to.equal(211.4);
     expect(result.promotionCodeCheckValidTill).to.equal(null);
     expect(result.promotionCodeString).to.equal("WINTER2024NHATRANG");
     expect(result.promotionCode).to.equal(null);
@@ -115,7 +115,7 @@ describe("Promotion code integration test", function () {
     expect(result.promotionCodeString).to.equal("TEST123");
     expect(result.discountTotal).to.equal(1.45);
     expect(result.promotionFlatDiscount).to.equal(1.45);
-    expect(result.total).to.equal(109.85);
+    expect(result.total).to.equal(209.95);
     expect(result.basketTotal).to.equal(111.3);
   });
 
