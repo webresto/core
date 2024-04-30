@@ -48,7 +48,7 @@ export abstract class Channel {
       await this.send(badge, message, user, subject, data);
       return true;
     } catch (error) {
-      console.error(`Failed to send message through channel with sortOrder ${this.sortOrder}. Error: ${error}`);
+      sails.log.error(`Failed to send message through channel with sortOrder ${this.sortOrder}. Error: ${error}`);
       return false;
     }
   }

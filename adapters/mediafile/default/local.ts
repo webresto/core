@@ -275,8 +275,8 @@ async function resizeMediaFile({ srcPath, dstPath, size  }: ResizeMediaFileOptio
       .resize(resizeWidth, resizeHeight)
       .toFile(dstPath);
   } catch (error) {
-    console.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size);
-    console.error(error)
+    sails.log.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size);
+    sails.log.error(error)
     throw new Error(error);
   }
 }

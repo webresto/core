@@ -37,7 +37,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                         stack: error.stack
                     });
                     emitter.emit("promotion-process:debug", debugCount, populatedOrder, promotion, error);
-                    console.log(error);
+                    sails.log.error(error);
                 }
             }
         }

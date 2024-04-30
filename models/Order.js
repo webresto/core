@@ -294,7 +294,7 @@ let Model = {
         if (dishObj.balance !== -1) {
             if (amount > dishObj.balance) {
                 await emitter.emit.apply(emitter, ["core:order-add-dish-reject-amount", ...arguments]);
-                console.error({
+                sails.log.error({
                     body: `There is no so mush dishes with id ${dishObj.id}`,
                     code: 1,
                 });
@@ -1301,7 +1301,7 @@ let Model = {
             return order;
         }
         catch (error) {
-            console.error(" error >", error);
+            sails.log.error(" error >", error);
         }
     },
     async doPaid(criteria, paymentDocument) {

@@ -101,13 +101,13 @@ let Model = {
                         const ajv = new ajv_1.default();
                         const validate = ajv.compile(setting.jsonSchema);
                         if (!validate(value)) {
-                            console.error('AJV Validation Error: Value from process.env does not match the schema');
+                            sails.log.error('AJV Validation Error: Value from process.env does not match the schema');
                             return undefined;
                         }
                     }
                 }
                 catch (e) {
-                    console.error(`Error trying to parse value from process.env: ${e}`);
+                    sails.log.error(`Error trying to parse value from process.env: ${e}`);
                     return undefined;
                 }
             }
@@ -153,7 +153,7 @@ let Model = {
             //@ts-ignore
             settingsSetInput = origSettings;
         }
-        console.log(`Original settings for ${key}`, origSettings);
+        sails.log.debug(`Original settings for ${key}`, origSettings);
         // @ts-ignore
         if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
             throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;

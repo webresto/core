@@ -9,7 +9,7 @@ class Channel {
             return true;
         }
         catch (error) {
-            console.error(`Failed to send message through channel with sortOrder ${this.sortOrder}. Error: ${error}`);
+            sails.log.error(`Failed to send message through channel with sortOrder ${this.sortOrder}. Error: ${error}`);
             return false;
         }
     }

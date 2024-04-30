@@ -54,7 +54,7 @@ const user = new User(/* user details */);
 try {
   NotificationManager.send("info", "user", "Your OTP is 123456", user);
 } catch (error) {
-  console.error(error.message);
+  sails.log.error(error.message);
 }
 ```
 
