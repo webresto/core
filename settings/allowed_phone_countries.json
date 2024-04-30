@@ -12,5 +12,6 @@
     "minItems": 1,
     "maxItems": 10
   },
+  "value": [],
   "isRequired": true
 }
