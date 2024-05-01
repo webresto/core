@@ -151,29 +151,48 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     }
   }
 
+
   protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<void> {
     const prefix = this.getPrefix(loadMediaFilesProcess.type);
     const fullPathDl = path.join(prefix, loadMediaFilesProcess.name.origin);
-
+  
     // Check if file exists
     if (!fs.existsSync(fullPathDl)) {
-      const response = await axios.get(loadMediaFilesProcess.url, { responseType: 'stream' });
-      sails.log.silly(`MF local > download image: ${fullPathDl}, status: ${response.status}`);
-
-      fs.mkdirSync(prefix, { recursive: true });
-
-      const writer = fs.createWriteStream(fullPathDl);
-      response.data.pipe(writer);
-
-      await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-      });
+      try {
+        const response = await axios.get(loadMediaFilesProcess.url, { responseType: 'stream', maxRedirects: 0 });
+  
+        if (response.status === 302 && response.headers.location) {
+          // Redirect detected, follow the new URL
+          const redirectedResponse = await axios.get(response.headers.location, { responseType: 'stream' });
+  
+          fs.mkdirSync(prefix, { recursive: true });
+  
+          const writer = fs.createWriteStream(fullPathDl);
+          redirectedResponse.data.pipe(writer);
+  
+          await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+          });
+        } else {
+          // No redirect, save the data directly
+          fs.mkdirSync(prefix, { recursive: true });
+  
+          const writer = fs.createWriteStream(fullPathDl);
+          response.data.pipe(writer);
+  
+          await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+          });
+        }
+      } catch (error) {
+        console.error(`Error downloading file: ${error}`);
+      }
     } else {
-      sails.log.silly(`File ${fullPathDl} already exists. Skipping download.`);
+      console.log(`File ${fullPathDl} already exists. Skipping download.`);
     }
   }
-
 
   private async loadMediaFiles() {
     if (this.processing) {
