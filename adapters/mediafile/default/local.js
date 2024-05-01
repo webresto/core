@@ -99,7 +99,8 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             }
         };
         const cfg = { ...baseConfig, ...config };
-        const mediafileExtension = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0].replace('.', '');
+        const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
+        const mediafileExtension = isFilePath.length > 0 ? isFilePath[0].replace('.', '') : '';
         const origin = this.getNameByUrl(url, mediafileExtension);
         const name = {
             origin: origin,
