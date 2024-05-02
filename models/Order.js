@@ -369,7 +369,12 @@ let Model = {
                 }
             }
         }
-        await emitter.emit("core:add-product-before-write", order, dishObj, 15 * 1000);
+        const results = await emitter.emit("core:add-product-before-write", order, dishObj, 15 * 1000);
+        const resultsCount = results.length;
+        const successCount = results.filter((r) => r.state === "success").length;
+        if (resultsCount !== successCount) {
+            return;
+        }
         if (replace) {
             orderDish = (await OrderDish.update({ id: orderDishId }, {
                 dish: dishObj.id,
