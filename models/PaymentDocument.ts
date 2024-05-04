@@ -64,7 +64,7 @@ let attributes = {
     type: "string",
     unique: true,
     required: false,
-    // allowNull: true // Only for NEW state
+    allowNull: true // Only for NEW state
   } as unknown as string,
 
   /** Model from which payment is made*/

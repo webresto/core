@@ -15,7 +15,7 @@ let attributes = {
         type: "string",
         unique: true,
         required: false,
-        // allowNull: true // Only for NEW state
+        allowNull: true // Only for NEW state
     },
     /** Model from which payment is made*/
     originModel: "string",
