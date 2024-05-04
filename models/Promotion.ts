@@ -5,7 +5,7 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import hashCode from "../libs/hashCode";
 import { Adapter } from "../adapters";
 import { IconfigDiscount } from "../interfaces/ConfigDiscount";
-import { stringsInArray } from "../libs/stringsInArray";
+import { someInArray } from "../libs/someInArray";
 import PromotionCode from "../models/PromotionCode";
 import { v4 as uuid } from "uuid";
 
@@ -217,24 +217,20 @@ let Model = {
   getAllByConcept(concept: string[]): Promotion[] {
     if(typeof concept === "string") concept = [concept];
 
-    // if (concept.length < 1) {
-    //   sails.log.warn(`Promotion > getAllByConcept : [concept] array is unstable feature`, concept)
-    // }
-
     const promotionAdapter = Adapter.getPromotionAdapter()
-    if (!concept) throw "concept is required";
+    if (!concept.length) throw "concept is required";
     let activePromotionIds = promotionAdapter.getActivePromotionsIds()
 
     if(concept[0] === ""){
       let filteredRAM = promotionRAM.filter(promotion =>
         (promotion.concept[0] === undefined || promotion.concept[0] === "")
-        && stringsInArray(promotion.id,activePromotionIds))
+        && someInArray(promotion.id,activePromotionIds))
         return filteredRAM;
     }
 
     let filteredRAM = promotionRAM.filter(promotion =>
-      stringsInArray(promotion.concept,concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
-      && stringsInArray(promotion.id,activePromotionIds))
+      someInArray(promotion.concept,concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
+      && someInArray(promotion.id,activePromotionIds))
 
     if (!filteredRAM) throw "Promotion with concept: " + concept + " not found";
 

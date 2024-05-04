@@ -17,3 +17,11 @@ export function stringsInArray(check: string[] | string, array: string[]): boole
         return array.includes(check);
     }
 }
+
+export function someInArray(check: string[] | string, array: string[]) {
+    if (typeof check === 'string') {
+        check = [check];
+    }
+  
+    return array.some((e)=> check.includes(e));
+}

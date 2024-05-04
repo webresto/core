@@ -7,7 +7,7 @@ import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdap
 import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
 import ConfiguredPromotion from "../../adapters/promotion/default/configuredPromotion";
-import { stringsInArray } from "../../libs/stringsInArray";
+import { someInArray } from "../../libs/someInArray";
 import Decimal from "decimal.js";
 
 var autoincrement: number = 0;
@@ -51,7 +51,7 @@ export default function discountGenerator(config: Omit<AbstractPromotionHandler,
   },
     // productCategoryDiscounts: undefined,
     condition: function (arg: Group | Dish | Order): boolean {
-      if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept)) {
+      if (findModelInstanceByAttributes(arg) === "Order" && someInArray(arg.concept, this.concept)) {
         let order:Order = arg as Order
         // TODO:  if order.dishes type number[]
         
@@ -65,15 +65,15 @@ export default function discountGenerator(config: Omit<AbstractPromotionHandler,
         return false;
     }
     
-    if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, this.concept)) {
-      return stringsInArray(arg.id, this.configDiscount.dishes)
+    if (findModelInstanceByAttributes(arg) === "Dish" && someInArray(arg.concept, this.concept)) {
+      return someInArray(arg.id, this.configDiscount.dishes)
       // if(this.config.dishes.includes(arg.id)){
       //   return true;
       // }
     }
     
-    if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, this.concept)) {
-      return stringsInArray(arg.id, this.configDiscount.groups)
+    if (findModelInstanceByAttributes(arg) === "Group" && someInArray(arg.concept, this.concept)) {
+      return someInArray(arg.id, this.configDiscount.groups)
       // if(this.config.groups.includes(arg.id)){
       //   return true;
       // }

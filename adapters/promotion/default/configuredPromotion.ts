@@ -8,7 +8,7 @@ import Order, { PromotionState } from '../../../models/Order';
 import User from '../../../models/User';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import Decimal from "decimal.js";
-import { stringsInArray } from "../../../libs/stringsInArray";
+import { someInArray, someInArray } from "../../../libs/someInArray";
 
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public badge: string = 'configured-promotion';
@@ -48,7 +48,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
   public condition(arg: Group | Dish | Order): boolean {
     if (findModelInstanceByAttributes(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
-      ? true : stringsInArray(arg.concept, this.concept)) {
+      ? true : someInArray(arg.concept, this.concept)) {
       let order: Order = arg as Order
       // TODO:  if order.dishes type number[]
       let orderDishes: OrderDish[] = order.dishes as OrderDish[]
@@ -62,13 +62,13 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     }
 
     if (findModelInstanceByAttributes(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
-      stringsInArray(arg.concept, this.concept)) {
-      return stringsInArray(arg.id, this.config.dishes)
+      someInArray(arg.concept, this.concept)) {
+      return someInArray(arg.id, this.config.dishes)
     }
 
     if (findModelInstanceByAttributes(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
-      stringsInArray(arg.concept, this.concept)) {
-      return stringsInArray(arg.id, this.config.groups)
+      someInArray(arg.concept, this.concept)) {
+      return someInArray(arg.id, this.config.groups)
     }
 
     return false
@@ -139,12 +139,12 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
         }
 
         if ((this.concept[0] === undefined || this.concept[0] === "") ?
-          false : !stringsInArray(orderDish.dish.concept, this.concept)) {
+          false : !someInArray(orderDish.dish.concept, this.concept)) {
           continue;
         }
 
-        let checkDishes = stringsInArray(orderDish.dish.id, this.config.dishes)
-        let checkGroups = stringsInArray(orderDish.dish.parentGroup, this.config.groups)
+        let checkDishes = someInArray(orderDish.dish.id, this.config.dishes)
+        let checkGroups = someInArray(orderDish.dish.parentGroup, this.config.groups)
 
         if (!checkDishes || !checkGroups) continue
 

@@ -5,7 +5,7 @@ import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
 import Group from './../../../models/Group';
 import Dish from './../../../models/Dish';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
-import { stringsInArray } from "../../../libs/stringsInArray";
+import { someInArray } from "../../../libs/someInArray";
 import configuredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import Decimal from "decimal.js";
@@ -33,7 +33,7 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
 
     public condition(arg: Group | Dish | Order): boolean {
         // this.concept.includes(arg.concept)
-        if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, this.concept) ) {
+        if (findModelInstanceByAttributes(arg) === "Order" && someInArray(arg.concept, this.concept) ) {
             // order not used for configuredPromotion
             // Order.populate()
             // TODO: check if includes groups and dishes
@@ -43,13 +43,13 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
             return true;
         }
         
-        if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, this.concept)) {
+        if (findModelInstanceByAttributes(arg) === "Dish" && someInArray(arg.concept, this.concept)) {
             if(this.configDiscount.dishes.includes(arg.id)){
                 return true;
             }
         }
         
-        if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, this.concept)) {
+        if (findModelInstanceByAttributes(arg) === "Group" && someInArray(arg.concept, this.concept)) {
             if(this.configDiscount.groups.includes(arg.id)){
                 return true;
             }
