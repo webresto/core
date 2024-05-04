@@ -8,7 +8,7 @@ import Order, { PromotionState } from '../../../models/Order';
 import User from '../../../models/User';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import Decimal from "decimal.js";
-import { someInArray, someInArray } from "../../../libs/someInArray";
+import { someInArray } from "../../../libs/stringsInArray";
 
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public badge: string = 'configured-promotion';

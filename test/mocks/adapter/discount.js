@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryDiscountAdapter = void 0;
 const AbstractPromotion_1 = __importDefault(require("../../../adapters/promotion/AbstractPromotion"));
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
-const someInArray_1 = require("../../../libs/someInArray");
+const stringsInArray_1 = require("../../../libs/stringsInArray");
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
 class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
@@ -34,19 +34,19 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
     // public worktime?: WorkTime[] = null;
     condition(arg) {
         // this.concept.includes(arg.concept)
-        if ((0, findModelInstance_1.default)(arg) === "Order" && (0, someInArray_1.someInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {
             // order not used for configuredPromotion
             // Order.populate()
             // TODO: check if includes groups and dishes
             // where to get groups?
             return true;
         }
-        if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, someInArray_1.someInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {
             if (this.configDiscount.dishes.includes(arg.id)) {
                 return true;
             }
         }
-        if ((0, findModelInstance_1.default)(arg) === "Group" && (0, someInArray_1.someInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {
             if (this.configDiscount.groups.includes(arg.id)) {
                 return true;
             }

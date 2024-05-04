@@ -7,7 +7,7 @@ import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdap
 import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
 import ConfiguredPromotion from "../../adapters/promotion/default/configuredPromotion";
-import { someInArray } from "../../libs/someInArray";
+import { someInArray } from "../../libs/stringsInArray";
 import Decimal from "decimal.js";
 
 var autoincrement: number = 0;

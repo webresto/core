@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const hashCode_1 = __importDefault(require("../libs/hashCode"));
 const adapters_1 = require("../adapters");
-const someInArray_1 = require("../libs/someInArray");
+const stringsInArray_1 = require("../libs/stringsInArray");
 const uuid_1 = require("uuid");
 // import Decimal from "decimal.js";
 // sails.on("lifted", function () {
@@ -165,11 +165,11 @@ let Model = {
         let activePromotionIds = promotionAdapter.getActivePromotionsIds();
         if (concept[0] === "") {
             let filteredRAM = promotionRAM.filter(promotion => (promotion.concept[0] === undefined || promotion.concept[0] === "")
-                && (0, someInArray_1.someInArray)(promotion.id, activePromotionIds));
+                && (0, stringsInArray_1.someInArray)(promotion.id, activePromotionIds));
             return filteredRAM;
         }
-        let filteredRAM = promotionRAM.filter(promotion => (0, someInArray_1.someInArray)(promotion.concept, concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
-            && (0, someInArray_1.someInArray)(promotion.id, activePromotionIds));
+        let filteredRAM = promotionRAM.filter(promotion => (0, stringsInArray_1.someInArray)(promotion.concept, concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
+            && (0, stringsInArray_1.someInArray)(promotion.id, activePromotionIds));
         if (!filteredRAM)
             throw "Promotion with concept: " + concept + " not found";
         return filteredRAM;

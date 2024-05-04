@@ -5,7 +5,7 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import hashCode from "../libs/hashCode";
 import { Adapter } from "../adapters";
 import { IconfigDiscount } from "../interfaces/ConfigDiscount";
-import { someInArray } from "../libs/someInArray";
+import { someInArray } from "../libs/stringsInArray";
 import PromotionCode from "../models/PromotionCode";
 import { v4 as uuid } from "uuid";
 

@@ -5,7 +5,7 @@ import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
 import Group from './../../../models/Group';
 import Dish from './../../../models/Dish';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
-import { someInArray } from "../../../libs/someInArray";
+import { someInArray } from "../../../libs/stringsInArray";
 import configuredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import Decimal from "decimal.js";
