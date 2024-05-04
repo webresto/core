@@ -598,7 +598,7 @@ let Model = {
       if (get.amount > 0) {
         await OrderDish.update({ id: get.id }, { amount: get.amount }).fetch();
       } else {
-        await OrderDish.destroy({ id: get.id });
+        await OrderDish.destroy({ id: get.id }).fetch();
         sails.log.info("destroy", get.id);
       }
 
@@ -856,7 +856,7 @@ let Model = {
     const results = await emitter.emit("core:order-check", order, customer, isSelfService, address, paymentMethodId);
 
     delete (order.dishes);
-    await Order.update({ id: order.id }, { ...order });
+    await Order.update({ id: order.id }, { ...order }).fetch();
 
     ////////////////////
     // CHECKOUT COUNTING
@@ -944,7 +944,7 @@ let Model = {
     emitter.emit("core:order-after-check-counting", order);
 
     delete (order.dishes);
-    await Order.update({ id: order.id }, { ...order });
+    await Order.update({ id: order.id }, { ...order }).fetch();
 
 
     /** The check can pass without listeners, because the check itself is minimal
@@ -1273,7 +1273,7 @@ let Model = {
             if (!dish) {
               sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
               emitter.emit("core:order-return-full-order-destroy-orderdish", dish, order);
-              await OrderDish.destroy({ id: orderDish.id });
+              await OrderDish.destroy({ id: orderDish.id }).fetch();
               continue;
             }
 
@@ -1394,7 +1394,7 @@ let Model = {
           totalWeight = totalWeight.plus(orderDish.totalWeight);
         } catch (e) {
           sails.log.error("Order > count > iterate orderDish error", e);
-          await OrderDish.destroy({ id: orderDish.id });
+          await OrderDish.destroy({ id: orderDish.id }).fetch();
           uniqueDishes -= 1;
           continue;
         }

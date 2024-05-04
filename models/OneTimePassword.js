@@ -28,7 +28,7 @@ let Model = {
     },
     async check(login, password) {
         // Clean expired
-        await OneTimePassword.destroy({ expires: { "<": Date.now() } });
+        await OneTimePassword.destroy({ expires: { "<": Date.now() } }).fetch();
         if (process.env.NODE_ENV !== "production" && process.env.DEFAULT_OTP === password) {
             return true;
         }

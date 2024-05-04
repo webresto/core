@@ -51,7 +51,7 @@ let Model = {
     },
     /** Method set lastActivity for a device */
     async setActivity(criteria, client = {}) {
-        await UserDevice.update(criteria, client);
+        await UserDevice.update(criteria, client).fetch();
     },
     async checkSession(sessionId, userId, client = {}) {
         let ud = await UserDevice.findOne({ sessionId: sessionId });

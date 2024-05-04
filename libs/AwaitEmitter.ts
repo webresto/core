@@ -242,7 +242,13 @@ export default class AwaitEmitter {
                   res.push(new HandlerResponse(subscriber.id, null, null, true));
                 }
               };
-
+              /**
+               * 
+               * TODO:
+               * Add TTL for emmiter
+               * 
+               * To know how many functions were performed before it
+               */
               const execHandler = async function () {
                 const now = new Date();
                 try {

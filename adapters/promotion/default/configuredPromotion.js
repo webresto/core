@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const AbstractPromotion_1 = __importDefault(require("../AbstractPromotion"));
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
-const stringsInArray_1 = require("../../../libs/stringsInArray");
+const someInArray_1 = require("../../../libs/someInArray");
 class ConfiguredPromotion extends AbstractPromotion_1.default {
     constructor(promotion, config) {
         super();
@@ -32,7 +32,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
     }
     condition(arg) {
         if ((0, findModelInstance_1.default)(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
-            ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+            ? true : (0, someInArray_1.someInArray)(arg.concept, this.concept)) {
             let order = arg;
             // TODO:  if order.dishes type number[]
             let orderDishes = order.dishes;
@@ -43,12 +43,12 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             return false;
         }
         if ((0, findModelInstance_1.default)(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
-            (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-            return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.dishes);
+            (0, someInArray_1.someInArray)(arg.concept, this.concept)) {
+            return (0, someInArray_1.someInArray)(arg.id, this.config.dishes);
         }
         if ((0, findModelInstance_1.default)(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
-            (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-            return (0, stringsInArray_1.stringsInArray)(arg.id, this.config.groups);
+            (0, someInArray_1.someInArray)(arg.concept, this.concept)) {
+            return (0, someInArray_1.someInArray)(arg.id, this.config.groups);
         }
         return false;
     }
@@ -106,11 +106,11 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                     continue;
                 }
                 if ((this.concept[0] === undefined || this.concept[0] === "") ?
-                    false : !(0, stringsInArray_1.stringsInArray)(orderDish.dish.concept, this.concept)) {
+                    false : !(0, someInArray_1.someInArray)(orderDish.dish.concept, this.concept)) {
                     continue;
                 }
-                let checkDishes = (0, stringsInArray_1.stringsInArray)(orderDish.dish.id, this.config.dishes);
-                let checkGroups = (0, stringsInArray_1.stringsInArray)(orderDish.dish.parentGroup, this.config.groups);
+                let checkDishes = (0, someInArray_1.someInArray)(orderDish.dish.id, this.config.dishes);
+                let checkGroups = (0, someInArray_1.someInArray)(orderDish.dish.parentGroup, this.config.groups);
                 if (!checkDishes || !checkGroups)
                     continue;
                 if (this.configDiscount.discountType === "flat") {

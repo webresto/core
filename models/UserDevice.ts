@@ -69,7 +69,7 @@ let Model = {
 
   /** Method set lastActivity for a device */
   async setActivity(criteria: CriteriaQuery<UserDevice>, client:  { lastIP?: string , userAgent?: string } = {}): Promise<void> {
-    await UserDevice.update(criteria, client);
+    await UserDevice.update(criteria, client).fetch();
   },
 
   async checkSession(sessionId: string, userId: string, client: { lastIP?: string , userAgent?: string } = {}): Promise<boolean> {

@@ -164,7 +164,7 @@ let Model = {
 
     emitter.emit("core:payment-document-before-create", payment);
     try {
-      await PaymentDocument.create(payment as PaymentDocument);
+      await PaymentDocument.create(payment as PaymentDocument).fetch();
     } catch (e) {
       sails.log.error("Error in paymentAdapter.createPayment :", e);
       throw {

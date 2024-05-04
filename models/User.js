@@ -211,8 +211,8 @@ let Model = {
                 throw `OTP checks failed`;
             }
         }
-        await UserDevice.update({ user: userId }, { isLoggedIn: false });
-        User.update({ id: userId }, { isDeleted: true });
+        await UserDevice.update({ user: userId }, { isLoggedIn: false }).fetch();
+        User.update({ id: userId }, { isDeleted: true }).fetch();
     },
     /**
      * Returns phone string by user criteria

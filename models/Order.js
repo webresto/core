@@ -468,7 +468,7 @@ let Model = {
                 await OrderDish.update({ id: get.id }, { amount: get.amount }).fetch();
             }
             else {
-                await OrderDish.destroy({ id: get.id });
+                await OrderDish.destroy({ id: get.id }).fetch();
                 sails.log.info("destroy", get.id);
             }
             await Order.next(order.id, "CART");
@@ -687,7 +687,7 @@ let Model = {
         // Custom emitters checks
         const results = await emitter.emit("core:order-check", order, customer, isSelfService, address, paymentMethodId);
         delete (order.dishes);
-        await Order.update({ id: order.id }, { ...order });
+        await Order.update({ id: order.id }, { ...order }).fetch();
         ////////////////////
         // CHECKOUT COUNTING
         try {
@@ -759,7 +759,7 @@ let Model = {
         sails.log.silly("Order > check > after wait general emitter", order, results);
         emitter.emit("core:order-after-check-counting", order);
         delete (order.dishes);
-        await Order.update({ id: order.id }, { ...order });
+        await Order.update({ id: order.id }, { ...order }).fetch();
         /** The check can pass without listeners, because the check itself is minimal
         * has basic checks. And is self-sufficient, but
         * is still set by default so all checks must be passed
@@ -1043,7 +1043,7 @@ let Model = {
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
                             emitter.emit("core:order-return-full-order-destroy-orderdish", dish, order);
-                            await OrderDish.destroy({ id: orderDish.id });
+                            await OrderDish.destroy({ id: orderDish.id }).fetch();
                             continue;
                         }
                         if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
@@ -1146,7 +1146,7 @@ let Model = {
                 }
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);
-                    await OrderDish.destroy({ id: orderDish.id });
+                    await OrderDish.destroy({ id: orderDish.id }).fetch();
                     uniqueDishes -= 1;
                     continue;
                 }
