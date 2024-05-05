@@ -159,6 +159,14 @@ declare let attributes: {
     orderDate: string;
     deviceId: string;
     /**
+     * A number that will change every time the order is changed
+     */
+    nonce: number;
+    /**
+     * Populated order stringify hash
+     */
+    hash: string;
+    /**
      * Add IP, UserAgent for anonymous cart
      */
     user: string | User;
@@ -271,6 +279,8 @@ declare let Model: {
         discountTotal?: number;
         orderDate?: string;
         deviceId?: string;
+        nonce?: number;
+        hash?: string;
         user?: string | User;
         customData?: any;
     }>;

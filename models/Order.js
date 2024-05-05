@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const phoneValidByMask_1 = require("../libs/phoneValidByMask");
+const OrderHelper_1 = require("../libs/helpers/OrderHelper");
 let attributes = {
     /** Id  */
     id: {
@@ -122,7 +123,7 @@ let attributes = {
     /** */
     dishesCount: "number",
     uniqueDishes: "number",
-    modifiers: "json",
+    modifiers: "json", //TODO? for what?
     customer: "json",
     address: "json",
     comment: "string",
@@ -231,6 +232,17 @@ let attributes = {
     orderDate: "string",
     // orderDateLimit: "string",
     deviceId: "string",
+    /**
+     * A number that will change every time the order is changed
+     */
+    nonce: {
+        type: "number",
+        defaultsTo: 0,
+    },
+    /**
+     * Populated order stringify hash
+     */
+    hash: "string",
     /**
      * Add IP, UserAgent for anonymous cart
      */
@@ -995,6 +1007,15 @@ let Model = {
         }
         catch (e) {
             sails.log.error("CART > fullOrder error", e);
+        }
+        const hash = OrderHelper_1.OrderHelper.orderHash(fullOrder);
+        // TODO: test "nonce should be update after countcart change"
+        let nonce = 0;
+        if (fullOrder.hash !== hash) {
+            if (typeof fullOrder.nonce === 'number' && isFinite(fullOrder.nonce)) {
+                nonce = fullOrder.nonce + 1;
+            }
+            await Order.update({ id: fullOrder.id }, { hash: hash, nonce: nonce });
         }
         return { ...fullOrder };
     },

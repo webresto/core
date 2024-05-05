@@ -12,6 +12,7 @@ import OrderDish from "../models/OrderDish";
 import Maintenance from "../models/Maintenance";
 import { DialogBox } from "./DialogBox";
 import Promotion from "../models/Promotion";
+import { InitCheckout } from "./helpers/OrderHelper";
 /**
  * Naming conventions can greatly enhance the readability and understanding of code, especially for those who may not be familiar with it. Using a structured approach like "module:action-before/after-read/write" can make it intuitive. Let's break down the example "core:add-dish-before-write":
 
@@ -56,6 +57,7 @@ declare global {
         "core:order-return-full-order-destroy-orderdish": [Dish, Order];
         "core:order-before-count": [Order];
         "core:order-payment": [Order, PaymentBack];
+        "core:order-init-checkout": [Order, InitCheckout];
         "core:maintenance-enabled": [Maintenance];
         "core:maintenance-disabled": [];
         "core:group-get-menu": [Group[], string];

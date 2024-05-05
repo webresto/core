@@ -19,6 +19,7 @@ import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import PromotionCode from "./PromotionCode";
 import { phoneValidByMask } from "../libs/phoneValidByMask";
+import { OrderHelper } from "../libs/helpers/OrderHelper";
 
 export interface PromotionState {
   type: string;
@@ -169,7 +170,8 @@ let attributes = {
   /** */
   dishesCount: "number" as unknown as number,
   uniqueDishes: "number" as unknown as number,
-  modifiers: "json" as any,
+  modifiers: "json" as any, //TODO? for what?
+
   customer: "json" as any,
   address: "json" as unknown as Address,
   comment: "string",
@@ -302,6 +304,19 @@ let attributes = {
   // orderDateLimit: "string",
 
   deviceId: "string",
+
+  /**
+   * A number that will change every time the order is changed
+   */
+  nonce: {
+    type: "number",
+    defaultsTo: 0,
+  } as unknown as number,
+
+  /**
+   * Populated order stringify hash
+   */
+  hash: "string",
 
   /**
    * Add IP, UserAgent for anonymous cart
@@ -1043,7 +1058,7 @@ let Model = {
 
     const orderConfig = await Settings.get("EMITTER_ORDER_STRATEGY");
     if (orderConfig) {
-      
+
       if (orderConfig === "ALL_REQUIRED") {
         if (resultsCount === successCount) {
           await orderIt();
@@ -1216,6 +1231,16 @@ let Model = {
       sails.log.error("CART > fullOrder error", e);
     }
 
+    const hash = OrderHelper.orderHash(fullOrder)
+    // TODO: test "nonce should be update after countcart change"
+    let nonce = 0
+    if (fullOrder.hash !== hash) {
+      if (typeof fullOrder.nonce === 'number' && isFinite(fullOrder.nonce)) {
+         nonce = fullOrder.nonce + 1;
+      }
+      await Order.update({id: fullOrder.id}, {hash: hash, nonce: nonce})
+    }
+
     return { ...fullOrder };
   },
 
@@ -1258,8 +1283,8 @@ let Model = {
 
         try {
           if (orderDish.dish && typeof orderDish.dish !== "string") {
-            
-            if(orderDish.addedBy === "user" && orderDish.dish.concept){
+
+            if (orderDish.addedBy === "user" && orderDish.dish.concept) {
               concepts.push(orderDish.dish.concept);
             }
 
@@ -1400,8 +1425,8 @@ let Model = {
         }
       }
 
-      if(concepts.length){
-        if(concepts.length > 1) {
+      if (concepts.length) {
+        if (concepts.length > 1) {
           order.isMixedConcept === true
         }
 
@@ -1656,7 +1681,6 @@ let Model = {
         sails.log.debug(`No valid promocodes for ${promotionCodeString} order: [${order.id}]`);
       }
     }
-
     await Order.update({ id: order.id }, updateData).fetch();
     await Order.next(order.id, "CART");
     const basket = await Order.countCart({ id: order.id });
