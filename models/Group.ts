@@ -210,7 +210,8 @@ let Model = {
         if (group.childGroups) {
           let childGroups = [];
           const cgs = await Group.find({
-            id: group.childGroups.map((cg) => cg.id),
+            id: group.childGroups.map((cg) => cg.id), 
+            isDeleted: false
           })
             .populate("childGroups")
             .populate("dishes")
@@ -325,7 +326,7 @@ let Model = {
     let allGroups = [];
     for (let group of menu) {
       const groupId = group.id
-      const initialGroup = (await Group.find({ id: groupId }).sort('createdAt DESC')).shift();
+      const initialGroup = (await Group.find({ id: groupId, isDeleted: false }).sort('createdAt DESC')).shift();
       if (initialGroup) {
         allGroups.push(initialGroup);
         const childGroups = await getAllChildGroups(groupId);
@@ -335,7 +336,7 @@ let Model = {
     }
 
     async function getAllChildGroups(groupId) {
-      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: !true });
+      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false });
       let allChildGroups = [];
 
       for (let group of childGroups) {
@@ -396,6 +397,7 @@ let Model = {
       groups = await Group.find({
         parentGroup: topLevelGroupId ?? null,
         ...concept &&  { concept: concept },
+        isDeleted: false,
         modifier: false,
         visible: true
       });
@@ -404,6 +406,7 @@ let Model = {
       if(groups.length === 1 && topLevelGroupId === undefined) {
         let children = await Group.find({
           parentGroup: groups[0].id,
+          isDeleted: false,
           modifier: false,
           visible: true
         });
