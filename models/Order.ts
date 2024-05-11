@@ -1870,16 +1870,19 @@ function isValidDelivery(delivery: Delivery): boolean {
   ) {
 
     if (!delivery.cost && !delivery.item) {
-      sails.log.error(`Check delivery error delivery is not valid:  !delivery.cost && !delivery.item`)
+      sails.log.error(`Check delivery error delivery is not valid:  (delivery.cost and delivery.item not defined) :`, delivery)
+      sails.log.error(console.trace())
       return false
     } else {
       if (delivery.cost && typeof delivery.cost !== "number") {
         sails.log.error(`Check delivery error delivery is not valid:  delivery.cost not number`)
+        sails.log.error(console.trace())
         return false
       }
 
       if (delivery.item && typeof delivery.item !== "string") {
         sails.log.error(`Check delivery error delivery is not valid:  delivery.item not string`)
+        sails.log.error(console.trace())
         return false
       }
     }
