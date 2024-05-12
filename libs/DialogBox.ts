@@ -43,7 +43,7 @@ export class DialogBox {
     // Check JsonSchema
     if(!validate(dialog)) {
       sails.log.error(`${dialog} not match with config schema`)
-      sails.log.error(validate.errors)
+      sails.log.error(JSON.stringify(validate.errors, null, 2))
       throw `DialogBox config not valid`
     }
     
