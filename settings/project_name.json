@@ -5,7 +5,7 @@
   "description": "Allowed only domain name pattern 'a-z' and '-' sign",
   "jsonSchema": {
     "type": "string",
-    "pattern": "^[a-z\\-]+$",
+    "pattern": "^[a-z0-9\\-]+$",
     "minLength": 3
   },
   "isRequired": true
