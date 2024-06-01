@@ -28,8 +28,8 @@ export class OrderHelper {
   public static async initCheckout(populatedOrder: Order): Promise<InitCheckout> {
     let initCheckout: InitCheckout = {
       worktimeIntervals: [],
-      allowSoonAsPossible: false,
-      allowOrderToTime: false,
+      allowSoonAsPossible: true,
+      allowOrderToTime: true,
       nonce: 0
     }
     await emitter.emit('core:order-init-checkout', populatedOrder, initCheckout);

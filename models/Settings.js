@@ -236,12 +236,12 @@ let Model = {
             // undefined if value is from input, null if value is from origSettings
             if (settingsSetInput.value !== undefined && settingsSetInput.value !== null && !validate(settingsSetInput.value)) {
                 let mErr = 'AJV Validation Error: Value does not match the schema, see logs for more info';
-                sails.log.error(mErr, validate.errors);
+                sails.log.error(mErr, JSON.stringify(validate.errors, null, 2));
                 throw mErr;
             }
             if (settingsSetInput.defaultValue !== undefined && settingsSetInput.defaultValue !== null && !validate(settingsSetInput.defaultValue)) {
                 let mErr = 'AJV Validation Error: DefaultValue does not match the schema, see logs for more info';
-                sails.log.error(mErr, validate.errors);
+                sails.log.error(mErr, JSON.stringify(validate.errors, null, 2));
                 throw mErr;
             }
         }
