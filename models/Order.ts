@@ -449,7 +449,7 @@ let Model = {
 
     if (order.dishes.length > 99) throw "99 max dishes amount";
 
-    if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
+    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
     if (modifiers && modifiers.length) {
       modifiers.forEach((m: OrderModifier) => {
@@ -554,7 +554,7 @@ let Model = {
 
     const order = await Order.findOne(criteria).populate("dishes");
 
-    if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
+    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
     var orderDish: OrderDish;
     if (stack) {
@@ -603,7 +603,7 @@ let Model = {
       }
 
     const order = await Order.findOne(criteria).populate("dishes");
-    if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
+    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
     const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
     const get = orderDishes.find((item) => item.id === dish.id);
@@ -631,7 +631,7 @@ let Model = {
     await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
 
     const order = await Order.findOne(criteria).populate("dishes");
-    if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
+    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
     const orderDish = await OrderDish.findOne({
       order: order.id,
@@ -689,7 +689,7 @@ let Model = {
 
     sails.log.silly("Order > setSelfService >", selfService);
     const order = await Order.findOne(criteria);
-    if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
+    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
     return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
   },
@@ -796,7 +796,7 @@ let Model = {
     }
 
     if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
-    if (order.state === "ORDER") throw `order with orderId ${order.id}in state ORDER`;
+    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
     if (order.promotionUnorderable === true) throw `Order not possible for order by promotion`;
 
 
@@ -1027,8 +1027,8 @@ let Model = {
     if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
 
     //  TODO: impl with stateflow
-    if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
-    if (order.state === "CART") throw "order with orderId " + order.id + "in state CART";
+    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+    if (order.state === "CART") throw `order with orderId ${order.id} in state CART`;
 
     // await Order.update({id: order.id}).fetch();
     // TODO: this check is needed
@@ -1134,7 +1134,7 @@ let Model = {
 
   async payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse> {
     const order: Order = await Order.findOne(criteria);
-    if (order.state !== "CHECKOUT") throw "order with orderId " + order.id + "in state ${order.state} but need CHECKOUT";
+    if (order.state !== "CHECKOUT") throw `order with orderId ${order.id} in state ${order.state} but need CHECKOUT`;
 
     var paymentResponse: PaymentResponse;
     let comment: string = "";
@@ -1175,21 +1175,15 @@ let Model = {
 
   /**  given populated Order instance by criteria*/
   async populate(criteria: CriteriaQuery<Order>) {
-    let order = await Order.findOne(criteria)
-      .populate('paymentMethod')
-      .populate('deliveryItem')
-      .populate('user')
-      ;
-
-    if (!order) throw `order by criteria: ${criteria},  not found`;
-
     let fullOrder: Order;
     try {
-      fullOrder = await Order.findOne({ id: order.id })
+      fullOrder = await Order.findOne(criteria)
         .populate("dishes")
         .populate("deliveryItem")
-        .populate('paymentMethod');
-      const orderDishes = await OrderDish.find({ order: order.id }).populate("dish").sort("createdAt");
+        .populate('paymentMethod').populate('user').populate('pickupPoint');
+
+      if (!fullOrder) throw `order by criteria: ${criteria},  not found`;
+      const orderDishes = await OrderDish.find({ order: fullOrder.id }).populate("dish").sort("createdAt");
 
       for (let orderDish of orderDishes) {
         if (!orderDish.dish) {
