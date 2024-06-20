@@ -201,10 +201,15 @@ export default abstract class RMSAdapter {
     const promise = new Promise<void>(async (resolve, reject) => {
       try {
         let outOfStocksDishes = await this.loadOutOfStocksDishes();
+        const outOfStocksDishesIds = outOfStocksDishes.map(d => d.rmsId);
+
+        await Dish.update({
+          rmsId: { nin: outOfStocksDishesIds },
+          balance: { '!=': -1 }
+        }, { balance: -1 }).fetch()
 
         for(let item of outOfStocksDishes) {
           emitter.emit("rms-sync:out-of-stocks-before-each-product-item", item);
-          await Dish.update({rmsId: {"!=": item.rmsId}}, {balance: -1}).fetch()
           await Dish.update({rmsId: item.rmsId}, {balance: item.balance}).fetch()
         }
         return resolve();
