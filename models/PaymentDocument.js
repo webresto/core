@@ -106,7 +106,10 @@ let Model = {
             let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
             sails.log.silly("PaymentDocument > register [after paymentAdapter.createPayment]", paymentResponse);
             if (!paymentResponse.id) {
-                throw `PaymentDocument > register [after paymentAdapter.createPayment] paymentResponse from external payment system is required`;
+                throw `PaymentDocument > register [after paymentAdapter.createPayment] paymentResponse.id from external payment system is required`;
+            }
+            if (!paymentResponse.redirectLink) {
+                throw `PaymentDocument > register [after paymentAdapter.createPayment] paymentResponse.redirectLink from external payment system is required`;
             }
             await PaymentDocument.update({ id: paymentResponse.id }, {
                 status: "REGISTERED",

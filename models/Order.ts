@@ -1167,6 +1167,18 @@ let Model = {
     return paymentResponse;
   },
 
+  async clear(criteria: CriteriaQuery<Order>): Promise<void> {
+    
+    let order = await Order.findOne(criteria);
+    if (order.state !== "CART") throw `Clear allowed only for CART state`;
+    
+    await OrderDish.destroy({ order: order.id }).fetch();
+    await Order.next(order.id, "CART");
+    await Order.countCart({ id: order.id });
+    await emitter.emit.apply(emitter, ["core:order-was-cleared", ...arguments]);
+  },
+
+
   async paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string> {
     let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];
     let paymentMethod = populatedOrder.paymentMethod as PaymentMethod;

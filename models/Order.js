@@ -338,7 +338,7 @@ let Model = {
         if (order.dishes.length > 99)
             throw "99 max dishes amount";
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         if (modifiers && modifiers.length) {
             modifiers.forEach((m) => {
                 if (m.amount === undefined)
@@ -425,7 +425,7 @@ let Model = {
         await emitter.emit.apply(emitter, ["core:order-before-remove-dish", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         var orderDish;
         if (stack) {
             amount = 1;
@@ -471,7 +471,7 @@ let Model = {
             }
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         const get = orderDishes.find((item) => item.id === dish.id);
         if (get) {
@@ -497,7 +497,7 @@ let Model = {
         await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         const orderDish = await OrderDish.findOne({
             order: order.id,
             id: dish.id,
@@ -547,7 +547,7 @@ let Model = {
         sails.log.silly("Order > setSelfService >", selfService);
         const order = await Order.findOne(criteria);
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
     },
     /**
@@ -631,7 +631,7 @@ let Model = {
         if (await Maintenance.getActiveMaintenance() !== undefined)
             throw `Currently site is off`;
         if (order.state === "ORDER")
-            throw `order with orderId ${order.id}in state ORDER`;
+            throw `order with orderId ${order.id} in state ORDER`;
         if (order.promotionUnorderable === true)
             throw `Order not possible for order by promotion`;
         //const order: Order = await Order.findOne(criteria);
@@ -831,9 +831,9 @@ let Model = {
             throw `Currently site is off`;
         //  TODO: impl with stateflow
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         if (order.state === "CART")
-            throw "order with orderId " + order.id + "in state CART";
+            throw `order with orderId ${order.id} in state CART`;
         // await Order.update({id: order.id}).fetch();
         // TODO: this check is needed
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
@@ -927,7 +927,7 @@ let Model = {
     async payment(criteria) {
         const order = await Order.findOne(criteria);
         if (order.state !== "CHECKOUT")
-            throw "order with orderId " + order.id + "in state ${order.state} but need CHECKOUT";
+            throw `order with orderId ${order.id} in state ${order.state} but need CHECKOUT`;
         var paymentResponse;
         let comment = "";
         var backLinkSuccess = (await Settings.get("FRONTEND_ORDER_PAGE")) + order.shortId;
@@ -951,6 +951,15 @@ let Model = {
         await Order.next(order.id, "PAYMENT");
         return paymentResponse;
     },
+    async clear(criteria) {
+        let order = await Order.findOne(criteria);
+        if (order.state !== "CART")
+            throw `Clear allowed only for CART state`;
+        await OrderDish.destroy({ order: order.id }).fetch();
+        await Order.next(order.id, "CART");
+        await Order.countCart({ id: order.id });
+        await emitter.emit.apply(emitter, ["core:order-was-cleared", ...arguments]);
+    },
     async paymentMethodId(criteria) {
         let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];
         let paymentMethod = populatedOrder.paymentMethod;
@@ -958,19 +967,15 @@ let Model = {
     },
     /**  given populated Order instance by criteria*/
     async populate(criteria) {
-        let order = await Order.findOne(criteria)
-            .populate('paymentMethod')
-            .populate('deliveryItem')
-            .populate('user');
-        if (!order)
-            throw `order by criteria: ${criteria},  not found`;
         let fullOrder;
         try {
-            fullOrder = await Order.findOne({ id: order.id })
+            fullOrder = await Order.findOne(criteria)
                 .populate("dishes")
                 .populate("deliveryItem")
-                .populate('paymentMethod');
-            const orderDishes = await OrderDish.find({ order: order.id }).populate("dish").sort("createdAt");
+                .populate('paymentMethod').populate('user').populate('pickupPoint');
+            if (!fullOrder)
+                throw `order by criteria: ${criteria},  not found`;
+            const orderDishes = await OrderDish.find({ order: fullOrder.id }).populate("dish").sort("createdAt");
             for (let orderDish of orderDishes) {
                 if (!orderDish.dish) {
                     sails.log.error("orderDish", orderDish.id, "has not dish");

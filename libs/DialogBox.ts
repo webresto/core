@@ -43,8 +43,9 @@ export class DialogBox {
     // Check JsonSchema
     if(!validate(dialog)) {
       sails.log.error(`${dialog} not match with config schema`)
-      sails.log.error(JSON.stringify(validate.errors, null, 2))
-      throw `DialogBox config not valid`
+      let errors = JSON.stringify(validate.errors, null, 2)
+      sails.log.error(errors)
+      throw `DialogBox config not valid: ${errors}`
     }
     
     function sleep(ms: number): Promise<void> {
