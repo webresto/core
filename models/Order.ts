@@ -1181,7 +1181,7 @@ let Model = {
   async setCustomData(criteria: CriteriaQuery<Order>, customData: any): Promise<void> {
     await emitter.emit.apply(emitter, ["core:order-set-custom-data", ...arguments]);
     let order = await Order.findOne(criteria);
-    customData = {...order.customData, customData}
+    customData = {...order.customData, ...customData}
     await Order.updateOne({ id: order.id }, {customData});
   },
 
