@@ -1178,6 +1178,12 @@ let Model = {
     await emitter.emit.apply(emitter, ["core:order-was-cleared", ...arguments]);
   },
 
+  async setCustomData(criteria: CriteriaQuery<Order>, customData: any): Promise<void> {
+    await emitter.emit.apply(emitter, ["core:order-set-custom-data", ...arguments]);
+    let order = await Order.findOne(criteria);
+    customData = {...order.customData, customData}
+    await Order.updateOne({ id: order.id }, {customData});
+  },
 
   async paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string> {
     let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];

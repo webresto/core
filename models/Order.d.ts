@@ -220,6 +220,7 @@ declare let Model: {
     order(criteria: CriteriaQuery<Order>): Promise<void>;
     payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
     clear(criteria: CriteriaQuery<Order>): Promise<void>;
+    setCustomData(criteria: CriteriaQuery<Order>, customData: any): Promise<void>;
     paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string>;
     /**  given populated Order instance by criteria*/
     populate(criteria: CriteriaQuery<Order>): Promise<{

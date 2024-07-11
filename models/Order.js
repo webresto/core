@@ -960,6 +960,12 @@ let Model = {
         await Order.countCart({ id: order.id });
         await emitter.emit.apply(emitter, ["core:order-was-cleared", ...arguments]);
     },
+    async setCustomData(criteria, customData) {
+        await emitter.emit.apply(emitter, ["core:order-set-custom-data", ...arguments]);
+        let order = await Order.findOne(criteria);
+        customData = { ...order.customData, customData };
+        await Order.updateOne({ id: order.id }, { customData });
+    },
     async paymentMethodId(criteria) {
         let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];
         let paymentMethod = populatedOrder.paymentMethod;
