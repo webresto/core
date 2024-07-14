@@ -231,6 +231,12 @@ let attributes = {
     },
     orderDate: "string",
     // orderDateLimit: "string",
+    /**
+     * @experimental
+     * This field allows you to somehow mark the recycle bin, although this is not used in current versions of the kernel.
+     * Designed for creating some custom logic, through visual programming or through modules.
+     */
+    tag: "string",
     deviceId: "string",
     /**
      * A number that will change every time the order is changed
@@ -959,6 +965,26 @@ let Model = {
         await Order.next(order.id, "CART");
         await Order.countCart({ id: order.id });
         await emitter.emit.apply(emitter, ["core:order-was-cleared", ...arguments]);
+    },
+    /**
+     * Method for quickly setting a Order tag
+     * @experimental
+     * @param criteria
+     * @param tag
+     * @returns
+     */
+    async tag(criteria, tag) {
+        emitter.emit.apply(emitter, ["core:order-set-tag", ...arguments]);
+        try {
+            let order = await Order.findOne(criteria);
+            if (order.state !== "CART") {
+                throw new Error(`Clear allowed only for CART state`);
+            }
+            return await Order.updateOne({ id: order.id }, { tag: tag }).fetch();
+        }
+        catch (error) {
+            sails.log.error('Error tagging order:', error);
+        }
     },
     async setCustomData(criteria, customData) {
         await emitter.emit.apply(emitter, ["core:order-set-custom-data", ...arguments]);

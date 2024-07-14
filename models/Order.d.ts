@@ -157,6 +157,12 @@ declare let attributes: {
      */
     discountTotal: number;
     orderDate: string;
+    /**
+     * @experimental
+     * This field allows you to somehow mark the recycle bin, although this is not used in current versions of the kernel.
+     * Designed for creating some custom logic, through visual programming or through modules.
+     */
+    tag: string;
     deviceId: string;
     /**
      * A number that will change every time the order is changed
@@ -220,6 +226,14 @@ declare let Model: {
     order(criteria: CriteriaQuery<Order>): Promise<void>;
     payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
     clear(criteria: CriteriaQuery<Order>): Promise<void>;
+    /**
+     * Method for quickly setting a Order tag
+     * @experimental
+     * @param criteria
+     * @param tag
+     * @returns
+     */
+    tag(criteria: CriteriaQuery<Order>, tag: string): Promise<Order>;
     setCustomData(criteria: CriteriaQuery<Order>, customData: any): Promise<void>;
     paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string>;
     /**  given populated Order instance by criteria*/
@@ -280,6 +294,7 @@ declare let Model: {
         orderTotal?: number;
         discountTotal?: number;
         orderDate?: string;
+        tag?: string;
         deviceId?: string;
         nonce?: number;
         hash?: string;
