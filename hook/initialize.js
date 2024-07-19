@@ -59,7 +59,7 @@ function ToInitialize(sails) {
     /**
      * Required hooks
      */
-    const requiredHooks = ["blueprints", "http", "orm", "policies", "stateflow"];
+    const requiredHooks = ["orm", "policies", "stateflow"];
     return function initialize(cb) {
         try {
             sails.log.info(`RestoCore initialize from dir [${__dirname}]`);
