@@ -86,5 +86,6 @@
     "build": "tsc",
     "format": "npx prettier --write \"**/*.ts\""
   },
+  "appId": "restocore",
   "version": "2.0.0"
 }
