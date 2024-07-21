@@ -1,4 +1,4 @@
 /**
- * Initial RMS and set timezone if it given
+ * Initial RMS and set timezone if it was given
  */
 export default function (): Promise<void>;

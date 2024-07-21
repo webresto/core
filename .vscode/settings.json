@@ -8,5 +8,13 @@
     },
   },
   "prettier.quoteProps": "consistent",
-  "prettier.printWidth": 180
+  "prettier.printWidth": 180,
+  "json.schemas": [
+    {
+        "fileMatch": [
+            "settings/*.json"
+        ],
+        "url": "./libs/schemas/settingsFile.json"
+    }
+  ]
 }

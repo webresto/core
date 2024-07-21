@@ -1,0 +1,8 @@
+{
+  "key": "NO_SYNC_NOMENCLATURE",
+  "type": "boolean",
+  "name": "No Sync Nomenclature",
+  "description": "Do not synchronise nomenclature",
+  "defaultValue": false,
+  "isRequired": true
+}

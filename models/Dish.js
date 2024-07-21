@@ -35,7 +35,7 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    /** Ingredients of dish */
+    /** Ingredients of a dish */
     ingredients: {
         type: "string",
         allowNull: true,
@@ -65,9 +65,9 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    /** The amount of carbohydrates per (100g)*/
+    /** The number of carbohydrates per (100g)*/
     carbohydrateAmount: "number",
-    /** The amount of carbohydrates in the dish */
+    /** The number of carbohydrates in the dish */
     carbohydrateFullAmount: {
         type: "number",
         allowNull: true
@@ -97,13 +97,13 @@ let attributes = {
         type: "number",
         allowNull: true
     },
-    /** The amount of proteins in the dish */
+    /** The number of proteins in the dish */
     fiberFullAmount: {
         type: "number",
         allowNull: true
     },
     /** The group identifier in which the dish is located
-     * @deprecated will  be deleted in v2
+     * @deprecated will be deleted in v2
     */
     groupId: {
         type: "string",
@@ -154,7 +154,7 @@ let attributes = {
     },
     /** The concept to which the dish belongs */
     concept: "string",
-    /** Wesh */
+    /** Hash */
     hash: "string",
     /** Can be seen on the site on the menu */
     visible: "boolean",
@@ -187,7 +187,7 @@ let attributes = {
 };
 let Model = {
     beforeCreate: async function (init, cb) {
-        emitter.emit('core:dish-before-create', init);
+        emitter.emit('core:product-before-create', init);
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
@@ -205,7 +205,7 @@ let Model = {
         cb();
     },
     beforeUpdate: async function (value, cb) {
-        emitter.emit('core:dish-before-update', value);
+        emitter.emit('core:product-before-update', value);
         if (value.customData) {
             if (value.id !== undefined) {
                 let current = await Dish.findOne({ id: value.id });
@@ -218,22 +218,22 @@ let Model = {
         return cb();
     },
     afterUpdate: function (record, cb) {
-        emitter.emit('core:dish-after-update', record);
+        emitter.emit('core:product-after-update', record);
         return cb();
     },
     afterCreate: function (record, cb) {
-        emitter.emit('core:dish-after-create', record);
+        emitter.emit('core:product-after-create', record);
         return cb();
     },
     /**
-     * Accepts Waterline Criteria and prepares it there isdeleted = false, balance! = 0. Thus, this function allows
-     * Find in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.
+     * Accepts Waterline Criteria and prepares it there isDeleted = false, balance! = 0. Thus, this function allows
+     *  finding in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.
      * @param criteria - criteria asked
      * @return Found dishes
      */
     async getDishes(criteria = {}) {
         criteria.isDeleted = false;
-        if (!(await Settings.get("ShowUnavailableDishes"))) {
+        if (!(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) {
             criteria.balance = { "!=": 0 };
         }
         let dishes = await Dish.find(criteria).populate("images");
@@ -249,7 +249,7 @@ let Model = {
             }
         }
         dishes.sort((a, b) => a.sortOrder - b.sortOrder);
-        await emitter.emit("core-dish-get-dishes", dishes);
+        await emitter.emit("core:product-get-dishes", dishes);
         return dishes;
     },
     /**
@@ -310,7 +310,7 @@ let Model = {
                     }
                     childIndex++;
                 }
-                // 
+                //
                 dish.modifiers[index].childModifiers = childModifiers;
                 // If groupMod not have options delete it
                 if (modifier.childModifiers && !modifier.childModifiers.length) {
@@ -338,7 +338,7 @@ let Model = {
                 updatedDishes.push(promotionAdapter.displayDish(dishes[i]));
             }
             catch (error) {
-                sails.log(error);
+                sails.log.error(error);
                 continue;
             }
         }
@@ -346,7 +346,7 @@ let Model = {
     },
     /**
      * Checks whether the dish exists, if it does not exist, then creates a new one and returns it.If exists, then checks
-     * Hesh of the existing dish and new data, if they are identical, then immediately gives the dishes, if not, it updates its data
+     * Hash of the existing dish and new data, if they are identical, then immediately gives the dishes, if not, it updates its data
      * for new ones
      * @param values
      * @return Updated or created dish

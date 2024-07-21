@@ -22,7 +22,7 @@ class DefaultDeliveryAdapter extends DeliveryAdapter_1.default {
                 message: `Minimum amount not allowed`
             };
         }
-        if (order.basketTotal > (parseFloat(freeDeliveryFrom) ?? Infinity)) {
+        if (order.basketTotal > (freeDeliveryFrom ?? Infinity)) {
             return {
                 allowed: true,
                 deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,
@@ -35,7 +35,7 @@ class DefaultDeliveryAdapter extends DeliveryAdapter_1.default {
             return {
                 allowed: true,
                 deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,
-                cost: deliveryCost ? parseFloat(deliveryCost) : 0,
+                cost: deliveryCost ? deliveryCost : 0,
                 item: deliveryItem ?? undefined,
                 message: deliveryMessage ?? ''
             };

@@ -1,0 +1,10 @@
+{
+  "key": "DELIVERY_COST",
+  "type": "number",
+  "name": "Delivery Cost",
+  "description": "Optional setting for delivery cost",
+  "jsonSchema": {
+    "type": "number",
+    "minimum": 0
+  }
+}

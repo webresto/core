@@ -36,6 +36,8 @@ __exportStar(require("./models/UserDevice"), exports);
 __exportStar(require("./models/UserLocation"), exports);
 __exportStar(require("./models/UserOrderHistory"), exports);
 __exportStar(require("./models/Promotion"), exports);
+// Helpers
+__exportStar(require("./libs/helpers/OrderHelper"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),

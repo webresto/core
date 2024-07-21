@@ -924,42 +924,42 @@ exports.up = function (db, callback) {
   }, cb),
 (cb) => db.createTable('settings', {
     columns: {
-    "id": {
-        "type": "serial",
-        "autoIncrement": true,
-        "primaryKey": true
+        "id": {
+            "type": "serial",
+            "autoIncrement": true,
+            "primaryKey": true
+        },
+        "key": {
+            "type": "text",
+            "unique": true
+        },
+        "description": {
+            "type": "text"
+        },
+        "value": {
+            "type": "json"
+        },
+        "section": {
+            "type": "text"
+        },
+        "from": {
+            "type": "text"
+        },
+        "readOnly": {
+            "type": "boolean"
+        },
+        "schema": {
+            "type": "json"
+        },
+        "createdAt": {
+            "type": "bigint"
+        },
+        "updatedAt": {
+            "type": "bigint"
+        }
     },
-    "key": {
-        "type": "text",
-        "unique": true
-    },
-    "description": {
-        "type": "text"
-    },
-    "value": {
-        "type": "json"
-    },
-    "section": {
-        "type": "text"
-    },
-    "from": {
-        "type": "text"
-    },
-    "readOnly": {
-        "type": "boolean"
-    },
-    "schema": {
-        "type": "json"
-    },
-    "createdAt": {
-        "type": "bigint"
-    },
-    "updatedAt": {
-        "type": "bigint"
-    }
-},
     ifNotExists: true
-  }, cb),
+}, cb),
 (cb) => db.createTable('street', {
     columns: {
     "id": {
@@ -1314,7 +1314,7 @@ exports.up = function (db, callback) {
     columns: {
     "id": {
         "type": "serial",
-        "primaryKey": true, 
+        "primaryKey": true,
         "autoIncrement": true
     },
     "dish_images": {
@@ -1330,7 +1330,7 @@ exports.up = function (db, callback) {
     columns: {
     "id": {
         "type": "serial",
-        "primaryKey": true, 
+        "primaryKey": true,
         "autoIncrement": true
     },
     "group_images": {
@@ -1346,7 +1346,7 @@ exports.up = function (db, callback) {
     columns: {
     "id": {
         "type": "serial",
-        "primaryKey": true, 
+        "primaryKey": true,
         "autoIncrement": true
     },
     "promotion_promotionCode": {

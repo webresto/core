@@ -1,0 +1,8 @@
+{
+  "key": "DELIVERY_DESCRIPTION",
+  "type": "string",
+  "name": "Delivery Description",
+  "description": "Optional",
+  "defaultValue": "",
+  "isRequired": true
+}

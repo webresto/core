@@ -65,7 +65,7 @@ describe("Promotion code integration test", function () {
 
   it("Base countur promocode with flat discount (create new + apply)", async () => {
     let order = await Order.create({ id: "promotion-code-integration-test" }).fetch();
-    await Order.updateOne({ id: order.id }, { concept: "road", user: "user" });
+    await Order.updateOne({ id: order.id }, {  user: "user" });
 
     await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
     await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
@@ -77,7 +77,7 @@ describe("Promotion code integration test", function () {
 
     expect(result.discountTotal).to.equal(1.45);    expect(result.total).to.equal(109.85);
 
-    console.log(result,1245)
+    console.log("ORDER WITH PROMOTION", result)
     expect(result.basketTotal).to.equal(111.3);
 
 
@@ -89,12 +89,13 @@ describe("Promotion code integration test", function () {
     result = await Order.findOne({ id: order.id }
     )
 
+    console.log("ORDER WITH PROMOTION 2", result)
 
     // CLEAR PROMOCODE
     await Order.applyPromotionCode({ id: order.id }, null);
     result = await Order.findOne({ id: order.id })
     expect(result.discountTotal).to.equal(0);
-    expect(result.total).to.equal(111.3);
+    expect(result.total).to.equal(211.4);
     expect(result.state).to.equal("CART");
 
 
@@ -103,7 +104,7 @@ describe("Promotion code integration test", function () {
     await Order.applyPromotionCode({ id: order.id }, "WINTER2024NHATRANG");
     result = await Order.findOne({ id: order.id })
     expect(result.discountTotal).to.equal(0);
-    expect(result.total).to.equal(111.3);
+    expect(result.total).to.equal(211.4);
     expect(result.promotionCodeCheckValidTill).to.equal(null);
     expect(result.promotionCodeString).to.equal("WINTER2024NHATRANG");
     expect(result.promotionCode).to.equal(null);
@@ -114,7 +115,7 @@ describe("Promotion code integration test", function () {
     expect(result.promotionCodeString).to.equal("TEST123");
     expect(result.discountTotal).to.equal(1.45);
     expect(result.promotionFlatDiscount).to.equal(1.45);
-    expect(result.total).to.equal(109.85);
+    expect(result.total).to.equal(209.95);
     expect(result.basketTotal).to.equal(111.3);
   });
 

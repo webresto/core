@@ -51,7 +51,7 @@ describe('Discount_Empty', function () {
         },
         displayDish: function (dish, user) {
             if (this.isJoint === true && this.isPublic === true) {
-                // 
+                //
                 dish.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
                 dish.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
                 dish.oldPrice = dish.price;
@@ -95,7 +95,7 @@ describe('Discount_Empty', function () {
     // TODO: move INTEGRATION
     it("discount empty concept but order with concept", async function () {
         let order = await Order.create({ id: "empty-concept" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "a", parentGroup: groupsId[0] }));
         let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "a", parentGroup: groupsId[0] }));
         discountEx.configDiscount.dishes.push(dish1.id);
@@ -104,7 +104,7 @@ describe('Discount_Empty', function () {
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let result = await Order.findOne(order.id);
-        console.log(JSON.stringify(result, null, 2));
+        // console.log(JSON.stringify(result, null, 2))
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });
 });

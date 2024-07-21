@@ -97,7 +97,7 @@ let attributes = {
 let Model = {
     async afterUpdate(record, cb) {
         if (record.createdByUser) {
-            // call recreate of discountHandler
+            // call recreation of discountHandler
             adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
@@ -105,7 +105,7 @@ let Model = {
     },
     async afterCreate(record, cb) {
         if (record.createdByUser) {
-            // call recreate of discountHandler
+            // call recreation of discountHandler
             adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
@@ -125,7 +125,7 @@ let Model = {
             init.id = (0, uuid_1.v4)();
         }
         const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT");
-        // On create, all promocodes are disabled.
+        // On creation, all promocodes are disabled.
         init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) : process.env.NODE_ENV !== "production";
         cb();
     },
@@ -157,20 +157,19 @@ let Model = {
         }
     },
     getAllByConcept(concept) {
-        if (concept.length < 1) {
-            sails.log.warn(`Promotion > getAllByConcept : [concept] array is unstable feature`, concept);
-        }
+        if (typeof concept === "string")
+            concept = [concept];
         const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
-        if (!concept)
+        if (!concept.length)
             throw "concept is required";
         let activePromotionIds = promotionAdapter.getActivePromotionsIds();
         if (concept[0] === "") {
             let filteredRAM = promotionRAM.filter(promotion => (promotion.concept[0] === undefined || promotion.concept[0] === "")
-                && (0, stringsInArray_1.stringsInArray)(promotion.id, activePromotionIds));
+                && (0, stringsInArray_1.someInArray)(promotion.id, activePromotionIds));
             return filteredRAM;
         }
-        let filteredRAM = promotionRAM.filter(promotion => (0, stringsInArray_1.stringsInArray)(promotion.concept, concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
-            && (0, stringsInArray_1.stringsInArray)(promotion.id, activePromotionIds));
+        let filteredRAM = promotionRAM.filter(promotion => (0, stringsInArray_1.someInArray)(promotion.concept, concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
+            && (0, stringsInArray_1.someInArray)(promotion.id, activePromotionIds));
         if (!filteredRAM)
             throw "Promotion with concept: " + concept + " not found";
         return filteredRAM;
@@ -187,8 +186,8 @@ module.exports = {
 // async function checkMaintenance(){
 //   const maintenance = await Maintenance.getActiveMaintenance();
 //   if (maintenance) {
-//     emitter.emit("core-maintenance-enabled", maintenance);
+//     emitter.emit("core:maintenance-enabled", maintenance);
 //   } else {
-//     emitter.emit("core-maintenance-disabled");
+//     emitter.emit("core:maintenance-disabled");
 //   }
 // }

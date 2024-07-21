@@ -1,0 +1,12 @@
+{
+  "key": "MIN_DELIVERY_AMOUNT",
+  "type": "number",
+  "name": "Min Delivery Amount",
+  "description": "Minimum basket amount for order",
+  "defaultValue": 0,
+  "jsonSchema": {
+    "type": "number",
+    "minimum": 0
+  },
+  "isRequired": true
+}

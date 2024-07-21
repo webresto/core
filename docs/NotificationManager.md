@@ -26,6 +26,12 @@ This module provides a flexible notification system that allows messages to be s
      - `send(badge, groupTo, message, user, type?, subject?, data?)`: Sends a notification to a specified group of recipients using available channels.
      - `registerChannel(channel)`: Registers a new channel for message delivery.
 
+3. **Dialog boxes and user questions**
+    In order to set expectations for the user's response, dialog boxes are provided. The process involves sending a dialogue to the frontend and waiting for a response; if no one has processed the dialogue, there will be a timeout
+
+     - `ask(dialog: DialogBox, user: User, deviceId?: string, timeout?: number)`: It will try to send a question to a specific device, after which it will wait for its resolution, which should be sent to the method`answerProcess`
+     - `answerProcess: (askId: string, optionId: string)`: Processes the user's response 
+
 ### Usage Examples
 
 #### Example 1: Creating a New Channel
@@ -48,7 +54,7 @@ const user = new User(/* user details */);
 try {
   NotificationManager.send("info", "user", "Your OTP is 123456", user);
 } catch (error) {
-  console.error(error.message);
+  sails.log.error(error.message);
 }
 ```
 

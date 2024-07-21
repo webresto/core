@@ -12,7 +12,7 @@ let attributes = {
   } as unknown as number,
 
   /**
-   * relation by LOGIN_FIELD setting
+   * relation by CORE_LOGIN_FIELD setting
    */
   login: {
     type: 'string',
@@ -40,7 +40,7 @@ let Model = {
 
   async check(login: string, password: string): Promise<boolean> {
     // Clean expired
-    await OneTimePassword.destroy({expires: { "<": Date.now() }})
+    await OneTimePassword.destroy({expires: { "<": Date.now() }}).fetch()
     
     if(process.env.NODE_ENV !== "production" && process.env.DEFAULT_OTP === password) {
       return true

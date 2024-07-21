@@ -7,7 +7,7 @@ import { WorkTime } from "@webresto/worktime";
 
 const CHECK_INTERVAL = 60000;
 
-/** Idea: move subcribe to worktime events in worktime library */
+/** Idea: move subscribe to worktime events in worktime library */
 sails.on("lifted", function () {
   setInterval(async function () {
     checkMaintenance();
@@ -78,12 +78,12 @@ let Model = {
       let start: number, stop: number;
       // When dates interval not set is active maintenance
       if (!maintenance.startDate && !maintenance.stopDate) return true
-      
+
 
       // When start or stop date not set, is infinity
       if (!maintenance.startDate) maintenance.startDate = "0000";
       if (!maintenance.stopDate) maintenance.stopDate = "9999";
-       
+
       if (maintenance.startDate) {
         start = new Date(maintenance.startDate).getTime();
       }
@@ -92,7 +92,7 @@ let Model = {
       }
 
       let now = date === undefined ? new Date().getTime() : new Date(date).getTime();
-      
+
       return between(start, stop, now);
     });
 
@@ -117,8 +117,8 @@ function between(from: number, to: number, a: number): boolean {
 async function checkMaintenance(){
   const maintenance = await Maintenance.getActiveMaintenance();
   if (maintenance) {
-    emitter.emit("core-maintenance-enabled", maintenance);
+    emitter.emit("core:maintenance-enabled", maintenance);
   } else {
-    emitter.emit("core-maintenance-disabled");
+    emitter.emit("core:maintenance-disabled");
   }
 }

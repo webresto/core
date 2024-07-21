@@ -2,14 +2,13 @@ import Order, { PromotionState } from "../../models/Order"
 import AbstractPromotionHandler from "./AbstractPromotion";
 import Group from './../../models/Group';
 import Dish from './../../models/Dish';
-import { IconfigDiscount } from './../../interfaces/ConfigDiscount';
 import OrderDish from "../../models/OrderDish";
 export default abstract class AbstractPromotionAdapter {
     public abstract promotions: { [key: string]: AbstractPromotionHandler };
 
     /**
-     * The order must be recorded in model and modified during execution
-     * @param order: Order should populated order
+     * The order must be recorded in a model and modified during execution
+     * @param order Order should populated order
      */
     public abstract processOrder(order: Order): Promise<Order>
 
@@ -20,15 +19,15 @@ export default abstract class AbstractPromotionAdapter {
     /**
      * Base realization clearOfPromotion
      * the order attribute will be changed during method execution
-     * 
+     *
      * This is in an abstract class because it's essentially part of the core, but you can rewrite it
      */
     public async clearOfPromotion(order: Order): Promise<Order> {
         // if Order.status ="PAYMENT" or "ORDER" can't clear promotions
-        if (order.state === "ORDER") throw "order with orderId " + order.id + "in state ORDER";
-        //if (order.state === "PAYMENT") throw "order with orderId " + order.id + "in state PAYMENT";
+        if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+        //if (order.state === "PAYMENT") throw "order with orderId" + order.id + "in state PAYMENT";
 
-        // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");            
+        // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
 
         await OrderDish.destroy({ order: order.id, addedBy: "promotion" }).fetch();
         await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null }).fetch();
@@ -41,7 +40,7 @@ export default abstract class AbstractPromotionAdapter {
                 orderItem.discountAmount = 0,
                 orderItem.discountMessage = null
         })
-        
+
         order.promotionState = [];
         order.promotionDelivery = null;
         order.promotionUnorderable = false;

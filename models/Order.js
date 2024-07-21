@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const phoneValidByMask_1 = require("../libs/phoneValidByMask");
+const OrderHelper_1 = require("../libs/helpers/OrderHelper");
 let attributes = {
     /** Id  */
     id: {
@@ -17,10 +18,10 @@ let attributes = {
     state: "string",
     /** Concept string */
     // TODO: rework type to string[]
-    concept: "string",
-    // concept: {
-    //   type: "json",
-    // } as unknown as string[],
+    // concept: "string",
+    concept: {
+        type: "json",
+    },
     /** the basket contains mixed types of concepts */
     isMixedConcept: "boolean",
     /**
@@ -48,11 +49,17 @@ let attributes = {
     },
     /**
      * The property displays the state of promotion.
-     * In order to understand what was happening with the order in the adapter of promoters.
+     * To understand what was happening with the order in the adapter of promoters.
      *
      * This property can be used to portray the representations of promotions at the front
      */
     promotionState: {
+        type: "json"
+    },
+    /**
+     * It's worth collecting errors to simplify debugging
+     */
+    promotionErrors: {
         type: "json"
     },
     /**
@@ -78,7 +85,7 @@ let attributes = {
         defaultsTo: 0,
     },
     /**
-     * Promotion may estimate shipping costs and if this occurs,
+     * Promotion may estimate shipping costs, and if this occurs,
      * then the calculation of delivery through the adapter will be ignored.
      */
     promotionDelivery: {
@@ -93,8 +100,8 @@ let attributes = {
     } as unknown as string,
     */
     /**
-     * Date untill promocode is valid
-     * This need for calculate promotion in realtime without request in DB
+     * Date until promocode is valid
+     * This is needed for calculating promotion in realtime without a request in DB
      */
     promotionCodeCheckValidTill: {
         type: "string",
@@ -116,7 +123,7 @@ let attributes = {
     /** */
     dishesCount: "number",
     uniqueDishes: "number",
-    modifiers: "json",
+    modifiers: "json", //TODO? for what?
     customer: "json",
     address: "json",
     comment: "string",
@@ -186,7 +193,7 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
-    /** Summ of all bobnuses */
+    /** Sum of all bonuses */
     bonusesTotal: {
         type: "number",
         defaultsTo: 0,
@@ -214,7 +221,7 @@ let attributes = {
         defaultsTo: 0,
     },
     /**
-     * Calculated discount, not recomend for changing
+     * Calculated discount, not recommend for changing
      *
      * !!! This field is for visual display, do not use it for transmission to the payment gateway
      */
@@ -224,9 +231,26 @@ let attributes = {
     },
     orderDate: "string",
     // orderDateLimit: "string",
+    /**
+     * @experimental
+     * This field allows you to somehow mark the recycle bin, although this is not used in current versions of the kernel.
+     * Designed for creating some custom logic, through visual programming or through modules.
+     */
+    tag: "string",
     deviceId: "string",
     /**
-     * Add IP, UserAgent for anonymouse cart
+     * A number that will change every time the order is changed
+     */
+    nonce: {
+        type: "number",
+        defaultsTo: 0,
+    },
+    /**
+     * Populated order stringify hash
+     */
+    hash: "string",
+    /**
+     * Add IP, UserAgent for anonymous cart
      */
     user: {
         model: "user",
@@ -248,7 +272,7 @@ let Model = {
     async afterCreate(order, cb) {
         /**
          * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
-         * This creates redundancy in the kernel. But in the current version we will try to run the kernel in this way. Until we switch to stateflow
+         * This creates redundancy in the kernel. But in the current version, we will try to run the kernel in this way. Until we switch to stateflow
          *
          *  @setting: ORDER_INIT_PRODUCT_ID - Adds a dish to the cart that the user cannot remove, he can only modify it
          */
@@ -261,17 +285,17 @@ let Model = {
         }
         cb();
     },
-    /** Add dish into order */
+    /** Add a dish into order */
     async addDish(criteria, dish, amount, modifiers, comment, 
     /**
-     * user - added manualy by human
-     * promotion - cleaned in each calculate promotions
+     * user - added manually by human
+     * promotion - cleaned in each calculated promotion
      * core - is reserved for
      * custom - custom integration can process it
      */
     addedBy, replace, orderDishId) {
-        await emitter.emit.apply(emitter, ["core-order-before-add-dish", ...arguments]);
-        // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone 
+        await emitter.emit.apply(emitter, ["core:order-before-add-dish", ...arguments]);
+        // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone
         let dishObj;
         if (!addedBy)
             addedBy = "user";
@@ -287,8 +311,8 @@ let Model = {
         // TODO: In core you can add any amount dish, only in checkout it should show which not allowed
         if (dishObj.balance !== -1) {
             if (amount > dishObj.balance) {
-                await emitter.emit.apply(emitter, ["core-order-add-dish-reject-amount", ...arguments]);
-                console.error({
+                await emitter.emit.apply(emitter, ["core:order-add-dish-reject-amount", ...arguments]);
+                sails.log.error({
                     body: `There is no so mush dishes with id ${dishObj.id}`,
                     code: 1,
                 });
@@ -298,15 +322,15 @@ let Model = {
             throw new Error(`Dish [${dishObj.id}] is modifier`);
         }
         /**
-         * Add defuaul modifiers in add
+         * Add default modifiers in add
          */
         const dishModifiers = dishObj.modifiers;
         dishModifiers.forEach(group => {
             if (group.childModifiers) {
                 group.childModifiers.forEach(modifier => {
                     if (modifier.defaultAmount) {
-                        const modifierIsAddaed = modifiers.find(m => m.id === modifier.id);
-                        if (!modifierIsAddaed) {
+                        const modifierIsAdded = modifiers.find(m => m.id === modifier.id);
+                        if (!modifierIsAdded) {
                             modifiers.push({
                                 id: modifier.id,
                                 amount: modifier.defaultAmount
@@ -320,7 +344,7 @@ let Model = {
         if (order.dishes.length > 99)
             throw "99 max dishes amount";
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         if (modifiers && modifiers.length) {
             modifiers.forEach((m) => {
                 if (m.amount === undefined)
@@ -330,7 +354,6 @@ let Model = {
         else {
             modifiers = [];
         }
-        await emitter.emit.apply(emitter, ["core-order-add-dish-before-create-orderdish", ...arguments]);
         /**
          * @setting: ONLY_CONCEPTS_DISHES - Prevents ordering from origin concept
          */
@@ -342,11 +365,11 @@ let Model = {
         * @setting: CORE_SEPARATE_CONCEPTS_ORDERS - Prevents ordering in the same cart from different concepts
         */
         const SEPARATE_CONCEPTS_ORDERS = await Settings.get('SEPARATE_CONCEPTS_ORDERS');
-        if (SEPARATE_CONCEPTS_ORDERS && order.concept && order.concept !== dishObj.concept) {
+        if (SEPARATE_CONCEPTS_ORDERS && order.concept.length && !order.concept.includes(dishObj.concept)) {
             throw { body: `Dish ${dishObj.name} not in same concept as cart`, code: 1 };
         }
         else if (SEPARATE_CONCEPTS_ORDERS && order.dishes.length === 0) {
-            await Order.update({ id: order.id }, { concept: dishObj.concept });
+            //await Order.update({ id: order.id }, { concept: dishObj.concept })
         }
         let orderDish;
         // auto replace and increase amount if same dishes without modifiers
@@ -364,7 +387,12 @@ let Model = {
                 }
             }
         }
-        // NOTE: All dishes with modifiers add as uniq dish
+        const results = await emitter.emit("core:add-product-before-write", order, dishObj, 15 * 1000);
+        const resultsCount = results.length;
+        const successCount = results.filter((r) => r.state === "success").length;
+        if (resultsCount !== successCount) {
+            return;
+        }
         if (replace) {
             orderDish = (await OrderDish.update({ id: orderDishId }, {
                 dish: dishObj.id,
@@ -373,6 +401,7 @@ let Model = {
                 modifiers: modifiers,
                 comment: comment,
                 addedBy: addedBy,
+                itemPrice: dishObj.price
             }).fetch())[0];
         }
         else {
@@ -382,10 +411,11 @@ let Model = {
                 amount: amount,
                 modifiers: modifiers,
                 comment: comment,
-                addedBy: addedBy
+                addedBy: addedBy,
+                itemPrice: dishObj.price
             }).fetch();
         }
-        await emitter.emit.apply(emitter, ["core-order-after-add-dish", orderDish, ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-after-add-dish", orderDish, ...arguments]);
         try {
             await Order.countCart({ id: order.id }, addedBy === "promotion");
             await Order.next(order.id, "CART");
@@ -398,10 +428,10 @@ let Model = {
     //** Delete dish from order */
     async removeDish(criteria, dish, amount, stack) {
         // TODO: delete stack
-        await emitter.emit.apply(emitter, ["core-order-before-remove-dish", ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-before-remove-dish", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         var orderDish;
         if (stack) {
             amount = 1;
@@ -417,7 +447,7 @@ let Model = {
             }).populate("dish");
         }
         if (!orderDish) {
-            await emitter.emit.apply(emitter, ["core-order-remove-dish-reject-no-orderdish", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-remove-dish-reject-no-orderdish", ...arguments]);
             throw {
                 body: `OrderDish with id ${dish.id} in order with id ${order.id} not found`,
                 code: 1,
@@ -430,16 +460,16 @@ let Model = {
         else {
             await OrderDish.destroy({ id: orderDish.id }).fetch();
         }
-        await emitter.emit.apply(emitter, ["core-order-after-remove-dish", ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-after-remove-dish", ...arguments]);
         await Order.next(order.id, "CART");
         await Order.countCart({ id: order.id });
     },
     async setCount(criteria, dish, amount) {
-        await emitter.emit.apply(emitter, ["core-order-before-set-count", ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-before-set-count", ...arguments]);
         const _dish = dish.dish;
         if (_dish.balance !== -1)
             if (amount > _dish.balance) {
-                await emitter.emit.apply(emitter, ["core-order-set-count-reject-amount", ...arguments]);
+                await emitter.emit.apply(emitter, ["core:order-set-count-reject-amount", ...arguments]);
                 throw {
                     body: `There is no so mush dishes with id ${dish.id}`,
                     code: 1,
@@ -447,7 +477,7 @@ let Model = {
             }
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         const get = orderDishes.find((item) => item.id === dish.id);
         if (get) {
@@ -456,24 +486,24 @@ let Model = {
                 await OrderDish.update({ id: get.id }, { amount: get.amount }).fetch();
             }
             else {
-                await OrderDish.destroy({ id: get.id });
+                await OrderDish.destroy({ id: get.id }).fetch();
                 sails.log.info("destroy", get.id);
             }
             await Order.next(order.id, "CART");
             await Order.countCart({ id: order.id });
             Order.update({ id: order.id }, order).fetch();
-            await emitter.emit.apply(emitter, ["core-order-after-set-count", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-after-set-count", ...arguments]);
         }
         else {
-            await emitter.emit.apply(emitter, ["core-order-set-count-reject-no-orderdish", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-set-count-reject-no-orderdish", ...arguments]);
             throw { body: `OrderDish dish id ${dish.id} not found`, code: 2 };
         }
     },
     async setComment(criteria, dish, comment) {
-        await emitter.emit.apply(emitter, ["core-order-before-set-comment", ...arguments]);
+        await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         const orderDish = await OrderDish.findOne({
             order: order.id,
             id: dish.id,
@@ -483,10 +513,10 @@ let Model = {
             await Order.next(order.id, "CART");
             await Order.countCart({ id: order.id });
             Order.update({ id: order.id }, order).fetch();
-            await emitter.emit.apply(emitter, ["core-order-after-set-comment", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-after-set-comment", ...arguments]);
         }
         else {
-            await emitter.emit.apply(emitter, ["core-order-set-comment-reject-no-orderdish", ...arguments]);
+            await emitter.emit.apply(emitter, ["core:order-set-comment-reject-no-orderdish", ...arguments]);
             throw { body: `OrderDish with id ${dish.id} not found`, code: 1 };
         }
     },
@@ -516,19 +546,20 @@ let Model = {
     },
     /**
      * Set order selfService field. Use this method to change selfService.
+     * @param criteria
      * @param selfService
      */
     async setSelfService(criteria, selfService = true) {
         sails.log.silly("Order > setSelfService >", selfService);
         const order = await Order.findOne(criteria);
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
     },
     /**
      * !! Not for external use, only in Order.check
      * The use of bonuses in the cart implies that this order has a user.
-     * Then all checks will be made and a record will be written in the transaction of user bonuses
+     * Then all checks will be made, and a record will be written in the transaction of user bonuses
      *
      Bonus spending strategies :
       1) 'bonus_from_order_total': (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
@@ -574,7 +605,7 @@ let Model = {
             }
             // Deduct the bonus from the order total
             order.total = new decimal_js_1.default(order.total).sub(bonusCoverage).toNumber();
-            // Throw if User not have bonuses to cover this 
+            // Throw if User does not have bonuses to cover this
             await UserBonusTransaction.create({
                 amount: bonusCoverage.toNumber(),
                 bonusProgram: bonusProgram.id,
@@ -589,7 +620,7 @@ let Model = {
     },
     // TODO: implement clearOfPromotion
     async clearOfPromotion() {
-        // remove from collection
+        // remove from a collection
     },
     ////////////////////////////////////////////////////////////////////////////////////
     // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
@@ -606,7 +637,7 @@ let Model = {
         if (await Maintenance.getActiveMaintenance() !== undefined)
             throw `Currently site is off`;
         if (order.state === "ORDER")
-            throw `order with orderId ${order.id}in state ORDER`;
+            throw `order with orderId ${order.id} in state ORDER`;
         if (order.promotionUnorderable === true)
             throw `Order not possible for order by promotion`;
         //const order: Order = await Order.findOne(criteria);
@@ -620,7 +651,7 @@ let Model = {
         /**
          *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
          */
-        emitter.emit("core-order-before-check", order, customer, isSelfService, address);
+        emitter.emit("core:order-before-check", order, customer, isSelfService, address);
         sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
         // Start checking
         await Order.next(order.id, "CART");
@@ -652,13 +683,13 @@ let Model = {
         /** if pickup, then you do not need to check the address*/
         if (isSelfService) {
             order.selfService = true;
-            emitter.emit("core-order-is-self-service", order, customer, isSelfService, address);
+            emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
         }
         else {
             order.selfService = false;
             if (address) {
                 if (!address.city)
-                    address.city = await Settings.get("city");
+                    address.city = await Settings.get("CITY");
                 checkAddress(address);
                 order.address = { ...address };
             }
@@ -671,10 +702,10 @@ let Model = {
                 }
             }
         }
-        // Custom emmitters checks
-        const results = await emitter.emit("core-order-check", order, customer, isSelfService, address, paymentMethodId);
+        // Custom emitters checks
+        const results = await emitter.emit("core:order-check", order, customer, isSelfService, address, paymentMethodId);
         delete (order.dishes);
-        await Order.update({ id: order.id }, { ...order });
+        await Order.update({ id: order.id }, { ...order }).fetch();
         ////////////////////
         // CHECKOUT COUNTING
         try {
@@ -744,18 +775,20 @@ let Model = {
             order.bonusesTotal = bonusCoverage.toNumber();
         }
         sails.log.silly("Order > check > after wait general emitter", order, results);
-        emitter.emit("core-order-after-check-counting", order);
+        emitter.emit("core:order-after-check-counting", order);
         delete (order.dishes);
-        await Order.update({ id: order.id }, { ...order });
+        await Order.update({ id: order.id }, { ...order }).fetch();
         /** The check can pass without listeners, because the check itself is minimal
         * has basic checks. And is self-sufficient, but
         * is still set by default so all checks must be passed
         */
-        const checkConfig = (await Settings.use("CHECKOUT_STRATEGY"));
+        const checkConfig = await Settings.get("EMITTER_CHECKOUT_STRATEGY");
         /**
          * If checkout policy not required then push next
+         * default is notRequired === undefined, then skip
+         * Because we have RMS adapter who has garaties for order Delivery
          */
-        if (checkConfig && checkConfig.notRequired) {
+        if (!checkConfig || checkConfig === "NOT_REQUIRED") {
             if ((await Order.getState(order.id)) !== "CHECKOUT") {
                 await Order.next(order.id, "CHECKOUT");
             }
@@ -770,20 +803,23 @@ let Model = {
             }
             return;
         }
-        else {
+        else if (checkConfig === "ALL_REQUIRED") {
             let error;
             // Find error reason
             results.forEach(result => {
                 if (result.state === 'error' && result.error) {
-                    sails.log.error(`Order > core-order-check error: ${result.error}`);
+                    sails.log.error(`Order > core:order-check error: ${result.error}`);
                     sails.log.error(result);
                     error = result.error;
                 }
             });
             throw {
                 code: 0,
-                error: `one or more results from core-order-check was not sucessed\n last error: ${error}`,
+                error: `one or more results from core:order-check was not succeed\n last error: ${error}`,
             };
+        }
+        else {
+            // Todo: implement logic for "JUST_ONE"
         }
         /**
          * Here, there should be the logic of the success of at least one listener, but
@@ -801,34 +837,34 @@ let Model = {
             throw `Currently site is off`;
         //  TODO: impl with stateflow
         if (order.state === "ORDER")
-            throw "order with orderId " + order.id + "in state ORDER";
+            throw `order with orderId ${order.id} in state ORDER`;
         if (order.state === "CART")
-            throw "order with orderId " + order.id + "in state CART";
+            throw `order with orderId ${order.id} in state CART`;
         // await Order.update({id: order.id}).fetch();
         // TODO: this check is needed
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
         //   return 3
-        emitter.emit("core-order-before-order", order);
+        emitter.emit("core:order-before-order", order);
         sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
         if (order.selfService) {
-            emitter.emit("core-order-order-self-service", order);
+            emitter.emit("core:order-order-self-service", order);
         }
         else {
-            emitter.emit("core-order-order-delivery", order);
+            emitter.emit("core:order-order-delivery", order);
         }
         /**
          *  I think that this function is unnecessary here, although the entire emitter was created for it.
          *  Obviously, having an RMS adapter at your disposal, you don’t need a waiting listener at all
          *  But since it exists, it will be revised in version 2
-         * @deprecated Event `core-order-order`
+         * @deprecated Event `core:order-order`
          */
-        const results = await emitter.emit("core-order-order", order);
+        const results = await emitter.emit("core:order-order", order);
         sails.log.silly("Order > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
-        const orderConfig = await Settings.use("order");
+        const orderConfig = await Settings.get("EMITTER_ORDER_STRATEGY");
         if (orderConfig) {
-            if (orderConfig.requireAll) {
+            if (orderConfig === "ALL_REQUIRED") {
                 if (resultsCount === successCount) {
                     await orderIt();
                     return;
@@ -837,7 +873,7 @@ let Model = {
                     throw "At least one listener did not complete the order.";
                 }
             }
-            if (orderConfig.justOne) {
+            if (orderConfig === "JUST_ONE") {
                 if (successCount > 0) {
                     await orderIt();
                     return;
@@ -846,13 +882,12 @@ let Model = {
                     throw "No listener completed the order";
                 }
             }
-            throw "Bad orderConfig";
         }
         await orderIt();
         return;
         async function orderIt() {
             if (order.user && order.bonusesTotal) {
-                // Throw if User not have bonuses to cover this 
+                // Throw if User does not have bonuses to cover this
                 await UserBonusTransaction.create({
                     isNegative: true,
                     amount: order.bonusesTotal,
@@ -869,10 +904,9 @@ let Model = {
             sails.log.silly("Order > order > before save order", order);
             // await Order.update({id: order.id}).fetch();
             await Order.update({ id: order.id }, data).fetch();
-            /** Here core just make emit,
+            /** Here core just makes emit,
              * instead call directly in RMSadapter.
-             * But i think we need select default adpater,
-             * and make order here */
+             * But I think we need to select default adapter and make order here */
             try {
                 let orderWithRMS = await (await Adapter.getRMSAdapter()).createOrder(order);
                 await Order.update({ id: order.id }, {
@@ -890,7 +924,7 @@ let Model = {
                 sails.log.error(`RestoCore > orderIt error:`, error);
                 await Order.update({ id: order.id }, orderError);
             }
-            emitter.emit("core-order-after-order", order);
+            emitter.emit("core:order-after-order", order);
             if (order.user) {
                 UserOrderHistory.save(order.id);
             }
@@ -899,11 +933,11 @@ let Model = {
     async payment(criteria) {
         const order = await Order.findOne(criteria);
         if (order.state !== "CHECKOUT")
-            throw "order with orderId " + order.id + "in state ${order.state} but need CHECKOUT";
+            throw `order with orderId ${order.id} in state ${order.state} but need CHECKOUT`;
         var paymentResponse;
         let comment = "";
-        var backLinkSuccess = (await Settings.use("FRONTEND_ORDER_PAGE")) + order.shortId;
-        var backLinkFail = await Settings.use("FRONTEND_CHECKOUT_PAGE");
+        var backLinkSuccess = (await Settings.get("FRONTEND_ORDER_PAGE")) + order.shortId;
+        var backLinkFail = await Settings.get("FRONTEND_CHECKOUT_PAGE");
         let paymentMethodId = await order.paymentMethod;
         sails.log.silly("Order > payment > before payment register", order);
         var params = {
@@ -912,7 +946,7 @@ let Model = {
             comment: comment,
         };
         await Order.countCart({ id: order.id });
-        await emitter.emit("core-order-payment", order, params);
+        await emitter.emit("core:order-payment", order, params);
         sails.log.silly("Order > payment > order before register:", order);
         try {
             paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
@@ -923,32 +957,63 @@ let Model = {
         await Order.next(order.id, "PAYMENT");
         return paymentResponse;
     },
+    async clear(criteria) {
+        let order = await Order.findOne(criteria);
+        if (order.state !== "CART")
+            throw `Clear allowed only for CART state`;
+        await OrderDish.destroy({ order: order.id }).fetch();
+        await Order.next(order.id, "CART");
+        await Order.countCart({ id: order.id });
+        await emitter.emit.apply(emitter, ["core:order-was-cleared", ...arguments]);
+    },
+    /**
+     * Method for quickly setting a Order tag
+     * @experimental
+     * @param criteria
+     * @param tag
+     * @returns
+     */
+    async tag(criteria, tag) {
+        emitter.emit.apply(emitter, ["core:order-set-tag", ...arguments]);
+        try {
+            let order = await Order.findOne(criteria);
+            if (order.state !== "CART") {
+                throw new Error(`Clear allowed only for CART state`);
+            }
+            return await Order.updateOne({ id: order.id }, { tag: tag }).fetch();
+        }
+        catch (error) {
+            sails.log.error('Error tagging order:', error);
+        }
+    },
+    async setCustomData(criteria, customData) {
+        await emitter.emit.apply(emitter, ["core:order-set-custom-data", ...arguments]);
+        let order = await Order.findOne(criteria);
+        customData = { ...order.customData, ...customData };
+        await Order.updateOne({ id: order.id }, { customData });
+    },
     async paymentMethodId(criteria) {
         let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];
         let paymentMethod = populatedOrder.paymentMethod;
         return paymentMethod.id;
     },
-    /**  given populated Order instance  by criteria*/
+    /**  given populated Order instance by criteria*/
     async populate(criteria) {
-        let order = await Order.findOne(criteria)
-            .populate('paymentMethod')
-            .populate('deliveryItem')
-            .populate('user');
-        if (!order)
-            throw `order by criteria: ${criteria},  not found`;
         let fullOrder;
         try {
-            fullOrder = await Order.findOne({ id: order.id })
+            fullOrder = await Order.findOne(criteria)
                 .populate("dishes")
                 .populate("deliveryItem")
-                .populate('paymentMethod');
-            const orderDishes = await OrderDish.find({ order: order.id }).populate("dish").sort("createdAt");
+                .populate('paymentMethod').populate('user').populate('pickupPoint');
+            if (!fullOrder)
+                throw `order by criteria: ${criteria},  not found`;
+            const orderDishes = await OrderDish.find({ order: fullOrder.id }).populate("dish").sort("createdAt");
             for (let orderDish of orderDishes) {
                 if (!orderDish.dish) {
                     sails.log.error("orderDish", orderDish.id, "has not dish");
                     continue;
                 }
-                // WHATIS? It seems like test of waterline or check orderDishes not in Order?!
+                // WHAT? It seems like test of waterline or check orderDishes not in Order?!
                 // if (!fullOrder.dishes.filter((d: { id: number; }) => d.id === orderDish.id).length) {
                 //   sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
                 //   continue;
@@ -980,12 +1045,21 @@ let Model = {
         catch (e) {
             sails.log.error("CART > fullOrder error", e);
         }
+        const hash = OrderHelper_1.OrderHelper.orderHash(fullOrder);
+        // TODO: test "nonce should be update after countcart change"
+        let nonce = 0;
+        if (fullOrder.hash !== hash) {
+            if (typeof fullOrder.nonce === 'number' && isFinite(fullOrder.nonce)) {
+                nonce = fullOrder.nonce + 1;
+            }
+            await Order.update({ id: fullOrder.id }, { hash: hash, nonce: nonce });
+        }
         return { ...fullOrder };
     },
     /**
      * Method for calculating the basket. This is called every time the cart changes.
      * @param criteria OrderId
-     * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also you should set the isPromoting state in the model
+     * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also, you should set the isPromoting state in the model
      * @returns Order
      */
     async countCart(criteria, isPromoting = false) {
@@ -997,7 +1071,7 @@ let Model = {
                 throw new Error(err);
             }
             order.isPromoting = isPromoting;
-            emitter.emit("core-order-before-count", order);
+            emitter.emit("core:order-before-count", order);
             /**
              *  // TODO: If countCart from payment or other changes from payment it should cancel all payment request
              */
@@ -1012,9 +1086,13 @@ let Model = {
             let totalWeight = new decimal_js_1.default(0);
             // TODO: clear the order
             const orderDishesForPopulate = [];
+            let concepts = [];
             for await (let orderDish of orderDishes) {
                 try {
                     if (orderDish.dish && typeof orderDish.dish !== "string") {
+                        if (orderDish.addedBy === "user" && orderDish.dish.concept) {
+                            concepts.push(orderDish.dish.concept);
+                        }
                         // Item OrderDish calcualte
                         let itemCost = orderDish.dish.price;
                         let itemWeight = orderDish.dish.weight ?? 0;
@@ -1022,8 +1100,8 @@ let Model = {
                         // Checks that the dish is available for sale
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
-                            emitter.emit("core-order-return-full-order-destroy-orderdish", dish, order);
-                            await OrderDish.destroy({ id: orderDish.id });
+                            emitter.emit("core:order-return-full-order-destroy-orderdish", dish, order);
+                            await OrderDish.destroy({ id: orderDish.id }).fetch();
                             continue;
                         }
                         if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
@@ -1032,7 +1110,7 @@ let Model = {
                             if (orderDish.amount >= 0) {
                                 await Order.removeDish({ id: order.id }, orderDish, 999999);
                             }
-                            emitter.emit("core-orderdish-change-amount", orderDish);
+                            emitter.emit("core:orderproduct-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
                         orderDish.uniqueItems += orderDish.amount; // deprecated
@@ -1046,13 +1124,13 @@ let Model = {
                                 if (!modifierObj) {
                                     throw "Dish with id " + selectedModifier.id + " not found!";
                                 }
-                                // let opts:  any = {} 
-                                // await emitter.emit("core-order-countcart-before-calc-modifier", modifier, modifierObj, opts);
+                                // let opts:  any = {}
+                                // await emitter.emit("core:order-countcart-before-calc-modifier", modifier, modifierObj, opts);
                                 // const modifierCopy = {
                                 //   amount: modifier.amount,
                                 //   id: modifier.id
                                 // }
-                                // await emitter.emit('core-order-countcart-before-calc-modifier', modifierCopy, modifierObj);
+                                // await emitter.emit('core:order-countcart-before-calc-modifier', modifierCopy, modifierObj);
                                 /** // TODO:
                                  * Initial modification checking logic, now it's ugly.
                                  * Needed review architecture modifiers to keep it in model.
@@ -1062,7 +1140,7 @@ let Model = {
                                 // Find original obj modifiers
                                 let currentModifier = null;
                                 dish.modifiers.forEach(originGroupModifiers => {
-                                    // this block not used
+                                    // this block is not used
                                     if (originGroupModifiers.childModifiers) {
                                         originGroupModifiers.childModifiers.forEach(originChildModifier => {
                                             if (selectedModifier.dish && selectedModifier.dish.rmsId !== undefined) {
@@ -1089,7 +1167,7 @@ let Model = {
                                     itemCost = new decimal_js_1.default(itemCost).plus(modifierCost).toNumber();
                                 }
                                 // TODO: discountPrice && freeAmount
-                                // // FreeAmount modiefires support
+                                // // FreeAmount modifier support
                                 // if (opts.freeAmount && typeof opts.freeAmount === "number") {
                                 //   if (opts.freeAmount < selectedModifier.amount) {
                                 //     let freePrice = new Decimal(modifierObj.price).times(opts.freeAmount)
@@ -1099,7 +1177,7 @@ let Model = {
                                 //     let freePrice = new Decimal(modifierObj.price).times(selectedModifier.amount)
                                 //     orderDish.itemTotal = new Decimal(orderDish.itemTotal).minus(freePrice).toNumber();
                                 //   }
-                                // }                
+                                // }
                                 if (!Number(itemCost))
                                     throw `itemCost is NaN ${JSON.stringify(selectedModifier)}.`;
                                 itemWeight = new decimal_js_1.default(itemWeight).plus(modifierObj.weight ?? 0).toNumber();
@@ -1126,10 +1204,16 @@ let Model = {
                 }
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);
-                    await OrderDish.destroy({ id: orderDish.id });
+                    await OrderDish.destroy({ id: orderDish.id }).fetch();
                     uniqueDishes -= 1;
                     continue;
                 }
+            }
+            if (concepts.length) {
+                if (concepts.length > 1) {
+                    order.isMixedConcept === true;
+                }
+                order.concept = [...new Set(concepts)];
             }
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
@@ -1178,8 +1262,8 @@ let Model = {
                     let orderPopulate = { ...order };
                     orderPopulate.dishes = orderDishesForPopulate;
                     /**
-                     * All promotions hadlers are calculated here, the main idea is that the order is modified during execution.
-                     * The developer who creates promotions must take care about order in database and order runtime object.
+                     * All promotions handlers are calculated here, the main idea is that the order is modified during execution.
+                     * The developer who creates promotions must take care of order in database and order runtime object.
                      */
                     let orederPROM = await promotionAdapter.processOrder(orderPopulate);
                     delete (orderPopulate.dishes);
@@ -1194,6 +1278,7 @@ let Model = {
                     let promotionOrderToSave = {
                         promotionCodeDescription: order.promotionCodeDescription,
                         promotionState: order.promotionState,
+                        promotionErrors: order.promotionErrors,
                         promotionUnorderable: order.promotionUnorderable,
                         discountTotal: order.discountTotal,
                         promotionFlatDiscount: order.promotionFlatDiscount,
@@ -1205,17 +1290,17 @@ let Model = {
                     sails.log.error(`Core > order > promotion calculate fail: `, error);
                 }
                 finally {
-                    // finaly
+                    // finally
                     order.isPromoting = false;
                     await Order.update({ id: order.id }, { isPromoting: false }).fetch();
                 }
-                emitter.emit("core-order-after-promotion", order);
+                emitter.emit("core:order-after-promotion", order);
             }
-            // Force unpopulate promotionCode, TODO: debug it why is not unpopulated here?!
+            // Force unpopulated promotionCode, TODO: debug it why is not unpopulated here?!
             if (typeof order.promotionCode !== "string" && order.promotionCode?.id !== undefined) {
                 order.promotionCode = order.promotionCode.id;
             }
-            // Calcualte delivery costs
+            // Calculate delivery costs
             emitter.emit("core:count-before-delivery-cost", order);
             if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
                 order.delivery = order.promotionDelivery;
@@ -1224,7 +1309,7 @@ let Model = {
                 let deliveryAdapter = await Adapter.getDeliveryAdapter();
                 await deliveryAdapter.reset(order);
                 if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
-                    emitter.emit("core-order-check-delivery", order);
+                    emitter.emit("core:order-check-delivery", order);
                     try {
                         let delivery;
                         try {
@@ -1245,7 +1330,7 @@ let Model = {
                     catch (error) {
                         sails.log.error(`Core > order > delivery calculate fail: `, error);
                     }
-                    emitter.emit("core-order-after-check-delivery", order);
+                    emitter.emit("core:order-after-check-delivery", order);
                 }
             }
             if (order.delivery && isValidDelivery(order.delivery)) {
@@ -1275,11 +1360,11 @@ let Model = {
             // END calculate delivery cost
             order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
             order = (await Order.update({ id: order.id }, order).fetch())[0];
-            emitter.emit("core-order-after-count", order);
+            emitter.emit("core:order-after-count", order);
             return order;
         }
         catch (error) {
-            console.error(" error >", error);
+            sails.log.error(" error >", error);
         }
     },
     async doPaid(criteria, paymentDocument) {
@@ -1304,7 +1389,7 @@ let Model = {
                 order.comment = order.comment + "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount;
             }
             await Order.order({ id: order.id });
-            emitter.emit("core-order-after-dopaid", order);
+            emitter.emit("core:order-after-dopaid", order);
         }
         catch (e) {
             sails.log.error("Order > doPaid error: ", e);
@@ -1316,7 +1401,7 @@ let Model = {
         let updateData = {};
         if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state))
             throw `Order with orderId ${order.id} - apply promocode on current state: (${order.state})`;
-        if (!promotionCodeString || promotionCodeString === null) {
+        if (!promotionCodeString) {
             updateData = {
                 promotionCode: null,
                 promotionCodeCheckValidTill: null,
@@ -1384,8 +1469,6 @@ async function checkCustomerInfo(customer) {
         };
     }
     let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES");
-    if (typeof allowedPhoneCountries === "string")
-        allowedPhoneCountries = [allowedPhoneCountries];
     let isValidPhone = allowedPhoneCountries === undefined;
     if (Array.isArray(allowedPhoneCountries)) {
         for (let countryCode of allowedPhoneCountries) {
@@ -1395,7 +1478,7 @@ async function checkCustomerInfo(customer) {
                 break;
         }
     }
-    const nameRegex = await Settings.use("nameRegex");
+    const nameRegex = await Settings.get("NAME_REGEX");
     if (nameRegex) {
         if (!nameRegex.match(customer.name)) {
             throw {
@@ -1446,7 +1529,7 @@ async function checkDate(order) {
             let currentDate = new Date();
             let currentTimestamp = currentDate.getTime();
             let targetDate = new Date(date);
-            //  is eqials timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            //  is equals timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             let targetTimestamp;
             try {
                 targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
@@ -1465,7 +1548,7 @@ async function checkDate(order) {
             };
         }
         // date is Date
-        if (date instanceof Date === true && !date.toJSON()) {
+        if (date instanceof Date && !date.toJSON()) {
             throw {
                 code: 9,
                 error: "date is not valid",
@@ -1499,8 +1582,8 @@ async function getOrderDateLimit() {
     let date = new Date();
     let possibleToOrderInMinutes = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES"); //minutes
     if (!possibleToOrderInMinutes)
-        possibleToOrderInMinutes = "1440";
-    date.setSeconds(date.getSeconds() + (parseInt(possibleToOrderInMinutes) * 60));
+        possibleToOrderInMinutes = 1440;
+    date.setSeconds(date.getSeconds() + (possibleToOrderInMinutes * 60));
     return date;
 }
 function isValidDelivery(delivery) {
@@ -1510,16 +1593,19 @@ function isValidDelivery(delivery) {
         typeof delivery.allowed === 'boolean' &&
         typeof delivery.message === 'string') {
         if (!delivery.cost && !delivery.item) {
-            sails.log.error(`Check delivery error delivery is not valid:  !delivery.cost && !delivery.item`);
+            sails.log.error(`Check delivery error delivery is not valid:  (delivery.cost and delivery.item not defined) :`, delivery);
+            sails.log.error(console.trace());
             return false;
         }
         else {
             if (delivery.cost && typeof delivery.cost !== "number") {
                 sails.log.error(`Check delivery error delivery is not valid:  delivery.cost not number`);
+                sails.log.error(console.trace());
                 return false;
             }
             if (delivery.item && typeof delivery.item !== "string") {
                 sails.log.error(`Check delivery error delivery is not valid:  delivery.item not string`);
+                sails.log.error(console.trace());
                 return false;
             }
         }

@@ -7,6 +7,7 @@ declare let attributes: {
     /** ID */
     id: string;
     /** Type of media content */
+    type: "video" | "image" | "sound";
     /** Video/Photo items */
     /** Image items */
     images: any;
@@ -25,6 +26,7 @@ declare let attributes: {
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM {
 }
+export type IMediaFile = MediaFile;
 export default MediaFile;
 export type IMediaFile = MediaFile;
 declare let Model: {

@@ -20,7 +20,9 @@ declare let attributes: {
     /** Position price*/
     itemTotal: number;
     /** Position price before the use of discounts */
-    itemTotalBeforeDiscount: string;
+    itemTotalBeforeDiscount: number;
+    /** Price for product */
+    itemPrice: number;
     /**The total amount of the discount */
     discountTotal: number;
     /** Type discount */

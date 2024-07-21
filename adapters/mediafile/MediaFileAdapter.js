@@ -24,6 +24,10 @@ class MediaFileAdapter {
         let imageId = (0, uuid_1.v5)(url, this.UUID_NAMESPACE);
         let mediaFile = await MediaFile.findOne({ id: imageId });
         let toDownload = force;
+        // Todo: delete it in v3
+        if (mediaFile !== undefined && !mediaFile.type) {
+            mediaFile.type = type;
+        }
         if (mediaFile) {
             if (await this.checkFileExist(mediaFile) === false) {
                 toDownload = true;
@@ -55,7 +59,10 @@ class MediaFileAdapter {
                     throw `mediaFile type not known ${type}`;
                     break;
             }
-            mediaFile = (await MediaFile.update({ id: mediaFile.id }, { images: mediaFile.images }).fetch())[0];
+            /**
+             * The problem remains that we cannot know whether the picture has loaded or not, and therefore. if it doesn't exist you need to somehow remove MF
+             */
+            mediaFile = (await MediaFile.update({ id: mediaFile.id }, { images: mediaFile.images, original: url, type: type }).fetch())[0];
         }
         return mediaFile;
     }

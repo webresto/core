@@ -15,8 +15,8 @@ let attributes = {
   } as unknown as string,
 
   /**
-   * ID transaction in 3dparty system
-   * */ 
+   * ID transaction in 3d party system
+   * */
   externalId: {
     type: "string",
     allowNull: true
@@ -24,7 +24,7 @@ let attributes = {
 
   /** Type of bonuses (default: true)
    * came is incoming (positive transaction)
-   * gone is outgoin (negative transaction)
+   * gone is outgoing (negative transaction)
    */
   isNegative: "boolean" as unknown as boolean,
 
@@ -83,7 +83,7 @@ export default UserBonusTransaction;
 let Model = {
   /**
    * Before create, a check is made to see if there are enough funds to write off.
-   * Immediately after create saving the transaction in the local database, the external adapter is called to save the transaction 
+   * Immediately after create saving the transaction in the local database, the external adapter is called to save the transaction
    */
   async beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void) {
     try {
@@ -94,7 +94,7 @@ let Model = {
       if(!init.isStable) {
         init.isStable = false;
       }
-      
+
       // set negative by default
       if (init.isNegative === undefined) {
         init.isNegative = true;
@@ -103,8 +103,8 @@ let Model = {
       // If Bonus program not active, should stop
       let bonusProgram = await BonusProgram.findOne({ id: init.bonusProgram as string });
 
-      const bonusProgramAdapterExist = await BonusProgram.isAlived(bonusProgram.adapter);
-      if (!bonusProgramAdapterExist) cb(`Bonus program not alived`);
+      const bonusProgramAdapterExist = await BonusProgram.isAlive(bonusProgram.adapter);
+      if (!bonusProgramAdapterExist) cb(`Bonus program not alive`);
 
       if (init.isNegative === true) {
         if (bonusProgramAdapterExist && init.user !== undefined && typeof init.user === "string") {
@@ -129,15 +129,15 @@ let Model = {
   async afterCreate(record: UserBonusTransaction, cb:  (err?: string) => void) {
     try {
 
-      // After writing to the model, core safely calculate new bonuses
+      // After writing to the model, core safely calculates new bonuses
       const bonusProgram = await BonusProgram.findOne({ id: record.bonusProgram as string });
       const bonusProgramAdapter = await BonusProgram.getAdapter(bonusProgram.adapter);
       let userBonus = await UserBonusProgram.findOne({ bonusProgram: bonusProgram.id as string, user: record.user });
       if (!userBonus) return cb("afterCreate: Bonus program not found for user");
-      
-      
+
+
       if (bonusProgramAdapter !== undefined) {
-        
+
         if(record.isNegative === true && await UserBonusProgram.checkEnoughToSpend(record.user, record.bonusProgram, record.amount) !== true ){
           return cb(`[panic] UserBonusTransaction afterCreate > user [${record.user}] balance [${userBonus.balance}] not enough [${record.amount}]`);
         }
@@ -155,7 +155,7 @@ let Model = {
         // First write transaction
         await UserBonusProgram.updateOne({ id: userBonus.id }, { balance: newBalance });
 
-        // Exec write unstabled transaction in external system
+        // Exec writes unstable transaction in external system
         let bonusProgramAdapterTransaction = {} as BonusTransaction;
         if (record.isStable !== true) {
           try {
@@ -182,7 +182,7 @@ let Model = {
   },
 
   beforeDestroy() {
-    throw "destory bonus transaction not allowed";
+    throw "destroy bonus transaction not allowed";
   },
 
   beforeUpdate(record: OptionalAll<UserBonusTransaction>, cb:  (err?: string) => void) {
@@ -197,12 +197,12 @@ let Model = {
     } else {
       throw "update bonus transaction not allowed";
     }
-    if (Object.keys(record).length !== 2) throw "only isStable allwed for update";
+    if (Object.keys(record).length !== 2) throw "only isStable allowed for update";
     return cb();
   }
 };
 /**
- * When paying or accruing a transaction, core write it to the UserBonusTransaction model.
+ * When paying or accruing a transaction, core writes it to the UserBonusTransaction model.
  * Further, the systems that will be docked must themselves implement synchronization with the external system,
  * to replenish and withdraw bonuses.
  *

@@ -25,8 +25,6 @@ https://github.com/building5/sails-db-migrate
 23. partial paid order
 24. Cancel payment document from core
 
-
-
 Modifiers:Sizes support:
 - Now the sizes are supported at the level of modifiers, but we need to consider that the dish is a wrapper, and add different icons for the size, and can even set them globall. To do this, we can rename Dish to ITEM and add 5 types: SERVICE, DISH,  WRAPPER, PRODUCT, MODIFIER. 
 - the wrapper may contain: dishes or products, or services, and sizes (sizes are different dishes or products, the service does not contain sizes)

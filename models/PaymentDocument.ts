@@ -15,9 +15,9 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
  * and creates payment in the payment system (there is a redirect for a payment form)
  *
  * 3. When a person paid, depending on the logic of the work of the payment gateway.PaymentProcessor or
- * Getting a call from the payment system
+ * Getting a call from the payment system,
  * Or we will interview the payment system until we find out the state of the payment.
- * PaymentProcessor has a timer in order to interview payment systems about the state of payment,
+ * PaymentProcessor has a timer in order to interview payment systems about the state of payment;
  * Thus, in the payment system, an additional survey does not need to be implemented, only the Check function
  *
  * 4. At the time when a person completed the work with the gateway and made payment, he will return to the page indicated
@@ -26,18 +26,18 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
  * Controller API Getorder (/Api/0.5/order ::::
  *
  * 5. If the payment was successful, then PaymentProcessor will set the PAID status in accordance with PaymentDocument,
- * This, in turn, means that PaymentDocument will try to put the ISPAID: true in the model and make EMIT ('Core-Payment-Document-Paid', Document)
+ * This, in turn, means that PaymentDocument will try to put the ISPAID: true in the model and make EMIT ('core:payment-Document-Paid', Document)
  * Corresponding Originmodel of the current PaymentDocument.(In the service with ORDER, Next ();)
  *
- * 6. In the event of a change in payment status, an EMIT ('Core-Payment-Document-Status', Document) will occur where any system can be able
- * to register for changes in status,
+ * 6. In the event of a change in payment status, an EMIT ('core:payment-Document-Status', Document) will occur where any system can be able
+ * to register for changes in status.
  *
  * 7. In the event of unsuccessful payment, the user will be returned to the page of the notification of unsuccessful payment and then there will be a redirect to the page
  * placing an order so that the user can try to pay the order again.
  */
 
 /**
-  REGISTRED - the order is registered, but not paid;
+  REGISTERED - the order is registered, but not paid;
   PAID - complete authorization of the amount of the order was carried out;
   CANCEL - authorization canceled;
   REFUND - the transaction was carried out by the return operation;
@@ -45,7 +45,7 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
   WAIT_CAPTURE - Waiting for the frozen money to be debited from the account
 */
 
-type PaymentDocumentStatus = "NEW" | "REGISTRED" | "PAID" | "CANCEL" | "REFUND" | "DECLINE" | "WAIT_CAPTURE"
+type PaymentDocumentStatus = "NEW" | "REGISTERED" | "PAID" | "CANCEL" | "REFUND" | "DECLINE" | "WAIT_CAPTURE"
 
 let payment_processor_interval: ReturnType<typeof setInterval>;
 
@@ -64,7 +64,7 @@ let attributes = {
     type: "string",
     unique: true,
     required: false,
-    // allowNull: true // Only for NEW state
+    allowNull: true // Only for NEW state
   } as unknown as string,
 
   /** Model from which payment is made*/
@@ -86,7 +86,7 @@ let attributes = {
 
   status: {
     type: "string",
-    isIn: ["NEW", "REGISTRED", "PAID", "CANCEL", "REFUND", "DECLINE"],
+    isIn: ["NEW", "REGISTERED", "PAID", "CANCEL", "REFUND", "DECLINE"],
     defaultsTo: "NEW",
   } as unknown as PaymentDocumentStatus,
 
@@ -116,7 +116,7 @@ let Model = {
     const self: PaymentDocument = (await PaymentDocument.find(criteria).limit(1))[0];
     if (!self) throw `PaymentDocument is not found`
 
-    emitter.emit("core-payment-document-check", self);
+    emitter.emit("core:payment-document-check", self);
     try {
       let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
       let checkedPaymentDocument: PaymentDocument = await paymentAdapter.checkPayment(self);
@@ -130,7 +130,7 @@ let Model = {
       } else {
         await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status }).fetch();
       }
-      emitter.emit("core-payment-document-checked-document", checkedPaymentDocument);
+      emitter.emit("core:payment-document-checked-document", checkedPaymentDocument);
       return checkedPaymentDocument;
     } catch (e) {
       sails.log.error("PAYMENTDOCUMENT > doCheck error :", e);
@@ -162,9 +162,9 @@ let Model = {
       data: data,
     };
 
-    emitter.emit("core-payment-document-before-create", payment);
+    emitter.emit("core:payment-document-before-create", payment);
     try {
-      await PaymentDocument.create(payment as PaymentDocument);
+      await PaymentDocument.create(payment as PaymentDocument).fetch();
     } catch (e) {
       sails.log.error("Error in paymentAdapter.createPayment :", e);
       throw {
@@ -174,20 +174,24 @@ let Model = {
     }
 
     let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
-    sails.log.debug("PaymentDocumnet > register [paymentAdapter]", paymentMethodId, paymentAdapter);
+    sails.log.debug("PaymentDocument > register [paymentAdapter]", paymentMethodId, paymentAdapter);
     try {
-      sails.log.silly("PaymentDocumnet > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
+      sails.log.silly("PaymentDocument > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
       let paymentResponse: PaymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
-      sails.log.silly("PaymentDocumnet > register [after paymentAdapter.createPayment]", paymentResponse);
+      sails.log.silly("PaymentDocument > register [after paymentAdapter.createPayment]", paymentResponse);
 
       if(!paymentResponse.id) {
-        throw `PaymentDocumnet > register [after paymentAdapter.createPayment] paymentResponse from external payment system is required`
+        throw `PaymentDocument > register [after paymentAdapter.createPayment] paymentResponse.id from external payment system is required`
+      }
+      
+      if(!paymentResponse.redirectLink) {
+        throw `PaymentDocument > register [after paymentAdapter.createPayment] paymentResponse.redirectLink from external payment system is required`
       }
       
       await PaymentDocument.update(
         { id: paymentResponse.id },
         {
-          status: "REGISTRED",
+          status: "REGISTERED",
           externalId: paymentResponse.externalId,
           redirectLink: paymentResponse.redirectLink,
         }
@@ -206,8 +210,8 @@ let Model = {
     if (values.paid && values.status === "PAID") {
       try {
         if (!values.amount || !values.paymentMethod || !values.originModelId) {
-          sails.log.error("PaymentDocument > afterUpdate, not have requried fields :", values);
-          throw "PaymentDocument > afterUpdate, not have requried fields";
+          sails.log.error("PaymentDocument > afterUpdate, not have required fields :", values);
+          throw "PaymentDocument > afterUpdate, not have required fields";
         }
         await sails.models[values.originModel].doPaid({id: values.originModelId},values);
       } catch (e) {
@@ -223,7 +227,7 @@ let Model = {
     return (payment_processor_interval = setInterval(async () => {
       let actualTime = new Date();
 
-      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({ status: "REGISTRED" });
+      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({ status: "REGISTERED" });
 
       /**If the date of creation of a payment document more than an hour ago, we put the status expired */
       actualTime.setHours(actualTime.getHours() - 1);

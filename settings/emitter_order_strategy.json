@@ -1,0 +1,11 @@
+{
+  "key": "EMITTER_ORDER_STRATEGY",
+  "type": "string",
+  "name": "Order emmiter Strategy",
+  "description": "How order call behaves when the Emitter is waiting",
+  "defaultValue": "NOT_REQUIRED",
+  "jsonSchema": {
+    "type": "string",
+    "enum": ["JUST_ONE", "NOT_REQUIRED", "ALL_REQUIRED"]
+  }
+}

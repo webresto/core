@@ -35,23 +35,23 @@ export default BonusProgram;
 declare let Model: {
     beforeCreate(init: BonusProgram, cb: (err?: string) => void): void;
     /**
-     * Method for registration alived bonus program adapter
+     * Method for registration alive bonus program adapter
      * @param bonusProgramAdapter
      * @returns
      */
     alive(bonusProgramAdapter: BonusProgramAdapter): Promise<void | Error>;
     /**
-     * Method for registration alived bonus program adapter
-     * @param bonusProgramAdapterId string
-     * @returns
+     * Method for registration alive bonus program adapter
+     * @returns BonusProgramAdapter
+     * @param adapterOrId
      */
     getAdapter(adapterOrId: string): Promise<BonusProgramAdapter>;
     /**
-     * Method for registration alived bonus program adapter
-     * @param bonusProgramAdapterId string
+     * Method for registration alive bonus program adapter
      * @returns
+     * @param adapter
      */
-    isAlived(adapter: string): Promise<boolean>;
+    isAlive(adapter: string): Promise<boolean>;
     /**
      * Returns an array with currently possible bonus programs by order
      * @return BonusProgram[]

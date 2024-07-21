@@ -10,7 +10,7 @@ export interface BaseConfig {
 
 export type ConfigMediaFileAdapter = BaseConfig;
 
-export type MediaFileTypes = 'image' | 'video' | 'sound' | '3d';
+export type MediaFileTypes = 'image' | 'video' | 'sound';
 
 export default abstract class MediaFileAdapter {
   private config: ConfigMediaFileAdapter;
@@ -26,8 +26,8 @@ export default abstract class MediaFileAdapter {
   /**
    * Async constructor
    */
-  private async initialize(){
-    this.UUID_NAMESPACE = await Settings.get("UUID_NAMESPACE") as string ?? "9dbceb30-26c3-11ee-be56-0242ac120002"
+  private async initialize() {
+    this.UUID_NAMESPACE = await Settings.get("UUID_NAMESPACE") ?? "9dbceb30-26c3-11ee-be56-0242ac120002"
   }
 
   /**
@@ -47,8 +47,14 @@ export default abstract class MediaFileAdapter {
 
     let toDownload = force;
 
-    if(mediaFile) {
-      if(await this.checkFileExist(mediaFile) === false){
+    // Todo: delete it in v3
+    if (mediaFile !== undefined && !mediaFile.type) {
+      mediaFile.type = type;
+    }
+
+
+    if (mediaFile) {
+      if (await this.checkFileExist(mediaFile) === false) {
         toDownload = true;
       }
     } else {
@@ -64,7 +70,6 @@ export default abstract class MediaFileAdapter {
       if (target && this.config && this.config[target]) {
         loadConfig = this.config[target];
       }
-  
       switch (type) {
         case "image":
           mediaFile.images = await this.process(url, "image", loadConfig);
@@ -83,7 +88,10 @@ export default abstract class MediaFileAdapter {
           break;
       }
 
-      mediaFile = (await MediaFile.update({id: mediaFile.id},{images: mediaFile.images}).fetch())[0]
+      /**
+       * The problem remains that we cannot know whether the picture has loaded or not, and therefore. if it doesn't exist you need to somehow remove MF
+       */
+      mediaFile = (await MediaFile.update({ id: mediaFile.id }, { images: mediaFile.images, original: url, type: type }).fetch())[0]
     }
     return mediaFile;
   };

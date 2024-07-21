@@ -24,6 +24,9 @@ export * from './models/UserLocation';
 export * from './models/UserOrderHistory';
 export * from './models/Promotion';
 
+// Helpers
+export * from './libs/helpers/OrderHelper'
+
 module.exports = function (sails) {
   return {
     defaults: require('./hook/defaults'),

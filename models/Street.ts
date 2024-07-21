@@ -19,25 +19,25 @@ let attributes = {
     type: "string",
     allowNull: true
   } as unknown as string,
-  
+
   /** Name of street */
   name: "string",
 
   /** dataHash */
   hash: "string",
 
-  /** Street has delited */
-  isDeleted: { 
+  /** Street has deleted */
+  isDeleted: {
     type:'boolean'
   } as unknown as boolean,
-  
-  /** Street has delited */
-  enable: { 
+
+  /** Street has deleted */
+  enable: {
     type:'boolean',
     allowNull: true
   } as unknown as boolean,
-  
-  
+
+
   city: {
     model: 'city'
   } as unknown as City | string,
@@ -51,7 +51,7 @@ export default Street;
 
 
 /**
- * Pelase emit core:streets:updated after finish update streets
+ * Please emit core:streets:updated after finish update streets
  */
 let Model = {
   async beforeUpdate(value: Street, cb:  (err?: string) => void) {
@@ -59,7 +59,7 @@ let Model = {
       if (value.id !== undefined) {
         let current = await Street.findOne({id: value.id});
         if(!isCustomData(current.customData)) current.customData = {}
-        let customData = {...current.customData, ...value.customData} 
+        let customData = {...current.customData, ...value.customData}
         value.customData = customData;
       }
     }
@@ -78,7 +78,7 @@ let Model = {
     if(streetInit.enable === undefined || streetInit.enable === null) {
       streetInit.enable = true
     }
-    
+
     if(!isCustomData(streetInit.customData)){
       streetInit.customData = {}
     }
@@ -88,7 +88,7 @@ let Model = {
 
     /**
    * Checks whether the street exists, if it does not exist, then creates a new one and returns it.If exists, then checks
-   * Hesh of the existing street and new data, if they are identical, then immediately gives the streetes, if not, it updates its data
+   * Hash of the existing street and new data, if they are identical, then immediately gives the streets, if not, it updates its data
    * for new ones
    * @param values
    * @return Updated or created street
@@ -96,7 +96,7 @@ let Model = {
     async createOrUpdate(values: Street): Promise<Street> {
       sails.log.silly(`Core > Street > createOrUpdate: ${values.name}`)
       let hash = hashCode(JSON.stringify(values));
-  
+
       let criteria = {}
       if( values.id) {
         criteria['id'] =  values.id;
@@ -106,7 +106,7 @@ let Model = {
         throw `street ID not found`
       }
       const street = await Street.findOne(criteria);
-      
+
       if (!street) {
         return Street.create({ hash, ...values }).fetch();
       } else {

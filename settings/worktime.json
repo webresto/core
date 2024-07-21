@@ -1,0 +1,42 @@
+{
+  "key": "WORK_TIME",
+  "type": "json",
+  "name": "Work Time",
+  "description": "Complex object, required",
+  "defaultValue": [
+    {
+      "dayOfWeek": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+      "start": "10:00",
+      "stop": "20:00",
+      "break": "00:00-00:00"
+    }
+  ],
+  "jsonSchema": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "required": ["dayOfWeek", "start", "stop"],
+      "properties": {
+        "dayOfWeek": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+          }
+        },
+        "start": {
+          "type": "string",
+          "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "stop": {
+          "type": "string",
+          "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "break": {
+          "type": "string",
+          "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]-([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+        }
+      }
+    }
+  }
+}

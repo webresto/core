@@ -23,12 +23,12 @@ describe("PaymentDocument", function () {
         // Проверка суммы. Проверка originModel. Проверка платежного метода. Проверить paymentResponse, сравнить.
     });
     it("doPaid TODO", async function () {
-        emitter.on("core-payment-document-paid", "test", function (pd) { });
+        emitter.on("core:payment-document-paid", "test", function (pd) { });
         // создать документ с status = "PAID" и paid !== true . Проверить сохраниение документа, проверить вызов эмита
     });
     it("doCheck TODO", async function () {
-        emitter.on("core-payment-document-check", "test", function () { });
-        emitter.on("core-payment-document-checked-document", "test", function () { });
+        emitter.on("core:payment-document-check", "test", function () { });
+        emitter.on("core:payment-document-checked-document", "test", function () { });
         // создать платежный документ для тестировочной платежной системы. Провести оплату в тестовой платежной системе. Выполнить doCheck. Проверить результат всех вариантов событий (не проведенная оплата, проведенная оплата)
     });
     it("afterUpdate(sails) TODO", async function () {
@@ -42,7 +42,7 @@ describe("PaymentDocument", function () {
          * doCheck() event; if we receive these two payments through an event, then the payment processor calls them.
          */
         let count = [];
-        emitter.on("core-payment-document-check", "test", function (paymentDocument) {
+        emitter.on("core:payment-document-check", "test", function (paymentDocument) {
             count.push(paymentDocument);
         });
         await PaymentDocument.destroy({});

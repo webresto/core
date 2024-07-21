@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "The key identifier"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["string", "boolean", "json", "number"],
+      "description": "The type"
+    },
+    "name": {
+      "type": "string",
+      "description": "The name"
+    },
+    "description": {
+      "type": "string",
+      "description": "The description of the description."
+    },
+    "defaultValue": {
+      "type": ["string", "boolean", "object", "number"],
+      "description": "The default value"
+    },
+    "value": {
+      "type": ["string", "boolean", "object", "number", "array"],
+      "description": "The value"
+    },
+    "isRequired": {
+      "type": "boolean",
+      "description": "Specifies whether the description is required or not."
+    },
+    "jsonSchema": {
+      "$ref": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  "required": ["key", "type", "name"],
+  "additionalProperties": false,
+  "if": {
+    "properties": {
+      "type": { "const": "json" }
+    }
+  },
+  "then": {
+    "required": ["jsonSchema"]
+  }
+}

@@ -60,18 +60,17 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
   public async checkFileExist(mediaFile: IMediaFile): Promise<boolean> {
     let allFileExist: boolean = true;
   
-    if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && Object.keys(mediaFile.images).length) {
+    if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && mediaFile.images !== null && Object.keys(mediaFile.images).length) {
       const images = mediaFile.images;
       
       for (const key in images) {
-        if (images.hasOwnProperty(key)) {
-          const imageFilePath = images[key];
-          try {
-            await fs.promises.access(imageFilePath, fs.constants.F_OK);
-          } catch (error) {
-            // If the file does not exist, set the allFileExist flag to false
-            allFileExist = false;
-          }
+        const imageFilePath = path.join(this.getPrefix(), images[key]);
+        try {
+          await fs.promises.access(imageFilePath, fs.constants.F_OK);
+        } catch (error) {
+          // If the file does not exist, set the allFileExist flag to false
+          sails.log.debug(`LocalMediaFileAdapter > file not exist: ${imageFilePath}`)
+          allFileExist = false;
         }
       }
     }
@@ -97,7 +96,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
     if (salt) {
       baseName += `-${salt.toString().toLowerCase().replace(/[^a-zA-Z]+/g, "").substring(0, 7)}`
-      baseName += `-${Math.floor(Date.now() / 1000)}`
+      //baseName += `-${Math.floor(Date.now() / 1000)}`
     }
 
     baseName += `.${ext}`;
@@ -115,7 +114,13 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
     const cfg = { ...baseConfig, ...config } as unknown as MediaFileConfigInner;
 
-    const mediafileExtension = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)[0].replace('.', '');
+    const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)
+    let mediafileExtension = ''
+    
+    if(isFilePath && isFilePath.length > 0) {
+      isFilePath[0].replace('.', '')
+    }
+    
     const origin = this.getNameByUrl(url, mediafileExtension);
 
     const name = {
@@ -144,9 +149,14 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     return result;
   }
 
-  protected getPrefix(type: string) {
-    return path.join(process.cwd(), ".tmp/public", type);
+  protected getPrefix(type?: MediaFileTypes) {
+    if(type){
+      return path.join(process.cwd(), ".tmp/public", type);
+    } else {
+      return path.join(process.cwd(), ".tmp/public");
+    }
   }
+
 
   protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<void> {
     const prefix = this.getPrefix(loadMediaFilesProcess.type);
@@ -154,8 +164,8 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
     // Check if file exists
     if (!fs.existsSync(fullPathDl)) {
-      const response = await axios.get(loadMediaFilesProcess.url, { responseType: 'stream' });
-      sails.log.debug(`MF local > download image: ${fullPathDl}, status: ${response.status}`);
+      const response = await axios.get(loadMediaFilesProcess.url, { responseType: 'stream', maxRedirects: 5});
+      sails.log.silly(`MF local > download image: ${fullPathDl}, status: ${response.status}`);
 
       fs.mkdirSync(prefix, { recursive: true });
 
@@ -171,73 +181,77 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     }
   }
 
-
   private async loadMediaFiles() {
     if (this.processing) {
       return
     }
-
+    
     if (this.loadMediaFilesProcessQueue.length === 0) {
       sails.log.silly(`MF local > no mediafiles to download`)
       this.processingTimeout = setTimeout(this.loadMediaFiles.bind(this), 30000);
       return;
     }
 
-    this.processing = true
-    let MEDIAFILE_PARALLEL_TO_DOWNLOAD = await Settings.get('MEDIAFILE_PARALLEL_TO_DOWNLOAD') as number ?? 3;
-    if (MEDIAFILE_PARALLEL_TO_DOWNLOAD > this.loadMediaFilesProcessQueue.length) MEDIAFILE_PARALLEL_TO_DOWNLOAD = this.loadMediaFilesProcessQueue.length;
-
-    while (this.loadMediaFilesProcessQueue.length) {
-
-      const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALLEL_TO_DOWNLOAD);
-      const downloadPromises = loadMediaFilesProcesses.map(async (loadMediaFilesProcess) => {
-        try {
-          await this.download(loadMediaFilesProcess);
-          const prefix = this.getPrefix(loadMediaFilesProcess.type);
-          switch (loadMediaFilesProcess.type) {
-            case "image":
-              sails.log.debug(`MF local > process image: ${loadMediaFilesProcess.name.origin}`);
-              for (let size in loadMediaFilesProcess.config.resize) {
-                const dstPath = path.join(prefix, loadMediaFilesProcess.name[size]);
-                if (!fs.existsSync(dstPath)) {
-                  if (size === "origin")
-                    continue;
-                  let mediafileItem = loadMediaFilesProcess.config.resize[size];
-                  if (!mediafileItem) {
-                    mediafileItem = 240;
-                    sails.log.warn(`MediaFile size is not set for ${size}`);
+    try {
+  
+      this.processing = true
+      let MEDIAFILE_PARALLEL_TO_DOWNLOAD = await Settings.get('MEDIAFILE_PARALLEL_TO_DOWNLOAD') ?? 3;
+      if (MEDIAFILE_PARALLEL_TO_DOWNLOAD > this.loadMediaFilesProcessQueue.length) MEDIAFILE_PARALLEL_TO_DOWNLOAD = this.loadMediaFilesProcessQueue.length;
+  
+      while (this.loadMediaFilesProcessQueue.length) {
+  
+        const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALLEL_TO_DOWNLOAD);
+        const downloadPromises = loadMediaFilesProcesses.map(async (loadMediaFilesProcess) => {
+          try {
+            await this.download(loadMediaFilesProcess);
+            const prefix = this.getPrefix(loadMediaFilesProcess.type);
+            switch (loadMediaFilesProcess.type) {
+              case "image":
+                sails.log.debug(`MF local > process image: ${loadMediaFilesProcess.name.origin}`);
+                for (let size in loadMediaFilesProcess.config.resize) {
+                  const dstPath = path.join(prefix, loadMediaFilesProcess.name[size]);
+                  if (!fs.existsSync(dstPath)) {
+                    if (size === "origin")
+                      continue;
+                    let mediafileItem = loadMediaFilesProcess.config.resize[size];
+                    if (!mediafileItem) {
+                      mediafileItem = 240;
+                      sails.log.warn(`MediaFile size is not set for ${size}`);
+                    }
+  
+  
+                    await resizeMediaFile({
+                      srcPath: path.join(prefix, loadMediaFilesProcess.name.origin),
+                      dstPath: path.join(prefix, loadMediaFilesProcess.name[size]),
+                      size: mediafileItem
+                    });
+                    sails.log.silly(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`);
+                  } else {
+                    sails.log.debug(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`);
                   }
-
-
-                  await resizeMediaFile({
-                    srcPath: path.join(prefix, loadMediaFilesProcess.name.origin),
-                    dstPath: path.join(prefix, loadMediaFilesProcess.name[size]),
-                    size: mediafileItem
-                  });
-                  sails.log.debug(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`);
-                } else {
-                  sails.log.debug(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`);
                 }
-              }
-              break;
-            default:
-              break;
+                break;
+              default:
+                break;
+            }
+          } catch (error) {
+            // Log the error and rethrow it
+            sails.log.error(`MF local Error > processing file ${loadMediaFilesProcess.name.origin}: ${error}`);
           }
+        });
+  
+        try {
+          // Wait for all downloads and processing to complete
+          await Promise.all(downloadPromises);
         } catch (error) {
-          // Log the error and rethrow it
-          sails.log.error(`MF local Error > processing file ${loadMediaFilesProcess.name.origin}: ${error}`);
+          // Handle errors that occurred during processing
+          sails.log.error(`MF local Error > file processing: ${error}`);
         }
-      });
-
-      try {
-        // Wait for all downloads and processing to complete
-        await Promise.all(downloadPromises);
-      } catch (error) {
-        // Handle errors that occurred during processing
-        sails.log.error(`MF local Error > file processing: ${error}`);
       }
+      this.processing = false
+    } catch (error) {
+      sails.log.error("loadMediaFiles error:",error)
     }
-    this.processing = false
     this.processingTimeout = setTimeout(this.loadMediaFiles.bind(this), 30000);
   }
 }
@@ -267,8 +281,8 @@ async function resizeMediaFile({ srcPath, dstPath, size  }: ResizeMediaFileOptio
       .resize(resizeWidth, resizeHeight)
       .toFile(dstPath);
   } catch (error) {
-    console.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size);
-    console.error(error)
+    sails.log.error(`MF local error > resizeMediaFile:`, srcPath, dstPath, size);
+    sails.log.error(error)
     throw new Error(error);
   }
 }

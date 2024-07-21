@@ -38,8 +38,8 @@ export default PaymentMethod;
 declare let Model: {
     /**
      * Returns the authority of payment Adapter by the famous name Adapter
-     * @param  paymentMethodId
-     * @return
+     * @return PaymentAdapter
+     * @param adapter
      */
     getAdapter(adapter?: string): Promise<PaymentAdapter>;
     beforeCreate: (paymentMethod: any, cb: (err?: string) => void) => void;
@@ -50,16 +50,16 @@ declare let Model: {
      */
     isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
     /**
+     * @deprecated, not used
      * returns list of externalPaymentId
-     * @param  paymentMethodId
      * @return { name: string, id: string }
      */
     getExternalPaymentMethods(): Promise<ExternalPayment[]>;
     /**
      * Adds to the list possible to use payment ADAPTERs at their start.
      * If the payment method does not dry in the database, it creates it
-     * @param paymentMethod
-     * @return
+     * @return string[]
+     * @param paymentAdapter
      */
     alive(paymentAdapter: PaymentAdapter): Promise<string[]>;
     /**

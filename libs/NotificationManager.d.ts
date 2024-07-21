@@ -5,13 +5,13 @@
   For instance, you might have:
   - Two cost-effective delivery methods, but they only work for 300 messages per day.
   - One reliable backup option that is always available but more expensive.
-  - Additionally, you can send a message to a messenger or a bot if the user has corresponding subscriptions and you're aware of them.
+  - Additionally, you can send a message to a messenger or a bot if the user has corresponding subscriptions, and you're aware of them.
   - If push notifications to the app are possible for a user, then prioritize using push.
 
   Implementation-wise:
   - Thus, we need to write a custom SMS channel adapter that will manage the delivery of SMS messages to different providers. The SMS channel manager should be placed at the end of the delivery queue, and all quantities of sent SMS and balancing will be implemented in the channel or provider class.
   - Another SMS channel adapter (the expensive one) will utilize a gateway and have a lower priority. In this case, if the balancing of the cost-effective channels fails to deliver, the message will then be sent through the gateway.
-  - For the bot, messenger, and web push, use respective channel classes and assign their weights.
+  - For the bot, messenger, and web push, use the respective channel classes and assign their weights.
 
   Messages sent via socket (e.g., GraphQL) directly to the front-end can be equated to push notifications.
 
@@ -45,7 +45,7 @@ export declare class NotificationManager {
      * @param badge
      * @param text
      * @param user
-     * @param type sms | email if not pass type it was deliver by an channel
+     * @param type sms | email if not pass type it was delivered by a channel
      * @param subject
      * @param data
      */

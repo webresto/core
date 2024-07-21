@@ -7,10 +7,10 @@ let attributes = {
         type: "string",
         //required: true,
     },
-    /** Generated name from OS type, and location */
+    /** Generated name from an OS type, and location */
     name: 'string',
     userAgent: 'string',
-    isLogined: "boolean",
+    isLoggedIn: "boolean",
     user: {
         model: 'user',
         required: true
@@ -30,7 +30,7 @@ let Model = {
         record.lastActivity = Date.now();
         if (record.user)
             delete record.user;
-        if (record.isLogined === false) {
+        if (record.isLoggedIn === false) {
             record.sessionId = null;
         }
         cb();
@@ -49,16 +49,16 @@ let Model = {
         }
         cb();
     },
-    /** Method set lastActiity  for device */
+    /** Method set lastActivity for a device */
     async setActivity(criteria, client = {}) {
-        await UserDevice.update(criteria, client);
+        await UserDevice.update(criteria, client).fetch();
     },
     async checkSession(sessionId, userId, client = {}) {
         let ud = await UserDevice.findOne({ sessionId: sessionId });
         if (!ud) {
             return false;
         }
-        if (ud.user === userId && ud.isLogined) {
+        if (ud.user === userId && ud.isLoggedIn) {
             await UserDevice.setActivity({ id: ud.id }, client);
             return true;
         }

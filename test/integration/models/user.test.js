@@ -33,8 +33,8 @@ describe("User", function () {
             throw `UserID undefined`;
     });
     it("set user password", async function () {
-        await Settings.set("PasswordRegex", "[0-9]");
-        await Settings.set("PasswordMinLength", "8");
+        await Settings.set("PasswordRegex", { key: "PasswordRegex", value: "[0-9]" });
+        await Settings.set("PasswordMinLength", { key: "PasswordMinLength", value: "8" });
         user = await User.setPassword(user.id, "1234567890", null);
         if (!await bcryptjs.compare("1234567890", user.passwordHash))
             throw "Password hash is corrupt";
@@ -90,7 +90,7 @@ describe("User", function () {
     describe("Login [PASSWORD_POLICY: required, CREATE_USER_IF_NOT_EXIST: true]", function () {
         it("user login Should fail if not passed password", async function () {
             let err = [];
-            await Settings.set("PASSWORD_POLICY", "required");
+            await Settings.set("PASSWORD_POLICY", { key: "PASSWORD_POLICY", value: "required" });
             try {
                 await User.login("test", { code: "77", number: "8899" }, "deviceId-test", "device-name", null, "123", "agent", "IP");
             }
@@ -101,8 +101,8 @@ describe("User", function () {
                 throw `Must be the error`;
         });
         it("create user with specific password", async function () {
-            await Settings.set("PASSWORD_POLICY", "required");
-            await Settings.set("LOGIN_FIELD", "email");
+            await Settings.set("PASSWORD_POLICY", { key: "PASSWORD_POLICY", value: "required" });
+            await Settings.set("CORE_LOGIN_FIELD", { key: "CORE_LOGIN_FIELD", value: "email" });
             let OTPAdapter = await adapters_1.OTP.getAdapter();
             let otp = await OTPAdapter.get("test@mail.com");
             let login = await User.login("test@mail.com", null, "deviceId-test", "device-name", "password01", otp.password, "agent", "IP");

@@ -33,7 +33,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
         small: string;
         large: string;
     }>;
-    protected getPrefix(type: string): string;
+    protected getPrefix(type?: MediaFileTypes): string;
     protected download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<void>;
     private loadMediaFiles;
 }

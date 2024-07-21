@@ -1,0 +1,8 @@
+{
+  "key": "CORE_LOGIN_OTP_REQUIRED",
+  "type": "boolean",
+  "name": "Core Login OTP Required",
+  "description": "Is it necessary to get OTP during login",
+  "defaultValue": true,
+  "isRequired": true
+}

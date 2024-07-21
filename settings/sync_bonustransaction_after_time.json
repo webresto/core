@@ -1,0 +1,12 @@
+{
+  "key": "SYNC_BONUSTRANSACTION_AFTER_TIME",
+  "type": "number",
+  "name": "Sync BonusTransaction After Time",
+  "description": "",
+  "defaultValue": 0,
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 0
+  },
+  "isRequired": true
+}

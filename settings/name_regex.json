@@ -1,0 +1,6 @@
+{
+  "key": "NAME_REGEX",
+  "type": "string",
+  "name": "Name Regex",
+  "description": "Optional, regex for new user name"
+}

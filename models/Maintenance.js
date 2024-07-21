@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const CHECK_INTERVAL = 60000;
-/** Idea: move subcribe to worktime events in worktime library */
+/** Idea: move subscribe to worktime events in worktime library */
 sails.on("lifted", function () {
     setInterval(async function () {
         checkMaintenance();
@@ -87,9 +87,9 @@ function between(from, to, a) {
 async function checkMaintenance() {
     const maintenance = await Maintenance.getActiveMaintenance();
     if (maintenance) {
-        emitter.emit("core-maintenance-enabled", maintenance);
+        emitter.emit("core:maintenance-enabled", maintenance);
     }
     else {
-        emitter.emit("core-maintenance-disabled");
+        emitter.emit("core:maintenance-disabled");
     }
 }

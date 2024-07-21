@@ -4,6 +4,7 @@ on:
     branches-ignore:
       - master
       - alpha
+      - next
       - test-with-postgres
 jobs:
   build:

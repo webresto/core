@@ -1,8 +1,8 @@
 module.exports = {
   /**
    * This is a first state, here only raw cart.
-   * Any modification of cart prssible only in this state.
-   * If you need add promo goods or delete stoped dish you need be here
+   * Any modification of cart is possible only in this state.
+   * If you need to add promo goods or delete stopped dish, you need to be here
    */
   CART: {
     routeRules: async function (data, cb): Promise<string> {
@@ -20,8 +20,8 @@ module.exports = {
   },
 
   /**
-   * This stage of cart after totaly checked
-   * If you make any odification of cart, you need make checkout again
+   * This stage of cart after totally checked
+   * If you make any modification of cart, you need make checkout again
    * From checkout you may go to payment and order (for payment promise)
    */
   CHECKOUT: {
@@ -59,8 +59,8 @@ module.exports = {
   },
 
   /**
-   * Here you order done, but is not means what you delivery done. It just Order
-   * webresto/core as is  in default not know about next flows, but RMS know when order was delivered.
+   * Here you order done, but is not means what your delivery done. It just Order
+   * webresto/core as is in default not know about next flows, but RMS know when order was delivered.
    * Other modules can extend it, please check modules.webresto.org
    */
   ORDER: {

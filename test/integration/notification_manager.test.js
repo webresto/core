@@ -24,7 +24,7 @@ describe("NotificationManager", function () {
     it("send message", () => {
         NotificationManager_1.NotificationManager.send("info", "user", "test123", null);
         if (testChannel.lastMessage !== "test123")
-            throw `Problem in send Ntification`;
+            throw `Problem in send Notification`;
     });
     it("is exist", () => {
         let result = NotificationManager_1.NotificationManager.isChannelExist('sms');
@@ -33,7 +33,7 @@ describe("NotificationManager", function () {
     });
     it("OTP recive to user", async () => {
         const otpAdapter = await Adapter.getOTPAdapter();
-        await Settings.set("LOGIN_FIELD", 'phone');
+        await Settings.set("CORE_LOGIN_FIELD", { key: "CORE_LOGIN_FIELD", value: "phone" });
         let a = await otpAdapter.get("1123");
         if (testChannel.lastMessage !== `Your code is ${a.password}`) {
             throw new Error(`bad message: ${testChannel.lastMessage}`);

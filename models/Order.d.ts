@@ -32,7 +32,7 @@ declare let attributes: {
     /** Stateflow field */
     state: string;
     /** Concept string */
-    concept: string;
+    concept: string[];
     /** the basket contains mixed types of concepts */
     isMixedConcept: boolean;
     /**
@@ -47,11 +47,15 @@ declare let attributes: {
     isPaymentPromise: boolean;
     /**
      * The property displays the state of promotion.
-     * In order to understand what was happening with the order in the adapter of promoters.
+     * To understand what was happening with the order in the adapter of promoters.
      *
      * This property can be used to portray the representations of promotions at the front
      */
     promotionState: PromotionState[];
+    /**
+     * It's worth collecting errors to simplify debugging
+     */
+    promotionErrors: any[];
     /**
      * hidden in api
      */
@@ -64,7 +68,7 @@ declare let attributes: {
      */
     promotionFlatDiscount: number;
     /**
-     * Promotion may estimate shipping costs and if this occurs,
+     * Promotion may estimate shipping costs, and if this occurs,
      * then the calculation of delivery through the adapter will be ignored.
      */
     promotionDelivery: Delivery;
@@ -77,8 +81,8 @@ declare let attributes: {
     } as unknown as string,
     */
     /**
-     * Date untill promocode is valid
-     * This need for calculate promotion in realtime without request in DB
+     * Date until promocode is valid
+     * This is needed for calculating promotion in realtime without a request in DB
      */
     promotionCodeCheckValidTill: string;
     /**
@@ -133,7 +137,7 @@ declare let attributes: {
     totalWeight: number;
     /** Сдача */
     trifleFrom: number;
-    /** Summ of all bobnuses */
+    /** Sum of all bonuses */
     bonusesTotal: number;
     spendBonus: SpendBonus;
     /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
@@ -147,15 +151,29 @@ declare let attributes: {
     */
     orderTotal: number;
     /**
-     * Calculated discount, not recomend for changing
+     * Calculated discount, not recommend for changing
      *
      * !!! This field is for visual display, do not use it for transmission to the payment gateway
      */
     discountTotal: number;
     orderDate: string;
+    /**
+     * @experimental
+     * This field allows you to somehow mark the recycle bin, although this is not used in current versions of the kernel.
+     * Designed for creating some custom logic, through visual programming or through modules.
+     */
+    tag: string;
     deviceId: string;
     /**
-     * Add IP, UserAgent for anonymouse cart
+     * A number that will change every time the order is changed
+     */
+    nonce: number;
+    /**
+     * Populated order stringify hash
+     */
+    hash: string;
+    /**
+     * Add IP, UserAgent for anonymous cart
      */
     user: string | User;
     customData: any;
@@ -170,7 +188,7 @@ export default Order;
 declare let Model: {
     beforeCreate(orderInit: Order, cb: (err?: string) => void): void;
     afterCreate(order: Order, cb: (err?: string) => void): Promise<void>;
-    /** Add dish into order */
+    /** Add a dish into order */
     addDish(criteria: CriteriaQuery<Order>, dish: string | Dish, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
@@ -183,13 +201,14 @@ declare let Model: {
     clone(source: CriteriaQuery<Order>): Promise<Order>;
     /**
      * Set order selfService field. Use this method to change selfService.
+     * @param criteria
      * @param selfService
      */
     setSelfService(criteria: CriteriaQuery<Order>, selfService?: boolean): Promise<Order>;
     /**
      * !! Not for external use, only in Order.check
      * The use of bonuses in the cart implies that this order has a user.
-     * Then all checks will be made and a record will be written in the transaction of user bonuses
+     * Then all checks will be made, and a record will be written in the transaction of user bonuses
      *
      Bonus spending strategies :
       1) 'bonus_from_order_total': (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
@@ -206,15 +225,25 @@ declare let Model: {
     /** Basket design*/
     order(criteria: CriteriaQuery<Order>): Promise<void>;
     payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
+    clear(criteria: CriteriaQuery<Order>): Promise<void>;
+    /**
+     * Method for quickly setting a Order tag
+     * @experimental
+     * @param criteria
+     * @param tag
+     * @returns
+     */
+    tag(criteria: CriteriaQuery<Order>, tag: string): Promise<Order>;
+    setCustomData(criteria: CriteriaQuery<Order>, customData: any): Promise<void>;
     paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string>;
-    /**  given populated Order instance  by criteria*/
+    /**  given populated Order instance by criteria*/
     populate(criteria: CriteriaQuery<Order>): Promise<{
         createdAt?: Date;
         updatedAt?: Date;
         id?: string;
         shortId?: string;
         state?: string;
-        concept?: string;
+        concept?: string[];
         isMixedConcept?: boolean;
         dishes?: number[] | OrderDish[];
         paymentMethod?: any;
@@ -222,6 +251,7 @@ declare let Model: {
         paid?: boolean;
         isPaymentPromise?: boolean;
         promotionState?: PromotionState[];
+        promotionErrors?: any[];
         promotionCode?: string | PromotionCode;
         promotionCodeDescription?: string;
         promotionCodeString?: string;
@@ -264,14 +294,17 @@ declare let Model: {
         orderTotal?: number;
         discountTotal?: number;
         orderDate?: string;
+        tag?: string;
         deviceId?: string;
+        nonce?: number;
+        hash?: string;
         user?: string | User;
         customData?: any;
     }>;
     /**
      * Method for calculating the basket. This is called every time the cart changes.
      * @param criteria OrderId
-     * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also you should set the isPromoting state in the model
+     * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also, you should set the isPromoting state in the model
      * @returns Order
      */
     countCart(criteria: CriteriaQuery<Order>, isPromoting?: boolean): Promise<Order>;

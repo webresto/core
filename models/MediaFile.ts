@@ -16,10 +16,10 @@ let attributes = {
 
 
   /** Type of media content */
-  //type: {
-  //  type: "string",
-  //  isIn: ['video', 'image']
-  //} as unknown as "video" | "image",
+  type: {
+   type: "string",
+   isIn: ['video', 'image', 'sound']
+  } as unknown as "video" | "image" | "sound",
 
   /** Video/Photo items */
   //content: "json" as unknown as any,
@@ -27,8 +27,6 @@ let attributes = {
   // DEPRECATED use content instead
   /** Image items */
   images: "json" as unknown as any,
-
-
 
   original: "string",
   /** Dish relation */
@@ -53,6 +51,7 @@ let attributes = {
 };
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM { }
+export type IMediaFile = MediaFile;
 export default MediaFile;
 export type IMediaFile = MediaFile
 let Model = {

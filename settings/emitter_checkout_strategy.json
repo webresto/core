@@ -1,0 +1,11 @@
+{
+  "key": "EMITTER_CHECKOUT_STRATEGY",
+  "type": "string",
+  "name": "Checkout Strategy",
+  "description": "How checkout behaves when the Emitter is waiting",
+  "defaultValue": "NOT_REQUIRED",
+  "jsonSchema": {
+    "type": "string",
+    "enum": ["JUST_ONE", "NOT_REQUIRED", "ALL_REQUIRED"]
+  }
+}

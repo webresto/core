@@ -3,13 +3,9 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import hashCode from "../libs/hashCode";
-import Order from "./Order";
-import AbstractPromotion from "../adapters/promotion/AbstractPromotion";
 import { Adapter } from "../adapters";
 import { IconfigDiscount } from "../interfaces/ConfigDiscount";
-import { PromotionAdapter } from './../adapters/promotion/default/promotionAdapter';
-import AbstractPromotionHandler from "../adapters/promotion/AbstractPromotion";
-import { stringsInArray } from "../libs/stringsInArray";
+import { someInArray } from "../libs/stringsInArray";
 import PromotionCode from "../models/PromotionCode";
 import { v4 as uuid } from "uuid";
 
@@ -24,7 +20,7 @@ let promotionRAM = []
 
 sails.on("lifted", async ()=>{
   let promotions = await Promotion.find({ enable:true, createdByUser: true })
-  
+
   for(let i=0; i<promotions.length; i++){
     Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(promotions[i]);
   }
@@ -97,10 +93,10 @@ let attributes = {
 
   productCategoryPromotions: "json" as unknown as any,
 
-  /** 
+  /**
    * User can disable this discount
    * By default is disabled
-   * promocode ignore this field, and apply promotion by code 
+   * promocode ignore this field, and apply promotion by code
   */
   enable: {
     type: "boolean"
@@ -146,7 +142,7 @@ export default Promotion;
 let Model = {
    async afterUpdate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
-      // call recreate of discountHandler
+      // call recreation of discountHandler
       Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
     }
 
@@ -156,7 +152,7 @@ let Model = {
 
   async afterCreate(record: Promotion, cb:  (err?: string) => void) {
     if (record.createdByUser) {
-      // call recreate of discountHandler
+      // call recreation of discountHandler
       Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
     }
 
@@ -181,10 +177,10 @@ let Model = {
     if (!init.id) {
       init.id = uuid();
     }
-    
-    const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT")
-    
-    // On create, all promocodes are disabled.
+
+    const PROMOTION_ENABLE_BY_DEFAULT = await Settings.get("PROMOTION_ENABLE_BY_DEFAULT");
+
+    // On creation, all promocodes are disabled.
     init.enable = (PROMOTION_ENABLE_BY_DEFAULT !== undefined) ? Boolean(PROMOTION_ENABLE_BY_DEFAULT) : process.env.NODE_ENV !== "production";
     cb();
   },
@@ -202,7 +198,7 @@ let Model = {
       delete(values.worktime);
 
       let hash = hashCode(JSON.stringify(values));
-    
+
       const promotion = await Promotion.findOne({ id: values.id });
       if (!promotion) return Promotion.create({ hash, ...values, sortOrder, isDeleted, enable, worktime }).fetch();
 
@@ -219,25 +215,22 @@ let Model = {
   },
 
   getAllByConcept(concept: string[]): Promotion[] {
+    if(typeof concept === "string") concept = [concept];
 
-    if (concept.length < 1) {
-      sails.log.warn(`Promotion > getAllByConcept : [concept] array is unstable feature`, concept)
-    }
-    
     const promotionAdapter = Adapter.getPromotionAdapter()
-    if (!concept) throw "concept is required";
+    if (!concept.length) throw "concept is required";
     let activePromotionIds = promotionAdapter.getActivePromotionsIds()
 
     if(concept[0] === ""){
-      let filteredRAM = promotionRAM.filter(promotion => 
+      let filteredRAM = promotionRAM.filter(promotion =>
         (promotion.concept[0] === undefined || promotion.concept[0] === "")
-        && stringsInArray(promotion.id,activePromotionIds))
+        && someInArray(promotion.id,activePromotionIds))
         return filteredRAM;
     }
 
-    let filteredRAM = promotionRAM.filter(promotion => 
-      stringsInArray(promotion.concept,concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
-      && stringsInArray(promotion.id,activePromotionIds))
+    let filteredRAM = promotionRAM.filter(promotion =>
+      someInArray(promotion.concept,concept) || (promotion.concept[0] === undefined || promotion.concept[0] === "")
+      && someInArray(promotion.id,activePromotionIds))
 
     if (!filteredRAM) throw "Promotion with concept: " + concept + " not found";
 
@@ -263,8 +256,8 @@ declare global {
 // async function checkMaintenance(){
 //   const maintenance = await Maintenance.getActiveMaintenance();
 //   if (maintenance) {
-//     emitter.emit("core-maintenance-enabled", maintenance);
+//     emitter.emit("core:maintenance-enabled", maintenance);
 //   } else {
-//     emitter.emit("core-maintenance-disabled");
+//     emitter.emit("core:maintenance-disabled");
 //   }
 // }

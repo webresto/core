@@ -1,0 +1,12 @@
+{
+  "key": "TIME_TO_SYNC_BONUSES_IN_MINUTES",
+  "type": "number",
+  "name": "Time To Sync Bonuses In Minutes",
+  "description": "",
+  "defaultValue": 15,
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 2
+  },
+  "isRequired": true
+}

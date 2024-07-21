@@ -44,7 +44,7 @@ class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
             this.transactions.delete(user.id);
         }
     }
-    async isRegistred(user) {
+    async isRegistered(user) {
         return this.users.has(user.id);
     }
     async getBalance(user, _ubp) {

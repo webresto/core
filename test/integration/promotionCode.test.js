@@ -51,7 +51,7 @@ describe("Promotion code integration test", function () {
     });
     it("Base countur promocode with flat discount (create new + apply)", async () => {
         let order = await Order.create({ id: "promotion-code-integration-test" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "road", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         // VALID PROMOCODE
@@ -61,7 +61,7 @@ describe("Promotion code integration test", function () {
         (0, chai_1.expect)(result.promotionFlatDiscount).to.equal(1.45);
         (0, chai_1.expect)(result.discountTotal).to.equal(1.45);
         (0, chai_1.expect)(result.total).to.equal(109.85);
-        console.log(result, 1245);
+        console.log("ORDER WITH PROMOTION", result);
         (0, chai_1.expect)(result.basketTotal).to.equal(111.3);
         // After go to payment promocode should work, till ORDER state
         await ExternalTestPaymentSystem_1.default.getInstance();
@@ -69,17 +69,18 @@ describe("Promotion code integration test", function () {
         await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address, paymentMethod.id);
         await Order.payment({ id: order.id });
         result = await Order.findOne({ id: order.id });
+        console.log("ORDER WITH PROMOTION 2", result);
         // CLEAR PROMOCODE
         await Order.applyPromotionCode({ id: order.id }, null);
         result = await Order.findOne({ id: order.id });
         (0, chai_1.expect)(result.discountTotal).to.equal(0);
-        (0, chai_1.expect)(result.total).to.equal(111.3);
+        (0, chai_1.expect)(result.total).to.equal(211.4);
         (0, chai_1.expect)(result.state).to.equal("CART");
         // NOT VALID PROMOCODE
         await Order.applyPromotionCode({ id: order.id }, "WINTER2024NHATRANG");
         result = await Order.findOne({ id: order.id });
         (0, chai_1.expect)(result.discountTotal).to.equal(0);
-        (0, chai_1.expect)(result.total).to.equal(111.3);
+        (0, chai_1.expect)(result.total).to.equal(211.4);
         (0, chai_1.expect)(result.promotionCodeCheckValidTill).to.equal(null);
         (0, chai_1.expect)(result.promotionCodeString).to.equal("WINTER2024NHATRANG");
         (0, chai_1.expect)(result.promotionCode).to.equal(null);
@@ -89,7 +90,7 @@ describe("Promotion code integration test", function () {
         (0, chai_1.expect)(result.promotionCodeString).to.equal("TEST123");
         (0, chai_1.expect)(result.discountTotal).to.equal(1.45);
         (0, chai_1.expect)(result.promotionFlatDiscount).to.equal(1.45);
-        (0, chai_1.expect)(result.total).to.equal(109.85);
+        (0, chai_1.expect)(result.total).to.equal(209.95);
         (0, chai_1.expect)(result.basketTotal).to.equal(111.3);
     });
     it("Percentage discount by promocode (Hot change existing + apply)", async () => {

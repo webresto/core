@@ -1,0 +1,14 @@
+{
+  "key": "CORE_LOGIN_FIELD",
+  "type": "string",
+  "name": "Core Login Field",
+  "description": "Will be considered like a login",
+  "readOnly": false,
+  "TODO": "After processing first order, property 'readonly' should be changed to 'true'",
+  "jsonSchema": {
+    "type": "string",
+    "enum": ["phone", "email"]
+  },
+  "defaultValue": "phone",
+  "isRequired": true
+}

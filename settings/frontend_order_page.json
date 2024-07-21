@@ -1,0 +1,7 @@
+{
+  "key": "FRONTEND_ORDER_PAGE",
+  "type": "string",
+  "name": "Frontend Order Page",
+  "description": "Points on basket url",
+  "isRequired": true
+}

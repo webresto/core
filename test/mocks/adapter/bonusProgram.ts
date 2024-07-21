@@ -48,7 +48,7 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     }
   }
 
-  public async isRegistred(user: User): Promise<boolean> {
+  public async isRegistered(user: User): Promise<boolean> {
     return this.users.has(user.id);
   }
 

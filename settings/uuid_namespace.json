@@ -1,0 +1,13 @@
+{
+  "key": "UUID_NAMESPACE",
+  "type": "string",
+  "name": "UUID Namespace",
+  "description": "Should be array-like (16 iterable integer values, 0-255)",
+  "jsonSchema": {
+    "type": "string",
+    "pattern": "^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$",
+    "minLength": 36,
+    "maxLength": 36
+  },
+  "isRequired": true
+}

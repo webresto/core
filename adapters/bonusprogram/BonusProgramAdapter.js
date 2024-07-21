@@ -14,8 +14,8 @@ class BonusProgramAdapter {
     }
     /**
      * A method for creating and obtaining an existing Bonus Adapter
-     * @param params - Parameters for initialization
      *
+     * @param config
      */
     static getInstance(config) {
         return BonusProgramAdapter.prototype;

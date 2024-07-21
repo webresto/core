@@ -5,7 +5,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const adapters_1 = require("../adapters");
 const uuid_1 = require("uuid");
-const alivedBonusPrograms = {};
+const aliveBonusPrograms = {};
 let attributes = {
     /** ID */
     id: {
@@ -73,14 +73,14 @@ let Model = {
         cb();
     },
     /**
-     * Method for registration alived bonus program adapter
+     * Method for registration alive bonus program adapter
      * @param bonusProgramAdapter
      * @returns
      */
     async alive(bonusProgramAdapter) {
         if (!bonusProgramAdapter.adapter) {
             sails.log.error(`Bonusprogram > alive : Adapter not defined`);
-            // safe stop alive, throw  crash sails
+            // safe stop alive, throw crash sails
             return new Error;
         }
         let knownBonusProgram = await BonusProgram.findOne({
@@ -95,18 +95,18 @@ let Model = {
                 coveragePercentage: bonusProgramAdapter.coveragePercentage,
                 decimals: bonusProgramAdapter.decimals,
                 description: bonusProgramAdapter.description,
-                enable: process.env.NODE_ENV !== "production" //For production adapter should be off on strart
+                enable: process.env.NODE_ENV !== "production" //For production adapter should be off on start
             }).fetch();
         }
         bonusProgramAdapter.setORMId(knownBonusProgram.id);
-        alivedBonusPrograms[bonusProgramAdapter.adapter] = bonusProgramAdapter;
-        sails.log.silly("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.adapter]);
+        aliveBonusPrograms[bonusProgramAdapter.adapter] = bonusProgramAdapter;
+        sails.log.silly("PaymentMethod > alive", knownBonusProgram, aliveBonusPrograms[bonusProgramAdapter.adapter]);
         return;
     },
     /**
-     * Method for registration alived bonus program adapter
-     * @param bonusProgramAdapterId string
-     * @returns
+     * Method for registration alive bonus program adapter
+     * @returns BonusProgramAdapter
+     * @param adapterOrId
      */
     async getAdapter(adapterOrId) {
         let bonusProgram = await BonusProgram.findOne({ where: { or: [{
@@ -119,16 +119,16 @@ let Model = {
         if (bonusProgram) {
             if (bonusProgram.enable !== true)
                 throw `getAdapter > bonusProgram ${adapterOrId} is disabled`;
-            if (alivedBonusPrograms[bonusProgram.adapter] !== undefined) {
-                return alivedBonusPrograms[bonusProgram.adapter];
+            if (aliveBonusPrograms[bonusProgram.adapter] !== undefined) {
+                return aliveBonusPrograms[bonusProgram.adapter];
             }
             else {
-                // here should find the adapter by adapter/index.ts 
+                // here should find the adapter by adapter/index.ts
                 try {
                     return adapters_1.Adapter.getBonusProgramAdapter(adapterOrId);
                 }
                 catch (error) {
-                    throw `BonusProgram ${adapterOrId} no alived or disabled`;
+                    throw `BonusProgram ${adapterOrId} no alive or disabled`;
                 }
             }
         }
@@ -137,11 +137,11 @@ let Model = {
         }
     },
     /**
-     * Method for registration alived bonus program adapter
-     * @param bonusProgramAdapterId string
+     * Method for registration alive bonus program adapter
      * @returns
+     * @param adapter
      */
-    async isAlived(adapter) {
+    async isAlive(adapter) {
         let bonusProgram = await BonusProgram.getAdapter(adapter);
         return bonusProgram !== undefined;
     },
@@ -154,7 +154,7 @@ let Model = {
             where: {
                 // @ts-ignore TODO: First fix types
                 and: [
-                    { adapter: { in: Object.keys(alivedBonusPrograms) } },
+                    { adapter: { in: Object.keys(aliveBonusPrograms) } },
                     { enable: true }
                 ]
             },

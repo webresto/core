@@ -9,7 +9,7 @@ import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
 
-const alivedBonusPrograms: { 
+const aliveBonusPrograms: {
   [key: string]: BonusProgramAdapter
 } = {};
 
@@ -41,13 +41,13 @@ let attributes = {
   coveragePercentage: "number" as unknown as number,
 
   decimals: "number" as unknown as number,
-  
+
   sortOrder: "number" as unknown as number,
   description: "string",
 
   /** Icon link */
   iconLink: "string",
-  
+
   /** Link for read detail info about bonus program */
   detailInfoLink: "string",
 
@@ -75,7 +75,7 @@ let Model = {
     if (!init.id) {
       init.id = uuid();
     }
-    
+
     // defaults
     if (!init.coveragePercentage) {
       init.coveragePercentage = 1;
@@ -102,25 +102,25 @@ let Model = {
   },
 
   /**
-   * Method for registration alived bonus program adapter
-   * @param bonusProgramAdapter 
-   * @returns 
+   * Method for registration alive bonus program adapter
+   * @param bonusProgramAdapter
+   * @returns
    */
   async alive(bonusProgramAdapter: BonusProgramAdapter): Promise<void | Error> {
 
     if (!bonusProgramAdapter.adapter) {
       sails.log.error(`Bonusprogram > alive : Adapter not defined`)
-      
-      // safe stop alive, throw  crash sails
+
+      // safe stop alive, throw crash sails
       return new Error
     }
-    
+
     let knownBonusProgram = await BonusProgram.findOne({
       adapter: bonusProgramAdapter.adapter,
     });
-    
+
     if (!knownBonusProgram) {
-      knownBonusProgram = await BonusProgram.create({ 
+      knownBonusProgram = await BonusProgram.create({
         name: bonusProgramAdapter.name,
         externalId: bonusProgramAdapter.id,
         adapter: bonusProgramAdapter.adapter,
@@ -128,19 +128,19 @@ let Model = {
         coveragePercentage: bonusProgramAdapter.coveragePercentage,
         decimals: bonusProgramAdapter.decimals,
         description: bonusProgramAdapter.description,
-        enable: process.env.NODE_ENV !== "production" //For production adapter should be off on strart
+        enable: process.env.NODE_ENV !== "production" //For production adapter should be off on start
       }).fetch();
     }
     bonusProgramAdapter.setORMId(knownBonusProgram.id);
-    alivedBonusPrograms[bonusProgramAdapter.adapter] = bonusProgramAdapter;
-    sails.log.silly("PaymentMethod > alive", knownBonusProgram, alivedBonusPrograms[bonusProgramAdapter.adapter]);
+    aliveBonusPrograms[bonusProgramAdapter.adapter] = bonusProgramAdapter;
+    sails.log.silly("PaymentMethod > alive", knownBonusProgram, aliveBonusPrograms[bonusProgramAdapter.adapter]);
     return;
   },
 
   /**
-   * Method for registration alived bonus program adapter
-   * @param bonusProgramAdapterId string 
-   * @returns 
+   * Method for registration alive bonus program adapter
+   * @returns BonusProgramAdapter
+   * @param adapterOrId
    */
   async getAdapter(adapterOrId: string): Promise<BonusProgramAdapter> {
     let bonusProgram = await BonusProgram.findOne({ where: { or: [{
@@ -150,18 +150,18 @@ let Model = {
         }
       ]}
     });
-    
+
     if (bonusProgram) {
       if (bonusProgram.enable !== true) throw `getAdapter > bonusProgram ${adapterOrId} is disabled`;
 
-      if(alivedBonusPrograms[bonusProgram.adapter] !== undefined) {
-        return alivedBonusPrograms[bonusProgram.adapter]
+      if(aliveBonusPrograms[bonusProgram.adapter] !== undefined) {
+        return aliveBonusPrograms[bonusProgram.adapter]
       } else {
-        // here should find the adapter by adapter/index.ts 
+        // here should find the adapter by adapter/index.ts
         try {
           return Adapter.getBonusProgramAdapter(adapterOrId);
         } catch (error) {
-          throw `BonusProgram ${adapterOrId} no alived or disabled`
+          throw `BonusProgram ${adapterOrId} no alive or disabled`
         }
       }
     } else {
@@ -171,15 +171,14 @@ let Model = {
   },
 
   /**
-   * Method for registration alived bonus program adapter
-   * @param bonusProgramAdapterId string 
-   * @returns 
+   * Method for registration alive bonus program adapter
+   * @returns
+   * @param adapter
    */
-  async isAlived(adapter: string): Promise<boolean> {
+  async isAlive(adapter: string): Promise<boolean> {
     let bonusProgram = await BonusProgram.getAdapter(adapter);
     return bonusProgram !== undefined;
   },
-
 
   /**
    * Returns an array with currently possible bonus programs by order
@@ -190,7 +189,7 @@ let Model = {
         where: {
           // @ts-ignore TODO: First fix types
             and: [
-                {adapter: {in: Object.keys(alivedBonusPrograms)}},
+                {adapter: {in: Object.keys(aliveBonusPrograms)}},
                 {enable: true}
             ]
         },

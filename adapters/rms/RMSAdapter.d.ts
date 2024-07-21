@@ -23,7 +23,7 @@ export default abstract class RMSAdapter {
     /**
      * Menu synchronization with RMS system
      * At first, groups are synchronized, then dishes are synchronized for each of these groups.
-     * When synchronizing groups, those groups that were not on the list will be turned off before the start of synchronization
+     * When synchronizing groups, those groups not on the list will be turned off before the start of synchronization
      * Those dishes that are left without ties will be marked with isDeleted
      * There can be no dishes in the root.
      */

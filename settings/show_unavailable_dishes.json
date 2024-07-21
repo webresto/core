@@ -1,0 +1,7 @@
+{
+  "key": "SHOW_UNAVAILABLE_DISHES",
+  "type": "boolean",
+  "name": "Show Unavailable Dishes",
+  "description": "",
+  "defaultValue": false
+}

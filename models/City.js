@@ -13,7 +13,7 @@ let attributes = {
     },
     /** Name of street */
     name: "string",
-    /** City has delited */
+    /** City was deleted */
     isDeleted: {
         type: 'boolean'
     },

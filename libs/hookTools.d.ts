@@ -7,16 +7,17 @@ export type Action = (req: ReqType, res: ResType) => Promise<any>;
  */
 export default class HookTools {
     /**
-     * Policies array is one for all project. It not assigned with sails policies
+     * Policy array is one for all projects. It isn't assigned with sails policies
      */
     private static policies;
     /**
      * Bind models from folder. Folder must be full path.
      * @param folder - path to models
+     * @param modelsToSkip - list of models that needed to be skipped
      */
-    static bindModels(folder: string): Promise<void>;
+    static bindModels(folder: string, modelsToSkip?: string[]): Promise<void>;
     /**
-     * Check that config with name key exists in sails.config
+     * Check that config with a name key exists in sails.config
      * @param key - name of config to check
      * @return true if config exists
      */
@@ -43,8 +44,8 @@ export default class HookTools {
     private static bindPolicy;
     /**
      * Load policies from given folder.
-     * Folder must contain index.js file that contain object with {'path/to/': policyName}, where /path/to/ is router or '*'
-     * and policyName is one of others file name.
+     * The folder must contain index.js file that contains object with {'path/to/': policyName}, where /path/to/ is router or '*'
+     * and policyName is one of other file names.
      * For example
      * |
      * * - index.js > module.exports = {

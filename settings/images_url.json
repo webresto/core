@@ -1,0 +1,10 @@
+{
+  "key": "IMAGES_URL",
+  "type": "string",
+  "name": "Images URL",
+  "description": "It's your address for images storage (e.g. https://your-website/)",
+  "jsonSchema": {
+    "type": "string",
+    "pattern": "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)\\/$"
+  }
+}

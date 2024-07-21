@@ -48,7 +48,7 @@ function discountGenerator(config = {
         },
         // productCategoryDiscounts: undefined,
         condition: function (arg) {
-            if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
+            if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {
                 let order = arg;
                 // TODO:  if order.dishes type number[]
                 let orderDishes = order.dishes;
@@ -58,14 +58,14 @@ function discountGenerator(config = {
                     return true;
                 return false;
             }
-            if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-                return (0, stringsInArray_1.stringsInArray)(arg.id, this.configDiscount.dishes);
+            if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {
+                return (0, stringsInArray_1.someInArray)(arg.id, this.configDiscount.dishes);
                 // if(this.config.dishes.includes(arg.id)){
                 //   return true;
                 // }
             }
-            if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.stringsInArray)(arg.concept, this.concept)) {
-                return (0, stringsInArray_1.stringsInArray)(arg.id, this.configDiscount.groups);
+            if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {
+                return (0, stringsInArray_1.someInArray)(arg.id, this.configDiscount.groups);
                 // if(this.config.groups.includes(arg.id)){
                 //   return true;
                 // }

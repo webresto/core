@@ -1,0 +1,12 @@
+{
+  "key": "FREE_DELIVERY_FROM",
+  "type": "number",
+  "name": "Free Delivery From",
+  "description": "Basket amount for free delivery",
+  "jsonSchema": {
+    "type": "number",
+    "minimum": 0
+  },
+  "defaultValue": 0,
+  "isRequired": true
+}

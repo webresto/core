@@ -12,7 +12,7 @@ interface optionalId {
 export interface BonusTransaction extends Pick<UserBonusTransaction, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter">, optionalId {
 }
 export default abstract class BonusProgramAdapter {
-    /** Id program in external system */
+    /** Program's id in an external system */
     externalId: string;
     id: string;
     readonly config: ConfigBonusProgramAdapter;
@@ -20,7 +20,7 @@ export default abstract class BonusProgramAdapter {
     abstract readonly name: string;
     abstract readonly adapter: string;
     /**
-     * Excahange rate for main currency in core
+     * Exchange rate for the main currency in core
      */
     abstract readonly exchangeRate: number;
     /**
@@ -51,11 +51,11 @@ export default abstract class BonusProgramAdapter {
      */
     abstract delete(user: User): Promise<void>;
     /**
-     * Check registred user or not
+     * Check if user registered or not
      */
-    abstract isRegistred(user: User): Promise<boolean>;
+    abstract isRegistered(user: User): Promise<boolean>;
     /**
-     * Check registred user or not
+     * Check registered user or not
      */
     abstract getUserInfo(user: User): Promise<ExternalAbstractUser>;
     /**
@@ -63,14 +63,17 @@ export default abstract class BonusProgramAdapter {
      */
     abstract writeTransaction(user: User, userBonusProgram: UserBonusProgram, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction>;
     /**
-     * Return user
+     * Return BonusTransaction
+     * @param user
      * @param afterTime - UNIX seconds
+     * @param limit
+     * @param skip
      */
     abstract getTransactions(user: User, afterTime: Date, limit?: number, skip?: number): Promise<BonusTransaction[]>;
     /**
      * A method for creating and obtaining an existing Bonus Adapter
-     * @param params - Parameters for initialization
      *
+     * @param config
      */
     static getInstance(config: ConfigBonusProgramAdapter): BonusProgramAdapter;
 }

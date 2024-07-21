@@ -2,18 +2,14 @@ import Group from "./Group";
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import MediaFile from "./MediaFile";
 import hashCode from "../libs/hashCode";
-
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
-
 import ORM from "../interfaces/ORM";
-import * as _ from "lodash";
 import { WorkTime } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier, Modifier } from "../interfaces/Modifier";
 import { Adapter } from "../adapters";
 import { CustomData, isCustomData } from "../interfaces/CustomData";
-import slugify from "slugify";
 import { slugIt } from "../libs/slugIt";
 import User from "./User";
 
@@ -48,7 +44,7 @@ let attributes = {
     allowNull: true,
   } as unknown as string,
 
-  /** Ingredients of dish */
+  /** Ingredients of a dish */
   ingredients: {
     type: "string",
     allowNull: true,
@@ -84,10 +80,10 @@ let attributes = {
     allowNull: true,
   } as unknown as string,
 
-  /** The amount of carbohydrates per (100g)*/
+  /** The number of carbohydrates per (100g)*/
   carbohydrateAmount: "number" as unknown as number,
 
-  /** The amount of carbohydrates in the dish */
+  /** The number of carbohydrates in the dish */
   carbohydrateFullAmount: {
     type: "number",
     allowNull: true
@@ -123,15 +119,15 @@ let attributes = {
     allowNull: true
   } as unknown as number,
 
-  /** The amount of proteins in the dish */
+  /** The number of proteins in the dish */
   fiberFullAmount: {
     type: "number",
     allowNull: true
   } as unknown as number,
 
 
-  /** The group identifier in which the dish is located 
-   * @deprecated will  be deleted in v2
+  /** The group identifier in which the dish is located
+   * @deprecated will be deleted in v2
   */
   groupId: {
     type: "string",
@@ -171,7 +167,6 @@ let attributes = {
   /** The dish can be modified*/
   isModificable: "boolean" as unknown as boolean,
 
-
   /** Parental group */
   parentGroup: {
     model: "group",
@@ -197,7 +192,7 @@ let attributes = {
   /** The concept to which the dish belongs */
   concept: "string",
 
-  /** Wesh */
+  /** Hash */
   hash: "string",
 
   /** Can be seen on the site on the menu */
@@ -229,12 +224,11 @@ let attributes = {
     via: 'favorites'
   } as unknown as User[],
 
-  /* 
+  /*
   helper.addCustomField("Dish", "discountAmount: Float");
   helper.addCustomField("Dish", "discountType: String");
   helper.addCustomField("Dish", "salePrice: Float");
   */
-
 
   customData: "json" as unknown as CustomData,
 
@@ -256,15 +250,15 @@ export default Dish;
 
 let Model = {
   beforeCreate: async function(init: Dish, cb:  (err?: string) => void) {
-    emitter.emit('core:dish-before-create', init);
+    emitter.emit('core:product-before-create', init);
     if (!init.id) {
       init.id = uuid();
     }
 
     if (!init.concept) {
       init.concept = "origin"
-    } 
-    
+    }
+
     const slugOpts = [];
     if(init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
       slugOpts.push(init.concept)
@@ -280,12 +274,12 @@ let Model = {
   },
 
   beforeUpdate: async function (value: Dish, cb:  (err?: string) => void) {
-    emitter.emit('core:dish-before-update', value);
+    emitter.emit('core:product-before-update', value);
     if(value.customData) {
       if (value.id !== undefined) {
         let current = await Dish.findOne({id: value.id});
         if(!isCustomData(current.customData)) current.customData = {}
-        let customData = {...current.customData, ...value.customData} 
+        let customData = {...current.customData, ...value.customData}
         value.customData = customData;
       }
     }
@@ -293,25 +287,25 @@ let Model = {
   },
 
   afterUpdate: function (record, cb:  (err?: string) => void) {
-    emitter.emit('core:dish-after-update', record);
+    emitter.emit('core:product-after-update', record);
     return cb();
   },
 
   afterCreate: function (record, cb:  (err?: string) => void) {
-    emitter.emit('core:dish-after-create', record);
+    emitter.emit('core:product-after-create', record);
     return cb();
   },
 
   /**
-   * Accepts Waterline Criteria and prepares it there isdeleted = false, balance! = 0. Thus, this function allows
-   * Find in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.
+   * Accepts Waterline Criteria and prepares it there isDeleted = false, balance! = 0. Thus, this function allows
+   *  finding in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.
    * @param criteria - criteria asked
    * @return Found dishes
    */
   async getDishes(criteria: any = {}): Promise<Dish[]> {
     criteria.isDeleted = false;
 
-    if (!(await Settings.get("ShowUnavailableDishes"))) {
+    if (!(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) {
       criteria.balance = { "!=": 0 };
     }
 
@@ -329,7 +323,7 @@ let Model = {
 
     dishes.sort((a, b) => a.sortOrder - b.sortOrder);
 
-    await emitter.emit("core-dish-get-dishes", dishes);
+    await emitter.emit("core:product-get-dishes", dishes);
     return dishes;
   },
 
@@ -342,15 +336,15 @@ let Model = {
 
     if(dish.modifiers){
       let index = 0;
-      
+
       // group modofiers
       for await(let  modifier of dish.modifiers){
-        
+
         let childIndex=0
         let childModifiers = []
 
         if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined){
-            
+
             let criteria = {
               concept: dish.concept ?? undefined
             }
@@ -365,9 +359,9 @@ let Model = {
 
             dish.modifiers[index].group = (await Group.find(criteria).limit(1))[0];
           }
-          
+
           if (!modifier.childModifiers) modifier.childModifiers = [];
-          
+
           for await(let childModifier of modifier.childModifiers){
             let criteria = {
               concept: dish.concept ?? undefined
@@ -395,12 +389,12 @@ let Model = {
             }
             childIndex++;
           }
-          // 
-          
+          //
+
           dish.modifiers[index].childModifiers = childModifiers;
-          
+
           // If groupMod not have options delete it
-          if (modifier.childModifiers && !modifier.childModifiers.length) {  
+          if (modifier.childModifiers && !modifier.childModifiers.length) {
             sails.log.warn("DISH > getDishModifiers: GroupModifier "+ modifier.id +" from dish:"+ dish.name+" not have modifiers")
             dish.modifiers.splice(index, 1);
           }
@@ -412,7 +406,7 @@ let Model = {
 
   async display(criteria: CriteriaQuery<Dish>): Promise<Dish[]> {
     const dishes = await Dish.find(criteria);
-    
+
     // Set virtual default
     dishes.forEach((dish)=>{
       dish.discountAmount = 0;
@@ -428,7 +422,7 @@ let Model = {
         try {
           updatedDishes.push(promotionAdapter.displayDish(dishes[i]))
         } catch (error) {
-          sails.log(error)
+          sails.log.error(error)
           continue
         }
     }
@@ -437,7 +431,7 @@ let Model = {
 
   /**
    * Checks whether the dish exists, if it does not exist, then creates a new one and returns it.If exists, then checks
-   * Hesh of the existing dish and new data, if they are identical, then immediately gives the dishes, if not, it updates its data
+   * Hash of the existing dish and new data, if they are identical, then immediately gives the dishes, if not, it updates its data
    * for new ones
    * @param values
    * @return Updated or created dish

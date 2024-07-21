@@ -1,0 +1,8 @@
+{
+  "key": "DEFAULT_MEDIAFILE_ADAPTER",
+  "type": "string",
+  "name": "Default Media File Adapter",
+  "description": "",
+  "defaultValue": "default",
+  "isRequired": true
+}

@@ -18,8 +18,8 @@ let attributes = {
         /**
         static - just one promocode
         generated - uses promocodeGeneratorAdapter TODO: see test/experiments dir
-        serial - maybe pregenrated, need store
-        external - connect to external system (bad way becose need make request)
+        serial - maybe pre-generated, need store
+        external - connect to external system (bad way because need make request)
          * */
         isIn: ['static',
             // 'generated', 'serial', 'external'

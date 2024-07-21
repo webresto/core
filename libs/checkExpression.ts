@@ -1,5 +1,5 @@
 /**
- * // TODO: Abandoned because we gone to global chages from Dish to Item
+ * // TODO: Abandoned because we have gone to global changes from Dish to Item
  */
 
 import { WorkTime } from "@webresto/worktime";

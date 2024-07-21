@@ -14,15 +14,15 @@ let attributes = {
   externalId: {
     type: "string"
   } as unknown as string,
-  
+
   /** Name of street */
   name: "string",
 
-  /** City has delited */
-  isDeleted: { 
+  /** City was deleted */
+  isDeleted: {
     type:'boolean'
   } as unknown as boolean,
-  
+
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
@@ -37,7 +37,7 @@ let Model = {
     if (!streetInit.id) {
       streetInit.id = uuid();
     }
-    
+
     cb();
   },
 };

@@ -12,7 +12,7 @@ describe("Flows: Checkout", function () {
   this.timeout(10000);
   var order: Order;
 
-  
+
   let dishes;
 
   it("Check dishescount", async function () {
@@ -43,28 +43,35 @@ describe("Flows: Checkout", function () {
     }
   });
 
-  it("awaitEmiter order events", async function () {
+  it("awaitEmitter order events", async function () {
     //@ts-ignore
-    await Settings.set("CHECKOUT_STRATEGY", { notRequired: true });
+    await Settings.set("CHECKOUT_STRATEGY", {key: "CHECKOUT_STRATEGY", value: { notRequired: true }, jsonSchema: {
+      type: "object",
+      properties: {
+        notRequired: {
+          type: "boolean"
+        }
+      }
+    }});
 
     let core_order_before_check = 0;
     let core_order_check_delivery = 0;
     let core_order_check = 0;
     let core_order_after_check = 0;
 
-    emitter.on("core-order-before-check","test", function () {
+    emitter.on("core:order-before-check","test", function () {
       core_order_before_check = 1;
     });
 
-    emitter.on("core-order-check-delivery","test", function () {
+    emitter.on("core:order-check-delivery","test", function () {
       core_order_check_delivery = 1;
     });
 
-    emitter.on("core-order-check","test", function () {
+    emitter.on("core:order-check","test", function () {
       core_order_check = 1;
     });
 
-    emitter.on("core-order-after-check-counting","test", function () {
+    emitter.on("core:order-after-check-counting","test", function () {
       core_order_after_check = 1;
     });
 
@@ -84,7 +91,7 @@ describe("Flows: Checkout", function () {
     let emitSelfService;
     let emitAddress;
 
-    emitter.on("core-order-is-self-service", "test", function (self, cust, serv, addr) {
+    emitter.on("core:order-is-self-service", "test", function (self, cust, serv, addr) {
       core_order_is_self_service = 1;
       emitCustomer = cust;
       emitSelfService = serv;
@@ -121,18 +128,18 @@ describe("Flows: Checkout", function () {
   });
 
   it("test checkConfig (default - requireAll)", async function () {
-    
-    emitter.on("core-order-check", "test checkConfig (default - requireAll)", function () {
+
+    emitter.on("core:order-check", "test checkConfig (default - requireAll)", function () {
       throw "test";
     });
-    
+
 
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-default-requireall"}).fetch();
     await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
     order = await Order.findOne({id: order.id});
 
-    await Settings.set("CHECKOUT_STRATEGY", {});
+    await Settings.set("CHECKOUT_STRATEGY", {key: "CHECKOUT_STRATEGY", value: {}, jsonSchema: {"type": "object"}});
 
     try {
       await Order.check({id: order.id}, customer, true);
@@ -150,8 +157,15 @@ describe("Flows: Checkout", function () {
   });
 
   it("test checkConfig (notRequired)", async function () {
-    await Settings.set("CHECKOUT_STRATEGY", { notRequired: true });
-    
+    await Settings.set("CHECKOUT_STRATEGY", {key: "CHECKOUT_STRATEGY", value: { notRequired: true }, jsonSchema: {
+      type: "object",
+          properties: {
+        notRequired: {
+          type: "boolean"
+        }
+      }
+    }});
+
     await sleep(500)
     order = await Order.create({id: "test-checkconfig-notrequired"}).fetch();
     await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
@@ -184,7 +198,7 @@ describe("Flows: Checkout", function () {
       order = await Order.create({id: "check-customer"}).fetch();
       await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
       order = await Order.findOne({id: order.id});
-  
+
       try {
         await Order.check({id: order.id}, customer, true);
       } catch (e) {
@@ -193,7 +207,7 @@ describe("Flows: Checkout", function () {
     });
 
     it("bad customer", async function () {
-      
+
       // @ts-ignore
       let badCustomer: Customer = {
         name: "Bad Man",
@@ -227,7 +241,7 @@ describe("Flows: Checkout", function () {
       expect(error.error).to.be.an("string");
     });
 
-    it("no customer throw", async function () {      
+    it("no customer throw", async function () {
       await Order.update({ id: order.id }, {customer: null}).fetch();
       let error = null;
       try {
@@ -245,7 +259,7 @@ describe("Flows: Checkout", function () {
     it("good address", async function () {
       await sleep(500)
       order = await Order.create({id:"check-address"}).fetch();
-      
+
       await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
       order = await Order.findOne({id: order.id});
 
@@ -265,7 +279,7 @@ describe("Flows: Checkout", function () {
     });
 
     it("bad address", async function () {
-      
+
       // @ts-ignore
       let badAddress: Address = {
         city: "New York",
@@ -282,7 +296,7 @@ describe("Flows: Checkout", function () {
       }
     });
 
-    it("no address throw", async function () {  
+    it("no address throw", async function () {
       await Order.update({ id: order.id }, {address: null}).fetch();
       try {
         await Order.check({id: order.id}, null, true);

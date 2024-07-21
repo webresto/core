@@ -25,7 +25,7 @@ describe("Promotion adapter integration test", function () {
         // // if item is borrowed from him
         // var dishes = await Dish.find({})
         let order = await Order.create({ id: "configured-promotion-integration-testa" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "road", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         const groups = await Group.find({});
         const groupsId = groups.map(group => group.id);
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "road", parentGroup: groupsId[0] }));
@@ -59,7 +59,7 @@ describe("Promotion adapter integration test", function () {
     it("IsJoint: false configured discount over total discount for specific dish", async () => {
         // check specific group and dish for joint:false
         let order = await Order.create({ id: "configured-promotion-integration-test-joint-false" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "jointfalse", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         const groups = await Group.find({});
         const groupsId = groups.map(group => group.id);
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "jointfalse", parentGroup: groupsId[0] }));
@@ -110,7 +110,7 @@ describe("Promotion adapter integration test", function () {
         const groups = await Group.find({});
         const groupsId = groups.map(group => group.id);
         let order = await Order.create({ id: "configured-promotion-integration-test-diff" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "amongus", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "amongus", parentGroup: groupsId[0] }));
         let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "amongus", parentGroup: groupsId[1] }));
         let dishes = await Dish.find({});
@@ -169,7 +169,7 @@ describe("Promotion adapter integration test", function () {
     //    */
     it("Check flat and percentage discount for specific dish/group", async () => {
         let order = await Order.create({ id: "configured-promotion-integration-specific" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "specific", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         const groups = await Group.find({});
         const groupsId = groups.map(group => group.id);
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "specific", parentGroup: groupsId[0] }));
@@ -243,12 +243,12 @@ describe("Promotion adapter integration test", function () {
         await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         order = await Order.findOne(order.id);
-        console.log(order, 234);
+        // console.log(order, 234)
         (0, chai_1.expect)(order.discountTotal).to.equal(20.13);
     });
     it("Promotion states should passed in order discount", async () => {
         let order = await Order.create({ id: "configured-promotion-integration-states" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "PromotionStatess", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         const groups = await Group.find({});
         const groupsId = groups.map(group => group.id);
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "PromotionStatess", parentGroup: groupsId[0] }));
@@ -275,7 +275,7 @@ describe("Promotion adapter integration test", function () {
         await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
         let res = await Order.findOne(order.id);
         // await promotionAdapter.processOrder(res)
-        // res = await Order.findOne(order.id) 
+        // res = await Order.findOne(order.id)
         let example = {
             message: `Discount generator description`,
             type: "configured-promotion",

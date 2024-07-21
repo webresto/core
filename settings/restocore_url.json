@@ -1,0 +1,11 @@
+{
+  "key": "RESTOCORE_URL",
+  "type": "string",
+  "name": "Restocore URL",
+  "description": "Restocore URL that you can see in browser",
+  "jsonSchema": {
+    "type": "string",
+    "pattern": "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)\\/$"
+  },
+  "isRequired": true
+}

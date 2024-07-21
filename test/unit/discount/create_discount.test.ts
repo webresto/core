@@ -8,6 +8,7 @@ import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromot
 import findModelInstanceByAttributes from './../../../libs/findModelInstance';
 import Decimal from 'decimal.js';
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
+import { stringsInArray } from '../../../libs/stringsInArray';
 
 describe('Create_Discount', function () {
 
@@ -33,17 +34,17 @@ describe('Create_Discount', function () {
             description: "string",
             concept: [],
             condition:  (arg: Group | Dish | Order): boolean => {
-                if (findModelInstanceByAttributes(arg) === "Order" && discountEx.concept.includes(arg.concept)) {
+                if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, discountEx.concept)) {
                     // Order.populate()
                     return true;
                 }
                 
-                if (findModelInstanceByAttributes(arg) === "Dish" && discountEx.concept.includes(arg.concept)) {
+                if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, discountEx.concept)) {
                     // TODO: check if includes in IconfigDish
                     return true;
                 }
                 
-                if (findModelInstanceByAttributes(arg) === "Group" && discountEx.concept.includes(arg.concept)) {
+                if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, discountEx.concept)) {
                      // TODO: check if includes in IconfigG
                     return true;
                 }

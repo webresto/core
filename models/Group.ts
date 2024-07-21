@@ -25,7 +25,7 @@ let attributes = {
     //required: true,
   } as unknown as string,
 
-  /** Addishinal info */
+  /** Additional info */
   additionalInfo: {
     type: "string",
     allowNull: true,
@@ -60,12 +60,12 @@ let attributes = {
     type: "string",
     allowNull: true,
   } as unknown as string,
-  
+
   seoText: {
     type: "string",
     allowNull: true,
   } as unknown as string,
-  
+
   seoTitle: {
     type: "string",
     allowNull: true,
@@ -100,7 +100,7 @@ let attributes = {
     via: "group",
   } as unknown as MediaFile[] | string[],
 
-  /** PlaySholder for group dishes */
+  /** Placeholder for group dishes */
   dishesPlaceholder: {
     model: "mediafile",
   } as unknown as MediaFile[],
@@ -152,7 +152,7 @@ let Model = {
     if (!init.concept) {
       init.concept = "origin"
     }
-    
+
     const slugOpts = [];
     if(init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
       slugOpts.push(init.concept)
@@ -161,7 +161,7 @@ let Model = {
     init.slug = await slugIt("group", init.name, "slug", slugOpts)
     cb();
   },
- 
+
   beforeUpdate: function (record, cb:  (err?: string) => void) {
     emitter.emit('core:group-before-update', record);
     return cb();
@@ -188,7 +188,7 @@ let Model = {
    * where Groups is an array, requested groups with a complete display of investment, that is, with their dishes, the dishes are their modifiers
    * and pictures, there are pictures of the group, etc., and errors is an object in which the keys are groups that cannot be obtained
    * According to some dinich, the values of this object are the reasons why the group was not obtained.
-   * @fires group:core-group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+   * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
    */
   async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[]; errors: {} }> {
 
@@ -210,7 +210,8 @@ let Model = {
         if (group.childGroups) {
           let childGroups = [];
           const cgs = await Group.find({
-            id: group.childGroups.map((cg) => cg.id),
+            id: group.childGroups.map((cg) => cg.id), 
+            isDeleted: false
           })
             .populate("childGroups")
             .populate("dishes")
@@ -237,7 +238,7 @@ let Model = {
       }
     }
 
-    await emitter.emit("core-group-get-groups", menu, errors);
+    await emitter.emit("core:group-get-groups", menu, errors);
 
     const res = Object.values(menu);
 
@@ -251,7 +252,7 @@ let Model = {
    * @param groupId - ID groups
    * @return The requested group
    * @throws The error of obtaining a group
-   * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
+   * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
    */
   async getGroup(groupId: string): Promise<Group> {
     const result = await Group.getGroups([groupId]);
@@ -268,7 +269,7 @@ let Model = {
    * @param groupSlug - Slug groups
    * @return The requested group
    * @throws The error of obtaining a group
-   * @fires group:core-group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
+   * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
    */
   async getGroupBySlug(groupSlug: string): Promise<Group> {
 
@@ -288,7 +289,7 @@ let Model = {
     return group[0] ? group[0] : null;
   },
 
-  // use this method to get group modified by adapters
+  // use this method to get a group modified by adapters
   // https://github.com/balderdashy/waterline/pull/902
   async display(criteria: CriteriaQuery<Group>): Promise<Group[]> {
     const promotionAdapter = Adapter.getPromotionAdapter()
@@ -304,18 +305,16 @@ let Model = {
       try {
         updatedDishes.push(promotionAdapter.displayGroup(groups[i]))
       } catch (error) {
-        sails.log(error)
+        sails.log.error(error)
         continue
       }
     }
     return updatedDishes;
   },
-  
-
 
   // Recursive function to get all child groups
   async getMenuTree(menu?: Group[], option: "only_ids" | "tree" | "flat_tree" = "only_ids"): Promise<string[]> {
-    
+
     if(option === "tree") {
       throw `not implemented yet`
     }
@@ -327,7 +326,7 @@ let Model = {
     let allGroups = [];
     for (let group of menu) {
       const groupId = group.id
-      const initialGroup = (await Group.find({ id: groupId }).sort('createdAt DESC')).shift();
+      const initialGroup = (await Group.find({ id: groupId, isDeleted: false }).sort('createdAt DESC')).shift();
       if (initialGroup) {
         allGroups.push(initialGroup);
         const childGroups = await getAllChildGroups(groupId);
@@ -337,20 +336,20 @@ let Model = {
     }
 
     async function getAllChildGroups(groupId) {
-      let childGroups = await Group.find({ parentGroup: groupId });
+      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false });
       let allChildGroups = [];
-    
+
       for (let group of childGroups) {
         allChildGroups.push(group);
         const subChildGroups = await getAllChildGroups(group.id);
         allChildGroups = allChildGroups.concat(subChildGroups);
       }
-    
+
       allChildGroups.sort((a, b) => a.sortOrder - b.sortOrder);
-    
+
       return allChildGroups;
     }
-    
+
 
     if(option === "flat_tree") {
       return allGroups;
@@ -369,7 +368,7 @@ let Model = {
 
     // Default logic
     if (!groups.length) {
-      
+
       /**
        * Check all option from settings to detect TopLevelGroupId
        */
@@ -377,15 +376,15 @@ let Model = {
         let menuTopLevelSlug = undefined as string;
 
         if(concept !== undefined) {
-          menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`) as string;
+          menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL_CONCEPT_${concept.toUpperCase()}`);
         }
 
         if( menuTopLevelSlug === undefined) {
-          menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL`) as string;
+          menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL`);
         }
 
         if(menuTopLevelSlug) {
-          let menuTopLevelGroup = await Group.findOne({ 
+          let menuTopLevelGroup = await Group.findOne({
             slug: menuTopLevelSlug,
             ...concept &&  { concept: concept }
            })
@@ -398,20 +397,22 @@ let Model = {
       groups = await Group.find({
         parentGroup: topLevelGroupId ?? null,
         ...concept &&  { concept: concept },
+        isDeleted: false,
         modifier: false,
         visible: true
       });
 
-      // Check subgroups when one group in top menu
+      // Check subgroups when one group in the top menu
       if(groups.length === 1 && topLevelGroupId === undefined) {
-        let childs = await Group.find({
+        let children = await Group.find({
           parentGroup: groups[0].id,
+          isDeleted: false,
           modifier: false,
           visible: true
         });
-        if(childs) groups = childs;
+        if(children) groups = children;
       }
-    } 
+    }
 
     return groups.sort((a, b) => a.sortOrder - b.sortOrder);
   },

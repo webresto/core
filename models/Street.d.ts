@@ -12,9 +12,9 @@ declare let attributes: {
     name: string;
     /** dataHash */
     hash: string;
-    /** Street has delited */
+    /** Street has deleted */
     isDeleted: boolean;
-    /** Street has delited */
+    /** Street has deleted */
     enable: boolean;
     city: string | City;
     customData: CustomData;
@@ -24,14 +24,14 @@ interface Street extends RequiredField<Partial<attributes>, "name">, ORM {
 }
 export default Street;
 /**
- * Pelase emit core:streets:updated after finish update streets
+ * Please emit core:streets:updated after finish update streets
  */
 declare let Model: {
     beforeUpdate(value: Street, cb: (err?: string) => void): Promise<void>;
     beforeCreate(streetInit: any, cb: (err?: string) => void): void;
     /**
    * Checks whether the street exists, if it does not exist, then creates a new one and returns it.If exists, then checks
-   * Hesh of the existing street and new data, if they are identical, then immediately gives the streetes, if not, it updates its data
+   * Hash of the existing street and new data, if they are identical, then immediately gives the streets, if not, it updates its data
    * for new ones
    * @param values
    * @return Updated or created street

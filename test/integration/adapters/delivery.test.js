@@ -21,21 +21,21 @@ describe("RMS adapter", function () {
         (0, chai_1.expect)(order.deliveryItem).to.equal(null);
         // Flat delivery cost
         const deliveryCost = 2.75;
-        await Settings.set("DELIVERY_COST", deliveryCost);
+        await Settings.set("DELIVERY_COST", { key: "DELIVERY_COST", value: deliveryCost });
         await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
         order = await Order.findOne(order.id);
         (0, chai_1.expect)(order.deliveryCost).to.equal(2.75);
         (0, chai_1.expect)(order.deliveryItem).to.equal(null);
-        // check self service 
+        // check self service
         await Order.check({ id: order.id }, customer_1.customer, true);
         order = await Order.findOne(order.id);
         (0, chai_1.expect)(order.delivery).to.equal(null);
         (0, chai_1.expect)(order.deliveryDescription).to.equal('');
         (0, chai_1.expect)(order.deliveryCost).to.equal(0);
         (0, chai_1.expect)(order.deliveryItem).to.equal(null);
-        // Delviery item
+        // Delivery item
         const deliveryItem = dishes[2];
-        await Settings.set("DELIVERY_ITEM", deliveryItem.id);
+        await Settings.set("DELIVERY_ITEM", { key: "DELIVERY_ITEM", value: deliveryItem.id });
         await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
         order = await Order.findOne(order.id);
         (0, chai_1.expect)(order.delivery.allowed).to.equal(true);
@@ -43,13 +43,13 @@ describe("RMS adapter", function () {
         (0, chai_1.expect)(order.deliveryItem).to.equal(deliveryItem.id);
         // Delivery message
         const deliveryMessage = "Test123 123 %%%";
-        await Settings.set("DELIVERY_MESSAGE", deliveryMessage);
+        await Settings.set("DELIVERY_MESSAGE", { key: "DELIVERY_MESSAGE", value: deliveryMessage });
         await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
         order = await Order.findOne(order.id);
         (0, chai_1.expect)(order.delivery.allowed).to.equal(true);
         (0, chai_1.expect)(order.deliveryDescription).to.equal(deliveryMessage);
         const freeDeliveryFrom = 333;
-        await Settings.set("FREE_DELIVERY_FROM", freeDeliveryFrom);
+        await Settings.set("FREE_DELIVERY_FROM", { key: "FREE_DELIVERY_FROM", value: freeDeliveryFrom });
         await Order.addDish({ id: order.id }, dishes[3], Math.ceil(freeDeliveryFrom / dishes[3].price), [], "", "user");
         await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
         order = await Order.findOne(order.id);
@@ -59,7 +59,7 @@ describe("RMS adapter", function () {
         (0, chai_1.expect)(order.deliveryItem).to.equal(null);
         order = await Order.findOne(order.id);
         const minDeliveryAmount = order.basketTotal + 100;
-        await Settings.set("MIN_DELIVERY_AMOUNT", minDeliveryAmount);
+        await Settings.set("MIN_DELIVERY_AMOUNT", { key: "MIN_DELIVERY_AMOUNT", value: minDeliveryAmount });
         let error = null;
         try {
             await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
@@ -70,7 +70,7 @@ describe("RMS adapter", function () {
         order = await Order.findOne(order.id);
         (0, chai_1.expect)(error).to.not.equal(null);
         (0, chai_1.expect)(order.delivery.allowed).to.equal(false);
-        await Settings.set("MIN_DELIVERY_AMOUNT", 0);
+        await Settings.set("MIN_DELIVERY_AMOUNT", { key: "MIN_DELIVERY_AMOUNT", value: 0 });
     });
 });
 function sleep(ms) {

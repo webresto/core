@@ -3,7 +3,6 @@ import Order, { PromotionState } from "../../../models/Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
 import { WorkTimeValidator } from "@webresto/worktime";
-import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import Promotion from "../../../models/Promotion";
 import Group from "../../../models/Group";
 import Dish from "../../../models/Dish";
@@ -17,13 +16,28 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
   public async processOrder(populatedOrder: Order): Promise<Order> {
     const promotionStates = [] as PromotionState[]
+    const promotionErrors = [];
+    let debugCount = 0;
+    emitter.emit("promotion-process:debug", debugCount, populatedOrder, null, null)
     populatedOrder = await this.clearOfPromotion(populatedOrder);
     let filteredPromotion = this.filterByConcept(populatedOrder.concept);
     let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, populatedOrder);
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
-        const state = await this.promotions[promotion.id].action(populatedOrder);
-        promotionStates.push(state);
+        debugCount++;
+        try {
+          const state = await this.promotions[promotion.id].action(populatedOrder);
+          promotionStates.push(state);
+          emitter.emit("promotion-process:debug", debugCount, populatedOrder, promotion, state);
+        } catch (error) {
+          promotionErrors.push({
+            promotion: promotion,
+            error: error,
+            stack: error.stack
+          })
+          emitter.emit("promotion-process:debug", debugCount, populatedOrder, promotion, error);
+          sails.log.error(error)
+        }
       }
     }
 
@@ -39,10 +53,11 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     }
 
     // --- CALCULATE DISCOUNTS END --- //
-
     populatedOrder.promotionState = promotionStates;
+    populatedOrder.promotionErrors = promotionErrors;
 
-    // populatedOrder = await Order.findOne(populatedOrder.id) 
+    // populatedOrder = await Order.findOne(populatedOrder.id)
+    emitter.emit("promotion-process:debug", debugCount, populatedOrder, null, null);
     return populatedOrder
   }
 
@@ -78,7 +93,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return group;
   }
 
-  public filterByConcept(concept: string): Promotion[] {
+  public filterByConcept(concept: string | string[]): Promotion[] {
     let modifiedConcept: string[];
     typeof concept === "string" ? (modifiedConcept = [concept]) : (modifiedConcept = concept);
     return Promotion.getAllByConcept(modifiedConcept);
@@ -86,8 +101,8 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
   public filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[] {
     /**
-     * If promotion enabled by promocode notJoint it will be disable all promotions and set promocode promotion
-     * If promocode promotion is joint it just will be applied by order
+     * If promotion enabled by promocode notJoint it disables all promotions and sets promocode promotion,
+     * If promocode promotion is joint, it just will be applied by order
      */
 
     let filteredPromotionsToApply: Promotion[] = Object.values(promotionsByConcept)
@@ -102,7 +117,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const filteredByCondition: Promotion[] = this.filterByCondition(filteredPromotionsToApply, target);
-    // Promotion by PromotionCode not need filtred
+    // Promotion by PromotionCode doesn't need to be filtered
     if (findModelInstanceByAttributes(target) === "Order") {
       const order = target as Order;
       if (order.promotionCode) {
@@ -152,8 +167,8 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   }
 
   /**
-   * Method uses for puntime call/pass promotionHandler, not configured 
-   * @param promotionToAdd 
+   * Method uses for runtime call/pass promotionHandler, not configured
+   * @param promotionToAdd
    */
   public async addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void> {
     let createInModelPromotion: Promotion = {
@@ -178,14 +193,14 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
 
   /**
    * Method uses for call from Promotion model, afterCreate/update for update configuredPromotion
-   * @param promotionToAdd 
-   * @returns 
+   * @param promotionToAdd
+   * @returns
    */
   public recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void {
-    if(this.promotions[promotionToAdd.id]){
+    if (this.promotions[promotionToAdd.id]) {
       delete this.promotions[promotionToAdd.id]
     }
-    
+
     if (promotionToAdd.enable !== false) {
       this.promotions[promotionToAdd.id] = new ConfiguredPromotion(promotionToAdd, promotionToAdd.configDiscount);
     }

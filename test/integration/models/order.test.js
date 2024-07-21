@@ -120,7 +120,7 @@ describe("Order", function () {
     });
     it("countCart", async function () {
         let order = await Order.create({ id: "test--countcart" }).fetch();
-        await Order.updateOne({ id: order.id }, { concept: "origin", user: "user" });
+        await Order.updateOne({ id: order.id }, { user: "user" });
         await Order.addDish({ id: order.id }, dishes[0], 5, [], "", "user");
         await Order.addDish({ id: order.id }, dishes[1], 3, [], "", "user");
         await Order.addDish({ id: order.id }, dishes[2], 8, [], "", "user");
@@ -143,16 +143,16 @@ describe("Order", function () {
         let count2 = 0;
         let count3 = 0;
         let count4 = 0;
-        emitter.on("core-order-before-order", "test", function () {
+        emitter.on("core:order-before-order", "test", function () {
             count1++;
         });
-        emitter.on("core-order-order-self-service", "test", function () {
+        emitter.on("core:order-order-self-service", "test", function () {
             count2++;
         });
-        emitter.on("core-order-order", "test", function () {
+        emitter.on("core:order-order", "test", function () {
             count3++;
         });
-        emitter.on('core-order-after-order', "test", function () {
+        emitter.on('core:order-after-order', "test", function () {
             count4++;
         });
         await Order.setSelfService({ id: order.id }, true);
@@ -170,7 +170,7 @@ describe("Order", function () {
             error = e;
         }
         (0, chai_1.expect)(error).to.not.equal(null);
-        emitter.on("core-order-order-delivery", "test", function () {
+        emitter.on("core:order-order-delivery", "test", function () {
             // count1++;
         });
     });

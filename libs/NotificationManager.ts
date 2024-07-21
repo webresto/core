@@ -5,13 +5,13 @@
   For instance, you might have:
   - Two cost-effective delivery methods, but they only work for 300 messages per day.
   - One reliable backup option that is always available but more expensive.
-  - Additionally, you can send a message to a messenger or a bot if the user has corresponding subscriptions and you're aware of them.
+  - Additionally, you can send a message to a messenger or a bot if the user has corresponding subscriptions, and you're aware of them.
   - If push notifications to the app are possible for a user, then prioritize using push.
 
   Implementation-wise:
   - Thus, we need to write a custom SMS channel adapter that will manage the delivery of SMS messages to different providers. The SMS channel manager should be placed at the end of the delivery queue, and all quantities of sent SMS and balancing will be implemented in the channel or provider class.
   - Another SMS channel adapter (the expensive one) will utilize a gateway and have a lower priority. In this case, if the balancing of the cost-effective channels fails to deliver, the message will then be sent through the gateway.
-  - For the bot, messenger, and web push, use respective channel classes and assign their weights.
+  - For the bot, messenger, and web push, use the respective channel classes and assign their weights.
 
   Messages sent via socket (e.g., GraphQL) directly to the front-end can be equated to push notifications.
 
@@ -48,7 +48,7 @@ export abstract class Channel {
       await this.send(badge, message, user, subject, data);
       return true;
     } catch (error) {
-      console.error(`Failed to send message through channel with sortOrder ${this.sortOrder}. Error: ${error}`);
+      sails.log.error(`Failed to send message through channel with sortOrder ${this.sortOrder}. Error: ${error}`);
       return false;
     }
   }
@@ -57,7 +57,7 @@ export abstract class Channel {
 export class NotificationManager {
 
   public static async sendMessageToDeliveryManager(badge: Badge, text: string): Promise<void> {
-    // I appologize what delivery message channel is direct to manager, its reason to null user. Time will show
+    // I apologize what delivery message channel is direct to manager, its reason to null user. Time will show
     try {
       await NotificationManager.send(badge, "manager", text, null);
     } catch (error) {
@@ -66,13 +66,13 @@ export class NotificationManager {
   }
 
   /**
-   * 
-   * @param badge 
-   * @param text 
-   * @param user 
-   * @param type sms | email if not pass type it was deliver by an channel
-   * @param subject 
-   * @param data 
+   *
+   * @param badge
+   * @param text
+   * @param user
+   * @param type sms | email if not pass type it was delivered by a channel
+   * @param subject
+   * @param data
    */
   public static async sendMessageToUser(badge: Badge, text: string, user: User | string, type?: ChannelType, subject?: string, data?: object): Promise<void> {
     let populatedUser;
@@ -80,7 +80,7 @@ export class NotificationManager {
     if(typeof user === "string") {
       const populatedUsers = await User.find({ where: { or: [{ id: user }, { login: user }] }}).populate('devices');
       if (populatedUsers.length === 1) {
-        populatedUser = populatedUsers[0];  
+        populatedUser = populatedUsers[0];
       } else {
         throw new Error(`User not found`);
       }

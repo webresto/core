@@ -5,7 +5,7 @@ declare let attributes: {
     /** ID */
     id: number;
     /**
-     * relation by LOGIN_FIELD setting
+     * relation by CORE_LOGIN_FIELD setting
      */
     login: string;
     password: string;
