@@ -26,7 +26,7 @@
 import User from "../models/User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string
-type ChannelType = "sms" | "email" | string
+type ChannelType = "sms" | "email" | "mobile-push" | string
 
 export abstract class Channel {
   public abstract type: ChannelType;
@@ -39,6 +39,9 @@ export abstract class Channel {
    */
   public abstract forceSend: boolean;
   public abstract forGroupTo: MessageGroupTo[];
+  /**
+   * The sorting will be from smallest to largest, the one who is smaller is the one who comes first
+   */
   public abstract sortOrder: number;
 
   protected abstract send(badge: Badge, message: string, user: User, subject?: string, data?: object): Promise<void>;
@@ -98,25 +101,26 @@ export class NotificationManager {
     groupTo: MessageGroupTo,
     message: string,
     user?: User,
-    type?: ChannelType,
+    channelType?: ChannelType,
     subject?: string,
     data?: object
   ): Promise<void> => {
     let sent = false;
 
     for (const channel of this.channels) {
+      if(sent) break;
       if (!channel.forGroupTo.includes(groupTo)) continue;
-      if (type && channel.type !== type) continue;
+      if (channelType && channel.type !== channelType) continue;
 
       if (sent && channel.forceSend !== true) {
         continue;
       }
-
+      
       sent = await channel.trySendMessage(badge, message, user, subject, data);
     }
 
     if(!sent){
-      throw new Error(`Failed to send message to group ${groupTo}, ${type ? type: ""}, message: ${message}`);
+      throw new Error(`Failed to send message to group ${groupTo}, ${channelType ? channelType: ""}, message: ${message}`);
     }
   };
 
