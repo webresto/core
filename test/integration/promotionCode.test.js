@@ -72,8 +72,9 @@ describe("Promotion code integration test", function () {
         console.log("ORDER WITH PROMOTION 2", result);
         // CLEAR PROMOCODE
         await Order.applyPromotionCode({ id: order.id }, null);
-        result = await Order.findOne({ id: order.id });
+        result = await Order.findOne({ id: order.id }).populate("dishes");
         (0, chai_1.expect)(result.discountTotal).to.equal(0);
+        console.log(result);
         (0, chai_1.expect)(result.total).to.equal(211.4);
         (0, chai_1.expect)(result.state).to.equal("CART");
         // NOT VALID PROMOCODE

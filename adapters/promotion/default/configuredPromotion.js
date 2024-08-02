@@ -86,19 +86,23 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         // order.dishes
         const orderDishes = await OrderDish.find({ order: order.id, addedBy: "user" }).populate("dish");
         let calculatedDiscountAmount = new decimal_js_1.default(0);
+        // Discount that applies to all dishes
         if (!this.config.dishes.length && !this.config.groups.length) {
             if (this.configDiscount.discountType === "percentage") {
                 calculatedDiscountAmount = new decimal_js_1.default(order.basketTotal)
                     .mul(+this.configDiscount.discountAmount / 100);
+                // This is the case when a discount is set on the general receipt
             }
             else {
-                calculatedDiscountAmount = new decimal_js_1.default(this.configDiscount.discountAmount ?? this.config.promotionFlatDiscount);
+                calculatedDiscountAmount = new decimal_js_1.default(this.configDiscount.discountAmount ?? this.config.discountAmount);
             }
+            // If groups and dishes are selected for the discount
         }
         else {
             for (const orderDish of orderDishes) {
+                let discountAmount;
                 if (typeof orderDish.dish === "string") {
-                    throw new Error("Type error dish: applyPromotion");
+                    throw new Error("Type error dish: applyPromotion expected array");
                 }
                 let orderDishDiscountCost = 0;
                 if (!orderDish.dish) {
@@ -114,20 +118,22 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 if (!checkDishes || !checkGroups)
                     continue;
                 if (this.configDiscount.discountType === "flat") {
+                    discountAmount = this.configDiscount.discountAmount;
                     orderDishDiscountCost = new decimal_js_1.default(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
                     calculatedDiscountAmount = new decimal_js_1.default(orderDishDiscountCost).add(calculatedDiscountAmount);
-                    // calculatedDiscountAmount += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(this.configDiscount.discountAmount * orderDish.dish.amount ).toNumber();
                 }
-                if (this.configDiscount.discountType === "percentage") {
+                else if (this.configDiscount.discountType === "percentage") {
                     // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
-                    orderDishDiscountCost = new decimal_js_1.default(orderDish.dish.price)
-                        .mul(orderDish.amount)
-                        .mul(+this.configDiscount.discountAmount / 100)
-                        .toNumber();
+                    let orderDishDiscountItemCost = new decimal_js_1.default(orderDish.dish.price).mul(+this.configDiscount.discountAmount / 100);
+                    orderDishDiscountCost = orderDishDiscountItemCost.mul(orderDish.amount).toNumber();
+                    discountAmount = orderDishDiscountItemCost.toNumber();
                     calculatedDiscountAmount = new decimal_js_1.default(orderDishDiscountCost).add(calculatedDiscountAmount);
                 }
+                else {
+                    throw `Unknown discountType: [${this.configDiscount.discountType}] in name: [${this.name}], id: [${this.id}]`;
+                }
                 let orderDishDiscount = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
-                await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType }).fetch();
+                await OrderDish.update({ id: orderDish.id }, { itemTotalBeforeDiscount: orderDishDiscountCost, discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType, discountAmount: discountAmount, discountId: orderDish.discountId + "| " + this.name }).fetch();
             }
         }
         /**

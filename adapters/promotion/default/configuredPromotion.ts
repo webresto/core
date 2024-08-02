@@ -118,18 +118,25 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     const orderDishes = await OrderDish.find({ order: order.id, addedBy: "user" }).populate("dish");
     let calculatedDiscountAmount: Decimal = new Decimal(0);
 
+
+    // Discount that applies to all dishes
     if (!this.config.dishes.length && !this.config.groups.length) {
       if (this.configDiscount.discountType === "percentage") {
         calculatedDiscountAmount = new Decimal(order.basketTotal)
           .mul(+this.configDiscount.discountAmount / 100);
+      // This is the case when a discount is set on the general receipt
       } else {
-        calculatedDiscountAmount = new Decimal(this.configDiscount.discountAmount ?? this.config.promotionFlatDiscount)
+        calculatedDiscountAmount = new Decimal(this.configDiscount.discountAmount ?? this.config.discountAmount)
       }
+
+    // If groups and dishes are selected for the discount
     } else {
       for (const orderDish of orderDishes) {
+        let discountAmount: number;
+
 
         if (typeof orderDish.dish === "string") {
-          throw new Error("Type error dish: applyPromotion")
+          throw new Error("Type error dish: applyPromotion expected array")
         }
 
         let orderDishDiscountCost: number = 0;
@@ -148,23 +155,24 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
         if (!checkDishes || !checkGroups) continue
 
+        
         if (this.configDiscount.discountType === "flat") {
+          discountAmount = this.configDiscount.discountAmount;
           orderDishDiscountCost = new Decimal(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
           calculatedDiscountAmount = new Decimal(orderDishDiscountCost).add(calculatedDiscountAmount);
-          // calculatedDiscountAmount += new Decimal(orderDish.dish.price * orderDish.dish.amount).sub(this.configDiscount.discountAmount * orderDish.dish.amount ).toNumber();
-        }
 
-        if (this.configDiscount.discountType === "percentage") {
+        } else if (this.configDiscount.discountType === "percentage") {
           // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
-          orderDishDiscountCost = new Decimal(orderDish.dish.price)
-            .mul(orderDish.amount)
-            .mul(+this.configDiscount.discountAmount / 100)
-            .toNumber();
+          let orderDishDiscountItemCost = new Decimal(orderDish.dish.price).mul(+this.configDiscount.discountAmount / 100)
+          orderDishDiscountCost = orderDishDiscountItemCost.mul(orderDish.amount).toNumber();
+          discountAmount = orderDishDiscountItemCost.toNumber();
           calculatedDiscountAmount = new Decimal(orderDishDiscountCost).add(calculatedDiscountAmount);
+        
+        } else {
+          throw `Unknown discountType: [${this.configDiscount.discountType}] in name: [${this.name}], id: [${this.id}]`
         }
-
         let orderDishDiscount: number = new Decimal(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
-        await OrderDish.update({ id: orderDish.id }, { discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType }).fetch();
+        await OrderDish.update({ id: orderDish.id }, { itemTotalBeforeDiscount: orderDishDiscountCost, discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType, discountAmount: discountAmount, discountId: orderDish.discountId + "| " +this.name }).fetch();
       }
     }
 

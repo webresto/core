@@ -100,6 +100,7 @@ describe('Discount', function () {
             excludeModifiers: true
         }
     });
+    let discountsArray = [disc1, discInMemory, discountEx];
     let promotionAdapter;
     before(async () => {
         promotionAdapter = index_1.Adapter.getPromotionAdapter();
@@ -231,9 +232,27 @@ describe('Discount', function () {
         //  17.7 + 12.16 + 19.95 = 49.81
         // await promotionAdapter.addPromotionHandler(discInMemory)
         // await promotionAdapter.addPromotionHandler(discountEx)
-        order = await Order.findOne(order.id);
         await promotionAdapter.processOrder(order);
-        //let result = await Order.findOne(order.id) //.populate("dishes");
+        order = await Order.findOne(order.id).populate('dishes');
+        let basketDiscount = 0;
+        for (const dish of order.dishes) {
+            if (typeof dish !== 'number') {
+                if (dish.addedBy !== "user")
+                    continue;
+                let discount = discountsArray.find((d) => d.id === dish.discountId);
+                console.log(dish, discount);
+                (0, chai_1.expect)(dish.discountAmount).to.equal(discount.configDiscount.discountAmount);
+                (0, chai_1.expect)(dish.discountAmount).to.equal(discount.configDiscount.discountAmount);
+                if (discount.configDiscount.discountType === "flat") {
+                    basketDiscount += discount.configDiscount.discountAmount * dish.amount;
+                }
+                else {
+                    basketDiscount += (discount.configDiscount.discountAmount * 0.01 * dish.itemPrice * dish.amount);
+                }
+            }
+        }
+        console.log(">>>>>>>>>> basketDiscount", basketDiscount);
+        (0, chai_1.expect)(basketDiscount).to.equal(order.promotionFlatDiscount);
         (0, chai_1.expect)(order.promotionFlatDiscount).to.equal(49.81);
     });
     it("discount test dishes with 3 dif type of discount", async function () {
@@ -257,8 +276,12 @@ describe('Discount', function () {
         await Order.addDish({ id: order.id }, dish3, 5, [], "", "user");
         await Order.addDish({ id: order.id }, dish4, 4, [], "", "user");
         await Order.addDish({ id: order.id }, dish5, 5, [], "", "user");
-        // 18.62  + 136.8 - 10% = 18.62 + 13,68 = 32.3+ (101 +60.8) - 10% = 32.3 + 16.18 = 48.48 + 14 = 62.48
         let result = await Order.findOne(order.id); //.populate("dishes");
+        // 18.62  + 136.8 - 10% = 18.62 + 13,68 = 32.3+ (101 +60.8) - 10% = 32.3 + 16.18 = 48.48 + 14 = 62.48
+        let orderTotal = dish1.price * 5 + dish2.price * 4 + dish3.price * 5 + dish4.price * 4 + dish5.price * 5;
+        (0, chai_1.expect)(result.basketTotal).to.equal(orderTotal);
+        let _dishes = await OrderDish.find({ order: result.id });
+        // console.log("___________________ORDER DISHES", JSON.stringify(_dishes, null, 4))
         (0, chai_1.expect)(result.discountTotal).to.equal(62.48);
     });
     it("discount test displayDish", async function () {
@@ -339,5 +362,5 @@ describe('Discount', function () {
      * check sortOrder last addded for isJoint = true then one by one use display
      * check worktime
      * same for dishes
-    */
+    */ ;
 });

@@ -93,8 +93,9 @@ describe("Promotion code integration test", function () {
 
     // CLEAR PROMOCODE
     await Order.applyPromotionCode({ id: order.id }, null);
-    result = await Order.findOne({ id: order.id })
+    result = await Order.findOne({ id: order.id }).populate("dishes")
     expect(result.discountTotal).to.equal(0);
+    console.log(result);
     expect(result.total).to.equal(211.4);
     expect(result.state).to.equal("CART");
 
