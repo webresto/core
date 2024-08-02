@@ -54,12 +54,14 @@ class NotificationManager {
 exports.NotificationManager = NotificationManager;
 _a = NotificationManager;
 NotificationManager.channels = [];
-NotificationManager.send = async (badge, groupTo, message, user, type, subject, data) => {
+NotificationManager.send = async (badge, groupTo, message, user, channelType, subject, data) => {
     let sent = false;
     for (const channel of _a.channels) {
+        if (sent)
+            break;
         if (!channel.forGroupTo.includes(groupTo))
             continue;
-        if (type && channel.type !== type)
+        if (channelType && channel.type !== channelType)
             continue;
         if (sent && channel.forceSend !== true) {
             continue;
@@ -67,7 +69,7 @@ NotificationManager.send = async (badge, groupTo, message, user, type, subject, 
         sent = await channel.trySendMessage(badge, message, user, subject, data);
     }
     if (!sent) {
-        throw new Error(`Failed to send message to group ${groupTo}, ${type ? type : ""}, message: ${message}`);
+        throw new Error(`Failed to send message to group ${groupTo}, ${channelType ? channelType : ""}, message: ${message}`);
     }
 };
 NotificationManager.isChannelExist = (channelType) => {

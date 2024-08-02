@@ -26,7 +26,7 @@
 import User from "../models/User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string;
-type ChannelType = "sms" | "email" | string;
+type ChannelType = "sms" | "email" | "mobile-push" | string;
 export declare abstract class Channel {
     abstract type: ChannelType;
     /**
@@ -34,6 +34,9 @@ export declare abstract class Channel {
      */
     abstract forceSend: boolean;
     abstract forGroupTo: MessageGroupTo[];
+    /**
+     * The sorting will be from smallest to largest, the one who is smaller is the one who comes first
+     */
     abstract sortOrder: number;
     protected abstract send(badge: Badge, message: string, user: User, subject?: string, data?: object): Promise<void>;
     trySendMessage(badge: Badge, message: string, user: User, subject?: string, data?: object): Promise<boolean>;
@@ -51,7 +54,7 @@ export declare class NotificationManager {
      */
     static sendMessageToUser(badge: Badge, text: string, user: User | string, type?: ChannelType, subject?: string, data?: object): Promise<void>;
     static readonly channels: Channel[];
-    static send: (badge: Badge, groupTo: MessageGroupTo, message: string, user?: User, type?: ChannelType, subject?: string, data?: object) => Promise<void>;
+    static send: (badge: Badge, groupTo: MessageGroupTo, message: string, user?: User, channelType?: ChannelType, subject?: string, data?: object) => Promise<void>;
     static isChannelExist: (channelType: string) => boolean;
     static registerChannel: (channel: Channel) => void;
 }

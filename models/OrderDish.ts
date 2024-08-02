@@ -55,6 +55,8 @@ let attributes = {
     allowNull: true
   } as unknown as string,
 
+  discountId: "string",
+
   discountAmount: "number" as unknown as number,
 
   /** postDiscounts */
