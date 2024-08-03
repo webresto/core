@@ -30,15 +30,17 @@ export default abstract class AbstractPromotionAdapter {
         // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
 
         await OrderDish.destroy({ order: order.id, addedBy: "promotion" }).fetch();
-        await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null }).fetch();
+        await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null, discountId: null, discountDebugInfo: null  }).fetch();
         await Order.updateOne({ id: order.id }, { discountTotal: 0, promotionFlatDiscount: 0 });
 
         let dishes = order.dishes ? order.dishes as OrderDish[] : []
         dishes.forEach((orderItem) => {
             orderItem.discountTotal = 0,
-                orderItem.discountType = null,
-                orderItem.discountAmount = 0,
-                orderItem.discountMessage = null
+            orderItem.discountType = null,
+            orderItem.discountAmount = 0,
+            orderItem.discountMessage = null
+            orderItem.discountId = null
+            orderItem.discountDebugInfo = null
         })
 
         order.promotionState = [];

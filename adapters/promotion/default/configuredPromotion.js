@@ -104,7 +104,9 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 if (typeof orderDish.dish === "string") {
                     throw new Error("Type error dish: applyPromotion expected array");
                 }
-                let orderDishDiscountCost = 0;
+                // Allowed only one 
+                if (orderDish.discountId)
+                    continue;
                 if (!orderDish.dish) {
                     sails.log.error("orderDish", orderDish.id, "has no such dish");
                     continue;
@@ -117,6 +119,8 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 let checkGroups = (0, stringsInArray_1.someInArray)(orderDish.dish.parentGroup, this.config.groups);
                 if (!checkDishes || !checkGroups)
                     continue;
+                let itemTotalBeforeDiscount = orderDish.itemTotal;
+                let orderDishDiscountCost = 0;
                 if (this.configDiscount.discountType === "flat") {
                     discountAmount = this.configDiscount.discountAmount;
                     orderDishDiscountCost = new decimal_js_1.default(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
@@ -124,7 +128,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 }
                 else if (this.configDiscount.discountType === "percentage") {
                     // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
-                    let orderDishDiscountItemCost = new decimal_js_1.default(orderDish.dish.price).mul(+this.configDiscount.discountAmount / 100);
+                    let orderDishDiscountItemCost = new decimal_js_1.default(orderDish.dish.price).mul(this.configDiscount.discountAmount).mul(0.01);
                     orderDishDiscountCost = orderDishDiscountItemCost.mul(orderDish.amount).toNumber();
                     discountAmount = orderDishDiscountItemCost.toNumber();
                     calculatedDiscountAmount = new decimal_js_1.default(orderDishDiscountCost).add(calculatedDiscountAmount);
@@ -132,8 +136,16 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                 else {
                     throw `Unknown discountType: [${this.configDiscount.discountType}] in name: [${this.name}], id: [${this.id}]`;
                 }
-                let orderDishDiscount = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
-                await OrderDish.update({ id: orderDish.id }, { itemTotalBeforeDiscount: orderDishDiscountCost, discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType, discountAmount: discountAmount, discountId: orderDish.discountId + "| " + this.name }).fetch();
+                let discountTotal = new decimal_js_1.default(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
+                const update = {
+                    itemTotalBeforeDiscount,
+                    discountTotal,
+                    discountType: this.configDiscount.discountType,
+                    discountAmount,
+                    discountId: this.id,
+                    discountDebugInfo: orderDish.discountDebugInfo + `${new Date()}: name[${this.name}], id[${this.id}]`
+                };
+                await OrderDish.update({ id: orderDish.id }, update).fetch();
             }
         }
         /**
@@ -145,8 +157,8 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         else {
             order.promotionFlatDiscount = calculatedDiscountAmount.toNumber();
         }
-        // TODO: this is call in ORM unwanted
-        // await Order.updateOne({id: order.id}, {promotionFlatDiscount: order.promotionFlatDiscount});
+        // TODO: this is call in ORM unwanted, but without this the direct call to the cart discount does not work
+        await Order.updateOne({ id: order.id }, { promotionFlatDiscount: order.promotionFlatDiscount });
         return {
             message: `${this.description}`,
             type: "configured-promotion",

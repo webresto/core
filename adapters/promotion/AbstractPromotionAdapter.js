@@ -14,7 +14,7 @@ class AbstractPromotionAdapter {
         //if (order.state === "PAYMENT") throw "order with orderId" + order.id + "in state PAYMENT";
         // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         await OrderDish.destroy({ order: order.id, addedBy: "promotion" }).fetch();
-        await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null }).fetch();
+        await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null, discountId: null, discountDebugInfo: null }).fetch();
         await Order.updateOne({ id: order.id }, { discountTotal: 0, promotionFlatDiscount: 0 });
         let dishes = order.dishes ? order.dishes : [];
         dishes.forEach((orderItem) => {
@@ -22,6 +22,8 @@ class AbstractPromotionAdapter {
                 orderItem.discountType = null,
                 orderItem.discountAmount = 0,
                 orderItem.discountMessage = null;
+            orderItem.discountId = null;
+            orderItem.discountDebugInfo = null;
         });
         order.promotionState = [];
         order.promotionDelivery = null;

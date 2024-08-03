@@ -12,7 +12,7 @@ import AbstractPromotionAdapter from '../../../adapters/promotion/AbstractPromot
 import Group from './../../../models/Group';
 import Dish from './../../../models/Dish';
 import Order, { PromotionState } from './../../../models/Order';
-import { stringsInArray } from '../../../libs/stringsInArray';
+import { someInArray, stringsInArray } from '../../../libs/stringsInArray';
 import ConfiguredPromotion from '../../../adapters/promotion/default/configuredPromotion';
 import Decimal from 'decimal.js';
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
@@ -44,19 +44,19 @@ describe('Discount', function () {
         description: "string",
         concept: ["origin","clear","Happy Birthday","3dif","Display Dish"],
         condition: (arg: Group | Dish | Order): boolean =>{
-          if (findModelInstanceByAttributes(arg) === "Order" && stringsInArray(arg.concept, discountEx.concept) ) {
+          if (findModelInstanceByAttributes(arg) === "Order" && someInArray(arg.concept, discountEx.concept) ) {
             // Order.populate()
             //discountEx.concept.includes(arg.concept)
             return true;
         }
         
-        if (findModelInstanceByAttributes(arg) === "Dish" && stringsInArray(arg.concept, discountEx.concept)) {
-           return stringsInArray(arg.id, discountEx.configDiscount.dishes)
+        if (findModelInstanceByAttributes(arg) === "Dish" && someInArray(arg.concept, discountEx.concept)) {
+           return someInArray(arg.id, discountEx.configDiscount.dishes)
             // TODO: check if includes in IconfigDish
             return true;
         }
         
-        if (findModelInstanceByAttributes(arg) === "Group" && stringsInArray(arg.concept, discountEx.concept) ) {
+        if (findModelInstanceByAttributes(arg) === "Group" && someInArray(arg.concept, discountEx.concept) ) {
              // TODO: check if includes in IconfigG
             return true;
         }
@@ -277,7 +277,7 @@ describe('Discount', function () {
         expect(order.promotionFlatDiscount).to.equal(60.45);
       });
       
-      it("discount test dishes with flat and percentage types of discounts but different concept", async function () {
+      it("111 discount test dishes with flat and percentage types of discounts but different concept", async function () {
         
         let order = await Order.create({id: "test-different-types-and-concept"}).fetch();
         await Order.updateOne({id: order.id}, {user: "user"});
@@ -304,33 +304,25 @@ describe('Discount', function () {
         await Order.addDish({id: order.id}, dish3, 5, [], "", "user"); 
         await Order.addDish({id: order.id}, dish4, 4, [], "", "user");
         await Order.addDish({id: order.id}, dish5, 5, [], "", "user");
-
-
-        //  17.7 + 12.16 + 19.95 = 49.81
-        // await promotionAdapter.addPromotionHandler(discInMemory)
-        // await promotionAdapter.addPromotionHandler(discountEx)
-        
-        await promotionAdapter.processOrder(order)
         
         order = await Order.findOne(order.id).populate('dishes')
         let basketDiscount = 0;
+        let discounts = new Map
         for(const dish of order.dishes)  {
           if(typeof dish !== 'number') {
             if(dish.addedBy !== "user") continue;
-
+            discounts.set(dish.discountId, true);
             let discount = discountsArray.find((d)=> d.id === dish.discountId);
-            console.log(dish, discount)
-            expect(dish.discountAmount).to.equal(discount.configDiscount.discountAmount);
-            expect(dish.discountAmount).to.equal(discount.configDiscount.discountAmount);
             if(discount.configDiscount.discountType === "flat"){
+              expect(dish.discountAmount).to.equal(discount.configDiscount.discountAmount);
               basketDiscount += discount.configDiscount.discountAmount * dish.amount
             } else {
+              expect(dish.discountAmount).to.equal(discount.configDiscount.discountAmount * 0.01 * dish.itemPrice);
               basketDiscount += (discount.configDiscount.discountAmount * 0.01 * dish.itemPrice * dish.amount) 
             }
           }
         } 
-        
-        console.log(">>>>>>>>>> basketDiscount", basketDiscount)
+        expect(discounts.size).to.equal(2)
         expect(basketDiscount).to.equal(order.promotionFlatDiscount);
         expect(order.promotionFlatDiscount).to.equal(49.81);
       });
@@ -368,8 +360,6 @@ describe('Discount', function () {
         // 18.62  + 136.8 - 10% = 18.62 + 13,68 = 32.3+ (101 +60.8) - 10% = 32.3 + 16.18 = 48.48 + 14 = 62.48
         let orderTotal = dish1.price * 5 + dish2.price * 4 + dish3.price * 5 + dish4.price * 4 + dish5.price * 5;
         expect(result.basketTotal).to.equal(orderTotal);
-        let _dishes = await OrderDish.find({order: result.id});
-        // console.log("___________________ORDER DISHES", JSON.stringify(_dishes, null, 4))
         expect(result.discountTotal).to.equal(62.48);
       });
       

@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extractFieldValues = exports.someInArray = exports.stringsInArray = void 0;
+/**
+ * @notused
+ */
 function stringsInArray(check, array) {
     // If check is an array of strings
     if (Array.isArray(check)) {

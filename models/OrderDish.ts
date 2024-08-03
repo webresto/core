@@ -5,6 +5,7 @@ import Dish from "../models/Dish";
 import Order from "../models/Order";
 import { Modifier, OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+import e from "express";
 
 let attributes = {
   /** */
@@ -55,7 +56,15 @@ let attributes = {
     allowNull: true
   } as unknown as string,
 
-  discountId: "string",
+  discountId: {
+    type: "string",
+    allowNull: true
+  } as unknown as string,
+
+  discountDebugInfo: {
+    type: "string",
+    allowNull: true
+  } as unknown as string,
 
   discountAmount: "number" as unknown as number,
 
@@ -85,7 +94,8 @@ type attributes = typeof attributes;
 interface OrderDish extends RequiredField<OptionalAll<attributes>, "dish" | "amount" >, ORM {}
 export default OrderDish;
 
-let Model = {};
+let Model = {
+};
 
 module.exports = {
   primaryKey: "id",

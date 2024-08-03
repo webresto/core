@@ -11,7 +11,7 @@ import { Adapter } from '../../../adapters/index';
 import Group from '../../../models/Group';
 import Dish from '../../../models/Dish';
 import Order, { PromotionState } from '../../../models/Order';
-import { stringsInArray } from '../../../libs/stringsInArray';
+import { someInArray } from '../../../libs/stringsInArray';
 import ConfiguredPromotion from '../../../adapters/promotion/default/configuredPromotion';
 import Decimal from 'decimal.js';
 
@@ -35,7 +35,7 @@ describe('Discount_Empty', function () {
     concept: [""],
     condition: (arg: Group | Dish | Order): boolean => {
       if (findModelInstanceByAttributes(arg) === "Order" && (discountEx.concept[0] === undefined || discountEx.concept[0] === "")
-        ? true : stringsInArray(arg.concept, discountEx.concept)) {
+        ? true : someInArray(arg.concept, discountEx.concept)) {
         // Order.populate()
         //discountEx.concept.includes(arg.concept)
         return true;

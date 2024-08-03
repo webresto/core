@@ -28,6 +28,7 @@ declare let attributes: {
     /** Type discount */
     discountType: string;
     discountId: string;
+    discountDebugInfo: string;
     discountAmount: number;
     /** postDiscounts */
     discountMessage: string;

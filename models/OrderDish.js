@@ -37,7 +37,14 @@ let attributes = {
         isIn: ["percentage", "flat"],
         allowNull: true
     },
-    discountId: "string",
+    discountId: {
+        type: "string",
+        allowNull: true
+    },
+    discountDebugInfo: {
+        type: "string",
+        allowNull: true
+    },
     discountAmount: "number",
     /** postDiscounts */
     discountMessage: {

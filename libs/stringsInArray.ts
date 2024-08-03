@@ -1,3 +1,6 @@
+/**
+ * @notused
+ */
 export function stringsInArray(check: string[] | string, array: string[]): boolean {
     // If check is an array of strings
     if (Array.isArray(check)) {

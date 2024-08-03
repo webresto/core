@@ -29,7 +29,7 @@ describe('Discount_Empty', function () {
         concept: [""],
         condition: (arg) => {
             if ((0, findModelInstance_1.default)(arg) === "Order" && (discountEx.concept[0] === undefined || discountEx.concept[0] === "")
-                ? true : (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx.concept)) {
+                ? true : (0, stringsInArray_1.someInArray)(arg.concept, discountEx.concept)) {
                 // Order.populate()
                 //discountEx.concept.includes(arg.concept)
                 return true;

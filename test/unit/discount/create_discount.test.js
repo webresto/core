@@ -28,15 +28,15 @@ describe('Create_Discount', function () {
             description: "string",
             concept: [],
             condition: (arg) => {
-                if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx.concept)) {
+                if ((0, findModelInstance_1.default)(arg) === "Order" && (0, stringsInArray_1.someInArray)(arg.concept, discountEx.concept)) {
                     // Order.populate()
                     return true;
                 }
-                if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx.concept)) {
+                if ((0, findModelInstance_1.default)(arg) === "Dish" && (0, stringsInArray_1.someInArray)(arg.concept, discountEx.concept)) {
                     // TODO: check if includes in IconfigDish
                     return true;
                 }
-                if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.stringsInArray)(arg.concept, discountEx.concept)) {
+                if ((0, findModelInstance_1.default)(arg) === "Group" && (0, stringsInArray_1.someInArray)(arg.concept, discountEx.concept)) {
                     // TODO: check if includes in IconfigG
                     return true;
                 }

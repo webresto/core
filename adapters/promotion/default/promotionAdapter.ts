@@ -21,6 +21,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     emitter.emit("promotion-process:debug", debugCount, populatedOrder, null, null)
     populatedOrder = await this.clearOfPromotion(populatedOrder);
     let filteredPromotion = this.filterByConcept(populatedOrder.concept);
+    // TODO: filter retruns only one
     let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, populatedOrder);
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {

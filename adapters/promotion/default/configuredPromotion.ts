@@ -139,7 +139,9 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           throw new Error("Type error dish: applyPromotion expected array")
         }
 
-        let orderDishDiscountCost: number = 0;
+        // Allowed only one 
+        if (orderDish.discountId) continue;
+
         if (!orderDish.dish) {
           sails.log.error("orderDish", orderDish.id, "has no such dish");
           continue;
@@ -155,7 +157,9 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
         if (!checkDishes || !checkGroups) continue
 
+        let itemTotalBeforeDiscount = orderDish.itemTotal;
         
+        let orderDishDiscountCost: number = 0;
         if (this.configDiscount.discountType === "flat") {
           discountAmount = this.configDiscount.discountAmount;
           orderDishDiscountCost = new Decimal(this.configDiscount.discountAmount).mul(orderDish.amount).toNumber();
@@ -163,7 +167,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
         } else if (this.configDiscount.discountType === "percentage") {
           // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
-          let orderDishDiscountItemCost = new Decimal(orderDish.dish.price).mul(+this.configDiscount.discountAmount / 100)
+          let orderDishDiscountItemCost = new Decimal(orderDish.dish.price).mul(this.configDiscount.discountAmount).mul(0.01)
           orderDishDiscountCost = orderDishDiscountItemCost.mul(orderDish.amount).toNumber();
           discountAmount = orderDishDiscountItemCost.toNumber();
           calculatedDiscountAmount = new Decimal(orderDishDiscountCost).add(calculatedDiscountAmount);
@@ -171,8 +175,16 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
         } else {
           throw `Unknown discountType: [${this.configDiscount.discountType}] in name: [${this.name}], id: [${this.id}]`
         }
-        let orderDishDiscount: number = new Decimal(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
-        await OrderDish.update({ id: orderDish.id }, { itemTotalBeforeDiscount: orderDishDiscountCost, discountTotal: orderDishDiscount, discountType: this.configDiscount.discountType, discountAmount: discountAmount, discountId: orderDish.discountId + "| " +this.name }).fetch();
+        let discountTotal: number = new Decimal(orderDish.discountTotal).add(orderDishDiscountCost).toNumber();
+        const update =  { 
+          itemTotalBeforeDiscount, 
+          discountTotal, 
+          discountType: this.configDiscount.discountType, 
+          discountAmount, 
+          discountId: this.id, 
+          discountDebugInfo: orderDish.discountDebugInfo + `${new Date()}: name[${this.name}], id[${this.id}]`
+        }
+        await OrderDish.update({ id: orderDish.id },update).fetch();
       }
     }
 
@@ -185,8 +197,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       order.promotionFlatDiscount = calculatedDiscountAmount.toNumber();
     }
 
-    // TODO: this is call in ORM unwanted
-    // await Order.updateOne({id: order.id}, {promotionFlatDiscount: order.promotionFlatDiscount});
+    // TODO: this is call in ORM unwanted, but without this the direct call to the cart discount does not work
+    await Order.updateOne({id: order.id}, {promotionFlatDiscount: order.promotionFlatDiscount});
 
     return {
       message: `${this.description}`,
