@@ -18,7 +18,7 @@ We currently only support installation via docker. Look at this image [webresto/
 
 Join our community to get support for everyone interested in food delivery using our restaurant engine. This is the place where restaurateurs and developers collaborate on the restaurant system. Get the latest news and share ideas. Join us!
 
-[![Discord](https://img.shields.io/badge/Join-Discord-%237289DA?logo=discord&style=flat-square)](https://discord.gg/mbT4AeBJZ6)
+[![Discord](https://img.shields.io/badge/Join-Discord-%237289DA?logo=discord&style=flat-square)](https://discord.gg/nA5f8pzd)
 [![Telegram](https://img.shields.io/badge/Join-Telegram-%232CA5E0?logo=telegram&style=flat-square)](https://t.me/restoapp_community)
 [![WhatsApp](https://img.shields.io/badge/Join-WhatsApp-%2325D366?logo=whatsapp&style=flat-square)](https://chat.whatsapp.com/CIc1MXXjbquAqeYHCt3k40)
 
