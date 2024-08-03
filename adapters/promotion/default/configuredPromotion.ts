@@ -131,7 +131,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
     // If groups and dishes are selected for the discount
     } else {
-      for (const orderDish of orderDishes) {
+      for (let orderDish of orderDishes) {
+
         let discountAmount: number;
 
 
@@ -140,7 +141,10 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
         }
 
         // Allowed only one 
-        if (orderDish.discountId) continue;
+        if (orderDish.discountId) {
+          sails.log.warn(`orderDish with id [${orderDish.id}] was called to apply a discount on top of another discount. Please note that the discount did not apply`)
+          continue;
+        }
 
         if (!orderDish.dish) {
           sails.log.error("orderDish", orderDish.id, "has no such dish");

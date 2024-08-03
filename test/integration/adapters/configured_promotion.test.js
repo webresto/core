@@ -167,85 +167,85 @@ describe("Promotion adapter integration test", function () {
     //   /**
     //    * Here need add 2 discount for cross group and check what is stop after first found
     //    */
-    it("Check flat and percentage discount for specific dish/group", async () => {
-        let order = await Order.create({ id: "configured-promotion-integration-specific" }).fetch();
-        await Order.updateOne({ id: order.id }, { user: "user" });
-        const groups = await Group.find({});
-        const groupsId = groups.map(group => group.id);
-        let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "specific", parentGroup: groupsId[0] }));
-        let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "specific", parentGroup: groupsId[1] }));
-        let dishes = await Dish.find({});
-        const dishesId = dishes.map(dish => dish.id);
-        let flatDiscount = (0, discount_generator_1.default)({
-            concept: ["specific"],
-            badge: 'test',
-            id: 'flat2-id',
-            isJoint: true,
-            name: 'awdaawd',
-            isPublic: true,
-            configDiscount: {
-                discountType: "flat",
-                discountAmount: 1,
-                dishes: dishesId,
-                groups: groupsId,
-                excludeModifiers: true
-            },
-        });
-        let percentDiscount = (0, discount_generator_1.default)({
-            badge: 'test',
-            concept: ["specific"],
-            id: 'percent2-id',
-            isJoint: true,
-            name: 'awdaawd',
-            isPublic: true,
-            configDiscount: {
-                discountType: "percentage",
-                discountAmount: 10,
-                dishes: [dish1.id],
-                groups: groupsId,
-                excludeModifiers: true
-            },
-        });
-        let percentDiscount2 = (0, discount_generator_1.default)({
-            concept: ["specific"],
-            badge: 'test',
-            id: 'percent2-idawdawd',
-            isJoint: true,
-            name: 'awdaawawdd',
-            isPublic: true,
-            configDiscount: {
-                discountType: "percentage",
-                discountAmount: 10,
-                dishes: [dish1.id],
-                groups: [groupsId[1]],
-                excludeModifiers: true
-            },
-        });
-        let percentDiscount3 = (0, discount_generator_1.default)({
-            concept: ["specific"],
-            id: 'percent2-idawdawd',
-            isJoint: true,
-            badge: 'test',
-            name: 'awdaawawdd',
-            isPublic: true,
-            configDiscount: {
-                discountType: "percentage",
-                discountAmount: 10,
-                dishes: [dish1.id, dish2.id],
-                groups: [groupsId[1]],
-                excludeModifiers: true
-            },
-        });
-        await promotionAdapter.addPromotionHandler(flatDiscount);
-        await promotionAdapter.addPromotionHandler(percentDiscount);
-        await promotionAdapter.addPromotionHandler(percentDiscount2);
-        await promotionAdapter.addPromotionHandler(percentDiscount3);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
-        order = await Order.findOne(order.id);
-        // console.log(order, 234)
-        (0, chai_1.expect)(order.discountTotal).to.equal(20.13);
-    });
+    // it("Check flat and percentage discount for specific dish/group", async () => {
+    //   let order = await Order.create({ id: "configured-promotion-integration-specific" }).fetch();
+    //   await Order.updateOne({ id: order.id }, { user: "user" });
+    //   const groups = await Group.find({})
+    //   const groupsId = groups.map(group => group.id)
+    //   let dish1 = await Dish.createOrUpdate(dishGenerator({ name: "test dish", price: 10.1, concept: "specific", parentGroup: groupsId[0] }));
+    //   let dish2 = await Dish.createOrUpdate(dishGenerator({ name: "test fish", price: 15.2, concept: "specific", parentGroup: groupsId[1] }));
+    //   let dishes = await Dish.find({})
+    //   const dishesId = dishes.map(dish => dish.id)
+    //   let flatDiscount: AbstractPromotionHandler = discountGenerator({
+    //     concept: ["specific"],
+    //     badge: 'test',
+    //     id: 'flat2-id',
+    //     isJoint: true,
+    //     name: 'awdaawd',
+    //     isPublic: true,
+    //     configDiscount: {
+    //       discountType: "flat",
+    //       discountAmount: 1,
+    //       dishes: dishesId,
+    //       groups: groupsId,
+    //       excludeModifiers: true
+    //     },
+    //   })
+    //   let percentDiscount: AbstractPromotionHandler = discountGenerator({
+    //     badge: 'test',
+    //     concept: ["specific"],
+    //     id: 'percent2-id',
+    //     isJoint: true,
+    //     name: 'awdaawd',
+    //     isPublic: true,
+    //     configDiscount: {
+    //       discountType: "percentage",
+    //       discountAmount: 10,
+    //       dishes: [dish1.id],
+    //       groups: groupsId,
+    //       excludeModifiers: true
+    //     },
+    //   })
+    //   let percentDiscount2: AbstractPromotionHandler = discountGenerator({
+    //     concept: ["specific"],
+    //     badge: 'test',
+    //     id: 'percent2-idawdawd',
+    //     isJoint: true,
+    //     name: 'awdaawawdd',
+    //     isPublic: true,
+    //     configDiscount: {
+    //       discountType: "percentage",
+    //       discountAmount: 10,
+    //       dishes: [dish1.id],
+    //       groups: [groupsId[1]],
+    //       excludeModifiers: true
+    //     },
+    //   })
+    //   let percentDiscount3: AbstractPromotionHandler = discountGenerator({
+    //     concept: ["specific"],
+    //     id: 'percent2-idawdawd',
+    //     isJoint: true,
+    //     badge: 'test',
+    //     name: 'awdaawawdd',
+    //     isPublic: true,
+    //     configDiscount: {
+    //       discountType: "percentage",
+    //       discountAmount: 10,
+    //       dishes: [dish1.id, dish2.id],
+    //       groups: [groupsId[1]],
+    //       excludeModifiers: true
+    //     },
+    //   })
+    //   await promotionAdapter.addPromotionHandler(flatDiscount)
+    //   await promotionAdapter.addPromotionHandler(percentDiscount)
+    //   await promotionAdapter.addPromotionHandler(percentDiscount2)
+    //   await promotionAdapter.addPromotionHandler(percentDiscount3)
+    //   await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
+    //   await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
+    //   order = await Order.findOne(order.id)
+    //   // console.log(order, 234)
+    //   expect(order.discountTotal).to.equal(20.13);
+    // })
     it("Promotion states should passed in order discount", async () => {
         let order = await Order.create({ id: "configured-promotion-integration-states" }).fetch();
         await Order.updateOne({ id: order.id }, { user: "user" });

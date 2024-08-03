@@ -99,14 +99,16 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             // If groups and dishes are selected for the discount
         }
         else {
-            for (const orderDish of orderDishes) {
+            for (let orderDish of orderDishes) {
                 let discountAmount;
                 if (typeof orderDish.dish === "string") {
                     throw new Error("Type error dish: applyPromotion expected array");
                 }
                 // Allowed only one 
-                if (orderDish.discountId)
+                if (orderDish.discountId) {
+                    sails.log.warn(`orderDish with id [${orderDish.id}] was called to apply a discount on top of another discount. Please note that the discount did not apply`);
                     continue;
+                }
                 if (!orderDish.dish) {
                     sails.log.error("orderDish", orderDish.id, "has no such dish");
                     continue;
