@@ -14,7 +14,7 @@ let attributes = {
     autoIncrement: true,
   } as unknown as number,
 
-  /** Количество данного блюда с его модификаторами в корзине */
+  /** Quantity of this dish with its modifiers in the cart */
   amount: "number" as unknown as number,
 
   // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
@@ -33,9 +33,6 @@ let attributes = {
   order: {
     model: "Order",
   } as unknown as Order | any,
-
-  /** The number of unique dishes in the basket */
-  uniqueItems: "number" as unknown as number,
 
   /** Position price*/
   itemTotal: "number" as unknown as number,

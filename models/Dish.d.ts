@@ -1,3 +1,5 @@
+import Group from "./Group";
+import MediaFile from "./MediaFile";
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { WorkTime } from "@webresto/worktime";
@@ -65,7 +67,7 @@ declare let attributes: {
     /** The dish can be modified*/
     isModificable: boolean;
     /** Parental group */
-    parentGroup: any;
+    parentGroup: Group | any;
     /** Tags for filtering (vegetarian, sharp ...) */
     tags: any;
     /** Balance for sale, if -1, then as much as you like */
@@ -87,7 +89,7 @@ declare let attributes: {
     /** Модифакторы блюда */
     modifiers: GroupModifier[];
     /**List of images of the dish*/
-    images: string[] | MediaFile[];
+    images: MediaFile[] | string[];
     favorites: User[];
     customData: CustomData;
 };

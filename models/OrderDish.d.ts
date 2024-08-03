@@ -6,7 +6,7 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 declare let attributes: {
     /** */
     id: number;
-    /** Количество данного блюда с его модификаторами в корзине */
+    /** Quantity of this dish with its modifiers in the cart */
     amount: number;
     /**Блюдо, которое содержится в корзине */
     /** any problem */
@@ -15,8 +15,6 @@ declare let attributes: {
     modifiers: OrderModifier[];
     /** */
     order: any;
-    /** The number of unique dishes in the basket */
-    uniqueItems: number;
     /** Position price*/
     itemTotal: number;
     /** Position price before the use of discounts */

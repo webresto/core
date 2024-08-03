@@ -6,7 +6,7 @@ let attributes = {
         type: "number",
         autoIncrement: true,
     },
-    /** Количество данного блюда с его модификаторами в корзине */
+    /** Quantity of this dish with its modifiers in the cart */
     amount: "number",
     // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
     // Есть идея что нужно отдельно запекать заказы.
@@ -21,8 +21,6 @@ let attributes = {
     order: {
         model: "Order",
     },
-    /** The number of unique dishes in the basket */
-    uniqueItems: "number",
     /** Position price*/
     itemTotal: "number",
     /** Position price before the use of discounts */

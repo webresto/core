@@ -38,7 +38,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             let orderDishes = order.dishes;
             let checkDishes = orderDishes.map(order => order.dish).some((dish) => this.config.dishes.includes(dish.id));
             let checkGroups = orderDishes.map(order => order.dish).some((dish) => this.config.groups.includes(dish.parentGroup));
-            if (checkDishes && checkGroups)
+            if (checkDishes || checkGroups)
                 return true;
             return false;
         }

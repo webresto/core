@@ -1113,7 +1113,6 @@ let Model = {
                             emitter.emit("core:orderproduct-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
                         }
-                        orderDish.uniqueItems += orderDish.amount; // deprecated
                         orderDish.itemTotal = 0;
                         orderDish.weight = 0;
                         orderDish.totalWeight = 0;

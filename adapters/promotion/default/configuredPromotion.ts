@@ -56,7 +56,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       let checkDishes = orderDishes.map(order => order.dish).some((dish: Dish) => this.config.dishes.includes(dish.id))
       let checkGroups = orderDishes.map(order => order.dish).some((dish: Dish) => this.config.groups.includes(dish.parentGroup))
 
-      if (checkDishes && checkGroups) return true
+      if (checkDishes || checkGroups) return true
 
       return false;
     }

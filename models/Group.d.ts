@@ -1,5 +1,6 @@
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
+import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
@@ -27,15 +28,15 @@ declare let attributes: {
     /** Sorting weight */
     sortOrder: number;
     dishes: Dish[];
-    parentGroup: any;
-    childGroups: string[] | Group[];
+    parentGroup: Group | any;
+    childGroups: Group[] | string[];
     /** Icon */
     icon: {
         type: string;
         allowNull: boolean;
     };
     /** Images */
-    images: string[] | MediaFile[];
+    images: MediaFile[] | string[];
     /** Placeholder for group dishes */
     dishesPlaceholder: MediaFile[];
     /** The human easy readable*/
@@ -52,9 +53,9 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
-    customData: string | {
-        [key: string]: string | number | boolean;
-    };
+    customData: {
+        [key: string]: string | boolean | number;
+    } | string;
 };
 interface IVirtualFields {
     discountAmount?: number;

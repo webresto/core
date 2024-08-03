@@ -8,7 +8,6 @@ const orderDishExample = {
     order: "orderId",
     discount: '"json"',
     parent: 1,
-    uniqueItems: 5,
     itemTotal: 5,
     discountTotal: 100,
     comment: "comment",
@@ -20,6 +19,6 @@ describe("OrderDish", function () {
     it("create", async function () {
         const orderDish = await OrderDish.create(orderDishExample).fetch();
         orderDishId = orderDish.id;
-        (0, chai_1.expect)(orderDish).to.include.all.keys("amount", "dish", "modifiers", "order", "uniqueItems", "itemTotal", "itemTotalBeforeDiscount", "discountTotal", "discountType", "discountAmount", "discountMessage", "comment", "addedBy", "weight", "totalWeight");
+        (0, chai_1.expect)(orderDish).to.include.all.keys("amount", "dish", "modifiers", "order", "itemTotal", "itemTotalBeforeDiscount", "discountTotal", "discountType", "discountAmount", "discountMessage", "comment", "addedBy", "weight", "totalWeight");
     });
 });
