@@ -308,6 +308,8 @@ let Model = {
         else {
             dishObj = dish;
         }
+        if (amount < 0)
+            throw `Amount is subzero [${amount}]`;
         // TODO: In core you can add any amount dish, only in checkout it should show which not allowed
         if (dishObj.balance !== -1) {
             if (amount > dishObj.balance) {

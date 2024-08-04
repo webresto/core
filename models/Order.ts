@@ -414,6 +414,7 @@ let Model = {
       dishObj = dish;
     }
 
+    if (amount < 0) throw `Amount is subzero [${amount}]`
 
     // TODO: In core you can add any amount dish, only in checkout it should show which not allowed
     if (dishObj.balance !== -1) {
@@ -598,6 +599,7 @@ let Model = {
   },
 
   async setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void> {
+    
     await emitter.emit.apply(emitter, ["core:order-before-set-count", ...arguments]);
     const _dish = dish.dish as Dish;
     if (_dish.balance !== -1)
