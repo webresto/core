@@ -5,7 +5,6 @@ import Dish from "../models/Dish";
 import Order from "../models/Order";
 import { Modifier, OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import e from "express";
 
 let attributes = {
   /** */

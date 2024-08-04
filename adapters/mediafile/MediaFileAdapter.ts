@@ -1,5 +1,5 @@
 import { v5 as uuidv5 } from "uuid";
-import MediaFile, { IMediaFile } from "../../models/MediaFile";
+import { IMediaFile } from "../../models/MediaFile";
 
 
 export type BaseConfigProperty = BaseConfig | BaseConfig[] | number | boolean | string | null | undefined;
@@ -39,7 +39,7 @@ export default abstract class MediaFileAdapter {
 
   public abstract checkFileExist(mediaFile: IMediaFile): Promise<boolean>
 
-  public async toDownload(url: string, target: string, type: MediaFileTypes, force: boolean = false): Promise<MediaFile> {
+  public async toDownload(url: string, target: string, type: MediaFileTypes, force: boolean = false): Promise<IMediaFile> {
     await this.wait()
     sails.log.silly(`Adapter > Mediafile > toDownload: ${url}`)
     let imageId = uuidv5(url, this.UUID_NAMESPACE);

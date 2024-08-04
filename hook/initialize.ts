@@ -39,7 +39,7 @@ export default function ToInitialize(sails: Sails) {
   /**
    * Required hooks
    */
-  const requiredHooks = ["orm", "policies", "stateflow"];
+  const requiredHooks = ["orm", "policies", "stateflow", "i18n"];
 
   return function initialize(cb) {
     try {
@@ -51,7 +51,7 @@ export default function ToInitialize(sails: Sails) {
       }
   
       // Disable blueprints magic
-      if (process.env.BLUEPRINTS_SECURITY_OFF !== "TRUE") {
+      if (process.env.BLUEPRINTS_SECURITY_OFF !== "TRUE" && sails.config.blueprints) {
         sails.config.blueprints.shortcuts = false;
         sails.config.blueprints.rest = false;
         sails.log.info("Blueprints rest/shortcuts magic is OFF ");

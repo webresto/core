@@ -10,12 +10,15 @@ before(function (done) {
     Sails().lift({}, function (err, _sails) {
         if (err)
             return done(err);
+        //@ts-ignore
         global.sails = _sails;
         return done();
     });
 });
 after(function (done) {
+    //@ts-ignore
     if (global.sails) {
+        //@ts-ignore
         return global.sails.lower(function (err) {
             if (err) {
                 done();

@@ -59,7 +59,7 @@ function ToInitialize(sails) {
     /**
      * Required hooks
      */
-    const requiredHooks = ["orm", "policies", "stateflow"];
+    const requiredHooks = ["orm", "policies", "stateflow", "i18n"];
     return function initialize(cb) {
         try {
             sails.log.info(`RestoCore initialize from dir [${__dirname}]`);
@@ -67,7 +67,7 @@ function ToInitialize(sails) {
                 return cb();
             }
             // Disable blueprints magic
-            if (process.env.BLUEPRINTS_SECURITY_OFF !== "TRUE") {
+            if (process.env.BLUEPRINTS_SECURITY_OFF !== "TRUE" && sails.config.blueprints) {
                 sails.config.blueprints.shortcuts = false;
                 sails.config.blueprints.rest = false;
                 sails.log.info("Blueprints rest/shortcuts magic is OFF ");

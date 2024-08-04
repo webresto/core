@@ -27,7 +27,7 @@ const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 async function default_1() {
     if (!sails.hooks.i18n) {
-        throw "sails hook i18n was not loaded, core bindtranltion failed";
+        throw "sails hook i18n was not loaded, core bindTranslation failed";
     }
     try {
         if (sails.hooks.i18n.appendLocale === undefined) {

@@ -3,7 +3,7 @@ import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 
 import ORM from "../interfaces/ORM";
-import MediaFile from "../models/MediaFile";
+import {IMediaFile} from "./MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
@@ -98,12 +98,12 @@ let attributes = {
   images: {
     collection: "mediafile",
     via: "group",
-  } as unknown as MediaFile[] | string[],
+  } as unknown as IMediaFile[] | string[],
 
   /** Placeholder for group dishes */
   dishesPlaceholder: {
     model: "mediafile",
-  } as unknown as MediaFile[],
+  } as unknown as IMediaFile[],
 
   /** The human easy readable*/
   slug: {

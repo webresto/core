@@ -26,8 +26,7 @@ declare let attributes: {
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM {
 }
-export type IMediaFile = MediaFile;
-export default IMediaFile;
+export type IMediaFile = OptionalAll<attributes>;
 declare let Model: {
     beforeCreate(imageInit: any, cb: (err?: string) => void): void;
     afterDestroy(mf: MediaFile, cb: (err?: any) => void): Promise<void>;
@@ -35,3 +34,4 @@ declare let Model: {
 declare global {
     const MediaFile: typeof Model & ORMModel<MediaFile, null>;
 }
+export {};

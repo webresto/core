@@ -1,6 +1,6 @@
 import Group from "./Group";
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
-import MediaFile from "./MediaFile";
+import {IMediaFile} from "./MediaFile";
 import hashCode from "../libs/hashCode";
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
@@ -217,7 +217,7 @@ let attributes = {
   images: {
     collection: "mediafile",
     via: "dish",
-  } as unknown as MediaFile[] | string[],
+  } as unknown as IMediaFile[] | string[],
 
   favorites: {
     collection: 'user',

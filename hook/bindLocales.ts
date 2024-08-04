@@ -3,8 +3,8 @@ import * as fs from "fs";
 
 export default async function () {
   if (!sails.hooks.i18n) {
-    throw "sails hook i18n was not loaded, core bindtranltion failed"
-  }
+    throw "sails hook i18n was not loaded, core bindTranslation failed"
+  } 
 
   try {
     if (sails.hooks.i18n.appendLocale === undefined) {

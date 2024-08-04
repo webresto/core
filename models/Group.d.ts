@@ -1,6 +1,5 @@
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import MediaFile from "../models/MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
@@ -28,17 +27,35 @@ declare let attributes: {
     /** Sorting weight */
     sortOrder: number;
     dishes: Dish[];
-    parentGroup: Group | any;
-    childGroups: Group[] | string[];
+    parentGroup: any;
+    childGroups: string[] | Group[];
     /** Icon */
     icon: {
         type: string;
         allowNull: boolean;
     };
     /** Images */
-    images: MediaFile[] | string[];
+    images: string[] | OptionalAll<{
+        id: string;
+        type: "video" | "image" | "sound";
+        images: any;
+        original: string;
+        dish: Dish[];
+        sortOrder: number;
+        group: Group[];
+        uploadDate: string; /** Soft deletion */
+    }>[];
     /** Placeholder for group dishes */
-    dishesPlaceholder: MediaFile[];
+    dishesPlaceholder: OptionalAll<{
+        id: string;
+        type: "video" | "image" | "sound";
+        images: any;
+        original: string;
+        dish: Dish[];
+        sortOrder: number;
+        group: Group[];
+        uploadDate: string; /** Soft deletion */
+    }>[];
     /** The human easy readable*/
     slug: string;
     /** The concept to which the group belongs */
@@ -53,9 +70,9 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
-    customData: {
-        [key: string]: string | boolean | number;
-    } | string;
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 interface IVirtualFields {
     discountAmount?: number;
