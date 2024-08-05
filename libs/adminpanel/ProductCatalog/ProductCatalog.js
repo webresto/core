@@ -44,7 +44,7 @@ class BaseModelItem extends AbstractCatalog_1.AbstractItem {
         };
     }
     async getChilds(parentId, catalogId) {
-        return await sails.models[this.model].find({ parentId: parentId, concept: catalogId });
+        return await sails.models[this.model].find({ parentGroup: parentId, concept: catalogId });
     }
     async search(s) {
         return await sails.models[this.model].find({ name: { contains: s } });

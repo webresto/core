@@ -51,7 +51,7 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	}
 
 	public async getChilds(parentId: string, catalogId: string): Promise<Item[]> {
-		return await sails.models[this.model].find({parentId: parentId, concept: catalogId});
+		return await sails.models[this.model].find({parentGroup: parentId, concept: catalogId});
 	}
 
 	public async search(s: string): Promise<T[]> {
