@@ -8,7 +8,7 @@ declare class BaseModelItem<T extends Item> extends AbstractItem<T> {
     readonly actionHandlers: any[];
     find(itemId: string | number): Promise<any>;
     update(itemId: string | number, data: Item): Promise<T>;
-    create(catalogId: string, data: T): Promise<T>;
+    create(data: T, catalogId: string): Promise<T>;
     deleteItem(itemId: string | number): Promise<void>;
     getAddHTML(): Promise<{
         type: "link" | "html";
@@ -18,7 +18,7 @@ declare class BaseModelItem<T extends Item> extends AbstractItem<T> {
         type: "link" | "html";
         data: string;
     }>;
-    getChilds(parentId: string | number): Promise<Item[]>;
+    getChilds(parentId: string, catalogId: string): Promise<Item[]>;
     search(s: string): Promise<T[]>;
     updateModelItems(itemId: string | number, data: T, catalogId: string): Promise<T>;
 }
@@ -38,6 +38,7 @@ export declare class Product<T extends Item> extends BaseModelItem<T> {
     type: string;
     model: string;
     readonly actionHandlers: any[];
+    concept: string;
 }
 export declare class ProductCatalog extends AbstractCatalog {
     readonly name: string;

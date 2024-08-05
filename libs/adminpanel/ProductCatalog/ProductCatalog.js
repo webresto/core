@@ -20,37 +20,31 @@ class BaseModelItem extends AbstractCatalog_1.AbstractItem {
         return await sails.models[this.model].update({ id: itemId }, { name: data.name, parentId: data.parentId }).fetch();
     }
     ;
-    // @ts-ignore
-    create(catalogId, data) {
+    create(data, catalogId) {
         return Promise.resolve(undefined);
     }
-    // public async create(itemId: string, data: Item): Promise<Item> {
-    // 	throw `I dont know for what need it`
-    // 	// return await sails.models.create({ name: data.name, parentId: data.parentId}).fetch();
-    // 	// return await StorageService.setElement(itemId, data);
-    // }
     async deleteItem(itemId) {
         await sails.models[this.model].destroy({ id: itemId });
         //	await StorageService.removeElementById(itemId);
     }
     getAddHTML() {
         let type = 'link';
+        let linkMap = this.model === 'dish' ? 'product' : this.model;
         return Promise.resolve({
             type: type,
-            data: `/admin/model/${this.model}/add?without_layout=true`
+            data: `/admin/model/${linkMap}s/add?without_layout=true`
         });
     }
     async getEditHTML(id, parenId) {
         let type = 'link';
+        let linkMap = this.model === 'dish' ? 'product' : this.model;
         return {
             type: type,
-            data: `/admin/model/${this.model}/edit/${id}?without_layout=true`
+            data: `/admin/model/${linkMap}s/edit/${id}?without_layout=true`
         };
     }
-    // TODO: Need rename (getChilds) it not intuitive
-    async getChilds(parentId) {
-        // console.log(this.type, parentId, await sails.models[this.model].find({parentId: parentId}))
-        return await sails.models[this.model].find({ parentId: parentId });
+    async getChilds(parentId, catalogId) {
+        return await sails.models[this.model].find({ parentId: parentId, concept: catalogId });
     }
     async search(s) {
         return await sails.models[this.model].find({ name: { contains: s } });
@@ -81,6 +75,7 @@ class Product extends BaseModelItem {
         this.type = 'product';
         this.model = "dish";
         this.actionHandlers = [];
+        this.concept = "origin";
     }
 }
 exports.Product = Product;
@@ -91,7 +86,7 @@ class ProductCatalog extends AbstractCatalog_1.AbstractCatalog {
             new Product()
         ]);
         this.name = "Product catalog";
-        this.slug = "productCatalog";
+        this.slug = "products";
         this.maxNestingDepth = null;
         this.icon = "barcode";
         this.actionHandlers = [];

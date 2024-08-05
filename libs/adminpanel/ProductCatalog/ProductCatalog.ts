@@ -18,16 +18,10 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 		// allowed only parentId update
 		return await sails.models[this.model].update({id: itemId}, {name: data.name, parentId: data.parentId}).fetch();
 	};
-	// @ts-ignore
-	create(catalogId: string, data: T): Promise<T> {
+
+	public create(data: T, catalogId: string): Promise<T> {
 		return Promise.resolve(undefined);
 	}
-
-	// public async create(itemId: string, data: Item): Promise<Item> {
-	// 	throw `I dont know for what need it`
-	// 	// return await sails.models.create({ name: data.name, parentId: data.parentId}).fetch();
-	// 	// return await StorageService.setElement(itemId, data);
-	// }
 
 	public async deleteItem(itemId: string | number) {
 		await sails.models[this.model].destroy({id: itemId})
@@ -36,9 +30,10 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 
 	public getAddHTML(): Promise<{ type: "link" | "html"; data: string; }> {
 		let type: 'link' = 'link'
+		let linkMap = this.model === 'dish' ? 'product' : this.model
 		return Promise.resolve({
 			type: type,
-			data: `/admin/model/${this.model}/add?without_layout=true`
+			data: `/admin/model/${linkMap}s/add?without_layout=true`
 		})
 	}
 
@@ -48,16 +43,15 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 		data: string;
 	}> {
 		let type: 'link' = 'link'
+		let linkMap = this.model === 'dish' ? 'product' : this.model
 		return {
 			type: type,
-			data: `/admin/model/${this.model}/edit/${id}?without_layout=true`
+			data: `/admin/model/${linkMap}s/edit/${id}?without_layout=true`
 		}
 	}
 
-	// TODO: Need rename (getChilds) it not intuitive
-	public async getChilds(parentId: string | number): Promise<Item[]> {
-		// console.log(this.type, parentId, await sails.models[this.model].find({parentId: parentId}))
-		return await sails.models[this.model].find({parentId: parentId});
+	public async getChilds(parentId: string, catalogId: string): Promise<Item[]> {
+		return await sails.models[this.model].find({parentId: parentId, concept: catalogId});
 	}
 
 	public async search(s: string): Promise<T[]> {
@@ -79,7 +73,6 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 	public isGroup: boolean = true;
 	public model: string = "group";
 	public readonly actionHandlers: any[] = []
-
 }
 
 export class Product<T extends Item> extends BaseModelItem<T> {
@@ -89,12 +82,13 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 	public type = 'product'
 	public model: string = "dish";
 	public readonly actionHandlers: any[] = []
-
+	public concept:  string = "origin";
+	
 }
 
 export class ProductCatalog extends AbstractCatalog {
 	public readonly name: string = "Product catalog";
-	public readonly slug: string = "productCatalog";
+	public readonly slug: string = "products";
 	public readonly maxNestingDepth: number = null;
 	public readonly icon: string = "barcode";
 	public readonly actionHandlers: any[] = []
