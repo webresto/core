@@ -17,7 +17,7 @@ class BaseModelItem extends AbstractCatalog_1.AbstractItem {
     }
     async update(itemId, data) {
         // allowed only parentId update
-        return await sails.models[this.model].update({ id: itemId }, { name: data.name, parentId: data.parentId }).fetch();
+        return await sails.models[this.model].update({ id: itemId }, { name: data.name, parentGroup: data.parentId }).fetch();
     }
     ;
     create(data, catalogId) {
@@ -90,6 +90,11 @@ class ProductCatalog extends AbstractCatalog_1.AbstractCatalog {
         this.maxNestingDepth = null;
         this.icon = "barcode";
         this.actionHandlers = [];
+    }
+    async getIdList() {
+        const groups = await sails.models['group'].find({});
+        const concepts = groups.map(group => group.concept);
+        return [...new Set(concepts)];
     }
 }
 exports.ProductCatalog = ProductCatalog;

@@ -47,5 +47,6 @@ export declare class ProductCatalog extends AbstractCatalog {
     readonly icon: string;
     readonly actionHandlers: any[];
     constructor();
+    getIdList(): Promise<string[]>;
 }
 export {};

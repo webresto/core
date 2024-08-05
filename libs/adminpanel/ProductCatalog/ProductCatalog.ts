@@ -16,7 +16,7 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 
 	public async update(itemId: string | number, data: Item): Promise<T> {
 		// allowed only parentId update
-		return await sails.models[this.model].update({id: itemId}, {name: data.name, parentId: data.parentId}).fetch();
+		return await sails.models[this.model].update({id: itemId}, {name: data.name, parentGroup: data.parentId}).fetch();
 	};
 
 	public create(data: T, catalogId: string): Promise<T> {
@@ -61,7 +61,6 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	updateModelItems(itemId: string | number, data: T, catalogId: string): Promise<T> {
 		return Promise.resolve(undefined);
 	}
-
 }
 
 
@@ -98,5 +97,11 @@ export class ProductCatalog extends AbstractCatalog {
 			new Group(),
 			new Product()
 		]);
+	}
+
+	public async getIdList(): Promise<string[]> {
+		const groups = await sails.models['group'].find({});
+		const concepts: string[] = groups.map(group => group.concept);
+		return [...new Set(concepts)];
 	}
 }
