@@ -1,5 +1,12 @@
 import {AbstractCatalog, AbstractGroup, AbstractItem, ActionHandler, Item} from "sails-adminpanel/lib/catalog/AbstractCatalog";
 
+interface ItemModel {
+	id: string
+	name: string
+	parentGroup: string
+	concept: string
+	sortOrder: number
+}
 
 class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	public type: string = "product";
@@ -10,22 +17,41 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 
 	public readonly actionHandlers: any[] = []
 
-	public async find(itemId: string | number) {
-		return await sails.models[this.model].findOne({id: itemId});
+	private toItem(data: ItemModel): Item {
+		return {
+			id: data.id,
+			name: data.name,
+			parentId: data.parentGroup,
+			sortOrder: data.sortOrder,
+			icon: "",
+			type: ""
+		}
 	}
 
-	public async update(itemId: string | number, data: Item): Promise<T> {
-		// allowed only parentId update
-		return await sails.models[this.model].update({id: itemId}, {name: data.name, parentGroup: data.parentId}).fetch();
-	};
+	public async find(itemId: string | number, catalogId: string): Promise<T> {
+		const item = await sails.models[this.model].findOne({ id: itemId, concept: catalogId });
+		return this.toItem(item) as T;
+	}
+
+	public async update(itemId: string | number, data: Item, catalogId: string): Promise<T> {
+		// Perform the update, returning the first updated item
+		const updatedRecords = await sails.models[this.model].update(
+			{ id: itemId, concept: catalogId },
+			{ name: data.name, parentGroup: data.parentId, sortOrder: data.sortOrder }
+		).fetch();
+	
+		// Ensure we return the first updated record, cast to type T
+		const updatedItem = updatedRecords[0];
+		return this.toItem(updatedItem) as T;
+	}
+	
 
 	public create(data: T, catalogId: string): Promise<T> {
 		return Promise.resolve(undefined);
 	}
 
-	public async deleteItem(itemId: string | number) {
-		await sails.models[this.model].destroy({id: itemId})
-		//	await StorageService.removeElementById(itemId);
+	public async deleteItem(itemId: string | number, catalogId: string) {
+		await sails.models[this.model].update({id: itemId, concept: catalogId}, {isDeleted: true}).fetch()
 	}
 
 	public getAddHTML(): Promise<{ type: "link" | "html"; data: string; }> {
@@ -51,11 +77,22 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	}
 
 	public async getChilds(parentId: string, catalogId: string): Promise<Item[]> {
-		return await sails.models[this.model].find({parentGroup: parentId, concept: catalogId});
+		const records = await sails.models[this.model].find({
+			parentGroup: parentId,
+			concept: catalogId,
+			isDeleted: false
+		});
+		
+		return records.map(record => this.toItem(record));
 	}
 
-	public async search(s: string): Promise<T[]> {
-		return await sails.models[this.model].find({name: {contains: s}});
+	public async search(s: string, catalogId: string): Promise<T[]> {
+		const records = await sails.models[this.model].find({
+			name: { contains: s },
+			concept: catalogId
+		});
+
+		return records.map(record => this.toItem(record) as T);
 	}
 
 	updateModelItems(itemId: string | number, data: T, catalogId: string): Promise<T> {
@@ -102,6 +139,7 @@ export class ProductCatalog extends AbstractCatalog {
 	public async getIdList(): Promise<string[]> {
 		const groups = await sails.models['group'].find({});
 		const concepts: string[] = groups.map(group => group.concept);
+		concepts.push('origin')
 		return [...new Set(concepts)];
 	}
 }

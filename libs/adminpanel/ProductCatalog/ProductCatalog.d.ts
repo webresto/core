@@ -6,10 +6,11 @@ declare class BaseModelItem<T extends Item> extends AbstractItem<T> {
     icon: string;
     model: string;
     readonly actionHandlers: any[];
-    find(itemId: string | number): Promise<any>;
-    update(itemId: string | number, data: Item): Promise<T>;
+    private toItem;
+    find(itemId: string | number, catalogId: string): Promise<T>;
+    update(itemId: string | number, data: Item, catalogId: string): Promise<T>;
     create(data: T, catalogId: string): Promise<T>;
-    deleteItem(itemId: string | number): Promise<void>;
+    deleteItem(itemId: string | number, catalogId: string): Promise<void>;
     getAddHTML(): Promise<{
         type: "link" | "html";
         data: string;
@@ -19,7 +20,7 @@ declare class BaseModelItem<T extends Item> extends AbstractItem<T> {
         data: string;
     }>;
     getChilds(parentId: string, catalogId: string): Promise<Item[]>;
-    search(s: string): Promise<T[]>;
+    search(s: string, catalogId: string): Promise<T[]>;
     updateModelItems(itemId: string | number, data: T, catalogId: string): Promise<T>;
 }
 export declare class Group<GroupProductItem extends Item> extends BaseModelItem<GroupProductItem> {
