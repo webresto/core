@@ -8,7 +8,6 @@ const CatalogHandler_1 = require("sails-adminpanel/lib/catalog/CatalogHandler");
 const ProductCatalog_1 = require("../libs/adminpanel/ProductCatalog/ProductCatalog");
 const productCatalog = new ProductCatalog_1.ProductCatalog();
 CatalogHandler_1.CatalogHandler.add(productCatalog);
-console.log(productCatalog, CatalogHandler_1.CatalogHandler.getAll(), 1111122221);
 function bindAdminpanel() {
     sails.on('Adminpanel:afterHook:loaded', async () => {
         processBindAdminpanel();

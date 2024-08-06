@@ -6,7 +6,6 @@ import { ProductCatalog } from "../libs/adminpanel/ProductCatalog/ProductCatalog
 
 const productCatalog = new ProductCatalog()
 CatalogHandler.add(productCatalog);
-console.log(productCatalog,CatalogHandler.getAll(),1111122221)
 export default function bindAdminpanel () {
   sails.on('Adminpanel:afterHook:loaded', async ()=>{
     processBindAdminpanel();
