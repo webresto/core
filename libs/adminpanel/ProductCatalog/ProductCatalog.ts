@@ -46,8 +46,11 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	}
 	
 
-	public create(data: T, catalogId: string): Promise<T> {
-		return Promise.resolve(undefined);
+	public async create(data: T, catalogId: string): Promise<T> {
+		//@ts-ignore
+		data.parentGroup = data.parentId
+		let result = await sails.models[this.model].create(data).fetch()
+		return ;
 	}
 
 	public async deleteItem(itemId: string | number, catalogId: string) {

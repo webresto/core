@@ -33,8 +33,11 @@ class BaseModelItem extends AbstractCatalog_1.AbstractItem {
         const updatedItem = updatedRecords[0];
         return this.toItem(updatedItem);
     }
-    create(data, catalogId) {
-        return Promise.resolve(undefined);
+    async create(data, catalogId) {
+        //@ts-ignore
+        data.parentGroup = data.parentId;
+        let result = await sails.models[this.model].create(data).fetch();
+        return;
     }
     async deleteItem(itemId, catalogId) {
         await sails.models[this.model].update({ id: itemId, concept: catalogId }, { isDeleted: true }).fetch();
