@@ -1,3 +1,4 @@
+"use strict";
 module.exports = {
     /**
      * This is a first state, here only raw cart.

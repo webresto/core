@@ -16,8 +16,8 @@
     "removeComments": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    // TODO: ts with "strict": true,
-    // "alwaysStrict": true
+    "noImplicitAny": true,
+    "alwaysStrict": true
   },
   "exclude": [
     "node_modules"
