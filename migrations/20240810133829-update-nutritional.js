@@ -19,11 +19,7 @@ exports.setup = function(options, seedLink) {
 exports.up = function (db, callback) {
   async.series([
     (cb) => db.addColumn('dish', 'proteinAmount', {"type":"real","notNull":false}, cb),
-(cb) => db.addColumn('dish', 'caloriesAmount', {"type":"real","notNull":false}, cb),
-(cb) => db.removeColumn('dish', 'carbohydrateFullAmount', cb),
-(cb) => db.removeColumn('dish', 'energyFullAmount', cb),
-(cb) => db.removeColumn('dish', 'fatFullAmount', cb),
-(cb) => db.removeColumn('dish', 'fiberFullAmount', cb),
+(cb) => db.addColumn('dish', 'proteinFullAmount', {"type":"real","notNull":false}, cb),
 (cb) => db.removeColumn('orderdish', 'uniqueItems', cb),
 
   ], callback);
