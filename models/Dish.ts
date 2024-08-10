@@ -81,10 +81,7 @@ let attributes = {
   } as unknown as string,
 
   /** The number of carbohydrates per (100g)*/
-  carbohydrateAmount: "number" as unknown as number,
-
-  /** The number of carbohydrates in the dish */
-  carbohydrateFullAmount: {
+  carbohydrateAmount: {
     type: "number",
     allowNull: true
   } as unknown as number,
@@ -95,20 +92,8 @@ let attributes = {
     allowNull: true
   } as unknown as number,
 
-  /** Energy value */
-  energyFullAmount: {
-    type: "number",
-    allowNull: true
-  } as unknown as number,
-
   /**  The amount of fat (100 g) */
   fatAmount: {
-    type: "number",
-    allowNull: true
-  } as unknown as number,
-
-  /** The amount of fat in the dish */
-  fatFullAmount: {
     type: "number",
     allowNull: true
   } as unknown as number,
@@ -119,12 +104,15 @@ let attributes = {
     allowNull: true
   } as unknown as number,
 
-  /** The number of proteins in the dish */
-  fiberFullAmount: {
+  proteinAmount: {
     type: "number",
     allowNull: true
   } as unknown as number,
 
+  caloriesAmount: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /** The group identifier in which the dish is located
    * @deprecated will be deleted in v2

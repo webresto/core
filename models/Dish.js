@@ -66,9 +66,7 @@ let attributes = {
         allowNull: true,
     },
     /** The number of carbohydrates per (100g)*/
-    carbohydrateAmount: "number",
-    /** The number of carbohydrates in the dish */
-    carbohydrateFullAmount: {
+    carbohydrateAmount: {
         type: "number",
         allowNull: true
     },
@@ -77,18 +75,8 @@ let attributes = {
         type: "number",
         allowNull: true
     },
-    /** Energy value */
-    energyFullAmount: {
-        type: "number",
-        allowNull: true
-    },
     /**  The amount of fat (100 g) */
     fatAmount: {
-        type: "number",
-        allowNull: true
-    },
-    /** The amount of fat in the dish */
-    fatFullAmount: {
         type: "number",
         allowNull: true
     },
@@ -97,8 +85,11 @@ let attributes = {
         type: "number",
         allowNull: true
     },
-    /** The number of proteins in the dish */
-    fiberFullAmount: {
+    proteinAmount: {
+        type: "number",
+        allowNull: true
+    },
+    caloriesAmount: {
         type: "number",
         allowNull: true
     },
