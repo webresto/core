@@ -144,7 +144,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             const url = loadMediaFilesProcess.url;
             if (url.startsWith('file://')) {
                 // Handle local file URL
-                const localFilePath = new URL(url).pathname;
+                const localFilePath = decodeURIComponent(new URL(url).pathname);
                 sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
                 fs.mkdirSync(prefix, { recursive: true });
                 fs.copyFileSync(localFilePath, fullPathDl);
