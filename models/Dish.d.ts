@@ -31,23 +31,34 @@ declare let attributes: {
     seoTitle: string;
     /** The number of carbohydrates per (100g)*/
     carbohydrateAmount: number;
-    /** The number of carbohydrates in the dish */
+    /**
+     * @deprecated
+     * The number of carbohydrates in the dish */
     carbohydrateFullAmount: number;
     /** Energy value (100 g) */
     energyAmount: number;
-    /** Energy value */
+    /**
+     * @deprecated
+     * Energy value */
     energyFullAmount: number;
     /**  The amount of fat (100 g) */
     fatAmount: number;
-    /** The amount of fat in the dish */
+    /**
+     * @deprecated
+     * The amount of fat in the dish */
     fatFullAmount: number;
-    /** The number of fiber (100g)  */
+    /**
+     * The number of fiber (100g)  */
     fiberAmount: number;
-    /** The number of proteins in the dish */
+    /**
+     * @deprecated
+     * The number of proteins in the dish */
     fiberFullAmount: number;
     /** The number of proteins (100g)  */
     proteinAmount: number;
-    /** The number of proteins in the dish */
+    /**
+     * @deprecated
+     * The number of proteins in the dish */
     proteinFullAmount: number;
     /** The group identifier in which the dish is located
      * @deprecated will be deleted in v2

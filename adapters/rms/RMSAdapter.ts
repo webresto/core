@@ -126,7 +126,7 @@ export default abstract class RMSAdapter {
           }
 
           // Collect all product ids
-          let allProductIds = [];
+          let allProductIds: string[] = [];
 
           for (const group of currentRMSGroupsFlatTree) {
             const productsToUpdate = await rmsAdapter.loadProductsByGroup(group);
@@ -153,8 +153,8 @@ export default abstract class RMSAdapter {
               const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
               // Load images
               if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
-                const isURL = (str) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
-                for (let image of product.images) {
+                const isURL = (str: string) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
+                for (let image of product.images as string[]) {
                   if (isURL(image)) {
                     // load image
                     const mfAdater = await Adapter.getMediaFileAdapter();

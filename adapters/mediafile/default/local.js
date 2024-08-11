@@ -140,15 +140,32 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         const fullPathDl = path.join(prefix, loadMediaFilesProcess.name.origin);
         // Check if file exists
         if (!fs.existsSync(fullPathDl)) {
-            const response = await axios_1.default.get(loadMediaFilesProcess.url, { responseType: 'stream', maxRedirects: 5 });
-            sails.log.silly(`MF local > download image: ${fullPathDl}, status: ${response.status}`);
-            fs.mkdirSync(prefix, { recursive: true });
-            const writer = fs.createWriteStream(fullPathDl);
-            response.data.pipe(writer);
-            await new Promise((resolve, reject) => {
-                writer.on('finish', resolve);
-                writer.on('error', reject);
-            });
+            let response;
+            const url = loadMediaFilesProcess.url;
+            if (url.startsWith('file://')) {
+                // Handle local file URL
+                const localFilePath = new URL(url).pathname;
+                sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
+                fs.mkdirSync(prefix, { recursive: true });
+                fs.copyFileSync(localFilePath, fullPathDl);
+                return; // Exit the method since the file is copied
+            }
+            else if (url.startsWith('http://') || url.startsWith('https://')) {
+                // Handle HTTP/HTTPS URL
+                response = await axios_1.default.get(url, { responseType: 'stream', maxRedirects: 5 });
+                sails.log.silly(`MF local > download image: ${fullPathDl}, status: ${response.status}`);
+                fs.mkdirSync(prefix, { recursive: true });
+                const writer = fs.createWriteStream(fullPathDl);
+                response.data.pipe(writer);
+                await new Promise((resolve, reject) => {
+                    writer.on('finish', resolve);
+                    writer.on('error', reject);
+                });
+            }
+            else {
+                sails.log.error(`Unsupported URL protocol: ${url}`);
+                throw new Error(`Unsupported URL protocol: ${url}`);
+            }
         }
         else {
             sails.log.silly(`File ${fullPathDl} already exists. Skipping download.`);

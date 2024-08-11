@@ -294,6 +294,8 @@ let Model = {
       init.customData = {}
     }
 
+    init.visible = init.visible ?? true
+
     cb();
   },
 
