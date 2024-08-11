@@ -159,6 +159,8 @@ let Model = {
     getAllByConcept(concept) {
         if (typeof concept === "string")
             concept = [concept];
+        if (!concept)
+            concept = ["origin"];
         const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
         if (!concept.length)
             throw "concept is required";

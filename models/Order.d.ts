@@ -219,7 +219,7 @@ declare let Model: {
       Current implement logic for only one strategy
   
      */
-    checkBonus(orderId: any, spendBonus: SpendBonus): Promise<void>;
+    checkBonus(orderId: string, spendBonus: SpendBonus): Promise<void>;
     clearOfPromotion(): Promise<void>;
     check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus): Promise<void>;
     /** Basket design*/

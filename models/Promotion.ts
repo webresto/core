@@ -16,7 +16,7 @@ import { v4 as uuid } from "uuid";
 //   }, CHECK_INTERVAL);
 // });
 
-let promotionRAM = []
+let promotionRAM: Promotion[] = []
 
 sails.on("lifted", async ()=>{
   let promotions = await Promotion.find({ enable:true, createdByUser: true })
@@ -216,7 +216,7 @@ let Model = {
 
   getAllByConcept(concept: string[]): Promotion[] {
     if(typeof concept === "string") concept = [concept];
-
+    if(!concept) concept = ["origin"];
     const promotionAdapter = Adapter.getPromotionAdapter()
     if (!concept.length) throw "concept is required";
     let activePromotionIds = promotionAdapter.getActivePromotionsIds()

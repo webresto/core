@@ -20,7 +20,7 @@ import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAda
 import PromotionCode from "./PromotionCode";
 import { phoneValidByMask } from "../libs/phoneValidByMask";
 import { OrderHelper } from "../libs/helpers/OrderHelper";
-
+import { GroupModifier } from "../interfaces/Modifier";
 export interface PromotionState {
   type: string;
   message: string;
@@ -370,7 +370,7 @@ let Model = {
      */
 
     const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID");
-    if (Boolean(ORDER_INIT_PRODUCT_ID)) {
+    if (ORDER_INIT_PRODUCT_ID) {
       const ORDER_INIT_PRODUCT = (await Dish.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
       if (ORDER_INIT_PRODUCT !== undefined) {
         await Order.addDish({ id: order.id }, ORDER_INIT_PRODUCT, 1, [], "", "core")
@@ -434,7 +434,7 @@ let Model = {
     /**
      * Add default modifiers in add
      */
-    const dishModifiers = dishObj.modifiers;
+    const dishModifiers: GroupModifier[] = dishObj.modifiers ?? [];
     dishModifiers.forEach(group => {
       if (group.childModifiers) {
         group.childModifiers.forEach(modifier => {
@@ -564,7 +564,7 @@ let Model = {
 
     if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
-    var orderDish: OrderDish;
+    let orderDish: OrderDish;
     if (stack) {
       amount = 1;
       orderDish = await OrderDish.findOne({
@@ -718,7 +718,7 @@ let Model = {
 
    */
 
-  async checkBonus(orderId, spendBonus: SpendBonus): Promise<void> {
+  async checkBonus(orderId: string, spendBonus: SpendBonus): Promise<void> {
     const order = await Order.findOne({ id: orderId });
 
     if (order.user && typeof order.user === "string") {
@@ -1145,14 +1145,14 @@ let Model = {
     const order: Order = await Order.findOne(criteria);
     if (order.state !== "CHECKOUT") throw `order with orderId ${order.id} in state ${order.state} but need CHECKOUT`;
 
-    var paymentResponse: PaymentResponse;
+    let paymentResponse: PaymentResponse;
     let comment: string = "";
-    var backLinkSuccess = (await Settings.get("FRONTEND_ORDER_PAGE")) + order.shortId;
-    var backLinkFail = await Settings.get("FRONTEND_CHECKOUT_PAGE");
+    let backLinkSuccess = (await Settings.get("FRONTEND_ORDER_PAGE")) + order.shortId;
+    let backLinkFail = await Settings.get("FRONTEND_CHECKOUT_PAGE");
     let paymentMethodId = await order.paymentMethod
     sails.log.silly("Order > payment > before payment register", order);
 
-    var params = {
+    let params = {
       backLinkSuccess: backLinkSuccess,
       backLinkFail: backLinkFail,
       comment: comment,
@@ -1302,16 +1302,17 @@ let Model = {
         sails.log.error(err);
         throw new Error(err)
       }
-      order.isPromoting = isPromoting;
-
-      emitter.emit("core:order-before-count", order);
-
+      
       /**
        *  // TODO: If countCart from payment or other changes from payment it should cancel all payment request
        */
       if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
 
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
+      if(!orderDishes) return order;
+
+      emitter.emit("core:order-before-count", order);
+      order.isPromoting = isPromoting;
       // const orderDishesClone = {}
       let basketTotal = new Decimal(0);
       let dishesCount = 0;
