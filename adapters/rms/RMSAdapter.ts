@@ -153,7 +153,7 @@ export default abstract class RMSAdapter {
               const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
               // Load images
               if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
-                const isURL = (str: string) => /^(https?:\/\/)?[\w.-]+(\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$/.test(str);
+                const isURL = (str: string) => /^(https?:\/\/|file:\/\/).+/.test(str);
                 for (let image of product.images as string[]) {
                   if (isURL(image)) {
                     // load image
