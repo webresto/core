@@ -50,5 +50,10 @@ exports.default = {
         model: 'place',
         title: 'Places',
         icon: 'store'
+    },
+    paymentMethod: {
+        model: 'paymentmethod',
+        title: 'Payment method',
+        icon: 'credit-card'
     }
 };

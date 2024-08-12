@@ -49,5 +49,10 @@ declare const _default: {
         title: string;
         icon: string;
     };
+    paymentMethod: {
+        model: string;
+        title: string;
+        icon: string;
+    };
 };
 export default _default;
