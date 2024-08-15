@@ -1,0 +1,8 @@
+{
+  "key": "STRICT_PHONE_VALIDATION",
+  "type": "boolean",
+  "name": "Allow Bonus Spending",
+  "description": "",
+  "defaultValue": false,
+  "isRequired": false
+}

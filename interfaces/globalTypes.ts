@@ -143,5 +143,9 @@ declare global {
     PasswordMinLength: string
     EMITTER_CHECKOUT_STRATEGY: "JUST_ONE" | "NOT_REQUIRED" | "ALL_REQUIRED"
     EMITTER_ORDER_STRATEGY: "JUST_ONE" | "NOT_REQUIRED" | "ALL_REQUIRED"
+    /**
+     * Strict phone check by mask
+     */
+    STRICT_PHONE_VALIDATION: boolean
   }
 }

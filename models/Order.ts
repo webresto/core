@@ -1742,7 +1742,7 @@ declare global {
 // LOCAL HELPERS
 /////////////////////////////////////////////////////////////////
 
-async function checkCustomerInfo(customer) {
+async function checkCustomerInfo(customer: Customer) {
   if (!customer.name) {
     throw {
       code: 1,
@@ -1771,8 +1771,10 @@ async function checkCustomerInfo(customer) {
   if (Array.isArray(allowedPhoneCountries)) {
     for (let countryCode of allowedPhoneCountries) {
       const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-      isValidPhone = phoneValidByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
-      if (isValidPhone) break;
+      if(await Settings.get("STRICT_PHONE_VALIDATION")) {
+        isValidPhone = phoneValidByMask(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask)
+        if (isValidPhone) break;
+      }
     }
   }
 
@@ -1793,11 +1795,11 @@ async function checkCustomerInfo(customer) {
   }
 }
 
-function checkAddress(address) {
-  if (!address.street && !address.streetId) {
+function checkAddress(address: Address) {
+  if (!address.street && !address.streetId && ! address.buildingName) {
     throw {
       code: 5,
-      error: "address.street or streetId  is required",
+      error: "one of (street, streetId  or buildingName) is required",
     };
   }
 
@@ -1816,7 +1818,7 @@ function checkAddress(address) {
   }
 }
 
-async function checkPaymentMethod(paymentMethodId) {
+async function checkPaymentMethod(paymentMethodId: string) {
   if (!(await PaymentMethod.checkAvailable(paymentMethodId))) {
     throw {
       code: 8,

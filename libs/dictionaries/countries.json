@@ -69,7 +69,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(268)###-####"
+      "(268) ###-####"
     ],
     "flag": "/restocore/assets/flags/ag.svg"
   },
@@ -87,7 +87,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(264)###-####"
+      "(264) ###-####"
     ],
     "flag": "/restocore/assets/flags/ai.svg"
   },
@@ -105,7 +105,7 @@
     "currencyUnit": "Qindarkë",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/al.svg"
   },
@@ -141,7 +141,7 @@
     "currencyUnit": "Cêntimo",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/ao.svg"
   },
@@ -180,7 +180,7 @@
     "currencyUnit": "Centavo",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/ar.svg"
   },
@@ -199,7 +199,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(684)###-####"
+      "(684) ###-####"
     ],
     "flag": "/restocore/assets/flags/as.svg"
   },
@@ -217,7 +217,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/at.svg"
   },
@@ -311,7 +311,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(246)###-####"
+      "(246) ###-####"
     ],
     "flag": "/restocore/assets/flags/bb.svg"
   },
@@ -349,7 +349,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/be.svg"
   },
@@ -385,7 +385,7 @@
     "currencyUnit": "Stotinka",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/bg.svg"
   },
@@ -475,7 +475,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(441)###-####"
+      "(441) ###-####"
     ],
     "flag": "/restocore/assets/flags/bm.svg"
   },
@@ -532,8 +532,8 @@
     "currencyUnit": "Centavo",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(##)####-####",
-      "(##)#####-####"
+      "(##) ####-####",
+      "(##) #####-####"
     ],
     "flag": "/restocore/assets/flags/br.svg"
   },
@@ -551,7 +551,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(242)###-####"
+      "(242) ###-####"
     ],
     "flag": "/restocore/assets/flags/bs.svg"
   },
@@ -609,7 +609,7 @@
     "currencyUnit": "Kapyeyka",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(##)###-##-##"
+      "(##) ###-##-##"
     ],
     "flag": "/restocore/assets/flags/by.svg"
   },
@@ -646,7 +646,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/ca.svg"
   },
@@ -682,7 +682,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/cd.svg"
   },
@@ -832,8 +832,8 @@
     "currencyUnit": "Jiao",
     "currencyDenomination": 10,
     "phoneMask": [
-      "(###)####-###",
-      "(###)####-####",
+      "(###) ####-###",
+      "(###) ####-####",
       "##-#####-#####"
     ],
     "flag": "/restocore/assets/flags/cn.svg"
@@ -852,7 +852,7 @@
     "currencyUnit": "Centavo",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/co.svg"
   },
@@ -906,7 +906,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(###)##-##"
+      "(###) ##-##"
     ],
     "flag": "/restocore/assets/flags/cv.svg"
   },
@@ -981,7 +981,7 @@
     "currencyUnit": "Haléř",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/cz.svg"
   },
@@ -1000,11 +1000,11 @@
     "currencyDenomination": 100,
     "phoneMask": [
       "###-###",
-      "(###)##-##",
-      "(###)##-###",
-      "(###)##-####",
-      "(###)###-####",
-      "(####)###-####"
+      "(###) ##-##",
+      "(###) ##-###",
+      "(###) ##-####",
+      "(###) ###-####",
+      "(####) ###-####"
     ],
     "flag": "/restocore/assets/flags/de.svg"
   },
@@ -1061,7 +1061,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(767)###-####"
+      "(767) ###-####"
     ],
     "flag": "/restocore/assets/flags/dm.svg"
   },
@@ -1079,9 +1079,9 @@
     "currencyUnit": "Centavo",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(809)###-####",
-      "(829)###-####",
-      "(849)###-####"
+      "(809) ###-####",
+      "(829) ###-####",
+      "(849) ###-####"
     ],
     "flag": "/restocore/assets/flags/do.svg"
   },
@@ -1155,7 +1155,7 @@
     "currencyUnit": "Piastre",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/eg.svg"
   },
@@ -1217,7 +1217,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/es.svg"
   },
@@ -1256,7 +1256,7 @@
     "currencyUnit": "Sentti",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-##-##"
+      "(###) ###-##-##"
     ],
     "flag": "/restocore/assets/flags/fi.svg"
   },
@@ -1347,7 +1347,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/fr.svg"
   },
@@ -1405,7 +1405,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(473)###-####"
+      "(473) ###-####"
     ],
     "flag": "/restocore/assets/flags/gd.svg"
   },
@@ -1423,7 +1423,7 @@
     "currencyUnit": "Tetri",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/ge.svg"
   },
@@ -1441,7 +1441,7 @@
     "currencyUnit": "Penny",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(####)######"
+      "(####) ######"
     ],
     "flag": "/restocore/assets/flags/gg.svg"
   },
@@ -1459,7 +1459,7 @@
     "currencyUnit": "Pesewa",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/gh.svg"
   },
@@ -1514,7 +1514,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(###)##-##"
+      "(###) ##-##"
     ],
     "flag": "/restocore/assets/flags/gm.svg"
   },
@@ -1570,7 +1570,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/gr.svg"
   },
@@ -1607,7 +1607,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(671)###-####"
+      "(671) ###-####"
     ],
     "flag": "/restocore/assets/flags/gu.svg"
   },
@@ -1735,7 +1735,7 @@
     "currencyUnit": "Fillér",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/hu.svg"
   },
@@ -1756,8 +1756,8 @@
       "##-###-##",
       "##-###-###",
       "##-###-####",
-      "(8##)###-###",
-      "(8##)###-##-###"
+      "(8##) ###-###",
+      "(8##) ###-##-###"
     ],
     "flag": "/restocore/assets/flags/id.svg"
   },
@@ -1776,7 +1776,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/ie.svg"
   },
@@ -1813,7 +1813,7 @@
     "currencyUnit": "Penny",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(####)######"
+      "(####) ######"
     ],
     "flag": "/restocore/assets/flags/im.svg"
   },
@@ -1832,7 +1832,7 @@
     "currencyUnit": "Paisa",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(####)###-###"
+      "(####) ###-###"
     ],
     "flag": "/restocore/assets/flags/in.svg"
   },
@@ -1869,7 +1869,7 @@
     "currencyUnit": "Fils",
     "currencyDenomination": 1000,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/iq.svg"
   },
@@ -1887,7 +1887,7 @@
     "currencyUnit": "Rial",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/ir.svg"
   },
@@ -1925,7 +1925,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)####-###"
+      "(###) ####-###"
     ],
     "flag": "/restocore/assets/flags/it.svg"
   },
@@ -1943,7 +1943,7 @@
     "currencyUnit": "Penny",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(####)####-######"
+      "(####) ####-######"
     ],
     "flag": "/restocore/assets/flags/je.svg"
   },
@@ -1961,7 +1961,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(876)###-####"
+      "(876) ###-####"
     ],
     "flag": "/restocore/assets/flags/jm.svg"
   },
@@ -1997,7 +1997,7 @@
     "currencyUnit": "Sen",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###",
+      "(###) ###-###",
       "##-####-####"
     ],
     "flag": "/restocore/assets/flags/jp.svg"
@@ -2036,7 +2036,7 @@
     "currencyUnit": "Tyiyn",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/kg.svg"
   },
@@ -2110,7 +2110,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(869)###-####"
+      "(869) ###-####"
     ],
     "flag": "/restocore/assets/flags/kn.svg"
   },
@@ -2188,7 +2188,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(345)###-####"
+      "(345) ###-####"
     ],
     "flag": "/restocore/assets/flags/ky.svg"
   },
@@ -2207,8 +2207,8 @@
     "currencyUnit": "Tıyn",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(6##)###-##-##",
-      "(7##)###-##-##"
+      "(6##) ###-##-##",
+      "(7##) ###-##-##"
     ],
     "flag": "/restocore/assets/flags/kz.svg"
   },
@@ -2227,7 +2227,7 @@
     "currencyDenomination": 100,
     "phoneMask": [
       "##-###-###",
-      "(20##)###-###"
+      "(20##) ###-###"
     ],
     "flag": "/restocore/assets/flags/la.svg"
   },
@@ -2265,7 +2265,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(758)###-####"
+      "(758) ###-####"
     ],
     "flag": "/restocore/assets/flags/lc.svg"
   },
@@ -2283,7 +2283,7 @@
     "currencyUnit": "Rappen",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/li.svg"
   },
@@ -2357,7 +2357,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)##-###"
+      "(###) ##-###"
     ],
     "flag": "/restocore/assets/flags/lt.svg"
   },
@@ -2377,7 +2377,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/lu.svg"
   },
@@ -2453,7 +2453,7 @@
     "currencyDenomination": 100,
     "phoneMask": [
       "##-###-###",
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/mc.svg"
   },
@@ -2513,7 +2513,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/mf.svg"
   },
@@ -2663,7 +2663,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(670)###-####"
+      "(670) ###-####"
     ],
     "flag": "/restocore/assets/flags/mp.svg"
   },
@@ -2700,7 +2700,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(664)###-####"
+      "(664) ###-####"
     ],
     "flag": "/restocore/assets/flags/ms.svg"
   },
@@ -2796,7 +2796,7 @@
     "currencyDenomination": 100,
     "phoneMask": [
       "##-##-####",
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/mx.svg"
   },
@@ -2816,7 +2816,7 @@
     "phoneMask": [
       "#-###-###",
       "##-###-###",
-      "(###)###-###",
+      "(###) ###-###",
       "##-###-####"
     ],
     "flag": "/restocore/assets/flags/my.svg"
@@ -2911,7 +2911,7 @@
     "phoneMask": [
       "##-###-##",
       "##-###-###",
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/ng.svg"
   },
@@ -2968,7 +2968,7 @@
     "currencyUnit": "Øre",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)##-###"
+      "(###) ##-###"
     ],
     "flag": "/restocore/assets/flags/no.svg"
   },
@@ -3044,8 +3044,8 @@
     "currencyDenomination": 100,
     "phoneMask": [
       "#-###-###",
-      "(###)###-###",
-      "(###)###-####"
+      "(###) ###-###",
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/nz.svg"
   },
@@ -3099,7 +3099,7 @@
     "currencyUnit": "Céntimo",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/pe.svg"
   },
@@ -3137,7 +3137,7 @@
     "currencyUnit": "Toea",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)##-###"
+      "(###) ##-###"
     ],
     "flag": "/restocore/assets/flags/pg.svg"
   },
@@ -3156,7 +3156,7 @@
     "currencyUnit": "Sentimo",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/ph.svg"
   },
@@ -3175,7 +3175,7 @@
     "currencyUnit": "Paisa",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/pk.svg"
   },
@@ -3193,7 +3193,7 @@
     "currencyUnit": "Grosz",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/pl.svg"
   },
@@ -3328,7 +3328,7 @@
     "currencyUnit": "Céntimo",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/py.svg"
   },
@@ -3419,7 +3419,7 @@
     "currencyUnit": "Kopek",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-##-##"
+      "(###) ###-##-##"
     ],
     "flag": "/restocore/assets/flags/ru.svg"
   },
@@ -3439,7 +3439,7 @@
     "currencyUnit": "Centime",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/rw.svg"
   },
@@ -3609,7 +3609,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(###)##-###"
+      "(###) ##-###"
     ],
     "flag": "/restocore/assets/flags/sj.svg"
   },
@@ -3627,7 +3627,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/sk.svg"
   },
@@ -3793,7 +3793,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(721)###-####"
+      "(721) ###-####"
     ],
     "flag": "/restocore/assets/flags/sx.svg"
   },
@@ -3848,7 +3848,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(249)###-###"
+      "(249) ###-###"
     ],
     "flag": "/restocore/assets/flags/tc.svg"
   },
@@ -4037,7 +4037,7 @@
     "currencyUnit": "Kuruş",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/tr.svg"
   },
@@ -4055,7 +4055,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(868)###-####"
+      "(868) ###-####"
     ],
     "flag": "/restocore/assets/flags/tt.svg"
   },
@@ -4131,7 +4131,7 @@
     "currencyUnit": "Kopiyka",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(##)###-##-##"
+      "(##) ###-##-##"
     ],
     "flag": "/restocore/assets/flags/ua.svg"
   },
@@ -4150,7 +4150,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(###)###-###"
+      "(###) ###-###"
     ],
     "flag": "/restocore/assets/flags/ug.svg"
   },
@@ -4168,7 +4168,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/us.svg"
   },
@@ -4242,7 +4242,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(784)###-####"
+      "(784) ###-####"
     ],
     "flag": "/restocore/assets/flags/vc.svg"
   },
@@ -4260,7 +4260,7 @@
     "currencyUnit": "Céntimo",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(###)###-####"
+      "(###) ###-####"
     ],
     "flag": "/restocore/assets/flags/ve.svg"
   },
@@ -4278,7 +4278,7 @@
     "currencyUnit": "Cent",
     "currencyDenomination": 100,
     "phoneMask": [
-      "(284)###-####"
+      "(284) ###-####"
     ],
     "flag": "/restocore/assets/flags/vg.svg"
   },
@@ -4296,7 +4296,7 @@
     "currencyUnit": null,
     "currencyDenomination": null,
     "phoneMask": [
-      "(340)###-####"
+      "(340) ###-####"
     ],
     "flag": "/restocore/assets/flags/vi.svg"
   },
@@ -4315,7 +4315,7 @@
     "currencyDenomination": 10,
     "phoneMask": [
       "##-####-###",
-      "(###)####-###"
+      "(###) ####-###"
     ],
     "flag": "/restocore/assets/flags/vn.svg"
   },

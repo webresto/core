@@ -37,7 +37,7 @@ let attributes = {
     allowNull: true
   } as unknown as boolean,
 
-
+  
   city: {
     model: 'city'
   } as unknown as City | string,

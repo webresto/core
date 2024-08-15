@@ -1476,9 +1476,11 @@ async function checkCustomerInfo(customer) {
     if (Array.isArray(allowedPhoneCountries)) {
         for (let countryCode of allowedPhoneCountries) {
             const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-            isValidPhone = (0, phoneValidByMask_1.phoneValidByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
-            if (isValidPhone)
-                break;
+            if (await Settings.get("STRICT_PHONE_VALIDATION")) {
+                isValidPhone = (0, phoneValidByMask_1.phoneValidByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
+                if (isValidPhone)
+                    break;
+            }
         }
     }
     const nameRegex = await Settings.get("NAME_REGEX");
@@ -1498,10 +1500,10 @@ async function checkCustomerInfo(customer) {
     }
 }
 function checkAddress(address) {
-    if (!address.street && !address.streetId) {
+    if (!address.street && !address.streetId && !address.buildingName) {
         throw {
             code: 5,
-            error: "address.street or streetId  is required",
+            error: "one of (street, streetId  or buildingName) is required",
         };
     }
     if (!address.home) {

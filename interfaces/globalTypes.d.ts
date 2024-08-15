@@ -137,6 +137,7 @@ declare global {
         PasswordMinLength: string;
         EMITTER_CHECKOUT_STRATEGY: "JUST_ONE" | "NOT_REQUIRED" | "ALL_REQUIRED";
         EMITTER_ORDER_STRATEGY: "JUST_ONE" | "NOT_REQUIRED" | "ALL_REQUIRED";
+        STRICT_PHONE_VALIDATION: boolean;
     }
 }
 export {};

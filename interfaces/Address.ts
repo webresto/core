@@ -8,6 +8,7 @@ type Coordinate = {
 }
 
 export default interface Address {
+  buildingName?: string;
   coordinate?: Coordinate;
   streetId?: string;
   home: string;
