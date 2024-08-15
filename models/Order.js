@@ -1472,16 +1472,20 @@ async function checkCustomerInfo(customer) {
         };
     }
     let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES");
+    const strictPhoneValidation = await Settings.get("STRICT_PHONE_VALIDATION") ?? false;
     let isValidPhone = allowedPhoneCountries === undefined;
-    if (Array.isArray(allowedPhoneCountries)) {
-        for (let countryCode of allowedPhoneCountries) {
-            const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
-            if (await Settings.get("STRICT_PHONE_VALIDATION")) {
+    if (strictPhoneValidation) {
+        if (Array.isArray(allowedPhoneCountries)) {
+            for (let countryCode of allowedPhoneCountries) {
+                const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
                 isValidPhone = (0, phoneValidByMask_1.phoneValidByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
                 if (isValidPhone)
                     break;
             }
         }
+    }
+    else {
+        isValidPhone = true;
     }
     const nameRegex = await Settings.get("NAME_REGEX");
     if (nameRegex) {

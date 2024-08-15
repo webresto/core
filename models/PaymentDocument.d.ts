@@ -1,7 +1,7 @@
-/// <reference types="node" />
 import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
+import PaymentMethod from "../models/PaymentMethod";
 import { OptionalAll } from "../interfaces/toolsTS";
 /** on the example of the basket (Order):
  * 1. Model Conducting Internal/External (for example: Order) creates PaymentDocument
@@ -49,7 +49,7 @@ declare let attributes: {
     /** Model from which payment is made*/
     originModel: string;
     /** Payment method */
-    paymentMethod: any;
+    paymentMethod: PaymentMethod | any;
     /** The amount for payment*/
     amount: number;
     /** The flag is established that payment was made*/
@@ -73,7 +73,7 @@ declare let Model: {
     register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: any) => Promise<void>;
     /** Payment check cycle*/
-    processor: (timeout: number) => Promise<NodeJS.Timeout>;
+    processor: (timeout: number) => Promise<ReturnType<typeof setInterval>>;
 };
 declare global {
     const PaymentDocument: typeof Model & ORMModel<PaymentDocument, null>;

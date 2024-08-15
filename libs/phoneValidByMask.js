@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.phoneValidByMask = void 0;
+exports.phoneValidByMask = phoneValidByMask;
 function phoneValidByMask(phoneNumber, countryCode, phoneMasks) {
     const cleanedPhoneNumber = phoneNumber.replace(/\D/g, '');
     const codeWithoutPlus = countryCode.slice(1);
@@ -40,4 +40,3 @@ function phoneValidByMask(phoneNumber, countryCode, phoneMasks) {
     }
     return false;
 }
-exports.phoneValidByMask = phoneValidByMask;

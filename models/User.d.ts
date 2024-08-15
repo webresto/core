@@ -58,15 +58,15 @@ declare let attributes: {
     /**
      * Object with filed custom user fields
     */
-    customFields: string | {
-        [key: string]: string | number | boolean;
-    };
+    customFields: {
+        [key: string]: string | boolean | number;
+    } | string;
     /**
     * Any data storage for person
     */
-    customData: string | {
-        [key: string]: string | number | boolean;
-    };
+    customData: {
+        [key: string]: string | boolean | number;
+    } | string;
 };
 type attributes = typeof attributes;
 interface User extends OptionalAll<attributes>, ORM {
@@ -89,7 +89,7 @@ declare let Model: {
      * @param phone
      * @param target
      */
-    getPhoneString(phone: Phone, target?: "string" | "login" | "print"): Promise<string>;
+    getPhoneString(phone: Phone, target?: "login" | "print" | "string"): Promise<string>;
     /**
      * Update user password
      *

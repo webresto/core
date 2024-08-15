@@ -10,6 +10,7 @@ import Dish from "./Dish";
 import Place from "./Place";
 import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
+import PaymentMethod from "./PaymentMethod";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
@@ -38,8 +39,8 @@ declare let attributes: {
     /**
      * @deprecated will be rename to `Items` in **v2**
      */
-    dishes: number[] | OrderDish[];
-    paymentMethod: any;
+    dishes: OrderDish[] | number[];
+    paymentMethod: PaymentMethod | any;
     /** */
     paymentMethodTitle: string;
     paid: boolean;
@@ -59,7 +60,7 @@ declare let attributes: {
     /**
      * hidden in api
      */
-    promotionCode: string | PromotionCode;
+    promotionCode: PromotionCode | string;
     promotionCodeDescription: string;
     promotionCodeString: string;
     /**
@@ -116,9 +117,9 @@ declare let attributes: {
     rmsErrorCode: string;
     rmsStatusCode: string;
     deliveryStatus: string;
-    pickupPoint: string | Place;
+    pickupPoint: Place | string;
     selfService: boolean;
-    delivery: Delivery;
+    delivery: Delivery | null;
     /** Notification about delivery
      * ex: time increased due to traffic jams
      * @deprecated should changed for order.delivery.message
@@ -128,7 +129,7 @@ declare let attributes: {
     /**
      * @deprecated use order.delivery.item
      */
-    deliveryItem: string | Dish;
+    deliveryItem: Dish | string;
     /**
      * @deprecated use order.delivery.cost
      */
@@ -175,7 +176,7 @@ declare let attributes: {
     /**
      * Add IP, UserAgent for anonymous cart
      */
-    user: string | User;
+    user: User | string;
     customData: any;
 };
 interface stateFlowInstance {
@@ -189,7 +190,7 @@ declare let Model: {
     beforeCreate(orderInit: Order, cb: (err?: string) => void): void;
     afterCreate(order: Order, cb: (err?: string) => void): Promise<void>;
     /** Add a dish into order */
-    addDish(criteria: CriteriaQuery<Order>, dish: string | Dish, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: CriteriaQuery<Order>, dish: Dish | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void>;
@@ -238,21 +239,21 @@ declare let Model: {
     paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string>;
     /**  given populated Order instance by criteria*/
     populate(criteria: CriteriaQuery<Order>): Promise<{
-        createdAt?: Date;
-        updatedAt?: Date;
+        createdAt?: Date | undefined;
+        updatedAt?: Date | undefined;
         id?: string;
         shortId?: string;
         state?: string;
         concept?: string[];
         isMixedConcept?: boolean;
-        dishes?: number[] | OrderDish[];
-        paymentMethod?: any;
+        dishes?: OrderDish[] | number[];
+        paymentMethod?: PaymentMethod | any;
         paymentMethodTitle?: string;
         paid?: boolean;
         isPaymentPromise?: boolean;
         promotionState?: PromotionState[];
         promotionErrors?: any[];
-        promotionCode?: string | PromotionCode;
+        promotionCode?: PromotionCode | string;
         promotionCodeDescription?: string;
         promotionCodeString?: string;
         promotionFlatDiscount?: number;
@@ -278,12 +279,12 @@ declare let Model: {
         rmsErrorCode?: string;
         rmsStatusCode?: string;
         deliveryStatus?: string;
-        pickupPoint?: string | Place;
+        pickupPoint?: Place | string;
         selfService?: boolean;
-        delivery?: Delivery;
+        delivery?: Delivery | null;
         deliveryDescription?: string;
         message?: string;
-        deliveryItem?: string | Dish;
+        deliveryItem?: Dish | string;
         deliveryCost?: number;
         totalWeight?: number;
         trifleFrom?: number;
@@ -298,7 +299,7 @@ declare let Model: {
         deviceId?: string;
         nonce?: number;
         hash?: string;
-        user?: string | User;
+        user?: User | string;
         customData?: any;
     }>;
     /**
@@ -309,7 +310,7 @@ declare let Model: {
      */
     countCart(criteria: CriteriaQuery<Order>, isPromoting?: boolean): Promise<Order>;
     doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
-    applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string): Promise<Order>;
+    applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string | null): Promise<Order>;
 };
 declare global {
     const Order: typeof Model & ORMModel<Order, null> & StateFlowModel;

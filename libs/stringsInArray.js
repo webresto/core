@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractFieldValues = exports.someInArray = exports.stringsInArray = void 0;
+exports.stringsInArray = stringsInArray;
+exports.someInArray = someInArray;
+exports.extractFieldValues = extractFieldValues;
 /**
  * @notused
  */
@@ -23,14 +25,12 @@ function stringsInArray(check, array) {
         return array.includes(check);
     }
 }
-exports.stringsInArray = stringsInArray;
 function someInArray(check, array) {
     if (typeof check === 'string') {
         check = [check];
     }
     return array.some((e) => check.includes(e));
 }
-exports.someInArray = someInArray;
 function extractFieldValues(obj, fields, exclude = true, result = []) {
     if (typeof obj === 'object' && obj !== null) {
         for (let key in obj) {
@@ -49,4 +49,3 @@ function extractFieldValues(obj, fields, exclude = true, result = []) {
     }
     return result;
 }
-exports.extractFieldValues = extractFieldValues;

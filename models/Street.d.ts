@@ -16,7 +16,7 @@ declare let attributes: {
     isDeleted: boolean;
     /** Street has deleted */
     enable: boolean;
-    city: string | City;
+    city: City | string;
     customData: CustomData;
 };
 type attributes = typeof attributes;

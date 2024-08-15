@@ -16,11 +16,11 @@ declare let attributes: {
     workTime: WorkTime;
     description: string;
     code: string;
-    promotion: string[] | Promotion[];
+    promotion: Promotion[] | string[];
     generateConfig: any;
-    customData: string | {
-        [key: string]: string | number | boolean;
-    };
+    customData: {
+        [key: string]: string | boolean | number;
+    } | string;
 };
 type attributes = typeof attributes;
 interface PromotionCode extends attributes, ORM {

@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dishFields = void 0;
+exports.default = dishGenerator;
 const faker_1 = __importDefault(require("faker"));
 var autoincrement = 0;
 // config?: Partial<Dish>
@@ -32,5 +33,4 @@ function dishGenerator(config = {
         isDeleted: config?.isDeleted || false
     };
 }
-exports.default = dishGenerator;
 exports.dishFields = ["id", "additionalInfo", "balance", "modifiers", "weight", "price", "order", "images", "name", "description", "rmsId", "code", "tags", "isDeleted"];

@@ -48,7 +48,7 @@ declare let Model: {
     /** return setting value by unique key */
     use(key: string): Promise<SettingValue>;
     get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T>;
-    set<K_1 extends keyof SettingList>(key: K_1, settingsSetInput: SettingsSetInput<K_1, SettingList[K_1]>): Promise<Settings>;
+    set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings>;
 };
 declare global {
     const Settings: typeof Model & ORMModel<Settings, "key" | "type">;
