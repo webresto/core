@@ -50,6 +50,11 @@ export default {
     title: 'Places',
     icon: 'store'
   },
+  street: {
+    model: 'street',
+    title: 'Street',
+    icon: 'road'
+  },
   paymentMethod: {
     model: 'paymentmethod',
     title: 'Payment method',
