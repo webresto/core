@@ -21,6 +21,7 @@ import PromotionCode from "./PromotionCode";
 import { phoneValidByMask } from "../libs/phoneValidByMask";
 import { OrderHelper } from "../libs/helpers/OrderHelper";
 import { GroupModifier } from "../interfaces/Modifier";
+import { isValue } from "../utils/isValue";
 export interface PromotionState {
   type: string;
   message: string;
@@ -1906,34 +1907,37 @@ async function getOrderDateLimit(): Promise<Date> {
 
 function isValidDelivery(delivery: Delivery): boolean {
   // Check if the required properties exist and have the correct types
-  // {"deliveryTimeMinutes":180,"allowed":true,"message":"","item":"de78c552-71e6-5296-ae07-a5114d4e88bc"}
   if (
     typeof delivery.deliveryTimeMinutes === 'number' &&
     typeof delivery.allowed === 'boolean' &&
     typeof delivery.message === 'string'
   ) {
-
-    if (!delivery.cost && !delivery.item) {
-      sails.log.error(`Check delivery error delivery is not valid:  (delivery.cost and delivery.item not defined) :`, delivery)
-      sails.log.error(console.trace())
-      return false
+    // Check if both delivery.cost and delivery.item are not provided
+    if (!isValue(delivery.cost) && !isValue(delivery.item)) {
+      sails.log.error(`Check delivery error: delivery is not valid (delivery.cost and delivery.item not defined)`, delivery);
+      sails.log.error(console.trace());
+      return false;
     } else {
-      if (delivery.cost && typeof delivery.cost !== "number") {
-        sails.log.error(`Check delivery error delivery is not valid:  delivery.cost not number`)
-        sails.log.error(console.trace())
-        return false
+      // Check if delivery.cost is either undefined, null, or a number (including 0)
+      if (isValue(delivery.cost) && typeof delivery.cost !== 'number') {
+        sails.log.error(`Check delivery error: delivery is not valid (delivery.cost is not a number)`);
+        sails.log.error(console.trace());
+        return false;
       }
 
-      if (delivery.item && typeof delivery.item !== "string") {
-        sails.log.error(`Check delivery error delivery is not valid:  delivery.item not string`)
-        sails.log.error(console.trace())
-        return false
+      // Check if delivery.item is either undefined, null, or a string
+      if (isValue(delivery.item) && typeof delivery.item !== 'string') {
+        sails.log.error(`Check delivery error: delivery is not valid (delivery.item is not a string)`);
+        sails.log.error(console.trace());
+        return false;
       }
     }
 
     return true;
   }
 
-  sails.log.error(`Check delivery error delivery is not valid:  ${JSON.stringify(delivery)}`)
+  sails.log.error(`Check delivery error: delivery is not valid`, delivery);
   return false;
 }
+
+
