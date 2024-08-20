@@ -1,8 +1,8 @@
 {
   "key": "STRICT_PHONE_VALIDATION",
   "type": "boolean",
-  "name": "Allow Bonus Spending",
-  "description": "",
+  "name": "Strict phone validation",
+  "description": "Strict phone check by mask",
   "defaultValue": false,
   "isRequired": false
 }
