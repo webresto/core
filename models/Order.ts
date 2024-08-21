@@ -1590,7 +1590,7 @@ let Model = {
                 allowed: false,
                 cost: 0,
                 item: undefined,
-                message: `Calcualte delivery adapter error`,
+                message: error.replace(/[^\w\s]/gi, ''),
                 deliveryTimeMinutes: Infinity
               }
             }
