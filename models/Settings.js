@@ -97,7 +97,7 @@ let Model = {
                 try {
                     value = JSON.parse(process.env[key]);
                     // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
-                    if (!(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
+                    if (!(await Settings.get("ALLOW_UNSAFE_SETTINGS") ?? false)) {
                         const ajv = new ajv_1.default();
                         const validate = ajv.compile(setting.jsonSchema);
                         if (!validate(value)) {

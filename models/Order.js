@@ -7,6 +7,7 @@ const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 const OrderHelper_1 = require("../libs/helpers/OrderHelper");
+const isValue_1 = require("../utils/isValue");
 let attributes = {
     /** Id  */
     id: {
@@ -1324,7 +1325,7 @@ let Model = {
                                 allowed: false,
                                 cost: 0,
                                 item: undefined,
-                                message: error,
+                                message: `Calcualte delivery adapter error`,
                                 deliveryTimeMinutes: Infinity
                             };
                         }
@@ -1597,29 +1598,31 @@ async function getOrderDateLimit() {
 }
 function isValidDelivery(delivery) {
     // Check if the required properties exist and have the correct types
-    // {"deliveryTimeMinutes":180,"allowed":true,"message":"","item":"de78c552-71e6-5296-ae07-a5114d4e88bc"}
     if (typeof delivery.deliveryTimeMinutes === 'number' &&
         typeof delivery.allowed === 'boolean' &&
         typeof delivery.message === 'string') {
-        if (!delivery.cost && !delivery.item) {
-            sails.log.error(`Check delivery error delivery is not valid:  (delivery.cost and delivery.item not defined) :`, delivery);
+        // Check if both delivery.cost and delivery.item are not provided
+        if (!(0, isValue_1.isValue)(delivery.cost) && !(0, isValue_1.isValue)(delivery.item)) {
+            sails.log.error(`Check delivery error: delivery is not valid (delivery.cost and delivery.item not defined)`, delivery);
             sails.log.error(console.trace());
             return false;
         }
         else {
-            if (delivery.cost && typeof delivery.cost !== "number") {
-                sails.log.error(`Check delivery error delivery is not valid:  delivery.cost not number`);
+            // Check if delivery.cost is either undefined, null, or a number (including 0)
+            if ((0, isValue_1.isValue)(delivery.cost) && typeof delivery.cost !== 'number') {
+                sails.log.error(`Check delivery error: delivery is not valid (delivery.cost is not a number)`);
                 sails.log.error(console.trace());
                 return false;
             }
-            if (delivery.item && typeof delivery.item !== "string") {
-                sails.log.error(`Check delivery error delivery is not valid:  delivery.item not string`);
+            // Check if delivery.item is either undefined, null, or a string
+            if ((0, isValue_1.isValue)(delivery.item) && typeof delivery.item !== 'string') {
+                sails.log.error(`Check delivery error: delivery is not valid (delivery.item is not a string)`);
                 sails.log.error(console.trace());
                 return false;
             }
         }
         return true;
     }
-    sails.log.error(`Check delivery error delivery is not valid:  ${JSON.stringify(delivery)}`);
+    sails.log.error(`Check delivery error: delivery is not valid`, delivery);
     return false;
 }
