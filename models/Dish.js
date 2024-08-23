@@ -374,7 +374,7 @@ let Model = {
         }
         return updatedDishes;
     },
-    getRecommended: async function (ids, limit = 12, includeReverse = true) {
+    getRecommended: async function (ids, limit = 12, includeReverse = false) {
         if (!Array.isArray(ids) || ids.length === 0) {
             throw new Error('You must provide an array of IDs.');
         }
@@ -402,6 +402,7 @@ let Model = {
             });
         }
         recommendedDishes = [...new Set(recommendedDishes.map((dish) => dish.id))].map(id => recommendedDishes.find((dish) => dish.id === id));
+        recommendedDishes = recommendedDishes.filter((dish) => !ids.includes(dish.id));
         // Fisher-Yates shifle
         recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
         if (limit && Number.isInteger(limit) && limit > 0) {

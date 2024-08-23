@@ -466,7 +466,7 @@ let Model = {
   },
 
 
-  getRecommended: async function(ids: string[], limit = 12, includeReverse = true): Promise<Dish[]> {
+  getRecommended: async function(ids: string[], limit = 12, includeReverse = false): Promise<Dish[]> {
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new Error('You must provide an array of IDs.');
     }
@@ -490,7 +490,7 @@ let Model = {
     });
 
 
-    let recommendedDishes = dishes.reduce((acc: Dish[], dish:Dish) => {
+    let recommendedDishes: Dish[] = dishes.reduce((acc: Dish[], dish:Dish) => {
       return acc.concat(dish.recommendations);
     }, []);
     
@@ -504,6 +504,8 @@ let Model = {
     recommendedDishes = [...new Set(recommendedDishes.map((dish: Dish) => dish.id))].map(id =>
       recommendedDishes.find((dish: Dish) => dish.id === id)
     );
+
+    recommendedDishes = recommendedDishes.filter((dish: Dish) => !ids.includes(dish.id));
 
     // Fisher-Yates shifle
     recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
