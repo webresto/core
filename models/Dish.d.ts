@@ -104,8 +104,10 @@ declare let attributes: {
     /** Модифакторы блюда */
     modifiers: GroupModifier[];
     /**List of images of the dish*/
-    images: IMediaFile[] | string[];
+    images: IMediaFile[];
     favorites: User[];
+    recommendations: Dish[];
+    recommendedBy: Dish[];
     customData: CustomData;
 };
 interface IVirtualFields {
@@ -140,6 +142,7 @@ declare let Model: {
      */
     getDishModifiers(dish: Dish): Promise<Dish>;
     display(criteria: CriteriaQuery<Dish>): Promise<Dish[]>;
+    getRecommended: (ids: string[], limit?: number, includeReverse?: boolean) => Promise<Dish[]>;
     /**
      * Checks whether the dish exists, if it does not exist, then creates a new one and returns it.If exists, then checks
      * Hash of the existing dish and new data, if they are identical, then immediately gives the dishes, if not, it updates its data

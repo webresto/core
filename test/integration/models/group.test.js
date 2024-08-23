@@ -7,6 +7,7 @@ const chai_1 = require("chai");
 const group_generator_1 = __importDefault(require("../../generators/group.generator"));
 const group_generator_2 = require("../../generators/group.generator");
 const dish_generator_1 = require("../../generators/dish.generator");
+const Group_1 = __importDefault(require("../../../models/Group"));
 const lodash_1 = require("lodash");
 describe("Group", function () {
     let exampleGroups = [];
@@ -15,7 +16,7 @@ describe("Group", function () {
             for (let i = 0; i < 3; i++) {
                 const group = (0, group_generator_1.default)();
                 exampleGroups.push(group);
-                await Group.create(group).fetch();
+                await Group_1.default.create(group).fetch();
                 let [lastGroup] = exampleGroups.slice(-1);
                 //lastGroup.dishes = [dishGenerator(), dishGenerator()];
                 lastGroup.childGroups = [];
@@ -40,19 +41,19 @@ describe("Group", function () {
     });
      */
     it("getGroup", async function () {
-        let group = await Group.getGroup(exampleGroups[0].id);
+        let group = await Group_1.default.getGroup(exampleGroups[0].id);
         await equalGroup(exampleGroups[0], group);
-        group = await Group.getGroup("bad-id-group");
+        group = await Group_1.default.getGroup("bad-id-group");
         (0, chai_1.expect)(group).to.equal(null);
     });
     it("getGroupBySlug", async function () {
-        let example = await Group.getGroup(exampleGroups[1].id);
-        let group = await Group.getGroupBySlug(example.slug);
+        let example = await Group_1.default.getGroup(exampleGroups[1].id);
+        let group = await Group_1.default.getGroupBySlug(example.slug);
         // expect(example).to.equal(group);
         await equalGroup(example, group);
         let error = null;
         try {
-            group = await Group.getGroupBySlug("not-existing-slug");
+            group = await Group_1.default.getGroupBySlug("not-existing-slug");
         }
         catch (e) {
             error = e;
@@ -60,9 +61,9 @@ describe("Group", function () {
         (0, chai_1.expect)(error).to.not.equal(null);
     });
     it("createOrUpdate", async function () {
-        let group = await Group.findOne({ id: exampleGroups[0].id });
+        let group = await Group_1.default.findOne({ id: exampleGroups[0].id });
         group.name = "New Group Name";
-        let updatedGroup = await Group.createOrUpdate(group);
+        let updatedGroup = await Group_1.default.createOrUpdate(group);
         (0, chai_1.expect)(updatedGroup.name).to.equal("New Group Name");
         (0, chai_1.expect)(updatedGroup.id).to.equal(group.id);
     });

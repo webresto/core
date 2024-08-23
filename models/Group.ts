@@ -10,6 +10,7 @@ import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { Adapter } from "../adapters";
 import { slugIt } from "../libs/slugIt";
+import { Group } from "../libs/adminpanel/ProductCatalog/ProductCatalog";
 export type GetGroupType = { [x: string]: GroupWithAdditionalFields }
 let attributes = {
   /**Id */
@@ -88,6 +89,17 @@ let attributes = {
     via: "parentGroup",
   } as unknown as Group[] | string[],
 
+  recommendations: {
+    collection: "group",
+    via: 'recommendedBy',
+  } as unknown as Group[] | string[],
+  
+  recommendedBy: {
+    collection: "group",
+    via: 'recommendations',
+  } as unknown as Group[] | string[],
+
+
   /** Icon */
   icon: {
     type: "string",
@@ -164,17 +176,17 @@ let Model = {
     cb();
   },
 
-  beforeUpdate: function (record, cb:  (err?: string) => void) {
+  beforeUpdate: function (record: Group, cb:  (err?: string) => void) {
     emitter.emit('core:group-before-update', record);
     return cb();
   },
 
-  afterUpdate: function (record, cb:  (err?: string) => void) {
+  afterUpdate: function (record: Group, cb:  (err?: string) => void) {
     emitter.emit('core:group-after-update', record);
     return cb();
   },
 
-  afterCreate: function (record, cb:  (err?: string) => void) {
+  afterCreate: function (record: Group, cb:  (err?: string) => void) {
     emitter.emit('core:group-after-create', record);
     return cb();
   },
@@ -325,7 +337,7 @@ let Model = {
       menu = await Group.getMenuGroups();
     }
 
-    let allGroups = [];
+    let allGroups: any[] | PromiseLike<string[]> = [];
     for (let group of menu) {
       const groupId = group.id
       const initialGroup = (await Group.find({ id: groupId, isDeleted: false }).sort('createdAt DESC')).shift();
@@ -337,9 +349,9 @@ let Model = {
       }
     }
 
-    async function getAllChildGroups(groupId) {
+    async function getAllChildGroups(groupId: string) {
       let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false });
-      let allChildGroups = [];
+      let allChildGroups: any[] = [];
 
       for (let group of childGroups) {
         allChildGroups.push(group);
@@ -417,6 +429,75 @@ let Model = {
     }
 
     return groups.sort((a, b) => a.sortOrder - b.sortOrder);
+  },
+
+  
+  /**
+   * Static method for obtaining recommended dishes by group.
+   * @param {string[]} ids - An array of group IDs.
+   * @param {number} [limit=15] - Optional number of dishes to be returned.
+   * @param {boolean} [includeReverse=false] - Include reverse recommendations.
+   * @returns {Promise<object[]>} - An array of recommended dishes.
+   */
+  async getRecommendedDishes(ids: string[], limit: number = 12, includeReverse: boolean = true): Promise<Dish[]> {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error('You must provide an array of IDs.');
+    }
+
+    const baseCriteriaGroup = {
+      isDeleted: false
+    };
+
+    const groupLimit = Math.round(ids.length / limit);
+
+    const groups = await sails.models.group.find({
+      where: {
+        id: ids,
+        ...baseCriteriaGroup
+      }
+    }).populate('recommendations', {
+      limit: groupLimit
+    }).populate('recommendedBy', {
+      limit: includeReverse ? groupLimit : 0
+    });
+
+
+    let recommendedGroupIds = groups.reduce((acc: string[], group: Group) => {
+      return acc.concat(group.recommendations.map((rec:Group) => rec.id));
+    }, []);
+
+
+    if (includeReverse) {
+      groups.forEach((group: Group) => {
+        recommendedGroupIds = recommendedGroupIds.concat(group.recommendedBy.map((rec: Group) => rec.id));
+      });
+    }
+
+    const baseCriteriaDish = {
+      balance: { "!=": 0 },
+      modifier: false,
+      isDeleted: false
+    };
+
+    let recommendedDishes = await sails.models.dish.find({
+      where: {
+        parentGroup: recommendedGroupIds,
+        ...baseCriteriaDish
+      }
+    });
+
+    recommendedDishes = [...new Set(recommendedDishes.map((dish: Dish) => dish.id))].map(id =>
+      recommendedDishes.find((dish: Dish) => dish.id === id)
+    );
+
+    // Fisher-Yates algrythm
+    recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
+
+    if (limit && Number.isInteger(limit) && limit > 0) {
+      recommendedDishes = recommendedDishes.slice(0, limit);
+    }
+
+    return recommendedDishes;
   },
 
   /**

@@ -4,6 +4,7 @@ import { IMediaFile } from "./MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
+import { Group } from "../libs/adminpanel/ProductCatalog/ProductCatalog";
 export type GetGroupType = {
     [x: string]: GroupWithAdditionalFields;
 };
@@ -30,6 +31,8 @@ declare let attributes: {
     dishes: Dish[];
     parentGroup: Group | any;
     childGroups: Group[] | string[];
+    recommendations: Group[] | string[];
+    recommendedBy: Group[] | string[];
     /** Icon */
     icon: {
         type: string;
@@ -67,9 +70,9 @@ interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {
 export default Group;
 declare let Model: {
     beforeCreate: (init: any, cb: (err?: string) => void) => Promise<void>;
-    beforeUpdate: (record: any, cb: (err?: string) => void) => void;
-    afterUpdate: (record: any, cb: (err?: string) => void) => void;
-    afterCreate: (record: any, cb: (err?: string) => void) => void;
+    beforeUpdate: (record: Group, cb: (err?: string) => void) => void;
+    afterUpdate: (record: Group, cb: (err?: string) => void) => void;
+    afterCreate: (record: Group, cb: (err?: string) => void) => void;
     /**
      * Returns an object with groups and errors of obtaining these very groups.
      * @deprecated not used
@@ -111,6 +114,14 @@ declare let Model: {
      * Menu for navbar
      * */
     getMenuGroups(concept?: string, topLevelGroupId?: string): Promise<Group[]>;
+    /**
+     * Static method for obtaining recommended dishes by group.
+     * @param {string[]} ids - An array of group IDs.
+     * @param {number} [limit=15] - Optional number of dishes to be returned.
+     * @param {boolean} [includeReverse=false] - Include reverse recommendations.
+     * @returns {Promise<object[]>} - An array of recommended dishes.
+     */
+    getRecommendedDishes(ids: string[], limit?: number, includeReverse?: boolean): Promise<Dish[]>;
     /**
      * Checks whether the group exists, if it does not exist, then creates a new one and returns it.
      * @param values

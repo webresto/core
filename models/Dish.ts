@@ -241,12 +241,22 @@ let attributes = {
   images: {
     collection: "mediafile",
     via: "dish",
-  } as unknown as IMediaFile[] | string[],
+  } as unknown as IMediaFile[],
 
   favorites: {
     collection: 'user',
     via: 'favorites'
   } as unknown as User[],
+
+  recommendations: {
+    collection: "dish",
+    via: 'recommendedBy',
+  } as unknown as Dish[],
+  
+  recommendedBy: {
+    collection: "dish",
+    via: 'recommendations',
+  } as unknown as Dish[],
 
   /*
   helper.addCustomField("Dish", "discountAmount: Float");
@@ -453,6 +463,56 @@ let Model = {
         }
     }
     return updatedDishes;
+  },
+
+
+  getRecommended: async function(ids: string[], limit = 12, includeReverse = true): Promise<Dish[]> {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error('You must provide an array of IDs.');
+    }
+
+    const baseCriteriaDish = {
+      balance: { "!=": 0 },
+      modifier: false,
+      isDeleted: false
+    };
+
+    const groupLimit = Math.round(ids.length / limit);
+
+    let dishes = await sails.models.dish.find({
+      where: {
+        ...baseCriteriaDish
+      }
+    }).populate('recommendations', {
+      limit: groupLimit
+    }).populate('recommendedBy', {
+      limit: includeReverse ? groupLimit : 0
+    });
+
+
+    let recommendedDishes = dishes.reduce((acc: Dish[], dish:Dish) => {
+      return acc.concat(dish.recommendations);
+    }, []);
+    
+
+    if (includeReverse) {
+      dishes.forEach((group: Dish) => {
+        recommendedDishes = recommendedDishes.concat(group.recommendedBy);
+      });
+    }
+    
+    recommendedDishes = [...new Set(recommendedDishes.map((dish: Dish) => dish.id))].map(id =>
+      recommendedDishes.find((dish: Dish) => dish.id === id)
+    );
+
+    // Fisher-Yates shifle
+    recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
+
+    if (limit && Number.isInteger(limit) && limit > 0) {
+      recommendedDishes = recommendedDishes.slice(0, limit);
+    }
+
+    return recommendedDishes;
   },
 
   /**

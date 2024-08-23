@@ -11,6 +11,7 @@ const discount_generator_1 = __importDefault(require("../../generators/discount.
 const group_generator_1 = __importDefault(require("../../generators/group.generator"));
 const findModelInstance_1 = __importDefault(require("./../../../libs/findModelInstance"));
 const index_1 = require("./../../../adapters/index");
+const Group_1 = __importDefault(require("./../../../models/Group"));
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
@@ -107,7 +108,7 @@ describe('Discount', function () {
         promotionAdapter = index_1.Adapter.getPromotionAdapter();
         configuredPromotion = new configuredPromotion_1.default(discountEx, discountEx.configDiscount);
         configuredPromotionFromMemory = new configuredPromotion_1.default(discInMemory, discInMemory.configDiscount);
-        const groups = await Group.find({});
+        const groups = await Group_1.default.find({});
         groupsId = groups.map(group => group.id);
         discountEx.configDiscount.groups = groupsId;
         discInMemory.configDiscount.groups = groupsId;
@@ -294,8 +295,8 @@ describe('Discount', function () {
         await Order.updateOne({ id: order.id }, { user: "user" });
         await promotionAdapter.addPromotionHandler(discountEx);
         let group1 = (0, group_generator_1.default)();
-        await Group.create(group1);
-        let display = await Group.display({ id: group1.id });
+        await Group_1.default.create(group1);
+        let display = await Group_1.default.display({ id: group1.id });
         (0, chai_1.expect)(display[0].id).to.equal(group1.id);
         (0, chai_1.expect)(display[0].discountAmount).to.equal(1.33);
         (0, chai_1.expect)(display[0].discountType).to.equal("flat");

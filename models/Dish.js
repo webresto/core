@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const Group_1 = __importDefault(require("./Group"));
 const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
 const hashCode_1 = __importDefault(require("../libs/hashCode"));
 const uuid_1 = require("uuid");
@@ -199,6 +200,14 @@ let attributes = {
         collection: 'user',
         via: 'favorites'
     },
+    recommendations: {
+        collection: "dish",
+        via: 'recommendedBy',
+    },
+    recommendedBy: {
+        collection: "dish",
+        via: 'recommendations',
+    },
     /*
     helper.addCustomField("Dish", "discountAmount: Float");
     helper.addCustomField("Dish", "discountType: String");
@@ -299,7 +308,7 @@ let Model = {
                     else {
                         throw `Group modifierId or rmsId not found`;
                     }
-                    dish.modifiers[index].group = (await Group.find(criteria).limit(1))[0];
+                    dish.modifiers[index].group = (await Group_1.default.find(criteria).limit(1))[0];
                 }
                 if (!modifier.childModifiers)
                     modifier.childModifiers = [];
@@ -365,6 +374,41 @@ let Model = {
             }
         }
         return updatedDishes;
+    },
+    getRecommended: async function (ids, limit = 12, includeReverse = true) {
+        if (!Array.isArray(ids) || ids.length === 0) {
+            throw new Error('You must provide an array of IDs.');
+        }
+        const baseCriteriaDish = {
+            balance: { "!=": 0 },
+            modifier: false,
+            isDeleted: false
+        };
+        const groupLimit = Math.round(ids.length / limit);
+        let dishes = await sails.models.dish.find({
+            where: {
+                ...baseCriteriaDish
+            }
+        }).populate('recommendations', {
+            limit: groupLimit
+        }).populate('recommendedBy', {
+            limit: includeReverse ? groupLimit : 0
+        });
+        let recommendedDishes = dishes.reduce((acc, dish) => {
+            return acc.concat(dish.recommendations);
+        }, []);
+        if (includeReverse) {
+            dishes.forEach((group) => {
+                recommendedDishes = recommendedDishes.concat(group.recommendedBy);
+            });
+        }
+        recommendedDishes = [...new Set(recommendedDishes.map((dish) => dish.id))].map(id => recommendedDishes.find((dish) => dish.id === id));
+        // Fisher-Yates shifle
+        recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
+        if (limit && Number.isInteger(limit) && limit > 0) {
+            recommendedDishes = recommendedDishes.slice(0, limit);
+        }
+        return recommendedDishes;
     },
     /**
      * Checks whether the dish exists, if it does not exist, then creates a new one and returns it.If exists, then checks
