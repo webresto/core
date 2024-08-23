@@ -481,6 +481,7 @@ let Model = {
 
     let dishes = await sails.models.dish.find({
       where: {
+        id: ids,
         ...baseCriteriaDish
       }
     }).populate('recommendations', {

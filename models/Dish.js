@@ -386,6 +386,7 @@ let Model = {
         const groupLimit = Math.max(Math.round(limit / ids.length), 1);
         let dishes = await sails.models.dish.find({
             where: {
+                id: ids,
                 ...baseCriteriaDish
             }
         }).populate('recommendations', {
