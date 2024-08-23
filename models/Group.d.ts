@@ -4,7 +4,6 @@ import { IMediaFile } from "./MediaFile";
 import Dish from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
-import { Group } from "../libs/adminpanel/ProductCatalog/ProductCatalog";
 export type GetGroupType = {
     [x: string]: GroupWithAdditionalFields;
 };

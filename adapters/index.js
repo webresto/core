@@ -1,40 +1,14 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Adapter = exports.OTP = exports.Captcha = void 0;
-const RMSAdapter_1 = __importDefault(require("./rms/RMSAdapter"));
+const RMSAdapter_1 = require("./rms/RMSAdapter");
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
-const local_1 = __importDefault(require("./mediafile/default/local"));
-const MediaFileAdapter_1 = __importDefault(require("./mediafile/MediaFileAdapter"));
-const fs = __importStar(require("fs"));
-const BonusProgramAdapter_1 = __importDefault(require("./bonusprogram/BonusProgramAdapter"));
-const DeliveryAdapter_1 = __importDefault(require("./delivery/DeliveryAdapter"));
+const local_1 = require("./mediafile/default/local");
+const MediaFileAdapter_1 = require("./mediafile/MediaFileAdapter");
+const fs = require("fs");
+const BonusProgramAdapter_1 = require("./bonusprogram/BonusProgramAdapter");
+const DeliveryAdapter_1 = require("./delivery/DeliveryAdapter");
 const defaultDelivery_1 = require("./delivery/default/defaultDelivery");
 const promotionAdapter_1 = require("./promotion/default/promotionAdapter");
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
@@ -79,6 +53,12 @@ class OTP {
 exports.OTP = OTP;
 /** TODO: move other Adapters to one class adapter */
 class Adapter {
+    // Singletons
+    static instanceRMS;
+    static instancePromotionAdapter;
+    static instanceDeliveryAdapter;
+    static instanceMF;
+    static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
     static async getOTPAdapter(adapterName) {
         if (!adapterName) {
             adapterName = await Settings.get("DEFAULT_OTP_ADAPTER");
@@ -304,4 +284,3 @@ class Adapter {
     }
 }
 exports.Adapter = Adapter;
-Adapter.WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;

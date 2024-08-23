@@ -1,19 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PromotionAdapter = void 0;
-const decimal_js_1 = __importDefault(require("decimal.js"));
-const AbstractPromotionAdapter_1 = __importDefault(require("../AbstractPromotionAdapter"));
+const decimal_js_1 = require("decimal.js");
+const AbstractPromotionAdapter_1 = require("../AbstractPromotionAdapter");
 const worktime_1 = require("@webresto/worktime");
-const configuredPromotion_1 = __importDefault(require("./configuredPromotion"));
-const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
+const configuredPromotion_1 = require("./configuredPromotion");
+const findModelInstance_1 = require("../../../libs/findModelInstance");
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
-    constructor() {
-        super(...arguments);
-        this.promotions = {};
-    }
+    promotions = {};
     async processOrder(populatedOrder) {
         const promotionStates = [];
         const promotionErrors = [];

@@ -1,13 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
+const checkExpression_1 = require("../libs/checkExpression");
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 const slugIt_1 = require("../libs/slugIt");
-const ProductCatalog_1 = require("../libs/adminpanel/ProductCatalog/ProductCatalog");
 let attributes = {
     /**Id */
     id: {
@@ -110,7 +106,6 @@ let attributes = {
     worktime: "json",
     customData: "json",
 };
-exports.default = ProductCatalog_1.Group;
 let Model = {
     beforeCreate: async function (init, cb) {
         emitter.emit('core:group-before-create', init);
@@ -155,7 +150,7 @@ let Model = {
      */
     async getGroups(groupsId) {
         let menu = {};
-        const groups = await ProductCatalog_1.Group.find({ where: {
+        const groups = await Group.find({ where: {
                 id: groupsId,
                 isDeleted: false
             } })
@@ -169,7 +164,7 @@ let Model = {
                 menu[group.id] = group;
                 if (group.childGroups) {
                     let childGroups = [];
-                    const cgs = await ProductCatalog_1.Group.find({
+                    const cgs = await Group.find({
                         id: group.childGroups.map((cg) => cg.id),
                         isDeleted: false
                     })
@@ -178,7 +173,7 @@ let Model = {
                         .populate("images");
                     for await (let cg of cgs) {
                         try {
-                            const data = await ProductCatalog_1.Group.getGroup(cg.id);
+                            const data = await Group.getGroup(cg.id);
                             if (data)
                                 childGroups.push(data);
                         }
@@ -211,7 +206,7 @@ let Model = {
      * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
      */
     async getGroup(groupId) {
-        const result = await ProductCatalog_1.Group.getGroups([groupId]);
+        const result = await Group.getGroups([groupId]);
         if (result.errors[0]) {
             throw result.errors[0];
         }
@@ -229,7 +224,7 @@ let Model = {
     async getGroupBySlug(groupSlug) {
         if (!groupSlug)
             throw "groupSlug is required";
-        const groupObj = await ProductCatalog_1.Group.findOne({ slug: groupSlug });
+        const groupObj = await Group.findOne({ slug: groupSlug });
         if (!groupObj) {
             throw "group with slug " + groupSlug + " not found";
         }
@@ -244,7 +239,7 @@ let Model = {
     // https://github.com/balderdashy/waterline/pull/902
     async display(criteria) {
         const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
-        const groups = await ProductCatalog_1.Group.find(criteria);
+        const groups = await Group.find(criteria);
         // Set virtual default
         groups.forEach((group) => {
             group.discountAmount = 0;
@@ -268,12 +263,12 @@ let Model = {
             throw `not implemented yet`;
         }
         if (!menu) {
-            menu = await ProductCatalog_1.Group.getMenuGroups();
+            menu = await Group.getMenuGroups();
         }
         let allGroups = [];
         for (let group of menu) {
             const groupId = group.id;
-            const initialGroup = (await ProductCatalog_1.Group.find({ id: groupId, isDeleted: false }).sort('createdAt DESC')).shift();
+            const initialGroup = (await Group.find({ id: groupId, isDeleted: false }).sort('createdAt DESC')).shift();
             if (initialGroup) {
                 allGroups.push(initialGroup);
                 const childGroups = await getAllChildGroups(groupId);
@@ -282,7 +277,7 @@ let Model = {
             }
         }
         async function getAllChildGroups(groupId) {
-            let childGroups = await ProductCatalog_1.Group.find({ parentGroup: groupId, isDeleted: false });
+            let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false });
             let allChildGroups = [];
             for (let group of childGroups) {
                 allChildGroups.push(group);
@@ -319,7 +314,7 @@ let Model = {
                     menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL`);
                 }
                 if (menuTopLevelSlug) {
-                    let menuTopLevelGroup = await ProductCatalog_1.Group.findOne({
+                    let menuTopLevelGroup = await Group.findOne({
                         slug: menuTopLevelSlug,
                         ...concept && { concept: concept }
                     });
@@ -328,7 +323,7 @@ let Model = {
                     }
                 }
             }
-            groups = await ProductCatalog_1.Group.find({
+            groups = await Group.find({
                 parentGroup: topLevelGroupId ?? null,
                 ...concept && { concept: concept },
                 isDeleted: false,
@@ -337,7 +332,7 @@ let Model = {
             });
             // Check subgroups when one group in the top menu
             if (groups.length === 1 && topLevelGroupId === undefined) {
-                let children = await ProductCatalog_1.Group.find({
+                let children = await Group.find({
                     parentGroup: groups[0].id,
                     isDeleted: false,
                     modifier: false,
@@ -418,12 +413,12 @@ let Model = {
         else {
             throw `no id/rmsId provided`;
         }
-        const group = await ProductCatalog_1.Group.findOne(criteria);
+        const group = await Group.findOne(criteria);
         if (!group) {
-            return ProductCatalog_1.Group.create(values).fetch();
+            return Group.create(values).fetch();
         }
         else {
-            return (await ProductCatalog_1.Group.update(criteria, values).fetch())[0];
+            return (await Group.update(criteria, values).fetch())[0];
         }
     },
 };

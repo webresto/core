@@ -1,16 +1,17 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const Group_1 = __importDefault(require("../../models/Group"));
 const ObservablePromise_1 = require("../../libs/ObservablePromise");
 /**
  * An abstract RMS adapter class. Used to create new RMS adapters.
  */
 class RMSAdapter {
+    config = {};
+    static syncProductsInterval;
+    static syncOutOfStocksInterval;
+    initializationPromise;
+    syncProductsPromise;
+    syncOutOfStocksPromise;
     constructor(config) {
-        this.config = {};
         this.config = config;
         // Run async initialization
         this.initializationPromise = this.initialize();
@@ -88,14 +89,14 @@ class RMSAdapter {
                     // Get ids of all current RMS groups
                     const rmsGroupIds = currentRMSGroupsFlatTree.map((group) => group.rmsId);
                     // Set all groups not in the list to inactive
-                    await Group_1.default.update({ where: { rmsId: { "!=": rmsGroupIds } } }, { isDeleted: true }).fetch();
+                    await Group.update({ where: { rmsId: { "!=": rmsGroupIds } } }, { isDeleted: true }).fetch();
                     sails.log.debug("ADAPTER RMS > syncProducts Groups:", currentRMSGroupsFlatTree.length);
                     for (const group of currentRMSGroupsFlatTree) {
                         emitter.emit("rms-sync:before-each-group-item", group);
                         group.concept = group.concept ?? "origin";
                         // Update or create a group
                         const groupData = { ...group, isDeleted: false };
-                        await Group_1.default.createOrUpdate(groupData);
+                        await Group.createOrUpdate(groupData);
                     }
                     // Collect all product ids
                     let allProductIds = [];
@@ -134,7 +135,7 @@ class RMSAdapter {
                         }
                     }
                     // Find all inactive groups
-                    const inactiveGroups = await Group_1.default.find({ isDeleted: true });
+                    const inactiveGroups = await Group.find({ isDeleted: true });
                     const inactiveGroupIds = inactiveGroups.map((group) => group.id);
                     // Delete all dishes in inactive groups or not in the updated list
                     await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true }).fetch();
