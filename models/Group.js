@@ -1,6 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../libs/checkExpression");
+const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 const slugIt_1 = require("../libs/slugIt");
@@ -358,7 +361,7 @@ let Model = {
         const baseCriteriaGroup = {
             isDeleted: false
         };
-        const groupLimit = Math.round(ids.length / limit);
+        const groupLimit = Math.max(Math.round(limit / ids.length), 1);
         const groups = await sails.models.group.find({
             where: {
                 id: ids,

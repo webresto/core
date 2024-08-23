@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = require("../libs/checkExpression");
-const hashCode_1 = require("../libs/hashCode");
+const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
+const hashCode_1 = __importDefault(require("../libs/hashCode"));
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 const CustomData_1 = require("../interfaces/CustomData");
@@ -380,7 +383,7 @@ let Model = {
             modifier: false,
             isDeleted: false
         };
-        const groupLimit = Math.round(ids.length / limit);
+        const groupLimit = Math.max(Math.round(limit / ids.length), 1);
         let dishes = await sails.models.dish.find({
             where: {
                 ...baseCriteriaDish

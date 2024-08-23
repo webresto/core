@@ -7,7 +7,6 @@ const dish_generator_1 = __importDefault(require("../../generators/dish.generato
 const chai_1 = require("chai");
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 const index_1 = require("../../../adapters/index");
-const Group_1 = __importDefault(require("../../../models/Group"));
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
@@ -75,7 +74,7 @@ describe('Discount_Empty', function () {
         // define
         promotionAdapter = index_1.Adapter.getPromotionAdapter();
         configuredPromotion = new configuredPromotion_1.default(discountEx, discountEx.configDiscount);
-        const groups = await Group_1.default.find({});
+        const groups = await Group.find({});
         groupsId = groups.map(group => group.id);
         discountEx.configDiscount.groups = groupsId;
         await Promotion.update({ id: "1-id" }, { enable: true }).fetch();
