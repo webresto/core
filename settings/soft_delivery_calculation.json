@@ -1,0 +1,8 @@
+{
+  "key": "SOFT_DELIVERY_CALCULATION",
+  "type": "boolean",
+  "name": "Soft delivery calculation",
+  "description": "Allows you to make shipping calculations optional. Shipping calculations will occur. But it won't throw an error",
+  "defaultValue": true,
+  "isRequired": false
+}

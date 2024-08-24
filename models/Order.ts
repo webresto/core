@@ -1585,13 +1585,24 @@ let Model = {
             try {
               delivery = await deliveryAdapter.calculate(order);
             } catch (error) {
-              sails.log.error("deliveryAdapter.calculate error:", error)
-              delivery = {
-                allowed: false,
-                cost: 0,
-                item: undefined,
-                message: error.replace(/[^\w\s]/gi, ''),
-                deliveryTimeMinutes: Infinity
+              if(await Settings.get("SOFT_DELIVERY_CALCULATION")) {
+                sails.log.debug("deliveryAdapter.calculate error:", error)
+                delivery = {
+                  allowed: true,
+                  cost: null,
+                  item: undefined,
+                  message: "Shipping cost has not been calculated",
+                  deliveryTimeMinutes: undefined
+                }
+              } else {
+                sails.log.error("deliveryAdapter.calculate error:", error)
+                delivery = {
+                  allowed: false,
+                  cost: 0,
+                  item: undefined,
+                  message: error.replace(/[^\w\s]/gi, ''),
+                  deliveryTimeMinutes: undefined
+                }
               }
             }
             order.delivery = delivery

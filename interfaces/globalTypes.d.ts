@@ -121,6 +121,10 @@ declare global {
         SYNC_BONUSTRANSACTION_AFTER_TIME: number;
         DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean;
         ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean;
+        /**
+         * Allows you to make shipping calculations optional. Shipping calculations will occur. But it won't throw an error
+         */
+        SOFT_DELIVERY_CALCULATION: boolean;
         RESTOCORE_URL: string;
         IMAGES_URL: string;
         PROJECT_NAME: string;

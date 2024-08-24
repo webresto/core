@@ -122,6 +122,11 @@ declare global {
     DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean
     ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean
 
+    /**
+     * Allows you to make shipping calculations optional. Shipping calculations will occur. But it won't throw an error
+     */
+    SOFT_DELIVERY_CALCULATION: boolean
+
     // from base modules
     RESTOCORE_URL: string
     IMAGES_URL: string
