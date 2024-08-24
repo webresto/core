@@ -1322,26 +1322,19 @@ let Model = {
                             delivery = await deliveryAdapter.calculate(order);
                         }
                         catch (error) {
-                            if (await Settings.get("SOFT_DELIVERY_CALCULATION")) {
-                                sails.log.debug("deliveryAdapter.calculate error:", error);
-                                delivery = {
-                                    allowed: true,
-                                    cost: null,
-                                    item: undefined,
-                                    message: "Shipping cost has not been calculated",
-                                    deliveryTimeMinutes: undefined
-                                };
-                            }
-                            else {
-                                sails.log.error("deliveryAdapter.calculate error:", error);
-                                delivery = {
-                                    allowed: false,
-                                    cost: 0,
-                                    item: undefined,
-                                    message: error.replace(/[^\w\s]/gi, ''),
-                                    deliveryTimeMinutes: undefined
-                                };
-                            }
+                            sails.log.error("deliveryAdapter.calculate error:", error);
+                            delivery = {
+                                allowed: false,
+                                cost: 0,
+                                item: undefined,
+                                message: error.replace(/[^\w\s]/gi, ''),
+                                deliveryTimeMinutes: undefined
+                            };
+                        }
+                        if (delivery.allowed === false && await Settings.get("SOFT_DELIVERY_CALCULATION")) {
+                            delivery.allowed = true;
+                            delivery.cost = null;
+                            delivery.message = "Shipping cost has not been calculated";
                         }
                         order.delivery = delivery;
                     }
