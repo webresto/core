@@ -723,7 +723,7 @@ let Model = {
                 error: "Problem with counting cart",
             };
         }
-        if (!order.selfService && !order.delivery.allowed) {
+        if (!order.selfService && !order.delivery?.allowed) {
             throw {
                 code: 11,
                 error: "Delivery not allowed",
@@ -1615,6 +1615,10 @@ function isValidDelivery(delivery) {
     if (typeof delivery.deliveryTimeMinutes === 'number' &&
         typeof delivery.allowed === 'boolean' &&
         typeof delivery.message === 'string') {
+        // Soft delivery calculation
+        if (delivery.allowed === true && delivery.cost === null) {
+            return true;
+        }
         // Check if both delivery.cost and delivery.item are not provided
         if (!(0, isValue_1.isValue)(delivery.cost) && !(0, isValue_1.isValue)(delivery.item)) {
             sails.log.error(`Check delivery error: delivery is not valid (delivery.cost and delivery.item not defined)`, delivery);
