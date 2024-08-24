@@ -861,17 +861,19 @@ let Model = {
       order.selfService = true;
       emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
     } else {
-      order.selfService = false;
-      if (address) {
-        if (!address.city) address.city = await Settings.get("CITY")
-        checkAddress(address);
-        order.address = { ...address };
-      } else {
-        if (!isSelfService && order.address === null) {
-          throw {
-            code: 5,
-            error: "address is required",
-          };
+      if(!await Settings.get("SOFT_DELIVERY_CALCULATION")) {
+        order.selfService = false;
+        if (address) {
+          if (!address.city) address.city = await Settings.get("CITY")
+          checkAddress(address);
+          order.address = { ...address };
+        } else {
+          if (!isSelfService && order.address === null) {
+            throw {
+              code: 5,
+              error: "address is required",
+            };
+          }
         }
       }
     }
