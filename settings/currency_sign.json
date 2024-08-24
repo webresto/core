@@ -1,0 +1,7 @@
+{
+  "key": "CURRENCY_SIGN",
+  "type": "string",
+  "name": "Custom currency sign",
+  "description": "Вы можете установить любой знак для валюты",
+  "isRequired": false
+}
