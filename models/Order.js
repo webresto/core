@@ -689,21 +689,17 @@ let Model = {
             emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
         }
         else {
-            if (!await Settings.get("SOFT_DELIVERY_CALCULATION")) {
-                order.selfService = false;
-                if (address) {
-                    if (!address.city)
-                        address.city = await Settings.get("CITY");
-                    checkAddress(address);
-                    order.address = { ...address };
-                }
-                else {
-                    if (!isSelfService && order.address === null) {
-                        throw {
-                            code: 5,
-                            error: "address is required",
-                        };
-                    }
+            order.selfService = false;
+            if (address) {
+                checkAddress(address);
+                order.address = { ...address };
+            }
+            else {
+                if (!isSelfService && order.address === null && !(await Settings.get("SOFT_DELIVERY_CALCULATION"))) {
+                    throw {
+                        code: 5,
+                        error: "address is required",
+                    };
                 }
             }
         }
@@ -1307,6 +1303,7 @@ let Model = {
                 order.promotionCode = order.promotionCode.id;
             }
             // Calculate delivery costs
+            let delivery = {};
             emitter.emit("core:count-before-delivery-cost", order);
             if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
                 order.delivery = order.promotionDelivery;
@@ -1331,18 +1328,18 @@ let Model = {
                                 deliveryTimeMinutes: undefined
                             };
                         }
-                        if (delivery.allowed === false && await Settings.get("SOFT_DELIVERY_CALCULATION")) {
-                            delivery.allowed = true;
-                            delivery.cost = null;
-                            delivery.message = "Shipping cost has not been calculated";
-                        }
-                        order.delivery = delivery;
                     }
                     catch (error) {
                         sails.log.error(`Core > order > delivery calculate fail: `, error);
                     }
                     emitter.emit("core:order-after-check-delivery", order);
                 }
+                if (delivery.allowed === false && await Settings.get("SOFT_DELIVERY_CALCULATION")) {
+                    delivery.allowed = true;
+                    delivery.cost = null;
+                    delivery.message = "Shipping cost cannot be calculated";
+                }
+                order.delivery = delivery;
             }
             if (order.delivery && isValidDelivery(order.delivery)) {
                 if (!order.delivery.item) {

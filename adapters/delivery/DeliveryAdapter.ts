@@ -28,7 +28,13 @@ export default abstract class DeliveryAdapter {
    * @returns void
    */
   public async reset(order: Order): Promise<void> {
-    order.delivery = null
+    order.delivery = {
+      deliveryTimeMinutes: 0,
+      allowed: false,
+      cost: null,
+      item: undefined,
+      message: 'Shipping cost will be calculated'
+    }
     order.deliveryCost = 0;
     order.deliveryItem = null;
     order.deliveryDescription = '';
