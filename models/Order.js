@@ -1308,6 +1308,7 @@ let Model = {
             }
             // Calculate delivery costs
             let delivery = {};
+            let softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
             emitter.emit("core:count-before-delivery-cost", order);
             if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
                 order.delivery = order.promotionDelivery;
@@ -1315,6 +1316,7 @@ let Model = {
             else {
                 let deliveryAdapter = await Adapter.getDeliveryAdapter();
                 await deliveryAdapter.reset(order);
+                sails.log.debug(order, delivery);
                 if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
                     emitter.emit("core:order-check-delivery", order);
                     try {
@@ -1338,14 +1340,25 @@ let Model = {
                     }
                     emitter.emit("core:order-after-check-delivery", order);
                 }
-                if (delivery.allowed === false && await Settings.get("SOFT_DELIVERY_CALCULATION")) {
+                /**
+                 *   delivery: {
+                        deliveryTimeMinutes: 0,
+                        allowed: false,
+                        cost: null,
+                        item: undefined,
+                        message: 'Shipping cost will be calculated'
+                      },
+                 *
+                 */
+                sails.log.debug(order, delivery);
+                if (delivery.allowed === false && softDeliveryCalculation) {
                     delivery.allowed = true;
                     delivery.cost = null;
                     delivery.message = "Shipping cost cannot be calculated";
                 }
                 order.delivery = delivery;
             }
-            if (order.delivery && isValidDelivery(order.delivery)) {
+            if (order.delivery && isValidDelivery(order.delivery, softDeliveryCalculation)) {
                 if (!order.delivery.item) {
                     order.deliveryCost = order.delivery.cost;
                 }
@@ -1613,13 +1626,13 @@ async function getOrderDateLimit() {
     date.setSeconds(date.getSeconds() + (possibleToOrderInMinutes * 60));
     return date;
 }
-function isValidDelivery(delivery) {
+function isValidDelivery(delivery, strict = true) {
     // Check if the required properties exist and have the correct types
     if (typeof delivery.deliveryTimeMinutes === 'number' &&
         typeof delivery.allowed === 'boolean' &&
         typeof delivery.message === 'string') {
         // Soft delivery calculation
-        if (delivery.allowed === true && delivery.cost === null) {
+        if (strict !== true && delivery.allowed === true && delivery.cost === null) {
             return true;
         }
         // Check if both delivery.cost and delivery.item are not provided
