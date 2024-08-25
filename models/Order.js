@@ -1340,24 +1340,13 @@ let Model = {
                     }
                     emitter.emit("core:order-after-check-delivery", order);
                 }
-                /**
-                 *   delivery: {
-                        deliveryTimeMinutes: 0,
-                        allowed: false,
-                        cost: null,
-                        item: undefined,
-                        message: 'Shipping cost will be calculated'
-                      },
-                 *
-                 */
-                if ((!delivery || delivery.allowed === false) && softDeliveryCalculation) {
-                    delivery.allowed = true;
-                    delivery.cost = null;
-                    delivery.message = "Shipping cost cannot be calculated";
-                }
                 order.delivery = delivery;
             }
-            sails.log.debug(order);
+            if ((!order.delivery || delivery.allowed === false) && softDeliveryCalculation) {
+                delivery.allowed = true;
+                delivery.cost = null;
+                delivery.message = "Shipping cost cannot be calculated";
+            }
             if (order.delivery && isValidDelivery(order.delivery, softDeliveryCalculation)) {
                 if (!order.delivery.item) {
                     order.deliveryCost = order.delivery.cost;
