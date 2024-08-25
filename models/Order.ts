@@ -856,18 +856,21 @@ let Model = {
       order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
     }
 
+    let softDeliveryCalculation: boolean = true;
+
     /** if pickup, then you do not need to check the address*/
     if (isSelfService) {
       order.selfService = true;
       emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
     } else {
         order.selfService = false;
+        softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
         if (!address.city) address.city = await Settings.get("CITY");
         if (address) {
-          checkAddress(address);
+          checkAddress(address, softDeliveryCalculation);
           order.address = { ...address };
         } else {
-          if (!isSelfService && order.address === null && !(await Settings.get("SOFT_DELIVERY_CALCULATION"))) {
+          if (!isSelfService && order.address === null && !softDeliveryCalculation) {
             throw {
               code: 5,
               error: "address is required",
@@ -1808,26 +1811,35 @@ async function checkCustomerInfo(customer: Customer) {
   }
 }
 
-function checkAddress(address: Address) {
+function checkAddress(address: Address, softDeliveryCalculation: boolean = false) {
+  let error = [];
   if (!address.street && !address.streetId && ! address.buildingName) {
-    throw {
+    error.push({
       code: 5,
       error: "one of (street, streetId  or buildingName) is required",
-    };
+    });
   }
 
   if (!address.home) {
-    throw {
+    error.push({
       code: 6,
       error: "address.home is required",
-    };
+    });
   }
 
   if (!address.city) {
-    throw {
+    error.push({
       code: 7,
       error: "address.city is required",
-    };
+    });
+  }
+
+  if(error.length) {
+    if(softDeliveryCalculation) {
+      return error
+    } else { 
+      throw error[0]
+    } 
   }
 }
 
