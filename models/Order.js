@@ -690,6 +690,8 @@ let Model = {
         }
         else {
             order.selfService = false;
+            if (!address.city)
+                address.city = await Settings.get("CITY");
             if (address) {
                 checkAddress(address);
                 order.address = { ...address };

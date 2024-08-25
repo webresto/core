@@ -862,6 +862,7 @@ let Model = {
       emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
     } else {
         order.selfService = false;
+        if (!address.city) address.city = await Settings.get("CITY");
         if (address) {
           checkAddress(address);
           order.address = { ...address };
