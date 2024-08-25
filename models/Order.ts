@@ -1619,9 +1619,8 @@ let Model = {
               },
          * 
          */
-        sails.log.debug(order, delivery)
 
-        if(delivery.allowed === false && softDeliveryCalculation) {
+        if((!delivery || delivery.allowed === false) && softDeliveryCalculation) {
           delivery.allowed = true;
           delivery.cost = null
           delivery.message = "Shipping cost cannot be calculated"
@@ -1629,6 +1628,9 @@ let Model = {
 
         order.delivery = delivery
       }
+
+
+      sails.log.debug(order)
 
       if (order.delivery && isValidDelivery(order.delivery, softDeliveryCalculation)) {
         if (!order.delivery.item) {
