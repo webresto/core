@@ -1342,7 +1342,10 @@ let Model = {
                 }
                 order.delivery = delivery;
             }
-            if ((!order.delivery || delivery.allowed === false) && softDeliveryCalculation) {
+            if (softDeliveryCalculation &&
+                (!order.delivery ||
+                    Object.keys(order.delivery).length === 0 ||
+                    delivery.allowed === false)) {
                 delivery.allowed = true;
                 delivery.cost = null;
                 delivery.message = "Shipping cost cannot be calculated";
