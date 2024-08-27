@@ -9,7 +9,7 @@ declare let attributes: {
     name: string;
     userAgent: string;
     isLoggedIn: boolean;
-    user: User | String;
+    user: User | string;
     lastIP: string;
     loginTime: number;
     lastActivity: number;

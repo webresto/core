@@ -126,6 +126,7 @@ declare global {
      * Allows you to make shipping calculations optional. Shipping calculations will occur. But it won't throw an error
      */
     SOFT_DELIVERY_CALCULATION: boolean
+    SOFT_DELIVERY_CALCULATION_MESSAGE: string
 
     // from base modules
     RESTOCORE_URL: string

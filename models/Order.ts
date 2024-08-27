@@ -1617,9 +1617,10 @@ let Model = {
           delivery.allowed === false
         )
       ) {
+        let SOFT_DELIVERY_CALCULATION_MESSAGE = await Settings.get("SOFT_DELIVERY_CALCULATION_MESSAGE")
         delivery.allowed = true;
         delivery.cost = null;
-        delivery.message = "Shipping cost cannot be calculated";
+        delivery.message = SOFT_DELIVERY_CALCULATION_MESSAGE ?? "Shipping cost cannot be calculated";
       }
       
       if (order.delivery && isValidDelivery(order.delivery, softDeliveryCalculation)) {

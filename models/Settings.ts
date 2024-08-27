@@ -172,7 +172,7 @@ let Model = {
     return undefined;
   },
 
-  async get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T> {
+  async get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined> {
     let _key: string = key;
     // return error if setting was not declared by specification
     // if (!SettingsHelper.isInDeclaredSettings(key) && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {

@@ -47,7 +47,7 @@ declare let Model: {
     afterCreate: (record: Settings, cb: (err?: string) => void) => Promise<void>;
     /** return setting value by unique key */
     use(key: string): Promise<SettingValue>;
-    get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T>;
+    get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined>;
     set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings>;
 };
 declare global {
