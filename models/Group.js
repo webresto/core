@@ -368,8 +368,22 @@ let Model = {
                 ...baseCriteriaGroup
             }
         }).populate('recommendations', {
+            where: {
+                'and': [
+                    { 'modifier': false },
+                    { 'isDeleted': false },
+                    { 'visible': true }
+                ]
+            },
             limit: groupLimit
         }).populate('recommendedBy', {
+            where: {
+                'and': [
+                    { 'modifier': false },
+                    { 'isDeleted': false },
+                    { 'visible': true }
+                ]
+            },
             limit: includeReverse ? groupLimit : 0
         });
         let recommendedGroupIds = groups.reduce((acc, group) => {
@@ -383,7 +397,8 @@ let Model = {
         const baseCriteriaDish = {
             balance: { "!=": 0 },
             modifier: false,
-            isDeleted: false
+            isDeleted: false,
+            visible: true
         };
         let recommendedDishes = await sails.models.dish.find({
             where: {

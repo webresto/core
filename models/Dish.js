@@ -381,7 +381,8 @@ let Model = {
         const baseCriteriaDish = {
             balance: { "!=": 0 },
             modifier: false,
-            isDeleted: false
+            isDeleted: false,
+            visible: true
         };
         const groupLimit = Math.max(Math.round(limit / ids.length), 1);
         let dishes = await sails.models.dish.find({
@@ -390,8 +391,24 @@ let Model = {
                 ...baseCriteriaDish
             }
         }).populate('recommendations', {
+            where: {
+                'and': [
+                    { 'balance': { "!=": 0 } },
+                    { 'modifier': false },
+                    { 'isDeleted': false },
+                    { 'visible': true }
+                ]
+            },
             limit: groupLimit
         }).populate('recommendedBy', {
+            where: {
+                'and': [
+                    { 'balance': { "!=": 0 } },
+                    { 'modifier': false },
+                    { 'isDeleted': false },
+                    { 'visible': true }
+                ]
+            },
             limit: includeReverse ? groupLimit : 0
         });
         let recommendedDishes = dishes.reduce((acc, dish) => {
