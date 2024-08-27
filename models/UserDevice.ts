@@ -21,7 +21,7 @@ let attributes = {
   user: {
     model: 'user',
     required: true
-  } as unknown as User | String,
+  } as unknown as User | string,
   lastIP: "string",
   loginTime:  { type: "number"} as unknown as number,
   lastActivity: { type: "number"} as unknown as number,
