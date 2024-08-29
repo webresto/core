@@ -900,7 +900,7 @@ let Model = {
       };
     }
 
-    if (!order.selfService && !order.delivery?.allowed) {
+    if (!order.selfService && softDeliveryCalculation === false && order.delivery?.allowed === false) {
       throw {
         code: 11,
         error: "Delivery not allowed",
@@ -1587,28 +1587,21 @@ let Model = {
         sails.log.debug(order, delivery)
         if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
           emitter.emit("core:order-check-delivery", order);
+          let delivery: Delivery
           try {
-            let delivery: Delivery
-            try {
-              delivery = await deliveryAdapter.calculate(order);
-            } catch (error) {
-              sails.log.error("deliveryAdapter.calculate error:", error)
-              delivery = {
-                allowed: false,
-                cost: 0,
-                item: undefined,
-                message: error.replace(/[^\w\s]/gi, ''),
-                deliveryTimeMinutes: undefined,
-                hasError: true
-              }
-            }
-            
+            delivery = await deliveryAdapter.calculate(order);
           } catch (error) {
-            sails.log.error(`Core > order > delivery calculate fail: `, error)
-          }
-          emitter.emit("core:order-after-check-delivery", order);
+            sails.log.error("deliveryAdapter.calculate error:", error)
+            delivery = {
+              allowed: false,
+              cost: 0,
+              item: undefined,
+              message: error.replace(/[^\w\s]/gi, ''),
+              deliveryTimeMinutes: undefined,
+              hasError: true
+            }
+          }   
         }
-        order.delivery = delivery
       }
 
       if (
@@ -1624,6 +1617,8 @@ let Model = {
         delivery.message = SOFT_DELIVERY_CALCULATION_MESSAGE ?? "Shipping cost cannot be calculated";
       }
       
+      order.delivery = delivery;
+
       if (order.delivery && isValidDelivery(order.delivery, softDeliveryCalculation)) {
         if (!order.delivery.item) {
           order.deliveryCost = order.delivery.cost
@@ -1651,7 +1646,6 @@ let Model = {
       order.total = new Decimal(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
 
       order = (await Order.update({ id: order.id }, order).fetch())[0];
-
 
       emitter.emit("core:order-after-count", order);
       return order;
