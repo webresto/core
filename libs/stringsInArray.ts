@@ -1,3 +1,5 @@
+import { isValue } from "../utils/isValue";
+
 /**
  * @notused
  */
@@ -22,8 +24,12 @@ export function stringsInArray(check: string[] | string, array: string[]): boole
 }
 
 export function someInArray(check: string[] | string, array: string[]) {
+    if(!isValue(check)) return false;
+
     if (typeof check === 'string') {
         check = [check];
+    } else if(!Array.isArray(check)) {
+        return false;
     }
   
     return array.some((e)=> check.includes(e));

@@ -1559,7 +1559,7 @@ let Model = {
 
           await Order.update({ id: order.id }, promotionOrderToSave).fetch();
         } catch (error) {
-          sails.log.error(`Core > order > promotion calculate fail: `, error)
+          sails.log.error(`Core > order > promotion calculate fail: `, error);
         } finally {
           // finally
           order.isPromoting = false;

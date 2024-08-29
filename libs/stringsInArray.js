@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.stringsInArray = stringsInArray;
 exports.someInArray = someInArray;
 exports.extractFieldValues = extractFieldValues;
+const isValue_1 = require("../utils/isValue");
 /**
  * @notused
  */
@@ -26,8 +27,13 @@ function stringsInArray(check, array) {
     }
 }
 function someInArray(check, array) {
+    if (!(0, isValue_1.isValue)(check))
+        return false;
     if (typeof check === 'string') {
         check = [check];
+    }
+    else if (!Array.isArray(check)) {
+        return false;
     }
     return array.some((e) => check.includes(e));
 }
