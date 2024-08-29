@@ -1353,6 +1353,7 @@ let Model = {
                     if (deliveryItem) {
                         order.deliveryItem = deliveryItem.id;
                         order.deliveryCost = deliveryItem.price;
+                        order.delivery.cost = deliveryItem.price;
                     }
                     else {
                         order.deliveryCost = 0;
