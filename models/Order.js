@@ -1316,10 +1316,8 @@ let Model = {
             else {
                 let deliveryAdapter = await Adapter.getDeliveryAdapter();
                 await deliveryAdapter.reset(order);
-                sails.log.debug(order, delivery);
                 if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
                     emitter.emit("core:order-check-delivery", order);
-                    let delivery;
                     try {
                         delivery = await deliveryAdapter.calculate(order);
                     }

@@ -1584,10 +1584,8 @@ let Model = {
       } else {
         let deliveryAdapter = await Adapter.getDeliveryAdapter();
         await deliveryAdapter.reset(order);
-        sails.log.debug(order, delivery)
         if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
           emitter.emit("core:order-check-delivery", order);
-          let delivery: Delivery
           try {
             delivery = await deliveryAdapter.calculate(order);
           } catch (error) {
@@ -1616,9 +1614,9 @@ let Model = {
         delivery.cost = null;
         delivery.message = SOFT_DELIVERY_CALCULATION_MESSAGE ?? "Shipping cost cannot be calculated";
       }
-      
+           
       order.delivery = delivery;
-
+      
       if (order.delivery && isValidDelivery(order.delivery, softDeliveryCalculation)) {
         if (!order.delivery.item) {
           order.deliveryCost = order.delivery.cost
