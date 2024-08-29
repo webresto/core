@@ -1598,7 +1598,8 @@ let Model = {
                 cost: 0,
                 item: undefined,
                 message: error.replace(/[^\w\s]/gi, ''),
-                deliveryTimeMinutes: undefined
+                deliveryTimeMinutes: undefined,
+                hasError: true
               }
             }
             
@@ -1614,7 +1615,7 @@ let Model = {
         softDeliveryCalculation && 
         (!order.delivery || 
           Object.keys(order.delivery).length === 0 || 
-          delivery.allowed === false
+          delivery.deliveryLocationUnrecognized === true
         )
       ) {
         let SOFT_DELIVERY_CALCULATION_MESSAGE = await Settings.get("SOFT_DELIVERY_CALCULATION_MESSAGE")

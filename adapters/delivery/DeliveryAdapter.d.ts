@@ -11,6 +11,15 @@ export interface Delivery {
     cost: number | null;
     item: string | undefined;
     message: string;
+    /**
+     * A flag that shows that it was not possible to recognize how to make a delivery
+     * street and house number not found.
+     */
+    deliveryLocationUnrecognized?: boolean;
+    /**
+     * This flag indicates that there was an error not related to business logic. Any error like new Error
+     */
+    hasError?: boolean;
 }
 export default abstract class DeliveryAdapter {
     /**
