@@ -64,14 +64,14 @@ class BaseModelItem extends AbstractCatalog_1.AbstractItem {
             concept: catalogId,
             isDeleted: false
         });
-        return records.map(record => this.toItem(record));
+        return records.map((record) => this.toItem(record));
     }
     async search(s, catalogId) {
         const records = await sails.models[this.model].find({
             name: { contains: s },
             concept: catalogId
         });
-        return records.map(record => this.toItem(record));
+        return records.map((record) => this.toItem(record));
     }
     updateModelItems(itemId, data, catalogId) {
         return Promise.resolve(undefined);
@@ -117,7 +117,7 @@ class ProductCatalog extends AbstractCatalog_1.AbstractCatalog {
     }
     async getIdList() {
         const groups = await sails.models['group'].find({});
-        const concepts = groups.map(group => group.concept);
+        const concepts = groups.map((group) => group.concept);
         concepts.push('origin');
         return [...new Set(concepts)];
     }

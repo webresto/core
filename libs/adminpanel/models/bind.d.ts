@@ -8,6 +8,8 @@ declare const _default: {
         model: string;
         title: string;
         icon: string;
+        list: {};
+        edit: {};
     };
     groups: {
         model: string;

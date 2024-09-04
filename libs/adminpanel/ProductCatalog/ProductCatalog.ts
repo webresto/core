@@ -86,7 +86,7 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 			isDeleted: false
 		});
 		
-		return records.map(record => this.toItem(record));
+		return records.map((record: ItemModel) => this.toItem(record));
 	}
 
 	public async search(s: string, catalogId: string): Promise<T[]> {
@@ -95,7 +95,7 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 			concept: catalogId
 		});
 
-		return records.map(record => this.toItem(record) as T);
+		return records.map((record: ItemModel) => this.toItem(record) as T);
 	}
 
 	updateModelItems(itemId: string | number, data: T, catalogId: string): Promise<T> {
@@ -141,7 +141,7 @@ export class ProductCatalog extends AbstractCatalog {
 
 	public async getIdList(): Promise<string[]> {
 		const groups = await sails.models['group'].find({});
-		const concepts: string[] = groups.map(group => group.concept);
+		const concepts: string[] = groups.map((group: { concept: string; }) => group.concept);
 		concepts.push('origin')
 		return [...new Set(concepts)];
 	}

@@ -1,3 +1,4 @@
+import { ProductConfig } from "./lib/product";
 
 export default {
   user: {
@@ -8,7 +9,10 @@ export default {
   products: {
     model: 'dish',
     title: 'Products',
-    icon: 'hamburger'
+    icon: 'hamburger', 
+    list: ProductConfig.list(),
+    edit: ProductConfig.edit(),
+    add: ProductConfig.add(),
   },
   groups: {
     model: 'group',

@@ -9,7 +9,9 @@ exports.default = {
     products: {
         model: 'dish',
         title: 'Products',
-        icon: 'hamburger'
+        icon: 'hamburger',
+        list: {},
+        edit: {}
     },
     groups: {
         model: 'group',

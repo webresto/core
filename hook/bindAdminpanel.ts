@@ -1,21 +1,20 @@
-import settings from "../libs/adminpanel/model/settings"
-
-import { CatalogHandler } from "sails-adminpanel/lib/catalog/CatalogHandler"
+import models  from "../libs/adminpanel/models/bind"
 import { ProductCatalog } from "../libs/adminpanel/ProductCatalog/ProductCatalog";
 
-
-const productCatalog = new ProductCatalog()
-CatalogHandler.add(productCatalog);
 export default function bindAdminpanel () {
   sails.on('Adminpanel:afterHook:loaded', async ()=>{
     processBindAdminpanel();
+    console.log(111333)
+    const CatalogHandler = sails.hooks.adminpanel.getCatalogHandler()
+    const productCatalog = new ProductCatalog()
+    CatalogHandler.add(productCatalog);
   })
 }
 
 function processBindAdminpanel(){
   if(sails.hooks?.adminpanel?.addModelConfig !== undefined) {
     const addModelConfig = sails.hooks.adminpanel.addModelConfig;
-    addModelConfig(settings);
+    addModelConfig(models);
   }
 
   if(Array.isArray(sails.config.adminpanel?.sections)){
