@@ -16,10 +16,12 @@ let attributes = {
     /** Group relation */
     group: {
         model: "group",
+        via: "images"
     },
     /** Dish relation */
     dish: {
-        model: "dish"
+        model: "dish",
+        via: "images"
     },
 };
 let Model = {

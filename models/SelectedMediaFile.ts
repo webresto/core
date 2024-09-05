@@ -24,11 +24,13 @@ let attributes = {
   /** Group relation */
   group: {
     model: "group",
+    via: "images"
   } as unknown as GroupRecord | string,
 
   /** Dish relation */
   dish: {
-    model: "dish"
+    model: "dish",
+    via: "images"
   } as unknown as DishRecord | string,
 };
 
