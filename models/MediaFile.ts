@@ -39,14 +39,14 @@ let attributes = {
   /** relations */
   dish: {
     collection: "dish",
-    via: "dish",
+    via: "mediafile",
     through: 'selectedmediafile'
   } as unknown as DishRecord[] | string [],
 
   /** Group relation */
   group: {
     collection: "group",
-    via: "group",
+    via: "mediafile",
     through: 'selectedmediafile'
   } as unknown as GroupRecord[] | string [],
 };

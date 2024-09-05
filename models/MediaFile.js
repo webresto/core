@@ -51,13 +51,13 @@ let attributes = {
     /** relations */
     dish: {
         collection: "dish",
-        via: "dish",
+        via: "mediafile",
         through: 'selectedmediafile'
     },
     /** Group relation */
     group: {
         collection: "group",
-        via: "group",
+        via: "mediafile",
         through: 'selectedmediafile'
     },
 };
