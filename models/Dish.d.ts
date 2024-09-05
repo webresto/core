@@ -1,5 +1,5 @@
 import Group from "./Group";
-import { IMediaFile } from "./MediaFile";
+import { MediaFileRecord } from "./MediaFile";
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { WorkTime } from "@webresto/worktime";
@@ -104,10 +104,10 @@ declare let attributes: {
     /** Модифакторы блюда */
     modifiers: GroupModifier[];
     /**List of images of the dish*/
-    images: IMediaFile[];
+    images: MediaFileRecord[];
     favorites: User[];
-    recommendations: Dish[];
-    recommendedBy: Dish[];
+    recommendations: DishRecord[];
+    recommendedBy: DishRecord[];
     customData: CustomData;
 };
 interface IVirtualFields {
@@ -120,17 +120,11 @@ interface IVirtualFields {
     salePrice?: number;
 }
 type attributes = typeof attributes;
-/**
- * @deprecated use `DishRecord` instead
- */
-interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {
-}
 export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {
 }
-export default Dish;
 declare let Model: {
-    beforeCreate: (init: Dish, cb: (err?: string) => void) => Promise<void>;
-    beforeUpdate: (value: Dish, cb: (err?: string) => void) => Promise<void>;
+    beforeCreate: (init: DishRecord, cb: (err?: string) => void) => Promise<void>;
+    beforeUpdate: (value: DishRecord, cb: (err?: string) => void) => Promise<void>;
     afterUpdate: (record: any, cb: (err?: string) => void) => void;
     afterCreate: (record: any, cb: (err?: string) => void) => void;
     /**
@@ -139,15 +133,15 @@ declare let Model: {
      * @param criteria - criteria asked
      * @return Found dishes
      */
-    getDishes(criteria?: any): Promise<Dish[]>;
+    getDishes(criteria?: any): Promise<DishRecord[]>;
     /**
      * Popularizes the modifiers of the dish, that is, all the Group modifiers are preparing a group and dishes that correspond to them,
      * And ordinary modifiers are preparing their dish.
      * @param dish
      */
-    getDishModifiers(dish: Dish): Promise<Dish>;
-    display(criteria: CriteriaQuery<Dish>): Promise<Dish[]>;
-    getRecommended: (ids: string[], limit?: number, includeReverse?: boolean) => Promise<Dish[]>;
+    getDishModifiers(dish: DishRecord): Promise<DishRecord>;
+    display(criteria: CriteriaQuery<DishRecord>): Promise<DishRecord[]>;
+    getRecommended: (ids: string[], limit?: number, includeReverse?: boolean) => Promise<DishRecord[]>;
     /**
      * Checks whether the dish exists, if it does not exist, then creates a new one and returns it.If exists, then checks
      * Hash of the existing dish and new data, if they are identical, then immediately gives the dishes, if not, it updates its data
@@ -155,8 +149,9 @@ declare let Model: {
      * @param values
      * @return Updated or created dish
      */
-    createOrUpdate(values: Dish): Promise<Dish>;
+    createOrUpdate(values: DishRecord): Promise<DishRecord>;
 };
 declare global {
     const Dish: typeof Model & ORMModel<DishRecord, "name" | "price">;
 }
+export {};

@@ -5,6 +5,11 @@ export interface MediaFileConfig {
     group: MediaFileConfigInner;
     adapter: string;
 }
+export type ImageVariants = {
+    origin: string;
+    small: string | undefined;
+    large: string | undefined;
+};
 interface MediaFileConfigInner {
     format: string;
     resize: {
@@ -28,11 +33,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     loadMediaFilesProcessQueue: LoadMediaFilesProcess[];
     constructor(config: BaseConfig);
     getNameByUrl(url: string, ext: string, options?: any, salt?: string): string;
-    process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<{
-        origin: string;
-        small: string;
-        large: string;
-    }>;
+    process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<ImageVariants>;
     protected getPrefix(type?: MediaFileTypes): string;
     protected download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<void>;
     private loadMediaFiles;

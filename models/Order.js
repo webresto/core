@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const OrderDish_1 = __importDefault(require("./OrderDish"));
 const PaymentDocument_1 = __importDefault(require("./PaymentDocument"));
+const Dish_1 = __importDefault(require("./Dish"));
 const uuid_1 = require("uuid");
 const PaymentMethod_1 = __importDefault(require("./PaymentMethod"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
@@ -283,7 +284,7 @@ let Model = {
          */
         const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID");
         if (ORDER_INIT_PRODUCT_ID) {
-            const ORDER_INIT_PRODUCT = (await Dish.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
+            const ORDER_INIT_PRODUCT = (await Dish_1.default.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
             if (ORDER_INIT_PRODUCT !== undefined) {
                 await Order.addDish({ id: order.id }, ORDER_INIT_PRODUCT, 1, [], "", "core");
             }
@@ -305,7 +306,7 @@ let Model = {
         if (!addedBy)
             addedBy = "user";
         if (typeof dish === "string") {
-            dishObj = (await Dish.find({ id: dish }).limit(1))[0];
+            dishObj = (await Dish_1.default.find({ id: dish }).limit(1))[0];
             if (!dishObj) {
                 throw { body: `Dish with id ${dish} not found`, code: 2 };
             }
@@ -647,7 +648,7 @@ let Model = {
             throw `order with orderId ${order.id} in state ORDER`;
         if (order.promotionUnorderable === true)
             throw `Order not possible for order by promotion`;
-        //const order: Order = await Order.findOne(criteria);
+        //const order: OrderRecord = await Order.findOne(criteria);
         if (order.paid) {
             sails.log.error("CART > Check > error", order.id, "order is paid");
             throw {
@@ -1028,18 +1029,18 @@ let Model = {
                 //   continue;
                 // }
                 const _dish = orderDish.dish;
-                const dish = await Dish.findOne({
+                const dish = await Dish_1.default.findOne({
                     id: _dish.id,
                     // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
                     // isDeleted: false,
                 })
                     .populate("images")
                     .populate("parentGroup");
-                await Dish.getDishModifiers(dish);
+                await Dish_1.default.getDishModifiers(dish);
                 orderDish.dish = dish;
                 if (orderDish.modifiers !== undefined && Array.isArray(orderDish.modifiers)) {
                     for await (let modifier of orderDish.modifiers) {
-                        modifier.dish = (await Dish.find({ id: modifier.id }).limit(1))[0];
+                        modifier.dish = (await Dish_1.default.find({ id: modifier.id }).limit(1))[0];
                     }
                 }
                 else {
@@ -1130,7 +1131,7 @@ let Model = {
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
                             for await (let selectedModifier of orderDish.modifiers) {
-                                const modifierObj = (await Dish.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.id }] } }).limit(1))[0];
+                                const modifierObj = (await Dish_1.default.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.id }] } }).limit(1))[0];
                                 if (!modifierObj) {
                                     throw "Dish with id " + selectedModifier.id + " not found!";
                                 }
@@ -1149,10 +1150,10 @@ let Model = {
                                  */
                                 // Find original obj modifiers
                                 let currentModifier = null;
-                                dish.modifiers.forEach(originGroupModifiers => {
+                                dish.modifiers.forEach((originGroupModifiers) => {
                                     // this block is not used
                                     if (originGroupModifiers.childModifiers) {
-                                        originGroupModifiers.childModifiers.forEach(originChildModifier => {
+                                        originGroupModifiers.childModifiers.forEach((originChildModifier) => {
                                             if (selectedModifier.dish && selectedModifier.dish.rmsId !== undefined) {
                                                 if (selectedModifier.dish.rmsId === originChildModifier.id /** is rmsId*/) {
                                                     currentModifier = originChildModifier;
@@ -1353,7 +1354,7 @@ let Model = {
                     order.deliveryCost = order.delivery.cost;
                 }
                 else {
-                    const deliveryItem = await Dish.findOne({ where: { or: [{ id: order.delivery.item }, { rmsId: order.delivery.item }] } });
+                    const deliveryItem = await Dish_1.default.findOne({ where: { or: [{ id: order.delivery.item }, { rmsId: order.delivery.item }] } });
                     if (deliveryItem) {
                         order.deliveryItem = deliveryItem.id;
                         order.deliveryCost = deliveryItem.price;
@@ -1386,7 +1387,7 @@ let Model = {
     async doPaid(criteria, paymentDocument) {
         let order = await Order.findOne(criteria);
         if (order.paid) {
-            sails.log.debug(`Order > doPaid: Order with id ${order.id} is paid`);
+            sails.log.debug(`Order > doPaid: OrderRecord with id ${order.id} is paid`);
             return;
         }
         try {

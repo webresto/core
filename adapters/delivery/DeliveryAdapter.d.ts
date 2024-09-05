@@ -1,4 +1,4 @@
-import Order from "../../models/Order";
+import { OrderRecord } from "../../models/Order";
 /**
  * **Soft delivery calculation**
  * This is done so that some deliveries can agree on the cost of delivery themselves.
@@ -26,10 +26,10 @@ export default abstract class DeliveryAdapter {
      * Calc delivery
      * @returns Delivery
      */
-    abstract calculate(order: Order): Promise<Delivery>;
+    abstract calculate(order: OrderRecord): Promise<Delivery>;
     /**
      * Reset order
      * @returns void
      */
-    reset(order: Order): Promise<void>;
+    reset(order: OrderRecord): Promise<void>;
 }

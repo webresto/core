@@ -1,46 +1,45 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import Dish from "./Dish";
-import Group from "./Group";
 import { OptionalAll } from "../interfaces/toolsTS";
+import { DishRecord } from "./Dish";
+import { GroupRecord } from "./Group";
 declare let attributes: {
     /** ID */
     id: string;
     /** Type of media content */
     type: "video" | "image" | "sound";
-    /** Video/Photo items */
-    /** Image items */
-    images: any;
-    original: string;
-    /** Dish relation */
-    dish: Dish[];
     /**
-     * Sort order
-     * @deprecated was moved to junction table
-     * */
-    sortOrder: number;
+     * @deprecated use variant field
+     * TODO: delete in ver 3
+     * Image items */
+    images: {
+        [key: string]: string | undefined;
+    };
+    /**
+     * variants is just an array containing the variant name and its local path
+     * clone from images
+     * This is automatically cloned from images and vice versa
+     * Image items */
+    variant: {
+        [key: string]: string | undefined;
+    };
+    original: string;
+    /** relations */
+    dish: DishRecord[] | string[];
     /** Group relation */
-    group: Group[];
-    /** upload date
-     * @deprecated (del in v2)
-    */
-    uploadDate: string;
+    group: GroupRecord[] | string[];
 };
 type attributes = typeof attributes;
-/**
- * @deprecated use MediaFileRecord
- */
-interface MediaFile extends OptionalAll<attributes>, ORM {
-}
 /** @deprecated use `MediaFileRecord` */
 export type IMediaFile = OptionalAll<attributes>;
 export interface MediaFileRecord extends OptionalAll<attributes>, ORM {
 }
 declare let Model: {
-    beforeCreate(imageInit: any, cb: (err?: string) => void): void;
-    afterDestroy(mf: MediaFile, cb: (err?: any) => void): Promise<void>;
+    beforeCreate(imageInit: MediaFileRecord, cb: (err?: string) => void): void;
+    beforeUpdate(imageInit: MediaFileRecord, cb: (err?: string) => void): void;
+    afterDestroy(mf: MediaFileRecord, cb: (err?: any) => void): Promise<void>;
 };
 declare global {
-    const MediaFile: typeof Model & ORMModel<MediaFile, null>;
+    const MediaFile: typeof Model & ORMModel<MediaFileRecord, null>;
 }
 export {};

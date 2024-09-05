@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const Order_1 = __importDefault(require("../../../models/Order"));
+const Dish_1 = __importDefault(require("../../../models/Dish"));
 const ExternalTestPaymentSystem_1 = __importDefault(require("../../unit/external_payments/ExternalTestPaymentSystem"));
 const PaymentDocument_1 = __importDefault(require("../../../models/PaymentDocument"));
 const OrderDish_1 = __importDefault(require("../../../models/OrderDish"));
@@ -22,7 +23,7 @@ describe("Order", function () {
     // });
     before;
     before(async function () {
-        dishes = await Dish.find({});
+        dishes = await Dish_1.default.find({});
         order = await Order_1.default.create({ id: "create-cart" }).fetch();
     });
     it("check model fields", async function () {

@@ -3,14 +3,15 @@ import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 
 import ORM from "../interfaces/ORM";
-import {IMediaFile} from "./MediaFile";
-import Dish from "../models/Dish";
+import { MediaFileRecord } from "./MediaFile";
+import { DishRecord } from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { Adapter } from "../adapters";
 import { slugIt } from "../libs/slugIt";
 export type GetGroupType = { [x: string]: GroupWithAdditionalFields }
+
 let attributes = {
   /**Id */
   id: {
@@ -77,26 +78,26 @@ let attributes = {
   dishes: {
     collection: "dish",
     via: "parentGroup",
-  } as unknown as Dish[],
+  } as unknown as DishRecord[],
 
   parentGroup: {
     model: "group",
-  } as unknown as Group | any,
+  } as unknown as GroupRecord | string,
 
   childGroups: {
     collection: "group",
     via: "parentGroup",
-  } as unknown as Group[] | string[],
+  } as unknown as GroupRecord[] | string[],
 
   recommendations: {
     collection: "group",
     via: 'recommendedBy',
-  } as unknown as Group[] | string[],
+  } as unknown as GroupRecord[] | string[],
   
   recommendedBy: {
     collection: "group",
     via: 'recommendations',
-  } as unknown as Group[] | string[],
+  } as unknown as GroupRecord[] | string[],
 
 
   /** Icon */
@@ -109,12 +110,13 @@ let attributes = {
   images: {
     collection: "mediafile",
     via: "group",
-  } as unknown as IMediaFile[] | string[],
+    through: 'selectedmediafile'
+  } as unknown as MediaFileRecord[] | string[],
 
   /** Placeholder for group dishes */
   dishesPlaceholder: {
     model: "mediafile",
-  } as unknown as IMediaFile[],
+  } as unknown as MediaFileRecord[],
 
   /** The human easy readable*/
   slug: {
@@ -150,10 +152,7 @@ interface IVirtualFields {
 }
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `GroupRecord` instead
- */
-interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {}
+
 export interface GroupRecord extends OptionalAll<attributes>, IVirtualFields, ORM {}
 
 let Model = {
@@ -178,17 +177,17 @@ let Model = {
     cb();
   },
 
-  beforeUpdate: function (record: Group, cb:  (err?: string) => void) {
+  beforeUpdate: function (record: GroupRecord, cb:  (err?: string) => void) {
     emitter.emit('core:group-before-update', record);
     return cb();
   },
 
-  afterUpdate: function (record: Group, cb:  (err?: string) => void) {
+  afterUpdate: function (record: GroupRecord, cb:  (err?: string) => void) {
     emitter.emit('core:group-after-update', record);
     return cb();
   },
 
-  afterCreate: function (record: Group, cb:  (err?: string) => void) {
+  afterCreate: function (record: GroupRecord, cb:  (err?: string) => void) {
     emitter.emit('core:group-after-create', record);
     return cb();
   },
@@ -204,7 +203,7 @@ let Model = {
    * where Groups is an array, requested groups with a complete display of investment, that is, with their dishes, the dishes are their modifiers
    * and pictures, there are pictures of the group, etc., and errors is an object in which the keys are groups that cannot be obtained
    * According to some dinich, the values of this object are the reasons why the group was not obtained.
-   * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+   * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:GroupRecord}, errors: {[groupId]: error}}
    */
   async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[]; errors: {} }> {
 
@@ -268,9 +267,9 @@ let Model = {
    * @param groupId - ID groups
    * @return The requested group
    * @throws The error of obtaining a group
-   * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
+   * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: GroupRecord}, Errors: {[Groupid]: error}}
    */
-  async getGroup(groupId: string): Promise<Group> {
+  async getGroup(groupId: string): Promise<GroupRecord> {
     const result = await Group.getGroups([groupId]);
     if (result.errors[0]) {
       throw result.errors[0];
@@ -285,9 +284,9 @@ let Model = {
    * @param groupSlug - Slug groups
    * @return The requested group
    * @throws The error of obtaining a group
-   * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
+   * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: GroupRecord}, Errors: {[Groupid]: error}}
    */
-  async getGroupBySlug(groupSlug: string): Promise<Group> {
+  async getGroupBySlug(groupSlug: string): Promise<GroupRecord> {
 
     if (!groupSlug) throw "groupSlug is required"
 
@@ -307,7 +306,7 @@ let Model = {
 
   // use this method to get a group modified by adapters
   // https://github.com/balderdashy/waterline/pull/902
-  async display(criteria: CriteriaQuery<Group>): Promise<Group[]> {
+  async display(criteria: CriteriaQuery<GroupRecord>): Promise<GroupRecord[]> {
     const promotionAdapter = Adapter.getPromotionAdapter()
     const groups = await Group.find(criteria);
     // Set virtual default
@@ -316,7 +315,7 @@ let Model = {
       group.discountType = null;
     });
 
-    let updatedDishes = [] as Group[]
+    let updatedDishes = [] as GroupRecord[]
     for(let i:number=0; i < groups.length; i++) {
       try {
         updatedDishes.push(promotionAdapter.displayGroup(groups[i]))
@@ -329,7 +328,7 @@ let Model = {
   },
 
   // Recursive function to get all child groups
-  async getMenuTree(menu?: Group[], option: "only_ids" | "tree" | "flat_tree" = "only_ids"): Promise<string[]> {
+  async getMenuTree(menu?: GroupRecord[], option: "only_ids" | "tree" | "flat_tree" = "only_ids"): Promise<string[]> {
 
     if(option === "tree") {
       throw `not implemented yet`
@@ -378,8 +377,8 @@ let Model = {
   /**
    * Menu for navbar
    * */
-  async getMenuGroups(concept?: string, topLevelGroupId?: string): Promise<Group[]> {
-    let groups = [] as Group[]
+  async getMenuGroups(concept?: string, topLevelGroupId?: string): Promise<GroupRecord[]> {
+    let groups = [] as GroupRecord[]
     emitter.emit('core:group-get-menu', groups, concept);
 
     // Default logic
@@ -441,7 +440,7 @@ let Model = {
    * @param {boolean} [includeReverse=false] - Include reverse recommendations.
    * @returns {Promise<object[]>} - An array of recommended dishes.
    */
-  async getRecommendedDishes(ids: string[], limit: number = 12, includeReverse: boolean = true): Promise<Dish[]> {
+  async getRecommendedDishes(ids: string[], limit: number = 12, includeReverse: boolean = true): Promise<DishRecord[]> {
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new Error('You must provide an array of IDs.');
     }
@@ -478,14 +477,14 @@ let Model = {
     });
 
 
-    let recommendedGroupIds = groups.reduce((acc: string[], group: Group) => {
-      return acc.concat(group.recommendations.map((rec:Group) => rec.id));
+    let recommendedGroupIds = groups.reduce((acc: string[], group: GroupRecord) => {
+      return acc.concat(group.recommendations.map((rec:GroupRecord) => rec.id));
     }, []);
 
 
     if (includeReverse) {
-      groups.forEach((group: Group) => {
-        recommendedGroupIds = recommendedGroupIds.concat(group.recommendedBy.map((rec: Group) => rec.id));
+      groups.forEach((group: GroupRecord) => {
+        recommendedGroupIds = recommendedGroupIds.concat(group.recommendedBy.map((rec: GroupRecord) => rec.id));
       });
     }
 
@@ -503,8 +502,8 @@ let Model = {
       }
     });
 
-    recommendedDishes = [...new Set(recommendedDishes.map((dish: Dish) => dish.id))].map(id =>
-      recommendedDishes.find((dish: Dish) => dish.id === id)
+    recommendedDishes = [...new Set(recommendedDishes.map((dish: DishRecord) => dish.id))].map(id =>
+      recommendedDishes.find((dish: DishRecord) => dish.id === id)
     );
 
     // Fisher-Yates algrythm
@@ -522,7 +521,7 @@ let Model = {
    * @param values
    * @return Updated or created group
    */
-  async createOrUpdate(values: Group): Promise<Group> {
+  async createOrUpdate(values: GroupRecord): Promise<GroupRecord> {
     sails.log.silly(`Core > Group > createOrUpdate: ${values.name}`)
     let criteria = {}
     if(values.id) {
@@ -546,9 +545,9 @@ let Model = {
 /**
  * Describes a group of dishes at the time of obtaining its popularized version, additional fields are the error of the framework
  */
-export interface GroupWithAdditionalFields extends Group {
-  childGroups: Group[];
-  dishesList: Dish[];
+export interface GroupWithAdditionalFields extends GroupRecord {
+  childGroups: GroupRecord[];
+  dishesList: DishRecord[];
 }
 
 module.exports = {
@@ -558,5 +557,5 @@ module.exports = {
 };
 
 declare global {
-  const Group: typeof Model & ORMModel<Group, null>;
+  const Group: typeof Model & ORMModel<GroupRecord, null>;
 }

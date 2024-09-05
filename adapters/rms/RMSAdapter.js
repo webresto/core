@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const Dish_1 = __importDefault(require("../../models/Dish"));
 const Group_1 = __importDefault(require("../../models/Group"));
 const ObservablePromise_1 = require("../../libs/ObservablePromise");
 /**
@@ -111,9 +112,9 @@ class RMSAdapter {
                             // Update or create product
                             product.concept = product.concept ?? "origin";
                             const productData = { ...product, isDeleted: false };
-                            let createdProduct = await Dish.createOrUpdate(productData);
+                            let createdProduct = await Dish_1.default.createOrUpdate(productData);
                             // Set isDeleted for absent products in ERP
-                            await Dish.update({ id: { "!=": productIds }, parentGroup: group.id }, { isDeleted: true }).fetch();
+                            await Dish_1.default.update({ id: { "!=": productIds }, parentGroup: group.id }, { isDeleted: true }).fetch();
                             const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
                             // Load images
                             if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
@@ -123,7 +124,7 @@ class RMSAdapter {
                                         // load image
                                         const mfAdater = await Adapter.getMediaFileAdapter();
                                         const mediaFileImage = await mfAdater.toDownload(image, "dish", "image");
-                                        await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
+                                        await Dish_1.default.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
                                     }
                                     else {
                                         sails.log.silly(`Image not url on sync products ${image}`);
@@ -137,7 +138,7 @@ class RMSAdapter {
                     const inactiveGroups = await Group_1.default.find({ isDeleted: true });
                     const inactiveGroupIds = inactiveGroups.map((group) => group.id);
                     // Delete all dishes in inactive groups or not in the updated list
-                    await Dish.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true }).fetch();
+                    await Dish_1.default.update({ where: { or: [{ parentGroup: { in: inactiveGroupIds } }, { rmsId: { "!=": allProductIds } }, { parentGroup: null }] } }, { isDeleted: true }).fetch();
                     emitter.emit("rms-sync:after-sync-products");
                 }
                 return resolve();
@@ -163,13 +164,13 @@ class RMSAdapter {
             try {
                 let outOfStocksDishes = await this.loadOutOfStocksDishes();
                 const outOfStocksDishesIds = outOfStocksDishes.map(d => d.rmsId);
-                await Dish.update({
+                await Dish_1.default.update({
                     rmsId: { nin: outOfStocksDishesIds },
                     balance: { '!=': -1 }
                 }, { balance: -1 }).fetch();
                 for (let item of outOfStocksDishes) {
                     emitter.emit("rms-sync:out-of-stocks-before-each-product-item", item);
-                    await Dish.update({ rmsId: item.rmsId }, { balance: item.balance }).fetch();
+                    await Dish_1.default.update({ rmsId: item.rmsId }, { balance: item.balance }).fetch();
                 }
                 return resolve();
             }

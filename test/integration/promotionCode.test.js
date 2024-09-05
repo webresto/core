@@ -7,6 +7,7 @@ const adapters_1 = require("../../adapters");
 const chai_1 = require("chai");
 const customer_1 = require("../mocks/customer");
 const dish_generator_1 = __importDefault(require("../generators/dish.generator"));
+const Dish_1 = __importDefault(require("./../../models/Dish"));
 const ExternalTestPaymentSystem_1 = __importDefault(require("../unit/external_payments/ExternalTestPaymentSystem"));
 describe("111 Promotion code integration test", function () {
     this.timeout(60000);
@@ -43,8 +44,8 @@ describe("111 Promotion code integration test", function () {
         await PromotionCode.addToCollection("promocode-test-123", "promotion", 'promo-flat-123');
         const groups = await Group.find({});
         const groupsId = groups.map(group => group.id);
-        dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish for promotion", price: 10.1, concept: "road", parentGroup: groupsId[0] }));
-        dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish for promotion", price: 15.2, concept: "road", parentGroup: groupsId[0] }));
+        dish1 = await Dish_1.default.createOrUpdate((0, dish_generator_1.default)({ name: "test dish for promotion", price: 10.1, concept: "road", parentGroup: groupsId[0] }));
+        dish2 = await Dish_1.default.createOrUpdate((0, dish_generator_1.default)({ name: "test fish for promotion", price: 15.2, concept: "road", parentGroup: groupsId[0] }));
     });
     after(async function () {
         await Promotion.destroy({});

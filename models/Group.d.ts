@@ -1,7 +1,7 @@
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import { IMediaFile } from "./MediaFile";
-import Dish from "../models/Dish";
+import { MediaFileRecord } from "./MediaFile";
+import { DishRecord } from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
 export type GetGroupType = {
@@ -27,20 +27,20 @@ declare let attributes: {
     seoTitle: string;
     /** Sorting weight */
     sortOrder: number;
-    dishes: Dish[];
-    parentGroup: Group | any;
-    childGroups: Group[] | string[];
-    recommendations: Group[] | string[];
-    recommendedBy: Group[] | string[];
+    dishes: DishRecord[];
+    parentGroup: GroupRecord | string;
+    childGroups: GroupRecord[] | string[];
+    recommendations: GroupRecord[] | string[];
+    recommendedBy: GroupRecord[] | string[];
     /** Icon */
     icon: {
         type: string;
         allowNull: boolean;
     };
     /** Images */
-    images: IMediaFile[] | string[];
+    images: MediaFileRecord[] | string[];
     /** Placeholder for group dishes */
-    dishesPlaceholder: IMediaFile[];
+    dishesPlaceholder: MediaFileRecord[];
     /** The human easy readable*/
     slug: string;
     /** The concept to which the group belongs */
@@ -64,18 +64,13 @@ interface IVirtualFields {
     discountType?: "flat" | "percentage";
 }
 type attributes = typeof attributes;
-/**
- * @deprecated use `GroupRecord` instead
- */
-interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {
-}
 export interface GroupRecord extends OptionalAll<attributes>, IVirtualFields, ORM {
 }
 declare let Model: {
     beforeCreate: (init: GroupRecord, cb: (err?: string) => void) => Promise<void>;
-    beforeUpdate: (record: Group, cb: (err?: string) => void) => void;
-    afterUpdate: (record: Group, cb: (err?: string) => void) => void;
-    afterCreate: (record: Group, cb: (err?: string) => void) => void;
+    beforeUpdate: (record: GroupRecord, cb: (err?: string) => void) => void;
+    afterUpdate: (record: GroupRecord, cb: (err?: string) => void) => void;
+    afterCreate: (record: GroupRecord, cb: (err?: string) => void) => void;
     /**
      * Returns an object with groups and errors of obtaining these very groups.
      * @deprecated not used
@@ -87,7 +82,7 @@ declare let Model: {
      * where Groups is an array, requested groups with a complete display of investment, that is, with their dishes, the dishes are their modifiers
      * and pictures, there are pictures of the group, etc., and errors is an object in which the keys are groups that cannot be obtained
      * According to some dinich, the values of this object are the reasons why the group was not obtained.
-     * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:Group}, errors: {[groupId]: error}}
+     * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:GroupRecord}, errors: {[groupId]: error}}
      */
     getGroups(groupsId: string[]): Promise<{
         groups: GroupWithAdditionalFields[];
@@ -99,24 +94,24 @@ declare let Model: {
      * @param groupId - ID groups
      * @return The requested group
      * @throws The error of obtaining a group
-     * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
+     * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: GroupRecord}, Errors: {[Groupid]: error}}
      */
-    getGroup(groupId: string): Promise<Group>;
+    getGroup(groupId: string): Promise<GroupRecord>;
     /**
      * Returns a group with a given Slug
      * @deprecated not used
      * @param groupSlug - Slug groups
      * @return The requested group
      * @throws The error of obtaining a group
-     * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: Group}, Errors: {[Groupid]: error}}
+     * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: GroupRecord}, Errors: {[Groupid]: error}}
      */
-    getGroupBySlug(groupSlug: string): Promise<Group>;
-    display(criteria: CriteriaQuery<Group>): Promise<Group[]>;
-    getMenuTree(menu?: Group[], option?: "only_ids" | "tree" | "flat_tree"): Promise<string[]>;
+    getGroupBySlug(groupSlug: string): Promise<GroupRecord>;
+    display(criteria: CriteriaQuery<GroupRecord>): Promise<GroupRecord[]>;
+    getMenuTree(menu?: GroupRecord[], option?: "only_ids" | "tree" | "flat_tree"): Promise<string[]>;
     /**
      * Menu for navbar
      * */
-    getMenuGroups(concept?: string, topLevelGroupId?: string): Promise<Group[]>;
+    getMenuGroups(concept?: string, topLevelGroupId?: string): Promise<GroupRecord[]>;
     /**
      * Static method for obtaining recommended dishes by group.
      * @param {string[]} ids - An array of group IDs.
@@ -124,22 +119,22 @@ declare let Model: {
      * @param {boolean} [includeReverse=false] - Include reverse recommendations.
      * @returns {Promise<object[]>} - An array of recommended dishes.
      */
-    getRecommendedDishes(ids: string[], limit?: number, includeReverse?: boolean): Promise<Dish[]>;
+    getRecommendedDishes(ids: string[], limit?: number, includeReverse?: boolean): Promise<DishRecord[]>;
     /**
      * Checks whether the group exists, if it does not exist, then creates a new one and returns it.
      * @param values
      * @return Updated or created group
      */
-    createOrUpdate(values: Group): Promise<Group>;
+    createOrUpdate(values: GroupRecord): Promise<GroupRecord>;
 };
 /**
  * Describes a group of dishes at the time of obtaining its popularized version, additional fields are the error of the framework
  */
-export interface GroupWithAdditionalFields extends Group {
-    childGroups: Group[];
-    dishesList: Dish[];
+export interface GroupWithAdditionalFields extends GroupRecord {
+    childGroups: GroupRecord[];
+    dishesList: DishRecord[];
 }
 declare global {
-    const Group: typeof Model & ORMModel<Group, null>;
+    const Group: typeof Model & ORMModel<GroupRecord, null>;
 }
 export {};

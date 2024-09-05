@@ -195,6 +195,7 @@ let attributes = {
     images: {
         collection: "mediafile",
         via: "dish",
+        through: 'selectedmediafile'
     },
     favorites: {
         collection: 'user',

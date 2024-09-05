@@ -1,4 +1,4 @@
-import Order from "../../models/Order";
+import { OrderRecord } from "../../models/Order"
 
 
 /**
@@ -30,13 +30,13 @@ export default abstract class DeliveryAdapter {
    * Calc delivery
    * @returns Delivery
    */
-  public abstract calculate(order: Order): Promise<Delivery>;
+  public abstract calculate(order: OrderRecord): Promise<Delivery>;
 
   /**
    * Reset order
    * @returns void
    */
-  public async reset(order: Order): Promise<void> {
+  public async reset(order: OrderRecord): Promise<void> {
     order.delivery = {
       deliveryTimeMinutes: 0,
       allowed: false,

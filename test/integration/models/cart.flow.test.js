@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const Order_1 = __importDefault(require("../../../models/Order"));
 const Settings_1 = __importDefault(require("../../../models/Settings"));
+const Dish_1 = __importDefault(require("../../../models/Dish"));
 const customer_1 = require("../../mocks/customer");
 describe("Flows: Checkout", function () {
     this.timeout(10000);
@@ -14,7 +15,7 @@ describe("Flows: Checkout", function () {
     it("Check dishescount", async function () {
         await sleep(500);
         order = await Order_1.default.create({ id: "test.order.check-dishescount" }).fetch();
-        dishes = await Dish.find({});
+        dishes = await Dish_1.default.find({});
         await Order_1.default.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
         order = await Order_1.default.findOne({ id: "test.order.check-dishescount" });
         if (!order)

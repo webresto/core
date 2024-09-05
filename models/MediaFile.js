@@ -36,45 +36,79 @@ let attributes = {
         type: "string",
         isIn: ['video', 'image', 'sound']
     },
-    /** Video/Photo items */
-    //content: "json" as unknown as any,
-    // DEPRECATED use content instead
-    /** Image items */
+    /**
+     * @deprecated use variant field
+     * TODO: delete in ver 3
+     * Image items */
     images: "json",
+    /**
+     * variants is just an array containing the variant name and its local path
+     * clone from images
+     * This is automatically cloned from images and vice versa
+     * Image items */
+    variant: "json",
     original: "string",
-    /** Dish relation */
+    /** relations */
     dish: {
         collection: "dish",
-        via: "images",
+        via: "dish",
+        through: 'selectedmediafile'
     },
-    /**
-     * Sort order
-     * @deprecated was moved to junction table
-     * */
-    sortOrder: "number",
     /** Group relation */
     group: {
         collection: "group",
-        via: "images",
+        via: "group",
+        through: 'selectedmediafile'
     },
-    /** upload date
-     * @deprecated (del in v2)
-    */
-    uploadDate: "string",
 };
 let Model = {
     beforeCreate(imageInit, cb) {
         if (!imageInit.id) {
             imageInit.id = (0, uuid_1.v4)();
         }
+        /**
+         * TODO: delete in ver 3
+         */
+        if (imageInit.variant && imageInit.images) {
+            return cb('variant & image not allowed');
+        }
+        let variant = {
+            ...(imageInit.variant ? { ...imageInit.variant } : {}),
+            ...(imageInit.images ? { images: imageInit.images } : {})
+        };
+        imageInit.variant = variant;
+        imageInit.images = variant;
+        // 
+        cb();
+    },
+    beforeUpdate(imageInit, cb) {
+        if (!imageInit.id) {
+            imageInit.id = (0, uuid_1.v4)();
+        }
+        /**
+         * TODO: delete in ver 3
+         */
+        if (imageInit.variant && imageInit.images) {
+            return cb('variant & image not allowed');
+        }
+        let variant = {
+            ...(imageInit.variant ? { ...imageInit.variant } : {}),
+            ...(imageInit.images ? { ...imageInit.images } : {})
+        };
+        imageInit.variant = variant;
+        imageInit.images = variant;
+        // 
         cb();
     },
     async afterDestroy(mf, cb) {
         try {
-            const images = mf.images;
-            const keys = Object.keys(images);
-            for (const key of keys) {
-                const filePath = images[key];
+            let variant = {
+                // TODO:delete in v3
+                ...(mf.variant ? { ...mf.variant } : {}),
+                ...(mf.images ? { ...mf.images } : {})
+            };
+            for (const key in variant) {
+                const filePath = variant[key];
                 try {
                     await fs.promises.access(filePath, fs.constants.F_OK);
                     await fs.promises.unlink(filePath);

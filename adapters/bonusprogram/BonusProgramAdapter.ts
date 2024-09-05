@@ -1,18 +1,18 @@
-import UserBonusTransaction from "../../models/UserBonusTransaction";
-import UserBonusProgram from "../../models/UserBonusProgram";
-import User from "../../models/User";
+import {UserBonusTransactionRecord} from "../../models/UserBonusTransaction";
+import {UserBonusProgramRecord} from "../../models/UserBonusProgram";
 import { RequiredField } from "../../interfaces/toolsTS";
+import { UserRecord } from "../../models/User";
 
 export type ConfigBonusProgramAdapter = {
   [key: string]: number | boolean | string;
 };
 
-export type ExternalAbstractUser = RequiredField<Partial<Pick<Omit<UserBonusProgram, "id"> & User, "id" | "firstName" | "lastName" | "sex" | "email" | "birthday" | "balance" | "externalId" | "externalCustomerId">>, "id" | "externalId" | "externalCustomerId">;
+export type ExternalAbstractUser = RequiredField<Partial<Pick<Omit<UserBonusProgramRecord, "id"> & UserRecord, "id" | "firstName" | "lastName" | "sex" | "email" | "birthday" | "balance" | "externalId" | "externalCustomerId">>, "id" | "externalId" | "externalCustomerId">;
 
 interface optionalId {
   id?: string;
 }
-export interface BonusTransaction extends Pick<UserBonusTransaction, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter">, optionalId { }
+export interface BonusTransaction extends Pick<UserBonusTransactionRecord, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter">, optionalId { }
 
 export default abstract class BonusProgramAdapter {
   /** Program's id in an external system */
@@ -58,34 +58,34 @@ export default abstract class BonusProgramAdapter {
   /**
    * Return user balance
    */
-  public abstract getBalance(user: User, userBonusProgram: UserBonusProgram): Promise<number>;
+  public abstract getBalance(user: UserRecord, userBonusProgram: UserBonusProgramRecord): Promise<number>;
 
 
   /**
    * Registration user
    */
-  public abstract registration(user: User): Promise<string>;
+  public abstract registration(user: UserRecord): Promise<string>;
 
   /**
    * Delete user
    */
-  public abstract delete(user: User): Promise<void>;
+  public abstract delete(user: UserRecord): Promise<void>;
 
   /**
    * Check if user registered or not
    */
-  public abstract isRegistered(user: User): Promise<boolean>;
+  public abstract isRegistered(user: UserRecord): Promise<boolean>;
 
   /**
    * Check registered user or not
    */
-  public abstract getUserInfo(user: User): Promise<ExternalAbstractUser>
+  public abstract getUserInfo(user: UserRecord): Promise<ExternalAbstractUser>
 
 
   /**
    * write user transaction
    */
-  public abstract writeTransaction(user: User, userBonusProgram: UserBonusProgram, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction>;
+  public abstract writeTransaction(user: UserRecord, userBonusProgram: UserBonusProgramRecord, userBonusTransaction: UserBonusTransactionRecord): Promise<BonusTransaction>;
 
   /**
    * Return BonusTransaction
@@ -94,7 +94,7 @@ export default abstract class BonusProgramAdapter {
    * @param limit
    * @param skip
    */
-  public abstract getTransactions(user: User, afterTime: Date, limit?: number, skip?: number): Promise<BonusTransaction[]>;
+  public abstract getTransactions(user: UserRecord, afterTime: Date, limit?: number, skip?: number): Promise<BonusTransaction[]>;
 
   /**
    * A method for creating and obtaining an existing Bonus Adapter

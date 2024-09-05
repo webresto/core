@@ -351,7 +351,7 @@ interface Order extends ORM, OptionalAll<attributes> { }
 export interface OrderRecord extends ORM, OptionalAll<attributes> { }
 
 let Model = {
-  beforeCreate(orderInit: Order, cb: (err?: string) => void) {
+  beforeCreate(orderInit: OrderRecord, cb: (err?: string) => void) {
     if (!orderInit.id) {
       orderInit.id = uuid();
     }
@@ -366,7 +366,7 @@ let Model = {
     cb();
   },
 
-  async afterCreate(order: Order, cb: (err?: string) => void) {
+  async afterCreate(order: OrderRecord, cb: (err?: string) => void) {
     /**
      * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
      * This creates redundancy in the kernel. But in the current version, we will try to run the kernel in this way. Until we switch to stateflow
@@ -386,7 +386,7 @@ let Model = {
 
   /** Add a dish into order */
   async addDish(
-    criteria: CriteriaQuery<Order>,
+    criteria: CriteriaQuery<OrderRecord>,
     dish: Dish | string,
     amount: number,
     modifiers: OrderModifier[],
@@ -560,7 +560,7 @@ let Model = {
   },
 
   //** Delete dish from order */
-  async removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void> {
+  async removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, amount: number, stack?: boolean): Promise<void> {
     // TODO: delete stack
 
     await emitter.emit.apply(emitter, ["core:order-before-remove-dish", ...arguments]);
@@ -603,7 +603,7 @@ let Model = {
     await Order.countCart({ id: order.id });
   },
 
-  async setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void> {
+  async setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, amount: number): Promise<void> {
     
     await emitter.emit.apply(emitter, ["core:order-before-set-count", ...arguments]);
     const _dish = dish.dish as Dish;
@@ -620,7 +620,7 @@ let Model = {
     if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
     const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-    const get = orderDishes.find((item) => item.id === dish.id);
+    const get = orderDishes.find((item: { id: number; }) => item.id === dish.id);
 
     if (get) {
       get.amount = amount;
@@ -641,7 +641,7 @@ let Model = {
     }
   },
 
-  async setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void> {
+  async setComment(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, comment: string): Promise<void> {
     await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
 
     const order = await Order.findOne(criteria).populate("dishes");
@@ -670,7 +670,7 @@ let Model = {
    * @param source Order findOne criteria
    * @returns new order
    */
-  async clone(source: CriteriaQuery<Order>): Promise<Order> {
+  async clone(source: CriteriaQuery<OrderRecord>): Promise<OrderRecord> {
 
     // Find the original order by ID
     const originalOrder = await Order.findOne(source).populate("dishes");
@@ -699,7 +699,7 @@ let Model = {
    * @param criteria
    * @param selfService
    */
-  async setSelfService(criteria: CriteriaQuery<Order>, selfService: boolean = true): Promise<Order> {
+  async setSelfService(criteria: CriteriaQuery<OrderRecord>, selfService: boolean = true): Promise<OrderRecord> {
 
     sails.log.silly("Order > setSelfService >", selfService);
     const order = await Order.findOne(criteria);
@@ -788,7 +788,7 @@ let Model = {
 
   // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
   async check(
-    criteria: CriteriaQuery<Order>,
+    criteria: CriteriaQuery<OrderRecord>,
     customer?: Customer,
     isSelfService?: boolean,
     address?: Address,
@@ -798,7 +798,7 @@ let Model = {
   ): Promise<void> {
 
 
-    let order: Order = await Order.findOne(criteria);
+    let order: OrderRecord = await Order.findOne(criteria);
 
     // CHECKING
     // Check order empty
@@ -814,7 +814,7 @@ let Model = {
     if (order.promotionUnorderable === true) throw `Order not possible for order by promotion`;
 
 
-    //const order: Order = await Order.findOne(criteria);
+    //const order: OrderRecord = await Order.findOne(criteria);
     if (order.paid) {
       sails.log.error("CART > Check > error", order.id, "order is paid");
       throw {
@@ -1038,7 +1038,7 @@ let Model = {
   ////////////////////////////////////////////////////////////////////////////////////
 
   /** Basket design*/
-  async order(criteria: CriteriaQuery<Order>): Promise<void> {
+  async order(criteria: CriteriaQuery<OrderRecord>): Promise<void> {
     const order = await Order.findOne(criteria);
     // Check maintenance
     if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
@@ -1149,8 +1149,8 @@ let Model = {
     }
   },
 
-  async payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse> {
-    const order: Order = await Order.findOne(criteria);
+  async payment(criteria: CriteriaQuery<OrderRecord>): Promise<PaymentResponse> {
+    const order: OrderRecord = await Order.findOne(criteria);
     if (order.state !== "CHECKOUT") throw `order with orderId ${order.id} in state ${order.state} but need CHECKOUT`;
 
     let paymentResponse: PaymentResponse;
@@ -1184,7 +1184,7 @@ let Model = {
     return paymentResponse;
   },
 
-  async clear(criteria: CriteriaQuery<Order>): Promise<void> {
+  async clear(criteria: CriteriaQuery<OrderRecord>): Promise<void> {
     
     let order = await Order.findOne(criteria);
     if (order.state !== "CART") throw `Clear allowed only for CART state`;
@@ -1202,7 +1202,7 @@ let Model = {
    * @param tag 
    * @returns 
    */
-  async tag(criteria: CriteriaQuery<Order>, tag: string): Promise<Order> {
+  async tag(criteria: CriteriaQuery<OrderRecord>, tag: string): Promise<OrderRecord> {
     emitter.emit.apply(emitter, ["core:order-set-tag", ...arguments]);
     try {
       let order = await Order.findOne(criteria);
@@ -1217,22 +1217,22 @@ let Model = {
     }
   },
 
-  async setCustomData(criteria: CriteriaQuery<Order>, customData: any): Promise<void> {
+  async setCustomData(criteria: CriteriaQuery<OrderRecord>, customData: object): Promise<void> {
     await emitter.emit.apply(emitter, ["core:order-set-custom-data", ...arguments]);
     let order = await Order.findOne(criteria);
     customData = {...order.customData, ...customData}
     await Order.updateOne({ id: order.id }, {customData});
   },
 
-  async paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string> {
+  async paymentMethodId(criteria: CriteriaQuery<OrderRecord>): Promise<string> {
     let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];
     let paymentMethod = populatedOrder.paymentMethod as PaymentMethod;
     return paymentMethod.id;
   },
 
   /**  given populated Order instance by criteria*/
-  async populate(criteria: CriteriaQuery<Order>) {
-    let fullOrder: Order;
+  async populate(criteria: CriteriaQuery<OrderRecord>) {
+    let fullOrder: OrderRecord;
     try {
       fullOrder = await Order.findOne(criteria)
         .populate("dishes")
@@ -1301,7 +1301,7 @@ let Model = {
    * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also, you should set the isPromoting state in the model
    * @returns Order
    */
-  async countCart(criteria: CriteriaQuery<Order>, isPromoting: boolean = false): Promise<Order> {
+  async countCart(criteria: CriteriaQuery<OrderRecord>, isPromoting: boolean = false): Promise<OrderRecord> {
     try {
 
       let order = await Order.findOne(criteria);
@@ -1396,11 +1396,11 @@ let Model = {
 
                 // Find original obj modifiers
                 let currentModifier: Modifier = null;
-                dish.modifiers.forEach(originGroupModifiers => {
+                dish.modifiers.forEach((originGroupModifiers: { childModifiers: any[]; }) => {
 
                   // this block is not used
                   if (originGroupModifiers.childModifiers) {
-                    originGroupModifiers.childModifiers.forEach(originChildModifier => {
+                    originGroupModifiers.childModifiers.forEach((originChildModifier: Modifier) => {
                       if (selectedModifier.dish && selectedModifier.dish.rmsId !== undefined) {
                         if (selectedModifier.dish.rmsId === originChildModifier.id /** is rmsId*/) {
                           currentModifier = originChildModifier;
@@ -1528,7 +1528,7 @@ let Model = {
           }
 
 
-          let orderPopulate: Order = { ...order }
+          let orderPopulate: OrderRecord = { ...order }
           orderPopulate.dishes = orderDishesForPopulate
 
           /**
@@ -1657,11 +1657,11 @@ let Model = {
   },
 
 
-  async doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void> {
+  async doPaid(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocument): Promise<void> {
     let order = await Order.findOne(criteria);
 
     if (order.paid) {
-      sails.log.debug(`Order > doPaid: Order with id ${order.id} is paid`);
+      sails.log.debug(`Order > doPaid: OrderRecord with id ${order.id} is paid`);
       return
     }
 
@@ -1697,7 +1697,7 @@ let Model = {
     }
   },
 
-  async applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string | null): Promise<Order> {
+  async applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord> {
     let order = await Order.findOne(criteria);
     let updateData: any = {};
 
@@ -1858,7 +1858,7 @@ async function checkPaymentMethod(paymentMethodId: string) {
   }
 }
 
-async function checkDate(order: Order) {
+async function checkDate(order: OrderRecord) {
   if (order.date) {
     const date = new Date(order.date);
 

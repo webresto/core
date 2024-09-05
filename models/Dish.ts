@@ -1,6 +1,6 @@
 import Group from "./Group";
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
-import {IMediaFile} from "./MediaFile";
+import {MediaFileRecord} from "./MediaFile";
 import hashCode from "../libs/hashCode";
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
@@ -241,7 +241,8 @@ let attributes = {
   images: {
     collection: "mediafile",
     via: "dish",
-  } as unknown as IMediaFile[],
+    through: 'selectedmediafile'
+  } as unknown as MediaFileRecord[],
 
   favorites: {
     collection: 'user',
@@ -251,12 +252,12 @@ let attributes = {
   recommendations: {
     collection: "dish",
     via: 'recommendedBy',
-  } as unknown as Dish[],
+  } as unknown as DishRecord[],
   
   recommendedBy: {
     collection: "dish",
     via: 'recommendations',
-  } as unknown as Dish[],
+  } as unknown as DishRecord[],
 
   /*
   helper.addCustomField("Dish", "discountAmount: Float");
@@ -286,10 +287,8 @@ type attributes = typeof attributes;
 interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {}
 export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {}
 
-export default Dish;
-
 let Model = {
-  beforeCreate: async function(init: Dish, cb:  (err?: string) => void) {
+  beforeCreate: async function(init: DishRecord, cb:  (err?: string) => void) {
     emitter.emit('core:product-before-create', init);
     if (!init.id) {
       init.id = uuid();
@@ -315,7 +314,7 @@ let Model = {
     cb();
   },
 
-  beforeUpdate: async function (value: Dish, cb:  (err?: string) => void) {
+  beforeUpdate: async function (value: DishRecord, cb:  (err?: string) => void) {
     emitter.emit('core:product-before-update', value);
     if(value.customData) {
       if (value.id !== undefined) {
@@ -344,7 +343,7 @@ let Model = {
    * @param criteria - criteria asked
    * @return Found dishes
    */
-  async getDishes(criteria: any = {}): Promise<Dish[]> {
+  async getDishes(criteria: any = {}): Promise<DishRecord[]> {
     criteria.isDeleted = false;
 
     if (!(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) {
@@ -374,7 +373,7 @@ let Model = {
    * And ordinary modifiers are preparing their dish.
    * @param dish
    */
-   async getDishModifiers(dish: Dish): Promise<Dish> {
+   async getDishModifiers(dish: DishRecord): Promise<DishRecord> {
 
     if(dish.modifiers){
       let index = 0;
@@ -446,7 +445,7 @@ let Model = {
     return dish
   },
 
-  async display(criteria: CriteriaQuery<Dish>): Promise<Dish[]> {
+  async display(criteria: CriteriaQuery<DishRecord>): Promise<DishRecord[]> {
     const dishes = await Dish.find(criteria);
 
     // Set virtual default
@@ -458,7 +457,7 @@ let Model = {
     });
 
     const promotionAdapter = Adapter.getPromotionAdapter()
-    let updatedDishes = [] as Dish[]
+    let updatedDishes = [] as DishRecord[]
 
     for(let i:number= 0; i < dishes.length; i++) {
         try {
@@ -472,7 +471,7 @@ let Model = {
   },
 
 
-  getRecommended: async function(ids: string[], limit = 12, includeReverse = false): Promise<Dish[]> {
+  getRecommended: async function(ids: string[], limit = 12, includeReverse = false): Promise<DishRecord[]> {
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new Error('You must provide an array of IDs.');
     }
@@ -514,22 +513,22 @@ let Model = {
     });
 
 
-    let recommendedDishes: Dish[] = dishes.reduce((acc: Dish[], dish:Dish) => {
+    let recommendedDishes: DishRecord[] = dishes.reduce((acc: DishRecord[], dish:DishRecord) => {
       return acc.concat(dish.recommendations);
     }, []);
     
 
     if (includeReverse) {
-      dishes.forEach((group: Dish) => {
+      dishes.forEach((group: DishRecord) => {
         recommendedDishes = recommendedDishes.concat(group.recommendedBy);
       });
     }
     
-    recommendedDishes = [...new Set(recommendedDishes.map((dish: Dish) => dish.id))].map(id =>
-      recommendedDishes.find((dish: Dish) => dish.id === id)
+    recommendedDishes = [...new Set(recommendedDishes.map((dish: DishRecord) => dish.id))].map(id =>
+      recommendedDishes.find((dish: DishRecord) => dish.id === id)
     );
 
-    recommendedDishes = recommendedDishes.filter((dish: Dish) => !ids.includes(dish.id));
+    recommendedDishes = recommendedDishes.filter((dish: DishRecord) => !ids.includes(dish.id));
 
     // Fisher-Yates shifle
     recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
@@ -548,7 +547,7 @@ let Model = {
    * @param values
    * @return Updated or created dish
    */
-  async createOrUpdate(values: Dish): Promise<Dish> {
+  async createOrUpdate(values: DishRecord): Promise<DishRecord> {
     sails.log.silly(`Core > Dish > createOrUpdate: ${values.name}`)
     let hash = hashCode(JSON.stringify(values));
 

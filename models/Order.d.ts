@@ -183,33 +183,28 @@ interface stateFlowInstance {
     state: string;
 }
 type attributes = typeof attributes & stateFlowInstance;
-/**
- * @deprecated use `OrderRecord` instead
- */
-interface Order extends ORM, OptionalAll<attributes> {
-}
 export interface OrderRecord extends ORM, OptionalAll<attributes> {
 }
 declare let Model: {
-    beforeCreate(orderInit: Order, cb: (err?: string) => void): void;
-    afterCreate(order: Order, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(orderInit: OrderRecord, cb: (err?: string) => void): void;
+    afterCreate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
     /** Add a dish into order */
-    addDish(criteria: CriteriaQuery<Order>, dish: Dish | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
-    removeDish(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
-    setCount(criteria: CriteriaQuery<Order>, dish: OrderDish, amount: number): Promise<void>;
-    setComment(criteria: CriteriaQuery<Order>, dish: OrderDish, comment: string): Promise<void>;
+    addDish(criteria: CriteriaQuery<OrderRecord>, dish: Dish | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
+    removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
+    setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, amount: number): Promise<void>;
+    setComment(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, comment: string): Promise<void>;
     /**
      * Clone dishes in new order
      * @param source Order findOne criteria
      * @returns new order
      */
-    clone(source: CriteriaQuery<Order>): Promise<Order>;
+    clone(source: CriteriaQuery<OrderRecord>): Promise<OrderRecord>;
     /**
      * Set order selfService field. Use this method to change selfService.
      * @param criteria
      * @param selfService
      */
-    setSelfService(criteria: CriteriaQuery<Order>, selfService?: boolean): Promise<Order>;
+    setSelfService(criteria: CriteriaQuery<OrderRecord>, selfService?: boolean): Promise<OrderRecord>;
     /**
      * !! Not for external use, only in Order.check
      * The use of bonuses in the cart implies that this order has a user.
@@ -226,11 +221,11 @@ declare let Model: {
      */
     checkBonus(orderId: string, spendBonus: SpendBonus): Promise<void>;
     clearOfPromotion(): Promise<void>;
-    check(criteria: CriteriaQuery<Order>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus): Promise<void>;
+    check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus): Promise<void>;
     /** Basket design*/
-    order(criteria: CriteriaQuery<Order>): Promise<void>;
-    payment(criteria: CriteriaQuery<Order>): Promise<PaymentResponse>;
-    clear(criteria: CriteriaQuery<Order>): Promise<void>;
+    order(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
+    payment(criteria: CriteriaQuery<OrderRecord>): Promise<PaymentResponse>;
+    clear(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
     /**
      * Method for quickly setting a Order tag
      * @experimental
@@ -238,11 +233,11 @@ declare let Model: {
      * @param tag
      * @returns
      */
-    tag(criteria: CriteriaQuery<Order>, tag: string): Promise<Order>;
-    setCustomData(criteria: CriteriaQuery<Order>, customData: any): Promise<void>;
-    paymentMethodId(criteria: CriteriaQuery<Order>): Promise<string>;
+    tag(criteria: CriteriaQuery<OrderRecord>, tag: string): Promise<OrderRecord>;
+    setCustomData(criteria: CriteriaQuery<OrderRecord>, customData: object): Promise<void>;
+    paymentMethodId(criteria: CriteriaQuery<OrderRecord>): Promise<string>;
     /**  given populated Order instance by criteria*/
-    populate(criteria: CriteriaQuery<Order>): Promise<{
+    populate(criteria: CriteriaQuery<OrderRecord>): Promise<{
         createdAt?: Date | undefined;
         updatedAt?: Date | undefined;
         id?: string;
@@ -312,9 +307,9 @@ declare let Model: {
      * @param isPromoting If you use countCart inside a promo, then you should indicate this is `true`. Also, you should set the isPromoting state in the model
      * @returns Order
      */
-    countCart(criteria: CriteriaQuery<Order>, isPromoting?: boolean): Promise<Order>;
-    doPaid(criteria: CriteriaQuery<Order>, paymentDocument: PaymentDocument): Promise<void>;
-    applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string | null): Promise<Order>;
+    countCart(criteria: CriteriaQuery<OrderRecord>, isPromoting?: boolean): Promise<OrderRecord>;
+    doPaid(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocument): Promise<void>;
+    applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord>;
 };
 declare global {
     const Order: typeof Model & ORMModel<OrderRecord, null> & StateFlowModel;

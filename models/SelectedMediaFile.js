@@ -1,11 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const uuid_1 = require("uuid");
 let attributes = {
-    /** ID */
     id: {
-        type: "string",
-        //required: true,
+        type: "number",
+        autoIncrement: true,
     },
     /**
      * Sort order
@@ -13,15 +11,21 @@ let attributes = {
     sortOrder: "number",
     /** MediaFile reference */
     mediaFile: {
-        model: 'mediafile',
-        required: true,
+        model: 'mediafile'
+    },
+    /** Group relation */
+    group: {
+        model: "group",
+    },
+    /** Dish relation */
+    dish: {
+        model: "dish"
     },
 };
 let Model = {
     beforeCreate(imageInit, cb) {
-        if (!imageInit.id) {
-            imageInit.id = (0, uuid_1.v4)();
-        }
+        if (imageInit.sortOrder === null || imageInit.sortOrder === undefined)
+            imageInit.sortOrder = 0;
         cb();
     }
 };

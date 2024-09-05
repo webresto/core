@@ -4,6 +4,8 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import * as fs from "fs"
+import { DishRecord } from "./Dish";
+import { GroupRecord } from "./Group";
 
 let attributes = {
   /** ID */
@@ -12,7 +14,6 @@ let attributes = {
     //required: true,
   } as unknown as string,
 
-
   /** Type of media content */
   type: {
    type: "string",
@@ -20,25 +21,36 @@ let attributes = {
   } as unknown as "video" | "image" | "sound",
 
   /** 
-   * @deprecated use variant
+   * @deprecated use variant field
    * TODO: delete in ver 3
    * Image items */
-  images: "json" as unknown as object,
+  images: "json" as unknown as {[key: string]: string | undefined},
 
   /** 
    * variants is just an array containing the variant name and its local path
    * clone from images
    * This is automatically cloned from images and vice versa
    * Image items */
-  variant: "json" as unknown as object,
+  variant: "json" as unknown as {[key: string]: string | undefined} ,
 
-  original: "string"
+  original: "string",
+
+
+  /** relations */
+  dish: {
+    collection: "dish",
+    via: "dish",
+    through: 'selectedmediafile'
+  } as unknown as DishRecord[] | string [],
+
+  /** Group relation */
+  group: {
+    collection: "group",
+    via: "group",
+    through: 'selectedmediafile'
+  } as unknown as GroupRecord[] | string [],
 };
 type attributes = typeof attributes;
-/**
- * @deprecated use MediaFileRecord
- */
-interface MediaFile extends OptionalAll<attributes>, ORM { }
 
 /** @deprecated use `MediaFileRecord` */
 export type IMediaFile = OptionalAll<attributes>;

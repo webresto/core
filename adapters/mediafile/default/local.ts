@@ -14,6 +14,12 @@ export interface MediaFileConfig {
   adapter: string;
 }
 
+export type ImageVariants = {
+  origin: string;
+  small: string | undefined;
+  large: string | undefined;
+}
+
 interface MediaFileConfigInner {
   format: string;
   resize: {
@@ -103,7 +109,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     return baseName;
   }
 
-  public async process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<{ origin: string, small: string, large: string }> {
+  public async process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<ImageVariants> {
     const baseConfig: MediaFileConfigInner = {
       format: "webp",
       resize: {
@@ -123,14 +129,14 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     
     const origin = this.getNameByUrl(url, mediafileExtension);
 
-    const name = {
+    const name: ImageVariants = {
       origin: origin,
       small: undefined,
       large: undefined
     };
 
     for (let res in cfg.resize) {
-      name[res] = this.getNameByUrl(url, cfg.format, cfg, res);
+      name[res as keyof ImageVariants] = this.getNameByUrl(url, cfg.format, cfg, res);
     }
 
     this.loadMediaFilesProcessQueue.push({
@@ -142,8 +148,8 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
     let result = {} as typeof name;
     for (const key in name) {
-      if (typeof name[key] === "string") {
-        result[key] = "/" + type + "/" + name[key];
+      if (typeof name[key as keyof ImageVariants] === "string") {
+        result[key as keyof ImageVariants] = "/" + type + "/" + name[key as keyof ImageVariants];
       }
     }
     return result;
