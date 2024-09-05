@@ -35,7 +35,10 @@ let attributes = {
     via: "images",
   } as unknown as Dish[],
 
-  /** Sort order */
+  /** 
+   * Sort order 
+   * @deprecated was moved to junction table
+   * */
   sortOrder: "number" as unknown as number,
 
   /** Group relation */
@@ -51,7 +54,10 @@ let attributes = {
 };
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM { }
+/** @deprecated use `MediaFileRecord` */
 export type IMediaFile = OptionalAll<attributes>;
+export type MediaFileRecord = OptionalAll<attributes>;
+
 // export default IMediaFile;
 
 let Model = {

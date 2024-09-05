@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = bindAdminpanel;
+const bind_1 = __importDefault(require("../libs/adminpanel/models/bind"));
 const ProductCatalog_1 = require("../libs/adminpanel/ProductCatalog/ProductCatalog");
 function bindAdminpanel() {
     sails.on('Adminpanel:afterHook:loaded', async () => {
@@ -14,7 +18,7 @@ function bindAdminpanel() {
 function processBindAdminpanel() {
     if (sails.hooks?.adminpanel?.addModelConfig !== undefined) {
         const addModelConfig = sails.hooks.adminpanel.addModelConfig;
-        addModelConfig(settings);
+        addModelConfig(bind_1.default);
     }
     if (Array.isArray(sails.config.adminpanel?.sections)) {
         let baseRoute = sails.config.adminpanel.routePrefix;

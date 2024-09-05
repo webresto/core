@@ -14,7 +14,10 @@ declare let attributes: {
     original: string;
     /** Dish relation */
     dish: Dish[];
-    /** Sort order */
+    /**
+     * Sort order
+     * @deprecated was moved to junction table
+     * */
     sortOrder: number;
     /** Group relation */
     group: Group[];
@@ -26,7 +29,9 @@ declare let attributes: {
 type attributes = typeof attributes;
 interface MediaFile extends OptionalAll<attributes>, ORM {
 }
+/** @deprecated use `MediaFileRecord` */
 export type IMediaFile = OptionalAll<attributes>;
+export type MediaFileRecord = OptionalAll<attributes>;
 declare let Model: {
     beforeCreate(imageInit: any, cb: (err?: string) => void): void;
     afterDestroy(mf: MediaFile, cb: (err?: any) => void): Promise<void>;

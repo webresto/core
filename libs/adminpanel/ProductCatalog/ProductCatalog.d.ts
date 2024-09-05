@@ -21,7 +21,6 @@ declare class BaseModelItem<T extends Item> extends AbstractItem<T> {
     }>;
     getChilds(parentId: string, catalogId: string): Promise<Item[]>;
     search(s: string, catalogId: string): Promise<T[]>;
-    updateModelItems(itemId: string | number, data: T, catalogId: string): Promise<T>;
 }
 export declare class Group<GroupProductItem extends Item> extends BaseModelItem<GroupProductItem> {
     name: string;

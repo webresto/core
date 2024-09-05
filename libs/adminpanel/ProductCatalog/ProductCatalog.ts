@@ -97,10 +97,6 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 
 		return records.map((record: ItemModel) => this.toItem(record) as T);
 	}
-
-	updateModelItems(itemId: string | number, data: T, catalogId: string): Promise<T> {
-		return Promise.resolve(undefined);
-	}
 }
 
 

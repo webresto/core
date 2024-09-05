@@ -73,9 +73,6 @@ class BaseModelItem extends AbstractCatalog_1.AbstractItem {
         });
         return records.map((record) => this.toItem(record));
     }
-    updateModelItems(itemId, data, catalogId) {
-        return Promise.resolve(undefined);
-    }
 }
 class Group extends BaseModelItem {
     constructor() {

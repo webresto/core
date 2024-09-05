@@ -47,7 +47,10 @@ let attributes = {
         collection: "dish",
         via: "images",
     },
-    /** Sort order */
+    /**
+     * Sort order
+     * @deprecated was moved to junction table
+     * */
     sortOrder: "number",
     /** Group relation */
     group: {

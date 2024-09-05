@@ -8,8 +8,11 @@ declare const _default: {
         model: string;
         title: string;
         icon: string;
-        list: {};
-        edit: {};
+        list: {
+            fields: import("sails-adminpanel/interfaces/adminpanelConfig").FieldsModels;
+        };
+        edit: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
+        add: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
     };
     groups: {
         model: string;
