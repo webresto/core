@@ -1,8 +1,6 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
-import Dish from "./Dish";
-import Group from "./Group";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import * as fs from "fs"
@@ -21,36 +19,20 @@ let attributes = {
    isIn: ['video', 'image', 'sound']
   } as unknown as "video" | "image" | "sound",
 
-  /** Video/Photo items */
-  //content: "json" as unknown as any,
-
-  // DEPRECATED use content instead
-  /** Image items */
-  images: "json" as unknown as any,
-
-  original: "string",
-  /** Dish relation */
-  dish: {
-    collection: "dish",
-    via: "images",
-  } as unknown as Dish[],
+  /** 
+   * @deprecated use variant
+   * TODO: delete in ver 3
+   * Image items */
+  images: "json" as unknown as object,
 
   /** 
-   * Sort order 
-   * @deprecated was moved to junction table
-   * */
-  sortOrder: "number" as unknown as number,
+   * variants is just an array containing the variant name and its local path
+   * clone from images
+   * This is automatically cloned from images and vice versa
+   * Image items */
+  variant: "json" as unknown as object,
 
-  /** Group relation */
-  group: {
-    collection: "group",
-    via: "images",
-  } as unknown as Group[],
-
-  /** upload date 
-   * @deprecated (del in v2)
-  */
-  uploadDate: "string",
+  original: "string"
 };
 type attributes = typeof attributes;
 /**
@@ -64,21 +46,59 @@ export type IMediaFile = OptionalAll<attributes>;
 export interface MediaFileRecord extends OptionalAll<attributes>, ORM { }
 
 let Model = {
-  beforeCreate(imageInit: any, cb: (err?: string) => void) {
+  beforeCreate(imageInit: MediaFileRecord, cb: (err?: string) => void) {
     if (!imageInit.id) {
       imageInit.id = uuid();
     }
 
+    /**
+     * TODO: delete in ver 3
+     */
+    if (imageInit.variant && imageInit.images) {
+      return cb('variant & image not allowed');
+    }
+    let variant = {
+      ...(imageInit.variant ? { ...imageInit.variant } : {}),
+      ...(imageInit.images ? { images: imageInit.images } : {})
+    };
+    imageInit.variant = variant
+    imageInit.images = variant
+    // 
     cb();
   },
 
-  async afterDestroy(mf: MediaFile, cb: (err?: any) => void) {
-    try {
-      const images = mf.images;
-      const keys = Object.keys(images);
 
-      for (const key of keys) {
-        const filePath = images[key];
+  beforeUpdate(imageInit: MediaFileRecord, cb: (err?: string) => void) {
+    if (!imageInit.id) {
+      imageInit.id = uuid();
+    }
+
+    /**
+     * TODO: delete in ver 3
+     */
+    if (imageInit.variant && imageInit.images) {
+      return cb('variant & image not allowed');
+    }
+    let variant = {
+      ...(imageInit.variant ? { ...imageInit.variant } : {}),
+      ...(imageInit.images ? { ... imageInit.images } : {})
+    };
+    imageInit.variant = variant
+    imageInit.images = variant
+    // 
+    cb();
+  },
+
+  async afterDestroy(mf: MediaFileRecord, cb: (err?: any) => void) {
+    try {
+      let variant: {[key: string]: string} = {
+        // TODO:delete in v3
+        ...(mf.variant ? { ...mf.variant } : {}),
+        ...(mf.images ? { ...mf.images } : {})
+      };
+
+      for (const key in variant) {
+        const filePath = variant[key] as string;
         try {
           await fs.promises.access(filePath, fs.constants.F_OK);
           await fs.promises.unlink(filePath);
@@ -107,6 +127,5 @@ module.exports = {
 };
 
 declare global {
-  //@ts-ignore //TODO: need rename model of images maybe ProductCover
-  const MediaFile: typeof Model & ORMModel<MediaFile, null>;
+  const MediaFile: typeof Model & ORMModel<MediaFileRecord, null>;
 }
