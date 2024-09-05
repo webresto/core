@@ -1,9 +1,9 @@
 import ORM from "../interfaces/ORM";
 import {ORMModel} from "../interfaces/ORMModel";
-import Order from "../models/Order";
 import { OptionalAll } from "../interfaces/toolsTS";
-import User from "../models/User"
 import { v4 as uuid } from "uuid";
+import { OrderRecord } from "./Order";
+import { UserRecord } from "./User";
 
 let attributes = {
 
@@ -23,7 +23,7 @@ let attributes = {
   total: "number" as unknown as number,
 
   /** Baked json object of fullOrder */
-  order: "json" as unknown as Order,
+  order: "json" as unknown as OrderRecord,
 
   /** Total discount amount*/
   discountTotal: "number" as unknown as number,
@@ -37,12 +37,16 @@ let attributes = {
   user: {
     model: 'user',
     required: true
-  } as unknown as User | String,
+  } as unknown as UserRecord | string,
 };
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use `UserOrderHistoryRecord` instead
+ */
 interface UserOrderHistory extends OptionalAll<attributes>, ORM {}
-export default UserOrderHistory;
+export interface UserOrderHistoryRecord extends OptionalAll<attributes>, ORM {}
+
 
 let Model = {
   async save(orderId: string): Promise<void> {
@@ -75,5 +79,5 @@ module.exports = {
 };
 
 declare global {
-  const UserOrderHistory: typeof Model & ORMModel<UserOrderHistory, "id" | "uniqueItems" | "orderTotal"  | "total" | "totalWeight" | "order" | "user" >;
+  const UserOrderHistory: typeof Model & ORMModel<UserOrderHistoryRecord, "id" | "uniqueItems" | "orderTotal"  | "total" | "totalWeight" | "order" | "user" >;
 }

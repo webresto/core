@@ -23,6 +23,7 @@ import { OrderHelper } from "../libs/helpers/OrderHelper";
 import { GroupModifier } from "../interfaces/Modifier";
 import { isValue } from "../utils/isValue";
 import { or } from "ajv/dist/compile/codegen";
+
 export interface PromotionState {
   type: string;
   message: string;
@@ -343,9 +344,11 @@ interface stateFlowInstance {
 }
 
 type attributes = typeof attributes & stateFlowInstance;
+/**
+ * @deprecated use `OrderRecord` instead
+ */
 interface Order extends ORM, OptionalAll<attributes> { }
-
-export default Order;
+export interface OrderRecord extends ORM, OptionalAll<attributes> { }
 
 let Model = {
   beforeCreate(orderInit: Order, cb: (err?: string) => void) {
@@ -1752,7 +1755,7 @@ module.exports = {
 
 declare global {
   // Typescript export
-  const Order: typeof Model & ORMModel<Order, null> & StateFlowModel;
+  const Order: typeof Model & ORMModel<OrderRecord, null> & StateFlowModel;
 }
 
 // LOCAL HELPERS

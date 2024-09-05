@@ -24,11 +24,16 @@ let attributes = {
   customData: 'json' as unknown as any
 };
 type attributes = typeof attributes;
+
+/**
+ * @deprecated use `PlaceRecord` instead
+ */
 interface Place extends attributes, ORM {}
-export default Place;
+export interface PlaceRecord extends attributes, ORM {}
+
 
 let Model = {
-  beforeCreate(placeInit: any, cb:  (err?: string) => void) {
+  beforeCreate(placeInit: PlaceRecord, cb:  (err?: string) => void) {
     if (!placeInit.id) {
       placeInit.id = uuid();
     }
@@ -44,5 +49,5 @@ module.exports = {
 };
 
 declare global {
-  const Place: typeof Model & ORMModel<Place, null>;
+  const Place: typeof Model & ORMModel<PlaceRecord, null>;
 }

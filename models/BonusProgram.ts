@@ -67,11 +67,10 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface BonusProgram extends attributes, ORM {}
-export default BonusProgram;
+export interface BonusProgramRecord extends attributes, ORM {}
 
 let Model = {
-  beforeCreate(init: BonusProgram, cb:  (err?: string) => void) {
+  beforeCreate(init: BonusProgramRecord, cb:  (err?: string) => void) {
     if (!init.id) {
       init.id = uuid();
     }
@@ -184,7 +183,7 @@ let Model = {
    * Returns an array with currently possible bonus programs by order
    * @return BonusProgram[]
    */
-  async getAvailable(): Promise<BonusProgram[]> {
+  async getAvailable(): Promise<BonusProgramRecord[]> {
     return await BonusProgram.find({
         where: {
           // @ts-ignore TODO: First fix types
@@ -205,5 +204,5 @@ module.exports = {
 };
 
 declare global {
-  const BonusProgram: typeof Model & ORMModel<BonusProgram, null>;
+  const BonusProgram: typeof Model & ORMModel<BonusProgramRecord, null>;
 }

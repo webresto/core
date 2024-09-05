@@ -37,26 +37,31 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+
+/**
+ * @deprecated use `MaintenanceRecord` instead
+ */
 interface Maintenance extends attributes, ORM {}
+export interface MaintenanceRecord extends attributes, ORM {}
 export default Maintenance;
 
 let Model = {
-  afterCreate: function (maintenance, cb:  (err?: string) => void) {
+  afterCreate: function (maintenance: MaintenanceRecord, cb:  (err?: string) => void) {
     checkMaintenance()
     cb();
   },
 
-  afterUpdate: function (maintenance, cb:  (err?: string) => void) {
+  afterUpdate: function (maintenance: MaintenanceRecord, cb:  (err?: string) => void) {
     checkMaintenance()
     cb();
   },
 
-  afterDestroy: function (maintenance, cb:  (err?: string) => void) {
+  afterDestroy: function (maintenance: MaintenanceRecord, cb:  (err?: string) => void) {
     checkMaintenance();
     cb();
   },
 
-  beforeCreate: function (maintenance, cb:  (err?: string) => void) {
+  beforeCreate: function (maintenance: { id: string; }, cb:  (err?: string) => void) {
     if(!maintenance.id){
       maintenance.id = uuid();
     }

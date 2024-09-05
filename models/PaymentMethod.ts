@@ -5,7 +5,7 @@ import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { PaymentMethodType } from "../libs/enums/PaymentMethodTypes";
 
-var alivePaymentMethods: {} = {};
+let alivePaymentMethods = {} as {[k: string]: PaymentAdapter } ;
 
 interface ExternalPayment {
   name: string;
@@ -58,8 +58,12 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use `PaymentMethodRecord` instead
+ */
 interface PaymentMethod extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {}
-export default PaymentMethod;
+export interface PaymentMethodRecord extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {}
+
 let Model = {
   /**
    * Returns the authority of payment Adapter by the famous name Adapter
@@ -67,7 +71,7 @@ let Model = {
    * @param adapter
    */
   async getAdapter(adapter?: string): Promise<PaymentAdapter> {
-    var paymentMethod: PaymentMethod;
+    let paymentMethod: PaymentMethodRecord;
     if (!adapter) {
       paymentMethod = this;
     } else {
@@ -83,7 +87,7 @@ let Model = {
     }
   },
 
-  beforeCreate: function (paymentMethod, cb: (err?: string) => void) {
+  beforeCreate: function (paymentMethod: PaymentMethodRecord, cb: (err?: string) => void) {
     if (!paymentMethod.id) {
       paymentMethod.id = uuid();
     }
@@ -96,7 +100,7 @@ let Model = {
    * @return
    */
   async isPaymentPromise(paymentMethodId?: string): Promise<boolean> {
-    var checkingPaymentMethod: PaymentMethod;
+    let checkingPaymentMethod: PaymentMethodRecord;
 
     if (!paymentMethodId) {
       checkingPaymentMethod = this;
@@ -151,7 +155,7 @@ let Model = {
    * Returns an array with possible methods of payment for ORDER
    * @return array of types of payments
    */
-  async getAvailable(): Promise<PaymentMethod[]> {
+  async getAvailable(): Promise<PaymentMethodRecord[]> {
     return await PaymentMethod.find({
       where: {
         or: [
@@ -226,5 +230,5 @@ module.exports = {
 };
 
 declare global {
-  const PaymentMethod: typeof Model & ORMModel<PaymentMethod, "type" | "adapter" | "enable">;
+  const PaymentMethod: typeof Model & ORMModel<PaymentMethodRecord, "type" | "adapter" | "enable">;
 }

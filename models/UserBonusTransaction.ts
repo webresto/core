@@ -3,10 +3,10 @@ import ORM from "../interfaces/ORM";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
-import User from "../models/User";
-import BonusProgram from "../models/BonusProgram";
 import Decimal from "decimal.js";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
+import { BonusProgramRecord } from "./BonusProgram";
+import { UserRecord } from "./User";
 
 let attributes = {
   /** ID */
@@ -61,12 +61,12 @@ let attributes = {
   bonusProgram: {
     model: "bonusprogram",
     required: true,
-  } as unknown as BonusProgram | string,
+  } as unknown as BonusProgramRecord | string,
 
   user: {
     model: "user",
     required: true,
-  } as unknown as User | string,
+  } as unknown as UserRecord | string,
 
   customData: "json" as unknown as
     | {
@@ -77,15 +77,20 @@ let attributes = {
 
 type attributes = typeof attributes;
 
+
+/**
+ * @deprecated use `UserBonusTransactionRecord` instead
+ */
 interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "isNegative" | "bonusProgram" | "user" | "amount" >, ORM {}
-export default UserBonusTransaction;
+
+export interface UserBonusTransactionRecord extends RequiredField<OptionalAll<attributes>, "isNegative" | "bonusProgram" | "user" | "amount" >, ORM {}
 
 let Model = {
   /**
    * Before create, a check is made to see if there are enough funds to write off.
    * Immediately after create saving the transaction in the local database, the external adapter is called to save the transaction
    */
-  async beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void) {
+  async beforeCreate(init: UserBonusTransactionRecord, cb: (err?: string) => void) {
     try {
       if (!init.id) {
         init.id = uuid();
@@ -126,7 +131,7 @@ let Model = {
     }
   },
 
-  async afterCreate(record: UserBonusTransaction, cb:  (err?: string) => void) {
+  async afterCreate(record: UserBonusTransactionRecord, cb:  (err?: string) => void) {
     try {
 
       // After writing to the model, core safely calculates new bonuses
@@ -185,7 +190,7 @@ let Model = {
     throw "destroy bonus transaction not allowed";
   },
 
-  beforeUpdate(record: OptionalAll<UserBonusTransaction>, cb:  (err?: string) => void) {
+  beforeUpdate(record: OptionalAll<UserBonusTransactionRecord>, cb:  (err?: string) => void) {
     /**
      * only stability updates allowed
      */
@@ -215,5 +220,5 @@ module.exports = {
 };
 
 declare global {
-  const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "user" | "amount" | "bonusProgram">;
+  const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransactionRecord, "user" | "amount" | "bonusProgram">;
 }

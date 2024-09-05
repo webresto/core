@@ -179,11 +179,15 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use `UserRecord` instead
+ */
 interface User extends OptionalAll<attributes>, ORM {}
-export default User;
+export interface UserRecord extends OptionalAll<attributes>, ORM {}
+
 
 let Model = {
-  async beforeCreate(userInit: User, cb:  (err?: string) => void) {
+  async beforeCreate(userInit: UserRecord, cb:  (err?: string) => void) {
     if (!userInit.id) {
       userInit.id = uuid();
     }
@@ -201,7 +205,7 @@ let Model = {
     return cb();
   },
 
-  async afterCreate(record: User, cb:  (err?: string) => void) {
+  async afterCreate(record: UserRecord, cb:  (err?: string) => void) {
     emitter.emit('core:user-after-create', record);
 
 //    It was commented because it broke tests, after login it called, this reason for comment it here
@@ -470,5 +474,5 @@ module.exports = {
 };
 
 declare global {
-  const User: typeof Model & ORMModel<User, null >;
+  const User: typeof Model & ORMModel<UserRecord, null >;
 }

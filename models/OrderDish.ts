@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
 import Dish from "../models/Dish";
-import Order from "../models/Order";
+import {OrderRecord} from "../models/Order";
 import { Modifier, OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 
@@ -31,7 +31,7 @@ let attributes = {
   /** */
   order: {
     model: "Order",
-  } as unknown as Order | any,
+  } as unknown as OrderRecord | string,
 
   /** Position price*/
   itemTotal: "number" as unknown as number,
@@ -87,8 +87,12 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use `OrderDishRecord` instead
+ */
 interface OrderDish extends RequiredField<OptionalAll<attributes>, "dish" | "amount" >, ORM {}
-export default OrderDish;
+
+export interface OrderDishRecord extends RequiredField<OptionalAll<attributes>, "dish" | "amount" >, ORM {}
 
 let Model = {
 };
@@ -100,5 +104,5 @@ module.exports = {
 };
 
 declare global {
-  const OrderDish: typeof Model & ORMModel<OrderDish, "dish" | "amount">;
+  const OrderDish: typeof Model & ORMModel<OrderDishRecord, "dish" | "amount">;
 }

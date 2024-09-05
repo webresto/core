@@ -1,8 +1,8 @@
 import ORM from "../interfaces/ORM";
 import {ORMModel} from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
-import User from "../models/User"
-import Street from "./Street";
+import { StreetRecord } from "./Street";
+import { UserRecord } from "./User";
 let attributes = {
   
   /** ID */
@@ -49,7 +49,7 @@ let attributes = {
   street: {
     model: 'street',
     required: true
-  } as unknown as Street | string,
+  } as unknown as StreetRecord | string,
   
   /**
    * Set as default for specific user
@@ -61,7 +61,7 @@ let attributes = {
   user: {
     model: 'user',
     required: true
-  } as unknown as User | string,
+  } as unknown as UserRecord | string,
   
   comment: {
     type: "string",
@@ -74,12 +74,16 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+/**
+ * @deprecated  use `UserLocationRecord` instead
+ */
 interface UserLocation extends attributes, ORM {}
-export default UserLocation;
+export interface UserLocationRecord extends attributes, ORM {}
+
 
 let Model = {
   
-  async beforeUpdate(record: UserLocation, cb:  (err?: string) => void) {
+  async beforeUpdate(record: UserLocationRecord, cb:  (err?: string) => void) {
     if(record.isDefault === true) {
       await UserLocation.update({user: record.user}, {isDefault: false})
     }  
@@ -87,7 +91,7 @@ let Model = {
     cb();
   },
 
-  async beforeCreate(init: UserLocation, cb:  (err?: string) => void) {
+  async beforeCreate(init: UserLocationRecord, cb:  (err?: string) => void) {
     if (!init.id) {
       init.id = uuid();
     }
@@ -112,5 +116,5 @@ module.exports = {
 };
 
 declare global {
-  const UserLocation: typeof Model & ORMModel<UserLocation, null>;
+  const UserLocation: typeof Model & ORMModel<UserLocationRecord, null>;
 }

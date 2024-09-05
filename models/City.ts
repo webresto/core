@@ -29,11 +29,10 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface City extends attributes, ORM {}
-export default City;
+export interface CityRecord extends attributes, ORM {}
 
 let Model = {
-  beforeCreate(streetInit: any, cb:  (err?: string) => void) {
+  beforeCreate(streetInit: CityRecord, cb:  (err?: string) => void) {
     if (!streetInit.id) {
       streetInit.id = uuid();
     }
@@ -49,5 +48,5 @@ module.exports = {
 };
 
 declare global {
-  const City: typeof Model & ORMModel<City, null>;
+  const City: typeof Model & ORMModel<CityRecord, null>;
 }

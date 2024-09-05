@@ -1,8 +1,8 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
-import User from "../models/User"
-import BonusProgram from "./BonusProgram";
+import { UserRecord } from "../models/User"
+import { BonusProgramRecord } from "./BonusProgram";
 import Decimal from "decimal.js";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 import UserBonusTransaction from "./UserBonusTransaction";
@@ -46,11 +46,11 @@ let attributes = {
   user: {
     model: 'user',
     required: true
-  } as unknown as User | string,
+  } as unknown as UserRecord | string,
 
   bonusProgram: {
     model: 'bonusprogram'
-  } as unknown as BonusProgram | string,
+  } as unknown as BonusProgramRecord | string,
 
   /** UNIX era seconds */
   syncedToTime: "string",
@@ -62,11 +62,14 @@ let attributes = {
 
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use `UserBonusProgramRecord` instead
+ */
 interface UserBonusProgram extends attributes, ORM {}
-export default UserBonusProgram;
+export interface UserBonusProgramRecord extends attributes, ORM {}
 
 let Model = {
-  beforeCreate(init: UserBonusProgram, cb:  (err?: string) => void) {
+  beforeCreate(init: UserBonusProgramRecord, cb:  (err?: string) => void) {
     if (!init.id) {
       init.id = uuid();
     }
@@ -74,7 +77,7 @@ let Model = {
     cb();
   },
 
-  async registration(user: User | string, adapterOrId: string): Promise<UserBonusProgram> {
+  async registration(user: UserRecord | string, adapterOrId: string): Promise<UserBonusProgramRecord> {
     const bp = await BonusProgram.getAdapter(adapterOrId);
 
     // TODO: this new standard call for models methods (Object or string)
@@ -95,7 +98,7 @@ let Model = {
     }).fetch();
   },
 
-  async delete(user: User | string, adapterOrId: string): Promise<void> {
+  async delete(user: UserRecord | string, adapterOrId: string): Promise<void> {
     const bp = await BonusProgram.getAdapter(adapterOrId);
 
     if(typeof user === "string") {
@@ -111,7 +114,7 @@ let Model = {
   },
 
   // Sync all active user bonusprogram
-  async syncAll(user: User | string): Promise<void>{
+  async syncAll(user: UserRecord | string): Promise<void>{
     if(typeof user === "string") {
       user = await User.findOne({id: user})
       if(!user) throw `syncAll > user not found`
@@ -131,7 +134,7 @@ let Model = {
   },
 
   /** Full sync all transaction with external system */
-  async sync(user: User | string,  bonusProgram: BonusProgram | string, force: boolean = false): Promise<void>{
+  async sync(user: UserRecord | string,  bonusProgram: BonusProgramRecord | string, force: boolean = false): Promise<void>{
     try {
       if(typeof user === "string") {
         user = await User.findOne({id: user})
@@ -244,7 +247,7 @@ let Model = {
   },
 
 
-  async checkEnoughToSpend(user: User | string, bonusProgram: BonusProgram | string, amount: number): Promise<boolean> {
+  async checkEnoughToSpend(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, amount: number): Promise<boolean> {
     // If Bonus program not active, should stop
     try {
 
@@ -313,7 +316,7 @@ let Model = {
 
   },
   // Define the recalculateBalance method
-  async sumCurrentBalance(user: User | string, bonusProgram: BonusProgram | string): Promise<number> {
+  async sumCurrentBalance(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<number> {
 
     if(typeof user === "string") {
       user = await User.findOne({id: user})
@@ -353,5 +356,5 @@ module.exports = {
 };
 
 declare global {
-  const UserBonusProgram: typeof Model & ORMModel<UserBonusProgram, "user" | "bonusProgram">;
+  const UserBonusProgram: typeof Model & ORMModel<UserBonusProgramRecord, "user" | "bonusProgram">;
 }

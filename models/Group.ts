@@ -150,11 +150,14 @@ interface IVirtualFields {
 }
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use `GroupRecord` instead
+ */
 interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {}
-export default Group;
+export interface GroupRecord extends OptionalAll<attributes>, IVirtualFields, ORM {}
 
 let Model = {
-  beforeCreate: async function(init: any, cb:  (err?: string) => void) {
+  beforeCreate: async function(init: GroupRecord, cb:  (err?: string) => void) {
     emitter.emit('core:group-before-create', init);
     if (!init.id) {
       init.id = uuid();

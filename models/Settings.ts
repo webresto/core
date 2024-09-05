@@ -68,18 +68,19 @@ let attributes = {
 };
 
 type attributes = typeof attributes & ORM;
-
+/**
+ * @deprecated use `SettingsRecord` instead
+ */
 interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> { }
-
-export default Settings;
+export interface SettingsRecord extends RequiredField<OptionalAll<attributes>, "key" | "type"> { }
 
 let Model = {
-  beforeCreate: function (record: Settings, cb: (err?: string) => void) {
+  beforeCreate: function (record: SettingsRecord, cb: (err?: string) => void) {
     record.key = record.key.replace(/ /g, '_');
     cb();
   },
 
-  beforeUpdate: async function (record: Settings, cb: (err?: string) => void) {
+  beforeUpdate: async function (record: SettingsRecord, cb: (err?: string) => void) {
 		// Todo: IN adminpanel it produce error becuse we not know id in beforeUpdate
 		// if (!record.id) {
 		// 	cb("Settings error: Setting.id is required for update");
@@ -99,14 +100,14 @@ let Model = {
     cb();
   },
 
-  afterUpdate: async function (record: Settings, cb: (err?: string) => void) {
+  afterUpdate: async function (record: SettingsRecord, cb: (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
 
 		cb();
 	},
 
-  afterCreate: async function (record: Settings, cb: (err?: string) => void) {
+  afterCreate: async function (record: SettingsRecord, cb: (err?: string) => void) {
     emitter.emit(`settings:${record.key}`, record);
     settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
 
@@ -350,7 +351,7 @@ module.exports = {
 
 declare global {
   // @ts-ignore
-  const Settings: typeof Model & ORMModel<Settings, "key" | "type">;
+  const Settings: typeof Model & ORMModel<SettingsRecord, "key" | "type">;
   interface SettingList {
     MODULE_STORAGE_LICENSE: string // system setting
     /**

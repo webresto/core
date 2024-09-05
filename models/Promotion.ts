@@ -120,6 +120,9 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use `PromotionRecord` instead
+ */
 interface Promotion
   extends RequiredField<
       OptionalAll<attributes>,
@@ -137,10 +140,25 @@ interface Promotion
     >,
     ORM {}
 
-export default Promotion;
+export interface PromotionRecord
+  extends RequiredField<
+      OptionalAll<attributes>,
+      | "id"
+      | "configDiscount"
+      | "isJoint"
+      | "name"
+      | "isPublic"
+      | "description"
+      | "concept"
+      | "badge"
+      | "isDeleted"
+      | "createdByUser"
+      | "externalId"
+    >,
+    ORM {}
 
 let Model = {
-   async afterUpdate(record: Promotion, cb:  (err?: string) => void) {
+   async afterUpdate(record: PromotionRecord, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreation of discountHandler
       Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
@@ -150,7 +168,7 @@ let Model = {
     cb();
   },
 
-  async afterCreate(record: Promotion, cb:  (err?: string) => void) {
+  async afterCreate(record: PromotionRecord, cb:  (err?: string) => void) {
     if (record.createdByUser) {
       // call recreation of discountHandler
       Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
@@ -160,7 +178,7 @@ let Model = {
     cb();
   },
 
-  async afterDestroy(record: Promotion, cb:  (err?: string) => void) {
+  async afterDestroy(record: PromotionRecord, cb:  (err?: string) => void) {
     // delete promotion in adapter
     Adapter.getPromotionAdapter().deletePromotion(record.id)
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
@@ -185,7 +203,7 @@ let Model = {
     cb();
   },
 
-  async createOrUpdate(values: Promotion): Promise<Promotion> {
+  async createOrUpdate(values: Promotion): Promise<PromotionRecord> {
     let sortOrder = values.sortOrder
     let isDeleted = values.isDeleted
     let enable = values.enable
@@ -214,7 +232,7 @@ let Model = {
     }
   },
 
-  getAllByConcept(concept: string[]): Promotion[] {
+  getAllByConcept(concept: string[]): PromotionRecord[] {
     if(typeof concept === "string") concept = [concept];
     if(!concept) concept = ["origin"];
     const promotionAdapter = Adapter.getPromotionAdapter()
@@ -246,7 +264,7 @@ module.exports = {
 };
 
 declare global {
-  const Promotion: typeof Model & ORMModel<Promotion, "concept">;
+  const Promotion: typeof Model & ORMModel<PromotionRecord, "concept">;
 }
 
 // function between(from: number, to: number, a: number): boolean {

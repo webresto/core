@@ -24,8 +24,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-interface SelectedMediaFile extends OptionalAll<attributes>, ORM { }
-export type SelectedMediaFileRecord = OptionalAll<attributes>;
+export interface SelectedMediaFileRecord extends OptionalAll<attributes>, ORM { }
 
 let Model = {
   beforeCreate(imageInit: SelectedMediaFileRecord, cb: (err?: string) => void) {
@@ -44,5 +43,5 @@ module.exports = {
 };
 
 declare global {
-  const SelectedMediaFile: typeof Model & ORMModel<SelectedMediaFile, null>;
+  const SelectedMediaFile: typeof Model & ORMModel<SelectedMediaFileRecord, null>;
 }

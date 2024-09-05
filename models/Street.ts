@@ -4,8 +4,8 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import hashCode from "../libs/hashCode";
 import { RequiredField } from "../interfaces/toolsTS";
-import City from "./City";
 import { CustomData, isCustomData } from "../interfaces/CustomData";
+import { CityRecord } from "./City";
 
 let attributes = {
   /** ID */
@@ -40,21 +40,24 @@ let attributes = {
   
   city: {
     model: 'city'
-  } as unknown as City | string,
+  } as unknown as CityRecord | string,
 
   customData: "json" as unknown as CustomData,
 };
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use `StreetRecord` instead
+ */
 interface Street extends RequiredField<Partial<attributes>, "name">, ORM {}
-export default Street;
+export interface StreetRecord extends RequiredField<Partial<attributes>, "name">, ORM {}
 
 
 /**
  * Please emit core:streets:updated after finish update streets
  */
 let Model = {
-  async beforeUpdate(value: Street, cb:  (err?: string) => void) {
+  async beforeUpdate(value: StreetRecord, cb:  (err?: string) => void) {
     if(value.customData) {
       if (value.id !== undefined) {
         let current = await Street.findOne({id: value.id});
@@ -66,7 +69,7 @@ let Model = {
     cb();
   },
 
-  beforeCreate(streetInit: any, cb:  (err?: string) => void) {
+  beforeCreate(streetInit: StreetRecord, cb:  (err?: string) => void) {
     if (!streetInit.id) {
       streetInit.id = uuid();
     }
@@ -93,7 +96,7 @@ let Model = {
    * @param values
    * @return Updated or created street
    */
-    async createOrUpdate(values: Street): Promise<Street> {
+    async createOrUpdate(values: StreetRecord): Promise<StreetRecord> {
       sails.log.silly(`Core > Street > createOrUpdate: ${values.name}`)
       let hash = hashCode(JSON.stringify(values));
 
@@ -125,5 +128,5 @@ module.exports = {
 };
 
 declare global {
-  const Street: typeof Model & ORMModel<Street, null>;
+  const Street: typeof Model & ORMModel<StreetRecord, null>;
 }

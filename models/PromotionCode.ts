@@ -69,11 +69,14 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use `PromotionCodeRecord` instead
+ */
 interface PromotionCode extends attributes, ORM {}
-export default PromotionCode;
+export interface PromotionCodeRecord extends attributes, ORM {}
 
 let Model = {
-  beforeCreate(promotionCodeInit: any, cb:  (err?: string) => void) {
+  beforeCreate(promotionCodeInit: PromotionCodeRecord, cb:  (err?: string) => void) {
     if (!promotionCodeInit.id) {
       promotionCodeInit.id = uuid();
     }
@@ -84,7 +87,7 @@ let Model = {
   /**
    * Check promocode is work now
    */
-  async getValidPromotionCode(promotionCodeString: string): Promise<PromotionCode> {
+  async getValidPromotionCode(promotionCodeString: string): Promise<PromotionCodeRecord> {
     return await PromotionCode.findOne({code: promotionCodeString}).populate("promotion")
     //return null
   }
@@ -100,5 +103,5 @@ declare global {
   /**
    * Promotion by code
    */
-  const PromotionCode: typeof Model & ORMModel<PromotionCode, null>;
+  const PromotionCode: typeof Model & ORMModel<PromotionCodeRecord, null>;
 }

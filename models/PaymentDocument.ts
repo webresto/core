@@ -102,10 +102,14 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+/**
+ * @deprecated use PaymentDocumentRecord instead
+ */
 interface PaymentDocument extends OptionalAll<attributes>, ORM {}
-export default PaymentDocument;
+export interface PaymentDocumentRecord extends OptionalAll<attributes>, ORM {}
+
 let Model = {
-  beforeCreate(paymentDocumentInit: any, cb:  (err?: string) => void) {
+  beforeCreate(paymentDocumentInit: PaymentDocumentRecord, cb:  (err?: string) => void) {
     if (!paymentDocumentInit.id) {
       paymentDocumentInit.id = uuid();
     }
@@ -119,7 +123,7 @@ let Model = {
     emitter.emit("core:payment-document-check", self);
     try {
       let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
-      let checkedPaymentDocument: PaymentDocument = await paymentAdapter.checkPayment(self);
+      let checkedPaymentDocument: PaymentDocumentRecord = await paymentAdapter.checkPayment(self);
       sails.log.silly("checkedPaymentDocument >> ", checkedPaymentDocument)
 
 
@@ -150,7 +154,7 @@ let Model = {
     checkAmount(amount);
     await checkOrigin(originModel, originModelId);
     await checkPaymentMethod(paymentMethodId);
-    var id: string = uuid();
+    let id: string = uuid();
     id = id.replace(/-/g, '').toUpperCase();
     let payment: Payment = {
       id: id,
@@ -164,7 +168,7 @@ let Model = {
 
     emitter.emit("core:payment-document-before-create", payment);
     try {
-      await PaymentDocument.create(payment as PaymentDocument).fetch();
+      await PaymentDocument.create(payment as PaymentDocumentRecord).fetch();
     } catch (e) {
       sails.log.error("Error in paymentAdapter.createPayment :", e);
       throw {
@@ -250,7 +254,7 @@ module.exports = {
 };
 
 declare global {
-  const PaymentDocument: typeof Model & ORMModel<PaymentDocument, null>;
+  const PaymentDocument: typeof Model & ORMModel<PaymentDocumentRecord, null>;
 }
 
 ////////////////////////////// LOCAL

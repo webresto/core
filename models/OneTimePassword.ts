@@ -23,11 +23,16 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+
+/**
+ * @deprecated use `OneTimePasswordRecord` instead
+ */
 interface OneTimePassword extends RequiredField<OptionalAll<attributes>, "login" >, ORM {}
-export default OneTimePassword;
+export interface OneTimePasswordRecord extends RequiredField<OptionalAll<attributes>, "login" >, ORM {}
+
 
 let Model = {
-  beforeCreate(record: any, cb:  (err?: string) => void) {
+  beforeCreate(record: OneTimePasswordRecord, cb:  (err?: string) => void) {
     if (!record.password) {
       record.password = generateOtp();
     }
@@ -64,22 +69,19 @@ module.exports = {
 };
 
 declare global {
-  const OneTimePassword: typeof Model & ORMModel<OneTimePassword,  "login" >;
+  const OneTimePassword: typeof Model & ORMModel<OneTimePasswordRecord,  "login" >;
 }
 
 
 function generateOtp() {
-
   if (process.env.NODE_ENV !== "production" && process.env.DEFAULT_OTP){
     return process.env.DEFAULT_OTP;
   }
-
-  var digits = '1234567890';
-  var otp = ''
+  
+  let digits = '1234567890';
+  let otp = ''
   for (let i = 0; i < 6; i++) {
       otp += digits[Math.floor(Math.random() * 10)];
   }
-
-
   return otp;
 }
