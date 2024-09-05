@@ -1,8 +1,8 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { RequiredField } from "../interfaces/toolsTS";
-import City from "./City";
 import { CustomData } from "../interfaces/CustomData";
+import { CityRecord } from "./City";
 declare let attributes: {
     /** ID */
     id: string;
@@ -16,19 +16,18 @@ declare let attributes: {
     isDeleted: boolean;
     /** Street has deleted */
     enable: boolean;
-    city: City | string;
+    city: CityRecord | string;
     customData: CustomData;
 };
 type attributes = typeof attributes;
-interface Street extends RequiredField<Partial<attributes>, "name">, ORM {
+export interface StreetRecord extends RequiredField<Partial<attributes>, "name">, ORM {
 }
-export default Street;
 /**
  * Please emit core:streets:updated after finish update streets
  */
 declare let Model: {
-    beforeUpdate(value: Street, cb: (err?: string) => void): Promise<void>;
-    beforeCreate(streetInit: any, cb: (err?: string) => void): void;
+    beforeUpdate(value: StreetRecord, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(streetInit: StreetRecord, cb: (err?: string) => void): void;
     /**
    * Checks whether the street exists, if it does not exist, then creates a new one and returns it.If exists, then checks
    * Hash of the existing street and new data, if they are identical, then immediately gives the streets, if not, it updates its data
@@ -36,8 +35,9 @@ declare let Model: {
    * @param values
    * @return Updated or created street
    */
-    createOrUpdate(values: Street): Promise<Street>;
+    createOrUpdate(values: StreetRecord): Promise<StreetRecord>;
 };
 declare global {
-    const Street: typeof Model & ORMModel<Street, null>;
+    const Street: typeof Model & ORMModel<StreetRecord, null>;
 }
+export {};

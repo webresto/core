@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-var alivePaymentMethods = {};
+let alivePaymentMethods = {};
 let attributes = {
     /** ID of the payment method */
     id: {
@@ -47,7 +47,7 @@ let Model = {
      * @param adapter
      */
     async getAdapter(adapter) {
-        var paymentMethod;
+        let paymentMethod;
         if (!adapter) {
             paymentMethod = this;
         }
@@ -76,7 +76,7 @@ let Model = {
      * @return
      */
     async isPaymentPromise(paymentMethodId) {
-        var checkingPaymentMethod;
+        let checkingPaymentMethod;
         if (!paymentMethodId) {
             checkingPaymentMethod = this;
         }

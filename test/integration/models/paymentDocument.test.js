@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const ExternalTestPaymentSystem_1 = __importDefault(require("../../unit/external_payments/ExternalTestPaymentSystem"));
+const PaymentDocument_1 = __importDefault(require("../../../models/PaymentDocument"));
 //import Order from '../../../models/Order';
 describe("PaymentDocument", function () {
     this.timeout(31000);
@@ -45,15 +46,15 @@ describe("PaymentDocument", function () {
         emitter.on("core:payment-document-check", "test", function (paymentDocument) {
             count.push(paymentDocument);
         });
-        await PaymentDocument.destroy({});
+        await PaymentDocument_1.default.destroy({});
         let order = await Order.create({}).fetch();
         if (!paymentMethod)
             throw "paymentMethod (test-payment-system) was not found ";
-        PaymentDocument.processor(3000);
-        await PaymentDocument.register(order.id, "order", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
+        PaymentDocument_1.default.processor(3000);
+        await PaymentDocument_1.default.register(order.id, "order", 100, paymentMethod.id, "http://", "http://", "test-payment-processor", { test: true });
         await sleep(5000);
         // // back to 120 sec payment processor
-        PaymentDocument.processor(120000);
+        PaymentDocument_1.default.processor(120000);
         (0, chai_1.expect)(count.length).to.equal(1);
     });
 });

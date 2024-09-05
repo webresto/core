@@ -1,5 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const Order_1 = __importDefault(require("../../models/Order"));
+const OrderDish_1 = __importDefault(require("../../models/OrderDish"));
 class AbstractPromotionAdapter {
     /**
      * Base realization clearOfPromotion
@@ -13,9 +18,9 @@ class AbstractPromotionAdapter {
             throw `order with orderId ${order.id} in state ORDER`;
         //if (order.state === "PAYMENT") throw "order with orderId" + order.id + "in state PAYMENT";
         // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-        await OrderDish.destroy({ order: order.id, addedBy: "promotion" }).fetch();
-        await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null, discountId: null, discountDebugInfo: null }).fetch();
-        await Order.updateOne({ id: order.id }, { discountTotal: 0, promotionFlatDiscount: 0 });
+        await OrderDish_1.default.destroy({ order: order.id, addedBy: "promotion" }).fetch();
+        await OrderDish_1.default.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null, discountId: null, discountDebugInfo: null }).fetch();
+        await Order_1.default.updateOne({ id: order.id }, { discountTotal: 0, promotionFlatDiscount: 0 });
         let dishes = order.dishes ? order.dishes : [];
         dishes.forEach((orderItem) => {
             orderItem.discountTotal = 0,

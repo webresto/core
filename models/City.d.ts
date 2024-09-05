@@ -14,12 +14,12 @@ declare let attributes: {
     } | string;
 };
 type attributes = typeof attributes;
-interface City extends attributes, ORM {
+export interface CityRecord extends attributes, ORM {
 }
-export default City;
 declare let Model: {
-    beforeCreate(streetInit: any, cb: (err?: string) => void): void;
+    beforeCreate(streetInit: CityRecord, cb: (err?: string) => void): void;
 };
 declare global {
-    const City: typeof Model & ORMModel<City, null>;
+    const City: typeof Model & ORMModel<CityRecord, null>;
 }
+export {};

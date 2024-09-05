@@ -1,8 +1,8 @@
 import ORM from "../interfaces/ORM";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { ORMModel } from "../interfaces/ORMModel";
-import User from "../models/User";
-import BonusProgram from "../models/BonusProgram";
+import { BonusProgramRecord } from "./BonusProgram";
+import { UserRecord } from "./User";
 declare let attributes: {
     /** ID */
     id: string;
@@ -30,26 +30,26 @@ declare let attributes: {
     isStable: boolean;
     /** UTC time */
     time: string;
-    bonusProgram: BonusProgram | string;
-    user: User | string;
+    bonusProgram: BonusProgramRecord | string;
+    user: UserRecord | string;
     customData: {
         [key: string]: string | boolean | number;
     } | string;
 };
 type attributes = typeof attributes;
-interface UserBonusTransaction extends RequiredField<OptionalAll<attributes>, "isNegative" | "bonusProgram" | "user" | "amount">, ORM {
+export interface UserBonusTransactionRecord extends RequiredField<OptionalAll<attributes>, "isNegative" | "bonusProgram" | "user" | "amount">, ORM {
 }
-export default UserBonusTransaction;
 declare let Model: {
     /**
      * Before create, a check is made to see if there are enough funds to write off.
      * Immediately after create saving the transaction in the local database, the external adapter is called to save the transaction
      */
-    beforeCreate(init: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
-    afterCreate(record: UserBonusTransaction, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(init: UserBonusTransactionRecord, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: UserBonusTransactionRecord, cb: (err?: string) => void): Promise<void>;
     beforeDestroy(): never;
-    beforeUpdate(record: OptionalAll<UserBonusTransaction>, cb: (err?: string) => void): void;
+    beforeUpdate(record: OptionalAll<UserBonusTransactionRecord>, cb: (err?: string) => void): void;
 };
 declare global {
-    const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransaction, "user" | "amount" | "bonusProgram">;
+    const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransactionRecord, "user" | "amount" | "bonusProgram">;
 }
+export {};

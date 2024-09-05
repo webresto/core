@@ -1,8 +1,8 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import Order from "../models/Order";
 import { OptionalAll } from "../interfaces/toolsTS";
-import User from "../models/User";
+import { OrderRecord } from "./Order";
+import { UserRecord } from "./User";
 declare let attributes: {
     /** ID */
     id: string;
@@ -13,22 +13,22 @@ declare let attributes: {
     /** total cost */
     total: number;
     /** Baked json object of fullOrder */
-    order: Order;
+    order: OrderRecord;
     /** Total discount amount*/
     discountTotal: number;
     /** Comment to dish in order */
     comment: string;
     /** Gross weight */
     totalWeight: number;
-    user: User | String;
+    user: UserRecord | string;
 };
 type attributes = typeof attributes;
-interface UserOrderHistory extends OptionalAll<attributes>, ORM {
+export interface UserOrderHistoryRecord extends OptionalAll<attributes>, ORM {
 }
-export default UserOrderHistory;
 declare let Model: {
     save(orderId: string): Promise<void>;
 };
 declare global {
-    const UserOrderHistory: typeof Model & ORMModel<UserOrderHistory, "id" | "uniqueItems" | "orderTotal" | "total" | "totalWeight" | "order" | "user">;
+    const UserOrderHistory: typeof Model & ORMModel<UserOrderHistoryRecord, "id" | "uniqueItems" | "orderTotal" | "total" | "totalWeight" | "order" | "user">;
 }
+export {};

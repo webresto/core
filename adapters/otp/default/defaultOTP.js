@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultOTP = void 0;
 const OneTimePasswordAdapter_1 = __importDefault(require("../OneTimePasswordAdapter"));
+const OneTimePassword_1 = __importDefault(require("../../../models/OneTimePassword"));
 class DefaultOTP extends OneTimePasswordAdapter_1.default {
     /**
      * Send and return OTP code
@@ -13,7 +14,7 @@ class DefaultOTP extends OneTimePasswordAdapter_1.default {
      * @returns OTP
      */
     async get(login) {
-        let otp = await OneTimePassword.create({ login: login }).fetch();
+        let otp = await OneTimePassword_1.default.create({ login: login }).fetch();
         if (!otp.password || !login) {
             await NotificationManager.sendMessageToDeliveryManager("error", `Failed OPT password generate for ${login}, please contact with him`);
             throw `otp generation error`;

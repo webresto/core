@@ -1,7 +1,7 @@
-import { ORMModel } from "../interfaces/ORMModel";
+import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
-import PaymentMethod from "../models/PaymentMethod";
+import { PaymentMethodRecord } from "../models/PaymentMethod";
 import { OptionalAll } from "../interfaces/toolsTS";
 /** on the example of the basket (Order):
  * 1. Model Conducting Internal/External (for example: Order) creates PaymentDocument
@@ -49,7 +49,7 @@ declare let attributes: {
     /** Model from which payment is made*/
     originModel: string;
     /** Payment method */
-    paymentMethod: PaymentMethod | any;
+    paymentMethod: PaymentMethodRecord | string;
     /** The amount for payment*/
     amount: number;
     /** The flag is established that payment was made*/
@@ -61,20 +61,25 @@ declare let attributes: {
     redirectLink: string;
     /** Error text */
     error: string;
-    data: any;
+    data: object;
 };
 type attributes = typeof attributes;
+/**
+ * @deprecated use PaymentDocumentRecord instead
+ */
 interface PaymentDocument extends OptionalAll<attributes>, ORM {
 }
-export default PaymentDocument;
+export interface PaymentDocumentRecord extends OptionalAll<attributes>, ORM {
+}
 declare let Model: {
-    beforeCreate(paymentDocumentInit: any, cb: (err?: string) => void): void;
-    doCheck: (criteria: any) => Promise<PaymentDocument>;
-    register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: any) => Promise<PaymentResponse>;
-    afterUpdate: (values: PaymentDocument, next: any) => Promise<void>;
+    beforeCreate(paymentDocumentInit: PaymentDocumentRecord, cb: (err?: string) => void): void;
+    doCheck: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentRecord>;
+    register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: object) => Promise<PaymentResponse>;
+    afterUpdate: (values: PaymentDocument, next: () => void) => Promise<void>;
     /** Payment check cycle*/
     processor: (timeout: number) => Promise<ReturnType<typeof setInterval>>;
 };
 declare global {
-    const PaymentDocument: typeof Model & ORMModel<PaymentDocument, null>;
+    const PaymentDocument: typeof Model & ORMModel<PaymentDocumentRecord, null>;
 }
+export {};

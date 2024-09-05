@@ -22,8 +22,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
+const UserDevice_1 = __importDefault(require("./UserDevice"));
+const UserBonusProgram_1 = __importDefault(require("../models/UserBonusProgram"));
 const bcryptjs = __importStar(require("bcryptjs"));
 const Countries = require("../libs/dictionaries/countries.json");
 let attributes = {
@@ -211,7 +216,7 @@ let Model = {
                 throw `OTP checks failed`;
             }
         }
-        await UserDevice.update({ user: userId }, { isLoggedIn: false }).fetch();
+        await UserDevice_1.default.update({ user: userId }, { isLoggedIn: false }).fetch();
         User.update({ id: userId }, { isDeleted: true }).fetch();
     },
     /**
@@ -365,9 +370,9 @@ let Model = {
         // TODO: getBalance BonusProgram
     },
     async authDevice(userId, deviceId, deviceName, userAgent, IP) {
-        let userDevice = await UserDevice.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
+        let userDevice = await UserDevice_1.default.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
         // Need pass sessionId here for except parallels login with one name
-        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
+        return await UserDevice_1.default.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
     },
     /**
       check all active bonus programs for user
@@ -379,16 +384,16 @@ let Model = {
         const bps = await BonusProgram.getAvailable();
         for (let bp of bps) {
             let adapter = await BonusProgram.getAdapter(bp.adapter);
-            const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: bp.id });
+            const userBonusProgram = await UserBonusProgram_1.default.findOne({ user: user.id, bonusProgram: bp.id });
             // If all works
             if (adapter.isRegistered(user) && userBonusProgram && userBonusProgram.isActive) {
                 // Not need await finish sync
-                UserBonusProgram.sync(userId, bp.id);
+                UserBonusProgram_1.default.sync(userId, bp.id);
                 // If not registered in internal storage
             }
             else if (adapter.isRegistered(user) && !userBonusProgram) {
                 let exUser = await adapter.getUserInfo(user);
-                await UserBonusProgram.create({
+                await UserBonusProgram_1.default.create({
                     user: user.id,
                     balance: exUser.balance,
                     externalId: exUser.externalId,
@@ -401,7 +406,7 @@ let Model = {
             }
             else if (!adapter.isRegistered(user) && bp.automaticUserRegistration) {
                 // Registration if Bonus program has an automatic registration option
-                await UserBonusProgram.registration(user, bp.adapter);
+                await UserBonusProgram_1.default.registration(user, bp.adapter);
                 // if not need register
             }
             else {

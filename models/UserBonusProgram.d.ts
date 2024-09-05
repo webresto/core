@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import User from "../models/User";
-import BonusProgram from "./BonusProgram";
+import { UserRecord } from "../models/User";
+import { BonusProgramRecord } from "./BonusProgram";
 declare let attributes: {
     /** UserBonusProgram ID */
     id: Readonly<string>;
@@ -12,8 +12,8 @@ declare let attributes: {
     balance: number;
     isDeleted: boolean;
     isActive: boolean;
-    user: User | string;
-    bonusProgram: BonusProgram | string;
+    user: UserRecord | string;
+    bonusProgram: BonusProgramRecord | string;
     /** UNIX era seconds */
     syncedToTime: string;
     customData: {
@@ -21,19 +21,19 @@ declare let attributes: {
     } | string;
 };
 type attributes = typeof attributes;
-interface UserBonusProgram extends attributes, ORM {
+export interface UserBonusProgramRecord extends attributes, ORM {
 }
-export default UserBonusProgram;
 declare let Model: {
-    beforeCreate(init: UserBonusProgram, cb: (err?: string) => void): void;
-    registration(user: User | string, adapterOrId: string): Promise<UserBonusProgram>;
-    delete(user: User | string, adapterOrId: string): Promise<void>;
-    syncAll(user: User | string): Promise<void>;
+    beforeCreate(init: UserBonusProgramRecord, cb: (err?: string) => void): void;
+    registration(user: UserRecord | string, adapterOrId: string): Promise<UserBonusProgramRecord>;
+    delete(user: UserRecord | string, adapterOrId: string): Promise<void>;
+    syncAll(user: UserRecord | string): Promise<void>;
     /** Full sync all transaction with external system */
-    sync(user: User | string, bonusProgram: BonusProgram | string, force?: boolean): Promise<void>;
-    checkEnoughToSpend(user: User | string, bonusProgram: BonusProgram | string, amount: number): Promise<boolean>;
-    sumCurrentBalance(user: User | string, bonusProgram: BonusProgram | string): Promise<number>;
+    sync(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, force?: boolean): Promise<void>;
+    checkEnoughToSpend(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, amount: number): Promise<boolean>;
+    sumCurrentBalance(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<number>;
 };
 declare global {
-    const UserBonusProgram: typeof Model & ORMModel<UserBonusProgram, "user" | "bonusProgram">;
+    const UserBonusProgram: typeof Model & ORMModel<UserBonusProgramRecord, "user" | "bonusProgram">;
 }
+export {};

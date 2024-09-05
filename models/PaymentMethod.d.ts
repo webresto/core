@@ -32,9 +32,8 @@ declare let attributes: {
     } | string;
 };
 type attributes = typeof attributes;
-interface PaymentMethod extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {
+export interface PaymentMethodRecord extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {
 }
-export default PaymentMethod;
 declare let Model: {
     /**
      * Returns the authority of payment Adapter by the famous name Adapter
@@ -42,7 +41,7 @@ declare let Model: {
      * @param adapter
      */
     getAdapter(adapter?: string): Promise<PaymentAdapter>;
-    beforeCreate: (paymentMethod: any, cb: (err?: string) => void) => void;
+    beforeCreate: (paymentMethod: PaymentMethodRecord, cb: (err?: string) => void) => void;
     /**
      * Returns True if the payment method is a promise of payment
      * @param  paymentMethodId
@@ -66,7 +65,7 @@ declare let Model: {
      * Returns an array with possible methods of payment for ORDER
      * @return array of types of payments
      */
-    getAvailable(): Promise<PaymentMethod[]>;
+    getAvailable(): Promise<PaymentMethodRecord[]>;
     /**
      * Checks the payment system for accessibility, and inclusion,
      * For the system of systems, only inclusion.
@@ -83,5 +82,6 @@ declare let Model: {
     getAdapterById(paymentMethodId: string): Promise<PaymentAdapter>;
 };
 declare global {
-    const PaymentMethod: typeof Model & ORMModel<PaymentMethod, "type" | "adapter" | "enable">;
+    const PaymentMethod: typeof Model & ORMModel<PaymentMethodRecord, "type" | "adapter" | "enable">;
 }
+export {};

@@ -120,7 +120,12 @@ interface IVirtualFields {
     salePrice?: number;
 }
 type attributes = typeof attributes;
+/**
+ * @deprecated use `DishRecord` instead
+ */
 interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {
+}
+export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {
 }
 export default Dish;
 declare let Model: {
@@ -153,5 +158,5 @@ declare let Model: {
     createOrUpdate(values: Dish): Promise<Dish>;
 };
 declare global {
-    const Dish: typeof Model & ORMModel<Dish, "name" | "price">;
+    const Dish: typeof Model & ORMModel<DishRecord, "name" | "price">;
 }

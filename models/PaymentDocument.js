@@ -77,7 +77,7 @@ let Model = {
         checkAmount(amount);
         await checkOrigin(originModel, originModelId);
         await checkPaymentMethod(paymentMethodId);
-        var id = (0, uuid_1.v4)();
+        let id = (0, uuid_1.v4)();
         id = id.replace(/-/g, '').toUpperCase();
         let payment = {
             id: id,
@@ -144,7 +144,7 @@ let Model = {
     },
     /** Payment check cycle*/
     processor: async function (timeout) {
-        sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 45000);
+        sails.log.silly("PaymentDocument.processor > started with timeout: " + (timeout ?? 45000));
         return (payment_processor_interval = setInterval(async () => {
             let actualTime = new Date();
             let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTERED" });

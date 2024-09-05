@@ -64,11 +64,15 @@ interface IVirtualFields {
     discountType?: "flat" | "percentage";
 }
 type attributes = typeof attributes;
+/**
+ * @deprecated use `GroupRecord` instead
+ */
 interface Group extends OptionalAll<attributes>, IVirtualFields, ORM {
 }
-export default Group;
+export interface GroupRecord extends OptionalAll<attributes>, IVirtualFields, ORM {
+}
 declare let Model: {
-    beforeCreate: (init: any, cb: (err?: string) => void) => Promise<void>;
+    beforeCreate: (init: GroupRecord, cb: (err?: string) => void) => Promise<void>;
     beforeUpdate: (record: Group, cb: (err?: string) => void) => void;
     afterUpdate: (record: Group, cb: (err?: string) => void) => void;
     afterCreate: (record: Group, cb: (err?: string) => void) => void;
@@ -138,3 +142,4 @@ export interface GroupWithAdditionalFields extends Group {
 declare global {
     const Group: typeof Model & ORMModel<Group, null>;
 }
+export {};

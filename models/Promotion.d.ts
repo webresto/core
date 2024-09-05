@@ -34,18 +34,23 @@ declare let attributes: {
     worktime: WorkTime[];
 };
 type attributes = typeof attributes;
+/**
+ * @deprecated use `PromotionRecord` instead
+ */
 interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "badge" | "isDeleted" | "createdByUser" | "externalId">, ORM {
 }
-export default Promotion;
+export interface PromotionRecord extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "badge" | "isDeleted" | "createdByUser" | "externalId">, ORM {
+}
 declare let Model: {
-    afterUpdate(record: Promotion, cb: (err?: string) => void): Promise<void>;
-    afterCreate(record: Promotion, cb: (err?: string) => void): Promise<void>;
-    afterDestroy(record: Promotion, cb: (err?: string) => void): Promise<void>;
+    afterUpdate(record: PromotionRecord, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: PromotionRecord, cb: (err?: string) => void): Promise<void>;
+    afterDestroy(record: PromotionRecord, cb: (err?: string) => void): Promise<void>;
     beforeUpdate(init: Promotion, cb: (err?: string) => void): void;
     beforeCreate(init: Promotion, cb: (err?: string) => void): Promise<void>;
-    createOrUpdate(values: Promotion): Promise<Promotion>;
-    getAllByConcept(concept: string[]): Promotion[];
+    createOrUpdate(values: Promotion): Promise<PromotionRecord>;
+    getAllByConcept(concept: string[]): PromotionRecord[];
 };
 declare global {
-    const Promotion: typeof Model & ORMModel<Promotion, "concept">;
+    const Promotion: typeof Model & ORMModel<PromotionRecord, "concept">;
 }
+export {};

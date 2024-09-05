@@ -37,21 +37,25 @@ declare let attributes: {
     isRequired: boolean;
 };
 type attributes = typeof attributes & ORM;
+/**
+ * @deprecated use `SettingsRecord` instead
+ */
 interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> {
 }
-export default Settings;
+export interface SettingsRecord extends RequiredField<OptionalAll<attributes>, "key" | "type"> {
+}
 declare let Model: {
-    beforeCreate: (record: Settings, cb: (err?: string) => void) => void;
-    beforeUpdate: (record: Settings, cb: (err?: string) => void) => Promise<void>;
-    afterUpdate: (record: Settings, cb: (err?: string) => void) => Promise<void>;
-    afterCreate: (record: Settings, cb: (err?: string) => void) => Promise<void>;
+    beforeCreate: (record: SettingsRecord, cb: (err?: string) => void) => void;
+    beforeUpdate: (record: SettingsRecord, cb: (err?: string) => void) => Promise<void>;
+    afterUpdate: (record: SettingsRecord, cb: (err?: string) => void) => Promise<void>;
+    afterCreate: (record: SettingsRecord, cb: (err?: string) => void) => Promise<void>;
     /** return setting value by unique key */
     use(key: string): Promise<SettingValue>;
     get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined>;
     set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings>;
 };
 declare global {
-    const Settings: typeof Model & ORMModel<Settings, "key" | "type">;
+    const Settings: typeof Model & ORMModel<SettingsRecord, "key" | "type">;
     interface SettingList {
         MODULE_STORAGE_LICENSE: string;
         /**
@@ -79,3 +83,4 @@ type SettingsSetInput<K extends string, F> = ({
     value?: F;
     defaultValue: F;
 } & SettingsSetInputBase<K, F>);
+export {};

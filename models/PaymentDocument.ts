@@ -1,9 +1,9 @@
-import { ORMModel } from "../interfaces/ORMModel";
+import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
 import { PaymentResponse, Payment } from "../interfaces/Payment";
-import PaymentMethod from "../models/PaymentMethod";
+import { PaymentMethodRecord } from "../models/PaymentMethod";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
@@ -73,7 +73,7 @@ let attributes = {
   /** Payment method */
   paymentMethod: {
     model: "PaymentMethod",
-  } as unknown as PaymentMethod | any,
+  } as unknown as PaymentMethodRecord | string,
 
   /** The amount for payment*/
   amount: "number" as unknown as number,
@@ -98,7 +98,7 @@ let attributes = {
 
   /** Error text */
   error: "string",
-  data: "json" as unknown as any
+  data: "json" as unknown as object
 };
 
 type attributes = typeof attributes;
@@ -116,17 +116,15 @@ let Model = {
 
     cb();
   },
-  doCheck: async function (criteria: any): Promise<PaymentDocument> {
-    const self: PaymentDocument = (await PaymentDocument.find(criteria).limit(1))[0];
+  doCheck: async function (criteria: CriteriaQuery<PaymentDocumentRecord>): Promise<PaymentDocumentRecord> {
+    const self: PaymentDocumentRecord = (await PaymentDocument.find(criteria).limit(1))[0];
     if (!self) throw `PaymentDocument is not found`
 
     emitter.emit("core:payment-document-check", self);
     try {
-      let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
+      let paymentAdapter: PaymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod as string);
       let checkedPaymentDocument: PaymentDocumentRecord = await paymentAdapter.checkPayment(self);
       sails.log.silly("checkedPaymentDocument >> ", checkedPaymentDocument)
-
-
 
       if (checkedPaymentDocument.status === "PAID") {
         await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status, paid: true }).fetch();
@@ -149,7 +147,7 @@ let Model = {
     backLinkSuccess: string,
     backLinkFail: string,
     comment: string,
-    data: any
+    data: object
   ): Promise<PaymentResponse> {
     checkAmount(amount);
     await checkOrigin(originModel, originModelId);
@@ -209,7 +207,7 @@ let Model = {
       };
     }
   },
-  afterUpdate: async function (values: PaymentDocument, next: any) {
+  afterUpdate: async function (values: PaymentDocument, next: () => void) {
     sails.log.silly("PaymentDocument > afterUpdate > ", JSON.stringify(values));
     if (values.paid && values.status === "PAID") {
       try {
@@ -227,11 +225,11 @@ let Model = {
 
   /** Payment check cycle*/
   processor: async function (timeout: number): Promise<ReturnType<typeof setInterval>> {
-    sails.log.silly("PaymentDocument.processor > started with timeout: " + timeout ?? 45000);
+    sails.log.silly("PaymentDocument.processor > started with timeout: " + ( timeout ?? 45000));
     return (payment_processor_interval = setInterval(async () => {
       let actualTime = new Date();
 
-      let actualPaymentDocuments: PaymentDocument[] = await PaymentDocument.find({ status: "REGISTERED" });
+      let actualPaymentDocuments: PaymentDocumentRecord[] = await PaymentDocument.find({ status: "REGISTERED" });
 
       /**If the date of creation of a payment document more than an hour ago, we put the status expired */
       actualTime.setHours(actualTime.getHours() - 1);
@@ -286,7 +284,7 @@ function checkAmount(amount: number) {
   // }
 }
 
-async function checkPaymentMethod(paymentMethodId) {
+async function checkPaymentMethod(paymentMethodId: string) {
   if (!(await PaymentMethod.checkAvailable(paymentMethodId))) {
     throw {
       code: 4,

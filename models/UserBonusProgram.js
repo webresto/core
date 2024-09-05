@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
+const UserBonusTransaction_1 = __importDefault(require("./UserBonusTransaction"));
 // type Optional<T> = {
 //   [P in keyof T]?: T[P];
 // }
@@ -167,10 +168,10 @@ let Model = {
                         customData: transaction.customData
                     };
                     if (transaction.externalId) {
-                        lastTransaction = await UserBonusTransaction.findOrCreate({ externalId: transaction.externalId }, userBonusTransaction);
+                        lastTransaction = await UserBonusTransaction_1.default.findOrCreate({ externalId: transaction.externalId }, userBonusTransaction);
                     }
                     else {
-                        lastTransaction = await UserBonusTransaction.create(userBonusTransaction).fetch();
+                        lastTransaction = await UserBonusTransaction_1.default.create(userBonusTransaction).fetch();
                     }
                 }
                 // Если возвращается меньше транзакций, чем лимит, значит, мы получили все транзакции
@@ -180,7 +181,7 @@ let Model = {
                 }
                 skip += limit;
             }
-            const _lastTransaction = await UserBonusTransaction.find({ sort: "createdAt DESC", limit: 1 });
+            const _lastTransaction = await UserBonusTransaction_1.default.find({ sort: "createdAt DESC", limit: 1 });
             lastTransaction = _lastTransaction[0];
             const sumCurrentBalance = await UserBonusProgram.sumCurrentBalance(user, bonusProgram);
             if (sumCurrentBalance === extBalance && sumCurrentBalance === lastTransaction.balanceAfter) {
@@ -267,7 +268,7 @@ let Model = {
             throw `recalculateBalance > user or bonusprogram not found`;
         }
         // Retrieve the relevant transactions for the user and bonus program
-        const transactions = await UserBonusTransaction.find({ user: user.id, bonusProgram: bonusProgram.id });
+        const transactions = await UserBonusTransaction_1.default.find({ user: user.id, bonusProgram: bonusProgram.id });
         // Initialize the balance with 0
         let balance = new decimal_js_1.default(0);
         // Iterate over each transaction and calculate the balance

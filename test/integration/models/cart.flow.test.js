@@ -1,6 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
+const Order_1 = __importDefault(require("../../../models/Order"));
+const Settings_1 = __importDefault(require("../../../models/Settings"));
 const customer_1 = require("../../mocks/customer");
 describe("Flows: Checkout", function () {
     this.timeout(10000);
@@ -8,10 +13,10 @@ describe("Flows: Checkout", function () {
     let dishes;
     it("Check dishescount", async function () {
         await sleep(500);
-        order = await Order.create({ id: "test.order.check-dishescount" }).fetch();
+        order = await Order_1.default.create({ id: "test.order.check-dishescount" }).fetch();
         dishes = await Dish.find({});
-        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
-        order = await Order.findOne({ id: "test.order.check-dishescount" });
+        await Order_1.default.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
+        order = await Order_1.default.findOne({ id: "test.order.check-dishescount" });
         if (!order)
             throw "Order not created";
         if (order.dishesCount !== 1)
@@ -20,10 +25,10 @@ describe("Flows: Checkout", function () {
     it("Check paymentSystem", async function () {
         try {
             let paymentSystem = (await PaymentMethod.find().limit(1))[0];
-            await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address, paymentSystem.id);
-            await Order.check({ id: order.id }, null, null, null, paymentSystem.id);
+            await Order_1.default.check({ id: order.id }, customer_1.customer, false, customer_1.address, paymentSystem.id);
+            await Order_1.default.check({ id: order.id }, null, null, null, paymentSystem.id);
             try {
-                await Order.check({ id: order.id }, null, null, null, "bad-id-payment-system");
+                await Order_1.default.check({ id: order.id }, null, null, null, "bad-id-payment-system");
             }
             catch (e) {
                 (0, chai_1.expect)(e.code).to.equal(8);
@@ -36,7 +41,7 @@ describe("Flows: Checkout", function () {
     });
     it("awaitEmitter order events", async function () {
         //@ts-ignore
-        await Settings.set("CHECKOUT_STRATEGY", { key: "CHECKOUT_STRATEGY", value: { notRequired: true }, jsonSchema: {
+        await Settings_1.default.set("CHECKOUT_STRATEGY", { key: "CHECKOUT_STRATEGY", value: { notRequired: true }, jsonSchema: {
                 type: "object",
                 properties: {
                     notRequired: {
@@ -61,7 +66,7 @@ describe("Flows: Checkout", function () {
             core_order_after_check = 1;
         });
         try {
-            await Order.check({ id: order.id }, customer_1.customer);
+            await Order_1.default.check({ id: order.id }, customer_1.customer);
         }
         catch (e) {
             console.error(e);
@@ -81,7 +86,7 @@ describe("Flows: Checkout", function () {
             emitAddress = addr;
         });
         try {
-            await Order.check({ id: order.id }, customer_1.customer, true, customer_1.address);
+            await Order_1.default.check({ id: order.id }, customer_1.customer, true, customer_1.address);
         }
         catch (e) {
             console.error(e);
@@ -92,18 +97,18 @@ describe("Flows: Checkout", function () {
         (0, chai_1.expect)(emitAddress).to.equal(customer_1.address);
     });
     it("throw if order is Paid (next Only ORDER)", async function () {
-        await Order.update({ id: order.id }, { state: "PAYMENT", paid: true }).fetch();
+        await Order_1.default.update({ id: order.id }, { state: "PAYMENT", paid: true }).fetch();
         try {
-            await Order.check({ id: order.id }, customer_1.customer);
+            await Order_1.default.check({ id: order.id }, customer_1.customer);
         }
         catch (e) {
             (0, chai_1.expect)(e).be.not.undefined;
         }
     });
     it("throw if state ORDER", async function () {
-        await Order.next(order.id, "ORDER");
+        await Order_1.default.next(order.id, "ORDER");
         try {
-            await Order.check({ id: order.id }, customer_1.customer);
+            await Order_1.default.check({ id: order.id }, customer_1.customer);
         }
         catch (e) {
             (0, chai_1.expect)(e).be.not.undefined;
@@ -114,19 +119,19 @@ describe("Flows: Checkout", function () {
             throw "test";
         });
         await sleep(500);
-        order = await Order.create({ id: "test-checkconfig-default-requireall" }).fetch();
-        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
-        order = await Order.findOne({ id: order.id });
-        await Settings.set("CHECKOUT_STRATEGY", { key: "CHECKOUT_STRATEGY", value: {}, jsonSchema: { "type": "object" } });
+        order = await Order_1.default.create({ id: "test-checkconfig-default-requireall" }).fetch();
+        await Order_1.default.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
+        order = await Order_1.default.findOne({ id: order.id });
+        await Settings_1.default.set("CHECKOUT_STRATEGY", { key: "CHECKOUT_STRATEGY", value: {}, jsonSchema: { "type": "object" } });
         try {
-            await Order.check({ id: order.id }, customer_1.customer, true);
+            await Order_1.default.check({ id: order.id }, customer_1.customer, true);
         }
         catch (e) {
             (0, chai_1.expect)(e.code).to.equal(0);
         }
         // just user with address
         try {
-            await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
+            await Order_1.default.check({ id: order.id }, customer_1.customer, false, customer_1.address);
         }
         catch (e) {
             console.error(e);
@@ -134,7 +139,7 @@ describe("Flows: Checkout", function () {
         }
     });
     it("test checkConfig (notRequired)", async function () {
-        await Settings.set("CHECKOUT_STRATEGY", { key: "CHECKOUT_STRATEGY", value: { notRequired: true }, jsonSchema: {
+        await Settings_1.default.set("CHECKOUT_STRATEGY", { key: "CHECKOUT_STRATEGY", value: { notRequired: true }, jsonSchema: {
                 type: "object",
                 properties: {
                     notRequired: {
@@ -143,19 +148,19 @@ describe("Flows: Checkout", function () {
                 }
             } });
         await sleep(500);
-        order = await Order.create({ id: "test-checkconfig-notrequired" }).fetch();
-        await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
-        order = await Order.findOne({ id: order.id });
+        order = await Order_1.default.create({ id: "test-checkconfig-notrequired" }).fetch();
+        await Order_1.default.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
+        order = await Order_1.default.findOne({ id: order.id });
         // for selfServices
         try {
-            await Order.check({ id: order.id }, customer_1.customer, true);
+            await Order_1.default.check({ id: order.id }, customer_1.customer, true);
         }
         catch (e) {
             (0, chai_1.expect)(e).be.undefined;
         }
         // just user with address
         try {
-            await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
+            await Order_1.default.check({ id: order.id }, customer_1.customer, false, customer_1.address);
         }
         catch (e) {
             console.error(e);
@@ -169,11 +174,11 @@ describe("Flows: Checkout", function () {
         // });
         it("good customer", async function () {
             await sleep(500);
-            order = await Order.create({ id: "check-customer" }).fetch();
-            await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
-            order = await Order.findOne({ id: order.id });
+            order = await Order_1.default.create({ id: "check-customer" }).fetch();
+            await Order_1.default.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
+            order = await Order_1.default.findOne({ id: order.id });
             try {
-                await Order.check({ id: order.id }, customer_1.customer, true);
+                await Order_1.default.check({ id: order.id }, customer_1.customer, true);
             }
             catch (e) {
                 (0, chai_1.expect)(e).be.undefined;
@@ -186,7 +191,7 @@ describe("Flows: Checkout", function () {
             };
             let error = null;
             try {
-                await Order.check({ id: order.id }, badCustomer);
+                await Order_1.default.check({ id: order.id }, badCustomer);
             }
             catch (e) {
                 error = e;
@@ -203,7 +208,7 @@ describe("Flows: Checkout", function () {
             };
             error = null;
             try {
-                await Order.check({ id: order.id }, badCustomer);
+                await Order_1.default.check({ id: order.id }, badCustomer);
             }
             catch (e) {
                 error = e;
@@ -212,10 +217,10 @@ describe("Flows: Checkout", function () {
             (0, chai_1.expect)(error.error).to.be.an("string");
         });
         it("no customer throw", async function () {
-            await Order.update({ id: order.id }, { customer: null }).fetch();
+            await Order_1.default.update({ id: order.id }, { customer: null }).fetch();
             let error = null;
             try {
-                await Order.check({ id: order.id });
+                await Order_1.default.check({ id: order.id });
             }
             catch (e) {
                 error = e;
@@ -227,9 +232,9 @@ describe("Flows: Checkout", function () {
     describe("check Address", function () {
         it("good address", async function () {
             await sleep(500);
-            order = await Order.create({ id: "check-address" }).fetch();
-            await Order.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
-            order = await Order.findOne({ id: order.id });
+            order = await Order_1.default.create({ id: "check-address" }).fetch();
+            await Order_1.default.addDish({ id: order.id }, dishes[0], 1, [], "", "user");
+            order = await Order_1.default.findOne({ id: order.id });
             let address = {
                 streetId: "1234abcd",
                 city: "New York",
@@ -238,7 +243,7 @@ describe("Flows: Checkout", function () {
                 comment: "test",
             };
             try {
-                await Order.check({ id: order.id }, customer_1.customer, null, address);
+                await Order_1.default.check({ id: order.id }, customer_1.customer, null, address);
             }
             catch (e) {
                 (0, chai_1.expect)(e).be.undefined;
@@ -253,7 +258,7 @@ describe("Flows: Checkout", function () {
                 comment: "test",
             };
             try {
-                await Order.check({ id: order.id }, null, null, badAddress);
+                await Order_1.default.check({ id: order.id }, null, null, badAddress);
             }
             catch (e) {
                 (0, chai_1.expect)(e.code).to.equal(5);
@@ -261,9 +266,9 @@ describe("Flows: Checkout", function () {
             }
         });
         it("no address throw", async function () {
-            await Order.update({ id: order.id }, { address: null }).fetch();
+            await Order_1.default.update({ id: order.id }, { address: null }).fetch();
             try {
-                await Order.check({ id: order.id }, null, true);
+                await Order_1.default.check({ id: order.id }, null, true);
             }
             catch (e) {
                 (0, chai_1.expect)(e.code).to.equal(2);

@@ -62,7 +62,6 @@ let attributes = {
     */
     uploadDate: "string",
 };
-// export default IMediaFile;
 let Model = {
     beforeCreate(imageInit, cb) {
         if (!imageInit.id) {

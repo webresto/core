@@ -27,11 +27,15 @@ declare let attributes: {
     uploadDate: string;
 };
 type attributes = typeof attributes;
+/**
+ * @deprecated use MediaFileRecord
+ */
 interface MediaFile extends OptionalAll<attributes>, ORM {
 }
 /** @deprecated use `MediaFileRecord` */
 export type IMediaFile = OptionalAll<attributes>;
-export type MediaFileRecord = OptionalAll<attributes>;
+export interface MediaFileRecord extends OptionalAll<attributes>, ORM {
+}
 declare let Model: {
     beforeCreate(imageInit: any, cb: (err?: string) => void): void;
     afterDestroy(mf: MediaFile, cb: (err?: any) => void): Promise<void>;

@@ -69,12 +69,16 @@ declare let attributes: {
     } | string;
 };
 type attributes = typeof attributes;
+/**
+ * @deprecated use `UserRecord` instead
+ */
 interface User extends OptionalAll<attributes>, ORM {
 }
-export default User;
+export interface UserRecord extends OptionalAll<attributes>, ORM {
+}
 declare let Model: {
-    beforeCreate(userInit: User, cb: (err?: string) => void): Promise<void>;
-    afterCreate(record: User, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(userInit: UserRecord, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: UserRecord, cb: (err?: string) => void): Promise<void>;
     /**
      * If a favorite dish exists in a favorites collection, it will be deleted. And vice versa
      * @param userId
@@ -113,5 +117,6 @@ declare let Model: {
     checkRegisteredInBonusPrograms(userId: string): Promise<void>;
 };
 declare global {
-    const User: typeof Model & ORMModel<User, null>;
+    const User: typeof Model & ORMModel<UserRecord, null>;
 }
+export {};

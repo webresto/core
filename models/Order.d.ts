@@ -183,9 +183,13 @@ interface stateFlowInstance {
     state: string;
 }
 type attributes = typeof attributes & stateFlowInstance;
+/**
+ * @deprecated use `OrderRecord` instead
+ */
 interface Order extends ORM, OptionalAll<attributes> {
 }
-export default Order;
+export interface OrderRecord extends ORM, OptionalAll<attributes> {
+}
 declare let Model: {
     beforeCreate(orderInit: Order, cb: (err?: string) => void): void;
     afterCreate(order: Order, cb: (err?: string) => void): Promise<void>;
@@ -313,5 +317,6 @@ declare let Model: {
     applyPromotionCode(criteria: CriteriaQuery<Order>, promotionCodeString: string | null): Promise<Order>;
 };
 declare global {
-    const Order: typeof Model & ORMModel<Order, null> & StateFlowModel;
+    const Order: typeof Model & ORMModel<OrderRecord, null> & StateFlowModel;
 }
+export {};

@@ -7,6 +7,8 @@ const dish_generator_1 = __importDefault(require("../../generators/dish.generato
 const chai_1 = require("chai");
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 const index_1 = require("../../../adapters/index");
+const Group_1 = __importDefault(require("../../../models/Group"));
+const Order_1 = __importDefault(require("../../../models/Order"));
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
@@ -74,36 +76,36 @@ describe('Discount_Empty', function () {
         // define
         promotionAdapter = index_1.Adapter.getPromotionAdapter();
         configuredPromotion = new configuredPromotion_1.default(discountEx, discountEx.configDiscount);
-        const groups = await Group.find({});
+        const groups = await Group_1.default.find({});
         groupsId = groups.map(group => group.id);
         discountEx.configDiscount.groups = groupsId;
         await Promotion.update({ id: "1-id" }, { enable: true }).fetch();
     });
     it("discount empty concept", async function () {
-        let order = await Order.create({ id: "add-dish-empty-concept" }).fetch();
-        await Order.updateOne({ id: order.id }, { user: "user" });
+        let order = await Order_1.default.create({ id: "add-dish-empty-concept" }).fetch();
+        await Order_1.default.updateOne({ id: order.id }, { user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "a", parentGroup: groupsId[0] }));
         let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "a", parentGroup: groupsId[0] }));
         discountEx.configDiscount.dishes.push(dish1.id);
         discountEx.configDiscount.dishes.push(dish2.id);
         await promotionAdapter.addPromotionHandler(discountEx);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
-        let result = await Order.findOne(order.id);
+        await Order_1.default.addDish({ id: order.id }, dish1, 5, [], "", "user");
+        await Order_1.default.addDish({ id: order.id }, dish2, 4, [], "", "user");
+        let result = await Order_1.default.findOne(order.id);
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });
     // TODO: move INTEGRATION
     it("discount empty concept but order with concept", async function () {
-        let order = await Order.create({ id: "empty-concept" }).fetch();
-        await Order.updateOne({ id: order.id }, { user: "user" });
+        let order = await Order_1.default.create({ id: "empty-concept" }).fetch();
+        await Order_1.default.updateOne({ id: order.id }, { user: "user" });
         let dish1 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish", price: 10.1, concept: "a", parentGroup: groupsId[0] }));
         let dish2 = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test fish", price: 15.2, concept: "a", parentGroup: groupsId[0] }));
         discountEx.configDiscount.dishes.push(dish1.id);
         discountEx.configDiscount.dishes.push(dish2.id);
         await promotionAdapter.addPromotionHandler(discountEx);
-        await Order.addDish({ id: order.id }, dish1, 5, [], "", "user");
-        await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
-        let result = await Order.findOne(order.id);
+        await Order_1.default.addDish({ id: order.id }, dish1, 5, [], "", "user");
+        await Order_1.default.addDish({ id: order.id }, dish2, 4, [], "", "user");
+        let result = await Order_1.default.findOne(order.id);
         // console.log(JSON.stringify(result, null, 2))
         (0, chai_1.expect)(result.discountTotal).to.equal(11.97);
     });

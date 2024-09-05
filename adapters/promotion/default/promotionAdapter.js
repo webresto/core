@@ -7,6 +7,7 @@ exports.PromotionAdapter = void 0;
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const AbstractPromotionAdapter_1 = __importDefault(require("../AbstractPromotionAdapter"));
 const worktime_1 = require("@webresto/worktime");
+const Promotion_1 = __importDefault(require("../../../models/Promotion"));
 const configuredPromotion_1 = __importDefault(require("./configuredPromotion"));
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
@@ -88,7 +89,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     filterByConcept(concept) {
         let modifiedConcept;
         typeof concept === "string" ? (modifiedConcept = [concept]) : (modifiedConcept = concept);
-        return Promotion.getAllByConcept(modifiedConcept);
+        return Promotion_1.default.getAllByConcept(modifiedConcept);
     }
     filterPromotions(promotionsByConcept, target) {
         /**
@@ -172,7 +173,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
             externalId: promotionToAdd.externalId,
             worktime: null, // promotionToAdd.worktime
         };
-        await Promotion.createOrUpdate(createInModelPromotion);
+        await Promotion_1.default.createOrUpdate(createInModelPromotion);
         this.promotions[promotionToAdd.id] = promotionToAdd;
     }
     /**

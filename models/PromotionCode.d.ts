@@ -23,19 +23,19 @@ declare let attributes: {
     } | string;
 };
 type attributes = typeof attributes;
-interface PromotionCode extends attributes, ORM {
+export interface PromotionCodeRecord extends attributes, ORM {
 }
-export default PromotionCode;
 declare let Model: {
-    beforeCreate(promotionCodeInit: any, cb: (err?: string) => void): void;
+    beforeCreate(promotionCodeInit: PromotionCodeRecord, cb: (err?: string) => void): void;
     /**
      * Check promocode is work now
      */
-    getValidPromotionCode(promotionCodeString: string): Promise<PromotionCode>;
+    getValidPromotionCode(promotionCodeString: string): Promise<PromotionCodeRecord>;
 };
 declare global {
     /**
      * Promotion by code
      */
-    const PromotionCode: typeof Model & ORMModel<PromotionCode, null>;
+    const PromotionCode: typeof Model & ORMModel<PromotionCodeRecord, null>;
 }
+export {};

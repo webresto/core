@@ -13,13 +13,12 @@ declare let attributes: {
     mediaFile: MediaFileRecord;
 };
 type attributes = typeof attributes;
-interface SelectedMediaFile extends OptionalAll<attributes>, ORM {
+export interface SelectedMediaFileRecord extends OptionalAll<attributes>, ORM {
 }
-export type SelectedMediaFileRecord = OptionalAll<attributes>;
 declare let Model: {
     beforeCreate(imageInit: SelectedMediaFileRecord, cb: (err?: string) => void): void;
 };
 declare global {
-    const SelectedMediaFile: typeof Model & ORMModel<SelectedMediaFile, null>;
+    const SelectedMediaFile: typeof Model & ORMModel<SelectedMediaFileRecord, null>;
 }
 export {};

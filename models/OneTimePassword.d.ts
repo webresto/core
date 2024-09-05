@@ -12,13 +12,13 @@ declare let attributes: {
     expires: number;
 };
 type attributes = typeof attributes;
-interface OneTimePassword extends RequiredField<OptionalAll<attributes>, "login">, ORM {
+export interface OneTimePasswordRecord extends RequiredField<OptionalAll<attributes>, "login">, ORM {
 }
-export default OneTimePassword;
 declare let Model: {
-    beforeCreate(record: any, cb: (err?: string) => void): void;
+    beforeCreate(record: OneTimePasswordRecord, cb: (err?: string) => void): void;
     check(login: string, password: string): Promise<boolean>;
 };
 declare global {
-    const OneTimePassword: typeof Model & ORMModel<OneTimePassword, "login">;
+    const OneTimePassword: typeof Model & ORMModel<OneTimePasswordRecord, "login">;
 }
+export {};

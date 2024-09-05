@@ -15,14 +15,21 @@ declare let attributes: {
     stopDate: string;
 };
 type attributes = typeof attributes;
+/**
+ * @deprecated use `MaintenanceRecord` instead
+ */
 interface Maintenance extends attributes, ORM {
+}
+export interface MaintenanceRecord extends attributes, ORM {
 }
 export default Maintenance;
 declare let Model: {
-    afterCreate: (maintenance: any, cb: (err?: string) => void) => void;
-    afterUpdate: (maintenance: any, cb: (err?: string) => void) => void;
-    afterDestroy: (maintenance: any, cb: (err?: string) => void) => void;
-    beforeCreate: (maintenance: any, cb: (err?: string) => void) => void;
+    afterCreate: (maintenance: MaintenanceRecord, cb: (err?: string) => void) => void;
+    afterUpdate: (maintenance: MaintenanceRecord, cb: (err?: string) => void) => void;
+    afterDestroy: (maintenance: MaintenanceRecord, cb: (err?: string) => void) => void;
+    beforeCreate: (maintenance: {
+        id: string;
+    }, cb: (err?: string) => void) => void;
     siteIsOff: () => Promise<boolean>;
     getActiveMaintenance: (date?: string) => Promise<Maintenance>;
 };

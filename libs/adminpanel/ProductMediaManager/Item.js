@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -30,7 +7,7 @@ exports.ImageItem = void 0;
 const AbstractMediaManager_1 = require("sails-adminpanel/lib/media-manager/AbstractMediaManager");
 const MediaManagerHelper_1 = require("sails-adminpanel/lib/media-manager/helpers/MediaManagerHelper");
 const image_size_1 = __importDefault(require("image-size"));
-const sharp = __importStar(require("sharp"));
+const sharp_1 = __importDefault(require("sharp"));
 class ImageItem extends AbstractMediaManager_1.File {
     constructor(path, dir, model, metaModel) {
         super(path, dir, model, metaModel);
@@ -145,7 +122,7 @@ class ImageItem extends AbstractMediaManager_1.File {
         return { msg: "success" };
     }
     async resizeImage(input, output, width, height) {
-        return await sharp(input)
+        return await (0, sharp_1.default)(input)
             .resize({ width: width, height: height })
             .toFile(output);
     }

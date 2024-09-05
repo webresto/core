@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import Dish from "../models/Dish";
-import Order from "../models/Order";
+import { OrderRecord } from "../models/Order";
 import { OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 declare let attributes: {
@@ -15,7 +15,7 @@ declare let attributes: {
     /** Selected modifiers */
     modifiers: OrderModifier[];
     /** */
-    order: Order | any;
+    order: OrderRecord | string;
     /** Position price*/
     itemTotal: number;
     /** Position price before the use of discounts */
@@ -41,10 +41,10 @@ declare let attributes: {
     totalWeight: number;
 };
 type attributes = typeof attributes;
-interface OrderDish extends RequiredField<OptionalAll<attributes>, "dish" | "amount">, ORM {
+export interface OrderDishRecord extends RequiredField<OptionalAll<attributes>, "dish" | "amount">, ORM {
 }
-export default OrderDish;
 declare let Model: {};
 declare global {
-    const OrderDish: typeof Model & ORMModel<OrderDish, "dish" | "amount">;
+    const OrderDish: typeof Model & ORMModel<OrderDishRecord, "dish" | "amount">;
 }
+export {};

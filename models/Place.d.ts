@@ -15,12 +15,12 @@ declare let attributes: {
     customData: any;
 };
 type attributes = typeof attributes;
-interface Place extends attributes, ORM {
+export interface PlaceRecord extends attributes, ORM {
 }
-export default Place;
 declare let Model: {
-    beforeCreate(placeInit: any, cb: (err?: string) => void): void;
+    beforeCreate(placeInit: PlaceRecord, cb: (err?: string) => void): void;
 };
 declare global {
-    const Place: typeof Model & ORMModel<Place, null>;
+    const Place: typeof Model & ORMModel<PlaceRecord, null>;
 }
+export {};

@@ -7,6 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const adapters_1 = require("../../../adapters");
 const chai_1 = require("chai");
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
+const Promotion_1 = __importDefault(require("../../../models/Promotion"));
 const discount_generator_1 = __importDefault(require("../../generators/discount.generator"));
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
 describe("Promotion adapter integration test", function () {
@@ -145,7 +146,7 @@ describe("Promotion adapter integration test", function () {
             worktime: null,
             enable: true
         };
-        await Promotion.createOrUpdate(createInModelPromotion);
+        await Promotion_1.default.createOrUpdate(createInModelPromotion);
         // TODO: check Promotion.createOrUpdate({createdByUser: true})
         let promotion10 = new configuredPromotion_1.default({
             concept: ["amongus"],

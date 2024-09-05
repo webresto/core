@@ -29,11 +29,10 @@ declare let attributes: {
     } | string;
 };
 type attributes = typeof attributes;
-interface BonusProgram extends attributes, ORM {
+export interface BonusProgramRecord extends attributes, ORM {
 }
-export default BonusProgram;
 declare let Model: {
-    beforeCreate(init: BonusProgram, cb: (err?: string) => void): void;
+    beforeCreate(init: BonusProgramRecord, cb: (err?: string) => void): void;
     /**
      * Method for registration alive bonus program adapter
      * @param bonusProgramAdapter
@@ -56,8 +55,9 @@ declare let Model: {
      * Returns an array with currently possible bonus programs by order
      * @return BonusProgram[]
      */
-    getAvailable(): Promise<BonusProgram[]>;
+    getAvailable(): Promise<BonusProgramRecord[]>;
 };
 declare global {
-    const BonusProgram: typeof Model & ORMModel<BonusProgram, null>;
+    const BonusProgram: typeof Model & ORMModel<BonusProgramRecord, null>;
 }
+export {};
