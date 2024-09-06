@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.groupFields = void 0;
+exports.default = groupGenerator;
 const faker_1 = __importDefault(require("faker"));
 var autoincrement = 0;
 function groupGenerator(config = {}) {
@@ -23,5 +24,4 @@ function groupGenerator(config = {}) {
         slug: faker_1.default.lorem.slug()
     };
 }
-exports.default = groupGenerator;
 exports.groupFields = ["id", "additionalInfo", "code", "description", "order", "images", "name", "isDeleted", "dishes"];

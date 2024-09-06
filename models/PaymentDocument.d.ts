@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
@@ -50,7 +49,7 @@ declare let attributes: {
     /** Model from which payment is made*/
     originModel: string;
     /** Payment method */
-    paymentMethod: string | PaymentMethodRecord;
+    paymentMethod: PaymentMethodRecord | string;
     /** The amount for payment*/
     amount: number;
     /** The flag is established that payment was made*/
@@ -78,7 +77,7 @@ declare let Model: {
     register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: object) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: () => void) => Promise<void>;
     /** Payment check cycle*/
-    processor: (timeout: number) => Promise<NodeJS.Timeout>;
+    processor: (timeout: number) => Promise<ReturnType<typeof setInterval>>;
 };
 declare global {
     const PaymentDocument: typeof Model & ORMModel<PaymentDocumentRecord, null>;

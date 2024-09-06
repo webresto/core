@@ -3,6 +3,7 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { OrderRecord } from "../models/Order";
 import { OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+import { DishRecord } from "./Dish";
 declare let attributes: {
     /** */
     id: number;
@@ -10,11 +11,11 @@ declare let attributes: {
     amount: number;
     /**Блюдо, которое содержится в корзине */
     /** any problem */
-    dish: any;
+    dish: DishRecord | string;
     /** Selected modifiers */
     modifiers: OrderModifier[];
     /** */
-    order: string | OrderRecord;
+    order: OrderRecord | string;
     /** Position price*/
     itemTotal: number;
     /** Position price before the use of discounts */

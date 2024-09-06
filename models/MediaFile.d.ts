@@ -13,7 +13,7 @@ declare let attributes: {
      * TODO: delete in ver 3
      * Image items */
     images: {
-        [key: string]: string;
+        [key: string]: string | undefined;
     };
     /**
      * variants is just an array containing the variant name and its local path
@@ -21,13 +21,13 @@ declare let attributes: {
      * This is automatically cloned from images and vice versa
      * Image items */
     variant: {
-        [key: string]: string;
+        [key: string]: string | undefined;
     };
     original: string;
     /** relations */
-    dish: string[] | DishRecord[];
+    dish: DishRecord[] | string[];
     /** Group relation */
-    group: string[] | GroupRecord[];
+    group: GroupRecord[] | string[];
     /** upload date
      * @deprecated (del in v2)
      */

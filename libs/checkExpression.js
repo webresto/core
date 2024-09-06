@@ -3,6 +3,7 @@
  * // TODO: Abandoned because we have gone to global changes from Dish to Item
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = default_1;
 /**
  * Check additionalInfo. Return empty string if success or reject reason string
  * @param obj
@@ -30,7 +31,6 @@ function default_1(obj) {
         return "";
     }
 }
-exports.default = default_1;
 function checkTime(timeArray) {
     return true;
 }

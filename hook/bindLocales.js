@@ -23,6 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = default_1;
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 async function default_1() {
@@ -56,4 +57,3 @@ async function default_1() {
         sails.log.error("restocore bindTranslations > Error:", e);
     }
 }
-exports.default = default_1;

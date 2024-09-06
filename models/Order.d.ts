@@ -8,10 +8,17 @@ import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
+import { PaymentMethodRecord } from "./PaymentMethod";
+import { OrderDishRecord } from "./OrderDish";
+import { PromotionCodeRecord } from "./PromotionCode";
+import { PlaceRecord } from "./Place";
+import { DishRecord } from "./Dish";
+import { UserRecord } from "./User";
+import { PaymentDocumentRecord } from "./PaymentDocument";
 export interface PromotionState {
     type: string;
     message: string;
-    state: any;
+    state: object | object[];
 }
 export type PaymentBack = {
     backLinkSuccess: string;
@@ -32,8 +39,8 @@ declare let attributes: {
     /**
      * @deprecated will be rename to `Items` in **v2**
      */
-    dishes: number[] | OrderDish[];
-    paymentMethod: any;
+    dishes: OrderDishRecord[] | number[];
+    paymentMethod: PaymentMethodRecord | string;
     /** */
     paymentMethodTitle: string;
     paid: boolean;
@@ -49,11 +56,11 @@ declare let attributes: {
     /**
      * It's worth collecting errors to simplify debugging
      */
-    promotionErrors: any[];
+    promotionErrors: object | object[];
     /**
      * hidden in api
      */
-    promotionCode: any;
+    promotionCode: PromotionCodeRecord | string;
     promotionCodeDescription: string;
     promotionCodeString: string;
     /**
@@ -92,7 +99,7 @@ declare let attributes: {
     dishesCount: number;
     uniqueDishes: number;
     modifiers: any;
-    customer: any;
+    customer: Customer;
     address: Address;
     comment: string;
     personsCount: string;
@@ -110,9 +117,9 @@ declare let attributes: {
     rmsErrorCode: string;
     rmsStatusCode: string;
     deliveryStatus: string;
-    pickupPoint: any;
+    pickupPoint: PlaceRecord | string;
     selfService: boolean;
-    delivery: Delivery;
+    delivery: Delivery | null;
     /** Notification about delivery
      * ex: time increased due to traffic jams
      * @deprecated should changed for order.delivery.message
@@ -122,7 +129,7 @@ declare let attributes: {
     /**
      * @deprecated use order.delivery.item
      */
-    deliveryItem: any;
+    deliveryItem: DishRecord | string;
     /**
      * @deprecated use order.delivery.cost
      */
@@ -169,7 +176,7 @@ declare let attributes: {
     /**
      * Add IP, UserAgent for anonymous cart
      */
-    user: any;
+    user: UserRecord | string;
     customData: any;
 };
 interface stateFlowInstance {
@@ -182,10 +189,10 @@ declare let Model: {
     beforeCreate(orderInit: OrderRecord, cb: (err?: string) => void): void;
     afterCreate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
     /** Add a dish into order */
-    addDish(criteria: CriteriaQuery<OrderRecord>, dish: any, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
-    removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, amount: number, stack?: boolean): Promise<void>;
-    setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, amount: number): Promise<void>;
-    setComment(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, comment: string): Promise<void>;
+    addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
+    removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number, stack?: boolean): Promise<void>;
+    setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number): Promise<void>;
+    setComment(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, comment: string): Promise<void>;
     /**
      * Clone dishes in new order
      * @param source Order findOne criteria
@@ -231,21 +238,21 @@ declare let Model: {
     paymentMethodId(criteria: CriteriaQuery<OrderRecord>): Promise<string>;
     /**  given populated Order instance by criteria*/
     populate(criteria: CriteriaQuery<OrderRecord>): Promise<{
-        createdAt?: Date;
-        updatedAt?: Date;
+        createdAt?: Date | undefined;
+        updatedAt?: Date | undefined;
         id?: string;
         shortId?: string;
         state?: string;
         concept?: string[];
         isMixedConcept?: boolean;
-        dishes?: number[] | OrderDish[];
-        paymentMethod?: any;
+        dishes?: OrderDishRecord[] | number[];
+        paymentMethod?: PaymentMethodRecord | string;
         paymentMethodTitle?: string;
         paid?: boolean;
         isPaymentPromise?: boolean;
         promotionState?: PromotionState[];
-        promotionErrors?: any[];
-        promotionCode?: any;
+        promotionErrors?: object | object[];
+        promotionCode?: PromotionCodeRecord | string;
         promotionCodeDescription?: string;
         promotionCodeString?: string;
         promotionFlatDiscount?: number;
@@ -256,7 +263,7 @@ declare let Model: {
         dishesCount?: number;
         uniqueDishes?: number;
         modifiers?: any;
-        customer?: any;
+        customer?: Customer;
         address?: Address;
         comment?: string;
         personsCount?: string;
@@ -271,12 +278,12 @@ declare let Model: {
         rmsErrorCode?: string;
         rmsStatusCode?: string;
         deliveryStatus?: string;
-        pickupPoint?: any;
+        pickupPoint?: PlaceRecord | string;
         selfService?: boolean;
-        delivery?: Delivery;
+        delivery?: Delivery | null;
         deliveryDescription?: string;
         message?: string;
-        deliveryItem?: any;
+        deliveryItem?: DishRecord | string;
         deliveryCost?: number;
         totalWeight?: number;
         trifleFrom?: number;
@@ -291,7 +298,7 @@ declare let Model: {
         deviceId?: string;
         nonce?: number;
         hash?: string;
-        user?: any;
+        user?: UserRecord | string;
         customData?: any;
     }>;
     /**
@@ -301,8 +308,8 @@ declare let Model: {
      * @returns Order
      */
     countCart(criteria: CriteriaQuery<OrderRecord>, isPromoting?: boolean): Promise<OrderRecord>;
-    doPaid(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocument): Promise<void>;
-    applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string): Promise<OrderRecord>;
+    doPaid(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocumentRecord): Promise<void>;
+    applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord>;
 };
 declare global {
     const Order: typeof Model & ORMModel<OrderRecord, null> & StateFlowModel;

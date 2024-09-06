@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = default_1;
 let countries = require("../libs/dictionaries/countries.json");
 function default_1() {
     sails.dictionaries = {
@@ -22,5 +23,4 @@ function default_1() {
         countries: countriesHash
     };
 }
-exports.default = default_1;
 ;

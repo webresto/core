@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { RequiredField, NonPrimitiveKeys, TypeOrArray } from "../interfaces/toolsTS";
 import { WaterlinePromise, CRUDBuilder, UpdateBuilder, LifecycleCallbacks } from "waterline";
 export type Callback<T> = (err: Error | null, result: T) => void;

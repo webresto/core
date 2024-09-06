@@ -1,3 +1,4 @@
+import Group from "./Group";
 import { MediaFileRecord } from "./MediaFile";
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
@@ -5,6 +6,7 @@ import { WorkTime } from "@webresto/worktime";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier } from "../interfaces/Modifier";
 import { CustomData } from "../interfaces/CustomData";
+import User from "./User";
 declare let attributes: {
     /** */
     id: string;
@@ -80,7 +82,7 @@ declare let attributes: {
     /** The dish can be modified*/
     isModificable: boolean;
     /** Parental group */
-    parentGroup: any;
+    parentGroup: Group | any;
     /** Tags for filtering (vegetarian, sharp ...) */
     tags: any;
     /** Balance for sale, if -1, then as much as you like */

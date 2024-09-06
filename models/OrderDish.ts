@@ -1,10 +1,10 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
-import Dish from "../models/Dish";
 import {OrderRecord} from "../models/Order";
 import { Modifier, OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+import { DishRecord } from "./Dish";
 
 let attributes = {
   /** */
@@ -23,7 +23,7 @@ let attributes = {
   /** any problem */
   dish: {
     model: "Dish",
-  } as unknown as Dish | string,
+  } as unknown as DishRecord | string,
   
   /** Selected modifiers */
   modifiers: "json" as unknown as OrderModifier[],

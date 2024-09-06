@@ -30,11 +30,11 @@ declare let attributes: {
     isStable: boolean;
     /** UTC time */
     time: string;
-    bonusProgram: string | BonusProgramRecord;
-    user: string | UserRecord;
-    customData: string | {
-        [key: string]: string | number | boolean;
-    };
+    bonusProgram: BonusProgramRecord | string;
+    user: UserRecord | string;
+    customData: {
+        [key: string]: string | boolean | number;
+    } | string;
 };
 type attributes = typeof attributes;
 export interface UserBonusTransactionRecord extends RequiredField<OptionalAll<attributes>, "isNegative" | "bonusProgram" | "user" | "amount">, ORM {

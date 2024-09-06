@@ -3,13 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const OrderDish_1 = __importDefault(require("./OrderDish"));
-const PaymentDocument_1 = __importDefault(require("./PaymentDocument"));
-const Dish_1 = __importDefault(require("./Dish"));
 const uuid_1 = require("uuid");
-const PaymentMethod_1 = __importDefault(require("./PaymentMethod"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
-const PromotionCode_1 = __importDefault(require("./PromotionCode"));
 const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 const OrderHelper_1 = require("../libs/helpers/OrderHelper");
 const isValue_1 = require("../utils/isValue");
@@ -284,7 +279,7 @@ let Model = {
          */
         const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID");
         if (ORDER_INIT_PRODUCT_ID) {
-            const ORDER_INIT_PRODUCT = (await Dish_1.default.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
+            const ORDER_INIT_PRODUCT = (await Dish.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
             if (ORDER_INIT_PRODUCT !== undefined) {
                 await Order.addDish({ id: order.id }, ORDER_INIT_PRODUCT, 1, [], "", "core");
             }
@@ -306,7 +301,7 @@ let Model = {
         if (!addedBy)
             addedBy = "user";
         if (typeof dish === "string") {
-            dishObj = (await Dish_1.default.find({ id: dish }).limit(1))[0];
+            dishObj = (await Dish.find({ id: dish }).limit(1))[0];
             if (!dishObj) {
                 throw { body: `Dish with id ${dish} not found`, code: 2 };
             }
@@ -382,7 +377,7 @@ let Model = {
         let orderDish;
         // auto replace and increase amount if same dishes without modifiers
         if (!replace && (!modifiers || (modifiers && modifiers.length === 0))) {
-            let sameOrderDishArray = await OrderDish_1.default.find({
+            let sameOrderDishArray = await OrderDish.find({
                 order: order.id,
                 dish: dishObj.id,
             });
@@ -402,7 +397,7 @@ let Model = {
             return;
         }
         if (replace) {
-            orderDish = (await OrderDish_1.default.update({ id: orderDishId }, {
+            orderDish = (await OrderDish.update({ id: orderDishId }, {
                 dish: dishObj.id,
                 order: order.id,
                 amount: amount,
@@ -413,7 +408,7 @@ let Model = {
             }).fetch())[0];
         }
         else {
-            orderDish = await OrderDish_1.default.create({
+            orderDish = await OrderDish.create({
                 dish: dishObj.id,
                 order: order.id,
                 amount: amount,
@@ -443,13 +438,13 @@ let Model = {
         let orderDish;
         if (stack) {
             amount = 1;
-            orderDish = await OrderDish_1.default.findOne({
+            orderDish = await OrderDish.findOne({
                 where: { order: order.id, dish: dish.dish },
                 sort: "createdAt ASC",
             }).populate("dish");
         }
         else {
-            orderDish = await OrderDish_1.default.findOne({
+            orderDish = await OrderDish.findOne({
                 order: order.id,
                 id: dish.id,
             }).populate("dish");
@@ -463,10 +458,10 @@ let Model = {
         }
         orderDish.amount -= amount;
         if (orderDish.amount > 0) {
-            await OrderDish_1.default.update({ id: orderDish.id }, { amount: orderDish.amount }).fetch();
+            await OrderDish.update({ id: orderDish.id }, { amount: orderDish.amount }).fetch();
         }
         else {
-            await OrderDish_1.default.destroy({ id: orderDish.id }).fetch();
+            await OrderDish.destroy({ id: orderDish.id }).fetch();
         }
         await emitter.emit.apply(emitter, ["core:order-after-remove-dish", ...arguments]);
         await Order.next(order.id, "CART");
@@ -486,15 +481,15 @@ let Model = {
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
             throw `order with orderId ${order.id} in state ORDER`;
-        const orderDishes = await OrderDish_1.default.find({ order: order.id }).populate("dish");
+        const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         const get = orderDishes.find((item) => item.id === dish.id);
         if (get) {
             get.amount = amount;
             if (get.amount > 0) {
-                await OrderDish_1.default.update({ id: get.id }, { amount: get.amount }).fetch();
+                await OrderDish.update({ id: get.id }, { amount: get.amount }).fetch();
             }
             else {
-                await OrderDish_1.default.destroy({ id: get.id }).fetch();
+                await OrderDish.destroy({ id: get.id }).fetch();
                 sails.log.info("destroy", get.id);
             }
             await Order.next(order.id, "CART");
@@ -512,12 +507,12 @@ let Model = {
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
             throw `order with orderId ${order.id} in state ORDER`;
-        const orderDish = await OrderDish_1.default.findOne({
+        const orderDish = await OrderDish.findOne({
             order: order.id,
             id: dish.id,
         }).populate("dish");
         if (orderDish) {
-            await OrderDish_1.default.update({ id: orderDish.id }, { comment: comment }).fetch();
+            await OrderDish.update({ id: orderDish.id }, { comment: comment }).fetch();
             await Order.next(order.id, "CART");
             await Order.countCart({ id: order.id });
             Order.update({ id: order.id }, order).fetch();
@@ -685,8 +680,8 @@ let Model = {
         if (paymentMethodId) {
             await checkPaymentMethod(paymentMethodId);
             order.paymentMethod = paymentMethodId;
-            order.paymentMethodTitle = (await PaymentMethod_1.default.findOne({ id: paymentMethodId })).title;
-            order.isPaymentPromise = await PaymentMethod_1.default.isPaymentPromise(paymentMethodId);
+            order.paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
+            order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
         }
         let softDeliveryCalculation = true;
         /** if pickup, then you do not need to check the address*/
@@ -959,7 +954,7 @@ let Model = {
         await emitter.emit("core:order-payment", order, params);
         sails.log.silly("Order > payment > order before register:", order);
         try {
-            paymentResponse = await PaymentDocument_1.default.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
+            paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
         }
         catch (e) {
             sails.log.error("Order > payment: ", e);
@@ -971,7 +966,7 @@ let Model = {
         let order = await Order.findOne(criteria);
         if (order.state !== "CART")
             throw `Clear allowed only for CART state`;
-        await OrderDish_1.default.destroy({ order: order.id }).fetch();
+        await OrderDish.destroy({ order: order.id }).fetch();
         await Order.next(order.id, "CART");
         await Order.countCart({ id: order.id });
         await emitter.emit.apply(emitter, ["core:order-was-cleared", ...arguments]);
@@ -1017,7 +1012,7 @@ let Model = {
                 .populate('paymentMethod').populate('user').populate('pickupPoint');
             if (!fullOrder)
                 throw `order by criteria: ${criteria},  not found`;
-            const orderDishes = await OrderDish_1.default.find({ order: fullOrder.id }).populate("dish").sort("createdAt");
+            const orderDishes = await OrderDish.find({ order: fullOrder.id }).populate("dish").sort("createdAt");
             for (let orderDish of orderDishes) {
                 if (!orderDish.dish) {
                     sails.log.error("orderDish", orderDish.id, "has not dish");
@@ -1029,18 +1024,18 @@ let Model = {
                 //   continue;
                 // }
                 const _dish = orderDish.dish;
-                const dish = await Dish_1.default.findOne({
+                const dish = await Dish.findOne({
                     id: _dish.id,
                     // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
                     // isDeleted: false,
                 })
                     .populate("images")
                     .populate("parentGroup");
-                await Dish_1.default.getDishModifiers(dish);
+                await Dish.getDishModifiers(dish);
                 orderDish.dish = dish;
                 if (orderDish.modifiers !== undefined && Array.isArray(orderDish.modifiers)) {
                     for await (let modifier of orderDish.modifiers) {
-                        modifier.dish = (await Dish_1.default.find({ id: modifier.id }).limit(1))[0];
+                        modifier.dish = (await Dish.find({ id: modifier.id }).limit(1))[0];
                     }
                 }
                 else {
@@ -1085,7 +1080,7 @@ let Model = {
              */
             if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state))
                 throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
-            const orderDishes = await OrderDish_1.default.find({ order: order.id }).populate("dish");
+            const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             if (!orderDishes)
                 return order;
             emitter.emit("core:order-before-count", order);
@@ -1113,7 +1108,7 @@ let Model = {
                         if (!dish) {
                             sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
                             emitter.emit("core:order-return-full-order-destroy-orderdish", dish, order);
-                            await OrderDish_1.default.destroy({ id: orderDish.id }).fetch();
+                            await OrderDish.destroy({ id: orderDish.id }).fetch();
                             continue;
                         }
                         if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
@@ -1131,7 +1126,7 @@ let Model = {
                         // orderDish.dishId = dish.id
                         if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
                             for await (let selectedModifier of orderDish.modifiers) {
-                                const modifierObj = (await Dish_1.default.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.id }] } }).limit(1))[0];
+                                const modifierObj = (await Dish.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.id }] } }).limit(1))[0];
                                 if (!modifierObj) {
                                     throw "Dish with id " + selectedModifier.id + " not found!";
                                 }
@@ -1198,7 +1193,7 @@ let Model = {
                         // itemCost => orderDish.itemTotal
                         orderDish.itemTotal = new decimal_js_1.default(itemCost).times(orderDish.amount).toNumber();
                         orderDish.dish = orderDish.dish.id;
-                        await OrderDish_1.default.update({ id: orderDish.id }, orderDish).fetch();
+                        await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;
                         orderDishesForPopulate.push({ ...orderDish });
                     }
@@ -1215,7 +1210,7 @@ let Model = {
                 }
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);
-                    await OrderDish_1.default.destroy({ id: orderDish.id }).fetch();
+                    await OrderDish.destroy({ id: orderDish.id }).fetch();
                     uniqueDishes -= 1;
                     continue;
                 }
@@ -1249,7 +1244,7 @@ let Model = {
                         try {
                             const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
                             if (promotionEndDate > currentDate) {
-                                order.promotionCode = await PromotionCode_1.default.findOne({ id: order.promotionCode }).populate('promotion');
+                                order.promotionCode = await PromotionCode.findOne({ id: order.promotionCode }).populate('promotion');
                                 if (!order.promotionCode || !order.promotionCode.promotion || typeof order.promotionCode.promotion !== "object") {
                                     throw `No valid promotion for promocode`;
                                 }
@@ -1354,7 +1349,7 @@ let Model = {
                     order.deliveryCost = order.delivery.cost;
                 }
                 else {
-                    const deliveryItem = await Dish_1.default.findOne({ where: { or: [{ id: order.delivery.item }, { rmsId: order.delivery.item }] } });
+                    const deliveryItem = await Dish.findOne({ where: { or: [{ id: order.delivery.item }, { rmsId: order.delivery.item }] } });
                     if (deliveryItem) {
                         order.deliveryItem = deliveryItem.id;
                         order.deliveryCost = deliveryItem.price;
@@ -1391,7 +1386,7 @@ let Model = {
             return;
         }
         try {
-            let paymentMethodTitle = (await PaymentMethod_1.default.findOne(paymentDocument.paymentMethod)).title;
+            let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
             await Order.update({ id: paymentDocument.originModelId }, {
                 paid: true,
                 paymentMethod: paymentDocument.paymentMethod,
@@ -1427,7 +1422,7 @@ let Model = {
             };
         }
         else {
-            const validPromotionCode = await PromotionCode_1.default.getValidPromotionCode(promotionCodeString);
+            const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
             const isValidTill = "2099-01-01T00:00:00.000Z"; // TODO: recursive check Codes and Promotions
             if (validPromotionCode) {
                 let description = validPromotionCode.description;
@@ -1547,7 +1542,7 @@ function checkAddress(address, softDeliveryCalculation = false) {
     }
 }
 async function checkPaymentMethod(paymentMethodId) {
-    if (!(await PaymentMethod_1.default.checkAvailable(paymentMethodId))) {
+    if (!(await PaymentMethod.checkAvailable(paymentMethodId))) {
         throw {
             code: 8,
             error: "paymentMethod not available",

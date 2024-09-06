@@ -1,33 +1,32 @@
 import { Modifier, OrderModifier } from "../interfaces/Modifier";
 import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
-import OrderDish from "./OrderDish";
-import PaymentDocument from "./PaymentDocument";
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import StateFlowModel from "../interfaces/StateFlowModel";
-import Dish from "./Dish";
-import Place from "./Place";
-import User from "./User";
 import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
-import PaymentMethod from "./PaymentMethod";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
-import PromotionCode from "./PromotionCode";
 import { phoneValidByMask } from "../libs/phoneValidByMask";
 import { OrderHelper } from "../libs/helpers/OrderHelper";
 import { GroupModifier } from "../interfaces/Modifier";
 import { isValue } from "../utils/isValue";
-import { or } from "ajv/dist/compile/codegen";
+import { PaymentMethodRecord } from "./PaymentMethod";
+import { OrderDishRecord } from "./OrderDish";
+import { PromotionCodeRecord } from "./PromotionCode";
+import { PlaceRecord } from "./Place";
+import { DishRecord } from "./Dish";
+import { UserRecord } from "./User";
+import { PaymentDocumentRecord } from "./PaymentDocument";
 
 export interface PromotionState {
   type: string;
   message: string;
-  state: any;
+  state: object | object[];
 }
 
 export type PaymentBack = {
@@ -64,13 +63,13 @@ let attributes = {
   dishes: {
     collection: "OrderDish",
     via: "order",
-  } as unknown as OrderDish[] | number[],
+  } as unknown as OrderDishRecord[] | number[],
 
   // /** */
   // discount: "json" as any,
   paymentMethod: {
     model: "PaymentMethod",
-  } as unknown as PaymentMethod | any,
+  } as unknown as PaymentMethodRecord | string,
 
   /** */
   paymentMethodTitle: "string",
@@ -100,14 +99,14 @@ let attributes = {
    */
   promotionErrors: {
     type: "json"
-  } as unknown as any[],
+  } as unknown as object | object[],
 
   /**
    * hidden in api
    */
   promotionCode: {
     model: "promotionCode",
-  } as unknown as PromotionCode | string,
+  } as unknown as PromotionCodeRecord | string,
 
   promotionCodeDescription: {
     type: "string",
@@ -175,7 +174,7 @@ let attributes = {
   uniqueDishes: "number" as unknown as number,
   modifiers: "json" as any, //TODO? for what?
 
-  customer: "json" as any,
+  customer: "json" as unknown as Customer,
   address: "json" as unknown as Address,
   comment: "string",
   personsCount: "string",
@@ -208,7 +207,7 @@ let attributes = {
 
   pickupPoint: {
     model: "Place",
-  } as unknown as Place | string,
+  } as unknown as PlaceRecord | string,
 
   selfService: {
     type: "boolean",
@@ -236,7 +235,7 @@ let attributes = {
    */
   deliveryItem: {
     model: "Dish",
-  } as unknown as Dish | string,
+  } as unknown as DishRecord | string,
 
 
   /**
@@ -334,7 +333,7 @@ let attributes = {
 
   user: {
     model: "user",
-  } as unknown as User | string,
+  } as unknown as UserRecord | string,
 
   customData: "json" as any,
 };
@@ -344,10 +343,7 @@ interface stateFlowInstance {
 }
 
 type attributes = typeof attributes & stateFlowInstance;
-/**
- * @deprecated use `OrderRecord` instead
- */
-interface Order extends ORM, OptionalAll<attributes> { }
+
 export interface OrderRecord extends ORM, OptionalAll<attributes> { }
 
 let Model = {
@@ -387,7 +383,7 @@ let Model = {
   /** Add a dish into order */
   async addDish(
     criteria: CriteriaQuery<OrderRecord>,
-    dish: Dish | string,
+    dish: DishRecord | string,
     amount: number,
     modifiers: OrderModifier[],
     comment: string,
@@ -405,7 +401,7 @@ let Model = {
 
     // TODO: when user add some dish to PAYMENT || ORDER cart state, need just make new cart clone
 
-    let dishObj: Dish;
+    let dishObj: DishRecord;
 
     if (!addedBy) addedBy = "user";
 
@@ -494,7 +490,7 @@ let Model = {
     }
 
 
-    let orderDish: OrderDish;
+    let orderDish: OrderDishRecord;
 
     // auto replace and increase amount if same dishes without modifiers
     if (!replace && (!modifiers || (modifiers && modifiers.length === 0))) {
@@ -560,7 +556,7 @@ let Model = {
   },
 
   //** Delete dish from order */
-  async removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, amount: number, stack?: boolean): Promise<void> {
+  async removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number, stack?: boolean): Promise<void> {
     // TODO: delete stack
 
     await emitter.emit.apply(emitter, ["core:order-before-remove-dish", ...arguments]);
@@ -569,7 +565,7 @@ let Model = {
 
     if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
-    let orderDish: OrderDish;
+    let orderDish: OrderDishRecord;
     if (stack) {
       amount = 1;
       orderDish = await OrderDish.findOne({
@@ -603,10 +599,10 @@ let Model = {
     await Order.countCart({ id: order.id });
   },
 
-  async setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, amount: number): Promise<void> {
+  async setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number): Promise<void> {
     
     await emitter.emit.apply(emitter, ["core:order-before-set-count", ...arguments]);
-    const _dish = dish.dish as Dish;
+    const _dish = dish.dish as DishRecord;
     if (_dish.balance !== -1)
       if (amount > _dish.balance) {
         await emitter.emit.apply(emitter, ["core:order-set-count-reject-amount", ...arguments]);
@@ -641,7 +637,7 @@ let Model = {
     }
   },
 
-  async setComment(criteria: CriteriaQuery<OrderRecord>, dish: OrderDish, comment: string): Promise<void> {
+  async setComment(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, comment: string): Promise<void> {
     await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
 
     const order = await Order.findOne(criteria).populate("dishes");
@@ -683,7 +679,7 @@ let Model = {
     const newOrder = await Order.create({}).fetch();
 
     // Clone the order dishes from the original order to the new order
-    const originalOrderDishes = originalOrder.dishes as OrderDish[];
+    const originalOrderDishes = originalOrder.dishes as OrderDishRecord[];
 
     // Iterate through the original order dishes and add them to the new order
     for (const originalOrderDish of originalOrderDishes) {
@@ -1112,7 +1108,7 @@ let Model = {
 
       // await Order.next(order.id,'ORDER');
       // TODO: Rewrite on stateflow
-      let data: any = {};
+      let data = {};
       data.orderDate = new Date();
       data.state = "ORDER";
 
@@ -1173,7 +1169,7 @@ let Model = {
         order.id,
         "order",
         order.total,
-        paymentMethodId,
+        paymentMethodId as string,
         params.backLinkSuccess,
         params.backLinkFail,
         params.comment, order);
@@ -1226,7 +1222,7 @@ let Model = {
 
   async paymentMethodId(criteria: CriteriaQuery<OrderRecord>): Promise<string> {
     let populatedOrder = (await Order.find(criteria).populate("paymentMethod"))[0];
-    let paymentMethod = populatedOrder.paymentMethod as PaymentMethod;
+    let paymentMethod = populatedOrder.paymentMethod as PaymentMethodRecord;
     return paymentMethod.id;
   },
 
@@ -1253,7 +1249,7 @@ let Model = {
         //   sails.log.error("orderDish", orderDish.id, "not exists in order", order.id);
         //   continue;
         // }
-        const _dish = orderDish.dish as Dish;
+        const _dish = orderDish.dish as DishRecord;
         const dish = await Dish.findOne({
           id: _dish.id,
           // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
@@ -1329,7 +1325,7 @@ let Model = {
       let totalWeight = new Decimal(0);
 
       // TODO: clear the order
-      const orderDishesForPopulate = [] as OrderDish[]
+      const orderDishesForPopulate = [] as OrderDishRecord[]
       let concepts = [];
       for await (let orderDish of orderDishes) {
 
@@ -1541,7 +1537,7 @@ let Model = {
           delete (order.promotionCode);
 
           if (orderPopulate.promotionCode) {
-            orderPopulate.promotionCode = (orderPopulate.promotionCode as PromotionCode).id
+            orderPopulate.promotionCode = (orderPopulate.promotionCode as PromotionCodeRecord).id
             order.promotionCode = orderPopulate.promotionCode
           }
 
@@ -1657,7 +1653,7 @@ let Model = {
   },
 
 
-  async doPaid(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocument): Promise<void> {
+  async doPaid(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocumentRecord): Promise<void> {
     let order = await Order.findOne(criteria);
 
     if (order.paid) {
@@ -1699,7 +1695,7 @@ let Model = {
 
   async applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord> {
     let order = await Order.findOne(criteria);
-    let updateData: any = {};
+    let updateData = {};
 
 
     if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - apply promocode on current state: (${order.state})`;

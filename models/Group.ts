@@ -116,7 +116,7 @@ let attributes = {
   /** Placeholder for group dishes */
   dishesPlaceholder: {
     model: "mediafile",
-  } as unknown as MediaFileRecord[],
+  } as unknown as MediaFileRecord,
 
   /** The human easy readable*/
   slug: {

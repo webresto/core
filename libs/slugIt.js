@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.slugIt = void 0;
+exports.slugIt = slugIt;
 const slugify_1 = __importDefault(require("slugify"));
 async function slugIt(model, name, slugField = 'slug', opts) {
     if (!Object.keys(sails.models).includes(model))
@@ -24,4 +24,3 @@ async function slugIt(model, name, slugField = 'slug', opts) {
     slug = count === 0 ? slug : slug + "-" + count;
     return slug;
 }
-exports.slugIt = slugIt;

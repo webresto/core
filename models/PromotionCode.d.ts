@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
+import Promotion from "./Promotion";
 import { WorkTime } from "@webresto/worktime/lib/worktime.validator";
 declare let attributes: {
     /** ID */
@@ -15,11 +16,11 @@ declare let attributes: {
     workTime: WorkTime;
     description: string;
     code: string;
-    promotion: string[] | Promotion[];
+    promotion: Promotion[] | string[];
     generateConfig: any;
-    customData: string | {
-        [key: string]: string | number | boolean;
-    };
+    customData: {
+        [key: string]: string | boolean | number;
+    } | string;
 };
 type attributes = typeof attributes;
 export interface PromotionCodeRecord extends attributes, ORM {

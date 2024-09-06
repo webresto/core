@@ -28,19 +28,19 @@ declare let attributes: {
     /** Sorting weight */
     sortOrder: number;
     dishes: DishRecord[];
-    parentGroup: string | GroupRecord;
-    childGroups: string[] | GroupRecord[];
-    recommendations: string[] | GroupRecord[];
-    recommendedBy: string[] | GroupRecord[];
+    parentGroup: GroupRecord | string;
+    childGroups: GroupRecord[] | string[];
+    recommendations: GroupRecord[] | string[];
+    recommendedBy: GroupRecord[] | string[];
     /** Icon */
     icon: {
         type: string;
         allowNull: boolean;
     };
     /** Images */
-    images: string[] | MediaFileRecord[];
+    images: MediaFileRecord[] | string[];
     /** Placeholder for group dishes */
-    dishesPlaceholder: MediaFileRecord[];
+    dishesPlaceholder: MediaFileRecord;
     /** The human easy readable*/
     slug: string;
     /** The concept to which the group belongs */
@@ -55,9 +55,9 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
-    customData: string | {
-        [key: string]: string | number | boolean;
-    };
+    customData: {
+        [key: string]: string | boolean | number;
+    } | string;
 };
 interface IVirtualFields {
     discountAmount?: number;
