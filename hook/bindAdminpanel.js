@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = bindAdminpanel;
 const bind_1 = __importDefault(require("../libs/adminpanel/models/bind"));
 const ProductCatalog_1 = require("../libs/adminpanel/ProductCatalog/ProductCatalog");
 function bindAdminpanel() {
@@ -15,6 +14,7 @@ function bindAdminpanel() {
         CatalogHandler.add(productCatalog);
     });
 }
+exports.default = bindAdminpanel;
 function processBindAdminpanel() {
     if (sails.hooks?.adminpanel?.addModelConfig !== undefined) {
         const addModelConfig = sails.hooks.adminpanel.addModelConfig;

@@ -9,9 +9,9 @@ declare let attributes: {
     name: string;
     /** City was deleted */
     isDeleted: boolean;
-    customData: {
-        [key: string]: string | boolean | number;
-    } | string;
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 type attributes = typeof attributes;
 export interface CityRecord extends attributes, ORM {

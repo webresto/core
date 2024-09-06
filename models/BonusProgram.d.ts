@@ -24,9 +24,9 @@ declare let attributes: {
     /** user option */
     enable: boolean;
     automaticUserRegistration: boolean;
-    customData: {
-        [key: string]: string | boolean | number;
-    } | string;
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 type attributes = typeof attributes;
 export interface BonusProgramRecord extends attributes, ORM {

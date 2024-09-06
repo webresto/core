@@ -9,15 +9,15 @@ declare let attributes: {
     name: string;
     userAgent: string;
     isLoggedIn: boolean;
-    user: UserRecord | string;
+    user: string | UserRecord;
     lastIP: string;
     loginTime: number;
     lastActivity: number;
     /**  (not jwt-token)  */
     sessionId: string;
-    customData: {
-        [key: string]: string | boolean | number;
-    } | string;
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 type attributes = typeof attributes;
 export interface UserDeviceRecord extends RequiredField<OptionalAll<attributes>, null>, ORM {

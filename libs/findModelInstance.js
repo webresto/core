@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = findModelInstanceByAttributes;
 function findModelInstanceByAttributes(obj) {
     const models = Object.keys(sails.models);
     for (let i = 0; i < models.length; i++) {
@@ -26,3 +25,4 @@ function findModelInstanceByAttributes(obj) {
     }
     return null;
 }
+exports.default = findModelInstanceByAttributes;

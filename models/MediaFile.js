@@ -51,7 +51,7 @@ let attributes = {
     /** relations */
     dish: {
         collection: "dish",
-        via: "mediaFile_dish",
+        via: "mediafile_dish",
         through: 'selectedmediafile'
     },
     /** Group relation */
@@ -60,6 +60,10 @@ let attributes = {
         via: "mediafile_group",
         through: 'selectedmediafile'
     },
+    /** upload date
+     * @deprecated (del in v2)
+     */
+    uploadDate: "string",
 };
 let Model = {
     beforeCreate(imageInit, cb) {

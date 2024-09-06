@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = discountGenerator;
 const faker_1 = __importDefault(require("faker"));
 const findModelInstance_1 = __importDefault(require("../../libs/findModelInstance"));
 const configuredPromotion_1 = __importDefault(require("../../adapters/promotion/default/configuredPromotion"));
@@ -103,4 +102,5 @@ function discountGenerator(config = {
         externalId: faker_1.default.random.uuid()
     };
 }
+exports.default = discountGenerator;
 // export let discountFields = ["id", "additionalInfo", "code", "description", "order", "images", "name", "isDeleted", "dishes"];

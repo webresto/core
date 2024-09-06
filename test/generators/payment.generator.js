@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = generate_payment;
 const { v4: uuid } = require("uuid");
 function generate_payment() {
     return {
@@ -12,3 +11,4 @@ function generate_payment() {
         comment: "testing",
     };
 }
+exports.default = generate_payment;

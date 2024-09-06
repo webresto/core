@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = default_1;
-exports.addImportParam = addImportParam;
+exports.addImportParam = void 0;
 let importFns = [];
 /**
  * Параметры импорта блюд и групп при синхронизации из RMS adapter
@@ -36,6 +35,7 @@ async function default_1(obj) {
         sails.log.error("core > importParams 1 >", e);
     }
 }
+exports.default = default_1;
 /**
  * Добавление кастомной функции импорта, функция принимает блюдо или группу, может менять их поля как угодно, сохранять
  * модель после изменений не обязательно, это сделает модуль обработки импорта
@@ -45,6 +45,7 @@ async function default_1(obj) {
 function addImportParam(label, fn) {
     importFns.push({ label, fn });
 }
+exports.addImportParam = addImportParam;
 /**
  * EXAMPLE
  */

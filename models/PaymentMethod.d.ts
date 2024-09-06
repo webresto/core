@@ -27,9 +27,9 @@ declare let attributes: {
     sortOrder: number;
     description: string;
     enable: boolean;
-    customData: {
-        [key: string]: string | boolean | number;
-    } | string;
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 type attributes = typeof attributes;
 export interface PaymentMethodRecord extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {

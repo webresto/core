@@ -17,7 +17,7 @@ let attributes = {
   sortOrder: "number" as unknown as number,
 
   /** MediaFile reference */
-  mediaFile_dish: {
+  mediafile_dish: {
     model: 'mediafile',
     via: 'dish'
   } as unknown as MediaFileRecord  | string,

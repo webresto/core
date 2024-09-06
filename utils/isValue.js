@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isValue = isValue;
+exports.isValue = void 0;
 function isValue(value) {
     // Check for undefined and null
     if (value === undefined || value === null) {
@@ -24,3 +24,4 @@ function isValue(value) {
     }
     return true;
 }
+exports.isValue = isValue;

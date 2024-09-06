@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = default_1;
 const hashCode_1 = require("../libs/hashCode");
 /**
  * Initial RMS and set timezone if it was given
@@ -60,3 +59,4 @@ async function default_1() {
         sails.log.error("RestoCore > initialization error > ", e);
     }
 }
+exports.default = default_1;

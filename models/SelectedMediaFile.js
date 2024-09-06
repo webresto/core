@@ -10,7 +10,7 @@ let attributes = {
      * */
     sortOrder: "number",
     /** MediaFile reference */
-    mediaFile_dish: {
+    mediafile_dish: {
         model: 'mediafile',
         via: 'dish'
     },

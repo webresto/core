@@ -26,10 +26,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = default_1;
 const serve_static_1 = __importDefault(require("serve-static"));
 const path = __importStar(require("path"));
 function default_1() {
     sails.hooks.http.app.use('/restocore/assets', (0, serve_static_1.default)(path.join(__dirname, '../assets')));
 }
+exports.default = default_1;
 ;

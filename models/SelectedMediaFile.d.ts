@@ -11,12 +11,12 @@ declare let attributes: {
      * */
     sortOrder: number;
     /** MediaFile reference */
-    mediaFile_dish: MediaFileRecord | string;
-    mediafile_group: MediaFileRecord | string;
+    mediafile_dish: string | MediaFileRecord;
+    mediafile_group: string | MediaFileRecord;
     /** Group relation */
-    group: GroupRecord | string;
+    group: string | GroupRecord;
     /** Dish relation */
-    dish: DishRecord | string;
+    dish: string | DishRecord;
 };
 type attributes = typeof attributes;
 export interface SelectedMediaFileRecord extends OptionalAll<attributes>, ORM {

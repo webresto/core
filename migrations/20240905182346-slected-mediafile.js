@@ -19,15 +19,12 @@ exports.setup = function(options, seedLink) {
 exports.up = function (db, callback) {
   async.series([
     (cb) => db.renameTable('dish_images__mediafile_dish', 'selectedmediafile', cb),
-
     (cb) => db.renameColumn('selectedmediafile', 'dish_images', 'dish', cb),
-    (cb) => db.renameColumn('selectedmediafile', 'mediafile_dish', 'mediafile', cb),
-
     (cb) => db.addColumn('selectedmediafile', 'sortOrder', { type: 'real' }, cb),
     (cb) => db.addColumn('selectedmediafile', 'createdAt', { type: 'bigint' }, cb),
     (cb) => db.addColumn('selectedmediafile', 'updatedAt', { type: 'bigint' }, cb),
-
-    (cb) => db.addColumn('selectedmediafile', 'group', { type: 'text' }, cb),
+    (cb) => db.addColumn('selectedmediafile', 'mediafile_group', { type: 'text' }, cb),
+    (cb) => db.addColumn('mediafile', 'variant', { type: 'json' }, cb),
   ], callback);
 };
 

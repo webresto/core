@@ -1,10 +1,5 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import Dish from "../models/Dish";
-import UserOrderHistory from "./UserOrderHistory";
-import UserDevice from "./UserDevice";
-import UserLocation from "./UserLocation";
-import UserBonusProgram from "../models/UserBonusProgram";
 import { OptionalAll } from "../interfaces/toolsTS";
 export type Phone = {
     code: string;
@@ -58,15 +53,15 @@ declare let attributes: {
     /**
      * Object with filed custom user fields
     */
-    customFields: {
-        [key: string]: string | boolean | number;
-    } | string;
+    customFields: string | {
+        [key: string]: string | number | boolean;
+    };
     /**
     * Any data storage for person
     */
-    customData: {
-        [key: string]: string | boolean | number;
-    } | string;
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 type attributes = typeof attributes;
 /**
@@ -93,7 +88,7 @@ declare let Model: {
      * @param phone
      * @param target
      */
-    getPhoneString(phone: Phone, target?: "login" | "print" | "string"): Promise<string>;
+    getPhoneString(phone: Phone, target?: "string" | "login" | "print"): Promise<string>;
     /**
      * Update user password
      *

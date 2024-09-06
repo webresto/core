@@ -39,7 +39,7 @@ let attributes = {
   /** relations */
   dish: {
     collection: "dish",
-    via: "mediaFile_dish",
+    via: "mediafile_dish",
     through: 'selectedmediafile'
   } as unknown as DishRecord[] | string [],
 
@@ -49,6 +49,11 @@ let attributes = {
     via: "mediafile_group",
     through: 'selectedmediafile'
   } as unknown as GroupRecord[] | string [],
+
+  /** upload date 
+   * @deprecated (del in v2)
+   */
+    uploadDate: "string",
 };
 type attributes = typeof attributes;
 

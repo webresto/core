@@ -20,7 +20,7 @@ declare let attributes: {
     comment: string;
     /** Gross weight */
     totalWeight: number;
-    user: UserRecord | string;
+    user: string | UserRecord;
 };
 type attributes = typeof attributes;
 export interface UserOrderHistoryRecord extends OptionalAll<attributes>, ORM {

@@ -14,16 +14,16 @@ declare let attributes: {
     floor: string;
     apartment: string;
     doorphone: string;
-    street: StreetRecord | string;
+    street: string | StreetRecord;
     /**
      * Set as default for specific user
      * */
     isDefault: boolean;
-    user: UserRecord | string;
+    user: string | UserRecord;
     comment: string;
-    customData: {
-        [key: string]: string | boolean | number;
-    } | string;
+    customData: string | {
+        [key: string]: string | number | boolean;
+    };
 };
 type attributes = typeof attributes;
 export interface UserLocationRecord extends attributes, ORM {
