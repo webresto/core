@@ -11,7 +11,8 @@ declare let attributes: {
      * */
     sortOrder: number;
     /** MediaFile reference */
-    mediaFile: MediaFileRecord;
+    mediaFile_dish: MediaFileRecord | string;
+    mediafile_group: MediaFileRecord | string;
     /** Group relation */
     group: GroupRecord | string;
     /** Dish relation */

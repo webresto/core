@@ -37,7 +37,7 @@ export interface MediaFileRecord extends OptionalAll<attributes>, ORM {
 declare let Model: {
     beforeCreate(imageInit: MediaFileRecord, cb: (err?: string) => void): void;
     beforeUpdate(imageInit: MediaFileRecord, cb: (err?: string) => void): void;
-    afterDestroy(mf: MediaFileRecord, cb: (err?: any) => void): Promise<void>;
+    afterDestroy(mf: MediaFileRecord, cb: (err?: string | Error) => void): Promise<void>;
 };
 declare global {
     const MediaFile: typeof Model & ORMModel<MediaFileRecord, null>;

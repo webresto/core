@@ -51,13 +51,13 @@ let attributes = {
     /** relations */
     dish: {
         collection: "dish",
-        via: "mediafile",
+        via: "mediaFile_dish",
         through: 'selectedmediafile'
     },
     /** Group relation */
     group: {
         collection: "group",
-        via: "mediafile",
+        via: "mediafile_group",
         through: 'selectedmediafile'
     },
 };
@@ -74,7 +74,7 @@ let Model = {
         }
         let variant = {
             ...(imageInit.variant ? { ...imageInit.variant } : {}),
-            ...(imageInit.images ? { images: imageInit.images } : {})
+            ...(imageInit.images ? { ...imageInit.images } : {})
         };
         imageInit.variant = variant;
         imageInit.images = variant;

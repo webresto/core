@@ -17,9 +17,15 @@ let attributes = {
   sortOrder: "number" as unknown as number,
 
   /** MediaFile reference */
-  mediaFile: {
-    model: 'mediafile'
-  } as unknown as MediaFileRecord,
+  mediaFile_dish: {
+    model: 'mediafile',
+    via: 'dish'
+  } as unknown as MediaFileRecord  | string,
+
+  mediafile_group: {
+    model: 'mediafile',
+    via: 'group'
+  } as unknown as MediaFileRecord | string,
 
   /** Group relation */
   group: {

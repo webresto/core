@@ -26,7 +26,8 @@ let attributes = {
   /** description of maintenance (maybe HTML) */
   description: "string",
 
-  /** is active flag */
+  /** 
+   * is active flag */
   enable: {
     type: "boolean",
     defaultsTo: true,
@@ -61,10 +62,11 @@ let Model = {
     cb();
   },
 
-  beforeCreate: function (maintenance: { id: string; }, cb:  (err?: string) => void) {
+  beforeCreate: function (maintenance: MaintenanceRecord, cb:  (err?: string) => void) {
     if(!maintenance.id){
       maintenance.id = uuid();
     }
+    
     cb();
   },
 

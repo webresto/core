@@ -39,14 +39,14 @@ let attributes = {
   /** relations */
   dish: {
     collection: "dish",
-    via: "mediafile",
+    via: "mediaFile_dish",
     through: 'selectedmediafile'
   } as unknown as DishRecord[] | string [],
 
   /** Group relation */
   group: {
     collection: "group",
-    via: "mediafile",
+    via: "mediafile_group",
     through: 'selectedmediafile'
   } as unknown as GroupRecord[] | string [],
 };
@@ -71,7 +71,7 @@ let Model = {
     }
     let variant = {
       ...(imageInit.variant ? { ...imageInit.variant } : {}),
-      ...(imageInit.images ? { images: imageInit.images } : {})
+      ...(imageInit.images ? {... imageInit.images } : {})
     };
     imageInit.variant = variant
     imageInit.images = variant
@@ -101,7 +101,7 @@ let Model = {
     cb();
   },
 
-  async afterDestroy(mf: MediaFileRecord, cb: (err?: any) => void) {
+  async afterDestroy(mf: MediaFileRecord, cb: (err?: string | Error) => void) {
     try {
       let variant: {[key: string]: string} = {
         // TODO:delete in v3

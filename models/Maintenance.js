@@ -18,7 +18,8 @@ let attributes = {
     title: "string",
     /** description of maintenance (maybe HTML) */
     description: "string",
-    /** is active flag */
+    /**
+     * is active flag */
     enable: {
         type: "boolean",
         defaultsTo: true,

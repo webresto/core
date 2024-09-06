@@ -10,8 +10,13 @@ let attributes = {
      * */
     sortOrder: "number",
     /** MediaFile reference */
-    mediaFile: {
-        model: 'mediafile'
+    mediaFile_dish: {
+        model: 'mediafile',
+        via: 'dish'
+    },
+    mediafile_group: {
+        model: 'mediafile',
+        via: 'group'
     },
     /** Group relation */
     group: {

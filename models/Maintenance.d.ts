@@ -8,7 +8,8 @@ declare let attributes: {
     title: string;
     /** description of maintenance (maybe HTML) */
     description: string;
-    /** is active flag */
+    /**
+     * is active flag */
     enable: boolean;
     worktime: WorkTime;
     startDate: string;
@@ -27,9 +28,7 @@ declare let Model: {
     afterCreate: (maintenance: MaintenanceRecord, cb: (err?: string) => void) => void;
     afterUpdate: (maintenance: MaintenanceRecord, cb: (err?: string) => void) => void;
     afterDestroy: (maintenance: MaintenanceRecord, cb: (err?: string) => void) => void;
-    beforeCreate: (maintenance: {
-        id: string;
-    }, cb: (err?: string) => void) => void;
+    beforeCreate: (maintenance: MaintenanceRecord, cb: (err?: string) => void) => void;
     siteIsOff: () => Promise<boolean>;
     getActiveMaintenance: (date?: string) => Promise<Maintenance>;
 };
