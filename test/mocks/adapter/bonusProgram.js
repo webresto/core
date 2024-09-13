@@ -5,6 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryBonusProgramAdapter = void 0;
 const BonusProgramAdapter_1 = __importDefault(require("../../../adapters/bonusprogram/BonusProgramAdapter"));
+// todo: fix types model instance to {%ModelName%}Record for User";
+// todo: fix types model instance to {%ModelName%}Record for BonusProgram";
+// todo: fix types model instance to {%ModelName%}Record for UserBonusTransaction";
+// todo: fix types model instance to {%ModelName%}Record for UserBonusProgram";
 const fakerStatic = require("faker");
 class InMemoryBonusProgramAdapter extends BonusProgramAdapter_1.default {
     getUserInfo(user) {

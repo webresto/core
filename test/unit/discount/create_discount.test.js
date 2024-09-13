@@ -3,6 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// import exp = require("constants");
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
+// todo: fix types model instance to {%ModelName%}Record for Order';
 const adapters_1 = require("../../../adapters");
 const chai_1 = require("chai");
 const findModelInstance_1 = __importDefault(require("./../../../libs/findModelInstance"));

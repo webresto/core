@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.dishFields = void 0;
 exports.default = dishGenerator;
 const faker_1 = __importDefault(require("faker"));
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 var autoincrement = 0;
 // config?: Partial<Dish>
 function dishGenerator(config = {

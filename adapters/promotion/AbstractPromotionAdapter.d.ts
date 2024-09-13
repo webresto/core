@@ -1,7 +1,4 @@
-import Order from "../../models/Order";
 import AbstractPromotionHandler from "./AbstractPromotion";
-import Group from './../../models/Group';
-import Dish from './../../models/Dish';
 export default abstract class AbstractPromotionAdapter {
     abstract promotions: {
         [key: string]: AbstractPromotionHandler;

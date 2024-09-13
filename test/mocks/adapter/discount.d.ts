@@ -1,8 +1,5 @@
-import Order, { PromotionState } from './../../../models/Order';
 import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
 import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
-import Group from './../../../models/Group';
-import Dish from './../../../models/Dish';
 export declare class InMemoryDiscountAdapter extends AbstractPromotionHandler {
     id: string;
     isJoint: boolean;

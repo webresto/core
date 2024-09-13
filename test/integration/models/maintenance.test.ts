@@ -1,6 +1,6 @@
 //import { expect } from "chai";
 import { customer } from "../../mocks/customer";
-import Maintenance from "../../../models/Maintenance";
+// todo: fix types model instance to {%ModelName%}Record for Maintenance";
 
 describe("Maintenance", function () {
 

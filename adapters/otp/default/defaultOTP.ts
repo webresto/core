@@ -1,5 +1,5 @@
 import OneTimePasswordAdapter from "../OneTimePasswordAdapter";
-import OneTimePassword from "../../../models/OneTimePassword"
+// todo: fix types model instance to {%ModelName%}Record for OneTimePassword"
 export class DefaultOTP extends OneTimePasswordAdapter {
   /**
    * Send and return OTP code

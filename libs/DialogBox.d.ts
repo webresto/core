@@ -1,5 +1,4 @@
 import { DialogBoxConfig } from "../interfaces/DialogBox";
-import User from "../models/User";
 export declare class DialogBox {
     config: DialogBoxConfig;
     user: User;

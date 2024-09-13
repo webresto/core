@@ -1,6 +1,6 @@
-import Order from "../../models/Order";
-import Dish from "../../models/Dish";
-import Group from "../../models/Group";
+// todo: fix types model instance to {%ModelName%}Record for Order";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
+// todo: fix types model instance to {%ModelName%}Record for Group";
 import { ObservablePromise } from "../../libs/ObservablePromise";
 export type ConfigRMSAdapter = {
   [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;

@@ -1,7 +1,6 @@
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { MediaFileRecord } from "./MediaFile";
-import { DishRecord } from "../models/Dish";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
 export type GetGroupType = {

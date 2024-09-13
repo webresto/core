@@ -1,8 +1,8 @@
-import Order, { PromotionState } from "../../models/Order"
+// todo: fix types model instance to {%ModelName%}Record for Order"
 import AbstractPromotionHandler from "./AbstractPromotion";
-import Group from './../../models/Group';
-import Dish from './../../models/Dish';
-import OrderDish from "../../models/OrderDish";
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
+// todo: fix types model instance to {%ModelName%}Record for OrderDish";
 export default abstract class AbstractPromotionAdapter {
     public abstract promotions: { [key: string]: AbstractPromotionHandler };
 

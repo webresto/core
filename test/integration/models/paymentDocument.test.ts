@@ -2,8 +2,8 @@ import { expect } from "chai";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 import { Payment } from "../../../interfaces/Payment";
 import generate_payment from "../../generators/payment.generator";
-import PaymentDocument from "../../../models/PaymentDocument";
-//import Order from '../../../models/Order';
+// todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
+//// todo: fix types model instance to {%ModelName%}Record for Order';
 
 describe("PaymentDocument", function () {
   this.timeout(31000);

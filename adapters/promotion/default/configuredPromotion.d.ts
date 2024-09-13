@@ -1,9 +1,5 @@
 import AbstractPromotionHandler from "../AbstractPromotion";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
-import Group from '../../../models/Group';
-import Dish from '../../../models/Dish';
-import Order, { PromotionState } from '../../../models/Order';
-import User from '../../../models/User';
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
     badge: string;
     constructor(promotion: Omit<AbstractPromotionHandler, "action" | "condition">, config?: IconfigDiscount);

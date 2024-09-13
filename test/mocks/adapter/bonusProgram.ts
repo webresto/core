@@ -1,8 +1,8 @@
 import BonusProgramAdapter, { BonusTransaction, ConfigBonusProgramAdapter } from "../../../adapters/bonusprogram/BonusProgramAdapter";
-import User from "../../../models/User";
-import BonusProgram from "../../../models/BonusProgram";
-import UserBonusTransaction from "../../../models/UserBonusTransaction";
-import UserBonusProgram from "../../../models/UserBonusProgram";
+// todo: fix types model instance to {%ModelName%}Record for User";
+// todo: fix types model instance to {%ModelName%}Record for BonusProgram";
+// todo: fix types model instance to {%ModelName%}Record for UserBonusTransaction";
+// todo: fix types model instance to {%ModelName%}Record for UserBonusProgram";
 import fakerStatic = require("faker");
 import { RequiredField } from "../../../interfaces/toolsTS";
 export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {

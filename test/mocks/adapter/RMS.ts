@@ -1,7 +1,7 @@
 import RMSAdapter from "../../../adapters/rms/RMSAdapter";
-import Dish from "../../../models/Dish";
-import Group from "../../../models/Group";
-import Order from "../../../models/Order";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
+// todo: fix types model instance to {%ModelName%}Record for Group";
+// todo: fix types model instance to {%ModelName%}Record for Order";
 import dishGenerator from "../../generators/dish.generator";
 import groupGenerator from "../../generators/group.generator";
 

@@ -1,6 +1,5 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import { OrderRecord } from "../models/Order";
 import { OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { DishRecord } from "./Dish";

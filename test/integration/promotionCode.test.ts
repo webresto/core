@@ -5,7 +5,7 @@ import { Adapter } from "../../adapters";
 import { expect } from "chai";
 import { address, customer } from "../mocks/customer";
 import dishGenerator from "../generators/dish.generator";
-import Dish from './../../models/Dish';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
 import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
 import TestPaymentSystem from "../unit/external_payments/ExternalTestPaymentSystem";
 

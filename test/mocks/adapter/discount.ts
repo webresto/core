@@ -1,9 +1,9 @@
 import { WorkTime } from "@webresto/worktime";
-import Order, { PromotionState } from './../../../models/Order';
+// todo: fix types model instance to {%ModelName%}Record for Order';
 import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
 import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
-import Group from './../../../models/Group';
-import Dish from './../../../models/Dish';
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import { someInArray } from "../../../libs/stringsInArray";
 import configuredPromotion from "../../../adapters/promotion/default/configuredPromotion";

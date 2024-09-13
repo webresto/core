@@ -1,11 +1,11 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
-import Dish from "../models/Dish";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 import UserOrderHistory from "./UserOrderHistory";
 import UserDevice from "./UserDevice";
 import UserLocation from "./UserLocation";
-import UserBonusProgram from "../models/UserBonusProgram";
+// todo: fix types model instance to {%ModelName%}Record for UserBonusProgram";
 import { Country } from "../interfaces/Country";
 import * as bcryptjs from "bcryptjs";
 import { OptionalAll } from "../interfaces/toolsTS";

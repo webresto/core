@@ -1,10 +1,8 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import Dish from "../models/Dish";
 import UserOrderHistory from "./UserOrderHistory";
 import UserDevice from "./UserDevice";
 import UserLocation from "./UserLocation";
-import UserBonusProgram from "../models/UserBonusProgram";
 import { OptionalAll } from "../interfaces/toolsTS";
 export type Phone = {
     code: string;

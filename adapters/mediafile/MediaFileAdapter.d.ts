@@ -1,4 +1,3 @@
-import { IMediaFile } from "../../models/MediaFile";
 export type BaseConfigProperty = BaseConfig | BaseConfig[] | number | boolean | string | null | undefined;
 export interface BaseConfig {
     [key: string]: BaseConfigProperty;

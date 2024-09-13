@@ -1,4 +1,4 @@
-import { OrderRecord } from "../../../models/Order";
+// todo: fix types model instance to {%ModelName%}Record for Order";
 import DeliveryAdapter, { Delivery } from "../DeliveryAdapter";
 
 export class DefaultDeliveryAdapter extends DeliveryAdapter {

@@ -1,6 +1,5 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import { UserRecord } from "../models/User";
 import { BonusProgramRecord } from "./BonusProgram";
 declare let attributes: {
     /** UserBonusProgram ID */

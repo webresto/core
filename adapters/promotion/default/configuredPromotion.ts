@@ -1,11 +1,11 @@
 // import { WorkTime } from "@webresto/worktime";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
-import Group from '../../../models/Group';
-import Dish from '../../../models/Dish';
-import OrderDish from '../../../models/OrderDish';
-import Order, { PromotionState } from '../../../models/Order';
-import User from '../../../models/User';
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
+// todo: fix types model instance to {%ModelName%}Record for OrderDish';
+// todo: fix types model instance to {%ModelName%}Record for Order';
+// todo: fix types model instance to {%ModelName%}Record for User';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import Decimal from "decimal.js";
 import { someInArray } from "../../../libs/stringsInArray";

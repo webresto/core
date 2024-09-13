@@ -1,5 +1,5 @@
 import { DialogBoxConfig } from "../interfaces/DialogBox";
-import User from "../models/User";
+// todo: fix types model instance to {%ModelName%}Record for User";
 import { v4 as uuid } from "uuid";
 
 import Ajv from 'ajv';

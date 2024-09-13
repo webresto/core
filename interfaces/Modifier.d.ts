@@ -1,5 +1,3 @@
-import Group from "../models/Group";
-import Dish from "../models/Dish";
 interface BaseModifier {
     /**
      * restocore dishId

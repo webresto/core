@@ -1,7 +1,4 @@
 import RMSAdapter from "../../../adapters/rms/RMSAdapter";
-import Dish from "../../../models/Dish";
-import Group from "../../../models/Group";
-import Order from "../../../models/Order";
 export declare class TestRMS extends RMSAdapter {
     protected initialized(): Promise<void>;
     protected customInitialize(): Promise<void>;

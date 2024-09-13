@@ -1,4 +1,4 @@
-import { OrderRecord } from "../../models/Order"
+// todo: fix types model instance to {%ModelName%}Record for Order"
 
 
 /**

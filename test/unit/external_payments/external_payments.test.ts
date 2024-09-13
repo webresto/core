@@ -2,7 +2,7 @@ import TestPaymentSystem from "./ExternalTestPaymentSystem";
 import { Payment } from "../../../interfaces/Payment";
 import generate_payment from "../../generators/payment.generator";
 import { expect } from "chai";
-import PaymentDocument from "../../../models/PaymentDocument";
+// todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
 
 var paymentDocument: PaymentDocument;
 

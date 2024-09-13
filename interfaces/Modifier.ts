@@ -1,5 +1,5 @@
-import Group from "../models/Group";
-import Dish from "../models/Dish";
+// todo: fix types model instance to {%ModelName%}Record for Group";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 
 interface BaseModifier {
   /**

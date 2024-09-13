@@ -3,7 +3,7 @@ import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
 import { PaymentResponse, Payment } from "../interfaces/Payment";
-import { PaymentMethodRecord } from "../models/PaymentMethod";
+// todo: fix types model instance to {%ModelName%}Record for PaymentMethod";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";

@@ -23,7 +23,6 @@
 
   The channel adapter itself should be an abstract class and will be checked by the notification manager.
  */
-import User from "../models/User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string;
 type ChannelType = "sms" | "email" | "mobile-push" | string;

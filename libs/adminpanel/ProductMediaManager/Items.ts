@@ -2,7 +2,7 @@ import {File, Item, MediaFileType, UploaderFile, imageSizes} from 'sails-adminpa
 import {randomFileName} from "sails-adminpanel/lib/media-manager/helpers/MediaManagerHelper";
 import sizeOf from "image-size";
 import sharp from "sharp";
-import { MediaFileRecord } from '../../../models/MediaFile';
+// todo: fix types model instance to {%ModelName%}Record for MediaFile';
 
 interface Meta {
 	[key: string]: string

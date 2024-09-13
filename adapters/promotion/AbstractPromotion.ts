@@ -1,9 +1,9 @@
 import { IconfigDiscount } from "../../interfaces/ConfigDiscount";
-import Order, { PromotionState } from "../../models/Order";
+// todo: fix types model instance to {%ModelName%}Record for Order";
 // import { WorkTime } from "@webresto/worktime";
-import User from "../../models/User";
-import Group from "../../models/Group";
-import Dish from "../../models/Dish";
+// todo: fix types model instance to {%ModelName%}Record for User";
+// todo: fix types model instance to {%ModelName%}Record for Group";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 
 export default abstract class AbstractPromotionHandler {
   /** unique id */

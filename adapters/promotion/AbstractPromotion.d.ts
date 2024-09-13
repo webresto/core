@@ -1,8 +1,4 @@
 import { IconfigDiscount } from "../../interfaces/ConfigDiscount";
-import Order, { PromotionState } from "../../models/Order";
-import User from "../../models/User";
-import Group from "../../models/Group";
-import Dish from "../../models/Dish";
 export default abstract class AbstractPromotionHandler {
     /** unique id */
     abstract id: string;

@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const PaymentAdapter_1 = __importDefault(require("../../../adapters/payment/PaymentAdapter"));
+// todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
 var database = {};
 class TestPaymentSystem extends PaymentAdapter_1.default {
     cancelPayment(paymentDocument) {

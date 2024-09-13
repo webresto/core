@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultDeliveryAdapter = void 0;
+// todo: fix types model instance to {%ModelName%}Record for Order";
 const DeliveryAdapter_1 = __importDefault(require("../DeliveryAdapter"));
 class DefaultDeliveryAdapter extends DeliveryAdapter_1.default {
     async calculate(order) {

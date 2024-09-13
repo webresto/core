@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import * as bcryptjs from "bcryptjs";
-import User from "../../../models/User";
+// todo: fix types model instance to {%ModelName%}Record for User";
 
 import { OTP } from "../../../adapters";
 

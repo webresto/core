@@ -1,4 +1,4 @@
-import { SelectedMediaFileRecord } from "../../../models/SelectedMediaFile";
+// todo: fix types model instance to {%ModelName%}Record for SelectedMediaFile";
 import {AbstractMediaManager, Item, File, MediaManagerWidgetItem, Data, MediaManagerWidgetJSON} from "sails-adminpanel/lib/media-manager/AbstractMediaManager";
 import {ImageItem} from "./Items";
 

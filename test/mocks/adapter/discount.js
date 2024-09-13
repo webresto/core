@@ -4,7 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryDiscountAdapter = void 0;
+// todo: fix types model instance to {%ModelName%}Record for Order';
 const AbstractPromotion_1 = __importDefault(require("../../../adapters/promotion/AbstractPromotion"));
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));

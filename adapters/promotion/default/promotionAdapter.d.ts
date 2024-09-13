@@ -1,9 +1,5 @@
-import Order from "../../../models/Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
-import Promotion from "../../../models/Promotion";
-import Group from "../../../models/Group";
-import Dish from "../../../models/Dish";
 export declare class PromotionAdapter extends AbstractPromotionAdapter {
     readonly promotions: {
         [key: string]: AbstractPromotionHandler;

@@ -1,4 +1,4 @@
-import models  from "../libs/adminpanel/models/bind"
+// todo: fix types model instance to {%ModelName%}Record for bind"
 import { ProductCatalog } from "../libs/adminpanel/ProductCatalog/ProductCatalog";
 
 export default function bindAdminpanel () {

@@ -1,4 +1,4 @@
-import Order from "../../models/Order";
+// todo: fix types model instance to {%ModelName%}Record for Order";
 import hashCode from "../hashCode";
 import { extractFieldValues } from "../stringsInArray";
 

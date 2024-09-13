@@ -1,5 +1,5 @@
 import { v5 as uuidv5 } from "uuid";
-import { IMediaFile } from "../../models/MediaFile";
+// todo: fix types model instance to {%ModelName%}Record for MediaFile";
 
 
 export type BaseConfigProperty = BaseConfig | BaseConfig[] | number | boolean | string | null | undefined;

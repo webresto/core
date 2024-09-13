@@ -1,7 +1,7 @@
 // import exp = require("constants");
-import Group from './../../../models/Group';
-import Dish from './../../../models/Dish';
-import Order from './../../../models/Order';
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
+// todo: fix types model instance to {%ModelName%}Record for Order';
 import { Adapter } from "../../../adapters";
 import { expect } from "chai";
 import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';

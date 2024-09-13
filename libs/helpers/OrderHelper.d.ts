@@ -1,4 +1,3 @@
-import Order from "../../models/Order";
 export type InitCheckout = {
     /** Order nonce */
     nonce: number;

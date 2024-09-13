@@ -1,7 +1,7 @@
-import {UserBonusTransactionRecord} from "../../models/UserBonusTransaction";
-import {UserBonusProgramRecord} from "../../models/UserBonusProgram";
+// todo: fix types model instance to {%ModelName%}Record for UserBonusTransaction";
+// todo: fix types model instance to {%ModelName%}Record for UserBonusProgram";
 import { RequiredField } from "../../interfaces/toolsTS";
-import { UserRecord } from "../../models/User";
+// todo: fix types model instance to {%ModelName%}Record for User";
 
 export type ConfigBonusProgramAdapter = {
   [key: string]: number | boolean | string;

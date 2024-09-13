@@ -1,4 +1,4 @@
-import { OneTimePasswordRecord } from "../../models/OneTimePassword";
+// todo: fix types model instance to {%ModelName%}Record for OneTimePassword";
 
 export default abstract class OTPAdapter {
   /** Send OTP to user by CORE_LOGIN_FIELD */

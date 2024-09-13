@@ -1,7 +1,7 @@
 import PaymentAdapter from "../../../adapters/payment/PaymentAdapter";
 import { PaymentResponse, Payment } from "../../../interfaces/Payment";
 import { PaymentMethodType } from "../../../libs/enums/PaymentMethodTypes";
-import PaymentDocument from "../../../models/PaymentDocument";
+// todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
 
 var database: any = {};
 

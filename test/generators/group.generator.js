@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.groupFields = void 0;
 exports.default = groupGenerator;
 const faker_1 = __importDefault(require("faker"));
+// todo: fix types model instance to {%ModelName%}Record for Group"
 var autoincrement = 0;
 function groupGenerator(config = {}) {
     autoincrement++;

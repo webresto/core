@@ -1,11 +1,11 @@
 import { expect } from "chai";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 
-import Order from "../../../models/Order";
+// todo: fix types model instance to {%ModelName%}Record for Order";
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
-import Settings from "../../../models/Settings";
-import Dish from "../../../models/Dish";
+// todo: fix types model instance to {%ModelName%}Record for Settings";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 import { address, customer } from "../../mocks/customer";
 
 describe("Flows: Checkout", function () {

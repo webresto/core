@@ -1,18 +1,18 @@
 const sleep = require("util").promisify(setTimeout);
 type func = (...args: any) => any | Promise<any>;
-import Group, { GetGroupType } from "../models/Group";
-import Dish from "../models/Dish";
-import PaymentDocument from "../models/PaymentDocument"
-import Order, { PaymentBack } from '../models/Order';
+// todo: fix types model instance to {%ModelName%}Record for Group";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
+// todo: fix types model instance to {%ModelName%}Record for PaymentDocument"
+// todo: fix types model instance to {%ModelName%}Record for Order';
 import Customer from "../interfaces/Customer";
 import Address from "../interfaces/Address";
-import Settings from "../models/Settings"
-import User from "../models/User";
+// todo: fix types model instance to {%ModelName%}Record for Settings"
+// todo: fix types model instance to {%ModelName%}Record for User";
 import { Payment } from "../interfaces/Payment";
-import OrderDish from "../models/OrderDish"
-import Maintenance from "../models/Maintenance"
+// todo: fix types model instance to {%ModelName%}Record for OrderDish"
+// todo: fix types model instance to {%ModelName%}Record for Maintenance"
 import { DialogBox } from "./DialogBox";
-import Promotion from "../models/Promotion";
+// todo: fix types model instance to {%ModelName%}Record for Promotion";
 import { InitCheckout } from "./helpers/OrderHelper";
 
 /**

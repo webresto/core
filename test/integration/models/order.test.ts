@@ -1,13 +1,13 @@
 import { expect } from "chai";
 import Address from "../../../interfaces/Address";
 import { name } from "faker";
-import Order from "../../../models/Order";
-import Dish from "../../../models/Dish";
+// todo: fix types model instance to {%ModelName%}Record for Order";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 import Customer from "../../../interfaces/Customer";
 import { Payment } from "../../../interfaces/Payment";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
-import PaymentDocument from "../../../models/PaymentDocument";
-import OrderDish from "../../../models/OrderDish";
+// todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
+// todo: fix types model instance to {%ModelName%}Record for OrderDish";
 import Decimal from "decimal.js";
 import { customer, address } from "../../mocks/customer"
 

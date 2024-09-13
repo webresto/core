@@ -1,4 +1,4 @@
-import { Phone } from "../models/User";
+// todo: fix types model instance to {%ModelName%}Record for User";
 
 /**
  * Описывает данные о заказчике для доставки

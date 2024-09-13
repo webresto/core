@@ -1,7 +1,6 @@
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
-import { PaymentMethodRecord } from "../models/PaymentMethod";
 import { OptionalAll } from "../interfaces/toolsTS";
 /** on the example of the basket (Order):
  * 1. Model Conducting Internal/External (for example: Order) creates PaymentDocument

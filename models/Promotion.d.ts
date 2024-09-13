@@ -3,7 +3,6 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { IconfigDiscount } from "../interfaces/ConfigDiscount";
-import PromotionCode from "../models/PromotionCode";
 declare let attributes: {
     id: string;
     externalId: string;

@@ -1,6 +1,6 @@
 import faker from "faker";
 
-import Group from "../../models/Group"
+// todo: fix types model instance to {%ModelName%}Record for Group"
 
 var autoincrement: number = 0;
 

@@ -2,8 +2,8 @@
  * // TODO: Abandoned because we have gone to global changes from Dish to Item
  */
 import { AdditionalInfo } from "./checkExpression";
-import Dish from "../models/Dish";
-import Group from "../models/Group";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
+// todo: fix types model instance to {%ModelName%}Record for Group";
 
 type importParamFunction = (obj: Dish | Group) => Promise<void>;
 type importParamObject = {

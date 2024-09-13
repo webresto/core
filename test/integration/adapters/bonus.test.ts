@@ -3,9 +3,9 @@ import { InMemoryBonusProgramAdapter } from "../../mocks/adapter/bonusProgram";
 import { expect } from "chai";
 import { customer, address } from "../../mocks/customer"
 import { SpendBonus } from "../../../interfaces/SpendBonus";
-import User from "../../../models/User";
-import Order from "../../../models/Order";
-import BonusProgram from "../../../models/BonusProgram";
+// todo: fix types model instance to {%ModelName%}Record for User";
+// todo: fix types model instance to {%ModelName%}Record for Order";
+// todo: fix types model instance to {%ModelName%}Record for BonusProgram";
 import BonusProgramAdapter from "../../../adapters/bonusprogram/BonusProgramAdapter";
 
 let user: User;

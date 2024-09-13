@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 //import { expect } from "chai";
 const customer_1 = require("../../mocks/customer");
+// todo: fix types model instance to {%ModelName%}Record for Maintenance";
 describe("Maintenance", function () {
     let dishes;
     let maintenance = {

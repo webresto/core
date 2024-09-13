@@ -1,5 +1,4 @@
 import OneTimePasswordAdapter from "../OneTimePasswordAdapter";
-import OneTimePassword from "../../../models/OneTimePassword";
 export declare class DefaultOTP extends OneTimePasswordAdapter {
     /**
      * Send and return OTP code

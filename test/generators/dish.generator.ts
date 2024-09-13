@@ -1,6 +1,6 @@
 import faker from "faker";
 
-import Dish from "../../models/Dish";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 
 var autoincrement: number = 0;
 

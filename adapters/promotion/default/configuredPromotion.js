@@ -5,8 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // import { WorkTime } from "@webresto/worktime";
 const AbstractPromotion_1 = __importDefault(require("../AbstractPromotion"));
-const OrderDish_1 = __importDefault(require("../../../models/OrderDish"));
-const Order_1 = __importDefault(require("../../../models/Order"));
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
+// todo: fix types model instance to {%ModelName%}Record for OrderDish';
+// todo: fix types model instance to {%ModelName%}Record for Order';
+// todo: fix types model instance to {%ModelName%}Record for User';
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const stringsInArray_1 = require("../../../libs/stringsInArray");
@@ -86,7 +89,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
     async applyPromotion(order) {
         sails.log.debug(`Configured promotion to be applied. name: [${this.name}], id: [${this.id}]`);
         // order.dishes
-        const orderDishes = await OrderDish_1.default.find({ order: order.id, addedBy: "user" }).populate("dish");
+        const orderDishes = await OrderDish.find({ order: order.id, addedBy: "user" }).populate("dish");
         let calculatedDiscountAmount = new decimal_js_1.default(0);
         // Discount that applies to all dishes
         if (!this.config.dishes.length && !this.config.groups.length) {
@@ -149,7 +152,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                     discountId: this.id,
                     discountDebugInfo: orderDish.discountDebugInfo + `${new Date()}: name[${this.name}], id[${this.id}]`
                 };
-                await OrderDish_1.default.update({ id: orderDish.id }, update).fetch();
+                await OrderDish.update({ id: orderDish.id }, update).fetch();
             }
         }
         /**
@@ -162,7 +165,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             order.promotionFlatDiscount = calculatedDiscountAmount.toNumber();
         }
         // TODO: this is call in ORM unwanted, but without this the direct call to the cart discount does not work
-        await Order_1.default.updateOne({ id: order.id }, { promotionFlatDiscount: order.promotionFlatDiscount });
+        await Order.updateOne({ id: order.id }, { promotionFlatDiscount: order.promotionFlatDiscount });
         return {
             message: `${this.description}`,
             type: "configured-promotion",

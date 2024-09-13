@@ -1,8 +1,8 @@
 import faker from "faker";
-import Group from './../../models/Group';
-import Dish  from './../../models/Dish';
-import OrderDish  from './../../models/OrderDish';
-import Order, { PromotionState } from './../../models/Order';
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
+// todo: fix types model instance to {%ModelName%}Record for OrderDish';
+// todo: fix types model instance to {%ModelName%}Record for Order';
 import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
 import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";

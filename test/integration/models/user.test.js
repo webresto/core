@@ -22,40 +22,37 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const bcryptjs = __importStar(require("bcryptjs"));
-const User_1 = __importDefault(require("../../../models/User"));
+// todo: fix types model instance to {%ModelName%}Record for User";
 const adapters_1 = require("../../../adapters");
 let user;
 describe("User", function () {
     it("create new user", async function () {
-        user = await User_1.default.create({ id: "111", login: "1123", lastName: 'TEST', firstName: "111", phone: { code: "1", number: "123" } }).fetch();
+        user = await User.create({ id: "111", login: "1123", lastName: 'TEST', firstName: "111", phone: { code: "1", number: "123" } }).fetch();
         if (!user.id)
             throw `UserID undefined`;
     });
     it("set user password", async function () {
         await Settings.set("PasswordRegex", { key: "PasswordRegex", value: "[0-9]" });
         await Settings.set("PasswordMinLength", { key: "PasswordMinLength", value: "8" });
-        user = await User_1.default.setPassword(user.id, "1234567890", null);
+        user = await User.setPassword(user.id, "1234567890", null);
         if (!await bcryptjs.compare("1234567890", user.passwordHash))
             throw "Password hash is corrupt";
         // Check oldPassword
-        user = await User_1.default.setPassword(user.id, "00000000", "1234567890");
+        user = await User.setPassword(user.id, "00000000", "1234567890");
     });
     describe("Login [PASSWORD_POLICY: from_otp, CREATE_USER_IF_NOT_EXIST: true]", function () {
         it("user login Should fail if not passed required data", async function () {
             let err = [];
             try {
-                await User_1.default.login("test", { code: "77", number: "8899" }, "deviceId-test", "device-name", null, null, "agent", "IP");
+                await User.login("test", { code: "77", number: "8899" }, "deviceId-test", "device-name", null, null, "agent", "IP");
             }
             catch (error) {
                 err.push(error);
             }
             try {
-                await User_1.default.login("test", { code: "77", number: "8899" }, null, null, null, null, "agent", "IP");
+                await User.login("test", { code: "77", number: "8899" }, null, null, null, null, "agent", "IP");
             }
             catch (error) {
                 err.push(error);
@@ -66,7 +63,7 @@ describe("User", function () {
         it("create user fail with bad OTP", async function () {
             let err = [];
             try {
-                await User_1.default.login("77889900", { code: "77", number: "889900" }, "deviceId-test", "device-name", null, "123456", "agent", "IP");
+                await User.login("77889900", { code: "77", number: "889900" }, "deviceId-test", "device-name", null, "123456", "agent", "IP");
             }
             catch (error) {
                 err.push(error);
@@ -77,8 +74,8 @@ describe("User", function () {
         it("create user in login method", async function () {
             let OTPAdapter = await adapters_1.OTP.getAdapter();
             let otp = await OTPAdapter.get("778899");
-            let login = await User_1.default.login("778899", { code: "77", number: "8899" }, "deviceId-test", "device-name", null, otp.password, "agent", "IP");
-            let _user = await User_1.default.findOne({ login: "778899" });
+            let login = await User.login("778899", { code: "77", number: "8899" }, "deviceId-test", "device-name", null, otp.password, "agent", "IP");
+            let _user = await User.findOne({ login: "778899" });
             if (!_user)
                 throw `user not found`;
             if (_user.phone.code !== "77" || _user.phone.number !== "8899")
@@ -88,7 +85,7 @@ describe("User", function () {
             }
             if (login.id !== "deviceId-test" || login.name !== "device-name")
                 throw `bad login user device`;
-            login = await User_1.default.login("778899", null, "deviceId-test3", "device-name3", otp.password, undefined, "agent", "IP");
+            login = await User.login("778899", null, "deviceId-test3", "device-name3", otp.password, undefined, "agent", "IP");
         });
     });
     describe("Login [PASSWORD_POLICY: required, CREATE_USER_IF_NOT_EXIST: true]", function () {
@@ -96,7 +93,7 @@ describe("User", function () {
             let err = [];
             await Settings.set("PASSWORD_POLICY", { key: "PASSWORD_POLICY", value: "required" });
             try {
-                await User_1.default.login("test", { code: "77", number: "8899" }, "deviceId-test", "device-name", null, "123", "agent", "IP");
+                await User.login("test", { code: "77", number: "8899" }, "deviceId-test", "device-name", null, "123", "agent", "IP");
             }
             catch (error) {
                 err.push(error);
@@ -109,8 +106,8 @@ describe("User", function () {
             await Settings.set("CORE_LOGIN_FIELD", { key: "CORE_LOGIN_FIELD", value: "email" });
             let OTPAdapter = await adapters_1.OTP.getAdapter();
             let otp = await OTPAdapter.get("test@mail.com");
-            let login = await User_1.default.login("test@mail.com", null, "deviceId-test", "device-name", "password01", otp.password, "agent", "IP");
-            let _user = await User_1.default.findOne({ login: "test@mail.com" });
+            let login = await User.login("test@mail.com", null, "deviceId-test", "device-name", "password01", otp.password, "agent", "IP");
+            let _user = await User.findOne({ login: "test@mail.com" });
             return;
             if (!_user)
                 throw `user not found`;
@@ -120,13 +117,13 @@ describe("User", function () {
             if (login.id !== "deviceId-test" || login.name !== "device-name")
                 throw `bad login user device`;
             // Login
-            login = await User_1.default.login("test@mail.com", null, "deviceId-test2", "device-name2", "password01", null, "agent", "IP");
+            login = await User.login("test@mail.com", null, "deviceId-test2", "device-name2", "password01", null, "agent", "IP");
             if (login.id !== "deviceId-test2" || login.name !== "device-name2")
                 throw `bad login user device`;
             // Loging with bad password
             let err;
             try {
-                await User_1.default.login("test@mail.com", null, "deviceId-test2", "device-name2", "bad-password01", null, "agent", "IP");
+                await User.login("test@mail.com", null, "deviceId-test2", "device-name2", "bad-password01", null, "agent", "IP");
             }
             catch (error) {
                 err = error;

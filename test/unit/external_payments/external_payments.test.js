@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ExternalTestPaymentSystem_1 = __importDefault(require("./ExternalTestPaymentSystem"));
 const payment_generator_1 = __importDefault(require("../../generators/payment.generator"));
 const chai_1 = require("chai");
+// todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
 var paymentDocument;
 describe("TestPaymentSystem & PaymentAdapter basic testing", function () {
     this.timeout(31000);

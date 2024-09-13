@@ -28,7 +28,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const UserDevice_1 = __importDefault(require("./UserDevice"));
-const UserBonusProgram_1 = __importDefault(require("../models/UserBonusProgram"));
 const bcryptjs = __importStar(require("bcryptjs"));
 const Countries = require("../libs/dictionaries/countries.json");
 let attributes = {
@@ -384,16 +383,16 @@ let Model = {
         const bps = await BonusProgram.getAvailable();
         for (let bp of bps) {
             let adapter = await BonusProgram.getAdapter(bp.adapter);
-            const userBonusProgram = await UserBonusProgram_1.default.findOne({ user: user.id, bonusProgram: bp.id });
+            const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: bp.id });
             // If all works
             if (adapter.isRegistered(user) && userBonusProgram && userBonusProgram.isActive) {
                 // Not need await finish sync
-                UserBonusProgram_1.default.sync(userId, bp.id);
+                UserBonusProgram.sync(userId, bp.id);
                 // If not registered in internal storage
             }
             else if (adapter.isRegistered(user) && !userBonusProgram) {
                 let exUser = await adapter.getUserInfo(user);
-                await UserBonusProgram_1.default.create({
+                await UserBonusProgram.create({
                     user: user.id,
                     balance: exUser.balance,
                     externalId: exUser.externalId,
@@ -406,7 +405,7 @@ let Model = {
             }
             else if (!adapter.isRegistered(user) && bp.automaticUserRegistration) {
                 // Registration if Bonus program has an automatic registration option
-                await UserBonusProgram_1.default.registration(user, bp.adapter);
+                await UserBonusProgram.registration(user, bp.adapter);
                 // if not need register
             }
             else {

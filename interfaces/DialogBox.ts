@@ -1,4 +1,4 @@
-import Dish from "../models/Dish";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 export type DialogBoxConfig = DialogBoxButton | DialogBoxProduct;
 interface DialogBoxBase {
   askId?: string

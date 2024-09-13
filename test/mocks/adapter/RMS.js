@@ -5,6 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TestRMS = void 0;
 const RMSAdapter_1 = __importDefault(require("../../../adapters/rms/RMSAdapter"));
+// todo: fix types model instance to {%ModelName%}Record for Dish";
+// todo: fix types model instance to {%ModelName%}Record for Group";
+// todo: fix types model instance to {%ModelName%}Record for Order";
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
 const group_generator_1 = __importDefault(require("../../generators/group.generator"));
 class TestRMS extends RMSAdapter_1.default {

@@ -4,7 +4,7 @@ import { expect } from "chai";
 import dishGenerator from "../../generators/dish.generator";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
-import Promotion from '../../../models/Promotion';
+// todo: fix types model instance to {%ModelName%}Record for Promotion';
 import discountGenerator from "../../generators/discount.generator";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import { PromotionAdapter } from "../../../adapters/promotion/default/promotionAdapter";

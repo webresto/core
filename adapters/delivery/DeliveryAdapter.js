@@ -1,4 +1,5 @@
 "use strict";
+// todo: fix types model instance to {%ModelName%}Record for Order"
 Object.defineProperty(exports, "__esModule", { value: true });
 class DeliveryAdapter {
     /**

@@ -3,7 +3,7 @@ import groupGenerator from "../../generators/group.generator";
 import { groupFields } from "../../generators/group.generator";
 import dishGenerator from "../../generators/dish.generator";
 import { dishFields } from "../../generators/dish.generator";
-import Group from "../../../models/Group";
+// todo: fix types model instance to {%ModelName%}Record for Group";
 import { isArray } from "lodash";
 
 describe("Group", function () {

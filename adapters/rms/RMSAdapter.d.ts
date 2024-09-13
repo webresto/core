@@ -1,6 +1,3 @@
-import Order from "../../models/Order";
-import Dish from "../../models/Dish";
-import Group from "../../models/Group";
 export type ConfigRMSAdapter = {
     [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };

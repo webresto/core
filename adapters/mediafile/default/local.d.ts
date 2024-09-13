@@ -1,5 +1,4 @@
 import MediaFileAdapter, { BaseConfig, MediaFileTypes } from "../MediaFileAdapter";
-import { IMediaFile } from "../../../models/MediaFile";
 export interface MediaFileConfig {
     dish: MediaFileConfigInner;
     group: MediaFileConfigInner;

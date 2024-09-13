@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
-import { UserRecord } from "../models/User"
+// todo: fix types model instance to {%ModelName%}Record for User"
 import { BonusProgramRecord } from "./BonusProgram";
 import Decimal from "decimal.js";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";

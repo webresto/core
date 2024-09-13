@@ -8,9 +8,9 @@ import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromot
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
 import findModelInstanceByAttributes from '../../../libs/findModelInstance';
 import { Adapter } from '../../../adapters/index';
-import Group from '../../../models/Group';
-import Dish from '../../../models/Dish';
-import Order, { PromotionState } from '../../../models/Order';
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
+// todo: fix types model instance to {%ModelName%}Record for Order';
 import { someInArray } from '../../../libs/stringsInArray';
 import ConfiguredPromotion from '../../../adapters/promotion/default/configuredPromotion';
 import Decimal from 'decimal.js';

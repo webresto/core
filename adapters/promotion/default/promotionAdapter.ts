@@ -1,14 +1,14 @@
 import Decimal from "decimal.js";
-import Order, { PromotionState } from "../../../models/Order";
+// todo: fix types model instance to {%ModelName%}Record for Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
 import { WorkTimeValidator } from "@webresto/worktime";
-import Promotion from "../../../models/Promotion";
-import Group from "../../../models/Group";
-import Dish from "../../../models/Dish";
+// todo: fix types model instance to {%ModelName%}Record for Promotion";
+// todo: fix types model instance to {%ModelName%}Record for Group";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 import ConfiguredPromotion from "./configuredPromotion";
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
-import PromotionCode from "../../../models/PromotionCode";
+// todo: fix types model instance to {%ModelName%}Record for PromotionCode";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
 

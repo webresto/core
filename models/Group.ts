@@ -4,7 +4,7 @@ import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 
 import ORM from "../interfaces/ORM";
 import { MediaFileRecord } from "./MediaFile";
-import { DishRecord } from "../models/Dish";
+// todo: fix types model instance to {%ModelName%}Record for Dish";
 import { WorkTime } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";

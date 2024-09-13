@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DialogBox = void 0;
+// todo: fix types model instance to {%ModelName%}Record for User";
 const uuid_1 = require("uuid");
 const ajv_1 = __importDefault(require("ajv"));
 const ajv = new ajv_1.default();
