@@ -9,6 +9,10 @@ interface ItemModel {
 }
 
 class BaseModelItem<T extends Item> extends AbstractItem<T> {
+	public updateModelItems(modelId: string | number, data: any, catalogId: string): Promise<T> {
+		throw Promise.resolve();
+	}
+	
 	public type: string = "product";
 	public name: string = "Product";
 	public allowedRoot: boolean = true;

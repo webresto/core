@@ -12,6 +12,9 @@ class BaseModelItem extends AbstractCatalog_1.AbstractItem {
         this.model = null;
         this.actionHandlers = [];
     }
+    updateModelItems(modelId, data, catalogId) {
+        throw Promise.resolve();
+    }
     toItem(data) {
         return {
             id: data.id,

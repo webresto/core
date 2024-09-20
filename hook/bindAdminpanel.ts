@@ -1,13 +1,19 @@
 // todo: fix types model instance to {%ModelName%}Record for bind"
 import { ProductCatalog } from "../libs/adminpanel/ProductCatalog/ProductCatalog";
-
+import { ProductMediaManager } from "../libs/adminpanel/ProductMediaManager/ProductMediaManager";
+import {models } from "../libs/adminpanel/models/bind" 
 export default function bindAdminpanel () {
   sails.on('Adminpanel:afterHook:loaded', async ()=>{
     processBindAdminpanel();
-    console.log(111333)
+    // Catalog bind
     const CatalogHandler = sails.hooks.adminpanel.getCatalogHandler()
     const productCatalog = new ProductCatalog()
     CatalogHandler.add(productCatalog);
+
+    // Product media manager bind
+    const MediaManagerHandler = sails.hooks.adminpanel.getMediaManagerHandler()
+    const productMediaManager = new ProductMediaManager()
+    MediaManagerHandler.add(productMediaManager)
   })
 }
 

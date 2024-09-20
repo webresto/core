@@ -144,23 +144,22 @@ ProductConfig.fields = {
         title: "Images",
         type: 'mediamanager',
         options: {
-            config: {
-                convert: 'image/jpeg', // only 'image/webp' or 'image/jpeg'
-                sizes: [
-                    {
-                        lg: {
-                            width: 750,
-                            height: 750
-                        }
-                    },
-                    {
-                        sm: {
-                            width: 350,
-                            height: 350
-                        }
-                    },
-                ]
-            }
+            id: "product",
+            convert: 'image/jpeg', // only 'image/webp' or 'image/jpeg'
+            sizes: [
+                {
+                    lg: {
+                        width: 750,
+                        height: 750
+                    }
+                },
+                {
+                    sm: {
+                        width: 350,
+                        height: 350
+                    }
+                },
+            ]
         },
         tooltip: "A list of images associated with the dish. These images are used to visually represent the dish and can be selected for display in the menu."
     },

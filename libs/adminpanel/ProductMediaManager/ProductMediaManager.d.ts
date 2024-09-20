@@ -1,14 +1,12 @@
-import { AbstractMediaManager, Item, File, MediaManagerWidgetItem, Data } from "sails-adminpanel/lib/media-manager/AbstractMediaManager";
-export declare class DefaultMediaManager extends AbstractMediaManager {
-    readonly itemTypes: File<Item>[];
-    constructor(id: string, path: string, dir: string, model: string, metaModel: string, modelAssoc: string);
-    getAll(limit: number, skip: number, sort: string): Promise<{
-        data: Item[];
+import { AbstractMediaManager, MediaManagerItem, MediaManagerWidgetItem, MediaManagerWidgetData, MediaManagerWidgetClientItem, SortCriteria } from "sails-adminpanel/lib/media-manager/AbstractMediaManager";
+export declare class ProductMediaManager extends AbstractMediaManager {
+    id: string;
+    constructor();
+    setRelations(data: MediaManagerWidgetData, model: string, modelId: string, widgetName: string): Promise<void>;
+    getRelations(items: MediaManagerWidgetItem[]): Promise<MediaManagerWidgetClientItem[]>;
+    getAll(limit: number, skip: number, sort: SortCriteria, group?: string): Promise<{
+        data: MediaManagerItem[];
         next: boolean;
     }>;
-    searchAll(s: string): Promise<Item[]>;
-    saveRelations(data: Data, model: string, modelId: string, modelAttribute: string): Promise<void>;
-    getRelations(items: MediaManagerWidgetItem[]): Promise<MediaManagerWidgetItem[]>;
-    updateRelations(data: Data, model: string, modelId: string, modelAttribute: string): Promise<void>;
-    deleteRelations(model: string, modelId: string): Promise<void>;
+    searchAll(s: string): Promise<MediaManagerItem[]>;
 }

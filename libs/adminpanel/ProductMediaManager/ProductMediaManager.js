@@ -1,77 +1,68 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DefaultMediaManager = void 0;
+exports.ProductMediaManager = void 0;
 // todo: fix types model instance to {%ModelName%}Record for SelectedMediaFile";
 const AbstractMediaManager_1 = require("sails-adminpanel/lib/media-manager/AbstractMediaManager");
 const Items_1 = require("./Items");
-class DefaultMediaManager extends AbstractMediaManager_1.AbstractMediaManager {
-    constructor(id, path, dir, model, metaModel, modelAssoc) {
-        super(id, path, dir, model, modelAssoc);
-        this.itemTypes = [];
-        this.itemTypes.push(new Items_1.ImageItem(path, dir, model, metaModel));
+const ConvertType_1 = require("./helpers/ConvertType");
+class ProductMediaManager extends AbstractMediaManager_1.AbstractMediaManager {
+    constructor() {
+        super();
+        this.id = 'product';
+        this.itemTypes.push(new Items_1.ImageItem(process.cwd() + "/.tmp/", process.cwd() + "/.tmp/"));
+        console.log(this.itemTypes);
     }
-    async getAll(limit, skip, sort) {
-        let data = await MediaFile.find({
-            where: {},
-            limit: limit,
-            skip: skip,
-            sort: sort //@ts-ignore
-        }).populate('children', { sort: sort });
-        let next = await MediaFile.count({
-            where: {},
-            limit: limit,
-            skip: skip === 0 ? limit : skip + limit,
-            sort: sort
-        });
-        return {
-            data: data,
-            next: !!next
-        };
-    }
-    async searchAll(s) {
-        return [];
-        // return await MediaFile.find({
-        // 	where: {filename: {contains: s}, parent: null},
-        // 	sort: 'createdAt DESC'
-        // }).populate('children', {sort: 'createdAt DESC'})
-    }
-    async saveRelations(data, model, modelId, modelAttribute) {
-        let widgetItems = [];
+    async setRelations(data, model, modelId, widgetName) {
+        sails.log.silly(`Starting setRelations for model: ${model}, modelId: ${modelId}, widgetName: ${widgetName}`);
+        // Debugging initial destruction query
+        let destroy = {};
+        destroy[`mediafile_${model}`] = modelId;
+        sails.log.silly(`Destroying selected media files with criteria:`, destroy);
+        await SelectedMediaFile.destroy(destroy).fetch();
+        // Debugging loop over data.list
         for (const [key, widgetItem] of data.list.entries()) {
             let init = {};
             init[`mediafile_${model}`] = widgetItem.id;
             init[model] = modelId;
             init["sortOrder"] = key + 1;
-            let record = await SelectedMediaFile.create(init).fetch();
-            // widgetItems.push({
-            // 	id: record.id as string,
-            // })
+            sails.log.silly(`Creating selected media file with data:`, init);
+            await SelectedMediaFile.create(init).fetch();
         }
-        // let updateData: { [key: string]: MediaManagerWidgetJSON } = {}
-        // updateData[modelAttribute] = {list: widgetItems, mediaManagerId: this.id}
-        // await MediaFile.update({id: modelId}, updateData)
+        sails.log.debug(`Completed setRelations for model: ${model}, modelId: ${modelId}, widgetName: ${widgetName}`);
     }
     async getRelations(items) {
-        let widgetItems = [];
+        const widgetItems = [];
         for (const item of items) {
-            let record = (await SelectedMediaFile.find({ where: { id: item.id } }))[0];
-            let file = (await MediaFile.find({ where: { id: record.file } }).populate('children', { sort: 'createdAt DESC' }))[0];
-            widgetItems.push({
-                id: file.id,
-                children: file.children,
-            });
+            let file = await MediaFile.findOne({ id: item.id });
+            const widgetItem = {
+                mimeType: `${file.type}/xxx`,
+                variants: null,
+                id: file.id
+            };
+            widgetItems.push(widgetItem);
         }
         return widgetItems;
     }
-    async updateRelations(data, model, modelId, modelAttribute) {
-        await this.deleteRelations(model, modelId);
-        await this.saveRelations(data, model, modelId, modelAttribute);
+    async getAll(limit, skip, sort, group) {
+        let data = ConvertType_1.ConvertType.MF2Item(await MediaFile.find({
+            where: {},
+            limit: limit,
+            skip: skip,
+            sort: sort
+        }));
+        // Общее количество записей
+        let totalRecords = await MediaFile.count({
+            where: {}
+        });
+        // Если загружено меньше записей, чем есть всего, то next = true
+        let next = (skip + limit) < totalRecords;
+        return {
+            data: data,
+            next: next
+        };
     }
-    async deleteRelations(model, modelId) {
-        let modelAssociations = await SelectedMediaFile.find({ where: { modelId: modelId, model: model } });
-        for (const modelAssociation of modelAssociations) {
-            await SelectedMediaFile.destroy(modelAssociation.id).fetch();
-        }
+    async searchAll(s) {
+        throw `Not implemented by allowSearch`;
     }
 }
-exports.DefaultMediaManager = DefaultMediaManager;
+exports.ProductMediaManager = ProductMediaManager;

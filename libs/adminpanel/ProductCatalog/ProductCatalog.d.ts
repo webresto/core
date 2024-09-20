@@ -1,5 +1,6 @@
 import { AbstractCatalog, AbstractItem, Item } from "sails-adminpanel/lib/catalog/AbstractCatalog";
 declare class BaseModelItem<T extends Item> extends AbstractItem<T> {
+    updateModelItems(modelId: string | number, data: any, catalogId: string): Promise<T>;
     type: string;
     name: string;
     allowedRoot: boolean;

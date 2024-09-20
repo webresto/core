@@ -1,4 +1,4 @@
-declare const _default: {
+export declare const models: {
     user: {
         title: string;
         model: string;
@@ -8,11 +8,6 @@ declare const _default: {
         model: string;
         title: string;
         icon: string;
-        list: {
-            fields: import("sails-adminpanel/interfaces/adminpanelConfig").FieldsModels;
-        };
-        edit: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
-        add: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
     };
     groups: {
         model: string;
@@ -65,4 +60,3 @@ declare const _default: {
         icon: string;
     };
 };
-export default _default;

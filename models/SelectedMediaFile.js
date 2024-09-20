@@ -11,22 +11,18 @@ let attributes = {
     sortOrder: "number",
     /** MediaFile reference */
     mediafile_dish: {
-        model: 'mediafile',
-        via: 'dish'
+        model: 'mediafile'
     },
     mediafile_group: {
-        model: 'mediafile',
-        via: 'group'
+        model: 'mediafile'
     },
     /** Group relation */
     group: {
-        model: "group",
-        via: "images"
+        model: "group"
     },
     /** Dish relation */
     dish: {
-        model: "dish",
-        via: "images"
+        model: "dish"
     },
 };
 let Model = {

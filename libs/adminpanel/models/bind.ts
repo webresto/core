@@ -1,6 +1,6 @@
 import { ProductConfig } from "./lib/product";
 
-export default {
+export const models = {
   user: {
     title: "User",
     model: "user",
@@ -10,9 +10,9 @@ export default {
     model: 'dish',
     title: 'Products',
     icon: 'hamburger', 
-    list: ProductConfig.list(),
-    edit: ProductConfig.edit(),
-    add: ProductConfig.add(),
+    // list: ProductConfig.list(),
+    // edit: ProductConfig.edit(),
+    // add: ProductConfig.add(),
   },
   groups: {
     model: 'group',

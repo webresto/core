@@ -1,59 +1,51 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ImageItem = void 0;
 const AbstractMediaManager_1 = require("sails-adminpanel/lib/media-manager/AbstractMediaManager");
-const sharp_1 = __importDefault(require("sharp"));
+const ConvertType_1 = require("./helpers/ConvertType");
+// todo: fix types model instance to {%ModelName%}Record for MediaFile';
+const fs = require('fs').promises;
+const path = require('path');
 class ImageItem extends AbstractMediaManager_1.File {
-    constructor(path, dir, model, metaModel) {
-        super(path, dir, null, null);
+    constructor() {
+        super(...arguments);
         this.type = "image";
     }
-    MF2Item(mf) {
-        let processItem = (mfItem) => {
-            return {
-                id: mfItem.id,
-                parent: null,
-                children: [],
-                mimeType: 'image/*',
-                path: mfItem.original,
-                size: 0,
-                image_size: {
-                    width: 0,
-                    height: 0,
-                    type: ''
-                },
-                cropType: '',
-                url: mfItem.variant.origin,
-                filename: '',
-                meta: []
-            };
-        };
-        if (Array.isArray(mf)) {
-            return mf.map((mfItem) => processItem(mfItem));
-        }
-        else {
-            return processItem(mf);
-        }
+    getMeta(id) {
+        throw new Error('Method not implemented.');
     }
-    Item2MF(itemOrItems) {
-        let processItem = (item) => {
-            return {
-                id: item.id,
-                original: item.path,
-                variant: {
-                    origin: item.url
-                }
-            };
-        };
-        if (Array.isArray(itemOrItems)) {
-            return itemOrItems.map((item) => processItem(item));
+    async upload(file, filename, origFileName, group) {
+        const destinationPath = path.join(this.dir, file.filename);
+        await fs.rename(file.fd, destinationPath);
+        try {
+            await fs.unlink(file.fd);
         }
-        else {
-            return processItem(itemOrItems);
+        catch (e) {
+            sails.log.error(e);
         }
+        let parent = ConvertType_1.ConvertType.MF2Item(await MediaFile.create(ConvertType_1.ConvertType.Item2MF({
+            parent: null,
+            mimeType: file.type,
+            size: file.size,
+            path: file.fd,
+            group: group,
+            tag: "origin",
+            filename: origFileName,
+            url: `/${this.path}/${filename}`,
+        })).fetch());
+        return [parent];
+    }
+    setMeta(id, data) {
+        throw new Error('Method not implemented.');
+    }
+    getVariants(id) {
+        throw new Error('Method not implemented.');
+    }
+    uploadVariant(item, file, fileName, group, localeId) {
+        throw new Error('Method not implemented.');
+    }
+    getOrirgin(id) {
+        throw new Error('Method not implemented.');
     }
     async getItems(limit, skip, sort) {
         let mediaFiles = await MediaFile.find({
@@ -69,7 +61,7 @@ class ImageItem extends AbstractMediaManager_1.File {
             sort: sort
         }));
         return {
-            data: this.MF2Item(mediaFiles),
+            data: ConvertType_1.ConvertType.MF2Item(mediaFiles),
             next: !!next
         };
     }
@@ -80,105 +72,39 @@ class ImageItem extends AbstractMediaManager_1.File {
         // 	sort: 'createdAt DESC'
         // }).populate('children', {sort: 'createdAt DESC'})
     }
-    async upload(file, filename, origFileName, imageSizes) {
-        let parent = await MediaFile.create(this.Item2MF({
-            parent: null,
-            mimeType: file.type,
-            size: file.size,
-            path: file.fd,
-            cropType: 'origin',
-            filename: origFileName,
-            image_size: null,
-            url: `/${this.path}/${filename}`
-        })).fetch();
-        if (Object.keys(imageSizes).length) {
-            await this.createSizes(file, parent, filename, imageSizes);
-        }
-        return this.MF2Item(await MediaFile.findOne({
-            where: { id: parent.id }
-        }));
-    }
-    async getChildren(id) {
-        return [];
-        return (await MediaFile.findOne({
-            where: { id: id }
-        }).populate('children', { sort: 'createdAt DESC' })).children;
-    }
-    async createSizes(file, parent, filename, imageSizes) {
-        console.log("SIZES");
-        // for (const sizeKey of Object.keys(imageSizes)) {
-        // 	let sizeName = randomFileName(filename, sizeKey, false)
-        // 	let {width, height} = imageSizes[sizeKey]
-        // 	if (parent.image_size.width < width || parent.image_size.height < height) continue
-        // 	let newFile = await this.resizeImage(file.fd, `${this.dir}${sizeName}`, width, height)
-        // 	await MediaFile.create(this.Item2MF({
-        // 		parent: parent.id,
-        // 		mimeType: parent.mimeType,
-        // 		size: newFile.size,
-        // 		filename: parent.filename,
-        // 		path: `${this.dir}${sizeName}`,
-        // 		cropType: sizeKey,
-        // 		url: `/${this.path}/${sizeName}`
-        // 	}))
-        // }
-    }
-    async createThumb(id, file, filename, origFileName) {
-        // const thumbName = randomFileName(filename, 'thumb', false)
-        // const thumb = await this.resizeImage(file.fd, `${this.dir}${thumbName}`, 150, 150)
-        // await MediaFile.create({
-        // 	parent: id,
-        // 	mimeType: file.type,
-        // 	size: thumb.size,
-        // 	cropType: 'thumb',
-        // 	path: `${this.dir}${thumbName}`,
-        // 	filename: origFileName,
-        // 	image_size: sizeOf(`${this.dir}${thumbName}`),
-        // 	url: `/${this.path}/${thumbName}`
-        // })
-    }
-    async createEmptyMeta(id) {
-        //create empty meta
-        // let metaData: Meta = {
-        // 	author: "",
-        // 	description: "",
-        // 	title: ""
-        // }
-        // for (const key of Object.keys(metaData)) {
-        // 	await sails.models[this.metaModel].create({
-        // 		key: key,
-        // 		value: metaData[key],
-        // 		parent: id
-        // 	})
-        // }
-    }
-    async getMeta(id) {
-        return [];
-        return (await MediaFile.findOne(id).populate('meta')).meta;
-    }
-    async setMeta(id, data) {
-        // for (const key of Object.keys(data)) {
-        // 	await sails.models[this.metaModel].update({parent: id, key: key}, {value: data[key]})
-        // }
-        return { msg: "success" };
-    }
-    async resizeImage(input, output, width, height) {
-        return await (0, sharp_1.default)(input)
-            .resize({ width: width, height: height })
-            .toFile(output);
-    }
-    async uploadCropped(parent, file, filename, config) {
-        return null;
-        // return await MediaFile.create({
-        // 	parent: parent.id,
-        // 	mimeType: file.type,
-        // 	size: file.size,
-        // 	path: file.fd,
-        // 	cropType: `${config.width}x${config.height}`,
-        // 	filename: parent.filename,
-        // 	image_size: sizeOf(file.fd),
-        // 	url: `/${this.path}/${filename}`
-        // }).fetch()
-    }
+    // public async upload2(file: UploaderFile, filename: string, origFileName: string, imageSizes?: imageSizes | {}): Promise<MediaManagerItem> {
+    // 	let parent = await MediaFile.create(this.Item2MF({
+    // 		parent: null,
+    // 		mimeType: file.type,
+    // 		size: file.size,
+    // 		path: file.fd,
+    // 		cropType: 'origin',
+    // 		filename: origFileName,
+    // 		image_size: null,
+    // 		url: `/${this.path}/${filename}`
+    // 	})).fetch();
+    // 	if (Object.keys(imageSizes).length) {
+    // 		await this.createSizes(file, parent, filename, imageSizes)
+    // 	}
+    // 	return ConvertType.MF2Item( await MediaFile.findOne({
+    // 		where: {id: parent.id}
+    // 	}));
+    // }
+    // public async ____getChildren(id: string): Promise<MediaManagerItem[]> {
+    // 	return [];
+    // 	return (await MediaFile.findOne({
+    // 		where: {id: id}
+    // 	}).populate('children', {sort: 'createdAt DESC'})).children
+    // }
+    // public async ____getMeta(id: string): Promise<{ key: string, value: string }[]> {
+    // 	return []
+    // 	return (await MediaFile.findOne(id).populate('meta')).meta
+    // }
+    // protected async ___resizeImage(input: string, output: string, width: number, height: number) {
+    // 	return await sharp(input)
+    // 		.resize({width: width, height: height})
+    // 		.toFile(output)
+    // }
     async delete(id) {
         await MediaFile.destroy({ where: { id: id } }).fetch();
     }

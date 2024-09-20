@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const product_1 = require("./lib/product");
-exports.default = {
+exports.models = void 0;
+exports.models = {
     user: {
         title: "User",
         model: "user",
@@ -11,9 +11,9 @@ exports.default = {
         model: 'dish',
         title: 'Products',
         icon: 'hamburger',
-        list: product_1.ProductConfig.list(),
-        edit: product_1.ProductConfig.edit(),
-        add: product_1.ProductConfig.add(),
+        // list: ProductConfig.list(),
+        // edit: ProductConfig.edit(),
+        // add: ProductConfig.add(),
     },
     groups: {
         model: 'group',

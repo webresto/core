@@ -18,25 +18,21 @@ let attributes = {
 
   /** MediaFile reference */
   mediafile_dish: {
-    model: 'mediafile',
-    via: 'dish'
+    model: 'mediafile'
   } as unknown as MediaFileRecord  | string,
 
   mediafile_group: {
-    model: 'mediafile',
-    via: 'group'
+    model: 'mediafile'
   } as unknown as MediaFileRecord | string,
 
   /** Group relation */
   group: {
-    model: "group",
-    via: "images"
+    model: "group"
   } as unknown as GroupRecord | string,
 
   /** Dish relation */
   dish: {
-    model: "dish",
-    via: "images"
+    model: "dish"
   } as unknown as DishRecord | string,
 };
 

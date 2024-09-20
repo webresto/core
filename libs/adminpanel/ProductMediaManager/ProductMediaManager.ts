@@ -1,89 +1,85 @@
 // todo: fix types model instance to {%ModelName%}Record for SelectedMediaFile";
-import {AbstractMediaManager, Item, File, MediaManagerWidgetItem, Data, MediaManagerWidgetJSON} from "sails-adminpanel/lib/media-manager/AbstractMediaManager";
+import {AbstractMediaManager, MediaManagerItem, File, MediaManagerWidgetItem, MediaManagerWidgetJSON, MediaManagerWidgetData, MediaManagerWidgetClientItem, SortCriteria} from "sails-adminpanel/lib/media-manager/AbstractMediaManager";
 import {ImageItem} from "./Items";
+import { ConvertType } from "./helpers/ConvertType";
 
-export class DefaultMediaManager extends AbstractMediaManager {
-	public readonly itemTypes: File<Item>[] = [];
-
-	constructor(id: string, path: string, dir: string, model: string, metaModel: string, modelAssoc: string) {
-		super(id, path, dir, model, modelAssoc);
-		this.itemTypes.push(new ImageItem(path, dir, model, metaModel))
+export class ProductMediaManager extends AbstractMediaManager {
+	id: string = 'product';
+	
+	constructor() {
+		super();
+		this.itemTypes.push(new ImageItem(process.cwd()+"/.tmp/", process.cwd()+"/.tmp/"));
+		console.log(this.itemTypes)
 	}
-
-	public async getAll(limit: number, skip: number, sort: string): Promise<{ data: Item[], next: boolean }> {
-		let data: Item[] = await MediaFile.find({
-			where: {},
-			limit: limit,
-			skip: skip,
-			sort: sort//@ts-ignore
-		}).populate('children', {sort: sort})
-
-		let next: number = await MediaFile.count({
-			where: {},
-			limit: limit,
-			skip: skip === 0 ? limit : skip + limit,
-			sort: sort
-		})
-
-		return {
-			data: data,
-			next: !!next
-		}
-	}
-
-	public async searchAll(s: string): Promise<Item[]> {
-		return []
-		// return await MediaFile.find({
-		// 	where: {filename: {contains: s}, parent: null},
-		// 	sort: 'createdAt DESC'
-		// }).populate('children', {sort: 'createdAt DESC'})
-	}
-
-	public async saveRelations(data: Data, model: string, modelId: string, modelAttribute: string): Promise<void> {
-		let widgetItems: MediaManagerWidgetItem[] = []
+	
+	public async setRelations(
+		data: MediaManagerWidgetData, 
+		model: string, 
+		modelId: string, 
+		widgetName: string
+	): Promise<void> {
+		sails.log.silly(`Starting setRelations for model: ${model}, modelId: ${modelId}, widgetName: ${widgetName}`);
+	
+		// Debugging initial destruction query
+		let destroy: Record<string, string | number> = {};
+		destroy[`mediafile_${model}`] = modelId;
+		sails.log.silly(`Destroying selected media files with criteria:`, destroy);
+		await SelectedMediaFile.destroy(destroy).fetch();
+	
+		// Debugging loop over data.list
 		for (const [key, widgetItem] of data.list.entries()) {
-			let init: Record<string, string | number> = {}
-			init[`mediafile_${model}`] = widgetItem.id
-			init[model] = modelId
-			init["sortOrder"] = key + 1
-			let record = await SelectedMediaFile.create(init).fetch()
-			// widgetItems.push({
-			// 	id: record.id as string,
-			// })
+			let init: Record<string, string | number> = {};
+			init[`mediafile_${model}`] = widgetItem.id;
+			init[model] = modelId;
+			init["sortOrder"] = key + 1;
+	
+			sails.log.silly(`Creating selected media file with data:`, init);
+			await SelectedMediaFile.create(init).fetch();
 		}
-
-		// let updateData: { [key: string]: MediaManagerWidgetJSON } = {}
-
-		// updateData[modelAttribute] = {list: widgetItems, mediaManagerId: this.id}
-
-		// await MediaFile.update({id: modelId}, updateData)
+	
+		sails.log.debug(`Completed setRelations for model: ${model}, modelId: ${modelId}, widgetName: ${widgetName}`);
 	}
 
-	public async getRelations(items: MediaManagerWidgetItem[]): Promise<MediaManagerWidgetItem[]> {
-		interface widgetItemVUE extends MediaManagerWidgetItem {
-			children: Item[]
-		}
-		let widgetItems: widgetItemVUE[] = []
+	public async getRelations(items: MediaManagerWidgetItem[]): Promise<MediaManagerWidgetClientItem[]> {
+		const widgetItems: MediaManagerWidgetClientItem[] = []
 		for (const item of items) {
-			let record = (await SelectedMediaFile.find({where: {id: item.id}}))[0]
-			let file = (await MediaFile.find({where: {id: record.file}}).populate('children', {sort: 'createdAt DESC'}))[0] as Item
-			widgetItems.push({
-				id: file.id,
-				children: file.children,
-			})
+			let file = await MediaFile.findOne({id: item.id});
+			const widgetItem: MediaManagerWidgetClientItem = {
+				mimeType: `${file.type}/xxx`,
+				variants: null,
+				id: file.id
+			}
+			widgetItems.push(widgetItem);
 		}
 		return widgetItems
 	}
-
-	public async updateRelations(data: Data, model: string, modelId: string, modelAttribute: string): Promise<void>{
-		await  this.deleteRelations(model, modelId)
-		await this.saveRelations(data, model, modelId, modelAttribute)
-	}
-
-	public async deleteRelations(model: string, modelId: string): Promise<void>{
-		let modelAssociations = await SelectedMediaFile.find({where: {modelId: modelId, model: model}})
-		for (const modelAssociation of modelAssociations) {
-			await SelectedMediaFile.destroy(modelAssociation.id).fetch()
+	
+	public async getAll(limit: number, skip: number, sort: SortCriteria, group?: string): Promise<{ data: MediaManagerItem[]; next: boolean; }> {
+		let data: MediaManagerItem[] = ConvertType.MF2Item(
+			await MediaFile.find({
+				where: {},
+				limit: limit,
+				skip: skip,
+				sort: sort
+			})		
+		) 
+	
+		// Общее количество записей
+		let totalRecords: number = await MediaFile.count({
+			where: {}
+		})
+	
+		// Если загружено меньше записей, чем есть всего, то next = true
+		let next: boolean = (skip + limit) < totalRecords;
+	
+		return {
+			data: data,
+			next: next
 		}
+	}
+	
+
+	public async searchAll(s: string): Promise<MediaManagerItem[]> {
+		throw `Not implemented by allowSearch`
 	}
 }

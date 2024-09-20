@@ -1,4 +1,4 @@
-import { CreateUpdateConfig, FieldsModels } from "sails-adminpanel/interfaces/adminpanelConfig"
+import { CreateUpdateConfig, FieldsModels, MediaManagerOptionsField } from "sails-adminpanel/interfaces/adminpanelConfig"
 
 export class ProductConfig {
     static fields: FieldsModels = {
@@ -129,25 +129,24 @@ export class ProductConfig {
         images: {
             title: "Images",
             type: 'mediamanager',
-				options: {
-					config: {
-						convert: 'image/jpeg', // only 'image/webp' or 'image/jpeg'
-						sizes: [
-							{
-								lg: {
-									width: 750,
-									height: 750
-								}
-							},
-							{
-								sm: {
-									width: 350,
-									height: 350
-								}
-							},
-						]
-					}
-				},
+            options: {
+                id: "product",
+                convert: 'image/jpeg', // only 'image/webp' or 'image/jpeg'
+                sizes: [
+                    {
+                        lg: {
+                            width: 750,
+                            height: 750
+                        }
+                    },
+                    {
+                        sm: {
+                            width: 350,
+                            height: 350
+                        }
+                    },
+                ]
+            } as MediaManagerOptionsField,
             tooltip: "A list of images associated with the dish. These images are used to visually represent the dish and can be selected for display in the menu."
         },
         favorites: false,
