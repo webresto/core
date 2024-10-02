@@ -290,7 +290,12 @@ let Model = {
 
     if (!groupSlug) throw "groupSlug is required"
 
-    const groupObj = await Group.findOne({ slug: groupSlug });
+    let groupObj;
+    if(process.env.UNIQUE_SLUG) {
+      groupObj = await Group.findOne({ slug: groupSlug });
+    } else {
+      groupObj = await Group.find({ slug: groupSlug, isDeleted: false, visible: true });
+    }
 
     if (!groupObj) {
       throw "group with slug " + groupSlug + " not found";

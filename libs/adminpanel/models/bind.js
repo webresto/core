@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.models = void 0;
+const group_1 = require("./lib/group");
+const product_1 = require("./lib/product");
 exports.models = {
     user: {
         title: "User",
@@ -11,14 +13,17 @@ exports.models = {
         model: 'dish',
         title: 'Products',
         icon: 'hamburger',
-        // list: ProductConfig.list(),
-        // edit: ProductConfig.edit(),
-        // add: ProductConfig.add(),
+        list: product_1.ProductConfig.list(),
+        edit: product_1.ProductConfig.edit(),
+        add: product_1.ProductConfig.add(),
     },
     groups: {
         model: 'group',
         title: 'Groups',
-        icon: 'folder'
+        icon: 'folder',
+        list: group_1.GroupConfig.list(),
+        edit: group_1.GroupConfig.edit(),
+        add: group_1.GroupConfig.add(),
     },
     orders: {
         model: 'order',

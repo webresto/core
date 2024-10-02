@@ -1,3 +1,4 @@
+import { GroupConfig } from "./lib/group";
 import { ProductConfig } from "./lib/product";
 
 export const models = {
@@ -10,14 +11,17 @@ export const models = {
     model: 'dish',
     title: 'Products',
     icon: 'hamburger', 
-    // list: ProductConfig.list(),
-    // edit: ProductConfig.edit(),
-    // add: ProductConfig.add(),
+    list: ProductConfig.list(),
+    edit: ProductConfig.edit(),
+    add: ProductConfig.add(),
   },
   groups: {
     model: 'group',
     title: 'Groups',
-    icon: 'folder'
+    icon: 'folder',
+    list: GroupConfig.list(),
+    edit: GroupConfig.edit(),
+    add: GroupConfig.add(),
   },
   orders: {
     model: 'order',
