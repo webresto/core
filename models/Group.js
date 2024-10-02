@@ -229,7 +229,7 @@ let Model = {
         if (!groupSlug)
             throw "groupSlug is required";
         let groupObj;
-        if (process.env.UNIQUE_SLUG) {
+        if (process.env.UNIQUE_SLUG === "1") {
             groupObj = await Group.findOne({ slug: groupSlug });
         }
         else {
