@@ -233,7 +233,7 @@ let Model = {
             groupObj = await Group.findOne({ slug: groupSlug });
         }
         else {
-            groupObj = await Group.find({ slug: groupSlug, isDeleted: false, visible: true });
+            groupObj = (await Group.find({ slug: groupSlug, isDeleted: false }).limit(1))[0];
         }
         if (!groupObj) {
             throw "group with slug " + groupSlug + " not found";
@@ -324,10 +324,11 @@ let Model = {
                     menuTopLevelSlug = await Settings.get(`SLUG_MENU_TOP_LEVEL`);
                 }
                 if (menuTopLevelSlug) {
-                    let menuTopLevelGroup = await Group.findOne({
+                    let menuTopLevelGroup = (await Group.find({
                         slug: menuTopLevelSlug,
-                        ...concept && { concept: concept }
-                    });
+                        ...concept && { concept: concept },
+                        isDeleted: false
+                    }).limit(1))[0];
                     if (menuTopLevelGroup) {
                         topLevelGroupId = menuTopLevelGroup.id;
                     }
@@ -438,6 +439,7 @@ let Model = {
         else {
             throw `no id/rmsId provided`;
         }
+        // TODO: possible to error find many by rmsId
         const group = await Group.findOne(criteria);
         if (!group) {
             return Group.create(values).fetch();
