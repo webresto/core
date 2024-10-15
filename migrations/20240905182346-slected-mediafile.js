@@ -23,6 +23,7 @@ exports.up = function (db, callback) {
     (cb) => db.addColumn('selectedmediafile', 'sortOrder', { type: 'real' }, cb),
     (cb) => db.addColumn('selectedmediafile', 'createdAt', { type: 'bigint' }, cb),
     (cb) => db.addColumn('selectedmediafile', 'updatedAt', { type: 'bigint' }, cb),
+    (cb) => db.addColumn('selectedmediafile', 'group', { type: 'string' }, cb),
     (cb) => db.addColumn('selectedmediafile', 'mediafile_group', { type: 'text' }, cb),
     (cb) => db.addColumn('mediafile', 'variant', { type: 'json' }, cb),
   ], callback);
