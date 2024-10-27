@@ -62,8 +62,12 @@ class ImageItem extends AbstractMediaManager_1.File {
     uploadVariant(item, file, fileName, group, localeId) {
         throw new Error('Method not implemented.');
     }
-    async getOrirgin(id) {
-        return path.join(process.cwd(), (await MediaFile.findOne({ where: { id: id }, })).originalFilePath);
+    async getOrigin(id) {
+        const mf = await MediaFile.findOne({ where: { id: id } });
+        if (!mf) {
+            throw `get origin fail with id: ${id}`;
+        }
+        return path.resolve(process.cwd(), mf.originalFilePath || mf.original || '');
     }
     async getItems(limit, skip, sort) {
         let mediaFiles = await MediaFile.find({

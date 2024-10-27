@@ -68,8 +68,13 @@ export class ImageItem extends File<MediaManagerItem> {
 		throw new Error('Method not implemented.');
 	}
 
-    public async getOrirgin(id: string): Promise<string> {
-        return path.join(process.cwd(), (await MediaFile.findOne({ where: { id: id }, })).originalFilePath);
+    public async getOrigin(id: string): Promise<string> {
+		const mf = await MediaFile.findOne({ where: { id: id }})
+		if(!mf){
+            throw `get origin fail with id: ${id}`
+        }
+
+        return path.resolve(process.cwd(), mf.originalFilePath || mf.original || '');
     }
 
 	public async getItems(limit: number, skip: number, sort: string): Promise<{ data: MediaManagerItem[]; next: boolean }> {

@@ -36,7 +36,8 @@ export class ConvertType {
             const _type = item.mimeType.split('/')[0]
             return {
                 id: item.id,
-                original: item.path,
+                original: `file://${item.path}`,
+                originalFilePath: item.path,
                 type: allowedTypes.includes(_type) ? _type : (() => { throw new Error(`Invalid type ${_type}`) })(),
                 variant: {
                     origin: item.url
