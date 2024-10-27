@@ -1,5 +1,6 @@
 import { MediaManagerItem } from "sails-adminpanel/lib/media-manager/AbstractMediaManager";
 import { MediaFileRecord } from "../../../../models/MediaFile";
+const allowedTypes = ['video', 'image', 'audio'];
 
 export class ConvertType {
 
@@ -32,9 +33,11 @@ export class ConvertType {
     public static Item2MF(items: Partial<MediaManagerItem>[]): MediaFileRecord[]
     public static Item2MF(itemOrItems: Partial<MediaManagerItem> | Partial<MediaManagerItem>[]): MediaFileRecord | MediaFileRecord[] {
         let processItem = (item: Partial<MediaManagerItem>): MediaFileRecord => {
+            const _type = item.mimeType.split('/')[0]
             return {
                 id: item.id,
                 original: item.path,
+                type: allowedTypes.includes(_type) ? _type : (() => { throw new Error(`Invalid type ${_type}`) })(),
                 variant: {
                     origin: item.url
                 }

@@ -34,7 +34,7 @@ let attributes = {
     /** Type of media content */
     type: {
         type: "string",
-        isIn: ['video', 'image', 'sound']
+        isIn: ['video', 'image', 'audio']
     },
     /**
      * @deprecated use variant field

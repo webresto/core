@@ -8,7 +8,7 @@ export class ProductMediaManager extends AbstractMediaManager {
 	
 	constructor() {
 		super();
-		this.itemTypes.push(new ImageItem(process.cwd()+"/.tmp/", process.cwd()+"/.tmp/"));
+		this.itemTypes.push(new ImageItem('/image', process.cwd()+"/.tmp/public/image"));
 		console.log(this.itemTypes)
 	}
 	

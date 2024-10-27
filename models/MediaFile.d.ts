@@ -7,7 +7,7 @@ declare let attributes: {
     /** ID */
     id: string;
     /** Type of media content */
-    type: "video" | "image" | "sound";
+    type: "video" | "image" | "audio";
     /**
      * @deprecated use variant field
      * TODO: delete in ver 3

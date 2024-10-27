@@ -3,7 +3,7 @@ export interface BaseConfig {
     [key: string]: BaseConfigProperty;
 }
 export type ConfigMediaFileAdapter = BaseConfig;
-export type MediaFileTypes = 'image' | 'video' | 'sound';
+export type MediaFileTypes = 'image' | 'video' | 'audio';
 export default abstract class MediaFileAdapter {
     private config;
     private initializationPromise;

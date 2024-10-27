@@ -9,7 +9,7 @@ class ProductMediaManager extends AbstractMediaManager_1.AbstractMediaManager {
     constructor() {
         super();
         this.id = 'product';
-        this.itemTypes.push(new Items_1.ImageItem(process.cwd() + "/.tmp/", process.cwd() + "/.tmp/"));
+        this.itemTypes.push(new Items_1.ImageItem('/image', process.cwd() + "/.tmp/public/image"));
         console.log(this.itemTypes);
     }
     async setRelations(data, model, modelId, widgetName) {

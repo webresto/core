@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConvertType = void 0;
+const allowedTypes = ['video', 'image', 'audio'];
 class ConvertType {
     static MF2Item(mf) {
         let processItem = (mfItem) => {
@@ -26,9 +27,11 @@ class ConvertType {
     }
     static Item2MF(itemOrItems) {
         let processItem = (item) => {
+            const _type = item.mimeType.split('/')[0];
             return {
                 id: item.id,
                 original: item.path,
+                type: allowedTypes.includes(_type) ? _type : (() => { throw new Error(`Invalid type ${_type}`); })(),
                 variant: {
                     origin: item.url
                 }

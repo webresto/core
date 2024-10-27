@@ -10,7 +10,7 @@ export interface BaseConfig {
 
 export type ConfigMediaFileAdapter = BaseConfig;
 
-export type MediaFileTypes = 'image' | 'video' | 'sound';
+export type MediaFileTypes = 'image' | 'video' | 'audio';
 
 export default abstract class MediaFileAdapter {
   private config: ConfigMediaFileAdapter;
@@ -79,8 +79,8 @@ export default abstract class MediaFileAdapter {
           // mediaFile.video = ???
           break;
 
-        case "sound":
-          // mediaFile.sound = ???
+        case "audio":
+          // mediaFile.audio = ???
           break;
 
         default:

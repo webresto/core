@@ -8,6 +8,7 @@ import { ConvertType } from './helpers/ConvertType';
 const fs = require('fs').promises;
 const path = require('path');
 
+
 export class ImageItem extends File<MediaManagerItem> {
 
 	public getMeta(id: string): Promise<{ key: string; value: string; }[]> {
@@ -15,26 +16,47 @@ export class ImageItem extends File<MediaManagerItem> {
 	}
 	public type: MediaFileType = "image";
 	public async upload(file: UploaderFile, filename: string, origFileName: string, group?: string): Promise<MediaManagerItem[]> {
-		const destinationPath = path.join(this.dir, file.filename);
-		await fs.rename(file.fd, destinationPath);
+		const destinationPath = path.join(this.dir, filename);
+		// Check if the file exists at the given fd path
 		try {
-			await fs.unlink(file.fd);
-		} catch(e) {
-			sails.log.error(e)
+			await fs.access(file.fd);
+		} catch (error) {
+			sails.log.error(`File not found at path: ${file.fd}`);
+			throw new Error(`File not found: ${file.fd}`);
 		}
-		let parent: MediaManagerItem = ConvertType.MF2Item(await MediaFile.create(ConvertType.Item2MF({
-				parent: null,
-				mimeType: file.type,
-				size: file.size,
-				path: file.fd,
-				group: group,
-				tag: "origin",
-				filename: origFileName,
-				url: `/${this.path}/${filename}`,
-			})).fetch())
+		console.log(">>>>", destinationPath);
 
-		return [parent]
+		// Ensure the destination directory exists
+		const destinationDir = path.dirname(destinationPath);
+		try {
+			await fs.mkdir(destinationDir, { recursive: true });
+		} catch (error) {
+			sails.log.error(`Failed to create directory: ${destinationDir}`);
+			throw new Error(`Could not create directory: ${destinationDir}`);
+		}
+		// TODO: possibe diffenrent block device
+		await fs.rename(file.fd, destinationPath);		
+		
+		// try {
+		// 	await fs.unlink(file.fd);
+		// } catch (e) {
+		// 	sails.log.error(e);
+		// }
+	
+		let parent: MediaManagerItem = ConvertType.MF2Item(await MediaFile.create(ConvertType.Item2MF({
+			parent: null,
+			mimeType: file.type,
+			size: file.size,
+			path: destinationPath,
+			group: group,
+			tag: "origin",
+			filename: origFileName,
+			url: `${this.path}/${filename}`,
+		})).fetch());
+	
+		return [parent];
 	}
+	
 
 	public setMeta(id: string, data: { [key: string]: string; }): Promise<void> {
 		throw new Error('Method not implemented.');
@@ -45,9 +67,10 @@ export class ImageItem extends File<MediaManagerItem> {
 	public uploadVariant(item: MediaManagerItem, file: UploaderFile, fileName: string, group?: string, localeId?: string): Promise<MediaManagerItem> {
 		throw new Error('Method not implemented.');
 	}
-	public getOrirgin(id: string): Promise<string> {
-		throw new Error('Method not implemented.');
-	}
+
+    public async getOrirgin(id: string): Promise<string> {
+        return (await MediaFile.findOne({ where: { id: id }, })).original;
+    }
 
 	public async getItems(limit: number, skip: number, sort: string): Promise<{ data: MediaManagerItem[]; next: boolean }> {
 		let mediaFiles = await MediaFile.find({

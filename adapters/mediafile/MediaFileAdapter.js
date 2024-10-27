@@ -52,8 +52,8 @@ class MediaFileAdapter {
                 case "video":
                     // mediaFile.video = ???
                     break;
-                case "sound":
-                    // mediaFile.sound = ???
+                case "audio":
+                    // mediaFile.audio = ???
                     break;
                 default:
                     throw `mediaFile type not known ${type}`;
