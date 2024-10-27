@@ -26,6 +26,7 @@ exports.up = function (db, callback) {
     (cb) => db.addColumn('selectedmediafile', 'group', { type: 'string' }, cb),
     (cb) => db.addColumn('selectedmediafile', 'mediafile_group', { type: 'text' }, cb),
     (cb) => db.addColumn('mediafile', 'variant', { type: 'json' }, cb),
+    (cb) => db.addColumn('mediafile', 'originalFilePath', { type: 'text' }, cb),
   ], callback);
 };
 

@@ -70,9 +70,12 @@ export default abstract class MediaFileAdapter {
       if (target && this.config && this.config[target]) {
         loadConfig = this.config[target];
       }
+      let originalFilePath = ""
       switch (type) {
         case "image":
-          mediaFile.images = await this.process(url, "image", loadConfig);
+          const process =  await this.process(url, "image", loadConfig);
+          mediaFile.images = process.variant
+          originalFilePath = process.originalFilePath;
           break;
 
         case "video":
@@ -87,15 +90,14 @@ export default abstract class MediaFileAdapter {
           throw `mediaFile type not known ${type}`
           break;
       }
-
       /**
        * The problem remains that we cannot know whether the picture has loaded or not, and therefore. if it doesn't exist you need to somehow remove MF
        */
-      mediaFile = (await MediaFile.update({ id: mediaFile.id }, { images: mediaFile.images, original: url, type: type }).fetch())[0]
+      mediaFile = (await MediaFile.update({ id: mediaFile.id }, { images: mediaFile.images, original: url, originalFilePath, type }).fetch())[0]
     }
     return mediaFile;
   };
 
 
-  public abstract process(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{ origin: string, small: string, large: string }>;
+  public abstract process(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{variant: { origin: string, small: string, large: string }, originalFilePath: string}>;
 }

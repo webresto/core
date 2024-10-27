@@ -63,7 +63,7 @@ class ImageItem extends AbstractMediaManager_1.File {
         throw new Error('Method not implemented.');
     }
     async getOrirgin(id) {
-        return (await MediaFile.findOne({ where: { id: id }, })).original;
+        return path.join(process.cwd(), (await MediaFile.findOne({ where: { id: id }, })).originalFilePath);
     }
     async getItems(limit, skip, sort) {
         let mediaFiles = await MediaFile.find({

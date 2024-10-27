@@ -47,7 +47,10 @@ let attributes = {
      * This is automatically cloned from images and vice versa
      * Image items */
     variant: "json",
+    /** It means Original URL http:// or file:// */
     original: "string",
+    /** It means locale copy of original file */
+    originalFilePath: "string",
     /** relations */
     dish: {
         collection: "dish",

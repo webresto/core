@@ -5,6 +5,8 @@ import { v5 as uuidv5 } from "uuid";
 import * as path from "path";
 //@ts-ignore
 import sharp from 'sharp';
+import { IMediaFile, MediaFileRecord } from "../../../models/MediaFile";
+import { or } from "ajv/dist/compile/codegen";
 // todo: fix types model instance to {%ModelName%}Record for MediaFile";
 
 
@@ -63,7 +65,7 @@ interface LoadMediaFilesProcess {
 // },
 
 export default class LocalMediaFileAdapter extends MediaFileAdapter {
-  public async checkFileExist(mediaFile: IMediaFile): Promise<boolean> {
+  public async checkFileExist(mediaFile: MediaFileRecord): Promise<boolean> {
     let allFileExist: boolean = true;
   
     if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && mediaFile.images !== null && Object.keys(mediaFile.images).length) {
@@ -109,7 +111,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     return baseName;
   }
 
-  public async process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<ImageVariants> {
+  public async process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<{variant: ImageVariants, originalFilePath: string}> {
     const baseConfig: MediaFileConfigInner = {
       format: "webp",
       resize: {
@@ -152,21 +154,29 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
         result[key as keyof ImageVariants] = "/" + type + "/" + name[key as keyof ImageVariants];
       }
     }
-    return result;
+    return {
+      variant: result,
+      originalFilePath: this.getOriginalFilePath(url, type)
+    };
   }
 
   protected getPrefix(type?: MediaFileTypes) {
     if(type){
-      return path.join(process.cwd(), ".tmp/public", type);
+      return path.join(".tmp/public", type);
     } else {
-      return path.join(process.cwd(), ".tmp/public");
+      return path.join(".tmp/public");
     }
   }
 
+  getOriginalFilePath(url: string, type: MediaFileTypes){
+    const prefix = this.getPrefix(type);
+    const originalFilePath = path.join(prefix, this.getNameByUrl(url, ''));
+    return originalFilePath;
+  }
 
-  protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<void> {
+  protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<string> {
     const prefix = this.getPrefix(loadMediaFilesProcess.type);
-    const fullPathDl = path.join(prefix, loadMediaFilesProcess.name.origin);
+    const fullPathDl = path.join(process.cwd(), prefix, loadMediaFilesProcess.name.origin);
   
     // Check if file exists
     if (!fs.existsSync(fullPathDl)) {
@@ -199,6 +209,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
         sails.log.error(`Unsupported URL protocol: ${url}`);
         throw new Error(`Unsupported URL protocol: ${url}`);
       }
+      return fullPathDl
     } else {
       sails.log.silly(`File ${fullPathDl} already exists. Skipping download.`);
     }
@@ -227,7 +238,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
         const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALLEL_TO_DOWNLOAD);
         const downloadPromises = loadMediaFilesProcesses.map(async (loadMediaFilesProcess) => {
           try {
-            await this.download(loadMediaFilesProcess);
+            const fullPathDl = await this.download(loadMediaFilesProcess);
             const prefix = this.getPrefix(loadMediaFilesProcess.type);
             switch (loadMediaFilesProcess.type) {
               case "image":

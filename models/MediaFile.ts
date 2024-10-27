@@ -33,8 +33,11 @@ let attributes = {
    * Image items */
   variant: "json" as unknown as {[key: string]: string | undefined} ,
 
+  /** It means Original URL http:// or file:// */
   original: "string",
-
+  
+  /** It means locale copy of original file */
+  originalFilePath: "string",
 
   /** relations */
   dish: {

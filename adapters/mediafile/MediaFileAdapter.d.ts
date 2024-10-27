@@ -20,8 +20,11 @@ export default abstract class MediaFileAdapter {
     abstract checkFileExist(mediaFile: IMediaFile): Promise<boolean>;
     toDownload(url: string, target: string, type: MediaFileTypes, force?: boolean): Promise<IMediaFile>;
     abstract process(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{
-        origin: string;
-        small: string;
-        large: string;
+        variant: {
+            origin: string;
+            small: string;
+            large: string;
+        };
+        originalFilePath: string;
     }>;
 }

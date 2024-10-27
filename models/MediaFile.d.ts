@@ -23,7 +23,10 @@ declare let attributes: {
     variant: {
         [key: string]: string | undefined;
     };
+    /** It means Original URL http:// or file:// */
     original: string;
+    /** It means locale copy of original file */
+    originalFilePath: string;
     /** relations */
     dish: DishRecord[] | string[];
     /** Group relation */

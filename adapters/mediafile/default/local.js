@@ -125,19 +125,27 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                 result[key] = "/" + type + "/" + name[key];
             }
         }
-        return result;
+        return {
+            variant: result,
+            originalFilePath: this.getOriginalFilePath(url, type)
+        };
     }
     getPrefix(type) {
         if (type) {
-            return path.join(process.cwd(), ".tmp/public", type);
+            return path.join(".tmp/public", type);
         }
         else {
-            return path.join(process.cwd(), ".tmp/public");
+            return path.join(".tmp/public");
         }
+    }
+    getOriginalFilePath(url, type) {
+        const prefix = this.getPrefix(type);
+        const originalFilePath = path.join(prefix, this.getNameByUrl(url, ''));
+        return originalFilePath;
     }
     async download(loadMediaFilesProcess) {
         const prefix = this.getPrefix(loadMediaFilesProcess.type);
-        const fullPathDl = path.join(prefix, loadMediaFilesProcess.name.origin);
+        const fullPathDl = path.join(process.cwd(), prefix, loadMediaFilesProcess.name.origin);
         // Check if file exists
         if (!fs.existsSync(fullPathDl)) {
             let response;
@@ -166,6 +174,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                 sails.log.error(`Unsupported URL protocol: ${url}`);
                 throw new Error(`Unsupported URL protocol: ${url}`);
             }
+            return fullPathDl;
         }
         else {
             sails.log.silly(`File ${fullPathDl} already exists. Skipping download.`);
@@ -189,7 +198,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                 const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALLEL_TO_DOWNLOAD);
                 const downloadPromises = loadMediaFilesProcesses.map(async (loadMediaFilesProcess) => {
                     try {
-                        await this.download(loadMediaFilesProcess);
+                        const fullPathDl = await this.download(loadMediaFilesProcess);
                         const prefix = this.getPrefix(loadMediaFilesProcess.type);
                         switch (loadMediaFilesProcess.type) {
                             case "image":

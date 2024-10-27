@@ -69,7 +69,7 @@ export class ImageItem extends File<MediaManagerItem> {
 	}
 
     public async getOrirgin(id: string): Promise<string> {
-        return (await MediaFile.findOne({ where: { id: id }, })).original;
+        return path.join(process.cwd(), (await MediaFile.findOne({ where: { id: id }, })).originalFilePath);
     }
 
 	public async getItems(limit: number, skip: number, sort: string): Promise<{ data: MediaManagerItem[]; next: boolean }> {
