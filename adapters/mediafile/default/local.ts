@@ -132,7 +132,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     const origin = this.getNameByUrl(url, mediafileExtension);
 
     const name: ImageVariants = {
-      origin: origin,
+      origin: `/image/${origin}`,
       small: undefined,
       large: undefined
     };
@@ -170,13 +170,18 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
   getOriginalFilePath(url: string, type: MediaFileTypes){
     const prefix = this.getPrefix(type);
-    const originalFilePath = path.join(prefix, this.getNameByUrl(url, ''));
+    const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
+    let mediafileExtension = '';
+    if (isFilePath && isFilePath.length > 0) {
+        mediafileExtension = isFilePath[0].replace('.', '');
+    }
+    const originalFilePath = path.join(prefix, this.getNameByUrl(url, mediafileExtension));
     return originalFilePath;
   }
 
   protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<string> {
     const prefix = this.getPrefix(loadMediaFilesProcess.type);
-    const fullPathDl = path.join(process.cwd(), prefix, loadMediaFilesProcess.name.origin);
+    const fullPathDl = path.join(process.cwd(), this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type));
   
     // Check if file exists
     if (!fs.existsSync(fullPathDl)) {
