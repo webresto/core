@@ -122,7 +122,13 @@ class RMSAdapter {
                                         // load image
                                         const mfAdater = await Adapter.getMediaFileAdapter();
                                         const mediaFileImage = await mfAdater.toDownload(image, "dish", "image");
-                                        await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
+                                        // await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
+                                        const model = 'dish';
+                                        let init = {};
+                                        init[`mediafile_${model}`] = mediaFileImage.id;
+                                        init[model] = createdProduct.id;
+                                        init["sortOrder"] = 0;
+                                        await SelectedMediaFile.create(init).fetch();
                                     }
                                     else {
                                         sails.log.silly(`Image not url on sync products ${image}`);
