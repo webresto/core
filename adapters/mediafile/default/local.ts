@@ -5,8 +5,8 @@ import { v5 as uuidv5 } from "uuid";
 import * as path from "path";
 //@ts-ignore
 import sharp from 'sharp';
-import { IMediaFile, MediaFileRecord } from "../../../models/MediaFile";
-import { or } from "ajv/dist/compile/codegen";
+import { MediaFileRecord } from "../../../models/MediaFile";
+
 // todo: fix types model instance to {%ModelName%}Record for MediaFile";
 
 
@@ -190,6 +190,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
   
         fs.mkdirSync(prefix, { recursive: true });
         fs.copyFileSync(localFilePath, fullPathDl);
+        fs.unlinkSync(localFilePath);
         return; // Exit the method since the file is copied
       } else if (url.startsWith('http://') || url.startsWith('https://')) {
         // Handle HTTP/HTTPS URL

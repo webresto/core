@@ -15,42 +15,9 @@ class ImageItem extends AbstractMediaManager_1.File {
         throw new Error('Method not implemented.');
     }
     async upload(file, filename, origFileName, group) {
-        const destinationPath = path.join(this.dir, filename);
-        // Check if the file exists at the given fd path
-        try {
-            await fs.access(file.fd);
-        }
-        catch (error) {
-            sails.log.error(`File not found at path: ${file.fd}`);
-            throw new Error(`File not found: ${file.fd}`);
-        }
-        console.log(">>>>", destinationPath);
-        // Ensure the destination directory exists
-        const destinationDir = path.dirname(destinationPath);
-        try {
-            await fs.mkdir(destinationDir, { recursive: true });
-        }
-        catch (error) {
-            sails.log.error(`Failed to create directory: ${destinationDir}`);
-            throw new Error(`Could not create directory: ${destinationDir}`);
-        }
-        // TODO: possibe diffenrent block device
-        await fs.rename(file.fd, destinationPath);
-        // try {
-        // 	await fs.unlink(file.fd);
-        // } catch (e) {
-        // 	sails.log.error(e);
-        // }
-        let parent = ConvertType_1.ConvertType.MF2Item(await MediaFile.create(ConvertType_1.ConvertType.Item2MF({
-            parent: null,
-            mimeType: file.type,
-            size: file.size,
-            path: destinationPath,
-            group: group,
-            tag: "origin",
-            filename: origFileName,
-            url: `${this.path}/${filename}`,
-        })).fetch());
+        const mfAdater = await Adapter.getMediaFileAdapter();
+        const mediaFile = await mfAdater.toProcess(file.fd, "dish", "image");
+        let parent = ConvertType_1.ConvertType.MF2Item(mediaFile);
         return [parent];
     }
     setMeta(id, data) {

@@ -18,9 +18,9 @@ class MediaFileAdapter {
     async wait() {
         await this.initializationPromise;
     }
-    async toDownload(url, target, type, force = false) {
+    async toProcess(url, target, type, force = false) {
         await this.wait();
-        sails.log.silly(`Adapter > Mediafile > toDownload: ${url}`);
+        sails.log.silly(`Adapter > Mediafile > toProcess: ${url}`);
         let imageId = (0, uuid_1.v5)(url, this.UUID_NAMESPACE);
         let mediaFile = await MediaFile.findOne({ id: imageId });
         let toDownload = force;

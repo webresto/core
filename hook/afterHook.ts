@@ -14,7 +14,7 @@ export default async function () {
     const timezone = await Settings.get("TZ");
     process.env.TZ = timezone;
 
-    if (!await Settings.get("UUID_NAMESPACE")) {
+    if (await Settings.get("UUID_NAMESPACE") === undefined) {
       await Settings.set("UUID_NAMESPACE", {
         value: generateUUID()
       })

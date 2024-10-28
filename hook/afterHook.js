@@ -13,7 +13,7 @@ async function default_1() {
          */
         const timezone = await Settings.get("TZ");
         process.env.TZ = timezone;
-        if (!await Settings.get("UUID_NAMESPACE")) {
+        if (await Settings.get("UUID_NAMESPACE") === undefined) {
             await Settings.set("UUID_NAMESPACE", {
                 value: (0, hashCode_1.generateUUID)()
             });

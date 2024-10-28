@@ -121,7 +121,7 @@ class RMSAdapter {
                                     if (isURL(image)) {
                                         // load image
                                         const mfAdater = await Adapter.getMediaFileAdapter();
-                                        const mediaFileImage = await mfAdater.toDownload(image, "dish", "image");
+                                        const mediaFileImage = await mfAdater.toProcess(image, "dish", "image");
                                         // await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
                                         const model = 'dish';
                                         let init = {};

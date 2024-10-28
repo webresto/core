@@ -1,4 +1,5 @@
 import { v5 as uuidv5 } from "uuid";
+import { MediaFileRecord } from "../../models/MediaFile";
 // todo: fix types model instance to {%ModelName%}Record for MediaFile";
 
 
@@ -37,11 +38,11 @@ export default abstract class MediaFileAdapter {
     await this.initializationPromise;
   }
 
-  public abstract checkFileExist(mediaFile: IMediaFile): Promise<boolean>
+  public abstract checkFileExist(mediaFile: MediaFileRecord): Promise<boolean>
 
-  public async toDownload(url: string, target: string, type: MediaFileTypes, force: boolean = false): Promise<IMediaFile> {
+  public async toProcess(url: string, target: string, type: MediaFileTypes, force: boolean = false): Promise<MediaFileRecord> {
     await this.wait()
-    sails.log.silly(`Adapter > Mediafile > toDownload: ${url}`)
+    sails.log.silly(`Adapter > Mediafile > toProcess: ${url}`)
     let imageId = uuidv5(url, this.UUID_NAMESPACE);
     let mediaFile = await MediaFile.findOne({ id: imageId });
 

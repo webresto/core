@@ -156,6 +156,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                 sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
                 fs.mkdirSync(prefix, { recursive: true });
                 fs.copyFileSync(localFilePath, fullPathDl);
+                fs.unlinkSync(localFilePath);
                 return; // Exit the method since the file is copied
             }
             else if (url.startsWith('http://') || url.startsWith('https://')) {
