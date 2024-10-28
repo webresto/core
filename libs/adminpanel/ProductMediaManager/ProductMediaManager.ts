@@ -22,7 +22,7 @@ export class ProductMediaManager extends AbstractMediaManager {
 	
 		// Debugging initial destruction query
 		let destroy: Record<string, string | number> = {};
-		destroy[`mediafile_${model}`] = modelId;
+		destroy[model] = modelId;
 		sails.log.silly(`Destroying selected media files with criteria:`, destroy);
 		await SelectedMediaFile.destroy(destroy).fetch();
 	
@@ -32,9 +32,10 @@ export class ProductMediaManager extends AbstractMediaManager {
 			init[`mediafile_${model}`] = widgetItem.id;
 			init[model] = modelId;
 			init["sortOrder"] = key + 1;
-	
-			sails.log.silly(`Creating selected media file with data:`, init);
-			await SelectedMediaFile.create(init).fetch();
+			if(model && modelId){
+				sails.log.silly(`Creating selected media file with data:`, init);
+				await SelectedMediaFile.create(init).fetch();		
+			}
 		}
 	
 		sails.log.debug(`Completed setRelations for model: ${model}, modelId: ${modelId}, widgetName: ${widgetName}`);
