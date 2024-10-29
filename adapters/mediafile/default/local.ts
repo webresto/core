@@ -90,13 +90,15 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       }
     }
 
+    console.log(url, "<<<<<<<<<<<<")
+    const that = this
     async function processFile(url: string, type: MediaFileTypes) {
       if (url.startsWith('file://')) {
         try {
-          const fullPathDl = path.join(this.getOriginalFilePath(url, type));
+          const fullPathDl = path.join(that.getOriginalFilePath(url, type));
           const localFilePath = decodeURIComponent(new URL(url.slice(7)).pathname);
           sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
-          const prefix = this.getPrefix(type, false);
+          const prefix = that.getPrefix(type, false);
     
           // Await each async operation to ensure completion before moving to the next step
           await fs.promises.mkdir(prefix, { recursive: true });
@@ -106,6 +108,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
           sails.log.debug(`File copied and original deleted successfully. ${url}, ${fullPathDl}`);
         } catch (error) {
           sails.log.error(`Failed to process file: ${error.message}`);
+          sails.log.error(error)
         }
       }
     }
