@@ -37,7 +37,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
         variant: ImageVariants;
         originalFilePath: string;
     }>;
-    protected getPrefix(type?: MediaFileTypes): string;
+    protected getPrefix(type?: MediaFileTypes, absolute?: boolean): string;
     getOriginalFilePath(url: string, type: MediaFileTypes): string;
     protected download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<string>;
     private loadMediaFiles;

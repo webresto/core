@@ -41,30 +41,85 @@ interface LoadMediaFilesProcess {
   config: MediaFileConfigInner;
 }
 
-
-
-// images: {
-//   adapter: 'imagemagick-local',
-//   dish: {
-//     format: process.env.IMAGES_DISH_FILE_FORMAT === undefined ? 'png' : process.env.IMAGES_DISH_FILE_FORMAT,
-//     path: '/images',
-//     resize: {
-//       small: {
-//         width: process.env.IMAGES_SMALL_SIZE_PX === undefined ? 600 : parseInt(process.env.IMAGES_SMALL_SIZE_PX),
-//         height: process.env.IMAGES_SMALL_SIZE_PX === undefined ? 600 : parseInt(process.env.IMAGES_SMALL_SIZE_PX)
-//       },
-//       large: {
-//         width: process.env.IMAGES_LARGE_SIZE_PX === undefined ? 900 : parseInt(process.env.IMAGES_LARGE_SIZE_PX),
-//       }
-//     }
-//   },
-//   group: {
-//     format: process.env.IMAGES_GROUP_FILE_FORMAT === undefined ? 'png' : process.env.IMAGES_GROUP_FILE_FORMAT,
-//     path: '/imagesG',
-//   }
-// },
-
 export default class LocalMediaFileAdapter extends MediaFileAdapter {
+
+  /** /////////////////////////////////
+   * Process 
+   */ /////////////////////////////////
+
+   public async process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<{variant: ImageVariants, originalFilePath: string}> {
+    const baseConfig: MediaFileConfigInner = {
+      format: "webp",
+      resize: {
+        small: 512,
+        large: 1024
+      }
+    }
+
+    const cfg = { ...baseConfig, ...config } as unknown as MediaFileConfigInner;
+
+    const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
+    let mediafileExtension = '';
+    if (isFilePath && isFilePath.length > 0) {
+        mediafileExtension = isFilePath[0].replace('.', '');
+    }
+    
+    const origin = this.getNameByUrl(url, mediafileExtension);
+
+    const name: ImageVariants = {
+      origin: `/image/${origin}`,
+      small: undefined,
+      large: undefined
+    };
+
+    for (let res in cfg.resize) {
+      name[res as keyof ImageVariants] = this.getNameByUrl(url, cfg.format, cfg, res);
+    }
+
+    this.loadMediaFilesProcessQueue.push({
+      url: url,
+      type: type,
+      name: name,
+      config: cfg
+    });
+
+    let result = {} as typeof name;
+    for (const key in name) {
+      if (typeof name[key as keyof ImageVariants] === "string") {
+        result[key as keyof ImageVariants] = "/" + type + "/" + name[key as keyof ImageVariants];
+      }
+    }
+
+    async function processFile(url: string, type: MediaFileTypes) {
+      if (url.startsWith('file://')) {
+        try {
+          const fullPathDl = path.join(this.getOriginalFilePath(url, type));
+          const localFilePath = decodeURIComponent(new URL(url).pathname);
+          sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
+          const prefix = this.getPrefix(type, false);
+    
+          // Await each async operation to ensure completion before moving to the next step
+          await fs.promises.mkdir(prefix, { recursive: true });
+          await fs.promises.copyFile(localFilePath, fullPathDl);
+          await fs.promises.unlink(localFilePath);
+    
+          sails.log.silly(`File copied and original deleted successfully.`);
+        } catch (error) {
+          sails.log.error(`Failed to process file: ${error.message}`);
+        }
+      }
+    }
+    
+    // Somewhere in your main function or code where you need to call processFile:
+    await processFile(url, type);
+
+
+    return {
+      variant: result,
+      originalFilePath: this.getOriginalFilePath(url, type)
+    };
+  }
+
   public async checkFileExist(mediaFile: MediaFileRecord): Promise<boolean> {
     let allFileExist: boolean = true;
   
@@ -111,65 +166,14 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     return baseName;
   }
 
-  public async process(url: string, type: MediaFileTypes, config: BaseConfig): Promise<{variant: ImageVariants, originalFilePath: string}> {
-    const baseConfig: MediaFileConfigInner = {
-      format: "webp",
-      resize: {
-        small: 512,
-        large: 1024
-      }
-    }
-
-    const cfg = { ...baseConfig, ...config } as unknown as MediaFileConfigInner;
-
-    const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim)
-    let mediafileExtension = ''
+  protected getPrefix(type?: MediaFileTypes, absolute: boolean = true) {
+    const basePath = type ? path.join(".tmp/public", type) : path.join(".tmp/public");
     
-    if(isFilePath && isFilePath.length > 0) {
-      isFilePath[0].replace('.', '')
-    }
-    
-    const origin = this.getNameByUrl(url, mediafileExtension);
-
-    const name: ImageVariants = {
-      origin: `/image/${origin}`,
-      small: undefined,
-      large: undefined
-    };
-
-    for (let res in cfg.resize) {
-      name[res as keyof ImageVariants] = this.getNameByUrl(url, cfg.format, cfg, res);
-    }
-
-    this.loadMediaFilesProcessQueue.push({
-      url: url,
-      type: type,
-      name: name,
-      config: cfg
-    });
-
-    let result = {} as typeof name;
-    for (const key in name) {
-      if (typeof name[key as keyof ImageVariants] === "string") {
-        result[key as keyof ImageVariants] = "/" + type + "/" + name[key as keyof ImageVariants];
-      }
-    }
-    return {
-      variant: result,
-      originalFilePath: this.getOriginalFilePath(url, type)
-    };
-  }
-
-  protected getPrefix(type?: MediaFileTypes) {
-    if(type){
-      return path.join(".tmp/public", type);
-    } else {
-      return path.join(".tmp/public");
-    }
+    return absolute ? path.resolve(basePath) : basePath;
   }
 
   getOriginalFilePath(url: string, type: MediaFileTypes){
-    const prefix = this.getPrefix(type);
+    const prefix = this.getPrefix(type, false);
     const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
     let mediafileExtension = '';
     if (isFilePath && isFilePath.length > 0) {
@@ -181,7 +185,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
   protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<string> {
     const prefix = this.getPrefix(loadMediaFilesProcess.type);
-    const fullPathDl = path.join(process.cwd(), this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type));
+    const fullPathDl = path.join(this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type));
   
     // Check if file exists
     if (!fs.existsSync(fullPathDl)) {
@@ -189,14 +193,8 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       const url = loadMediaFilesProcess.url;
   
       if (url.startsWith('file://')) {
-        // Handle local file URL
-        const localFilePath = decodeURIComponent(new URL(url).pathname);
-        sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
-  
-        fs.mkdirSync(prefix, { recursive: true });
-        fs.copyFileSync(localFilePath, fullPathDl);
-        fs.unlinkSync(localFilePath);
-        return; // Exit the method since the file is copied
+        // // Handle local file URL
+        // It was moved in in process
       } else if (url.startsWith('http://') || url.startsWith('https://')) {
         // Handle HTTP/HTTPS URL
         response = await axios.get(url, { responseType: 'stream', maxRedirects: 5 });
@@ -262,7 +260,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
   
   
                     await resizeMediaFile({
-                      srcPath: path.join(prefix, loadMediaFilesProcess.name.origin),
+                      srcPath: fullPathDl,
                       dstPath: path.join(prefix, loadMediaFilesProcess.name[size]),
                       size: mediafileItem
                     });

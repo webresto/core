@@ -102,7 +102,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
         let mediafileExtension = '';
         if (isFilePath && isFilePath.length > 0) {
-            isFilePath[0].replace('.', '');
+            mediafileExtension = isFilePath[0].replace('.', '');
         }
         const origin = this.getNameByUrl(url, mediafileExtension);
         const name = {
@@ -130,16 +130,12 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             originalFilePath: this.getOriginalFilePath(url, type)
         };
     }
-    getPrefix(type) {
-        if (type) {
-            return path.join(".tmp/public", type);
-        }
-        else {
-            return path.join(".tmp/public");
-        }
+    getPrefix(type, absolute = true) {
+        const basePath = type ? path.join(".tmp/public", type) : path.join(".tmp/public");
+        return absolute ? path.resolve(basePath) : basePath;
     }
     getOriginalFilePath(url, type) {
-        const prefix = this.getPrefix(type);
+        const prefix = this.getPrefix(type, false);
         const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
         let mediafileExtension = '';
         if (isFilePath && isFilePath.length > 0) {
