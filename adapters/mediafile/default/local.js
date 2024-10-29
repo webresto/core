@@ -75,16 +75,15 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         async function processFile(url, type) {
             if (url.startsWith('file://')) {
                 try {
-                    url = url.slice(7);
                     const fullPathDl = path.join(this.getOriginalFilePath(url, type));
-                    const localFilePath = decodeURIComponent(new URL(url).pathname);
+                    const localFilePath = decodeURIComponent(new URL(url.slice(7)).pathname);
                     sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
                     const prefix = this.getPrefix(type, false);
                     // Await each async operation to ensure completion before moving to the next step
                     await fs.promises.mkdir(prefix, { recursive: true });
                     await fs.promises.copyFile(localFilePath, fullPathDl);
                     await fs.promises.unlink(localFilePath);
-                    sails.log.silly(`File copied and original deleted successfully.`);
+                    sails.log.debug(`File copied and original deleted successfully. ${url}, ${fullPathDl}`);
                 }
                 catch (error) {
                     sails.log.error(`Failed to process file: ${error.message}`);
@@ -150,7 +149,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
     }
     async download(loadMediaFilesProcess) {
         const prefix = this.getPrefix(loadMediaFilesProcess.type);
-        const fullPathDl = path.join(this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type));
+        const fullPathDl = path.join(process.cwd(), this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type));
         // Check if file exists
         if (!fs.existsSync(fullPathDl)) {
             let response;
