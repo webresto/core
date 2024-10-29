@@ -67,7 +67,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     const origin = this.getNameByUrl(url, mediafileExtension);
 
     const name: ImageVariants = {
-      origin: `/image/${origin}`,
+      origin: origin,
       small: undefined,
       large: undefined
     };
@@ -76,25 +76,11 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       name[res as keyof ImageVariants] = this.getNameByUrl(url, cfg.format, cfg, res);
     }
 
-    this.loadMediaFilesProcessQueue.push({
-      url: url,
-      type: type,
-      name: name,
-      config: cfg
-    });
-
-    let result = {} as typeof name;
-    for (const key in name) {
-      if (typeof name[key as keyof ImageVariants] === "string") {
-        result[key as keyof ImageVariants] = "/" + type + "/" + name[key as keyof ImageVariants];
-      }
-    }
-
     const that = this
     async function processFile(url: string, type: MediaFileTypes) {
       if (url.startsWith('file://')) {
         try {
-          const fullPathDl = path.join(that.getOriginalFilePath(url, type));
+          const fullPathDl = that.getOriginalFilePath(url, type, true);
           const localFilePath = url.slice(7);
           sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
           const prefix = that.getPrefix(type, false);
@@ -115,6 +101,19 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     // Somewhere in your main function or code where you need to call processFile:
     await processFile(url, type);
 
+    this.loadMediaFilesProcessQueue.push({
+      url: url,
+      type: type,
+      name: name,
+      config: cfg
+    });
+
+    let result = {} as typeof name;
+    for (const key in name) {
+      if (typeof name[key as keyof ImageVariants] === "string") {
+        result[key as keyof ImageVariants] = "/" + type + "/" + name[key as keyof ImageVariants];
+      }
+    }
 
     return {
       variant: result,
@@ -174,8 +173,8 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     return absolute ? path.resolve(basePath) : basePath;
   }
 
-  getOriginalFilePath(url: string, type: MediaFileTypes){
-    const prefix = this.getPrefix(type, false);
+  getOriginalFilePath(url: string, type: MediaFileTypes, absolute: boolean = false){
+    const prefix = this.getPrefix(type, absolute);
     const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
     let mediafileExtension = '';
     if (isFilePath && isFilePath.length > 0) {
@@ -187,17 +186,14 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
   protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<string> {
     const prefix = this.getPrefix(loadMediaFilesProcess.type);
-    const fullPathDl = path.join(process.cwd(),this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type));
+    const fullPathDl = this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type, true);
   
     // Check if file exists
     if (!fs.existsSync(fullPathDl)) {
       let response;
       const url = loadMediaFilesProcess.url;
   
-      if (url.startsWith('file://')) {
-        // // Handle local file URL
-        // It was moved in in process
-      } else if (url.startsWith('http://') || url.startsWith('https://')) {
+      if (url.startsWith('http://') || url.startsWith('https://')) {
         // Handle HTTP/HTTPS URL
         response = await axios.get(url, { responseType: 'stream', maxRedirects: 5 });
         sails.log.silly(`MF local > download image: ${fullPathDl}, status: ${response.status}`);
@@ -213,12 +209,11 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
         });
       } else {
         sails.log.error(`Unsupported URL protocol: ${url}`);
-        throw new Error(`Unsupported URL protocol: ${url}`);
       }
-      return fullPathDl
     } else {
       sails.log.silly(`File ${fullPathDl} already exists. Skipping download.`);
     }
+    return fullPathDl
   }
   
 
@@ -244,6 +239,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
         const loadMediaFilesProcesses = this.loadMediaFilesProcessQueue.splice(0, MEDIAFILE_PARALLEL_TO_DOWNLOAD);
         const downloadPromises = loadMediaFilesProcesses.map(async (loadMediaFilesProcess) => {
           try {
+            
             const fullPathDl = await this.download(loadMediaFilesProcess);
             const prefix = this.getPrefix(loadMediaFilesProcess.type);
             switch (loadMediaFilesProcess.type) {

@@ -40,7 +40,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     constructor(config: BaseConfig);
     getNameByUrl(url: string, ext: string, options?: any, salt?: string): string;
     protected getPrefix(type?: MediaFileTypes, absolute?: boolean): string;
-    getOriginalFilePath(url: string, type: MediaFileTypes): string;
+    getOriginalFilePath(url: string, type: MediaFileTypes, absolute?: boolean): string;
     protected download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<string>;
     private loadMediaFiles;
 }
