@@ -72,13 +72,12 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                 result[key] = "/" + type + "/" + name[key];
             }
         }
-        console.log(url, "<<<<<<<<<<<<");
         const that = this;
         async function processFile(url, type) {
             if (url.startsWith('file://')) {
                 try {
                     const fullPathDl = path.join(that.getOriginalFilePath(url, type));
-                    const localFilePath = decodeURIComponent(new URL(url.slice(7)).pathname);
+                    const localFilePath = url.slice(7);
                     sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
                     const prefix = that.getPrefix(type, false);
                     // Await each async operation to ensure completion before moving to the next step
