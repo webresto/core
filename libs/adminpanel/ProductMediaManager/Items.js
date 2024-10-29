@@ -16,7 +16,7 @@ class ImageItem extends AbstractMediaManager_1.File {
     }
     async upload(file, filename, origFileName, group) {
         const mfAdater = await Adapter.getMediaFileAdapter();
-        const mediaFile = await mfAdater.toProcess(file.fd, "dish", "image");
+        const mediaFile = await mfAdater.toProcess(`file://${file.fd}`, "dish", "image");
         let parent = ConvertType_1.ConvertType.MF2Item(mediaFile);
         return [parent];
     }

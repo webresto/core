@@ -33,27 +33,71 @@ const uuid_1 = require("uuid");
 const path = __importStar(require("path"));
 //@ts-ignore
 const sharp_1 = __importDefault(require("sharp"));
-// images: {
-//   adapter: 'imagemagick-local',
-//   dish: {
-//     format: process.env.IMAGES_DISH_FILE_FORMAT === undefined ? 'png' : process.env.IMAGES_DISH_FILE_FORMAT,
-//     path: '/images',
-//     resize: {
-//       small: {
-//         width: process.env.IMAGES_SMALL_SIZE_PX === undefined ? 600 : parseInt(process.env.IMAGES_SMALL_SIZE_PX),
-//         height: process.env.IMAGES_SMALL_SIZE_PX === undefined ? 600 : parseInt(process.env.IMAGES_SMALL_SIZE_PX)
-//       },
-//       large: {
-//         width: process.env.IMAGES_LARGE_SIZE_PX === undefined ? 900 : parseInt(process.env.IMAGES_LARGE_SIZE_PX),
-//       }
-//     }
-//   },
-//   group: {
-//     format: process.env.IMAGES_GROUP_FILE_FORMAT === undefined ? 'png' : process.env.IMAGES_GROUP_FILE_FORMAT,
-//     path: '/imagesG',
-//   }
-// },
 class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
+    /** /////////////////////////////////
+     * Process
+     */ /////////////////////////////////
+    async process(url, type, config) {
+        const baseConfig = {
+            format: "webp",
+            resize: {
+                small: 512,
+                large: 1024
+            }
+        };
+        const cfg = { ...baseConfig, ...config };
+        const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
+        let mediafileExtension = '';
+        if (isFilePath && isFilePath.length > 0) {
+            mediafileExtension = isFilePath[0].replace('.', '');
+        }
+        const origin = this.getNameByUrl(url, mediafileExtension);
+        const name = {
+            origin: `/image/${origin}`,
+            small: undefined,
+            large: undefined
+        };
+        for (let res in cfg.resize) {
+            name[res] = this.getNameByUrl(url, cfg.format, cfg, res);
+        }
+        this.loadMediaFilesProcessQueue.push({
+            url: url,
+            type: type,
+            name: name,
+            config: cfg
+        });
+        let result = {};
+        for (const key in name) {
+            if (typeof name[key] === "string") {
+                result[key] = "/" + type + "/" + name[key];
+            }
+        }
+        async function processFile(url, type) {
+            if (url.startsWith('file://')) {
+                try {
+                    url = url.slice(7);
+                    const fullPathDl = path.join(this.getOriginalFilePath(url, type));
+                    const localFilePath = decodeURIComponent(new URL(url).pathname);
+                    sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
+                    const prefix = this.getPrefix(type, false);
+                    // Await each async operation to ensure completion before moving to the next step
+                    await fs.promises.mkdir(prefix, { recursive: true });
+                    await fs.promises.copyFile(localFilePath, fullPathDl);
+                    await fs.promises.unlink(localFilePath);
+                    sails.log.silly(`File copied and original deleted successfully.`);
+                }
+                catch (error) {
+                    sails.log.error(`Failed to process file: ${error.message}`);
+                }
+            }
+        }
+        // Somewhere in your main function or code where you need to call processFile:
+        await processFile(url, type);
+        return {
+            variant: result,
+            originalFilePath: this.getOriginalFilePath(url, type)
+        };
+    }
     async checkFileExist(mediaFile) {
         let allFileExist = true;
         if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && mediaFile.images !== null && Object.keys(mediaFile.images).length) {
@@ -90,46 +134,6 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         baseName += `.${ext}`;
         return baseName;
     }
-    async process(url, type, config) {
-        const baseConfig = {
-            format: "webp",
-            resize: {
-                small: 512,
-                large: 1024
-            }
-        };
-        const cfg = { ...baseConfig, ...config };
-        const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
-        let mediafileExtension = '';
-        if (isFilePath && isFilePath.length > 0) {
-            mediafileExtension = isFilePath[0].replace('.', '');
-        }
-        const origin = this.getNameByUrl(url, mediafileExtension);
-        const name = {
-            origin: `/image/${origin}`,
-            small: undefined,
-            large: undefined
-        };
-        for (let res in cfg.resize) {
-            name[res] = this.getNameByUrl(url, cfg.format, cfg, res);
-        }
-        this.loadMediaFilesProcessQueue.push({
-            url: url,
-            type: type,
-            name: name,
-            config: cfg
-        });
-        let result = {};
-        for (const key in name) {
-            if (typeof name[key] === "string") {
-                result[key] = "/" + type + "/" + name[key];
-            }
-        }
-        return {
-            variant: result,
-            originalFilePath: this.getOriginalFilePath(url, type)
-        };
-    }
     getPrefix(type, absolute = true) {
         const basePath = type ? path.join(".tmp/public", type) : path.join(".tmp/public");
         return absolute ? path.resolve(basePath) : basePath;
@@ -146,19 +150,14 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
     }
     async download(loadMediaFilesProcess) {
         const prefix = this.getPrefix(loadMediaFilesProcess.type);
-        const fullPathDl = path.join(process.cwd(), this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type));
+        const fullPathDl = path.join(this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type));
         // Check if file exists
         if (!fs.existsSync(fullPathDl)) {
             let response;
             const url = loadMediaFilesProcess.url;
             if (url.startsWith('file://')) {
-                // Handle local file URL
-                const localFilePath = decodeURIComponent(new URL(url).pathname);
-                sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
-                fs.mkdirSync(prefix, { recursive: true });
-                fs.copyFileSync(localFilePath, fullPathDl);
-                fs.unlinkSync(localFilePath);
-                return; // Exit the method since the file is copied
+                // // Handle local file URL
+                // It was moved in in process
             }
             else if (url.startsWith('http://') || url.startsWith('https://')) {
                 // Handle HTTP/HTTPS URL
@@ -216,7 +215,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                                             sails.log.warn(`MediaFile size is not set for ${size}`);
                                         }
                                         await resizeMediaFile({
-                                            srcPath: path.join(prefix, loadMediaFilesProcess.name.origin),
+                                            srcPath: fullPathDl,
                                             dstPath: path.join(prefix, loadMediaFilesProcess.name[size]),
                                             size: mediafileItem
                                         });

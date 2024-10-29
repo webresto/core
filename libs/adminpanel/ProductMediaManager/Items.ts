@@ -17,7 +17,7 @@ export class ImageItem extends File<MediaManagerItem> {
 	public type: MediaFileType = "image";
 	public async upload(file: UploaderFile, filename: string, origFileName: string, group?: string): Promise<MediaManagerItem[]> {
 		const mfAdater = await Adapter.getMediaFileAdapter();
-		const mediaFile = await mfAdater.toProcess(file.fd, "dish", "image");	
+		const mediaFile = await mfAdater.toProcess(`file://${file.fd}`, "dish", "image");	
 		let parent: MediaManagerItem = ConvertType.MF2Item(mediaFile);
 		return [parent];
 	}
