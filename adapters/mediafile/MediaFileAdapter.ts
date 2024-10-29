@@ -94,7 +94,7 @@ export default abstract class MediaFileAdapter {
       /**
        * The problem remains that we cannot know whether the picture has loaded or not, and therefore. if it doesn't exist you need to somehow remove MF
        */
-      mediaFile = (await MediaFile.update({ id: mediaFile.id }, { images: mediaFile.images, original: url, originalFilePath, type }).fetch())[0]
+      mediaFile = (await MediaFile.update({ id: imageId }, { images: mediaFile.images, original: url, originalFilePath, type }).fetch())[0]
     }
     return mediaFile;
   };

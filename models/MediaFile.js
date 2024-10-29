@@ -89,9 +89,6 @@ let Model = {
         cb();
     },
     beforeUpdate(imageInit, cb) {
-        if (!imageInit.id) {
-            imageInit.id = (0, uuid_1.v4)();
-        }
         /**
          * TODO: delete in ver 3
          */

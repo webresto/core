@@ -89,10 +89,6 @@ let Model = {
 
 
   beforeUpdate(imageInit: MediaFileRecord, cb: (err?: string) => void) {
-    if (!imageInit.id) {
-      imageInit.id = uuid();
-    }
-
     /**
      * TODO: delete in ver 3
      */
