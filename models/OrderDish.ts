@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
 // todo: fix types model instance to {%ModelName%}Record for Order";
-import { Modifier, OrderModifier } from "../interfaces/Modifier";
+import { OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { DishRecord } from "./Dish";
 

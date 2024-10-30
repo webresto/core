@@ -1,4 +1,3 @@
-import Group from "./Group";
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
 import {MediaFileRecord} from "./MediaFile";
 import hashCode from "../libs/hashCode";
@@ -11,7 +10,8 @@ import { GroupModifier, Modifier } from "../interfaces/Modifier";
 import { Adapter } from "../adapters";
 import { CustomData, isCustomData } from "../interfaces/CustomData";
 import { slugIt } from "../libs/slugIt";
-import User from "./User";
+import { UserRecord } from "./User";
+import { GroupRecord } from "./Group";
 
 let attributes = {
   /** */
@@ -194,7 +194,7 @@ let attributes = {
   /** Parental group */
   parentGroup: {
     model: "group",
-  } as unknown as Group | any,
+  } as unknown as GroupRecord | any,
 
   /** Tags for filtering (vegetarian, sharp ...) */
   tags: {
@@ -247,7 +247,7 @@ let attributes = {
   favorites: {
     collection: 'user',
     via: 'favorites'
-  } as unknown as User[],
+  } as unknown as UserRecord[],
 
   recommendations: {
     collection: "dish",

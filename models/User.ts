@@ -1,14 +1,14 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
-// todo: fix types model instance to {%ModelName%}Record for Dish";
-import UserOrderHistory from "./UserOrderHistory";
-import UserDevice from "./UserDevice";
-import UserLocation from "./UserLocation";
-// todo: fix types model instance to {%ModelName%}Record for UserBonusProgram";
+import { UserOrderHistoryRecord } from "./UserOrderHistory";
+import { UserDeviceRecord } from "./UserDevice";
+import { UserLocationRecord } from "./UserLocation";
 import { Country } from "../interfaces/Country";
 import * as bcryptjs from "bcryptjs";
 import { OptionalAll } from "../interfaces/toolsTS";
+import { UserBonusProgramRecord } from "./UserBonusProgram";
+import { DishRecord } from "./Dish";
 const Countries: Country[] = require("../libs/dictionaries/countries.json")
 export type Phone = {
   code: string
@@ -90,27 +90,27 @@ let attributes = {
   favorites: {
     collection: 'dish',
     via: 'favorites'
-  } as unknown as Dish[],
+  } as unknown as DishRecord[],
 
   bonusProgram: {
     collection: 'userbonusprogram',
     via: 'user'
-  } as unknown as UserBonusProgram[],
+  } as unknown as UserBonusProgramRecord[],
 
   history: {
     collection: 'UserOrderHistory',
     via: 'user'
-  } as unknown as UserOrderHistory[],
+  } as unknown as UserOrderHistoryRecord[],
 
   locations: {
     collection: 'UserLocation',
     via: 'user'
-  } as unknown as UserLocation[],
+  } as unknown as UserLocationRecord[],
 
   devices: {
     collection: 'UserDevice',
     via: 'user'
-  } as unknown as UserDevice[],
+  } as unknown as UserDeviceRecord[],
 
   /**
    *  Has success verification Phone

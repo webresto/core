@@ -6,7 +6,7 @@ import { PaymentResponse, Payment } from "../interfaces/Payment";
 // todo: fix types model instance to {%ModelName%}Record for PaymentMethod";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 
-import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
+import { OptionalAll } from "../interfaces/toolsTS";
 
 /** on the example of the basket (Order):
  * 1. Model Conducting Internal/External (for example: Order) creates PaymentDocument

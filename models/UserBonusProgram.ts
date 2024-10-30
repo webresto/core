@@ -5,7 +5,6 @@ import { v4 as uuid } from "uuid";
 import { BonusProgramRecord } from "./BonusProgram";
 import Decimal from "decimal.js";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
-import UserBonusTransaction from "./UserBonusTransaction";
 
 // type Optional<T> = {
 //   [P in keyof T]?: T[P];

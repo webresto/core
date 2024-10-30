@@ -22,12 +22,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const UserDevice_1 = __importDefault(require("./UserDevice"));
 const bcryptjs = __importStar(require("bcryptjs"));
 const Countries = require("../libs/dictionaries/countries.json");
 let attributes = {
@@ -215,7 +211,7 @@ let Model = {
                 throw `OTP checks failed`;
             }
         }
-        await UserDevice_1.default.update({ user: userId }, { isLoggedIn: false }).fetch();
+        await UserDevice.update({ user: userId }, { isLoggedIn: false }).fetch();
         User.update({ id: userId }, { isDeleted: true }).fetch();
     },
     /**
@@ -369,9 +365,9 @@ let Model = {
         // TODO: getBalance BonusProgram
     },
     async authDevice(userId, deviceId, deviceName, userAgent, IP) {
-        let userDevice = await UserDevice_1.default.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
+        let userDevice = await UserDevice.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
         // Need pass sessionId here for except parallels login with one name
-        return await UserDevice_1.default.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
+        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
     },
     /**
       check all active bonus programs for user

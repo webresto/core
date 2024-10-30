@@ -1,6 +1,6 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import Promotion from "./Promotion";
+import { PromotionRecord } from "./Promotion";
 import { WorkTime } from "@webresto/worktime/lib/worktime.validator";
 declare let attributes: {
     /** ID */
@@ -16,7 +16,7 @@ declare let attributes: {
     workTime: WorkTime;
     description: string;
     code: string;
-    promotion: Promotion[] | string[];
+    promotion: PromotionRecord[] | string[];
     generateConfig: any;
     customData: {
         [key: string]: string | boolean | number;

@@ -1,9 +1,11 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import UserOrderHistory from "./UserOrderHistory";
-import UserDevice from "./UserDevice";
-import UserLocation from "./UserLocation";
+import { UserOrderHistoryRecord } from "./UserOrderHistory";
+import { UserDeviceRecord } from "./UserDevice";
+import { UserLocationRecord } from "./UserLocation";
 import { OptionalAll } from "../interfaces/toolsTS";
+import { UserBonusProgramRecord } from "./UserBonusProgram";
+import { DishRecord } from "./Dish";
 export type Phone = {
     code: string;
     number: string;
@@ -27,11 +29,11 @@ declare let attributes: {
      */
     phone: Phone;
     birthday: string;
-    favorites: Dish[];
-    bonusProgram: UserBonusProgram[];
-    history: UserOrderHistory[];
-    locations: UserLocation[];
-    devices: UserDevice[];
+    favorites: DishRecord[];
+    bonusProgram: UserBonusProgramRecord[];
+    history: UserOrderHistoryRecord[];
+    locations: UserLocationRecord[];
+    devices: UserDeviceRecord[];
     /**
      *  Has success verification Phone
      */

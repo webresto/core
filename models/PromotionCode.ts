@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
-import Promotion from "./Promotion";
+import { PromotionRecord } from "./Promotion";
 import { WorkTime } from "@webresto/worktime/lib/worktime.validator";
 let attributes = {
 
@@ -57,7 +57,7 @@ let attributes = {
   promotion: {
     collection: "promotion",
     via: "promotionCode"
-  } as unknown as Promotion[] | string[],
+  } as unknown as PromotionRecord[] | string[],
 
   generateConfig: {
     type: "json",

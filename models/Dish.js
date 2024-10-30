@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Group_1 = __importDefault(require("./Group"));
 const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
 const hashCode_1 = __importDefault(require("../libs/hashCode"));
 const uuid_1 = require("uuid");
@@ -309,7 +308,7 @@ let Model = {
                     else {
                         throw `Group modifierId or rmsId not found`;
                     }
-                    dish.modifiers[index].group = (await Group_1.default.find(criteria).limit(1))[0];
+                    dish.modifiers[index].group = (await Group.find(criteria).limit(1))[0];
                 }
                 if (!modifier.childModifiers)
                     modifier.childModifiers = [];
