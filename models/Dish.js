@@ -221,6 +221,10 @@ let Model = {
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
+        if (!init.modifiers)
+            init.modifiers = [];
+        if (init.visible === undefined)
+            init.visible = true;
         if (!init.concept) {
             init.concept = "origin";
         }

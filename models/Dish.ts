@@ -294,6 +294,9 @@ let Model = {
       init.id = uuid();
     }
 
+    if(!init.modifiers) init.modifiers = []
+    if(init.visible === undefined) init.visible = true;
+
     if (!init.concept) {
       init.concept = "origin"
     }
