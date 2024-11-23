@@ -35,6 +35,8 @@ export function someInArray(check: string[] | string, array: string[]) {
     return array.some((e)=> check.includes(e));
 }
 
+
+//@ts-ignore
 export function extractFieldValues(obj, fields, exclude = true, result = []) {
     if (typeof obj === 'object' && obj !== null) {
         for (let key in obj) {

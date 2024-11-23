@@ -20,6 +20,7 @@ async function default_1(obj) {
         if (!ai)
             return;
         const keys = ["visible", "worktime", "promo", "modifier"];
+        //@ts-ignore
         for (let key of keys)
             if (ai[key] !== undefined)
                 obj[key] = ai[key];

@@ -37,6 +37,7 @@ function someInArray(check, array) {
     }
     return array.some((e) => check.includes(e));
 }
+//@ts-ignore
 function extractFieldValues(obj, fields, exclude = true, result = []) {
     if (typeof obj === 'object' && obj !== null) {
         for (let key in obj) {

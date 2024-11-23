@@ -2,6 +2,7 @@ import { Payment, PaymentResponse } from "../../interfaces/Payment";
 // todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
 import { PaymentMethodType } from "../../libs/enums/PaymentMethodTypes";
 import { Config } from "../../interfaces/Config";
+import { PaymentDocumentRecord } from "../../models/PaymentDocument";
 
 
 export interface InitPaymentAdapter {
@@ -48,14 +49,14 @@ export default abstract class PaymentAdapter {
    * @param paymentDocument - Payment document
    * @return the result of the function, the body of the answer and the result of the result (you do not need to save the model)
    */
-  public abstract checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
+  public abstract checkPayment(paymentDocument: PaymentDocumentRecord): Promise<PaymentDocumentRecord>;
 
   /**
    * Cancel of payment
    * @param paymentDocument - Payment document
    * @return the result of the function, the body of the answer and the result of the result (you do not need to save the model)
    */
-  public abstract cancelPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
+  public abstract cancelPayment(paymentDocument: PaymentDocumentRecord): Promise<PaymentDocumentRecord>;
 
   /**
    * Method for creating and obtaining an existing Payment Adapter

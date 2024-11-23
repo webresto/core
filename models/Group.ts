@@ -10,6 +10,7 @@ import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { Adapter } from "../adapters";
 import { slugIt } from "../libs/slugIt";
+import { DishRecord } from "./Dish";
 export type GetGroupType = { [x: string]: GroupWithAdditionalFields }
 
 let attributes = {

@@ -1,4 +1,8 @@
 // todo: fix types model instance to {%ModelName%}Record for Order"
+import { DishRecord } from "../../models/Dish";
+import { GroupRecord } from "../../models/Group";
+import { OrderRecord } from "../../models/Order";
+import { OrderDishRecord } from "../../models/OrderDish";
 import AbstractPromotionHandler from "./AbstractPromotion";
 // todo: fix types model instance to {%ModelName%}Record for Group';
 // todo: fix types model instance to {%ModelName%}Record for Dish';
@@ -10,10 +14,10 @@ export default abstract class AbstractPromotionAdapter {
      * The order must be recorded in a model and modified during execution
      * @param order Order should populated order
      */
-    public abstract processOrder(order: Order): Promise<Order>
+    public abstract processOrder(order: OrderRecord): Promise<OrderRecord>
 
-    public abstract displayDish(dish: Dish): Dish;
-    public abstract displayGroup(group: Group): Group;
+    public abstract displayDish(dish: DishRecord): DishRecord;
+    public abstract displayGroup(group: GroupRecord): GroupRecord;
     public abstract getActivePromotionsIds(): string[];
 
     /**
@@ -22,7 +26,7 @@ export default abstract class AbstractPromotionAdapter {
      *
      * This is in an abstract class because it's essentially part of the core, but you can rewrite it
      */
-    public async clearOfPromotion(order: Order): Promise<Order> {
+    public async clearOfPromotion(order: OrderRecord): Promise<OrderRecord> {
         // if Order.status ="PAYMENT" or "ORDER" can't clear promotions
         if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
         //if (order.state === "PAYMENT") throw "order with orderId" + order.id + "in state PAYMENT";
@@ -33,7 +37,7 @@ export default abstract class AbstractPromotionAdapter {
         await OrderDish.update({ order: order.id }, { discountTotal: 0, discountType: null, discountAmount: 0, discountMessage: null, discountId: null, discountDebugInfo: null  }).fetch();
         await Order.updateOne({ id: order.id }, { discountTotal: 0, promotionFlatDiscount: 0 });
 
-        let dishes = order.dishes ? order.dishes as OrderDish[] : []
+        let dishes = order.dishes ? order.dishes as OrderDishRecord[] : []
         dishes.forEach((orderItem) => {
             orderItem.discountTotal = 0,
             orderItem.discountType = null,

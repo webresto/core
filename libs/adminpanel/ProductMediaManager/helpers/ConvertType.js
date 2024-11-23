@@ -5,6 +5,7 @@ const allowedTypes = ['video', 'image', 'audio'];
 class ConvertType {
     static MF2Item(mf) {
         let processItem = (mfItem) => {
+            //@ts-ignore 
             return {
                 id: mfItem.id,
                 parent: "",
@@ -32,6 +33,7 @@ class ConvertType {
                 id: item.id,
                 original: `file://${item.path}`,
                 originalFilePath: item.path,
+                //@ts-ignore
                 type: allowedTypes.includes(_type) ? _type : (() => { throw new Error(`Invalid type ${_type}`); })(),
                 variant: {
                     origin: item.url

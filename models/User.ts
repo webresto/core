@@ -328,7 +328,7 @@ let Model = {
     return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: Date.now() });
   },
 
-  async login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDevice> {
+  async login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDeviceRecord> {
 
     // Stop login when password or OTP not passed
     if (!(password || OTP)) {

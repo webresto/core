@@ -9,6 +9,11 @@ import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import Decimal from "decimal.js";
 import { someInArray } from "../../../libs/stringsInArray";
+import { GroupRecord } from "../../../models/Group";
+import { DishRecord } from "../../../models/Dish";
+import { OrderRecord, PromotionState } from "../../../models/Order";
+import { OrderDishRecord } from "../../../models/OrderDish";
+import { UserRecord } from "../../../models/User";
 
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public badge: string = 'configured-promotion';
@@ -46,15 +51,15 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   // public configDiscount: IconfigDiscount;
   public externalId: string;
 
-  public condition(arg: Group | Dish | Order): boolean {
+  public condition(arg: GroupRecord | DishRecord | OrderRecord): boolean {
     if (findModelInstanceByAttributes(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
       ? true : someInArray(arg.concept, this.concept)) {
-      let order: Order = arg as Order
+      let order: OrderRecord = arg as OrderRecord
       // TODO:  if order.dishes type number[]
-      let orderDishes: OrderDish[] = order.dishes as OrderDish[]
+      let orderDishes: OrderDishRecord[] = order.dishes as OrderDishRecord[]
 
-      let checkDishes = orderDishes.map(order => order.dish).some((dish: Dish) => this.config.dishes.includes(dish.id))
-      let checkGroups = orderDishes.map(order => order.dish).some((dish: Dish) => this.config.groups.includes(dish.parentGroup))
+      let checkDishes = orderDishes.map(order => order.dish).some((dish: DishRecord) => this.config.dishes.includes(dish.id))
+      let checkGroups = orderDishes.map(order => order.dish).some((dish: DishRecord) => this.config.groups.includes(dish.parentGroup))
 
       if (checkDishes || checkGroups) return true
 
@@ -74,12 +79,12 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     return false
   }
 
-  public async action(order: Order): Promise<PromotionState> {
+  public async action(order: OrderRecord): Promise<PromotionState> {
     let mass: PromotionState = await this.applyPromotion(order)
     return mass
   }
 
-  public displayGroup(group: Group, user?: string | User): Group {
+  public displayGroup(group: GroupRecord, user?: string | UserRecord): GroupRecord {
     // TODO: user implement logic personal discount
     if (this.isJoint === true && this.isPublic === true) {
       // 
@@ -90,7 +95,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     return group
   }
 
-  public displayDish(dish: Dish, user?: string | User): Dish {
+  public displayDish(dish: DishRecord, user?: string | UserRecord): DishRecord {
     // TODO: user implement logic personal discount
 
     if (this.isJoint === true && this.isPublic === true) {
@@ -111,7 +116,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   }
 
   // TODO: rewrite for argument (modificable Order);
-  public async applyPromotion(order: Order): Promise<PromotionState> {
+  public async applyPromotion(order: OrderRecord): Promise<PromotionState> {
     sails.log.debug(`Configured promotion to be applied. name: [${this.name}], id: [${this.id}]`)
 
     // order.dishes

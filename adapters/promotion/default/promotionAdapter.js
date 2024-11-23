@@ -119,8 +119,10 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
                 const promotionCode = order.promotionCode;
                 if (Array.isArray(promotionCode.promotion)) {
                     promotionCode.promotion.forEach((p) => {
-                        p.sortOrder = -Infinity;
-                        filteredByCondition.push(p);
+                        if (typeof p === "object") {
+                            p.sortOrder = -Infinity;
+                            filteredByCondition.push(p);
+                        }
                     });
                 }
                 else {

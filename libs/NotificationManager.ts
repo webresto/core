@@ -23,6 +23,9 @@
 
   The channel adapter itself should be an abstract class and will be checked by the notification manager.
  */
+
+import { UserRecord } from "../models/User";
+
 // todo: fix types model instance to {%ModelName%}Record for User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string
@@ -44,9 +47,9 @@ export abstract class Channel {
    */
   public abstract sortOrder: number;
 
-  protected abstract send(badge: Badge, message: string, user: User, subject?: string, data?: object): Promise<void>;
+  protected abstract send(badge: Badge, message: string, user: UserRecord, subject?: string, data?: object): Promise<void>;
 
-  public async trySendMessage(badge: Badge, message: string, user: User, subject?: string, data?: object): Promise<boolean> {
+  public async trySendMessage(badge: Badge, message: string, user: UserRecord, subject?: string, data?: object): Promise<boolean> {
     try {
       await this.send(badge, message, user, subject, data);
       return true;
@@ -77,7 +80,7 @@ export class NotificationManager {
    * @param subject
    * @param data
    */
-  public static async sendMessageToUser(badge: Badge, text: string, user: User | string, type?: ChannelType, subject?: string, data?: object): Promise<void> {
+  public static async sendMessageToUser(badge: Badge, text: string, user: UserRecord | string, type?: ChannelType, subject?: string, data?: object): Promise<void> {
     let populatedUser;
 
     if(typeof user === "string") {
@@ -100,7 +103,7 @@ export class NotificationManager {
     badge: Badge,
     groupTo: MessageGroupTo,
     message: string,
-    user?: User,
+    user?: UserRecord,
     channelType?: ChannelType,
     subject?: string,
     data?: object

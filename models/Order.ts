@@ -616,7 +616,7 @@ let Model = {
     if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
     const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-    const get = orderDishes.find((item: { id: number; }) => item.id === dish.id);
+    const get = orderDishes.find((item) => item.id === dish.id);
 
     if (get) {
       get.amount = amount;

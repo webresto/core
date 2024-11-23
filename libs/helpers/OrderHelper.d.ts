@@ -1,3 +1,4 @@
+import { OrderRecord } from "../../models/Order";
 export type InitCheckout = {
     /** Order nonce */
     nonce: number;
@@ -16,6 +17,6 @@ export type InitCheckout = {
 };
 export declare class OrderHelper {
     private constructor();
-    static initCheckout(populatedOrder: Order): Promise<InitCheckout>;
-    static orderHash(populatedOrder: Order): string;
+    static initCheckout(populatedOrder: OrderRecord): Promise<InitCheckout>;
+    static orderHash(populatedOrder: OrderRecord): string;
 }

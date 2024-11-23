@@ -1,15 +1,19 @@
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
+import { OrderRecord } from "../../../models/Order";
+import { PromotionRecord } from "../../../models/Promotion";
+import { DishRecord } from "../../../models/Dish";
+import { GroupRecord } from "../../../models/Group";
 export declare class PromotionAdapter extends AbstractPromotionAdapter {
     readonly promotions: {
         [key: string]: AbstractPromotionHandler;
     };
-    processOrder(populatedOrder: Order): Promise<Order>;
-    displayDish(dish: Dish): Dish;
-    displayGroup(group: Group): Group;
-    filterByConcept(concept: string | string[]): Promotion[];
-    filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[];
-    filterByCondition(promotionsToCheck: Promotion[], target: Group | Dish | Order): Promotion[];
+    processOrder(populatedOrder: OrderRecord): Promise<OrderRecord>;
+    displayDish(dish: DishRecord): DishRecord;
+    displayGroup(group: GroupRecord): GroupRecord;
+    filterByConcept(concept: string | string[]): PromotionRecord[];
+    filterPromotions(promotionsByConcept: PromotionRecord[], target: GroupRecord | DishRecord | OrderRecord): PromotionRecord[];
+    filterByCondition(promotionsToCheck: PromotionRecord[], target: GroupRecord | DishRecord | OrderRecord): PromotionRecord[];
     /**
      * Method uses for runtime call/pass promotionHandler, not configured
      * @param promotionToAdd
@@ -20,7 +24,7 @@ export declare class PromotionAdapter extends AbstractPromotionAdapter {
      * @param promotionToAdd
      * @returns
      */
-    recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void;
+    recreateConfiguredPromotionHandler(promotionToAdd: PromotionRecord): void;
     getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined;
     deletePromotion(id: string): void;
     /**

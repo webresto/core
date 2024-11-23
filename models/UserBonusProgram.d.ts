@@ -1,6 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { BonusProgramRecord } from "./BonusProgram";
+import { UserRecord } from "./User";
 declare let attributes: {
     /** UserBonusProgram ID */
     id: Readonly<string>;

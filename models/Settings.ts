@@ -361,7 +361,7 @@ declare global {
   }
 }
 
-function cleanValue(value) {
+function cleanValue(value: string | number | boolean | SettingValue[] | { [key: string]: any; }) {
   if (value === "undefined" || value === "NaN" || value === "null") {
     return undefined
   }

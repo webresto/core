@@ -3,6 +3,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { IconfigDiscount } from "../interfaces/ConfigDiscount";
+import { PromotionCodeRecord } from "./PromotionCode";
 declare let attributes: {
     id: string;
     externalId: string;
@@ -25,7 +26,7 @@ declare let attributes: {
      * promocode ignore this field, and apply promotion by code
     */
     enable: boolean;
-    promotionCode: PromotionCode[] | string[];
+    promotionCode: PromotionCodeRecord[] | string[];
     /** No active class in Discount Adapter */
     isDeleted: boolean;
     /** Hash object discounts */

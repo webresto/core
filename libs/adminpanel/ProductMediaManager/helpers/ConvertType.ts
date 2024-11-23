@@ -8,6 +8,7 @@ export class ConvertType {
     public static MF2Item(mf: MediaFileRecord[]): MediaManagerItem[]
     public static MF2Item(mf: MediaFileRecord | MediaFileRecord[]): MediaManagerItem | MediaManagerItem[] {
         let processItem = (mfItem: MediaFileRecord): MediaManagerItem => {
+            //@ts-ignore 
             return {
                 id: mfItem.id,
                 parent: "",
@@ -38,6 +39,7 @@ export class ConvertType {
                 id: item.id,
                 original: `file://${item.path}`,
                 originalFilePath: item.path,
+                //@ts-ignore
                 type: allowedTypes.includes(_type) ? _type : (() => { throw new Error(`Invalid type ${_type}`) })(),
                 variant: {
                     origin: item.url

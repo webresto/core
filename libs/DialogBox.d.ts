@@ -1,7 +1,8 @@
 import { DialogBoxConfig } from "../interfaces/DialogBox";
+import { UserRecord } from "../models/User";
 export declare class DialogBox {
     config: DialogBoxConfig;
-    user: User;
+    user: UserRecord;
     answerId: string;
     askId: string;
     deviceId: string;

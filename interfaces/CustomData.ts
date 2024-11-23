@@ -6,6 +6,6 @@ export type CustomData = {
   [key: string]: BaseObject | null
 }
 
-export function isCustomData(value) {
+export function isCustomData(value: { [x: string]: BaseObject; }) {
   return typeof value === "object" && !Array.isArray(value) && value !== null;
 }

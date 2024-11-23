@@ -330,12 +330,12 @@ let Model = {
     return cb();
   },
 
-  afterUpdate: function (record, cb:  (err?: string) => void) {
+  afterUpdate: function (record: DishRecord, cb:  (err?: string) => void) {
     emitter.emit('core:product-after-update', record);
     return cb();
   },
 
-  afterCreate: function (record, cb:  (err?: string) => void) {
+  afterCreate: function (record: DishRecord, cb:  (err?: string) => void) {
     emitter.emit('core:product-after-create', record);
     return cb();
   },

@@ -1,3 +1,6 @@
+import { DishRecord } from "../../models/Dish";
+import { GroupRecord } from "../../models/Group";
+import { OrderRecord } from "../../models/Order";
 export type ConfigRMSAdapter = {
     [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };
@@ -48,21 +51,21 @@ export default abstract class RMSAdapter {
      *
      * @returns
      */
-    protected abstract loadNomenclatureTree(rmsGroupIds?: string[]): Promise<Group[]>;
-    protected abstract loadProductsByGroup(group: Group): Promise<Dish[]>;
-    protected abstract loadOutOfStocksDishes(concept?: string): Promise<Pick<Dish, "balance" | "rmsId">[]>;
+    protected abstract loadNomenclatureTree(rmsGroupIds?: string[]): Promise<GroupRecord[]>;
+    protected abstract loadProductsByGroup(group: GroupRecord): Promise<DishRecord[]>;
+    protected abstract loadOutOfStocksDishes(concept?: string): Promise<Pick<DishRecord, "balance" | "rmsId">[]>;
     /**
      * Create an order
      * @param orderData - webresto order
      * @return Order response
      */
-    abstract createOrder(orderData: Order): Promise<Order>;
+    abstract createOrder(orderData: OrderRecord): Promise<OrderRecord>;
     /**
      * Order check before order
      * @param orderData - webresto order
      * @return Order response
      */
-    abstract checkOrder(orderData: Order): Promise<Order>;
+    abstract checkOrder(orderData: OrderRecord): Promise<OrderRecord>;
     /**
      * Direct request to the RMS API
      * @param method - method name

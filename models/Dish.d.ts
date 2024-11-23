@@ -125,8 +125,8 @@ export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name
 declare let Model: {
     beforeCreate: (init: DishRecord, cb: (err?: string) => void) => Promise<void>;
     beforeUpdate: (value: DishRecord, cb: (err?: string) => void) => Promise<void>;
-    afterUpdate: (record: any, cb: (err?: string) => void) => void;
-    afterCreate: (record: any, cb: (err?: string) => void) => void;
+    afterUpdate: (record: DishRecord, cb: (err?: string) => void) => void;
+    afterCreate: (record: DishRecord, cb: (err?: string) => void) => void;
     /**
      * Accepts Waterline Criteria and prepares it there isDeleted = false, balance! = 0. Thus, this function allows
      *  finding in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.

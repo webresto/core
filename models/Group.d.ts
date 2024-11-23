@@ -3,6 +3,7 @@ import ORM from "../interfaces/ORM";
 import { MediaFileRecord } from "./MediaFile";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
+import { DishRecord } from "./Dish";
 export type GetGroupType = {
     [x: string]: GroupWithAdditionalFields;
 };

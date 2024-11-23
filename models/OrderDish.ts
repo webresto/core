@@ -5,6 +5,7 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { DishRecord } from "./Dish";
+import { OrderRecord } from "./Order";
 
 let attributes = {
   /** */

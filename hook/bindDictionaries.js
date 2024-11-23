@@ -9,6 +9,7 @@ function default_1() {
     };
     let countriesHash = {};
     countries.forEach((country) => {
+        //@ts-ignore
         countriesHash[country.iso] = country;
         sails.dictionaries['countries'][country.iso] = country;
         sails.dictionaries.currencies[country.currencyISO] = {

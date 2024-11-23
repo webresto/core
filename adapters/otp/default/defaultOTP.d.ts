@@ -1,3 +1,4 @@
+import { OneTimePasswordRecord } from "../../../models/OneTimePassword";
 import OneTimePasswordAdapter from "../OneTimePasswordAdapter";
 export declare class DefaultOTP extends OneTimePasswordAdapter {
     /**
@@ -6,5 +7,5 @@ export declare class DefaultOTP extends OneTimePasswordAdapter {
      * @param login
      * @returns OTP
      */
-    get(login: string): Promise<OneTimePassword>;
+    get(login: string): Promise<OneTimePasswordRecord>;
 }

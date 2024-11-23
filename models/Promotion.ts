@@ -8,6 +8,7 @@ import { IconfigDiscount } from "../interfaces/ConfigDiscount";
 import { someInArray } from "../libs/stringsInArray";
 // todo: fix types model instance to {%ModelName%}Record for PromotionCode";
 import { v4 as uuid } from "uuid";
+import { PromotionCodeRecord } from "./PromotionCode";
 
 // import Decimal from "decimal.js";
 // sails.on("lifted", function () {
@@ -105,7 +106,7 @@ let attributes = {
   promotionCode: {
     collection: "promotioncode",
     via: "promotion"
-  } as unknown as PromotionCode[] | string[],
+  } as unknown as PromotionCodeRecord[] | string[],
 
   /** No active class in Discount Adapter */
   isDeleted: "boolean" as unknown as boolean,

@@ -1,13 +1,16 @@
 // todo: fix types model instance to {%ModelName%}Record for Group";
 // todo: fix types model instance to {%ModelName%}Record for Dish";
 
+import { DishRecord } from "../models/Dish";
+import { GroupRecord } from "../models/Group";
+
 interface BaseModifier {
   /**
    * restocore dishId
   */
   modifierId: string;
   amount?: number;
-  dish?: Dish | string;
+  dish?: DishRecord | string;
   maxAmount?: number| null;
   minAmount?: number| null;
   defaultAmount?: number| null;
@@ -29,7 +32,7 @@ export interface OrderModifier {
    * This will be changed in a future version to have stricter rules
    */
   amount?: number
-  dish?: Dish  // TODO:  refactor to delete it from OrderModifier
+  dish?: DishRecord  // TODO:  refactor to delete it from OrderModifier
   modifierId?: string // TODO:  refactor to delete it from OrderModifier
 }
 
@@ -43,7 +46,7 @@ export interface Modifier extends BaseModifier {
 export interface GroupModifier extends BaseModifier {
   id?: string; // id не обязательный для поддержки вирутальных групп
   childModifiers: Modifier[];
-  group?: Group | string;
+  group?: GroupRecord | string;
   groupId?: string;
   isSingleModifierGroupWrapper?: boolean;
 }

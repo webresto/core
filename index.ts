@@ -27,7 +27,7 @@ export * from './models/Promotion';
 // Helpers
 export * from './libs/helpers/OrderHelper'
 
-module.exports = function (sails) {
+module.exports = function (sails: any) {
   return {
     defaults: require('./hook/defaults'),
     initialize: require('./hook/initialize').default(sails)

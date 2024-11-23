@@ -4,5 +4,7 @@ type BaseObject = {
 export type CustomData = {
     [key: string]: BaseObject | null;
 };
-export declare function isCustomData(value: any): boolean;
+export declare function isCustomData(value: {
+    [x: string]: BaseObject;
+}): boolean;
 export {};

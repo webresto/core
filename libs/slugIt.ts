@@ -16,6 +16,7 @@ export async function slugIt(model: string, name: string, slugField = 'slug', op
   }
 
   let criteria = {}
+  //@ts-ignore
   criteria[slugField] = { contains: slug };
   const count = await sails.models[model].count(criteria)
   slug = count === 0 ? slug : slug+"-"+count

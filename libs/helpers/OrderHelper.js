@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderHelper = void 0;
-// todo: fix types model instance to {%ModelName%}Record for Order";
 const hashCode_1 = __importDefault(require("../hashCode"));
 const stringsInArray_1 = require("../stringsInArray");
 class OrderHelper {

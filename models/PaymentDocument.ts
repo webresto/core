@@ -7,6 +7,7 @@ import { PaymentResponse, Payment } from "../interfaces/Payment";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 
 import { OptionalAll } from "../interfaces/toolsTS";
+import { PaymentMethodRecord } from "./PaymentMethod";
 
 /** on the example of the basket (Order):
  * 1. Model Conducting Internal/External (for example: Order) creates PaymentDocument

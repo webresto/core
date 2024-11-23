@@ -5,16 +5,16 @@ module.exports = {
    * If you need to add promo goods or delete stopped dish, you need to be here
    */
   CART: {
-    routeRules: async function (data, cb): Promise<string> {
+    routeRules: async function (data: any, cb: any): Promise<string> {
       return "";
     },
-    stateValidation: async function (data, cb): Promise<void> {
+    stateValidation: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
-    inState: async function (data, cb): Promise<void> {
+    inState: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
-    afterState: async function (data, cb): Promise<void> {
+    afterState: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
   },
@@ -25,16 +25,16 @@ module.exports = {
    * From checkout you may go to payment and order (for payment promise)
    */
   CHECKOUT: {
-    routeRules: async function (data, cb): Promise<string> {
+    routeRules: async function (data: any, cb: any): Promise<string> {
       return "";
     },
-    stateValidation: async function (data, cb): Promise<void> {
+    stateValidation: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
-    inState: async function (data, cb): Promise<void> {
+    inState: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
-    afterState: async function (data, cb): Promise<void> {
+    afterState: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
   },
@@ -44,16 +44,16 @@ module.exports = {
    * you need stay here until you payment not finished, after you can go to ORDER
    */
   PAYMENT: {
-    routeRules: async function (data, cb): Promise<string> {
+    routeRules: async function (data: any, cb: any): Promise<string> {
       return "";
     },
-    stateValidation: async function (data, cb): Promise<void> {
+    stateValidation: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
-    inState: async function (data, cb): Promise<void> {
+    inState: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
-    afterState: async function (data, cb): Promise<void> {
+    afterState: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
   },
@@ -64,16 +64,16 @@ module.exports = {
    * Other modules can extend it, please check modules.webresto.org
    */
   ORDER: {
-    routeRules: async function (data, cb): Promise<string> {
+    routeRules: async function (data: any, cb: any): Promise<string> {
       return "";
     },
-    stateValidation: async function (data, cb): Promise<void> {
+    stateValidation: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
-    inState: async function (data, cb): Promise<void> {
+    inState: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
-    afterState: async function (data, cb): Promise<void> {
+    afterState: async function (data: any, cb: () => void): Promise<void> {
       cb();
     },
   },

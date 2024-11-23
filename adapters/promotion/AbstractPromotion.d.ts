@@ -1,4 +1,8 @@
 import { IconfigDiscount } from "../../interfaces/ConfigDiscount";
+import { DishRecord } from "../../models/Dish";
+import { GroupRecord } from "../../models/Group";
+import { OrderRecord, PromotionState } from "../../models/Order";
+import { UserRecord } from "../../models/User";
 export default abstract class AbstractPromotionHandler {
     /** unique id */
     abstract id: string;
@@ -13,18 +17,18 @@ export default abstract class AbstractPromotionHandler {
      * For delete by badge
      */
     abstract badge: string;
-    abstract condition(arg1: Group | Dish | Order): boolean;
+    abstract condition(arg1: GroupRecord | DishRecord | OrderRecord): boolean;
     /**
      * The order must be modified and recorded in a model within this method
      * @param order Order should populated order
      */
-    abstract action(order: Order): Promise<PromotionState>;
+    abstract action(order: OrderRecord): Promise<PromotionState>;
     /**
      * If isPublic === true displayGroup is required
      */
-    abstract displayGroup?(group: Group, user?: string | User): Group;
+    abstract displayGroup?(group: GroupRecord, user?: string | UserRecord): GroupRecord;
     /**
      * If isPublic === true displayDish is required
      */
-    abstract displayDish?(dish: Dish, user?: string | User): Dish;
+    abstract displayDish?(dish: DishRecord, user?: string | UserRecord): DishRecord;
 }

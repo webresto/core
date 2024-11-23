@@ -1,6 +1,7 @@
 import { Payment, PaymentResponse } from "../../interfaces/Payment";
 import { PaymentMethodType } from "../../libs/enums/PaymentMethodTypes";
 import { Config } from "../../interfaces/Config";
+import { PaymentDocumentRecord } from "../../models/PaymentDocument";
 export interface InitPaymentAdapter {
     title: string;
     type: PaymentMethodType;
@@ -31,13 +32,13 @@ export default abstract class PaymentAdapter {
      * @param paymentDocument - Payment document
      * @return the result of the function, the body of the answer and the result of the result (you do not need to save the model)
      */
-    abstract checkPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
+    abstract checkPayment(paymentDocument: PaymentDocumentRecord): Promise<PaymentDocumentRecord>;
     /**
      * Cancel of payment
      * @param paymentDocument - Payment document
      * @return the result of the function, the body of the answer and the result of the result (you do not need to save the model)
      */
-    abstract cancelPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument>;
+    abstract cancelPayment(paymentDocument: PaymentDocumentRecord): Promise<PaymentDocumentRecord>;
     /**
      * Method for creating and obtaining an existing Payment Adapter
      * Since there can be a lot of adapters, this is a direct way to obtain an adapter from his class

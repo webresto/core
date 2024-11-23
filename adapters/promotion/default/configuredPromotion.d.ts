@@ -1,5 +1,9 @@
 import AbstractPromotionHandler from "../AbstractPromotion";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
+import { GroupRecord } from "../../../models/Group";
+import { DishRecord } from "../../../models/Dish";
+import { OrderRecord, PromotionState } from "../../../models/Order";
+import { UserRecord } from "../../../models/User";
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
     badge: string;
     constructor(promotion: Omit<AbstractPromotionHandler, "action" | "condition">, config?: IconfigDiscount);
@@ -11,9 +15,9 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     description: string;
     concept: string[];
     externalId: string;
-    condition(arg: Group | Dish | Order): boolean;
-    action(order: Order): Promise<PromotionState>;
-    displayGroup(group: Group, user?: string | User): Group;
-    displayDish(dish: Dish, user?: string | User): Dish;
-    applyPromotion(order: Order): Promise<PromotionState>;
+    condition(arg: GroupRecord | DishRecord | OrderRecord): boolean;
+    action(order: OrderRecord): Promise<PromotionState>;
+    displayGroup(group: GroupRecord, user?: string | UserRecord): GroupRecord;
+    displayDish(dish: DishRecord, user?: string | UserRecord): DishRecord;
+    applyPromotion(order: OrderRecord): Promise<PromotionState>;
 }

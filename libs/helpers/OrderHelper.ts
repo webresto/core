@@ -1,4 +1,5 @@
 // todo: fix types model instance to {%ModelName%}Record for Order";
+import { OrderRecord } from "../../models/Order";
 import hashCode from "../hashCode";
 import { extractFieldValues } from "../stringsInArray";
 
@@ -25,7 +26,7 @@ export class OrderHelper {
 
   }
 
-  public static async initCheckout(populatedOrder: Order): Promise<InitCheckout> {
+  public static async initCheckout(populatedOrder: OrderRecord): Promise<InitCheckout> {
     let initCheckout: InitCheckout = {
       worktimeIntervals: [],
       allowSoonAsPossible: true,
@@ -37,7 +38,7 @@ export class OrderHelper {
     return initCheckout;
   }
 
-  public static orderHash(populatedOrder: Order): string {
+  public static orderHash(populatedOrder: OrderRecord): string {
     const fieldsToExclude = [
       'createdAt',
       'updatedAt',

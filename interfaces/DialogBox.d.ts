@@ -1,3 +1,4 @@
+import { DishRecord } from "../models/Dish";
 export type DialogBoxConfig = DialogBoxButton | DialogBoxProduct;
 interface DialogBoxBase {
     askId?: string;
@@ -55,7 +56,7 @@ interface DialogOptionBase {
     label: string;
 }
 interface DialogOptionProduct extends DialogOptionBase {
-    product: Dish;
+    product: DishRecord;
 }
 interface DialogOptionButton extends DialogOptionBase {
     /**

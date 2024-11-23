@@ -1,4 +1,7 @@
 import { RequiredField } from "../../interfaces/toolsTS";
+import { UserRecord } from "../../models/User";
+import { UserBonusProgramRecord } from "../../models/UserBonusProgram";
+import { UserBonusTransactionRecord } from "../../models/UserBonusTransaction";
 export type ConfigBonusProgramAdapter = {
     [key: string]: number | boolean | string;
 };

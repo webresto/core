@@ -5,6 +5,8 @@ import { v4 as uuid } from "uuid";
 import { BonusProgramRecord } from "./BonusProgram";
 import Decimal from "decimal.js";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
+import { UserRecord } from "./User";
+import { UserBonusTransactionRecord } from "./UserBonusTransaction";
 
 // type Optional<T> = {
 //   [P in keyof T]?: T[P];
@@ -188,7 +190,7 @@ let Model = {
 
       let skip = 0;
       const limit = 10;
-      let lastTransaction = { } as UserBonusTransaction;
+      let lastTransaction = { } as UserBonusTransactionRecord;
 
         while (true) {
           const transactions: BonusTransaction[] = await adapter.getTransactions(user, afterTime, limit, skip);
@@ -198,7 +200,7 @@ let Model = {
 
           for (const transaction of transactions) {
 
-            const userBonusTransaction: UserBonusTransaction = {
+            const userBonusTransaction: UserBonusTransactionRecord = {
               isNegative: transaction.isNegative,
               externalId: transaction.externalId,
               group: transaction.group,
@@ -331,7 +333,7 @@ let Model = {
 
 
     // Retrieve the relevant transactions for the user and bonus program
-    const transactions: UserBonusTransaction[] = await UserBonusTransaction.find({ user: user.id, bonusProgram: bonusProgram.id});
+    const transactions: UserBonusTransactionRecord[] = await UserBonusTransaction.find({ user: user.id, bonusProgram: bonusProgram.id});
     // Initialize the balance with 0
     let balance = new Decimal(0);
 

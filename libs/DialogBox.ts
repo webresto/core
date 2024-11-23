@@ -3,6 +3,7 @@ import { DialogBoxConfig } from "../interfaces/DialogBox";
 import { v4 as uuid } from "uuid";
 
 import Ajv from 'ajv';
+import { UserRecord } from "../models/User";
 const ajv = new Ajv();
 let jsonSchema = require("./schemas/dialogBoxConfig.json")
 const validate = ajv.compile(jsonSchema);
@@ -10,7 +11,7 @@ const validate = ajv.compile(jsonSchema);
 
 export class DialogBox {
   public config: DialogBoxConfig;
-  public user: User;
+  public user: UserRecord;
   public answerId: string = null;
   public askId: string
   public deviceId: string

@@ -41,7 +41,7 @@ export default function ToInitialize(sails: Sails) {
    */
   const requiredHooks = ["orm", "policies", "stateflow", "i18n"];
 
-  return function initialize(cb) {
+  return function initialize(cb: ()=>{}) {
     try {
       
       sails.log.info(`RestoCore initialize from dir [${__dirname}]`)

@@ -1,3 +1,4 @@
+import { OrderRecord } from "../../models/Order";
 /**
  * **Soft delivery calculation**
  * This is done so that some deliveries can agree on the cost of delivery themselves.

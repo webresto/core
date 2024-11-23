@@ -8,13 +8,18 @@ import { WorkTimeValidator } from "@webresto/worktime";
 // todo: fix types model instance to {%ModelName%}Record for Dish";
 import ConfiguredPromotion from "./configuredPromotion";
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
+import { OrderRecord, PromotionState } from "../../../models/Order";
+import { PromotionRecord } from "../../../models/Promotion";
+import { DishRecord } from "../../../models/Dish";
+import { GroupRecord } from "../../../models/Group";
+import { PromotionCodeRecord } from "../../../models/PromotionCode";
 // todo: fix types model instance to {%ModelName%}Record for PromotionCode";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
 
   public readonly promotions: { [key: string]: AbstractPromotionHandler; } = {};
 
-  public async processOrder(populatedOrder: Order): Promise<Order> {
+  public async processOrder(populatedOrder: OrderRecord): Promise<OrderRecord> {
     const promotionStates = [] as PromotionState[]
     const promotionErrors = [];
     let debugCount = 0;
@@ -22,7 +27,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     populatedOrder = await this.clearOfPromotion(populatedOrder);
     let filteredPromotion = this.filterByConcept(populatedOrder.concept);
     // TODO: filter retruns only one
-    let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, populatedOrder);
+    let promotionByConcept: PromotionRecord[] | undefined = this.filterPromotions(filteredPromotion, populatedOrder);
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
         debugCount++;
@@ -63,10 +68,10 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   }
 
   // one method to get all promotions and id's
-  public displayDish(dish: Dish): Dish {
+  public displayDish(dish: DishRecord): DishRecord {
     try {
       let filteredPromotion = this.filterByConcept(dish.concept);
-      let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, dish);
+      let promotionByConcept: PromotionRecord[] | undefined = this.filterPromotions(filteredPromotion, dish);
 
       if (promotionByConcept[0] === undefined) return dish;
 
@@ -79,10 +84,10 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     }
   }
 
-  public displayGroup(group: Group): Group {
+  public displayGroup(group: GroupRecord): GroupRecord {
     // check isJoint = true, isPublic = true
     let filteredPromotion = this.filterByConcept(group.concept);
-    let promotionByConcept: Promotion[] | undefined = this.filterPromotions(filteredPromotion, group);
+    let promotionByConcept: PromotionRecord[] | undefined = this.filterPromotions(filteredPromotion, group);
 
     if (promotionByConcept[0] === undefined) return group;
     // TODO: this should work on first condition isJoint and isPublic should be true
@@ -94,19 +99,19 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return group;
   }
 
-  public filterByConcept(concept: string | string[]): Promotion[] {
+  public filterByConcept(concept: string | string[]): PromotionRecord[] {
     let modifiedConcept: string[];
     typeof concept === "string" ? (modifiedConcept = [concept]) : (modifiedConcept = concept);
     return Promotion.getAllByConcept(modifiedConcept);
   }
 
-  public filterPromotions(promotionsByConcept: Promotion[], target: Group | Dish | Order): Promotion[] {
+  public filterPromotions(promotionsByConcept: PromotionRecord[], target: GroupRecord | DishRecord | OrderRecord): PromotionRecord[] {
     /**
      * If promotion enabled by promocode notJoint it disables all promotions and sets promocode promotion,
      * If promocode promotion is joint, it just will be applied by order
      */
 
-    let filteredPromotionsToApply: Promotion[] = Object.values(promotionsByConcept)
+    let filteredPromotionsToApply: PromotionRecord[] = Object.values(promotionsByConcept)
       .filter((record) => {
         if (!record.worktime) return true;
         try {
@@ -117,16 +122,18 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       })
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
-    const filteredByCondition: Promotion[] = this.filterByCondition(filteredPromotionsToApply, target);
+    const filteredByCondition: PromotionRecord[] = this.filterByCondition(filteredPromotionsToApply, target);
     // Promotion by PromotionCode doesn't need to be filtered
     if (findModelInstanceByAttributes(target) === "Order") {
-      const order = target as Order;
+      const order = target as OrderRecord;
       if (order.promotionCode) {
-        const promotionCode = order.promotionCode as PromotionCode
+        const promotionCode = order.promotionCode as PromotionCodeRecord
         if (Array.isArray(promotionCode.promotion)) {
           promotionCode.promotion.forEach((p) => {
-            p.sortOrder = -Infinity;
-            filteredByCondition.push(p);
+            if(typeof p === "object") {
+              p.sortOrder = -Infinity;
+              filteredByCondition.push(p);
+            }
           });
         }
         else {
@@ -137,7 +144,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       }
     }
     // return first isJoint = false
-    let filteredByJointPromotions: Promotion[] = [
+    let filteredByJointPromotions: PromotionRecord[] = [
       filteredByCondition.find((promotion) => {
         return promotion.isJoint === false;
       }),
@@ -152,7 +159,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return filteredByJointPromotions;
   }
 
-  public filterByCondition(promotionsToCheck: Promotion[], target: Group | Dish | Order): Promotion[] {
+  public filterByCondition(promotionsToCheck: PromotionRecord[], target: GroupRecord | DishRecord | OrderRecord): PromotionRecord[] {
     const filteredPromotions = [];
     for (const promotion of promotionsToCheck) {
       if (this.promotions[promotion.id]) {
@@ -172,7 +179,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
    * @param promotionToAdd
    */
   public async addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void> {
-    let createInModelPromotion: Promotion = {
+    let createInModelPromotion: PromotionRecord = {
       badge: promotionToAdd.badge,
       id: promotionToAdd.id,
       isJoint: promotionToAdd.isJoint,
@@ -197,7 +204,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
    * @param promotionToAdd
    * @returns
    */
-  public recreateConfiguredPromotionHandler(promotionToAdd: Promotion): void {
+  public recreateConfiguredPromotionHandler(promotionToAdd: PromotionRecord): void {
     if (this.promotions[promotionToAdd.id]) {
       delete this.promotions[promotionToAdd.id]
     }

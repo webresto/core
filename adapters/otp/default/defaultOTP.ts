@@ -1,3 +1,4 @@
+import { OneTimePasswordRecord } from "../../../models/OneTimePassword";
 import OneTimePasswordAdapter from "../OneTimePasswordAdapter";
 // todo: fix types model instance to {%ModelName%}Record for OneTimePassword"
 export class DefaultOTP extends OneTimePasswordAdapter {
@@ -7,7 +8,7 @@ export class DefaultOTP extends OneTimePasswordAdapter {
    * @param login
    * @returns OTP
    */
-  public async get(login: string): Promise<OneTimePassword> {
+  public async get(login: string): Promise<OneTimePasswordRecord> {
     let otp = await OneTimePassword.create({ login: login }).fetch();
     if (!otp.password || !login)  {
       await NotificationManager.sendMessageToDeliveryManager("error", `Failed OPT password generate for ${login}, please contact with him`);
