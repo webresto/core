@@ -3,7 +3,7 @@ import { OrderRecord } from "../../../models/Order";
 import DeliveryAdapter, { Delivery } from "../DeliveryAdapter";
 
 export class DefaultDeliveryAdapter extends DeliveryAdapter {
-  public async calculate(order: OrderRecord): Promise<Delivery> {
+  public async calculate(order: OrderRecordRecord): Promise<Delivery> {
     const deliveryCost = await Settings.get("DELIVERY_COST");
     const deliveryItem = await Settings.get("DELIVERY_ITEM");
     const deliveryMessage = await Settings.get("DELIVERY_MESSAGE");

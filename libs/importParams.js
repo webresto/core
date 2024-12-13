@@ -49,6 +49,6 @@ function addImportParam(label, fn) {
 /**
  * EXAMPLE
  */
-// addImportParam('example', async (obj: Dish | Group) => {
+// addImportParam('example', async (obj: DishRecord | Group) => {
 //   sails.log.info(obj);
 // });

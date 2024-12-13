@@ -7,7 +7,6 @@ const chai_1 = require("chai");
 const group_generator_1 = __importDefault(require("../../generators/group.generator"));
 const group_generator_2 = require("../../generators/group.generator");
 const dish_generator_1 = require("../../generators/dish.generator");
-// todo: fix types model instance to {%ModelName%}Record for Group";
 const lodash_1 = require("lodash");
 describe("Group", function () {
     let exampleGroups = [];
@@ -92,10 +91,13 @@ describe("Group", function () {
             if (!testGroupFields.includes(key)) {
                 continue;
             }
+            //@ts-ignore
             if ((0, lodash_1.isArray)(exampleGroup[key])) {
+                //@ts-ignore
                 (0, chai_1.expect)(exampleGroup[key].length).to.equal(group[key].length);
             }
             else {
+                //@ts-ignore
                 (0, chai_1.expect)(exampleGroup[key]).to.equal(group[key]);
             }
         }

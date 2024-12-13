@@ -1,13 +1,12 @@
 import { expect } from "chai";
 import groupGenerator from "../../generators/group.generator";
 import { groupFields } from "../../generators/group.generator";
-import dishGenerator from "../../generators/dish.generator";
 import { dishFields } from "../../generators/dish.generator";
-// todo: fix types model instance to {%ModelName%}Record for Group";
 import { isArray } from "lodash";
+import { GroupRecord } from "../../../models/Group";
 
 describe("Group", function () {
-  let exampleGroups: Group[] = [];
+  let exampleGroups: GroupRecord[] = [];
 
   it("create example Groups", async function () {
     try {
@@ -77,7 +76,7 @@ it("getGroups", async function () {
   //// Local methods /////////////////////////////
 
   /** Throw if not equal */
-  function equalGroups(exampleGroups: Group[], result: Group[]): void {
+  function equalGroups(exampleGroups: GroupRecord[], result: GroupRecord[]): void {
     for (let exampleGroup of exampleGroups) {
       
       let group = result.find((g) => {
@@ -90,22 +89,25 @@ it("getGroups", async function () {
       
       if (exampleGroup.childGroups && exampleGroup.childGroups.length) {
         expect(exampleGroup.childGroups.length).to.equal(group.childGroups.length);
-        equalGroups(exampleGroup.childGroups as Group[], group.childGroups as Group[]);
+        equalGroups(exampleGroup.childGroups as GroupRecord[], group.childGroups as GroupRecord[]);
       }
     }
   }
 
   /** Throw if not equal */
-  function equalGroup(exampleGroup: Group, group: Group): void {
+  function equalGroup(exampleGroup: GroupRecord, group: GroupRecord): void {
     let keys = Object.keys(exampleGroup);
     const testGroupFields = groupFields;
     for (let key of keys) {
       if (!testGroupFields.includes(key)) {
         continue;
       }
+      //@ts-ignore
       if (isArray(exampleGroup[key])) {
+              //@ts-ignore
         expect(exampleGroup[key].length).to.equal(group[key].length);
       } else {
+              //@ts-ignore
         expect(exampleGroup[key]).to.equal(group[key]);
       }
     }
@@ -115,10 +117,10 @@ it("getGroups", async function () {
   }
 
   /** Throw if not equal */
-  function equalDishes(exampleDishes, dishes) {
+  function equalDishes(exampleDishes: any, dishes: any[]) {
     const testDishFields = dishFields;
     for (let exampleDish of exampleDishes) {
-      let dish = dishes.find((d) => d.id === exampleDish.id);
+      let dish = dishes.find((d: { id: any; }) => d.id === exampleDish.id);
       expect(dish).to.be.an("object");
       let keys = Object.keys(exampleDish);
       for (let key of keys) {

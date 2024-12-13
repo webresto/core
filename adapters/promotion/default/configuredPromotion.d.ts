@@ -16,8 +16,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     concept: string[];
     externalId: string;
     condition(arg: GroupRecord | DishRecord | OrderRecord): boolean;
-    action(order: OrderRecord): Promise<PromotionState>;
+    action(order: OrderRecordRecord): Promise<PromotionState>;
     displayGroup(group: GroupRecord, user?: string | UserRecord): GroupRecord;
     displayDish(dish: DishRecord, user?: string | UserRecord): DishRecord;
-    applyPromotion(order: OrderRecord): Promise<PromotionState>;
+    applyPromotion(order: OrderRecordRecord): Promise<PromotionState>;
 }

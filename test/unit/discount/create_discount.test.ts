@@ -9,6 +9,9 @@ import findModelInstanceByAttributes from './../../../libs/findModelInstance';
 import Decimal from 'decimal.js';
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
 import { someInArray } from '../../../libs/stringsInArray';
+import { DishRecord } from "../../../models/Dish";
+import { GroupRecord } from "../../../models/Group";
+import { OrderRecord } from "../../../models/Order";
 
 describe('Create_Discount', function () {
 
@@ -33,7 +36,7 @@ describe('Create_Discount', function () {
             name: "1-name",
             description: "string",
             concept: [],
-            condition:  (arg: Group | Dish | Order): boolean => {
+            condition:  (arg: GroupRecord | DishRecord | OrderRecord): boolean => {
                 if (findModelInstanceByAttributes(arg) === "Order" && someInArray(arg.concept, discountEx.concept)) {
                     // Order.populate()
                     return true;
@@ -59,7 +62,7 @@ describe('Create_Discount', function () {
             isPublic: true,
             isJoint: true,
             // sortOrder: 0,
-            displayGroup:  function (group:Group, user?: string): Group {
+            displayGroup:  function (group: GroupRecord, user?: string): GroupRecord {
                 if (this.isJoint === true && this.isPublic === true) {
                 
                   group.discountAmount = promotionAdapter.promotions[this.id].configDiscount.discountAmount;
@@ -68,7 +71,7 @@ describe('Create_Discount', function () {
                  
                 return group
               },
-              displayDish: function (dish:Dish, user?: string): Dish {
+              displayDish: function (dish: DishRecord, user?: string): DishRecord {
                 if (this.isJoint === true && this.isPublic === true) {
                   // 
                   dish.discountAmount = promotionAdapter.promotions[this.id].configDiscount.discountAmount;

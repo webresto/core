@@ -4,11 +4,12 @@ import { Adapter } from "../../../adapters";
 import { expect } from "chai";
 import groupGenerator from "../../generators/group.generator";
 import dishGenerator from "../../generators/dish.generator";
+import RMSAdapter from "../../../adapters/rms/RMSAdapter";
 
 
 describe("RMS adapter", function () {
   this.timeout(60000)
-  let rmsAdapter = null
+  let rmsAdapter: RMSAdapter = null
   before(async function() {
     let adapter  = new TestRMS() ///File = path.resolve(__dirname, "../../mocks/adapter/RMS.js");
     rmsAdapter = await Adapter.getRMSAdapter(adapter);

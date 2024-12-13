@@ -5,8 +5,10 @@ import BonusProgramAdapter, { BonusTransaction, ConfigBonusProgramAdapter } from
 // todo: fix types model instance to {%ModelName%}Record for UserBonusProgram";
 import fakerStatic = require("faker");
 import { RequiredField } from "../../../interfaces/toolsTS";
+import { UserRecord } from "../../../models/User";
+import { UserBonusProgramRecord } from "../../../models/UserBonusProgram";
 export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
-  public getUserInfo(user: User): Promise<RequiredField<Partial<Pick<Omit<UserBonusProgram, "id"> & User, "id" | "firstName" | "lastName" | "sex" | "email" | "birthday" | "externalId" | "externalCustomerId" | "balance">>, "id" | "externalId" | "externalCustomerId">> {
+  public getUserInfo(user: UserRecord): Promise<RequiredField<Partial<Pick<Omit<UserBonusProgramRecord, "id"> & UserRecord, "id" | "firstName" | "lastName" | "sex" | "email" | "birthday" | "externalId" | "externalCustomerId" | "balance">>, "id" | "externalId" | "externalCustomerId">> {
     console.log("Method not implemented.");
     return
   }
@@ -33,7 +35,7 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     }
   }
 
-  public async registration(user: User): Promise<string> {
+  public async registration(user: UserRecord): Promise<string> {
     if (!this.users.has(user.id)) {
       this.users.set(user.id, user);
       this.transactions.set(user.id, []);
@@ -41,18 +43,18 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     return fakerStatic.random.uuid()
   }
 
-  public async delete(user: User): Promise<void> {
+  public async delete(user: UserRecord): Promise<void> {
     if (this.users.has(user.id)) {
       this.users.delete(user.id);
       this.transactions.delete(user.id);
     }
   }
 
-  public async isRegistered(user: User): Promise<boolean> {
+  public async isRegistered(user: UserRecord): Promise<boolean> {
     return this.users.has(user.id);
   }
 
-  public async getBalance(user: User, _ubp: UserBonusProgram): Promise<number> {
+  public async getBalance(user: UserRecord, _ubp: UserBonusProgramRecord): Promise<number> {
     if(this.balance[user.id]) {
       return this.balance[user.id];
     } else {
@@ -60,12 +62,12 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     }
   }
 
-  public async getTransactions(user: User, afterTime: Date, limit: number = 0, skip: number = 0): Promise<BonusTransaction[]> {
+  public async getTransactions(user: UserRecord, afterTime: Date, limit: number = 0, skip: number = 0): Promise<BonusTransaction[]> {
     const transactions = this.transactions.get(user.id) || [];
     return transactions.filter((transaction) => new Date(transaction.time) > afterTime).slice(skip, limit || undefined);
   }
 
-  public async writeTransaction(user: User, _ubp: UserBonusProgram, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction> {
+  public async writeTransaction(user: UserRecord, _ubp: UserBonusProgramRecord, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction> {
     if (!this.users.has(user.id)) {
       throw new Error("User not found");
     }

@@ -3,8 +3,9 @@ import * as bcryptjs from "bcryptjs";
 // todo: fix types model instance to {%ModelName%}Record for User";
 
 import { OTP } from "../../../adapters";
+import { UserRecord } from "../../../models/User";
 
-let user: User;
+let user: UserRecord;
 describe("User", function () {
 
   it("create new user", async function () {

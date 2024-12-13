@@ -29,7 +29,7 @@ This module provides a flexible notification system that allows messages to be s
 3. **Dialog boxes and user questions**
     In order to set expectations for the user's response, dialog boxes are provided. The process involves sending a dialogue to the frontend and waiting for a response; if no one has processed the dialogue, there will be a timeout
 
-     - `ask(dialog: DialogBox, user: User, deviceId?: string, timeout?: number)`: It will try to send a question to a specific device, after which it will wait for its resolution, which should be sent to the method`answerProcess`
+     - `ask(dialog: DialogBox, user: UserRecord, deviceId?: string, timeout?: number)`: It will try to send a question to a specific device, after which it will wait for its resolution, which should be sent to the method`answerProcess`
      - `answerProcess: (askId: string, optionId: string)`: Processes the user's response 
 
 ### Usage Examples
@@ -40,7 +40,7 @@ This module provides a flexible notification system that allows messages to be s
 class EmailChannel extends Channel {
   public type: 'email';
   public allowedRecipients: ['manager', 'user', 'device'];
-  protected async send(badge: Badge, user: User, message: string, subject?: string, data?: object): Promise<void> {
+  protected async send(badge: Badge, user: UserRecord, message: string, subject?: string, data?: object): Promise<void> {
     console.log(`Sending ${badge} email to ${user.email}: ${message}`);
   }
 }

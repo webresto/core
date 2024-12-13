@@ -57,7 +57,7 @@ let Model = {
     if (user && user.id) {
       await UserOrderHistory.create({
         id: uuid(),
-        order: order,
+        order: OrderRecordRecord,
         orderTotal: order.orderTotal,
         uniqueItems: order.uniqueDishes,
         total: order.total,

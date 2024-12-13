@@ -7,13 +7,14 @@ import { SpendBonus } from "../../../interfaces/SpendBonus";
 // todo: fix types model instance to {%ModelName%}Record for Order";
 // todo: fix types model instance to {%ModelName%}Record for BonusProgram";
 import BonusProgramAdapter from "../../../adapters/bonusprogram/BonusProgramAdapter";
+import { OrderRecord } from "../../../models/Order";
+import { BonusProgramRecord } from "../../../models/BonusProgram";
+import { UserRecord } from "../../../models/User";
 
-let user: User;
+let user: UserRecord;
 let bp: BonusProgramAdapter;
-let bonusProgram: BonusProgram;
-let bonusProgramNoTx: BonusProgram;
-let order1: Order;
-let order2: Order;
+let bonusProgram: BonusProgramRecord;
+let order1: OrderRecord;
 
 let UBP: string;
 

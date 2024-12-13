@@ -14,6 +14,9 @@ import { Adapter } from '../../../adapters/index';
 import { someInArray } from '../../../libs/stringsInArray';
 import ConfiguredPromotion from '../../../adapters/promotion/default/configuredPromotion';
 import Decimal from 'decimal.js';
+import { DishRecord } from '../../../models/Dish';
+import { GroupRecord } from '../../../models/Group';
+import { OrderRecord } from '../../../models/Order';
 
 describe('Discount_Empty', function () {
   after(async function () {
@@ -33,7 +36,7 @@ describe('Discount_Empty', function () {
     name: "1-name",
     description: "string",
     concept: [""],
-    condition: (arg: Group | Dish | Order): boolean => {
+    condition: (arg: GroupRecord | DishRecord | OrderRecord): boolean => {
       if (findModelInstanceByAttributes(arg) === "Order" && (discountEx.concept[0] === undefined || discountEx.concept[0] === "")
         ? true : someInArray(arg.concept, discountEx.concept)) {
         // Order.populate()
@@ -43,13 +46,13 @@ describe('Discount_Empty', function () {
 
       return false
     },
-    action: async (order: Order): Promise<PromotionState> => {
+    action: async (order: OrderRecord): Promise<PromotionState> => {
       return await configuredPromotion.applyPromotion(order)
     },
     isPublic: true,
     isJoint: true,
     // sortOrder: 0,
-    displayGroup: function (group: Group, user?: string): Group {
+    displayGroup: function (group: GroupRecord, user?: string): GroupRecord {
       if (this.isJoint === true && this.isPublic === true) {
 
         group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
@@ -58,7 +61,7 @@ describe('Discount_Empty', function () {
 
       return group
     },
-    displayDish: function (dish: Dish, user?: string): Dish {
+    displayDish: function (dish: DishRecord, user?: string): DishRecord {
       if (this.isJoint === true && this.isPublic === true) {
         //
         dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
@@ -77,7 +80,7 @@ describe('Discount_Empty', function () {
   }
 
   let configuredPromotion: ConfiguredPromotion
-  let groupsId = []
+  let groupsId: any[] = []
 
   let promotionAdapter: PromotionAdapter;
   before(async () => {

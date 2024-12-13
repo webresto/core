@@ -3,12 +3,15 @@ import faker from "faker";
 // todo: fix types model instance to {%ModelName%}Record for Dish';
 // todo: fix types model instance to {%ModelName%}Record for OrderDish';
 // todo: fix types model instance to {%ModelName%}Record for Order';
-import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
 import findModelInstanceByAttributes from "../../libs/findModelInstance";
 import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
 import ConfiguredPromotion from "../../adapters/promotion/default/configuredPromotion";
 import { someInArray } from "../../libs/stringsInArray";
 import Decimal from "decimal.js";
+import { OrderDishRecord } from "../../models/OrderDish";
+import { GroupRecord } from "../../models/Group";
+import { DishRecord } from "../../models/Dish";
+import { OrderRecord, PromotionState } from "../../models/Order";
 
 var autoincrement: number = 0;
 
@@ -50,15 +53,15 @@ export default function discountGenerator(config: Omit<AbstractPromotionHandler,
       excludeModifiers: false
   },
     // productCategoryDiscounts: undefined,
-    condition: function (arg: Group | Dish | Order): boolean {
+    condition: function (arg: GroupRecord | DishRecord | OrderRecord): boolean {
       if (findModelInstanceByAttributes(arg) === "Order" && someInArray(arg.concept, this.concept)) {
-        let order:Order = arg as Order
+        let order:OrderRecord = arg as OrderRecord
         // TODO:  if order.dishes type number[]
         
-        let orderDishes:OrderDish[] = order.dishes as OrderDish[]
+        let orderDishes:OrderDishRecord[] = order.dishes as OrderDishRecord[]
 
-        let checkDishes = orderDishes.map(order =>order.dish).some((dish:Dish) => this.configDiscount.dishes.includes(dish.id))
-        let checkGroups = orderDishes.map(order =>order.dish).some((dish:Dish) => this.configDiscount.groups.includes(dish.parentGroup))
+        let checkDishes = orderDishes.map(order =>order.dish).some((dish:DishRecord) => this.configDiscount.dishes.includes(dish.id))
+        let checkGroups = orderDishes.map(order =>order.dish).some((dish:DishRecord) => this.configDiscount.groups.includes(dish.parentGroup))
 
         if(checkDishes && checkGroups) return true
         
@@ -81,12 +84,12 @@ export default function discountGenerator(config: Omit<AbstractPromotionHandler,
     
     return false
   },
-    action: async function (order: Order):Promise<PromotionState> {
+    action: async function (order: OrderRecordRecord):Promise<PromotionState> {
       let configuredPromotion: ConfiguredPromotion = new ConfiguredPromotion(this, this.configDiscount)
       return await configuredPromotion.applyPromotion(order)
     },
     // sortOrder: 0,
-    displayGroup: function (group:Group, user?: string): Group {
+    displayGroup: function (group:GroupRecord, user?: string): GroupRecord {
       if (this.isJoint === true && this.isPublic === true) {
         // 
         group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
@@ -96,7 +99,7 @@ export default function discountGenerator(config: Omit<AbstractPromotionHandler,
       return group
     }
     ,
-      displayDish: function (dish:Dish, user?: string): Dish {
+      displayDish: function (dish:DishRecord, user?: string): DishRecord {
          // if (this.isJoint === true && this.isPublic === true) {
         //   // 
         dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;

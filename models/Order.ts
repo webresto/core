@@ -362,7 +362,7 @@ let Model = {
     cb();
   },
 
-  async afterCreate(order: OrderRecord, cb: (err?: string) => void) {
+  async afterCreate(order: OrderRecordRecord, cb: (err?: string) => void) {
     /**
      * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
      * This creates redundancy in the kernel. But in the current version, we will try to run the kernel in this way. Until we switch to stateflow
@@ -794,7 +794,7 @@ let Model = {
   ): Promise<void> {
 
 
-    let order: OrderRecord = await Order.findOne(criteria);
+    let order: OrderRecordRecord = await Order.findOne(criteria);
 
     // CHECKING
     // Check order empty
@@ -810,7 +810,7 @@ let Model = {
     if (order.promotionUnorderable === true) throw `Order not possible for order by promotion`;
 
 
-    //const order: OrderRecord = await Order.findOne(criteria);
+    //const order: OrderRecordRecord = await Order.findOne(criteria);
     if (order.paid) {
       sails.log.error("CART > Check > error", order.id, "order is paid");
       throw {
@@ -1146,7 +1146,7 @@ let Model = {
   },
 
   async payment(criteria: CriteriaQuery<OrderRecord>): Promise<PaymentResponse> {
-    const order: OrderRecord = await Order.findOne(criteria);
+    const order: OrderRecordRecord = await Order.findOne(criteria);
     if (order.state !== "CHECKOUT") throw `order with orderId ${order.id} in state ${order.state} but need CHECKOUT`;
 
     let paymentResponse: PaymentResponse;
@@ -1854,7 +1854,7 @@ async function checkPaymentMethod(paymentMethodId: string) {
   }
 }
 
-async function checkDate(order: OrderRecord) {
+async function checkDate(order: OrderRecordRecord) {
   if (order.date) {
     const date = new Date(order.date);
 

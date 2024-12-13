@@ -16,13 +16,16 @@ import { someInArray, stringsInArray } from '../../../libs/stringsInArray';
 import ConfiguredPromotion from '../../../adapters/promotion/default/configuredPromotion';
 import Decimal from 'decimal.js';
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
+import { DishRecord } from '../../../models/Dish';
+import { GroupRecord } from '../../../models/Group';
+import { OrderRecord, PromotionState } from '../../../models/Order';
 
 describe('Discount', function () {
    
    // TODO: tests throw get adapter
    
-    // let order: Order;
-    // let dishes: Dish[];
+    // let order: OrderRecord;
+    // let dishes: DishRecord[];
     // let fullOrder: Order;
     after(async function() {
       // await Promotion.destroy({})
@@ -44,7 +47,7 @@ describe('Discount', function () {
         name: "1-name",
         description: "string",
         concept: ["origin","clear","Happy Birthday","3dif","Display Dish"],
-        condition: (arg: Group | Dish | Order): boolean =>{
+        condition: (arg: GroupRecord | DishRecord | OrderRecord): boolean =>{
           if (findModelInstanceByAttributes(arg) === "Order" && someInArray(arg.concept, discountEx.concept) ) {
             // Order.populate()
             //discountEx.concept.includes(arg.concept)
@@ -64,13 +67,13 @@ describe('Discount', function () {
           
           return false
       },
-        action: async (order: Order): Promise<PromotionState> => {
+        action: async (order: OrderRecord): Promise<PromotionState> => {
              return await configuredPromotion.applyPromotion(order) 
         },
         isPublic: true,
         isJoint: true,
         // sortOrder: 0,
-        displayGroup:  function (group:Group, user?: string): Group {
+        displayGroup:  function (group: GroupRecord, user?: string): GroupRecord {
           if (this.isJoint === true && this.isPublic === true) {
           
             group.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
@@ -79,7 +82,7 @@ describe('Discount', function () {
            
           return group
         },
-        displayDish: function (dish:Dish, user?: string): Dish {
+        displayDish: function (dish: DishRecord, user?: string): DishRecord {
           // if (this.isJoint === true && this.isPublic === true) {
           //   // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
@@ -98,7 +101,7 @@ describe('Discount', function () {
 
     let configuredPromotion: ConfiguredPromotion
     let configuredPromotionFromMemory: ConfiguredPromotion
-    let groupsId = []
+    let groupsId: any[] = []
 
 
     let disc1:AbstractPromotionHandler = discountGenerator({

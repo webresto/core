@@ -5,15 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const ExternalTestPaymentSystem_1 = __importDefault(require("../../unit/external_payments/ExternalTestPaymentSystem"));
-// todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
-// todo: fix types model instance to {%ModelName%}Record for OrderDish";
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const customer_1 = require("../../mocks/customer");
 describe("Order", function () {
     this.timeout(60000);
     let order;
     let dishes;
-    let fullOrder;
     // describe('New Example', function (){
     //   it('new it', function(){
     //     return true;
@@ -206,10 +203,7 @@ describe("Order", function () {
         order = await Order.findOne(order.id);
         (0, chai_1.expect)(order.paid).to.equals(true);
         (0, chai_1.expect)(order.paymentMethod).to.equals(paymentDocument.paymentMethod);
-        let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
+        let paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentDocument.paymentMethod })).title;
         (0, chai_1.expect)(order.paymentMethodTitle).to.equals(paymentMethodTitle);
     });
 });
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}

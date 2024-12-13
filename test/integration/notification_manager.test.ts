@@ -7,7 +7,7 @@ class TestChannel extends Channel {
   public sortOrder: number = 0;
   public type: string = "sms";
   public lastMessage: string = "";
-  protected async send(badge: "info" | "error", message: string, user: User, subject?: string, data?: object): Promise<void> {
+  protected async send(badge: "info" | "error", message: string, user: UserRecord, subject?: string, data?: object): Promise<void> {
     this.lastMessage = message;
   }
 }

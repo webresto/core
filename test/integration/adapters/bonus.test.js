@@ -6,9 +6,7 @@ const customer_1 = require("../../mocks/customer");
 let user;
 let bp;
 let bonusProgram;
-let bonusProgramNoTx;
 let order1;
-let order2;
 let UBP;
 describe("Bonus program adapter", function () {
     this.timeout(60000);

@@ -10,7 +10,7 @@ import { address, customer } from "../../mocks/customer";
 
 describe("Flows: Checkout", function () {
   this.timeout(10000);
-  var order: Order;
+  var order: OrderRecord;
 
 
   let dishes;
@@ -188,7 +188,7 @@ describe("Flows: Checkout", function () {
   });
 
   describe("check Customer", function () {
-    // let order: Order;
+    // let order: OrderRecord;
     // it('init', async function(){
     //     order = await Order.create({});
     // });

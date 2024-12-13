@@ -1,22 +1,16 @@
 import { expect } from "chai";
-import Address from "../../../interfaces/Address";
-import { name } from "faker";
-// todo: fix types model instance to {%ModelName%}Record for Order";
-// todo: fix types model instance to {%ModelName%}Record for Dish";
-import Customer from "../../../interfaces/Customer";
-import { Payment } from "../../../interfaces/Payment";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
-// todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
-// todo: fix types model instance to {%ModelName%}Record for OrderDish";
 import Decimal from "decimal.js";
 import { customer, address } from "../../mocks/customer"
+import { DishRecord } from "../../../models/Dish";
+import { OrderRecord } from "../../../models/Order";
+import { OrderDishRecord } from "../../../models/OrderDish";
 
 describe("Order", function () {
 
   this.timeout(60000);
-  let order: Order;
-  let dishes: Dish[];
-  let fullOrder: Order;
+  let order: OrderRecord;
+  let dishes: DishRecord[];
 
   // describe('New Example', function (){
   //   it('new it', function(){
@@ -115,7 +109,7 @@ describe("Order", function () {
   });
 
   it("removeDish", async function () {
-    let dish = (await Order.findOne(order.id).populate("dishes")).dishes[1] as OrderDish;
+    let dish = (await Order.findOne(order.id).populate("dishes")).dishes[1] as OrderDishRecord;
     dish = await OrderDish.findOne(dish.id);
     await Order.removeDish({id: order.id}, dish, 1, false);
     let changedDish = await OrderDish.findOne(dish.id);
@@ -164,7 +158,7 @@ describe("Order", function () {
   });
 
   it("setComment", async function () {
-    let dish = (await Order.findOne({ id: order.id }).populate("dishes")).dishes[0] as OrderDish;
+    let dish = (await Order.findOne({ id: order.id }).populate("dishes")).dishes[0] as OrderDishRecord;
     dish = await OrderDish.findOne({ id: dish.id }) ;
     let testComment = "this is a test comment";
     await Order.setComment({id: order.id}, dish, testComment);
@@ -305,12 +299,7 @@ describe("Order", function () {
     order = await Order.findOne(order.id);
     expect(order.paid).to.equals(true);
     expect(order.paymentMethod).to.equals(paymentDocument.paymentMethod);
-    let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
+    let paymentMethodTitle = (await PaymentMethod.findOne({id: paymentDocument.paymentMethod})).title;
     expect(order.paymentMethodTitle).to.equals(paymentMethodTitle);
   });
 });
-
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}

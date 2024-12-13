@@ -1,10 +1,11 @@
 import faker from "faker";
+import { GroupRecord } from "../../models/Group";
 
 // todo: fix types model instance to {%ModelName%}Record for Group"
 
 var autoincrement: number = 0;
 
-export default function groupGenerator(config: Group = {}): Group {
+export default function groupGenerator(config: GroupRecord = {}): GroupRecord {
   autoincrement++;
   return {
     id: faker.random.uuid(),

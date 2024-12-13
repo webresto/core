@@ -1,4 +1,6 @@
 import RMSAdapter from "../../../adapters/rms/RMSAdapter";
+import { DishRecord } from "../../../models/Dish";
+import { GroupRecord } from "../../../models/Group";
 // todo: fix types model instance to {%ModelName%}Record for Dish";
 // todo: fix types model instance to {%ModelName%}Record for Group";
 // todo: fix types model instance to {%ModelName%}Record for Order";
@@ -15,7 +17,7 @@ export class TestRMS  extends RMSAdapter {
         return
 
     }
-    protected async loadOutOfStocksDishes(concept?: string): Promise<Dish[]> {
+    protected async loadOutOfStocksDishes(concept?: string): Promise<DishRecord[]> {
         return
     }
     protected  async nomenclatureHasUpdated(): Promise<boolean> {
@@ -25,8 +27,8 @@ export class TestRMS  extends RMSAdapter {
 /**
  Since 7 dishes are created for each group, the total number of dishes will be 88 groups * 7 dishes = 616 dishes.
 *  */
-        protected async loadNomenclatureTree(rmsGroupIds?: string[]): Promise<Group[]> {
-        let groups: Group[] = [];
+        protected async loadNomenclatureTree(rmsGroupIds?: string[]): Promise<GroupRecord[]> {
+        let groups: GroupRecord[] = [];
         for(let i = 0; i < 4; i++){
             let group = groupGenerator();
             groups.push(group);
@@ -46,7 +48,7 @@ export class TestRMS  extends RMSAdapter {
         return groups;
     }
     
-    protected async loadProductsByGroup(group: Group): Promise<Dish[]> {
+    protected async loadProductsByGroup(group: GroupRecord): Promise<DishRecord[]> {
         let dishes = [];
         for(let i = 0; i < 7; i++) {
             dishes.push(dishGenerator({

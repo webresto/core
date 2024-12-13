@@ -5,6 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = discountGenerator;
 const faker_1 = __importDefault(require("faker"));
+// todo: fix types model instance to {%ModelName%}Record for Group';
+// todo: fix types model instance to {%ModelName%}Record for Dish';
+// todo: fix types model instance to {%ModelName%}Record for OrderDish';
+// todo: fix types model instance to {%ModelName%}Record for Order';
 const findModelInstance_1 = __importDefault(require("../../libs/findModelInstance"));
 const configuredPromotion_1 = __importDefault(require("../../adapters/promotion/default/configuredPromotion"));
 const stringsInArray_1 = require("../../libs/stringsInArray");

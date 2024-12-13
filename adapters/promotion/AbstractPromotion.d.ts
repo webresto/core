@@ -22,7 +22,7 @@ export default abstract class AbstractPromotionHandler {
      * The order must be modified and recorded in a model within this method
      * @param order Order should populated order
      */
-    abstract action(order: OrderRecord): Promise<PromotionState>;
+    abstract action(order: OrderRecordRecord): Promise<PromotionState>;
     /**
      * If isPublic === true displayGroup is required
      */

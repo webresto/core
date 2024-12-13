@@ -65,8 +65,3 @@ describe("PaymentMethod", function () {
         // использовать заранее созданные платежные методы, проверить работоспособность метода
     });
 });
-function delay(ms) {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, ms);
-    });
-}

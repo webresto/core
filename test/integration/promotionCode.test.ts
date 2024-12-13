@@ -8,6 +8,7 @@ import dishGenerator from "../generators/dish.generator";
 // todo: fix types model instance to {%ModelName%}Record for Dish';
 import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
 import TestPaymentSystem from "../unit/external_payments/ExternalTestPaymentSystem";
+import { DishRecord } from "../../models/Dish";
 
 
 
@@ -15,8 +16,8 @@ describe("111 Promotion code integration test", function () {
   this.timeout(60000)
   let promotionAdapter: PromotionAdapter;
   let promoCodeDiscount: any;
-  let dish1: Dish = null;
-  let dish2: Dish = null;
+  let dish1: DishRecord = null;
+  let dish2: DishRecord = null;
 
   before(async function () {
     promotionAdapter = Adapter.getPromotionAdapter()

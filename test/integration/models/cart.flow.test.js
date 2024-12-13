@@ -165,7 +165,7 @@ describe("Flows: Checkout", function () {
         }
     });
     describe("check Customer", function () {
-        // let order: Order;
+        // let order: OrderRecord;
         // it('init', async function(){
         //     order = await Order.create({});
         // });

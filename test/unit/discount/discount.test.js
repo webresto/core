@@ -19,8 +19,8 @@ const configuredPromotion_1 = __importDefault(require("../../../adapters/promoti
 const decimal_js_1 = __importDefault(require("decimal.js"));
 describe('Discount', function () {
     // TODO: tests throw get adapter
-    // let order: Order;
-    // let dishes: Dish[];
+    // let order: OrderRecord;
+    // let dishes: DishRecord[];
     // let fullOrder: Order;
     after(async function () {
         // await Promotion.destroy({})

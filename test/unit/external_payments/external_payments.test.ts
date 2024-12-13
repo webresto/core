@@ -2,9 +2,10 @@ import TestPaymentSystem from "./ExternalTestPaymentSystem";
 import { Payment } from "../../../interfaces/Payment";
 import generate_payment from "../../generators/payment.generator";
 import { expect } from "chai";
+import { PaymentDocumentRecord } from "../../../models/PaymentDocument";
 // todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
 
-var paymentDocument: PaymentDocument;
+var paymentDocument: PaymentDocumentRecord;
 
 describe("TestPaymentSystem & PaymentAdapter basic testing", function () {
   this.timeout(31000);
@@ -24,7 +25,7 @@ describe("TestPaymentSystem & PaymentAdapter basic testing", function () {
 
   it("Create payment test", async () => {
     const result = await TestPaymentSystem.getInstance().createPayment(test_payment, "http://back_url.com", "http://back_url.com", "delay_3_sec");
-    paymentDocument = result as PaymentDocument;
+    paymentDocument = result as PaymentDocumentRecord;
     expect(result.redirectLink).to.equal("http://redirect_link.com");
   });
 

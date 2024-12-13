@@ -26,7 +26,7 @@ describe('DialogBox', () => {
   };
 
   it('full circut', async () => {
-    let dialog;
+    let dialog: DialogBox;
 
     emitter.on("dialog-box:new", "test-dialog-box", function (_dialog,test) {
       dialog = _dialog

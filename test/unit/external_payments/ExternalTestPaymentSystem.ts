@@ -1,12 +1,12 @@
 import PaymentAdapter from "../../../adapters/payment/PaymentAdapter";
 import { PaymentResponse, Payment } from "../../../interfaces/Payment";
-import { PaymentMethodType } from "../../../libs/enums/PaymentMethodTypes";
-// todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
+import { PaymentDocumentRecord } from "../../../models/PaymentDocument";
+// todo: fix types model instance to {%ModelName%}Record for PaymentDocumentRecord";
 
 var database: any = {};
 
 export default class TestPaymentSystem extends PaymentAdapter {
-  public cancelPayment(paymentDocument: PaymentDocument): Promise<PaymentDocument> {
+  public cancelPayment(PaymentDocumentRecord: PaymentDocumentRecord): Promise<PaymentDocumentRecord> {
     console.log("TestPaymentSystem cancelPayment impl");
     return
   }
@@ -60,7 +60,7 @@ export default class TestPaymentSystem extends PaymentAdapter {
     });
   }
 
-  public async checkPayment(payment: PaymentDocument): Promise<PaymentDocument> {
+  public async checkPayment(payment: PaymentDocumentRecord): Promise<PaymentDocumentRecord> {
     let latency = Math.floor(Math.random() * 500) + 1;
     return new Promise((resolve) => {
       setTimeout(() => {

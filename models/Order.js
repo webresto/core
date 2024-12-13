@@ -643,7 +643,7 @@ let Model = {
             throw `order with orderId ${order.id} in state ORDER`;
         if (order.promotionUnorderable === true)
             throw `Order not possible for order by promotion`;
-        //const order: OrderRecord = await Order.findOne(criteria);
+        //const order: OrderRecordRecord = await Order.findOne(criteria);
         if (order.paid) {
             sails.log.error("CART > Check > error", order.id, "order is paid");
             throw {

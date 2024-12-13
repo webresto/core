@@ -1,7 +1,7 @@
 import { Captcha } from "../../../adapters/index";
 import { ResolvedCaptcha } from "../../../adapters/captcha/CaptchaAdapter"
-let job;
-let task
+let job: { task: any; id: any; };
+let task: { difficulty: string; salt: any; hash: any; }
 let Puzzle = require("fix-esm").require("crypto-puzzle").default;
 
 process.env.CAPTCHA_POW_DIFFICUTLY = "250000"

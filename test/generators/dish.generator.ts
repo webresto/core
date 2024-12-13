@@ -1,4 +1,5 @@
 import faker from "faker";
+import { DishRecord } from "../../models/Dish";
 
 // todo: fix types model instance to {%ModelName%}Record for Dish";
 
@@ -6,12 +7,12 @@ var autoincrement: number = 0;
 
 // config?: Partial<Dish>
 export default function dishGenerator(
-  config: Dish = {
+  config: DishRecord = {
     name: undefined,
     price: undefined,
     concept: undefined,
   }
-): Dish {
+): DishRecord {
   autoincrement++;
   return {
     id: config?.id || faker.random.uuid(),
