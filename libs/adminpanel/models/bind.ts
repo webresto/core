@@ -10,7 +10,7 @@ export const models = {
   products: {
     model: 'dish',
     title: 'Products',
-    icon: 'hamburger', 
+    icon: 'hamburger',
     list: ProductConfig.list(),
     edit: ProductConfig.edit(),
     add: ProductConfig.add(),
@@ -67,5 +67,60 @@ export const models = {
     model: 'paymentmethod',
     title: 'Payment method',
     icon: 'credit-card'
+  },
+  maintenance: {
+    model: "maintenance",
+    title: "Scheduled Maintenance on the Website",
+    icon: "pause",
+    fields: {
+      id: false,
+      createdAt: false,
+      updatedAt: false,
+      title: "Title",
+      description: "Description",
+      enable: "Active",
+      startDate: "Start Time",
+      stopDate: "End Time"
+    },
+    edit: {
+      fields: {
+        id: false,
+        createdAt: false,
+        updatedAt: false,
+        title: "Title",
+        description: {
+          title: "Description",
+          type: "json",
+          widget: "Ace",
+          Ace: {
+            height: 500,
+            fontSize: 15
+          }
+        },
+        enable: "Active",
+        startDate: "Start Time",
+        stopDate: "End Time"
+      }
+    },
+    add: {
+      fields: {
+        id: false,
+        createdAt: false,
+        updatedAt: false,
+        title: "Title",
+        description: {
+          title: "Description",
+          type: "json",
+          widget: "Ace",
+          Ace: {
+            height: 500,
+            fontSize: 15
+          }
+        },
+        enable: "Active",
+        startDate: "Start Time",
+        stopDate: "End Time"
+      }
+    }
   }
 };

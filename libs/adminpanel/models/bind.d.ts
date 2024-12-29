@@ -69,4 +69,59 @@ export declare const models: {
         title: string;
         icon: string;
     };
+    maintenance: {
+        model: string;
+        title: string;
+        icon: string;
+        fields: {
+            id: boolean;
+            createdAt: boolean;
+            updatedAt: boolean;
+            title: string;
+            description: string;
+            enable: string;
+            startDate: string;
+            stopDate: string;
+        };
+        edit: {
+            fields: {
+                id: boolean;
+                createdAt: boolean;
+                updatedAt: boolean;
+                title: string;
+                description: {
+                    title: string;
+                    type: string;
+                    widget: string;
+                    Ace: {
+                        height: number;
+                        fontSize: number;
+                    };
+                };
+                enable: string;
+                startDate: string;
+                stopDate: string;
+            };
+        };
+        add: {
+            fields: {
+                id: boolean;
+                createdAt: boolean;
+                updatedAt: boolean;
+                title: string;
+                description: {
+                    title: string;
+                    type: string;
+                    widget: string;
+                    Ace: {
+                        height: number;
+                        fontSize: number;
+                    };
+                };
+                enable: string;
+                startDate: string;
+                stopDate: string;
+            };
+        };
+    };
 };
