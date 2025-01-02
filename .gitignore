@@ -27,3 +27,4 @@ pnpm-*
 coverage
 .vscode/pinned-files.json
 .tmp
+backup.tar

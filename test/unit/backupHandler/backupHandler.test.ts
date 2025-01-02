@@ -1,10 +1,10 @@
-import * as tar from 'tar'; // Import the tar module
+// npx mocha -r ts-node/register test/unit/backupHandler/backupHandler.test.ts
 import * as sinon from 'sinon';
 import { expect } from 'chai';
 import { BackupHandler } from '../../../libs/BackupHandler';
 import groupGenerator from '../../generators/group.generator';
 import dishGenerator from '../../generators/dish.generator';
-import { fsw } from '../../../libs/wrapper/fs'; // Import fsw for mocking
+import { fsw } from '../../../libs/wrapper/fs';
 
 const scriptName = process.argv.find(arg => arg.endsWith('.ts') || arg.endsWith('.js'));
 if (scriptName && scriptName.includes('backupHandler.test.ts')) {
@@ -26,8 +26,8 @@ describe('BackupHandler', () => {
   let fsExists: sinon.SinonStub;
   let fsCopyFile: sinon.SinonStub;
   let fsUnlink: sinon.SinonStub;
-  let tarC: sinon.SinonStub;
-  let tarX: sinon.SinonStub;
+  // let tarC: sinon.SinonStub;
+  // let tarX: sinon.SinonStub;
   let fsReadFile: sinon.SinonStub;
 
   beforeEach(() => {
@@ -98,22 +98,23 @@ describe('BackupHandler', () => {
     expect(parsedData.dishes).to.deep.equal(mockDishes); // Check that the dish data matches mockDishes
   });
 
-  it('should warn when image is not found in checkAndLoadImage', () => {
+  it('should warn when image is not found in checkAndLoadImage', async () => {
     const backupHandler = new BackupHandler();
-
+  
     // Mock fs.exists to simulate a missing file
     fsExists.resolves(false);
-
+  
     // Spy on console.warn
     const spy = sinon.spy(console, 'warn');
-
+  
     // Check that a warning appears when an image is not found
-    backupHandler['checkAndLoadImage']('nonexistent.jpg');
-
-    sinon.assert.calledWith(spy, 'Image not found: nonexistent.jpg'); // Check that the warning was called with the correct message
-
+    await backupHandler['checkAndLoadImage']('nonexistent.jpg'); // await добавлен
+  
+    sinon.assert.calledWith(spy, 'Image not found: nonexistent.jpg');
+  
     spy.restore();
   });
+  
 
   it('should export images correctly', async () => {
     const backupHandler = new BackupHandler();
