@@ -26,3 +26,4 @@ dump.rdb
 pnpm-*
 coverage
 .vscode/pinned-files.json
+.tmp

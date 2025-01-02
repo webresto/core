@@ -1,157 +1,161 @@
-import * as fs from 'fs';
 import * as path from 'path';
 import * as tar from 'tar';
 import { GroupRecord } from '../models/Group';
 import { DishRecord } from '../models/Dish';
 import { MediaFileRecord } from '../models/MediaFile';
+import { fsw } from './wrapper/fs';
 
 interface BackupOptions {
   isDeleted: boolean;
   concepts: string[];
+  turncate: boolean
 }
 
 const defaultOptions: BackupOptions = {
   isDeleted: false,
-  concepts: []
+  concepts: [],
+  turncate: false
 };
 
 export class BackupHandler {
-  private groups: GroupRecord[];
-  private dishes: DishRecord[];
-
-  constructor() {
-  }
-
-  // Method to export data to a tar file
+  private groups: GroupRecord[] = [];
+  private dishes: DishRecord[] = [];
+  tar = tar;
+  // Export data and images to a tar file
   async exportToTar(filePath: string, options: Partial<BackupOptions> = {}): Promise<void> {
     try {
       const finalOptions = { ...defaultOptions, ...options };
-      const exportDir = path.dirname(filePath);
+  
+      // Получаем текущую директорию для создания временной папки
+      const currentDir = process.cwd();
+  
+      // Создаем временную директорию для экспорта
+      const timestamp = Date.now();
+      const exportDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
+  
+      // Создаем папку, если она не существует
+      await fsw.mkdir(exportDir);
+  
+      // Путь для JSON файла
       const jsonFilePath = path.join(exportDir, 'data.json');
-
-      // Create a JSON file with data
+  
+      // Создание JSON данных
       const jsonData = await this.createJSON(finalOptions);
-      fs.writeFileSync(jsonFilePath, jsonData);
+      await fsw.writeFile(jsonFilePath, jsonData);
 
-      // Export images
-      this.exportImages(this.dishes, exportDir);
-
-      // Pack into a tar file
-      await tar.c({
+      // Экспорт изображений в временную директорию
+      await this.exportImages(this.dishes, exportDir);
+  
+      // Упаковка всего содержимого в tar файл
+      await this.tar.c({
         gzip: true,
         file: filePath,
         cwd: exportDir
-      }, ['data.json']);
-
-      // Delete temporary files
-      fs.unlinkSync(jsonFilePath);
+      }, ['.']);
+  
+      // Удаление временных файлов
+      await fsw.unlink(jsonFilePath);
+  
       console.log('Export completed:', filePath);
     } catch (error) {
+      new Error
       console.error('Export error:', error);
     }
   }
 
-  // Method to import data from a tar file
+  // Import data and images from a tar file
   async importFromTar(filePath: string): Promise<void> {
     try {
-      const extractDir = path.dirname(filePath);
-
-      // Extract the tar file
-      await tar.x({
+      // Получаем текущую директорию
+      const currentDir = process.cwd();
+  
+      // Создаем директорию для распаковки
+      const timestamp = Date.now();
+      const extractDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
+      
+      // Создаем папку, если она не существует
+      await fsw.mkdir(extractDir);
+  
+      console.log(`Extracting tar file to: ${extractDir}`);
+  
+      // Распаковываем архив в указанную директорию
+      await this.tar.x({
         file: filePath,
-        cwd: extractDir
+        cwd: extractDir,
       });
-
-      // Read the JSON file
+  
+      // Читаем данные JSON
       const jsonFilePath = path.join(extractDir, 'data.json');
-      const jsonData = fs.readFileSync(jsonFilePath, 'utf-8');
+      const jsonData = await fsw.readFile(jsonFilePath);
       const importedData = JSON.parse(jsonData);
-
+  
       this.groups = importedData.groups;
       this.dishes = importedData.dishes;
-
-      // Check and load images
+  
+      // Проверяем и загружаем изображения
       for (const dish of this.dishes) {
         if (dish.images && Array.isArray(dish.images)) {
           for (const image of dish.images) {
-            const imagePath = path.join(extractDir, image.variant.origin);
-            this.checkAndLoadImage(imagePath);
+            const imagePath = path.join(extractDir, `${image.id}.jpg`);
+            this.checkAndLoadImage(imagePath); // Предположим, что это ваш метод для проверки и загрузки изображений
           }
         }
       }
-
+  
       console.log('Import completed:', filePath);
     } catch (error) {
       console.error('Import error:', error);
     }
   }
 
-  // Internal method: Create JSON from structure
+  // Create JSON data
   private async createJSON(options: BackupOptions): Promise<string> {
-    const groups = await Group.find({ 
-      isDeleted: options.isDeleted, 
-      ...options.concepts.length && { concepts: { contains: options.concepts } } 
-    });
-    const dishes = await Dish.find({ 
-      isDeleted: options.isDeleted, 
-      ...options.concepts.length && { concepts: { contains: options.concepts } } 
+    const groups = await Group.find({
+      isDeleted: options.isDeleted,
+      ...(options.concepts.length && { concepts: { $in: options.concepts } })
     });
 
+    const dishes = await Dish.find({
+      isDeleted: options.isDeleted,
+      ...(options.concepts.length && { concepts: { $in: options.concepts } })
+    });
 
     this.groups = groups;
     this.dishes = dishes;
 
     const kernelVersion = process.version;
-
     return JSON.stringify({ kernelVersion, groups, dishes }, null, 2);
   }
 
-  // Internal method: Load image
-  private loadImage(imagePath: string): void {
-    // Image loading implementation
-    console.log(`Loading image: ${imagePath}`);
-  }
-
-  // Internal method: Check for file existence and load image
-  private checkAndLoadImage(imagePath: string): void {
-    if (fs.existsSync(imagePath)) {
+  // Check file existence and load image
+  private async checkAndLoadImage(imagePath: string): Promise<void> {
+    if (await fsw.exists(imagePath)) {
       this.loadImage(imagePath);
     } else {
       console.warn(`Image not found: ${imagePath}`);
     }
   }
 
+  // Simulate loading an image
+  private loadImage(imagePath: string): void {
+    console.log(`Loading image: ${imagePath}`);
+  }
 
-  // Method for exporting images
-  private exportImages(dishes: DishRecord[], exportDir: string): void {
-    console.log(`Exporting images to directory: ${exportDir}`);
+  // Export images to a directory
+  private async exportImages(dishes: DishRecord[], exportDir: string): Promise<void> {
+    const imagesDir = path.join(exportDir);
 
-    // Create the directory for images if it doesn't exist
-    const imagesDir = path.join(exportDir, 'images');
-    if (!fs.existsSync(imagesDir)) {
-      fs.mkdirSync(imagesDir);
-    }
-
-    // For each dish in dishes
     dishes.forEach(dish => {
       if (dish.images && Array.isArray(dish.images)) {
-        // For each image of the dish
         dish.images.forEach((image: MediaFileRecord) => {
-          // Use 'variant' field for image paths
-          Object.entries(image.variant).forEach(([variantName, variantPath]) => {
+          Object.entries(image.variant).forEach(async ([variantName, variantPath]) => {
             if (variantPath) {
-              const imageFileName = `${variantName}_${image.id}.jpg`; // Construct image name
+              const imageFileName = `${variantName}_${image.id}.jpg`;
               const destinationPath = path.join(imagesDir, imageFileName);
 
-              // Check if the file exists
-              if (fs.existsSync(variantPath)) {
-                try {
-                  // Copy the image to the export directory
-                  fs.cpSync(variantPath, destinationPath);
-                  console.log(`Image exported: ${imageFileName}`);
-                } catch (error) {
-                  console.error(`Error exporting image ${imageFileName}:`, error);
-                }
+              if (await fsw.exists(variantPath)) {
+                await fsw.copyFile(variantPath, destinationPath);
+                console.log(`Image exported: ${imageFileName}`);
               } else {
                 console.warn(`Image file not found: ${variantPath}`);
               }
