@@ -362,7 +362,7 @@ let Model = {
     cb();
   },
 
-  async afterCreate(order: OrderRecordRecord, cb: (err?: string) => void) {
+  async afterCreate(order: OrderRecord, cb: (err?: string) => void) {
     /**
      * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
      * This creates redundancy in the kernel. But in the current version, we will try to run the kernel in this way. Until we switch to stateflow
@@ -794,7 +794,7 @@ let Model = {
   ): Promise<void> {
 
 
-    let order: OrderRecordRecord = await Order.findOne(criteria);
+    let order: OrderRecord = await Order.findOne(criteria);
 
     // CHECKING
     // Check order empty
@@ -810,7 +810,7 @@ let Model = {
     if (order.promotionUnorderable === true) throw `Order not possible for order by promotion`;
 
 
-    //const order: OrderRecordRecord = await Order.findOne(criteria);
+    //const order: OrderRecord = await Order.findOne(criteria);
     if (order.paid) {
       sails.log.error("CART > Check > error", order.id, "order is paid");
       throw {
@@ -1108,10 +1108,11 @@ let Model = {
 
       // await Order.next(order.id,'ORDER');
       // TODO: Rewrite on stateflow
-      let data = {};
-      data.orderDate = new Date();
-      data.state = "ORDER";
-
+      let data = {
+        orderDate: new Date()+``,
+        state: "ORDER"
+      };
+      
       /** ⚠️ If the preservation of the model is caused to NEXT, then there will be an endless cycle */
       sails.log.silly("Order > order > before save order", order);
       // await Order.update({id: order.id}).fetch();
@@ -1146,7 +1147,7 @@ let Model = {
   },
 
   async payment(criteria: CriteriaQuery<OrderRecord>): Promise<PaymentResponse> {
-    const order: OrderRecordRecord = await Order.findOne(criteria);
+    const order: OrderRecord = await Order.findOne(criteria);
     if (order.state !== "CHECKOUT") throw `order with orderId ${order.id} in state ${order.state} but need CHECKOUT`;
 
     let paymentResponse: PaymentResponse;
@@ -1662,7 +1663,11 @@ let Model = {
     }
 
     try {
-      let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
+      if(typeof paymentDocument.paymentMethod !== "string") {
+        throw `Type error paymentDocument.paymentMethod should string`
+      }
+      const paymentMethodId = paymentDocument.paymentMethod
+      let paymentMethodTitle = (await PaymentMethod.findOne({id: paymentMethodId})).title;
       await Order.update(
         { id: paymentDocument.originModelId },
         {
@@ -1854,7 +1859,7 @@ async function checkPaymentMethod(paymentMethodId: string) {
   }
 }
 
-async function checkDate(order: OrderRecordRecord) {
+async function checkDate(order: OrderRecord) {
   if (order.date) {
     const date = new Date(order.date);
 

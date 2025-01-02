@@ -300,9 +300,8 @@ let Model = {
                 let childIndex = 0;
                 let childModifiers = [];
                 if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined) {
-                    let criteria = {
-                        concept: dish.concept ?? undefined
-                    };
+                    let criteria = {};
+                    criteria.concept = dish.concept ?? undefined;
                     if (modifier.modifierId) {
                         criteria["id"] = modifier.modifierId;
                     }

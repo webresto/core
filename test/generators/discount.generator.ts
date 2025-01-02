@@ -84,7 +84,7 @@ export default function discountGenerator(config: Omit<AbstractPromotionHandler,
     
     return false
   },
-    action: async function (order: OrderRecordRecord):Promise<PromotionState> {
+    action: async function (order: OrderRecord):Promise<PromotionState> {
       let configuredPromotion: ConfiguredPromotion = new ConfiguredPromotion(this, this.configDiscount)
       return await configuredPromotion.applyPromotion(order)
     },

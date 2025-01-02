@@ -138,11 +138,13 @@ let Model = {
         //   return;
         // }
         if (settings[_key] !== undefined) {
+            //@ts-ignore
             return cleanValue(settings[_key]);
         }
         else {
             const value = await Settings.use(_key);
             settings[_key] = value;
+            //@ts-ignore
             return cleanValue(value);
         }
     },

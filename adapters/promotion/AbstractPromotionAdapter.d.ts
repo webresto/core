@@ -10,7 +10,7 @@ export default abstract class AbstractPromotionAdapter {
      * The order must be recorded in a model and modified during execution
      * @param order Order should populated order
      */
-    abstract processOrder(order: OrderRecordRecord): Promise<OrderRecord>;
+    abstract processOrder(order: OrderRecord): Promise<OrderRecord>;
     abstract displayDish(dish: DishRecord): DishRecord;
     abstract displayGroup(group: GroupRecord): GroupRecord;
     abstract getActivePromotionsIds(): string[];
@@ -20,7 +20,7 @@ export default abstract class AbstractPromotionAdapter {
      *
      * This is in an abstract class because it's essentially part of the core, but you can rewrite it
      */
-    clearOfPromotion(order: OrderRecordRecord): Promise<OrderRecord>;
+    clearOfPromotion(order: OrderRecord): Promise<OrderRecord>;
     abstract deletePromotion(id: string): void;
     abstract addPromotionHandler(promotionToAdd: AbstractPromotionHandler): Promise<void>;
     abstract getPromotionHandlerById(id: string): AbstractPromotionHandler | undefined;

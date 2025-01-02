@@ -1,5 +1,5 @@
 import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
-import {MediaFileRecord} from "./MediaFile";
+import { MediaFileRecord } from "./MediaFile";
 import hashCode from "../libs/hashCode";
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
@@ -149,7 +149,7 @@ let attributes = {
     allowNull: true
   } as unknown as number,
 
-    
+
   /** The group identifier in which the dish is located
    * @deprecated will be deleted in v2
   */
@@ -253,7 +253,7 @@ let attributes = {
     collection: "dish",
     via: 'recommendedBy',
   } as unknown as DishRecord[],
-  
+
   recommendedBy: {
     collection: "dish",
     via: 'recommendations',
@@ -284,31 +284,31 @@ type attributes = typeof attributes;
 /**
  * @deprecated use `DishRecord` instead
  */
-interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {}
-export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {}
+interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM { }
+export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM { }
 
 let Model = {
-  beforeCreate: async function(init: DishRecord, cb:  (err?: string) => void) {
+  beforeCreate: async function (init: DishRecord, cb: (err?: string) => void) {
     emitter.emit('core:product-before-create', init);
     if (!init.id) {
       init.id = uuid();
     }
 
-    if(!init.modifiers) init.modifiers = []
-    if(init.visible === undefined) init.visible = true;
+    if (!init.modifiers) init.modifiers = []
+    if (init.visible === undefined) init.visible = true;
 
     if (!init.concept) {
       init.concept = "origin"
     }
 
     const slugOpts = [];
-    if(init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
+    if (init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
       slugOpts.push(init.concept)
     }
 
     init.slug = await slugIt("dish", init.name, "slug", slugOpts)
 
-    if(!isCustomData(init.customData)){
+    if (!isCustomData(init.customData)) {
       init.customData = {}
     }
 
@@ -317,25 +317,25 @@ let Model = {
     cb();
   },
 
-  beforeUpdate: async function (value: DishRecord, cb:  (err?: string) => void) {
+  beforeUpdate: async function (value: DishRecord, cb: (err?: string) => void) {
     emitter.emit('core:product-before-update', value);
-    if(value.customData) {
+    if (value.customData) {
       if (value.id !== undefined) {
-        let current = await Dish.findOne({id: value.id});
-        if(!isCustomData(current.customData)) current.customData = {}
-        let customData = {...current.customData, ...value.customData}
+        let current = await Dish.findOne({ id: value.id });
+        if (!isCustomData(current.customData)) current.customData = {}
+        let customData = { ...current.customData, ...value.customData }
         value.customData = customData;
       }
     }
     return cb();
   },
 
-  afterUpdate: function (record: DishRecord, cb:  (err?: string) => void) {
+  afterUpdate: function (record: DishRecord, cb: (err?: string) => void) {
     emitter.emit('core:product-after-update', record);
     return cb();
   },
 
-  afterCreate: function (record: DishRecord, cb:  (err?: string) => void) {
+  afterCreate: function (record: DishRecord, cb: (err?: string) => void) {
     emitter.emit('core:product-after-create', record);
     return cb();
   },
@@ -376,74 +376,82 @@ let Model = {
    * And ordinary modifiers are preparing their dish.
    * @param dish
    */
-   async getDishModifiers(dish: DishRecord): Promise<DishRecord> {
+  async getDishModifiers(dish: DishRecord): Promise<DishRecord> {
 
-    if(dish.modifiers){
+    if (dish.modifiers) {
       let index = 0;
 
       // group modofiers
-      for await(let  modifier of dish.modifiers){
+      for await (let modifier of dish.modifiers) {
 
-        let childIndex=0
+        let childIndex = 0
         let childModifiers = []
 
-        if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined){
+        if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined) {
 
-            let criteria = {
-              concept: dish.concept ?? undefined
-            }
-
-            if( modifier.modifierId) {
-              criteria["id"] = modifier.modifierId
-            } else if(modifier.id) {
-              criteria["rmsId"] = modifier.id
-            } else {
-              throw `Group modifierId or rmsId not found`
-            }
-
-            dish.modifiers[index].group = (await Group.find(criteria).limit(1))[0];
+          let criteria: {
+            id?: string;
+            rmsId?: string;
+            concept?: string;
+          } = {};
+          
+          criteria.concept = dish.concept ?? undefined;
+          
+          if (modifier.modifierId) {
+            criteria["id"] = modifier.modifierId;
+          } else if (modifier.id) {
+            criteria["rmsId"] = modifier.id;
+          } else {
+            throw `Group modifierId or rmsId not found`;
           }
 
-          if (!modifier.childModifiers) modifier.childModifiers = [];
-
-          for await(let childModifier of modifier.childModifiers){
-            let criteria = {
-              concept: dish.concept ?? undefined
-            }
-
-            if( childModifier.modifierId){
-              criteria["id"] = childModifier.modifierId
-            } else if(childModifier.id) {
-              criteria["rmsId"] = childModifier.id
-            } else {
-              throw `Dish modifierId or rmsId not found`
-            }
-
-            let childModifierDish = (await Dish.find({where: criteria, limit: 1}).populate('images'))[0]
-            if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)){
-              // delete if dish not found
-              sails.log.warn("DISH > getDishModifiers: Modifier "+ childModifier.modifierId +" from dish:"+dish.name+" not found")
-            } else {
-              try {
-                childModifier.dish = childModifierDish
-                childModifiers.push(childModifier);
-              } catch (error) {
-                  sails.log.error("DISH > getDishModifiers: problem with: "+ childModifier.modifierId+ " in dish:"+ dish.name );
-              }
-            }
-            childIndex++;
-          }
-          //
-
-          dish.modifiers[index].childModifiers = childModifiers;
-
-          // If groupMod not have options delete it
-          if (modifier.childModifiers && !modifier.childModifiers.length) {
-            sails.log.warn("DISH > getDishModifiers: GroupModifier "+ modifier.id +" from dish:"+ dish.name+" not have modifiers")
-            dish.modifiers.splice(index, 1);
-          }
-          index++;
+          dish.modifiers[index].group = (await Group.find(criteria).limit(1))[0];
         }
+
+        if (!modifier.childModifiers) modifier.childModifiers = [];
+
+        for await (let childModifier of modifier.childModifiers) {
+          let criteria: {
+            id?: string;
+            rmsId?: string;
+            concept?: string;
+          } = {
+            concept: dish.concept ?? undefined
+          }
+
+          if (childModifier.modifierId) {
+            criteria["id"] = childModifier.modifierId
+          } else if (childModifier.id) {
+            criteria["rmsId"] = childModifier.id
+          } else {
+            throw `Dish modifierId or rmsId not found`
+          }
+
+          let childModifierDish = (await Dish.find({ where: criteria, limit: 1 }).populate('images'))[0]
+          if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)) {
+            // delete if dish not found
+            sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found")
+          } else {
+            try {
+              childModifier.dish = childModifierDish
+              childModifiers.push(childModifier);
+            } catch (error) {
+              sails.log.error("DISH > getDishModifiers: problem with: " + childModifier.modifierId + " in dish:" + dish.name);
+            }
+          }
+          childIndex++;
+        }
+        //
+
+        dish.modifiers[index].childModifiers = childModifiers;
+
+        // If groupMod not have options delete it
+        if (modifier.childModifiers && !modifier.childModifiers.length) {
+          sails.log.warn("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers")
+          dish.modifiers.splice(index, 1);
+        }
+        index++;
+      }
     }
     return dish
   },
@@ -452,7 +460,7 @@ let Model = {
     const dishes = await Dish.find(criteria);
 
     // Set virtual default
-    dishes.forEach((dish)=>{
+    dishes.forEach((dish) => {
       dish.discountAmount = 0;
       dish.discountType = null;
       dish.oldPrice = null;
@@ -462,19 +470,19 @@ let Model = {
     const promotionAdapter = Adapter.getPromotionAdapter()
     let updatedDishes = [] as DishRecord[]
 
-    for(let i:number= 0; i < dishes.length; i++) {
-        try {
-          updatedDishes.push(promotionAdapter.displayDish(dishes[i]))
-        } catch (error) {
-          sails.log.error(error)
-          continue
-        }
+    for (let i: number = 0; i < dishes.length; i++) {
+      try {
+        updatedDishes.push(promotionAdapter.displayDish(dishes[i]))
+      } catch (error) {
+        sails.log.error(error)
+        continue
+      }
     }
     return updatedDishes;
   },
 
 
-  getRecommended: async function(ids: string[], limit = 12, includeReverse = false): Promise<DishRecord[]> {
+  getRecommended: async function (ids: string[], limit = 12, includeReverse = false): Promise<DishRecord[]> {
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new Error('You must provide an array of IDs.');
     }
@@ -486,7 +494,7 @@ let Model = {
       visible: true
     };
 
-    const groupLimit = Math.max(Math.round(limit/ids.length), 1);
+    const groupLimit = Math.max(Math.round(limit / ids.length), 1);
 
     let dishes = await sails.models.dish.find({
       where: {
@@ -516,17 +524,17 @@ let Model = {
     });
 
 
-    let recommendedDishes: DishRecord[] = dishes.reduce((acc: DishRecord[], dish:DishRecord) => {
+    let recommendedDishes: DishRecord[] = dishes.reduce((acc: DishRecord[], dish: DishRecord) => {
       return acc.concat(dish.recommendations);
     }, []);
-    
+
 
     if (includeReverse) {
       dishes.forEach((group: DishRecord) => {
         recommendedDishes = recommendedDishes.concat(group.recommendedBy);
       });
     }
-    
+
     recommendedDishes = [...new Set(recommendedDishes.map((dish: DishRecord) => dish.id))].map(id =>
       recommendedDishes.find((dish: DishRecord) => dish.id === id)
     );
@@ -554,11 +562,14 @@ let Model = {
     sails.log.silly(`Core > Dish > createOrUpdate: ${values.name}`)
     let hash = hashCode(JSON.stringify(values));
 
-    let criteria = {}
-    if( values.id) {
-      criteria['id'] =  values.id;
-    } else if(values.rmsId) {
-      criteria['rmsId'] =  values.rmsId;
+    let criteria:{
+      id?: string;
+      rmsId?: string;
+    } = {}
+    if (values.id) {
+      criteria['id'] = values.id;
+    } else if (values.rmsId) {
+      criteria['rmsId'] = values.rmsId;
     } else {
       throw `no id/rmsId provided`
     }

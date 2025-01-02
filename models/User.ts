@@ -419,7 +419,7 @@ let Model = {
   },
 
 
-  async authDevice(userId: string, deviceId: string,  deviceName: string, userAgent: string, IP: string): Promise<UserDevice> {
+  async authDevice(userId: string, deviceId: string,  deviceName: string, userAgent: string, IP: string): Promise<UserDeviceRecord> {
     let userDevice = await UserDevice.findOrCreate({id: deviceId }, {id: deviceId, user: userId, name: deviceName });
     // Need pass sessionId here for except parallels login with one name
     return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: uuid() });

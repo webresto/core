@@ -186,6 +186,7 @@ export default class HookTools {
 
     const policies = {};
     readdirSync(normalizedPath).forEach(function (file) {
+      //@ts-ignore
       policies[file.split(".").slice(0, -1).join(".")] = require(normalizedPath + "/" + file);
     });
 

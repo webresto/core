@@ -54,7 +54,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public condition(arg: GroupRecord | DishRecord | OrderRecord): boolean {
     if (findModelInstanceByAttributes(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
       ? true : someInArray(arg.concept, this.concept)) {
-      let order: OrderRecordRecord = arg as OrderRecord
+      let order: OrderRecord = arg as OrderRecord
       // TODO:  if order.dishes type number[]
       let orderDishes: OrderDishRecord[] = order.dishes as OrderDishRecord[]
 
@@ -79,7 +79,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     return false
   }
 
-  public async action(order: OrderRecordRecord): Promise<PromotionState> {
+  public async action(order: OrderRecord): Promise<PromotionState> {
     let mass: PromotionState = await this.applyPromotion(order)
     return mass
   }
@@ -116,7 +116,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   }
 
   // TODO: rewrite for argument (modificable Order);
-  public async applyPromotion(order: OrderRecordRecord): Promise<PromotionState> {
+  public async applyPromotion(order: OrderRecord): Promise<PromotionState> {
     sails.log.debug(`Configured promotion to be applied. name: [${this.name}], id: [${this.id}]`)
 
     // order.dishes

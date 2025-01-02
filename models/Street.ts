@@ -100,7 +100,10 @@ let Model = {
       sails.log.silly(`Core > Street > createOrUpdate: ${values.name}`)
       let hash = hashCode(JSON.stringify(values));
 
-      let criteria = {}
+      let criteria: {
+        id?: string;
+        externalId?: string;
+      } = {}
       if( values.id) {
         criteria['id'] =  values.id;
       } else if (values.externalId) {

@@ -179,6 +179,7 @@ class HookTools {
         const normalizedPath = path.normalize(folder);
         const policies = {};
         (0, fs_1.readdirSync)(normalizedPath).forEach(function (file) {
+            //@ts-ignore
             policies[file.split(".").slice(0, -1).join(".")] = require(normalizedPath + "/" + file);
         });
         this.policies = policies;

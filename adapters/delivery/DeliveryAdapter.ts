@@ -32,13 +32,13 @@ export default abstract class DeliveryAdapter {
    * Calc delivery
    * @returns Delivery
    */
-  public abstract calculate(order: OrderRecordRecord): Promise<Delivery>;
+  public abstract calculate(order: OrderRecord): Promise<Delivery>;
 
   /**
    * Reset order
    * @returns void
    */
-  public async reset(order: OrderRecordRecord): Promise<void> {
+  public async reset(order: OrderRecord): Promise<void> {
     order.delivery = {
       deliveryTimeMinutes: 0,
       allowed: false,

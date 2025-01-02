@@ -169,7 +169,14 @@ let Model = {
                 if (group.childGroups) {
                     let childGroups = [];
                     const cgs = await Group.find({
-                        id: group.childGroups.map((cg) => cg.id),
+                        id: group.childGroups.map((cg) => {
+                            if (typeof cg !== "string") {
+                                return cg.id;
+                            }
+                            else {
+                                throw `Type error childGroups`;
+                            }
+                        }),
                         isDeleted: false
                     })
                         .populate("childGroups")

@@ -110,7 +110,7 @@ declare let Model: {
      */
     setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean, temporaryCode?: string): Promise<User>;
     login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDeviceRecord>;
-    authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDevice>;
+    authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDeviceRecord>;
     /**
       check all active bonus programs for user
     */

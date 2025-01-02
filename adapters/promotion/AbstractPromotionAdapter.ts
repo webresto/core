@@ -14,7 +14,7 @@ export default abstract class AbstractPromotionAdapter {
      * The order must be recorded in a model and modified during execution
      * @param order Order should populated order
      */
-    public abstract processOrder(order: OrderRecordRecord): Promise<OrderRecord>
+    public abstract processOrder(order: OrderRecord): Promise<OrderRecord>
 
     public abstract displayDish(dish: DishRecord): DishRecord;
     public abstract displayGroup(group: GroupRecord): GroupRecord;
@@ -26,7 +26,7 @@ export default abstract class AbstractPromotionAdapter {
      *
      * This is in an abstract class because it's essentially part of the core, but you can rewrite it
      */
-    public async clearOfPromotion(order: OrderRecordRecord): Promise<OrderRecord> {
+    public async clearOfPromotion(order: OrderRecord): Promise<OrderRecord> {
         // if Order.status ="PAYMENT" or "ORDER" can't clear promotions
         if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
         //if (order.state === "PAYMENT") throw "order with orderId" + order.id + "in state PAYMENT";

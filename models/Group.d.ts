@@ -86,7 +86,7 @@ declare let Model: {
      */
     getGroups(groupsId: string[]): Promise<{
         groups: GroupWithAdditionalFields[];
-        errors: {};
+        errors: Record<string, string>;
     }>;
     /**
      * Returns a group with a given ID

@@ -643,7 +643,7 @@ let Model = {
             throw `order with orderId ${order.id} in state ORDER`;
         if (order.promotionUnorderable === true)
             throw `Order not possible for order by promotion`;
-        //const order: OrderRecordRecord = await Order.findOne(criteria);
+        //const order: OrderRecord = await Order.findOne(criteria);
         if (order.paid) {
             sails.log.error("CART > Check > error", order.id, "order is paid");
             throw {
@@ -902,9 +902,10 @@ let Model = {
             }
             // await Order.next(order.id,'ORDER');
             // TODO: Rewrite on stateflow
-            let data = {};
-            data.orderDate = new Date();
-            data.state = "ORDER";
+            let data = {
+                orderDate: new Date() + ``,
+                state: "ORDER"
+            };
             /** ⚠️ If the preservation of the model is caused to NEXT, then there will be an endless cycle */
             sails.log.silly("Order > order > before save order", order);
             // await Order.update({id: order.id}).fetch();
@@ -1386,7 +1387,11 @@ let Model = {
             return;
         }
         try {
-            let paymentMethodTitle = (await PaymentMethod.findOne(paymentDocument.paymentMethod)).title;
+            if (typeof paymentDocument.paymentMethod !== "string") {
+                throw `Type error paymentDocument.paymentMethod should string`;
+            }
+            const paymentMethodId = paymentDocument.paymentMethod;
+            let paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
             await Order.update({ id: paymentDocument.originModelId }, {
                 paid: true,
                 paymentMethod: paymentDocument.paymentMethod,

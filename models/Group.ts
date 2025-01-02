@@ -206,7 +206,7 @@ let Model = {
    * According to some dinich, the values of this object are the reasons why the group was not obtained.
    * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:GroupRecord}, errors: {[groupId]: error}}
    */
-  async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[]; errors: {} }> {
+  async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[]; errors: Record<string, string> }> {
 
     let menu = {} as GetGroupType;
     const groups = await Group.find({ where: {
@@ -217,7 +217,7 @@ let Model = {
       .populate("dishes")
       .populate("images");
 
-    const errors = {};
+    const errors: Record<string, string> = {};
     for await(let group of groups) {
       const reason = checkExpression(group);
       if (!reason) {
@@ -226,7 +226,13 @@ let Model = {
         if (group.childGroups) {
           let childGroups = [];
           const cgs = await Group.find({
-            id: group.childGroups.map((cg) => cg.id), 
+            id: group.childGroups.map((cg) => {
+              if(typeof cg !== "string") {
+                return cg.id
+              } else {
+                throw `Type error childGroups`
+              }
+            }), 
             isDeleted: false
           })
             .populate("childGroups")
@@ -530,7 +536,10 @@ let Model = {
    */
   async createOrUpdate(values: GroupRecord): Promise<GroupRecord> {
     sails.log.silly(`Core > Group > createOrUpdate: ${values.name}`)
-    let criteria = {}
+    let criteria:{
+      id?: string;
+      rmsId?: string;
+    } = {}
     if(values.id) {
       criteria['id'] =  values.id;
     } else if(values.rmsId) {
