@@ -861,12 +861,13 @@ let Model = {
     /** if pickup, then you do not need to check the address*/
     if (isSelfService) {
       order.selfService = true;
+      
       emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
     } else {
         order.selfService = false;
         softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
-        if (!address.city) address.city = await Settings.get("CITY");
         if (address) {
+          if (!address.city) address.city = await Settings.get("CITY");
           checkAddress(address, softDeliveryCalculation);
           order.address = { ...address };
         } else {
@@ -1576,43 +1577,52 @@ let Model = {
       }
 
       // Calculate delivery costs
-      let delivery = {} as Delivery;
-      let softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION")
-      emitter.emit("core:count-before-delivery-cost", order);
-      if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
-        order.delivery = order.promotionDelivery;
-      } else {
-        let deliveryAdapter = await Adapter.getDeliveryAdapter();
-        await deliveryAdapter.reset(order);
-        if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
-          emitter.emit("core:order-check-delivery", order);
-          try {
-            delivery = await deliveryAdapter.calculate(order);
-          } catch (error) {
-            sails.log.error("deliveryAdapter.calculate error:", error)
-            delivery = {
-              allowed: false,
-              cost: 0,
-              item: undefined,
-              message: error.replace(/[^\w\s]/gi, ''),
-              deliveryTimeMinutes: undefined,
-              hasError: true
-            }
-          }   
+      let delivery = {} as Delivery  // for self service
+      let softDeliveryCalculation = null;
+      if(order.selfService === false) {
+        
+        softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION")
+        emitter.emit("core:count-before-delivery-cost", order);
+        if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
+          order.delivery = order.promotionDelivery;
+        } else {
+          let deliveryAdapter = await Adapter.getDeliveryAdapter();
+          await deliveryAdapter.reset(order);
+          if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
+            emitter.emit("core:order-check-delivery", order);
+            try {
+              delivery = await deliveryAdapter.calculate(order);
+            } catch (error) {
+              sails.log.error("deliveryAdapter.calculate error:", error)
+              delivery = {
+                allowed: false,
+                cost: 0,
+                item: undefined,
+                message: error.replace(/[^\w\s]/gi, ''),
+                deliveryTimeMinutes: undefined,
+                hasError: true
+              }
+            }   
+          }
         }
-      }
-
-      if (
-        softDeliveryCalculation && 
-        (!order.delivery || 
-          Object.keys(order.delivery).length === 0 || 
-          delivery.deliveryLocationUnrecognized === true
-        )
-      ) {
-        let SOFT_DELIVERY_CALCULATION_MESSAGE = await Settings.get("SOFT_DELIVERY_CALCULATION_MESSAGE")
-        delivery.allowed = true;
-        delivery.cost = null;
-        delivery.message = SOFT_DELIVERY_CALCULATION_MESSAGE ?? "Shipping cost cannot be calculated";
+  
+        if (
+          softDeliveryCalculation && 
+          (!order.delivery || 
+            Object.keys(order.delivery).length === 0 || 
+            delivery.deliveryLocationUnrecognized === true
+          )
+        ) {
+          let SOFT_DELIVERY_CALCULATION_MESSAGE = await Settings.get("SOFT_DELIVERY_CALCULATION_MESSAGE")
+          delivery.allowed = true;
+          delivery.cost = null;
+          delivery.message = SOFT_DELIVERY_CALCULATION_MESSAGE ?? "Shipping cost cannot be calculated";
+        }
+      } else {
+        delivery = null;
+        if(order.promotionDelivery) {
+          sails.log.warn(`!!! Cehck it >> Order.promotionDelivery in self service`)
+        }
       }
            
       order.delivery = delivery;

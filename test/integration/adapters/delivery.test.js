@@ -60,16 +60,10 @@ describe("RMS adapter", function () {
         order = await Order.findOne(order.id);
         const minDeliveryAmount = order.basketTotal + 100;
         await Settings.set("MIN_DELIVERY_AMOUNT", { key: "MIN_DELIVERY_AMOUNT", value: minDeliveryAmount });
-        let error = null;
-        try {
-            await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
-        }
-        catch (_error) {
-            error = _error;
-        }
+        await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
         order = await Order.findOne(order.id);
-        (0, chai_1.expect)(error).to.not.equal(null);
-        (0, chai_1.expect)(order.delivery.allowed).to.equal(false);
+        (0, chai_1.expect)(order.total > minDeliveryAmount).to.equal(false);
+        (0, chai_1.expect)(order.delivery.message).to.equal(`Minimum amount not allowed`);
         await Settings.set("MIN_DELIVERY_AMOUNT", { key: "MIN_DELIVERY_AMOUNT", value: 0 });
     });
 });

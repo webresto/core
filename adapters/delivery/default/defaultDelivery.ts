@@ -1,4 +1,3 @@
-// todo: fix types model instance to {%ModelName%}Record for Order";
 import { OrderRecord } from "../../../models/Order";
 import DeliveryAdapter, { Delivery } from "../DeliveryAdapter";
 
