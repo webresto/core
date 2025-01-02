@@ -38,8 +38,8 @@ describe('BackupHandler', () => {
     ];
 
     mockDishes = [
-      dishGenerator({ name: 'Dish1', price: 100, concept: 'Concept1', images: [{ variant: { origin: 'image1.jpg' }, id: 'img1' }] }),
-      dishGenerator({ name: 'Dish2', price: 200, concept: 'Concept2', images: [{ variant: { origin: 'image2.jpg' }, id: 'img2' }] })
+      dishGenerator({ id: "dish-1", name: 'Dish1', price: 100, concept: 'Concept1', images: [{ variant: { origin: 'image1.jpg' }, id: 'img1', originalFilePath: "image1.jpg" }] }),
+      dishGenerator({ id: "dish-2", name: 'Dish2', price: 200, concept: 'Concept2', images: [{ variant: { origin: 'image2.jpg' }, id: 'img2', originalFilePath: "image2.jpg"  }] })
     ];
 
     // Mock fsw and tar dependencies
@@ -82,8 +82,8 @@ describe('BackupHandler', () => {
     // Check that methods were called
     // sinon.assert.calledOnce(tarX); // Check that tar.x was called once
     sinon.assert.calledOnce(fsReadFile); // Check that fs.readFile was called once
-    sinon.assert.calledWith(fsExists, 'image1.jpg'); // Check that fs.exists was called with the correct argument
-    sinon.assert.calledWith(fsExists, 'image2.jpg'); // Check that fs.exists was called with the correct argument
+    sinon.assert.calledWith(fsExists, `${backupHandler.workDir}/dish-1_1.jpg`); // Check that fs.exists was called with the correct argument
+    sinon.assert.calledWith(fsExists, `${backupHandler.workDir}/dish-2_1.jpg`); // Check that fs.exists was called with the correct argument
   });
 
   it('should generate correct JSON data from createJSON method', async () => {

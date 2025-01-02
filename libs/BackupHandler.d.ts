@@ -7,6 +7,7 @@ interface BackupOptions {
 export declare class BackupHandler {
     private groups;
     private dishes;
+    workDir: string;
     tar: typeof tar;
     exportToTar(filePath: string, options?: Partial<BackupOptions>): Promise<void>;
     importFromTar(filePath: string): Promise<void>;

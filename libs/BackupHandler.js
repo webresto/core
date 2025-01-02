@@ -36,6 +36,7 @@ class BackupHandler {
     constructor() {
         this.groups = [];
         this.dishes = [];
+        this.workDir = null;
         this.tar = tar;
     }
     // Export data and images to a tar file
@@ -46,21 +47,21 @@ class BackupHandler {
             const currentDir = process.cwd();
             // Создаем временную директорию для экспорта
             const timestamp = Date.now();
-            const exportDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
+            this.workDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
             // Создаем папку, если она не существует
-            await fs_1.fsw.mkdir(exportDir);
+            await fs_1.fsw.mkdir(this.workDir);
             // Путь для JSON файла
-            const jsonFilePath = path.join(exportDir, 'data.json');
+            const jsonFilePath = path.join(this.workDir, 'data.json');
             // Создание JSON данных
             const jsonData = await this.createJSON(finalOptions);
             await fs_1.fsw.writeFile(jsonFilePath, jsonData);
             // Экспорт изображений в временную директорию
-            await this.exportImages(this.dishes, exportDir);
+            await this.exportImages(this.dishes, this.workDir);
             // Упаковка всего содержимого в tar файл
             await this.tar.c({
                 gzip: true,
                 file: filePath,
-                cwd: exportDir
+                cwd: this.workDir
             }, ['.']);
             // Удаление временных файлов
             await fs_1.fsw.unlink(jsonFilePath);
@@ -78,17 +79,17 @@ class BackupHandler {
             const currentDir = process.cwd();
             // Создаем директорию для распаковки
             const timestamp = Date.now();
-            const extractDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
+            this.workDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
             // Создаем папку, если она не существует
-            await fs_1.fsw.mkdir(extractDir);
-            console.log(`Extracting tar file to: ${extractDir}`);
+            await fs_1.fsw.mkdir(this.workDir);
+            console.log(`Extracting tar file to: ${this.workDir}`);
             // Распаковываем архив в указанную директорию
             await this.tar.x({
                 file: filePath,
-                cwd: extractDir,
+                cwd: this.workDir,
             });
             // Читаем данные JSON
-            const jsonFilePath = path.join(extractDir, 'data.json');
+            const jsonFilePath = path.join(this.workDir, 'data.json');
             const jsonData = await fs_1.fsw.readFile(jsonFilePath);
             const importedData = JSON.parse(jsonData);
             this.groups = importedData.groups;
@@ -96,9 +97,12 @@ class BackupHandler {
             // Проверяем и загружаем изображения
             for (const dish of this.dishes) {
                 if (dish.images && Array.isArray(dish.images)) {
+                    let count = 1;
                     for (const image of dish.images) {
-                        const imagePath = path.join(extractDir, `${image.id}.jpg`);
-                        this.checkAndLoadImage(imagePath); // Предположим, что это ваш метод для проверки и загрузки изображений
+                        const ext = path.extname(image.originalFilePath) || '.webp';
+                        const imagePath = path.join(this.workDir, `${dish.id}_${count}${ext}`);
+                        this.checkAndLoadImage(imagePath);
+                        count++;
                     }
                 }
             }
@@ -138,26 +142,28 @@ class BackupHandler {
     }
     // Export images to a directory
     async exportImages(dishes, exportDir) {
-        const imagesDir = path.join(exportDir);
-        dishes.forEach(dish => {
+        this.workDir = exportDir;
+        const imagesDir = path.join(this.workDir);
+        for (const dish of dishes) {
             if (dish.images && Array.isArray(dish.images)) {
-                dish.images.forEach((image) => {
-                    Object.entries(image.variant).forEach(async ([variantName, variantPath]) => {
-                        if (variantPath) {
-                            const imageFileName = `${variantName}_${image.id}.jpg`;
-                            const destinationPath = path.join(imagesDir, imageFileName);
-                            if (await fs_1.fsw.exists(variantPath)) {
-                                await fs_1.fsw.copyFile(variantPath, destinationPath);
-                                console.log(`Image exported: ${imageFileName}`);
-                            }
-                            else {
-                                console.warn(`Image file not found: ${variantPath}`);
-                            }
+                let count = 1;
+                for (const image of dish.images) {
+                    if (image.originalFilePath) {
+                        const ext = path.extname(image.originalFilePath);
+                        const imageFileName = `${dish.id}_${count}${ext}`;
+                        const destinationPath = path.join(imagesDir, imageFileName);
+                        if (await fs_1.fsw.exists(image.originalFilePath)) {
+                            await fs_1.fsw.copyFile(image.originalFilePath, destinationPath);
+                            console.log(`Image exported: ${imageFileName}`);
                         }
-                    });
-                });
+                        else {
+                            console.warn(`Image file not found: ${image.originalFilePath}`);
+                        }
+                        count++;
+                    }
+                }
             }
-        });
+        }
     }
 }
 exports.BackupHandler = BackupHandler;

@@ -20,6 +20,7 @@ const defaultOptions: BackupOptions = {
 export class BackupHandler {
   private groups: GroupRecord[] = [];
   private dishes: DishRecord[] = [];
+  workDir: string = null;
   tar = tar;
   // Export data and images to a tar file
   async exportToTar(filePath: string, options: Partial<BackupOptions> = {}): Promise<void> {
@@ -31,26 +32,26 @@ export class BackupHandler {
   
       // Создаем временную директорию для экспорта
       const timestamp = Date.now();
-      const exportDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
-  
+      this.workDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
+      
       // Создаем папку, если она не существует
-      await fsw.mkdir(exportDir);
+      await fsw.mkdir(this.workDir);
   
       // Путь для JSON файла
-      const jsonFilePath = path.join(exportDir, 'data.json');
+      const jsonFilePath = path.join(this.workDir, 'data.json');
   
       // Создание JSON данных
       const jsonData = await this.createJSON(finalOptions);
       await fsw.writeFile(jsonFilePath, jsonData);
 
       // Экспорт изображений в временную директорию
-      await this.exportImages(this.dishes, exportDir);
+      await this.exportImages(this.dishes, this.workDir);
   
       // Упаковка всего содержимого в tar файл
       await this.tar.c({
         gzip: true,
         file: filePath,
-        cwd: exportDir
+        cwd: this.workDir
       }, ['.']);
   
       // Удаление временных файлов
@@ -71,21 +72,21 @@ export class BackupHandler {
   
       // Создаем директорию для распаковки
       const timestamp = Date.now();
-      const extractDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
+      this.workDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
       
       // Создаем папку, если она не существует
-      await fsw.mkdir(extractDir);
+      await fsw.mkdir(this.workDir);
   
-      console.log(`Extracting tar file to: ${extractDir}`);
+      console.log(`Extracting tar file to: ${this.workDir}`);
   
       // Распаковываем архив в указанную директорию
       await this.tar.x({
         file: filePath,
-        cwd: extractDir,
+        cwd: this.workDir,
       });
   
       // Читаем данные JSON
-      const jsonFilePath = path.join(extractDir, 'data.json');
+      const jsonFilePath = path.join(this.workDir, 'data.json');
       const jsonData = await fsw.readFile(jsonFilePath);
       const importedData = JSON.parse(jsonData);
   
@@ -95,12 +96,16 @@ export class BackupHandler {
       // Проверяем и загружаем изображения
       for (const dish of this.dishes) {
         if (dish.images && Array.isArray(dish.images)) {
+          let count = 1;
           for (const image of dish.images) {
-            const imagePath = path.join(extractDir, `${image.id}.jpg`);
-            this.checkAndLoadImage(imagePath); // Предположим, что это ваш метод для проверки и загрузки изображений
+            const ext = path.extname(image.originalFilePath) || '.webp';
+            const imagePath = path.join(this.workDir, `${dish.id}_${count}${ext}`);
+            this.checkAndLoadImage(imagePath);
+            count++;
           }
         }
       }
+
   
       console.log('Import completed:', filePath);
     } catch (error) {
@@ -143,26 +148,30 @@ export class BackupHandler {
 
   // Export images to a directory
   private async exportImages(dishes: DishRecord[], exportDir: string): Promise<void> {
-    const imagesDir = path.join(exportDir);
-
-    dishes.forEach(dish => {
+    this.workDir = exportDir;
+    const imagesDir = path.join(this.workDir);
+  
+    for (const dish of dishes) {
       if (dish.images && Array.isArray(dish.images)) {
-        dish.images.forEach((image: MediaFileRecord) => {
-          Object.entries(image.variant).forEach(async ([variantName, variantPath]) => {
-            if (variantPath) {
-              const imageFileName = `${variantName}_${image.id}.jpg`;
-              const destinationPath = path.join(imagesDir, imageFileName);
-
-              if (await fsw.exists(variantPath)) {
-                await fsw.copyFile(variantPath, destinationPath);
-                console.log(`Image exported: ${imageFileName}`);
-              } else {
-                console.warn(`Image file not found: ${variantPath}`);
-              }
+        let count = 1;
+        for (const image of dish.images) {
+          if (image.originalFilePath) {
+            const ext = path.extname(image.originalFilePath);
+            const imageFileName = `${dish.id}_${count}${ext}`;
+            const destinationPath = path.join(imagesDir, imageFileName);
+  
+            if (await fsw.exists(image.originalFilePath)) {
+              await fsw.copyFile(image.originalFilePath, destinationPath);
+              console.log(`Image exported: ${imageFileName}`);
+            } else {
+              console.warn(`Image file not found: ${image.originalFilePath}`);
             }
-          });
-        });
+  
+            count++;
+          }
+        }
       }
-    });
+    }
   }
+  
 }
