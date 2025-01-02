@@ -29,8 +29,7 @@ function processBindAdminpanel() {
             id: 'products',
             title: 'Products',
             link: `${baseRoute}/catalog/products`,
-            icon: `barcode`,
-            accessToken: "products-access"
+            icon: `barcode`
         });
     }
 }

@@ -1,6 +1,7 @@
 import RMSAdapter from "../../../adapters/rms/RMSAdapter";
 import { DishRecord } from "../../../models/Dish";
 import { GroupRecord } from "../../../models/Group";
+import { OrderRecord } from "../../../models/Order";
 // todo: fix types model instance to {%ModelName%}Record for Dish";
 // todo: fix types model instance to {%ModelName%}Record for Group";
 // todo: fix types model instance to {%ModelName%}Record for Order";
@@ -61,12 +62,12 @@ export class TestRMS  extends RMSAdapter {
     }
 
 
-    public createOrder(orderData: Order): Promise<Order> {
+    public createOrder(orderData: OrderRecord): Promise<OrderRecord> {
         console.log("Method not implemented.");
         return
     }
     
-    public checkOrder(orderData: Order): Promise<Order> {
+    public checkOrder(orderData: OrderRecord): Promise<OrderRecord> {
         console.log("Method not implemented.");
         return
     }
@@ -74,8 +75,4 @@ export class TestRMS  extends RMSAdapter {
     public api(method: string, params: any): Promise<any> {
         throw process.env[method] = JSON.stringify(params);
     }
-    
-    // constructor() {
-    //     super();
-    // }
 }

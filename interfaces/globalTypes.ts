@@ -40,6 +40,7 @@ declare global {
   const NotificationManager: typeof import("../libs/NotificationManager").NotificationManager
   const DialogBox: typeof import("../libs/DialogBox").DialogBox
   const Adapter: typeof import("../adapters").Adapter
+  //@ts-ignore *1
   interface Sails extends sails.Sails {
     [x: string]: {};
     on: any;
@@ -59,14 +60,18 @@ declare global {
     currencies: { [iso in CurrencyISOList]: Currency };
   }
 
+  //@ts-ignore *1
   interface _sailsConfig extends sailsConfig {
     restocore: Config;
+    //@ts-ignore *1
     [key: string]: any | object;
   }
-  const sails: Sails;
+  //const sails: Sails;
+  // TODO: *1 It appears that Sails, one of the projects available in the admin panel, is being imported incorrectly into this project. As a result, there is an "ignore" flag set everywhere. Ideally, we should abstract Sails.js to avoid this issue and improve the integration process.
+
+
   type ReqType = sails.Request;
   type ResType = sails.Response;
-  type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
 
   interface SettingList {
     RESTOCORE_TIME_SYNC_PAYMENTS: number

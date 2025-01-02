@@ -7,13 +7,14 @@ import fakerStatic = require("faker");
 import { RequiredField } from "../../../interfaces/toolsTS";
 import { UserRecord } from "../../../models/User";
 import { UserBonusProgramRecord } from "../../../models/UserBonusProgram";
+import { UserBonusTransactionRecord } from "../../../models/UserBonusTransaction";
 export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
   public getUserInfo(user: UserRecord): Promise<RequiredField<Partial<Pick<Omit<UserBonusProgramRecord, "id"> & UserRecord, "id" | "firstName" | "lastName" | "sex" | "email" | "birthday" | "externalId" | "externalCustomerId" | "balance">>, "id" | "externalId" | "externalCustomerId">> {
     console.log("Method not implemented.");
     return
   }
   private transactions: Map<string, BonusTransaction[]> = new Map();
-  private users: Map<string, User> = new Map();
+  private users: Map<string, UserRecord> = new Map();
 
   public name: string = "test bonus adapter name";
   public adapter: string = "test";
@@ -67,7 +68,7 @@ export class InMemoryBonusProgramAdapter extends BonusProgramAdapter {
     return transactions.filter((transaction) => new Date(transaction.time) > afterTime).slice(skip, limit || undefined);
   }
 
-  public async writeTransaction(user: UserRecord, _ubp: UserBonusProgramRecord, userBonusTransaction: UserBonusTransaction): Promise<BonusTransaction> {
+  public async writeTransaction(user: UserRecord, _ubp: UserBonusProgramRecord, userBonusTransaction: UserBonusTransactionRecord): Promise<BonusTransaction> {
     if (!this.users.has(user.id)) {
       throw new Error("User not found");
     }

@@ -2,12 +2,13 @@ import { expect } from "chai";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 import { Payment } from "../../../interfaces/Payment";
 import generate_payment from "../../generators/payment.generator";
+import { PaymentMethodRecord } from "../../../models/PaymentMethod";
 // todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
 //// todo: fix types model instance to {%ModelName%}Record for Order';
 
 describe("PaymentDocument", function () {
   this.timeout(31000);
-  let paymentMethod;
+  let paymentMethod: PaymentMethodRecord;
   /**
    * 
    */
@@ -70,6 +71,6 @@ describe("PaymentDocument", function () {
   });
 });
 
-function sleep(ms) {
+function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

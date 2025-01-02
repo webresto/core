@@ -16,7 +16,7 @@ import ConfiguredPromotion from '../../../adapters/promotion/default/configuredP
 import Decimal from 'decimal.js';
 import { DishRecord } from '../../../models/Dish';
 import { GroupRecord } from '../../../models/Group';
-import { OrderRecord } from '../../../models/Order';
+import { OrderRecord, PromotionState } from '../../../models/Order';
 
 describe('Discount_Empty', function () {
   after(async function () {

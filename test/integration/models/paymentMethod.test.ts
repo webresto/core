@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
-// todo: fix types model instance to {%ModelName%}Record for PaymentMethod"
-var paymentMethodSeed: PaymentMethod = {
+import { PaymentMethodRecord } from "../../../models/PaymentMethod";
+var paymentMethodSeed: PaymentMethodRecord = {
   id: "test-payment-cash",
   title: "Cash",
   type: "promise",

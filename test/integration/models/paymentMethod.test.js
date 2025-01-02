@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const ExternalTestPaymentSystem_1 = __importDefault(require("../../unit/external_payments/ExternalTestPaymentSystem"));
-// todo: fix types model instance to {%ModelName%}Record for PaymentMethod"
 var paymentMethodSeed = {
     id: "test-payment-cash",
     title: "Cash",

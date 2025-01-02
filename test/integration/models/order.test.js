@@ -203,6 +203,8 @@ describe("Order", function () {
         order = await Order.findOne(order.id);
         (0, chai_1.expect)(order.paid).to.equals(true);
         (0, chai_1.expect)(order.paymentMethod).to.equals(paymentDocument.paymentMethod);
+        if (typeof paymentDocument.paymentMethod !== "string")
+            throw `Type error`;
         let paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentDocument.paymentMethod })).title;
         (0, chai_1.expect)(order.paymentMethodTitle).to.equals(paymentMethodTitle);
     });

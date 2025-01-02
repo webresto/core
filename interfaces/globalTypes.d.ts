@@ -59,10 +59,8 @@ declare global {
         restocore: Config;
         [key: string]: any | object;
     }
-    const sails: Sails;
     type ReqType = sails.Request;
     type ResType = sails.Response;
-    type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
     interface SettingList {
         RESTOCORE_TIME_SYNC_PAYMENTS: number;
         CORE_LOGIN_FIELD: string;

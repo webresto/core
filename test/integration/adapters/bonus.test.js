@@ -67,6 +67,3 @@ describe("Bonus program adapter", function () {
     // it("check bonus strategies", async () => {
     // });
 });
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}

@@ -1,7 +1,7 @@
-import { CreateUpdateConfig, FieldsModels, MediaManagerOptionsField, ModelFieldConfig } from "sails-adminpanel/interfaces/adminpanelConfig";
-type AdminizerModelConfig  = Record<string, ModelFieldConfig> 
+import { CreateUpdateConfig, FieldsModels, MediaManagerOptionsField } from "sails-adminpanel/interfaces/adminpanelConfig";
+
 export class GroupConfig {
-    static fields: AdminizerModelConfig = {
+    static fields: FieldsModels = {
         id: {
             title: "Id",
             disabled: true

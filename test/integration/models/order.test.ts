@@ -299,6 +299,7 @@ describe("Order", function () {
     order = await Order.findOne(order.id);
     expect(order.paid).to.equals(true);
     expect(order.paymentMethod).to.equals(paymentDocument.paymentMethod);
+    if(typeof paymentDocument.paymentMethod !== "string") throw `Type error`
     let paymentMethodTitle = (await PaymentMethod.findOne({id: paymentDocument.paymentMethod})).title;
     expect(order.paymentMethodTitle).to.equals(paymentMethodTitle);
   });

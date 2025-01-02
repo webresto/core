@@ -1,19 +1,16 @@
 import { expect } from "chai";
-import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
-
-// todo: fix types model instance to {%ModelName%}Record for Order";
 import Address from "../../../interfaces/Address";
 import Customer from "../../../interfaces/Customer";
-// todo: fix types model instance to {%ModelName%}Record for Settings";
-// todo: fix types model instance to {%ModelName%}Record for Dish";
 import { address, customer } from "../../mocks/customer";
+import { OrderRecord } from "../../../models/Order";
+import { DishRecord } from "../../../models/Dish";
 
 describe("Flows: Checkout", function () {
   this.timeout(10000);
   var order: OrderRecord;
 
 
-  let dishes;
+  let dishes: (string | DishRecord)[];
 
   it("Check dishescount", async function () {
     await sleep(500)
@@ -314,6 +311,6 @@ describe("Flows: Checkout", function () {
   });
 });
 
-function sleep(ms) {
+function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

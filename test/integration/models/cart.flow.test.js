@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
-// todo: fix types model instance to {%ModelName%}Record for Settings";
-// todo: fix types model instance to {%ModelName%}Record for Dish";
 const customer_1 = require("../../mocks/customer");
 describe("Flows: Checkout", function () {
     this.timeout(10000);

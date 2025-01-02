@@ -387,7 +387,7 @@ describe('Discount', function () {
         
         await promotionAdapter.addPromotionHandler(discountEx)
 
-        let group1:Group = groupGenerator()
+        let group1:GroupRecord = groupGenerator()
         await Group.create(group1)
 
         let display = await Group.display({ id: group1.id })

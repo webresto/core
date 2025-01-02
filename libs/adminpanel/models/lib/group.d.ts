@@ -1,11 +1,9 @@
-import { CreateUpdateConfig, FieldsModels, ModelFieldConfig } from "sails-adminpanel/interfaces/adminpanelConfig";
-type AdminizerModelConfig = Record<string, ModelFieldConfig>;
+import { CreateUpdateConfig, FieldsModels } from "sails-adminpanel/interfaces/adminpanelConfig";
 export declare class GroupConfig {
-    static fields: AdminizerModelConfig;
+    static fields: FieldsModels;
     static add(): CreateUpdateConfig;
     static edit(): CreateUpdateConfig;
     static list(): {
         fields: FieldsModels;
     };
 }
-export {};

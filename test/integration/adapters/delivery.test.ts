@@ -95,7 +95,3 @@ describe("RMS adapter", function () {
     await Settings.set("MIN_DELIVERY_AMOUNT", {key: "MIN_DELIVERY_AMOUNT", value: 0});
   });
 });
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}

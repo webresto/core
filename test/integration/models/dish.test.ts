@@ -105,7 +105,7 @@ describe('Dish', function () {
   });
 });
 
-function delay(ms){
+function delay(ms: number){
   return new Promise((resolve, reject) => {
       setTimeout(resolve, ms)
   });

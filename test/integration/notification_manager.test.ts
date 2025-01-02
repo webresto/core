@@ -1,4 +1,5 @@
 // todo: fix types model instance to {%ModelName%}Record for User';
+import { UserRecord } from "../../models/User";
 import { Channel, NotificationManager } from "./../../libs/NotificationManager"
 
 class TestChannel extends Channel {

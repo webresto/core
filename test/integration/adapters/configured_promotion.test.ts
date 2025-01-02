@@ -8,6 +8,7 @@ import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromot
 import discountGenerator from "../../generators/discount.generator";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import { PromotionAdapter } from "../../../adapters/promotion/default/promotionAdapter";
+import { PromotionRecord } from "../../../models/Promotion";
 
 
 
@@ -171,7 +172,7 @@ describe("Promotion adapter integration test", function () {
       excludeModifiers: true
     }
 
-    let createInModelPromotion: Promotion = {
+    let createInModelPromotion: PromotionRecord = {
       id: 'config2addaw-idawdawd',
       isJoint: false,
       name: "Promotion",
