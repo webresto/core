@@ -191,16 +191,17 @@ export class BackupHandler {
       if (dish.images && Array.isArray(dish.images)) {
         let count = 1;
         for (const image of dish.images) {
-          if (image.originalFilePath) {
-            const ext = path.extname(image.originalFilePath);
+          let originalFullFilePath = image.originalFilePath.startsWith("/") ? image.originalFilePath : path.join(process.cwd(), image.originalFilePath)
+          if (originalFullFilePath) {
+            const ext = path.extname(originalFullFilePath);
             const imageFileName = `${dish.id}_${count}${ext}`;
             const destinationPath = path.join(imagesDir, imageFileName);
 
-            if (await fsw.exists(image.originalFilePath)) {
-              await fsw.copyFile(image.originalFilePath, destinationPath);
+            if (await fsw.exists(originalFullFilePath)) {
+              await fsw.copyFile(originalFullFilePath, destinationPath);
               console.log(`Image exported: ${imageFileName}`);
             } else {
-              console.warn(`Image file not found: ${image.originalFilePath}`);
+              console.warn(`Image file not found: ${originalFullFilePath}`);
             }
 
             count++;
