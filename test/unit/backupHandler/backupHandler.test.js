@@ -97,8 +97,8 @@ describe('BackupHandler', () => {
         // Check that methods were called
         // sinon.assert.calledOnce(tarX); // Check that tar.x was called once
         sinon.assert.calledOnce(fsReadFile); // Check that fs.readFile was called once
-        sinon.assert.calledWith(fsExists, `${backupHandler.workDir}/dish-1_1.jpg`); // Check that fs.exists was called with the correct argument
-        sinon.assert.calledWith(fsExists, `${backupHandler.workDir}/dish-2_1.jpg`); // Check that fs.exists was called with the correct argument
+        sinon.assert.calledWith(fsExists, `${backupHandler.workDir}/dish-1__1.jpg`); // Check that fs.exists was called with the correct argument
+        sinon.assert.calledWith(fsExists, `${backupHandler.workDir}/dish-2__1.jpg`); // Check that fs.exists was called with the correct argument
     });
     it('should generate correct JSON data from createJSON method', async () => {
         const backupHandler = new BackupHandler_1.BackupHandler();
@@ -116,8 +116,8 @@ describe('BackupHandler', () => {
         // Spy on console.warn
         const spy = sinon.spy(console, 'warn');
         // Check that a warning appears when an image is not found
-        await backupHandler['checkAndLoadImage']('nonexistent.jpg'); // await добавлен
-        sinon.assert.calledWith(spy, 'Image not found: nonexistent.jpg');
+        await backupHandler['checkAndLoadImage']('/nonexistent__1.jpg'); // await добавлен
+        sinon.assert.calledWith(spy, 'Image not found: /nonexistent__1.jpg');
         spy.restore();
     });
     it('should export images correctly', async () => {
@@ -129,5 +129,19 @@ describe('BackupHandler', () => {
         // Check that images were exported
         sinon.assert.calledWith(fsCopyFile, 'image1.jpg', sinon.match.string); // Check that fs.copyFile was called with the expected arguments
         sinon.assert.calledWith(fsCopyFile, 'image2.jpg', sinon.match.string); // Check that fs.copyFile was called with the expected arguments
+    });
+    it('should load image when file exists', async () => {
+        const backupHandler = new BackupHandler_1.BackupHandler();
+        // Mock fs.exists to simulate existing file
+        fsExists.resolves(true);
+        // Spy on loadImage method
+        const loadImageStub = sinon.stub(backupHandler, 'loadImage').resolves();
+        const imagePath = '/dish:123__4.jpg';
+        const dishID = "dish:123";
+        const sortOrder = 4;
+        // Call checkAndLoadImage
+        await backupHandler['checkAndLoadImage'](imagePath);
+        // Check that loadImage was called with the correct arguments
+        sinon.assert.calledWith(loadImageStub, imagePath, dishID, sortOrder);
     });
 });

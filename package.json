@@ -1,6 +1,6 @@
 {
   "author": {
-    "name": "Webresto team"
+    "name": "RestoApp team"
   },
   "contributors": [
     {
@@ -79,7 +79,7 @@
     "type": "git",
     "url": "http://github.com/webresto/core.git"
   },
-  "homepage": "http://webresto.org/",
+  "homepage": "http://restoapp.org",
   "sails": {
     "isHook": true,
     "hookName": "restocore"

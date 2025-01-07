@@ -75,32 +75,32 @@ class BackupHandler {
     // Import data and images from a tar file
     async importFromTar(filePath) {
         try {
-            // Получаем текущую директорию
+            // Get the current directory
             const currentDir = process.cwd();
-            // Создаем директорию для распаковки
+            // Create a directory for unpacking
             const timestamp = Date.now();
             this.workDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
-            // Создаем папку, если она не существует
+            // Create a folder if it does not exist
             await fs_1.fsw.mkdir(this.workDir);
             console.log(`Extracting tar file to: ${this.workDir}`);
-            // Распаковываем архив в указанную директорию
+            // Unpack the archive into the specified directory
             await this.tar.x({
                 file: filePath,
                 cwd: this.workDir,
             });
-            // Читаем данные JSON
+            // Reading JSON data
             const jsonFilePath = path.join(this.workDir, 'data.json');
             const jsonData = await fs_1.fsw.readFile(jsonFilePath);
             const importedData = JSON.parse(jsonData);
             this.groups = importedData.groups;
             this.dishes = importedData.dishes;
-            // Проверяем и загружаем изображения
+            // Checking and uploading images
             for (const dish of this.dishes) {
                 if (dish.images && Array.isArray(dish.images)) {
                     let count = 1;
                     for (const image of dish.images) {
                         const ext = path.extname(image.originalFilePath) || '.webp';
-                        const imagePath = path.join(this.workDir, `${dish.id}_${count}${ext}`);
+                        const imagePath = path.join(this.workDir, `${dish.id}__${count}${ext}`);
                         this.checkAndLoadImage(imagePath);
                         count++;
                     }
@@ -129,16 +129,44 @@ class BackupHandler {
     }
     // Check file existence and load image
     async checkAndLoadImage(imagePath) {
+        // Извлечение имени файла
+        const fileName = path.basename(imagePath);
+        // Разделение имени файла по разделителю "__"
+        const parts = fileName.split('__');
+        if (parts.length !== 2) {
+            console.warn(`File name format is incorrect: ${fileName}`);
+            return;
+        }
+        const dishID = parts[0]; // Левая часть до "__"
+        const countPart = parts[1].split('.'); // Правая часть (порядковый номер и расширение)
+        if (countPart.length < 2) {
+            console.warn(`File name format is incorrect: ${fileName}`);
+            return;
+        }
+        const count = parseInt(countPart[0], 10); // Извлекаем порядковый номер (число)
+        if (isNaN(count)) {
+            console.warn(`File name format is incorrect: ${fileName}`);
+            return;
+        }
+        // Проверка существования файла
         if (await fs_1.fsw.exists(imagePath)) {
-            this.loadImage(imagePath);
+            await this.loadImage(imagePath, dishID, count);
         }
         else {
             console.warn(`Image not found: ${imagePath}`);
         }
     }
     // Simulate loading an image
-    loadImage(imagePath) {
+    async loadImage(imagePath, dishId, sortOrder) {
         console.log(`Loading image: ${imagePath}`);
+        const model = 'dish';
+        const mfAdater = await Adapter.getMediaFileAdapter();
+        const mediaFileImage = await mfAdater.toProcess(`file://${imagePath}`, model, "image");
+        let init = {};
+        init[`mediafile_${model}`] = mediaFileImage.id;
+        init[model] = dishId;
+        init["sortOrder"] = sortOrder;
+        await SelectedMediaFile.create(init).fetch();
     }
     // Export images to a directory
     async exportImages(dishes, exportDir) {
