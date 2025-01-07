@@ -58,8 +58,16 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	}
 
 	public async deleteItem(itemId: string | number, catalogId: string) {
-		await sails.models[this.model].update({id: itemId, concept: catalogId}, {isDeleted: true}).fetch()
+		await sails.models[this.model].update({ id: itemId, concept: catalogId }, { isDeleted: true }).fetch();
+	
+		if (this.model === 'group') {
+			const dishesToUpdate = await sails.models.dish.find({ parentGroup: itemId, concept: catalogId });	
+			if (dishesToUpdate.length > 0) {
+				await sails.models.dish.update({ id: dishesToUpdate.map((dish: { id: string; }) => dish.id) }, { isDeleted: true }).fetch();
+			}
+		}
 	}
+	
 
 	public getAddHTML(): Promise<{ type: "link" | "html"; data: string; }> {
 		let type: 'link' = 'link'
