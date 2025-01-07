@@ -1,8 +1,13 @@
 import * as tar from 'tar';
-interface BackupOptions {
+interface BaseOptions {
     isDeleted: boolean;
     concepts: string[];
-    turncate: boolean;
+}
+interface RestoreOptions extends BaseOptions {
+    turncate: false;
+}
+interface BackupOptions extends BaseOptions {
+    turncate: false;
 }
 export declare class BackupHandler {
     private groups;
@@ -10,7 +15,7 @@ export declare class BackupHandler {
     workDir: string;
     tar: typeof tar;
     exportToTar(filePath: string, options?: Partial<BackupOptions>): Promise<void>;
-    importFromTar(filePath: string): Promise<void>;
+    importFromTar(filePath: string, options?: Partial<RestoreOptions>): Promise<void>;
     private createJSON;
     private checkAndLoadImage;
     private loadImage;

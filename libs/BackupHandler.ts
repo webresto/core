@@ -5,13 +5,26 @@ import { DishRecord } from '../models/Dish';
 import { MediaFileRecord } from '../models/MediaFile';
 import { fsw } from './wrapper/fs';
 
-interface BackupOptions {
+interface BaseOptions {
   isDeleted: boolean;
   concepts: string[];
-  turncate: boolean
 }
 
-const defaultOptions: BackupOptions = {
+interface RestoreOptions extends BaseOptions {
+  turncate: false
+}
+
+interface BackupOptions extends BaseOptions {
+  turncate: false
+}
+
+const backupDefaultOptions: BackupOptions = {
+  isDeleted: false,
+  concepts: [],
+  turncate: false
+};
+
+const restoreDefaultOptions: RestoreOptions = {
   isDeleted: false,
   concepts: [],
   turncate: false
@@ -25,93 +38,142 @@ export class BackupHandler {
   // Export data and images to a tar file
   async exportToTar(filePath: string, options: Partial<BackupOptions> = {}): Promise<void> {
     try {
-      const finalOptions = { ...defaultOptions, ...options };
-
+      // Объединяем настройки
+      const finalOptions = { ...backupDefaultOptions, ...options };
+  
       // Получаем текущую директорию для создания временной папки
       const currentDir = process.cwd();
-
-      // Создаем временную директорию для экспорта
-      const timestamp = Date.now();
-      this.workDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
-
-      // Создаем папку, если она не существует
+      this.workDir = path.join(currentDir, `.tmp/backup-${Date.now()}`);
+  
+      // Создаем временную директорию
       await fsw.mkdir(this.workDir);
-
+  
       // Путь для JSON файла
       const jsonFilePath = path.join(this.workDir, 'data.json');
-
+  
       // Создание JSON данных
       const jsonData = await this.createJSON(finalOptions);
       await fsw.writeFile(jsonFilePath, jsonData);
-
+  
       // Экспорт изображений в временную директорию
       await this.exportImages(this.dishes, this.workDir);
-
+  
+      // Удаляем tar файл, если он существует
+      if (await fsw.exists(filePath)) {
+        await fsw.unlink(filePath);
+      }
+  
       // Упаковка всего содержимого в tar файл
       await this.tar.c({
         gzip: true,
         file: filePath,
         cwd: this.workDir
       }, ['.']);
-
-      // Удаление временных файлов
-      await fsw.unlink(jsonFilePath);
-
-      console.log('Export completed:', filePath);
+  
+      // Очистка временных файлов
+      await fsw.unlink(this.workDir);
+  
+      console.log(`Export process completed successfully: ${filePath}`);
     } catch (error) {
-      new Error
       console.error('Export error:', error);
     }
   }
+  
 
   // Import data and images from a tar file
-  async importFromTar(filePath: string): Promise<void> {
+  async importFromTar(filePath: string, options: Partial<RestoreOptions> = {}): Promise<void> {
     try {
+      // Log the start of the import process
+      console.log('Starting import process...');
+  
+      options = { ...restoreDefaultOptions, ...options };
+  
       // Get the current directory
       const currentDir = process.cwd();
-
+      console.log(`Current directory: ${currentDir}`);
+  
       // Create a directory for unpacking
       const timestamp = Date.now();
       this.workDir = path.join(currentDir, `.tmp/backup-${timestamp}`);
-
+      console.log(`Temporary work directory: ${this.workDir}`);
+  
       // Create a folder if it does not exist
       await fsw.mkdir(this.workDir);
-
+      console.log(`Created work directory: ${this.workDir}`);
+  
       console.log(`Extracting tar file to: ${this.workDir}`);
-
+  
       // Unpack the archive into the specified directory
       await this.tar.x({
         file: filePath,
         cwd: this.workDir,
       });
-
+      console.log(`Tar file extracted: ${filePath}`);
+  
+      if (!options.concepts.length) options.concepts.push("origin");
+      if (options.concepts.length && options.turncate) {
+        console.log(`Truncating concepts: ${options.concepts.join(', ')}`);
+        for (let concept in options.concepts) {
+          await Dish.destroy({ concept: concept }).fetch();
+          await Group.destroy({ concept: concept }).fetch();
+          console.log(`Destroyed concept: ${concept}`);
+        }
+      }
+  
       // Reading JSON data
       const jsonFilePath = path.join(this.workDir, 'data.json');
+      console.log(`Reading JSON data from: ${jsonFilePath}`);
+  
       const jsonData = await fsw.readFile(jsonFilePath);
       const importedData = JSON.parse(jsonData);
-
+      console.log(`JSON data parsed successfully.`);
+  
       this.groups = importedData.groups;
       this.dishes = importedData.dishes;
-
+  
+      // Creating groups from imported data
+      console.log(`Creating groups...`);
+      for (let groupData of importedData.groups) {
+        if(await Group.findOne(groupData.id)) {
+          await Group.destroy(groupData.id).fetch()
+        }
+        delete groupData.images
+        await Group.create(groupData).fetch();
+        console.log(`Created group: ${groupData.name}`);
+      }
+  
+      // Creating dishes from imported data
+      console.log(`Creating dishes...`);
+      for (let dishData of importedData.dishes) {
+        if(await Dish.findOne(dishData.id)) {
+          await Dish.destroy(dishData.id).fetch()
+        }
+        delete dishData.images
+        await Dish.create(dishData).fetch();
+        console.log(`Created dish: ${dishData.name}`);
+      }
+  
       // Checking and uploading images
+      console.log('Checking and uploading images...');
       for (const dish of this.dishes) {
         if (dish.images && Array.isArray(dish.images)) {
           let count = 1;
           for (const image of dish.images) {
             const ext = path.extname(image.originalFilePath) || '.webp';
             const imagePath = path.join(this.workDir, `${dish.id}__${count}${ext}`);
+            console.log(`Checking and loading image: ${imagePath}`);
             this.checkAndLoadImage(imagePath);
             count++;
           }
         }
       }
-
-
-      console.log('Import completed:', filePath);
+  
+      console.log('Import completed successfully:', filePath);
     } catch (error) {
       console.error('Import error:', error);
     }
   }
+  
 
   // Create JSON data
   private async createJSON(options: BackupOptions): Promise<string> {
@@ -123,13 +185,13 @@ export class BackupHandler {
     const dishes = await Dish.find({
       isDeleted: options.isDeleted,
       ...(options.concepts.length && { concepts: { $in: options.concepts } })
-    });
+    }).populate('images');
 
     this.groups = groups;
     this.dishes = dishes;
 
-    const kernelVersion = process.version;
-    return JSON.stringify({ kernelVersion, groups, dishes }, null, 2);
+    const version = process.version;
+    return JSON.stringify({ version, groups, dishes }, null, 2);
   }
 
   // Check file existence and load image
@@ -170,7 +232,7 @@ export class BackupHandler {
   // Simulate loading an image
   private async loadImage(imagePath: string, dishId: string, sortOrder: number): Promise<void> {
     console.log(`Loading image: ${imagePath}`);
-
+    
     const model = 'dish'
     const mfAdater = await Adapter.getMediaFileAdapter();
     const mediaFileImage = await mfAdater.toProcess(`file://${imagePath}`, model, "image");
@@ -179,6 +241,10 @@ export class BackupHandler {
     init[`mediafile_${model}`] = mediaFileImage.id;
     init[model] = dishId;
     init["sortOrder"] = sortOrder;
+    
+    if(sortOrder === 0) {
+      await SelectedMediaFile.destroy({"dish": dishId}).fetch();  
+    }
     await SelectedMediaFile.create(init).fetch();
   }
 
@@ -186,29 +252,43 @@ export class BackupHandler {
   private async exportImages(dishes: DishRecord[], exportDir: string): Promise<void> {
     this.workDir = exportDir;
     const imagesDir = path.join(this.workDir);
-
+    console.log(`Export directory set to: ${this.workDir}`);
+  
     for (const dish of dishes) {
+      console.log(`Starting export for dish ID: ${dish.id}`);
+      
       if (dish.images && Array.isArray(dish.images)) {
         let count = 1;
         for (const image of dish.images) {
-          let originalFullFilePath = image.originalFilePath.startsWith("/") ? image.originalFilePath : path.join(process.cwd(), image.originalFilePath)
+          let originalFullFilePath = image.originalFilePath.startsWith("/") 
+            ? image.originalFilePath 
+            : path.join(process.cwd(), image.originalFilePath);
+          
           if (originalFullFilePath) {
             const ext = path.extname(originalFullFilePath);
             const imageFileName = `${dish.id}_${count}${ext}`;
             const destinationPath = path.join(imagesDir, imageFileName);
-
+  
+            console.log(`Checking if image exists: ${originalFullFilePath}`);
             if (await fsw.exists(originalFullFilePath)) {
+              console.log(`Image exists, copying to: ${destinationPath}`);
               await fsw.copyFile(originalFullFilePath, destinationPath);
               console.log(`Image exported: ${imageFileName}`);
             } else {
               console.warn(`Image file not found: ${originalFullFilePath}`);
             }
-
+  
             count++;
+          } else {
+            console.warn(`Invalid file path for image: ${image.originalFilePath}`);
           }
         }
+      } else {
+        console.warn(`No images found for dish ID: ${dish.id}`);
       }
     }
+    console.log('Image export process completed.');
   }
+  
 
 }
