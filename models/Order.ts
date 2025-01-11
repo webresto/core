@@ -1577,14 +1577,17 @@ let Model = {
       }
 
       // Calculate delivery costs
-      let delivery = {} as Delivery  // for self service
+      let delivery = {} as Delivery
       let softDeliveryCalculation = null;
       if(order.selfService === false) {
-        
+      
+        // The SOFT_DELIVERY_CALCULATION setting disables strict checking of the delivery address.
         softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION")
         emitter.emit("core:count-before-delivery-cost", order);
+
+        // order.promotionDelivery is preferred over the delivery setting
         if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
-          order.delivery = order.promotionDelivery;
+          delivery = order.promotionDelivery;
         } else {
           let deliveryAdapter = await Adapter.getDeliveryAdapter();
           await deliveryAdapter.reset(order);
@@ -1606,6 +1609,8 @@ let Model = {
           }
         }
   
+
+        // Case when the shipping cost cannot be calculated
         if (
           softDeliveryCalculation && 
           (!order.delivery || 
