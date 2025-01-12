@@ -119,7 +119,7 @@ class BackupHandler {
             const importedData = JSON.parse(jsonData);
             console.log(`JSON data parsed successfully.`);
             this.groups = importedData.groups;
-            this.dishes = importedData.dishes;
+            this.dishes = JSON.parse(jsonData).dishes;
             // Creating groups from imported data
             console.log(`Creating groups...`);
             for (let groupData of importedData.groups) {
