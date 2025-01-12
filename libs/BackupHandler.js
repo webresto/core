@@ -106,7 +106,7 @@ class BackupHandler {
                 options.concepts.push("origin");
             if (options.concepts.length && options.turncate) {
                 console.log(`Truncating concepts: ${options.concepts.join(', ')}`);
-                for (let concept in options.concepts) {
+                for (let concept of options.concepts) {
                     await Dish.destroy({ concept: concept }).fetch();
                     await Group.destroy({ concept: concept }).fetch();
                     console.log(`Destroyed concept: ${concept}`);
