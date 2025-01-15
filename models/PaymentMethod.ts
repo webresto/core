@@ -117,21 +117,6 @@ let Model = {
   },
 
   /**
-   * @deprecated, not used
-   * returns list of externalPaymentId
-   * @return { name: string, id: string }
-   */
-  async getExternalPaymentMethods(): Promise<ExternalPayment[]> {
-    // @ts-ignore
-    let externalPayments = await Settings.get("EXTERNAL_PAYMENTS") ?? [];
-    if (externalPayments) {
-      return externalPayments;
-    } else {
-      return [];
-    }
-  },
-
-  /**
    * Adds to the list possible to use payment ADAPTERs at their start.
    * If the payment method does not dry in the database, it creates it
    * @return string[]
