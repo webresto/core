@@ -1567,13 +1567,13 @@ async function checkPaymentMethod(paymentMethodId) {
     }
 }
 async function checkDate(order) {
+    const MIN_DELIVERY_TIME_MINUTES = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
     if (order.date) {
         const date = new Date(order.date);
         function isDateInPast(date, timeZone) {
             let currentDate = new Date();
             let currentTimestamp = currentDate.getTime();
             let targetDate = new Date(date);
-            //  is equals timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             let targetTimestamp;
             try {
                 targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
@@ -1589,6 +1589,14 @@ async function checkDate(order) {
             throw {
                 code: 15,
                 error: "date is past",
+            };
+        }
+        // Добавляем минимальное время доставки к order.date
+        const minDeliveryDate = new Date(date.getTime() + MIN_DELIVERY_TIME_MINUTES * 60 * 1000);
+        if (isDateInPast(minDeliveryDate.toISOString(), timezone)) {
+            throw {
+                code: 17,
+                error: `date is too soon. Minimum allowed time is ${minDeliveryDate}`,
             };
         }
         // date is Date
