@@ -1906,8 +1906,8 @@ async function checkDate(order: OrderRecord) {
     }
 
     // Добавляем минимальное время доставки к order.date
-    const minDeliveryDate = new Date(date.getTime() + MIN_DELIVERY_TIME_MINUTES * 60 * 1000);
-    if (isDateInPast(minDeliveryDate.toISOString(), timezone)) {
+    const minDeliveryDate = Date.now() + MIN_DELIVERY_TIME_MINUTES * 60 * 1000;
+    if (minDeliveryDate > date.getTime()) {
       throw {
         code: 17,
         error: `date is too soon. Minimum allowed time is ${minDeliveryDate}`,

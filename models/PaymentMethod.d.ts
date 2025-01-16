@@ -3,10 +3,6 @@ import ORM from "../interfaces/ORM";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { PaymentMethodType } from "../libs/enums/PaymentMethodTypes";
-interface ExternalPayment {
-    name: string;
-    id: string;
-}
 declare let attributes: {
     /** ID of the payment method */
     id: string;
@@ -48,12 +44,6 @@ declare let Model: {
      * @return
      */
     isPaymentPromise(paymentMethodId?: string): Promise<boolean>;
-    /**
-     * @deprecated, not used
-     * returns list of externalPaymentId
-     * @return { name: string, id: string }
-     */
-    getExternalPaymentMethods(): Promise<ExternalPayment[]>;
     /**
      * Adds to the list possible to use payment ADAPTERs at their start.
      * If the payment method does not dry in the database, it creates it
