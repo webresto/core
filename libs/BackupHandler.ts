@@ -38,39 +38,37 @@ export class BackupHandler {
   // Export data and images to a tar file
   async exportToTar(filePath: string, options: Partial<BackupOptions> = {}): Promise<void> {
     try {
-      // Объединяем настройки
       const finalOptions = { ...backupDefaultOptions, ...options };
   
-      // Получаем текущую директорию для создания временной папки
       const currentDir = process.cwd();
       this.workDir = path.join(currentDir, `.tmp/backup-${Date.now()}`);
   
-      // Создаем временную директорию
       await fsw.mkdir(this.workDir);
   
-      // Путь для JSON файла
       const jsonFilePath = path.join(this.workDir, 'data.json');
   
-      // Создание JSON данных
       const jsonData = await this.createJSON(finalOptions);
       await fsw.writeFile(jsonFilePath, jsonData);
   
-      // Экспорт изображений в временную директорию
       await this.exportImages(this.dishes, this.workDir);
-  
-      // Удаляем tar файл, если он существует
+
+      const dirPath = path.dirname(filePath);
+      try {
+        await fsw.mkdir(dirPath);
+      } catch (err) {
+        throw new Error(`Failed to create folder: ${dirPath}. Error: ${err.message}`);
+      }
+
       if (await fsw.exists(filePath)) {
         await fsw.unlink(filePath);
       }
-  
-      // Упаковка всего содержимого в tar файл
+
       await this.tar.c({
         gzip: true,
         file: filePath,
         cwd: this.workDir
       }, ['.']);
   
-      // Очистка временных файлов
       await fsw.unlink(this.workDir);
   
       console.log(`Export process completed successfully: ${filePath}`);
@@ -266,7 +264,7 @@ export class BackupHandler {
           
           if (originalFullFilePath) {
             const ext = path.extname(originalFullFilePath);
-            const imageFileName = `${dish.id}_${count}${ext}`;
+            const imageFileName = `${dish.id}__${count}${ext}`;
             const destinationPath = path.join(imagesDir, imageFileName);
   
             console.log(`Checking if image exists: ${originalFullFilePath}`);
