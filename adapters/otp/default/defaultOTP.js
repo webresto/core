@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultOTP = void 0;
-const OneTimePasswordAdapter_1 = __importDefault(require("../OneTimePasswordAdapter"));
+const OneTimePasswordAdapter_1 = require("../OneTimePasswordAdapter");
 // todo: fix types model instance to {%ModelName%}Record for OneTimePassword"
 class DefaultOTP extends OneTimePasswordAdapter_1.default {
     /**

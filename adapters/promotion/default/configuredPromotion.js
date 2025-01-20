@@ -1,23 +1,19 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 // import { WorkTime } from "@webresto/worktime";
-const AbstractPromotion_1 = __importDefault(require("../AbstractPromotion"));
+const AbstractPromotion_1 = require("../AbstractPromotion");
 // todo: fix types model instance to {%ModelName%}Record for Group';
 // todo: fix types model instance to {%ModelName%}Record for Dish';
 // todo: fix types model instance to {%ModelName%}Record for OrderDish';
 // todo: fix types model instance to {%ModelName%}Record for Order';
 // todo: fix types model instance to {%ModelName%}Record for User';
-const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
-const decimal_js_1 = __importDefault(require("decimal.js"));
+const findModelInstance_1 = require("../../../libs/findModelInstance");
+const decimal_js_1 = require("decimal.js");
 const stringsInArray_1 = require("../../../libs/stringsInArray");
 class ConfiguredPromotion extends AbstractPromotion_1.default {
+    badge = 'configured-promotion';
     constructor(promotion, config) {
         super();
-        this.badge = 'configured-promotion';
-        this.config = {};
         if (config === undefined) {
             throw new Error("ConfiguredPromotion: Config not defined");
         }
@@ -35,6 +31,16 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         this.configDiscount = promotion.configDiscount;
         this.externalId = promotion.externalId;
     }
+    config = {};
+    id;
+    isJoint;
+    name;
+    isPublic;
+    description;
+    concept;
+    // Look core/adapters/promotion/AbstractPromotion.ts 26L todo
+    // public configDiscount: IconfigDiscount;
+    externalId;
     condition(arg) {
         if ((0, findModelInstance_1.default)(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
             ? true : (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {

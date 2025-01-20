@@ -1,18 +1,20 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DialogBox = void 0;
 // todo: fix types model instance to {%ModelName%}Record for User";
 const uuid_1 = require("uuid");
-const ajv_1 = __importDefault(require("ajv"));
+const ajv_1 = require("ajv");
 const ajv = new ajv_1.default();
 let jsonSchema = require("./schemas/dialogBoxConfig.json");
 const validate = ajv.compile(jsonSchema);
 class DialogBox {
+    config;
+    user;
+    answerId = null;
+    askId;
+    deviceId;
+    static dialogs = {};
     constructor(config, deviceId) {
-        this.answerId = null;
         if (config.type === undefined)
             config.type = "routine";
         if (config.allowClosing === undefined)
@@ -73,4 +75,3 @@ class DialogBox {
     }
 }
 exports.DialogBox = DialogBox;
-DialogBox.dialogs = {};

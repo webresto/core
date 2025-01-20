@@ -7,6 +7,11 @@ const sleep = require("util").promisify(setTimeout);
  * with an error or timed out).
  */
 class AwaitEmitter {
+    events;
+    /** @deprecated not used */
+    name;
+    timeout;
+    declarations;
     /**
      * @param name - name of the new emitter
      * @param timeout - specifies how many milliseconds to wait for functions that return a Promise.
@@ -94,7 +99,7 @@ class AwaitEmitter {
      * @return Array of HandlerResponse objects
      */
     async emit(name, ...args) {
-        if (!this.getDeclaration(name)) {
+        if (!this.getDeclaration(name) && name.split(':')[0] !== "settings") {
             sails.log.warn(`There are no declarations for event [${name}].\nPlease add a declaration using the (emitter.declare) method`);
             this.declare(name);
         }
@@ -197,6 +202,8 @@ exports.default = AwaitEmitter;
  * Event object, stores the name of the event and its listeners
  */
 class Event {
+    name;
+    subscribers;
     constructor(name) {
         this.name = name;
         this.subscribers = [];
@@ -207,6 +214,10 @@ class Event {
  * error returned or called by the function
  */
 class HandlerResponse {
+    id;
+    state;
+    result;
+    error;
     constructor(id, result, error, timeout) {
         this.id = id;
         this.result = result;

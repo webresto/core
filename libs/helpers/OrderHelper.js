@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderHelper = void 0;
-const hashCode_1 = __importDefault(require("../hashCode"));
+const hashCode_1 = require("../hashCode");
 const stringsInArray_1 = require("../stringsInArray");
 class OrderHelper {
     constructor(orderId) {

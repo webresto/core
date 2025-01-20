@@ -197,7 +197,7 @@ export default class AwaitEmitter {
 
   async emit<N extends keyof IAwaitEmitter>(name: N, ...args: [...IAwaitEmitter[N], number?]): Promise<HandlerResponse[]> {
     
-    if(!this.getDeclaration(name)) {
+    if(!this.getDeclaration(name) && name.split(':')[0] !== "settings") {
       sails.log.warn(`There are no declarations for event [${name}].\nPlease add a declaration using the (emitter.declare) method`)
       this.declare(name)
     }

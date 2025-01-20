@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 class MediaFileAdapter {
+    config;
+    initializationPromise;
+    UUID_NAMESPACE;
     constructor(config) {
         this.config = config;
         this.initializationPromise = this.initialize();
