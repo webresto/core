@@ -1,10 +1,36 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const MediaFileAdapter_1 = require("../MediaFileAdapter");
-const fs = require("fs");
-const axios_1 = require("axios");
+const MediaFileAdapter_1 = __importDefault(require("../MediaFileAdapter"));
+const fs = __importStar(require("fs"));
+const axios_1 = __importDefault(require("axios"));
 const uuid_1 = require("uuid");
-const path = require("path");
+const path = __importStar(require("path"));
 //@ts-ignore
 const sharp_1 = require("sharp");
 class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
@@ -91,11 +117,10 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         }
         return allFileExist;
     }
-    processing = false;
-    processingTimeout; // TODO: rewrite by proxy
-    loadMediaFilesProcessQueue = [];
     constructor(config) {
         super(config);
+        this.processing = false;
+        this.loadMediaFilesProcessQueue = [];
         this.loadMediaFiles();
     }
     getNameByUrl(url, ext, options, salt = null) {
@@ -226,7 +251,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
 exports.default = LocalMediaFileAdapter;
 async function resizeMediaFile({ srcPath, dstPath, size }) {
     try {
-        const { width, height } = await (0, sharp_1.default)(srcPath).metadata();
+        const { width, height } = await (0, sharp_1.sharp)(srcPath).metadata();
         // Determine which side is smaller
         let resizeWidth, resizeHeight;
         if (width > height) {
@@ -238,7 +263,7 @@ async function resizeMediaFile({ srcPath, dstPath, size }) {
             resizeHeight = Math.round(size * (height / width));
         }
         // If no background color or no alpha channel, simply resize the image
-        await (0, sharp_1.default)(srcPath)
+        await (0, sharp_1.sharp)(srcPath)
             .resize(resizeWidth, resizeHeight)
             .toFile(dstPath);
     }

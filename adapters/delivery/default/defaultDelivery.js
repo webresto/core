@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultDeliveryAdapter = void 0;
-const DeliveryAdapter_1 = require("../DeliveryAdapter");
+const DeliveryAdapter_1 = __importDefault(require("../DeliveryAdapter"));
 class DefaultDeliveryAdapter extends DeliveryAdapter_1.default {
     async calculate(order) {
         const deliveryCost = await Settings.get("DELIVERY_COST");

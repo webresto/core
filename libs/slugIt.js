@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.slugIt = slugIt;
-const slugify_1 = require("slugify");
+const slugify_1 = __importDefault(require("slugify"));
 async function slugIt(model, name, slugField = 'slug', opts) {
     if (!Object.keys(sails.models).includes(model))
         throw `Sails not have models [${model}]`;

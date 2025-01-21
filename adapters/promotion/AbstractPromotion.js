@@ -6,7 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // todo: fix types model instance to {%ModelName%}Record for Group";
 // todo: fix types model instance to {%ModelName%}Record for Dish";
 class AbstractPromotionHandler {
-    // TODO: remove
-    configDiscount = null;
+    constructor() {
+        // TODO: remove
+        this.configDiscount = null;
+    }
 }
 exports.default = AbstractPromotionHandler;
