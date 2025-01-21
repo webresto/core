@@ -32,7 +32,7 @@ const axios_1 = __importDefault(require("axios"));
 const uuid_1 = require("uuid");
 const path = __importStar(require("path"));
 //@ts-ignore
-const sharp_1 = require("sharp");
+const sharp_1 = __importDefault(require("sharp"));
 class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
     /** /////////////////////////////////
      * Process
@@ -251,7 +251,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
 exports.default = LocalMediaFileAdapter;
 async function resizeMediaFile({ srcPath, dstPath, size }) {
     try {
-        const { width, height } = await (0, sharp_1.sharp)(srcPath).metadata();
+        const { width, height } = await (0, sharp_1.default)(srcPath).metadata();
         // Determine which side is smaller
         let resizeWidth, resizeHeight;
         if (width > height) {
@@ -263,7 +263,7 @@ async function resizeMediaFile({ srcPath, dstPath, size }) {
             resizeHeight = Math.round(size * (height / width));
         }
         // If no background color or no alpha channel, simply resize the image
-        await (0, sharp_1.sharp)(srcPath)
+        await (0, sharp_1.default)(srcPath)
             .resize(resizeWidth, resizeHeight)
             .toFile(dstPath);
     }

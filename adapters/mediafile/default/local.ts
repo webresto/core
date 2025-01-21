@@ -4,7 +4,7 @@ import axios from 'axios';
 import { v5 as uuidv5 } from "uuid";
 import * as path from "path";
 //@ts-ignore
-import {sharp} from 'sharp';
+import sharp from 'sharp';
 import { MediaFileRecord } from "../../../models/MediaFile";
 
 // todo: fix types model instance to {%ModelName%}Record for MediaFile";
