@@ -312,14 +312,9 @@ let Model = {
         if (amount < 0)
             throw `Amount is subzero [${amount}]`;
         // TODO: In core you can add any amount dish, only in checkout it should show which not allowed
-        if (dishObj.balance !== -1) {
-            if (amount > dishObj.balance) {
-                await emitter.emit.apply(emitter, ["core:order-add-dish-reject-amount", ...arguments]);
-                sails.log.error({
-                    body: `There is no so mush dishes with id ${dishObj.id}`,
-                    code: 1,
-                });
-            }
+        if (dishObj.balance > 0 && amount > dishObj.balance) {
+            await emitter.emit.apply(emitter, ["core:order-add-dish-reject-amount", ...arguments]);
+            throw new Error(`Not enough dishes with id ${dishObj.id}. Available quantity: ${dishObj.balance}`);
         }
         if (dishObj.modifier) {
             throw new Error(`Dish [${dishObj.id}] is modifier`);
@@ -1112,8 +1107,8 @@ let Model = {
                             await OrderDish.destroy({ id: orderDish.id }).fetch();
                             continue;
                         }
-                        if (dish.balance === -1 ? false : dish.balance < orderDish.amount) {
-                            orderDish.amount = dish.balance;
+                        if (dish.balance === -1 ? false : Math.abs(dish.balance) < orderDish.amount) {
+                            orderDish.amount = Math.abs(dish.balance);
                             //It is necessary to delete if the amount is 0
                             if (orderDish.amount >= 0) {
                                 await Order.removeDish({ id: order.id }, orderDish, 999999);
