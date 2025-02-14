@@ -48,6 +48,7 @@ declare global {
         "core:payment-document-before-create": [Payment];
         "core:order-after-dopaid": [OrderRecord];
         "core:order-after-count": [OrderRecord];
+        "core:order-after-done": [OrderRecord, boolean];
         "core:count-after-delivery-cost": [OrderRecord];
         "core:order-after-check-delivery": [OrderRecord];
         "core:count-before-delivery-cost": [OrderRecord];

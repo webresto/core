@@ -22,6 +22,8 @@ import { PlaceRecord } from "./Place";
 import { DishRecord } from "./Dish";
 import { UserRecord } from "./User";
 import { PaymentDocumentRecord } from "./PaymentDocument";
+import { or } from "ajv/dist/compile/codegen";
+import { bool } from "sharp";
 
 export interface PromotionState {
   type: string;
@@ -1296,6 +1298,7 @@ let Model = {
    */
   async countCart(criteria: CriteriaQuery<OrderRecord>, isPromoting: boolean = false): Promise<OrderRecord> {
     try {
+      
 
       let order = await Order.findOne(criteria);
       if (order.isPromoting !== isPromoting) {
@@ -1304,6 +1307,9 @@ let Model = {
         throw new Error(err)
       }
       
+      if (["DONE", "REJECT"].includes(order.state)) throw `Order with orderId ${order.id} - was finished (${order.state})`;
+
+
       /**
        *  // TODO: If countCart from payment or other changes from payment it should cancel all payment request
        */
@@ -1707,12 +1713,30 @@ let Model = {
       throw e;
     }
   },
-
+  async doFinalize(criteriaOne: CriteriaQuery<OrderRecord>, state: "DONE" | "REJECT"): Promise<void> {
+    let order = await Order.findOne(criteriaOne);
+    let userCreated = false;
+    if(state === "DONE" && !order.user) {
+      let loginFiled = await Settings.get("CORE_LOGIN_FIELD") || "phone"
+      const phone  = order.customer.phone.code + order.customer.phone.number + order.customer.phone.additionalNumber;
+      const login = loginFiled === "phone" ? phone : `${phone}@localhost`
+      let user = await User.findOrCreate(criteriaOne, {
+        firstName: order.customer.name,
+        phone: order.customer.phone,
+        login,
+        verified: true
+      })
+      await Order.update({id: order.id}, {user: user.id}).fetch()
+      userCreated = true;
+    }
+    await Order.next(criteriaOne, state)
+    await emitter.emit("core:order-after-done", order, userCreated); 
+  },
   async applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord> {
     let order = await Order.findOne(criteria);
     let updateData = {};
 
-
+    if (["DONE", "REJECT"].includes(order.state)) throw `Order with orderId ${order.id} - was finished (${order.state})`;
     if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - apply promocode on current state: (${order.state})`;
 
     if (!promotionCodeString) {
