@@ -72,9 +72,14 @@ export default abstract class RMSAdapter {
         async () => {
           await this.syncOutOfStocks();
         },
-        SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS * 1000 || 60000
+        SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS < 60 ? 120000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS * 1000 || 120000
       );
     }
+
+    // TODO: it here for fast, better way create new class/adapter for webhook handling
+    emitter.on("core:adapter-rms-sync-out-of-stock-touch", "rms-adapter", async () => {
+      await this.syncOutOfStocks();
+    })
 
     try {
       await this.initialized();

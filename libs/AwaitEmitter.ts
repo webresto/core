@@ -87,6 +87,7 @@ declare global {
     "dialog-box:answer-received": [string, string]
     "core:add-product-before-write": [OrderRecord, DishRecord]
     "promotion-process:debug": [number, OrderRecord, PromotionRecord, any],
+    "core:adapter-rms-sync-out-of-stock-touch": []
   }
 }
 

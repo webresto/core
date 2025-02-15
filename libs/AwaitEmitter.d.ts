@@ -48,11 +48,11 @@ declare global {
         "core:payment-document-before-create": [Payment];
         "core:order-after-dopaid": [OrderRecord];
         "core:order-after-count": [OrderRecord];
-        "core:order-after-done": [OrderRecord, boolean];
         "core:count-after-delivery-cost": [OrderRecord];
         "core:order-after-check-delivery": [OrderRecord];
         "core:count-before-delivery-cost": [OrderRecord];
         "core:order-after-promotion": [OrderRecord];
+        "core:order-after-done": [OrderRecord, boolean];
         "core:count-before-promotion": [OrderRecord];
         "core:orderproduct-change-amount": [OrderDishRecord];
         "core:order-return-full-order-destroy-orderdish": [DishRecord, OrderRecord];
@@ -77,6 +77,7 @@ declare global {
         "dialog-box:answer-received": [string, string];
         "core:add-product-before-write": [OrderRecord, DishRecord];
         "promotion-process:debug": [number, OrderRecord, PromotionRecord, any];
+        "core:adapter-rms-sync-out-of-stock-touch": [];
     }
 }
 /**

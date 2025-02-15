@@ -205,7 +205,7 @@ let attributes = {
   rmsErrorMessage: "string",
   rmsErrorCode: "string",
   rmsStatusCode: "string",
-  deliveryStatus: "string",
+  rmsOrderStatus: "string",
 
   pickupPoint: {
     model: "Place",

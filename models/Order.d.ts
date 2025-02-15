@@ -309,6 +309,7 @@ declare let Model: {
      */
     countCart(criteria: CriteriaQuery<OrderRecord>, isPromoting?: boolean): Promise<OrderRecord>;
     doPaid(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocumentRecord): Promise<void>;
+    doFinalize(criteriaOne: CriteriaQuery<OrderRecord>, state: "DONE" | "REJECT"): Promise<void>;
     applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord>;
 };
 declare global {
