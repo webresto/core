@@ -379,6 +379,7 @@ let Model = {
         await Order.addDish({ id: order.id }, ORDER_INIT_PRODUCT, 1, [], "", "core")
       }
     }
+    emitter.emit("core:order-after-create", order);
     cb();
   },
 
