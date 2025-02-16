@@ -1730,7 +1730,7 @@ let Model = {
       userCreated = true;
     }
     await Order.next(criteriaOne, state)
-    await emitter.emit("core:order-after-done", order, userCreated); 
+    emitter.emit("core:order-after-done", order, userCreated); 
   },
   async applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord> {
     let order = await Order.findOne(criteria);
