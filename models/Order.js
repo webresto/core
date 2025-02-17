@@ -151,7 +151,7 @@ let attributes = {
     rmsErrorMessage: "string",
     rmsErrorCode: "string",
     rmsStatusCode: "string",
-    deliveryStatus: "string",
+    rmsOrderStatus: "string",
     pickupPoint: {
         model: "Place",
     },
@@ -284,6 +284,7 @@ let Model = {
                 await Order.addDish({ id: order.id }, ORDER_INIT_PRODUCT, 1, [], "", "core");
             }
         }
+        emitter.emit("core:order-after-create", order);
         cb();
     },
     /** Add a dish into order */
@@ -1439,7 +1440,7 @@ let Model = {
             userCreated = true;
         }
         await Order.next(criteriaOne, state);
-        await emitter.emit("core:order-after-done", order, userCreated);
+        emitter.emit("core:order-after-done", order, userCreated);
     },
     async applyPromotionCode(criteria, promotionCodeString) {
         let order = await Order.findOne(criteria);

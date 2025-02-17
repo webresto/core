@@ -1,0 +1,15 @@
+{
+    "key": "FIELDS_FOR_ORDER_INITIALIZATION",
+    "defaultValue": [],
+    "type": "json",
+    "name": "Order init fields",
+    "description": "Array of fields needed for create new order",
+    "jsonSchema": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "enum": ["address", "selfService", "pickupPoint", "date", "personsCount", "comment", "customer", "promotionCode", "paymentMethod", "concept"]
+    }
+  }
+  

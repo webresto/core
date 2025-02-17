@@ -22,8 +22,6 @@ import { PlaceRecord } from "./Place";
 import { DishRecord } from "./Dish";
 import { UserRecord } from "./User";
 import { PaymentDocumentRecord } from "./PaymentDocument";
-import { or } from "ajv/dist/compile/codegen";
-import { bool } from "sharp";
 
 export interface PromotionState {
   type: string;

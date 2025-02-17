@@ -116,7 +116,7 @@ declare let attributes: {
     rmsErrorMessage: string;
     rmsErrorCode: string;
     rmsStatusCode: string;
-    deliveryStatus: string;
+    rmsOrderStatus: string;
     pickupPoint: PlaceRecord | string;
     selfService: boolean;
     delivery: Delivery | null;
@@ -277,7 +277,7 @@ declare let Model: {
         rmsErrorMessage?: string;
         rmsErrorCode?: string;
         rmsStatusCode?: string;
-        deliveryStatus?: string;
+        rmsOrderStatus?: string;
         pickupPoint?: PlaceRecord | string;
         selfService?: boolean;
         delivery?: Delivery | null;
