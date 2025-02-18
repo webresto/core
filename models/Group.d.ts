@@ -32,6 +32,7 @@ declare let attributes: {
     childGroups: GroupRecord[] | string[];
     recommendations: GroupRecord[] | string[];
     recommendedBy: GroupRecord[] | string[];
+    recommendedDishes: DishRecord[];
     /** Icon */
     icon: {
         type: string;

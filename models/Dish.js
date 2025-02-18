@@ -208,6 +208,10 @@ let attributes = {
         collection: "dish",
         via: 'recommendations',
     },
+    recommendedForGroup: {
+        collection: "group",
+        via: 'recommendedDishes',
+    },
     /*
     helper.addCustomField("Dish", "discountAmount: Float");
     helper.addCustomField("Dish", "discountType: String");

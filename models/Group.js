@@ -76,6 +76,10 @@ let attributes = {
         collection: "group",
         via: 'recommendations',
     },
+    recommendedDishes: {
+        collection: "dish",
+        via: 'recommendedForGroup',
+    },
     /** Icon */
     icon: {
         type: "string",
@@ -400,7 +404,18 @@ let Model = {
                 ]
             },
             limit: includeReverse ? groupLimit : 0
+        }).populate('recommendedDishes', {
+            where: {
+                'and': [
+                    { 'balance': { "!=": 0 } },
+                    { 'modifier': false },
+                    { 'isDeleted': false },
+                    { 'visible': true }
+                ]
+            },
+            limit: includeReverse ? groupLimit : 0
         });
+        let groupRecommendedDishes = groups.flatMap((group) => group.recommendedDishes);
         let recommendedGroupIds = groups.reduce((acc, group) => {
             return acc.concat(group.recommendations.map((rec) => rec.id));
         }, []);
@@ -424,10 +439,11 @@ let Model = {
         recommendedDishes = [...new Set(recommendedDishes.map((dish) => dish.id))].map(id => recommendedDishes.find((dish) => dish.id === id));
         // Fisher-Yates algrythm
         recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
+        let dishForRecommend = [...groupRecommendedDishes, ...recommendedDishes];
         if (limit && Number.isInteger(limit) && limit > 0) {
-            recommendedDishes = recommendedDishes.slice(0, limit);
+            dishForRecommend = dishForRecommend.slice(0, limit);
         }
-        return recommendedDishes;
+        return dishForRecommend;
     },
     /**
      * Checks whether the group exists, if it does not exist, then creates a new one and returns it.

@@ -172,6 +172,10 @@ ProductConfig.fields = {
         title: "Recommended By",
         tooltip: "A self-referential link that connects this dish to other dishes as recommendations. It indicates that this dish recommends or is recommended by others."
     },
+    recommendedForGroup: {
+        title: "Recommended for group",
+        tooltip: "A group link that connects this dish to group as recommendations. It indicates that this dish recommends or is recommended by others."
+    },
     customData: {
         title: "Custom Data",
         tooltip: "Additional fields or data that can be set by modules or custom configurations. This allows for flexible extensions and metadata specific to the dish."

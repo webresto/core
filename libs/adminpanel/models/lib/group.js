@@ -86,6 +86,10 @@ GroupConfig.fields = {
         title: "Recommended By",
         tooltip: "Groups that recommend this group."
     },
+    recommendedDishes: {
+        title: "Recommended dishes",
+        tooltip: "Dishes to recommend for this group."
+    },
     icon: {
         title: "Icon",
         tooltip: "An icon representing the group."

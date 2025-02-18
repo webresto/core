@@ -108,6 +108,7 @@ declare let attributes: {
     favorites: UserRecord[];
     recommendations: DishRecord[];
     recommendedBy: DishRecord[];
+    recommendedForGroup: GroupRecord[];
     customData: CustomData;
 };
 interface IVirtualFields {
