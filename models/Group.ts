@@ -100,6 +100,11 @@ let attributes = {
     via: 'recommendations',
   } as unknown as GroupRecord[] | string[],
 
+  recommendedDishes: {
+    collection: "dish",
+    via: 'recommendedForGroup',
+  } as unknown as DishRecord[],
+
 
   /** Icon */
   icon: {

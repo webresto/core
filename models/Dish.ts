@@ -259,6 +259,11 @@ let attributes = {
     via: 'recommendations',
   } as unknown as DishRecord[],
 
+  recommendedForGroup: {
+    collection: "group",
+    via: 'recommendedDishes',
+  } as unknown as GroupRecord[],
+
   /*
   helper.addCustomField("Dish", "discountAmount: Float");
   helper.addCustomField("Dish", "discountType: String");

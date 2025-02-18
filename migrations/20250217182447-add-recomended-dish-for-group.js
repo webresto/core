@@ -18,7 +18,21 @@ exports.setup = function(options, seedLink) {
 
 exports.up = function (db, callback) {
   async.series([
-    (cb) => db.renameColumn('order', 'deliveryStatus', 'rmsOrderStatus', cb),
+    // (cb) => db.renameColumn('order', 'deliveryStatus', 'rmsOrderStatus', cb),
+      (cb) => db.createTable('group_recommendedDishes__dish_recommendedForGroup', {
+        columns: {
+        "id": {
+            "type": "serial",
+            "autoIncrement": true,
+            "primaryKey": true
+        },
+        "group_recommendedDishes": {
+            "type": "text"
+        },
+        "dish_recommendedForGroup": {
+            "type": "text"
+        }
+    }, ifNotExists: true}, cb),
   ], callback);
 };
 
