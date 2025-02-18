@@ -19,7 +19,7 @@ exports.setup = function(options, seedLink) {
 exports.up = function (db, callback) {
   async.series([
       (cb) => db.renameColumn('order', 'deliveryStatus', 'rmsOrderStatus', cb),
-      (cb) => db.createTable('group_recommendedDishes__dish_recommendedForGroup', {
+      (cb) => db.createTable('dish_recommendedForGroup__group_recommendedDishes', {
         columns: {
         "id": {
             "type": "serial",
