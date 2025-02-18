@@ -492,8 +492,19 @@ let Model = {
         ]
       },
       limit: includeReverse ? groupLimit : 0
+    }).populate('recommendedDishes', {
+      where: {
+        'and': [
+          { 'balance': { "!=": 0 } },
+          { 'modifier': false },
+          { 'isDeleted': false },
+          { 'visible': true }
+        ]
+      },
+      limit: includeReverse ? groupLimit : 0
     });
 
+    let groupRecommendedDishes: DishRecord[] = groups.flatMap((group: GroupRecord) => group.recommendedDishes);
 
     let recommendedGroupIds = groups.reduce((acc: string[], group: GroupRecord) => {
       return acc.concat(group.recommendations.map((rec:GroupRecord) => rec.id));
@@ -527,11 +538,13 @@ let Model = {
     // Fisher-Yates algrythm
     recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
 
+    let dishForRecommend = [...groupRecommendedDishes, ...recommendedDishes]
+
     if (limit && Number.isInteger(limit) && limit > 0) {
-      recommendedDishes = recommendedDishes.slice(0, limit);
+      dishForRecommend = dishForRecommend.slice(0, limit);
     }
 
-    return recommendedDishes;
+    return dishForRecommend;
   },
 
   /**
