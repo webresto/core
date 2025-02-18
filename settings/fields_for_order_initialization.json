@@ -9,7 +9,7 @@
       "items": {
         "type": "string"
       },
-      "enum": ["address", "selfService", "pickupPoint", "date", "personsCount", "comment", "customer", "promotionCode", "paymentMethod", "concept"]
+      "enum": ["address", "pickupPoint", "date", "personsCount", "comment", "customer", "promotionCode", "paymentMethod", "concept"]
     }
   }
   
