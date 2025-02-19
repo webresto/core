@@ -15,6 +15,7 @@ let attributes = {
     name: "string",
     slug: "string",
     boundingBox: "json",
+    url: "string",
     /** City was deleted */
     isDeleted: {
         type: 'boolean'

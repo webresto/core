@@ -9,6 +9,7 @@ declare let attributes: {
     name: string;
     slug: string;
     boundingBox: string;
+    url: string;
     /** City was deleted */
     isDeleted: boolean;
     customData: {

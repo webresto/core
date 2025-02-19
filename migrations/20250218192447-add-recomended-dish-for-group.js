@@ -34,6 +34,7 @@ exports.up = function (db, callback) {
         }
     }, ifNotExists: true}, cb),
       (cb) => db.addColumn('city', 'slug', { type: 'string' }, cb),
+      (cb) => db.addColumn('city', 'url', { type: 'string' }, cb),
       (cb) => db.addColumn('city', 'boundingBox', { type: 'json' }, cb),
   ], callback);
 };
@@ -41,6 +42,7 @@ exports.up = function (db, callback) {
 exports.down = function(db, callback) {
   async.series([
       (cb) => db.removeColumn('city', 'slug', cb),
+      (cb) => db.removeColumn('city', 'url', { type: 'string' }, cb),
       (cb) => db.removeColumn('city', 'boundingBox', cb)
   ], callback);
 };
