@@ -4,11 +4,12 @@
     "type": "json",
     "name": "Order init fields",
     "description": "Array of fields needed for create new order",
-    "jsonSchema": {
+    "jsonSchema": { 
       "type": "array",
       "items": {
         "type": "string"
       },
+      "minItems": 0,
       "enum": ["address", "pickupPoint", "date", "personsCount", "comment", "customer", "promotionCode", "paymentMethod", "concept"]
     }
   }
