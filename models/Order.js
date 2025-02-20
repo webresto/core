@@ -1456,6 +1456,9 @@ let Model = {
             if (!order.hasOwnProperty(field)) {
                 throw new Error(`Missing required field: ${field}`);
             }
+            if (!(0, isValue_1.isValue)(order[field])) {
+                throw new Error(`required field: ${field} is value [${order[field]}]`);
+            }
             if (field === "address" && order.selfService) {
                 continue;
             }

@@ -1749,6 +1749,10 @@ let Model = {
         throw new Error(`Missing required field: ${field}`);
       }
 
+      if(!isValue(order[field])){
+        throw new Error(`required field: ${field} is value [${order[field]}]`);
+
+      }
       if(field === "address" && order.selfService) {
         continue
       } 
