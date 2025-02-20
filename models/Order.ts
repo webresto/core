@@ -1757,7 +1757,7 @@ let Model = {
       }
 
       if(!isValue(order[field])){
-        throw new Error(`required field: ${field} is value [${order[field]}]`);
+        throw new Error(`Cart required field error: ${field} is value [${order[field]}], check FIELDS_FOR_ORDER_INITIALIZATION setting`);
       }
 
       // <-- !order.selfService is continued
