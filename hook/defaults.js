@@ -13,6 +13,7 @@ module.exports.restocore = {
                 flowFile: (0, path_1.resolve)(__dirname, "../stateflow/", "OrderStates.js"),
                 startState: "CART",
                 states: {
+                    NEW: ["CART"],
                     CART: ["CHECKOUT", "REJECT"],
                     CHECKOUT: ["CART", "PAYMENT", "ORDER", "REJECT"],
                     PAYMENT: ["CART", "ORDER", "CHECKOUT", "REJECT"],

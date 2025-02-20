@@ -267,7 +267,7 @@ let Model = {
             orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
         }
         orderInit.promotionState = [];
-        orderInit.state = "CART";
+        orderInit.state = "NEW";
         cb();
     },
     async afterCreate(order, cb) {
@@ -340,6 +340,9 @@ let Model = {
             }
         });
         let order = await Order.findOne(criteria).populate("dishes");
+        if (order.state === "NEW") {
+            order = await Order.doCart({ id: order.id });
+        }
         if (order.dishes.length > 99)
             throw "99 max dishes amount";
         if (order.state === "ORDER")
@@ -1441,6 +1444,31 @@ let Model = {
         }
         await Order.next(criteriaOne, state);
         emitter.emit("core:order-after-done", order, userCreated);
+    },
+    async doCart(criteriaOne) {
+        let order = await Order.findOne(criteriaOne);
+        if (order.state !== 'NEW') {
+            sails.log.debug(`Order > doCart: Check order ${order.id} state is ${order.state}`);
+            throw `Do order state the 'CART' failed: state error`;
+        }
+        let FIELDS_FOR_ORDER_INITIALIZATION = await Settings.get("FIELDS_FOR_ORDER_INITIALIZATION") ?? [];
+        for (let field of FIELDS_FOR_ORDER_INITIALIZATION) {
+            if (!order.hasOwnProperty(field)) {
+                throw new Error(`Missing required field: ${field}`);
+            }
+            if (field === "address" && order.selfService) {
+                continue;
+            }
+            if (field === "pickupPoint" && !order.selfService) {
+                continue;
+            }
+            // <-- !order.selfService is continued
+            if (field === "address" && !checkAddress(order.address)) {
+                throw `do cart: Address check failed`;
+            }
+        }
+        await Order.next("CART");
+        return await Order.findOne({ id: order.id });
     },
     async applyPromotionCode(criteria, promotionCodeString) {
         let order = await Order.findOne(criteria);
