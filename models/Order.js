@@ -156,8 +156,7 @@ let attributes = {
         model: "Place",
     },
     selfService: {
-        type: "boolean",
-        defaultsTo: false,
+        type: "boolean"
     },
     delivery: {
         type: "json"
@@ -267,6 +266,7 @@ let Model = {
             orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
         }
         orderInit.promotionState = [];
+        orderInit.selfService = false;
         orderInit.state = "NEW";
         cb();
     },
@@ -1456,14 +1456,14 @@ let Model = {
             if (!order.hasOwnProperty(field)) {
                 throw new Error(`Missing required field: ${field}`);
             }
-            if (!(0, isValue_1.isValue)(order[field])) {
-                throw new Error(`required field: ${field} is value [${order[field]}]`);
-            }
             if (field === "address" && order.selfService) {
                 continue;
             }
             if (field === "pickupPoint" && !order.selfService) {
                 continue;
+            }
+            if (!(0, isValue_1.isValue)(order[field])) {
+                throw new Error(`required field: ${field} is value [${order[field]}]`);
             }
             // <-- !order.selfService is continued
             if (field === "address" && !checkAddress(order.address)) {
