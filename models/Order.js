@@ -398,8 +398,7 @@ let Model = {
                 amount: amount,
                 modifiers: modifiers,
                 comment: comment,
-                addedBy: addedBy,
-                itemPrice: dishObj.price
+                addedBy: addedBy
             }).fetch())[0];
         }
         else {
@@ -409,8 +408,7 @@ let Model = {
                 amount: amount,
                 modifiers: modifiers,
                 comment: comment,
-                addedBy: addedBy,
-                itemPrice: dishObj.price
+                addedBy: addedBy
             }).fetch();
         }
         await emitter.emit.apply(emitter, ["core:order-after-add-dish", orderDish, ...arguments]);
@@ -1188,6 +1186,7 @@ let Model = {
                         orderDish.totalWeight = new decimal_js_1.default(itemWeight).times(orderDish.amount).toNumber();
                         // itemCost => orderDish.itemTotal
                         orderDish.itemTotal = new decimal_js_1.default(itemCost).times(orderDish.amount).toNumber();
+                        orderDish.itemPrice = itemCost;
                         orderDish.dish = orderDish.dish.id;
                         await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
                         orderDish.dish = dish;

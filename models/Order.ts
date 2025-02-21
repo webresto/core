@@ -522,8 +522,7 @@ let Model = {
             amount: amount,
             modifiers: modifiers,
             comment: comment,
-            addedBy: addedBy,
-            itemPrice: dishObj.price
+            addedBy: addedBy
           }
         ).fetch()
       )[0];
@@ -534,8 +533,7 @@ let Model = {
         amount: amount,
         modifiers: modifiers,
         comment: comment,
-        addedBy: addedBy,
-        itemPrice: dishObj.price
+        addedBy: addedBy
       }).fetch();
     }
 
@@ -1439,7 +1437,7 @@ let Model = {
             orderDish.totalWeight = new Decimal(itemWeight).times(orderDish.amount).toNumber();
             // itemCost => orderDish.itemTotal
             orderDish.itemTotal = new Decimal(itemCost).times(orderDish.amount).toNumber();
-
+            orderDish.itemPrice = itemCost;
             orderDish.dish = orderDish.dish.id;
 
             await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
