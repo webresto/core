@@ -6,7 +6,7 @@ export const fsw = {
     try {
       await fs.promises.writeFile(filePath, data, 'utf-8');
     } catch (error) {
-      console.error(`Error writing file ${filePath}:`, error);
+      sails.log.error(`Error writing file ${filePath}:`, error);
       throw error;
     }
   },
@@ -15,7 +15,7 @@ export const fsw = {
     try {
       return await fs.promises.readFile(filePath, 'utf-8');
     } catch (error) {
-      console.error(`Error reading file ${filePath}:`, error);
+      sails.log.error(`Error reading file ${filePath}:`, error);
       throw error;
     }
   },
@@ -24,7 +24,7 @@ export const fsw = {
     try {
       await fs.promises.unlink(filePath);
     } catch (error) {
-      console.error(`Error deleting file ${filePath}:`, error);
+      sails.log.error(`Error deleting file ${filePath}:`, error);
       throw error;
     }
   },
@@ -42,7 +42,7 @@ export const fsw = {
     try {
       await fs.promises.mkdir(dirPath, { recursive: true });
     } catch (error) {
-      console.error(`Error creating directory ${dirPath}:`, error);
+      sails.log.error(`Error creating directory ${dirPath}:`, error);
       throw error;
     }
   },
@@ -51,7 +51,7 @@ export const fsw = {
     try {
       await fs.promises.copyFile(src, dest);
     } catch (error) {
-      console.error(`Error copying file from ${src} to ${dest}:`, error);
+      sails.log.error(`Error copying file from ${src} to ${dest}:`, error);
       throw error;
     }
   }

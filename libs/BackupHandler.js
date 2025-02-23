@@ -74,7 +74,7 @@ class BackupHandler {
             console.log(`Export process completed successfully: ${filePath}`);
         }
         catch (error) {
-            console.error('Export error:', error);
+            sails.log.error('Export error:', error);
         }
     }
     // Import data and images from a tar file
@@ -155,7 +155,7 @@ class BackupHandler {
             console.log('Import completed successfully:', filePath);
         }
         catch (error) {
-            console.error('Import error:', error);
+            sails.log.error('Import error:', error);
         }
     }
     // Create JSON data
