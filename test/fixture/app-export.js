@@ -35,12 +35,12 @@ var sails;
 try {
   sails = require('sails');
 } catch (e) {
-  console.error('To run an app using `node app.js`, you usually need to have a version of `sails` installed in the same directory as your app.');
-  console.error('To do that, run `npm install sails`');
-  console.error('');
-  console.error('Alternatively, if you have sails installed globally (i.e. you did `npm install -g sails`), you can use `sails lift`.');
-  console.error('When you run `sails lift`, your app will still use a local `./node_modules/sails` dependency if it exists,');
-  console.error('but if it doesn\'t, the app will run with the global sails instead!');
+  sails.log.error('To run an app using `node app.js`, you usually need to have a version of `sails` installed in the same directory as your app.');
+  sails.log.error('To do that, run `npm install sails`');
+  sails.log.error('');
+  sails.log.error('Alternatively, if you have sails installed globally (i.e. you did `npm install -g sails`), you can use `sails lift`.');
+  sails.log.error('When you run `sails lift`, your app will still use a local `./node_modules/sails` dependency if it exists,');
+  sails.log.error('but if it doesn\'t, the app will run with the global sails instead!');
   return;
 }
 
@@ -53,10 +53,10 @@ try {
   try {
     rc = require('sails/accessible/rc');
   } catch (e1) {
-    console.error('Could not find dependency: `rc`.');
-    console.error('Your `.sailsrc` file(s) will be ignored.');
-    console.error('To resolve this, run:');
-    console.error('npm install rc --save');
+    sails.log.error('Could not find dependency: `rc`.');
+    sails.log.error('Your `.sailsrc` file(s) will be ignored.');
+    sails.log.error('To resolve this, run:');
+    sails.log.error('npm install rc --save');
     rc = function () { return {}; };
   }
 }

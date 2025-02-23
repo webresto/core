@@ -26,7 +26,7 @@ describe("Bonus program adapter", function () {
             const userBP = await UserBonusProgram.findOne({ id: UBP });
         }
         catch (error) {
-            console.error(error);
+            sails.log.error(error);
         }
     });
     it("bonus user must be registered and have balance", async () => {
