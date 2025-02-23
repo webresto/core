@@ -64,7 +64,7 @@ describe("Flows: Checkout", function () {
             await Order.check({ id: order.id }, customer_1.customer);
         }
         catch (e) {
-            console.error(e);
+            sails.log.error(e);
         }
         (0, chai_1.expect)(core_order_before_check).to.equal(1);
         (0, chai_1.expect)(core_order_check_delivery).to.equal(1);
@@ -84,7 +84,7 @@ describe("Flows: Checkout", function () {
             await Order.check({ id: order.id }, customer_1.customer, true, customer_1.address);
         }
         catch (e) {
-            console.error(e);
+            sails.log.error(e);
         }
         (0, chai_1.expect)(core_order_is_self_service).to.equal(1);
         (0, chai_1.expect)(emitCustomer).to.equal(customer_1.customer);
@@ -129,7 +129,7 @@ describe("Flows: Checkout", function () {
             await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
         }
         catch (e) {
-            console.error(e);
+            sails.log.error(e);
             (0, chai_1.expect)(e.code).to.equal(0);
         }
     });
@@ -158,7 +158,7 @@ describe("Flows: Checkout", function () {
             await Order.check({ id: order.id }, customer_1.customer, false, customer_1.address);
         }
         catch (e) {
-            console.error(e);
+            sails.log.error(e);
             (0, chai_1.expect)(e).be.undefined;
         }
     });

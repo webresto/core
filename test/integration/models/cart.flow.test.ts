@@ -75,7 +75,7 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check({id: order.id}, customer);
     } catch (e) {
-      console.error(e);
+      sails.log.error(e);
     }
 
     expect(core_order_before_check).to.equal(1);
@@ -97,7 +97,7 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check({id: order.id}, customer, true, address);
     } catch (e) {
-      console.error(e);
+      sails.log.error(e);
     }
 
     expect(core_order_is_self_service).to.equal(1);
@@ -148,7 +148,7 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check({id: order.id}, customer, false, address);
     } catch (e) {
-      console.error(e)
+      sails.log.error(e)
       expect(e.code).to.equal(0);
     }
   });
@@ -179,7 +179,7 @@ describe("Flows: Checkout", function () {
     try {
       await Order.check({id: order.id}, customer, false, address);
     } catch (e) {
-      console.error(e)
+      sails.log.error(e)
       expect(e).be.undefined;
     }
   });
