@@ -29,6 +29,6 @@ export default async function () {
       }
     }
   } catch (e) {
-    sails.log.error("restocore bindTranslations > Error:", e);
+    sails.log.warn("restocore bindTranslations > Error:", e);
   }
 }

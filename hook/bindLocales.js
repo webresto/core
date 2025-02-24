@@ -54,6 +54,6 @@ async function default_1() {
         }
     }
     catch (e) {
-        sails.log.error("restocore bindTranslations > Error:", e);
+        sails.log.warn("restocore bindTranslations > Error:", e);
     }
 }
