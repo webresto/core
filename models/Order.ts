@@ -455,7 +455,7 @@ let Model = {
     if(order.state === "NEW") {
       order = await Order.doCart({id: order.id})
     }
-    if (order.dishes.length > 99) throw "99 max dishes amount";
+    if (order.dishes && Array.isArray(order.dishes) && order.dishes.length > 99) throw "99 max dishes amount";
 
     if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
 
