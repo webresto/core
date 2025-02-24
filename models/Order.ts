@@ -1763,7 +1763,7 @@ let Model = {
         throw `do cart: Address check failed`
       }
     }
-    await Order.next("CART")
+    await Order.next({id: order.id},"CART");
     return await Order.findOne({id: order.id});
   },
   async applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord> {

@@ -1462,14 +1462,14 @@ let Model = {
                 continue;
             }
             if (!(0, isValue_1.isValue)(order[field])) {
-                throw new Error(`required field: ${field} is value [${order[field]}]`);
+                throw new Error(`Cart required field error: ${field} is value [${order[field]}], check FIELDS_FOR_ORDER_INITIALIZATION setting`);
             }
             // <-- !order.selfService is continued
             if (field === "address" && !checkAddress(order.address)) {
                 throw `do cart: Address check failed`;
             }
         }
-        await Order.next("CART");
+        await Order.next({ id: order.id }, "CART");
         return await Order.findOne({ id: order.id });
     },
     async applyPromotionCode(criteria, promotionCodeString) {
