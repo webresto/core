@@ -54,7 +54,7 @@ export default abstract class RMSAdapter {
         async () => {
           await this.syncProducts();
         },
-        SYNC_PRODUCTS_INTERVAL_SECONDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECONDS * 1000 || 120000
+        SYNC_PRODUCTS_INTERVAL_SECONDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECONDS * 1000 || 600000
       );
     }
 
@@ -72,7 +72,7 @@ export default abstract class RMSAdapter {
         async () => {
           await this.syncOutOfStocks();
         },
-        SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS < 60 ? 120000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS * 1000 || 120000
+        SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS * 1000 || 600000
       );
     }
 

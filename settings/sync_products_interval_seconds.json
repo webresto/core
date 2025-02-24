@@ -3,9 +3,9 @@
   "type": "number",
   "name": "Sync Products Interval Seconds",
   "description": "",
-  "defaultValue": 120,
+  "defaultValue": 600,
   "jsonSchema": {
-    "type": "number",
+    "type": "integer",
     "minimum": 120
   },
   "isRequired": true

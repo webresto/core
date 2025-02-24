@@ -3,7 +3,7 @@
   "type": "number",
   "name": "Sync Out Of Stocks Interval Seconds",
   "description": "",
-  "defaultValue": 120,
+  "defaultValue": 600,
   "jsonSchema": {
     "type": "integer",
     "minimum": 60

@@ -36,7 +36,7 @@ class RMSAdapter {
                 clearInterval(RMSAdapter.syncProductsInterval);
             RMSAdapter.syncProductsInterval = setInterval(async () => {
                 await this.syncProducts();
-            }, SYNC_PRODUCTS_INTERVAL_SECONDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECONDS * 1000 || 120000);
+            }, SYNC_PRODUCTS_INTERVAL_SECONDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECONDS * 1000 || 600000);
         }
         // Run on a load
         if (process.env.NODE_ENV !== "production") {
@@ -50,7 +50,7 @@ class RMSAdapter {
                 clearInterval(RMSAdapter.syncOutOfStocksInterval);
             RMSAdapter.syncOutOfStocksInterval = setInterval(async () => {
                 await this.syncOutOfStocks();
-            }, SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS < 60 ? 120000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS * 1000 || 120000);
+            }, SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS * 1000 || 600000);
         }
         // TODO: it here for fast, better way create new class/adapter for webhook handling
         emitter.on("core:adapter-rms-sync-out-of-stock-touch", "rms-adapter", async () => {
