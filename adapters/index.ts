@@ -58,7 +58,7 @@ export class OTP {
 
 
 export class Delivery {
-  private static instanceDeliveryAdapter: DeliveryAdapter;
+  public static instanceDeliveryAdapter: DeliveryAdapter;
 
   /**
    * returns Delivery-adapter
@@ -248,13 +248,13 @@ export class Adapter {
    */
   public static async getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
     // Return the singleton
-    if (this.instanceDeliveryAdapter) {
-      return this.instanceDeliveryAdapter;
+    if (Delivery.instanceDeliveryAdapter) {
+      return Delivery.instanceDeliveryAdapter;
     }
 
     if (!adapter) {
-      this.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
-      return this.instanceDeliveryAdapter;
+      Delivery.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
+      return Delivery.instanceDeliveryAdapter;
     }
 
     let adapterName: string;
@@ -262,8 +262,8 @@ export class Adapter {
       if (typeof adapter === "string") {
         adapterName = adapter;
       } else if (adapter instanceof DeliveryAdapter) {
-        this.instanceDeliveryAdapter = adapter;
-        return this.instanceDeliveryAdapter;
+        Delivery.instanceDeliveryAdapter = adapter;
+        return Delivery.instanceDeliveryAdapter;
       }
     }
 
@@ -275,8 +275,8 @@ export class Adapter {
 
     try {
       const adapterModule = require(adapterLocation);
-      this.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
-      return this.instanceDeliveryAdapter;
+      Delivery.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
+      return Delivery.instanceDeliveryAdapter;
     } catch (e) {
       sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
       throw new Error("Module " + adapterLocation + " not found");

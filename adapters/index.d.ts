@@ -24,7 +24,7 @@ export declare class OTP {
     static getAdapter(adapterName?: string): Promise<OTPAdapter>;
 }
 export declare class Delivery {
-    private static instanceDeliveryAdapter;
+    static instanceDeliveryAdapter: DeliveryAdapter;
     /**
      * returns Delivery-adapter
      */

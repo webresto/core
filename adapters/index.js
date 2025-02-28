@@ -248,12 +248,12 @@ class Adapter {
      */
     static async getDeliveryAdapter(adapter) {
         // Return the singleton
-        if (this.instanceDeliveryAdapter) {
-            return this.instanceDeliveryAdapter;
+        if (Delivery.instanceDeliveryAdapter) {
+            return Delivery.instanceDeliveryAdapter;
         }
         if (!adapter) {
-            this.instanceDeliveryAdapter = new defaultDelivery_1.DefaultDeliveryAdapter();
-            return this.instanceDeliveryAdapter;
+            Delivery.instanceDeliveryAdapter = new defaultDelivery_1.DefaultDeliveryAdapter();
+            return Delivery.instanceDeliveryAdapter;
         }
         let adapterName;
         if (adapter) {
@@ -261,8 +261,8 @@ class Adapter {
                 adapterName = adapter;
             }
             else if (adapter instanceof DeliveryAdapter_1.default) {
-                this.instanceDeliveryAdapter = adapter;
-                return this.instanceDeliveryAdapter;
+                Delivery.instanceDeliveryAdapter = adapter;
+                return Delivery.instanceDeliveryAdapter;
             }
         }
         let adapterLocation = fs.existsSync(this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
@@ -272,8 +272,8 @@ class Adapter {
                 : adapterName;
         try {
             const adapterModule = require(adapterLocation);
-            this.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
-            return this.instanceDeliveryAdapter;
+            Delivery.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
+            return Delivery.instanceDeliveryAdapter;
         }
         catch (e) {
             sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
