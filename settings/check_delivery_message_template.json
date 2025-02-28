@@ -1,0 +1,7 @@
+{
+  "key": "CHECK_DELIVERY_MESSAGE_TEMPLATE",
+  "type": "string",
+  "name": "Delivery terms",
+  "value": "Minimum delivery time: {{minDeliveryTime}} minutes. Delivery cost: {{deliveryCost}} {{currency}}. Free delivery from: {{freeDeliveryFrom}} {{currency}}. Minimum order amount: {{minDeliveryAmount}} {{currency}}.",
+  "description": "Optional setting, description delivery terms for user on the checkout"
+}

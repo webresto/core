@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Adapter = exports.OTP = exports.Captcha = void 0;
+exports.Adapter = exports.Delivery = exports.OTP = exports.Captcha = void 0;
 const RMSAdapter_1 = __importDefault(require("./rms/RMSAdapter"));
 const pow_1 = require("./captcha/default/pow");
 const defaultOTP_1 = require("./otp/default/defaultOTP");
@@ -77,6 +77,46 @@ class OTP {
     }
 }
 exports.OTP = OTP;
+class Delivery {
+    /**
+     * returns Delivery-adapter
+     */
+    static async getAdapter(adapter) {
+        // Return the singleton
+        if (this.instanceDeliveryAdapter) {
+            return this.instanceDeliveryAdapter;
+        }
+        if (!adapter) {
+            this.instanceDeliveryAdapter = new defaultDelivery_1.DefaultDeliveryAdapter();
+            return this.instanceDeliveryAdapter;
+        }
+        let adapterName;
+        if (adapter) {
+            if (typeof adapter === "string") {
+                adapterName = adapter;
+            }
+            else if (adapter instanceof DeliveryAdapter_1.default) {
+                this.instanceDeliveryAdapter = adapter;
+                return this.instanceDeliveryAdapter;
+            }
+        }
+        let adapterLocation = fs.existsSync(WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
+            ? WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
+            : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
+                ? "@webresto/" + adapterName.toLowerCase() + "-delivery-adapter"
+                : adapterName;
+        try {
+            const adapterModule = require(adapterLocation);
+            this.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
+            return this.instanceDeliveryAdapter;
+        }
+        catch (e) {
+            sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
+            throw new Error("Module " + adapterLocation + " not found");
+        }
+    }
+}
+exports.Delivery = Delivery;
 /** TODO: move other Adapters to one class adapter */
 class Adapter {
     static async getOTPAdapter(adapterName) {
@@ -204,6 +244,7 @@ class Adapter {
     }
     /**
      * returns Delivery-adapter
+     * @deprecated use Class Delivery istead
      */
     static async getDeliveryAdapter(adapter) {
         // Return the singleton

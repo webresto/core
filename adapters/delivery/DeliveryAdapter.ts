@@ -1,5 +1,6 @@
 // todo: fix types model instance to {%ModelName%}Record for Order"
 
+import Address from "../../interfaces/Address"
 import { OrderRecord } from "../../models/Order"
 
 
@@ -50,4 +51,6 @@ export default abstract class DeliveryAdapter {
     order.deliveryItem = null;
     order.deliveryDescription = '';
   }
+
+  public abstract checkAbility(address: Address): Promise<Delivery>;
 }

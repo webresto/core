@@ -56,6 +56,51 @@ export class OTP {
   }
 }
 
+
+export class Delivery {
+  private static instanceDeliveryAdapter: DeliveryAdapter;
+
+  /**
+   * returns Delivery-adapter
+   */
+  public static async getAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
+    // Return the singleton
+    if (this.instanceDeliveryAdapter) {
+      return this.instanceDeliveryAdapter;
+    }
+
+    if (!adapter) {
+      this.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
+      return this.instanceDeliveryAdapter;
+    }
+
+    let adapterName: string;
+    if (adapter) {
+      if (typeof adapter === "string") {
+        adapterName = adapter;
+      } else if (adapter instanceof DeliveryAdapter) {
+        this.instanceDeliveryAdapter = adapter;
+        return this.instanceDeliveryAdapter;
+      }
+    }
+
+    let adapterLocation = fs.existsSync(WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
+      ? WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
+      : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
+      ? "@webresto/" + adapterName.toLowerCase() + "-delivery-adapter"
+      : adapterName;
+
+    try {
+      const adapterModule = require(adapterLocation);
+      this.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
+      return this.instanceDeliveryAdapter;
+    } catch (e) {
+      sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
+      throw new Error("Module " + adapterLocation + " not found");
+    }
+  }
+}
+
 /** TODO: move other Adapters to one class adapter */
 export class Adapter {
   // Singletons
@@ -199,6 +244,7 @@ export class Adapter {
 
   /**
    * returns Delivery-adapter
+   * @deprecated use Class Delivery istead
    */
   public static async getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
     // Return the singleton

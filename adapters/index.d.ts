@@ -23,6 +23,13 @@ export declare class OTP {
      */
     static getAdapter(adapterName?: string): Promise<OTPAdapter>;
 }
+export declare class Delivery {
+    private static instanceDeliveryAdapter;
+    /**
+     * returns Delivery-adapter
+     */
+    static getAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter>;
+}
 /** TODO: move other Adapters to one class adapter */
 export declare class Adapter {
     private static instanceRMS;
@@ -46,6 +53,7 @@ export declare class Adapter {
     static getRMSAdapter(adapter?: string | RMSAdapter, initParams?: ConfigRMSAdapter): Promise<RMSAdapter>;
     /**
      * returns Delivery-adapter
+     * @deprecated use Class Delivery istead
      */
     static getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter>;
     /**

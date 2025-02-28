@@ -1,3 +1,4 @@
+import Address from "../../interfaces/Address";
 import { OrderRecord } from "../../models/Order";
 /**
  * **Soft delivery calculation**
@@ -32,4 +33,5 @@ export default abstract class DeliveryAdapter {
      * @returns void
      */
     reset(order: OrderRecord): Promise<void>;
+    abstract checkAbility(address: Address): Promise<Delivery>;
 }
