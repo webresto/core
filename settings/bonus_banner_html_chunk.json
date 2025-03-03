@@ -1,0 +1,6 @@
+{
+    "key": "BONUS_BANNER_HTML_CHUNK",
+    "type": "string",
+    "name": "Bonus banner",
+    "description": "Above the expenditure of bonuses on a check of a piece that will be shown to the user"
+}

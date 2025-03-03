@@ -20,6 +20,11 @@ export type InitCheckout = {
    * Allow order by time
    */
   allowOrderToTime: boolean
+
+  /**
+   * Above the expenditure of bonuses on a check of a piece that will be shown to the user
+   */
+  bonusBannerHTMLChunk: string
 }
 export class OrderHelper {
   private constructor(orderId: string) {
@@ -31,10 +36,12 @@ export class OrderHelper {
       worktimeIntervals: [],
       allowSoonAsPossible: true,
       allowOrderToTime: true,
-      nonce: 0
+      nonce: 0,
+      bonusBannerHTMLChunk: null
     }
     await emitter.emit('core:order-init-checkout', populatedOrder, initCheckout);
     initCheckout.nonce = populatedOrder.nonce
+    initCheckout.bonusBannerHTMLChunk = await Settings.get("BONUS_BANNER_HTML_CHUNK")
     return initCheckout;
   }
 

@@ -159,5 +159,6 @@ declare global {
      * Strict phone check by mask
      */
     STRICT_PHONE_VALIDATION: boolean
+    BONUS_BANNER_HTML_CHUNK: string
   }
 }

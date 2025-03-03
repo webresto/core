@@ -14,6 +14,10 @@ export type InitCheckout = {
      * Allow order by time
      */
     allowOrderToTime: boolean;
+    /**
+     * Above the expenditure of bonuses on a check of a piece that will be shown to the user
+     */
+    bonusBannerHTMLChunk: string;
 };
 export declare class OrderHelper {
     private constructor();

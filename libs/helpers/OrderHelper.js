@@ -14,10 +14,12 @@ class OrderHelper {
             worktimeIntervals: [],
             allowSoonAsPossible: true,
             allowOrderToTime: true,
-            nonce: 0
+            nonce: 0,
+            bonusBannerHTMLChunk: null
         };
         await emitter.emit('core:order-init-checkout', populatedOrder, initCheckout);
         initCheckout.nonce = populatedOrder.nonce;
+        initCheckout.bonusBannerHTMLChunk = await Settings.get("BONUS_BANNER_HTML_CHUNK");
         return initCheckout;
     }
     static orderHash(populatedOrder) {
