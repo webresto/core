@@ -36,9 +36,22 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         this.externalId = promotion.externalId;
     }
     condition(arg) {
-        if ((0, findModelInstance_1.default)(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
-            ? true : (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {
+        if ((0, findModelInstance_1.default)(arg) === "Order" &&
+            (this.concept[0] === undefined || this.concept[0] === "") ?
+            true : (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {
             let order = arg;
+            if (this.config.deliveryMethod && Array.isArray(this.config.deliveryMethod)) {
+                if (order.selfService) {
+                    if (!this.config.deliveryMethod.includes("selfService")) {
+                        return false;
+                    }
+                }
+                else {
+                    if (!this.config.deliveryMethod.includes("delivery")) {
+                        return false;
+                    }
+                }
+            }
             // TODO:  if order.dishes type number[]
             let orderDishes = order.dishes;
             let checkDishes = orderDishes.map(order => order.dish).some((dish) => this.config.dishes.includes(dish.id));

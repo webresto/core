@@ -14,6 +14,7 @@ import { DishRecord } from "../../../models/Dish";
 import { OrderRecord, PromotionState } from "../../../models/Order";
 import { OrderDishRecord } from "../../../models/OrderDish";
 import { UserRecord } from "../../../models/User";
+import { or } from "ajv/dist/compile/codegen";
 
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public badge: string = 'configured-promotion';
@@ -52,9 +53,27 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public externalId: string;
 
   public condition(arg: GroupRecord | DishRecord | OrderRecord): boolean {
-    if (findModelInstanceByAttributes(arg) === "Order" && (this.concept[0] === undefined || this.concept[0] === "")
-      ? true : someInArray(arg.concept, this.concept)) {
+    if (
+      findModelInstanceByAttributes(arg) === "Order" && 
+      (this.concept[0] === undefined || this.concept[0] === "") ? 
+        true : someInArray(arg.concept, this.concept)
+      ) {
+
+
       let order: OrderRecord = arg as OrderRecord
+
+      if(this.config.deliveryMethod && Array.isArray(this.config.deliveryMethod)) {
+        if(order.selfService) {
+          if(!this.config.deliveryMethod.includes("selfService")) {
+            return false
+          }
+        } else {
+          if(!this.config.deliveryMethod.includes("delivery")) {
+            return false
+          }
+        }
+      }
+
       // TODO:  if order.dishes type number[]
       let orderDishes: OrderDishRecord[] = order.dishes as OrderDishRecord[]
 
@@ -75,6 +94,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       someInArray(arg.concept, this.concept)) {
       return someInArray(arg.id, this.config.groups)
     }
+
+
 
     return false
   }

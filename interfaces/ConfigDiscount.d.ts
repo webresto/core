@@ -20,4 +20,5 @@ export interface IconfigDiscount {
      * by default modifiers will be calculated with discount
      */
     excludeModifiers?: boolean;
+    deliveryMethod?: ("delivery" | "selfService")[];
 }
