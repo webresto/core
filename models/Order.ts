@@ -1493,13 +1493,13 @@ let Model = {
        */
 
       // Promotion code
-      if (!order.isPromoting) {
+      if (order.isPromoting === false) {
         emitter.emit("core:count-before-promotion", order);
         try {
           let promotionAdapter: AbstractPromotionAdapter = Adapter.getPromotionAdapter();
           // set lock
           order.isPromoting = true;
-          await Order.updateOne({ id: order.id }, { isPromoting: true });
+          await Order.update({ id: order.id }, { isPromoting: true }).fetch();
 
           // If promocode is valid and allowed
           if (order.promotionCode !== null && order.promotionCodeCheckValidTill !== null) {
@@ -1527,14 +1527,14 @@ let Model = {
           }
 
 
-          let orderPopulate: OrderRecord = { ...order }
+          let orderPopulate: OrderRecord = structuredClone(order)
           orderPopulate.dishes = orderDishesForPopulate
 
           /**
            * All promotions handlers are calculated here, the main idea is that the order is modified during execution.
            * The developer who creates promotions must take care of order in database and order runtime object.
            */
-          let orederPROM = await promotionAdapter.processOrder(orderPopulate);
+          let orderPromoted = await promotionAdapter.processOrder(orderPopulate);
 
           delete (orderPopulate.dishes);
           delete (order.promotionCode);
@@ -1544,8 +1544,8 @@ let Model = {
             order.promotionCode = orderPopulate.promotionCode
           }
 
-          orderPopulate.discountTotal = orederPROM.discountTotal
-          orderPopulate.promotionFlatDiscount = orederPROM.promotionFlatDiscount
+          orderPopulate.discountTotal = orderPromoted.discountTotal
+          orderPopulate.promotionFlatDiscount = orderPromoted.promotionFlatDiscount
 
           order = orderPopulate;
 

@@ -1232,13 +1232,13 @@ let Model = {
             * Here calculates all discounts for order
              */
             // Promotion code
-            if (!order.isPromoting) {
+            if (order.isPromoting === false) {
                 emitter.emit("core:count-before-promotion", order);
                 try {
                     let promotionAdapter = Adapter.getPromotionAdapter();
                     // set lock
                     order.isPromoting = true;
-                    await Order.updateOne({ id: order.id }, { isPromoting: true });
+                    await Order.update({ id: order.id }, { isPromoting: true }).fetch();
                     // If promocode is valid and allowed
                     if (order.promotionCode !== null && order.promotionCodeCheckValidTill !== null) {
                         const currentDate = new Date();
@@ -1266,21 +1266,21 @@ let Model = {
                         order.promotionCode = null;
                         order.promotionCodeCheckValidTill = null;
                     }
-                    let orderPopulate = { ...order };
+                    let orderPopulate = structuredClone(order);
                     orderPopulate.dishes = orderDishesForPopulate;
                     /**
                      * All promotions handlers are calculated here, the main idea is that the order is modified during execution.
                      * The developer who creates promotions must take care of order in database and order runtime object.
                      */
-                    let orederPROM = await promotionAdapter.processOrder(orderPopulate);
+                    let orderPromoted = await promotionAdapter.processOrder(orderPopulate);
                     delete (orderPopulate.dishes);
                     delete (order.promotionCode);
                     if (orderPopulate.promotionCode) {
                         orderPopulate.promotionCode = orderPopulate.promotionCode.id;
                         order.promotionCode = orderPopulate.promotionCode;
                     }
-                    orderPopulate.discountTotal = orederPROM.discountTotal;
-                    orderPopulate.promotionFlatDiscount = orederPROM.promotionFlatDiscount;
+                    orderPopulate.discountTotal = orderPromoted.discountTotal;
+                    orderPopulate.promotionFlatDiscount = orderPromoted.promotionFlatDiscount;
                     order = orderPopulate;
                     let promotionOrderToSave = {
                         promotionCodeDescription: order.promotionCodeDescription,
@@ -1384,7 +1384,7 @@ let Model = {
             emitter.emit("core:count-after-delivery-cost", order);
             // END calculate delivery cost
             order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
-            delete(order.dishes)
+            delete (order.dishes);
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             emitter.emit("core:order-after-count", order);
             return order;
