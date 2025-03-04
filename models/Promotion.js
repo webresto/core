@@ -166,6 +166,7 @@ let Model = {
         if (!concept.length)
             throw "concept is required";
         let activePromotionIds = promotionAdapter.getActivePromotionsIds();
+        // TODO: derectory not allow empty string
         if (concept[0] === "") {
             let filteredRAM = promotionRAM.filter(promotion => (promotion.concept[0] === undefined || promotion.concept[0] === "")
                 && (0, stringsInArray_1.someInArray)(promotion.id, activePromotionIds));

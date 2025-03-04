@@ -1659,7 +1659,7 @@ let Model = {
       // END calculate delivery cost
 
       order.total = new Decimal(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
-
+      delete(order.dishes)
       order = (await Order.update({ id: order.id }, order).fetch())[0];
 
       emitter.emit("core:order-after-count", order);

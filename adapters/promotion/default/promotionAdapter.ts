@@ -1,11 +1,7 @@
 import Decimal from "decimal.js";
-// todo: fix types model instance to {%ModelName%}Record for Order";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
 import { WorkTimeValidator } from "@webresto/worktime";
-// todo: fix types model instance to {%ModelName%}Record for Promotion";
-// todo: fix types model instance to {%ModelName%}Record for Group";
-// todo: fix types model instance to {%ModelName%}Record for Dish";
 import ConfiguredPromotion from "./configuredPromotion";
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import { OrderRecord, PromotionState } from "../../../models/Order";
@@ -13,7 +9,6 @@ import { PromotionRecord } from "../../../models/Promotion";
 import { DishRecord } from "../../../models/Dish";
 import { GroupRecord } from "../../../models/Group";
 import { PromotionCodeRecord } from "../../../models/PromotionCode";
-// todo: fix types model instance to {%ModelName%}Record for PromotionCode";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
 

@@ -1,11 +1,6 @@
 // import { WorkTime } from "@webresto/worktime";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
-// todo: fix types model instance to {%ModelName%}Record for Group';
-// todo: fix types model instance to {%ModelName%}Record for Dish';
-// todo: fix types model instance to {%ModelName%}Record for OrderDish';
-// todo: fix types model instance to {%ModelName%}Record for Order';
-// todo: fix types model instance to {%ModelName%}Record for User';
 import findModelInstanceByAttributes from "../../../libs/findModelInstance";
 import Decimal from "decimal.js";
 import { someInArray } from "../../../libs/stringsInArray";
@@ -14,7 +9,6 @@ import { DishRecord } from "../../../models/Dish";
 import { OrderRecord, PromotionState } from "../../../models/Order";
 import { OrderDishRecord } from "../../../models/OrderDish";
 import { UserRecord } from "../../../models/User";
-import { or } from "ajv/dist/compile/codegen";
 
 export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public badge: string = 'configured-promotion';
@@ -62,25 +56,28 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
       let order: OrderRecord = arg as OrderRecord
 
-      if(this.config.deliveryMethod && Array.isArray(this.config.deliveryMethod)) {
-        if(order.selfService) {
-          if(!this.config.deliveryMethod.includes("selfService")) {
-            return false
-          }
-        } else {
-          if(!this.config.deliveryMethod.includes("delivery")) {
-            return false
-          }
-        }
-      }
+
 
       // TODO:  if order.dishes type number[]
       let orderDishes: OrderDishRecord[] = order.dishes as OrderDishRecord[]
 
-      let checkDishes = orderDishes.map(order => order.dish).some((dish: DishRecord) => this.config.dishes.includes(dish.id))
-      let checkGroups = orderDishes.map(order => order.dish).some((dish: DishRecord) => this.config.groups.includes(dish.parentGroup))
-
-      if (checkDishes || checkGroups) return true
+      let checkDishes = orderDishes.map(order => order.dish).some((dish: DishRecord) => this.config.dishes.includes(dish.id)) || this.config.dishes.includes("*")
+      let checkGroups = orderDishes.map(order => order.dish).some((dish: DishRecord) => this.config.groups.includes(dish.parentGroup)) || this.config.groups.includes("*")
+      
+      if (checkDishes || checkGroups) {
+        if(this.config.deliveryMethod && Array.isArray(this.config.deliveryMethod)) {
+          if(order.selfService) {
+            if(!this.config.deliveryMethod.includes("selfService")) {
+              return false
+            }
+          } else {
+            if(!this.config.deliveryMethod.includes("delivery")) {
+              return false
+            }
+          }
+        }
+        return true
+      }
 
       return false;
     }
@@ -182,8 +179,8 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           continue;
         }
 
-        let checkDishes = someInArray(orderDish.dish.id, this.config.dishes)
-        let checkGroups = someInArray(orderDish.dish.parentGroup, this.config.groups)
+        let checkDishes = someInArray(orderDish.dish.id, this.config.dishes) || this.config.dishes.includes("*")
+        let checkGroups = someInArray(orderDish.dish.parentGroup, this.config.groups) || this.config.groups.includes("*")
 
         if (!checkDishes || !checkGroups) continue
 

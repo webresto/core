@@ -5,11 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // import { WorkTime } from "@webresto/worktime";
 const AbstractPromotion_1 = __importDefault(require("../AbstractPromotion"));
-// todo: fix types model instance to {%ModelName%}Record for Group';
-// todo: fix types model instance to {%ModelName%}Record for Dish';
-// todo: fix types model instance to {%ModelName%}Record for OrderDish';
-// todo: fix types model instance to {%ModelName%}Record for Order';
-// todo: fix types model instance to {%ModelName%}Record for User';
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const stringsInArray_1 = require("../../../libs/stringsInArray");
@@ -40,24 +35,25 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
             (this.concept[0] === undefined || this.concept[0] === "") ?
             true : (0, stringsInArray_1.someInArray)(arg.concept, this.concept)) {
             let order = arg;
-            if (this.config.deliveryMethod && Array.isArray(this.config.deliveryMethod)) {
-                if (order.selfService) {
-                    if (!this.config.deliveryMethod.includes("selfService")) {
-                        return false;
-                    }
-                }
-                else {
-                    if (!this.config.deliveryMethod.includes("delivery")) {
-                        return false;
-                    }
-                }
-            }
             // TODO:  if order.dishes type number[]
             let orderDishes = order.dishes;
-            let checkDishes = orderDishes.map(order => order.dish).some((dish) => this.config.dishes.includes(dish.id));
-            let checkGroups = orderDishes.map(order => order.dish).some((dish) => this.config.groups.includes(dish.parentGroup));
-            if (checkDishes || checkGroups)
+            let checkDishes = orderDishes.map(order => order.dish).some((dish) => this.config.dishes.includes(dish.id)) || this.config.dishes.includes("*");
+            let checkGroups = orderDishes.map(order => order.dish).some((dish) => this.config.groups.includes(dish.parentGroup)) || this.config.groups.includes("*");
+            if (checkDishes || checkGroups) {
+                if (this.config.deliveryMethod && Array.isArray(this.config.deliveryMethod)) {
+                    if (order.selfService) {
+                        if (!this.config.deliveryMethod.includes("selfService")) {
+                            return false;
+                        }
+                    }
+                    else {
+                        if (!this.config.deliveryMethod.includes("delivery")) {
+                            return false;
+                        }
+                    }
+                }
                 return true;
+            }
             return false;
         }
         if ((0, findModelInstance_1.default)(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
@@ -135,8 +131,8 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                     false : !(0, stringsInArray_1.someInArray)(orderDish.dish.concept, this.concept)) {
                     continue;
                 }
-                let checkDishes = (0, stringsInArray_1.someInArray)(orderDish.dish.id, this.config.dishes);
-                let checkGroups = (0, stringsInArray_1.someInArray)(orderDish.dish.parentGroup, this.config.groups);
+                let checkDishes = (0, stringsInArray_1.someInArray)(orderDish.dish.id, this.config.dishes) || this.config.dishes.includes("*");
+                let checkGroups = (0, stringsInArray_1.someInArray)(orderDish.dish.parentGroup, this.config.groups) || this.config.groups.includes("*");
                 if (!checkDishes || !checkGroups)
                     continue;
                 let itemTotalBeforeDiscount = orderDish.itemTotal;

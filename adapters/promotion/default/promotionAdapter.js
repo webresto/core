@@ -7,12 +7,8 @@ exports.PromotionAdapter = void 0;
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const AbstractPromotionAdapter_1 = __importDefault(require("../AbstractPromotionAdapter"));
 const worktime_1 = require("@webresto/worktime");
-// todo: fix types model instance to {%ModelName%}Record for Promotion";
-// todo: fix types model instance to {%ModelName%}Record for Group";
-// todo: fix types model instance to {%ModelName%}Record for Dish";
 const configuredPromotion_1 = __importDefault(require("./configuredPromotion"));
 const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
-// todo: fix types model instance to {%ModelName%}Record for PromotionCode";
 class PromotionAdapter extends AbstractPromotionAdapter_1.default {
     constructor() {
         super(...arguments);

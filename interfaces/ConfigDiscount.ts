@@ -12,8 +12,8 @@ export interface IconfigDiscount {
     promotionFlatDiscount?: number,
     
     discountAmount: number,
-    dishes: string[],
-    groups: string[],
+    dishes: string[] | null,
+    groups: string[] | null,
     /** // TODO: implement excludeModifiers
      * examples:
      * Buy cofee for $1 with 20% discount and modifier milk for $0.5 without this discount.
