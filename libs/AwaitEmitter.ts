@@ -64,7 +64,7 @@ declare global {
     "core:order-after-check-delivery": [OrderRecord]
     "core:count-before-delivery-cost": [OrderRecord]
     "core:order-after-promotion": [OrderRecord]
-    "core:order-after-done": [OrderRecord, boolean]
+    "core:order-after-done": [OrderRecord, UserRecord]
     "core:count-before-promotion": [OrderRecord]
     "core:orderproduct-change-amount": [OrderDishRecord]
     "core:order-return-full-order-destroy-orderdish": [DishRecord, OrderRecord]

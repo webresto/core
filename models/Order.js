@@ -1428,22 +1428,21 @@ let Model = {
     },
     async doFinalize(criteriaOne, state) {
         let order = await Order.findOne(criteriaOne);
-        let userCreated = false;
+        let user = null;
         if (state === "DONE" && !order.user) {
             let loginFiled = await Settings.get("CORE_LOGIN_FIELD") || "phone";
             const phone = order.customer.phone.code + order.customer.phone.number + order.customer.phone.additionalNumber;
             const login = loginFiled === "phone" ? phone : `${phone}@localhost`;
-            let user = await User.findOrCreate(criteriaOne, {
+            user = await User.findOrCreate(criteriaOne, {
                 firstName: order.customer.name,
                 phone: order.customer.phone,
                 login,
                 verified: true
             });
             await Order.update({ id: order.id }, { user: user.id }).fetch();
-            userCreated = true;
         }
         await Order.next(criteriaOne, state);
-        emitter.emit("core:order-after-done", order, userCreated);
+        emitter.emit("core:order-after-done", order, user);
     },
     async doCart(criteriaOne) {
         let order = await Order.findOne(criteriaOne);
