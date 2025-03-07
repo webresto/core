@@ -22,7 +22,7 @@ describe("Bonus program adapter", function () {
             user = await User.create({ id: "handletestapply-bonus-id", login: "7723555", lastName: 'TESThandleTestApply', firstName: "test", phone: { code: "77", number: "23555" } }).fetch();
             bp = await BonusProgram.getAdapter("test");
             UBP = (await UserBonusProgram.registration(user, "test")).id;
-            let ubt = await UserBonusTransaction.create({ bonusProgram: bp.id, user: user.id, amount: 100500, isNegative: false, balanceAfter: 100500 }).fetch();
+            let ubt = await UserBonusTransaction.create({ bonusProgram: bp.id, user: user.id, amount: 100500, isNegative: false }).fetch();
             const userBP = await UserBonusProgram.findOne({ id: UBP });
         }
         catch (error) {

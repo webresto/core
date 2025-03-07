@@ -39,7 +39,7 @@ describe("Bonus program adapter", function () {
       
       UBP = (await UserBonusProgram.registration(user, "test")).id;
 
-      let ubt = await UserBonusTransaction.create({bonusProgram: bp.id, user: user.id, amount: 100500, isNegative: false, balanceAfter: 100500}).fetch()
+      let ubt = await UserBonusTransaction.create({bonusProgram: bp.id, user: user.id, amount: 100500, isNegative: false}).fetch()
       const userBP = await UserBonusProgram.findOne({id: UBP});
     } catch (error) {
       sails.log.error(error)

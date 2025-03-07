@@ -39,11 +39,6 @@ let attributes = {
     type: "number",
   } as unknown as number,
 
-  // /** automatic recalculate */
-  // balanceAfter: {
-  //   type: "number"
-  // } as unknown as number,
-
   /** User can delete transaction */
   isDeleted: {
     type: "boolean",

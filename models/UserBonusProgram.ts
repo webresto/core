@@ -205,7 +205,6 @@ let Model = {
               externalId: transaction.externalId,
               group: transaction.group,
               amount: transaction.amount,
-              balanceAfter: transaction.balanceAfter,
               isDeleted: false,
               isStable: true,
               bonusProgram: bonusProgram.id,
@@ -228,20 +227,6 @@ let Model = {
 
           skip += limit;
       }
-
-      const _lastTransaction = await UserBonusTransaction.find({sort: "createdAt DESC", limit: 1})
-      lastTransaction = _lastTransaction[0];
-      const sumCurrentBalance = await UserBonusProgram.sumCurrentBalance(user, bonusProgram);
-
-      if (sumCurrentBalance === extBalance && sumCurrentBalance === lastTransaction.balanceAfter) {
-          // Emitter
-          await UserBonusProgram.update({ user: user.id }, { balance: extBalance }).fetch();
-      } else {
-          sails.log.error(`balances for user: [${user.login}, id:${user.id}] not matched with external system (sum:${sumCurrentBalance}, external:${extBalance}, lastAfter:${lastTransaction.balanceAfter})`);
-      }
-
-      await UserBonusProgram.update({user: user.id}, {balance: extBalance}).fetch();
-
     } catch (error) {
       sails.log.error(error)
     }
