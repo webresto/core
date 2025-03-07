@@ -32,10 +32,6 @@ export default abstract class BonusProgramAdapter {
      */
     abstract readonly decimals: number;
     abstract readonly description: string;
-    /**
-     * The site will calculation record transactions
-     */
-    abstract readonly localProcessing: boolean;
     constructor(config?: ConfigBonusProgramAdapter);
     /**
      * method for set ORMid

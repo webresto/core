@@ -61,13 +61,6 @@ let attributes = {
     type: "boolean",
   } as unknown as boolean,
 
-  /**
-   * The site will record transactions
-   */
-  localProcessing: {
-    type: "boolean",
-  } as unknown as boolean,
-
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,

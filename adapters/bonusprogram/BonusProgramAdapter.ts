@@ -46,11 +46,6 @@ export default abstract class BonusProgramAdapter {
   public abstract readonly decimals: number;
   public abstract readonly description: string;
 
-  /**
-   * The site will calculation record transactions
-   */
-  public abstract readonly localProcessing: boolean;
-
   public constructor(config?: ConfigBonusProgramAdapter) {
     this.config = config;
   }

@@ -43,12 +43,6 @@ let attributes = {
     automaticUserRegistration: {
         type: "boolean",
     },
-    /**
-     * The site will record transactions
-     */
-    localProcessing: {
-        type: "boolean",
-    },
     customData: "json",
 };
 let Model = {
