@@ -33,7 +33,8 @@ let Model = {
             throw 'no order for save';
         if (!order.user)
             throw 'No user for save order';
-        let user = await User.findOne({ id: order.user });
+        const userId = typeof order.user === "string" ? order.user : order.user.id;
+        let user = await User.findOne({ id: userId });
         if (user && user.id) {
             await UserOrderHistory.create({
                 id: (0, uuid_1.v4)(),

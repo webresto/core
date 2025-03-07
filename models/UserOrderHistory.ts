@@ -41,10 +41,10 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
+
 /**
  * @deprecated use `UserOrderHistoryRecord` instead
  */
-interface UserOrderHistory extends OptionalAll<attributes>, ORM {}
 export interface UserOrderHistoryRecord extends OptionalAll<attributes>, ORM {}
 
 
@@ -53,7 +53,8 @@ let Model = {
     let order = await Order.populate({id: orderId});
     if (!order) throw 'no order for save'
     if (!order.user) throw 'No user for save order'
-    let user = await User.findOne({id: order.user as string})
+    const userId = typeof  order.user === "string" ? order.user : order.user.id
+    let user = await User.findOne({id: userId})
     if (user && user.id) {
       await UserOrderHistory.create({
         id: uuid(),
