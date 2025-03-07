@@ -24,6 +24,7 @@ import { UserRecord } from "./User";
 import { PaymentDocumentRecord } from "./PaymentDocument";
 import ToInitialize from "../hook/initialize";
 import { or } from "ajv/dist/compile/codegen";
+import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 
 export interface PromotionState {
   type: string;
@@ -713,68 +714,68 @@ let Model = {
     4) 'bonus_from_basket': write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
 
     Current implement logic for only one strategy
-
+    @deprecated not uses
    */
 
-  async checkBonus(orderId: string, spendBonus: SpendBonus): Promise<void> {
-    const order = await Order.findOne({ id: orderId });
+  // async checkBonus(orderId: string, spendBonus: SpendBonus): Promise<void> {
+  //   const order = await Order.findOne({ id: orderId });
 
-    if (order.user && typeof order.user === "string") {
-      // Fetch the bonus program for this bonus spend
-      const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
-      const bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? "bonus_from_order_total";
-      let amountToDeduct = 0;
-      switch (bonusSpendingStrategy) {
-        case 'bonus_from_order_total':
-          amountToDeduct = order.total;
-          break;
-        case 'bonus_from_basket_delivery_discount':
-          amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
-          break;
-        case 'bonus_from_basket_and_delivery':
-          amountToDeduct = order.basketTotal + order.deliveryCost;
-          break;
-        case 'bonus_from_basket':
-          amountToDeduct = order.basketTotal;
-          break;
-        default:
-          throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
-      }
+  //   if (order.user && typeof order.user === "string") {
+  //     // Fetch the bonus program for this bonus spend
+  //     const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+  //     const bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? "bonus_from_order_total";
+  //     let amountToDeduct = 0;
+  //     switch (bonusSpendingStrategy) {
+  //       case 'bonus_from_order_total':
+  //         amountToDeduct = order.total;
+  //         break;
+  //       case 'bonus_from_basket_delivery_discount':
+  //         amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+  //         break;
+  //       case 'bonus_from_basket_and_delivery':
+  //         amountToDeduct = order.basketTotal + order.deliveryCost;
+  //         break;
+  //       case 'bonus_from_basket':
+  //         amountToDeduct = order.basketTotal;
+  //         break;
+  //       default:
+  //         throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+  //     }
 
-      // Calculate maximum allowed bonus coverage
-      const maxBonusCoverage = new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage);
+  //     // Calculate maximum allowed bonus coverage
+  //     const maxBonusCoverage = new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage);
 
-      // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
-      let bonusCoverage: Decimal;
-      if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
-        bonusCoverage = new Decimal(spendBonus.amount);
-      } else {
-        bonusCoverage = maxBonusCoverage;
-      }
+  //     // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+  //     let bonusCoverage: Decimal;
+  //     if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
+  //       bonusCoverage = new Decimal(spendBonus.amount);
+  //     } else {
+  //       bonusCoverage = maxBonusCoverage;
+  //     }
 
-      // Deduct the bonus from the order total
-      order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
+  //     // Deduct the bonus from the order total
+  //     order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
 
 
-      // Throw if User does not have bonuses to cover this
-      await UserBonusTransaction.create({
-        amount: bonusCoverage.toNumber(),
-        bonusProgram: bonusProgram.id,
-        user: order.user
-      }).fetch();
+  //     // Throw if User does not have bonuses to cover this
+  //     await UserBonusTransaction.create({
+  //       amount: bonusCoverage.toNumber(),
+  //       bonusProgram: bonusProgram.id,
+  //       user: order.user
+  //     }).fetch();
 
-      // Update the order with new total
-      await Order.updateOne({ id: orderId }, { total: order.total, bonusesTotal: bonusCoverage.toNumber() });
+  //     // Update the order with new total
+  //     await Order.updateOne({ id: orderId }, { total: order.total, bonusesTotal: bonusCoverage.toNumber() });
 
-    } else {
-      throw `User not found in Order, applyBonuses failed`
-    }
-  },
+  //   } else {
+  //     throw `User not found in Order, applyBonuses failed`
+  //   }
+  // },
 
-  // TODO: implement clearOfPromotion
-  async clearOfPromotion() {
-    // remove from a collection
-  },
+  // // TODO: implement clearOfPromotion
+  // async clearOfPromotion() {
+  //   // remove from a collection
+  // },
 
 
   ////////////////////////////////////////////////////////////////////////////////////
@@ -908,12 +909,9 @@ let Model = {
      *  Bonus spending
      * */
     if (order.user && typeof order.user === "string" && spendBonus && spendBonus.bonusProgramId) {
-
-
       if (spendBonus.amount < 0) {
         spendBonus.amount = 0;
       }
-
 
       if (spendBonus.amount === 0) {
         order.spendBonus.amount = 0;
@@ -1094,14 +1092,22 @@ let Model = {
 
     async function orderIt() {
 
-      if (order.user && order.bonusesTotal) {
+      if (order.user && typeof order.user === "object" && order.bonusesTotal) {
+        
         // Throw if User does not have bonuses to cover this
-        await UserBonusTransaction.create({
+        if(!order.spendBonus.adapter) {
+          throw `Order > orderIt: order.spendBonus.adapter not defined order id: '${order.id}'`
+        }
+
+        const bonusProgramAdapter = await BonusProgram.getAdapter(order.spendBonus.adapter);
+        const userBonusProgram = await UserBonusProgram.findOne({user: order.user.id, bonusProgram: order.spendBonus.bonusProgramId});
+        
+        const transaction: BonusTransaction = {
           isNegative: true,
-          amount: order.bonusesTotal,
-          bonusProgram: order.spendBonus.bonusProgramId,
-          user: order.user
-        }).fetch();
+          amount: order.spendBonus.amount
+        }
+
+        await bonusProgramAdapter.writeTransaction(order.user, userBonusProgram, transaction)
       }
 
       // await Order.next(order.id,'ORDER');

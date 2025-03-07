@@ -217,10 +217,8 @@ declare let Model: {
       4) 'bonus_from_basket': write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
   
       Current implement logic for only one strategy
-  
+      @deprecated not uses
      */
-    checkBonus(orderId: string, spendBonus: SpendBonus): Promise<void>;
-    clearOfPromotion(): Promise<void>;
     check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<OrderRecord>): Promise<void>;

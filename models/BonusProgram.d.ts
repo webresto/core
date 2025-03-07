@@ -24,6 +24,10 @@ declare let attributes: {
     /** user option */
     enable: boolean;
     automaticUserRegistration: boolean;
+    /**
+     * The site will record transactions
+     */
+    localProcessing: boolean;
     customData: {
         [key: string]: string | boolean | number;
     } | string;

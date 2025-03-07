@@ -9,7 +9,7 @@ export type ExternalAbstractUser = RequiredField<Partial<Pick<Omit<UserBonusProg
 interface optionalId {
     id?: string;
 }
-export interface BonusTransaction extends Pick<UserBonusTransactionRecord, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter">, optionalId {
+export interface BonusTransaction extends Pick<UserBonusTransactionRecord, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time">, optionalId {
 }
 export default abstract class BonusProgramAdapter {
     /** Program's id in an external system */
@@ -32,6 +32,10 @@ export default abstract class BonusProgramAdapter {
      */
     abstract readonly decimals: number;
     abstract readonly description: string;
+    /**
+     * The site will calculation record transactions
+     */
+    abstract readonly localProcessing: boolean;
     constructor(config?: ConfigBonusProgramAdapter);
     /**
      * method for set ORMid
@@ -61,7 +65,7 @@ export default abstract class BonusProgramAdapter {
     /**
      * write user transaction
      */
-    abstract writeTransaction(user: UserRecord, userBonusProgram: UserBonusProgramRecord, userBonusTransaction: UserBonusTransactionRecord): Promise<BonusTransaction>;
+    abstract writeTransaction(user: UserRecord, userBonusProgram: UserBonusProgramRecord, transaction: BonusTransaction): Promise<BonusTransaction>;
     /**
      * Return BonusTransaction
      * @param user

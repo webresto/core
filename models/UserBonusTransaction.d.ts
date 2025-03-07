@@ -20,14 +20,16 @@ declare let attributes: {
     /** Text */
     comment: string;
     amount: number;
-    /** automatic recalculate */
-    balanceAfter: number;
     /** User can delete transaction */
     isDeleted: boolean;
     /**
      * Indicates whether the call was made after creation. If so, this means that the bonus adapter worked without errors
      */
     isStable: boolean;
+    /**
+     * Indicates that the transaction was canceled
+     */
+    canceled: boolean;
     /** UTC time */
     time: string;
     bonusProgram: BonusProgramRecord | string;
@@ -46,7 +48,6 @@ declare let Model: {
      */
     beforeCreate(init: UserBonusTransactionRecord, cb: (err?: string) => void): Promise<void>;
     afterCreate(record: UserBonusTransactionRecord, cb: (err?: string) => void): Promise<void>;
-    beforeDestroy(): never;
     beforeUpdate(record: OptionalAll<UserBonusTransactionRecord>, cb: (err?: string) => void): void;
 };
 declare global {

@@ -15,7 +15,7 @@ export type ExternalAbstractUser = RequiredField<Partial<Pick<Omit<UserBonusProg
 interface optionalId {
   id?: string;
 }
-export interface BonusTransaction extends Pick<UserBonusTransactionRecord, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" | "balanceAfter">, optionalId { }
+export interface BonusTransaction extends Pick<UserBonusTransactionRecord, "externalId" | "isNegative" | "group" | "amount" | "customData" | "time" >, optionalId { }
 
 export default abstract class BonusProgramAdapter {
   /** Program's id in an external system */
@@ -45,6 +45,11 @@ export default abstract class BonusProgramAdapter {
    */
   public abstract readonly decimals: number;
   public abstract readonly description: string;
+
+  /**
+   * The site will calculation record transactions
+   */
+  public abstract readonly localProcessing: boolean;
 
   public constructor(config?: ConfigBonusProgramAdapter) {
     this.config = config;
@@ -88,7 +93,7 @@ export default abstract class BonusProgramAdapter {
   /**
    * write user transaction
    */
-  public abstract writeTransaction(user: UserRecord, userBonusProgram: UserBonusProgramRecord, userBonusTransaction: UserBonusTransactionRecord): Promise<BonusTransaction>;
+  public abstract writeTransaction(user: UserRecord, userBonusProgram: UserBonusProgramRecord, transaction: BonusTransaction): Promise<BonusTransaction>;
 
   /**
    * Return BonusTransaction
