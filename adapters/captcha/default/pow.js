@@ -46,17 +46,27 @@ class POW extends CaptchaAdapter_1.default {
         return task;
     }
     async check(resolvedCaptcha, label) {
-        // if (process.env.NODE_ENV !== "production" && process.env.CAPTCHA_BYPASS) return true
-        if (POW.taskStorage[resolvedCaptcha.id] === undefined)
-            return false;
-        if (POW.taskStorage[resolvedCaptcha.id].label !== label)
-            return false;
-        let puzzle = POW.taskStorage[resolvedCaptcha.id].puzzle;
-        if (puzzle.solution === BigInt(resolvedCaptcha.solution)) {
-            delete (POW.taskStorage[resolvedCaptcha.id]);
-            return true;
+        try {
+            if (POW.taskStorage[resolvedCaptcha.id] === undefined) {
+                sails.log.error(`Captcha check failed: ID ${resolvedCaptcha.id} not found in taskStorage.`);
+                return false;
+            }
+            if (POW.taskStorage[resolvedCaptcha.id].label !== label) {
+                sails.log.error(`Captcha check failed: Label mismatch for ID ${resolvedCaptcha.id}. Expected: ${POW.taskStorage[resolvedCaptcha.id].label}, Received: ${label}`);
+                return false;
+            }
+            let puzzle = POW.taskStorage[resolvedCaptcha.id].puzzle;
+            if (puzzle.solution === BigInt(resolvedCaptcha.solution)) {
+                delete POW.taskStorage[resolvedCaptcha.id];
+                return true;
+            }
+            else {
+                sails.log.error(`Captcha check failed: Incorrect solution for ID ${resolvedCaptcha.id}. Expected: ${puzzle.solution}, Received: ${resolvedCaptcha.solution}`);
+                return false;
+            }
         }
-        else {
+        catch (error) {
+            sails.log.error(`Captcha check error: ${error}`);
             return false;
         }
     }
