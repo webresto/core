@@ -453,8 +453,8 @@ let Model = {
     })
 
     let order = await Order.findOne(criteria).populate("dishes");
-    if(order.state === "NEW") {
-      order = await Order.doCart({id: order.id})
+    if (order.state === "NEW") {
+      order = await Order.doCart({ id: order.id })
     }
     if (order.dishes && Array.isArray(order.dishes) && order.dishes.length > 99) throw "99 max dishes amount";
 
@@ -598,7 +598,7 @@ let Model = {
   },
 
   async setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number): Promise<void> {
-    
+
     await emitter.emit.apply(emitter, ["core:order-before-set-count", ...arguments]);
     const _dish = dish.dish as DishRecord;
     if (_dish.balance !== -1)
@@ -859,23 +859,23 @@ let Model = {
     /** if pickup, then you do not need to check the address*/
     if (isSelfService) {
       order.selfService = true;
-      
+
       emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
     } else {
-        order.selfService = false;
-        softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
-        if (address) {
-          if (!address.city) address.city = await Settings.get("CITY");
-          checkAddress(address, softDeliveryCalculation);
-          order.address = { ...address };
-        } else {
-          if (!isSelfService && order.address === null && !softDeliveryCalculation) {
-            throw {
-              code: 5,
-              error: "address is required",
-            };
-          }
+      order.selfService = false;
+      softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
+      if (address) {
+        if (!address.city) address.city = await Settings.get("CITY");
+        checkAddress(address, softDeliveryCalculation);
+        order.address = { ...address };
+      } else {
+        if (!isSelfService && order.address === null && !softDeliveryCalculation) {
+          throw {
+            code: 5,
+            error: "address is required",
+          };
         }
+      }
     }
 
 
@@ -1093,15 +1093,15 @@ let Model = {
     async function orderIt() {
 
       if (order.user && typeof order.user === "object" && order.bonusesTotal) {
-        
+
         // Throw if User does not have bonuses to cover this
-        if(!order.spendBonus.adapter) {
+        if (!order.spendBonus.adapter) {
           throw `Order > orderIt: order.spendBonus.adapter not defined order id: '${order.id}'`
         }
 
         const bonusProgramAdapter = await BonusProgram.getAdapter(order.spendBonus.adapter);
-        const userBonusProgram = await UserBonusProgram.findOne({user: order.user.id, bonusProgram: order.spendBonus.bonusProgramId});
-        
+        const userBonusProgram = await UserBonusProgram.findOne({ user: order.user.id, bonusProgram: order.spendBonus.bonusProgramId });
+
         const transaction: BonusTransaction = {
           isNegative: true,
           amount: order.spendBonus.amount
@@ -1113,10 +1113,10 @@ let Model = {
       // await Order.next(order.id,'ORDER');
       // TODO: Rewrite on stateflow
       let data = {
-        orderDate: new Date()+``,
+        orderDate: new Date() + ``,
         state: "ORDER"
       };
-      
+
       /** ⚠️ If the preservation of the model is caused to NEXT, then there will be an endless cycle */
       sails.log.silly("Order > order > before save order", order);
       // await Order.update({id: order.id}).fetch();
@@ -1186,10 +1186,10 @@ let Model = {
   },
 
   async clear(criteria: CriteriaQuery<OrderRecord>): Promise<void> {
-    
+
     let order = await Order.findOne(criteria);
     if (order.state !== "CART") throw `Clear allowed only for CART state`;
-    
+
     await OrderDish.destroy({ order: order.id }).fetch();
     await Order.next(order.id, "CART");
     await Order.countCart({ id: order.id });
@@ -1221,8 +1221,8 @@ let Model = {
   async setCustomData(criteria: CriteriaQuery<OrderRecord>, customData: object): Promise<void> {
     await emitter.emit.apply(emitter, ["core:order-set-custom-data", ...arguments]);
     let order = await Order.findOne(criteria);
-    customData = {...order.customData, ...customData}
-    await Order.updateOne({ id: order.id }, {customData});
+    customData = { ...order.customData, ...customData }
+    await Order.updateOne({ id: order.id }, { customData });
   },
 
   async paymentMethodId(criteria: CriteriaQuery<OrderRecord>): Promise<string> {
@@ -1288,9 +1288,9 @@ let Model = {
     let nonce = 0
     if (fullOrder.hash !== hash) {
       if (typeof fullOrder.nonce === 'number' && isFinite(fullOrder.nonce)) {
-         nonce = fullOrder.nonce + 1;
+        nonce = fullOrder.nonce + 1;
       }
-      await Order.update({id: fullOrder.id}, {hash: hash, nonce: nonce})
+      await Order.update({ id: fullOrder.id }, { hash: hash, nonce: nonce })
     }
 
     return { ...fullOrder };
@@ -1304,7 +1304,7 @@ let Model = {
    */
   async countCart(criteria: CriteriaQuery<OrderRecord>, isPromoting: boolean = false): Promise<OrderRecord> {
     try {
-      
+
 
       let order = await Order.findOne(criteria);
       if (order.isPromoting !== isPromoting) {
@@ -1312,7 +1312,7 @@ let Model = {
         sails.log.error(err);
         throw new Error(err)
       }
-      
+
       if (["DONE", "REJECT"].includes(order.state)) throw `Order with orderId ${order.id} - was finished (${order.state})`;
 
 
@@ -1322,7 +1322,7 @@ let Model = {
       if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
 
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
-      if(!orderDishes) return order;
+      if (!orderDishes) return order;
 
       emitter.emit("core:order-before-count", order);
       order.isPromoting = isPromoting;
@@ -1586,8 +1586,8 @@ let Model = {
       // Calculate delivery costs
       let delivery = {} as Delivery
       let softDeliveryCalculation = null;
-      if(order.selfService === false) {
-      
+      if (order.selfService === false) {
+
         // The SOFT_DELIVERY_CALCULATION setting disables strict checking of the delivery address.
         softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION")
         emitter.emit("core:count-before-delivery-cost", order);
@@ -1612,16 +1612,16 @@ let Model = {
                 deliveryTimeMinutes: undefined,
                 hasError: true
               }
-            }   
+            }
           }
         }
-  
+
 
         // Case when the shipping cost cannot be calculated
         if (
-          softDeliveryCalculation && 
-          (!order.delivery || 
-            Object.keys(order.delivery).length === 0 || 
+          softDeliveryCalculation &&
+          (!order.delivery ||
+            Object.keys(order.delivery).length === 0 ||
             delivery.deliveryLocationUnrecognized === true
           )
         ) {
@@ -1632,13 +1632,13 @@ let Model = {
         }
       } else {
         delivery = null;
-        if(order.promotionDelivery) {
+        if (order.promotionDelivery) {
           sails.log.warn(`!!! Cehck it >> Order.promotionDelivery in self service`)
         }
       }
-           
+
       order.delivery = delivery;
-      
+
       if (order.delivery && isValidDelivery(order.delivery, softDeliveryCalculation)) {
         if (!order.delivery.item) {
           order.deliveryCost = order.delivery.cost
@@ -1665,7 +1665,7 @@ let Model = {
       // END calculate delivery cost
 
       order.total = new Decimal(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
-      delete(order.dishes)
+      delete (order.dishes)
       order = (await Order.update({ id: order.id }, order).fetch())[0];
 
       emitter.emit("core:order-after-count", order);
@@ -1685,11 +1685,11 @@ let Model = {
     }
 
     try {
-      if(typeof paymentDocument.paymentMethod !== "string") {
+      if (typeof paymentDocument.paymentMethod !== "string") {
         throw `Type error paymentDocument.paymentMethod should string`
       }
       const paymentMethodId = paymentDocument.paymentMethod
-      let paymentMethodTitle = (await PaymentMethod.findOne({id: paymentMethodId})).title;
+      let paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
       await Order.update(
         { id: paymentDocument.originModelId },
         {
@@ -1722,21 +1722,33 @@ let Model = {
   async doFinalize(criteriaOne: CriteriaQuery<OrderRecord>, state: "DONE" | "REJECT"): Promise<void> {
     let order = await Order.findOne(criteriaOne);
     let user = null;
-    if(state === "DONE" && !order.user) {
-      let loginFiled = await Settings.get("CORE_LOGIN_FIELD") || "phone"
-      const phone  = order.customer.phone.code + order.customer.phone.number + order.customer.phone.additionalNumber;
-      const login = loginFiled === "phone" ? phone.replace(/\D/g, "") : `${phone}@localhost`
-      user = await User.findOrCreate(criteriaOne, {
-        firstName: order.customer.name,
-        phone: order.customer.phone,
-        login,
-        verified: true
-      })
-      await Order.update({id: order.id}, {user: user.id}).fetch()
+    let isNewUser = false;
+
+    if (state === "DONE" && !order.user) {
+      let loginFiled = await Settings.get("CORE_LOGIN_FIELD") || "phone";
+      const phone = order.customer.phone.code + order.customer.phone.number + order.customer.phone.additionalNumber;
+      const login = loginFiled === "phone" ? phone.replace(/\D/g, "") : `${phone}@localhost`;
+
+      user = await User.findOne(criteriaOne);
+
+      if (!user) {
+        user = await User.create({
+          firstName: order.customer.name,
+          phone: order.customer.phone,
+          login,
+          verified: true
+        }).fetch();
+        isNewUser = true;
+      }
+
+      await Order.update({ id: order.id }, { user: user.id }).fetch();
     }
-    await Order.next(criteriaOne, state)
-    emitter.emit("core:order-after-done", order, user); 
+
+    await Order.next(criteriaOne, state);
+
+    emitter.emit("core:order-after-done", order, user, { isNewUser });
   },
+
   async doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord{
     let order = await Order.findOne(criteriaOne);
 
@@ -1751,25 +1763,25 @@ let Model = {
         throw new Error(`Missing required field: ${field}`);
       }
 
-      if(field === "address" && order.selfService) {
-        continue
-      } 
-
-      if(field === "pickupPoint" && !order.selfService) {
+      if (field === "address" && order.selfService) {
         continue
       }
 
-      if(!isValue(order[field])){
+      if (field === "pickupPoint" && !order.selfService) {
+        continue
+      }
+
+      if (!isValue(order[field])) {
         throw new Error(`Cart required field error: ${field} is value [${order[field]}], check FIELDS_FOR_ORDER_INITIALIZATION setting`);
       }
 
       // <-- !order.selfService is continued
-      if(field === "address" && !checkAddress(order.address)){
+      if (field === "address" && !checkAddress(order.address)) {
         throw `do cart: Address check failed`
       }
     }
-    await Order.next({id: order.id},"CART");
-    return await Order.findOne({id: order.id});
+    await Order.next({ id: order.id }, "CART");
+    return await Order.findOne({ id: order.id });
   },
   async applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord> {
     let order = await Order.findOne(criteria);
@@ -1862,7 +1874,7 @@ async function checkCustomerInfo(customer: Customer) {
   let allowedPhoneCountries = await Settings.get("ALLOWED_PHONE_COUNTRIES");
   const strictPhoneValidation = await Settings.get("STRICT_PHONE_VALIDATION") ?? false
   let isValidPhone = allowedPhoneCountries === undefined;
-  if(strictPhoneValidation) {
+  if (strictPhoneValidation) {
     if (Array.isArray(allowedPhoneCountries)) {
       for (let countryCode of allowedPhoneCountries) {
         const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
@@ -1893,7 +1905,7 @@ async function checkCustomerInfo(customer: Customer) {
 
 function checkAddress(address: Address, softDeliveryCalculation: boolean = false) {
   let error = [];
-  if (!address.street && !address.streetId && ! address.buildingName) {
+  if (!address.street && !address.streetId && !address.buildingName) {
     error.push({
       code: 5,
       error: "one of (street, streetId  or buildingName) is required",
@@ -1914,12 +1926,12 @@ function checkAddress(address: Address, softDeliveryCalculation: boolean = false
     });
   }
 
-  if(error.length) {
-    if(softDeliveryCalculation) {
+  if (error.length) {
+    if (softDeliveryCalculation) {
       return error
-    } else { 
+    } else {
       throw error[0]
-    } 
+    }
   }
 }
 
@@ -2023,9 +2035,9 @@ function isValidDelivery(delivery: Delivery, strict: boolean = true): boolean {
     typeof delivery.allowed === 'boolean' &&
     typeof delivery.message === 'string'
   ) {
-    
+
     // Soft delivery calculation
-    if(strict !== true && delivery.allowed === true && delivery.cost === null){
+    if (strict !== true && delivery.allowed === true && delivery.cost === null) {
       return true;
     }
 
