@@ -36,6 +36,7 @@ let attributes = {
     login: {
         type: 'string',
         required: true,
+        unique: true,
         isNotEmptyString: true
     },
     firstName: {

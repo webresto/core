@@ -1729,7 +1729,7 @@ let Model = {
       const phone = order.customer.phone.code + order.customer.phone.number + order.customer.phone.additionalNumber;
       const login = loginFiled === "phone" ? phone.replace(/\D/g, "") : `${phone}@localhost`;
 
-      user = await User.findOne(criteriaOne);
+      user = await User.findOne({login});
 
       if (!user) {
         user = await User.create({
