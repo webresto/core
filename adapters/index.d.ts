@@ -36,7 +36,7 @@ export declare class Adapter {
     private static instancePromotionAdapter;
     private static instanceDeliveryAdapter;
     private static instanceMF;
-    static WEBRESTO_MODULES_PATH: string;
+    static WEBRESTO_MODULES_PATH: any;
     static getOTPAdapter(adapterName?: string): Promise<OTPAdapter>;
     static getPromotionAdapter(adapter?: string | PromotionAdapter, initParams?: {
         [key: string]: string | number | boolean;

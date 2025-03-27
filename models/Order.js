@@ -886,7 +886,7 @@ let Model = {
         await orderIt();
         return;
         async function orderIt() {
-            if (order.user && typeof order.user === "object" && order.bonusesTotal) {
+            if (order.user && typeof order.user !== "undefined" && order.bonusesTotal) {
                 // Throw if User does not have bonuses to cover this
                 if (!order.spendBonus.adapter) {
                     throw `Order > orderIt: order.spendBonus.adapter not defined order id: '${order.id}'`;

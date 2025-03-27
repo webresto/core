@@ -46,8 +46,8 @@ declare let Model: {
      * Before create, a check is made to see if there are enough funds to write off.
      * Immediately after create saving the transaction in the local database, the external adapter is called to save the transaction
      */
-    beforeCreate(init: UserBonusTransactionRecord, cb: (err?: string) => void): Promise<void>;
-    afterCreate(record: UserBonusTransactionRecord, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(init: UserBonusTransactionRecord, cb: (err?: string) => void): unknown;
+    afterCreate(record: UserBonusTransactionRecord, cb: (err?: string) => void): unknown;
     beforeUpdate(record: OptionalAll<UserBonusTransactionRecord>, cb: (err?: string) => void): void;
 };
 declare global {

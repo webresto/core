@@ -126,7 +126,7 @@ let Model = {
                     return;
                 }
             }
-            sails.log.debug(`Start full sync UserBonusProgram`);
+            sails.log.debug(`Start full sync UserBonusProgram for user ${user.login}`);
             if (!user || !bonusProgram || !userBonusProgram) {
                 throw `sync > user, bonusprogram, userBonusProgram not found`;
             }

@@ -124,8 +124,8 @@ type attributes = typeof attributes;
 export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {
 }
 declare let Model: {
-    beforeCreate: (init: DishRecord, cb: (err?: string) => void) => Promise<void>;
-    beforeUpdate: (value: DishRecord, cb: (err?: string) => void) => Promise<void>;
+    beforeCreate: (init: DishRecord, cb: (err?: string) => void) => any;
+    beforeUpdate: (value: DishRecord, cb: (err?: string) => void) => unknown;
     afterUpdate: (record: DishRecord, cb: (err?: string) => void) => void;
     afterCreate: (record: DishRecord, cb: (err?: string) => void) => void;
     /**

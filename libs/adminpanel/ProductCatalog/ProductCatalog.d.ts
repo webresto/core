@@ -11,7 +11,7 @@ declare class BaseModelItem<T extends Item> extends AbstractItem<T> {
     find(itemId: string | number, catalogId: string): Promise<T>;
     update(itemId: string | number, data: Item, catalogId: string): Promise<T>;
     create(data: T, catalogId: string): Promise<T>;
-    deleteItem(itemId: string | number, catalogId: string): Promise<void>;
+    deleteItem(itemId: string | number, catalogId: string): any;
     getAddHTML(): Promise<{
         type: "link" | "html";
         data: string;

@@ -9,20 +9,20 @@ export declare const models: {
         title: string;
         icon: string;
         list: {
-            fields: import("sails-adminpanel/interfaces/adminpanelConfig").FieldsModels;
+            fields: FieldsModels;
         };
-        edit: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
-        add: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
+        edit: CreateUpdateConfig;
+        add: CreateUpdateConfig;
     };
     groups: {
         model: string;
         title: string;
         icon: string;
         list: {
-            fields: import("sails-adminpanel/interfaces/adminpanelConfig").FieldsModels;
+            fields: FieldsModels;
         };
-        edit: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
-        add: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
+        edit: CreateUpdateConfig;
+        add: CreateUpdateConfig;
     };
     orders: {
         model: string;

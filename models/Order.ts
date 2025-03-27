@@ -1092,7 +1092,7 @@ let Model = {
 
     async function orderIt() {
 
-      if (order.user && typeof order.user === "object" && order.bonusesTotal) {
+      if (order.user && typeof order.user !== "undefined" && order.bonusesTotal) {
 
         // Throw if User does not have bonuses to cover this
         if (!order.spendBonus.adapter) {
@@ -1749,7 +1749,7 @@ let Model = {
     emitter.emit("core:order-after-done", order, user, { isNewUser });
   },
 
-  async doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord{
+  async doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord>{
     let order = await Order.findOne(criteriaOne);
 
     if (order.state !== 'NEW') {

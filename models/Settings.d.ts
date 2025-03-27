@@ -46,9 +46,9 @@ export interface SettingsRecord extends RequiredField<OptionalAll<attributes>, "
 }
 declare let Model: {
     beforeCreate: (record: SettingsRecord, cb: (err?: string) => void) => void;
-    beforeUpdate: (record: SettingsRecord, cb: (err?: string) => void) => Promise<void>;
-    afterUpdate: (record: SettingsRecord, cb: (err?: string) => void) => Promise<void>;
-    afterCreate: (record: SettingsRecord, cb: (err?: string) => void) => Promise<void>;
+    beforeUpdate: (record: SettingsRecord, cb: (err?: string) => void) => any;
+    afterUpdate: (record: SettingsRecord, cb: (err?: string) => void) => any;
+    afterCreate: (record: SettingsRecord, cb: (err?: string) => void) => any;
     /** return setting value by unique key */
     use(key: string): Promise<SettingValue>;
     get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined>;

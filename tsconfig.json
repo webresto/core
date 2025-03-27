@@ -19,7 +19,9 @@
     "skipLibCheck": true,
     "noImplicitAny": true,
     "alwaysStrict": true,
-    "maxNodeModuleJsDepth": 0
+    "maxNodeModuleJsDepth": 0,
+    "emitBOM": false
+
   },
   "exclude": ["node_modules"]
 }

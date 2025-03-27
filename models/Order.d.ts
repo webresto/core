@@ -187,7 +187,7 @@ export interface OrderRecord extends ORM, OptionalAll<attributes> {
 }
 declare let Model: {
     beforeCreate(orderInit: OrderRecord, cb: (err?: string) => void): void;
-    afterCreate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
+    afterCreate(order: OrderRecord, cb: (err?: string) => void): any;
     /** Add a dish into order */
     addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number, stack?: boolean): Promise<void>;
@@ -235,70 +235,7 @@ declare let Model: {
     setCustomData(criteria: CriteriaQuery<OrderRecord>, customData: object): Promise<void>;
     paymentMethodId(criteria: CriteriaQuery<OrderRecord>): Promise<string>;
     /**  given populated Order instance by criteria*/
-    populate(criteria: CriteriaQuery<OrderRecord>): Promise<{
-        createdAt?: Date | undefined;
-        updatedAt?: Date | undefined;
-        id?: string;
-        shortId?: string;
-        state?: string;
-        concept?: string[];
-        isMixedConcept?: boolean;
-        dishes?: OrderDishRecord[] | number[];
-        paymentMethod?: PaymentMethodRecord | string;
-        paymentMethodTitle?: string;
-        paid?: boolean;
-        isPaymentPromise?: boolean;
-        promotionState?: PromotionState[];
-        promotionErrors?: object | object[];
-        promotionCode?: PromotionCodeRecord | string;
-        promotionCodeDescription?: string;
-        promotionCodeString?: string;
-        promotionFlatDiscount?: number;
-        promotionDelivery?: Delivery;
-        promotionCodeCheckValidTill?: string;
-        promotionUnorderable?: boolean;
-        isPromoting?: boolean;
-        dishesCount?: number;
-        uniqueDishes?: number;
-        modifiers?: any;
-        customer?: Customer;
-        address?: Address;
-        comment?: string;
-        personsCount?: string;
-        date?: string;
-        problem?: boolean;
-        rmsDelivered?: boolean;
-        rmsId?: string;
-        rmsOrderNumber?: string;
-        rmsOrderData?: any;
-        rmsDeliveryDate?: string;
-        rmsErrorMessage?: string;
-        rmsErrorCode?: string;
-        rmsStatusCode?: string;
-        rmsOrderStatus?: string;
-        pickupPoint?: PlaceRecord | string;
-        selfService?: boolean;
-        delivery?: Delivery | null;
-        deliveryDescription?: string;
-        message?: string;
-        deliveryItem?: DishRecord | string;
-        deliveryCost?: number;
-        totalWeight?: number;
-        trifleFrom?: number;
-        bonusesTotal?: number;
-        spendBonus?: SpendBonus;
-        total?: number;
-        basketTotal?: number;
-        orderTotal?: number;
-        discountTotal?: number;
-        orderDate?: string;
-        tag?: string;
-        deviceId?: string;
-        nonce?: number;
-        hash?: string;
-        user?: UserRecord | string;
-        customData?: any;
-    }>;
+    populate(criteria: CriteriaQuery<OrderRecord>): unknown;
     /**
      * Method for calculating the basket. This is called every time the cart changes.
      * @param criteria OrderId

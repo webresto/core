@@ -1,1 +1,1 @@
-export default function (): Promise<void>;
+export default function (): any;

@@ -42,11 +42,11 @@ interface Promotion extends RequiredField<OptionalAll<attributes>, "id" | "confi
 export interface PromotionRecord extends RequiredField<OptionalAll<attributes>, "id" | "configDiscount" | "isJoint" | "name" | "isPublic" | "description" | "concept" | "badge" | "isDeleted" | "createdByUser" | "externalId">, ORM {
 }
 declare let Model: {
-    afterUpdate(record: PromotionRecord, cb: (err?: string) => void): Promise<void>;
-    afterCreate(record: PromotionRecord, cb: (err?: string) => void): Promise<void>;
-    afterDestroy(record: PromotionRecord, cb: (err?: string) => void): Promise<void>;
+    afterUpdate(record: PromotionRecord, cb: (err?: string) => void): any;
+    afterCreate(record: PromotionRecord, cb: (err?: string) => void): any;
+    afterDestroy(record: PromotionRecord, cb: (err?: string) => void): any;
     beforeUpdate(init: Promotion, cb: (err?: string) => void): void;
-    beforeCreate(init: Promotion, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(init: Promotion, cb: (err?: string) => void): any;
     createOrUpdate(values: Promotion): Promise<PromotionRecord>;
     getAllByConcept(concept: string[]): PromotionRecord[];
 };

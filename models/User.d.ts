@@ -77,8 +77,8 @@ interface User extends OptionalAll<attributes>, ORM {
 export interface UserRecord extends OptionalAll<attributes>, ORM {
 }
 declare let Model: {
-    beforeCreate(userInit: UserRecord, cb: (err?: string) => void): Promise<void>;
-    afterCreate(record: UserRecord, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(userInit: UserRecord, cb: (err?: string) => void): unknown;
+    afterCreate(record: UserRecord, cb: (err?: string) => void): unknown;
     /**
      * If a favorite dish exists in a favorites collection, it will be deleted. And vice versa
      * @param userId
@@ -93,7 +93,7 @@ declare let Model: {
      * @param phone
      * @param target
      */
-    getPhoneString(phone: Phone, target?: "login" | "print" | "string"): Promise<string>;
+    getPhoneString(phone: Phone, target?: "login" | "print" | "string"): unknown;
     /**
      * Update user password
      *
