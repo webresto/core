@@ -109,6 +109,100 @@ let Model = {
 
   beforeUpdate(record: OptionalAll<UserBonusTransactionRecord>, cb:  (err?: string) => void) {
     return cb();
+  },
+
+  async sync(user: UserRecord | string,  bonusProgram: BonusProgramRecord | string, balanceOnly = true): Promise<void>{
+    try {
+      if(typeof user === "string") {
+        user = await User.findOne({id: user})
+      }
+
+      if(typeof bonusProgram === "string") {
+        bonusProgram = await BonusProgram.findOne({id: bonusProgram})
+      }
+
+      if(!user || !bonusProgram){
+        throw `User or BonusProgram not found: user: [${user.login}] bonusProgram: [${bonusProgram}]`
+      }
+
+      const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
+      if(!userBonusProgram){
+        throw `UserBonusProgram not found: user: [${user.login}] bonusProgram: [${bonusProgram}]`
+      }
+
+
+
+
+      if (!user || !bonusProgram || !userBonusProgram) {
+        throw `sync > user, bonusprogram, userBonusProgram not found`
+      }
+
+      const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
+      let extBalance =  parseFloat(new Decimal(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
+      userBonusProgram.balance = extBalance;
+      
+      sails.log.debug(`Start full sync UserBonusProgram for user ${user.login}`);
+
+      if(balanceOnly) {
+        return
+      }
+
+      // In case full sunc
+      let afterTime = new Date(0);
+      if(userBonusProgram.syncedToTime && userBonusProgram.syncedToTime !== "0"){
+        try {
+          afterTime = new Date(userBonusProgram.syncedToTime);
+        } catch {}
+      } else {
+        try {
+          // Sync transaction after time from Settings SYNC_BONUSTRANSACTION_AFTER_TIME
+          const SYNC_BONUSTRANSACTION_AFTER_TIME = await Settings.get('SYNC_BONUSTRANSACTION_AFTER_TIME') ?? 0;
+          afterTime = new Date(SYNC_BONUSTRANSACTION_AFTER_TIME);
+        } catch {}
+      }
+
+      let skip = 0;
+      const limit = 10;
+      let lastTransaction = { } as UserBonusTransactionRecord;
+
+        while (true) {
+          const transactions: BonusTransaction[] = await adapter.getTransactions(user, afterTime, limit, skip);
+          if (transactions.length === 0) {
+              break;
+          }
+
+          for (const transaction of transactions) {
+
+            const userBonusTransaction: UserBonusTransactionRecord = {
+              isNegative: transaction.isNegative,
+              externalId: transaction.externalId,
+              group: transaction.group,
+              amount: transaction.amount,
+              isDeleted: false,
+              isStable: true,
+              bonusProgram: bonusProgram.id,
+              user: user.id,
+              customData: transaction.customData
+            };
+
+            if(transaction.externalId) {
+              lastTransaction = await UserBonusTransaction.findOrCreate({externalId: transaction.externalId}, userBonusTransaction)
+            } else {
+              lastTransaction = await UserBonusTransaction.create(userBonusTransaction).fetch();
+            }
+          }
+
+          // Если возвращается меньше транзакций, чем лимит, значит, мы получили все транзакции
+          if (transactions.length < limit) {
+              await UserBonusProgram.update({id: userBonusProgram.id}, {syncedToTime: new Date().toISOString()}).fetch()
+              break;
+          }
+
+          skip += limit;
+      }
+    } catch (error) {
+      sails.log.error(error)
+    }
   }
 };
 

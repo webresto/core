@@ -49,6 +49,7 @@ declare let Model: {
     beforeCreate(init: UserBonusTransactionRecord, cb: (err?: string) => void): unknown;
     afterCreate(record: UserBonusTransactionRecord, cb: (err?: string) => void): unknown;
     beforeUpdate(record: OptionalAll<UserBonusTransactionRecord>, cb: (err?: string) => void): void;
+    sync(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, balanceOnly?: boolean): Promise<void>;
 };
 declare global {
     const UserBonusTransaction: typeof Model & ORMModel<UserBonusTransactionRecord, "user" | "amount" | "bonusProgram">;

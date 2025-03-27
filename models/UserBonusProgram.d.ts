@@ -28,8 +28,7 @@ declare let Model: {
     registration(user: UserRecord | string, adapterOrId: string): Promise<UserBonusProgramRecord>;
     delete(user: UserRecord | string, adapterOrId: string): Promise<void>;
     syncAll(user: UserRecord | string): Promise<void>;
-    /** Full sync all transaction with external system */
-    sync(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, force?: boolean): Promise<void>;
+    sync(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<void>;
     checkEnoughToSpend(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, amount: number): Promise<boolean>;
     sumCurrentBalance(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<number>;
 };
