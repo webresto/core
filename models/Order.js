@@ -892,12 +892,19 @@ let Model = {
                     throw `Order > orderIt: order.spendBonus.adapter not defined order id: '${order.id}'`;
                 }
                 const bonusProgramAdapter = await BonusProgram.getAdapter(order.spendBonus.adapter);
-                const userBonusProgram = await UserBonusProgram.findOne({ user: order.user.id, bonusProgram: order.spendBonus.bonusProgramId });
+                let user = null;
+                if (typeof order.user === "string") {
+                    user = await User.findOne({ id: order.user });
+                }
+                else {
+                    user = order.user;
+                }
+                const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: order.spendBonus.bonusProgramId });
                 const transaction = {
                     isNegative: true,
                     amount: order.spendBonus.amount
                 };
-                await bonusProgramAdapter.writeTransaction(order.user, userBonusProgram, transaction);
+                await bonusProgramAdapter.writeTransaction(user, userBonusProgram, transaction);
             }
             // await Order.next(order.id,'ORDER');
             // TODO: Rewrite on stateflow
