@@ -52,9 +52,11 @@ export abstract class Channel {
   public async trySendMessage(badge: Badge, message: string, user: UserRecord, subject?: string, data?: object): Promise<boolean> {
     try {
       await this.send(badge, message, user, subject, data);
+      sails.log.debug(`Notification manager > ${this.type}: ${badge}, ${message}, ${user}`);
       return true;
     } catch (error) {
-      sails.log.error(`Failed to send message through channel with sortOrder ${this.sortOrder}. Error: ${error}`);
+      sails.log.error(`Failed to send message via ${this.type}. Error: ${error}`);
+      sails.log.warn(`✉️ Notification manager > console: ${badge}, ${message}, ${user}`)
       return false;
     }
   }
@@ -67,6 +69,7 @@ export class NotificationManager {
     try {
       await NotificationManager.send(badge, "manager", text, null);
     } catch (error) {
+      sails.log.error(`Failed to send message to delivery manager. Error: ${error}`);
       sails.log.warn(`✉️ Notification manager > console: ${badge}, ${text}`)
     }
   }

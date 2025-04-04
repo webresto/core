@@ -1591,7 +1591,13 @@ let Model = {
       }
 
       // Calculate delivery costs
-      let delivery = {} as Delivery
+      let delivery:Delivery = {
+        deliveryTimeMinutes: 0,
+        allowed: false,
+        cost: 0,
+        item: "",
+        message: ""
+      }
       let softDeliveryCalculation = null;
       if (order.selfService === false) {
 

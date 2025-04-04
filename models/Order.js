@@ -1317,7 +1317,13 @@ let Model = {
                 order.promotionCode = order.promotionCode.id;
             }
             // Calculate delivery costs
-            let delivery = {};
+            let delivery = {
+                deliveryTimeMinutes: 0,
+                allowed: false,
+                cost: 0,
+                item: "",
+                message: ""
+            };
             let softDeliveryCalculation = null;
             if (order.selfService === false) {
                 // The SOFT_DELIVERY_CALCULATION setting disables strict checking of the delivery address.
