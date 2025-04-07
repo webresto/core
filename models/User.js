@@ -322,12 +322,10 @@ let Model = {
         // Check OTP
         let checkOTPResult = false;
         if (Boolean(OTP) && typeof OTP === "string" && OTP.length > 0) {
-            if (await OneTimePassword.check(login, OTP)) {
-                checkOTPResult = true;
-            }
+            checkOTPResult = await OneTimePassword.check(login, OTP);
         }
         // When password required and LOGIN_OTP_REQUIRED you should pass both
-        if (await Settings.get("LOGIN_OTP_REQUIRED") && !checkOTPResult && passwordPolicy === "required")
+        if (await Settings.get("LOGIN_OTP_REQUIRED") && !checkOTPResult)
             throw `login OTP check failed`;
         // When password is disabled Login possibly only by OTP
         if (passwordPolicy === "disabled" && !checkOTPResult)
