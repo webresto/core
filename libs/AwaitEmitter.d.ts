@@ -114,12 +114,18 @@ export default class AwaitEmitter {
      * @param name event name
      * @returns
      */
-    getDeclaration<N extends keyof IAwaitEmitter>(name: N): any;
+    getDeclaration<N extends keyof IAwaitEmitter>(name: N): {
+        name: string;
+        description: string;
+    };
     /**
      *Issuer of all declarations
      * @returns
      */
-    getDeclarations(): {};
+    getDeclarations(): {
+        name: string;
+        description: string;
+    }[];
     /**
      * Remove event subscription
      * @param name - event name

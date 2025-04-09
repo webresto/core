@@ -68,7 +68,7 @@ type attributes = typeof attributes;
 export interface GroupRecord extends OptionalAll<attributes>, IVirtualFields, ORM {
 }
 declare let Model: {
-    beforeCreate: (init: GroupRecord, cb: (err?: string) => void) => any;
+    beforeCreate: (init: GroupRecord, cb: (err?: string) => void) => Promise<void>;
     beforeUpdate: (record: GroupRecord, cb: (err?: string) => void) => void;
     afterUpdate: (record: GroupRecord, cb: (err?: string) => void) => void;
     afterCreate: (record: GroupRecord, cb: (err?: string) => void) => void;

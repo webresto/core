@@ -46,8 +46,8 @@ declare let Model: {
      * Before create, a check is made to see if there are enough funds to write off.
      * Immediately after create saving the transaction in the local database, the external adapter is called to save the transaction
      */
-    beforeCreate(init: UserBonusTransactionRecord, cb: (err?: string) => void): unknown;
-    afterCreate(record: UserBonusTransactionRecord, cb: (err?: string) => void): unknown;
+    beforeCreate(init: UserBonusTransactionRecord, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: UserBonusTransactionRecord, cb: (err?: string) => void): Promise<void>;
     beforeUpdate(record: OptionalAll<UserBonusTransactionRecord>, cb: (err?: string) => void): void;
     sync(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, balanceOnly?: boolean): Promise<void>;
 };

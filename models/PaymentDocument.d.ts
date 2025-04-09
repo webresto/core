@@ -75,7 +75,7 @@ declare let Model: {
     beforeCreate(paymentDocumentInit: PaymentDocumentRecord, cb: (err?: string) => void): void;
     doCheck: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentRecord>;
     register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: object) => Promise<PaymentResponse>;
-    afterUpdate: (values: PaymentDocument, next: () => void) => any;
+    afterUpdate: (values: PaymentDocument, next: () => void) => Promise<void>;
     /** Payment check cycle*/
     processor: (timeout: number) => Promise<ReturnType<typeof setInterval>>;
 };

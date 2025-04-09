@@ -29,8 +29,8 @@ type attributes = typeof attributes;
 export interface UserLocationRecord extends attributes, ORM {
 }
 declare let Model: {
-    beforeUpdate(record: UserLocationRecord, cb: (err?: string) => void): any;
-    beforeCreate(init: UserLocationRecord, cb: (err?: string) => void): any;
+    beforeUpdate(record: UserLocationRecord, cb: (err?: string) => void): Promise<void>;
+    beforeCreate(init: UserLocationRecord, cb: (err?: string) => void): Promise<void>;
 };
 declare global {
     const UserLocation: typeof Model & ORMModel<UserLocationRecord, null>;

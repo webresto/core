@@ -26,7 +26,7 @@ export interface StreetRecord extends RequiredField<Partial<attributes>, "name">
  * Please emit core:streets:updated after finish update streets
  */
 declare let Model: {
-    beforeUpdate(value: StreetRecord, cb: (err?: string) => void): any;
+    beforeUpdate(value: StreetRecord, cb: (err?: string) => void): Promise<void>;
     beforeCreate(streetInit: StreetRecord, cb: (err?: string) => void): void;
     /**
    * Checks whether the street exists, if it does not exist, then creates a new one and returns it.If exists, then checks
