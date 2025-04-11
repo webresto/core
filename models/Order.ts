@@ -25,6 +25,7 @@ import { PaymentDocumentRecord } from "./PaymentDocument";
 import ToInitialize from "../hook/initialize";
 import { or } from "ajv/dist/compile/codegen";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
+import { ProductModifier, validateGroupModifier } from "../libs/ProductModifier";
 
 export interface PromotionState {
   type: string;
@@ -407,7 +408,6 @@ let Model = {
     let dishObj: DishRecord;
 
     if (!addedBy) addedBy = "user";
-
     if (typeof dish === "string") {
       dishObj = (await Dish.find({ id: dish }).limit(1))[0];
 
@@ -428,6 +428,12 @@ let Model = {
 
     if (dishObj.modifier) {
       throw new Error(`Dish [${dishObj.id}] is modifier`)
+    }
+
+
+    if(process.env.EXPERIMENTAL) {
+      const productModifier = new ProductModifier(dishObj.modifiers)  
+      productModifier.validate(modifiers)
     }
 
     /**

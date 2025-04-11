@@ -8,6 +8,7 @@ const decimal_js_1 = __importDefault(require("decimal.js"));
 const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 const OrderHelper_1 = require("../libs/helpers/OrderHelper");
 const isValue_1 = require("../utils/isValue");
+const ProductModifier_1 = require("../libs/ProductModifier");
 let attributes = {
     /** Id  */
     id: {
@@ -319,6 +320,10 @@ let Model = {
         }
         if (dishObj.modifier) {
             throw new Error(`Dish [${dishObj.id}] is modifier`);
+        }
+        if (process.env.EXPERIMENTAL) {
+            const productModifier = new ProductModifier_1.ProductModifier(dishObj.modifiers);
+            productModifier.validate(modifiers);
         }
         /**
          * Add default modifiers in add

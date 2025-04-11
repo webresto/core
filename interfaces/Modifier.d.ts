@@ -1,5 +1,15 @@
 import { DishRecord } from "../models/Dish";
 import { GroupRecord } from "../models/Group";
+export interface OrderModifier {
+    id: string;
+    /**
+     * Default for amount is 1
+     * This will be changed in a future version to have stricter rules
+     */
+    amount?: number;
+    dish?: DishRecord;
+    modifierId?: string;
+}
 interface BaseModifier {
     /**
      * restocore dishId
@@ -19,16 +29,6 @@ interface BaseModifier {
      * How many free modifiers can you add?
      */
     freeOfChargeAmount?: number | null;
-}
-export interface OrderModifier {
-    id: string;
-    /**
-     * Default for amount is 1
-     * This will be changed in a future version to have stricter rules
-     */
-    amount?: number;
-    dish?: DishRecord;
-    modifierId?: string;
 }
 export interface Modifier extends BaseModifier {
     /**

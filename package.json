@@ -89,7 +89,7 @@
     "test:init": "cd ./test/fixture && npm i --no-package-lock --prefix ./ ",
     "test:install": "cd ./test/fixture && npm i --no-package-lock --prefix ./",
     "test": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit",
-    "test:pattern": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
+    "test:pattern": "mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=modifier",
     "test:updb": "cd ./test/fixture && db-migrate up",
     "test:release": "DATASTORE=postgres PG_HOST=127.0.0.1 mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
     "build": "tsc",

@@ -1,3 +1,4 @@
+import * as tar from 'tar';
 interface BaseOptions {
     isDeleted: boolean;
     concepts: string[];
@@ -12,7 +13,7 @@ export declare class BackupHandler {
     private groups;
     private dishes;
     workDir: string;
-    tar: any;
+    tar: typeof tar;
     exportToTar(filePath: string, options?: Partial<BackupOptions>): Promise<void>;
     importFromTar(filePath: string, options?: Partial<RestoreOptions>): Promise<void>;
     private createJSON;

@@ -4,6 +4,19 @@
 import { DishRecord } from "../models/Dish";
 import { GroupRecord } from "../models/Group";
 
+export interface OrderModifier {
+  id: string // means rmsId
+  /**
+   * Default for amount is 1
+   * This will be changed in a future version to have stricter rules
+   */
+  amount?: number
+  dish?: DishRecord  // TODO:  refactor to delete it from OrderModifier
+  modifierId?: string // TODO:  refactor to delete it from OrderModifier
+}
+
+
+
 interface BaseModifier {
   /**
    * restocore dishId
@@ -25,16 +38,6 @@ interface BaseModifier {
   freeOfChargeAmount?: number | null;
 }
 
-export interface OrderModifier {
-  id: string // means rmsId
-  /**
-   * Default for amount is 1
-   * This will be changed in a future version to have stricter rules
-   */
-  amount?: number
-  dish?: DishRecord  // TODO:  refactor to delete it from OrderModifier
-  modifierId?: string // TODO:  refactor to delete it from OrderModifier
-}
 
 export interface Modifier extends BaseModifier {
   /**
@@ -42,6 +45,7 @@ export interface Modifier extends BaseModifier {
   */
   id: string;
 }
+
 
 export interface GroupModifier extends BaseModifier {
   id?: string; // id не обязательный для поддержки вирутальных групп

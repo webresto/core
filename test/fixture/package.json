@@ -7,8 +7,8 @@
   "dependencies": {
     "@webresto/core": "file:../..",
     "async": "^3.2.4",
-    "muddy-water": "^1.0.0",
     "include-all": "^4.0.3",
+    "muddy-water": "^1.0.0",
     "patch-package": "^8.0.0",
     "rc": "^1.0.1",
     "request": "^2.88.2",

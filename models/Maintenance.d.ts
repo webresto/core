@@ -30,7 +30,7 @@ declare let Model: {
     afterDestroy: (maintenance: MaintenanceRecord, cb: (err?: string) => void) => void;
     beforeCreate: (maintenance: MaintenanceRecord, cb: (err?: string) => void) => void;
     siteIsOff: () => Promise<boolean>;
-    getActiveMaintenance: (date?: string) => Promise<any>;
+    getActiveMaintenance: (date?: string) => Promise<Maintenance>;
 };
 declare global {
     const Maintenance: typeof Model & ORMModel<Maintenance, null>;
