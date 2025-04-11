@@ -101,7 +101,7 @@ declare let attributes: {
     promo: boolean;
     /** Working hours */
     worktime: WorkTime[];
-    /** Модифакторы блюда */
+    /** Dish modifiers */
     modifiers: GroupModifier[];
     /**List of images of the dish*/
     images: MediaFileRecord[];

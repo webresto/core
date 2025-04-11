@@ -128,7 +128,7 @@ describe("Order", function () {
     expect(orderDishes[0].amount).to.equals(6);
 
     order = await Order.create({id:"adddish-same-dish-increase-amount-2"}).fetch();
-    await Order.addDish({id: order.id}, dishes[0], 1, [{ id: dishes[1].id, modifierId: dishes[1].id }], "", "user");
+    await Order.addDish({id: order.id}, dishes[0], 1, [{ id: dishes[1].id, modifierId: dishes[1].id, rmsId:  dishes[1].rmsId }], "", "user");
     await Order.addDish({id: order.id}, dishes[0], 1, null, "", "user");
     await Order.addDish({id: order.id}, dishes[0], 2, null, "", "user");
     orderDishes = await OrderDish.find({ order: order.id, dish: dishes[0].id });
@@ -202,7 +202,7 @@ describe("Order", function () {
     //await Order.addDish({id: order.id}, dishes[5], 1, [{ id: "modifier-with-zero-price", modifierId: "modifier-with-zero-price" }], "", "user");
     
     // // Modifier with price
-    await Order.addDish({id: order.id}, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id }], "", "user");
+    await Order.addDish({id: order.id}, dishes[5], 1, [{ id: dishes[6].id, modifierId: dishes[6].id, rmsId:  dishes[6].rmsId }], "", "user");
 
     
     let changedOrder = await Order.countCart({id: order.id});

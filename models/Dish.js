@@ -185,7 +185,7 @@ let attributes = {
     promo: "boolean",
     /** Working hours */
     worktime: "json",
-    /** Модифакторы блюда */
+    /** Dish modifiers */
     modifiers: {
         // collection: 'dish'
         type: "json",

@@ -1,5 +1,11 @@
 import { GroupModifier, OrderModifier } from "../interfaces/Modifier";
 
+interface ValidationResult {
+  groupId: string;
+  valid: boolean;
+  error?: string;
+}
+
 export class ProductModifier {
   private productModifiers: GroupModifier[];
 
@@ -7,31 +13,61 @@ export class ProductModifier {
     this.productModifiers = productModifiers;
   }
 
-  validate(orderModifiers: OrderModifier[]): void {
+  fillDefault(orderModifiers: OrderModifier[]): OrderModifier[] {
+    const filledModifiers = [...orderModifiers];
+  
     for (const group of this.productModifiers) {
-      this.validateGroupOrThrow(group, orderModifiers);
+      const { id: groupId, childModifiers } = group;
+  
+      for (const mod of childModifiers) {
+        if (mod.defaultAmount && mod.defaultAmount > 0) {
+          const alreadyAdded = filledModifiers.some(
+            m => m.id === mod.id && m.groupId === groupId
+          );
+  
+          if (!alreadyAdded) {
+            filledModifiers.push({
+              id: mod.id,
+              groupId,
+              amount: mod.defaultAmount,
+              rmsId: mod.rmsId
+            });
+          }
+        }
+      }
     }
+  
+    return filledModifiers;
+  }
+  
+
+  validate(orderModifiers: OrderModifier[]): ValidationResult[] {
+    return this.productModifiers.map(group => this.validateGroup(group, orderModifiers));
   }
 
-  private validateGroupOrThrow(group: GroupModifier, orderModifiers: OrderModifier[]): void {
+  private validateGroup(group: GroupModifier, orderModifiers: OrderModifier[]): ValidationResult {
     const { id: groupId, childModifiers, minAmount = 0, maxAmount = Infinity } = group;
 
-    const allowedModifierIds = new Set(childModifiers.map(m => m.id));  
+    const relevantOrderMods = orderModifiers.filter(mod => mod.groupId === groupId);
 
-    const relevantOrderMods = orderModifiers.filter(mod => allowedModifierIds.has(mod.id));
+    const allowedModifierIds = new Set(childModifiers.map(m => m.id));
 
-    const selectedAmount = relevantOrderMods.reduce((sum, mod) => sum + (mod.amount ?? 1), 0);
+    const selectedAmount = relevantOrderMods
+      .filter(mod => allowedModifierIds.has(mod.id))
+      .reduce((sum, mod) => sum + (mod.amount ?? 1), 0);
 
     if (selectedAmount < minAmount) {
       throw new Error(
-        `Group ${groupId ?? '[no id]'}: minimum required modifiers is ${minAmount}, but got ${selectedAmount}`
+        `Minimum number of modifiers for group ${groupId}: ${minAmount}, selected: ${selectedAmount}`
       );
     }
 
     if (selectedAmount > maxAmount) {
       throw new Error(
-        `Group ${groupId ?? '[no id]'}: maximum allowed modifiers is ${maxAmount}, but got ${selectedAmount}`
+        `Maximum number of modifiers for group ${groupId}: ${maxAmount}, selected: ${selectedAmount}`
       );
     }
+
+    return { groupId, valid: true };
   }
 }

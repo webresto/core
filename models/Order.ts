@@ -434,30 +434,34 @@ let Model = {
     if(process.env.EXPERIMENTAL) {
       const productModifier = new ProductModifier(dishObj.modifiers)  
       productModifier.validate(modifiers)
+      productModifier.fillDefault(modifiers)
+    } else {
+      /**
+       * Add default modifiers in add
+       */
+      const dishModifiers: GroupModifier[] = dishObj.modifiers ?? [];
+      dishModifiers.forEach(group => {
+        if (group.childModifiers) {
+          group.childModifiers.forEach(modifier => {
+            if (modifier.defaultAmount) {
+              const modifierIsAdded = modifiers.find(m => m.id === modifier.id)
+              if (!modifierIsAdded) {
+                modifiers.push(
+                  {
+                    id: modifier.id,
+                    amount: modifier.defaultAmount,
+                    rmsId: modifier.rmsId
+                  }
+                )
+              }
+            }
+          })
+        }
+      })
     }
 
-    /**
-     * Add default modifiers in add
-     */
-    const dishModifiers: GroupModifier[] = dishObj.modifiers ?? [];
-    dishModifiers.forEach(group => {
-      if (group.childModifiers) {
-        group.childModifiers.forEach(modifier => {
-          if (modifier.defaultAmount) {
-            const modifierIsAdded = modifiers.find(m => m.id === modifier.id)
-            if (!modifierIsAdded) {
-              modifiers.push(
-                {
-                  id: modifier.id,
-                  amount: modifier.defaultAmount,
-                  rmsId: modifier.rmsId
-                }
-              )
-            }
-          }
-        })
-      }
-    })
+
+    
 
     let order = await Order.findOne(criteria).populate("dishes");
     if (order.state === "NEW") {
@@ -1387,11 +1391,40 @@ let Model = {
             orderDish.weight = 0;
             orderDish.totalWeight = 0;
 
-            // orderDish.dishId = dish.id
-
+            /**
+             * Find modifier dish
+             */
             if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
               for await (let selectedModifier of orderDish.modifiers) {
-                const modifierObj = (await Dish.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.rmsId }] } }).limit(1))[0];
+
+                const whereConditions: any[] = [];
+
+                if (selectedModifier.id) {
+                  whereConditions.push({ id: selectedModifier.id });
+                }
+                
+                if (selectedModifier.rmsId) {
+                  whereConditions.push({ rmsId: selectedModifier.id });
+                  whereConditions.push({ rmsId: selectedModifier.rmsId });
+                }
+                
+                let dishes = await Dish.find({
+                  where: { or: whereConditions },
+                }).limit(2);
+                
+                if (dishes.length > 1 && selectedModifier.groupId) {
+                  dishes = await Dish.find({
+                    where: {
+                      //@ts-ignore todo: move to sequlize
+                      and: [
+                        { or: whereConditions },
+                        { parentGroup: selectedModifier.groupId },
+                      ],
+                    },
+                  }).limit(1);
+                }
+                
+                const modifierObj = dishes[0];
 
                 if (!modifierObj) {
                   throw "Dish with id " + selectedModifier.id + " not found!";

@@ -22,6 +22,10 @@ export interface OrderModifier {
    * @deprecated use id
    */
   modifierId?: string
+  /**
+   * restocore group.id
+   */
+  groupId?: string
 }
 
 

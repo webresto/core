@@ -231,7 +231,7 @@ let attributes = {
   /** Working hours */
   worktime: "json" as unknown as WorkTime[],
 
-  /** Модифакторы блюда */
+  /** Dish modifiers */
   modifiers: {
     // collection: 'dish'
     type: "json",

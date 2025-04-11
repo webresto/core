@@ -28,7 +28,17 @@ describe('Dish', function () {
         (0, chai_1.expect)(Dish.getDishModifiers).to.not.equals(undefined);
         let dishes = await Dish.find({});
         let group = (await Group.find({}).limit(1))[0];
-        let modifiers = [{ modifierId: group.id, childModifiers: [{ id: dishes[0].id, modifierId: dishes[0].id }] }];
+        let modifiers = [
+            {
+                modifierId: group.id,
+                childModifiers: [
+                    { id: dishes[0].id, modifierId: dishes[0].id, rmsId: dishes[0].rmsId }
+                ],
+                groupId: group.id,
+                id: "",
+                rmsId: ""
+            }
+        ];
         let dish = await Dish.createOrUpdate((0, dish_generator_1.default)({ name: "test dish modifiers", modifiers: modifiers, price: 100.1 }));
         dish = await Dish.getDishModifiers(dish);
         if (typeof dish.modifiers[0].group === "string" || typeof dish.modifiers[0].childModifiers[0].dish === "string")

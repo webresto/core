@@ -1,3 +1,4 @@
+import { GroupModifier } from "../../../interfaces/Modifier";
 import  dishGenerator   from "../../generators/dish.generator";
 import { expect } from "chai";
  
@@ -73,7 +74,16 @@ describe('Dish', function () {
 
     let group = (await Group.find({}).limit(1))[0];
 
-    let modifiers = [{modifierId: group.id, childModifiers: [{id: dishes[0].id, modifierId: dishes[0].id}]}];
+    let modifiers: GroupModifier[]  = [
+      {
+        modifierId: group.id, 
+        childModifiers: [
+          { id: dishes[0].id, modifierId: dishes[0].id, rmsId: dishes[0].rmsId }], 
+          groupId: group.id,
+        id: "",
+        rmsId: ""
+      }
+    ];
 
     let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers, price: 100.1 }) );
     dish = await Dish.getDishModifiers(dish);
