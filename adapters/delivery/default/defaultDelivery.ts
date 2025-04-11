@@ -47,7 +47,7 @@ export class DefaultDeliveryAdapter extends DeliveryAdapter {
     const minDeliveryAmount = await Settings.get("MIN_DELIVERY_AMOUNT");
     const minDeliveryTimeInMinutes = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
 
-    if(order.basketTotal < minDeliveryAmount ?? 0) {
+    if(order.basketTotal < (minDeliveryAmount || 0)) {
       return  {
         allowed:false,
         deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,

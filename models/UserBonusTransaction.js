@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
+const decimal_js_1 = __importDefault(require("decimal.js"));
 let attributes = {
     /** ID */
     id: {
@@ -97,7 +101,7 @@ let Model = {
                 throw `sync > user, bonusprogram, userBonusProgram not found`;
             }
             const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
-            let extBalance = parseFloat(new Decimal(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
+            let extBalance = parseFloat(new decimal_js_1.default(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
             userBonusProgram.balance = extBalance;
             sails.log.debug(`Start full sync UserBonusProgram for user ${user.login}`);
             if (balanceOnly) {

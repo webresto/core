@@ -25,7 +25,7 @@ import { PaymentDocumentRecord } from "./PaymentDocument";
 import ToInitialize from "../hook/initialize";
 import { or } from "ajv/dist/compile/codegen";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
-import { ProductModifier, validateGroupModifier } from "../libs/ProductModifier";
+import { ProductModifier } from "../libs/ProductModifier";
 
 export interface PromotionState {
   type: string;
@@ -449,7 +449,8 @@ let Model = {
               modifiers.push(
                 {
                   id: modifier.id,
-                  amount: modifier.defaultAmount
+                  amount: modifier.defaultAmount,
+                  rmsId: modifier.rmsId
                 }
               )
             }
@@ -1390,7 +1391,7 @@ let Model = {
 
             if (orderDish.modifiers && Array.isArray(orderDish.modifiers)) {
               for await (let selectedModifier of orderDish.modifiers) {
-                const modifierObj = (await Dish.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.id }] } }).limit(1))[0];
+                const modifierObj = (await Dish.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.rmsId }] } }).limit(1))[0];
 
                 if (!modifierObj) {
                   throw "Dish with id " + selectedModifier.id + " not found!";

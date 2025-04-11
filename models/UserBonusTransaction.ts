@@ -5,6 +5,8 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { BonusProgramRecord } from "./BonusProgram";
 import { UserRecord } from "./User";
+import Decimal from "decimal.js";
+import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 
 let attributes = {
   /** ID */

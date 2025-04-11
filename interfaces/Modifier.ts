@@ -5,23 +5,33 @@ import { DishRecord } from "../models/Dish";
 import { GroupRecord } from "../models/Group";
 
 export interface OrderModifier {
-  id: string // means rmsId
+  /**
+   * restocore dishId
+  */
+  id: string
+  
+  rmsId: string
   /**
    * Default for amount is 1
    * This will be changed in a future version to have stricter rules
    */
   amount?: number
   dish?: DishRecord  // TODO:  refactor to delete it from OrderModifier
-  modifierId?: string // TODO:  refactor to delete it from OrderModifier
+    /**
+   * meaning is rmsId
+   * @deprecated use id
+   */
+  modifierId?: string
 }
 
 
 
 interface BaseModifier {
   /**
-   * restocore dishId
+   * restocore id
   */
-  modifierId: string;
+  id?: string;
+  rmsId?: string;
   amount?: number;
   dish?: DishRecord | string;
   maxAmount?: number| null;
@@ -41,18 +51,31 @@ interface BaseModifier {
 
 export interface Modifier extends BaseModifier {
   /**
-  * rmsId
-  */
+   * meaning is rmsId
+   * @deprecated use id
+   */
+  modifierId: any;
   id: string;
+  rmsId: string;
 }
 
 
 export interface GroupModifier extends BaseModifier {
-  id?: string; // id не обязательный для поддержки вирутальных групп
+  /**
+   * restocore group.id
+   */
+  id: string;
+  rmsId: string;
   childModifiers: Modifier[];
   group?: GroupRecord | string;
   groupId?: string;
   isSingleModifierGroupWrapper?: boolean;
+
+  /**
+   * meaning is rmsId
+   * @deprecated use id
+   */
+  modifierId: string
 }
 
 
