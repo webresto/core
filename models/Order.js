@@ -1152,8 +1152,10 @@ let Model = {
                                     whereConditions.push({ id: selectedModifier.id });
                                 }
                                 if (selectedModifier.rmsId) {
-                                    whereConditions.push({ rmsId: selectedModifier.id });
                                     whereConditions.push({ rmsId: selectedModifier.rmsId });
+                                }
+                                else {
+                                    whereConditions.push({ rmsId: selectedModifier.id });
                                 }
                                 let dishes = await Dish.find({
                                     where: { or: whereConditions },
@@ -1169,9 +1171,10 @@ let Model = {
                                         },
                                     }).limit(1);
                                 }
-                                const modifierObj = dishes[0];
+                                const old_modifierObj = (await Dish.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.id }] } }).limit(1))[0];
+                                const modifierObj = dishes[0] || old_modifierObj;
                                 if (!modifierObj) {
-                                    throw "Dish with id " + selectedModifier.id + " not found!";
+                                    throw "Modifier with id " + selectedModifier.id + " not found!";
                                 }
                                 // let opts:  any = {}
                                 // await emitter.emit("core:order-countcart-before-calc-modifier", modifier, modifierObj, opts);

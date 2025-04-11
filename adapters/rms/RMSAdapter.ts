@@ -123,7 +123,7 @@ export default abstract class RMSAdapter {
           // Set all groups not in the list to inactive
           await Group.update({ where: { rmsId: { "!=": rmsGroupIds } } }, { isDeleted: true }).fetch();
 
-          sails.log.debug("ADAPTER RMS > syncProducts Groups:", JSON.stringify(rmsGroupIds))
+          sails.log.silly("ADAPTER RMS > syncProducts Groups:", JSON.stringify(rmsGroupIds))
 
           for (const group of currentRMSGroupsFlatTree) {
             emitter.emit("rms-sync:before-each-group-item", group);
@@ -157,7 +157,7 @@ export default abstract class RMSAdapter {
 
               // Set isDeleted for absent products in ERP
               await Dish.update({id: { nin: allProductIds }, parentGroup: group.id}, {isDeleted: true}).fetch();
-              sails.log.debug(`ADAPTER RMS > syncProducts sync Group [${group.id}] '${group.name}' dishes:`, JSON.stringify(productIds))
+              sails.log.silly(`ADAPTER RMS > syncProducts sync Group [${group.id}] '${group.name}' dishes:`, JSON.stringify(productIds))
               
               const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
               // Load images
