@@ -435,7 +435,7 @@ let Model = {
       const productModifier = new ProductModifier(dishObj.modifiers)  
       modifiers = productModifier.fillDefault(modifiers)
       modifiers = productModifier.ensureMinDefaults(modifiers)
-      productModifier.validate(modifiers)
+      // productModifier.validate(modifiers)
     } else {
       /**
        * Add default modifiers in add
