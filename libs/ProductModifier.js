@@ -5,6 +5,49 @@ class ProductModifier {
     constructor(productModifiers) {
         this.productModifiers = productModifiers;
     }
+    ensureMinDefaults(orderModifiers) {
+        const result = [...orderModifiers];
+        for (const group of this.productModifiers) {
+            const { id: groupId, minAmount = 0, childModifiers } = group;
+            if (minAmount < 1)
+                continue;
+            const selectedInGroup = result.filter(m => m.groupId === groupId);
+            const totalSelectedAmount = selectedInGroup.reduce((sum, mod) => sum + (mod.amount ?? 1), 0);
+            if (totalSelectedAmount === 0) {
+                // Проверяем, если есть модификаторы с defaultAmount
+                const defaultMods = childModifiers.filter(m => m.defaultAmount && m.defaultAmount > 0);
+                if (defaultMods.length > 0) {
+                    // Добавим дефолтные модификаторы до достижения minAmount
+                    let amountToFill = minAmount;
+                    for (const mod of defaultMods) {
+                        if (amountToFill <= 0)
+                            break;
+                        const addAmount = Math.min(mod.defaultAmount, amountToFill);
+                        result.push({
+                            id: mod.id,
+                            groupId,
+                            amount: addAmount,
+                            rmsId: mod.rmsId
+                        });
+                        amountToFill -= addAmount;
+                    }
+                }
+                else {
+                    // Если нет модификаторов с defaultAmount, устанавливаем первый модификатор на minAmount
+                    const firstModifier = childModifiers[0];
+                    if (firstModifier) {
+                        result.push({
+                            id: firstModifier.id,
+                            groupId,
+                            amount: minAmount,
+                            rmsId: firstModifier.rmsId
+                        });
+                    }
+                }
+            }
+        }
+        return result;
+    }
     fillDefault(orderModifiers) {
         const filledModifiers = [...orderModifiers];
         for (const group of this.productModifiers) {

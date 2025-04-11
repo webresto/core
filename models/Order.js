@@ -323,8 +323,9 @@ let Model = {
         }
         if (process.env.EXPERIMENTAL) {
             const productModifier = new ProductModifier_1.ProductModifier(dishObj.modifiers);
+            modifiers = productModifier.fillDefault(modifiers);
+            modifiers = productModifier.ensureMinDefaults(modifiers);
             productModifier.validate(modifiers);
-            productModifier.fillDefault(modifiers);
         }
         else {
             /**

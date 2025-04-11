@@ -7,6 +7,7 @@ interface ValidationResult {
 export declare class ProductModifier {
     private productModifiers;
     constructor(productModifiers: GroupModifier[]);
+    ensureMinDefaults(orderModifiers: OrderModifier[]): OrderModifier[];
     fillDefault(orderModifiers: OrderModifier[]): OrderModifier[];
     validate(orderModifiers: OrderModifier[]): ValidationResult[];
     private validateGroup;
