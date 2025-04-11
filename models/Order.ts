@@ -1287,7 +1287,27 @@ let Model = {
 
         if (orderDish.modifiers !== undefined && Array.isArray(orderDish.modifiers)) {
           for await (let modifier of orderDish.modifiers) {
-            modifier.dish = (await Dish.find({ id: modifier.id }).limit(1))[0];
+
+
+            const whereConditions: any[] = [];
+
+            if (modifier.id) {
+              whereConditions.push({ id: modifier.id });
+            }
+            
+            if (modifier.rmsId) {
+              whereConditions.push({ rmsId: modifier.rmsId });
+            } else {
+              whereConditions.push({ rmsId: modifier.id });
+            }
+
+            modifier.dish = (await Dish.find({
+              where: { or: whereConditions },
+            }).limit(1))[0];
+
+            if(!modifier.dish) {
+              sails.log.error(`Order > populate > modifier.dish not found`, JSON.stringify(modifier)) 
+            }
           }
         } else {
           throw `orderDish.modifiers not iterable orderDish: ${JSON.stringify(orderDish.modifiers, undefined, 2)}`
