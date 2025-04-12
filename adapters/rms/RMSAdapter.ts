@@ -156,7 +156,7 @@ export default abstract class RMSAdapter {
               let createdProduct = await Dish.createOrUpdate(productData);
 
               // Set isDeleted for absent products in ERP
-              await Dish.update({id: { nin: allProductIds }, parentGroup: group.id}, {isDeleted: true}).fetch();
+              await Dish.update({id: { "!=": allProductIds }}, {isDeleted: true}).fetch();
               sails.log.silly(`ADAPTER RMS > syncProducts sync Group [${group.id}] '${group.name}' dishes:`, JSON.stringify(productIds))
               
               const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
