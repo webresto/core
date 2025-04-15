@@ -201,6 +201,8 @@ export default abstract class RMSAdapter {
           }, 
             { isDeleted: true }
           ).fetch();
+
+          await Dish.update({id: { in: allProductIds }}, {isDeleted: false}).fetch();
           emitter.emit("rms-sync:after-sync-products");
         }
         return resolve();
