@@ -21,4 +21,9 @@ export interface IconfigDiscount {
      */
     excludeModifiers?: boolean;
     deliveryMethod?: ("delivery" | "selfService")[];
+    /** Exclude rules for dish or group */
+    exclude?: {
+        dishes?: string[] | null;
+        groups?: string[] | null;
+    };
 }

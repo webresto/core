@@ -152,8 +152,8 @@ export default abstract class RMSAdapter {
 
               // Update or create product
               product.concept = product.concept ?? "origin"
-              const productData = { ...product, isDeleted: false };
-              let createdProduct = await Dish.createOrUpdate(productData);
+
+              let createdProduct = await Dish.createOrUpdate(product);
 
               // Set isDeleted for absent products in ERP
               await Dish.update({id: { "!=": allProductIds }}, {isDeleted: true}).fetch();

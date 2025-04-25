@@ -15,7 +15,9 @@ class OrderHelper {
             allowSoonAsPossible: true,
             allowOrderToTime: true,
             nonce: 0,
-            bonusBannerHTMLChunk: null
+            bonusBannerHTMLChunk: null,
+            minCookingTimeInMinutes: 0,
+            cookingTimeDescription: null
         };
         await emitter.emit('core:order-init-checkout', populatedOrder, initCheckout);
         initCheckout.nonce = populatedOrder.nonce;

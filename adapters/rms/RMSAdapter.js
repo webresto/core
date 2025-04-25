@@ -113,8 +113,7 @@ class RMSAdapter {
                             emitter.emit("rms-sync:before-each-product-item", product);
                             // Update or create product
                             product.concept = product.concept ?? "origin";
-                            const productData = { ...product, isDeleted: false };
-                            let createdProduct = await Dish.createOrUpdate(productData);
+                            let createdProduct = await Dish.createOrUpdate(product);
                             // Set isDeleted for absent products in ERP
                             await Dish.update({ id: { "!=": allProductIds } }, { isDeleted: true }).fetch();
                             sails.log.silly(`ADAPTER RMS > syncProducts sync Group [${group.id}] '${group.name}' dishes:`, JSON.stringify(productIds));
