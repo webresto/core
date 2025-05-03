@@ -101,7 +101,7 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
         const orderDishes = await OrderDish.find({ order: order.id, addedBy: "user" }).populate("dish");
         let calculatedDiscountAmount = new decimal_js_1.default(0);
         // Discount that applies to all dishes
-        if (!this.config.dishes.length && !this.config.groups.length) {
+        if (!this.config.dishes.length && !this.config.groups.length && !this.config.exclude?.dishes?.length && !this.config.exclude?.groups?.length) {
             if (this.configDiscount.discountType === "percentage") {
                 calculatedDiscountAmount = new decimal_js_1.default(order.basketTotal)
                     .mul(+this.configDiscount.discountAmount / 100);
@@ -131,6 +131,12 @@ class ConfiguredPromotion extends AbstractPromotion_1.default {
                     false : !(0, stringsInArray_1.someInArray)(orderDish.dish.concept, this.concept)) {
                     continue;
                 }
+                let excludeDishes = this.config.exclude?.dishes || [];
+                let excludeGroups = this.config.exclude?.groups || [];
+                if (excludeDishes.includes(orderDish.dish.id))
+                    continue;
+                if (excludeGroups.includes(orderDish.dish.parentGroup))
+                    continue;
                 let checkDishes = (0, stringsInArray_1.someInArray)(orderDish.dish.id, this.config.dishes) || this.config.dishes.includes("*");
                 let checkGroups = (0, stringsInArray_1.someInArray)(orderDish.dish.parentGroup, this.config.groups) || this.config.groups.includes("*");
                 if (!checkDishes || !checkGroups)

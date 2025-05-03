@@ -143,7 +143,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
 
     // Discount that applies to all dishes
-    if (!this.config.dishes.length && !this.config.groups.length) {
+    if (!this.config.dishes.length && !this.config.groups.length && !this.config.exclude?.dishes?.length && !this.config.exclude?.groups?.length) {
       if (this.configDiscount.discountType === "percentage") {
         calculatedDiscountAmount = new Decimal(order.basketTotal)
           .mul(+this.configDiscount.discountAmount / 100);
@@ -179,8 +179,16 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           continue;
         }
 
+        let excludeDishes = this.config.exclude?.dishes || []
+        let excludeGroups = this.config.exclude?.groups || []
+
+        if(excludeDishes.includes(orderDish.dish.id)) continue
+        if(excludeGroups.includes(orderDish.dish.parentGroup)) continue
+
         let checkDishes = someInArray(orderDish.dish.id, this.config.dishes) || this.config.dishes.includes("*")
         let checkGroups = someInArray(orderDish.dish.parentGroup, this.config.groups) || this.config.groups.includes("*")
+
+
 
         if (!checkDishes || !checkGroups) continue
 
