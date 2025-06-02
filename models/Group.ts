@@ -446,8 +446,10 @@ let Model = {
         if(children) groups = children;
       }
     }
-    groups = groups.filter(group =>
-      WorkTimeValidator.isWorkNow({ worktime: group.worktime }).workNow
+    groups = groups.filter(group => {
+      if (!group.worktime) return true;
+       return WorkTimeValidator.isWorkNow({ worktime: group.worktime }).workNow
+      }
     );
     return groups.sort((a, b) => a.sortOrder - b.sortOrder);
   },
