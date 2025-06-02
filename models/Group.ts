@@ -5,7 +5,7 @@ import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { MediaFileRecord } from "./MediaFile";
 // todo: fix types model instance to {%ModelName%}Record for Dish";
-import { WorkTime } from "@webresto/worktime";
+import { WorkTime, WorkTimeValidator } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { Adapter } from "../adapters";
@@ -446,7 +446,9 @@ let Model = {
         if(children) groups = children;
       }
     }
-
+    groups = groups.filter(group =>
+      WorkTimeValidator.isWorkNow({ worktime: group.worktime }).workNow
+    );
     return groups.sort((a, b) => a.sortOrder - b.sortOrder);
   },
 

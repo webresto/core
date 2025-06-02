@@ -4,6 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
+// todo: fix types model instance to {%ModelName%}Record for Dish";
+const worktime_1 = require("@webresto/worktime");
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 const slugIt_1 = require("../libs/slugIt");
@@ -364,6 +366,7 @@ let Model = {
                     groups = children;
             }
         }
+        groups = groups.filter(group => worktime_1.WorkTimeValidator.isWorkNow({ worktime: group.worktime }).workNow);
         return groups.sort((a, b) => a.sortOrder - b.sortOrder);
     },
     /**
