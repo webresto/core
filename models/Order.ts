@@ -604,9 +604,9 @@ let Model = {
       await OrderDish.destroy({ id: orderDish.id }).fetch();
     }
 
-    await emitter.emit.apply(emitter, ["core:order-after-remove-dish", ...arguments]);
     await Order.next(order.id, "CART");
-    await Order.countCart({ id: order.id });
+    const countedBasket = await Order.countCart({ id: order.id });
+    await emitter.emit.apply(emitter, ["core:order-after-remove-dish", countedBasket, ...arguments]);
   },
 
   async setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number): Promise<void> {
@@ -638,9 +638,9 @@ let Model = {
       }
 
       await Order.next(order.id, "CART");
-      await Order.countCart({ id: order.id });
+      const resultOrder = await Order.countCart({ id: order.id });
       Order.update({ id: order.id }, order).fetch();
-      await emitter.emit.apply(emitter, ["core:order-after-set-count", ...arguments]);
+      await emitter.emit.apply(emitter, ["core:order-after-set-count", resultOrder, ...arguments]);
     } else {
       await emitter.emit.apply(emitter, ["core:order-set-count-reject-no-orderdish", ...arguments]);
       throw { body: `OrderDish dish id ${dish.id} not found`, code: 2 };
