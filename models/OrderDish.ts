@@ -96,6 +96,15 @@ interface OrderDish extends RequiredField<OptionalAll<attributes>, "dish" | "amo
 export interface OrderDishRecord extends RequiredField<OptionalAll<attributes>, "dish" | "amount" >, ORM {}
 
 let Model = {
+  afterCreate(newRecord: OrderDishRecord, proceed: () => void) {
+    emitter.emit("core:order-dish-changed", newRecord);
+    return proceed();
+  },
+
+  afterUpdate(newRecord: OrderDishRecord, proceed: () => void) {
+    emitter.emit("core:order-dish-changed", newRecord);
+    return proceed();
+  },
 };
 
 module.exports = {

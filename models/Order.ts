@@ -567,7 +567,6 @@ let Model = {
 
   //** Delete dish from order */
   async removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number, stack?: boolean): Promise<void> {
-    // TODO: delete stack
 
     await emitter.emit.apply(emitter, ["core:order-before-remove-dish", ...arguments]);
 

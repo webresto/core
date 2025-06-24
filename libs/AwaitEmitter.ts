@@ -89,7 +89,8 @@ declare global {
     "promotion-process:debug": [number, OrderRecord, PromotionRecord, any],
     "core:adapter-rms-sync-out-of-stock-touch": []
     "core:order-after-create": [OrderRecord],
-    "core:order-after-remove-dish": [OrderRecord, string, DishRecord, number, boolean]
+    "core:order-after-remove-dish": [OrderRecord, string, DishRecord, number, boolean],
+    "core:order-dish-changed": [OrderDishRecord]
   }
 }
 
