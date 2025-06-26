@@ -16,6 +16,8 @@ import { DialogBox } from "./DialogBox";
 import { InitCheckout } from "./helpers/OrderHelper";
 import { GetGroupType, GroupRecord } from "../models/Group";
 import { DishRecord } from "../models/Dish";
+import { CriteriaQuery } from "../interfaces/ORMModel";
+import { OrderModifier } from "../interfaces/Modifier";
 
 import { PaymentDocumentRecord } from "../models/PaymentDocument";
 import { SettingsRecord } from "../models/Settings";
@@ -85,12 +87,27 @@ declare global {
     "core:product-get-dishes": [DishRecord[]]
     "dialog-box:new": [DialogBox]
     "dialog-box:answer-received": [string, string]
+    "core:order-dish-changed": [OrderDishRecord],
     "core:add-product-before-write": [OrderRecord, DishRecord]
     "promotion-process:debug": [number, OrderRecord, PromotionRecord, any],
     "core:adapter-rms-sync-out-of-stock-touch": []
     "core:order-after-create": [OrderRecord],
-    "core:order-after-remove-dish": [OrderRecord, string, DishRecord, number, boolean],
-    "core:order-dish-changed": [OrderDishRecord]
+    "core:order-before-add-dish": [CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],
+    "core:order-add-dish-reject-amount": [CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],
+    "core:order-after-add-dish": [OrderDishRecord, CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],
+    "core:order-before-remove-dish": [CriteriaQuery<OrderRecord>, OrderDishRecord, number, boolean | undefined],
+    "core:order-remove-dish-reject-no-orderdish": [CriteriaQuery<OrderRecord>, OrderDishRecord, number, boolean | undefined],
+    "core:order-before-set-count": [CriteriaQuery<OrderRecord>, OrderDishRecord, number],
+    "core:order-set-count-reject-amount": [CriteriaQuery<OrderRecord>, OrderDishRecord, number],
+    "core:order-after-set-count": [OrderRecord, CriteriaQuery<OrderRecord>, OrderDishRecord, number],
+    "core:order-set-count-reject-no-orderdish": [CriteriaQuery<OrderRecord>, OrderDishRecord, number],
+    "core:order-before-set-comment": [CriteriaQuery<OrderRecord>, OrderDishRecord, string],
+    "core:order-after-set-comment": [CriteriaQuery<OrderRecord>, OrderDishRecord, string],
+    "core:order-set-comment-reject-no-orderdish": [CriteriaQuery<OrderRecord>, OrderDishRecord, string],
+    "core:order-was-cleared": [CriteriaQuery<OrderRecord>],
+    "core:order-set-tag": [CriteriaQuery<OrderRecord>, string],
+    "core:order-set-custom-data": [CriteriaQuery<OrderRecord>, object],
+    "core:order-after-remove-dish": [OrderRecord, string, DishRecord, number, boolean]
   }
 }
 
