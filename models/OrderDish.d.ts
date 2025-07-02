@@ -43,7 +43,10 @@ declare let attributes: {
 type attributes = typeof attributes;
 export interface OrderDishRecord extends RequiredField<OptionalAll<attributes>, "dish" | "amount">, ORM {
 }
-declare let Model: {};
+declare let Model: {
+    afterCreate(newRecord: OrderDishRecord, proceed: () => void): void;
+    afterUpdate(newRecord: OrderDishRecord, proceed: () => void): void;
+};
 declare global {
     const OrderDish: typeof Model & ORMModel<OrderDishRecord, "dish" | "amount">;
 }

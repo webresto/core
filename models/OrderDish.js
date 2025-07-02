@@ -61,7 +61,16 @@ let attributes = {
     /** Полный вес */
     totalWeight: "number",
 };
-let Model = {};
+let Model = {
+    afterCreate(newRecord, proceed) {
+        emitter.emit("core:order-dish-changed", newRecord);
+        return proceed();
+    },
+    afterUpdate(newRecord, proceed) {
+        emitter.emit("core:order-dish-changed", newRecord);
+        return proceed();
+    },
+};
 module.exports = {
     primaryKey: "id",
     attributes: attributes,

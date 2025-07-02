@@ -437,7 +437,6 @@ let Model = {
     },
     //** Delete dish from order */
     async removeDish(criteria, dish, amount, stack) {
-        // TODO: delete stack
         await emitter.emit.apply(emitter, ["core:order-before-remove-dish", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         if (order.state === "ORDER")
