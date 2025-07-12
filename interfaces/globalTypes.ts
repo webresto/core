@@ -98,6 +98,7 @@ declare global {
     SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS: number
     ROOT_GROUPS_RMS_TO_SYNC: string[]
     SKIP_LOAD_PRODUCT_IMAGES: boolean
+    DELETE_EXISTING_IMAGES_BEFORE_SYNC: boolean
     SHOW_UNAVAILABLE_DISHES: boolean
     [key: `SLUG_MENU_TOP_LEVEL_CONCEPT_${string}`]: string
     SLUG_MENU_TOP_LEVEL: string

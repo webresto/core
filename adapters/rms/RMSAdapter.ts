@@ -102,115 +102,125 @@ export default abstract class RMSAdapter {
       return this.syncProductsPromise.promise;
     }
 
-    const promise = new Promise<void>(async (resolve, reject) => {
-      try {
-        // TODO: implement concept
+    const promise = new Promise<void>((resolve, reject) => {
+      (async () => {
+        try {
+          // TODO: implement concept
 
-        let rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC");
-        if (!rootGroupsToSync) rootGroupsToSync = [];
+          let rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC");
+          if (!rootGroupsToSync) rootGroupsToSync = [];
 
-        const rmsAdapter = await Adapter.getRMSAdapter();
+          const rmsAdapter = await Adapter.getRMSAdapter();
 
-        const nomenclatureHasUpdated = await rmsAdapter.nomenclatureHasUpdated()
-        sails.log.silly("ADAPTER RMS > syncProducts, nomenclatureHasUpdated", nomenclatureHasUpdated);
-        if ( nomenclatureHasUpdated || force) {
-          sails.log.debug("ADAPTER RMS > syncProducts, nomenclatureHasUpdated", nomenclatureHasUpdated, "SYNC STARTED");
-          const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
+          const nomenclatureHasUpdated = await rmsAdapter.nomenclatureHasUpdated()
+          sails.log.silly("ADAPTER RMS > syncProducts, nomenclatureHasUpdated", nomenclatureHasUpdated);
+          if ( nomenclatureHasUpdated || force) {
+            sails.log.debug("ADAPTER RMS > syncProducts, nomenclatureHasUpdated", nomenclatureHasUpdated, "SYNC STARTED");
+            const currentRMSGroupsFlatTree = await rmsAdapter.loadNomenclatureTree(rootGroupsToSync);
 
-          // Get ids of all current RMS groups
-          const rmsGroupIds = currentRMSGroupsFlatTree.map((group) => group.rmsId);
+            // Get ids of all current RMS groups
+            const rmsGroupIds = currentRMSGroupsFlatTree.map((group) => group.rmsId);
 
-          // Set all groups not in the list to inactive
-          await Group.update({ where: { rmsId: { "!=": rmsGroupIds } } }, { isDeleted: true }).fetch();
+            // Set all groups not in the list to inactive
+            await Group.update({ where: { rmsId: { "!=": rmsGroupIds } } }, { isDeleted: true }).fetch();
 
-          sails.log.silly("ADAPTER RMS > syncProducts Groups:", JSON.stringify(rmsGroupIds))
+            sails.log.silly("ADAPTER RMS > syncProducts Groups:", JSON.stringify(rmsGroupIds))
 
-          for (const group of currentRMSGroupsFlatTree) {
-            emitter.emit("rms-sync:before-each-group-item", group);
-            group.concept = group.concept ?? "origin"
-            // Update or create a group
-            const groupData = { ...group, isDeleted: false };
-            await Group.createOrUpdate(groupData);
-          }
+            for (const group of currentRMSGroupsFlatTree) {
+              emitter.emit("rms-sync:before-each-group-item", group);
+              group.concept = group.concept ?? "origin"
+              // Update or create a group
+              const groupData = { ...group, isDeleted: false };
+              await Group.createOrUpdate(groupData);
+            }
 
-          // Collect all product ids
-          let allProductRMSIds: string[] = [];
-          let allProductIds: string[] = [];
+            // Collect all product ids
+            let allProductRMSIds: string[] = [];
+            let allProductIds: string[] = [];
 
-          
-          for (const group of currentRMSGroupsFlatTree) {
-            const productsToUpdate = await rmsAdapter.loadProductsByGroup(group);
+            
+            for (const group of currentRMSGroupsFlatTree) {
+              const productsToUpdate = await rmsAdapter.loadProductsByGroup(group);
 
-            // Get ids of all current products in a group
-            const productIds = productsToUpdate.map((product) => product.id);
-            allProductIds = allProductIds.concat(productIds);
-            // allProductRMSIds = allProductRMSIds.concat(productRMSIds);
+              // Get ids of all current products in a group
+              const productIds = productsToUpdate.map((product) => product.id);
+              allProductIds = allProductIds.concat(productIds);
+              // allProductRMSIds = allProductRMSIds.concat(productRMSIds);
 
-            for (let product of productsToUpdate) {
+              for (let product of productsToUpdate) {
 
-              emitter.emit("rms-sync:before-each-product-item", product);
+                emitter.emit("rms-sync:before-each-product-item", product);
 
-              // Update or create product
-              product.concept = product.concept ?? "origin"
+                // Update or create product
+                product.concept = product.concept ?? "origin"
 
-              let createdProduct = await Dish.createOrUpdate(product);
+                let createdProduct = await Dish.createOrUpdate(product);
 
-              // Set isDeleted for absent products in ERP
-              await Dish.update({id: { "!=": allProductIds }}, {isDeleted: true}).fetch();
-              sails.log.silly(`ADAPTER RMS > syncProducts sync Group [${group.id}] '${group.name}' dishes:`, JSON.stringify(productIds))
-              
-              const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
-              // Load images
-              if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
-                const isURL = (str: string) => /^(https?:\/\/|file:\/\/).+/.test(str);
-                for (let image of product.images as string[]) {
-                  if (isURL(image)) {
-                    // load image
-                    const mfAdater = await Adapter.getMediaFileAdapter();
-                    const mediaFileImage = await mfAdater.toProcess(image as string, "dish", "image");
-                    // await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
-                    const model = 'dish'
-                    let init: Record<string, string | number> = {};
-                    init[`mediafile_${model}`] = mediaFileImage.id;
-                    init[model] = createdProduct.id;
-                    init["sortOrder"] = 0;
-                    await SelectedMediaFile.create(init).fetch();		
-                  } else {
-                    sails.log.silly(`Image not url on sync products ${image}`);
-                    continue;
+                // Set isDeleted for absent products in ERP
+                await Dish.update({id: { "!=": allProductIds }}, {isDeleted: true}).fetch();
+                sails.log.silly(`ADAPTER RMS > syncProducts sync Group [${group.id}] '${group.name}' dishes:`, JSON.stringify(productIds))
+                
+                const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
+                const DELETE_EXISTING_IMAGES_BEFORE_SYNC = (await Settings.get("DELETE_EXISTING_IMAGES_BEFORE_SYNC")) ?? false;
+                
+                // Load images
+                if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
+                  // Delete existing images if setting is enabled
+                  if (DELETE_EXISTING_IMAGES_BEFORE_SYNC) {
+                    await SelectedMediaFile.destroy({ dish: createdProduct.id }).fetch();
+                    sails.log.silly(`Deleted existing images for dish ${createdProduct.id} before sync`);
+                  }
+                  
+                  const isURL = (str: string) => /^(https?:\/\/|file:\/\/).+/.test(str);
+                  for (let image of product.images as string[]) {
+                    if (isURL(image)) {
+                      // load image
+                      const mfAdater = await Adapter.getMediaFileAdapter();
+                      const mediaFileImage = await mfAdater.toProcess(image as string, "dish", "image");
+                      // await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
+                      const model = 'dish'
+                      let init: Record<string, string | number> = {};
+                      init[`mediafile_${model}`] = mediaFileImage.id;
+                      init[model] = createdProduct.id;
+                      init["sortOrder"] = 0;
+                      await SelectedMediaFile.create(init).fetch();
+                      
+                    } else {
+                      sails.log.silly(`Image not url on sync products ${image}`);
+                      continue;
+                    }
                   }
                 }
+
               }
+            } // end of groups loop
 
-            }
-          } // end of groups loop
+            // Find all inactive groups
+            const inactiveGroups = await Group.find({ isDeleted: true });
+            const inactiveGroupIds = inactiveGroups.map((group: GroupRecord) => group.id);
 
-          // Find all inactive groups
-          const inactiveGroups = await Group.find({ isDeleted: true });
-          const inactiveGroupIds = inactiveGroups.map((group: GroupRecord) => group.id);
+            // Delete all dishes in inactive groups or not in the updated list
+            await Dish.update({ 
+              where: { or: 
+                [
+                  { parentGroup: { in: inactiveGroupIds } }, 
+                  { id: { nin: allProductIds } }, 
+                  { parentGroup: null }
+                ] 
+              } 
+            }, 
+              { isDeleted: true }
+            ).fetch();
 
-          // Delete all dishes in inactive groups or not in the updated list
-          await Dish.update({ 
-            where: { or: 
-              [
-                { parentGroup: { in: inactiveGroupIds } }, 
-                { id: { nin: allProductIds } }, 
-                { parentGroup: null }
-              ] 
-            } 
-          }, 
-            { isDeleted: true }
-          ).fetch();
-
-          await Dish.update({id: { in: allProductIds }}, {isDeleted: false}).fetch();
-          emitter.emit("rms-sync:after-sync-products");
+            await Dish.update({id: { in: allProductIds }}, {isDeleted: false}).fetch();
+            emitter.emit("rms-sync:after-sync-products");
+          }
+          resolve();
+        } catch (error) {
+          sails.log.error(`RMS adapter syncProducts error:`, error);
+          reject(new Error(error));
         }
-        return resolve();
-      } catch (error) {
-        sails.log.error(`RMS adapter syncProducts error:`, error);
-        return reject(new Error(error));
-      }
-
+      })();
     });
     this.syncProductsPromise = new ObservablePromise(promise)
     return promise;
@@ -226,25 +236,27 @@ export default abstract class RMSAdapter {
       return this.syncOutOfStocksPromise.promise;
     }
 
-    const promise = new Promise<void>(async (resolve, reject) => {
-      try {
-        let outOfStocksDishes = await this.loadOutOfStocksDishes();
-        const outOfStocksDishesIds = outOfStocksDishes.map(d => d.rmsId);
+    const promise = new Promise<void>((resolve, reject) => {
+      (async () => {
+        try {
+          let outOfStocksDishes = await this.loadOutOfStocksDishes();
+          const outOfStocksDishesIds = outOfStocksDishes.map(d => d.rmsId);
 
-        await Dish.update({
-          rmsId: { nin: outOfStocksDishesIds },
-          balance: { '!=': -1 }
-        }, { balance: -1 }).fetch()
+          await Dish.update({
+            rmsId: { nin: outOfStocksDishesIds },
+            balance: { '!=': -1 }
+          }, { balance: -1 }).fetch()
 
-        for(let item of outOfStocksDishes) {
-          emitter.emit("rms-sync:out-of-stocks-before-each-product-item", item);
-          await Dish.update({rmsId: item.rmsId}, {balance: item.balance}).fetch()
+          for(let item of outOfStocksDishes) {
+            emitter.emit("rms-sync:out-of-stocks-before-each-product-item", item);
+            await Dish.update({rmsId: item.rmsId}, {balance: item.balance}).fetch()
+          }
+          resolve();
+        } catch (error) {
+          sails.log.error(`RMS adapter syncOutOfStocks error:`, error);
+          reject(new Error(error));
         }
-        return resolve();
-      } catch (error) {
-        sails.log.error(`RMS adapter syncOutOfStocks error:`, error);
-        return reject(new Error(error));
-      }
+      })();
     });
 
     this.syncOutOfStocksPromise = new ObservablePromise(promise)

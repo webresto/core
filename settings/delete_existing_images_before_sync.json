@@ -1,0 +1,7 @@
+{
+  "key": "DELETE_EXISTING_IMAGES_BEFORE_SYNC",
+  "type": "boolean",
+  "name": "Delete Existing Images Before Sync",
+  "description": "If enabled, existing images will be deleted before creating new ones during RMS sync",
+  "defaultValue": false
+} 
