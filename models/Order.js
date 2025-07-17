@@ -321,6 +321,9 @@ let Model = {
         if (dishObj.modifier) {
             throw new Error(`Dish [${dishObj.id}] is modifier`);
         }
+        if (dishObj.notForSale && addedBy === "user") {
+            throw new Error(`Dish [${dishObj.id}] is not for sale`);
+        }
         if (process.env.EXPERIMENTAL) {
             const productModifier = new ProductModifier_1.ProductModifier(dishObj.modifiers);
             modifiers = productModifier.fillDefault(modifiers);
@@ -1152,6 +1155,14 @@ let Model = {
                             }
                             emitter.emit("core:orderproduct-change-amount", orderDish);
                             sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
+                        }
+                        if (dish.notForSale) {
+                            sails.log.warn(`Dish with id ${dish.id} is marked as not for sale.`);
+                            orderDish.itemTotal = 0;
+                            orderDish.itemPrice = 0;
+                            orderDish.totalWeight = 0;
+                            await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
+                            continue;
                         }
                         orderDish.itemTotal = 0;
                         orderDish.weight = 0;

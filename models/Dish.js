@@ -183,6 +183,8 @@ let attributes = {
     modifier: "boolean",
     /**A sign that a promotional dish */
     promo: "boolean",
+    /**A sign that a promotional dish */
+    notForSale: "boolean",
     /** Working hours */
     worktime: "json",
     /** Dish modifiers */
@@ -229,6 +231,8 @@ let Model = {
             init.modifiers = [];
         if (init.visible === undefined)
             init.visible = true;
+        if (init.notForSale === undefined)
+            init.notForSale = false;
         if (!init.concept) {
             init.concept = "origin";
         }

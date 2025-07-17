@@ -99,6 +99,8 @@ declare let attributes: {
     modifier: boolean;
     /**A sign that a promotional dish */
     promo: boolean;
+    /**A sign that a promotional dish */
+    notForSale: boolean;
     /** Working hours */
     worktime: WorkTime[];
     /** Dish modifiers */

@@ -228,6 +228,9 @@ let attributes = {
   /**A sign that a promotional dish */
   promo: "boolean" as unknown as boolean,
 
+  /**A sign that a promotional dish */
+  notForSale: "boolean" as unknown as boolean,
+
   /** Working hours */
   worktime: "json" as unknown as WorkTime[],
 
@@ -301,6 +304,8 @@ let Model = {
 
     if (!init.modifiers) init.modifiers = []
     if (init.visible === undefined) init.visible = true;
+
+    if(init.notForSale === undefined) init.notForSale = false;
 
     if (!init.concept) {
       init.concept = "origin"
