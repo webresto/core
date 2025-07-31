@@ -805,232 +805,248 @@ let Model = {
     spendBonus?: SpendBonus
   ): Promise<void> {
 
-
-    let order: OrderRecord = await Order.findOne(criteria);
-
-    // CHECKING
-    // Check order empty
-    if (order.dishesCount === 0) {
-      throw {
-        code: 13,
-        error: "order is empty",
-      };
-    }
-
-    if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
-    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
-    if (order.promotionUnorderable === true) throw `Order not possible for order by promotion`;
-
-
-    //const order: OrderRecord = await Order.findOne(criteria);
-    if (order.paid) {
-      sails.log.error("CART > Check > error", order.id, "order is paid");
-      throw {
-        code: 12,
-        error: "order is paid",
-      };
-    }
-
-    /**
-     *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
-     */
-
-    emitter.emit("core:order-before-check", order, customer, isSelfService, address);
-
-    sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
-
-    // Start checking
-    await Order.next(order.id, "CART");
-    if (customer) {
-      await checkCustomerInfo(customer);
-      order.customer = { ...customer };
-    } else {
-      if (order.customer === null) {
+    try {
+      
+      let order: OrderRecord = await Order.findOne(criteria);
+  
+      // CHECKING
+      // Check order empty
+      if (order.dishesCount === 0) {
         throw {
-          code: 2,
-          error: "customer is required",
+          code: 13,
+          error: "order is empty",
         };
       }
-    }
-
-    if (order.user && userId && order.user !== userId) {
-      sails.log.error(`User on basket [${order.shortId}] not equall [${order.user}] passed user [${userId}]`)
-    } else {
-      order.user = userId;
-    }
-
-    await checkDate(order);
-
-    if (paymentMethodId) {
-      await checkPaymentMethod(paymentMethodId);
-      order.paymentMethod = paymentMethodId;
-      order.paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
-      order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
-    }
-
-    let softDeliveryCalculation: boolean = true;
-
-    /** if pickup, then you do not need to check the address*/
-    if (isSelfService) {
-      order.selfService = true;
-
-      emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
-    } else {
-      order.selfService = false;
-      softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
-      if (address) {
-        if (!address.city) address.city = await Settings.get("CITY");
-        checkAddress(address, softDeliveryCalculation);
-        order.address = { ...address };
+  
+      if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
+      if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+      if (order.promotionUnorderable === true) throw `Order not possible for order by promotion`;
+  
+  
+      //const order: OrderRecord = await Order.findOne(criteria);
+      if (order.paid) {
+        sails.log.error("CART > Check > error", order.id, "order is paid");
+        throw {
+          code: 12,
+          error: "order is paid",
+        };
+      }
+  
+      /**
+       *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
+       */
+  
+      emitter.emit("core:order-before-check", order, customer, isSelfService, address);
+  
+      sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
+  
+      // Start checking
+      await Order.next(order.id, "CART");
+      if (customer) {
+        await checkCustomerInfo(customer);
+        order.customer = { ...customer };
       } else {
-        if (!isSelfService && order.address === null && !softDeliveryCalculation) {
+        if (order.customer === null) {
           throw {
-            code: 5,
-            error: "address is required",
+            code: 2,
+            error: "customer is required",
           };
         }
       }
-    }
-
-
-    // Custom emitters checks
-    const results = await emitter.emit("core:order-check", order, customer, isSelfService, address, paymentMethodId);
-
-    delete (order.dishes);
-    await Order.update({ id: order.id }, { ...order }).fetch();
-
-    ////////////////////
-    // CHECKOUT COUNTING
-
-    try {
-      order = await Order.countCart({ id: order.id });
-    } catch (error) {
-      sails.log.error("Check countcart error:", error);
-      throw {
-        code: 14,
-        error: "Problem with counting cart",
-      };
-    }
-
-    if (!order.selfService && softDeliveryCalculation === false && order.delivery?.allowed === false) {
-      throw {
-        code: 11,
-        error: "Delivery not allowed",
-      };
-    }
-
-    /**
-     *  Bonus spending
-     * */
-    if (order.user && typeof order.user === "string" && spendBonus && spendBonus.bonusProgramId) {
-      if (spendBonus.amount < 0) {
-        spendBonus.amount = 0;
+  
+      if (order.user && userId && order.user !== userId) {
+        sails.log.error(`User on basket [${order.shortId}] not equall [${order.user}] passed user [${userId}]`)
+      } else {
+        order.user = userId;
       }
-
-      if (spendBonus.amount === 0) {
-        order.spendBonus.amount = 0;
-        order.bonusesTotal = 0;
+  
+      await checkDate(order);
+  
+      if (paymentMethodId) {
+        await checkPaymentMethod(paymentMethodId);
+        order.paymentMethod = paymentMethodId;
+        order.paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
+        order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
+      }
+  
+      let softDeliveryCalculation: boolean = true;
+  
+      /** if pickup, then you do not need to check the address*/
+      if (isSelfService) {
+        order.selfService = true;
+  
+        emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
+      } else {
+        order.selfService = false;
+        softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
+        if (address) {
+          if (!address.city) address.city = await Settings.get("CITY");
+          checkAddress(address, softDeliveryCalculation);
+          order.address = { ...address };
+        } else {
+          if (!isSelfService && order.address === null && !softDeliveryCalculation) {
+            throw {
+              code: 5,
+              error: "address is required",
+            };
+          }
+        }
+      }
+  
+  
+      // Custom emitters checks
+      const results = await emitter.emit("core:order-check", order, customer, isSelfService, address, paymentMethodId);
+  
+      delete (order.dishes);
+      await Order.update({ id: order.id }, { ...order }).fetch();
+  
+      ////////////////////
+      // CHECKOUT COUNTING
+  
+      try {
+        order = await Order.countCart({ id: order.id });
+      } catch (error) {
+        sails.log.error("Check countcart error:", error);
+        throw {
+          code: 14,
+          error: "Problem with counting cart",
+        };
+      }
+  
+      if (!order.selfService && softDeliveryCalculation === false && order.delivery?.allowed === false) {
+        throw {
+          code: 11,
+          error: "Delivery not allowed",
+        };
+      }
+  
+      /**
+       *  Bonus spending
+       * */
+      if (order.user && typeof order.user === "string" && spendBonus && spendBonus.bonusProgramId) {
+        if (spendBonus.amount < 0) {
+          spendBonus.amount = 0;
+        }
+  
+        if (spendBonus.amount === 0) {
+          order.spendBonus.amount = 0;
+          order.bonusesTotal = 0;
+          return;
+        }
+  
+        // load bonus strategy
+        let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
+        // Fetch the bonus program for this bonus spend
+        const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+        spendBonus.amount = parseFloat(new Decimal(spendBonus.amount).toFixed(bonusProgram.decimals))
+  
+  
+        // TODO: rewrite for Decimal.js
+        let amountToDeduct = 0;
+        switch (bonusSpendingStrategy) {
+          case 'bonus_from_order_total':
+            amountToDeduct = order.total;
+            break;
+          case 'bonus_from_basket_delivery_discount':
+            amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+            break;
+          case 'bonus_from_basket_and_delivery':
+            amountToDeduct = order.basketTotal + order.deliveryCost;
+            break;
+          case 'bonus_from_basket':
+            amountToDeduct = order.basketTotal;
+            break;
+          default:
+            throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+        }
+  
+        // Calculate maximum allowed bonus coverage
+        const maxBonusCoverage = new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage);
+  
+        // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+        let bonusCoverage: Decimal;
+        if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
+          bonusCoverage = new Decimal(spendBonus.amount);
+        } else {
+          bonusCoverage = maxBonusCoverage;
+        }
+  
+        // Deduct the bonus from the order total
+        order.spendBonus = spendBonus;
+        order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
+        order.bonusesTotal = bonusCoverage.toNumber();
+      }
+  
+  
+  
+      sails.log.silly("Order > check > after wait general emitter", order, results);
+      emitter.emit("core:order-after-check-counting", order);
+  
+      delete (order.dishes);
+      await Order.update({ id: order.id }, { ...order }).fetch();
+  
+  
+      /** The check can pass without listeners, because the check itself is minimal
+      * has basic checks. And is self-sufficient, but
+      * is still set by default so all checks must be passed
+      */
+      const checkConfig = await Settings.get("EMITTER_CHECKOUT_STRATEGY");
+  
+      /**
+       * If checkout policy not required then push next
+       * default is notRequired === undefined, then skip
+       * Because we have RMS adapter who has garaties for order Delivery
+       */
+      if (!checkConfig || checkConfig === "NOT_REQUIRED") {
+        if ((await Order.getState(order.id)) !== "CHECKOUT") {
+          await Order.next(order.id, "CHECKOUT");
+        }
         return;
       }
-
-      // load bonus strategy
-      let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
-      // Fetch the bonus program for this bonus spend
-      const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
-      spendBonus.amount = parseFloat(new Decimal(spendBonus.amount).toFixed(bonusProgram.decimals))
-
-
-      // TODO: rewrite for Decimal.js
-      let amountToDeduct = 0;
-      switch (bonusSpendingStrategy) {
-        case 'bonus_from_order_total':
-          amountToDeduct = order.total;
-          break;
-        case 'bonus_from_basket_delivery_discount':
-          amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
-          break;
-        case 'bonus_from_basket_and_delivery':
-          amountToDeduct = order.basketTotal + order.deliveryCost;
-          break;
-        case 'bonus_from_basket':
-          amountToDeduct = order.basketTotal;
-          break;
-        default:
-          throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
-      }
-
-      // Calculate maximum allowed bonus coverage
-      const maxBonusCoverage = new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage);
-
-      // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
-      let bonusCoverage: Decimal;
-      if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
-        bonusCoverage = new Decimal(spendBonus.amount);
+  
+  
+  
+      /** Success in all listeners by default */
+      const resultsCount = results.length;
+      const successCount = results.filter((r) => r.state === "success").length;
+  
+      if (resultsCount === successCount) {
+        if ((await Order.getState(order.id)) !== "CHECKOUT") {
+          await Order.next(order.id, "CHECKOUT");
+        }
+        return;
+      } else if (checkConfig === "ALL_REQUIRED") {
+        let error: string
+        // Find error reason
+        results.forEach(result => {
+          if (result.state === 'error' && result.error) {
+            sails.log.error(`Order > core:order-check error: ${result.error}`);
+            sails.log.error(result);
+            error = result.error
+          }
+        });
+  
+        throw {
+          code: 0,
+          error: `one or more results from core:order-check was not succeed\n last error: ${error}`,
+        };
       } else {
-        bonusCoverage = maxBonusCoverage;
+        // Todo: implement logic for "JUST_ONE"
       }
-
-      // Deduct the bonus from the order total
-      order.spendBonus = spendBonus;
-      order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
-      order.bonusesTotal = bonusCoverage.toNumber();
-    }
-
-
-
-    sails.log.silly("Order > check > after wait general emitter", order, results);
-    emitter.emit("core:order-after-check-counting", order);
-
-    delete (order.dishes);
-    await Order.update({ id: order.id }, { ...order }).fetch();
-
-
-    /** The check can pass without listeners, because the check itself is minimal
-    * has basic checks. And is self-sufficient, but
-    * is still set by default so all checks must be passed
-    */
-    const checkConfig = await Settings.get("EMITTER_CHECKOUT_STRATEGY");
-
-    /**
-     * If checkout policy not required then push next
-     * default is notRequired === undefined, then skip
-     * Because we have RMS adapter who has garaties for order Delivery
-     */
-    if (!checkConfig || checkConfig === "NOT_REQUIRED") {
-      if ((await Order.getState(order.id)) !== "CHECKOUT") {
-        await Order.next(order.id, "CHECKOUT");
-      }
-      return;
-    }
-
-
-
-    /** Success in all listeners by default */
-    const resultsCount = results.length;
-    const successCount = results.filter((r) => r.state === "success").length;
-
-    if (resultsCount === successCount) {
-      if ((await Order.getState(order.id)) !== "CHECKOUT") {
-        await Order.next(order.id, "CHECKOUT");
-      }
-      return;
-    } else if (checkConfig === "ALL_REQUIRED") {
-      let error: string
-      // Find error reason
-      results.forEach(result => {
-        if (result.state === 'error' && result.error) {
-          sails.log.error(`Order > core:order-check error: ${result.error}`);
-          sails.log.error(result);
-          error = result.error
+    } catch (error) {
+      sails.log.error("Order > check > error:", {
+        error,
+        args: {
+          criteria,
+          customer,
+          isSelfService,
+          address,
+          paymentMethodId,
+          userId,
+          spendBonus
         }
       });
-
-      throw {
-        code: 0,
-        error: `one or more results from core:order-check was not succeed\n last error: ${error}`,
-      };
-    } else {
-      // Todo: implement logic for "JUST_ONE"
+      throw error
     }
 
     /**
@@ -1695,7 +1711,7 @@ let Model = {
                 allowed: false,
                 cost: 0,
                 item: undefined,
-                message: error.replace(/[^\w\s]/gi, ''),
+                message: String(error).replace(/[^\w\s]/gi, ''),
                 deliveryTimeMinutes: undefined,
                 hasError: true
               }

@@ -25,7 +25,7 @@ export class POW extends CaptchaAdapter {
     // Tasks garbage collect
     Object.keys(POW.taskStorage).forEach((item) => {
       if (POW.taskStorage[item]) {
-        if (POW.taskStorage[item]?.time < Date.now() - 30 * 60 * 1000) delete(POW.taskStorage[item]);
+        if (POW.taskStorage[item]?.time < Date.now() - 6 * 60 * 60 * 1000) delete(POW.taskStorage[item]);
         if (POW.taskStorage[item]?.label === label) attempt++;
       }
     })
