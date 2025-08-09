@@ -4,7 +4,7 @@ export declare const models: {
         model: string;
         icon: string;
     };
-    products: {
+    dish: {
         model: string;
         title: string;
         icon: string;
@@ -14,7 +14,7 @@ export declare const models: {
         edit: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
         add: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
     };
-    groups: {
+    group: {
         model: string;
         title: string;
         icon: string;
@@ -24,7 +24,7 @@ export declare const models: {
         edit: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
         add: import("sails-adminpanel/interfaces/adminpanelConfig").CreateUpdateConfig;
     };
-    orders: {
+    order: {
         model: string;
         title: string;
         icon: string;
@@ -44,7 +44,7 @@ export declare const models: {
         title: string;
         icon: string;
     };
-    promotions: {
+    promotion: {
         model: string;
         title: string;
         icon: string;

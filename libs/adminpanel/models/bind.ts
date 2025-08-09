@@ -5,73 +5,73 @@ export const models = {
   user: {
     title: "User",
     model: "user",
-    icon: "user"
+    icon: "person"
   },
-  products: {
+  dish: {
     model: 'dish',
     title: 'Products',
-    icon: 'hamburger',
+    icon: 'restaurant_menu',
     list: ProductConfig.list(),
     edit: ProductConfig.edit(),
     add: ProductConfig.add(),
   },
-  groups: {
+  group: {
     model: 'group',
     title: 'Groups',
-    icon: 'folder',
+    icon: 'group',
     list: GroupConfig.list(),
     edit: GroupConfig.edit(),
     add: GroupConfig.add(),
   },
-  orders: {
+  order: {
     model: 'order',
     title: 'Orders',
-    icon: 'shopping-cart'
+    icon: 'shopping_cart'
   },
   bonusprogram: {
     model: 'bonusprogram',
     title: 'Bonus programs',
-    icon: 'comments-dollar'
+    icon: 'card_giftcard'
   },
   userbonusprogram: {
     model: 'userbonusprogram',
     title: 'User bonusprograms',
-    icon: 'money-bill-wave-alt'
+    icon: 'loyalty'
   },
   userbonustransaction: {
     model: 'userbonustransaction',
     title: 'Userbonus transactions',
-    icon: 'exchange-alt'
+    icon: 'swap_horiz'
   },
-  promotions: {
+  promotion: {
     model: 'promotion',
     title: 'Promotions',
-    icon: 'gift'
+    icon: 'local_offer'
   },
   promotioncode: {
     model: 'promotioncode',
     title: 'Promotion codes',
-    icon: 'qrcode'
+    icon: 'confirmation_number'
   },
   place: {
     model: 'place',
     title: 'Places',
-    icon: 'store'
+    icon: 'place'
   },
   street: {
     model: 'street',
     title: 'Street',
-    icon: 'road'
+    icon: 'location_on'
   },
   paymentMethod: {
     model: 'paymentmethod',
     title: 'Payment method',
-    icon: 'credit-card'
+    icon: 'payment'
   },
   maintenance: {
     model: "maintenance",
     title: "Scheduled Maintenance on the Website",
-    icon: "pause",
+    icon: "build",
     fields: {
       id: false,
       createdAt: false,
