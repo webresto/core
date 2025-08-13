@@ -1,3 +1,4 @@
+import { coreI18n } from "../../../hook/bindLocales";
 import { OneTimePasswordRecord } from "../../../models/OneTimePassword";
 import OneTimePasswordAdapter from "../OneTimePasswordAdapter";
 // todo: fix types model instance to {%ModelName%}Record for OneTimePassword"
@@ -18,7 +19,10 @@ export class DefaultOTP extends OneTimePasswordAdapter {
     let mainLoginField = await Settings.get("CORE_LOGIN_FIELD") ?? 'phone';
     if (NotificationManager.isChannelExist(mainLoginField === "phone" ? "sms" : mainLoginField)){
       try {
-        await NotificationManager.sendMessageToUser("info", `Your code is ${otp.password}`,{ phone: { code: "", number:login}});
+        let from = await Settings.get("PROJECT_NAME")
+        from = from ? from + ": " : ""
+        const message =  from + (await coreI18n(`Your secret login code:`)) + " " + otp.password
+        await NotificationManager.sendMessageToUser("info", message, { phone: { code: "", number:login}});
       } catch (error) {
         sails.log.error(`SEND OTP ERROR: ${error}`)
       }
