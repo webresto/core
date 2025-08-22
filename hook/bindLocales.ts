@@ -32,3 +32,20 @@ export default async function () {
     sails.log.warn("restocore bindTranslations > Error:", e);
   }
 }
+
+export async function coreI18n(key: string, target?: string): Promise<string> {
+  try {
+    const locales = sails.hooks.i18n.getLocales();
+    const currentLocale = target ?? await Settings.get("DEFAULT_LOCALE");
+
+    if (locales[currentLocale] && locales[currentLocale][key]) {
+      return locales[currentLocale][key];
+    } else {
+      console.warn(`Translation for key '${key}' not found in locale '${currentLocale}'`);
+      return key;
+    }
+  } catch (error) {
+    console.error(`Error translating key '${key}':`, error);
+    return key;
+  }
+}

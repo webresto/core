@@ -34,6 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = default_1;
+exports.coreI18n = coreI18n;
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 async function default_1() {
@@ -65,5 +66,22 @@ async function default_1() {
     }
     catch (e) {
         sails.log.warn("restocore bindTranslations > Error:", e);
+    }
+}
+async function coreI18n(key, target) {
+    try {
+        const locales = sails.hooks.i18n.getLocales();
+        const currentLocale = target ?? await Settings.get("DEFAULT_LOCALE");
+        if (locales[currentLocale] && locales[currentLocale][key]) {
+            return locales[currentLocale][key];
+        }
+        else {
+            console.warn(`Translation for key '${key}' not found in locale '${currentLocale}'`);
+            return key;
+        }
+    }
+    catch (error) {
+        console.error(`Error translating key '${key}':`, error);
+        return key;
     }
 }
