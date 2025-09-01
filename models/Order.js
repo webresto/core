@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
+const worktime_1 = require("@webresto/worktime");
 const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 const OrderHelper_1 = require("../libs/helpers/OrderHelper");
 const isValue_1 = require("../utils/isValue");
@@ -1738,6 +1739,21 @@ async function checkDate(order) {
                 code: 15,
                 error: "date is past",
             };
+        }
+        // Check requested date against WORK_TIME schedule
+        // Global worktime restriction via WORK_TIME settings
+        try {
+            const WORK_TIME = await Settings.get('WORK_TIME');
+            if (WORK_TIME) {
+                const { workNow } = worktime_1.WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME });
+                if (!workNow) {
+                    throw { code: 18, error: 'Order date is outside work time' };
+                }
+            }
+        }
+        catch (e) {
+            // If validator throws because of bad settings, do not block ordering silently
+            sails.log.error('Order > check > WORK_TIME validation error:', e);
         }
         // Добавляем минимальное время доставки к order.date
         const minDeliveryDate = Date.now() + MIN_DELIVERY_TIME_MINUTES * 60 * 1000;
