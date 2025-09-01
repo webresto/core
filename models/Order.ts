@@ -27,6 +27,7 @@ import ToInitialize from "../hook/initialize";
 import { or } from "ajv/dist/compile/codegen";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 import { ProductModifier } from "../libs/ProductModifier";
+import { normalizePercent } from "../utils/normalize";
 
 export interface PromotionState {
   type: string;
@@ -962,8 +963,14 @@ let Model = {
         }
 
         // Calculate maximum allowed bonus coverage
-        const maxBonusCoverage = new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage);
-
+        const maxBonusCoverage = new Decimal(amountToDeduct).mul(normalizePercent(bonusProgram.coveragePercentage));
+        // Ensure maxBonusCoverage is not greater than amountToDeduct
+        if (maxBonusCoverage.gt(amountToDeduct)) {
+          throw {
+            code: 19,
+            error: "Max bonus coverage exceeds allowable amount to deduct",
+          };
+        }
         // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
         let bonusCoverage: Decimal;
         if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {

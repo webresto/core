@@ -10,6 +10,7 @@ const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 const OrderHelper_1 = require("../libs/helpers/OrderHelper");
 const isValue_1 = require("../utils/isValue");
 const ProductModifier_1 = require("../libs/ProductModifier");
+const normalize_1 = require("../utils/normalize");
 let attributes = {
     /** Id  */
     id: {
@@ -774,7 +775,14 @@ let Model = {
                         throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
                 }
                 // Calculate maximum allowed bonus coverage
-                const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul(bonusProgram.coveragePercentage);
+                const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul((0, normalize_1.normalizePercent)(bonusProgram.coveragePercentage));
+                // Ensure maxBonusCoverage is not greater than amountToDeduct
+                if (maxBonusCoverage.gt(amountToDeduct)) {
+                    throw {
+                        code: 19,
+                        error: "Max bonus coverage exceeds allowable amount to deduct",
+                    };
+                }
                 // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
                 let bonusCoverage;
                 if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThan(maxBonusCoverage)) {

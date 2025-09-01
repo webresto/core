@@ -33,6 +33,7 @@ export interface BonusProgramRecord extends attributes, ORM {
 }
 declare let Model: {
     beforeCreate(init: BonusProgramRecord, cb: (err?: string) => void): void;
+    beforeUpdate(valuesToUpdate: Partial<BonusProgramRecord>, cb: (err?: string) => void): void;
     /**
      * Method for registration alive bonus program adapter
      * @param bonusProgramAdapter

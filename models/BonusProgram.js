@@ -5,6 +5,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const adapters_1 = require("../adapters");
 const uuid_1 = require("uuid");
+const normalize_1 = require("../utils/normalize");
 const aliveBonusPrograms = {};
 let attributes = {
     /** ID */
@@ -51,14 +52,11 @@ let Model = {
             init.id = (0, uuid_1.v4)();
         }
         // defaults
-        if (!init.coveragePercentage) {
-            init.coveragePercentage = 1;
+        if (init.coveragePercentage !== undefined) {
+            init.coveragePercentage = (0, normalize_1.normalizePercent)(init.coveragePercentage).toNumber();
         }
-        else if (init.coveragePercentage > 1) {
+        else {
             init.coveragePercentage = 1;
-        }
-        else if (init.coveragePercentage < 0) {
-            init.coveragePercentage = 0;
         }
         if (!init.exchangeRate) {
             init.exchangeRate = 1;
@@ -69,6 +67,12 @@ let Model = {
         // decimals
         if (!init.decimals) {
             init.decimals = 0;
+        }
+        cb();
+    },
+    beforeUpdate(valuesToUpdate, cb) {
+        if (valuesToUpdate.coveragePercentage !== undefined) {
+            valuesToUpdate.coveragePercentage = (0, normalize_1.normalizePercent)(valuesToUpdate.coveragePercentage).toNumber();
         }
         cb();
     },

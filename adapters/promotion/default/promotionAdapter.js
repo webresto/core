@@ -100,6 +100,7 @@ class PromotionAdapter extends AbstractPromotionAdapter_1.default {
             if (!record.worktime)
                 return true;
             try {
+                //@ts-ignore
                 return worktime_1.WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow;
             }
             catch (error) {
