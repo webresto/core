@@ -161,5 +161,6 @@ declare global {
      */
     STRICT_PHONE_VALIDATION: boolean
     BONUS_BANNER_HTML_CHUNK: string
+    DEFAULT_LOCALE: string
   }
 }

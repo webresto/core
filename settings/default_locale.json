@@ -1,0 +1,11 @@
+{
+  "key": "DEFAULT_LOCALE",
+  "type": "string",
+  "name": "Default Locale",
+  "description": "Default locale for the application. Default is 'en'.",
+  "jsonSchema": {
+    "type": "string",
+    "enum": ["en", "ru", "fr", "de"]
+  },
+  "isRequired": true
+}

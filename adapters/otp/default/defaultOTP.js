@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultOTP = void 0;
+const bindLocales_1 = require("../../../hook/bindLocales");
 const OneTimePasswordAdapter_1 = __importDefault(require("../OneTimePasswordAdapter"));
 // todo: fix types model instance to {%ModelName%}Record for OneTimePassword"
 class DefaultOTP extends OneTimePasswordAdapter_1.default {
@@ -22,7 +23,10 @@ class DefaultOTP extends OneTimePasswordAdapter_1.default {
         let mainLoginField = await Settings.get("CORE_LOGIN_FIELD") ?? 'phone';
         if (NotificationManager.isChannelExist(mainLoginField === "phone" ? "sms" : mainLoginField)) {
             try {
-                await NotificationManager.sendMessageToUser("info", `Your code is ${otp.password}`, { phone: { code: "", number: login } });
+                let from = await Settings.get("PROJECT_NAME");
+                from = from ? from + ": " : "";
+                const message = from + (await (0, bindLocales_1.coreI18n)(`Your secret login code:`)) + " " + otp.password;
+                await NotificationManager.sendMessageToUser("info", message, { phone: { code: "", number: login } });
             }
             catch (error) {
                 sails.log.error(`SEND OTP ERROR: ${error}`);
