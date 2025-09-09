@@ -8,6 +8,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
+import { normalizePercent } from "../utils/normalize";
 
 const aliveBonusPrograms: {
   [key: string]: BonusProgramAdapter
@@ -76,12 +77,10 @@ let Model = {
     }
 
     // defaults
-    if (!init.coveragePercentage) {
+    if (init.coveragePercentage !== undefined) {
+      init.coveragePercentage = normalizePercent(init.coveragePercentage).toNumber();
+    } else {
       init.coveragePercentage = 1;
-    }else if(init.coveragePercentage > 1) {
-      init.coveragePercentage = 1;
-    } else if (init.coveragePercentage < 0) {
-      init.coveragePercentage = 0;
     }
 
     if (!init.exchangeRate) {
@@ -97,6 +96,13 @@ let Model = {
       init.decimals = 0;
     }
 
+    cb();
+  },
+
+  beforeUpdate(valuesToUpdate: Partial<BonusProgramRecord>, cb: (err?: string) => void) {
+    if (valuesToUpdate.coveragePercentage !== undefined) {
+      valuesToUpdate.coveragePercentage = normalizePercent(valuesToUpdate.coveragePercentage).toNumber();
+    }
     cb();
   },
 

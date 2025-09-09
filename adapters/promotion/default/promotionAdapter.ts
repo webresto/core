@@ -110,6 +110,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       .filter((record) => {
         if (!record.worktime) return true;
         try {
+          //@ts-ignore
           return WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow;
         } catch (error) {
           sails.log.error("Promotion > helper > error: ", error);

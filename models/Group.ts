@@ -448,6 +448,7 @@ let Model = {
     }
     groups = groups.filter(group => {
       if (!group.worktime) return true;
+      //@ts-ignore
        return WorkTimeValidator.isWorkNow({ worktime: group.worktime }).workNow
       }
     );

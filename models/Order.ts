@@ -10,6 +10,7 @@ import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
+import { Restrictions, WorkTimeValidator } from "@webresto/worktime";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import { phoneValidByMask } from "../libs/phoneValidByMask";
 import { OrderHelper } from "../libs/helpers/OrderHelper";
@@ -26,6 +27,7 @@ import ToInitialize from "../hook/initialize";
 import { or } from "ajv/dist/compile/codegen";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 import { ProductModifier } from "../libs/ProductModifier";
+import { normalizePercent } from "../utils/normalize";
 
 export interface PromotionState {
   type: string;
@@ -434,8 +436,8 @@ let Model = {
       throw new Error(`Dish [${dishObj.id}] is not for sale`)
     }
 
-    if(process.env.EXPERIMENTAL) {
-      const productModifier = new ProductModifier(dishObj.modifiers)  
+    if (process.env.EXPERIMENTAL) {
+      const productModifier = new ProductModifier(dishObj.modifiers)
       modifiers = productModifier.fillDefault(modifiers)
       modifiers = productModifier.ensureMinDefaults(modifiers)
       // productModifier.validate(modifiers)
@@ -465,7 +467,7 @@ let Model = {
     }
 
 
-    
+
 
     let order = await Order.findOne(criteria).populate("dishes");
     if (order.state === "NEW") {
@@ -806,9 +808,9 @@ let Model = {
   ): Promise<void> {
 
     try {
-      
+
       let order: OrderRecord = await Order.findOne(criteria);
-  
+
       // CHECKING
       // Check order empty
       if (order.dishesCount === 0) {
@@ -817,12 +819,12 @@ let Model = {
           error: "order is empty",
         };
       }
-  
+
       if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
       if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
       if (order.promotionUnorderable === true) throw `Order not possible for order by promotion`;
-  
-  
+
+
       //const order: OrderRecord = await Order.findOne(criteria);
       if (order.paid) {
         sails.log.error("CART > Check > error", order.id, "order is paid");
@@ -831,15 +833,15 @@ let Model = {
           error: "order is paid",
         };
       }
-  
+
       /**
        *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
        */
-  
+
       emitter.emit("core:order-before-check", order, customer, isSelfService, address);
-  
+
       sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
-  
+
       // Start checking
       await Order.next(order.id, "CART");
       if (customer) {
@@ -853,28 +855,28 @@ let Model = {
           };
         }
       }
-  
+
       if (order.user && userId && order.user !== userId) {
         sails.log.error(`User on basket [${order.shortId}] not equall [${order.user}] passed user [${userId}]`)
       } else {
         order.user = userId;
       }
-  
+
       await checkDate(order);
-  
+
       if (paymentMethodId) {
         await checkPaymentMethod(paymentMethodId);
         order.paymentMethod = paymentMethodId;
         order.paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
         order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
       }
-  
+
       let softDeliveryCalculation: boolean = true;
-  
+
       /** if pickup, then you do not need to check the address*/
       if (isSelfService) {
         order.selfService = true;
-  
+
         emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
       } else {
         order.selfService = false;
@@ -892,17 +894,17 @@ let Model = {
           }
         }
       }
-  
-  
+
+
       // Custom emitters checks
       const results = await emitter.emit("core:order-check", order, customer, isSelfService, address, paymentMethodId);
-  
+
       delete (order.dishes);
       await Order.update({ id: order.id }, { ...order }).fetch();
-  
+
       ////////////////////
       // CHECKOUT COUNTING
-  
+
       try {
         order = await Order.countCart({ id: order.id });
       } catch (error) {
@@ -912,14 +914,14 @@ let Model = {
           error: "Problem with counting cart",
         };
       }
-  
+
       if (!order.selfService && softDeliveryCalculation === false && order.delivery?.allowed === false) {
         throw {
           code: 11,
           error: "Delivery not allowed",
         };
       }
-  
+
       /**
        *  Bonus spending
        * */
@@ -927,20 +929,20 @@ let Model = {
         if (spendBonus.amount < 0) {
           spendBonus.amount = 0;
         }
-  
+
         if (spendBonus.amount === 0) {
           order.spendBonus.amount = 0;
           order.bonusesTotal = 0;
           return;
         }
-  
+
         // load bonus strategy
         let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
         // Fetch the bonus program for this bonus spend
         const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
         spendBonus.amount = parseFloat(new Decimal(spendBonus.amount).toFixed(bonusProgram.decimals))
-  
-  
+
+
         // TODO: rewrite for Decimal.js
         let amountToDeduct = 0;
         switch (bonusSpendingStrategy) {
@@ -959,10 +961,16 @@ let Model = {
           default:
             throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
         }
-  
+
         // Calculate maximum allowed bonus coverage
-        const maxBonusCoverage = new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage);
-  
+        const maxBonusCoverage = new Decimal(amountToDeduct).mul(normalizePercent(bonusProgram.coveragePercentage));
+        // Ensure maxBonusCoverage is not greater than amountToDeduct
+        if (maxBonusCoverage.gt(amountToDeduct)) {
+          throw {
+            code: 19,
+            error: "Max bonus coverage exceeds allowable amount to deduct",
+          };
+        }
         // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
         let bonusCoverage: Decimal;
         if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
@@ -970,28 +978,28 @@ let Model = {
         } else {
           bonusCoverage = maxBonusCoverage;
         }
-  
+
         // Deduct the bonus from the order total
         order.spendBonus = spendBonus;
         order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
         order.bonusesTotal = bonusCoverage.toNumber();
       }
-  
-  
-  
+
+
+
       sails.log.silly("Order > check > after wait general emitter", order, results);
       emitter.emit("core:order-after-check-counting", order);
-  
+
       delete (order.dishes);
       await Order.update({ id: order.id }, { ...order }).fetch();
-  
-  
+
+
       /** The check can pass without listeners, because the check itself is minimal
       * has basic checks. And is self-sufficient, but
       * is still set by default so all checks must be passed
       */
       const checkConfig = await Settings.get("EMITTER_CHECKOUT_STRATEGY");
-  
+
       /**
        * If checkout policy not required then push next
        * default is notRequired === undefined, then skip
@@ -1003,13 +1011,13 @@ let Model = {
         }
         return;
       }
-  
-  
-  
+
+
+
       /** Success in all listeners by default */
       const resultsCount = results.length;
       const successCount = results.filter((r) => r.state === "success").length;
-  
+
       if (resultsCount === successCount) {
         if ((await Order.getState(order.id)) !== "CHECKOUT") {
           await Order.next(order.id, "CHECKOUT");
@@ -1025,7 +1033,7 @@ let Model = {
             error = result.error
           }
         });
-  
+
         throw {
           code: 0,
           error: `one or more results from core:order-check was not succeed\n last error: ${error}`,
@@ -1131,12 +1139,12 @@ let Model = {
 
         const bonusProgramAdapter = await BonusProgram.getAdapter(order.spendBonus.adapter);
         let user = null
-        if(typeof order.user === "string") {
-          user = await User.findOne({id: order.user})
+        if (typeof order.user === "string") {
+          user = await User.findOne({ id: order.user })
         } else {
           user = order.user
         }
-        
+
         const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: order.spendBonus.bonusProgramId });
 
         const transaction: BonusTransaction = {
@@ -1312,7 +1320,7 @@ let Model = {
             if (modifier.id) {
               whereConditions.push({ id: modifier.id });
             }
-            
+
             if (modifier.rmsId) {
               whereConditions.push({ rmsId: modifier.rmsId });
             } else {
@@ -1323,8 +1331,8 @@ let Model = {
               where: { or: whereConditions },
             }).limit(1))[0];
 
-            if(!modifier.dish) {
-              sails.log.error(`Order > populate > modifier.dish not found`, JSON.stringify(modifier)) 
+            if (!modifier.dish) {
+              sails.log.error(`Order > populate > modifier.dish not found`, JSON.stringify(modifier))
             }
           }
         } else {
@@ -1450,17 +1458,17 @@ let Model = {
                 if (selectedModifier.id) {
                   whereConditions.push({ id: selectedModifier.id });
                 }
-                
+
                 if (selectedModifier.rmsId) {
                   whereConditions.push({ rmsId: selectedModifier.rmsId });
                 } else {
                   whereConditions.push({ rmsId: selectedModifier.id });
                 }
-                
+
                 let dishes = await Dish.find({
                   where: { or: whereConditions },
                 }).limit(2);
-                
+
                 if (dishes.length > 1 && selectedModifier.groupId) {
                   dishes = await Dish.find({
                     where: {
@@ -1472,7 +1480,7 @@ let Model = {
                     },
                   }).limit(1);
                 }
-                
+
                 const old_modifierObj = (await Dish.find({ where: { or: [{ id: selectedModifier.id }, { rmsId: selectedModifier.id }] } }).limit(1))[0];
                 const modifierObj = dishes[0] || old_modifierObj;
 
@@ -1681,7 +1689,7 @@ let Model = {
       }
 
       // Calculate delivery costs
-      let delivery:Delivery = {
+      let delivery: Delivery = {
         deliveryTimeMinutes: 0,
         allowed: false,
         cost: 0,
@@ -1832,7 +1840,7 @@ let Model = {
       const phone = order.customer.phone.code + order.customer.phone.number + order.customer.phone.additionalNumber;
       const login = loginFiled === "phone" ? phone.replace(/\D/g, "") : `${phone}@localhost`;
 
-      user = await User.findOne({login});
+      user = await User.findOne({ login });
 
       if (!user) {
         user = await User.create({
@@ -1852,7 +1860,7 @@ let Model = {
     emitter.emit("core:order-after-done", order, user, { isNewUser });
   },
 
-  async doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord>{
+  async doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord> {
     let order = await Order.findOne(criteriaOne);
 
     if (order.state !== 'NEW') {
@@ -2076,6 +2084,21 @@ async function checkDate(order: OrderRecord) {
         code: 15,
         error: "date is past",
       };
+    }
+
+    // Check requested date against WORK_TIME schedule
+    // Global worktime restriction via WORK_TIME settings
+    try {
+      const WORK_TIME = await Settings.get('WORK_TIME');
+      if (WORK_TIME) {
+        const { workNow } = WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME } as Restrictions);
+        if (!workNow) {
+          throw { code: 18, error: 'Order date is outside work time' };
+        }
+      }
+    } catch (e) {
+      // If validator throws because of bad settings, do not block ordering silently
+      sails.log.error('Order > check > WORK_TIME validation error:', e);
     }
 
     // Добавляем минимальное время доставки к order.date
