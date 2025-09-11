@@ -611,7 +611,7 @@ let Model = {
     //     const maxBonusCoverage = new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage);
     //     // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
     //     let bonusCoverage: Decimal;
-    //     if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
+    //     if (spendBonus.amount && new Decimal(spendBonus.amount).lessThanORequla(maxBonusCoverage)) {
     //       bonusCoverage = new Decimal(spendBonus.amount);
     //     } else {
     //       bonusCoverage = maxBonusCoverage;
@@ -782,7 +782,7 @@ let Model = {
                 }
                 // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
                 let bonusCoverage;
-                if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThan(maxBonusCoverage)) {
+                if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThanOrEqualTo(maxBonusCoverage)) {
                     bonusCoverage = new decimal_js_1.default(spendBonus.amount);
                 }
                 else {

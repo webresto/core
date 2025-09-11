@@ -763,7 +763,7 @@ let Model = {
 
   //     // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
   //     let bonusCoverage: Decimal;
-  //     if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
+  //     if (spendBonus.amount && new Decimal(spendBonus.amount).lessThanORequla(maxBonusCoverage)) {
   //       bonusCoverage = new Decimal(spendBonus.amount);
   //     } else {
   //       bonusCoverage = maxBonusCoverage;
@@ -971,7 +971,7 @@ let Model = {
 
         // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
         let bonusCoverage: Decimal;
-        if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
+        if (spendBonus.amount && new Decimal(spendBonus.amount).lessThanOrEqualTo(maxBonusCoverage)) {
           bonusCoverage = new Decimal(spendBonus.amount);
         } else {
           sails.log.error(`Max bonus amount is [${maxBonusCoverage}] for order with id: ${order.id}, spendBonus ${JSON.stringify(spendBonus)}`)
