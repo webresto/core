@@ -778,10 +778,7 @@ let Model = {
                 const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul((0, normalize_1.normalizePercent)(bonusProgram.coveragePercentage));
                 // Ensure maxBonusCoverage is not greater than amountToDeduct
                 if (maxBonusCoverage.gt(amountToDeduct)) {
-                    throw {
-                        code: 19,
-                        error: "Max bonus coverage exceeds allowable amount to deduct",
-                    };
+                    throw "Max bonus coverage exceeds allowable amount to deduct";
                 }
                 // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
                 let bonusCoverage;
@@ -789,7 +786,11 @@ let Model = {
                     bonusCoverage = new decimal_js_1.default(spendBonus.amount);
                 }
                 else {
-                    bonusCoverage = maxBonusCoverage;
+                    sails.log.error(`Max bonus amount is [${maxBonusCoverage}] for order with id: ${order.id}, spendBonus ${JSON.stringify(spendBonus)}`);
+                    throw {
+                        code: 20,
+                        error: "The maximum number of bonuses for write-off has been exceeded",
+                    };
                 }
                 // Deduct the bonus from the order total
                 order.spendBonus = spendBonus;
