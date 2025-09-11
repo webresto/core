@@ -1491,8 +1491,10 @@ let Model = {
             delete (order.dishes);
             // Clean bonus info in basket
             if (order.state === "CART") {
-                order.bonusesTotal = null;
-                order.spendBonus = null;
+                if (order.spendBonus.amount) {
+                    order.spendBonus.amount = 0;
+                }
+                order.bonusesTotal = 0;
             }
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             emitter.emit("core:order-after-count", order);
