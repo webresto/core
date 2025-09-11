@@ -1489,13 +1489,6 @@ let Model = {
             // END calculate delivery cost
             order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
             delete (order.dishes);
-            // Clean bonus info in basket
-            if (order.state === "CART") {
-                if (order.spendBonus && order.spendBonus.amount) {
-                    order.spendBonus.amount = 0;
-                }
-                order.bonusesTotal = 0;
-            }
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             emitter.emit("core:order-after-count", order);
             return order;
