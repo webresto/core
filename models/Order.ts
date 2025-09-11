@@ -1371,8 +1371,6 @@ let Model = {
    */
   async countCart(criteria: CriteriaQuery<OrderRecord>, isPromoting: boolean = false): Promise<OrderRecord> {
     try {
-
-
       let order = await Order.findOne(criteria);
       if (order.isPromoting !== isPromoting) {
         let err = `CountCart: The order status does not match the passed parameters order.isPromoting [${order.isPromoting}], attribute [${isPromoting}], check your promotions`
@@ -1779,7 +1777,16 @@ let Model = {
 
       order.total = new Decimal(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
       delete (order.dishes)
+
+      // Clean bonus info in basket
+      if(order.state === "CART") {
+        order.bonusesTotal = null
+        order.spendBonus = null
+      }
+
       order = (await Order.update({ id: order.id }, order).fetch())[0];
+
+
 
       emitter.emit("core:order-after-count", order);
       return order;
