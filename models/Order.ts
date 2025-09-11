@@ -1780,7 +1780,7 @@ let Model = {
 
       // Clean bonus info in basket
       if(order.state === "CART") {
-          if(order.spendBonus.amount) {
+          if(order.spendBonus && order.spendBonus.amount) {
             order.spendBonus.amount = 0;
           }
           order.bonusesTotal = 0;
