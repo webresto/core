@@ -1,5 +1,4 @@
-import {File, MediaManagerItem, MediaFileType, UploaderFile} from 'sails-adminpanel/lib/media-manager/AbstractMediaManager'
-import {randomFileName} from "sails-adminpanel/lib/media-manager/helpers/MediaManagerHelper";
+import {File, MediaManagerItem, MediaFileType, UploaderFile} from 'adminizer'
 import sizeOf from "image-size";
 import sharp from "sharp"
 import { MediaFileRecord } from '../../../models/MediaFile';

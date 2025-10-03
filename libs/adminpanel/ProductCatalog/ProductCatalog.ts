@@ -1,4 +1,4 @@
-import {AbstractCatalog, AbstractGroup, AbstractItem, ActionHandler, Item} from "sails-adminpanel/lib/catalog/AbstractCatalog";
+import {AbstractCatalog, AbstractGroup, AbstractItem, ActionHandler, Adminizer, Item} from "adminizer";
 
 interface ItemModel {
 	id: string
@@ -9,8 +9,15 @@ interface ItemModel {
 }
 
 class BaseModelItem<T extends Item> extends AbstractItem<T> {
+	adminizer: Adminizer;
+	getAddTemplate(req: ReqType): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
+		throw new Error("Method not implemented.");
+	}
+	getEditTemplate(id: string | number, catalogId: string, req: ReqType, modelId?: string | number): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
+		throw new Error("Method not implemented.");
+	}
 	public updateModelItems(modelId: string | number, data: any, catalogId: string): Promise<T> {
-		throw Promise.resolve();
+		throw new Error("Not implemented");
 	}
 	
 	public type: string = "product";
@@ -27,8 +34,8 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 			name: data.name,
 			parentId: data.parentGroup,
 			sortOrder: data.sortOrder,
-			icon: "",
-			type: ""
+			icon: this.icon,
+			type: this.type
 		}
 	}
 
@@ -54,7 +61,7 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 		//@ts-ignore
 		data.parentGroup = data.parentId
 		let result = await sails.models[this.model].create(data).fetch()
-		return ;
+		return this.toItem(result) as T;
 	}
 
 	public async deleteItem(itemId: string | number, catalogId: string) {
@@ -120,6 +127,20 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 	public isGroup: boolean = true;
 	public model: string = "group";
 	public readonly actionHandlers: any[] = []
+
+	public getAddTemplate(req: ReqType): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
+		return Promise.resolve({
+			type: "navigation.link",
+			data: `/admin/model/groups/add?without_layout=true`
+		});
+	}
+
+	public getEditTemplate(id: string | number, catalogId: string, req: ReqType, modelId?: string | number): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
+		return Promise.resolve({
+			type: "navigation.link",
+			data: `/admin/model/groups/edit/${id}?without_layout=true`
+		});
+	}
 }
 
 export class Product<T extends Item> extends BaseModelItem<T> {
@@ -131,6 +152,19 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 	public readonly actionHandlers: any[] = []
 	public concept:  string = "origin";
 	
+	public getAddTemplate(req: ReqType): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
+		return Promise.resolve({
+			type: "navigation.link",
+			data: `/admin/model/products/add?without_layout=true`
+		});
+	}
+
+	public getEditTemplate(id: string | number, catalogId: string, req: ReqType, modelId?: string | number): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
+		return Promise.resolve({
+			type: "navigation.link",
+			data: `/admin/model/products/edit/${id}?without_layout=true`
+		});
+	}
 }
 
 export class ProductCatalog extends AbstractCatalog {
@@ -141,7 +175,7 @@ export class ProductCatalog extends AbstractCatalog {
 	public readonly actionHandlers: any[] = []
 
 	constructor() {
-		super([
+		super(sails.hooks.adminpanel.adminizer, [
 			new Group(),
 			new Product()
 		]);

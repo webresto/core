@@ -123,6 +123,19 @@ export const models = {
       }
     }
   },
+  mediafile: {
+    model: 'mediafile',
+    title: 'Media Files',
+    icon: 'image',
+    list: {
+      fields: {
+        id: true,
+        type: true,
+        original: true,
+        createdAt: true
+      }
+    }
+  },
   settings: {
     title: "Settings",
     model: "settings",
@@ -157,7 +170,7 @@ export const models = {
         jsonSchema: false,
         type: false,
         value: {
-          displayModifier(v) {
+          displayModifier(v: any) {
               sails.log.debug(v)
               if(typeof v === "object" && v !== null && Object.keys(v).length > 5) {
                 return "long object"

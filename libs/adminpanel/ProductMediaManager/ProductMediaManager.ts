@@ -1,19 +1,22 @@
 // todo: fix types model instance to {%ModelName%}Record for SelectedMediaFile";
-import {AbstractMediaManager, MediaManagerItem, File, MediaManagerWidgetItem, MediaManagerWidgetJSON, MediaManagerWidgetData, MediaManagerWidgetClientItem, SortCriteria} from "sails-adminpanel/lib/media-manager/AbstractMediaManager";
+import {AbstractMediaManager, MediaManagerItem, File, MediaManagerWidgetItem, MediaManagerWidgetJSON, MediaManagerWidgetData, MediaManagerWidgetClientItem, SortCriteria} from "adminizer";
 import {ImageItem} from "./Items";
 import { ConvertType } from "./helpers/ConvertType";
 
 export class ProductMediaManager extends AbstractMediaManager {
+	getItemsList(items: MediaManagerWidgetItem[]): Promise<MediaManagerWidgetClientItem[]> {
+		throw new Error("Method not implemented.");
+	}
 	id: string = 'product';
 	
 	constructor() {
-		super();
+		super(sails.hooks.adminpanel.adminizer);
 		this.itemTypes.push(new ImageItem('/image', process.cwd()+"/.tmp/public/image"));
 		console.log(this.itemTypes)
 	}
 	
 	public async setRelations(
-		data: MediaManagerWidgetData, 
+		data: [MediaManagerWidgetData], 
 		model: string, 
 		modelId: string, 
 		widgetName: string
@@ -27,7 +30,7 @@ export class ProductMediaManager extends AbstractMediaManager {
 		await SelectedMediaFile.destroy(destroy).fetch();
 	
 		// Debugging loop over data.list
-		for (const [key, widgetItem] of data.list.entries()) {
+		for (const [key, widgetItem] of data.entries()) {
 			let init: Record<string, string | number> = {};
 			init[`mediafile_${model}`] = widgetItem.id;
 			init[model] = modelId;
