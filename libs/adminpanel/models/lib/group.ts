@@ -2,6 +2,12 @@ import { CreateUpdateConfig, FieldsModels, MediaManagerOptionsField } from "sail
 
 export class GroupConfig {
     static fields: FieldsModels = {
+        createdAt: false,
+        updatedAt: false,
+        name: {
+            title: "Name",
+            tooltip: "The name of the group or dish category."
+        },
         id: {
             title: "Id",
             disabled: true
@@ -28,10 +34,7 @@ export class GroupConfig {
             title: "Is Deleted",
             tooltip: "Indicates if the group is soft-deleted."
         },
-        name: {
-            title: "Name",
-            tooltip: "The name of the group or dish category."
-        },
+
         seoDescription: {
             title: "SEO Description",
             tooltip: "Description for SEO purposes."
@@ -150,8 +153,6 @@ export class GroupConfig {
     }
 
     public static list(): { fields: FieldsModels } {
-        return {
-            fields: {}
-        };
+        return { fields: this.fields };
     }
 }

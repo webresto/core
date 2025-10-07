@@ -11,13 +11,13 @@ interface ItemModel {
 class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	adminizer: Adminizer;
 	getAddTemplate(req: ReqType): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
-		throw new Error("Method not implemented.");
+		throw new Error("must be inherited");
 	}
 	getEditTemplate(id: string | number, catalogId: string, req: ReqType, modelId?: string | number): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
-		throw new Error("Method not implemented.");
+		throw new Error("must be inherited");
 	}
 	public updateModelItems(modelId: string | number, data: any, catalogId: string): Promise<T> {
-		throw new Error("Not implemented");
+		throw new Error("must be inherited");
 	}
 	
 	public type: string = "product";
@@ -35,7 +35,9 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 			parentId: data.parentGroup,
 			sortOrder: data.sortOrder,
 			icon: this.icon,
-			type: this.type
+			type: this.type,
+			// childs: [],
+			// marked: false
 		}
 	}
 
@@ -100,11 +102,11 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 
 	public async getChilds(parentId: string, catalogId: string): Promise<Item[]> {
 		const records = await sails.models[this.model].find({
-			parentGroup: parentId,
+			parentGroup: parentId == "0" ? null : parentId,
 			concept: catalogId,
 			isDeleted: false
 		});
-		
+		console.log(this.model, records.length)
 		return records.map((record: ItemModel) => this.toItem(record));
 	}
 
@@ -146,7 +148,7 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 export class Product<T extends Item> extends BaseModelItem<T> {
 	public name: string = "Product";
 	public allowedRoot: boolean = true;
-	public icon = 'file'
+	public icon = 'summarize'
 	public type = 'product'
 	public model: string = "dish";
 	public readonly actionHandlers: any[] = []
