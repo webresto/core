@@ -10,6 +10,7 @@ interface ItemModel {
 
 class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	adminizer: Adminizer;
+	//@ts-ignore
 	getAddTemplate(req: ReqType): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
 		throw new Error("must be inherited");
 	}
@@ -78,27 +79,6 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	}
 	
 
-	public getAddHTML(): Promise<{ type: "link" | "html"; data: string; }> {
-		let type: 'link' = 'link'
-		let linkMap = this.model === 'dish' ? 'product' : this.model
-		return Promise.resolve({
-			type: type,
-			data: `/admin/model/${linkMap}s/add?without_layout=true`
-		})
-	}
-
-
-	public async getEditHTML(id: string | number, parenId?: string | number): Promise<{
-		type: "link" | "html";
-		data: string;
-	}> {
-		let type: 'link' = 'link'
-		let linkMap = this.model === 'dish' ? 'product' : this.model
-		return {
-			type: type,
-			data: `/admin/model/${linkMap}s/edit/${id}?without_layout=true`
-		}
-	}
 
 	public async getChilds(parentId: string, catalogId: string): Promise<Item[]> {
 		const records = await sails.models[this.model].find({
@@ -130,18 +110,32 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 	public model: string = "group";
 	public readonly actionHandlers: any[] = []
 
-	public getAddTemplate(req: ReqType): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
-		return Promise.resolve({
-			type: "navigation.link",
-			data: `/admin/model/groups/add?without_layout=true`
-		});
+	async getAddTemplate(req: any): Promise<any> {
+		return {
+		type: 'model',
+		data: {
+			model: this.model,
+			labels: {
+				title: req.i18n.__('Add Group'),
+				save: req.i18n.__('Save'),
+			},
+		},
+		};
 	}
 
-	public getEditTemplate(id: string | number, catalogId: string, req: ReqType, modelId?: string | number): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
-		return Promise.resolve({
-			type: "navigation.link",
-			data: `/admin/model/groups/edit/${id}?without_layout=true`
-		});
+	async getEditTemplate(id: string | number, catalogId: string, req: any): Promise<any> {
+		const item = await this.find(id);
+		return {
+		type: 'model',
+		data: {
+			item,
+			model: this.model,
+			labels: {
+			title: req.i18n.__('Edit Group'),
+			save: req.i18n.__('Save'),
+			},
+		},
+		};
 	}
 }
 
@@ -154,18 +148,29 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 	public readonly actionHandlers: any[] = []
 	public concept:  string = "origin";
 	
-	public getAddTemplate(req: ReqType): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
-		return Promise.resolve({
-			type: "navigation.link",
-			data: `/admin/model/products/add?without_layout=true`
-		});
+	public async getAddTemplate(req: ReqType): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
+		let type: 'model' = 'model'
+		let itemsDB = await sails.models[this.model].find({})
+		return {
+			type: type,
+			data: {
+				model: this.model,
+				labels: {
+					title: req.i18n.__('Add Product'),
+					save: req.i18n.__('Save'),
+				}
+			}
+		}
 	}
 
-	public getEditTemplate(id: string | number, catalogId: string, req: ReqType, modelId?: string | number): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
+	public async getEditTemplate(id: string | number, catalogId: string, req: ReqType, modelId?: string | number): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
+		console.log("Product getEditTemplate", id, catalogId);
 		return Promise.resolve({
-			type: "navigation.link",
-			data: `/admin/model/products/edit/${id}?without_layout=true`
-		});
+			type: 'model',
+			data: {
+				item: await this.find(id, catalogId)
+			}
+		})
 	}
 }
 
