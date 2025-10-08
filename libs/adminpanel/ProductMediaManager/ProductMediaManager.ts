@@ -18,7 +18,7 @@ export class ProductMediaManager extends AbstractMediaManager {
 	public async setRelations(
 		data: [MediaManagerWidgetData], 
 		model: string, 
-		modelId: string, 
+		modelId: string | number, 
 		widgetName: string
 	): Promise<void> {
 		sails.log.silly(`Starting setRelations for model: ${model}, modelId: ${modelId}, widgetName: ${widgetName}`);
@@ -44,16 +44,20 @@ export class ProductMediaManager extends AbstractMediaManager {
 		sails.log.debug(`Completed setRelations for model: ${model}, modelId: ${modelId}, widgetName: ${widgetName}`);
 	}
 
-	public async getRelations(items: MediaManagerWidgetItem[]): Promise<MediaManagerWidgetClientItem[]> {
+	public async getRelations(model: string, widgetName: string, modelId: string | number): Promise<MediaManagerWidgetClientItem[]> {
 		const widgetItems: MediaManagerWidgetClientItem[] = []
-		for (const item of items) {
-			let file = await MediaFile.findOne({id: item.id});
-			const widgetItem: MediaManagerWidgetClientItem = {
-				mimeType: `${file.type}/xxx`,
-				variants: null,
-				id: file.id
+		const selectedFiles = await SelectedMediaFile.find({ [model]: modelId }).sort('sortOrder ASC');
+		for (const selected of selectedFiles) {
+			const mediaFileId = (selected as any)[`mediafile_${model}`];
+			let file = await MediaFile.findOne({ id: mediaFileId });
+			if (file) {
+				const widgetItem: MediaManagerWidgetClientItem = {
+					mimeType: `${file.type}/xxx`,
+					variants: null,
+					id: file.id
+				}
+				widgetItems.push(widgetItem);
 			}
-			widgetItems.push(widgetItem);
 		}
 		return widgetItems
 	}
