@@ -14,6 +14,16 @@ export default function bindAdminpanel () {
     const mediaManagerHandler = sails.hooks.adminpanel.adminizer.mediaManagerHandler
     const productMediaManager = new ProductMediaManager()
     mediaManagerHandler.add(productMediaManager)
+
+    const adminizer = sails.hooks.adminpanel.adminizer;
+    adminizer.config.navbar.additionalLinks.push({
+      id: 'restoapp-catalog',
+      title: 'Products',
+      link: `/admin/catalog/products`,
+      icon: `book`,
+      accessToken: "restoapp-catalog",
+      section: 'Catalog'
+  });
   })
 }
 
@@ -38,6 +48,8 @@ function processBindAdminpanel(){
       icon: `barcode`
     });
   }
+
+
 
   // Add navbar link for product catalog
   if (sails.config.adminpanel.navbar && Array.isArray(sails.config.adminpanel.navbar.additionalLinks)) {
