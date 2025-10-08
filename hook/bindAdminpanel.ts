@@ -23,7 +23,14 @@ export default function bindAdminpanel () {
       icon: `book`,
       accessToken: "restoapp-catalog",
       section: 'Catalog'
-  });
+    });
+    adminizer.config.navbar.additionalLinks.push({
+      id: 'restoapp-catalog-preview',
+      title: 'Preview',
+      link: `/menu`,
+      icon: `web`,
+      section: 'Catalog'
+    });
   })
 }
 
