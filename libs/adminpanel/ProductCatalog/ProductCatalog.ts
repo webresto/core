@@ -128,11 +128,13 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 		return {
 		type: 'model',
 		data: {
-			item,
+			item: {
+				modelId: item.id
+			},
 			model: this.model,
 			labels: {
-			title: req.i18n.__('Edit Group'),
-			save: req.i18n.__('Save'),
+				title: req.i18n.__('Edit Group'),
+				save: req.i18n.__('Save'),
 			},
 		},
 		};
@@ -165,10 +167,18 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 
 	public async getEditTemplate(id: string | number, catalogId: string, req: ReqType, modelId?: string | number): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
 		console.log("Product getEditTemplate", id, catalogId);
+		const item = await this.find(id, catalogId) 
 		return Promise.resolve({
 			type: 'model',
 			data: {
-				item: await this.find(id, catalogId)
+				model: this.model,
+				item:  {
+					modelId: item.id
+				},
+				labels: {
+					title: req.i18n.__('Add Product'),
+					save: req.i18n.__('Save'),
+				}
 			}
 		})
 	}
