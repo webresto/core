@@ -38,7 +38,7 @@ export class ImageItem extends File<MediaManagerItem> {
             throw `get origin fail with id: ${id}`
         }
 
-        return path.resolve(process.cwd(), mf.originalFilePath || mf.original || '');
+        return (mf.originalFilePath || mf.original || '');
     }
 
 	public async getItems(limit: number, skip: number, sort: string): Promise<{ data: MediaManagerItem[]; next: boolean }> {
