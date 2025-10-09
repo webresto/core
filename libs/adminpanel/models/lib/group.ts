@@ -88,8 +88,15 @@ export class GroupConfig {
         images: {
             title: "Images",
             type: "mediamanager",
+
             options: {
                 id: "product",
+                group: "products",
+                accept: [
+                    'image/jpeg',
+                    // 'image/webp',
+                    'image/png'
+                ],
                 convert: 'image/jpeg',
                 sizes: [
                     {

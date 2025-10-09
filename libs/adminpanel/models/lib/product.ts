@@ -131,7 +131,13 @@ export class ProductConfig {
             type: 'mediamanager',
             options: {
                 id: "product",
-                convert: 'image/jpeg', // only 'image/webp' or 'image/jpeg'
+                group: "products",
+                accept: [
+                    'image/jpeg', 
+                    // 'image/webp',
+                    'image/png'
+                ],
+                convert: 'image/jpeg',
                 sizes: [
                     {
                         lg: {
