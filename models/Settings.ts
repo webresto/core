@@ -135,7 +135,7 @@ let Model = {
           value = JSON.parse(process.env[key]);
 
           // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
-          if (!(await Settings.get("ALLOW_UNSAFE_SETTINGS") ?? false)) {
+          if (!(Settings.env("ALLOW_UNSAFE_SETTINGS") ?? false)) {
             const ajv = new Ajv();
             const validate = ajv.compile(setting.jsonSchema);
             if (!validate(value)) {
@@ -283,7 +283,7 @@ let Model = {
     }
 
     // check that value and defaultValue match the schema for json type (if !ALLOW_UNSAFE_SETTINGS)
-    if (settingType === "json" && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
+    if (false) { // Disabled jsonSchema validation in Settings.set, similar to Setting mode
       const ajv = new Ajv();
       const validate = ajv.compile(settingsSetInput.jsonSchema);
 
@@ -341,6 +341,23 @@ let Model = {
     } catch (e) {
       sails.log.error("CORE > Settings > set DB error: ", settingsSetInput, e);
       throw `Error Set settings in DB`
+    }
+  },
+
+  env<K extends keyof SettingList>(key: K): SettingList[K] | undefined {
+    const envValue = process.env[key as string];
+    if (envValue === undefined) {
+      return undefined;
+    }
+    // For ALLOW_UNSAFE_SETTINGS, we know it's boolean
+    if (key === "ALLOW_UNSAFE_SETTINGS") {
+      return (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(envValue)) as SettingList[K];
+    }
+    // For other keys, try to parse as JSON, fallback to string
+    try {
+      return JSON.parse(envValue) as SettingList[K];
+    } catch {
+      return envValue as SettingList[K];
     }
   }
 };

@@ -97,7 +97,7 @@ let Model = {
                 try {
                     value = JSON.parse(process.env[key]);
                     // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
-                    if (!(await Settings.get("ALLOW_UNSAFE_SETTINGS") ?? false)) {
+                    if (!(Settings.env("ALLOW_UNSAFE_SETTINGS") ?? false)) {
                         const ajv = new ajv_1.default();
                         const validate = ajv.compile(setting.jsonSchema);
                         if (!validate(value)) {
@@ -136,6 +136,9 @@ let Model = {
         // if (!SettingsHelper.isInDeclaredSettings(key) && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
         //   sails.log.error(`Settings get: Requested setting [${key}] was not declared by specification`);
         //   return;
+        // }
+        // if(process.env[key] !== undefined) {
+        //     return cleanValue(process.env[key])
         // }
         if (settings[_key] !== undefined) {
             //@ts-ignore
@@ -232,7 +235,7 @@ let Model = {
             }
         }
         // check that value and defaultValue match the schema for json type (if !ALLOW_UNSAFE_SETTINGS)
-        if (settingType === "json" && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
+        if (settingType === "json" && !Settings.env("ALLOW_UNSAFE_SETTINGS")) {
             const ajv = new ajv_1.default();
             const validate = ajv.compile(settingsSetInput.jsonSchema);
             // undefined if value is from input, null if value is from origSettings
@@ -288,6 +291,22 @@ let Model = {
         catch (e) {
             sails.log.error("CORE > Settings > set DB error: ", settingsSetInput, e);
             throw `Error Set settings in DB`;
+        }
+    },
+    env(key) {
+        const envValue = process.env[key];
+        if (envValue === undefined) {
+            return undefined;
+        }
+        // For ALLOW_UNSAFE_SETTINGS, we know it's boolean
+        if (key === "ALLOW_UNSAFE_SETTINGS") {
+            return ["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(envValue);
+        }
+        // For other keys, try to parse as JSON, fallback to string
+        try {
+            return JSON.parse(envValue);
+        } catch {
+            return envValue;
         }
     }
 };

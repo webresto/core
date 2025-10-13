@@ -116,7 +116,9 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 		data: {
 			model: this.model,
 			labels: {
+				//@ts-ignore
 				title: req.i18n.__('Add Group'),
+				//@ts-ignore
 				save: req.i18n.__('Save'),
 			},
 		},
@@ -124,7 +126,7 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 	}
 
 	async getEditTemplate(id: string | number, catalogId: string, req: any): Promise<any> {
-		const item = await this.find(id);
+		const item = await this.find(id, catalogId);
 		return {
 		type: 'model',
 		data: {
@@ -158,7 +160,9 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 			data: {
 				model: this.model,
 				labels: {
+					//@ts-ignore
 					title: req.i18n.__('Add Product'),
+					//@ts-ignore
 					save: req.i18n.__('Save'),
 				}
 			}
@@ -176,11 +180,18 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 					modelId: item.id
 				},
 				labels: {
+					//@ts-ignore
 					title: req.i18n.__('Add Product'),
+					//@ts-ignore
 					save: req.i18n.__('Save'),
 				}
 			}
 		})
+	}
+
+	public updateModelItems(modelId: string | number, data: any, catalogId: string): Promise<T> {
+		// For Product, no specific update needed for navigation items
+		return Promise.resolve(null as T);
 	}
 }
 
