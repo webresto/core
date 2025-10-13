@@ -61,7 +61,7 @@ describe("TestPaymentSystem & PaymentAdapter basic testing", function () {
   //   });
 
   //   const result = await TestPaymentSystem.getInstance().createPayment(payment , "test");
-  //   expect(result.redirectLink).to.equal("http://test.webresto.dev");
+  //   expect(result.redirectLink).to.equal("http://test.resto.cloud");
 
   // });
 
