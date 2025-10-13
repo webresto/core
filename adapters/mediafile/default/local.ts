@@ -64,7 +64,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
         mediafileExtension = isFilePath[0].replace('.', '');
     }
     
-    const origin = this.getNameByUrl(url, mediafileExtension);
+    const origin = this.getNameByUrl(url, cfg.format);
 
     const name: ImageVariants = {
       origin: origin,
@@ -82,6 +82,13 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
         try {
           const fullPathDl = that.getOriginalFilePath(url, type, true);
           const localFilePath = url.slice(7);
+          
+          // Check if source file exists
+          if (!fs.existsSync(localFilePath)) {
+            sails.log.error(`Source file does not exist: ${localFilePath}`);
+            return;
+          }
+          
           sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
           const prefix = that.getPrefix(type, false);
     
@@ -117,7 +124,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
     return {
       variant: result,
-      originalFilePath: this.getOriginalFilePath(url, type)
+      originalFilePath: this.getOriginalFilePath(url, type, false, cfg.format)
     };
   }
 
@@ -163,7 +170,9 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       //baseName += `-${Math.floor(Date.now() / 1000)}`
     }
 
-    baseName += `.${ext}`;
+    // Default to 'jpg' if extension is empty or undefined
+    const fileExt = ext || 'jpg';
+    baseName += `.${fileExt}`;
     return baseName;
   }
 
@@ -173,20 +182,21 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     return absolute ? path.resolve(basePath) : basePath;
   }
 
-  getOriginalFilePath(url: string, type: MediaFileTypes, absolute: boolean = false){
+  getOriginalFilePath(url: string, type: MediaFileTypes, absolute: boolean = false, ext?: string){
     const prefix = this.getPrefix(type, absolute);
-    const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
-    let mediafileExtension = '';
-    if (isFilePath && isFilePath.length > 0) {
-        mediafileExtension = isFilePath[0].replace('.', '');
-    }
-    const originalFilePath = path.join(prefix, this.getNameByUrl(url, mediafileExtension));
+    const fileExt = ext || 'webp'; // Default to webp for images
+    const originalFilePath = path.join(prefix, this.getNameByUrl(url, fileExt));
     return originalFilePath;
   }
 
   protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<string> {
     const prefix = this.getPrefix(loadMediaFilesProcess.type);
-    const fullPathDl = this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type, true);
+    const isFilePath = loadMediaFilesProcess.url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
+    let mediafileExtension = '';
+    if (isFilePath && isFilePath.length > 0) {
+        mediafileExtension = isFilePath[0].replace('.', '');
+    }
+    const fullPathDl = this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type, true, mediafileExtension || 'webp');
   
     // Check if file exists
     if (!fs.existsSync(fullPathDl)) {

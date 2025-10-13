@@ -11,7 +11,7 @@ export class ProductMediaManager extends AbstractMediaManager {
 	
 	constructor() {
 		super(sails.hooks.adminpanel.adminizer);
-		this.itemTypes.push(new ImageItem('/image', "/.tmp/public/image"));
+		this.itemTypes.push(new ImageItem('image', '.tmp/public'));
 	}
 	
 	public async setRelations(

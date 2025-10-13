@@ -9,14 +9,29 @@ const path = require('path');
 
 
 export class ImageItem extends File<MediaManagerItem> {
+	constructor(urlPathPrefix: string, fileStoragePath: string) {
+		super(urlPathPrefix, fileStoragePath);
+	}
 
 	public getMeta(id: string): Promise<{ key: string; value: string; }[]> {
 		throw new Error('Method not implemented.');
 	}
 	public type: MediaFileType = "image";
 	public async upload(file: UploaderFile, filename: string, origFileName: string, group?: string): Promise<MediaManagerItem[]> {
+		sails.log.debug(`ImageItem.upload called with file:`, {
+			fieldname: file.fieldname,
+			originalname: file.originalname,
+			encoding: file.encoding,
+			mimetype: file.mimetype,
+			destination: file.destination,
+			filename: file.filename,
+			path: file.path,
+			size: file.size
+		});
 		const mfAdater = await Adapter.getMediaFileAdapter();
-		const mediaFile = await mfAdater.toProcess(`file://${file.fd}`, "dish", "image");	
+		const filePath = file.path || file.fd;
+		sails.log.debug(`Using file path: ${filePath}`);
+		const mediaFile = await mfAdater.toProcess(`file://${filePath}`, "dish", "image");	
 		let parent: MediaManagerItem = ConvertType.MF2Item(mediaFile);
 		return [parent];
 	}
