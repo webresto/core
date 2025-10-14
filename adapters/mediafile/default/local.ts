@@ -95,9 +95,10 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
           // Await each async operation to ensure completion before moving to the next step
           await fs.promises.mkdir(prefix, { recursive: true });
           await fs.promises.copyFile(localFilePath, fullPathDl);
-          await fs.promises.unlink(localFilePath);
+          // Don't delete the original file yet - it will be deleted after processing in loadMediaFiles
+          // await fs.promises.unlink(localFilePath);
     
-          sails.log.debug(`File copied and original deleted successfully. ${url}, ${fullPathDl}`);
+          sails.log.debug(`File copied successfully. ${url}, ${fullPathDl}`);
         } catch (error) {
           sails.log.error(`Failed to process file: ${error.message}`);
           sails.log.error(error)
@@ -275,6 +276,19 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
                     sails.log.silly(`MF local > process finished: ${loadMediaFilesProcess.name[size]}`);
                   } else {
                     sails.log.debug(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`);
+                  }
+                }
+                
+                // Delete the original uploaded file if it was a file:// URL
+                if (loadMediaFilesProcess.url.startsWith('file://')) {
+                  const originalFilePath = loadMediaFilesProcess.url.slice(7);
+                  try {
+                    if (fs.existsSync(originalFilePath)) {
+                      await fs.promises.unlink(originalFilePath);
+                      sails.log.debug(`MF local > deleted original uploaded file: ${originalFilePath}`);
+                    }
+                  } catch (unlinkError) {
+                    sails.log.warn(`MF local > failed to delete original file ${originalFilePath}: ${unlinkError.message}`);
                   }
                 }
                 break;
