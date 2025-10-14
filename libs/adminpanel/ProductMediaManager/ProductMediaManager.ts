@@ -11,7 +11,11 @@ export class ProductMediaManager extends AbstractMediaManager {
 	
 	constructor() {
 		super(sails.hooks.adminpanel.adminizer);
-		this.itemTypes.push(new ImageItem('image', '.tmp/public'));
+		// Set the fileStoragePath and urlPathPrefix for the AbstractMediaManager
+		this.fileStoragePath = '.tmp/public';
+		this.urlPathPrefix = 'image';
+		// Use relative path as adminizer's mediaManagerAdapter will combine it with process.cwd()
+		this.itemTypes.push(new ImageItem(this.urlPathPrefix, this.fileStoragePath));
 	}
 	
 	public async setRelations(
