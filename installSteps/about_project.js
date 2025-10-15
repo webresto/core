@@ -6,11 +6,11 @@ class AboutProjectStep {
     constructor() {
         this.canBeSkipped = false;
         this.description = 'About project';
-        this.ejsPath = path.resolve(__dirname, "../views/installSteps/about_project.ejs");
-        this.id = 'about-project-step';
+        this.ejsPath = path.resolve(__dirname, "../views/about_project.ejs");
+        this.id = 'about-coreproject-step';
         this.scriptsUrl = '';
         this.sortOrder = 0;
-        this.groupSortOrder = 1;
+        this.groupSortOrder = 0;
         this.stylesUrl = '';
         this.title = 'About Project';
         this.badge = 'about-project';
@@ -22,11 +22,13 @@ class AboutProjectStep {
     }
 
     async check() {
-        const recipe = await Settings.get("CITY");
-        if (recipe) {
-            return true;
-        }
+        console.log('Check AboutProjectStep');
         return this.isProcessed;
+        // const recipe = await Settings.get("CITY");
+        // if (recipe) {
+        //     return true;
+        // }
+        // return this.isProcessed;
     }
 
     async process(data, context) {
