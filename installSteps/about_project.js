@@ -1,6 +1,7 @@
 "use strict";
 
 const path = require("path");
+const fs = require("fs");
 
 class AboutProjectStep {
     constructor() {
@@ -15,23 +16,72 @@ class AboutProjectStep {
         this.title = 'About Project';
         this.badge = 'about-project';
         this.isSkipped = false;
-        this.settingsKeys = ["CITY"];
+        this.settingsKeys = [
+            "PROJECT_NAME",
+            "RESTOCORE_URL",
+            "COUNTRY_ISO",
+            "DEFAULT_CURRENCY_ISO",
+            "DEFAULT_LOCALE",
+            "FRONTEND_CHECKOUT_PAGE",
+            "FRONTEND_ORDER_PAGE"
+        ];
         this.renderer = "ejs";
         this.isProcessed = false;
         this.finallyDescription = null;
+        this.payload = {};
+        
+        // Load countries data into payload
+        try {
+            const countriesPath = path.resolve(__dirname, "../libs/dictionaries/countries.json");
+            const countriesData = fs.readFileSync(countriesPath, 'utf8');
+            this.payload.countries = JSON.parse(countriesData);
+        } catch (e) {
+            console.error('Failed to load countries data:', e);
+            this.payload.countries = [];
+        }
     }
 
     async check() {
         console.log('Check AboutProjectStep');
+        // Check if all required settings are filled
+        const requiredSettings = [
+            "PROJECT_NAME",
+            "RESTOCORE_URL", 
+            "COUNTRY_ISO",
+            "DEFAULT_CURRENCY_ISO",
+            "DEFAULT_LOCALE",
+            "FRONTEND_CHECKOUT_PAGE",
+            "FRONTEND_ORDER_PAGE"
+        ];
+        
+        for (const key of requiredSettings) {
+            const value = await Settings.get(key);
+            if (!value) {
+                return false;
+            }
+        }
+        
         return this.isProcessed;
-        // const recipe = await Settings.get("CITY");
-        // if (recipe) {
-        //     return true;
-        // }
-        // return this.isProcessed;
     }
 
     async process(data, context) {
+        // Save all settings from the form
+        const settingsToSave = [
+            "PROJECT_NAME",
+            "RESTOCORE_URL",
+            "COUNTRY_ISO",
+            "DEFAULT_CURRENCY_ISO",
+            "DEFAULT_LOCALE",
+            "FRONTEND_CHECKOUT_PAGE",
+            "FRONTEND_ORDER_PAGE"
+        ];
+        
+        for (const key of settingsToSave) {
+            if (data[key]) {
+                await Settings.set(key, { value: data[key] });
+            }
+        }
+        
         // save data in context to process it on last step
         Object.assign(context, data);
         this.isProcessed = true;

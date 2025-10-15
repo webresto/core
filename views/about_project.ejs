@@ -1,1 +1,610 @@
-<h1>About Project in development</h1>
+<div class="about-project-step">
+    <h1>About Project</h1>
+    <p>Please enter your project information to continue with the setup.</p>
+    
+    <form id="about-project-form">
+        <!-- Main Fields -->
+        <div class="form-group">
+            <label for="project-name">Project Name: <span class="required">*</span></label>
+            <input 
+                type="text" 
+                id="project-name" 
+                name="PROJECT_NAME" 
+                class="form-control" 
+                placeholder="Auto-filled as slug from domain" 
+                pattern="[a-z0-9-]+"
+                required 
+            />
+            <small class="form-text">Only lowercase letters, numbers, and hyphens allowed</small>
+        </div>
+
+        <div class="form-group">
+            <label for="country-iso">Country: <span class="required">*</span></label>
+            <select 
+                id="country-iso" 
+                name="COUNTRY_ISO" 
+                class="form-control" 
+                required
+            >
+                <option value="">Select country...</option>
+            </select>
+            <small class="form-text">Country for your application - auto-detected from your timezone</small>
+        </div>
+
+        <!-- Advanced Settings Spoiler -->
+        <div class="advanced-settings">
+            <button type="button" class="spoiler-toggle" id="advanced-toggle">
+                <span class="toggle-icon">▶</span>
+                <span class="toggle-text">Advanced Settings</span>
+            </button>
+            
+            <div class="spoiler-content" id="advanced-content">
+                <div class="form-group">
+                    <label for="restocore-url">RestoCore URL: <span class="required">*</span></label>
+                    <input 
+                        type="url" 
+                        id="restocore-url" 
+                        name="RESTOCORE_URL" 
+                        class="form-control" 
+                        placeholder="Auto-filled from current URL" 
+                        required 
+                    />
+                    <small class="form-text">URL of your RestoCore backend API</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="currency-iso">Default Currency ISO: <span class="required">*</span></label>
+                    <input 
+                        type="text" 
+                        id="currency-iso" 
+                        name="DEFAULT_CURRENCY_ISO" 
+                        class="form-control" 
+                        placeholder="Auto-filled from country" 
+                        maxlength="3"
+                        pattern="[A-Z]{3}"
+                        required 
+                    />
+                    <small class="form-text">Three-letter currency code (e.g., USD, EUR) - auto-detected from country</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="default-locale">Default Locale: <span class="required">*</span></label>
+                    <select 
+                        id="default-locale" 
+                        name="DEFAULT_LOCALE" 
+                        class="form-control" 
+                        required
+                    >
+                        <option value="">Select locale...</option>
+                    </select>
+                    <small class="form-text">Language for your application - auto-detected from country</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="frontend-checkout">Frontend Checkout Page: <span class="required">*</span></label>
+                    <input 
+                        type="url" 
+                        id="frontend-checkout" 
+                        name="FRONTEND_CHECKOUT_PAGE" 
+                        class="form-control" 
+                        placeholder="Auto-filled as {RestoCore URL}/checkout" 
+                        required 
+                    />
+                    <small class="form-text">URL of the checkout page in your frontend</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="frontend-order">Frontend Order Page: <span class="required">*</span></label>
+                    <input 
+                        type="url" 
+                        id="frontend-order" 
+                        name="FRONTEND_ORDER_PAGE" 
+                        class="form-control" 
+                        placeholder="Auto-filled as {RestoCore URL}/order" 
+                        required 
+                    />
+                    <small class="form-text">URL of the order page in your frontend</small>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .about-project-step {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .about-project-step h1 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .about-project-step p {
+        margin-bottom: 30px;
+        color: #666;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .required {
+        color: #dc3545;
+    }
+    
+    /* Override global ::after that adds extra asterisk */
+    .required::after {
+        content: none !important;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .form-control:invalid:not(:placeholder-shown) {
+        border-color: #dc3545;
+    }
+
+    .form-control:valid:not(:placeholder-shown) {
+        border-color: #28a745;
+    }
+
+    .form-text {
+        display: block;
+        margin-top: 5px;
+        font-size: 14px;
+        color: #6c757d;
+    }
+
+    select.form-control {
+        cursor: pointer;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23333' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 16px 16px;
+        padding-right: 35px;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+    
+    select.form-control option {
+        padding: 8px;
+    }
+    
+    /* Advanced Settings Spoiler */
+    .advanced-settings {
+        margin-top: 30px;
+        margin-bottom: 20px;
+    }
+    
+    .spoiler-toggle {
+        width: 100%;
+        padding: 12px 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .spoiler-toggle:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transform: translateY(-1px);
+    }
+    
+    .spoiler-toggle:active {
+        transform: translateY(0);
+    }
+    
+    .toggle-icon {
+        font-size: 14px;
+        transition: transform 0.3s ease;
+    }
+    
+    .spoiler-toggle.active .toggle-icon {
+        transform: rotate(90deg);
+    }
+    
+    .toggle-text {
+        flex: 1;
+        text-align: left;
+    }
+    
+    .spoiler-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+        padding: 0 15px;
+    }
+    
+    .spoiler-content.active {
+        max-height: 2000px;
+        padding: 20px 15px;
+        transition: max-height 0.6s ease-in;
+    }
+</style>
+
+<script>
+    // Countries data from server
+    const countriesData = <%- JSON.stringify(countries || []) %>;
+    
+    // Auto-fill URLs based on current browser location
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentOrigin = window.location.origin;
+        
+        // Setup spoiler toggle
+        const advancedToggle = document.getElementById('advanced-toggle');
+        const advancedContent = document.getElementById('advanced-content');
+        
+        advancedToggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            advancedContent.classList.toggle('active');
+        });
+        
+        // Collect all unique locales from countries data
+        const allLocales = new Set();
+        const localeNames = {
+            'en': 'English',
+            'ru': 'Russian',
+            'de': 'German',
+            'fr': 'French',
+            'es': 'Spanish',
+            'it': 'Italian',
+            'pt': 'Portuguese',
+            'nl': 'Dutch',
+            'pl': 'Polish',
+            'tr': 'Turkish',
+            'ar': 'Arabic',
+            'zh': 'Chinese',
+            'ja': 'Japanese',
+            'ko': 'Korean',
+            'hi': 'Hindi',
+            'th': 'Thai',
+            'vi': 'Vietnamese',
+            'id': 'Indonesian',
+            'uk': 'Ukrainian',
+            'cs': 'Czech',
+            'sv': 'Swedish',
+            'da': 'Danish',
+            'no': 'Norwegian',
+            'fi': 'Finnish',
+            'el': 'Greek',
+            'he': 'Hebrew',
+            'ca': 'Catalan',
+            'fa': 'Persian',
+            'ps': 'Pashto',
+            'sq': 'Albanian',
+            'hy': 'Armenian',
+            'bn': 'Bengali',
+            'bs': 'Bosnian',
+            'bg': 'Bulgarian',
+            'hr': 'Croatian',
+            'dz': 'Dzongkha',
+            'et': 'Estonian',
+            'ka': 'Georgian',
+            'hu': 'Hungarian',
+            'is': 'Icelandic',
+            'ga': 'Irish',
+            'lv': 'Latvian',
+            'lt': 'Lithuanian',
+            'mk': 'Macedonian',
+            'ms': 'Malay',
+            'mt': 'Maltese',
+            'mn': 'Mongolian',
+            'ne': 'Nepali',
+            'ro': 'Romanian',
+            'sr': 'Serbian',
+            'sk': 'Slovak',
+            'sl': 'Slovenian',
+            'so': 'Somali',
+            'sw': 'Swahili',
+            'tl': 'Tagalog',
+            'ta': 'Tamil',
+            'te': 'Telugu',
+            'ur': 'Urdu',
+            'uz': 'Uzbek',
+            'cy': 'Welsh',
+            'be': 'Belarusian',
+            'kk': 'Kazakh',
+            'ky': 'Kyrgyz',
+            'lo': 'Lao',
+            'my': 'Burmese',
+            'km': 'Khmer',
+            'si': 'Sinhala',
+            'am': 'Amharic',
+            'ti': 'Tigrinya',
+            'om': 'Oromo',
+            'ku': 'Kurdish',
+            'az': 'Azerbaijani',
+            'tk': 'Turkmen',
+            'tg': 'Tajik',
+            'ht': 'Haitian Creole',
+            'gd': 'Scottish Gaelic',
+            'kw': 'Cornish',
+            'lb': 'Luxembourgish',
+            'rm': 'Romansh',
+            'se': 'Northern Sami',
+            'fo': 'Faroese',
+            'kl': 'Greenlandic',
+            'rar': 'Rarotongan',
+            'ch': 'Chamorro',
+            'sm': 'Samoan',
+            'tet': 'Tetum',
+            'tkl': 'Tokelauan',
+            'bi': 'Bislama',
+            'sg': 'Sango',
+            'ln': 'Lingala',
+            'rn': 'Kirundi',
+            'ny': 'Chichewa',
+            'sn': 'Shona',
+            'nd': 'Northern Ndebele',
+            'ss': 'Swazi',
+            'tn': 'Tswana',
+            'ts': 'Tsonga',
+            've': 'Venda',
+            'xh': 'Xhosa',
+            'zu': 'Zulu',
+            'af': 'Afrikaans',
+            'st': 'Southern Sotho',
+            'qu': 'Quechua',
+            'gn': 'Guarani',
+            'ay': 'Aymara',
+            'zh-hans': 'Chinese (Simplified)',
+            'zh-hant': 'Chinese (Traditional)',
+            'pap': 'Papiamento',
+            'kaa': 'Karakalpak',
+            'crs': 'Seychellois Creole',
+            'ast': 'Asturian',
+            'eu': 'Basque',
+            'gl': 'Galician'
+        };
+        
+        countriesData.forEach(country => {
+            if (country.language && Array.isArray(country.language)) {
+                country.language.forEach(lang => {
+                    // Clean up language codes (remove spaces and extra characters)
+                    const cleanLang = lang.trim().replace(/^\s+/, '');
+                    if (cleanLang) {
+                        allLocales.add(cleanLang);
+                    }
+                });
+            }
+        });
+        
+        // Populate locale dropdown with sorted locales
+        const localeSelect = document.getElementById('default-locale');
+        const sortedLocales = Array.from(allLocales).sort((a, b) => {
+            const nameA = localeNames[a] || a;
+            const nameB = localeNames[b] || b;
+            return nameA.localeCompare(nameB);
+        });
+        
+        sortedLocales.forEach(locale => {
+            const option = document.createElement('option');
+            option.value = locale;
+            const localeName = localeNames[locale] || locale.toUpperCase();
+            option.textContent = `${localeName} (${locale})`;
+            localeSelect.appendChild(option);
+        });
+        
+        // Populate country dropdown
+        const countryIsoInput = document.getElementById('country-iso');
+        if (countryIsoInput && countriesData.length > 0) {
+            // Sort countries alphabetically by name
+            const sortedCountries = [...countriesData].sort((a, b) => 
+                a.name.localeCompare(b.name)
+            );
+            
+            // Add all countries to the dropdown
+            sortedCountries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country.iso;
+                option.textContent = `${country.name} (${country.iso})`;
+                countryIsoInput.appendChild(option);
+            });
+        }
+        
+        // Create country to currency map from countries.json
+        const countryToCurrency = {};
+        const countryToLanguage = {};
+        countriesData.forEach(country => {
+            if (country.iso && country.currencyISO) {
+                countryToCurrency[country.iso] = country.currencyISO;
+            }
+            if (country.iso && country.language && country.language.length > 0) {
+                // Use first language as default
+                countryToLanguage[country.iso] = country.language[0];
+            }
+        });
+        
+        // Function to get currency from country code
+        function getCurrencyFromCountry(countryCode) {
+            return countryToCurrency[countryCode] || 'USD'; // Default to USD
+        }
+        
+        // Function to get language/locale from country code
+        function getLocaleFromCountry(countryCode) {
+            return countryToLanguage[countryCode] || 'en'; // Default to English
+        }
+        
+        // Auto-fill Project Name as slug from hostname
+        const projectNameInput = document.getElementById('project-name');
+        if (projectNameInput && !projectNameInput.value) {
+            const hostname = window.location.hostname;
+            // Convert hostname to slug: only 0-9, a-z, and hyphens
+            const slug = hostname
+                .toLowerCase()
+                .replace(/[^a-z0-9-]/g, '-')  // Replace non-alphanumeric chars with hyphen
+                .replace(/-+/g, '-')           // Replace multiple hyphens with single hyphen
+                .replace(/^-+|-+$/g, '');      // Remove leading/trailing hyphens
+            projectNameInput.value = slug;
+        }
+        
+        // Auto-detect Country ISO from timezone or locale
+        let detectedCountryCode = 'US'; // Default fallback
+        
+        try {
+            // Try to get country from timezone first
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            // Map common timezones to country codes
+            const timezoneMap = {
+                'Europe/Moscow': 'RU',
+                'Europe/Kiev': 'UA',
+                'Europe/London': 'GB',
+                'Europe/Paris': 'FR',
+                'Europe/Berlin': 'DE',
+                'Europe/Rome': 'IT',
+                'Europe/Madrid': 'ES',
+                'America/New_York': 'US',
+                'America/Chicago': 'US',
+                'America/Los_Angeles': 'US',
+                'America/Denver': 'US',
+                'America/Toronto': 'CA',
+                'Asia/Tokyo': 'JP',
+                'Asia/Shanghai': 'CN',
+                'Asia/Seoul': 'KR',
+                'Asia/Dubai': 'AE',
+                'Asia/Kolkata': 'IN',
+                'Australia/Sydney': 'AU',
+            };
+            
+            if (timezoneMap[timezone]) {
+                detectedCountryCode = timezoneMap[timezone];
+            } else {
+                // Try to extract country from locale
+                const locale = navigator.language || navigator.userLanguage;
+                if (locale && locale.includes('-')) {
+                    const localeCountry = locale.split('-')[1];
+                    if (localeCountry && localeCountry.length === 2) {
+                        detectedCountryCode = localeCountry.toUpperCase();
+                    }
+                }
+            }
+        } catch (e) {
+            // Fallback to locale if timezone fails
+            try {
+                const locale = navigator.language || navigator.userLanguage;
+                if (locale && locale.includes('-')) {
+                    const localeCountry = locale.split('-')[1];
+                    if (localeCountry && localeCountry.length === 2) {
+                        detectedCountryCode = localeCountry.toUpperCase();
+                    }
+                }
+            } catch (e2) {
+                // Keep default US
+            }
+        }
+        
+        // Set detected country in dropdown if not already set
+        if (countryIsoInput && !countryIsoInput.value) {
+            countryIsoInput.value = detectedCountryCode;
+        }
+        
+        // Auto-fill Currency ISO based on Country ISO
+        const currencyIsoInput = document.getElementById('currency-iso');
+        
+        if (currencyIsoInput && !currencyIsoInput.value) {
+            const initialCountry = countryIsoInput.value || 'US';
+            currencyIsoInput.value = getCurrencyFromCountry(initialCountry);
+        }
+        
+        if (localeSelect && !localeSelect.value) {
+            const initialCountry = countryIsoInput.value || 'US';
+            const detectedLocale = getLocaleFromCountry(initialCountry);
+            // Set the select value if it exists in options
+            if (Array.from(localeSelect.options).some(opt => opt.value === detectedLocale)) {
+                localeSelect.value = detectedLocale;
+            }
+        }
+        
+        // Update currency and locale when country changes
+        countryIsoInput.addEventListener('change', function() {
+            const countryValue = this.value;
+            if (countryValue && countryValue.length === 2) {
+                currencyIsoInput.value = getCurrencyFromCountry(countryValue);
+                
+                const detectedLocale = getLocaleFromCountry(countryValue);
+                if (Array.from(localeSelect.options).some(opt => opt.value === detectedLocale)) {
+                    localeSelect.value = detectedLocale;
+                }
+            }
+        });
+        
+        // Auto-fill RestoCore URL with current origin
+        const restocoreUrlInput = document.getElementById('restocore-url');
+        if (restocoreUrlInput && !restocoreUrlInput.value) {
+            restocoreUrlInput.value = currentOrigin;
+        }
+        
+        // Auto-fill Frontend Checkout Page
+        const checkoutInput = document.getElementById('frontend-checkout');
+        if (checkoutInput && !checkoutInput.value) {
+            checkoutInput.value = currentOrigin + '/checkout';
+        }
+        
+        // Auto-fill Frontend Order Page
+        const orderInput = document.getElementById('frontend-order');
+        if (orderInput && !orderInput.value) {
+            orderInput.value = currentOrigin + '/order';
+        }
+        
+        // Update project name, checkout and order URLs when RestoCore URL changes
+        restocoreUrlInput.addEventListener('input', function() {
+            try {
+                const url = new URL(this.value);
+                const origin = url.origin;
+                const hostname = url.hostname;
+                
+                // Update project name from new hostname
+                if (projectNameInput.value === '' || projectNameInput.value === window.location.hostname.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '')) {
+                    const newSlug = hostname
+                        .toLowerCase()
+                        .replace(/[^a-z0-9-]/g, '-')
+                        .replace(/-+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    projectNameInput.value = newSlug;
+                }
+                
+                if (checkoutInput.value === '' || checkoutInput.value.startsWith(currentOrigin)) {
+                    checkoutInput.value = origin + '/checkout';
+                }
+                
+                if (orderInput.value === '' || orderInput.value.startsWith(currentOrigin)) {
+                    orderInput.value = origin + '/order';
+                }
+            } catch (e) {
+                // Invalid URL, ignore
+            }
+        });
+    });
+</script>
