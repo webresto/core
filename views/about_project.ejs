@@ -416,6 +416,11 @@
             localeSelect.appendChild(option);
         });
         
+        // Trigger change event to update form validation
+        if (localeSelect.options.length > 1) {
+            localeSelect.dispatchEvent(new Event('change'));
+        }
+        
         // Populate country dropdown
         const countryIsoInput = document.getElementById('country-iso');
         if (countryIsoInput && countriesData.length > 0) {
@@ -467,6 +472,8 @@
                 .replace(/-+/g, '-')           // Replace multiple hyphens with single hyphen
                 .replace(/^-+|-+$/g, '');      // Remove leading/trailing hyphens
             projectNameInput.value = slug;
+            // Trigger input event for validation
+            projectNameInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         
         // Auto-detect Country ISO from timezone or locale
@@ -528,6 +535,8 @@
         // Set detected country in dropdown if not already set
         if (countryIsoInput && !countryIsoInput.value) {
             countryIsoInput.value = detectedCountryCode;
+            // Trigger change event to update currency and locale
+            countryIsoInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
         
         // Auto-fill Currency ISO based on Country ISO
@@ -536,6 +545,8 @@
         if (currencyIsoInput && !currencyIsoInput.value) {
             const initialCountry = countryIsoInput.value || 'US';
             currencyIsoInput.value = getCurrencyFromCountry(initialCountry);
+            // Trigger input event for validation
+            currencyIsoInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         
         if (localeSelect && !localeSelect.value) {
@@ -544,6 +555,8 @@
             // Set the select value if it exists in options
             if (Array.from(localeSelect.options).some(opt => opt.value === detectedLocale)) {
                 localeSelect.value = detectedLocale;
+                // Trigger change event for validation
+                localeSelect.dispatchEvent(new Event('change', { bubbles: true }));
             }
         }
         
@@ -564,18 +577,21 @@
         const restocoreUrlInput = document.getElementById('restocore-url');
         if (restocoreUrlInput && !restocoreUrlInput.value) {
             restocoreUrlInput.value = currentOrigin;
+            restocoreUrlInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         
         // Auto-fill Frontend Checkout Page
         const checkoutInput = document.getElementById('frontend-checkout');
         if (checkoutInput && !checkoutInput.value) {
             checkoutInput.value = currentOrigin + '/checkout';
+            checkoutInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         
         // Auto-fill Frontend Order Page
         const orderInput = document.getElementById('frontend-order');
         if (orderInput && !orderInput.value) {
             orderInput.value = currentOrigin + '/order';
+            orderInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         
         // Update project name, checkout and order URLs when RestoCore URL changes
