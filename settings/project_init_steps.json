@@ -1,0 +1,11 @@
+{
+  "key": "PROJECT_INIT_STEPS",
+  "type": "number",
+  "name": "Project Initialization Steps",
+  "description": "Counter for completed initialization steps",
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 0
+  },
+  "isRequired": false
+}

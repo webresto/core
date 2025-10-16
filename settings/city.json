@@ -2,6 +2,11 @@
   "key": "CITY",
   "type": "string",
   "name": "City",
-  "description": "",
+  "description": "City where your project is located",
+  "jsonSchema": {
+    "type": "string",
+    "minLength": 2,
+    "maxLength": 100
+  },
   "isRequired": true
 }

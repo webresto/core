@@ -20,6 +20,7 @@ class AboutProjectStep {
             "PROJECT_NAME",
             "RESTOCORE_URL",
             "COUNTRY_ISO",
+            "CITY",
             "DEFAULT_CURRENCY_ISO",
             "DEFAULT_LOCALE",
             "FRONTEND_CHECKOUT_PAGE",
@@ -43,11 +44,20 @@ class AboutProjectStep {
 
     async check() {
         console.log('Check AboutProjectStep');
+        
+        // Check if step was already completed
+        const initSteps = await Settings.get("PROJECT_INIT_STEPS");
+        if (initSteps && initSteps >= 1) {
+            this.isProcessed = true;
+            return true;
+        }
+        
         // Check if all required settings are filled
         const requiredSettings = [
             "PROJECT_NAME",
             "RESTOCORE_URL", 
             "COUNTRY_ISO",
+            "CITY",
             "DEFAULT_CURRENCY_ISO",
             "DEFAULT_LOCALE",
             "FRONTEND_CHECKOUT_PAGE",
@@ -70,6 +80,7 @@ class AboutProjectStep {
             "PROJECT_NAME",
             "RESTOCORE_URL",
             "COUNTRY_ISO",
+            "CITY",
             "DEFAULT_CURRENCY_ISO",
             "DEFAULT_LOCALE",
             "FRONTEND_CHECKOUT_PAGE",
@@ -81,6 +92,9 @@ class AboutProjectStep {
                 await Settings.set(key, { value: data[key] });
             }
         }
+        
+        // Mark this step as completed
+        await Settings.set("PROJECT_INIT_STEPS", { value: 1 });
         
         // save data in context to process it on last step
         Object.assign(context, data);
