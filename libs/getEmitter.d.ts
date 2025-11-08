@@ -1,5 +1,5 @@
 import AwaitEmitter from "./AwaitEmitter";
 /**
- * Получение эмиттера ядра
+ * Getting the core emitter
  */
 export default function getEmitter(): AwaitEmitter;

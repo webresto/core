@@ -191,7 +191,7 @@ let attributes = {
         type: "number",
         defaultsTo: 0,
     },
-    /** Сдача */
+    /** Change */
     trifleFrom: {
         type: "number",
         defaultsTo: 0,
@@ -1071,7 +1071,7 @@ let Model = {
                 const _dish = orderDish.dish;
                 const dish = await Dish.findOne({
                     id: _dish.id,
-                    // проблема в том что корзина после заказа должна всеравно показывать блюда даже удаленные, для этого надо запекать данные.ы
+                    // the problem is that the cart after the order should still show dishes even deleted ones, for this you need to bake the data.
                     // isDeleted: false,
                 })
                     .populate("images")
@@ -1763,7 +1763,7 @@ async function checkDate(order) {
             // If validator throws because of bad settings, do not block ordering silently
             sails.log.error('Order > check > WORK_TIME validation error:', e);
         }
-        // Добавляем минимальное время доставки к order.date
+        // Adding minimum delivery time to order.date
         const minDeliveryDate = Date.now() + MIN_DELIVERY_TIME_MINUTES * 60 * 1000;
         if (minDeliveryDate > date.getTime()) {
             throw {

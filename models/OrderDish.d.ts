@@ -9,7 +9,7 @@ declare let attributes: {
     id: number;
     /** Quantity of this dish with its modifiers in the cart */
     amount: number;
-    /**Блюдо, которое содержится в корзине */
+    /**The dish that is contained in the cart */
     /** any problem */
     dish: DishRecord | string;
     /** Selected modifiers */
@@ -35,9 +35,9 @@ declare let attributes: {
     comment: string;
     /** The label who added */
     addedBy: string;
-    /** Вес */
+    /** Weight */
     weight: number;
-    /** Полный вес */
+    /** Full weight */
     totalWeight: number;
 };
 type attributes = typeof attributes;

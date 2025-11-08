@@ -17,10 +17,10 @@ let attributes = {
   /** Quantity of this dish with its modifiers in the cart */
   amount: "number" as unknown as number,
 
-  // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
-  // Есть идея что нужно отдельно запекать заказы.
+  // TODO: This needs to be rewritten because if the dish changes, the already sold cart changes. Here we need to store the baked dish.
+  // There is an idea that orders need to be baked separately.
 
-  /**Блюдо, которое содержится в корзине */
+  /**The dish that is contained in the cart */
   /** any problem */
   dish: {
     model: "Dish",
@@ -80,10 +80,10 @@ let attributes = {
     defaultsTo: "user", // promotion
   } as unknown as string,
 
-  /** Вес */
+  /** Weight */
   weight: "number" as unknown as number,
 
-  /** Полный вес */
+  /** Full weight */
   totalWeight: "number" as unknown as number,
 };
 

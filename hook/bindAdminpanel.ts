@@ -34,7 +34,7 @@ export default function bindAdminpanel () {
   })
 }
 
-// Добавляем метод для обновления моделей админки
+// Adding a method to update admin panel models
 function addModelConfig(newModels: Record<string, any>) {
   if (!sails.config.adminpanel || !sails.config.adminpanel.models) return;
   Object.assign(sails.config.adminpanel.models, newModels);
@@ -43,7 +43,7 @@ function addModelConfig(newModels: Record<string, any>) {
 
 
 function processBindAdminpanel(){
-  // Используем локальный addModelConfig
+  // Using local addModelConfig
   addModelConfig(models);
 
   if(Array.isArray(sails.config.adminpanel?.sections)){

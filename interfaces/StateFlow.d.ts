@@ -1,5 +1,5 @@
 /**
- * Описывает Stateflow объекты, в этом модуле это Cart
+ * Describes Stateflow objects, in this module it's Cart
  */
 export default interface StateFlow {
   state: string;

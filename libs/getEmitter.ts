@@ -3,7 +3,7 @@ import AwaitEmitter from "./AwaitEmitter";
 let emitter: AwaitEmitter;
 
 /**
- * Получение эмиттера ядра
+ * Getting the core emitter
  */
 export default function getEmitter(): AwaitEmitter {
   if (!emitter) {

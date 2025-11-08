@@ -14,10 +14,10 @@ class ProductModifier {
             const selectedInGroup = result.filter(m => m.groupId === groupId);
             const totalSelectedAmount = selectedInGroup.reduce((sum, mod) => sum + (mod.amount ?? 1), 0);
             if (totalSelectedAmount === 0) {
-                // Проверяем, если есть модификаторы с defaultAmount
+                // Check if there are modifiers with defaultAmount
                 const defaultMods = childModifiers.filter(m => m.defaultAmount && m.defaultAmount > 0);
                 if (defaultMods.length > 0) {
-                    // Добавим дефолтные модификаторы до достижения minAmount
+                    // Add default modifiers until minAmount is reached
                     let amountToFill = minAmount;
                     for (const mod of defaultMods) {
                         if (amountToFill <= 0)
@@ -33,7 +33,7 @@ class ProductModifier {
                     }
                 }
                 else {
-                    // Если нет модификаторов с defaultAmount, устанавливаем первый модификатор на minAmount
+                    // If there are no modifiers with defaultAmount, set the first modifier to minAmount
                     const firstModifier = childModifiers[0];
                     if (firstModifier) {
                         result.push({

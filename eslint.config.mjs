@@ -32,7 +32,7 @@ export default [
         },
 
         rules: {
-            // Отключаем все правила, кроме @typescript-eslint/no-explicit-any
+            // Disable all rules except @typescript-eslint/no-explicit-any
             "no-unused-vars": "off",
             "no-undef": "off",
             "@typescript-eslint/explicit-module-boundary-types": "off",

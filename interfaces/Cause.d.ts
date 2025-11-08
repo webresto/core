@@ -1,7 +1,7 @@
 import { WorkTime } from "@webresto/worktime";
 
 /**
- * Описывает возможные условия для Condition
+ * Describes possible conditions for Condition
  */
 export default interface Cause {
   worktime: WorkTime[];
@@ -15,7 +15,7 @@ export default interface Cause {
 }
 
 /**
- * Описывает условие расстояния в условии
+ * Describes the distance condition in the condition
  */
 export interface DirectDistance {
   center: number[];

@@ -1,11 +1,11 @@
 /**
- * Описывает платежный документ
- * paid?: Признак того что документ оплачен
- * amount: Сумма
- * isOrderPayment?: Является оплатой корзины
- * originModel: Название модели иницировавшей оплату
- * PaymentMethod: Адаптер через которую совершался платеж
- * comment?: Комментарий
+ * Describes the payment document
+ * paid?: Sign that the document is paid
+ * amount: Amount
+ * isOrderPayment?: Is cart payment
+ * originModel: Name of the model that initiated the payment
+ * PaymentMethod: Adapter through which the payment was made
+ * comment?: Comment
  * error?
  */
 export interface Payment {

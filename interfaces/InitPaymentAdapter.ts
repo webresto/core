@@ -1,5 +1,5 @@
 /**
- * Описывает инит обеькт для регистрации "Способ оплаты"
+ * Describes the init object for registering "Payment Method"
  */
 
 import { PaymentMethodType } from "../libs/enums/PaymentMethodTypes";

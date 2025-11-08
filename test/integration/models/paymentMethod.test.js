@@ -52,15 +52,15 @@ describe("PaymentMethod", function () {
         (0, chai_1.expect)(result2).to.equal(false);
     });
     // it('alive', async function(){
-    //     // не тестируемый
+    //     // not testable
     // })
     it("getAvailable TODO", async function () {
         //static
-        // создать external PaymentMethod (enable: true / false) & paymentpromise PaymentMethod (enable: true / false), проверить результат работы метода getAvailable
-        // проверить что возвращает массив.
+        // create external PaymentMethod (enable: true / false) & paymentpromise PaymentMethod (enable: true / false), check the result of the getAvailable method
+        // check that it returns an array.
     });
     it("checkAvailable TODO", async function () {
         //static
-        // использовать заранее созданные платежные методы, проверить работоспособность метода
+        // use pre-created payment methods, check the method's functionality
     });
 });

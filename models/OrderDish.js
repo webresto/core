@@ -8,9 +8,9 @@ let attributes = {
     },
     /** Quantity of this dish with its modifiers in the cart */
     amount: "number",
-    // TODO: Это надо переписать потомучто если меняется блюдо то меняется уже проданная корзина. Здесь надо хранить запеченное блюдо.
-    // Есть идея что нужно отдельно запекать заказы.
-    /**Блюдо, которое содержится в корзине */
+    // TODO: This needs to be rewritten because if the dish changes, the already sold cart changes. Here we need to store the baked dish.
+    // There is an idea that orders need to be baked separately.
+    /**The dish that is contained in the cart */
     /** any problem */
     dish: {
         model: "Dish",
@@ -56,9 +56,9 @@ let attributes = {
         type: "string",
         defaultsTo: "user", // promotion
     },
-    /** Вес */
+    /** Weight */
     weight: "number",
-    /** Полный вес */
+    /** Full weight */
     totalWeight: "number",
 };
 let Model = {

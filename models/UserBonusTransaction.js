@@ -150,7 +150,7 @@ let Model = {
                         lastTransaction = await UserBonusTransaction.create(userBonusTransaction).fetch();
                     }
                 }
-                // Если возвращается меньше транзакций, чем лимит, значит, мы получили все транзакции
+                // If fewer transactions are returned than the limit, it means we have received all transactions
                 if (transactions.length < limit) {
                     await UserBonusProgram.update({ id: userBonusProgram.id }, { syncedToTime: new Date().toISOString() }).fetch();
                     break;

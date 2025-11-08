@@ -181,8 +181,8 @@ let Model = {
             sails.log.error(error);
             throw error;
         }
-        // проверка тут и во вне
-        // выдать варнинг если не совпадает и выключить бонусную программу
+        // check here and outside
+        // issue a warning if it doesn't match and disable the bonus program
     },
     // Define the recalculateBalance method
     async sumCurrentBalance(user, bonusProgram) {

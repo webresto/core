@@ -23,22 +23,22 @@ describe("PaymentDocument", function () {
     await PaymentMethod.update({id: paymentMethod.id}, {enable: true}).fetch()
     
     // TODO:
-    // Проверка суммы. Проверка originModel. Проверка платежного метода. Проверить paymentResponse, сравнить.
+    // Check amount. Check originModel. Check payment method. Check paymentResponse, compare.
   });
 
   it("doPaid TODO", async function () {
     emitter.on("core:payment-document-paid", "test", function (pd) {});
-    // создать документ с status = "PAID" и paid !== true . Проверить сохраниение документа, проверить вызов эмита
+    // create a document with status = "PAID" and paid !== true. Check document saving, check emitter call
   });
 
   it("doCheck TODO", async function () {
     emitter.on("core:payment-document-check", "test",function () {});
     emitter.on("core:payment-document-checked-document", "test", function () {});
-    // создать платежный документ для тестировочной платежной системы. Провести оплату в тестовой платежной системе. Выполнить doCheck. Проверить результат всех вариантов событий (не проведенная оплата, проведенная оплата)
+    // create a payment document for the test payment system. Make payment in the test payment system. Execute doCheck. Check the result of all event options (unpaid payment, paid payment)
   });
 
   it("afterUpdate(sails) TODO", async function () {
-    // Создать корзину. В корзине выбрать платежный метод (тестовая система). Поставить оплату и проверить что в корзине status === 'PAID'
+    // Create a cart. In the cart, select a payment method (test system). Make payment and check that in the cart status === 'PAID'
   });
 
 //   it("register payment document", async function () {

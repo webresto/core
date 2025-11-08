@@ -2,7 +2,7 @@ import Customer from "./Customer";
 import Address from "./Address";
 
 /**
- * Описывает данные, которые необходимы для проврки и оформления заказа
+ * Describes the data required for order verification and processing
  */
 export default interface OrderData {
   orderId: string;

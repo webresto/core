@@ -75,12 +75,12 @@ export class ProductMediaManager extends AbstractMediaManager {
 			})		
 		) 
 	
-		// Общее количество записей
+		// Total number of records
 		let totalRecords: number = await MediaFile.count({
 			where: {}
 		})
 	
-		// Если загружено меньше записей, чем есть всего, то next = true
+		// If fewer records are loaded than there are in total, then next = true
 		let next: boolean = (skip + limit) < totalRecords;
 	
 		return {

@@ -4,7 +4,7 @@ exports.default = default_1;
 exports.addImportParam = addImportParam;
 let importFns = [];
 /**
- * Параметры импорта блюд и групп при синхронизации из RMS adapter
+ * Parameters for importing dishes and groups during synchronization from RMS adapter
  * @param obj
  */
 async function default_1(obj) {
@@ -38,8 +38,8 @@ async function default_1(obj) {
     }
 }
 /**
- * Добавление кастомной функции импорта, функция принимает блюдо или группу, может менять их поля как угодно, сохранять
- * модель после изменений не обязательно, это сделает модуль обработки импорта
+ * Adding a custom import function, the function takes a dish or group, can change their fields as desired, saving
+ * the model after changes is not necessary, the import processing module will do it
  * @param label - label for debugging
  * @param fn - function to do
  */

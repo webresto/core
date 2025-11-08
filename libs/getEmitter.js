@@ -7,7 +7,7 @@ exports.default = getEmitter;
 const AwaitEmitter_1 = __importDefault(require("./AwaitEmitter"));
 let emitter;
 /**
- * Получение эмиттера ядра
+ * Getting the core emitter
  */
 function getEmitter() {
     if (!emitter) {

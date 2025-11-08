@@ -1,5 +1,5 @@
 /**
- * Описывает адресс получателя для доставки
+ * Describes the recipient's address for delivery
  */
 type Coordinate = {
     lon: string;

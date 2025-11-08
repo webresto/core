@@ -1,5 +1,5 @@
 "use strict";
 /**
- * Описывает инит обеькт для регистрации "Способ оплаты"
+ * Describes the init object for registering "Payment Method"
  */
 Object.defineProperty(exports, "__esModule", { value: true });

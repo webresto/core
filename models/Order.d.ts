@@ -136,7 +136,7 @@ declare let attributes: {
     deliveryCost: number;
     /** order total weight */
     totalWeight: number;
-    /** Сдача */
+    /** Change */
     trifleFrom: number;
     /** Sum of all bonuses */
     bonusesTotal: number;

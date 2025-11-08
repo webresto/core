@@ -32,12 +32,12 @@ describe("ProductModifier.ensureMinDefaults", () => {
             childModifiers: [
                 {
                     id: "mod3",
-                    defaultAmount: 0, // Нет defaultAmount
+                    defaultAmount: 0, // No defaultAmount
                     rmsId: "r3",
                     modifierId: "mod-3"
                 },
                 {
-                    id: "mod4", // Этот можно выбрать
+                    id: "mod4", // This can be selected
                     rmsId: "r4",
                     modifierId: "mod-4"
                 }
@@ -45,30 +45,30 @@ describe("ProductModifier.ensureMinDefaults", () => {
         }
     ];
     it("should set first modifier to minAmount if no defaultAmount exists", () => {
-        const orderModifiers = []; // Пусто
+        const orderModifiers = []; // Empty
         const productMod = new ProductModifier_1.ProductModifier(productModifiers);
         const result = productMod.ensureMinDefaults(orderModifiers);
-        // Для group1: minAmount = 1 → должен выбрать модификатор mod1 (с defaultAmount)
+        // For group1: minAmount = 1 → should select modifier mod1 (with defaultAmount)
         (0, chai_1.expect)(result).to.have.deep.include({
-            id: "mod1", // Первый модификатор
+            id: "mod1", // First modifier
             groupId: "group1",
-            amount: 1, // На minAmount
+            amount: 1, // To minAmount
             rmsId: "r1"
         });
-        // Для group2: minAmount = 1, нет defaultAmount → должен выбрать mod4 (первый по списку)
+        // For group2: minAmount = 1, no defaultAmount → should select mod4 (first in list)
         (0, chai_1.expect)(result).to.have.deep.include({
-            id: "mod4", // Выбран первый модификатор без defaultAmount
+            id: "mod4", // Selected first modifier without defaultAmount
             groupId: "group2",
-            amount: 1, // На minAmount
+            amount: 1, // To minAmount
             rmsId: "r4"
         });
         (0, chai_1.expect)(result).to.have.lengthOf(2);
     });
     it("should add defaultAmount modifiers if available", () => {
-        const orderModifiers = []; // Пусто
+        const orderModifiers = []; // Empty
         const productMod = new ProductModifier_1.ProductModifier(productModifiers);
         const result = productMod.ensureMinDefaults(orderModifiers);
-        // group1: minAmount = 1 → должен выбрать mod1 (с defaultAmount)
+        // group1: minAmount = 1 → should select mod1 (with defaultAmount)
         (0, chai_1.expect)(result).to.have.deep.include({
             id: "mod1",
             groupId: "group1",

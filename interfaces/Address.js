@@ -1,5 +1,5 @@
 "use strict";
 /**
- * Описывает адресс получателя для доставки
+ * Describes the recipient's address for delivery
  */
 Object.defineProperty(exports, "__esModule", { value: true });

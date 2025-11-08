@@ -194,31 +194,31 @@ export class BackupHandler {
 
   // Check file existence and load image
   private async checkAndLoadImage(imagePath: string): Promise<void> {
-    // Извлечение имени файла
+    // Extracting the file name
     const fileName = path.basename(imagePath);
 
-    // Разделение имени файла по разделителю "__"
+    // Splitting the file name by the "__" separator
     const parts = fileName.split('__');
     if (parts.length !== 2) {
       console.warn(`File name format is incorrect: ${fileName}`);
       return;
     }
 
-    const dishID = parts[0]; // Левая часть до "__"
-    const countPart = parts[1].split('.'); // Правая часть (порядковый номер и расширение)
+    const dishID = parts[0]; // Left part before "__"
+    const countPart = parts[1].split('.'); // Right part (serial number and extension)
 
     if (countPart.length < 2) {
       console.warn(`File name format is incorrect: ${fileName}`);
       return;
     }
 
-    const count = parseInt(countPart[0], 10); // Извлекаем порядковый номер (число)
+    const count = parseInt(countPart[0], 10); // Extract the serial number (number)
     if (isNaN(count)) {
       console.warn(`File name format is incorrect: ${fileName}`);
       return;
     }
 
-    // Проверка существования файла
+    // Checking file existence
     if (await fsw.exists(imagePath)) {
       await this.loadImage(imagePath, dishID, count);
     } else {
