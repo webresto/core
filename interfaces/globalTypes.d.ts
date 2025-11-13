@@ -47,6 +47,7 @@ declare global {
         dictionaries: ISailsDictionaries;
         __: (...args: string[]) => string;
     }
+    const sails: Sails;
     interface ISailsDictionaries {
         countries: {
             [iso in CountryISOList]: Country;

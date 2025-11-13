@@ -53,6 +53,7 @@ declare let Model: {
     use(key: string): Promise<SettingValue>;
     get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined>;
     set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings>;
+    env<K extends keyof SettingList>(key: K): SettingList[K] | undefined;
 };
 declare global {
     const Settings: typeof Model & ORMModel<SettingsRecord, "key" | "type">;

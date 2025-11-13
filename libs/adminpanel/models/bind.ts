@@ -1,11 +1,20 @@
 import { GroupConfig } from "./lib/group";
 import { ProductConfig } from "./lib/product";
+import { UserDeviceConfig } from "./lib/userdevice";
 
 export const models = {
   user: {
     title: "User",
     model: "user",
     icon: "person"
+  },
+  userdevice: {
+    model: 'userdevice',
+    title: 'User Devices',
+    icon: 'devices',
+    list: UserDeviceConfig.list(),
+    edit: UserDeviceConfig.edit(),
+    add: UserDeviceConfig.add(),
   },
   dish: {
     model: 'dish',

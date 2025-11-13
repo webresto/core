@@ -61,7 +61,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         if (isFilePath && isFilePath.length > 0) {
             mediafileExtension = isFilePath[0].replace('.', '');
         }
-        const origin = this.getNameByUrl(url, mediafileExtension);
+        const origin = this.getNameByUrl(url, cfg.format);
         const name = {
             origin: origin,
             small: undefined,
@@ -76,13 +76,19 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                 try {
                     const fullPathDl = that.getOriginalFilePath(url, type, true);
                     const localFilePath = url.slice(7);
+                    // Check if source file exists
+                    if (!fs.existsSync(localFilePath)) {
+                        sails.log.error(`Source file does not exist: ${localFilePath}`);
+                        return;
+                    }
                     sails.log.silly(`MF local > copy file: ${localFilePath} to ${fullPathDl}`);
                     const prefix = that.getPrefix(type, false);
                     // Await each async operation to ensure completion before moving to the next step
                     await fs.promises.mkdir(prefix, { recursive: true });
                     await fs.promises.copyFile(localFilePath, fullPathDl);
-                    await fs.promises.unlink(localFilePath);
-                    sails.log.debug(`File copied and original deleted successfully. ${url}, ${fullPathDl}`);
+                    // Don't delete the original file yet - it will be deleted after processing in loadMediaFiles
+                    // await fs.promises.unlink(localFilePath);
+                    sails.log.debug(`File copied successfully. ${url}, ${fullPathDl}`);
                 }
                 catch (error) {
                     sails.log.error(`Failed to process file: ${error.message}`);
@@ -106,7 +112,7 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
         }
         return {
             variant: result,
-            originalFilePath: this.getOriginalFilePath(url, type)
+            originalFilePath: this.getOriginalFilePath(url, type, false, cfg.format)
         };
     }
     async checkFileExist(mediaFile) {
@@ -142,26 +148,29 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
             baseName += `-${salt.toString().toLowerCase().replace(/[^a-zA-Z]+/g, "").substring(0, 7)}`;
             //baseName += `-${Math.floor(Date.now() / 1000)}`
         }
-        baseName += `.${ext}`;
+        // Default to 'jpg' if extension is empty or undefined
+        const fileExt = ext || 'jpg';
+        baseName += `.${fileExt}`;
         return baseName;
     }
     getPrefix(type, absolute = true) {
         const basePath = type ? path.join(".tmp/public", type) : path.join(".tmp/public");
         return absolute ? path.resolve(basePath) : basePath;
     }
-    getOriginalFilePath(url, type, absolute = false) {
+    getOriginalFilePath(url, type, absolute = false, ext) {
         const prefix = this.getPrefix(type, absolute);
-        const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
-        let mediafileExtension = '';
-        if (isFilePath && isFilePath.length > 0) {
-            mediafileExtension = isFilePath[0].replace('.', '');
-        }
-        const originalFilePath = path.join(prefix, this.getNameByUrl(url, mediafileExtension));
+        const fileExt = ext || 'webp'; // Default to webp for images
+        const originalFilePath = path.join(prefix, this.getNameByUrl(url, fileExt));
         return originalFilePath;
     }
     async download(loadMediaFilesProcess) {
         const prefix = this.getPrefix(loadMediaFilesProcess.type);
-        const fullPathDl = this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type, true);
+        const isFilePath = loadMediaFilesProcess.url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
+        let mediafileExtension = '';
+        if (isFilePath && isFilePath.length > 0) {
+            mediafileExtension = isFilePath[0].replace('.', '');
+        }
+        const fullPathDl = this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type, true, mediafileExtension || 'webp');
         // Check if file exists
         if (!fs.existsSync(fullPathDl)) {
             let response;
@@ -229,6 +238,19 @@ class LocalMediaFileAdapter extends MediaFileAdapter_1.default {
                                     }
                                     else {
                                         sails.log.debug(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`);
+                                    }
+                                }
+                                // Delete the original uploaded file if it was a file:// URL
+                                if (loadMediaFilesProcess.url.startsWith('file://')) {
+                                    const originalFilePath = loadMediaFilesProcess.url.slice(7);
+                                    try {
+                                        if (fs.existsSync(originalFilePath)) {
+                                            await fs.promises.unlink(originalFilePath);
+                                            sails.log.debug(`MF local > deleted original uploaded file: ${originalFilePath}`);
+                                        }
+                                    }
+                                    catch (unlinkError) {
+                                        sails.log.warn(`MF local > failed to delete original file ${originalFilePath}: ${unlinkError.message}`);
                                     }
                                 }
                                 break;

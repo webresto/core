@@ -1,0 +1,218 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.models = void 0;
+const group_1 = require("./lib/group");
+const product_1 = require("./lib/product");
+const userdevice_1 = require("./lib/userdevice");
+exports.models = {
+    user: {
+        title: "User",
+        model: "user",
+        icon: "person"
+    },
+    userdevice: {
+        model: 'userdevice',
+        title: 'User Devices',
+        icon: 'devices',
+        list: userdevice_1.UserDeviceConfig.list(),
+        edit: userdevice_1.UserDeviceConfig.edit(),
+        add: userdevice_1.UserDeviceConfig.add(),
+    },
+    dish: {
+        model: 'dish',
+        title: 'Products',
+        icon: 'restaurant_menu',
+        list: product_1.ProductConfig.list(),
+        edit: product_1.ProductConfig.edit(),
+        add: product_1.ProductConfig.add(),
+    },
+    group: {
+        model: 'group',
+        title: 'Groups',
+        icon: 'group',
+        list: group_1.GroupConfig.list(),
+        edit: group_1.GroupConfig.edit(),
+        add: group_1.GroupConfig.add(),
+    },
+    order: {
+        model: 'order',
+        title: 'Orders',
+        icon: 'shopping_cart'
+    },
+    bonusprogram: {
+        model: 'bonusprogram',
+        title: 'Bonus programs',
+        icon: 'card_giftcard'
+    },
+    userbonusprogram: {
+        model: 'userbonusprogram',
+        title: 'User bonusprograms',
+        icon: 'loyalty'
+    },
+    userbonustransaction: {
+        model: 'userbonustransaction',
+        title: 'Userbonus transactions',
+        icon: 'swap_horiz'
+    },
+    promotion: {
+        model: 'promotion',
+        title: 'Promotions',
+        icon: 'local_offer'
+    },
+    promotioncode: {
+        model: 'promotioncode',
+        title: 'Promotion codes',
+        icon: 'confirmation_number'
+    },
+    place: {
+        model: 'place',
+        title: 'Places',
+        icon: 'place'
+    },
+    street: {
+        model: 'street',
+        title: 'Street',
+        icon: 'location_on'
+    },
+    paymentMethod: {
+        model: 'paymentmethod',
+        title: 'Payment method',
+        icon: 'payment'
+    },
+    maintenance: {
+        model: "maintenance",
+        title: "Scheduled Maintenance on the Website",
+        icon: "build",
+        fields: {
+            id: false,
+            createdAt: false,
+            updatedAt: false,
+            title: "Title",
+            description: "Description",
+            enable: "Active",
+            startDate: "Start Time",
+            stopDate: "End Time"
+        },
+        edit: {
+            fields: {
+                id: false,
+                createdAt: false,
+                updatedAt: false,
+                title: "Title",
+                description: {
+                    title: "Description",
+                    type: "json",
+                    widget: "Ace",
+                    Ace: {
+                        height: 500,
+                        fontSize: 15
+                    }
+                },
+                enable: "Active",
+                startDate: "Start Time",
+                stopDate: "End Time"
+            }
+        },
+        add: {
+            fields: {
+                id: false,
+                createdAt: false,
+                updatedAt: false,
+                title: "Title",
+                description: {
+                    title: "Description",
+                    type: "json",
+                    widget: "Ace",
+                    Ace: {
+                        height: 500,
+                        fontSize: 15
+                    }
+                },
+                enable: "Active",
+                startDate: "Start Time",
+                stopDate: "End Time"
+            }
+        }
+    },
+    mediafile: {
+        model: 'mediafile',
+        title: 'Media Files',
+        icon: 'image',
+        list: {
+            fields: {
+                id: true,
+                type: true,
+                original: true,
+                createdAt: true
+            }
+        }
+    },
+    settings: {
+        title: "Settings",
+        model: "settings",
+        icon: "settings",
+        fields: {
+            id: false,
+            key: "Key",
+            name: "Name",
+            description: "Description",
+            tooltip: "Tooltip",
+            value: "Value",
+            defaultValue: "Default value",
+            type: "Type",
+            jsonSchema: "JSON Schema",
+            readOnly: "Read only",
+            uiSchema: "UI Schema",
+            module: "Module",
+            createdAt: false,
+            updatedAt: false,
+            isRequired: "Is required"
+        },
+        list: {
+            fields: {
+                id: false,
+                defaultValue: false,
+                description: false,
+                tooltip: false,
+                uiSchema: false,
+                readOnly: false,
+                isRequired: false,
+                jsonSchema: false,
+                type: false,
+                value: {
+                    displayModifier(v) {
+                        sails.log.debug(v);
+                        if (typeof v === "object" && v !== null && Object.keys(v).length > 5) {
+                            return "long object";
+                        }
+                        return v;
+                    },
+                }
+            },
+        },
+        add: {
+            fields: {
+                value: {
+                    title: "Key",
+                    type: "json",
+                },
+            },
+        },
+        edit: {
+            fields: {
+                description: {
+                    title: "Описание",
+                    type: "longtext",
+                    disabled: true,
+                },
+                key: {
+                    disabled: true,
+                },
+                value: {
+                    title: "Value",
+                    type: "json",
+                }
+            }
+        }
+    }
+};

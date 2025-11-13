@@ -137,9 +137,6 @@ let Model = {
         //   sails.log.error(`Settings get: Requested setting [${key}] was not declared by specification`);
         //   return;
         // }
-        // if(process.env[key] !== undefined) {
-        //     return cleanValue(process.env[key])
-        // }
         if (settings[_key] !== undefined) {
             //@ts-ignore
             return cleanValue(settings[_key]);
@@ -235,7 +232,7 @@ let Model = {
             }
         }
         // check that value and defaultValue match the schema for json type (if !ALLOW_UNSAFE_SETTINGS)
-        if (settingType === "json" && !Settings.env("ALLOW_UNSAFE_SETTINGS")) {
+        if (false) { // Disabled jsonSchema validation in Settings.set, similar to Setting mode
             const ajv = new ajv_1.default();
             const validate = ajv.compile(settingsSetInput.jsonSchema);
             // undefined if value is from input, null if value is from origSettings
@@ -300,12 +297,13 @@ let Model = {
         }
         // For ALLOW_UNSAFE_SETTINGS, we know it's boolean
         if (key === "ALLOW_UNSAFE_SETTINGS") {
-            return ["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(envValue);
+            return (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(envValue));
         }
         // For other keys, try to parse as JSON, fallback to string
         try {
             return JSON.parse(envValue);
-        } catch {
+        }
+        catch {
             return envValue;
         }
     }
