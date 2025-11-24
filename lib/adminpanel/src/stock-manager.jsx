@@ -26,10 +26,20 @@ export default function StockManager() {
     return localStorage.getItem('stockManagerViewMode') || 'grid';
   });
 
+  // Sort mode state
+  const [sortMode, setSortMode] = useState(() => {
+    return localStorage.getItem('stockManagerSortMode') || 'status';
+  });
+
   // Persist view mode changes
   useEffect(() => {
     localStorage.setItem('stockManagerViewMode', viewMode);
   }, [viewMode]);
+
+  // Persist sort mode changes
+  useEffect(() => {
+    localStorage.setItem('stockManagerSortMode', sortMode);
+  }, [sortMode]);
 
   // Parse URL to get current group slug
   function getGroupSlugFromUrl() {
@@ -48,23 +58,44 @@ export default function StockManager() {
     window.history.pushState({}, '', url);
   }
 
-  // Load group by slug
+  // Load group by slug with recursive search and build navigation stack
   async function loadGroupBySlug(slug) {
     if (!slug) return null;
+
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
-      const endpoint = `${base}/core/groups`;
-      const resp = await fetch(endpoint);
-      const json = await resp.json();
-      const allGroups = json.results || [];
 
-      // Search for group with matching slug
-      const group = allGroups.find(g => g.slug === slug);
-      if (group) return group;
+      // Recursive function to search for group and build path
+      async function searchGroupRecursive(parentId, pathStack) {
+        const endpoint = `${base}/core/groups${parentId ? `?parent=${parentId}` : ''}`;
+        const resp = await fetch(endpoint);
+        const json = await resp.json();
+        const groups = json.results || [];
 
-      // If not found in root, search in all groups recursively
-      // This is a simplified approach - in production you might want a dedicated API endpoint
-      return null;
+        // Check if target group is in current level
+        const targetGroup = groups.find(g => g.slug === slug);
+        if (targetGroup) {
+          return {
+            group: targetGroup,
+            stack: pathStack
+          };
+        }
+
+        // Search in child groups
+        for (const group of groups) {
+          const result = await searchGroupRecursive(group.id, [...pathStack, group]);
+          if (result) {
+            return result;
+          }
+        }
+
+        return null;
+      }
+
+      // Start search from root
+      const result = await searchGroupRecursive(null, []);
+      return result;
+
     } catch (err) {
       console.error('load group by slug error', err);
       return null;
@@ -78,11 +109,12 @@ export default function StockManager() {
 
       const groupSlug = getGroupSlugFromUrl();
       if (groupSlug) {
-        const group = await loadGroupBySlug(groupSlug);
-        if (group) {
-          setCurrentGroup(group);
-          await loadGroups(group.id);
-          await loadDishes(group.id);
+        const result = await loadGroupBySlug(groupSlug);
+        if (result) {
+          setCurrentGroup(result.group);
+          setGroupStack(result.stack);
+          await loadGroups(result.group.id);
+          await loadDishes(result.group.id);
         } else {
           // Group not found, load root
           await loadGroups(null);
@@ -108,11 +140,12 @@ export default function StockManager() {
     async function handlePopState() {
       const groupSlug = getGroupSlugFromUrl();
       if (groupSlug) {
-        const group = await loadGroupBySlug(groupSlug);
-        if (group) {
-          setCurrentGroup(group);
-          await loadGroups(group.id);
-          await loadDishes(group.id);
+        const result = await loadGroupBySlug(groupSlug);
+        if (result) {
+          setCurrentGroup(result.group);
+          setGroupStack(result.stack);
+          await loadGroups(result.group.id);
+          await loadDishes(result.group.id);
         }
       } else {
         setCurrentGroup(null);
@@ -433,6 +466,8 @@ export default function StockManager() {
               title={results.length === 0 ? 'No results' : 'Search Results'}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              sortMode={sortMode}
+              onSortModeChange={setSortMode}
             />
           ) : (
             <div>
@@ -459,6 +494,8 @@ export default function StockManager() {
                 showToolbox={true}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
+                sortMode={sortMode}
+                onSortModeChange={setSortMode}
               />
 
               {groups.length === 0 && dishes.length === 0 && (
