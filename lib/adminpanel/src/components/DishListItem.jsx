@@ -44,33 +44,22 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateVisibility,
         <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-card hover:bg-muted/50 transition-colors">
             {/* Name and Info */}
             <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-base truncate">{dish.name || '—'}</h4>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onUpdateVisibility(dish.id, 'dish', !dish.visible)}
-                        title={dish.visible ? 'Hide dish' : 'Show dish'}
-                        className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
-                    >
-                        {dish.visible ? '👁' : '🙈'}
-                    </Button>
-                </div>
+                <h4 className="font-semibold text-base truncate">{dish.name || '—'}</h4>
                 <div className="flex gap-4 text-sm text-muted-foreground mt-1">
                     <span>Code: {dish.code || '—'}</span>
                     <span>Price: {dish.price ?? '—'}</span>
                 </div>
             </div>
 
-            {/* Visibility Toggle */}
+            {/* Enable Toggle */}
             <div className="flex items-center gap-2">
                 <Checkbox
-                    id={`isDeleted-list-${dish.id}`}
-                    checked={!!dish.isDeleted}
-                    onCheckedChange={(checked) => onUpdateIsDeleted(dish.id, 'dish', checked)}
+                    id={`enable-list-${dish.id}`}
+                    checked={!dish.isDeleted}
+                    onCheckedChange={(checked) => onUpdateIsDeleted(dish.id, 'dish', !checked)}
                 />
-                <Label htmlFor={`isDeleted-list-${dish.id}`} className="cursor-pointer text-sm">
-                    Deleted
+                <Label htmlFor={`enable-list-${dish.id}`} className="cursor-pointer text-sm">
+                    Enable
                 </Label>
             </div>
 

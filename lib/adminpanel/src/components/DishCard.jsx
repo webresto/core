@@ -46,18 +46,7 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onU
     return (
         <Card>
             <CardHeader className="p-4 pb-2">
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{dish.name || '—'}</CardTitle>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onUpdateVisibility(dish.id, 'dish', !dish.visible)}
-                        title={dish.visible ? 'Hide dish' : 'Show dish'}
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                    >
-                        {dish.visible ? '👁' : '🙈'}
-                    </Button>
-                </div>
+                <CardTitle className="text-lg">{dish.name || '—'}</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
                 <div className="mb-2 text-sm text-muted-foreground">Code: {dish.code || ''}</div>
@@ -65,12 +54,12 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onU
 
                 <div className="mb-4 flex items-center space-x-2">
                     <Checkbox
-                        id={`isDeleted-${dish.id}`}
-                        checked={!!dish.isDeleted}
-                        onCheckedChange={(checked) => onUpdateIsDeleted(dish.id, 'dish', checked)}
+                        id={`enable-${dish.id}`}
+                        checked={!dish.isDeleted}
+                        onCheckedChange={(checked) => onUpdateIsDeleted(dish.id, 'dish', !checked)}
                     />
-                    <Label htmlFor={`isDeleted-${dish.id}`} className="cursor-pointer">
-                        Deleted
+                    <Label htmlFor={`enable-${dish.id}`} className="cursor-pointer">
+                        Enable
                     </Label>
                 </div>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from './ConfirmDialog';
+import { EyeOff, Eye, Hash, Infinity } from 'lucide-react';
 
 export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
     const [dialogState, setDialogState] = useState({
@@ -62,12 +63,13 @@ export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
                 size="sm"
                 onClick={() => openDialog(
                     'hide-all',
-                    'Hide All Dishes',
+                    'Disable All Dishes',
                     `Set ${dishCount} dish${dishCount !== 1 ? 'es' : ''} as invisible?`
                 )}
-                title="Hide all dishes in this group"
+                title="Disable all dishes in this group"
             >
-                �️‍🗨️ Hide All
+                <EyeOff className="w-4 h-4 mr-2" />
+                Disable
             </Button>
 
             <Button
@@ -75,12 +77,13 @@ export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
                 size="sm"
                 onClick={() => openDialog(
                     'show-all',
-                    'Show All Dishes',
+                    'Enable All Dishes',
                     `Set ${dishCount} dish${dishCount !== 1 ? 'es' : ''} as visible?`
                 )}
-                title="Show all dishes in this group"
+                title="Enable all dishes in this group"
             >
-                👁️ Show All
+                <Eye className="w-4 h-4 mr-2" />
+                Enable
             </Button>
 
             <Button
@@ -94,7 +97,8 @@ export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
                 )}
                 title="Set specific balance for all dishes"
             >
-                #️⃣ Set Balance
+                <Hash className="w-4 h-4 mr-2" />
+                Set Balance
             </Button>
 
             <Button
@@ -107,7 +111,8 @@ export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
                 )}
                 title="Set unlimited balance for all dishes"
             >
-                ∞ Set Unlimited
+                <Infinity className="w-4 h-4 mr-2" />
+                Set Unlimited
             </Button>
 
             <ConfirmDialog

@@ -19,6 +19,7 @@ export default function StockManager() {
   const [groupStack, setGroupStack] = useState([]); // history of groups
   const [groups, setGroups] = useState([]);
   const [dishes, setDishes] = useState([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // View mode state
   const [viewMode, setViewMode] = useState(() => {
@@ -30,15 +31,99 @@ export default function StockManager() {
     localStorage.setItem('stockManagerViewMode', viewMode);
   }, [viewMode]);
 
+  // Parse URL to get current group slug
+  function getGroupSlugFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('group') || null;
+  }
+
+  // Update URL with current group slug
+  function updateUrl(groupSlug) {
+    const url = new URL(window.location);
+    if (groupSlug) {
+      url.searchParams.set('group', groupSlug);
+    } else {
+      url.searchParams.delete('group');
+    }
+    window.history.pushState({}, '', url);
+  }
+
+  // Load group by slug
+  async function loadGroupBySlug(slug) {
+    if (!slug) return null;
+    try {
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+      const endpoint = `${base}/core/groups`;
+      const resp = await fetch(endpoint);
+      const json = await resp.json();
+      const allGroups = json.results || [];
+
+      // Search for group with matching slug
+      const group = allGroups.find(g => g.slug === slug);
+      if (group) return group;
+
+      // If not found in root, search in all groups recursively
+      // This is a simplified approach - in production you might want a dedicated API endpoint
+      return null;
+    } catch (err) {
+      console.error('load group by slug error', err);
+      return null;
+    }
+  }
+
+  // Initial load: check URL for group slug
   useEffect(() => {
-    loadInitialItems();
-    loadGroups(null);
+    async function initializeFromUrl() {
+      loadInitialItems();
+
+      const groupSlug = getGroupSlugFromUrl();
+      if (groupSlug) {
+        const group = await loadGroupBySlug(groupSlug);
+        if (group) {
+          setCurrentGroup(group);
+          await loadGroups(group.id);
+          await loadDishes(group.id);
+        } else {
+          // Group not found, load root
+          await loadGroups(null);
+        }
+      } else {
+        await loadGroups(null);
+      }
+
+      setIsInitialLoad(false);
+    }
+
+    initializeFromUrl();
 
     const interval = setInterval(() => {
       loadInitialItems();
     }, 30000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    async function handlePopState() {
+      const groupSlug = getGroupSlugFromUrl();
+      if (groupSlug) {
+        const group = await loadGroupBySlug(groupSlug);
+        if (group) {
+          setCurrentGroup(group);
+          await loadGroups(group.id);
+          await loadDishes(group.id);
+        }
+      } else {
+        setCurrentGroup(null);
+        setGroupStack([]);
+        await loadGroups(null);
+        setDishes([]);
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   // Debounced search effect
@@ -107,6 +192,7 @@ export default function StockManager() {
   async function handleGroupClick(group) {
     setGroupStack([...groupStack, currentGroup]);
     setCurrentGroup(group);
+    updateUrl(group.slug);
     await loadGroups(group.id);
     await loadDishes(group.id);
   }
@@ -115,6 +201,7 @@ export default function StockManager() {
     if (groupStack.length === 0) {
       // Back to root
       setCurrentGroup(null);
+      updateUrl(null);
       await loadGroups(null);
       setDishes([]);
       return;
@@ -126,9 +213,11 @@ export default function StockManager() {
     setCurrentGroup(prevGroup);
 
     if (prevGroup) {
+      updateUrl(prevGroup.slug);
       await loadGroups(prevGroup.id);
       await loadDishes(prevGroup.id);
     } else {
+      updateUrl(null);
       await loadGroups(null);
       setDishes([]);
     }
@@ -356,7 +445,6 @@ export default function StockManager() {
               <GroupsGrid
                 groups={groups}
                 onGroupClick={handleGroupClick}
-                onUpdateVisibility={updateVisibility}
               />
 
               <DishesGrid

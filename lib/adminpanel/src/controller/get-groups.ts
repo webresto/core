@@ -38,6 +38,7 @@ export default async function GetGroupsController(req: any, res: any) {
         const results = groups.map((g: any) => ({
             id: g.id,
             name: g.name,
+            slug: g.slug,
             images: g.images,
             icon: g.icon,
             visible: g.visible ?? true // Default to true if undefined/null
