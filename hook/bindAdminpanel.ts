@@ -70,30 +70,53 @@ function processBindAdminpanel(){
     });
   }
 
-  // Add routes for product setup
-  if (sails.hooks.adminpanel && sails.hooks.adminpanel.adminizer) {
-    const adminizer = sails.hooks.adminpanel.adminizer;
-    adminizer.emitter.on('adminizer:loaded', () => {
-      const routePrefix = adminizer.config.routePrefix;
-
-      // Route for product setup page
-      adminizer.app.get(`${routePrefix}/product-setup`, (req: any, res: any) => {
-        if (adminizer.config.auth?.enable && !req.user) {
-          return res.redirect(`${routePrefix}/model/userap/login`);
+  // Add routes for product setup  
+  sails.on('Adminpanel:afterHook:loaded', async ()=>{
+    if (sails.hooks.adminpanel && sails.hooks.adminpanel.adminizer) {
+      const adminizer = sails.hooks.adminpanel.adminizer;  
+      adminizer.emitter.on('adminizer:loaded', () => {  
+        const routePrefix = adminizer.config.routePrefix;
+        const policies = adminizer.config.policies;
+  
+        // StockManager module link + route
+        try {
+          const stockController = require('../lib/adminpanel/src/controller/frontend').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'stock-manager',
+            title: 'Stock Manager',
+            link: `${routePrefix}/stock-manager`,
+            icon: 'warehouse',
+            section: 'Tools'
+          });
+  
+          adminizer.app.get(
+            `${routePrefix}/stock-manager`,
+            adminizer.policyManager.bindPolicies(policies, stockController)
+          );
+        } catch (e) {
+          sails.log.debug('StockManager route bind error', e);
         }
-        // For now, redirect to catalog - later can render ProductSetup component
-        return res.redirect(`${routePrefix}/catalog/products`);
+  
+        // Route for product setup page
+        // adminizer.app.get(`${routePrefix}/product-setup`, (req: any, res: any) => {
+        //   if (adminizer.config.auth?.enable && !req.user) {
+        //     return res.redirect(`${routePrefix}/model/userap/login`);
+        //   }
+        //   // For now, redirect to catalog - later can render ProductSetup component
+        //   return res.redirect(`${routePrefix}/catalog/products`);
+        // });
+  
+        // // API routes for concepts
+        // // @ts-ignore
+        // adminizer.app.get(`${routePrefix}/catalog/products/concepts`, sails.controllers.productsetup.concepts);
+        // // @ts-ignore
+        // adminizer.app.post(`${routePrefix}/catalog/products/concepts`, sails.controllers.productsetup.addConcept);
+        // // @ts-ignore
+        // adminizer.app.delete(`${routePrefix}/catalog/products/concepts/:concept`, sails.controllers.productsetup.deleteConcept);
       });
+    }
+  });
 
-      // API routes for concepts
-      // @ts-ignore
-      adminizer.app.get(`${routePrefix}/catalog/products/concepts`, sails.controllers.productsetup.concepts);
-      // @ts-ignore
-      adminizer.app.post(`${routePrefix}/catalog/products/concepts`, sails.controllers.productsetup.addConcept);
-      // @ts-ignore
-      adminizer.app.delete(`${routePrefix}/catalog/products/concepts/:concept`, sails.controllers.productsetup.deleteConcept);
-    });
-  }
 }
 
 

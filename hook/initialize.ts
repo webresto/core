@@ -43,7 +43,6 @@ export default function ToInitialize(sails: Sails) {
 
   return function initialize(cb: ()=>{}) {
     try {
-      
       sails.log.info(`RestoCore initialize from dir [${__dirname}]`)
   
       if(process.env.WEBRESTO_CORE_DISABLED){
