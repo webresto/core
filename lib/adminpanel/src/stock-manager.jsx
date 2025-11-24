@@ -20,6 +20,16 @@ export default function StockManager() {
   const [groups, setGroups] = useState([]);
   const [dishes, setDishes] = useState([]);
 
+  // View mode state
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem('stockManagerViewMode') || 'grid';
+  });
+
+  // Persist view mode changes
+  useEffect(() => {
+    localStorage.setItem('stockManagerViewMode', viewMode);
+  }, [viewMode]);
+
   useEffect(() => {
     loadInitialItems();
     loadGroups(null);
@@ -238,6 +248,28 @@ export default function StockManager() {
     }
   }
 
+  async function handleBulkVisibility(dishIds, visible) {
+    try {
+      // Update all dishes in parallel
+      const promises = dishIds.map(id => updateVisibility(id, 'dish', visible));
+      await Promise.all(promises);
+    } catch (err) {
+      console.error('bulk visibility error', err);
+      alert('Bulk visibility update error');
+    }
+  }
+
+  async function handleBulkBalance(dishIds, balance) {
+    try {
+      // Update all dishes in parallel
+      const promises = dishIds.map(id => updateStock(id, balance));
+      await Promise.all(promises);
+    } catch (err) {
+      console.error('bulk balance error', err);
+      alert('Bulk balance update error');
+    }
+  }
+
   const isSearching = (q || '').trim().length > 0;
 
   const tabs = [
@@ -269,6 +301,8 @@ export default function StockManager() {
               onUpdateVisibility={updateVisibility}
               onBalanceChange={handleBalanceChange}
               title={results.length === 0 ? 'No results' : 'Search Results'}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
             />
           ) : (
             <div>
@@ -290,6 +324,11 @@ export default function StockManager() {
                 onUpdateStock={updateStock}
                 onUpdateVisibility={updateVisibility}
                 onBalanceChange={handleBalanceChange}
+                onBulkVisibility={handleBulkVisibility}
+                onBulkBalance={handleBulkBalance}
+                showToolbox={true}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
               />
 
               {groups.length === 0 && dishes.length === 0 && (
