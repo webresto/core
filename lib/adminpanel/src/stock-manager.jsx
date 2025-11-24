@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Tabs } from './components/Tabs';
+import { SearchBar } from './components/SearchBar';
+import { Navigation } from './components/Navigation';
+import { LimitedStockSection } from './components/LimitedStockSection';
+import { GroupsGrid } from './components/GroupsGrid';
+import { DishesGrid } from './components/DishesGrid';
 
-// Minimal React component with search for StockManager
+// StockManager component with folder navigation and search
 export default function StockManager() {
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(false);
@@ -8,13 +14,41 @@ export default function StockManager() {
   const [balances, setBalances] = useState({});
   const [initialItems, setInitialItems] = useState([]);
 
+  // Navigation state
+  const [currentGroup, setCurrentGroup] = useState(null); // null = root
+  const [groupStack, setGroupStack] = useState([]); // history of groups
+  const [groups, setGroups] = useState([]);
+  const [dishes, setDishes] = useState([]);
+
   useEffect(() => {
     loadInitialItems();
+    loadGroups(null);
+
+    const interval = setInterval(() => {
+      loadInitialItems();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  // Debounced search effect
+  useEffect(() => {
+    const term = (q || '').trim();
+    if (!term) {
+      setResults([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      performSearch(term);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [q]);
 
   async function loadInitialItems() {
     try {
-      const base = (window.location.pathname || '').replace(/\/[^/]*$/,'');
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/stock-items`;
       const resp = await fetch(endpoint);
       const json = await resp.json();
@@ -27,15 +61,77 @@ export default function StockManager() {
     }
   }
 
-  async function doSearch(e) {
-    e && e.preventDefault();
-    const term = (q || '').trim();
-    if (!term) return setResults([]);
+  async function loadGroups(parentId) {
+    try {
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+      const endpoint = `${base}/core/groups${parentId ? `?parent=${parentId}` : ''}`;
+      const resp = await fetch(endpoint);
+      const json = await resp.json();
+      setGroups(json.results || []);
+    } catch (err) {
+      console.error('load groups error', err);
+    }
+  }
+
+  async function loadDishes(groupId) {
+    if (!groupId) {
+      setDishes([]);
+      return;
+    }
+    try {
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+      const endpoint = `${base}/core/dishes-by-group?group=${groupId}`;
+      const resp = await fetch(endpoint);
+      const json = await resp.json();
+      const loadedDishes = json.results || [];
+      setDishes(loadedDishes);
+
+      const newBalances = {};
+      loadedDishes.forEach(r => newBalances[r.id] = r.balance || 0);
+      setBalances(prev => ({ ...prev, ...newBalances }));
+    } catch (err) {
+      console.error('load dishes error', err);
+    }
+  }
+
+  async function handleGroupClick(group) {
+    setGroupStack([...groupStack, currentGroup]);
+    setCurrentGroup(group);
+    await loadGroups(group.id);
+    await loadDishes(group.id);
+  }
+
+  async function handleBackClick() {
+    if (groupStack.length === 0) {
+      // Back to root
+      setCurrentGroup(null);
+      await loadGroups(null);
+      setDishes([]);
+      return;
+    }
+
+    const prevGroup = groupStack[groupStack.length - 1];
+    const newStack = groupStack.slice(0, -1);
+    setGroupStack(newStack);
+    setCurrentGroup(prevGroup);
+
+    if (prevGroup) {
+      await loadGroups(prevGroup.id);
+      await loadDishes(prevGroup.id);
+    } else {
+      await loadGroups(null);
+      setDishes([]);
+    }
+  }
+
+  async function performSearch(term) {
+    if (!term) {
+      setResults([]);
+      return;
+    }
     setLoading(true);
     try {
-      // Compute admin-scoped API path relative to current page.
-      // If component is mounted on e.g. `/admin/stock-manager`, base will be `/admin` and endpoint -> `/admin/core/api`.
-      const base = (window.location.pathname || '').replace(/\/[^/]*$/,'');
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/api?q=${encodeURIComponent(term)}`;
       const resp = await fetch(endpoint);
       const json = await resp.json();
@@ -51,9 +147,18 @@ export default function StockManager() {
     }
   }
 
+  function clearSearch() {
+    setQ('');
+    setResults([]);
+  }
+
+  function handleBalanceChange(id, newBalance) {
+    setBalances(prev => ({ ...prev, [id]: newBalance }));
+  }
+
   async function updateStock(id, balance) {
     try {
-      const base = (window.location.pathname || '').replace(/\/[^/]*$/,'');
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/update-stock`;
       const csrfToken = (() => {
         const cookies = document.cookie.split(';');
@@ -65,7 +170,7 @@ export default function StockManager() {
       })();
       const resp = await fetch(endpoint, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-xsrf-token': csrfToken
         },
@@ -75,7 +180,15 @@ export default function StockManager() {
       const json = await resp.json();
       if (json.success) {
         setBalances(prev => ({ ...prev, [id]: balance }));
-        alert('Stock updated');
+
+        // Refresh data to get latest balances
+        loadInitialItems();
+        if (currentGroup) {
+          loadDishes(currentGroup.id);
+        }
+        if ((q || '').trim()) {
+          performSearch((q || '').trim());
+        }
       } else {
         alert('Update failed: ' + (json.error || 'Unknown error'));
       }
@@ -85,69 +198,115 @@ export default function StockManager() {
     }
   }
 
-  return React.createElement('div', { className: 'stock-manager' },
-    React.createElement('h1', null, 'Stock Manager'),
-    initialItems.length > 0 && React.createElement('div', null,
-      React.createElement('h2', null, 'Items with limited stock'),
-      React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px', marginBottom: 20 } },
-        initialItems.map((r) => (
-          React.createElement('div', { key: r.id, style: { border: '1px solid #ddd', padding: 16, borderRadius: 8, backgroundColor: '#f9f9f9' } },
-            React.createElement('div', { style: { fontWeight: 'bold', marginBottom: 8 } }, r.name || '—'),
-            React.createElement('div', { style: { marginBottom: 4 } }, `Code: ${r.code || ''}`),
-            React.createElement('div', { style: { marginBottom: 4 } }, `Price: ${r.price ?? ''}`),
-            React.createElement('div', { style: { marginBottom: 8 } }, 'Stock: ', React.createElement('input', {
-            type: 'number',
-            value: balances[r.id] ?? r.balance ?? 0,
-            readOnly: true,
-            style: { width: 80, border: 'none', background: 'transparent' }
-          })),
-            React.createElement('div', null,
-              React.createElement('input', {
-                type: 'number',
-                value: balances[r.id] ?? r.balance ?? 0,
-                onChange: (ev) => { console.log('changed', r.id, ev.target.value); setBalances({ ...balances, [r.id]: Number(ev.target.value) || 0 }); },
-                style: { width: 80, marginRight: 8, padding: '4px' }
-              }),
-              React.createElement('button', { onClick: () => updateStock(r.id, balances[r.id] ?? r.balance ?? 0), style: { padding: '4px 8px' } }, 'Update')
-            )
-          )
-        ))
+  async function updateVisibility(id, model, visible) {
+    try {
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+      const endpoint = `${base}/core/update-visibility`;
+      const csrfToken = (() => {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === 'XSRF-TOKEN') return decodeURIComponent(value);
+        }
+        return null;
+      })();
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-xsrf-token': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify({ id, model, visible })
+      });
+      const json = await resp.json();
+      if (json.success) {
+        // Optimistic update or refresh
+        if (model === 'dish') {
+          setDishes(prev => prev.map(d => d.id === id ? { ...d, visible } : d));
+          setInitialItems(prev => prev.map(d => d.id === id ? { ...d, visible } : d));
+          setResults(prev => prev.map(d => d.id === id ? { ...d, visible } : d));
+        } else if (model === 'group') {
+          setGroups(prev => prev.map(g => g.id === id ? { ...g, visible } : g));
+        }
+      } else {
+        alert('Update visibility failed: ' + (json.error || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('update visibility error', err);
+      alert('Update visibility error');
+    }
+  }
+
+  const isSearching = (q || '').trim().length > 0;
+
+  const tabs = [
+    {
+      id: 'out-of-stock',
+      label: 'Out of stock',
+      content: (
+        <LimitedStockSection
+          items={initialItems}
+          balances={balances}
+          onUpdateStock={updateStock}
+          onUpdateVisibility={updateVisibility}
+          onBalanceChange={handleBalanceChange}
+        />
       )
-    ),
-    React.createElement('form', { onSubmit: doSearch, style: { marginBottom: 12 } },
-      React.createElement('input', {
-        type: 'search',
-        placeholder: 'Search by code or name',
-        value: q,
-        onChange: (ev) => setQ(ev.target.value),
-        style: { padding: '6px 8px', width: 300, marginRight: 8 }
-      }),
-      React.createElement('button', { type: 'submit', disabled: loading }, loading ? 'Searching...' : 'Search')
-    ),
-    React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' } },
-      results.length === 0 ? React.createElement('div', null, 'No results') : results.map((r) => (
-        React.createElement('div', { key: r.id, style: { border: '1px solid #ddd', padding: 16, borderRadius: 8, backgroundColor: '#f9f9f9' } },
-          React.createElement('div', { style: { fontWeight: 'bold', marginBottom: 8 } }, r.name || '—'),
-          React.createElement('div', { style: { marginBottom: 4 } }, `Code: ${r.code || ''}`),
-          React.createElement('div', { style: { marginBottom: 4 } }, `Price: ${r.price ?? ''}`),
-          React.createElement('div', { style: { marginBottom: 8 } }, 'Stock: ', React.createElement('input', {
-          type: 'number',
-          value: balances[r.id] ?? r.balance ?? 0,
-          readOnly: true,
-          style: { width: 80, border: 'none', background: 'transparent' }
-        })),
-          React.createElement('div', null,
-            React.createElement('input', {
-              type: 'number',
-              value: balances[r.id] ?? r.balance ?? 0,
-              onChange: (ev) => { console.log('changed', r.id, ev.target.value); setBalances({ ...balances, [r.id]: Number(ev.target.value) || 0 }); },
-              style: { width: 80, marginRight: 8, padding: '4px' }
-            }),
-            React.createElement('button', { onClick: () => updateStock(r.id, balances[r.id] ?? r.balance ?? 0), style: { padding: '4px 8px' } }, 'Update')
-          )
-        )
-      ))
-    )
+    },
+    {
+      id: 'explore',
+      label: 'Explore',
+      content: (
+        <div>
+          <SearchBar query={q} onQueryChange={setQ} onClear={clearSearch} />
+
+          {isSearching ? (
+            <DishesGrid
+              dishes={results}
+              balances={balances}
+              onUpdateStock={updateStock}
+              onUpdateVisibility={updateVisibility}
+              onBalanceChange={handleBalanceChange}
+              title={results.length === 0 ? 'No results' : 'Search Results'}
+            />
+          ) : (
+            <div>
+              <Navigation
+                currentGroup={currentGroup}
+                groupStack={groupStack}
+                onBackClick={handleBackClick}
+              />
+
+              <GroupsGrid
+                groups={groups}
+                onGroupClick={handleGroupClick}
+                onUpdateVisibility={updateVisibility}
+              />
+
+              <DishesGrid
+                dishes={dishes}
+                balances={balances}
+                onUpdateStock={updateStock}
+                onUpdateVisibility={updateVisibility}
+                onBalanceChange={handleBalanceChange}
+              />
+
+              {groups.length === 0 && dishes.length === 0 && (
+                <div className="text-center text-gray-500 py-8">Empty folder</div>
+              )}
+            </div>
+          )}
+        </div>
+      )
+    }
+  ];
+
+  return (
+    <div className="stock-manager">
+      <h1 className="text-2xl font-bold mb-6">Stock Manager</h1>
+      <Tabs tabs={tabs} defaultTab="out-of-stock" />
+    </div>
   );
 }
 

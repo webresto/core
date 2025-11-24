@@ -1,0 +1,51 @@
+export default async function GetGroupsController(req: any, res: any) {
+    const { config } = req.adminizer || {};
+    if (config?.auth?.enable && !req.user) {
+        return res.redirect(`${config.routePrefix}/model/userap/login`);
+    } else if (req.adminizer?.accessRightsHelper && !req.adminizer.accessRightsHelper.hasPermission(`stock-manager`, req.user)) {
+        return res.sendStatus(403);
+    }
+    try {
+        const parentId = req.query.parent || null;
+
+        let groups;
+        if (parentId) {
+            groups = await Group.find({
+                where: {
+                    parentGroup: parentId,
+                    isDeleted: false
+                }
+            });
+        } else {
+            // Fetch root groups (no parent)
+            // Using Group.getMenuGroups might be too specific to menu logic (e.g. time validation), 
+            // but for stock manager we probably want all visible groups structure.
+            // Let's try to find groups with no parent first.
+            groups = await Group.find({
+                where: {
+                    parentGroup: null,
+                    isDeleted: false
+                }
+            });
+        }
+
+        sails.log.debug('GetGroupsController found groups:', groups.length);
+        if (groups.length > 0) {
+            sails.log.debug('First group sample:', JSON.stringify(groups[0], null, 2));
+        }
+
+        // Map minimal fields
+        const results = groups.map((g: any) => ({
+            id: g.id,
+            name: g.name,
+            images: g.images,
+            icon: g.icon,
+            visible: g.visible ?? true // Default to true if undefined/null
+        }));
+
+        return res.json({ results });
+    } catch (error) {
+        sails.log.error('Get groups error', error);
+        return res.status(500).json({ error: String(error) });
+    }
+}

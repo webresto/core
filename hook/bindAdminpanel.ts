@@ -1,10 +1,10 @@
 // todo: fix types model instance to {%ModelName%}Record for bind"
 import { ProductCatalog } from "../libs/adminpanel/ProductCatalog/ProductCatalog";
 import { ProductMediaManager } from "../libs/adminpanel/ProductMediaManager/ProductMediaManager";
-import {models } from "../libs/adminpanel/models/bind" 
-export default function bindAdminpanel () {
+import { models } from "../libs/adminpanel/models/bind"
+export default function bindAdminpanel() {
   processBindAdminpanel();
-  sails.on('Adminpanel:loaded', async ()=>{
+  sails.on('Adminpanel:loaded', async () => {
     // Catalog bind
     const catalogHandler = sails.hooks.adminpanel.adminizer.catalogHandler
     const productCatalog = new ProductCatalog()
@@ -42,11 +42,11 @@ function addModelConfig(newModels: Record<string, any>) {
 
 
 
-function processBindAdminpanel(){
+function processBindAdminpanel() {
   // Using local addModelConfig
   addModelConfig(models);
 
-  if(Array.isArray(sails.config.adminpanel?.sections)){
+  if (Array.isArray(sails.config.adminpanel?.sections)) {
     let baseRoute = sails.config.adminpanel.routePrefix;
     sails.config.adminpanel.sections.push({
       id: 'products',
@@ -71,13 +71,13 @@ function processBindAdminpanel(){
   }
 
   // Add routes for product setup  
-  sails.on('Adminpanel:afterHook:loaded', async ()=>{
+  sails.on('Adminpanel:afterHook:loaded', async () => {
     if (sails.hooks.adminpanel && sails.hooks.adminpanel.adminizer) {
-      const adminizer = sails.hooks.adminpanel.adminizer;  
-      adminizer.emitter.on('adminizer:loaded', () => {  
+      const adminizer = sails.hooks.adminpanel.adminizer;
+      adminizer.emitter.on('adminizer:loaded', () => {
         const routePrefix = adminizer.config.routePrefix;
         const policies = adminizer.config.policies;
-  
+
         // StockManager module link + route
         try {
           const stockController = require('../lib/adminpanel/src/controller/stock-manager').default;
@@ -86,9 +86,9 @@ function processBindAdminpanel(){
             title: 'Stock Manager',
             link: `${routePrefix}/stock-manager`,
             icon: 'warehouse',
-            section: 'Tools'
+            section: 'Catalog'
           });
-  
+
           adminizer.app.get(
             `${routePrefix}/stock-manager`,
             adminizer.policyManager.bindPolicies(policies, stockController)
@@ -121,7 +121,31 @@ function processBindAdminpanel(){
         } catch (e) {
           sails.log.debug('StockManager get stock items route bind error', e);
         }
-  
+
+        // API route for getting groups
+        try {
+          const getGroupsController = require('../lib/adminpanel/src/controller/get-groups').default;
+          adminizer.app.get(`${routePrefix}/core/groups`, adminizer.policyManager.bindPolicies(policies, getGroupsController));
+        } catch (e) {
+          sails.log.debug('StockManager get groups route bind error', e);
+        }
+
+        // API route for getting dishes by group
+        try {
+          const getDishesByGroupController = require('../lib/adminpanel/src/controller/get-dishes-by-group').default;
+          adminizer.app.get(`${routePrefix}/core/dishes-by-group`, adminizer.policyManager.bindPolicies(policies, getDishesByGroupController));
+        } catch (e) {
+          sails.log.debug('StockManager get dishes by group route bind error', e);
+        }
+
+        // API route for updating visibility
+        try {
+          const updateVisibilityController = require('../lib/adminpanel/src/controller/update-visibility').default;
+          adminizer.app.post(`${routePrefix}/core/update-visibility`, adminizer.policyManager.bindPolicies(policies, updateVisibilityController));
+        } catch (e) {
+          sails.log.debug('StockManager update visibility route bind error', e);
+        }
+
         // Route for product setup page
         // adminizer.app.get(`${routePrefix}/product-setup`, (req: any, res: any) => {
         //   if (adminizer.config.auth?.enable && !req.user) {
@@ -130,7 +154,7 @@ function processBindAdminpanel(){
         //   // For now, redirect to catalog - later can render ProductSetup component
         //   return res.redirect(`${routePrefix}/catalog/products`);
         // });
-  
+
         // // API routes for concepts
         // // @ts-ignore
         // adminizer.app.get(`${routePrefix}/catalog/products/concepts`, sails.controllers.productsetup.concepts);
