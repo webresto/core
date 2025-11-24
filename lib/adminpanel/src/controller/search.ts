@@ -30,6 +30,7 @@ export default async function StockManagerSearchController(req: any, res: any) {
       price: d.price,
       visible: d.visible,
       balance: d.balance,
+      isDeleted: d.isDeleted,
     }));
 
     return res.json({ results });
