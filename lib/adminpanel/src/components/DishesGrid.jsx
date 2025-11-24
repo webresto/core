@@ -9,6 +9,7 @@ export function DishesGrid({
     balances,
     onUpdateStock,
     onUpdateVisibility,
+    onUpdateIsDeleted,
     onBalanceChange,
     onBulkVisibility,
     onBulkBalance,
@@ -47,6 +48,7 @@ export function DishesGrid({
                             balance={balances[dish.id]}
                             onUpdateStock={onUpdateStock}
                             onUpdateVisibility={onUpdateVisibility}
+                            onUpdateIsDeleted={onUpdateIsDeleted}
                             onBalanceChange={onBalanceChange}
                         />
                     ))}
@@ -60,6 +62,7 @@ export function DishesGrid({
                             balance={balances[dish.id]}
                             onUpdateStock={onUpdateStock}
                             onUpdateVisibility={onUpdateVisibility}
+                            onUpdateIsDeleted={onUpdateIsDeleted}
                             onBalanceChange={onBalanceChange}
                         />
                     ))}

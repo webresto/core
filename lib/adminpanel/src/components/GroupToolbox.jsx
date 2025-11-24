@@ -67,7 +67,7 @@ export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
                 )}
                 title="Hide all dishes in this group"
             >
-                👁️‍🗨️ Hide All
+                �️‍🗨️ Hide All
             </Button>
 
             <Button

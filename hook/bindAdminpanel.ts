@@ -146,6 +146,14 @@ function processBindAdminpanel() {
           sails.log.debug('StockManager update visibility route bind error', e);
         }
 
+        // API route for updating isDeleted flag (used by StockManager frontend)
+        try {
+          const updateIsDeletedController = require('../lib/adminpanel/src/controller/update-is-deleted').default;
+          adminizer.app.post(`${routePrefix}/core/update-is-deleted`, adminizer.policyManager.bindPolicies(policies, updateIsDeletedController));
+        } catch (e) {
+          sails.log.debug('StockManager update isDeleted route bind error', e);
+        }
+
         // Route for product setup page
         // adminizer.app.get(`${routePrefix}/product-setup`, (req: any, res: any) => {
         //   if (adminizer.config.auth?.enable && !req.user) {

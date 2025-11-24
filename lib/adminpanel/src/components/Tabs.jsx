@@ -1,7 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export function Tabs({ tabs, defaultTab }) {
-    const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
+    // Initialize from URL hash or defaultTab
+    const getInitialTab = () => {
+        if (typeof window !== 'undefined' && window.location.hash) {
+            const hash = window.location.hash.substring(1);
+            const tabExists = tabs.some(tab => tab.id === hash);
+            if (tabExists) return hash;
+        }
+        return defaultTab || tabs[0]?.id;
+    };
+
+    const [activeTab, setActiveTab] = useState(getInitialTab);
+
+    // Update URL hash when tab changes
+    useEffect(() => {
+        if (typeof window !== 'undefined' && activeTab) {
+            window.history.replaceState(null, '', `#${activeTab}`);
+        }
+    }, [activeTab]);
+
+    // Listen to hash changes (browser back/forward)
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash.substring(1);
+            if (hash && tabs.some(tab => tab.id === hash)) {
+                setActiveTab(hash);
+            }
+        };
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('hashchange', handleHashChange);
+            return () => window.removeEventListener('hashchange', handleHashChange);
+        }
+    }, [tabs]);
 
     const activeTabContent = tabs.find(tab => tab.id === activeTab);
 

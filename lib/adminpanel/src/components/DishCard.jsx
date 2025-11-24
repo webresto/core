@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 
-export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onBalanceChange }) {
+export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onUpdateIsDeleted, onBalanceChange }) {
     const currentBalance = balance ?? dish.balance ?? 0;
     const isUnlimited = currentBalance === -1;
 
@@ -46,7 +46,18 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onB
     return (
         <Card>
             <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-lg">{dish.name || '—'}</CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{dish.name || '—'}</CardTitle>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onUpdateVisibility(dish.id, 'dish', !dish.visible)}
+                        title={dish.visible ? 'Hide dish' : 'Show dish'}
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                    >
+                        {dish.visible ? '👁' : '🙈'}
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent className="p-4 pt-0">
                 <div className="mb-2 text-sm text-muted-foreground">Code: {dish.code || ''}</div>
@@ -54,12 +65,12 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onB
 
                 <div className="mb-4 flex items-center space-x-2">
                     <Checkbox
-                        id={`visible-${dish.id}`}
-                        checked={!!dish.visible}
-                        onCheckedChange={(checked) => onUpdateVisibility(dish.id, 'dish', checked)}
+                        id={`isDeleted-${dish.id}`}
+                        checked={!!dish.isDeleted}
+                        onCheckedChange={(checked) => onUpdateIsDeleted(dish.id, 'dish', checked)}
                     />
-                    <Label htmlFor={`visible-${dish.id}`} className="cursor-pointer">
-                        Visible
+                    <Label htmlFor={`isDeleted-${dish.id}`} className="cursor-pointer">
+                        Deleted
                     </Label>
                 </div>
 

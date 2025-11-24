@@ -248,6 +248,46 @@ export default function StockManager() {
     }
   }
 
+  async function updateIsDeleted(id, model, isDeleted) {
+    try {
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+      const endpoint = `${base}/core/update-is-deleted`;
+      const csrfToken = (() => {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === 'XSRF-TOKEN') return decodeURIComponent(value);
+        }
+        return null;
+      })();
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-xsrf-token': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify({ id, model, isDeleted })
+      });
+      const json = await resp.json();
+      if (json.success) {
+        // Update state
+        if (model === 'dish') {
+          setDishes(prev => prev.map(d => d.id === id ? { ...d, isDeleted } : d));
+          setInitialItems(prev => prev.map(d => d.id === id ? { ...d, isDeleted } : d));
+          setResults(prev => prev.map(d => d.id === id ? { ...d, isDeleted } : d));
+        } else if (model === 'group') {
+          setGroups(prev => prev.map(g => g.id === id ? { ...g, isDeleted } : g));
+        }
+      } else {
+        alert('Update isDeleted failed: ' + (json.error || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('update isDeleted error', err);
+      alert('Update isDeleted error');
+    }
+  }
+
   async function handleBulkVisibility(dishIds, visible) {
     try {
       // Update all dishes in parallel
@@ -299,6 +339,7 @@ export default function StockManager() {
               balances={balances}
               onUpdateStock={updateStock}
               onUpdateVisibility={updateVisibility}
+              onUpdateIsDeleted={updateIsDeleted}
               onBalanceChange={handleBalanceChange}
               title={results.length === 0 ? 'No results' : 'Search Results'}
               viewMode={viewMode}
@@ -323,6 +364,7 @@ export default function StockManager() {
                 balances={balances}
                 onUpdateStock={updateStock}
                 onUpdateVisibility={updateVisibility}
+                onUpdateIsDeleted={updateIsDeleted}
                 onBalanceChange={handleBalanceChange}
                 onBulkVisibility={handleBulkVisibility}
                 onBulkBalance={handleBulkBalance}
