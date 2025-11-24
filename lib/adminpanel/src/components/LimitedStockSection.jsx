@@ -6,7 +6,6 @@ export function LimitedStockSection({
     items,
     balances,
     onUpdateStock,
-    onUpdateVisibility,
     onBalanceChange
 }) {
     const { t } = useTranslation();
@@ -39,7 +38,6 @@ export function LimitedStockSection({
                 dishes={items}
                 balances={balances}
                 onUpdateStock={onUpdateStock}
-                onUpdateVisibility={onUpdateVisibility}
                 onBalanceChange={onBalanceChange}
                 title={t('limited_stock_title')}
             />

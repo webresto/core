@@ -34,6 +34,12 @@ function StockManagerContent() {
     return localStorage.getItem('stockManagerSortMode') || 'status';
   });
 
+  // Show deleted dishes state
+  const [showDeleted, setShowDeleted] = useState(() => {
+    const saved = localStorage.getItem('stockManagerShowDeleted');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
   // Persist view mode changes
   useEffect(() => {
     localStorage.setItem('stockManagerViewMode', viewMode);
@@ -43,6 +49,11 @@ function StockManagerContent() {
   useEffect(() => {
     localStorage.setItem('stockManagerSortMode', sortMode);
   }, [sortMode]);
+
+  // Persist show deleted changes
+  useEffect(() => {
+    localStorage.setItem('stockManagerShowDeleted', JSON.stringify(showDeleted));
+  }, [showDeleted]);
 
   // Parse URL to get current group slug
   function getGroupSlugFromUrl() {
@@ -333,45 +344,7 @@ function StockManagerContent() {
     }
   }
 
-  async function updateVisibility(id, model, visible) {
-    try {
-      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
-      const endpoint = `${base}/core/update-visibility`;
-      const csrfToken = (() => {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          const [name, value] = cookie.trim().split('=');
-          if (name === 'XSRF-TOKEN') return decodeURIComponent(value);
-        }
-        return null;
-      })();
-      const resp = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-xsrf-token': csrfToken
-        },
-        credentials: 'include',
-        body: JSON.stringify({ id, model, visible })
-      });
-      const json = await resp.json();
-      if (json.success) {
-        // Optimistic update or refresh
-        if (model === 'dish') {
-          setDishes(prev => prev.map(d => d.id === id ? { ...d, visible } : d));
-          setInitialItems(prev => prev.map(d => d.id === id ? { ...d, visible } : d));
-          setResults(prev => prev.map(d => d.id === id ? { ...d, visible } : d));
-        } else if (model === 'group') {
-          setGroups(prev => prev.map(g => g.id === id ? { ...g, visible } : g));
-        }
-      } else {
-        alert('Update visibility failed: ' + (json.error || 'Unknown error'));
-      }
-    } catch (err) {
-      console.error('update visibility error', err);
-      alert('Update visibility error');
-    }
-  }
+
 
   async function updateIsDeleted(id, model, isDeleted) {
     try {
@@ -416,7 +389,10 @@ function StockManagerContent() {
   async function handleBulkVisibility(dishIds, visible) {
     try {
       // Update all dishes in parallel
-      const promises = dishIds.map(id => updateVisibility(id, 'dish', visible));
+      // visible = true => isDeleted = false
+      // visible = false => isDeleted = true
+      const isDeleted = !visible;
+      const promises = dishIds.map(id => updateIsDeleted(id, 'dish', isDeleted));
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk visibility error', err);
@@ -446,7 +422,6 @@ function StockManagerContent() {
           items={initialItems}
           balances={balances}
           onUpdateStock={updateStock}
-          onUpdateVisibility={updateVisibility}
           onBalanceChange={handleBalanceChange}
         />
       )
@@ -463,7 +438,6 @@ function StockManagerContent() {
               dishes={results}
               balances={balances}
               onUpdateStock={updateStock}
-              onUpdateVisibility={updateVisibility}
               onUpdateIsDeleted={updateIsDeleted}
               onBalanceChange={handleBalanceChange}
               title={results.length === 0 ? t('no_results') : t('search_results')}
@@ -471,6 +445,8 @@ function StockManagerContent() {
               onViewModeChange={setViewMode}
               sortMode={sortMode}
               onSortModeChange={setSortMode}
+              showDeleted={showDeleted}
+              onShowDeletedChange={setShowDeleted}
             />
           ) : (
             <div>
@@ -489,7 +465,6 @@ function StockManagerContent() {
                 dishes={dishes}
                 balances={balances}
                 onUpdateStock={updateStock}
-                onUpdateVisibility={updateVisibility}
                 onUpdateIsDeleted={updateIsDeleted}
                 onBalanceChange={handleBalanceChange}
                 onBulkVisibility={handleBulkVisibility}
@@ -499,6 +474,8 @@ function StockManagerContent() {
                 onViewModeChange={setViewMode}
                 sortMode={sortMode}
                 onSortModeChange={setSortMode}
+                showDeleted={showDeleted}
+                onShowDeletedChange={setShowDeleted}
               />
 
               {groups.length === 0 && dishes.length === 0 && (

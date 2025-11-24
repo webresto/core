@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '../i18n/I18nContext';
 
-export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onUpdateIsDeleted, onBalanceChange }) {
+export function DishCard({ dish, balance, onUpdateStock, onUpdateIsDeleted, onBalanceChange }) {
     const { t } = useTranslation();
     const currentBalance = balance ?? dish.balance ?? 0;
     const isUnlimited = currentBalance === -1;

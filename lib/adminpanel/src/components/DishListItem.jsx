@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
-export function DishListItem({ dish, balance, onUpdateStock, onUpdateVisibility, onUpdateIsDeleted, onBalanceChange }) {
+export function DishListItem({ dish, balance, onUpdateStock, onUpdateIsDeleted, onBalanceChange }) {
     const currentBalance = balance ?? dish.balance ?? 0;
     const isUnlimited = currentBalance === -1;
 

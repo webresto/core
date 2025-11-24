@@ -1,7 +1,7 @@
 import React from 'react';
 import { GroupCard } from './GroupCard';
 
-export function GroupsGrid({ groups, onGroupClick, onUpdateVisibility }) {
+export function GroupsGrid({ groups, onGroupClick }) {
     if (groups.length === 0) {
         return null;
     }
@@ -15,7 +15,6 @@ export function GroupsGrid({ groups, onGroupClick, onUpdateVisibility }) {
                         key={group.id}
                         group={group}
                         onGroupClick={onGroupClick}
-                        onUpdateVisibility={onUpdateVisibility}
                     />
                 ))}
             </div>
