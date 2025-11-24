@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, ArrowUpAZ, ArrowDownZA, ListOrdered, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '../i18n/I18nContext';
 
 export function SortToggle({ sortMode, onSortModeChange }) {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
     const sortOptions = [
-        { value: 'name-asc', label: 'Name (A-Z)', icon: ArrowUpAZ },
-        { value: 'name-desc', label: 'Name (Z-A)', icon: ArrowDownZA },
-        { value: 'sortOrder', label: 'By Order', icon: ListOrdered },
-        { value: 'status', label: 'Active First', icon: CheckCircle2 },
+        { value: 'name-asc', label: t('sort_name_asc'), icon: ArrowUpAZ },
+        { value: 'name-desc', label: t('sort_name_desc'), icon: ArrowDownZA },
+        { value: 'sortOrder', label: t('sort_order'), icon: ListOrdered },
+        { value: 'status', label: t('sort_status'), icon: CheckCircle2 },
     ];
 
     const currentOption = sortOptions.find(opt => opt.value === sortMode) || sortOptions[3];

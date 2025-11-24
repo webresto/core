@@ -5,9 +5,12 @@ import { Navigation } from './components/Navigation';
 import { LimitedStockSection } from './components/LimitedStockSection';
 import { GroupsGrid } from './components/GroupsGrid';
 import { DishesGrid } from './components/DishesGrid';
+import { I18nProvider, useTranslation } from './i18n/I18nContext';
 
 // StockManager component with folder navigation and search
-export default function StockManager() {
+// StockManager content component
+function StockManagerContent() {
+  const { t, language, setLanguage } = useTranslation();
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
@@ -437,7 +440,7 @@ export default function StockManager() {
   const tabs = [
     {
       id: 'out-of-stock',
-      label: 'Out of stock',
+      label: t('tab_out_of_stock'),
       content: (
         <LimitedStockSection
           items={initialItems}
@@ -450,7 +453,7 @@ export default function StockManager() {
     },
     {
       id: 'explore',
-      label: 'Explore',
+      label: t('tab_explore'),
       content: (
         <div>
           <SearchBar query={q} onQueryChange={setQ} onClear={clearSearch} />
@@ -463,7 +466,7 @@ export default function StockManager() {
               onUpdateVisibility={updateVisibility}
               onUpdateIsDeleted={updateIsDeleted}
               onBalanceChange={handleBalanceChange}
-              title={results.length === 0 ? 'No results' : 'Search Results'}
+              title={results.length === 0 ? t('no_results') : t('search_results')}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               sortMode={sortMode}
@@ -499,7 +502,7 @@ export default function StockManager() {
               />
 
               {groups.length === 0 && dishes.length === 0 && (
-                <div className="text-center text-gray-500 py-8">Empty folder</div>
+                <div className="text-center text-gray-500 py-8">{t('empty_folder')}</div>
               )}
             </div>
           )}
@@ -509,10 +512,21 @@ export default function StockManager() {
   ];
 
   return (
-    <div className="stock-manager">
-      <h1 className="text-2xl font-bold mb-6">Stock Manager</h1>
+    <div className="p-6 max-w-[1600px] mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Stock Manager</h1>
+      </div>
       <Tabs tabs={tabs} defaultTab="out-of-stock" />
     </div>
+  );
+}
+
+// Main component wrapped with I18nProvider
+export default function StockManager(props) {
+  return (
+    <I18nProvider initialLocale={props.locale}>
+      <StockManagerContent />
+    </I18nProvider>
   );
 }
 

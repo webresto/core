@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from './ConfirmDialog';
 import { EyeOff, Eye, Hash, Infinity } from 'lucide-react';
+import { useTranslation } from '../i18n/I18nContext';
 
 export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
+    const { t } = useTranslation();
     const [dialogState, setDialogState] = useState({
         isOpen: false,
         type: null,
@@ -63,13 +65,13 @@ export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
                 size="sm"
                 onClick={() => openDialog(
                     'hide-all',
-                    'Disable All Dishes',
-                    `Set ${dishCount} dish${dishCount !== 1 ? 'es' : ''} as invisible?`
+                    t('dialog_disable_title'),
+                    t('dialog_disable_msg', { count: dishCount })
                 )}
-                title="Disable all dishes in this group"
+                title={t('toolbox_disable')}
             >
                 <EyeOff className="w-4 h-4 mr-2" />
-                Disable
+                {t('toolbox_disable')}
             </Button>
 
             <Button
@@ -77,13 +79,13 @@ export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
                 size="sm"
                 onClick={() => openDialog(
                     'show-all',
-                    'Enable All Dishes',
-                    `Set ${dishCount} dish${dishCount !== 1 ? 'es' : ''} as visible?`
+                    t('dialog_enable_title'),
+                    t('dialog_enable_msg', { count: dishCount })
                 )}
-                title="Enable all dishes in this group"
+                title={t('toolbox_enable')}
             >
                 <Eye className="w-4 h-4 mr-2" />
-                Enable
+                {t('toolbox_enable')}
             </Button>
 
             <Button
@@ -91,14 +93,14 @@ export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
                 size="sm"
                 onClick={() => openDialog(
                     'set-balance',
-                    'Set Balance',
-                    `Set balance for all ${dishCount} dish${dishCount !== 1 ? 'es' : ''} to:`,
+                    t('dialog_balance_title'),
+                    t('dialog_balance_msg', { count: dishCount }),
                     true
                 )}
-                title="Set specific balance for all dishes"
+                title={t('toolbox_set_balance')}
             >
                 <Hash className="w-4 h-4 mr-2" />
-                Set Balance
+                {t('toolbox_set_balance')}
             </Button>
 
             <Button
@@ -106,13 +108,13 @@ export function GroupToolbox({ dishes, onBulkVisibility, onBulkBalance }) {
                 size="sm"
                 onClick={() => openDialog(
                     'set-unlimited',
-                    'Set Unlimited',
-                    `Set ${dishCount} dish${dishCount !== 1 ? 'es' : ''} to unlimited balance?`
+                    t('dialog_unlimited_title'),
+                    t('dialog_unlimited_msg', { count: dishCount })
                 )}
-                title="Set unlimited balance for all dishes"
+                title={t('toolbox_set_unlimited')}
             >
                 <Infinity className="w-4 h-4 mr-2" />
-                Set Unlimited
+                {t('toolbox_set_unlimited')}
             </Button>
 
             <ConfirmDialog

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { BalanceInput } from './BalanceInput';
+import { useTranslation } from '../i18n/I18nContext';
 
 export function ConfirmDialog({
     isOpen,
@@ -9,9 +10,12 @@ export function ConfirmDialog({
     title,
     message,
     needsBalanceInput = false,
-    confirmText = "Confirm",
-    cancelText = "Cancel"
+    confirmText,
+    cancelText
 }) {
+    const { t } = useTranslation();
+    const effectiveConfirmText = confirmText || t('dialog_confirm');
+    const effectiveCancelText = cancelText || t('dialog_cancel');
     const [balanceValue, setBalanceValue] = useState(0);
 
     if (!isOpen) return null;
@@ -52,12 +56,12 @@ export function ConfirmDialog({
                         variant="outline"
                         onClick={handleCancel}
                     >
-                        {cancelText}
+                        {effectiveCancelText}
                     </Button>
                     <Button
                         onClick={handleConfirm}
                     >
-                        {confirmText}
+                        {effectiveConfirmText}
                     </Button>
                 </div>
             </div>

@@ -4,8 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '../i18n/I18nContext';
 
 export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onUpdateIsDeleted, onBalanceChange }) {
+    const { t } = useTranslation();
     const currentBalance = balance ?? dish.balance ?? 0;
     const isUnlimited = currentBalance === -1;
 
@@ -49,8 +51,8 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onU
                 <CardTitle className="text-lg">{dish.name || '—'}</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-                <div className="mb-2 text-sm text-muted-foreground">Code: {dish.code || ''}</div>
-                <div className="mb-2 text-sm text-muted-foreground">Price: {dish.price ?? ''}</div>
+                <div className="mb-2 text-sm text-muted-foreground">{t('dish_code')}: {dish.code || ''}</div>
+                <div className="mb-2 text-sm text-muted-foreground">{t('dish_price')}: {dish.price ?? ''}</div>
 
                 <div className="mb-4 flex items-center space-x-2">
                     <Checkbox
@@ -59,14 +61,14 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onU
                         onCheckedChange={(checked) => onUpdateIsDeleted(dish.id, 'dish', !checked)}
                     />
                     <Label htmlFor={`enable-${dish.id}`} className="cursor-pointer">
-                        Enable
+                        {t('dish_enable')}
                     </Label>
                 </div>
 
                 <div className="mb-4">
-                    <Label className="block mb-1 font-semibold">Stock:</Label>
+                    <Label className="block mb-1 font-semibold">{t('dish_stock')}:</Label>
                     {isUnlimited ? (
-                        <span className="font-bold text-green-600">∞ Unlimited</span>
+                        <span className="font-bold text-green-600">∞ {t('dish_unlimited')}</span>
                     ) : (
                         <Input
                             type="number"
@@ -114,7 +116,7 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateVisibility, onU
 
                     <Button
                         onClick={handleSetUnlimited}
-                        title="Set to Unlimited"
+                        title={t('dish_set_unlimited')}
                         variant="outline"
                         size="sm"
                         className="h-10 w-10 p-0 text-lg font-bold"

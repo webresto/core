@@ -8,7 +8,8 @@ export default function StockManagerController(req: any, res: any) {
     component: 'module',
     props: {
       moduleComponent: `/restocore/assets/stockmanager/StockManager.js`,
-      message: 'Hello from Stock Manager'
+      message: 'Hello from Stock Manager',
+      locale: req.user?.language || req.user?.locale || 'en'
     }
   });
 }

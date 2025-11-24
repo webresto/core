@@ -4,6 +4,7 @@ import { DishListItem } from './DishListItem';
 import { GroupToolbox } from './GroupToolbox';
 import { ViewToggle } from './ViewToggle';
 import { SortToggle } from './SortToggle';
+import { useTranslation } from '../i18n/I18nContext';
 
 export function DishesGrid({
     dishes,
@@ -14,13 +15,16 @@ export function DishesGrid({
     onBalanceChange,
     onBulkVisibility,
     onBulkBalance,
-    title = 'Dishes',
+    title,
     showToolbox = false,
     viewMode = 'grid',
     onViewModeChange,
     sortMode = 'status',
     onSortModeChange
 }) {
+    const { t } = useTranslation();
+    const displayTitle = title || t('dishes_title');
+
     if (dishes.length === 0) {
         return null;
     }
@@ -59,7 +63,7 @@ export function DishesGrid({
     return (
         <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold">{title}</h3>
+                <h3 className="text-xl font-semibold">{displayTitle}</h3>
                 <div className="flex items-center gap-2">
                     {onSortModeChange && (
                         <SortToggle sortMode={sortMode} onSortModeChange={onSortModeChange} />
