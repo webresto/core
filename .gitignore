@@ -28,3 +28,4 @@ coverage
 .vscode/pinned-files.json
 .tmp
 backup.tar
+assets/stockmanager

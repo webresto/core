@@ -80,7 +80,7 @@ function processBindAdminpanel(){
   
         // StockManager module link + route
         try {
-          const stockController = require('../lib/adminpanel/src/controller/frontend').default;
+          const stockController = require('../lib/adminpanel/src/controller/stock-manager').default;
           adminizer.config.navbar.additionalLinks.push({
             id: 'stock-manager',
             title: 'Stock Manager',
@@ -95,6 +95,31 @@ function processBindAdminpanel(){
           );
         } catch (e) {
           sails.log.debug('StockManager route bind error', e);
+        }
+
+        // API route for search used by StockManager frontend — expose under admin path
+        try {
+          const searchController = require('../lib/adminpanel/src/controller/search').default;
+          // Expose at <routePrefix>/core/api?q=... for admin-scoped API
+          adminizer.app.get(`${routePrefix}/core/api`, adminizer.policyManager.bindPolicies(policies, searchController));
+        } catch (e) {
+          sails.log.debug('StockManager search route bind error', e);
+        }
+
+        // API route for updating stock
+        try {
+          const updateStockController = require('../lib/adminpanel/src/controller/update-stock').default;
+          adminizer.app.post(`${routePrefix}/core/update-stock`, adminizer.policyManager.bindPolicies(policies, updateStockController));
+        } catch (e) {
+          sails.log.debug('StockManager update stock route bind error', e);
+        }
+
+        // API route for getting stock items
+        try {
+          const getStockItemsController = require('../lib/adminpanel/src/controller/get-stock-items').default;
+          adminizer.app.get(`${routePrefix}/core/stock-items`, adminizer.policyManager.bindPolicies(policies, getStockItemsController));
+        } catch (e) {
+          sails.log.debug('StockManager get stock items route bind error', e);
         }
   
         // Route for product setup page
