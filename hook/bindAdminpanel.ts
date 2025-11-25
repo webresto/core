@@ -2,6 +2,8 @@
 import { ProductCatalog } from "../libs/adminpanel/ProductCatalog/ProductCatalog";
 import { ProductMediaManager } from "../libs/adminpanel/ProductMediaManager/ProductMediaManager";
 import { models } from "../libs/adminpanel/models/bind"
+import { initializeWidgets } from "../lib/adminpanel/widgets"
+
 export default function bindAdminpanel() {
   processBindAdminpanel();
   sails.on('Adminpanel:loaded', async () => {
@@ -14,6 +16,9 @@ export default function bindAdminpanel() {
     const mediaManagerHandler = sails.hooks.adminpanel.adminizer.mediaManagerHandler
     const productMediaManager = new ProductMediaManager()
     mediaManagerHandler.add(productMediaManager)
+
+    // Initialize dashboard widgets
+    initializeWidgets();
 
     const adminizer = sails.hooks.adminpanel.adminizer;
     adminizer.config.navbar.additionalLinks.push({
@@ -56,7 +61,21 @@ function processBindAdminpanel() {
     });
   }
 
-
+  // Configure dashboard widgets
+  if (sails.config.adminpanel?.dashboard) {
+    if (!sails.config.adminpanel.dashboard.defaultWidgets) {
+      sails.config.adminpanel.dashboard.defaultWidgets = [];
+    }
+    // Add core widgets to default widgets list
+    const coreWidgets = ['dish-count',
+       'order-count', 
+       'dishes-on-stop'];
+    coreWidgets.forEach(widgetId => {
+      if (!sails.config.adminpanel.dashboard.defaultWidgets.includes(widgetId)) {
+        sails.config.adminpanel.dashboard.defaultWidgets.push(widgetId);
+      }
+    });
+  }
 
   // Add navbar link for product catalog
   if (sails.config.adminpanel.navbar && Array.isArray(sails.config.adminpanel.navbar.additionalLinks)) {
