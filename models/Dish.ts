@@ -188,6 +188,9 @@ let attributes = {
   /** The dish is removed */
   isDeleted: "boolean" as unknown as boolean,
 
+  /** The dish is enabled (managed from interface) */
+  enable: "boolean" as unknown as boolean,
+
   /** The dish can be modified*/
   isModificable: "boolean" as unknown as boolean,
 
@@ -304,6 +307,7 @@ let Model = {
 
     if (!init.modifiers) init.modifiers = []
     if (init.visible === undefined) init.visible = true;
+    if (init.enable === undefined) init.enable = true;
 
     if(init.notForSale === undefined) init.notForSale = false;
 
@@ -358,6 +362,7 @@ let Model = {
    */
   async getDishes(criteria: any = {}): Promise<DishRecord[]> {
     criteria.isDeleted = false;
+    criteria.enable = true;
 
     if (!(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) {
       criteria.balance = { "!=": 0 };
@@ -501,6 +506,7 @@ let Model = {
       balance: { "!=": 0 },
       modifier: false,
       isDeleted: false,
+      enable: true,
       visible: true
     };
 
@@ -517,6 +523,7 @@ let Model = {
           { 'balance': { "!=": 0 } },
           { 'modifier': false },
           { 'isDeleted': false },
+          { 'enable': true },
           { 'visible': true }
         ]
       },
@@ -527,6 +534,7 @@ let Model = {
           { 'balance': { "!=": 0 } },
           { 'modifier': false },
           { 'isDeleted': false },
+          { 'enable': true },
           { 'visible': true }
         ]
       },

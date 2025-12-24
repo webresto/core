@@ -47,6 +47,9 @@ let attributes = {
   /** Soft deletion */
   isDeleted: "boolean" as unknown as boolean,
 
+  /** The group is enabled (managed from interface) */
+  enable: "boolean" as unknown as boolean,
+
   /** Dishes group name*/
   name: {
     type: "string",
@@ -173,6 +176,7 @@ let Model = {
     }
 
     init.visible = init.visible ?? true
+    init.enable = init.enable ?? true
 
     const slugOpts = [];
     if(init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
@@ -216,7 +220,8 @@ let Model = {
     let menu = {} as GetGroupType;
     const groups = await Group.find({ where: {
       id: groupsId,
-      isDeleted: false
+      isDeleted: false,
+      enable: true
     }})
       .populate("childGroups")
       .populate("dishes")
@@ -237,8 +242,9 @@ let Model = {
               } else {
                 throw `Type error childGroups`
               }
-            }), 
-            isDeleted: false
+            }),
+            isDeleted: false,
+            enable: true
           })
             .populate("childGroups")
             .populate("dishes")
@@ -306,7 +312,7 @@ let Model = {
     if(process.env.UNIQUE_SLUG === "1") {
       groupObj = await Group.findOne({ slug: groupSlug });
     } else {
-      groupObj = (await Group.find({ slug: groupSlug, isDeleted: false }).limit(1))[0];
+      groupObj = (await Group.find({ slug: groupSlug, isDeleted: false, enable: true }).limit(1))[0];
     }
 
     if (!groupObj) {
@@ -358,7 +364,7 @@ let Model = {
     let allGroups: any[] | PromiseLike<string[]> = [];
     for (let group of menu) {
       const groupId = group.id
-      const initialGroup = (await Group.find({ id: groupId, isDeleted: false }).sort('createdAt DESC')).shift();
+      const initialGroup = (await Group.find({ id: groupId, isDeleted: false, enable: true }).sort('createdAt DESC')).shift();
       if (initialGroup) {
         allGroups.push(initialGroup);
         const childGroups = await getAllChildGroups(groupId);
@@ -368,7 +374,7 @@ let Model = {
     }
 
     async function getAllChildGroups(groupId: string) {
-      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false });
+      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false, enable: true });
       let allChildGroups: any[] = [];
 
       for (let group of childGroups) {
@@ -419,7 +425,8 @@ let Model = {
           let menuTopLevelGroup = (await Group.find({
             slug: menuTopLevelSlug,
             ...concept &&  { concept: concept },
-            isDeleted: false
+            isDeleted: false,
+            enable: true
            }).limit(1))[0]
           if(menuTopLevelGroup) {
             topLevelGroupId = menuTopLevelGroup.id
@@ -431,6 +438,7 @@ let Model = {
         parentGroup: topLevelGroupId ?? null,
         ...concept &&  { concept: concept },
         isDeleted: false,
+        enable: true,
         modifier: false,
         visible: true
       });
@@ -440,6 +448,7 @@ let Model = {
         let children = await Group.find({
           parentGroup: groups[0].id,
           isDeleted: false,
+          enable: true,
           modifier: false,
           visible: true
         });
@@ -469,7 +478,8 @@ let Model = {
     }
 
     const baseCriteriaGroup = {
-      isDeleted: false
+      isDeleted: false,
+      enable: true
     };
 
     const groupLimit = Math.max(Math.round(limit/ids.length), 1);
@@ -484,6 +494,7 @@ let Model = {
         'and': [
           { 'modifier': false },
           { 'isDeleted': false },
+          { 'enable': true },
           { 'visible': true }
         ]
       },
@@ -493,6 +504,7 @@ let Model = {
         'and': [
           { 'modifier': false },
           { 'isDeleted': false },
+          { 'enable': true },
           { 'visible': true }
         ]
       },
@@ -503,6 +515,7 @@ let Model = {
           { 'balance': { "!=": 0 } },
           { 'modifier': false },
           { 'isDeleted': false },
+          { 'enable': true },
           { 'visible': true }
         ]
       },
@@ -526,6 +539,7 @@ let Model = {
       balance: { "!=": 0 },
       modifier: false,
       isDeleted: false,
+      enable: true,
       visible: true
     };
 
