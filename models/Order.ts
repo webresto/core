@@ -1180,11 +1180,37 @@ let Model = {
         })
         sails.log.info(`RestoCore > new order with id [${orderWithRMS.shortId}] for [${orderWithRMS.customer.phone.code + orderWithRMS.customer.phone.number}] total: ${orderWithRMS.total} has rmsOrderNumber: ${orderWithRMS.rmsOrderNumber}`)
       } catch (error) {
+        // Extract detailed error information
+        let errorMessage = error.message || '';
+
+        // If message is empty, try to extract more information
+        if (!errorMessage || errorMessage === '{}') {
+          // Gather all available error properties
+          const errorDetails = {
+            name: error.name,
+            code: error.code,
+            stack: error.stack,
+            ...error
+          };
+          errorMessage = JSON.stringify(errorDetails, null, 2);
+        }
+
         const orderError = {
           rmsErrorCode: error.code ?? "Error",
-          rmsErrorMessage: error.message ?? JSON.stringify(error)
+          rmsErrorMessage: errorMessage
         }
-        sails.log.error(`RestoCore > orderIt error:`, error)
+
+        // Enhanced logging with stack trace
+        sails.log.error(`RestoCore > orderIt error:`, {
+          code: error.code,
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          orderId: order.id,
+          orderShortId: order.shortId,
+          fullError: error
+        })
+
         await Order.update({ id: order.id }, orderError)
       }
 

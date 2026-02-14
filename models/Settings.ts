@@ -1,5 +1,6 @@
 /**
- * Attention! We use MM "Settings" model in production mode, but for tests and core integrity, we support this model
+ * Settings model
+ * Core Settings model used in production mode
  * */
 
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS"
@@ -25,6 +26,33 @@ interface UISchema {
   options?: any;
 }
 
+// Declared settings tracker (ported from MM settingsHelper)
+const declaredSettings: string[] = ["MODULE_STORAGE_LICENSE", "ALLOW_UNSAFE_SETTINGS"];
+const isInDeclaredSettingsErrorCollector = new Map<string, boolean>();
+
+function setDeclaredSetting(key: string): void {
+  declaredSettings.push(key);
+}
+
+function isInDeclaredSettings(key: string): boolean {
+  return declaredSettings.includes(key);
+}
+
+function parseBoolean(value: string | undefined): boolean | undefined {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  const trueValues = ["yes", "YES", "Yes", "1", "true", "TRUE", "True"];
+  const falseValues = ["no", "NO", "No", "0", "false", "FALSE", "False"];
+  if (trueValues.includes(value)) {
+    return true;
+  }
+  if (falseValues.includes(value)) {
+    return false;
+  }
+  return false;
+}
+
 let attributes = {
   id: {
     type: "number",
@@ -39,7 +67,7 @@ let attributes = {
   description: "string",
   tooltip: {
 		type: "string",
-		allowNull: true 
+		allowNull: true
 	} as unknown as string,
   value: "json" as unknown as SettingValue,
   /** In case value is not defined */
@@ -58,13 +86,17 @@ let attributes = {
   } as unknown as UISchema,
   /** Only reading */
   readOnly: {
-    type: "boolean"
+    type: "boolean",
+    allowNull: true
   } as unknown as boolean,
   module: {
     type: "string",
     allowNull: true
   } as unknown as string,
-  isRequired: "boolean" as unknown as boolean
+  isRequired: {
+    type: "boolean",
+    allowNull: true
+  } as unknown as boolean
 };
 
 type attributes = typeof attributes & ORM;
@@ -90,25 +122,31 @@ let Model = {
 		// if (setting.readOnly && setting.value !== null) {
 		// 	cb(`Settings error: Setting [${record.key}] cannot be changed (read only)`);
 		// }
-    
-    delete record.key;
 
-    if (record.module) {
-      cb("Settings error: Can not change record.module. Delete and create new setting instead");
+    if (record.key) {
+      record.key = record.key.replace(/ /g, '_');
     }
 
     cb();
   },
 
   afterUpdate: async function (record: SettingsRecord, cb: (err?: string) => void) {
-    emitter.emit(`settings:${record.key}`, record);
+    try {
+      emitter.emit(`settings:${record.key}`, record);
+    } catch (error) {
+      sails.log.silly(`Emitter does not exist`, error);
+    }
     settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
 
 		cb();
 	},
 
   afterCreate: async function (record: SettingsRecord, cb: (err?: string) => void) {
-    emitter.emit(`settings:${record.key}`, record);
+    try {
+      emitter.emit(`settings:${record.key}`, record);
+    } catch (error) {
+      sails.log.silly(`Emitter does not exist`, error);
+    }
     settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
 
 		cb();
@@ -132,14 +170,30 @@ let Model = {
 
       } else {
         try {
-          value = JSON.parse(process.env[key]);
+          // Check if jsonSchema expects a primitive type (string, number, boolean)
+          const schemaType = setting.jsonSchema?.type;
+
+          if (schemaType === "string") {
+            value = process.env[key];
+          } else if (schemaType === "number" || schemaType === "integer") {
+            value = parseInt(process.env[key], 10);
+            if (isNaN(value)) {
+              sails.log.error(`Error: Value [${process.env[key]}] for [${key}] cannot be converted to number`);
+              return undefined;
+            }
+          } else if (schemaType === "boolean") {
+            const parsed = parseBoolean(process.env[key]);
+            value = parsed !== undefined ? parsed : false;
+          } else {
+            value = JSON.parse(process.env[key]);
+          }
 
           // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
           if (!(Settings.env("ALLOW_UNSAFE_SETTINGS") ?? false)) {
             const ajv = new Ajv();
             const validate = ajv.compile(setting.jsonSchema);
             if (!validate(value)) {
-              sails.log.error('AJV Validation Error: Value from process.env does not match the schema');
+              sails.log.error(`AJV Validation Error: Value [${value}] from process.env for [${key}] does not match the schema`, validate.errors);
               return undefined;
             }
           }
@@ -156,7 +210,7 @@ let Model = {
     let setting = await Settings.findOne({ key: key });
     if (setting && (setting.value !== null || setting.defaultValue !== null)) {
       value = setting.value !== null ? setting.value : setting.defaultValue;
-      return cleanValue(setting.value);
+      return cleanValue(value);
     }
 
     /** Variable present in sails config */
@@ -176,10 +230,12 @@ let Model = {
   async get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined> {
     let _key: string = key;
     // return error if setting was not declared by specification
-    // if (!SettingsHelper.isInDeclaredSettings(key) && !(await Settings.get("ALLOW_UNSAFE_SETTINGS"))) {
-    //   sails.log.error(`Settings get: Requested setting [${key}] was not declared by specification`);
-    //   return;
-    // }
+    if (!isInDeclaredSettings(key) && !Settings.env("ALLOW_UNSAFE_SETTINGS")) {
+      if (!isInDeclaredSettingsErrorCollector.has(key)) {
+        sails.log.warn(`Settings get error: Requested setting [${key}] was not declared by specification`);
+        isInDeclaredSettingsErrorCollector.set(key, true);
+      }
+    }
 
     if (settings[_key] !== undefined) {
       //@ts-ignore
@@ -199,11 +255,11 @@ let Model = {
       //@ts-ignore
       settingsSetInput = origSettings;
     }
-    sails.log.debug(`Original settings for ${key}`, origSettings)
 
     // @ts-ignore
     if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
-      throw `Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`;
+      sails.log.error(`Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`);
+      return;
     }
 
     // calculate type
@@ -228,7 +284,7 @@ let Model = {
           settingType = 'string';
           break;
         default:
-          sails.log.error('Settings set error: Can not calculate type by given value, but type is required field')
+          sails.log.error(`Settings set error: Can not calculate type for [${key}] by given value [${settingType}], but type is required field`)
           return;
       }
     }
@@ -249,60 +305,72 @@ let Model = {
           settingType = 'string';
           break;
         default:
-          sails.log.error('Settings set error: Can not calculate type by given defaultValue, but type is required field')
+          sails.log.error(`Settings set error: Can not calculate type for [${key}] by given value [${settingType}], but type is required field`)
           return;
       }
     }
 
     if (!settingType) {
-      const errorMessage = `Settings set error: Can not calculate type by given value [${settingType}], but type is required field`
+      const errorMessage = `Settings set error: Can not calculate type for [${key}] by given value [${settingType}], but type is required field`
       sails.log.error(errorMessage)
-      throw errorMessage
+      return;
     }
 
     // check that jsonSchema is present for a json type
-    // if (settingType === "json" && settingsSetInput.jsonSchema === undefined) {
-    //   const errorMessage = `Setting set [${key}] error: jsonSchema is missed for type "json"`
-    //   sails.log.error(errorMessage);
-    //   throw errorMessage
-    // }
+    if (settingType === "json" && settingsSetInput.jsonSchema === undefined) {
+      const errorMessage = `Setting set [${key}] error: jsonSchema is missed for type "json"`
+      sails.log.error(errorMessage);
+      return;
+    }
 
     // convert some values for boolean type
     if (settingType === "boolean") {
-      if (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(`${settingsSetInput.value}`)) {
-        settingsSetInput.value = true as unknown as any;
-      } else if (["no", "NO", "No", "0", "false", "FALSE", "False"].includes(`${settingsSetInput.value}`)) {
-        settingsSetInput.value = false as unknown as any;
+      if (settingsSetInput.value !== undefined) {
+        const parsedValue = parseBoolean(`${settingsSetInput.value}`);
+        if (parsedValue !== undefined) {
+          settingsSetInput.value = parsedValue as unknown as any;
+        }
       }
-
-      if (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(`${settingsSetInput.defaultValue}`)) {
-        settingsSetInput.defaultValue = true as unknown as any;
-      } else if (["no", "NO", "No", "0", "false", "FALSE", "False"].includes(`${settingsSetInput.defaultValue}`)) {
-        settingsSetInput.defaultValue = false as unknown as any;
+      if (settingsSetInput.defaultValue !== undefined) {
+        const parsedDefaultValue = parseBoolean(`${settingsSetInput.defaultValue}`);
+        if (parsedDefaultValue !== undefined) {
+          settingsSetInput.defaultValue = parsedDefaultValue as unknown as any;
+        }
       }
     }
 
     // check that value and defaultValue match the schema for json type (if !ALLOW_UNSAFE_SETTINGS)
-    if (false) { // Disabled jsonSchema validation in Settings.set, similar to Setting mode
+    if (settingsSetInput.jsonSchema && !Settings.env("ALLOW_UNSAFE_SETTINGS")) {
       const ajv = new Ajv();
-      const validate = ajv.compile(settingsSetInput.jsonSchema);
+      let validate;
+      try {
+        validate = ajv.compile(settingsSetInput.jsonSchema);
+      } catch (e) {
+        sails.log.error(`AJV Validation Error: Can not compile the schema`, e);
+        return;
+      }
 
       // undefined if value is from input, null if value is from origSettings
       if (settingsSetInput.value !== undefined && settingsSetInput.value !== null && !validate(settingsSetInput.value)) {
-        let mErr = 'AJV Validation Error: Value does not match the schema, see logs for more info';
+        let mErr = `AJV Validation Error: [${key}] Value [${settingsSetInput.value}] does not match the schema, see logs for more info`;
         sails.log.error(mErr, JSON.stringify(validate.errors, null, 2));
-        throw mErr
+        return;
       }
 
       if (settingsSetInput.defaultValue !== undefined && settingsSetInput.defaultValue !== null && !validate(settingsSetInput.defaultValue)) {
-        let mErr = 'AJV Validation Error: DefaultValue does not match the schema, see logs for more info';
+        let mErr = `AJV Validation Error: [${key}] DefaultValue [${settingsSetInput.defaultValue}] does not match the schema, see logs for more info`;
         sails.log.error(mErr, JSON.stringify(validate.errors, null, 2));
-        throw mErr
+        return;
       }
     }
 
     // Set in local variable (local storage)
     settings[key.toString()] = settingsSetInput.value !== undefined ? settingsSetInput.value : settingsSetInput.defaultValue;
+
+    // Sanitize jsonSchema to replace keys starting with $ with __s__ to avoid NeDB error, only if not production
+    if (process.env.NODE_ENV !== 'production' && settingsSetInput.jsonSchema && Settings.env("ALLOW_UNSAFE_SETTINGS")) {
+      settingsSetInput.jsonSchema = null;
+    }
 
     // Write to Database
     try {
@@ -339,8 +407,7 @@ let Model = {
         }).fetch())[0];
       }
     } catch (e) {
-      sails.log.error("CORE > Settings > set DB error: ", settingsSetInput, e);
-      throw `Error Set settings in DB`
+      sails.log.error(`CORE > Settings > set DB error: key [${key}]`, settingsSetInput, e);
     }
   },
 
@@ -351,7 +418,8 @@ let Model = {
     }
     // For ALLOW_UNSAFE_SETTINGS, we know it's boolean
     if (key === "ALLOW_UNSAFE_SETTINGS") {
-      return (["yes", "YES", "Yes", "1", "true", "TRUE", "True"].includes(envValue)) as SettingList[K];
+      const parsed = parseBoolean(envValue);
+      return (parsed !== undefined ? parsed : false) as SettingList[K];
     }
     // For other keys, try to parse as JSON, fallback to string
     try {
@@ -359,7 +427,12 @@ let Model = {
     } catch {
       return envValue as SettingList[K];
     }
-  }
+  },
+
+  // Expose declared settings management for MM settingsHelper
+  setDeclaredSetting,
+  isInDeclaredSettings,
+  parseBoolean
 };
 
 module.exports = {
