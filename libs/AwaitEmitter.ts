@@ -71,6 +71,7 @@ declare global {
     "core:orderproduct-change-amount": [OrderDishRecord]
     "core:order-return-full-order-destroy-orderdish": [DishRecord, OrderRecord]
     "core:order-before-count": [OrderRecord]
+    "core:order-log": [OrderRecord, import("../models/Order").OrderLogEntry]
     "core:order-payment": [OrderRecord, PaymentBack]
     "core:order-init-checkout": [OrderRecord, InitCheckout]
     "core:maintenance-enabled": [MaintenanceRecord]
