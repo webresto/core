@@ -20,6 +20,14 @@ export interface PromotionState {
     message: string;
     state: object | object[];
 }
+export type OrderLogLevel = "info" | "warn" | "error" | "debug";
+export interface OrderLogEntry {
+    timestamp: string;
+    level: OrderLogLevel;
+    module: string;
+    message: string;
+    data?: any;
+}
 export type PaymentBack = {
     backLinkSuccess: string;
     backLinkFail: string;
@@ -178,6 +186,8 @@ declare let attributes: {
      */
     user: UserRecord | string;
     customData: any;
+    /** Order logs */
+    logs: OrderLogEntry[];
 };
 interface stateFlowInstance {
     state: string;
@@ -298,6 +308,7 @@ declare let Model: {
         hash?: string;
         user?: UserRecord | string;
         customData?: any;
+        logs?: OrderLogEntry[];
     }>;
     /**
      * Method for calculating the basket. This is called every time the cart changes.
@@ -310,6 +321,9 @@ declare let Model: {
     doFinalize(criteriaOne: CriteriaQuery<OrderRecord>, state: "DONE" | "REJECT"): Promise<void>;
     doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord>;
     applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord>;
+    log(criteria: CriteriaQuery<OrderRecord>, level: OrderLogLevel, module: string, message: string, ...data: any[]): Promise<void>;
+    getLogs(criteria: CriteriaQuery<OrderRecord>): Promise<OrderLogEntry[]>;
+    emitAndLog(criteria: CriteriaQuery<OrderRecord>, eventName: string, ...args: any[]): Promise<any[]>;
 };
 declare global {
     const Order: typeof Model & ORMModel<OrderRecord, null> & StateFlowModel;
