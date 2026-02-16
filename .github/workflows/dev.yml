@@ -6,14 +6,37 @@ on:
       - alpha
       - next
       - test-with-postgres
+permissions:
+  contents: read
+  packages: write
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
+      # Setup npmjs registry for dependencies
       - uses: actions/setup-node@v3
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm install 2>&1 || true && npm run test:init 2>&1 || true && npm run test
+
+      # Publish dev builds to GitHub npm registry
+      - uses: actions/setup-node@v3
+        if: github.ref == 'refs/heads/dev'
+        with:
+          node-version: '18.x'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@webresto'
+
+      - name: Set dev package version
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          BASE_VERSION=$(node -p "require('./package.json').version.split('-')[0]")
+          npm version --no-git-tag-version "${BASE_VERSION}-dev.${GITHUB_RUN_NUMBER}"
+
+      - name: Publish to GitHub Packages
+        if: github.ref == 'refs/heads/dev'
+        run: npm publish --tag dev
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
