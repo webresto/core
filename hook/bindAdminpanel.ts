@@ -1,12 +1,22 @@
 // todo: fix types model instance to {%ModelName%}Record for bind"
-import { ProductCatalog } from "../libs/adminpanel/ProductCatalog/ProductCatalog";
-import { ProductMediaManager } from "../libs/adminpanel/ProductMediaManager/ProductMediaManager";
-import { models } from "../libs/adminpanel/models/bind"
-import { initializeWidgets } from "../lib/adminpanel/widgets"
 
 export default function bindAdminpanel() {
   processBindAdminpanel();
   sails.on('Adminpanel:loaded', async () => {
+    if (!sails.hooks.adminpanel?.adminizer) return;
+
+    let ProductCatalog: any;
+    let ProductMediaManager: any;
+    let initializeWidgets: any;
+    try {
+      ProductCatalog = require("../libs/adminpanel/ProductCatalog/ProductCatalog").ProductCatalog;
+      ProductMediaManager = require("../libs/adminpanel/ProductMediaManager/ProductMediaManager").ProductMediaManager;
+      initializeWidgets = require("../lib/adminpanel/widgets").initializeWidgets;
+    } catch (e) {
+      sails.log.warn("Adminpanel bindings are skipped: failed to load adminpanel modules", e);
+      return;
+    }
+
     // Catalog bind
     const catalogHandler = sails.hooks.adminpanel.adminizer.catalogHandler
     const productCatalog = new ProductCatalog()
@@ -49,7 +59,12 @@ function addModelConfig(newModels: Record<string, any>) {
 
 function processBindAdminpanel() {
   // Using local addModelConfig
-  addModelConfig(models);
+  try {
+    const models = require("../libs/adminpanel/models/bind").models;
+    addModelConfig(models);
+  } catch (e) {
+    sails.log.warn("Adminpanel model bindings are skipped: failed to load model configs", e);
+  }
 
   if (Array.isArray(sails.config.adminpanel?.sections)) {
     let baseRoute = sails.config.adminpanel.routePrefix;
@@ -78,7 +93,7 @@ function processBindAdminpanel() {
   }
 
   // Add navbar link for product catalog
-  if (sails.config.adminpanel.navbar && Array.isArray(sails.config.adminpanel.navbar.additionalLinks)) {
+  if (sails.config.adminpanel?.navbar && Array.isArray(sails.config.adminpanel.navbar.additionalLinks)) {
     let baseRoute = sails.config.adminpanel.routePrefix;
     sails.config.adminpanel.navbar.additionalLinks.push({
       id: 'product-catalog',
