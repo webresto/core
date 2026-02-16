@@ -1,10 +1,12 @@
 // todo: fix types model instance to {%ModelName%}Record for Order";
 // todo: fix types model instance to {%ModelName%}Record for Dish";
 // todo: fix types model instance to {%ModelName%}Record for Group";
+// todo: fix types model instance to {%ModelName%}Record for SelectedMediaFile";
 import { ObservablePromise } from "../../libs/ObservablePromise";
 import { DishRecord } from "../../models/Dish";
 import { GroupRecord } from "../../models/Group";
 import { OrderRecord } from "../../models/Order";
+import { SelectedMediaFileRecord } from "../../models/SelectedMediaFile";
 export type ConfigRMSAdapter = {
   [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };
@@ -179,7 +181,7 @@ export default abstract class RMSAdapter {
                       const mediaFileImage = await mfAdater.toProcess(image as string, "dish", "image");
                       // await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
                       const model = 'dish'
-                      let init: Record<string, string | number> = {};
+                      let init: Partial<SelectedMediaFileRecord> & Record<string, string | number> = {};
                       init[`mediafile_${model}`] = mediaFileImage.id;
                       init[model] = createdProduct.id;
                       init["sortOrder"] = 0;
