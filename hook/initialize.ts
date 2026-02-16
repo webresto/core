@@ -30,7 +30,6 @@ global.DialogBox = DialogBox
 
 
 import { Adapter } from "../adapters/index";
-import bindAdminpanel from "./bindAdminpanel";
 import bindLocales from "./bindLocales";
 // @ts-ignore
 global.Adapter = Adapter
@@ -80,7 +79,12 @@ export default function ToInitialize(sails: Sails) {
       bindLocales();
   
       // Bind sails-adminpanel configuraton
-      bindAdminpanel();
+      try {
+        const bindAdminpanel = require("./bindAdminpanel").default;
+        bindAdminpanel();
+      } catch (error) {
+        sails.log.debug("Adminpanel bindings skipped", error);
+      }
   
       // Bind models
       let modelsToSkip = process.env.CORE_MODELS_TO_SKIP !== undefined ? process.env.CORE_MODELS_TO_SKIP.split(";") : [];

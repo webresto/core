@@ -59,10 +59,6 @@ export class BackupHandler {
         throw new Error(`Failed to create folder: ${dirPath}. Error: ${err.message}`);
       }
 
-      if (await fsw.exists(filePath)) {
-        await fsw.unlink(filePath);
-      }
-
       await this.tar.c({
         gzip: true,
         file: filePath,
@@ -180,16 +176,19 @@ export class BackupHandler {
       ...(options.concepts.length && { concepts: { $in: options.concepts } })
     });
 
-    const dishes = await Dish.find({
+    const dishesQuery = Dish.find({
       isDeleted: options.isDeleted,
       ...(options.concepts.length && { concepts: { $in: options.concepts } })
-    }).populate('images');
+    });
+    const dishes = typeof (dishesQuery as any)?.populate === "function"
+      ? await (dishesQuery as any).populate("images")
+      : await dishesQuery;
 
     this.groups = groups;
     this.dishes = dishes;
 
-    const version = process.version;
-    return JSON.stringify({ version, groups, dishes }, null, 2);
+    const kernelVersion = process.version;
+    return JSON.stringify({ kernelVersion, version: kernelVersion, groups, dishes }, null, 2);
   }
 
   // Check file existence and load image
@@ -258,22 +257,27 @@ export class BackupHandler {
       if (dish.images && Array.isArray(dish.images)) {
         let count = 1;
         for (const image of dish.images) {
-          let originalFullFilePath = image.originalFilePath.startsWith("/") 
-            ? image.originalFilePath 
-            : path.join(process.cwd(), image.originalFilePath);
-          
-          if (originalFullFilePath) {
-            const ext = path.extname(originalFullFilePath);
+          const originalFilePath = image.originalFilePath;
+          if (originalFilePath) {
+            let sourcePath = originalFilePath;
+            let sourceExists = await fsw.exists(sourcePath);
+
+            if (!sourceExists && !path.isAbsolute(sourcePath)) {
+              sourcePath = path.join(process.cwd(), sourcePath);
+              sourceExists = await fsw.exists(sourcePath);
+            }
+
+            const ext = path.extname(sourcePath) || path.extname(originalFilePath);
             const imageFileName = `${dish.id}__${count}${ext}`;
             const destinationPath = path.join(imagesDir, imageFileName);
   
-            console.log(`Checking if image exists: ${originalFullFilePath}`);
-            if (await fsw.exists(originalFullFilePath)) {
+            console.log(`Checking if image exists: ${sourcePath}`);
+            if (sourceExists) {
               console.log(`Image exists, copying to: ${destinationPath}`);
-              await fsw.copyFile(originalFullFilePath, destinationPath);
+              await fsw.copyFile(sourcePath, destinationPath);
               console.log(`Image exported: ${imageFileName}`);
             } else {
-              console.warn(`Image file not found: ${originalFullFilePath}`);
+              console.warn(`Image file not found: ${sourcePath}`);
             }
   
             count++;
