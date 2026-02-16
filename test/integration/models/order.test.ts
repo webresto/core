@@ -18,9 +18,6 @@ describe("Order", function () {
   //   });
   // });
 
-
-  before
-
   before(async function () {
     dishes = await Dish.find({});
     order = await Order.create({id:"create-cart"}).fetch();
@@ -33,11 +30,23 @@ describe("Order", function () {
       "id",
       "shortId",
       "state",
+      "concept",
+      "isMixedConcept",
       "dishes",
       "paymentMethod",
       "paymentMethodTitle",
       "paid",
       "isPaymentPromise",
+      "promotionState",
+      "promotionErrors",
+      "promotionCode",
+      "promotionCodeDescription",
+      "promotionCodeString",
+      "promotionFlatDiscount",
+      "promotionDelivery",
+      "promotionCodeCheckValidTill",
+      "promotionUnorderable",
+      "isPromoting",
       "dishesCount",
       "uniqueDishes",
       "modifiers",
@@ -55,21 +64,32 @@ describe("Order", function () {
       "rmsErrorMessage",
       "rmsErrorCode",
       "rmsStatusCode",
-      "deliveryStatus",
+      "rmsOrderStatus",
+      "pickupPoint",
       "selfService",
+      "delivery",
       "deliveryDescription",
       "message",
       "deliveryItem",
       "deliveryCost",
       "totalWeight",
-      "total",
       "trifleFrom",
-      "orderTotal",
+      "bonusesTotal",
+      "spendBonus",
+      "total",
+      "basketTotal",
       "orderTotal",
       "discountTotal",
       "orderDate",
+      "tag",
+      "deviceId",
+      "nonce",
+      "hash",
+      "user",
       "customData",
-      "concept"
+      "logs",
+      "createdAt",
+      "updatedAt"
     );
   });
 

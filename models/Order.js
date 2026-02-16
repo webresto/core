@@ -770,6 +770,7 @@ let Model = {
                 let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
                 // Fetch the bonus program for this bonus spend
                 const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+                spendBonus.adapter = bonusProgram.adapter;
                 spendBonus.amount = parseFloat(new decimal_js_1.default(spendBonus.amount).toFixed(bonusProgram.decimals));
                 // TODO: rewrite for Decimal.js
                 let amountToDeduct = 0;
@@ -826,7 +827,8 @@ let Model = {
              * Because we have RMS adapter who has garaties for order Delivery
              */
             if (!checkConfig || checkConfig === "NOT_REQUIRED") {
-                if ((await Order.getState(order.id)) !== "CHECKOUT") {
+                const currentOrder = await Order.findOne({ id: order.id });
+                if (currentOrder.state !== "CHECKOUT") {
                     await Order.next(order.id, "CHECKOUT");
                 }
                 return;
@@ -835,7 +837,8 @@ let Model = {
             const resultsCount = results.length;
             const successCount = results.filter((r) => r.state === "success").length;
             if (resultsCount === successCount) {
-                if ((await Order.getState(order.id)) !== "CHECKOUT") {
+                const currentOrder = await Order.findOne({ id: order.id });
+                if (currentOrder.state !== "CHECKOUT") {
                     await Order.next(order.id, "CHECKOUT");
                 }
                 return;
@@ -1703,6 +1706,31 @@ let Model = {
     },
     async emitAndLog(criteria, eventName, ...args) {
         return OrderLogHelper.emitAndLog(criteria, eventName, ...args);
+    },
+    async next(criteria, nextState) {
+        const query = typeof criteria === 'string' ? { id: criteria } : criteria;
+        const stateTransitions = {
+            NEW: ["CART"],
+            CART: ["CHECKOUT", "REJECT"],
+            CHECKOUT: ["CART", "PAYMENT", "ORDER", "REJECT"],
+            PAYMENT: ["CART", "ORDER", "CHECKOUT", "REJECT"],
+            ORDER: ["DONE", "REJECT"],
+            DONE: [],
+            REJECT: []
+        };
+        const order = await Order.findOne(query);
+        if (!order) {
+            throw new Error(`Order not found for criteria: ${JSON.stringify(query)}`);
+        }
+        const currentState = order.state;
+        if (currentState === nextState) {
+            return;
+        }
+        const allowedTransitions = stateTransitions[currentState] || [];
+        if (!allowedTransitions.includes(nextState)) {
+            throw new Error(`Invalid state transition: ${currentState} → ${nextState}. Allowed: ${allowedTransitions.join(', ') || 'none'}`);
+        }
+        await Order.update(query, { state: nextState }).fetch();
     }
 };
 // Waterline model export

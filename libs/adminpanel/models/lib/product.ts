@@ -1,4 +1,4 @@
-import { CreateUpdateConfig, FieldsModels, MediaManagerOptionsField } from "sails-adminpanel/interfaces/adminpanelConfig"
+import { CreateUpdateConfig, FieldsModels, MediaManagerOptionsField } from "adminizer"
 
 export class ProductConfig {
     static fields: FieldsModels = {

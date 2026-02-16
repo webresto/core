@@ -38,7 +38,7 @@ export default function ToInitialize(sails: Sails) {
   /**
    * Required hooks
    */
-  const requiredHooks = ["orm", "policies", "stateflow", "i18n"];
+  const requiredHooks = ["orm", "policies", "i18n"];
 
   return function initialize(cb: ()=>{}) {
     try {
@@ -53,10 +53,6 @@ export default function ToInitialize(sails: Sails) {
         sails.config.blueprints.shortcuts = false;
         sails.config.blueprints.rest = false;
         sails.log.info("Blueprints rest/shortcuts magic is OFF ");
-      }
-  
-      if (sails.config.restocore.stateflow) { // @ts-ignore
-        sails.config.stateflow = _.merge(sails.config.stateflow, sails.config.restocore.stateflow);
       }
   
   

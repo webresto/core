@@ -141,15 +141,15 @@ let Model = {
 
       const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
       let extBalance =  parseFloat(new Decimal(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
-      userBonusProgram.balance = extBalance;
-      
-      sails.log.debug(`Start full sync UserBonusProgram for user ${user.login}`);
+
+      sails.log.debug(`Sync UserBonusProgram for user ${user.login}, extBalance: ${extBalance}, balanceOnly: ${balanceOnly}`);
 
       if(balanceOnly) {
+        await UserBonusProgram.update({id: userBonusProgram.id}, {balance: extBalance}).fetch();
         return
       }
 
-      // In case full sunc
+      // Full sync: transactions + balance
       let afterTime = new Date(0);
       if(userBonusProgram.syncedToTime && userBonusProgram.syncedToTime !== "0"){
         try {
@@ -157,7 +157,6 @@ let Model = {
         } catch {}
       } else {
         try {
-          // Sync transaction after time from Settings SYNC_BONUSTRANSACTION_AFTER_TIME
           const SYNC_BONUSTRANSACTION_AFTER_TIME = await Settings.get('SYNC_BONUSTRANSACTION_AFTER_TIME') ?? 0;
           afterTime = new Date(SYNC_BONUSTRANSACTION_AFTER_TIME);
         } catch {}
@@ -165,43 +164,41 @@ let Model = {
 
       let skip = 0;
       const limit = 10;
-      let lastTransaction = { } as UserBonusTransactionRecord;
 
-        while (true) {
-          const transactions: BonusTransaction[] = await adapter.getTransactions(user, afterTime, limit, skip);
-          if (transactions.length === 0) {
-              break;
+      while (true) {
+        const transactions: BonusTransaction[] = await adapter.getTransactions(user, afterTime, limit, skip);
+        if (transactions.length === 0) {
+          break;
+        }
+
+        for (const transaction of transactions) {
+          const userBonusTransaction: UserBonusTransactionRecord = {
+            isNegative: transaction.isNegative,
+            externalId: transaction.externalId,
+            group: transaction.group,
+            amount: transaction.amount,
+            isDeleted: false,
+            isStable: true,
+            bonusProgram: bonusProgram.id,
+            user: user.id,
+            customData: transaction.customData
+          };
+
+          if(transaction.externalId) {
+            await UserBonusTransaction.findOrCreate({externalId: transaction.externalId}, userBonusTransaction)
+          } else {
+            await UserBonusTransaction.create(userBonusTransaction).fetch();
           }
+        }
 
-          for (const transaction of transactions) {
+        if (transactions.length < limit) {
+          break;
+        }
 
-            const userBonusTransaction: UserBonusTransactionRecord = {
-              isNegative: transaction.isNegative,
-              externalId: transaction.externalId,
-              group: transaction.group,
-              amount: transaction.amount,
-              isDeleted: false,
-              isStable: true,
-              bonusProgram: bonusProgram.id,
-              user: user.id,
-              customData: transaction.customData
-            };
-
-            if(transaction.externalId) {
-              lastTransaction = await UserBonusTransaction.findOrCreate({externalId: transaction.externalId}, userBonusTransaction)
-            } else {
-              lastTransaction = await UserBonusTransaction.create(userBonusTransaction).fetch();
-            }
-          }
-
-          // If fewer transactions are returned than the limit, it means we have received all transactions
-          if (transactions.length < limit) {
-              await UserBonusProgram.update({id: userBonusProgram.id}, {syncedToTime: new Date().toISOString()}).fetch()
-              break;
-          }
-
-          skip += limit;
+        skip += limit;
       }
+
+      await UserBonusProgram.update({id: userBonusProgram.id}, {balance: extBalance, syncedToTime: new Date().toISOString()}).fetch();
     } catch (error) {
       sails.log.error(error)
     }

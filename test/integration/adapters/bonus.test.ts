@@ -40,6 +40,11 @@ describe("Bonus program adapter", function () {
       UBP = (await UserBonusProgram.registration(user, "test")).id;
 
       let ubt = await UserBonusTransaction.create({bonusProgram: bp.id, user: user.id, amount: 100500, isNegative: false}).fetch()
+
+      // Update balance after transaction creation
+      const balance = await UserBonusProgram.sumCurrentBalance(user, bp.id);
+      await UserBonusProgram.update({id: UBP}, {balance}).fetch();
+
       const userBP = await UserBonusProgram.findOne({id: UBP});
     } catch (error) {
       sails.log.error(error)
@@ -87,7 +92,18 @@ describe("Bonus program adapter", function () {
 
   it("order with bonus", async () => {
     bonusProgram = (await BonusProgram.update({adapter: "test"}, {enable: true}).fetch())[0];
+
+    // Need to re-check the order to ensure spendBonus is properly set after the failed attempt
+    const spendBonus: SpendBonus =  {
+      bonusProgramId: bonusProgram.id,
+      amount: 5.2
+    }
+    await Order.check({id: order1.id}, customer, true, undefined,  undefined, user.id ,spendBonus);
+
     await Order.order({id: order1.id})
+
+    // Sync balance and transactions from external system
+    await UserBonusTransaction.sync(user, bonusProgram.id, false);
 
     let userBP = await UserBonusProgram.findOne({id: UBP});
 

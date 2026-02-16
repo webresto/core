@@ -54,10 +54,13 @@ export class ProductMediaManager extends AbstractMediaManager {
 			const mediaFileId = (selected as any)[`mediafile_${model}`];
 			let file = await MediaFile.findOne({ id: mediaFileId });
 			if (file) {
+				const filenameSource = file.originalFilePath || file.original || `${file.id}`;
+				const filename = filenameSource.split(/[\\/]/).pop() || `${file.id}`;
 				const widgetItem: MediaManagerWidgetClientItem = {
 					mimeType: `${file.type}/xxx`,
-					variants: null,
-					id: file.id
+					variants: [],
+					id: file.id,
+					filename
 				}
 				widgetItems.push(widgetItem);
 			}

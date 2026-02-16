@@ -102,9 +102,9 @@ let Model = {
             }
             const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
             let extBalance = parseFloat(new decimal_js_1.default(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
-            userBonusProgram.balance = extBalance;
-            sails.log.debug(`Start full sync UserBonusProgram for user ${user.login}`);
+            sails.log.debug(`Sync UserBonusProgram for user ${user.login}, extBalance: ${extBalance}, balanceOnly: ${balanceOnly}`);
             if (balanceOnly) {
+                await UserBonusProgram.update({ id: userBonusProgram.id }, { balance: extBalance }).fetch();
                 return;
             }
             // In case full sunc
@@ -125,7 +125,6 @@ let Model = {
             }
             let skip = 0;
             const limit = 10;
-            let lastTransaction = {};
             while (true) {
                 const transactions = await adapter.getTransactions(user, afterTime, limit, skip);
                 if (transactions.length === 0) {
@@ -144,19 +143,19 @@ let Model = {
                         customData: transaction.customData
                     };
                     if (transaction.externalId) {
-                        lastTransaction = await UserBonusTransaction.findOrCreate({ externalId: transaction.externalId }, userBonusTransaction);
+                        await UserBonusTransaction.findOrCreate({ externalId: transaction.externalId }, userBonusTransaction);
                     }
                     else {
-                        lastTransaction = await UserBonusTransaction.create(userBonusTransaction).fetch();
+                        await UserBonusTransaction.create(userBonusTransaction).fetch();
                     }
                 }
                 // If fewer transactions are returned than the limit, it means we have received all transactions
                 if (transactions.length < limit) {
-                    await UserBonusProgram.update({ id: userBonusProgram.id }, { syncedToTime: new Date().toISOString() }).fetch();
                     break;
                 }
                 skip += limit;
             }
+            await UserBonusProgram.update({ id: userBonusProgram.id }, { balance: extBalance, syncedToTime: new Date().toISOString() }).fetch();
         }
         catch (error) {
             sails.log.error(error);

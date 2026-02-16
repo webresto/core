@@ -3,7 +3,6 @@ import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import StateFlowModel from "../interfaces/StateFlowModel";
 import { PaymentResponse } from "../interfaces/Payment";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
@@ -961,6 +960,7 @@ let Model = {
         let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
         // Fetch the bonus program for this bonus spend
         const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+        spendBonus.adapter = bonusProgram.adapter;
         spendBonus.amount = parseFloat(new Decimal(spendBonus.amount).toFixed(bonusProgram.decimals))
 
 
@@ -1027,7 +1027,8 @@ let Model = {
        * Because we have RMS adapter who has garaties for order Delivery
        */
       if (!checkConfig || checkConfig === "NOT_REQUIRED") {
-        if ((await Order.getState(order.id)) !== "CHECKOUT") {
+        const currentOrder = await Order.findOne({ id: order.id });
+        if (currentOrder.state !== "CHECKOUT") {
           await Order.next(order.id, "CHECKOUT");
         }
         return;
@@ -1040,7 +1041,8 @@ let Model = {
       const successCount = results.filter((r) => r.state === "success").length;
 
       if (resultsCount === successCount) {
-        if ((await Order.getState(order.id)) !== "CHECKOUT") {
+        const currentOrder = await Order.findOne({ id: order.id });
+        if (currentOrder.state !== "CHECKOUT") {
           await Order.next(order.id, "CHECKOUT");
         }
         return;
@@ -2048,6 +2050,46 @@ let Model = {
    */
   async emitAndLog(criteria: CriteriaQuery<OrderRecord>, eventName: string, ...args: any[]): Promise<any[]> {
     return OrderLogHelper.emitAndLog(criteria, eventName, ...args);
+  },
+
+  /**
+   * State transition method with validation (replacement for sails-hook-stateflow)
+   * @param criteria - Order criteria (id string or query object)
+   * @param nextState - Target state to transition to
+   */
+  async next(criteria: CriteriaQuery<OrderRecord> | string, nextState: string): Promise<void> {
+    const query = typeof criteria === 'string' ? { id: criteria } : criteria;
+
+    // Define allowed state transitions
+    const stateTransitions: Record<string, string[]> = {
+      NEW: ["CART"],
+      CART: ["CHECKOUT", "REJECT"],
+      CHECKOUT: ["CART", "PAYMENT", "ORDER", "REJECT"],
+      PAYMENT: ["CART", "ORDER", "CHECKOUT", "REJECT"],
+      ORDER: ["DONE", "REJECT"],
+      DONE: [],
+      REJECT: []
+    };
+
+    // Get current order to check current state
+    const order = await Order.findOne(query);
+    if (!order) {
+      throw new Error(`Order not found for criteria: ${JSON.stringify(query)}`);
+    }
+
+    const currentState = order.state;
+    const allowedTransitions = stateTransitions[currentState] || [];
+
+    // Validate transition
+    if (!allowedTransitions.includes(nextState)) {
+      throw new Error(
+        `Invalid state transition: ${currentState} → ${nextState}. ` +
+        `Allowed transitions from ${currentState}: ${allowedTransitions.join(', ') || 'none'}`
+      );
+    }
+
+    // Perform transition
+    await Order.update(query, { state: nextState }).fetch();
   }
 };
 
@@ -2060,7 +2102,7 @@ module.exports = {
 
 declare global {
   // Typescript export
-  const Order: typeof Model & ORMModel<OrderRecord, null> & StateFlowModel;
+  const Order: typeof Model & ORMModel<OrderRecord, null>;
 }
 
 // LOCAL HELPERS

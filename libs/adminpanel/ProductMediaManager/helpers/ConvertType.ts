@@ -1,4 +1,4 @@
-import { MediaManagerItem } from "sails-adminpanel/lib/media-manager/AbstractMediaManager";
+import { MediaManagerItem } from "adminizer";
 import { MediaFileRecord } from "../../../../models/MediaFile";
 const allowedTypes = ['video', 'image', 'audio'];
 
