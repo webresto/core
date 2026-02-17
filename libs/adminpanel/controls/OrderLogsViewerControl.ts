@@ -1,21 +1,41 @@
-import { AbstractControls, Config, ControlType, Path } from "adminizer";
+type Config = Record<string, string | string[] | object | number | boolean>;
+type ControlType = "jsonEditor";
+type Path = {
+  jsPath: {
+    dev: string;
+    production: string;
+  };
+  cssPath: string;
+};
+type AdminizerLike = {
+  config: {
+    routePrefix?: string;
+  };
+};
 
-export class OrderLogsViewerControl extends AbstractControls {
+export class OrderLogsViewerControl {
   readonly name: string = "order-logs-viewer";
   readonly type: ControlType = "jsonEditor";
-
-  readonly path: Path = {
-    cssPath: "",
-    jsPath: {
-      dev: `${this.routPrefix}/assets/stockmanager/OrderLogsViewer.js`,
-      production: `${this.routPrefix}/assets/stockmanager/OrderLogsViewer.js`,
-    },
-  };
-
+  readonly path: Path;
   readonly config: Config = {
     theme: "dark",
     readOnly: true,
   };
+
+  constructor(adminizer: AdminizerLike) {
+    const routePrefix = adminizer?.config?.routePrefix || "/admin";
+    this.path = {
+      cssPath: "",
+      // Custom admin modules are served by restocore hook bindAssets.ts
+      jsPath: {
+        dev: "/restocore/assets/stockmanager/OrderLogsViewer.js",
+        production: "/restocore/assets/stockmanager/OrderLogsViewer.js",
+      },
+    };
+
+    // Keep routePrefix access for future conditional paths if needed.
+    void routePrefix;
+  }
 
   getConfig(): Config {
     return this.config;
