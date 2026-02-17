@@ -1,5 +1,6 @@
 import { GroupConfig } from "./lib/group";
 import { ProductConfig } from "./lib/product";
+import { OrderConfig } from "./lib/order";
 
 export const models = {
   user: {
@@ -26,7 +27,9 @@ export const models = {
   order: {
     model: 'order',
     title: 'Orders',
-    icon: 'shopping_cart'
+    icon: 'shopping_cart',
+    list: OrderConfig.list(),
+    edit: OrderConfig.edit(),
   },
   bonusprogram: {
     model: 'bonusprogram',

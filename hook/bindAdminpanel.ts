@@ -7,10 +7,12 @@ export default function bindAdminpanel() {
 
     let ProductCatalog: any;
     let ProductMediaManager: any;
+    let OrderLogsViewerControl: any;
     let initializeWidgets: any;
     try {
       ProductCatalog = require("../libs/adminpanel/ProductCatalog/ProductCatalog").ProductCatalog;
       ProductMediaManager = require("../libs/adminpanel/ProductMediaManager/ProductMediaManager").ProductMediaManager;
+      OrderLogsViewerControl = require("../libs/adminpanel/controls/OrderLogsViewerControl").OrderLogsViewerControl;
       initializeWidgets = require("../lib/adminpanel/widgets").initializeWidgets;
     } catch (e) {
       sails.log.warn("Adminpanel bindings are skipped: failed to load adminpanel modules", e);
@@ -26,6 +28,12 @@ export default function bindAdminpanel() {
     const mediaManagerHandler = sails.hooks.adminpanel.adminizer.mediaManagerHandler
     const productMediaManager = new ProductMediaManager()
     mediaManagerHandler.add(productMediaManager)
+
+    // Order logs custom viewer control bind
+    const controlsHandler = sails.hooks.adminpanel.adminizer.controlsHandler;
+    if (!controlsHandler.get("jsonEditor", "order-logs-viewer")) {
+      controlsHandler.add(new OrderLogsViewerControl(sails.hooks.adminpanel.adminizer));
+    }
 
     // Initialize dashboard widgets
     initializeWidgets();
