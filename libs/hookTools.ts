@@ -13,6 +13,44 @@ export type Action = (req: ReqType, res: ResType) => Promise<any>;
  * Provide tools for hooks. Has only static methods.
  */
 export default class HookTools {
+  private static normalizeLegacyModelTypes(models: Record<string, any>): void {
+    if (!models || typeof models !== "object") {
+      return;
+    }
+
+    for (const [modelName, modelDef] of Object.entries(models)) {
+      if (!modelDef || typeof modelDef !== "object") {
+        continue;
+      }
+
+      const attributes = (modelDef as any).attributes;
+      if (!attributes || typeof attributes !== "object") {
+        continue;
+      }
+
+      for (const [attributeName, attributeDef] of Object.entries(attributes)) {
+        if (!attributeDef || typeof attributeDef !== "object") {
+          continue;
+        }
+
+        const legacyType = typeof (attributeDef as any).type === "string"
+          ? (attributeDef as any).type.toLowerCase()
+          : null;
+
+        if (legacyType === "datetime" || legacyType === "date" || legacyType === "time") {
+          (attributeDef as any).type = "string";
+          if (!(attributeDef as any).columnType) {
+            (attributeDef as any).columnType = legacyType;
+          }
+
+          sails.log.warn(
+            `HookTools: normalized legacy type "${legacyType}" in model "${modelName}" attribute "${attributeName}"`
+          );
+        }
+      }
+    }
+  }
+
   /**
    * Policy array is one for all projects. It isn't assigned with sails policies
    */
@@ -42,6 +80,7 @@ export default class HookTools {
             }
           }
 
+          HookTools.normalizeLegacyModelTypes(models);
           sails.models = _.merge(sails.models || {}, models);
           return resolve();
         }

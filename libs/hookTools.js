@@ -41,6 +41,35 @@ const buildDictionary = require("sails-build-dictionary");
  * Provide tools for hooks. Has only static methods.
  */
 class HookTools {
+    static normalizeLegacyModelTypes(models) {
+        if (!models || typeof models !== "object") {
+            return;
+        }
+        for (const [modelName, modelDef] of Object.entries(models)) {
+            if (!modelDef || typeof modelDef !== "object") {
+                continue;
+            }
+            const attributes = modelDef.attributes;
+            if (!attributes || typeof attributes !== "object") {
+                continue;
+            }
+            for (const [attributeName, attributeDef] of Object.entries(attributes)) {
+                if (!attributeDef || typeof attributeDef !== "object") {
+                    continue;
+                }
+                const legacyType = typeof attributeDef.type === "string"
+                    ? attributeDef.type.toLowerCase()
+                    : null;
+                if (legacyType === "datetime" || legacyType === "date" || legacyType === "time") {
+                    attributeDef.type = "string";
+                    if (!attributeDef.columnType) {
+                        attributeDef.columnType = legacyType;
+                    }
+                    sails.log.warn(`HookTools: normalized legacy type "${legacyType}" in model "${modelName}" attribute "${attributeName}"`);
+                }
+            }
+        }
+    }
     /**
      * Bind models from folder. Folder must be full path.
      * @param folder - path to models
@@ -62,6 +91,7 @@ class HookTools {
                         delete models[modelToSkip];
                     }
                 }
+                HookTools.normalizeLegacyModelTypes(models);
                 sails.models = _.merge(sails.models || {}, models);
                 return resolve();
             });
