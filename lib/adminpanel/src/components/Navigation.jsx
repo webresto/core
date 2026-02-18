@@ -1,14 +1,17 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '../i18n/I18nContext';
 
 export function Navigation({ currentGroup, groupStack, onBackClick }) {
+    const { t } = useTranslation();
+
     if (!currentGroup && groupStack.length === 0) {
         return null;
     }
 
     // Build breadcrumb path: Root -> Group1 -> Group2 -> Current
     const breadcrumbs = [
-        { id: null, name: 'Root', level: 0 },
+        { id: null, name: t('back_to_root'), level: 0 },
         ...groupStack.filter(g => g !== null).map((group, index) => ({
             id: group.id,
             name: group.name,

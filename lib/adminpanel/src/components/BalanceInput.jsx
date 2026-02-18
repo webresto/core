@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from '../i18n/I18nContext';
 
 export function BalanceInput({ value, onChange }) {
+    const { t } = useTranslation();
     const [balance, setBalance] = useState(value ?? 0);
     const isUnlimited = balance === -1;
 
@@ -65,7 +67,7 @@ export function BalanceInput({ value, onChange }) {
 
             <Button
                 onClick={handleSetUnlimited}
-                title="Set to Unlimited"
+                title={t('dish_set_unlimited')}
                 variant="outline"
                 size="sm"
                 type="button"

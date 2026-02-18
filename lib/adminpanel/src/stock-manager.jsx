@@ -336,11 +336,11 @@ function StockManagerContent() {
           performSearch((q || '').trim());
         }
       } else {
-        alert('Update failed: ' + (json.error || 'Unknown error'));
+        alert(t('stock_update_failed', { error: json.error || t('unknown_error') }));
       }
     } catch (err) {
       console.error('update error', err);
-      alert('Update error');
+      alert(t('stock_update_error'));
     }
   }
 
@@ -378,11 +378,11 @@ function StockManagerContent() {
           setGroups(prev => prev.map(g => g.id === id ? { ...g, isDeleted } : g));
         }
       } else {
-        alert('Update isDeleted failed: ' + (json.error || 'Unknown error'));
+        alert(t('stock_visibility_update_failed', { error: json.error || t('unknown_error') }));
       }
     } catch (err) {
       console.error('update isDeleted error', err);
-      alert('Update isDeleted error');
+      alert(t('stock_visibility_update_error'));
     }
   }
 
@@ -396,7 +396,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk visibility error', err);
-      alert('Bulk visibility update error');
+      alert(t('stock_bulk_visibility_update_error'));
     }
   }
 
@@ -407,7 +407,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk balance error', err);
-      alert('Bulk balance update error');
+      alert(t('stock_bulk_balance_update_error'));
     }
   }
 

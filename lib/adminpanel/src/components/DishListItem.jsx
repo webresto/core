@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '../i18n/I18nContext';
 
 export function DishListItem({ dish, balance, onUpdateStock, onUpdateIsDeleted, onBalanceChange }) {
+    const { t } = useTranslation();
     const currentBalance = balance ?? dish.balance ?? 0;
     const isUnlimited = currentBalance === -1;
 
@@ -46,8 +48,8 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateIsDeleted, 
             <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-base truncate">{dish.name || '—'}</h4>
                 <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                    <span>Code: {dish.code || '—'}</span>
-                    <span>Price: {dish.price ?? '—'}</span>
+                    <span>{t('dish_code')}: {dish.code || '—'}</span>
+                    <span>{t('dish_price')}: {dish.price ?? '—'}</span>
                 </div>
             </div>
 
@@ -59,13 +61,13 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateIsDeleted, 
                     onCheckedChange={(checked) => onUpdateIsDeleted(dish.id, 'dish', !checked)}
                 />
                 <Label htmlFor={`enable-list-${dish.id}`} className="cursor-pointer text-sm">
-                    Enable
+                    {t('dish_enable')}
                 </Label>
             </div>
 
             {/* Stock Display */}
             <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Stock:</span>
+                <span className="text-sm text-muted-foreground">{t('dish_stock')}:</span>
                 {isUnlimited ? (
                     <span className="font-bold text-green-600">∞</span>
                 ) : (
@@ -105,7 +107,7 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateIsDeleted, 
 
                 <Button
                     onClick={handleSetUnlimited}
-                    title="Set to Unlimited"
+                    title={t('dish_set_unlimited')}
                     variant="outline"
                     size="sm"
                     className="h-8 w-8 p-0"
