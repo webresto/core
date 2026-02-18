@@ -10,6 +10,7 @@ const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 const OrderHelper_1 = require("../libs/helpers/OrderHelper");
 const isValue_1 = require("../utils/isValue");
 const ProductModifier_1 = require("../libs/ProductModifier");
+const OrderStateFlow_1 = require("../libs/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
 const ORDERED_STATES = Object.freeze(["ORDER", "COOKING", "ON_THE_WAY"]);
 let attributes = {
@@ -1720,17 +1721,6 @@ let Model = {
     },
     async next(criteria, nextState) {
         const query = typeof criteria === 'string' ? { id: criteria } : criteria;
-        const stateTransitions = {
-            NEW: ["CART"],
-            CART: ["CHECKOUT", "REJECT"],
-            CHECKOUT: ["CART", "PAYMENT", "ORDER", "REJECT"],
-            PAYMENT: ["CART", "ORDER", "CHECKOUT", "REJECT"],
-            ORDER: ["COOKING", "ON_THE_WAY", "DONE", "REJECT"],
-            COOKING: ["ON_THE_WAY", "DONE", "REJECT"],
-            ON_THE_WAY: ["DONE", "REJECT"],
-            DONE: [],
-            REJECT: []
-        };
         const order = await Order.findOne(query);
         if (!order) {
             throw new Error(`Order not found for criteria: ${JSON.stringify(query)}`);
@@ -1739,7 +1729,7 @@ let Model = {
         if (currentState === nextState) {
             return;
         }
-        const allowedTransitions = stateTransitions[currentState] || [];
+        const allowedTransitions = (0, OrderStateFlow_1.getAllowedOrderTransitions)(currentState);
         if (!allowedTransitions.includes(nextState)) {
             throw new Error(`Invalid state transition: ${currentState} → ${nextState}. Allowed: ${allowedTransitions.join(', ') || 'none'}`);
         }

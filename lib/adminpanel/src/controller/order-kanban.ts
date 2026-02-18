@@ -1,3 +1,10 @@
+function normalizeLocale(rawLocale: unknown): string {
+  const value = String(rawLocale || "").trim().toLowerCase().replace(/_/g, "-");
+  if (value.startsWith("ru")) return "ru";
+  if (value.startsWith("en")) return "en";
+  return "en";
+}
+
 export default function OrderKanbanController(req: any, res: any) {
   const { config } = req.adminizer || {};
   if (config?.auth?.enable && !req.user) {
@@ -11,7 +18,7 @@ export default function OrderKanbanController(req: any, res: any) {
     props: {
       moduleComponent: `/restocore/assets/stockmanager/OrderKanban.js`,
       message: 'Current Orders',
-      locale: req.user?.language || req.user?.locale || 'en'
+      locale: normalizeLocale(req.user?.language || req.user?.locale)
     }
   });
 }

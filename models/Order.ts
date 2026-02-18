@@ -26,6 +26,7 @@ import ToInitialize from "../hook/initialize";
 import { or } from "ajv/dist/compile/codegen";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 import { ProductModifier } from "../libs/ProductModifier";
+import { getAllowedOrderTransitions } from "../libs/OrderStateFlow";
 import { normalizePercent } from "../utils/normalize";
 
 export interface PromotionState {
@@ -2075,19 +2076,6 @@ let Model = {
   async next(criteria: CriteriaQuery<OrderRecord> | string, nextState: string): Promise<void> {
     const query = typeof criteria === 'string' ? { id: criteria } : criteria;
 
-    // Define allowed state transitions
-    const stateTransitions: Record<string, string[]> = {
-      NEW: ["CART"],
-      CART: ["CHECKOUT", "REJECT"],
-      CHECKOUT: ["CART", "PAYMENT", "ORDER", "REJECT"],
-      PAYMENT: ["CART", "ORDER", "CHECKOUT", "REJECT"],
-      ORDER: ["COOKING", "ON_THE_WAY", "DONE", "REJECT"],
-      COOKING: ["ON_THE_WAY", "DONE", "REJECT"],
-      ON_THE_WAY: ["DONE", "REJECT"],
-      DONE: [],
-      REJECT: []
-    };
-
     // Get current order to check current state
     const order = await Order.findOne(query);
     if (!order) {
@@ -2095,7 +2083,7 @@ let Model = {
     }
 
     const currentState = order.state;
-    const allowedTransitions = stateTransitions[currentState] || [];
+    const allowedTransitions = getAllowedOrderTransitions(currentState);
 
     // Validate transition
     if (!allowedTransitions.includes(nextState)) {

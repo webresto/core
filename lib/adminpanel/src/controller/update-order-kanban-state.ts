@@ -1,53 +1,8 @@
-const ORDER_STATES = new Set([
-  "NEW",
-  "CART",
-  "CHECKOUT",
-  "PAYMENT",
-  "ORDER",
-  "COOKING",
-  "ON_THE_WAY",
-  "DONE",
-  "REJECT",
-]);
-const OPERATOR_ALLOWED_TARGET_STATES = new Set(["REJECT", "COOKING", "ON_THE_WAY", "DONE"]);
-
-function getUserGroupNames(user: any): string[] {
-  if (!Array.isArray(user?.groups)) return [];
-  return user.groups
-    .map((group: any) => String(group?.name || "").trim().toLowerCase())
-    .filter((name: string) => name.length > 0);
-}
-
-function isOperatorUser(user: any): boolean {
-  if (user?.isAdministrator) return false;
-  const names = getUserGroupNames(user);
-  return names.some((name) => (
-    name === "operator" ||
-    name.includes("operator") ||
-    name.includes("оператор")
-  ));
-}
-
-function getAllowedTransitions(state: string, operatorLimited: boolean): string[] {
-  const normalizedState = String(state || "");
-  if (operatorLimited) {
-    return Array.from(OPERATOR_ALLOWED_TARGET_STATES).filter((targetState) => targetState !== normalizedState);
-  }
-
-  const transitions: Record<string, string[]> = {
-    NEW: ["CART"],
-    CART: ["CHECKOUT", "REJECT"],
-    CHECKOUT: ["CART", "PAYMENT", "ORDER", "REJECT"],
-    PAYMENT: ["CART", "ORDER", "CHECKOUT", "REJECT"],
-    ORDER: ["COOKING", "ON_THE_WAY", "DONE", "REJECT"],
-    COOKING: ["ON_THE_WAY", "DONE", "REJECT"],
-    ON_THE_WAY: ["DONE", "REJECT"],
-    DONE: [],
-    REJECT: [],
-  };
-
-  return transitions[normalizedState] || [];
-}
+import {
+  getAllowedOrderTransitionsByRole,
+  isOperatorUser,
+  isValidOrderState,
+} from "../../../../libs/OrderStateFlow";
 
 function mapOrder(order: any, operatorLimited: boolean) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
@@ -75,7 +30,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
     createdAt: order?.createdAt || null,
     updatedAt: order?.updatedAt || null,
     date: order?.date || null,
-    allowedTransitions: getAllowedTransitions(order?.state || "NEW", operatorLimited),
+    allowedTransitions: getAllowedOrderTransitionsByRole(order?.state || "NEW", operatorLimited),
   };
 }
 
@@ -92,7 +47,7 @@ export default async function UpdateOrderKanbanStateController(req: any, res: an
     if (!id || typeof id !== "string") {
       return res.status(400).json({ error: "Invalid order id" });
     }
-    if (!nextState || !ORDER_STATES.has(nextState)) {
+    if (!isValidOrderState(nextState)) {
       return res.status(400).json({ error: "Invalid nextState" });
     }
 
@@ -106,10 +61,15 @@ export default async function UpdateOrderKanbanStateController(req: any, res: an
       return res.json({ success: true, order: mapOrder(order, operatorLimited) });
     }
 
+    const allowedTransitions = getAllowedOrderTransitionsByRole(order.state || "NEW", operatorLimited);
+    if (!allowedTransitions.includes(nextState)) {
+      return res.status(403).json({
+        error: `Forbidden transition: ${order.state} -> ${nextState}`,
+        allowedTransitions,
+      });
+    }
+
     if (operatorLimited) {
-      if (!OPERATOR_ALLOWED_TARGET_STATES.has(nextState)) {
-        return res.status(403).json({ error: "Operator can move orders only to reject, cooking, on_the_way or done" });
-      }
       await Order.update({ id }, { state: nextState }).fetch();
     } else {
       try {

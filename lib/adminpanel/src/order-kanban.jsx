@@ -3,18 +3,6 @@ import { I18nProvider, useTranslation } from './i18n/I18nContext';
 
 const ACTIVE_BOARD_STATES = ['NEW', 'CART', 'CHECKOUT', 'PAYMENT', 'ORDER', 'COOKING', 'ON_THE_WAY'];
 const FINISHED_BOARD_STATES = ['DONE', 'REJECT'];
-const ORDER_TRANSITIONS = {
-  NEW: ['CART'],
-  CART: ['CHECKOUT', 'REJECT'],
-  CHECKOUT: ['CART', 'PAYMENT', 'ORDER', 'REJECT'],
-  PAYMENT: ['CART', 'ORDER', 'CHECKOUT', 'REJECT'],
-  ORDER: ['COOKING', 'ON_THE_WAY', 'DONE', 'REJECT'],
-  COOKING: ['ON_THE_WAY', 'DONE', 'REJECT'],
-  ON_THE_WAY: ['DONE', 'REJECT'],
-  DONE: [],
-  REJECT: [],
-};
-const OPERATOR_TARGET_STATES = ['REJECT', 'COOKING', 'ON_THE_WAY', 'DONE'];
 const STATE_COLORS = {
   NEW: '#0ea5e9',
   CART: '#7c3aed',
@@ -26,21 +14,17 @@ const STATE_COLORS = {
   DONE: '#15803d',
   REJECT: '#dc2626',
 };
-const COMPLETED_WINDOW_HOURS_DEFAULT = 24;
-const COMPLETED_WINDOW_HOURS_MIN = 1;
-const COMPLETED_WINDOW_HOURS_MAX = 168;
-const COMPLETED_WINDOW_OPTIONS = [1, 3, 6, 12, 24, 48, 72, 168];
-const NEW_WINDOW_MINUTES_DEFAULT = 15;
-const NEW_WINDOW_MINUTES_MIN = 1;
-const NEW_WINDOW_MINUTES_MAX = 1440;
-const NEW_WINDOW_OPTIONS = [1, 5, 10, 15, 30, 45, 60, 90, 120, 180];
+const SUPPORTED_LOCALES = new Set(['en', 'ru']);
+const BOARD_WINDOW_MINUTES_DEFAULT = 180;
+const BOARD_WINDOW_MINUTES_MIN = 1;
+const BOARD_WINDOW_MINUTES_MAX = 10080;
+const BOARD_WINDOW_OPTIONS = [15, 30, 60, 120, 180, 360, 720, 1440, 2880, 4320, 10080];
 const COMPLETED_STATES = new Set(['DONE', 'REJECT']);
 const KANBAN_STREAM_RECONNECT_DELAY_MS = 5000;
 const KANBAN_STREAM_STALE_TIMEOUT_MS = 90000;
 const KANBAN_FULL_SYNC_INTERVAL_MS = 30000;
 const KANBAN_EVENT_REFRESH_DEBOUNCE_MS = 300;
-const COMPLETED_WINDOW_STORAGE_KEY = 'orderKanbanCompletedWindowHours';
-const NEW_WINDOW_STORAGE_KEY = 'orderKanbanNewWindowMinutes';
+const BOARD_WINDOW_STORAGE_KEY = 'orderKanbanBoardWindowMinutes';
 const COLLAPSED_COLUMNS_STORAGE_KEY = 'orderKanbanCollapsedColumns';
 const APPEARANCE_STORAGE_KEY = 'appearance';
 const KANBAN_COLUMN_WIDTH_MIN = 280;
@@ -96,16 +80,32 @@ const KANBAN_THEME = {
   },
 };
 
-function clampCompletedWindowHours(value) {
-  const parsed = Number.parseInt(String(value || COMPLETED_WINDOW_HOURS_DEFAULT), 10);
-  if (!Number.isFinite(parsed)) return COMPLETED_WINDOW_HOURS_DEFAULT;
-  return Math.min(Math.max(parsed, COMPLETED_WINDOW_HOURS_MIN), COMPLETED_WINDOW_HOURS_MAX);
+function normalizeLocale(rawLocale) {
+  if (!rawLocale) return '';
+  const normalized = String(rawLocale).trim().toLowerCase().replace(/_/g, '-');
+  if (SUPPORTED_LOCALES.has(normalized)) return normalized;
+  const base = normalized.split('-')[0];
+  return SUPPORTED_LOCALES.has(base) ? base : '';
 }
 
-function clampNewWindowMinutes(value) {
-  const parsed = Number.parseInt(String(value || NEW_WINDOW_MINUTES_DEFAULT), 10);
-  if (!Number.isFinite(parsed)) return NEW_WINDOW_MINUTES_DEFAULT;
-  return Math.min(Math.max(parsed, NEW_WINDOW_MINUTES_MIN), NEW_WINDOW_MINUTES_MAX);
+function resolveSystemLocale(rawLocale) {
+  const fromProps = normalizeLocale(rawLocale);
+  if (fromProps) return fromProps;
+  if (typeof document !== 'undefined') {
+    const fromDocument = normalizeLocale(document.documentElement?.lang);
+    if (fromDocument) return fromDocument;
+  }
+  if (typeof navigator !== 'undefined') {
+    const fromBrowser = normalizeLocale(navigator.language);
+    if (fromBrowser) return fromBrowser;
+  }
+  return 'en';
+}
+
+function clampBoardWindowMinutes(value) {
+  const parsed = Number.parseInt(String(value || BOARD_WINDOW_MINUTES_DEFAULT), 10);
+  if (!Number.isFinite(parsed)) return BOARD_WINDOW_MINUTES_DEFAULT;
+  return Math.min(Math.max(parsed, BOARD_WINDOW_MINUTES_MIN), BOARD_WINDOW_MINUTES_MAX);
 }
 
 function getPreferredAppearance() {
@@ -133,16 +133,6 @@ function isDarkAppearance(appearance) {
   if (appearance === 'light') return false;
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
   return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
-function applyAppearance(appearance) {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
-  const mode = appearance || 'system';
-  localStorage.setItem(APPEARANCE_STORAGE_KEY, mode);
-  const maxAge = 365 * 24 * 60 * 60;
-  document.cookie = `appearance=${mode};path=/;max-age=${maxAge};SameSite=Lax`;
-  document.documentElement.classList.toggle('dark', isDarkAppearance(mode));
-  window.dispatchEvent(new Event('appearanceChanged'));
 }
 
 function getBaseAdminPath() {
@@ -198,15 +188,23 @@ function safeJson(value) {
   }
 }
 
-function getAllowedTransitionsByState(state, operatorLimited = false) {
-  const normalizedState = String(state || '');
-  if (operatorLimited) {
-    return OPERATOR_TARGET_STATES.filter((targetState) => targetState !== normalizedState);
-  }
-  return ORDER_TRANSITIONS[normalizedState] || [];
+function parseTimestamp(value) {
+  const timestamp = new Date(value).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
-function normalizeOrder(order, operatorLimited = false) {
+function getOrderActivityTimestamp(order) {
+  return Math.max(parseTimestamp(order?.updatedAt), parseTimestamp(order?.createdAt));
+}
+
+function formatBoardWindow(minutes, t) {
+  if (minutes < 60) {
+    return t('order_kanban_board_window_minutes', { minutes });
+  }
+  return t('order_kanban_board_window_hours', { hours: Math.round(minutes / 60) });
+}
+
+function normalizeOrder(order) {
   if (!order || typeof order !== 'object') return null;
   const state = order.state || 'NEW';
   return {
@@ -226,7 +224,7 @@ function normalizeOrder(order, operatorLimited = false) {
     updatedAt: order.updatedAt || null,
     allowedTransitions: Array.isArray(order.allowedTransitions)
       ? order.allowedTransitions
-      : getAllowedTransitionsByState(state, operatorLimited),
+      : [],
   };
 }
 
@@ -348,10 +346,10 @@ function OrderDetailsPopup({ order, language, t, onClose, theme }) {
   );
 }
 
-function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen, operatorLimited, theme }) {
+function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen, theme }) {
   const transitions = Array.isArray(order.allowedTransitions)
     ? order.allowedTransitions
-    : getAllowedTransitionsByState(order.state, operatorLimited);
+    : [];
   return (
     <article
       draggable={!isUpdating}
@@ -440,19 +438,13 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
 function OrderKanbanContent() {
   const { t, language, setLanguage } = useTranslation();
   const [orders, setOrders] = useState([]);
-  const [operatorLimited, setOperatorLimited] = useState(false);
   const [query, setQuery] = useState('');
-  const [newWindowMinutes, setNewWindowMinutes] = useState(() => {
-    if (typeof window === 'undefined') return NEW_WINDOW_MINUTES_DEFAULT;
-    return clampNewWindowMinutes(localStorage.getItem(NEW_WINDOW_STORAGE_KEY));
-  });
-  const [completedWindowHours, setCompletedWindowHours] = useState(() => {
-    if (typeof window === 'undefined') return COMPLETED_WINDOW_HOURS_DEFAULT;
-    return clampCompletedWindowHours(localStorage.getItem(COMPLETED_WINDOW_STORAGE_KEY));
+  const [boardWindowMinutes, setBoardWindowMinutes] = useState(() => {
+    if (typeof window === 'undefined') return BOARD_WINDOW_MINUTES_DEFAULT;
+    return clampBoardWindowMinutes(localStorage.getItem(BOARD_WINDOW_STORAGE_KEY));
   });
   const [appearance, setAppearance] = useState(getPreferredAppearance);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState('');
   const [dragOrderId, setDragOrderId] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState('');
@@ -472,13 +464,8 @@ function OrderKanbanContent() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(COMPLETED_WINDOW_STORAGE_KEY, String(completedWindowHours));
-  }, [completedWindowHours]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(NEW_WINDOW_STORAGE_KEY, String(newWindowMinutes));
-  }, [newWindowMinutes]);
+    localStorage.setItem(BOARD_WINDOW_STORAGE_KEY, String(boardWindowMinutes));
+  }, [boardWindowMinutes]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -508,12 +495,6 @@ function OrderKanbanContent() {
     };
   }, []);
 
-  const toggleAppearance = useCallback(() => {
-    const next = isDarkTheme ? 'light' : 'dark';
-    applyAppearance(next);
-    setAppearance(next);
-  }, [isDarkTheme]);
-
   const closeEventSource = useCallback(() => {
     if (eventSourceRef.current) {
       try {
@@ -542,11 +523,10 @@ function OrderKanbanContent() {
     try {
       if (showLoader) {
         setLoading(true);
-      } else {
-        setRefreshing(true);
       }
       const base = getBaseAdminPath();
-      const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1&newMinutes=${newWindowMinutes}&completedHours=${completedWindowHours}`;
+      const completedWindowHours = Math.min(Math.max(Math.ceil(boardWindowMinutes / 60), 1), 168);
+      const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1&newMinutes=${boardWindowMinutes}&completedHours=${completedWindowHours}`;
       const response = await fetch(endpoint, { credentials: 'same-origin', signal: abortController.signal });
       const json = await response.json();
       if (!response.ok) {
@@ -555,16 +535,10 @@ function OrderKanbanContent() {
 
       if (!mountedRef.current || requestId !== loadRequestIdRef.current) return;
 
-      const nextOperatorLimited = Boolean(json?.meta?.operatorLimited);
       const mapped = Array.isArray(json.results)
-        ? json.results.map((item) => normalizeOrder(item, nextOperatorLimited)).filter(Boolean)
+        ? json.results.map((item) => normalizeOrder(item)).filter(Boolean)
         : [];
       setOrders(mapped);
-      setOperatorLimited(nextOperatorLimited);
-      const minutesFromMeta = Number.parseInt(String(json?.meta?.newWindowMinutes || NEW_WINDOW_MINUTES_DEFAULT), 10);
-      const hoursFromMeta = Number.parseInt(String(json?.meta?.completedWindowHours || COMPLETED_WINDOW_HOURS_DEFAULT), 10);
-      setNewWindowMinutes(clampNewWindowMinutes(minutesFromMeta));
-      setCompletedWindowHours(clampCompletedWindowHours(hoursFromMeta));
       setError('');
     } catch (loadError) {
       if (loadError?.name === 'AbortError') return;
@@ -576,9 +550,8 @@ function OrderKanbanContent() {
       }
       if (!mountedRef.current || requestId !== loadRequestIdRef.current) return;
       setLoading(false);
-      setRefreshing(false);
     }
-  }, [completedWindowHours, newWindowMinutes]);
+  }, [boardWindowMinutes]);
 
   const applyOrderHintFromStream = useCallback((payload) => {
     const orderId = payload?.orderId;
@@ -591,11 +564,11 @@ function OrderKanbanContent() {
             ...item,
             state: nextState,
             updatedAt: payload?.updatedAt || item.updatedAt,
-            allowedTransitions: getAllowedTransitionsByState(nextState, operatorLimited),
+            allowedTransitions: [],
           }
         : item
     )));
-  }, [operatorLimited]);
+  }, []);
 
   const scheduleRefreshFromEvent = useCallback((delayMs = KANBAN_EVENT_REFRESH_DEBOUNCE_MS) => {
     if (eventRefreshTimerRef.current) return;
@@ -751,12 +724,15 @@ function OrderKanbanContent() {
     if (!currentOrder || currentOrder.state === nextState) return;
 
     const fromState = currentOrder.state;
+    const fromAllowedTransitions = Array.isArray(currentOrder.allowedTransitions)
+      ? currentOrder.allowedTransitions
+      : [];
     setUpdatingOrderId(orderId);
     setError('');
 
     setOrders((prev) => prev.map((item) => (
       item.id === orderId
-        ? { ...item, state: nextState, allowedTransitions: getAllowedTransitionsByState(nextState, operatorLimited) }
+        ? { ...item, state: nextState, allowedTransitions: [] }
         : item
     )));
 
@@ -778,13 +754,13 @@ function OrderKanbanContent() {
       }
 
       if (json.order) {
-        const normalized = normalizeOrder(json.order, operatorLimited);
+        const normalized = normalizeOrder(json.order);
         setOrders((prev) => prev.map((item) => item.id === orderId ? normalized : item));
       }
     } catch (updateError) {
       setOrders((prev) => prev.map((item) => (
         item.id === orderId
-          ? { ...item, state: fromState, allowedTransitions: getAllowedTransitionsByState(fromState, operatorLimited) }
+          ? { ...item, state: fromState, allowedTransitions: fromAllowedTransitions }
           : item
       )));
       setError(updateError?.message || String(updateError));
@@ -797,9 +773,13 @@ function OrderKanbanContent() {
   const visibleStates = [...ACTIVE_BOARD_STATES, ...FINISHED_BOARD_STATES];
 
   const filteredOrders = useMemo(() => {
+    const sinceMs = Date.now() - boardWindowMinutes * 60 * 1000;
     const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return orders;
     return orders.filter((order) => {
+      const activityAt = getOrderActivityTimestamp(order);
+      if (activityAt && activityAt < sinceMs) return false;
+      if (!normalizedQuery) return true;
+
       const haystack = [
         order.id,
         order.shortId,
@@ -812,7 +792,7 @@ function OrderKanbanContent() {
       ].map((item) => String(item || '').toLowerCase()).join(' ');
       return haystack.includes(normalizedQuery);
     });
-  }, [orders, query]);
+  }, [boardWindowMinutes, orders, query]);
 
   const groupedOrders = useMemo(() => {
     const grouped = {};
@@ -862,7 +842,7 @@ function OrderKanbanContent() {
 
     const allowed = Array.isArray(order.allowedTransitions)
       ? order.allowedTransitions
-      : getAllowedTransitionsByState(order.state, operatorLimited);
+      : [];
     if (!allowed.includes(targetState)) {
       setError(
         t('order_kanban_invalid_transition', {
@@ -882,22 +862,6 @@ function OrderKanbanContent() {
         <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: theme.textPrimary }}>{t('order_kanban_title')}</h1>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            type="button"
-            onClick={toggleAppearance}
-            style={{
-              border: `1px solid ${theme.controlBorder}`,
-              background: theme.controlBackground,
-              borderRadius: 6,
-              padding: '6px 10px',
-              color: theme.controlText,
-              cursor: 'pointer',
-            }}
-            title={isDarkTheme ? t('order_kanban_theme_day') : t('order_kanban_theme_night')}
-          >
-            {isDarkTheme ? t('order_kanban_theme_day') : t('order_kanban_theme_night')}
-          </button>
-
           <span
             style={{
               border: `1px solid ${streamStatusConfig.border}`,
@@ -927,22 +891,6 @@ function OrderKanbanContent() {
             <option value="en">EN</option>
             <option value="ru">RU</option>
           </select>
-
-          <button
-            type="button"
-            onClick={() => loadOrders({ showLoader: false })}
-            disabled={refreshing || loading}
-            style={{
-              border: `1px solid ${theme.controlBorder}`,
-              background: theme.cardBackground,
-              borderRadius: 6,
-              padding: '6px 10px',
-              color: theme.textPrimary,
-              cursor: refreshing || loading ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {refreshing ? t('order_kanban_refreshing') : t('order_kanban_refresh')}
-          </button>
         </div>
       </div>
 
@@ -963,10 +911,10 @@ function OrderKanbanContent() {
         />
 
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: theme.textSecondary }}>
-          <span>{t('order_kanban_new_range_label')}</span>
+          <span>{t('order_kanban_board_range_label')}</span>
           <select
-            value={newWindowMinutes}
-            onChange={(event) => setNewWindowMinutes(clampNewWindowMinutes(event.target.value))}
+            value={boardWindowMinutes}
+            onChange={(event) => setBoardWindowMinutes(clampBoardWindowMinutes(event.target.value))}
             style={{
               background: theme.controlBackground,
               border: `1px solid ${theme.controlBorder}`,
@@ -975,30 +923,9 @@ function OrderKanbanContent() {
               color: theme.controlText,
             }}
           >
-            {NEW_WINDOW_OPTIONS.map((minutes) => (
+            {BOARD_WINDOW_OPTIONS.map((minutes) => (
               <option key={minutes} value={minutes}>
-                {t('order_kanban_new_window_short', { minutes })}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: theme.textSecondary }}>
-          <span>{t('order_kanban_completed_range_label')}</span>
-          <select
-            value={completedWindowHours}
-            onChange={(event) => setCompletedWindowHours(clampCompletedWindowHours(event.target.value))}
-            style={{
-              background: theme.controlBackground,
-              border: `1px solid ${theme.controlBorder}`,
-              borderRadius: 6,
-              padding: '4px 8px',
-              color: theme.controlText,
-            }}
-          >
-            {COMPLETED_WINDOW_OPTIONS.map((hours) => (
-              <option key={hours} value={hours}>
-                {t('order_kanban_completed_window_short', { hours })}
+                {formatBoardWindow(minutes, t)}
               </option>
             ))}
           </select>
@@ -1009,11 +936,7 @@ function OrderKanbanContent() {
         </span>
 
         <span style={{ fontSize: 13, color: theme.textMuted }}>
-          {t('order_kanban_new_window_top', { minutes: newWindowMinutes })}
-        </span>
-
-        <span style={{ fontSize: 13, color: theme.textMuted }}>
-          {t('order_kanban_completed_window_top', { hours: completedWindowHours })}
+          {t('order_kanban_board_window_top', { value: formatBoardWindow(boardWindowMinutes, t) })}
         </span>
       </div>
 
@@ -1040,7 +963,6 @@ function OrderKanbanContent() {
           {visibleStates.map((state) => {
             const ordersByState = groupedOrders[state] || [];
             const collapsed = collapsedColumns.has(state);
-            const isCompleted = isCompletedState(state);
             const columnTitle = toDisplayState(state, t);
             const columnColor = STATE_COLORS[state] || theme.textMuted;
             return (
@@ -1090,36 +1012,6 @@ function OrderKanbanContent() {
                     >
                       {columnTitle}
                     </strong>
-                    {state === 'NEW' ? (
-                      <span
-                        style={{
-                          color: theme.textMuted,
-                          fontSize: 11,
-                          writingMode: collapsed ? 'vertical-rl' : 'horizontal-tb',
-                          textOrientation: collapsed ? 'mixed' : 'upright',
-                          transform: collapsed ? 'rotate(180deg)' : 'none',
-                        }}
-                      >
-                        {collapsed
-                          ? t('order_kanban_new_window_short', { minutes: newWindowMinutes })
-                          : t('order_kanban_new_window_hint', { minutes: newWindowMinutes })}
-                      </span>
-                    ) : null}
-                    {state === 'DONE' ? (
-                      <span
-                        style={{
-                          color: theme.textMuted,
-                          fontSize: 11,
-                          writingMode: collapsed ? 'vertical-rl' : 'horizontal-tb',
-                          textOrientation: collapsed ? 'mixed' : 'upright',
-                          transform: collapsed ? 'rotate(180deg)' : 'none',
-                        }}
-                      >
-                        {collapsed
-                          ? t('order_kanban_completed_window_short', { hours: completedWindowHours })
-                          : t('order_kanban_completed_window_hint', { hours: completedWindowHours })}
-                      </span>
-                    ) : null}
                   </div>
 
                   <div
@@ -1177,7 +1069,6 @@ function OrderKanbanContent() {
                         isUpdating={updatingOrderId === order.id}
                         onMove={moveOrder}
                         onOpen={setSelectedOrderId}
-                        operatorLimited={operatorLimited}
                         theme={theme}
                         onDragStart={(event, dragOrder) => {
                           setDragOrderId(dragOrder.id);
@@ -1209,8 +1100,9 @@ function OrderKanbanContent() {
 }
 
 export default function OrderKanban(props) {
+  const initialLocale = resolveSystemLocale(props?.locale);
   return (
-    <I18nProvider initialLocale={props.locale}>
+    <I18nProvider initialLocale={initialLocale}>
       <OrderKanbanContent />
     </I18nProvider>
   );

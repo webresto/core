@@ -1,15 +1,9 @@
-const ORDER_TRANSITIONS: Record<string, string[]> = {
-  NEW: ["CART"],
-  CART: ["CHECKOUT", "REJECT"],
-  CHECKOUT: ["CART", "PAYMENT", "ORDER", "REJECT"],
-  PAYMENT: ["CART", "ORDER", "CHECKOUT", "REJECT"],
-  ORDER: ["COOKING", "ON_THE_WAY", "DONE", "REJECT"],
-  COOKING: ["ON_THE_WAY", "DONE", "REJECT"],
-  ON_THE_WAY: ["DONE", "REJECT"],
-  DONE: [],
-  REJECT: []
-};
-const OPERATOR_ALLOWED_TARGET_STATES = ["REJECT", "COOKING", "ON_THE_WAY", "DONE"];
+import {
+  ORDER_OPERATOR_ALLOWED_TARGET_STATES,
+  getAllowedOrderTransitionsByRole,
+  isOperatorUser,
+} from "../../../../libs/OrderStateFlow";
+
 const COMPLETED_STATES = new Set(["DONE", "REJECT"]);
 const DEFAULT_COMPLETED_WINDOW_HOURS = 24;
 const DEFAULT_NEW_WINDOW_MINUTES = 15;
@@ -42,31 +36,6 @@ function isOrderInNewWindow(order: any, sinceMs: number): boolean {
   return createdAtMs >= sinceMs;
 }
 
-function getUserGroupNames(user: any): string[] {
-  if (!Array.isArray(user?.groups)) return [];
-  return user.groups
-    .map((group: any) => String(group?.name || "").trim().toLowerCase())
-    .filter((name: string) => name.length > 0);
-}
-
-function isOperatorUser(user: any): boolean {
-  if (user?.isAdministrator) return false;
-  const names = getUserGroupNames(user);
-  return names.some((name) => (
-    name === "operator" ||
-    name.includes("operator") ||
-    name.includes("оператор")
-  ));
-}
-
-function getAllowedTransitions(state: string, operatorLimited: boolean): string[] {
-  const normalizedState = String(state || "");
-  if (operatorLimited) {
-    return OPERATOR_ALLOWED_TARGET_STATES.filter((targetState) => targetState !== normalizedState);
-  }
-  return ORDER_TRANSITIONS[normalizedState] || [];
-}
-
 function mapOrder(order: any, operatorLimited: boolean) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
   const phone = customer?.phone && typeof customer.phone === "object"
@@ -94,7 +63,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
     createdAt: order?.createdAt || null,
     updatedAt: order?.updatedAt || null,
     date: order?.date || null,
-    allowedTransitions: getAllowedTransitions(state, operatorLimited),
+    allowedTransitions: getAllowedOrderTransitionsByRole(state, operatorLimited),
   };
 }
 
@@ -164,7 +133,7 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
         completedWindowHours,
         completedSince: new Date(completedSinceMs).toISOString(),
         operatorLimited,
-        operatorAllowedTargets: OPERATOR_ALLOWED_TARGET_STATES,
+        operatorAllowedTargets: ORDER_OPERATOR_ALLOWED_TARGET_STATES,
       }
     });
   } catch (error) {
