@@ -142,6 +142,25 @@ function processBindAdminpanel() {
           sails.log.debug('StockManager route bind error', e);
         }
 
+        // OrderKanban module link + route
+        try {
+          const orderKanbanController = require('../lib/adminpanel/src/controller/order-kanban').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'order-kanban',
+            title: 'Current Orders',
+            link: `${routePrefix}/order-kanban`,
+            icon: 'view_kanban',
+            section: 'Orders'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/order-kanban`,
+            adminizer.policyManager.bindPolicies(policies, orderKanbanController)
+          );
+        } catch (e) {
+          sails.log.debug('OrderKanban route bind error', e);
+        }
+
         // API route for search used by StockManager frontend — expose under admin path
         try {
           const searchController = require('../lib/adminpanel/src/controller/search').default;
@@ -197,6 +216,39 @@ function processBindAdminpanel() {
           adminizer.app.post(`${routePrefix}/core/update-is-deleted`, adminizer.policyManager.bindPolicies(policies, updateIsDeletedController));
         } catch (e) {
           sails.log.debug('StockManager update isDeleted route bind error', e);
+        }
+
+        // API route for order kanban list
+        try {
+          const getOrderKanbanOrdersController = require('../lib/adminpanel/src/controller/get-order-kanban-orders').default;
+          adminizer.app.get(
+            `${routePrefix}/core/order-kanban/orders`,
+            adminizer.policyManager.bindPolicies(policies, getOrderKanbanOrdersController)
+          );
+        } catch (e) {
+          sails.log.debug('OrderKanban list route bind error', e);
+        }
+
+        // API route for order kanban SSE stream
+        try {
+          const orderKanbanStreamController = require('../lib/adminpanel/src/controller/order-kanban-stream').default;
+          adminizer.app.get(
+            `${routePrefix}/core/order-kanban/stream`,
+            adminizer.policyManager.bindPolicies(policies, orderKanbanStreamController)
+          );
+        } catch (e) {
+          sails.log.debug('OrderKanban stream route bind error', e);
+        }
+
+        // API route for order kanban state update
+        try {
+          const updateOrderKanbanStateController = require('../lib/adminpanel/src/controller/update-order-kanban-state').default;
+          adminizer.app.post(
+            `${routePrefix}/core/order-kanban/state`,
+            adminizer.policyManager.bindPolicies(policies, updateOrderKanbanStateController)
+          );
+        } catch (e) {
+          sails.log.debug('OrderKanban state route bind error', e);
         }
 
         // Route for product setup page

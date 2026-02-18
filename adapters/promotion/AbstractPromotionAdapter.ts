@@ -28,7 +28,7 @@ export default abstract class AbstractPromotionAdapter {
      */
     public async clearOfPromotion(order: OrderRecord): Promise<OrderRecord> {
         // if Order.status ="PAYMENT" or "ORDER" can't clear promotions
-        if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+        if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
         //if (order.state === "PAYMENT") throw "order with orderId" + order.id + "in state PAYMENT";
 
         // const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");

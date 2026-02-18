@@ -196,8 +196,11 @@ type attributes = typeof attributes & stateFlowInstance;
 export interface OrderRecord extends ORM, OptionalAll<attributes> {
 }
 declare let Model: {
+    readonly ORDERED_STATES: ReadonlyArray<string>;
+    isOrderedState(state: string): boolean;
     beforeCreate(orderInit: OrderRecord, cb: (err?: string) => void): void;
     afterCreate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
+    afterUpdate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
     /** Add a dish into order */
     addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number, stack?: boolean): Promise<void>;

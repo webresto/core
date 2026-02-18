@@ -93,6 +93,7 @@ declare global {
     "promotion-process:debug": [number, OrderRecord, PromotionRecord, any],
     "core:adapter-rms-sync-out-of-stock-touch": []
     "core:order-after-create": [OrderRecord],
+    "core:order-after-update": [OrderRecord],
     "core:order-before-add-dish": [CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],
     "core:order-add-dish-reject-amount": [CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],
     "core:order-after-add-dish": [OrderDishRecord, CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],

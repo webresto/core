@@ -29,6 +29,8 @@ export default class TodayOrdersCountWidget extends InfoBase {
 	readonly department: string = 'restoapp_info'
 	readonly description: string = 'Today\'s Orders'
 	readonly name: string = 'Order count'
+	readonly link: string = '/admin/order-kanban'
+	readonly linkType: 'self' | 'blank' = 'self'
 	readonly size = {
 		h: 1,
 		w: 1

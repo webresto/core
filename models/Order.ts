@@ -43,6 +43,8 @@ export type PaymentBack = {
   comment: string;
 };
 
+const ORDERED_STATES: ReadonlyArray<string> = ["ORDER", "COOKING", "ON_THE_WAY"];
+
 let attributes = {
   /** Id  */
   id: {
@@ -361,6 +363,14 @@ type attributes = typeof attributes & stateFlowInstance;
 export interface OrderRecord extends ORM, OptionalAll<attributes> { }
 
 let Model = {
+  get ORDERED_STATES(): ReadonlyArray<string> {
+    return ORDERED_STATES;
+  },
+
+  isOrderedState(state: string): boolean {
+    return this.ORDERED_STATES.includes(state);
+  },
+
   beforeCreate(orderInit: OrderRecord, cb: (err?: string) => void) {
     if (!orderInit.id) {
       orderInit.id = uuid();
@@ -379,7 +389,7 @@ let Model = {
   async afterCreate(order: OrderRecord, cb: (err?: string) => void) {
     /**
      * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
-     * This creates redundancy in the kernel. But in the current version, we will try to run the kernel in this way. Until we switch to stateflow
+     * This creates redundancy in the kernel, but keeps core behavior consistent for now.
      *
      *  @setting: ORDER_INIT_PRODUCT_ID - Adds a dish to the cart that the user cannot remove, he can only modify it
      */
@@ -395,6 +405,11 @@ let Model = {
       }
     }
     emitter.emit("core:order-after-create", order);
+    cb();
+  },
+
+  async afterUpdate(order: OrderRecord, cb: (err?: string) => void) {
+    emitter.emit("core:order-after-update", order);
     cb();
   },
 
@@ -489,7 +504,7 @@ let Model = {
     }
     if (order.dishes && Array.isArray(order.dishes) && order.dishes.length > 99) throw "99 max dishes amount";
 
-    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+    if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
 
     if (modifiers && modifiers.length) {
       modifiers.forEach((m: OrderModifier) => {
@@ -593,7 +608,7 @@ let Model = {
     const order = await Order.findOne(criteria).populate("dishes");
     await Order.log({id: order.id}, "info", "core", `removeDish: orderDishId=${dish.id}`, {amount, stack});
 
-    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+    if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
 
     let orderDish: OrderDishRecord;
     if (stack) {
@@ -644,7 +659,7 @@ let Model = {
 
     const order = await Order.findOne(criteria).populate("dishes");
     await Order.log({id: order.id}, "info", "core", `setCount: orderDishId=${dish.id}, amount=${amount}`);
-    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+    if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
 
     const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
     const get = orderDishes.find((item) => item.id === dish.id);
@@ -672,7 +687,7 @@ let Model = {
     await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
 
     const order = await Order.findOne(criteria).populate("dishes");
-    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+    if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
 
     const orderDish = await OrderDish.findOne({
       order: order.id,
@@ -731,7 +746,7 @@ let Model = {
 
     sails.log.silly("Order > setSelfService >", selfService);
     const order = await Order.findOne(criteria);
-    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+    if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
 
     return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
   },
@@ -840,7 +855,7 @@ let Model = {
       }
 
       if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
-      if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+      if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
       if (order.promotionUnorderable === true) throw `Order not possible for order by promotion`;
 
 
@@ -1100,8 +1115,8 @@ let Model = {
     // Check maintenance
     if (await Maintenance.getActiveMaintenance() !== undefined) throw `Currently site is off`
 
-    //  TODO: impl with stateflow
-    if (order.state === "ORDER") throw `order with orderId ${order.id} in state ORDER`;
+    // TODO: revisit state validation flow here
+    if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
     if (order.state === "CART") throw `order with orderId ${order.id} in state CART`;
 
     // await Order.update({id: order.id}).fetch();
@@ -1183,7 +1198,7 @@ let Model = {
       }
 
       // await Order.next(order.id,'ORDER');
-      // TODO: Rewrite on stateflow
+      // TODO: move to Order.next() when full transition path is aligned
       let data = {
         orderDate: new Date() + ``,
         state: "ORDER"
@@ -2053,7 +2068,7 @@ let Model = {
   },
 
   /**
-   * State transition method with validation (replacement for sails-hook-stateflow)
+   * State transition method with validation
    * @param criteria - Order criteria (id string or query object)
    * @param nextState - Target state to transition to
    */
@@ -2066,7 +2081,9 @@ let Model = {
       CART: ["CHECKOUT", "REJECT"],
       CHECKOUT: ["CART", "PAYMENT", "ORDER", "REJECT"],
       PAYMENT: ["CART", "ORDER", "CHECKOUT", "REJECT"],
-      ORDER: ["DONE", "REJECT"],
+      ORDER: ["COOKING", "ON_THE_WAY", "DONE", "REJECT"],
+      COOKING: ["ON_THE_WAY", "DONE", "REJECT"],
+      ON_THE_WAY: ["DONE", "REJECT"],
       DONE: [],
       REJECT: []
     };
@@ -2098,6 +2115,9 @@ module.exports = {
   primaryKey: "id",
   attributes: attributes,
   ...Model,
+  get ORDERED_STATES(): ReadonlyArray<string> {
+    return ORDERED_STATES;
+  },
 };
 
 declare global {

@@ -11,6 +11,7 @@ const OrderHelper_1 = require("../libs/helpers/OrderHelper");
 const isValue_1 = require("../utils/isValue");
 const ProductModifier_1 = require("../libs/ProductModifier");
 const normalize_1 = require("../utils/normalize");
+const ORDERED_STATES = Object.freeze(["ORDER", "COOKING", "ON_THE_WAY"]);
 let attributes = {
     /** Id  */
     id: {
@@ -267,6 +268,12 @@ let attributes = {
 };
 const OrderLogHelper = require("../libs/OrderLogHelper").default;
 let Model = {
+    get ORDERED_STATES() {
+        return ORDERED_STATES;
+    },
+    isOrderedState(state) {
+        return this.ORDERED_STATES.includes(state);
+    },
     beforeCreate(orderInit, cb) {
         if (!orderInit.id) {
             orderInit.id = (0, uuid_1.v4)();
@@ -282,7 +289,7 @@ let Model = {
     async afterCreate(order, cb) {
         /**
          * It was decided to add ORDER_INIT_PRODUCT_ID when creating a cart here to unify the core functionality for marketing.
-         * This creates redundancy in the kernel. But in the current version, we will try to run the kernel in this way. Until we switch to stateflow
+         * This creates redundancy in the kernel, but keeps core behavior consistent for now.
          *
          *  @setting: ORDER_INIT_PRODUCT_ID - Adds a dish to the cart that the user cannot remove, he can only modify it
          */
@@ -296,6 +303,10 @@ let Model = {
             }
         }
         emitter.emit("core:order-after-create", order);
+        cb();
+    },
+    async afterUpdate(order, cb) {
+        emitter.emit("core:order-after-update", order);
         cb();
     },
     /** Add a dish into order */
@@ -369,8 +380,8 @@ let Model = {
         }
         if (order.dishes && Array.isArray(order.dishes) && order.dishes.length > 99)
             throw "99 max dishes amount";
-        if (order.state === "ORDER")
-            throw `order with orderId ${order.id} in state ORDER`;
+        if (Order.isOrderedState(order.state))
+            throw `order with orderId ${order.id} in state ${order.state}`;
         if (modifiers && modifiers.length) {
             modifiers.forEach((m) => {
                 if (m.amount === undefined)
@@ -455,8 +466,8 @@ let Model = {
         await emitter.emit.apply(emitter, ["core:order-before-remove-dish", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
         await Order.log({id: order.id}, "info", "core", `removeDish: orderDishId=${dish.id}`, {amount, stack});
-        if (order.state === "ORDER")
-            throw `order with orderId ${order.id} in state ORDER`;
+        if (Order.isOrderedState(order.state))
+            throw `order with orderId ${order.id} in state ${order.state}`;
         let orderDish;
         if (stack) {
             amount = 1;
@@ -502,8 +513,8 @@ let Model = {
             }
         const order = await Order.findOne(criteria).populate("dishes");
         await Order.log({id: order.id}, "info", "core", `setCount: orderDishId=${dish.id}, amount=${amount}`);
-        if (order.state === "ORDER")
-            throw `order with orderId ${order.id} in state ORDER`;
+        if (Order.isOrderedState(order.state))
+            throw `order with orderId ${order.id} in state ${order.state}`;
         const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
         const get = orderDishes.find((item) => item.id === dish.id);
         if (get) {
@@ -528,8 +539,8 @@ let Model = {
     async setComment(criteria, dish, comment) {
         await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
-        if (order.state === "ORDER")
-            throw `order with orderId ${order.id} in state ORDER`;
+        if (Order.isOrderedState(order.state))
+            throw `order with orderId ${order.id} in state ${order.state}`;
         const orderDish = await OrderDish.findOne({
             order: order.id,
             id: dish.id,
@@ -579,8 +590,8 @@ let Model = {
     async setSelfService(criteria, selfService = true) {
         sails.log.silly("Order > setSelfService >", selfService);
         const order = await Order.findOne(criteria);
-        if (order.state === "ORDER")
-            throw `order with orderId ${order.id} in state ORDER`;
+        if (Order.isOrderedState(order.state))
+            throw `order with orderId ${order.id} in state ${order.state}`;
         return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
     },
     /**
@@ -663,8 +674,8 @@ let Model = {
             }
             if (await Maintenance.getActiveMaintenance() !== undefined)
                 throw `Currently site is off`;
-            if (order.state === "ORDER")
-                throw `order with orderId ${order.id} in state ORDER`;
+            if (Order.isOrderedState(order.state))
+                throw `order with orderId ${order.id} in state ${order.state}`;
             if (order.promotionUnorderable === true)
                 throw `Order not possible for order by promotion`;
             //const order: OrderRecord = await Order.findOne(criteria);
@@ -894,9 +905,9 @@ let Model = {
         // Check maintenance
         if (await Maintenance.getActiveMaintenance() !== undefined)
             throw `Currently site is off`;
-        //  TODO: impl with stateflow
-        if (order.state === "ORDER")
-            throw `order with orderId ${order.id} in state ORDER`;
+        // TODO: revisit state validation flow here
+        if (Order.isOrderedState(order.state))
+            throw `order with orderId ${order.id} in state ${order.state}`;
         if (order.state === "CART")
             throw `order with orderId ${order.id} in state CART`;
         // await Order.update({id: order.id}).fetch();
@@ -966,7 +977,7 @@ let Model = {
                 await bonusProgramAdapter.writeTransaction(user, userBonusProgram, transaction);
             }
             // await Order.next(order.id,'ORDER');
-            // TODO: Rewrite on stateflow
+            // TODO: move to Order.next() when full transition path is aligned
             let data = {
                 orderDate: new Date() + ``,
                 state: "ORDER"
@@ -1714,7 +1725,9 @@ let Model = {
             CART: ["CHECKOUT", "REJECT"],
             CHECKOUT: ["CART", "PAYMENT", "ORDER", "REJECT"],
             PAYMENT: ["CART", "ORDER", "CHECKOUT", "REJECT"],
-            ORDER: ["DONE", "REJECT"],
+            ORDER: ["COOKING", "ON_THE_WAY", "DONE", "REJECT"],
+            COOKING: ["ON_THE_WAY", "DONE", "REJECT"],
+            ON_THE_WAY: ["DONE", "REJECT"],
             DONE: [],
             REJECT: []
         };
@@ -1738,6 +1751,9 @@ module.exports = {
     primaryKey: "id",
     attributes: attributes,
     ...Model,
+    get ORDERED_STATES() {
+        return ORDERED_STATES;
+    },
 };
 // LOCAL HELPERS
 /////////////////////////////////////////////////////////////////
