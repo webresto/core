@@ -1,22 +1,23 @@
 import {
+  ORDER_KANBAN_DEFAULT_COMPLETED_WINDOW_HOURS,
+  ORDER_KANBAN_DEFAULT_NEW_WINDOW_MINUTES,
   ORDER_OPERATOR_ALLOWED_TARGET_STATES,
   getAllowedOrderTransitionsByRole,
+  isCompletedOrderState,
+  isKitchenProgressOrderState,
   isOperatorUser,
+  isPreOrderFilteredState,
 } from "../../../../libs/OrderStateFlow";
 
-const COMPLETED_STATES = new Set(["DONE", "REJECT"]);
-const DEFAULT_COMPLETED_WINDOW_HOURS = 24;
-const DEFAULT_NEW_WINDOW_MINUTES = 15;
-
 function parseCompletedWindowHours(rawValue: unknown): number {
-  const parsed = Number.parseInt(String(rawValue || DEFAULT_COMPLETED_WINDOW_HOURS), 10);
-  if (!Number.isFinite(parsed)) return DEFAULT_COMPLETED_WINDOW_HOURS;
+  const parsed = Number.parseInt(String(rawValue || ORDER_KANBAN_DEFAULT_COMPLETED_WINDOW_HOURS), 10);
+  if (!Number.isFinite(parsed)) return ORDER_KANBAN_DEFAULT_COMPLETED_WINDOW_HOURS;
   return Math.min(Math.max(parsed, 1), 168);
 }
 
 function parseNewWindowMinutes(rawValue: unknown): number {
-  const parsed = Number.parseInt(String(rawValue || DEFAULT_NEW_WINDOW_MINUTES), 10);
-  if (!Number.isFinite(parsed)) return DEFAULT_NEW_WINDOW_MINUTES;
+  const parsed = Number.parseInt(String(rawValue || ORDER_KANBAN_DEFAULT_NEW_WINDOW_MINUTES), 10);
+  if (!Number.isFinite(parsed)) return ORDER_KANBAN_DEFAULT_NEW_WINDOW_MINUTES;
   return Math.min(Math.max(parsed, 1), 1440);
 }
 
@@ -93,13 +94,16 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
 
     const filteredByState = rawOrders.filter((order: any) => {
       const state = String(order?.state || "");
-      if (state === "NEW") {
+      if (isKitchenProgressOrderState(state)) {
+        return true;
+      }
+      if (isPreOrderFilteredState(state)) {
         return isOrderInNewWindow(order, newSinceMs);
       }
-      if (!includeDone && COMPLETED_STATES.has(state)) {
+      if (!includeDone && isCompletedOrderState(state)) {
         return false;
       }
-      if (includeDone && COMPLETED_STATES.has(state)) {
+      if (includeDone && isCompletedOrderState(state)) {
         return isOrderInCompletedWindow(order, completedSinceMs);
       }
       return true;
