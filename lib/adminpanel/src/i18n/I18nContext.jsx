@@ -2,29 +2,46 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { locales } from './locales';
 
 const I18nContext = createContext();
+const FALLBACK_LOCALE = 'en';
+
+function normalizeLocale(rawLocale) {
+    const normalized = String(rawLocale || '').trim().toLowerCase().replace(/_/g, '-');
+    if (!normalized) return '';
+    if (locales[normalized]) return normalized;
+
+    const base = normalized.split('-')[0];
+    if (base === 'uk' && locales.ua) return 'ua';
+    if (locales[base]) return base;
+
+    return '';
+}
 
 export function I18nProvider({ children, initialLocale }) {
     // Get initial language from props, localStorage or browser preference or default to 'en'
     const getInitialLanguage = () => {
-        if (initialLocale && locales[initialLocale]) return initialLocale;
+        const fromProps = normalizeLocale(initialLocale);
+        if (fromProps) return fromProps;
 
-        const saved = localStorage.getItem('stockManagerLanguage');
-        if (saved && locales[saved]) return saved;
+        const saved = normalizeLocale(localStorage.getItem('stockManagerLanguage'));
+        if (saved) return saved;
 
-        const browserLang = navigator.language.split('-')[0];
-        if (locales[browserLang]) return browserLang;
+        const browserLang = normalizeLocale(navigator.language);
+        if (browserLang) return browserLang;
 
-        return 'en';
+        return FALLBACK_LOCALE;
     };
 
     const [language, setLanguage] = useState(getInitialLanguage);
 
     useEffect(() => {
-        localStorage.setItem('stockManagerLanguage', language);
+        const normalizedLanguage = normalizeLocale(language) || FALLBACK_LOCALE;
+        localStorage.setItem('stockManagerLanguage', normalizedLanguage);
     }, [language]);
 
     const t = (key, params = {}) => {
-        const translation = locales[language][key] || key;
+        const dictionary = locales[language] || locales[FALLBACK_LOCALE] || {};
+        const fallback = locales[FALLBACK_LOCALE] || {};
+        const translation = dictionary[key] || fallback[key] || key;
 
         // Replace params like {count}
         return Object.entries(params).reduce((str, [paramKey, paramValue]) => {

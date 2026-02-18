@@ -14,7 +14,7 @@ const STATE_COLORS = {
   DONE: '#15803d',
   REJECT: '#dc2626',
 };
-const SUPPORTED_LOCALES = new Set(['en', 'ru']);
+const SUPPORTED_LOCALES = new Set(['en', 'es', 'zh', 'hi', 'ar', 'ru', 'fr', 'ua']);
 const BOARD_WINDOW_MINUTES_DEFAULT = 180;
 const BOARD_WINDOW_MINUTES_MIN = 1;
 const BOARD_WINDOW_MINUTES_MAX = 10080;
@@ -25,7 +25,7 @@ const KANBAN_STREAM_STALE_TIMEOUT_MS = 90000;
 const KANBAN_FULL_SYNC_INTERVAL_MS = 30000;
 const KANBAN_EVENT_REFRESH_DEBOUNCE_MS = 300;
 const BOARD_WINDOW_STORAGE_KEY = 'orderKanbanBoardWindowMinutes';
-const COLLAPSED_COLUMNS_STORAGE_KEY = 'orderKanbanCollapsedColumns';
+const COLLAPSED_COLUMNS_STORAGE_KEY = 'orderKanbanCollapsedColumnsV2';
 const APPEARANCE_STORAGE_KEY = 'appearance';
 const KANBAN_COLUMN_WIDTH_MIN = 280;
 const KANBAN_COLUMN_WIDTH_MAX = 340;
@@ -85,6 +85,7 @@ function normalizeLocale(rawLocale) {
   const normalized = String(rawLocale).trim().toLowerCase().replace(/_/g, '-');
   if (SUPPORTED_LOCALES.has(normalized)) return normalized;
   const base = normalized.split('-')[0];
+  if (base === 'uk') return 'ua';
   return SUPPORTED_LOCALES.has(base) ? base : '';
 }
 
@@ -436,7 +437,7 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
 }
 
 function OrderKanbanContent() {
-  const { t, language, setLanguage } = useTranslation();
+  const { t, language } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [query, setQuery] = useState('');
   const [boardWindowMinutes, setBoardWindowMinutes] = useState(() => {
@@ -876,21 +877,6 @@ function OrderKanbanContent() {
           >
             {streamStatusConfig.label}
           </span>
-
-          <select
-            value={language}
-            onChange={(event) => setLanguage(event.target.value)}
-            style={{
-              background: theme.controlBackground,
-              border: `1px solid ${theme.controlBorder}`,
-              borderRadius: 6,
-              padding: '6px 8px',
-              color: theme.controlText,
-            }}
-          >
-            <option value="en">EN</option>
-            <option value="ru">RU</option>
-          </select>
         </div>
       </div>
 

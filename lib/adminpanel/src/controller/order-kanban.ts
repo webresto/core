@@ -1,6 +1,12 @@
 function normalizeLocale(rawLocale: unknown): string {
   const value = String(rawLocale || "").trim().toLowerCase().replace(/_/g, "-");
+  if (value.startsWith("es")) return "es";
+  if (value.startsWith("zh")) return "zh";
+  if (value.startsWith("hi")) return "hi";
+  if (value.startsWith("ar")) return "ar";
   if (value.startsWith("ru")) return "ru";
+  if (value.startsWith("fr")) return "fr";
+  if (value.startsWith("ua") || value.startsWith("uk")) return "ua";
   if (value.startsWith("en")) return "en";
   return "en";
 }
