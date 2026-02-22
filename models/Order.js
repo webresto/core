@@ -904,16 +904,22 @@ let Model = {
     ////////////////////////////////////////////////////////////////////////////////////
     /** Basket design*/
     async order(criteria) {
+        sails.log.debug("CORE > Order.order() CALLED, criteria:", JSON.stringify(criteria));
         const order = await Order.findOne(criteria);
+        sails.log.debug("CORE > Order.order() found order:", order?.id, "state:", order?.state);
         await Order.log({ id: order.id }, "info", "core", "order: placing order", { state: order.state, selfService: order.selfService, total: order.total });
         // Check maintenance
         if (await Maintenance.getActiveMaintenance() !== undefined)
             throw `Currently site is off`;
         // TODO: revisit state validation flow here
-        if (Order.isOrderedState(order.state))
+        if (Order.isOrderedState(order.state)) {
+            sails.log.debug("CORE > Order.order() REJECTED: already ordered state:", order.state);
             throw `order with orderId ${order.id} in state ${order.state}`;
-        if (order.state === "CART")
+        }
+        if (order.state === "CART") {
+            sails.log.debug("CORE > Order.order() REJECTED: state is CART");
             throw `order with orderId ${order.id} in state CART`;
+        }
         // await Order.update({id: order.id}).fetch();
         // TODO: this check is needed
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
@@ -1034,6 +1040,7 @@ let Model = {
                 await Order.update({ id: order.id }, orderError);
                 await Order.log({ id: order.id }, "error", "core", "order: RMS error", { code: error.code, message: error.message });
             }
+            sails.log.debug("CORE > about to emit core:order-after-order, orderId:", order?.id, "emitter events count:", emitter?.events?.length, "subscribers:", emitter?.events?.map(e => `${e.name}[${e.subscribers?.length}]`).join(", "));
             emitter.emit("core:order-after-order", order);
             if (order.user) {
                 UserOrderHistory.save(order.id);
@@ -1585,7 +1592,9 @@ let Model = {
         }
     },
     async doPaid(criteria, paymentDocument) {
+        sails.log.debug("CORE > Order.doPaid() CALLED, criteria:", JSON.stringify(criteria));
         let order = await Order.findOne(criteria);
+        sails.log.debug("CORE > Order.doPaid() found order:", order?.id, "state:", order?.state, "paid:", order?.paid);
         if (order.paid) {
             sails.log.debug(`Order > doPaid: OrderRecord with id ${order.id} is paid`);
             return;

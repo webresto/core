@@ -967,10 +967,10 @@ let Model = {
         }
 
         if (spendBonus.amount === 0) {
+          order.spendBonus = spendBonus;
           order.spendBonus.amount = 0;
           order.bonusesTotal = 0;
-          return;
-        }
+        } else {
 
         // load bonus strategy
         let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
@@ -1020,6 +1020,7 @@ let Model = {
         order.spendBonus = spendBonus;
         order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
         order.bonusesTotal = bonusCoverage.toNumber();
+        }
       }
 
 
