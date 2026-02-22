@@ -134,22 +134,23 @@ let Model = {
                 try {
                     // Check if jsonSchema expects a primitive type (string, number, boolean)
                     const schemaType = setting.jsonSchema?.type;
-
                     if (schemaType === "string") {
                         value = process.env[key];
-                    } else if (schemaType === "number" || schemaType === "integer") {
+                    }
+                    else if (schemaType === "number" || schemaType === "integer") {
                         value = parseInt(process.env[key], 10);
                         if (isNaN(value)) {
                             sails.log.error(`Error: Value [${process.env[key]}] for [${key}] cannot be converted to number`);
                             return undefined;
                         }
-                    } else if (schemaType === "boolean") {
+                    }
+                    else if (schemaType === "boolean") {
                         const parsed = parseBoolean(process.env[key]);
                         value = parsed !== undefined ? parsed : false;
-                    } else {
+                    }
+                    else {
                         value = JSON.parse(process.env[key]);
                     }
-
                     // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
                     if (!(Settings.env("ALLOW_UNSAFE_SETTINGS") ?? false)) {
                         const ajv = new ajv_1.default();
@@ -194,11 +195,13 @@ let Model = {
             }
         }
         if (settings[_key] !== undefined) {
+            //@ts-ignore
             return cleanValue(settings[_key]);
         }
         else {
             const value = await Settings.use(_key);
             settings[_key] = value;
+            //@ts-ignore
             return cleanValue(value);
         }
     },
@@ -206,8 +209,10 @@ let Model = {
         let origSettings = await Settings.findOne({ key: key });
         if (origSettings) {
             Object.assign(origSettings, settingsSetInput);
+            //@ts-ignore
             settingsSetInput = origSettings;
         }
+        // @ts-ignore
         if (settingsSetInput["key"] && settingsSetInput["key"] !== key) {
             sails.log.error(`Key [${key}] does not match with SettingsSetInput.key: [${settingsSetInput.key}]`);
             return;
@@ -283,6 +288,26 @@ let Model = {
                 }
             }
         }
+        // coerce value/defaultValue to match jsonSchema type (DB stores "json" which may auto-parse strings to numbers)
+        if (settingsSetInput.jsonSchema) {
+            const expectedType = settingsSetInput.jsonSchema.type;
+            if (expectedType === "string") {
+                if (settingsSetInput.value !== undefined && settingsSetInput.value !== null && typeof settingsSetInput.value !== "string") {
+                    settingsSetInput.value = String(settingsSetInput.value);
+                }
+                if (settingsSetInput.defaultValue !== undefined && settingsSetInput.defaultValue !== null && typeof settingsSetInput.defaultValue !== "string") {
+                    settingsSetInput.defaultValue = String(settingsSetInput.defaultValue);
+                }
+            }
+            else if (expectedType === "number" || expectedType === "integer") {
+                if (settingsSetInput.value !== undefined && settingsSetInput.value !== null && typeof settingsSetInput.value === "string") {
+                    settingsSetInput.value = Number(settingsSetInput.value);
+                }
+                if (settingsSetInput.defaultValue !== undefined && settingsSetInput.defaultValue !== null && typeof settingsSetInput.defaultValue === "string") {
+                    settingsSetInput.defaultValue = Number(settingsSetInput.defaultValue);
+                }
+            }
+        }
         // check that value and defaultValue match the schema for json type (if !ALLOW_UNSAFE_SETTINGS)
         if (settingsSetInput.jsonSchema && !Settings.env("ALLOW_UNSAFE_SETTINGS")) {
             const ajv = new ajv_1.default();
@@ -317,7 +342,7 @@ let Model = {
             const setting = await Settings.findOne({ key: key });
             let inputValue = settingsSetInput.isRequired ? settingsSetInput.value ?? settingsSetInput.defaultValue : settingsSetInput.value;
             if (!setting) {
-                return await Settings.create({
+                const created = await Settings.create({
                     key: key,
                     type: settingType,
                     module: settingsSetInput.appId || null,
@@ -331,9 +356,11 @@ let Model = {
                     readOnly: settingsSetInput.readOnly ?? false,
                     isRequired: settingsSetInput.isRequired ?? false
                 }).fetch();
+                sails.log.debug(`CORE > Settings > created [${key}]:`, JSON.stringify({ value: inputValue, defaultValue: settingsSetInput.defaultValue, type: settingType }));
+                return created;
             }
             else {
-                return (await Settings.update({ key: key }, {
+                const updateData = {
                     key: key,
                     type: settingType,
                     ...(settingsSetInput.jsonSchema !== undefined ? { jsonSchema: settingsSetInput.jsonSchema } : {}),
@@ -345,7 +372,10 @@ let Model = {
                     ...(settingsSetInput.uiSchema !== undefined ? { uiSchema: settingsSetInput.uiSchema } : {}),
                     ...(settingsSetInput.readOnly !== undefined ? { readOnly: settingsSetInput.readOnly } : {}),
                     ...(settingsSetInput.isRequired !== undefined ? { isRequired: settingsSetInput.isRequired } : {}),
-                }).fetch())[0];
+                };
+                const updated = (await Settings.update({ key: key }, updateData).fetch())[0];
+                sails.log.debug(`CORE > Settings > updated [${key}]:`, JSON.stringify({ value: updateData.value, defaultValue: updateData.defaultValue, type: settingType }));
+                return updated;
             }
         }
         catch (e) {
@@ -360,12 +390,13 @@ let Model = {
         // For ALLOW_UNSAFE_SETTINGS, we know it's boolean
         if (key === "ALLOW_UNSAFE_SETTINGS") {
             const parsed = parseBoolean(envValue);
-            return parsed !== undefined ? parsed : false;
+            return (parsed !== undefined ? parsed : false);
         }
         // For other keys, try to parse as JSON, fallback to string
         try {
             return JSON.parse(envValue);
-        } catch {
+        }
+        catch {
             return envValue;
         }
     },

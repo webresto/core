@@ -79,6 +79,8 @@ declare let attributes: {
     sortOrder: number;
     /** The dish is removed */
     isDeleted: boolean;
+    /** The dish is enabled (managed from interface) */
+    enable: boolean;
     /** The dish can be modified*/
     isModificable: boolean;
     /** Parental group */

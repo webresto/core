@@ -36,6 +36,8 @@ let attributes = {
     },
     /** Soft deletion */
     isDeleted: "boolean",
+    /** The group is enabled (managed from interface) */
+    enable: "boolean",
     /** Dishes group name*/
     name: {
         type: "string",
@@ -126,6 +128,7 @@ let Model = {
             init.concept = "origin";
         }
         init.visible = init.visible ?? true;
+        init.enable = init.enable ?? true;
         const slugOpts = [];
         if (init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
             slugOpts.push(init.concept);
@@ -162,7 +165,8 @@ let Model = {
         let menu = {};
         const groups = await Group.find({ where: {
                 id: groupsId,
-                isDeleted: false
+                isDeleted: false,
+                enable: true
             } })
             .populate("childGroups")
             .populate("dishes")
@@ -183,7 +187,8 @@ let Model = {
                                 throw `Type error childGroups`;
                             }
                         }),
-                        isDeleted: false
+                        isDeleted: false,
+                        enable: true
                     })
                         .populate("childGroups")
                         .populate("dishes")
@@ -246,7 +251,7 @@ let Model = {
             groupObj = await Group.findOne({ slug: groupSlug });
         }
         else {
-            groupObj = (await Group.find({ slug: groupSlug, isDeleted: false }).limit(1))[0];
+            groupObj = (await Group.find({ slug: groupSlug, isDeleted: false, enable: true }).limit(1))[0];
         }
         if (!groupObj) {
             throw "group with slug " + groupSlug + " not found";
@@ -291,7 +296,7 @@ let Model = {
         let allGroups = [];
         for (let group of menu) {
             const groupId = group.id;
-            const initialGroup = (await Group.find({ id: groupId, isDeleted: false }).sort('createdAt DESC')).shift();
+            const initialGroup = (await Group.find({ id: groupId, isDeleted: false, enable: true }).sort('createdAt DESC')).shift();
             if (initialGroup) {
                 allGroups.push(initialGroup);
                 const childGroups = await getAllChildGroups(groupId);
@@ -300,7 +305,7 @@ let Model = {
             }
         }
         async function getAllChildGroups(groupId) {
-            let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false });
+            let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false, enable: true });
             let allChildGroups = [];
             for (let group of childGroups) {
                 allChildGroups.push(group);
@@ -340,7 +345,8 @@ let Model = {
                     let menuTopLevelGroup = (await Group.find({
                         slug: menuTopLevelSlug,
                         ...concept && { concept: concept },
-                        isDeleted: false
+                        isDeleted: false,
+                        enable: true
                     }).limit(1))[0];
                     if (menuTopLevelGroup) {
                         topLevelGroupId = menuTopLevelGroup.id;
@@ -351,6 +357,7 @@ let Model = {
                 parentGroup: topLevelGroupId ?? null,
                 ...concept && { concept: concept },
                 isDeleted: false,
+                enable: true,
                 modifier: false,
                 visible: true
             });
@@ -359,6 +366,7 @@ let Model = {
                 let children = await Group.find({
                     parentGroup: groups[0].id,
                     isDeleted: false,
+                    enable: true,
                     modifier: false,
                     visible: true
                 });
@@ -386,7 +394,8 @@ let Model = {
             throw new Error('You must provide an array of IDs.');
         }
         const baseCriteriaGroup = {
-            isDeleted: false
+            isDeleted: false,
+            enable: true
         };
         const groupLimit = Math.max(Math.round(limit / ids.length), 1);
         const groups = await sails.models.group.find({
@@ -399,6 +408,7 @@ let Model = {
                 'and': [
                     { 'modifier': false },
                     { 'isDeleted': false },
+                    { 'enable': true },
                     { 'visible': true }
                 ]
             },
@@ -408,6 +418,7 @@ let Model = {
                 'and': [
                     { 'modifier': false },
                     { 'isDeleted': false },
+                    { 'enable': true },
                     { 'visible': true }
                 ]
             },
@@ -418,6 +429,7 @@ let Model = {
                     { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
+                    { 'enable': true },
                     { 'visible': true }
                 ]
             },
@@ -436,6 +448,7 @@ let Model = {
             balance: { "!=": 0 },
             modifier: false,
             isDeleted: false,
+            enable: true,
             visible: true
         };
         let recommendedDishes = await sails.models.dish.find({

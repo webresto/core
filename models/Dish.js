@@ -153,6 +153,8 @@ let attributes = {
     sortOrder: "number",
     /** The dish is removed */
     isDeleted: "boolean",
+    /** The dish is enabled (managed from interface) */
+    enable: "boolean",
     /** The dish can be modified*/
     isModificable: "boolean",
     /** Parental group */
@@ -231,6 +233,8 @@ let Model = {
             init.modifiers = [];
         if (init.visible === undefined)
             init.visible = true;
+        if (init.enable === undefined)
+            init.enable = true;
         if (init.notForSale === undefined)
             init.notForSale = false;
         if (!init.concept) {
@@ -276,6 +280,7 @@ let Model = {
      */
     async getDishes(criteria = {}) {
         criteria.isDeleted = false;
+        criteria.enable = true;
         if (!(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) {
             criteria.balance = { "!=": 0 };
         }
@@ -394,6 +399,7 @@ let Model = {
             balance: { "!=": 0 },
             modifier: false,
             isDeleted: false,
+            enable: true,
             visible: true
         };
         const groupLimit = Math.max(Math.round(limit / ids.length), 1);
@@ -408,6 +414,7 @@ let Model = {
                     { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
+                    { 'enable': true },
                     { 'visible': true }
                 ]
             },
@@ -418,6 +425,7 @@ let Model = {
                     { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
+                    { 'enable': true },
                     { 'visible': true }
                 ]
             },

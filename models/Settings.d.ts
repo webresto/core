@@ -1,5 +1,6 @@
 /**
- * Attention! We use MM "Settings" model in production mode, but for tests and core integrity, we support this model
+ * Settings model
+ * Core Settings model used in production mode
  * */
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { ORMModel } from "../interfaces/ORMModel";
@@ -18,6 +19,9 @@ interface UISchema {
     scope?: string;
     options?: any;
 }
+declare function setDeclaredSetting(key: string): void;
+declare function isInDeclaredSettings(key: string): boolean;
+declare function parseBoolean(value: string | undefined): boolean | undefined;
 declare let attributes: {
     id: string;
     key: string;
@@ -53,6 +57,10 @@ declare let Model: {
     use(key: string): Promise<SettingValue>;
     get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined>;
     set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings>;
+    env<K extends keyof SettingList>(key: K): SettingList[K] | undefined;
+    setDeclaredSetting: typeof setDeclaredSetting;
+    isInDeclaredSettings: typeof isInDeclaredSettings;
+    parseBoolean: typeof parseBoolean;
 };
 declare global {
     const Settings: typeof Model & ORMModel<SettingsRecord, "key" | "type">;

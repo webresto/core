@@ -3,7 +3,6 @@ import Address from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import StateFlowModel from "../interfaces/StateFlowModel";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
@@ -20,14 +19,8 @@ export interface PromotionState {
     message: string;
     state: object | object[];
 }
-export type OrderLogLevel = "info" | "warn" | "error" | "debug";
-export interface OrderLogEntry {
-    timestamp: string;
-    level: OrderLogLevel;
-    module: string;
-    message: string;
-    data?: any;
-}
+import { OrderLogLevel, OrderLogEntry } from "../libs/OrderLogHelper";
+export type { OrderLogLevel, OrderLogEntry };
 export type PaymentBack = {
     backLinkSuccess: string;
     backLinkFail: string;
@@ -324,11 +317,29 @@ declare let Model: {
     doFinalize(criteriaOne: CriteriaQuery<OrderRecord>, state: "DONE" | "REJECT"): Promise<void>;
     doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord>;
     applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord>;
+    /**
+     * Write a log entry for an order.
+     * Always emits "core:order-log" regardless of settings.
+     * Controlled by ORDER_LOG_DISABLE (skip write) and ORDER_LOG_USE_MAP (store in memory).
+     * DB writes are debounced (5s) to batch multiple entries.
+     */
     log(criteria: CriteriaQuery<OrderRecord>, level: OrderLogLevel, module: string, message: string, ...data: any[]): Promise<void>;
+    /**
+     * Get logs for an order. Reads from Map or DB depending on ORDER_LOG_USE_MAP setting.
+     * Flushes pending debounce buffer before reading from DB.
+     */
     getLogs(criteria: CriteriaQuery<OrderRecord>): Promise<OrderLogEntry[]>;
+    /**
+     * Await emitter.emit and log any handler errors/timeouts into order log.
+     */
     emitAndLog(criteria: CriteriaQuery<OrderRecord>, eventName: string, ...args: any[]): Promise<any[]>;
+    /**
+     * State transition method with validation
+     * @param criteria - Order criteria (id string or query object)
+     * @param nextState - Target state to transition to
+     */
+    next(criteria: CriteriaQuery<OrderRecord> | string, nextState: string): Promise<void>;
 };
 declare global {
-    const Order: typeof Model & ORMModel<OrderRecord, null> & StateFlowModel;
+    const Order: typeof Model & ORMModel<OrderRecord, null>;
 }
-export {};

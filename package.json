@@ -109,6 +109,7 @@
     "test:updb": "cd ./test/fixture && db-migrate up",
     "test:release": "DATASTORE=postgres PG_HOST=127.0.0.1 mocha -r ts-node/register test/bootstrap.ts './test/{,!(fixture)/**}/*.test.ts' --exit --grep=${PATTERN}",
     "build": "tsc",
+    "build:models": "bash build-models.sh",
     "build:adminizer": "cd lib/adminpanel && vite build",
     "format": "npx prettier --write \"**/*.ts\"",
     "tslint": "npx eslint ."

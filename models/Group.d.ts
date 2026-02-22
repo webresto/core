@@ -19,6 +19,8 @@ declare let attributes: {
     description: string;
     /** Soft deletion */
     isDeleted: boolean;
+    /** The group is enabled (managed from interface) */
+    enable: boolean;
     /** Dishes group name*/
     name: string;
     seoDescription: string;

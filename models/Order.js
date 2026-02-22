@@ -12,7 +12,8 @@ const isValue_1 = require("../utils/isValue");
 const ProductModifier_1 = require("../libs/ProductModifier");
 const OrderStateFlow_1 = require("../libs/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
-const ORDERED_STATES = Object.freeze(["ORDER", "COOKING", "ON_THE_WAY"]);
+const OrderLogHelper_1 = __importDefault(require("../libs/OrderLogHelper"));
+const ORDERED_STATES = ["ORDER", "COOKING", "ON_THE_WAY"];
 let attributes = {
     /** Id  */
     id: {
@@ -267,7 +268,6 @@ let attributes = {
         defaultsTo: []
     },
 };
-const OrderLogHelper = require("../libs/OrderLogHelper").default;
 let Model = {
     get ORDERED_STATES() {
         return ORDERED_STATES;
@@ -294,13 +294,13 @@ let Model = {
          *
          *  @setting: ORDER_INIT_PRODUCT_ID - Adds a dish to the cart that the user cannot remove, he can only modify it
          */
-        await Order.log({id: order.id}, "info", "core", "Order created", {shortId: order.shortId});
+        await Order.log({ id: order.id }, "info", "core", "Order created", { shortId: order.shortId });
         const ORDER_INIT_PRODUCT_ID = await Settings.get("ORDER_INIT_PRODUCT_ID");
         if (ORDER_INIT_PRODUCT_ID) {
             const ORDER_INIT_PRODUCT = (await Dish.find({ where: { or: [{ id: ORDER_INIT_PRODUCT_ID }, { rmsId: ORDER_INIT_PRODUCT_ID }] } }).limit(1))[0];
             if (ORDER_INIT_PRODUCT !== undefined) {
                 await Order.addDish({ id: order.id }, ORDER_INIT_PRODUCT, 1, [], "", "core");
-                await Order.log({id: order.id}, "debug", "core", "Init product added", {productId: ORDER_INIT_PRODUCT_ID});
+                await Order.log({ id: order.id }, "debug", "core", "Init product added", { productId: ORDER_INIT_PRODUCT_ID });
             }
         }
         emitter.emit("core:order-after-create", order);
@@ -375,7 +375,7 @@ let Model = {
             });
         }
         let order = await Order.findOne(criteria).populate("dishes");
-        await Order.log({id: order.id}, "info", "core", `addDish: ${dishObj.name}`, {dishId: dishObj.id, amount, addedBy, modifiersCount: modifiers?.length || 0});
+        await Order.log({ id: order.id }, "info", "core", `addDish: ${dishObj.name}`, { dishId: dishObj.id, amount, addedBy, modifiersCount: modifiers?.length || 0 });
         if (order.state === "NEW") {
             order = await Order.doCart({ id: order.id });
         }
@@ -425,7 +425,7 @@ let Model = {
                 }
             }
         }
-        const results = await Order.emitAndLog({id: order.id}, "core:add-product-before-write", order, dishObj, 15 * 1000);
+        const results = await Order.emitAndLog({ id: order.id }, "core:add-product-before-write", order, dishObj, 15 * 1000);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
         if (resultsCount !== successCount) {
@@ -458,7 +458,7 @@ let Model = {
         }
         catch (error) {
             sails.log.error(error);
-            await Order.log({id: order.id}, "error", "core", "addDish: countCart failed", {error: error?.message || error});
+            await Order.log({ id: order.id }, "error", "core", "addDish: countCart failed", { error: error?.message || error });
             throw error;
         }
     },
@@ -466,7 +466,7 @@ let Model = {
     async removeDish(criteria, dish, amount, stack) {
         await emitter.emit.apply(emitter, ["core:order-before-remove-dish", ...arguments]);
         const order = await Order.findOne(criteria).populate("dishes");
-        await Order.log({id: order.id}, "info", "core", `removeDish: orderDishId=${dish.id}`, {amount, stack});
+        await Order.log({ id: order.id }, "info", "core", `removeDish: orderDishId=${dish.id}`, { amount, stack });
         if (Order.isOrderedState(order.state))
             throw `order with orderId ${order.id} in state ${order.state}`;
         let orderDish;
@@ -513,7 +513,7 @@ let Model = {
                 };
             }
         const order = await Order.findOne(criteria).populate("dishes");
-        await Order.log({id: order.id}, "info", "core", `setCount: orderDishId=${dish.id}, amount=${amount}`);
+        await Order.log({ id: order.id }, "info", "core", `setCount: orderDishId=${dish.id}, amount=${amount}`);
         if (Order.isOrderedState(order.state))
             throw `order with orderId ${order.id} in state ${order.state}`;
         const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
@@ -664,7 +664,7 @@ let Model = {
     async check(criteria, customer, isSelfService, address, paymentMethodId, userId, spendBonus) {
         try {
             let order = await Order.findOne(criteria);
-            await Order.log({id: order.id}, "info", "core", "check: started", {isSelfService, paymentMethodId, hasCustomer: !!customer, hasAddress: !!address});
+            await Order.log({ id: order.id }, "info", "core", "check: started", { isSelfService, paymentMethodId, hasCustomer: !!customer, hasAddress: !!address });
             // CHECKING
             // Check order empty
             if (order.dishesCount === 0) {
@@ -744,7 +744,7 @@ let Model = {
                 }
             }
             // Custom emitters checks
-            const results = await Order.emitAndLog({id: order.id}, "core:order-check", order, customer, isSelfService, address, paymentMethodId);
+            const results = await Order.emitAndLog({ id: order.id }, "core:order-check", order, customer, isSelfService, address, paymentMethodId);
             delete (order.dishes);
             await Order.update({ id: order.id }, { ...order }).fetch();
             ////////////////////
@@ -754,7 +754,7 @@ let Model = {
             }
             catch (error) {
                 sails.log.error("Check countcart error:", error);
-                await Order.log({id: order.id}, "error", "core", "check: countCart failed", {error: error?.message || error});
+                await Order.log({ id: order.id }, "error", "core", "check: countCart failed", { error: error?.message || error });
                 throw {
                     code: 14,
                     error: "Problem with counting cart",
@@ -873,10 +873,13 @@ let Model = {
             else {
                 // Todo: implement logic for "JUST_ONE"
             }
-            await Order.log({id: order.id}, "info", "core", "check: completed");
+            await Order.log({ id: order.id }, "info", "core", "check: completed");
         }
         catch (error) {
-            try { await Order.log(criteria, "error", "core", "check: failed", {error: error?.message || error}); } catch {}
+            try {
+                await Order.log(criteria, "error", "core", "check: failed", { error: error?.message || error });
+            }
+            catch { }
             sails.log.error("Order > check > error:", {
                 error,
                 args: {
@@ -902,7 +905,7 @@ let Model = {
     /** Basket design*/
     async order(criteria) {
         const order = await Order.findOne(criteria);
-        await Order.log({id: order.id}, "info", "core", "order: placing order", {state: order.state, selfService: order.selfService, total: order.total});
+        await Order.log({ id: order.id }, "info", "core", "order: placing order", { state: order.state, selfService: order.selfService, total: order.total });
         // Check maintenance
         if (await Maintenance.getActiveMaintenance() !== undefined)
             throw `Currently site is off`;
@@ -929,7 +932,7 @@ let Model = {
          *  But since it exists, it will be revised in version 2
          * @deprecated Event `core:order-order`
          */
-        const results = await Order.emitAndLog({id: order.id}, "core:order-order", order);
+        const results = await Order.emitAndLog({ id: order.id }, "core:order-order", order);
         sails.log.silly("Order > order > after wait general emitter results: ", results);
         const resultsCount = results.length;
         const successCount = results.filter((r) => r.state === "success").length;
@@ -998,7 +1001,7 @@ let Model = {
                     rmsOrderData: orderWithRMS.rmsOrderData
                 });
                 sails.log.info(`RestoCore > new order with id [${orderWithRMS.shortId}] for [${orderWithRMS.customer.phone.code + orderWithRMS.customer.phone.number}] total: ${orderWithRMS.total} has rmsOrderNumber: ${orderWithRMS.rmsOrderNumber}`);
-                await Order.log({id: order.id}, "info", "core", "order: RMS order created", {rmsOrderNumber: orderWithRMS.rmsOrderNumber, rmsId: orderWithRMS.rmsId});
+                await Order.log({ id: order.id }, "info", "core", "order: RMS order created", { rmsOrderNumber: orderWithRMS.rmsOrderNumber, rmsId: orderWithRMS.rmsId });
             }
             catch (error) {
                 // Extract detailed error information
@@ -1029,7 +1032,7 @@ let Model = {
                     fullError: error
                 });
                 await Order.update({ id: order.id }, orderError);
-                await Order.log({id: order.id}, "error", "core", "order: RMS error", {code: error.code, message: error.message});
+                await Order.log({ id: order.id }, "error", "core", "order: RMS error", { code: error.code, message: error.message });
             }
             emitter.emit("core:order-after-order", order);
             if (order.user) {
@@ -1053,15 +1056,15 @@ let Model = {
             comment: comment,
         };
         await Order.countCart({ id: order.id });
-        await Order.log({id: order.id}, "info", "core", "payment: registering", {total: order.total, paymentMethodId});
-        await Order.emitAndLog({id: order.id}, "core:order-payment", order, params);
+        await Order.log({ id: order.id }, "info", "core", "payment: registering", { total: order.total, paymentMethodId });
+        await Order.emitAndLog({ id: order.id }, "core:order-payment", order, params);
         sails.log.silly("Order > payment > order before register:", order);
         try {
             paymentResponse = await PaymentDocument.register(order.id, "order", order.total, paymentMethodId, params.backLinkSuccess, params.backLinkFail, params.comment, order);
         }
         catch (e) {
             sails.log.error("Order > payment: ", e);
-            await Order.log({id: order.id}, "error", "core", "payment: register failed", {error: e?.message || e});
+            await Order.log({ id: order.id }, "error", "core", "payment: register failed", { error: e?.message || e });
         }
         await Order.next(order.id, "PAYMENT");
         return paymentResponse;
@@ -1070,7 +1073,7 @@ let Model = {
         let order = await Order.findOne(criteria);
         if (order.state !== "CART")
             throw `Clear allowed only for CART state`;
-        await Order.log({id: order.id}, "info", "core", "clear: removing all dishes");
+        await Order.log({ id: order.id }, "info", "core", "clear: removing all dishes");
         await OrderDish.destroy({ order: order.id }).fetch();
         await Order.next(order.id, "CART");
         await Order.countCart({ id: order.id });
@@ -1094,7 +1097,10 @@ let Model = {
         }
         catch (error) {
             sails.log.error('Error tagging order:', error);
-            try { await Order.log(criteria, "error", "core", "setTag: failed", {error: error?.message || error}); } catch {}
+            try {
+                await Order.log(criteria, "error", "core", "setTag: failed", { error: error?.message || error });
+            }
+            catch { }
         }
     },
     async setCustomData(criteria, customData) {
@@ -1170,7 +1176,10 @@ let Model = {
         }
         catch (e) {
             sails.log.error("CART > fullOrder error", e);
-            try { await Order.log(criteria, "error", "core", "populate: fullOrder error", {error: e?.message || e}); } catch {}
+            try {
+                await Order.log(criteria, "error", "core", "populate: fullOrder error", { error: e?.message || e });
+            }
+            catch { }
         }
         const hash = OrderHelper_1.OrderHelper.orderHash(fullOrder);
         // TODO: test "nonce should be update after countcart change"
@@ -1192,7 +1201,7 @@ let Model = {
     async countCart(criteria, isPromoting = false) {
         try {
             let order = await Order.findOne(criteria);
-            await Order.log({id: order.id}, "debug", "core", "countCart: started", {state: order.state, isPromoting});
+            await Order.log({ id: order.id }, "debug", "core", "countCart: started", { state: order.state, isPromoting });
             if (order.isPromoting !== isPromoting) {
                 let err = `CountCart: The order status does not match the passed parameters order.isPromoting [${order.isPromoting}], attribute [${isPromoting}], check your promotions`;
                 sails.log.error(err);
@@ -1371,7 +1380,7 @@ let Model = {
                 }
                 catch (e) {
                     sails.log.error("Order > count > iterate orderDish error", e);
-                    await Order.log({id: order.id}, "error", "core", "countCart: orderDish error", {orderDishId: orderDish.id, error: e?.message || e});
+                    await Order.log({ id: order.id }, "error", "core", "countCart: orderDish error", { orderDishId: orderDish.id, error: e?.message || e });
                     await OrderDish.destroy({ id: orderDish.id }).fetch();
                     uniqueDishes -= 1;
                     continue;
@@ -1418,7 +1427,7 @@ let Model = {
                         }
                         catch (error) {
                             sails.log.error(`PromotionAdapter > Problem with parse Date`);
-                            await Order.log({id: order.id}, "error", "core", "countCart: promotion date parse error", {error: error?.message || error});
+                            await Order.log({ id: order.id }, "error", "core", "countCart: promotion date parse error", { error: error?.message || error });
                             order.promotionCode = null;
                             order.promotionCodeCheckValidTill = null;
                             order.promotionCodeDescription = error.toString();
@@ -1454,10 +1463,10 @@ let Model = {
                         promotionDelivery: order.promotionDelivery,
                     };
                     await Order.update({ id: order.id }, promotionOrderToSave).fetch();
-                    await Order.log({id: order.id}, "debug", "core", "countCart: promotions applied", {discountTotal: order.discountTotal, promotionFlatDiscount: order.promotionFlatDiscount, hasPromocode: !!order.promotionCodeString});
+                    await Order.log({ id: order.id }, "debug", "core", "countCart: promotions applied", { discountTotal: order.discountTotal, promotionFlatDiscount: order.promotionFlatDiscount, hasPromocode: !!order.promotionCodeString });
                 }
                 catch (error) {
-                    await Order.log({id: order.id}, "error", "core", "countCart: promotion failed", {error: error?.message || error});
+                    await Order.log({ id: order.id }, "error", "core", "countCart: promotion failed", { error: error?.message || error });
                     sails.log.error(`Core > order > promotion calculate fail: `, error);
                 }
                 finally {
@@ -1498,7 +1507,7 @@ let Model = {
                         }
                         catch (error) {
                             sails.log.error("deliveryAdapter.calculate error:", error);
-                            await Order.log({id: order.id}, "error", "core", "countCart: delivery calculation failed", {error: error?.message || error});
+                            await Order.log({ id: order.id }, "error", "core", "countCart: delivery calculation failed", { error: error?.message || error });
                             delivery = {
                                 allowed: false,
                                 cost: 0,
@@ -1557,7 +1566,7 @@ let Model = {
             order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
             delete (order.dishes);
             order = (await Order.update({ id: order.id }, order).fetch())[0];
-            await Order.log({id: order.id}, "debug", "core", "countCart: completed", {
+            await Order.log({ id: order.id }, "debug", "core", "countCart: completed", {
                 basketTotal: order.basketTotal,
                 discountTotal: order.discountTotal,
                 deliveryCost: order.deliveryCost,
@@ -1569,16 +1578,19 @@ let Model = {
         }
         catch (error) {
             sails.log.error(" error >", error);
-            try { await Order.log(criteria, "error", "core", "countCart: failed", {error: error?.message || error}); } catch {}
+            try {
+                await Order.log(criteria, "error", "core", "countCart: failed", { error: error?.message || error });
+            }
+            catch { }
         }
     },
     async doPaid(criteria, paymentDocument) {
         let order = await Order.findOne(criteria);
-        await Order.log({id: order.id}, "info", "core", "doPaid: processing payment", {amount: paymentDocument.amount, paymentMethod: paymentDocument.paymentMethod});
         if (order.paid) {
             sails.log.debug(`Order > doPaid: OrderRecord with id ${order.id} is paid`);
             return;
         }
+        await Order.log({ id: order.id }, "info", "core", "doPaid: processing payment", { amount: paymentDocument.amount, paymentMethod: paymentDocument.paymentMethod });
         try {
             if (typeof paymentDocument.paymentMethod !== "string") {
                 throw `Type error paymentDocument.paymentMethod should string`;
@@ -1597,20 +1609,20 @@ let Model = {
             if (order.total !== paymentDocument.amount) {
                 order.problem = true;
                 order.comment = order.comment + "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount;
-                await Order.log({id: order.id}, "warn", "core", "doPaid: amount mismatch", {orderTotal: order.total, paidAmount: paymentDocument.amount});
+                await Order.log({ id: order.id }, "warn", "core", "doPaid: amount mismatch", { orderTotal: order.total, paidAmount: paymentDocument.amount });
             }
             await Order.order({ id: order.id });
             emitter.emit("core:order-after-dopaid", order);
         }
         catch (e) {
             sails.log.error("Order > doPaid error: ", e);
-            await Order.log({id: order.id}, "error", "core", "doPaid: failed", {error: e?.message || e});
+            await Order.log({ id: order.id }, "error", "core", "doPaid: failed", { error: e?.message || e });
             throw e;
         }
     },
     async doFinalize(criteriaOne, state) {
         let order = await Order.findOne(criteriaOne);
-        await Order.log({id: order.id}, "info", "core", `doFinalize: ${state}`, {total: order.total, paid: order.paid});
+        await Order.log({ id: order.id }, "info", "core", `doFinalize: ${state}`, { total: order.total, paid: order.paid });
         let user = null;
         let isNewUser = false;
         if (state === "DONE" && !order.user) {
@@ -1710,29 +1722,48 @@ let Model = {
         const basket = await Order.countCart({ id: order.id });
         return basket;
     },
+    /**
+     * Write a log entry for an order.
+     * Always emits "core:order-log" regardless of settings.
+     * Controlled by ORDER_LOG_DISABLE (skip write) and ORDER_LOG_USE_MAP (store in memory).
+     * DB writes are debounced (5s) to batch multiple entries.
+     */
     async log(criteria, level, module, message, ...data) {
-        return OrderLogHelper.log(criteria, level, module, message, ...data);
+        return OrderLogHelper_1.default.log(criteria, level, module, message, ...data);
     },
+    /**
+     * Get logs for an order. Reads from Map or DB depending on ORDER_LOG_USE_MAP setting.
+     * Flushes pending debounce buffer before reading from DB.
+     */
     async getLogs(criteria) {
-        return OrderLogHelper.getLogs(criteria);
+        return OrderLogHelper_1.default.getLogs(criteria);
     },
+    /**
+     * Await emitter.emit and log any handler errors/timeouts into order log.
+     */
     async emitAndLog(criteria, eventName, ...args) {
-        return OrderLogHelper.emitAndLog(criteria, eventName, ...args);
+        return OrderLogHelper_1.default.emitAndLog(criteria, eventName, ...args);
     },
+    /**
+     * State transition method with validation
+     * @param criteria - Order criteria (id string or query object)
+     * @param nextState - Target state to transition to
+     */
     async next(criteria, nextState) {
         const query = typeof criteria === 'string' ? { id: criteria } : criteria;
+        // Get current order to check current state
         const order = await Order.findOne(query);
         if (!order) {
             throw new Error(`Order not found for criteria: ${JSON.stringify(query)}`);
         }
         const currentState = order.state;
-        if (currentState === nextState) {
-            return;
-        }
         const allowedTransitions = (0, OrderStateFlow_1.getAllowedOrderTransitions)(currentState);
+        // Validate transition
         if (!allowedTransitions.includes(nextState)) {
-            throw new Error(`Invalid state transition: ${currentState} → ${nextState}. Allowed: ${allowedTransitions.join(', ') || 'none'}`);
+            throw new Error(`Invalid state transition: ${currentState} → ${nextState}. ` +
+                `Allowed transitions from ${currentState}: ${allowedTransitions.join(', ') || 'none'}`);
         }
+        // Perform transition
         await Order.update(query, { state: nextState }).fetch();
     }
 };

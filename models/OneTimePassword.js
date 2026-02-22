@@ -48,6 +48,9 @@ module.exports = {
     ...Model,
 };
 function generateOtp() {
+    if ((process.env.DEMO_MODE || "").toLowerCase() === "true") {
+        return "999999";
+    }
     if (process.env.NODE_ENV !== "production" && process.env.DEFAULT_OTP) {
         return process.env.DEFAULT_OTP;
     }

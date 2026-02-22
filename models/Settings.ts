@@ -397,7 +397,7 @@ let Model = {
       const setting = await Settings.findOne({ key: key });
       let inputValue = settingsSetInput.isRequired ? settingsSetInput.value ?? settingsSetInput.defaultValue : settingsSetInput.value;
       if (!setting) {
-        return await Settings.create({
+        const created = await Settings.create({
           key: key,
           type: settingType,
           module: settingsSetInput.appId || null,
@@ -411,8 +411,10 @@ let Model = {
           readOnly: settingsSetInput.readOnly ?? false,
           isRequired: settingsSetInput.isRequired ?? false
         }).fetch();
+        sails.log.debug(`CORE > Settings > created [${key}]:`, JSON.stringify({ value: inputValue, defaultValue: settingsSetInput.defaultValue, type: settingType }));
+        return created;
       } else {
-        return (await Settings.update({ key: key }, {
+        const updateData = {
           key: key,
           type: settingType,
           ...(settingsSetInput.jsonSchema !== undefined ? { jsonSchema: settingsSetInput.jsonSchema } : {}),
@@ -424,7 +426,10 @@ let Model = {
           ...(settingsSetInput.uiSchema !== undefined ? { uiSchema: settingsSetInput.uiSchema } : {}),
           ...(settingsSetInput.readOnly !== undefined ? { readOnly: settingsSetInput.readOnly } : {}),
           ...(settingsSetInput.isRequired !== undefined ? { isRequired: settingsSetInput.isRequired } : {}),
-        }).fetch())[0];
+        };
+        const updated = (await Settings.update({ key: key }, updateData).fetch())[0];
+        sails.log.debug(`CORE > Settings > updated [${key}]:`, JSON.stringify({ value: updateData.value, defaultValue: updateData.defaultValue, type: settingType }));
+        return updated;
       }
     } catch (e) {
       sails.log.error(`CORE > Settings > set DB error: key [${key}]`, settingsSetInput, e);

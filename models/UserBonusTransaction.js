@@ -107,7 +107,7 @@ let Model = {
                 await UserBonusProgram.update({ id: userBonusProgram.id }, { balance: extBalance }).fetch();
                 return;
             }
-            // In case full sunc
+            // Full sync: transactions + balance
             let afterTime = new Date(0);
             if (userBonusProgram.syncedToTime && userBonusProgram.syncedToTime !== "0") {
                 try {
@@ -117,7 +117,6 @@ let Model = {
             }
             else {
                 try {
-                    // Sync transaction after time from Settings SYNC_BONUSTRANSACTION_AFTER_TIME
                     const SYNC_BONUSTRANSACTION_AFTER_TIME = await Settings.get('SYNC_BONUSTRANSACTION_AFTER_TIME') ?? 0;
                     afterTime = new Date(SYNC_BONUSTRANSACTION_AFTER_TIME);
                 }
@@ -149,7 +148,6 @@ let Model = {
                         await UserBonusTransaction.create(userBonusTransaction).fetch();
                     }
                 }
-                // If fewer transactions are returned than the limit, it means we have received all transactions
                 if (transactions.length < limit) {
                     break;
                 }
