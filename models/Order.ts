@@ -2083,6 +2083,12 @@ let Model = {
     }
 
     const currentState = order.state;
+
+    // Same-state transition is a no-op (used as "ensure state" pattern)
+    if (currentState === nextState) {
+      return;
+    }
+
     const allowedTransitions = getAllowedOrderTransitions(currentState);
 
     // Validate transition

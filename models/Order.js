@@ -1757,6 +1757,10 @@ let Model = {
             throw new Error(`Order not found for criteria: ${JSON.stringify(query)}`);
         }
         const currentState = order.state;
+        // Same-state transition is a no-op (used as "ensure state" pattern)
+        if (currentState === nextState) {
+            return;
+        }
         const allowedTransitions = (0, OrderStateFlow_1.getAllowedOrderTransitions)(currentState);
         // Validate transition
         if (!allowedTransitions.includes(nextState)) {
