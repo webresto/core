@@ -339,6 +339,26 @@ let Model = {
       }
     }
 
+    // coerce value/defaultValue to match jsonSchema type (DB stores "json" which may auto-parse strings to numbers)
+    if (settingsSetInput.jsonSchema) {
+      const expectedType = (settingsSetInput.jsonSchema as any).type;
+      if (expectedType === "string") {
+        if (settingsSetInput.value !== undefined && settingsSetInput.value !== null && typeof settingsSetInput.value !== "string") {
+          settingsSetInput.value = String(settingsSetInput.value) as any;
+        }
+        if (settingsSetInput.defaultValue !== undefined && settingsSetInput.defaultValue !== null && typeof settingsSetInput.defaultValue !== "string") {
+          settingsSetInput.defaultValue = String(settingsSetInput.defaultValue) as any;
+        }
+      } else if (expectedType === "number" || expectedType === "integer") {
+        if (settingsSetInput.value !== undefined && settingsSetInput.value !== null && typeof settingsSetInput.value === "string") {
+          settingsSetInput.value = Number(settingsSetInput.value) as any;
+        }
+        if (settingsSetInput.defaultValue !== undefined && settingsSetInput.defaultValue !== null && typeof settingsSetInput.defaultValue === "string") {
+          settingsSetInput.defaultValue = Number(settingsSetInput.defaultValue) as any;
+        }
+      }
+    }
+
     // check that value and defaultValue match the schema for json type (if !ALLOW_UNSAFE_SETTINGS)
     if (settingsSetInput.jsonSchema && !Settings.env("ALLOW_UNSAFE_SETTINGS")) {
       const ajv = new Ajv();
