@@ -458,7 +458,7 @@ let Model = {
         }
         catch (error) {
             sails.log.error(error);
-            await Order.log({ id: order.id }, "error", "core", "addDish: countCart failed", { error: error?.message || error });
+            await Order.log({ id: order.id }, "error", "core", "addDish: countCart failed", { state: order.state, error: error?.message || error });
             throw error;
         }
     },
@@ -754,7 +754,7 @@ let Model = {
             }
             catch (error) {
                 sails.log.error("Check countcart error:", error);
-                await Order.log({ id: order.id }, "error", "core", "check: countCart failed", { error: error?.message || error });
+                await Order.log({ id: order.id }, "error", "core", "check: countCart failed", { state: order.state, error: error?.message || error });
                 throw {
                     code: 14,
                     error: "Problem with counting cart",
@@ -1206,6 +1206,7 @@ let Model = {
      * @returns Order
      */
     async countCart(criteria, isPromoting = false) {
+        const criteriaOrderId = criteria?.id;
         try {
             let order = await Order.findOne(criteria);
             await Order.log({ id: order.id }, "debug", "core", "countCart: started", { state: order.state, isPromoting });
@@ -1586,7 +1587,7 @@ let Model = {
         catch (error) {
             sails.log.error(" error >", error);
             try {
-                await Order.log(criteria, "error", "core", "countCart: failed", { error: error?.message || error });
+                await Order.log(criteria, "error", "core", "countCart: failed", { orderId: criteriaOrderId, error: error?.message || error });
             }
             catch { }
         }
@@ -1695,7 +1696,7 @@ let Model = {
                 promotionCodeString: null,
                 promotionCodeDescription: null
             };
-            await Order.log({ id: order.id }, "info", "core", `Promotion code removed`, { orderId: order.id });
+            await Order.log({ id: order.id }, "info", "core", `Promotion code removed`, { state: order.state });
         }
         else {
             const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
