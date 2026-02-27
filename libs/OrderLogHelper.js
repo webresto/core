@@ -21,7 +21,7 @@ async function flushOrderLogs(orderId) {
         if (!order) return;
         const logs = order.logs || [];
         logs.push(...entries);
-        await Order.update({ id: orderId }, { logs }).fetch();
+        await Order.update({ id: orderId }, { logs }).meta({ skipAllLifecycleCallbacks: true }).fetch();
     } catch (e) {
         sails.log.error(`Order.log flush error for order [${orderId}]`, e);
     }

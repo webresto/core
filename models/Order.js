@@ -306,6 +306,10 @@ let Model = {
         emitter.emit("core:order-after-create", order);
         cb();
     },
+    beforeUpdate(values, cb) {
+        delete values.logs;
+        cb();
+    },
     async afterUpdate(order, cb) {
         emitter.emit("core:order-after-update", order);
         cb();

@@ -409,6 +409,11 @@ let Model = {
     cb();
   },
 
+  beforeUpdate(values: Partial<OrderRecord>, cb: (err?: string) => void) {
+    delete (values as any).logs;
+    cb();
+  },
+
   async afterUpdate(order: OrderRecord, cb: (err?: string) => void) {
     emitter.emit("core:order-after-update", order);
     cb();
