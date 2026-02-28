@@ -36,7 +36,7 @@ const VISIBLE_BOARD_STATES = [...ACTIVE_BOARD_STATES, ...FINISHED_BOARD_STATES];
 const DEFAULT_COLLAPSED_COLUMNS = VISIBLE_BOARD_STATES
   .filter((state) => !DEFAULT_EXPANDED_COLUMNS.includes(state));
 const STACK_VIEW_ROW_MIN_WIDTH = 1080;
-const STACK_VIEW_GRID_TEMPLATE = 'minmax(104px, 0.9fr) minmax(160px, 1.05fr) minmax(180px, 1.25fr) minmax(120px, 0.9fr) minmax(150px, 1fr) minmax(240px, 1.65fr) minmax(170px, 1fr)';
+const STACK_VIEW_GRID_TEMPLATE = 'minmax(104px, 0.9fr) minmax(160px, 1.05fr) minmax(180px, 1.25fr) minmax(120px, 0.9fr) minmax(170px, 1fr) minmax(240px, 1.65fr)';
 
 const KANBAN_THEME = {
   light: {
@@ -471,7 +471,7 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
   );
 }
 
-function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen, theme }) {
+function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
   const stateColor = STATE_COLORS[order.state] || theme.textMuted;
 
   return (
@@ -522,7 +522,6 @@ function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen, theme }
         >
           {toDisplayState(order.state, t)}
         </span>
-
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {order.paid ? (
             <span
@@ -575,15 +574,15 @@ function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen, theme }
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-        <strong>{formatDateTime(order.updatedAt, language)}</strong>
-        <span style={{ fontSize: 12, color: theme.textMuted }}>
-          {t('order_kanban_updated')}
-        </span>
-        {order.createdAt ? (
-          <span style={{ fontSize: 11, color: theme.textSecondary }}>
-            {t('order_kanban_created')}: {formatDateTime(order.createdAt, language)}
-          </span>
+      <div style={{ minWidth: 0 }}>
+        <strong style={{ display: 'block' }}>{formatDateTime(order.createdAt, language)}</strong>
+        <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted }}>
+          {t('order_kanban_created')}
+        </div>
+        {order.updatedAt ? (
+          <div style={{ marginTop: 4, fontSize: 11, color: theme.textSecondary }}>
+            {t('order_kanban_updated')}: {formatDateTime(order.updatedAt, language)}
+          </div>
         ) : null}
       </div>
 
@@ -592,17 +591,6 @@ function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen, theme }
           {order.comment || t('order_kanban_no_comment')}
         </div>
       </div>
-
-      <div onClick={(event) => event.stopPropagation()}>
-        <OrderTransitionSelect
-          order={order}
-          t={t}
-          theme={theme}
-          isUpdating={isUpdating}
-          onMove={onMove}
-          compact
-        />
-      </div>
     </article>
   );
 }
@@ -610,15 +598,13 @@ function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen, theme }
 function OrderStackView({
   groupedOrders,
   visibleStates,
+  orders,
   language,
   t,
   theme,
   updatingOrderId,
-  moveOrder,
   onOpen,
 }) {
-  const statesWithOrders = visibleStates.filter((state) => (groupedOrders[state] || []).length > 0);
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div
@@ -649,7 +635,7 @@ function OrderStackView({
         })}
       </div>
 
-      {statesWithOrders.length === 0 ? (
+      {orders.length === 0 ? (
         <div
           style={{
             background: theme.panelBackground,
@@ -662,85 +648,52 @@ function OrderStackView({
           {t('order_kanban_empty_column')}
         </div>
       ) : (
-        statesWithOrders.map((state) => {
-          const ordersByState = groupedOrders[state] || [];
-          const stateColor = STATE_COLORS[state] || theme.textMuted;
-          return (
-            <section
-              key={state}
+        <section
+          style={{
+            background: theme.panelBackground,
+            border: `1px solid ${theme.panelBorder}`,
+            borderRadius: 10,
+            padding: 12,
+          }}
+        >
+          <div style={{ overflowX: 'auto' }}>
+            <div
               style={{
-                background: theme.panelBackground,
-                border: `1px solid ${theme.panelBorder}`,
-                borderRadius: 10,
-                padding: 12,
+                minWidth: STACK_VIEW_ROW_MIN_WIDTH,
+                display: 'grid',
+                gridTemplateColumns: STACK_VIEW_GRID_TEMPLATE,
+                gap: 12,
+                padding: '0 14px 8px',
+                color: theme.textMuted,
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.03em',
               }}
             >
-              <header
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 10,
-                  marginBottom: 10,
-                }}
-              >
-                <strong style={{ color: stateColor, fontSize: 18 }}>{toDisplayState(state, t)}</strong>
-                <span
-                  style={{
-                    background: theme.softBadgeBackground,
-                    color: theme.softBadgeText,
-                    borderRadius: 999,
-                    padding: '2px 8px',
-                    fontSize: 12,
-                    fontWeight: 600,
-                  }}
-                >
-                  {ordersByState.length}
-                </span>
-              </header>
+              <span>{t('order_kanban_order_id')}</span>
+              <span>{t('order_kanban_state')}</span>
+              <span>{t('order_kanban_customer')}</span>
+              <span>{t('order_kanban_total')}</span>
+              <span>{t('order_kanban_created')}</span>
+              <span>{t('order_kanban_comment')}</span>
+            </div>
 
-              <div style={{ overflowX: 'auto' }}>
-                <div
-                  style={{
-                    minWidth: STACK_VIEW_ROW_MIN_WIDTH,
-                    display: 'grid',
-                    gridTemplateColumns: STACK_VIEW_GRID_TEMPLATE,
-                    gap: 12,
-                    padding: '0 14px 8px',
-                    color: theme.textMuted,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.03em',
-                  }}
-                >
-                  <span>{t('order_kanban_order_id')}</span>
-                  <span>{t('order_kanban_state')}</span>
-                  <span>{t('order_kanban_customer')}</span>
-                  <span>{t('order_kanban_total')}</span>
-                  <span>{t('order_kanban_updated')}</span>
-                  <span>{t('order_kanban_comment')}</span>
-                  <span>{t('order_kanban_move_to')}</span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {ordersByState.map((order) => (
-                    <OrderStackRow
-                      key={order.id}
-                      order={order}
-                      language={language}
-                      t={t}
-                      isUpdating={updatingOrderId === order.id}
-                      onMove={moveOrder}
-                      onOpen={onOpen}
-                      theme={theme}
-                    />
-                  ))}
-                </div>
-              </div>
-            </section>
-          );
-        })
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {orders.map((order) => (
+                <OrderStackRow
+                  key={order.id}
+                  order={order}
+                  language={language}
+                  t={t}
+                  isUpdating={updatingOrderId === order.id}
+                  onOpen={onOpen}
+                  theme={theme}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
       )}
     </div>
   );
@@ -1124,6 +1077,14 @@ function OrderKanbanContent() {
     return grouped;
   }, [filteredOrders]);
 
+  const stackOrders = useMemo(() => {
+    return [...filteredOrders].sort((left, right) => {
+      const createdDiff = parseTimestamp(right?.createdAt) - parseTimestamp(left?.createdAt);
+      if (createdDiff !== 0) return createdDiff;
+      return parseTimestamp(right?.updatedAt) - parseTimestamp(left?.updatedAt);
+    });
+  }, [filteredOrders]);
+
   const streamStatusConfig = useMemo(() => {
     if (streamStatus === 'connected') {
       return { label: t('order_kanban_stream_connected'), color: '#065f46', background: '#d1fae5', border: '#a7f3d0' };
@@ -1310,11 +1271,11 @@ function OrderKanbanContent() {
         <OrderStackView
           groupedOrders={groupedOrders}
           visibleStates={VISIBLE_BOARD_STATES}
+          orders={stackOrders}
           language={language}
           t={t}
           theme={theme}
           updatingOrderId={updatingOrderId}
-          moveOrder={moveOrder}
           onOpen={setSelectedOrderId}
         />
       ) : (
