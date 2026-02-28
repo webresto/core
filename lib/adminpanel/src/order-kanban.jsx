@@ -871,6 +871,23 @@ function OrderStackView({
   onOpen,
 }) {
   const summaryStates = visibleStates.filter((state) => state !== 'NEW');
+  const [selectedStates, setSelectedStates] = useState(new Set());
+
+  function toggleStateFilter(state) {
+    setSelectedStates((prev) => {
+      const next = new Set(prev);
+      if (next.has(state)) {
+        next.delete(state);
+      } else {
+        next.add(state);
+      }
+      return next;
+    });
+  }
+
+  const displayedOrders = selectedStates.size === 0
+    ? orders
+    : orders.filter((o) => selectedStates.has(o.state));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -884,25 +901,31 @@ function OrderStackView({
         {summaryStates.map((state) => {
           const count = (groupedOrders[state] || []).length;
           const stateColor = STATE_COLORS[state] || theme.textMuted;
+          const isActive = selectedStates.has(state);
           return (
             <div
               key={state}
+              onClick={() => toggleStateFilter(state)}
               style={{
-                background: theme.panelBackground,
-                border: `1px solid ${theme.panelBorder}`,
-                borderTop: `3px solid ${stateColor}`,
+                background: isActive ? stateColor : theme.panelBackground,
+                border: `2px solid ${isActive ? stateColor : theme.panelBorder}`,
+                borderTop: isActive ? `2px solid ${stateColor}` : `3px solid ${stateColor}`,
                 borderRadius: 10,
                 padding: '10px 12px',
+                cursor: 'pointer',
+                userSelect: 'none',
+                boxShadow: isActive ? `0 2px 8px ${stateColor}55` : 'none',
+                transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
               }}
             >
-              <div style={{ fontSize: 12, color: theme.textMuted }}>{toDisplayState(state, t)}</div>
-              <div style={{ marginTop: 4, fontSize: 22, fontWeight: 700, color: theme.textPrimary }}>{count}</div>
+              <div style={{ fontSize: 12, color: isActive ? 'rgba(255,255,255,0.8)' : theme.textMuted }}>{toDisplayState(state, t)}</div>
+              <div style={{ marginTop: 4, fontSize: 22, fontWeight: 700, color: isActive ? '#fff' : theme.textPrimary }}>{count}</div>
             </div>
           );
         })}
       </div>
 
-      {orders.length === 0 ? (
+      {displayedOrders.length === 0 ? (
         <div
           style={{
             background: theme.panelBackground,
@@ -947,7 +970,7 @@ function OrderStackView({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {orders.map((order) => (
+              {displayedOrders.map((order) => (
                 <OrderStackRow
                   key={order.id}
                   order={order}
