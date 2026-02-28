@@ -9,6 +9,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
   const phone = customer?.phone && typeof customer.phone === "object"
     ? `${customer.phone.code || ""}${customer.phone.number || ""}`
     : "";
+  const state = order?.state || "NEW";
 
   const dishesCount = typeof order?.dishesCount === "number"
     ? order.dishesCount
@@ -17,7 +18,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
   return {
     id: order?.id,
     shortId: order?.shortId || String(order?.id || "").slice(-8),
-    state: order?.state || "NEW",
+    state,
     total: typeof order?.total === "number" ? order.total : 0,
     dishesCount,
     customerName: customer?.name || "",
@@ -29,8 +30,9 @@ function mapOrder(order: any, operatorLimited: boolean) {
     rmsOrderNumber: order?.rmsOrderNumber || "",
     createdAt: order?.createdAt || null,
     updatedAt: order?.updatedAt || null,
+    closedAt: ["DONE", "REJECT"].includes(state) ? (order?.updatedAt || null) : null,
     date: order?.date || null,
-    allowedTransitions: getAllowedOrderTransitionsByRole(order?.state || "NEW", operatorLimited),
+    allowedTransitions: getAllowedOrderTransitionsByRole(state, operatorLimited),
   };
 }
 

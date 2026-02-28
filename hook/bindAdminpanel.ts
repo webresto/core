@@ -229,6 +229,17 @@ function processBindAdminpanel() {
           sails.log.debug('OrderKanban list route bind error', e);
         }
 
+        // API route for order kanban single order details
+        try {
+          const getOrderKanbanOrderController = require('../lib/adminpanel/src/controller/get-order-kanban-order').default;
+          adminizer.app.get(
+            `${routePrefix}/core/order-kanban/order`,
+            adminizer.policyManager.bindPolicies(policies, getOrderKanbanOrderController)
+          );
+        } catch (e) {
+          sails.log.debug('OrderKanban order route bind error', e);
+        }
+
         // API route for order kanban SSE stream
         try {
           const orderKanbanStreamController = require('../lib/adminpanel/src/controller/order-kanban-stream').default;

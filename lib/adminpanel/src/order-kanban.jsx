@@ -20,7 +20,6 @@ const BOARD_WINDOW_MINUTES_MIN = 1;
 const BOARD_WINDOW_MINUTES_MAX = 10080;
 const BOARD_WINDOW_OPTIONS = [15, 30, 60, 120, 180, 360, 720, 1440, 2880, 4320, 10080];
 const COMPLETED_STATES = new Set(['DONE', 'REJECT']);
-const PRE_ORDER_STATES = new Set(['NEW', 'CART', 'CHECKOUT', 'PAYMENT']);
 const KANBAN_STREAM_RECONNECT_DELAY_MS = 5000;
 const KANBAN_STREAM_STALE_TIMEOUT_MS = 90000;
 const KANBAN_FULL_SYNC_INTERVAL_MS = 30000;
@@ -209,14 +208,10 @@ function getOrderClosedTimestamp(order) {
 }
 
 function shouldIncludeOrderByWindow(order, newSinceMs, completedSinceMs) {
-  const state = String(order?.state || '');
-  if (PRE_ORDER_STATES.has(state)) {
-    return parseTimestamp(order?.createdAt) >= newSinceMs;
-  }
-  if (isCompletedState(state)) {
+  if (isCompletedState(order?.state)) {
     return getOrderClosedTimestamp(order) >= completedSinceMs;
   }
-  return true;
+  return parseTimestamp(order?.createdAt) >= newSinceMs;
 }
 
 function formatBoardWindow(minutes, t) {
@@ -251,7 +246,58 @@ function normalizeOrder(order) {
   };
 }
 
-function OrderDetailsPopup({ order, language, t, onClose, theme }) {
+function normalizeOrderDetails(order) {
+  const base = normalizeOrder(order);
+  if (!base) return null;
+
+  const normalizeItem = (item) => {
+    if (!item || typeof item !== 'object') return null;
+    return {
+      id: item.id || '',
+      name: item.name || '-',
+      amount: Number.isFinite(Number(item.amount)) ? Number(item.amount) : 0,
+      comment: item.comment || '',
+      addedBy: item.addedBy || '',
+      itemTotal: Number.isFinite(Number(item.itemTotal)) ? Number(item.itemTotal) : 0,
+      itemTotalBeforeDiscount: Number.isFinite(Number(item.itemTotalBeforeDiscount)) ? Number(item.itemTotalBeforeDiscount) : 0,
+      itemPrice: Number.isFinite(Number(item.itemPrice)) ? Number(item.itemPrice) : 0,
+      discountTotal: Number.isFinite(Number(item.discountTotal)) ? Number(item.discountTotal) : 0,
+      discountType: item.discountType || '',
+      discountAmount: Number.isFinite(Number(item.discountAmount)) ? Number(item.discountAmount) : 0,
+      discountMessage: item.discountMessage || '',
+      modifiers: Array.isArray(item.modifiers)
+        ? item.modifiers.map((modifier) => ({
+          id: modifier?.id || '',
+          name: modifier?.name || '-',
+          amount: Number.isFinite(Number(modifier?.amount)) ? Number(modifier.amount) : 0,
+          price: Number.isFinite(Number(modifier?.price)) ? Number(modifier.price) : 0,
+          total: Number.isFinite(Number(modifier?.total)) ? Number(modifier.total) : 0,
+        }))
+        : [],
+    };
+  };
+
+  return {
+    ...base,
+    basketTotal: Number.isFinite(Number(order?.basketTotal)) ? Number(order.basketTotal) : 0,
+    discountTotal: Number.isFinite(Number(order?.discountTotal)) ? Number(order.discountTotal) : 0,
+    bonusesTotal: Number.isFinite(Number(order?.bonusesTotal)) ? Number(order.bonusesTotal) : 0,
+    promotionFlatDiscount: Number.isFinite(Number(order?.promotionFlatDiscount)) ? Number(order.promotionFlatDiscount) : 0,
+    deliveryCost: Number.isFinite(Number(order?.deliveryCost)) ? Number(order.deliveryCost) : 0,
+    paymentMethodTitle: order?.paymentMethodTitle || '',
+    promotionCodeString: order?.promotionCodeString || '',
+    promotionCodeDescription: order?.promotionCodeDescription || '',
+    promotionState: Array.isArray(order?.promotionState) ? order.promotionState : [],
+    promotionErrors: Array.isArray(order?.promotionErrors) ? order.promotionErrors : (order?.promotionErrors ? [order.promotionErrors] : []),
+    promotionUnorderable: Boolean(order?.promotionUnorderable),
+    spendBonus: order?.spendBonus || null,
+    date: order?.date || null,
+    items: Array.isArray(order?.items) ? order.items.map(normalizeItem).filter(Boolean) : [],
+    rawPayload: order?.rawPayload || order,
+  };
+}
+
+function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
   if (!order) return null;
   const boolText = (value) => value ? t('order_kanban_yes') : t('order_kanban_no');
   const rowStyle = {
@@ -260,6 +306,24 @@ function OrderDetailsPopup({ order, language, t, onClose, theme }) {
     gap: 8,
     fontSize: 13,
   };
+  const items = Array.isArray(order.items) ? order.items : [];
+  const promotionState = Array.isArray(order.promotionState) ? order.promotionState : [];
+  const promotionErrors = Array.isArray(order.promotionErrors) ? order.promotionErrors : [];
+  const rawPayload = order.rawPayload || order;
+  const hasExtendedDetails = !loading && (
+    Array.isArray(order.items) ||
+    Boolean(order.rawPayload) ||
+    Boolean(order.paymentMethodTitle) ||
+    Boolean(order.promotionCodeString) ||
+    Boolean(order.promotionCodeDescription) ||
+    Boolean(order.basketTotal) ||
+    Boolean(order.discountTotal) ||
+    Boolean(order.bonusesTotal) ||
+    Boolean(order.promotionFlatDiscount) ||
+    Boolean(order.deliveryCost) ||
+    Boolean(order.spendBonus) ||
+    Boolean(order.customData)
+  );
 
   return (
     <div
@@ -278,7 +342,7 @@ function OrderDetailsPopup({ order, language, t, onClose, theme }) {
       <section
         onClick={(event) => event.stopPropagation()}
         style={{
-          width: 'min(860px, 100%)',
+          width: 'min(980px, 100%)',
           maxHeight: '90vh',
           overflow: 'auto',
           background: theme.popupBackground,
@@ -325,6 +389,20 @@ function OrderDetailsPopup({ order, language, t, onClose, theme }) {
           <div style={rowStyle}><strong>{t('order_kanban_tag')}</strong><span>{order.tag || '-'}</span></div>
           <div style={rowStyle}><strong>{t('order_kanban_paid')}</strong><span>{boolText(order.paid)}</span></div>
           <div style={rowStyle}><strong>{t('order_kanban_self_service')}</strong><span>{boolText(order.selfService)}</span></div>
+          {hasExtendedDetails ? (
+            <>
+              <div style={rowStyle}><strong>Корзина</strong><span>{formatTotal(order.basketTotal, language)}</span></div>
+              <div style={rowStyle}><strong>Скидка</strong><span>{formatTotal(order.discountTotal, language)}</span></div>
+              <div style={rowStyle}><strong>Промо-скидка</strong><span>{formatTotal(order.promotionFlatDiscount, language)}</span></div>
+              <div style={rowStyle}><strong>Бонусы</strong><span>{formatTotal(order.bonusesTotal, language)}</span></div>
+              <div style={rowStyle}><strong>Доставка</strong><span>{formatTotal(order.deliveryCost, language)}</span></div>
+              <div style={rowStyle}><strong>Способ оплаты</strong><span>{order.paymentMethodTitle || '-'}</span></div>
+              <div style={rowStyle}><strong>Промокод</strong><span>{order.promotionCodeString || '-'}</span></div>
+              <div style={rowStyle}><strong>Описание промокода</strong><span>{order.promotionCodeDescription || '-'}</span></div>
+              <div style={rowStyle}><strong>Дата заказа</strong><span>{order.date || '-'}</span></div>
+              <div style={rowStyle}><strong>Промо запрещает заказ</strong><span>{boolText(order.promotionUnorderable)}</span></div>
+            </>
+          ) : null}
 
           <div style={{ marginTop: 6 }}>
             <strong>{t('order_kanban_comment')}</strong>
@@ -344,6 +422,156 @@ function OrderDetailsPopup({ order, language, t, onClose, theme }) {
             </div>
           </div>
 
+          {loading ? (
+            <div style={{ color: theme.textMuted, fontSize: 13 }}>{t('loading')}</div>
+          ) : null}
+
+          {!loading && items.length > 0 ? (
+            <div style={{ marginTop: 6 }}>
+              <strong>Состав заказа</strong>
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {items.map((item) => (
+                  <div
+                    key={item.id || `${item.name}-${item.amount}`}
+                    style={{
+                      border: `1px solid ${theme.popupCommentBorder}`,
+                      background: theme.popupCommentBackground,
+                      borderRadius: 8,
+                      padding: 10,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+                      <strong>{item.name}</strong>
+                      <strong>{formatTotal(item.itemTotal, language)}</strong>
+                    </div>
+                    <div style={{ marginTop: 4, fontSize: 12, color: theme.textSecondary }}>
+                      Кол-во: {item.amount} · Цена: {formatTotal(item.itemPrice, language)}
+                    </div>
+                    {item.itemTotalBeforeDiscount > item.itemTotal ? (
+                      <div style={{ marginTop: 4, fontSize: 12, color: theme.textSecondary }}>
+                        До скидки: {formatTotal(item.itemTotalBeforeDiscount, language)} · Скидка: {formatTotal(item.discountTotal, language)}
+                      </div>
+                    ) : null}
+                    {item.addedBy ? (
+                      <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted }}>
+                        Источник: {item.addedBy}
+                      </div>
+                    ) : null}
+                    {item.discountMessage ? (
+                      <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted }}>
+                        Скидка: {item.discountMessage}
+                      </div>
+                    ) : null}
+                    {item.comment ? (
+                      <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted, whiteSpace: 'pre-wrap' }}>
+                        Комментарий: {item.comment}
+                      </div>
+                    ) : null}
+                    {item.modifiers.length > 0 ? (
+                      <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: theme.textSecondary }}>Модификаторы</span>
+                        {item.modifiers.map((modifier) => (
+                          <div key={modifier.id || modifier.name} style={{ fontSize: 12, color: theme.textMuted }}>
+                            {modifier.name} · {modifier.amount} x {formatTotal(modifier.price, language)}
+                            {modifier.total ? ` = ${formatTotal(modifier.total, language)}` : ''}
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {!loading && order.spendBonus ? (
+            <div style={{ marginTop: 6 }}>
+              <strong>Бонусы</strong>
+              <pre
+                style={{
+                  marginTop: 6,
+                  border: `1px solid ${theme.popupCommentBorder}`,
+                  background: theme.popupCommentBackground,
+                  color: theme.textSecondary,
+                  borderRadius: 8,
+                  padding: 10,
+                  maxHeight: 180,
+                  overflow: 'auto',
+                  fontSize: 12,
+                  lineHeight: 1.4,
+                }}
+              >
+                {safeJson(order.spendBonus)}
+              </pre>
+            </div>
+          ) : null}
+
+          {!loading && promotionState.length > 0 ? (
+            <div style={{ marginTop: 6 }}>
+              <strong>Состояние промо</strong>
+              <pre
+                style={{
+                  marginTop: 6,
+                  border: `1px solid ${theme.popupCommentBorder}`,
+                  background: theme.popupCommentBackground,
+                  color: theme.textSecondary,
+                  borderRadius: 8,
+                  padding: 10,
+                  maxHeight: 180,
+                  overflow: 'auto',
+                  fontSize: 12,
+                  lineHeight: 1.4,
+                }}
+              >
+                {safeJson(promotionState)}
+              </pre>
+            </div>
+          ) : null}
+
+          {!loading && promotionErrors.length > 0 ? (
+            <div style={{ marginTop: 6 }}>
+              <strong>Ошибки промо</strong>
+              <pre
+                style={{
+                  marginTop: 6,
+                  border: `1px solid ${theme.popupCommentBorder}`,
+                  background: theme.popupCommentBackground,
+                  color: theme.textSecondary,
+                  borderRadius: 8,
+                  padding: 10,
+                  maxHeight: 180,
+                  overflow: 'auto',
+                  fontSize: 12,
+                  lineHeight: 1.4,
+                }}
+              >
+                {safeJson(promotionErrors)}
+              </pre>
+            </div>
+          ) : null}
+
+          {!loading && order.customData ? (
+            <div style={{ marginTop: 6 }}>
+              <strong>Custom data</strong>
+              <pre
+                style={{
+                  marginTop: 6,
+                  border: `1px solid ${theme.popupCommentBorder}`,
+                  background: theme.popupCommentBackground,
+                  color: theme.textSecondary,
+                  borderRadius: 8,
+                  padding: 10,
+                  maxHeight: 180,
+                  overflow: 'auto',
+                  fontSize: 12,
+                  lineHeight: 1.4,
+                }}
+              >
+                {safeJson(order.customData)}
+              </pre>
+            </div>
+          ) : null}
+
           <div style={{ marginTop: 6 }}>
             <strong>{t('order_kanban_raw_payload')}</strong>
             <pre
@@ -360,7 +588,7 @@ function OrderDetailsPopup({ order, language, t, onClose, theme }) {
                 lineHeight: 1.4,
               }}
             >
-              {safeJson(order)}
+              {safeJson(rawPayload)}
             </pre>
           </div>
         </div>
@@ -605,6 +833,8 @@ function OrderStackView({
   updatingOrderId,
   onOpen,
 }) {
+  const summaryStates = visibleStates.filter((state) => state !== 'NEW');
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div
@@ -614,7 +844,7 @@ function OrderStackView({
           gap: 8,
         }}
       >
-        {visibleStates.map((state) => {
+        {summaryStates.map((state) => {
           const count = (groupedOrders[state] || []).length;
           const stateColor = STATE_COLORS[state] || theme.textMuted;
           return (
@@ -713,6 +943,8 @@ function OrderKanbanContent() {
   const [updatingOrderId, setUpdatingOrderId] = useState('');
   const [dragOrderId, setDragOrderId] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState('');
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
+  const [selectedOrderLoading, setSelectedOrderLoading] = useState(false);
   const [collapsedColumns, setCollapsedColumns] = useState(getInitialCollapsedColumns);
   const [streamStatus, setStreamStatus] = useState('connecting');
   const [error, setError] = useState('');
@@ -721,7 +953,9 @@ function OrderKanbanContent() {
   const eventRefreshTimerRef = useRef(null);
   const streamWatchdogTimerRef = useRef(null);
   const loadAbortControllerRef = useRef(null);
+  const detailsAbortControllerRef = useRef(null);
   const loadRequestIdRef = useRef(0);
+  const detailsRequestIdRef = useRef(0);
   const mountedRef = useRef(false);
   const lastStreamSignalAtRef = useRef(Date.now());
   const isDarkTheme = useMemo(() => isDarkAppearance(appearance), [appearance]);
@@ -863,6 +1097,14 @@ function OrderKanbanContent() {
         }
         loadAbortControllerRef.current = null;
       }
+      if (detailsAbortControllerRef.current) {
+        try {
+          detailsAbortControllerRef.current.abort();
+        } catch {
+          // ignore
+        }
+        detailsAbortControllerRef.current = null;
+      }
     };
   }, []);
 
@@ -974,14 +1216,70 @@ function OrderKanbanContent() {
     };
   }, [applyOrderHintFromStream, closeEventSource, scheduleRefreshFromEvent]);
 
-  const selectedOrder = useMemo(() => {
+  const selectedOrderSummary = useMemo(() => {
     return orders.find((order) => order.id === selectedOrderId) || null;
   }, [orders, selectedOrderId]);
 
   useEffect(() => {
-    if (!selectedOrderId || selectedOrder) return;
-    setSelectedOrderId('');
-  }, [selectedOrderId, selectedOrder]);
+    if (!selectedOrderId) {
+      setSelectedOrderDetails(null);
+      setSelectedOrderLoading(false);
+      if (detailsAbortControllerRef.current) {
+        try {
+          detailsAbortControllerRef.current.abort();
+        } catch {
+          // ignore
+        }
+        detailsAbortControllerRef.current = null;
+      }
+      return;
+    }
+
+    const requestId = ++detailsRequestIdRef.current;
+    if (detailsAbortControllerRef.current) {
+      try {
+        detailsAbortControllerRef.current.abort();
+      } catch {
+        // ignore
+      }
+    }
+
+    const abortController = new AbortController();
+    detailsAbortControllerRef.current = abortController;
+    setSelectedOrderDetails(null);
+    setSelectedOrderLoading(true);
+
+    (async () => {
+      try {
+        const base = getBaseAdminPath();
+        const response = await fetch(
+          `${base}/core/order-kanban/order?id=${encodeURIComponent(selectedOrderId)}`,
+          { credentials: 'same-origin', signal: abortController.signal }
+        );
+        const json = await response.json();
+        if (!response.ok) {
+          throw new Error(json?.error || `HTTP ${response.status}`);
+        }
+        if (!mountedRef.current || requestId !== detailsRequestIdRef.current) return;
+        setSelectedOrderDetails(normalizeOrderDetails(json.order));
+      } catch (detailsError) {
+        if (detailsError?.name === 'AbortError') return;
+        if (!mountedRef.current || requestId !== detailsRequestIdRef.current) return;
+        setError(detailsError?.message || String(detailsError));
+      } finally {
+        if (detailsAbortControllerRef.current === abortController) {
+          detailsAbortControllerRef.current = null;
+        }
+        if (!mountedRef.current || requestId !== detailsRequestIdRef.current) return;
+        setSelectedOrderLoading(false);
+      }
+    })();
+  }, [selectedOrderId]);
+
+  const selectedOrder = useMemo(() => {
+    if (selectedOrderDetails?.id === selectedOrderId) return selectedOrderDetails;
+    return selectedOrderSummary;
+  }, [selectedOrderDetails, selectedOrderId, selectedOrderSummary]);
 
   useEffect(() => {
     if (!selectedOrderId) return undefined;
@@ -1410,6 +1708,7 @@ function OrderKanbanContent() {
 
       <OrderDetailsPopup
         order={selectedOrder}
+        loading={selectedOrderLoading}
         language={language}
         t={t}
         theme={theme}

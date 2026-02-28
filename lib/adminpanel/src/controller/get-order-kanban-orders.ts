@@ -4,9 +4,7 @@ import {
   ORDER_OPERATOR_ALLOWED_TARGET_STATES,
   getAllowedOrderTransitionsByRole,
   isCompletedOrderState,
-  isKitchenProgressOrderState,
   isOperatorUser,
-  isPreOrderFilteredState,
 } from "../../../../libs/OrderStateFlow";
 
 function parseCompletedWindowHours(rawValue: unknown): number {
@@ -66,7 +64,7 @@ function isOrderInCompletedWindow(order: any, sinceMs: number): boolean {
   return getCompletedOrderTimestampMs(order) >= sinceMs;
 }
 
-function isOrderInNewWindow(order: any, sinceMs: number): boolean {
+function isOrderInActiveWindow(order: any, sinceMs: number): boolean {
   const createdAtMs = parseTimestamp(order?.createdAt);
   return createdAtMs >= sinceMs;
 }
@@ -129,19 +127,11 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
 
     const filteredByState = rawOrders.filter((order: any) => {
       const state = String(order?.state || "");
-      if (isKitchenProgressOrderState(state)) {
-        return true;
-      }
-      if (isPreOrderFilteredState(state)) {
-        return isOrderInNewWindow(order, newSinceMs);
-      }
-      if (!includeDone && isCompletedOrderState(state)) {
-        return false;
-      }
-      if (includeDone && isCompletedOrderState(state)) {
+      if (isCompletedOrderState(state)) {
+        if (!includeDone) return false;
         return isOrderInCompletedWindow(order, completedSinceMs);
       }
-      return true;
+      return isOrderInActiveWindow(order, newSinceMs);
     });
 
     const filteredByQuery = q
