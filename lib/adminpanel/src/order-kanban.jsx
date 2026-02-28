@@ -149,6 +149,10 @@ function getBaseAdminPath() {
   return (window.location.pathname || '').replace(/\/[^/]*$/, '');
 }
 
+function getOrderModelPath(orderId) {
+  return `${getBaseAdminPath()}/model/order/edit/${encodeURIComponent(String(orderId || ''))}`;
+}
+
 function getCsrfToken() {
   const cookies = document.cookie.split(';');
   for (const cookie of cookies) {
@@ -305,6 +309,7 @@ function normalizeOrderDetails(order) {
 function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
   if (!order) return null;
   const boolText = (value) => value ? t('order_kanban_yes') : t('order_kanban_no');
+  const orderModelPath = order?.id ? getOrderModelPath(order.id) : '';
   const rowStyle = {
     display: 'grid',
     gridTemplateColumns: '170px 1fr',
@@ -362,23 +367,50 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>
             {t('order_kanban_details_title')} #{order.shortId}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              border: `1px solid ${theme.controlBorder}`,
-              background: theme.controlBackground,
-              color: theme.controlText,
-              width: 30,
-              height: 30,
-              borderRadius: 6,
-              cursor: 'pointer',
-            }}
-            title={t('order_kanban_close')}
-            aria-label={t('order_kanban_close')}
-          >
-            ×
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {orderModelPath ? (
+              <a
+                href={orderModelPath}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: 30,
+                  padding: '0 10px',
+                  border: `1px solid ${theme.controlBorder}`,
+                  background: theme.controlBackground,
+                  color: theme.controlText,
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Посмотреть модель
+              </a>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                border: `1px solid ${theme.controlBorder}`,
+                background: theme.controlBackground,
+                color: theme.controlText,
+                width: 30,
+                height: 30,
+                borderRadius: 6,
+                cursor: 'pointer',
+              }}
+              title={t('order_kanban_close')}
+              aria-label={t('order_kanban_close')}
+            >
+              ×
+            </button>
+          </div>
         </header>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
