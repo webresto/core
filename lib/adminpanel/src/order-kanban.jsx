@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 
-const ACTIVE_BOARD_STATES = ['NEW', 'CART', 'CHECKOUT', 'PAYMENT', 'ORDER', 'COOKING', 'ON_THE_WAY'];
+const ACTIVE_BOARD_STATES = ['CHECKOUT', 'ORDER', 'COOKING', 'ON_THE_WAY'];
 const FINISHED_BOARD_STATES = ['DONE', 'REJECT'];
 const STATE_COLORS = {
   NEW: '#0ea5e9',
@@ -870,7 +870,7 @@ function OrderStackView({
   updatingOrderId,
   onOpen,
 }) {
-  const summaryStates = visibleStates.filter((state) => state !== 'NEW');
+  const summaryStates = visibleStates;
   const [selectedStates, setSelectedStates] = useState(new Set());
 
   function toggleStateFilter(state) {
