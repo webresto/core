@@ -55,6 +55,18 @@ let attributes = {
   /** last 8 chars from id */
   shortId: "string",
 
+  /** Business order timestamp in seconds since 1970 */
+  orderedAt: {
+    type: "number",
+    allowNull: true,
+  } as unknown as number,
+
+  /** Business completion timestamp in seconds since 1970 */
+  completedAt: {
+    type: "number",
+    allowNull: true,
+  } as unknown as number,
+
   /** Stateflow field */
   state: "string",
 
@@ -379,6 +391,12 @@ let Model = {
 
     if (!orderInit.shortId) {
       orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
+    }
+    if (typeof orderInit.orderedAt === "undefined") {
+      orderInit.orderedAt = null as any;
+    }
+    if (typeof orderInit.completedAt === "undefined") {
+      orderInit.completedAt = null as any;
     }
 
     orderInit.promotionState = []
@@ -2106,8 +2124,16 @@ let Model = {
       );
     }
 
+    const patch: Partial<OrderRecord> = { state: nextState };
+    if (nextState === "ORDER" && !order.orderedAt) {
+      patch.orderedAt = Math.floor(Date.now() / 1000);
+    }
+    if (nextState === "DONE" || nextState === "REJECT") {
+      patch.completedAt = Math.floor(Date.now() / 1000);
+    }
+
     // Perform transition
-    await Order.update(query, { state: nextState }).fetch();
+    await Order.update(query, patch).fetch();
   }
 };
 

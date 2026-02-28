@@ -31,6 +31,10 @@ declare let attributes: {
     id: string;
     /** last 8 chars from id */
     shortId: string;
+    /** Business order timestamp in seconds since 1970 */
+    orderedAt: number;
+    /** Business completion timestamp in seconds since 1970 */
+    completedAt: number;
     /** Stateflow field */
     state: string;
     /** Concept string */

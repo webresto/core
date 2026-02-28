@@ -1,17 +1,10 @@
 import {
-  ORDER_KANBAN_DEFAULT_COMPLETED_WINDOW_HOURS,
   ORDER_KANBAN_DEFAULT_NEW_WINDOW_MINUTES,
   ORDER_OPERATOR_ALLOWED_TARGET_STATES,
   getAllowedOrderTransitionsByRole,
   isCompletedOrderState,
   isOperatorUser,
 } from "../../../../libs/OrderStateFlow";
-
-function parseCompletedWindowHours(rawValue: unknown): number {
-  const parsed = Number.parseInt(String(rawValue || ORDER_KANBAN_DEFAULT_COMPLETED_WINDOW_HOURS), 10);
-  if (!Number.isFinite(parsed)) return ORDER_KANBAN_DEFAULT_COMPLETED_WINDOW_HOURS;
-  return Math.min(Math.max(parsed, 1), 168);
-}
 
 function parseNewWindowMinutes(rawValue: unknown): number {
   const parsed = Number.parseInt(String(rawValue || ORDER_KANBAN_DEFAULT_NEW_WINDOW_MINUTES), 10);
@@ -25,9 +18,12 @@ function parseTimestamp(value: unknown): number {
 }
 
 function getCompletedOrderTimestampMs(order: any): number {
+  const completedAtMs = typeof order?.completedAt === "number" && order.completedAt > 0
+    ? order.completedAt * 1000
+    : 0;
   const directTimestamp = Math.max(
+    completedAtMs,
     parseTimestamp(order?.closedAt),
-    parseTimestamp(order?.completedAt),
     parseTimestamp(order?.doneAt),
     parseTimestamp(order?.rejectAt),
   );
@@ -50,8 +46,7 @@ function getCompletedOrderTimestampMs(order: any): number {
     }
   }
 
-  if (completedTimestamp > 0) return completedTimestamp;
-  return parseTimestamp(order?.updatedAt);
+  return completedTimestamp;
 }
 
 function resolveClosedAt(order: any): string | null {
@@ -65,8 +60,10 @@ function isOrderInCompletedWindow(order: any, sinceMs: number): boolean {
 }
 
 function isOrderInActiveWindow(order: any, sinceMs: number): boolean {
-  const createdAtMs = parseTimestamp(order?.createdAt);
-  return createdAtMs >= sinceMs;
+  const orderedAtMs = order?.orderedAt
+    ? order.orderedAt * 1000
+    : parseTimestamp(order?.createdAt);
+  return orderedAtMs >= sinceMs;
 }
 
 function mapOrder(order: any, operatorLimited: boolean) {
@@ -93,6 +90,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
     paid: Boolean(order?.paid),
     selfService: Boolean(order?.selfService),
     rmsOrderNumber: order?.rmsOrderNumber || "",
+    orderedAt: order?.orderedAt || null,
     createdAt: order?.createdAt || null,
     updatedAt: order?.updatedAt || null,
     closedAt: resolveClosedAt(order),
@@ -113,17 +111,43 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
     const requestedLimit = Number.parseInt(String(req.query.limit || "250"), 10);
     const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 500) : 250;
     const includeDone = String(req.query.includeDone || "0") === "1";
-    const completedWindowHours = parseCompletedWindowHours(req.query.completedHours);
     const newWindowMinutes = parseNewWindowMinutes(req.query.newMinutes);
-    const completedSinceMs = Date.now() - completedWindowHours * 60 * 60 * 1000;
     const newSinceMs = Date.now() - newWindowMinutes * 60 * 1000;
+    const completedSinceMs = newSinceMs;
     const q = String(req.query.q || "").trim().toLowerCase();
     const operatorLimited = isOperatorUser(req.user);
 
-    const rawOrders = await Order.find({
-      sort: "updatedAt DESC",
-      limit,
-    });
+    const newSinceSeconds = Math.floor(newSinceMs / 1000);
+    const completedSinceSeconds = Math.floor(completedSinceMs / 1000);
+
+    const [ordersWithOrderedAt, ordersWithoutOrderedAt, completedOrders] = await Promise.all([
+      Order.find({
+        where: { orderedAt: { '>=': newSinceSeconds } },
+        sort: "orderedAt DESC",
+        limit,
+      }),
+      Order.find({
+        where: { orderedAt: null, createdAt: { '>=': new Date(newSinceMs) } },
+        sort: "createdAt DESC",
+        limit,
+      }),
+      includeDone
+        ? Order.find({
+          where: { completedAt: { '>=': completedSinceSeconds } },
+          sort: "completedAt DESC",
+          limit,
+        })
+        : Promise.resolve([]),
+    ]);
+
+    const seenIds = new Set<string>();
+    const rawOrders: any[] = [];
+    for (const order of [...ordersWithOrderedAt, ...ordersWithoutOrderedAt, ...completedOrders]) {
+      if (!seenIds.has(order.id)) {
+        seenIds.add(order.id);
+        rawOrders.push(order);
+      }
+    }
 
     const filteredByState = rawOrders.filter((order: any) => {
       const state = String(order?.state || "");
@@ -159,7 +183,6 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
       meta: {
         newWindowMinutes,
         newSince: new Date(newSinceMs).toISOString(),
-        completedWindowHours,
         completedSince: new Date(completedSinceMs).toISOString(),
         operatorLimited,
         operatorAllowedTargets: ORDER_OPERATOR_ALLOWED_TARGET_STATES,

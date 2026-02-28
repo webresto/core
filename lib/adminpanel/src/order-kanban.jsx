@@ -204,14 +204,18 @@ function parseTimestamp(value) {
 }
 
 function getOrderClosedTimestamp(order) {
-  return Math.max(parseTimestamp(order?.closedAt), parseTimestamp(order?.updatedAt));
+  return parseTimestamp(order?.closedAt);
+}
+
+function getOrderedAtMs(order) {
+  return order?.orderedAt ? order.orderedAt * 1000 : parseTimestamp(order?.createdAt);
 }
 
 function shouldIncludeOrderByWindow(order, newSinceMs, completedSinceMs) {
   if (isCompletedState(order?.state)) {
     return getOrderClosedTimestamp(order) >= completedSinceMs;
   }
-  return parseTimestamp(order?.createdAt) >= newSinceMs;
+  return getOrderedAtMs(order) >= newSinceMs;
 }
 
 function formatBoardWindow(minutes, t) {
@@ -237,6 +241,7 @@ function normalizeOrder(order) {
     paid: Boolean(order.paid),
     selfService: Boolean(order.selfService),
     rmsOrderNumber: order.rmsOrderNumber || '',
+    orderedAt: order.orderedAt || null,
     createdAt: order.createdAt || null,
     updatedAt: order.updatedAt || null,
     closedAt: order.closedAt || null,
@@ -379,7 +384,7 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={rowStyle}><strong>{t('order_kanban_order_id')}</strong><span>{order.id || '-'}</span></div>
           <div style={rowStyle}><strong>{t('order_kanban_state')}</strong><span>{toDisplayState(order.state, t)}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_created')}</strong><span>{formatDateTime(order.createdAt, language)}</span></div>
+          <div style={rowStyle}><strong>{t('order_kanban_created')}</strong><span>{formatDateTime(order.orderedAt ? new Date(order.orderedAt * 1000) : order.createdAt, language)}</span></div>
           <div style={rowStyle}><strong>{t('order_kanban_updated')}</strong><span>{formatDateTime(order.updatedAt, language)}</span></div>
           <div style={rowStyle}><strong>{t('order_kanban_customer')}</strong><span>{order.customerName || t('order_kanban_guest')}</span></div>
           <div style={rowStyle}><strong>{t('order_kanban_phone')}</strong><span>{order.customerPhone || t('order_kanban_no_phone')}</span></div>
@@ -803,7 +808,7 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
       </div>
 
       <div style={{ minWidth: 0 }}>
-        <strong style={{ display: 'block' }}>{formatDateTime(order.createdAt, language)}</strong>
+        <strong style={{ display: 'block' }}>{formatDateTime(order.orderedAt ? new Date(order.orderedAt * 1000) : order.createdAt, language)}</strong>
         <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted }}>
           {t('order_kanban_created')}
         </div>
@@ -960,11 +965,6 @@ function OrderKanbanContent() {
   const lastStreamSignalAtRef = useRef(Date.now());
   const isDarkTheme = useMemo(() => isDarkAppearance(appearance), [appearance]);
   const theme = useMemo(() => (isDarkTheme ? KANBAN_THEME.dark : KANBAN_THEME.light), [isDarkTheme]);
-  const completedWindowHours = useMemo(
-    () => Math.min(Math.max(Math.ceil(boardWindowMinutes / 60), 1), 168),
-    [boardWindowMinutes]
-  );
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(BOARD_WINDOW_STORAGE_KEY, String(boardWindowMinutes));
@@ -1033,7 +1033,7 @@ function OrderKanbanContent() {
         setLoading(true);
       }
       const base = getBaseAdminPath();
-      const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1&newMinutes=${boardWindowMinutes}&completedHours=${completedWindowHours}`;
+      const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1&newMinutes=${boardWindowMinutes}`;
       const response = await fetch(endpoint, { credentials: 'same-origin', signal: abortController.signal });
       const json = await response.json();
       if (!response.ok) {
@@ -1058,7 +1058,7 @@ function OrderKanbanContent() {
       if (!mountedRef.current || requestId !== loadRequestIdRef.current) return;
       setLoading(false);
     }
-  }, [boardWindowMinutes, completedWindowHours]);
+  }, [boardWindowMinutes]);
 
   const applyOrderHintFromStream = useCallback((payload) => {
     const orderId = payload?.orderId;
@@ -1343,10 +1343,9 @@ function OrderKanbanContent() {
 
   const filteredOrders = useMemo(() => {
     const newSinceMs = Date.now() - boardWindowMinutes * 60 * 1000;
-    const completedSinceMs = Date.now() - completedWindowHours * 60 * 60 * 1000;
     const normalizedQuery = query.trim().toLowerCase();
     return orders.filter((order) => {
-      if (!shouldIncludeOrderByWindow(order, newSinceMs, completedSinceMs)) return false;
+      if (!shouldIncludeOrderByWindow(order, newSinceMs, newSinceMs)) return false;
       if (!normalizedQuery) return true;
 
       const haystack = [
@@ -1361,7 +1360,7 @@ function OrderKanbanContent() {
       ].map((item) => String(item || '').toLowerCase()).join(' ');
       return haystack.includes(normalizedQuery);
     });
-  }, [boardWindowMinutes, completedWindowHours, orders, query]);
+  }, [boardWindowMinutes, orders, query]);
 
   const groupedOrders = useMemo(() => {
     const grouped = {};
@@ -1377,7 +1376,7 @@ function OrderKanbanContent() {
 
   const stackOrders = useMemo(() => {
     return [...filteredOrders].sort((left, right) => {
-      const createdDiff = parseTimestamp(right?.createdAt) - parseTimestamp(left?.createdAt);
+      const createdDiff = getOrderedAtMs(right) - getOrderedAtMs(left);
       if (createdDiff !== 0) return createdDiff;
       return parseTimestamp(right?.updatedAt) - parseTimestamp(left?.updatedAt);
     });

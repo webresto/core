@@ -14,6 +14,13 @@ const OrderStateFlow_1 = require("../libs/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
 const OrderLogHelper_1 = __importDefault(require("../libs/OrderLogHelper"));
 const ORDERED_STATES = ["ORDER", "COOKING", "ON_THE_WAY"];
+const ORDER_COMPLETED_STATES = ["DONE", "REJECT"];
+function getUnixTimestampSeconds() {
+    return Math.floor(Date.now() / 1000);
+}
+function isCompletedTransition(state) {
+    return ORDER_COMPLETED_STATES.includes(String(state || ""));
+}
 let attributes = {
     /** Id  */
     id: {
@@ -21,6 +28,16 @@ let attributes = {
     },
     /** last 8 chars from id */
     shortId: "string",
+    /** Business order timestamp in seconds since 1970 */
+    orderedAt: {
+        type: "number",
+        allowNull: true,
+    },
+    /** Business completion timestamp in seconds since 1970 */
+    completedAt: {
+        type: "number",
+        allowNull: true,
+    },
     /** Stateflow field */
     state: "string",
     /** Concept string */
@@ -281,6 +298,12 @@ let Model = {
         }
         if (!orderInit.shortId) {
             orderInit.shortId = orderInit.id.substr(orderInit.id.length - 8).toUpperCase();
+        }
+        if (typeof orderInit.orderedAt === "undefined") {
+            orderInit.orderedAt = null;
+        }
+        if (typeof orderInit.completedAt === "undefined") {
+            orderInit.completedAt = null;
         }
         orderInit.promotionState = [];
         orderInit.selfService = false;
@@ -1781,8 +1804,15 @@ let Model = {
             throw new Error(`Invalid state transition: ${currentState} → ${nextState}. ` +
                 `Allowed transitions from ${currentState}: ${allowedTransitions.join(', ') || 'none'}`);
         }
+        const patch = { state: nextState };
+        if (nextState === "ORDER" && !order.orderedAt) {
+            patch.orderedAt = getUnixTimestampSeconds();
+        }
+        if (isCompletedTransition(nextState)) {
+            patch.completedAt = getUnixTimestampSeconds();
+        }
         // Perform transition
-        await Order.update(query, { state: nextState }).fetch();
+        await Order.update(query, patch).fetch();
     }
 };
 // Waterline model export
