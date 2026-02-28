@@ -2,6 +2,8 @@
   "loading": "加载中...",
   "search_placeholder": "搜索菜品...",
   "clear": "清除",
+  "view_grid": "网格视图",
+  "view_list": "列表视图",
   "stock_manager_title": "库存管理",
   "unknown_error": "未知错误",
 

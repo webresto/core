@@ -20,18 +20,23 @@ const BOARD_WINDOW_MINUTES_MIN = 1;
 const BOARD_WINDOW_MINUTES_MAX = 10080;
 const BOARD_WINDOW_OPTIONS = [15, 30, 60, 120, 180, 360, 720, 1440, 2880, 4320, 10080];
 const COMPLETED_STATES = new Set(['DONE', 'REJECT']);
+const PRE_ORDER_STATES = new Set(['NEW', 'CART', 'CHECKOUT', 'PAYMENT']);
 const KANBAN_STREAM_RECONNECT_DELAY_MS = 5000;
 const KANBAN_STREAM_STALE_TIMEOUT_MS = 90000;
 const KANBAN_FULL_SYNC_INTERVAL_MS = 30000;
 const KANBAN_EVENT_REFRESH_DEBOUNCE_MS = 300;
 const BOARD_WINDOW_STORAGE_KEY = 'orderKanbanBoardWindowMinutes';
 const COLLAPSED_COLUMNS_STORAGE_KEY = 'orderKanbanCollapsedColumnsV2';
+const VIEW_MODE_STORAGE_KEY = 'orderKanbanViewMode';
 const APPEARANCE_STORAGE_KEY = 'appearance';
 const KANBAN_COLUMN_WIDTH_MIN = 280;
 const KANBAN_COLUMN_WIDTH_MAX = 340;
 const DEFAULT_EXPANDED_COLUMNS = ['ORDER', 'DONE'];
-const DEFAULT_COLLAPSED_COLUMNS = [...ACTIVE_BOARD_STATES, ...FINISHED_BOARD_STATES]
+const VISIBLE_BOARD_STATES = [...ACTIVE_BOARD_STATES, ...FINISHED_BOARD_STATES];
+const DEFAULT_COLLAPSED_COLUMNS = VISIBLE_BOARD_STATES
   .filter((state) => !DEFAULT_EXPANDED_COLUMNS.includes(state));
+const STACK_VIEW_ROW_MIN_WIDTH = 1080;
+const STACK_VIEW_GRID_TEMPLATE = 'minmax(104px, 0.9fr) minmax(160px, 1.05fr) minmax(180px, 1.25fr) minmax(120px, 0.9fr) minmax(150px, 1fr) minmax(240px, 1.65fr) minmax(170px, 1fr)';
 
 const KANBAN_THEME = {
   light: {
@@ -129,6 +134,11 @@ function getInitialCollapsedColumns() {
   }
 }
 
+function getInitialViewMode() {
+  if (typeof window === 'undefined') return 'kanban';
+  return localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'stack' ? 'stack' : 'kanban';
+}
+
 function isDarkAppearance(appearance) {
   if (appearance === 'dark') return true;
   if (appearance === 'light') return false;
@@ -194,8 +204,19 @@ function parseTimestamp(value) {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
-function getOrderActivityTimestamp(order) {
-  return Math.max(parseTimestamp(order?.updatedAt), parseTimestamp(order?.createdAt));
+function getOrderClosedTimestamp(order) {
+  return Math.max(parseTimestamp(order?.closedAt), parseTimestamp(order?.updatedAt));
+}
+
+function shouldIncludeOrderByWindow(order, newSinceMs, completedSinceMs) {
+  const state = String(order?.state || '');
+  if (PRE_ORDER_STATES.has(state)) {
+    return parseTimestamp(order?.createdAt) >= newSinceMs;
+  }
+  if (isCompletedState(state)) {
+    return getOrderClosedTimestamp(order) >= completedSinceMs;
+  }
+  return true;
 }
 
 function formatBoardWindow(minutes, t) {
@@ -223,6 +244,7 @@ function normalizeOrder(order) {
     rmsOrderNumber: order.rmsOrderNumber || '',
     createdAt: order.createdAt || null,
     updatedAt: order.updatedAt || null,
+    closedAt: order.closedAt || null,
     allowedTransitions: Array.isArray(order.allowedTransitions)
       ? order.allowedTransitions
       : [],
@@ -347,10 +369,44 @@ function OrderDetailsPopup({ order, language, t, onClose, theme }) {
   );
 }
 
-function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen, theme }) {
+function OrderTransitionSelect({ order, t, theme, isUpdating, onMove, compact = false }) {
   const transitions = Array.isArray(order.allowedTransitions)
     ? order.allowedTransitions
     : [];
+
+  return (
+    <select
+      key={`${order.id}-${order.state}`}
+      defaultValue=""
+      onClick={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onChange={(event) => {
+        const nextState = event.target.value;
+        if (!nextState) return;
+        onMove(order.id, nextState);
+        event.target.value = '';
+      }}
+      disabled={isUpdating || transitions.length === 0}
+      style={{
+        marginTop: compact ? 0 : 8,
+        width: '100%',
+        background: theme.controlBackground,
+        border: `1px solid ${theme.controlBorder}`,
+        borderRadius: 6,
+        padding: '6px 8px',
+        fontSize: 12,
+        color: theme.controlText,
+      }}
+    >
+      <option value="">{t('order_kanban_move_to')}</option>
+      {transitions.map((state) => (
+        <option key={state} value={state}>{toDisplayState(state, t)}</option>
+      ))}
+    </select>
+  );
+}
+
+function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen, theme }) {
   return (
     <article
       draggable={!isUpdating}
@@ -404,35 +460,289 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
         {t('order_kanban_updated')}: {formatDateTime(order.updatedAt, language)}
       </div>
 
-      <select
-        key={`${order.id}-${order.state}`}
-        defaultValue=""
-        onClick={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-        onChange={(event) => {
-          const nextState = event.target.value;
-          if (!nextState) return;
-          onMove(order.id, nextState);
-          event.target.value = '';
-        }}
-        disabled={isUpdating || transitions.length === 0}
+      <OrderTransitionSelect
+        order={order}
+        t={t}
+        theme={theme}
+        isUpdating={isUpdating}
+        onMove={onMove}
+      />
+    </article>
+  );
+}
+
+function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen, theme }) {
+  const stateColor = STATE_COLORS[order.state] || theme.textMuted;
+
+  return (
+    <article
+      onClick={() => onOpen(order.id)}
+      title={t('order_kanban_open_details')}
+      style={{
+        minWidth: STACK_VIEW_ROW_MIN_WIDTH,
+        display: 'grid',
+        gridTemplateColumns: STACK_VIEW_GRID_TEMPLATE,
+        gap: 12,
+        alignItems: 'center',
+        background: theme.cardBackground,
+        border: `1px solid ${theme.cardBorder}`,
+        borderLeft: `4px solid ${stateColor}`,
+        borderRadius: 10,
+        padding: '12px 14px',
+        opacity: isUpdating ? 0.65 : 1,
+        cursor: isUpdating ? 'not-allowed' : 'pointer',
+        color: theme.textPrimary,
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+        <strong style={{ fontSize: 20, lineHeight: 1 }}>#{order.shortId}</strong>
+        <span style={{ fontSize: 11, color: theme.textMuted }}>{order.id || '-'}</span>
+        {order.rmsOrderNumber ? (
+          <span style={{ fontSize: 11, color: theme.textSecondary }}>
+            RMS: {order.rmsOrderNumber}
+          </span>
+        ) : null}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignSelf: 'flex-start',
+            alignItems: 'center',
+            border: `1px solid ${stateColor}`,
+            borderRadius: 999,
+            padding: '4px 10px',
+            fontSize: 12,
+            fontWeight: 700,
+            color: stateColor,
+            background: theme.panelBackground,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {toDisplayState(order.state, t)}
+        </span>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {order.paid ? (
+            <span
+              style={{
+                background: '#dcfce7',
+                color: '#166534',
+                borderRadius: 999,
+                padding: '2px 8px',
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              {t('order_kanban_paid')}
+            </span>
+          ) : null}
+
+          {order.selfService ? (
+            <span
+              style={{
+                background: theme.softBadgeBackground,
+                color: theme.softBadgeText,
+                borderRadius: 999,
+                padding: '2px 8px',
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              {t('order_kanban_self_service')}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+        <strong>{order.customerName || t('order_kanban_guest')}</strong>
+        <span style={{ fontSize: 12, color: theme.textMuted }}>
+          {order.customerPhone || t('order_kanban_no_phone')}
+        </span>
+        {order.tag ? (
+          <span style={{ fontSize: 11, color: theme.textSecondary }}>
+            {t('order_kanban_tag')}: {order.tag}
+          </span>
+        ) : null}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+        <strong>{formatTotal(order.total, language)}</strong>
+        <span style={{ fontSize: 12, color: theme.textMuted }}>
+          {t('order_kanban_items')}: {order.dishesCount}
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+        <strong>{formatDateTime(order.updatedAt, language)}</strong>
+        <span style={{ fontSize: 12, color: theme.textMuted }}>
+          {t('order_kanban_updated')}
+        </span>
+        {order.createdAt ? (
+          <span style={{ fontSize: 11, color: theme.textSecondary }}>
+            {t('order_kanban_created')}: {formatDateTime(order.createdAt, language)}
+          </span>
+        ) : null}
+      </div>
+
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 12, color: order.comment ? theme.textSecondary : theme.textMuted, whiteSpace: 'pre-wrap' }}>
+          {order.comment || t('order_kanban_no_comment')}
+        </div>
+      </div>
+
+      <div onClick={(event) => event.stopPropagation()}>
+        <OrderTransitionSelect
+          order={order}
+          t={t}
+          theme={theme}
+          isUpdating={isUpdating}
+          onMove={onMove}
+          compact
+        />
+      </div>
+    </article>
+  );
+}
+
+function OrderStackView({
+  groupedOrders,
+  visibleStates,
+  language,
+  t,
+  theme,
+  updatingOrderId,
+  moveOrder,
+  onOpen,
+}) {
+  const statesWithOrders = visibleStates.filter((state) => (groupedOrders[state] || []).length > 0);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div
         style={{
-          marginTop: 8,
-          width: '100%',
-          background: theme.controlBackground,
-          border: `1px solid ${theme.controlBorder}`,
-          borderRadius: 6,
-          padding: '6px 8px',
-          fontSize: 12,
-          color: theme.controlText,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(128px, 1fr))',
+          gap: 8,
         }}
       >
-        <option value="">{t('order_kanban_move_to')}</option>
-        {transitions.map((state) => (
-          <option key={state} value={state}>{toDisplayState(state, t)}</option>
-        ))}
-      </select>
-    </article>
+        {visibleStates.map((state) => {
+          const count = (groupedOrders[state] || []).length;
+          const stateColor = STATE_COLORS[state] || theme.textMuted;
+          return (
+            <div
+              key={state}
+              style={{
+                background: theme.panelBackground,
+                border: `1px solid ${theme.panelBorder}`,
+                borderTop: `3px solid ${stateColor}`,
+                borderRadius: 10,
+                padding: '10px 12px',
+              }}
+            >
+              <div style={{ fontSize: 12, color: theme.textMuted }}>{toDisplayState(state, t)}</div>
+              <div style={{ marginTop: 4, fontSize: 22, fontWeight: 700, color: theme.textPrimary }}>{count}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {statesWithOrders.length === 0 ? (
+        <div
+          style={{
+            background: theme.panelBackground,
+            border: `1px solid ${theme.panelBorder}`,
+            borderRadius: 10,
+            padding: 16,
+            color: theme.textMuted,
+          }}
+        >
+          {t('order_kanban_empty_column')}
+        </div>
+      ) : (
+        statesWithOrders.map((state) => {
+          const ordersByState = groupedOrders[state] || [];
+          const stateColor = STATE_COLORS[state] || theme.textMuted;
+          return (
+            <section
+              key={state}
+              style={{
+                background: theme.panelBackground,
+                border: `1px solid ${theme.panelBorder}`,
+                borderRadius: 10,
+                padding: 12,
+              }}
+            >
+              <header
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                  marginBottom: 10,
+                }}
+              >
+                <strong style={{ color: stateColor, fontSize: 18 }}>{toDisplayState(state, t)}</strong>
+                <span
+                  style={{
+                    background: theme.softBadgeBackground,
+                    color: theme.softBadgeText,
+                    borderRadius: 999,
+                    padding: '2px 8px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
+                >
+                  {ordersByState.length}
+                </span>
+              </header>
+
+              <div style={{ overflowX: 'auto' }}>
+                <div
+                  style={{
+                    minWidth: STACK_VIEW_ROW_MIN_WIDTH,
+                    display: 'grid',
+                    gridTemplateColumns: STACK_VIEW_GRID_TEMPLATE,
+                    gap: 12,
+                    padding: '0 14px 8px',
+                    color: theme.textMuted,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                  }}
+                >
+                  <span>{t('order_kanban_order_id')}</span>
+                  <span>{t('order_kanban_state')}</span>
+                  <span>{t('order_kanban_customer')}</span>
+                  <span>{t('order_kanban_total')}</span>
+                  <span>{t('order_kanban_updated')}</span>
+                  <span>{t('order_kanban_comment')}</span>
+                  <span>{t('order_kanban_move_to')}</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {ordersByState.map((order) => (
+                    <OrderStackRow
+                      key={order.id}
+                      order={order}
+                      language={language}
+                      t={t}
+                      isUpdating={updatingOrderId === order.id}
+                      onMove={moveOrder}
+                      onOpen={onOpen}
+                      theme={theme}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        })
+      )}
+    </div>
   );
 }
 
@@ -444,6 +754,7 @@ function OrderKanbanContent() {
     if (typeof window === 'undefined') return BOARD_WINDOW_MINUTES_DEFAULT;
     return clampBoardWindowMinutes(localStorage.getItem(BOARD_WINDOW_STORAGE_KEY));
   });
+  const [viewMode, setViewMode] = useState(getInitialViewMode);
   const [appearance, setAppearance] = useState(getPreferredAppearance);
   const [loading, setLoading] = useState(true);
   const [updatingOrderId, setUpdatingOrderId] = useState('');
@@ -462,6 +773,10 @@ function OrderKanbanContent() {
   const lastStreamSignalAtRef = useRef(Date.now());
   const isDarkTheme = useMemo(() => isDarkAppearance(appearance), [appearance]);
   const theme = useMemo(() => (isDarkTheme ? KANBAN_THEME.dark : KANBAN_THEME.light), [isDarkTheme]);
+  const completedWindowHours = useMemo(
+    () => Math.min(Math.max(Math.ceil(boardWindowMinutes / 60), 1), 168),
+    [boardWindowMinutes]
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -472,6 +787,11 @@ function OrderKanbanContent() {
     if (typeof window === 'undefined') return;
     localStorage.setItem(COLLAPSED_COLUMNS_STORAGE_KEY, JSON.stringify(Array.from(collapsedColumns)));
   }, [collapsedColumns]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -526,7 +846,6 @@ function OrderKanbanContent() {
         setLoading(true);
       }
       const base = getBaseAdminPath();
-      const completedWindowHours = Math.min(Math.max(Math.ceil(boardWindowMinutes / 60), 1), 168);
       const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1&newMinutes=${boardWindowMinutes}&completedHours=${completedWindowHours}`;
       const response = await fetch(endpoint, { credentials: 'same-origin', signal: abortController.signal });
       const json = await response.json();
@@ -552,7 +871,7 @@ function OrderKanbanContent() {
       if (!mountedRef.current || requestId !== loadRequestIdRef.current) return;
       setLoading(false);
     }
-  }, [boardWindowMinutes]);
+  }, [boardWindowMinutes, completedWindowHours]);
 
   const applyOrderHintFromStream = useCallback((payload) => {
     const orderId = payload?.orderId;
@@ -771,14 +1090,12 @@ function OrderKanbanContent() {
     }
   }
 
-  const visibleStates = [...ACTIVE_BOARD_STATES, ...FINISHED_BOARD_STATES];
-
   const filteredOrders = useMemo(() => {
-    const sinceMs = Date.now() - boardWindowMinutes * 60 * 1000;
+    const newSinceMs = Date.now() - boardWindowMinutes * 60 * 1000;
+    const completedSinceMs = Date.now() - completedWindowHours * 60 * 60 * 1000;
     const normalizedQuery = query.trim().toLowerCase();
     return orders.filter((order) => {
-      const activityAt = getOrderActivityTimestamp(order);
-      if (activityAt && activityAt < sinceMs) return false;
+      if (!shouldIncludeOrderByWindow(order, newSinceMs, completedSinceMs)) return false;
       if (!normalizedQuery) return true;
 
       const haystack = [
@@ -793,11 +1110,11 @@ function OrderKanbanContent() {
       ].map((item) => String(item || '').toLowerCase()).join(' ');
       return haystack.includes(normalizedQuery);
     });
-  }, [boardWindowMinutes, orders, query]);
+  }, [boardWindowMinutes, completedWindowHours, orders, query]);
 
   const groupedOrders = useMemo(() => {
     const grouped = {};
-    visibleStates.forEach((state) => {
+    VISIBLE_BOARD_STATES.forEach((state) => {
       grouped[state] = [];
     });
     filteredOrders.forEach((order) => {
@@ -805,7 +1122,7 @@ function OrderKanbanContent() {
       grouped[order.state].push(order);
     });
     return grouped;
-  }, [filteredOrders, visibleStates]);
+  }, [filteredOrders]);
 
   const streamStatusConfig = useMemo(() => {
     if (streamStatus === 'connected') {
@@ -917,6 +1234,51 @@ function OrderKanbanContent() {
           </select>
         </label>
 
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: 2,
+            borderRadius: 8,
+            background: theme.panelBackground,
+            border: `1px solid ${theme.panelBorder}`,
+          }}
+        >
+          {[
+            { key: 'kanban', icon: '⊞', label: t('view_grid') },
+            { key: 'stack', icon: '☰', label: t('view_list') },
+          ].map((mode) => {
+            const active = viewMode === mode.key;
+            return (
+              <button
+                key={mode.key}
+                type="button"
+                onClick={() => setViewMode(mode.key)}
+                title={mode.label}
+                aria-label={mode.label}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '6px 10px',
+                  background: active ? theme.cardBackground : 'transparent',
+                  color: active ? theme.textPrimary : theme.textMuted,
+                  boxShadow: active ? `inset 0 0 0 1px ${theme.controlBorder}` : 'none',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: active ? 600 : 500,
+                }}
+              >
+                <span aria-hidden="true">{mode.icon}</span>
+                <span>{mode.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
         <span style={{ fontSize: 13, color: theme.textMuted }}>
           {t('order_kanban_orders_count')}: {filteredOrders.length}
         </span>
@@ -944,9 +1306,20 @@ function OrderKanbanContent() {
 
       {loading ? (
         <div style={{ padding: 12, color: theme.textMuted }}>{t('loading')}</div>
+      ) : viewMode === 'stack' ? (
+        <OrderStackView
+          groupedOrders={groupedOrders}
+          visibleStates={VISIBLE_BOARD_STATES}
+          language={language}
+          t={t}
+          theme={theme}
+          updatingOrderId={updatingOrderId}
+          moveOrder={moveOrder}
+          onOpen={setSelectedOrderId}
+        />
       ) : (
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }}>
-          {visibleStates.map((state) => {
+          {VISIBLE_BOARD_STATES.map((state) => {
             const ordersByState = groupedOrders[state] || [];
             const collapsed = collapsedColumns.has(state);
             const columnTitle = toDisplayState(state, t);

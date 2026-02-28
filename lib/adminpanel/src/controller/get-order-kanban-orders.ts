@@ -26,10 +26,44 @@ function parseTimestamp(value: unknown): number {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
+function getCompletedOrderTimestampMs(order: any): number {
+  const directTimestamp = Math.max(
+    parseTimestamp(order?.closedAt),
+    parseTimestamp(order?.completedAt),
+    parseTimestamp(order?.doneAt),
+    parseTimestamp(order?.rejectAt),
+  );
+  if (directTimestamp > 0) return directTimestamp;
+
+  const logs = Array.isArray(order?.logs) ? order.logs : [];
+  let completedTimestamp = 0;
+  for (const entry of logs) {
+    const message = String(entry?.message || "");
+    const targetState = String(entry?.data?.to || "");
+    const timestamp = parseTimestamp(entry?.timestamp);
+    if (!timestamp) continue;
+
+    if (
+      (message === "order-kanban: state changed" && isCompletedOrderState(targetState)) ||
+      message === "doFinalize: DONE" ||
+      message === "doFinalize: REJECT"
+    ) {
+      completedTimestamp = Math.max(completedTimestamp, timestamp);
+    }
+  }
+
+  if (completedTimestamp > 0) return completedTimestamp;
+  return parseTimestamp(order?.updatedAt);
+}
+
+function resolveClosedAt(order: any): string | null {
+  if (!isCompletedOrderState(order?.state)) return null;
+  const timestamp = getCompletedOrderTimestampMs(order);
+  return timestamp > 0 ? new Date(timestamp).toISOString() : null;
+}
+
 function isOrderInCompletedWindow(order: any, sinceMs: number): boolean {
-  const createdAtMs = parseTimestamp(order?.createdAt);
-  const updatedAtMs = parseTimestamp(order?.updatedAt);
-  return createdAtMs >= sinceMs || updatedAtMs >= sinceMs;
+  return getCompletedOrderTimestampMs(order) >= sinceMs;
 }
 
 function isOrderInNewWindow(order: any, sinceMs: number): boolean {
@@ -63,6 +97,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
     rmsOrderNumber: order?.rmsOrderNumber || "",
     createdAt: order?.createdAt || null,
     updatedAt: order?.updatedAt || null,
+    closedAt: resolveClosedAt(order),
     date: order?.date || null,
     allowedTransitions: getAllowedOrderTransitionsByRole(state, operatorLimited),
   };
