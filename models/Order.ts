@@ -45,15 +45,7 @@ export type PaymentBack = {
 };
 
 const ORDERED_STATES: ReadonlyArray<string> = ["ORDER", "COOKING", "ON_THE_WAY"];
-const ORDER_COMPLETED_STATES: ReadonlyArray<string> = ["DONE", "REJECT"];
 
-function getUnixTimestampSeconds(): number {
-  return Math.floor(Date.now() / 1000);
-}
-
-function isCompletedTransition(state: string): boolean {
-  return ORDER_COMPLETED_STATES.includes(String(state || ""));
-}
 
 let attributes = {
   /** Id  */
@@ -999,10 +991,9 @@ let Model = {
         }
 
         if (spendBonus.amount === 0) {
-          order.spendBonus.amount = 0;
+          order.spendBonus = null;
           order.bonusesTotal = 0;
-          return;
-        }
+        } else {
 
         // load bonus strategy
         let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
@@ -1051,6 +1042,7 @@ let Model = {
         order.spendBonus = spendBonus;
         order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
         order.bonusesTotal = bonusCoverage.toNumber();
+        }
       }
 
 
@@ -2144,10 +2136,10 @@ let Model = {
 
     const patch: Partial<OrderRecord> = { state: nextState };
     if (nextState === "ORDER" && !order.orderedAt) {
-      patch.orderedAt = getUnixTimestampSeconds();
+      patch.orderedAt = Math.floor(Date.now() / 1000);
     }
-    if (isCompletedTransition(nextState)) {
-      patch.completedAt = getUnixTimestampSeconds();
+    if (nextState === "DONE" || nextState === "REJECT") {
+      patch.completedAt = Math.floor(Date.now() / 1000);
     }
 
     // Perform transition

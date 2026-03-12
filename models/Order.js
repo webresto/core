@@ -14,13 +14,6 @@ const OrderStateFlow_1 = require("../libs/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
 const OrderLogHelper_1 = __importDefault(require("../libs/OrderLogHelper"));
 const ORDERED_STATES = ["ORDER", "COOKING", "ON_THE_WAY"];
-const ORDER_COMPLETED_STATES = ["DONE", "REJECT"];
-function getUnixTimestampSeconds() {
-    return Math.floor(Date.now() / 1000);
-}
-function isCompletedTransition(state) {
-    return ORDER_COMPLETED_STATES.includes(String(state || ""));
-}
 let attributes = {
     /** Id  */
     id: {
@@ -801,55 +794,56 @@ let Model = {
                     spendBonus.amount = 0;
                 }
                 if (spendBonus.amount === 0) {
-                    order.spendBonus.amount = 0;
+                    order.spendBonus = null;
                     order.bonusesTotal = 0;
-                    return;
-                }
-                // load bonus strategy
-                let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
-                // Fetch the bonus program for this bonus spend
-                const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
-                spendBonus.adapter = bonusProgram.adapter;
-                spendBonus.amount = parseFloat(new decimal_js_1.default(spendBonus.amount).toFixed(bonusProgram.decimals));
-                // TODO: rewrite for Decimal.js
-                let amountToDeduct = 0;
-                switch (bonusSpendingStrategy) {
-                    case 'bonus_from_order_total':
-                        amountToDeduct = order.total;
-                        break;
-                    case 'bonus_from_basket_delivery_discount':
-                        amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
-                        break;
-                    case 'bonus_from_basket_and_delivery':
-                        amountToDeduct = order.basketTotal + order.deliveryCost;
-                        break;
-                    case 'bonus_from_basket':
-                        amountToDeduct = order.basketTotal;
-                        break;
-                    default:
-                        throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
-                }
-                // Calculate maximum allowed bonus coverage
-                const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul((0, normalize_1.normalizePercent)(bonusProgram.coveragePercentage));
-                // Ensure maxBonusCoverage is not greater than amountToDeduct
-                if (maxBonusCoverage.gt(amountToDeduct)) {
-                    throw {
-                        code: 19,
-                        error: "Max bonus coverage exceeds allowable amount to deduct",
-                    };
-                }
-                // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
-                let bonusCoverage;
-                if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThan(maxBonusCoverage)) {
-                    bonusCoverage = new decimal_js_1.default(spendBonus.amount);
                 }
                 else {
-                    bonusCoverage = maxBonusCoverage;
+                    // load bonus strategy
+                    let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
+                    // Fetch the bonus program for this bonus spend
+                    const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+                    spendBonus.adapter = bonusProgram.adapter;
+                    spendBonus.amount = parseFloat(new decimal_js_1.default(spendBonus.amount).toFixed(bonusProgram.decimals));
+                    // TODO: rewrite for Decimal.js
+                    let amountToDeduct = 0;
+                    switch (bonusSpendingStrategy) {
+                        case 'bonus_from_order_total':
+                            amountToDeduct = order.total;
+                            break;
+                        case 'bonus_from_basket_delivery_discount':
+                            amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+                            break;
+                        case 'bonus_from_basket_and_delivery':
+                            amountToDeduct = order.basketTotal + order.deliveryCost;
+                            break;
+                        case 'bonus_from_basket':
+                            amountToDeduct = order.basketTotal;
+                            break;
+                        default:
+                            throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+                    }
+                    // Calculate maximum allowed bonus coverage
+                    const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul((0, normalize_1.normalizePercent)(bonusProgram.coveragePercentage));
+                    // Ensure maxBonusCoverage is not greater than amountToDeduct
+                    if (maxBonusCoverage.gt(amountToDeduct)) {
+                        throw {
+                            code: 19,
+                            error: "Max bonus coverage exceeds allowable amount to deduct",
+                        };
+                    }
+                    // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+                    let bonusCoverage;
+                    if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThan(maxBonusCoverage)) {
+                        bonusCoverage = new decimal_js_1.default(spendBonus.amount);
+                    }
+                    else {
+                        bonusCoverage = maxBonusCoverage;
+                    }
+                    // Deduct the bonus from the order total
+                    order.spendBonus = spendBonus;
+                    order.total = new decimal_js_1.default(order.total).sub(bonusCoverage).toNumber();
+                    order.bonusesTotal = bonusCoverage.toNumber();
                 }
-                // Deduct the bonus from the order total
-                order.spendBonus = spendBonus;
-                order.total = new decimal_js_1.default(order.total).sub(bonusCoverage).toNumber();
-                order.bonusesTotal = bonusCoverage.toNumber();
             }
             sails.log.silly("Order > check > after wait general emitter", order, results);
             emitter.emit("core:order-after-check-counting", order);
@@ -1806,10 +1800,10 @@ let Model = {
         }
         const patch = { state: nextState };
         if (nextState === "ORDER" && !order.orderedAt) {
-            patch.orderedAt = getUnixTimestampSeconds();
+            patch.orderedAt = Math.floor(Date.now() / 1000);
         }
-        if (isCompletedTransition(nextState)) {
-            patch.completedAt = getUnixTimestampSeconds();
+        if (nextState === "DONE" || nextState === "REJECT") {
+            patch.completedAt = Math.floor(Date.now() / 1000);
         }
         // Perform transition
         await Order.update(query, patch).fetch();
