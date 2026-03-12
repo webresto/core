@@ -29,3 +29,4 @@ coverage
 .tmp
 backup.tar
 assets/stockmanager
+.tsc-models-out

@@ -7,7 +7,8 @@
     "outDir": "./.tsc-models-out",
     "skipLibCheck": true,
     "noImplicitAny": false,
-    "strict": false
+    "strict": false,
+    "noEmitOnError": false
   },
   "include": ["models/*.ts"],
   "exclude": ["node_modules", "models/*.d.ts"]

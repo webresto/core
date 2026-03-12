@@ -197,6 +197,7 @@ declare let Model: {
     isOrderedState(state: string): boolean;
     beforeCreate(orderInit: OrderRecord, cb: (err?: string) => void): void;
     afterCreate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
+    beforeUpdate(values: Partial<OrderRecord>, cb: (err?: string) => void): void;
     afterUpdate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
     /** Add a dish into order */
     addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
@@ -250,6 +251,8 @@ declare let Model: {
         updatedAt?: Date | undefined;
         id?: string;
         shortId?: string;
+        orderedAt?: number;
+        completedAt?: number;
         state?: string;
         concept?: string[];
         isMixedConcept?: boolean;
