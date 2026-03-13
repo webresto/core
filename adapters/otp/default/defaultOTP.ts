@@ -11,6 +11,15 @@ export class DefaultOTP extends OneTimePasswordAdapter {
    */
   public async get(login: string): Promise<OneTimePasswordRecord> {
     let otp = await OneTimePassword.create({ login: login }).fetch();
+
+    const demoOtpEnv = process.env.DEMO_OTP_LOGIN;
+    if (demoOtpEnv) {
+      const [demoLogin, demoPassword] = demoOtpEnv.split(':');
+      if (demoLogin === login && demoPassword) {
+        otp = ((await OneTimePassword.updateOne({ id: otp.id }).set({ password: demoPassword })) as unknown as OneTimePasswordRecord) ?? otp;
+      }
+    }
+
     if (!otp.password || !login)  {
       await NotificationManager.sendMessageToDeliveryManager("error", `Failed OPT password generate for ${login}, please contact with him`);
       throw `otp generation error`
