@@ -131,6 +131,8 @@ declare global {
         PROJECT_NAME: string;
         DEFAULT_CURRENCY_ISO: string;
         COUNTRY_ISO: CountryISOList;
+        LINK_TO_PROCESSING_PERSONAL_DATA: string;
+        LINK_TO_USER_AGREEMENT: string;
         ALLOW_BONUS_SPENDING: boolean;
         DELIVERY_DESCRIPTION: string;
         FIRSTNAME_REQUIRED: boolean;
