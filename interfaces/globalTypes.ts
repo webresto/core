@@ -146,6 +146,8 @@ declare global {
     ALLOW_BONUS_SPENDING: boolean
     DELIVERY_DESCRIPTION: string
     FIRSTNAME_REQUIRED: boolean
+    LINK_TO_PROCESSING_PERSONAL_DATA: string
+    LINK_TO_USER_AGREEMENT: string
     WORK_TIME: WorkTime[]
     FIELDS_FOR_ORDER_INITIALIZATION: ("address" | "selfService" | "pickupPoint" | "date" | "personsCount" | "comment" | "customer" | "promotionCode" | "paymentMethod" | "concept")[]
 

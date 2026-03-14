@@ -1,0 +1,10 @@
+{
+  "key": "LINK_TO_PROCESSING_PERSONAL_DATA",
+  "type": "string",
+  "name": "Link to Processing Personal Data",
+  "description": "URL to the personal data processing policy page. If not set, the link will not be shown.",
+  "jsonSchema": {
+    "type": "string"
+  },
+  "isRequired": false
+}

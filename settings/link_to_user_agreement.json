@@ -1,0 +1,10 @@
+{
+  "key": "LINK_TO_USER_AGREEMENT",
+  "type": "string",
+  "name": "Link to User Agreement",
+  "description": "URL to the user agreement page. If not set, the link will not be shown.",
+  "jsonSchema": {
+    "type": "string"
+  },
+  "isRequired": false
+}
