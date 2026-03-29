@@ -221,7 +221,8 @@ let Model = {
     const groups = await Group.find({ where: {
       id: groupsId,
       isDeleted: false,
-      enable: true
+      enable: true,
+      visible: true
     }})
       .populate("childGroups")
       .populate("dishes")
@@ -244,7 +245,8 @@ let Model = {
               }
             }),
             isDeleted: false,
-            enable: true
+            enable: true,
+            visible: true
           })
             .populate("childGroups")
             .populate("dishes")
@@ -310,7 +312,7 @@ let Model = {
 
     let groupObj;
     if(process.env.UNIQUE_SLUG === "1") {
-      groupObj = await Group.findOne({ slug: groupSlug });
+      groupObj = await Group.findOne({ slug: groupSlug, isDeleted: false });
     } else {
       groupObj = (await Group.find({ slug: groupSlug, isDeleted: false, enable: true }).limit(1))[0];
     }
@@ -331,7 +333,7 @@ let Model = {
   // https://github.com/balderdashy/waterline/pull/902
   async display(criteria: CriteriaQuery<GroupRecord>): Promise<GroupRecord[]> {
     const promotionAdapter = Adapter.getPromotionAdapter()
-    const groups = await Group.find(criteria);
+    const groups = await Group.find({ ...criteria, isDeleted: false });
     // Set virtual default
     groups.forEach((group)=>{
       group.discountAmount = 0;
@@ -364,7 +366,7 @@ let Model = {
     let allGroups: any[] | PromiseLike<string[]> = [];
     for (let group of menu) {
       const groupId = group.id
-      const initialGroup = (await Group.find({ id: groupId, isDeleted: false, enable: true }).sort('createdAt DESC')).shift();
+      const initialGroup = (await Group.find({ id: groupId, isDeleted: false, enable: true, visible: true }).sort('createdAt DESC')).shift();
       if (initialGroup) {
         allGroups.push(initialGroup);
         const childGroups = await getAllChildGroups(groupId);
@@ -374,7 +376,7 @@ let Model = {
     }
 
     async function getAllChildGroups(groupId: string) {
-      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false, enable: true });
+      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false, enable: true, visible: true });
       let allChildGroups: any[] = [];
 
       for (let group of childGroups) {
