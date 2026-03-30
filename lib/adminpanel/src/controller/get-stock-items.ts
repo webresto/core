@@ -17,6 +17,7 @@ export default async function GetStockItemsController(req: any, res: any) {
       name: d.name,
       code: d.code,
       price: d.price,
+      enable: d.enable ?? true,
       visible: d.visible,
       isDeleted: d.isDeleted ?? false,
       balance: d.balance,

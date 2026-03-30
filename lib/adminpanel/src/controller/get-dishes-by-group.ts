@@ -25,6 +25,7 @@ export default async function GetDishesByGroupController(req: any, res: any) {
             name: d.name,
             code: d.code,
             price: d.price,
+            enable: d.enable ?? true,
             visible: d.visible ?? true, // Default to true if undefined/null
             isDeleted: d.isDeleted ?? false, // Default to false if undefined/null
             balance: d.balance,

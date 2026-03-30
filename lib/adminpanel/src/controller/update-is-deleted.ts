@@ -7,16 +7,22 @@ export default async function UpdateIsDeletedController(req: any, res: any) {
             return res.sendStatus(403);
         }
 
-        const { id, model, isDeleted } = req.body;
+        const { id, model, isDeleted, enable } = req.body;
 
-        console.log('[UpdateIsDeleted] Request:', { id, model, isDeleted });
+        console.log('[UpdateIsDeleted] Request:', { id, model, isDeleted, enable });
 
-        if (!id || !model || typeof isDeleted !== 'boolean') {
+        const isDishEnableUpdate = model === 'dish' && typeof enable === 'boolean';
+        const isLegacyDeleteUpdate = typeof isDeleted === 'boolean';
+
+        if (!id || !model || (!isDishEnableUpdate && !isLegacyDeleteUpdate)) {
             console.log('[UpdateIsDeleted] Invalid parameters');
             return res.status(400).json({ error: 'Invalid parameters' });
         }
 
-        if (model === 'dish') {
+        if (model === 'dish' && isDishEnableUpdate) {
+            await Dish.update({ id }, { enable });
+            console.log('[UpdateIsDeleted] Updated dish:', id, 'enable:', enable);
+        } else if (model === 'dish') {
             await Dish.update({ id }, { isDeleted });
             console.log('[UpdateIsDeleted] Updated dish:', id, 'isDeleted:', isDeleted);
         } else if (model === 'group') {

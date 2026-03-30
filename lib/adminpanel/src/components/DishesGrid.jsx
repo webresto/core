@@ -12,7 +12,7 @@ export function DishesGrid({
     dishes,
     balances,
     onUpdateStock,
-    onUpdateIsDeleted,
+    onUpdateEnable,
     onUpdateVisible,
     onBalanceChange,
     onBulkEnable,
@@ -33,7 +33,7 @@ export function DishesGrid({
     // Filter dishes based on showAll
     const visibleDishes = showAll
         ? dishes
-        : dishes.filter(d => !d.isDeleted && d.visible !== false);
+        : dishes.filter(d => !d.isDeleted && d.enable !== false && d.visible !== false);
 
     if (visibleDishes.length === 0 && dishes.length > 0 && !showAll) {
         // If all dishes are hidden, show a message or just empty grid?
@@ -59,10 +59,9 @@ export function DishesGrid({
                 return orderA - orderB;
 
             case 'status':
-                // Disabled dishes (isDeleted === true) go to the bottom
-                // Enabled dishes (isDeleted === false or undefined) stay at the top
-                const isDisabledA = a.isDeleted === true;
-                const isDisabledB = b.isDeleted === true;
+                // Disabled dishes (enable === false or isDeleted === true) go to the bottom.
+                const isDisabledA = a.enable === false || a.isDeleted === true;
+                const isDisabledB = b.enable === false || b.isDeleted === true;
 
                 if (isDisabledA && !isDisabledB) return 1;  // A is disabled, B is not -> A goes down
                 if (!isDisabledA && isDisabledB) return -1; // B is disabled, A is not -> B goes down
@@ -118,7 +117,7 @@ export function DishesGrid({
                             dish={dish}
                             balance={balances[dish.id]}
                             onUpdateStock={onUpdateStock}
-                            onUpdateIsDeleted={onUpdateIsDeleted}
+                            onUpdateEnable={onUpdateEnable}
                             onUpdateVisible={onUpdateVisible}
                             onBalanceChange={onBalanceChange}
                         />
@@ -132,7 +131,7 @@ export function DishesGrid({
                             dish={dish}
                             balance={balances[dish.id]}
                             onUpdateStock={onUpdateStock}
-                            onUpdateIsDeleted={onUpdateIsDeleted}
+                            onUpdateEnable={onUpdateEnable}
                             onUpdateVisible={onUpdateVisible}
                             onBalanceChange={onBalanceChange}
                         />

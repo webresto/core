@@ -28,6 +28,7 @@ export default async function StockManagerSearchController(req: any, res: any) {
       name: d.name,
       code: d.code,
       price: d.price,
+      enable: d.enable ?? true,
       visible: d.visible,
       balance: d.balance,
       isDeleted: d.isDeleted,

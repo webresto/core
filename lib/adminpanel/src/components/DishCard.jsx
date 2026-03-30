@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useTranslation } from '../i18n/I18nContext';
 import { Eye, EyeOff } from 'lucide-react';
 
-export function DishCard({ dish, balance, onUpdateStock, onUpdateIsDeleted, onUpdateVisible, onBalanceChange }) {
+export function DishCard({ dish, balance, onUpdateStock, onUpdateEnable, onUpdateVisible, onBalanceChange }) {
     const { t } = useTranslation();
     const currentBalance = balance ?? dish.balance ?? 0;
     const isUnlimited = currentBalance === -1;
@@ -75,8 +75,8 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateIsDeleted, onUp
                 <div className="mb-4 flex items-center space-x-2">
                     <Checkbox
                         id={`enable-${dish.id}`}
-                        checked={!dish.isDeleted}
-                        onCheckedChange={(checked) => onUpdateIsDeleted(dish.id, 'dish', !checked)}
+                        checked={dish.enable !== false}
+                        onCheckedChange={(checked) => onUpdateEnable(dish.id, 'dish', checked === true)}
                     />
                     <Label htmlFor={`enable-${dish.id}`} className="cursor-pointer">
                         {t('dish_enable')}

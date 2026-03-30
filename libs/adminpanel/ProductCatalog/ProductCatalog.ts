@@ -29,6 +29,10 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 
 	public readonly actionHandlers: any[] = []
 
+	protected resolveModelId(modelId: string | number, data?: any): string | number {
+		return modelId ?? data?.record?.id ?? data?.id;
+	}
+
 	private toItem(data: ItemModel): Item {
 		return {
 			id: data.id,
@@ -141,6 +145,10 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 		},
 		};
 	}
+
+	public updateModelItems(modelId: string | number, data: any, catalogId: string): Promise<GroupProductItem> {
+		return this.find(this.resolveModelId(modelId, data), catalogId);
+	}
 }
 
 export class Product<T extends Item> extends BaseModelItem<T> {
@@ -190,8 +198,7 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 	}
 
 	public updateModelItems(modelId: string | number, data: any, catalogId: string): Promise<T> {
-		// For Product, no specific update needed for navigation items
-		return Promise.resolve(null as T);
+		return this.find(this.resolveModelId(modelId, data), catalogId);
 	}
 }
 

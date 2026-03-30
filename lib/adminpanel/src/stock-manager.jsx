@@ -388,7 +388,7 @@ function StockManagerContent() {
     }
   }
 
-  async function updateIsDeleted(id, model, isDeleted) {
+  async function updateEnable(id, model, enable) {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/update-is-deleted`;
@@ -407,31 +407,30 @@ function StockManagerContent() {
           'x-xsrf-token': csrfToken
         },
         credentials: 'include',
-        body: JSON.stringify({ id, model, isDeleted })
+        body: JSON.stringify({ id, model, enable })
       });
       const json = await resp.json();
       if (json.success) {
         // Update state
         if (model === 'dish') {
-          setDishes(prev => prev.map(d => d.id === id ? { ...d, isDeleted } : d));
-          setInitialItems(prev => prev.map(d => d.id === id ? { ...d, isDeleted } : d));
-          setResults(prev => prev.map(d => d.id === id ? { ...d, isDeleted } : d));
+          setDishes(prev => prev.map(d => d.id === id ? { ...d, enable } : d));
+          setInitialItems(prev => prev.map(d => d.id === id ? { ...d, enable } : d));
+          setResults(prev => prev.map(d => d.id === id ? { ...d, enable } : d));
         } else if (model === 'group') {
-          setGroups(prev => prev.map(g => g.id === id ? { ...g, isDeleted } : g));
+          setGroups(prev => prev.map(g => g.id === id ? { ...g, enable } : g));
         }
       } else {
         alert(t('stock_visibility_update_failed', { error: json.error || t('unknown_error') }));
       }
     } catch (err) {
-      console.error('update isDeleted error', err);
+      console.error('update enable error', err);
       alert(t('stock_visibility_update_error'));
     }
   }
 
   async function handleBulkEnable(dishIds, enabled) {
     try {
-      const isDeleted = !enabled;
-      const promises = dishIds.map(id => updateIsDeleted(id, 'dish', isDeleted));
+      const promises = dishIds.map(id => updateEnable(id, 'dish', enabled));
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk enable error', err);
@@ -487,7 +486,7 @@ function StockManagerContent() {
               dishes={results}
               balances={balances}
               onUpdateStock={updateStock}
-              onUpdateIsDeleted={updateIsDeleted}
+              onUpdateEnable={updateEnable}
               onUpdateVisible={updateVisible}
               onBalanceChange={handleBalanceChange}
               title={results.length === 0 ? t('no_results') : t('search_results')}
@@ -516,7 +515,7 @@ function StockManagerContent() {
                 dishes={dishes}
                 balances={balances}
                 onUpdateStock={updateStock}
-                onUpdateIsDeleted={updateIsDeleted}
+                onUpdateEnable={updateEnable}
                 onUpdateVisible={updateVisible}
                 onBalanceChange={handleBalanceChange}
                 onBulkEnable={handleBulkEnable}
