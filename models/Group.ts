@@ -44,10 +44,10 @@ let attributes = {
     allowNull: true,
   } as unknown as string,
 
-  /** Soft deletion */
+  /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
   isDeleted: "boolean" as unknown as boolean,
 
-  /** The group is enabled (managed from interface) */
+  /** System status flag. When false, the group is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
   enable: "boolean" as unknown as boolean,
 
   /** Dishes group name*/
@@ -136,8 +136,11 @@ let attributes = {
   /** The concept to which the group belongs */
   concept: "string",
 
-  /** The group is displayed*/
-  visible: "boolean" as unknown as boolean,
+  /** Visibility status sent to the frontend. The server does not filter by this field, allowing the client application to handle visibility logic. */
+  visible: {
+    type: "boolean",
+    defaultsTo: true,
+  } as unknown as boolean,
 
   /**A group of modifiers */
   modifier: "boolean" as unknown as boolean,
@@ -221,8 +224,7 @@ let Model = {
     const groups = await Group.find({ where: {
       id: groupsId,
       isDeleted: false,
-      enable: true,
-      visible: true
+      enable: true
     }})
       .populate("childGroups")
       .populate("dishes")
@@ -245,8 +247,7 @@ let Model = {
               }
             }),
             isDeleted: false,
-            enable: true,
-            visible: true
+            enable: true
           })
             .populate("childGroups")
             .populate("dishes")
@@ -366,7 +367,7 @@ let Model = {
     let allGroups: any[] | PromiseLike<string[]> = [];
     for (let group of menu) {
       const groupId = group.id
-      const initialGroup = (await Group.find({ id: groupId, isDeleted: false, enable: true, visible: true }).sort('createdAt DESC')).shift();
+      const initialGroup = (await Group.find({ id: groupId, isDeleted: false, enable: true }).sort('createdAt DESC')).shift();
       if (initialGroup) {
         allGroups.push(initialGroup);
         const childGroups = await getAllChildGroups(groupId);
@@ -376,7 +377,7 @@ let Model = {
     }
 
     async function getAllChildGroups(groupId: string) {
-      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false, enable: true, visible: true });
+      let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false, enable: true });
       let allChildGroups: any[] = [];
 
       for (let group of childGroups) {
@@ -441,8 +442,7 @@ let Model = {
         ...concept &&  { concept: concept },
         isDeleted: false,
         enable: true,
-        modifier: false,
-        visible: true
+        modifier: false
       });
 
       // Check subgroups when one group in the top menu
@@ -451,8 +451,7 @@ let Model = {
           parentGroup: groups[0].id,
           isDeleted: false,
           enable: true,
-          modifier: false,
-          visible: true
+          modifier: false
         });
         if(children) groups = children;
       }
@@ -496,8 +495,7 @@ let Model = {
         'and': [
           { 'modifier': false },
           { 'isDeleted': false },
-          { 'enable': true },
-          { 'visible': true }
+          { 'enable': true }
         ]
       },
       limit: groupLimit
@@ -506,8 +504,7 @@ let Model = {
         'and': [
           { 'modifier': false },
           { 'isDeleted': false },
-          { 'enable': true },
-          { 'visible': true }
+          { 'enable': true }
         ]
       },
       limit: includeReverse ? groupLimit : 0
@@ -517,8 +514,7 @@ let Model = {
           { 'balance': { "!=": 0 } },
           { 'modifier': false },
           { 'isDeleted': false },
-          { 'enable': true },
-          { 'visible': true }
+          { 'enable': true }
         ]
       },
       limit: includeReverse ? groupLimit : 0
@@ -541,8 +537,7 @@ let Model = {
       balance: { "!=": 0 },
       modifier: false,
       isDeleted: false,
-      enable: true,
-      visible: true
+      enable: true
     };
 
     let recommendedDishes = await sails.models.dish.find({

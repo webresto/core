@@ -111,6 +111,8 @@ export default abstract class RMSAdapter {
 
           let rootGroupsToSync = await Settings.get("ROOT_GROUPS_RMS_TO_SYNC");
           if (!rootGroupsToSync) rootGroupsToSync = [];
+          
+          const VISIBLE_BY_DEFAULT_ON_SYNC = (await Settings.get("VISIBLE_BY_DEFAULT_ON_SYNC")) ?? true;
 
           const rmsAdapter = await Adapter.getRMSAdapter();
 
@@ -131,6 +133,11 @@ export default abstract class RMSAdapter {
             for (const group of currentRMSGroupsFlatTree) {
               emitter.emit("rms-sync:before-each-group-item", group);
               group.concept = group.concept ?? "origin"
+              
+              if (group.visible === undefined) {
+                group.visible = VISIBLE_BY_DEFAULT_ON_SYNC;
+              }
+
               // Update or create a group
               const groupData = { ...group, isDeleted: false };
               await Group.createOrUpdate(groupData);
@@ -155,6 +162,10 @@ export default abstract class RMSAdapter {
 
                 // Update or create product
                 product.concept = product.concept ?? "origin"
+
+                if (product.visible === undefined) {
+                  product.visible = VISIBLE_BY_DEFAULT_ON_SYNC;
+                }
 
                 let createdProduct = await Dish.createOrUpdate(product);
 
@@ -210,7 +221,7 @@ export default abstract class RMSAdapter {
                   { parentGroup: null }
                 ] 
               } 
-            }, 
+              }, 
               { isDeleted: true }
             ).fetch();
 

@@ -1,0 +1,9 @@
+{
+  "key": "VISIBLE_BY_DEFAULT_ON_SYNC",
+  "type": "boolean",
+  "name": "Visible by default on sync",
+  "description": "If true, new dishes and categories from RMS sync will be visible: true by default",
+  "readOnly": false,
+  "defaultValue": true,
+  "isRequired": true
+}

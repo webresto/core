@@ -15,7 +15,6 @@ export default function (obj: AdditionalInfo): string {
   }
 
   try {
-    if (obj.visible !== undefined && obj.visible === false) return "visible";
 
     if (obj.worktime) {
       if (!checkTime(obj.worktime)) {
