@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '../i18n/I18nContext';
+import { Eye, EyeOff } from 'lucide-react';
 
-export function DishListItem({ dish, balance, onUpdateStock, onUpdateIsDeleted, onBalanceChange }) {
+export function DishListItem({ dish, balance, onUpdateStock, onUpdateIsDeleted, onUpdateVisible, onBalanceChange }) {
     const { t } = useTranslation();
     const currentBalance = balance ?? dish.balance ?? 0;
     const isUnlimited = currentBalance === -1;
@@ -42,6 +43,10 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateIsDeleted, 
         onUpdateStock(dish.id, -1);
     };
 
+    const toggleVisibility = () => {
+        onUpdateVisible(dish.id, 'dish', !dish.visible);
+    };
+
     return (
         <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-card hover:bg-muted/50 transition-colors">
             {/* Name and Info */}
@@ -52,6 +57,17 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateIsDeleted, 
                     <span>{t('dish_price')}: {dish.price ?? '—'}</span>
                 </div>
             </div>
+
+            {/* Visibility Toggle */}
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleVisibility}
+                title={t('dish_visible')}
+                className="h-8 w-8 p-0"
+            >
+                {dish.visible !== false ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5 text-red-500" />}
+            </Button>
 
             {/* Enable Toggle */}
             <div className="flex items-center gap-2">

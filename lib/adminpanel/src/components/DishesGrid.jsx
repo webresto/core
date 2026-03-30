@@ -5,7 +5,7 @@ import { GroupToolbox } from './GroupToolbox';
 import { ViewToggle } from './ViewToggle';
 import { SortToggle } from './SortToggle';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff } from 'lucide-react';
+import { Search, CheckSquare, Square } from 'lucide-react';
 import { useTranslation } from '../i18n/I18nContext';
 
 export function DishesGrid({
@@ -13,7 +13,9 @@ export function DishesGrid({
     balances,
     onUpdateStock,
     onUpdateIsDeleted,
+    onUpdateVisible,
     onBalanceChange,
+    onBulkEnable,
     onBulkVisibility,
     onBulkBalance,
     title,
@@ -22,18 +24,18 @@ export function DishesGrid({
     onViewModeChange,
     sortMode = 'status',
     onSortModeChange,
-    showDeleted = true,
-    onShowDeletedChange
+    showAll = true,
+    onShowAllChange
 }) {
     const { t } = useTranslation();
     const displayTitle = title || t('dishes_title');
 
-    // Filter dishes based on showDeleted
-    const visibleDishes = showDeleted
+    // Filter dishes based on showAll
+    const visibleDishes = showAll
         ? dishes
-        : dishes.filter(d => !d.isDeleted);
+        : dishes.filter(d => !d.isDeleted && d.visible !== false);
 
-    if (visibleDishes.length === 0 && dishes.length > 0 && !showDeleted) {
+    if (visibleDishes.length === 0 && dishes.length > 0 && !showAll) {
         // If all dishes are hidden, show a message or just empty grid?
         // For now, let's just show empty grid, or maybe we should show the toggle even if empty?
     }
@@ -78,15 +80,16 @@ export function DishesGrid({
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold">{displayTitle}</h3>
                 <div className="flex items-center gap-2">
-                    {onShowDeletedChange && (
+                    {onShowAllChange && (
                         <Button
-                            variant="outline"
+                            variant={showAll ? "default" : "outline"}
                             size="sm"
-                            onClick={() => onShowDeletedChange(!showDeleted)}
-                            title={t('show_disabled')}
-                            className={`h-8 gap-2 ${showDeleted ? 'bg-accent text-accent-foreground' : ''}`}
+                            onClick={() => onShowAllChange(!showAll)}
+                            title={t('show_all')}
+                            className={`h-8 gap-2 ${showAll ? 'shadow-sm' : ''}`}
                         >
-                            {showDeleted ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                            <Search className="w-4 h-4" />
+                            {t('show_all')}
                         </Button>
                     )}
                     {onSortModeChange && (
@@ -101,6 +104,7 @@ export function DishesGrid({
             {showToolbox && (
                 <GroupToolbox
                     dishes={sortedDishes}
+                    onBulkEnable={onBulkEnable}
                     onBulkVisibility={onBulkVisibility}
                     onBulkBalance={onBulkBalance}
                 />
@@ -115,6 +119,7 @@ export function DishesGrid({
                             balance={balances[dish.id]}
                             onUpdateStock={onUpdateStock}
                             onUpdateIsDeleted={onUpdateIsDeleted}
+                            onUpdateVisible={onUpdateVisible}
                             onBalanceChange={onBalanceChange}
                         />
                     ))}
@@ -128,6 +133,7 @@ export function DishesGrid({
                             balance={balances[dish.id]}
                             onUpdateStock={onUpdateStock}
                             onUpdateIsDeleted={onUpdateIsDeleted}
+                            onUpdateVisible={onUpdateVisible}
                             onBalanceChange={onBalanceChange}
                         />
                     ))}

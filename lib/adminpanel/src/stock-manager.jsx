@@ -7,6 +7,8 @@ import { GroupsGrid } from './components/GroupsGrid';
 import { DishesGrid } from './components/DishesGrid';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 
+import { HelpButton } from './components/HelpButton';
+
 // StockManager component with folder navigation and search
 // StockManager content component
 function StockManagerContent() {
@@ -34,9 +36,9 @@ function StockManagerContent() {
     return localStorage.getItem('stockManagerSortMode') || 'status';
   });
 
-  // Show deleted dishes state
-  const [showDeleted, setShowDeleted] = useState(() => {
-    const saved = localStorage.getItem('stockManagerShowDeleted');
+  // Show all dishes state (including disabled and hidden)
+  const [showAll, setShowAll] = useState(() => {
+    const saved = localStorage.getItem('stockManagerShowAll');
     return saved !== null ? JSON.parse(saved) : true;
   });
 
@@ -50,10 +52,10 @@ function StockManagerContent() {
     localStorage.setItem('stockManagerSortMode', sortMode);
   }, [sortMode]);
 
-  // Persist show deleted changes
+  // Persist show all changes
   useEffect(() => {
-    localStorage.setItem('stockManagerShowDeleted', JSON.stringify(showDeleted));
-  }, [showDeleted]);
+    localStorage.setItem('stockManagerShowAll', JSON.stringify(showAll));
+  }, [showAll]);
 
   // Parse URL to get current group slug
   function getGroupSlugFromUrl() {
@@ -346,6 +348,46 @@ function StockManagerContent() {
 
 
 
+  async function updateVisible(id, model, visible) {
+    try {
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+      const endpoint = `${base}/core/update-visibility`;
+      const csrfToken = (() => {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === 'XSRF-TOKEN') return decodeURIComponent(value);
+        }
+        return null;
+      })();
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-xsrf-token': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify({ id, model, visible })
+      });
+      const json = await resp.json();
+      if (json.success) {
+        // Update state
+        if (model === 'dish') {
+          setDishes(prev => prev.map(d => d.id === id ? { ...d, visible } : d));
+          setInitialItems(prev => prev.map(d => d.id === id ? { ...d, visible } : d));
+          setResults(prev => prev.map(d => d.id === id ? { ...d, visible } : d));
+        } else if (model === 'group') {
+          setGroups(prev => prev.map(g => g.id === id ? { ...g, visible } : g));
+        }
+      } else {
+        alert(t('stock_visibility_update_failed', { error: json.error || t('unknown_error') }));
+      }
+    } catch (err) {
+      console.error('update visible error', err);
+      alert(t('stock_visibility_update_error'));
+    }
+  }
+
   async function updateIsDeleted(id, model, isDeleted) {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
@@ -386,13 +428,20 @@ function StockManagerContent() {
     }
   }
 
+  async function handleBulkEnable(dishIds, enabled) {
+    try {
+      const isDeleted = !enabled;
+      const promises = dishIds.map(id => updateIsDeleted(id, 'dish', isDeleted));
+      await Promise.all(promises);
+    } catch (err) {
+      console.error('bulk enable error', err);
+      alert(t('stock_bulk_visibility_update_error'));
+    }
+  }
+
   async function handleBulkVisibility(dishIds, visible) {
     try {
-      // Update all dishes in parallel
-      // visible = true => isDeleted = false
-      // visible = false => isDeleted = true
-      const isDeleted = !visible;
-      const promises = dishIds.map(id => updateIsDeleted(id, 'dish', isDeleted));
+      const promises = dishIds.map(id => updateVisible(id, 'dish', visible));
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk visibility error', err);
@@ -439,6 +488,7 @@ function StockManagerContent() {
               balances={balances}
               onUpdateStock={updateStock}
               onUpdateIsDeleted={updateIsDeleted}
+              onUpdateVisible={updateVisible}
               onBalanceChange={handleBalanceChange}
               title={results.length === 0 ? t('no_results') : t('search_results')}
               viewMode={viewMode}
@@ -459,6 +509,7 @@ function StockManagerContent() {
               <GroupsGrid
                 groups={groups}
                 onGroupClick={handleGroupClick}
+                onUpdateVisible={updateVisible}
               />
 
               <DishesGrid
@@ -466,7 +517,9 @@ function StockManagerContent() {
                 balances={balances}
                 onUpdateStock={updateStock}
                 onUpdateIsDeleted={updateIsDeleted}
+                onUpdateVisible={updateVisible}
                 onBalanceChange={handleBalanceChange}
+                onBulkEnable={handleBulkEnable}
                 onBulkVisibility={handleBulkVisibility}
                 onBulkBalance={handleBulkBalance}
                 showToolbox={true}
@@ -474,8 +527,8 @@ function StockManagerContent() {
                 onViewModeChange={setViewMode}
                 sortMode={sortMode}
                 onSortModeChange={setSortMode}
-                showDeleted={showDeleted}
-                onShowDeletedChange={setShowDeleted}
+                showAll={showAll}
+                onShowAllChange={setShowAll}
               />
 
               {groups.length === 0 && dishes.length === 0 && (
@@ -491,7 +544,10 @@ function StockManagerContent() {
   return (
     <div className="p-6 max-w-[1600px] mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{t('stock_manager_title')}</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold">{t('stock_manager_title')}</h1>
+          <HelpButton />
+        </div>
       </div>
       <Tabs tabs={tabs} defaultTab="out-of-stock" />
     </div>

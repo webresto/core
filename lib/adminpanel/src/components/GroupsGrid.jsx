@@ -2,7 +2,7 @@ import React from 'react';
 import { GroupCard } from './GroupCard';
 import { useTranslation } from '../i18n/I18nContext';
 
-export function GroupsGrid({ groups, onGroupClick }) {
+export function GroupsGrid({ groups, onGroupClick, onUpdateVisible }) {
     const { t } = useTranslation();
 
     if (groups.length === 0) {
@@ -18,6 +18,7 @@ export function GroupsGrid({ groups, onGroupClick }) {
                         key={group.id}
                         group={group}
                         onGroupClick={onGroupClick}
+                        onUpdateVisible={onUpdateVisible}
                     />
                 ))}
             </div>

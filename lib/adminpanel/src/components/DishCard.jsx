@@ -5,8 +5,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '../i18n/I18nContext';
+import { Eye, EyeOff } from 'lucide-react';
 
-export function DishCard({ dish, balance, onUpdateStock, onUpdateIsDeleted, onBalanceChange }) {
+export function DishCard({ dish, balance, onUpdateStock, onUpdateIsDeleted, onUpdateVisible, onBalanceChange }) {
     const { t } = useTranslation();
     const currentBalance = balance ?? dish.balance ?? 0;
     const isUnlimited = currentBalance === -1;
@@ -45,10 +46,27 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateIsDeleted, onBa
         onUpdateStock(dish.id, -1);
     };
 
+    const toggleVisibility = (e) => {
+        // Prevent clicking the card if we're inside a header
+        e.stopPropagation();
+        onUpdateVisible(dish.id, 'dish', !dish.visible);
+    };
+
     return (
-        <Card>
-            <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-lg">{dish.name || '—'}</CardTitle>
+        <Card className="relative">
+            <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between space-y-0">
+                <CardTitle className="text-lg leading-tight pr-6">{dish.name || '—'}</CardTitle>
+                <button 
+                    onClick={toggleVisibility}
+                    className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+                    title={t('dish_visible')}
+                >
+                    {dish.visible !== false ? (
+                         <Eye className="w-5 h-5" />
+                    ) : (
+                         <EyeOff className="w-5 h-5 text-red-500" />
+                    )}
+                </button>
             </CardHeader>
             <CardContent className="p-4 pt-0">
                 <div className="mb-2 text-sm text-muted-foreground">{t('dish_code')}: {dish.code || ''}</div>
