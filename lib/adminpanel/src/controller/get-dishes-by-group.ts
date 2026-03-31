@@ -13,7 +13,7 @@ export default async function GetDishesByGroupController(req: any, res: any) {
         }
 
         const where: any = {
-            // isDeleted: false,
+            isDeleted: false,
             parentGroup: groupId
         };
 

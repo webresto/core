@@ -30,10 +30,12 @@ export function DishesGrid({
     const { t } = useTranslation();
     const displayTitle = title || t('dishes_title');
 
-    // Filter dishes based on showAll
-    const visibleDishes = showAll
-        ? dishes
-        : dishes.filter(d => !d.isDeleted && d.enable !== false && d.visible !== false);
+    // Deleted dishes must never appear in stock manager.
+    const visibleDishes = dishes.filter((d) => {
+        if (d.isDeleted) return false;
+        if (showAll) return true;
+        return d.enable !== false && d.visible !== false;
+    });
 
     if (visibleDishes.length === 0 && dishes.length > 0 && !showAll) {
         // If all dishes are hidden, show a message or just empty grid?

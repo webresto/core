@@ -494,8 +494,8 @@ function StockManagerContent() {
               onViewModeChange={setViewMode}
               sortMode={sortMode}
               onSortModeChange={setSortMode}
-              showDeleted={showDeleted}
-              onShowDeletedChange={setShowDeleted}
+              showAll={showAll}
+              onShowAllChange={setShowAll}
             />
           ) : (
             <div>

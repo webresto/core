@@ -13,7 +13,7 @@ export default async function GetGroupsController(req: any, res: any) {
             groups = await Group.find({
                 where: {
                     parentGroup: parentId,
-                    // isDeleted: false
+                    isDeleted: false
                 }
             });
         } else {
@@ -24,7 +24,7 @@ export default async function GetGroupsController(req: any, res: any) {
             groups = await Group.find({
                 where: {
                     parentGroup: null,
-                    // isDeleted: false
+                    isDeleted: false
                 }
             });
         }

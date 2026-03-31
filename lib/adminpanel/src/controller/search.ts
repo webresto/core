@@ -10,8 +10,8 @@ export default async function StockManagerSearchController(req: any, res: any) {
     const q = (req.query.q || '').toString().trim();
     if (!q) return res.json({ results: [] });
 
-    const where: any = { 
-      // isDeleted: false 
+    const where: any = {
+      isDeleted: false
     };
 
     // Search by name or code (contains)
