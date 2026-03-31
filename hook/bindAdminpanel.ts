@@ -17,13 +17,34 @@ export default function bindAdminpanel() {
       return;
     }
 
+    const adminizer = sails.hooks.adminpanel.adminizer;
+
     // Catalog bind
-    const catalogHandler = sails.hooks.adminpanel.adminizer.catalogHandler
+    const catalogHandler = adminizer.catalogHandler
     const productCatalog = new ProductCatalog()
     catalogHandler.add(productCatalog);
+    try {
+      const catalogIds = await productCatalog.getIdList();
+      adminizer.accessRightsHelper.registerTokens([
+        {
+          id: 'catalog-products',
+          name: 'Product catalog',
+          description: 'Access to edit catalog for products',
+          department: 'catalog'
+        },
+        ...catalogIds.map((catalogId: string) => ({
+          id: `catalog-products-${catalogId}`,
+          name: `Product catalog (${catalogId})`,
+          description: `Access to edit catalog for products-${catalogId}`,
+          department: 'catalog'
+        }))
+      ]);
+    } catch (e) {
+      sails.log.warn('Catalog access rights registration skipped', e);
+    }
 
     // Product media manager bind
-    const mediaManagerHandler = sails.hooks.adminpanel.adminizer.mediaManagerHandler
+    const mediaManagerHandler = adminizer.mediaManagerHandler
     const productMediaManager = new ProductMediaManager()
     mediaManagerHandler.add(productMediaManager)
 
@@ -41,7 +62,21 @@ export default function bindAdminpanel() {
     // Initialize dashboard widgets
     initializeWidgets();
 
-    const adminizer = sails.hooks.adminpanel.adminizer;
+    adminizer.accessRightsHelper.registerTokens([
+      {
+        id: 'stock-manager',
+        name: 'Stock Manager',
+        description: 'Access to Stock Manager module and its API endpoints',
+        department: 'Catalog'
+      },
+      {
+        id: 'order-kanban',
+        name: 'Current Orders',
+        description: 'Access to Current Orders module and its API endpoints',
+        department: 'Orders'
+      }
+    ]);
+
     adminizer.config.navbar.additionalLinks.push({
       id: 'restoapp-catalog',
       title: 'Products',
@@ -131,6 +166,7 @@ function processBindAdminpanel() {
             title: 'Stock Manager',
             link: `${routePrefix}/stock-manager`,
             icon: 'warehouse',
+            accessToken: 'stock-manager',
             section: 'Catalog'
           });
 
@@ -150,6 +186,7 @@ function processBindAdminpanel() {
             title: 'Current Orders',
             link: `${routePrefix}/order-kanban`,
             icon: 'view_kanban',
+            accessToken: 'order-kanban',
             section: 'Orders'
           });
 
@@ -283,5 +320,3 @@ function processBindAdminpanel() {
   });
 
 }
-
-
