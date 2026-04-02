@@ -112,15 +112,15 @@ function processBindAdminpanel() {
     sails.log.warn("Adminpanel model bindings are skipped: failed to load model configs", e);
   }
 
-  if (Array.isArray(sails.config.adminpanel?.sections)) {
-    let baseRoute = sails.config.adminpanel.routePrefix;
-    sails.config.adminpanel.sections.push({
-      id: 'products',
-      title: 'Products',
-      link: `${baseRoute}/catalog/products`,
-      icon: `barcode`
-    });
-  }
+  // if (Array.isArray(sails.config.adminpanel?.sections)) {
+  //   let baseRoute = sails.config.adminpanel.routePrefix;
+  //   sails.config.adminpanel.sections.push({
+  //     id: 'products',
+  //     title: 'Products',
+  //     link: `${baseRoute}/catalog/products`,
+  //     icon: `barcode`
+  //   });
+  // }
 
   // Configure dashboard widgets
   if (sails.config.adminpanel?.dashboard) {
