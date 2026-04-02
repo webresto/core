@@ -1,0 +1,9 @@
+{
+  "key": "RMS_LAST_SUCCESSFUL_MENU_DISHES_SYNC_AT",
+  "type": "string",
+  "name": "Last Successful Menu Dishes Sync",
+  "description": "Automatically updated after a successful RMS menu dishes synchronization",
+  "readOnly": true,
+  "defaultValue": "",
+  "isRequired": false
+}

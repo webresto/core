@@ -1,0 +1,9 @@
+{
+  "key": "RMS_LAST_SUCCESSFUL_STOPLISTS_SYNC_AT",
+  "type": "string",
+  "name": "Last Successful Stoplists Sync",
+  "description": "Automatically updated after a successful RMS stoplists synchronization",
+  "readOnly": true,
+  "defaultValue": "",
+  "isRequired": false
+}

@@ -43,6 +43,7 @@ declare global {
     "rms-sync:before-each-product-item": [DishRecord]
     "rms-sync:after-sync-products": []
     "rms-sync:out-of-stocks-before-each-product-item": [Pick<DishRecord, "balance" | "rmsId">]
+    "rms-sync:after-sync-out-of-stocks": []
     "core:product-before-create": [DishRecord]
     "core:payment-document-check": [PaymentDocumentRecord]
     "core:payment-document-paid": [PaymentDocumentRecord]

@@ -25,6 +25,13 @@ export default abstract class RMSAdapter {
   private syncProductsPromise: ObservablePromise<void>;
   private syncOutOfStocksPromise: ObservablePromise<void>;
 
+  private async writeLastSuccessfulSyncDate(settingKey: "RMS_LAST_SUCCESSFUL_MENU_DISHES_SYNC_AT" | "RMS_LAST_SUCCESSFUL_STOPLISTS_SYNC_AT"): Promise<void> {
+    await Settings.set(settingKey, {
+      key: settingKey,
+      value: new Date().toISOString()
+    });
+  }
+
   public constructor(config?: ConfigRMSAdapter) {
     this.config = config;
 
@@ -226,6 +233,7 @@ export default abstract class RMSAdapter {
             ).fetch();
 
             await Dish.update({id: { in: allProductIds }}, {isDeleted: false}).fetch();
+            await this.writeLastSuccessfulSyncDate("RMS_LAST_SUCCESSFUL_MENU_DISHES_SYNC_AT");
             emitter.emit("rms-sync:after-sync-products");
           }
           resolve();
@@ -264,6 +272,8 @@ export default abstract class RMSAdapter {
             emitter.emit("rms-sync:out-of-stocks-before-each-product-item", item);
             await Dish.update({rmsId: item.rmsId}, {balance: item.balance}).fetch()
           }
+          await this.writeLastSuccessfulSyncDate("RMS_LAST_SUCCESSFUL_STOPLISTS_SYNC_AT");
+          emitter.emit("rms-sync:after-sync-out-of-stocks");
           resolve();
         } catch (error) {
           sails.log.error(`RMS adapter syncOutOfStocks error:`, error);
