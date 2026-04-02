@@ -32,6 +32,8 @@ describe("RMS adapter", function () {
     
     let count = await Dish.count({isDeleted: false});
     expect(count).to.equal(616)
+    const lastMenuSyncAt = await Settings.get("RMS_LAST_SUCCESSFUL_MENU_DISHES_SYNC_AT");
+    expect(lastMenuSyncAt).to.be.a("string").and.not.equal("");
     let groups = await Group.find({isDeleted: false})
     const countGroups = groups.length
     expect(countGroups).to.equal(88); 
@@ -49,6 +51,13 @@ describe("RMS adapter", function () {
     await rmsAdapter.syncProducts();
     count = await Dish.count({isDeleted: false});
     expect(count).to.equal(616)
+  });
+
+  it("SyncOutOfStocks writes timestamp", async () => {
+    await rmsAdapter.syncOutOfStocks();
+
+    const lastStoplistsSyncAt = await Settings.get("RMS_LAST_SUCCESSFUL_STOPLISTS_SYNC_AT");
+    expect(lastStoplistsSyncAt).to.be.a("string").and.not.equal("");
   });
   
 });

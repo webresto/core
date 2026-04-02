@@ -19,7 +19,7 @@ export class TestRMS  extends RMSAdapter {
 
     }
     protected async loadOutOfStocksDishes(concept?: string): Promise<DishRecord[]> {
-        return
+        return []
     }
     protected  async nomenclatureHasUpdated(): Promise<boolean> {
         return true
