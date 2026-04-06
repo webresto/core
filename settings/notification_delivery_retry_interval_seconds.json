@@ -1,0 +1,12 @@
+{
+  "key": "NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS",
+  "type": "number",
+  "name": "Notification Delivery Retry Interval (seconds)",
+  "description": "How often the delivery loop retries 'pending' notifications",
+  "defaultValue": 60,
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 10
+  },
+  "isRequired": false
+}

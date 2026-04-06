@@ -25,20 +25,26 @@
  */
 
 import { UserRecord } from "../models/User";
+import { UserDeviceRecord } from "../models/UserDevice";
 
 // todo: fix types model instance to {%ModelName%}Record for User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string
 type ChannelType = "sms" | "email" | "mobile-push" | string
 
+export type DeliveryStatus = {
+  delivered: boolean
+  read?: boolean
+  deliveredAt?: Date
+  readAt?: Date
+  raw?: object
+}
+
 export abstract class Channel {
   public abstract type: ChannelType;
 
-  // TODO: Add readStatus
-  // public hasReadStatus: boolean = false;
-
   /**
-   * If forceSend true it should send anytime
+   * If forceSend true it should send anytime (e.g. audit channels)
    */
   public abstract forceSend: boolean;
   public abstract forGroupTo: MessageGroupTo[];
@@ -46,12 +52,39 @@ export abstract class Channel {
    * The sorting will be from smallest to largest, the one who is smaller is the one who comes first
    */
   public abstract sortOrder: number;
+  /**
+   * Cost per message in arbitrary units (e.g. USD cents).
+   * 0 = free (WebSocket, FCM). Used for channel ordering: free channels go first.
+   */
+  public abstract cost: number;
 
-  protected abstract send(badge: Badge, message: string, user: UserRecord, subject?: string, data?: object): Promise<void>;
+  /**
+   * Check if channel is operational before attempting to send.
+   * Default: always ready. Override for health checks (e.g. check if firebase-admin initialized).
+   */
+  public async isReady(): Promise<boolean> {
+    return true;
+  }
 
-  public async trySendMessage(badge: Badge, message: string, user: UserRecord, subject?: string, data?: object): Promise<boolean> {
+  protected abstract send(
+    badge: Badge,
+    message: string,
+    user: UserRecord,
+    subject?: string,
+    data?: object,
+    priorityDevice?: UserDeviceRecord
+  ): Promise<string | void>;
+
+  public async trySendMessage(
+    badge: Badge,
+    message: string,
+    user: UserRecord,
+    subject?: string,
+    data?: object,
+    priorityDevice?: UserDeviceRecord
+  ): Promise<boolean> {
     try {
-      await this.send(badge, message, user, subject, data);
+      await this.send(badge, message, user, subject, data, priorityDevice);
       sails.log.debug(`Notification manager > ${this.type}: ${badge}, ${message}, ${user}`);
       return true;
     } catch (error) {
@@ -59,6 +92,14 @@ export abstract class Channel {
       sails.log.warn(`✉️ Notification manager > console: ${badge}, ${message}, ${user}`)
       return false;
     }
+  }
+
+  /**
+   * Optional: check delivery status using the messageId returned from send().
+   * Returns null if the channel does not support delivery checks.
+   */
+  public async checkDelivery(messageId: string): Promise<DeliveryStatus | null> {
+    return null;
   }
 }
 
@@ -114,18 +155,25 @@ export class NotificationManager {
     let sent = false;
 
     for (const channel of this.channels) {
-      if(sent) break;
       if (!channel.forGroupTo.includes(groupTo)) continue;
       if (channelType && channel.type !== channelType) continue;
 
-      if (sent && channel.forceSend !== true) {
+      if (!(await channel.isReady())) {
+        sails.log.verbose(`[NotificationManager] Channel ${channel.type} not ready, skipping`);
         continue;
       }
-      
-      sent = await channel.trySendMessage(badge, message, user, subject, data);
+
+      const ok = await channel.trySendMessage(badge, message, user, subject, data);
+
+      if (ok) {
+        sent = true;
+        if (channel.forceSend !== true) break;
+        // forceSend → продолжаем (напр. audit-канал)
+      }
+      // неудача → continue автоматически, идём к следующему каналу
     }
 
-    if(!sent){
+    if (!sent) {
       throw new Error(`Failed to send message to group ${groupTo}, ${channelType ? channelType: ""}, message: ${message}`);
     }
   };
@@ -142,6 +190,9 @@ export class NotificationManager {
 
   public static registerChannel = (channel: Channel): void => {
     NotificationManager.channels.push(channel);
-    NotificationManager.channels.sort((a, b) => a.sortOrder - b.sortOrder);
+    NotificationManager.channels.sort((a, b) => {
+      if (a.cost !== b.cost) return a.cost - b.cost;  // бесплатные первыми
+      return a.sortOrder - b.sortOrder;               // внутри группы по sortOrder
+    });
   };
 }

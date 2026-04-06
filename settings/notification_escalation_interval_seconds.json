@@ -1,0 +1,12 @@
+{
+  "key": "NOTIFICATION_ESCALATION_INTERVAL_SECONDS",
+  "type": "number",
+  "name": "Notification Escalation Interval (seconds)",
+  "description": "How often the escalation loop checks for unread sent notifications",
+  "defaultValue": 60,
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 10
+  },
+  "isRequired": false
+}

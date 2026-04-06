@@ -1,0 +1,12 @@
+{
+  "key": "NOTIFICATION_UNREAD_ESCALATION_MINUTES",
+  "type": "number",
+  "name": "Notification Unread Escalation Timeout (minutes)",
+  "description": "Minutes after which a 'sent' notification that hasn't been read is escalated to the next channel",
+  "defaultValue": 5,
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 1
+  },
+  "isRequired": false
+}

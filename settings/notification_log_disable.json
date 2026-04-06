@@ -1,0 +1,8 @@
+{
+  "key": "NOTIFICATION_LOG_DISABLE",
+  "type": "boolean",
+  "name": "Disable Notification Logs",
+  "description": "If true, notification log entries are not written to the database (emitter events still fire)",
+  "defaultValue": false,
+  "isRequired": false
+}

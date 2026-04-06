@@ -1,4 +1,5 @@
 import { generateUUID } from "../libs/hashCode";
+import { NotificationDispatcher } from "../libs/NotificationDispatcher";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -69,6 +70,13 @@ export default async function () {
     } catch (error) {
       sails.log.warn(" RestoCore > RMS adapter is not set ");
     }
+
+    // Notification delivery: retry pending + escalate unread sent
+    const deliveryInterval = (await Settings.get("NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS")) ?? 60;
+    const escalationInterval = (await Settings.get("NOTIFICATION_ESCALATION_INTERVAL_SECONDS")) ?? 60;
+    NotificationDispatcher.startDeliveryLoop(deliveryInterval);
+    NotificationDispatcher.startEscalationLoop(escalationInterval);
+
   } catch (e) {
     sails.log.error("RestoCore > initialization error > ", e);
   }

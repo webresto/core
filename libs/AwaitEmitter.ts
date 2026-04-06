@@ -111,6 +111,8 @@ declare global {
     "core:order-set-tag": [CriteriaQuery<OrderRecord>, string],
     "core:order-set-custom-data": [CriteriaQuery<OrderRecord>, object],
     "core:order-after-remove-dish": [OrderRecord, string, DishRecord, number, boolean]
+    "core:notification-created": [import("../models/Notification").NotificationRecord]
+    "core:notification-log": [import("../models/Notification").NotificationRecord, import("./NotificationLogHelper").NotificationLogEntry]
   }
 }
 

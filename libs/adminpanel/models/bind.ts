@@ -1,6 +1,7 @@
 import { GroupConfig } from "./lib/group";
 import { ProductConfig } from "./lib/product";
 import { OrderConfig } from "./lib/order";
+import { NotificationConfig } from "./lib/notification";
 
 export const models = {
   user: {
@@ -138,6 +139,14 @@ export const models = {
         createdAt: true
       }
     }
+  },
+  notification: {
+    model: "notification",
+    title: "Notifications",
+    icon: "notifications",
+    list: NotificationConfig.list(),
+    edit: NotificationConfig.edit(),
+    remove: false,
   },
   settings: {
     title: "Settings",

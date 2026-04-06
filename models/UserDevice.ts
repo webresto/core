@@ -3,6 +3,13 @@ import  { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { UserRecord } from "./User";
+
+export type NotificationToken = {
+  provider: "fcm" | "apns" | "webpush" | string;
+  platform: "ios" | "android" | "web";
+  token: string;
+  updatedAt: number;
+};
 let attributes = {
 
   /** ID */
@@ -34,6 +41,12 @@ let attributes = {
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
+
+  /** Провайдер-независимый токен уведомлений (FCM, APNs, WebPush и т.д.) */
+  notificationToken: {
+    type: "json",
+    allowNull: true,
+  } as unknown as NotificationToken | null,
 };
 
 type attributes = typeof attributes;
@@ -74,6 +87,10 @@ let Model = {
   /** Method set lastActivity for a device */
   async setActivity(criteria: CriteriaQuery<UserDeviceRecord>, client:  { lastIP?: string , userAgent?: string } = {}): Promise<void> {
     await UserDevice.update(criteria, client).fetch();
+  },
+
+  async setNotificationToken(deviceId: string, token: NotificationToken): Promise<void> {
+    await UserDevice.updateOne({ id: deviceId }).set({ notificationToken: token });
   },
 
   async checkSession(sessionId: string, userId: string, client: { lastIP?: string , userAgent?: string } = {}): Promise<boolean> {
