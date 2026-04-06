@@ -68,8 +68,12 @@ declare global {
         MODULE_STORAGE_LICENSE: string;
         /**
          * Allow settings without strict declaration presented in specification
-         * */
+          * */
         ALLOW_UNSAFE_SETTINGS: boolean;
+        /**
+         * Set visible: true for new dishes and groups from RMS sync
+         * */
+        VISIBLE_BY_DEFAULT_ON_SYNC: boolean;
     }
 }
 interface SettingsSetInputBase<K extends string, F> {

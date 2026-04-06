@@ -77,9 +77,9 @@ declare let attributes: {
     weight: number;
     /** Sorting order */
     sortOrder: number;
-    /** The dish is removed */
+    /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
     isDeleted: boolean;
-    /** The dish is enabled (managed from interface) */
+    /** System status flag. When false, the item is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
     enable: boolean;
     /** The dish can be modified*/
     isModificable: boolean;
@@ -87,7 +87,7 @@ declare let attributes: {
     parentGroup: GroupRecord | any;
     /** Tags for filtering (vegetarian, sharp ...) */
     tags: any;
-    /** Balance for sale, if -1, then as much as you like */
+    /** Stock availability quantity. Use -1 for infinite stock, 0 for out of stock. Managed by inventory synchronization. */
     balance: number;
     /** The human easy readable */
     slug: string;
@@ -95,7 +95,7 @@ declare let attributes: {
     concept: string;
     /** Hash */
     hash: string;
-    /** Can be seen on the site on the menu */
+    /** Visibility status sent to the frontend. The server does not filter by this field, allowing the client application to handle visibility logic. */
     visible: boolean;
     /** A sign that this is a modifier */
     modifier: boolean;

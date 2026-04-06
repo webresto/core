@@ -34,9 +34,9 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    /** Soft deletion */
+    /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
     isDeleted: "boolean",
-    /** The group is enabled (managed from interface) */
+    /** System status flag. When false, the group is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
     enable: "boolean",
     /** Dishes group name*/
     name: {
@@ -106,8 +106,11 @@ let attributes = {
     },
     /** The concept to which the group belongs */
     concept: "string",
-    /** The group is displayed*/
-    visible: "boolean",
+    /** Visibility status sent to the frontend. The server does not filter by this field, allowing the client application to handle visibility logic. */
+    visible: {
+        type: "boolean",
+        defaultsTo: true,
+    },
     /**A group of modifiers */
     modifier: "boolean",
     /**  A sign that this is a promo group
@@ -248,7 +251,7 @@ let Model = {
             throw "groupSlug is required";
         let groupObj;
         if (process.env.UNIQUE_SLUG === "1") {
-            groupObj = await Group.findOne({ slug: groupSlug });
+            groupObj = await Group.findOne({ slug: groupSlug, isDeleted: false });
         }
         else {
             groupObj = (await Group.find({ slug: groupSlug, isDeleted: false, enable: true }).limit(1))[0];
@@ -267,7 +270,7 @@ let Model = {
     // https://github.com/balderdashy/waterline/pull/902
     async display(criteria) {
         const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
-        const groups = await Group.find(criteria);
+        const groups = await Group.find({ ...criteria, isDeleted: false });
         // Set virtual default
         groups.forEach((group) => {
             group.discountAmount = 0;
@@ -358,8 +361,7 @@ let Model = {
                 ...concept && { concept: concept },
                 isDeleted: false,
                 enable: true,
-                modifier: false,
-                visible: true
+                modifier: false
             });
             // Check subgroups when one group in the top menu
             if (groups.length === 1 && topLevelGroupId === undefined) {
@@ -367,8 +369,7 @@ let Model = {
                     parentGroup: groups[0].id,
                     isDeleted: false,
                     enable: true,
-                    modifier: false,
-                    visible: true
+                    modifier: false
                 });
                 if (children)
                     groups = children;
@@ -408,8 +409,7 @@ let Model = {
                 'and': [
                     { 'modifier': false },
                     { 'isDeleted': false },
-                    { 'enable': true },
-                    { 'visible': true }
+                    { 'enable': true }
                 ]
             },
             limit: groupLimit
@@ -418,8 +418,7 @@ let Model = {
                 'and': [
                     { 'modifier': false },
                     { 'isDeleted': false },
-                    { 'enable': true },
-                    { 'visible': true }
+                    { 'enable': true }
                 ]
             },
             limit: includeReverse ? groupLimit : 0
@@ -429,8 +428,7 @@ let Model = {
                     { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
-                    { 'enable': true },
-                    { 'visible': true }
+                    { 'enable': true }
                 ]
             },
             limit: includeReverse ? groupLimit : 0
@@ -448,8 +446,7 @@ let Model = {
             balance: { "!=": 0 },
             modifier: false,
             isDeleted: false,
-            enable: true,
-            visible: true
+            enable: true
         };
         let recommendedDishes = await sails.models.dish.find({
             where: {

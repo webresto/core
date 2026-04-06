@@ -151,9 +151,9 @@ let attributes = {
     },
     /** Sorting order */
     sortOrder: "number",
-    /** The dish is removed */
+    /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
     isDeleted: "boolean",
-    /** The dish is enabled (managed from interface) */
+    /** System status flag. When false, the item is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
     enable: "boolean",
     /** The dish can be modified*/
     isModificable: "boolean",
@@ -165,7 +165,7 @@ let attributes = {
     tags: {
         type: "json",
     },
-    /** Balance for sale, if -1, then as much as you like */
+    /** Stock availability quantity. Use -1 for infinite stock, 0 for out of stock. Managed by inventory synchronization. */
     balance: {
         type: "number",
         defaultsTo: -1,
@@ -179,8 +179,11 @@ let attributes = {
     concept: "string",
     /** Hash */
     hash: "string",
-    /** Can be seen on the site on the menu */
-    visible: "boolean",
+    /** Visibility status sent to the frontend. The server does not filter by this field, allowing the client application to handle visibility logic. */
+    visible: {
+        type: "boolean",
+        defaultsTo: true,
+    },
     /** A sign that this is a modifier */
     modifier: "boolean",
     /**A sign that a promotional dish */
@@ -399,8 +402,7 @@ let Model = {
             balance: { "!=": 0 },
             modifier: false,
             isDeleted: false,
-            enable: true,
-            visible: true
+            enable: true
         };
         const groupLimit = Math.max(Math.round(limit / ids.length), 1);
         let dishes = await sails.models.dish.find({
@@ -414,8 +416,7 @@ let Model = {
                     { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
-                    { 'enable': true },
-                    { 'visible': true }
+                    { 'enable': true }
                 ]
             },
             limit: groupLimit
@@ -425,8 +426,7 @@ let Model = {
                     { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
-                    { 'enable': true },
-                    { 'visible': true }
+                    { 'enable': true }
                 ]
             },
             limit: includeReverse ? groupLimit : 0

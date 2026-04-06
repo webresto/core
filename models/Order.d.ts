@@ -170,6 +170,7 @@ declare let attributes: {
      */
     tag: string;
     deviceId: string;
+    orderedOnPlatform: string;
     /**
      * A number that will change every time the order is changed
      */
@@ -216,21 +217,7 @@ declare let Model: {
      * @param selfService
      */
     setSelfService(criteria: CriteriaQuery<OrderRecord>, selfService?: boolean): Promise<OrderRecord>;
-    /**
-     * !! Not for external use, only in Order.check
-     * The use of bonuses in the cart implies that this order has a user.
-     * Then all checks will be made, and a record will be written in the transaction of user bonuses
-     *
-     Bonus spending strategies :
-      1) 'bonus_from_order_total': (default) deduction from the final amount of the order including promotional dishes, discounts and delivery
-      2) 'bonus_from_basket_delivery_discount': writing off bonuses from the amount of the basket, delivery and discounts (not including promotional dishes)
-      3) 'bonus_from_basket_and_delivery': writing off bonuses from the amount of the basket and delivery (not including promotional dishes, discounts)
-      4) 'bonus_from_basket': write-off of bonuses from the amount of the basket (not including promotional dishes, discounts and delivery)
-  
-      Current implement logic for only one strategy
-      @deprecated not uses
-     */
-    check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus): Promise<void>;
+    check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus, orderedOnPlatform?: string): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
     payment(criteria: CriteriaQuery<OrderRecord>): Promise<PaymentResponse>;
@@ -307,6 +294,7 @@ declare let Model: {
         orderDate?: string;
         tag?: string;
         deviceId?: string;
+        orderedOnPlatform?: string;
         nonce?: number;
         hash?: string;
         user?: UserRecord | string;

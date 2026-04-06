@@ -17,9 +17,9 @@ declare let attributes: {
     /** */
     code: string;
     description: string;
-    /** Soft deletion */
+    /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
     isDeleted: boolean;
-    /** The group is enabled (managed from interface) */
+    /** System status flag. When false, the group is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
     enable: boolean;
     /** Dishes group name*/
     name: string;
@@ -48,7 +48,7 @@ declare let attributes: {
     slug: string;
     /** The concept to which the group belongs */
     concept: string;
-    /** The group is displayed*/
+    /** Visibility status sent to the frontend. The server does not filter by this field, allowing the client application to handle visibility logic. */
     visible: boolean;
     /**A group of modifiers */
     modifier: boolean;
