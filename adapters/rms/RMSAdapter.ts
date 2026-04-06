@@ -154,20 +154,22 @@ export default abstract class RMSAdapter {
             let allProductRMSIds: string[] = [];
             let allProductIds: string[] = [];
 
-            
+            const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
+            const DELETE_EXISTING_IMAGES_BEFORE_SYNC = (await Settings.get("DELETE_EXISTING_IMAGES_BEFORE_SYNC")) ?? false;
+            const mfAdapter = await Adapter.getMediaFileAdapter();
+            const isURL = (str: string) => /^(https?:\/\/|file:\/\/).+/.test(str);
+
             for (const group of currentRMSGroupsFlatTree) {
               const productsToUpdate = await rmsAdapter.loadProductsByGroup(group);
 
               // Get ids of all current products in a group
               const productIds = productsToUpdate.map((product) => product.id);
               allProductIds = allProductIds.concat(productIds);
-              // allProductRMSIds = allProductRMSIds.concat(productRMSIds);
 
               for (let product of productsToUpdate) {
 
                 emitter.emit("rms-sync:before-each-product-item", product);
 
-                // Update or create product
                 product.concept = product.concept ?? "origin"
 
                 if (product.visible === undefined) {
@@ -179,36 +181,37 @@ export default abstract class RMSAdapter {
                 // Set isDeleted for absent products in ERP
                 await Dish.update({id: { "!=": allProductIds }}, {isDeleted: true}).fetch();
                 sails.log.silly(`ADAPTER RMS > syncProducts sync Group [${group.id}] '${group.name}' dishes:`, JSON.stringify(productIds))
-                
-                const SKIP_LOAD_PRODUCT_IMAGES = (await Settings.get("SKIP_LOAD_PRODUCT_IMAGES")) ?? false;
-                const DELETE_EXISTING_IMAGES_BEFORE_SYNC = (await Settings.get("DELETE_EXISTING_IMAGES_BEFORE_SYNC")) ?? false;
-                
-                // Load images
+
                 if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
                   // Delete existing images if setting is enabled
                   if (DELETE_EXISTING_IMAGES_BEFORE_SYNC) {
                     await SelectedMediaFile.destroy({ dish: createdProduct.id }).fetch();
                     sails.log.silly(`Deleted existing images for dish ${createdProduct.id} before sync`);
                   }
-                  
-                  const isURL = (str: string) => /^(https?:\/\/|file:\/\/).+/.test(str);
-                  for (let image of product.images as string[]) {
-                    if (isURL(image)) {
-                      // load image
-                      const mfAdater = await Adapter.getMediaFileAdapter();
-                      const mediaFileImage = await mfAdater.toProcess(image as string, "dish", "image");
-                      // await Dish.addToCollection(createdProduct.id, "images").members([mediaFileImage.id]);
-                      const model = 'dish'
-                      let init: Partial<SelectedMediaFileRecord> & Record<string, string | number> = {};
-                      init[`mediafile_${model}`] = mediaFileImage.id;
-                      init[model] = createdProduct.id;
-                      init["sortOrder"] = 0;
-                      await SelectedMediaFile.create(init).fetch();
-                      
-                    } else {
+
+                  const seenMediaFiles = new Set<string>(
+                    DELETE_EXISTING_IMAGES_BEFORE_SYNC
+                      ? []
+                      : (await SelectedMediaFile.find({ dish: createdProduct.id }))
+                          .map((r) => r.mediafile_dish as string | undefined)
+                          .filter((id): id is string => Boolean(id))
+                  );
+
+                  for (const image of product.images as string[]) {
+                    if (!isURL(image)) {
                       sails.log.silly(`Image not url on sync products ${image}`);
                       continue;
                     }
+                    // Reuse the same media file for identical URLs and avoid duplicate dish relations.
+                    const mediaFile = await mfAdapter.toProcess(image, "dish", "image");
+                    if (seenMediaFiles.has(mediaFile.id)) continue;
+
+                    await SelectedMediaFile.create({
+                      mediafile_dish: mediaFile.id,
+                      dish: createdProduct.id,
+                      sortOrder: 0,
+                    } as Partial<SelectedMediaFileRecord> & Record<string, string | number>).fetch();
+                    seenMediaFiles.add(mediaFile.id);
                   }
                 }
 
