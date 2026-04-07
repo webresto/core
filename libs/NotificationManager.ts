@@ -40,6 +40,16 @@ export type DeliveryStatus = {
   raw?: object
 }
 
+const NOTIFICATION_CHANNELS_GLOBAL_KEY = "__restoappNotificationManagerChannels";
+
+function getSharedChannelsRegistry(): Channel[] {
+  const globalScope = globalThis as any;
+  if (!Array.isArray(globalScope[NOTIFICATION_CHANNELS_GLOBAL_KEY])) {
+    globalScope[NOTIFICATION_CHANNELS_GLOBAL_KEY] = [];
+  }
+  return globalScope[NOTIFICATION_CHANNELS_GLOBAL_KEY] as Channel[];
+}
+
 export abstract class Channel {
   public abstract type: ChannelType;
 
@@ -141,7 +151,7 @@ export class NotificationManager {
     await NotificationManager.send(badge, "user", text, populatedUser, type, subject, data);
   }
 
-  public static readonly channels: Channel[] = [];
+  public static readonly channels: Channel[] = getSharedChannelsRegistry();
 
   public static send = async (
     badge: Badge,

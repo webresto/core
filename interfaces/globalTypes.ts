@@ -170,5 +170,16 @@ declare global {
     DEFAULT_LOCALE: string
     ORDER_LOG_DISABLE: boolean
     ORDER_LOG_USE_MAP: boolean
+
+    // Notifications
+    NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS: number
+    NOTIFICATION_UNREAD_ESCALATION_MINUTES: number
+    NOTIFICATION_LOG_DISABLE: boolean
+    /**
+     * Maximum total cost allowed per notification (sum across all channels used for one notification).
+     * Channels whose cost would push the total above this limit are skipped.
+     * If null/unset: only one paid channel (cost > 0) is allowed per delivery attempt.
+     */
+    NOTIFICATION_MAX_COST_PER_MESSAGE: number | null
   }
 }

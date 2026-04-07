@@ -74,6 +74,12 @@ export default function bindAdminpanel() {
         name: 'Current Orders',
         description: 'Access to Current Orders module and its API endpoints',
         department: 'Orders'
+      },
+      {
+        id: 'notifications-manager',
+        name: 'Notifications',
+        description: 'Access to Notifications module and its API endpoints',
+        department: 'Notifications'
       }
     ]);
 
@@ -198,6 +204,45 @@ function processBindAdminpanel() {
           sails.log.debug('OrderKanban route bind error', e);
         }
 
+        // Notifications module link + route
+        try {
+          const notificationsManagerController = require('../lib/adminpanel/src/controller/notifications-manager').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'notifications-manager',
+            title: 'Notifications',
+            link: `${routePrefix}/notifications-manager`,
+            icon: 'notifications',
+            accessToken: 'notifications-manager',
+            section: 'Notifications'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/notifications-manager`,
+            adminizer.policyManager.bindPolicies(policies, notificationsManagerController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager route bind error', e);
+        }
+
+        try {
+          const notificationChannelsController = require('../lib/adminpanel/src/controller/notification-channels').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'notification-channels',
+            title: 'Notification channels',
+            link: `${routePrefix}/notification-channels`,
+            icon: 'settings_input_component',
+            accessToken: 'notifications-manager',
+            section: 'Notifications'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/notification-channels`,
+            adminizer.policyManager.bindPolicies(policies, notificationChannelsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationChannels route bind error', e);
+        }
+
         // API route for search used by StockManager frontend — expose under admin path
         try {
           const searchController = require('../lib/adminpanel/src/controller/search').default;
@@ -297,6 +342,83 @@ function processBindAdminpanel() {
           );
         } catch (e) {
           sails.log.debug('OrderKanban state route bind error', e);
+        }
+
+        // API route for notifications list
+        try {
+          const getNotificationsController = require('../lib/adminpanel/src/controller/get-notifications').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/notifications`,
+            adminizer.policyManager.bindPolicies(policies, getNotificationsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager list route bind error', e);
+        }
+
+        // API route for single notification details
+        try {
+          const getNotificationController = require('../lib/adminpanel/src/controller/get-notification').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/notification`,
+            adminizer.policyManager.bindPolicies(policies, getNotificationController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager notification route bind error', e);
+        }
+
+        // API route for retrying delivery
+        try {
+          const retryNotificationController = require('../lib/adminpanel/src/controller/retry-notification').default;
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/retry`,
+            adminizer.policyManager.bindPolicies(policies, retryNotificationController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager retry route bind error', e);
+        }
+
+        // API route for escalation to the next channel
+        try {
+          const escalateNotificationController = require('../lib/adminpanel/src/controller/escalate-notification').default;
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/escalate`,
+            adminizer.policyManager.bindPolicies(policies, escalateNotificationController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager escalate route bind error', e);
+        }
+
+        // API route for searching users for notification creation
+        try {
+          const searchNotificationUsersController = require('../lib/adminpanel/src/controller/search-notification-users').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/users`,
+            adminizer.policyManager.bindPolicies(policies, searchNotificationUsersController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager users route bind error', e);
+        }
+
+        // API route for creating notification
+        try {
+          const createNotificationController = require('../lib/adminpanel/src/controller/create-notification').default;
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/create`,
+            adminizer.policyManager.bindPolicies(policies, createNotificationController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager create route bind error', e);
+        }
+
+        // API route for notification channels overview
+        try {
+          const getNotificationChannelsController = require('../lib/adminpanel/src/controller/get-notification-channels').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/channels`,
+            adminizer.policyManager.bindPolicies(policies, getNotificationChannelsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager channels route bind error', e);
         }
 
         // Route for product setup page

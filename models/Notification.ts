@@ -57,6 +57,15 @@ let attributes = {
   /** Каналы доставки (несколько если forceSend: true) */
   channels: "json" as unknown as string[],
 
+  /**
+   * Суммарная стоимость всех каналов, через которые было отправлено уведомление.
+   * Накапливается при доставке и эскалациях. 0 = только бесплатные каналы.
+   */
+  spentCost: {
+    type: "number",
+    defaultsTo: 0,
+  } as unknown as number,
+
   /** Лог всех попыток доставки, эскалаций, ошибок */
   logs: "json" as unknown as NotificationLogEntry[],
 
@@ -99,5 +108,5 @@ module.exports = {
 };
 
 declare global {
-  const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "logs">;
+  const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "logs" | "spentCost">;
 }

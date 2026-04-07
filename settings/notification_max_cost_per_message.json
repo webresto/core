@@ -1,0 +1,12 @@
+{
+  "key": "NOTIFICATION_MAX_COST_PER_MESSAGE",
+  "type": "number",
+  "name": "Notification Max Cost Per Message",
+  "description": "Maximum allowed cost per notification message (arbitrary units, same as Channel.cost). Channels with cost above this value are skipped. If not set, only one paid channel (cost > 0) will be used per delivery attempt.",
+  "defaultValue": null,
+  "jsonSchema": {
+    "type": ["integer", "null"],
+    "minimum": 0
+  },
+  "isRequired": false
+}

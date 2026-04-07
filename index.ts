@@ -7,6 +7,7 @@ export * from './models/Dish';
 export * from './models/Group';
 export * from './models/Maintenance';
 export * from './models/MediaFile';
+export * from './models/Notification';
 export * from './models/OneTimePassword';
 export * from './models/Order';
 export * from './models/OrderDish';
@@ -26,6 +27,7 @@ export * from './models/Promotion';
 
 // Helpers
 export * from './libs/helpers/OrderHelper'
+export * from './libs/NotificationDispatcher'
 
 module.exports = function (sails: any) {
   return {

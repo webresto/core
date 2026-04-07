@@ -27,6 +27,14 @@
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationManager = exports.Channel = void 0;
+const NOTIFICATION_CHANNELS_GLOBAL_KEY = "__restoappNotificationManagerChannels";
+function getSharedChannelsRegistry() {
+    const globalScope = globalThis;
+    if (!Array.isArray(globalScope[NOTIFICATION_CHANNELS_GLOBAL_KEY])) {
+        globalScope[NOTIFICATION_CHANNELS_GLOBAL_KEY] = [];
+    }
+    return globalScope[NOTIFICATION_CHANNELS_GLOBAL_KEY];
+}
 class Channel {
     async trySendMessage(badge, message, user, subject, data) {
         try {
@@ -81,7 +89,7 @@ class NotificationManager {
 }
 exports.NotificationManager = NotificationManager;
 _a = NotificationManager;
-NotificationManager.channels = [];
+NotificationManager.channels = getSharedChannelsRegistry();
 NotificationManager.send = async (badge, groupTo, message, user, channelType, subject, data) => {
     let sent = false;
     for (const channel of _a.channels) {

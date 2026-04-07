@@ -3,6 +3,14 @@ import { UserDeviceRecord } from "../models/UserDevice";
 import { NotificationManager } from "./NotificationManager";
 import { ObservablePromise } from "./ObservablePromise";
 
+// Alias to avoid conflict with the browser-global Notification type
+declare const Notification: {
+  create(values: Partial<NotificationRecord>): { fetch(): Promise<NotificationRecord> };
+  updateOne(criteria: object): { set(values: Partial<NotificationRecord>): Promise<NotificationRecord> };
+  find(criteria: object): Promise<NotificationRecord[]>;
+  log: (criteria: { id: string }, level: string, module: string, message: string, ...data: any[]) => Promise<void>;
+};
+
 export class NotificationDispatcher {
 
   /**
@@ -15,9 +23,10 @@ export class NotificationDispatcher {
     body: string,
     data?: object,
     badge: "info" | "error" = "info",
-    priorityDevice?: UserDeviceRecord
+    priorityDevice?: UserDeviceRecord,
+    groupToOverride?: "user" | "manager"
   ): Promise<void> {
-    const groupTo = user ? "user" : "manager";
+    const groupTo = groupToOverride || (user ? "user" : "manager");
     const notification = await Notification.create({
       user: user ? (typeof user === "string" ? user : user.id) : null,
       title,
@@ -42,6 +51,16 @@ export class NotificationDispatcher {
   static async _deliver(notification: NotificationRecord, priorityDevice?: UserDeviceRecord): Promise<void> {
     const successChannels: string[] = [];
     const { groupTo } = notification;
+    const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
+
+    let spentCost = 0;
+
+    const isCostAllowed = (cost: number): boolean => {
+      if (cost === 0) return true;
+      if (maxCost !== null) return spentCost + cost <= maxCost;
+      // maxCost not set: allow only one paid channel per delivery
+      return spentCost === 0;
+    };
 
     // Если передан priorityDevice — ищем канал под его провайдера, пробуем первым
     if (priorityDevice?.notificationToken) {
@@ -71,6 +90,7 @@ export class NotificationDispatcher {
     for (const channel of NotificationManager.channels) {
       if (!channel.forGroupTo.includes(groupTo)) continue;
       if (!(await channel.isReady())) continue;
+      if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
 
       const ok = await channel.trySendMessage(
         notification.badge,
@@ -83,6 +103,7 @@ export class NotificationDispatcher {
 
       if (ok) {
         successChannels.push(channel.type);
+        spentCost += channel.cost;
         if (channel.forceSend !== true) break;
       }
     }
@@ -90,6 +111,7 @@ export class NotificationDispatcher {
     await Notification.updateOne({ id: notification.id }).set({
       status: successChannels.length > 0 ? "sent" : "failed",
       channels: successChannels,
+      spentCost,
     });
   }
 
@@ -175,11 +197,21 @@ export class NotificationDispatcher {
    */
   static async _deliverNextChannel(notification: NotificationRecord): Promise<void> {
     const { groupTo, channels: usedChannels = [] } = notification;
+    const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
+    let spentCost: number = notification.spentCost ?? 0;
+
+    const isCostAllowed = (cost: number): boolean => {
+      if (cost === 0) return true;
+      if (maxCost !== null) return spentCost + cost <= maxCost;
+      // maxCost not set: allow only one paid channel total
+      return spentCost === 0;
+    };
 
     for (const channel of NotificationManager.channels) {
       if (!channel.forGroupTo.includes(groupTo)) continue;
       if ((usedChannels as string[]).includes(channel.type)) continue;
       if (!(await channel.isReady())) continue;
+      if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
 
       const ok = await channel.trySendMessage(
         notification.badge,
@@ -190,11 +222,13 @@ export class NotificationDispatcher {
       );
 
       if (ok) {
+        spentCost += channel.cost;
         await Notification.updateOne({ id: notification.id }).set({
           channels: [...(usedChannels as string[]), channel.type],
+          spentCost,
           // статус остаётся 'sent' — read подтверждает только фронт
         });
-        await Notification.log({ id: notification.id }, "info", "escalation", `Escalated to channel ${channel.type}`);
+        await Notification.log({ id: notification.id! }, "info", "escalation", `Escalated to channel ${channel.type}, total spent cost: ${spentCost}`);
         break;
       }
     }
