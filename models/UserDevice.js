@@ -24,6 +24,11 @@ let attributes = {
         allowNull: true
     },
     customData: "json",
+    /** Провайдер-независимый токен уведомлений (FCM, APNs, WebPush и т.д.) */
+    notificationToken: {
+        type: "json",
+        allowNull: true,
+    },
 };
 let Model = {
     beforeUpdate(record, cb) {
@@ -52,6 +57,9 @@ let Model = {
     /** Method set lastActivity for a device */
     async setActivity(criteria, client = {}) {
         await UserDevice.update(criteria, client).fetch();
+    },
+    async setNotificationToken(deviceId, token) {
+        await UserDevice.updateOne({ id: deviceId }).set({ notificationToken: token });
     },
     async checkSession(sessionId, userId, client = {}) {
         let ud = await UserDevice.findOne({ sessionId: sessionId });

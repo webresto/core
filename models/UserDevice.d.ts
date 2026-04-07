@@ -2,6 +2,12 @@ import ORM from "../interfaces/ORM";
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { UserRecord } from "./User";
+export type NotificationToken = {
+    provider: "fcm" | "apns" | "webpush" | string;
+    platform: "ios" | "android" | "web";
+    token: string;
+    updatedAt: number;
+};
 declare let attributes: {
     /** ID */
     id: string;
@@ -18,6 +24,8 @@ declare let attributes: {
     customData: {
         [key: string]: string | boolean | number;
     } | string;
+    /** Провайдер-независимый токен уведомлений (FCM, APNs, WebPush и т.д.) */
+    notificationToken: NotificationToken | null;
 };
 type attributes = typeof attributes;
 export interface UserDeviceRecord extends RequiredField<OptionalAll<attributes>, null>, ORM {
@@ -34,6 +42,7 @@ declare let Model: {
         lastIP?: string;
         userAgent?: string;
     }): Promise<void>;
+    setNotificationToken(deviceId: string, token: NotificationToken): Promise<void>;
     checkSession(sessionId: string, userId: string, client?: {
         lastIP?: string;
         userAgent?: string;
