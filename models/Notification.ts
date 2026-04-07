@@ -15,7 +15,6 @@ let attributes = {
   user: {
     model: "user",
     required: false,
-    allowNull: true,
   } as unknown as UserRecord | string | null,
 
   title: {

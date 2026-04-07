@@ -13,7 +13,6 @@ let attributes = {
     user: {
         model: "user",
         required: false,
-        allowNull: true,
     },
     title: {
         type: "string",
