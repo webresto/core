@@ -27,7 +27,6 @@ let attributes = {
     /** Провайдер-независимый токен уведомлений (FCM, APNs, WebPush и т.д.) */
     notificationToken: {
         type: "json",
-        allowNull: true,
     },
 };
 let Model = {
