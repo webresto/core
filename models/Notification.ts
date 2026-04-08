@@ -5,6 +5,15 @@ import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { UserRecord } from "./User";
 import NotificationLogHelper, { NotificationLogLevel, NotificationLogEntry } from "../libs/NotificationLogHelper";
 
+export interface NotificationChannelEntry {
+  /** Channel type identifier, e.g. "fcm-mobile", "test-free-unreliable" */
+  type: string;
+  /** Cost of this channel send (same units as Channel.cost) */
+  cost: number;
+  /** Timestamp (ms) when the message was sent via this channel */
+  sentAt: number;
+}
+
 let attributes = {
 
   /** UUID — генерируется в beforeCreate. Также используется как токен чтения. */
@@ -54,8 +63,8 @@ let attributes = {
     allowNull: true,
   } as unknown as number | null,
 
-  /** Каналы доставки (несколько если forceSend: true) */
-  channels: "json" as unknown as string[],
+  /** Каналы доставки с деталями: тип, стоимость, время отправки */
+  channels: "json" as unknown as NotificationChannelEntry[],
 
   /**
    * Суммарная стоимость всех каналов, через которые было отправлено уведомление.

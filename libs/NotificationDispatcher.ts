@@ -1,4 +1,4 @@
-import { NotificationRecord } from "../models/Notification";
+import { NotificationRecord, NotificationChannelEntry } from "../models/Notification";
 import { UserDeviceRecord } from "../models/UserDevice";
 import { NotificationManager } from "./NotificationManager";
 import { ObservablePromise } from "./ObservablePromise";
@@ -49,7 +49,7 @@ export class NotificationDispatcher {
    * priorityDevice is not stored in DB — not available on recovery.
    */
   static async _deliver(notification: NotificationRecord, priorityDevice?: UserDeviceRecord): Promise<void> {
-    const successChannels: string[] = [];
+    const successChannels: NotificationChannelEntry[] = [];
     const { groupTo } = notification;
     const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
 
@@ -80,7 +80,8 @@ export class NotificationDispatcher {
         if (ok) {
           await Notification.updateOne({ id: notification.id }).set({
             status: "sent",
-            channels: [priorityChannel.type],
+            channels: [{ type: priorityChannel.type, cost: priorityChannel.cost, sentAt: Date.now() }],
+            spentCost: priorityChannel.cost,
           });
           return;
         }
@@ -102,7 +103,7 @@ export class NotificationDispatcher {
       );
 
       if (ok) {
-        successChannels.push(channel.type);
+        successChannels.push({ type: channel.type, cost: channel.cost, sentAt: Date.now() });
         spentCost += channel.cost;
         if (channel.forceSend !== true) break;
       }
@@ -196,7 +197,9 @@ export class NotificationDispatcher {
    * Try the next available channel that hasn't been used yet (for escalation).
    */
   static async _deliverNextChannel(notification: NotificationRecord): Promise<void> {
-    const { groupTo, channels: usedChannels = [] } = notification;
+    const { groupTo } = notification;
+    const usedChannels: NotificationChannelEntry[] = (notification.channels as NotificationChannelEntry[]) ?? [];
+    const usedTypes = new Set(usedChannels.map((e) => e.type));
     const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
     let spentCost: number = notification.spentCost ?? 0;
 
@@ -209,7 +212,7 @@ export class NotificationDispatcher {
 
     for (const channel of NotificationManager.channels) {
       if (!channel.forGroupTo.includes(groupTo)) continue;
-      if ((usedChannels as string[]).includes(channel.type)) continue;
+      if (usedTypes.has(channel.type)) continue;
       if (!(await channel.isReady())) continue;
       if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
 
@@ -223,8 +226,9 @@ export class NotificationDispatcher {
 
       if (ok) {
         spentCost += channel.cost;
+        const newEntry: NotificationChannelEntry = { type: channel.type, cost: channel.cost, sentAt: Date.now() };
         await Notification.updateOne({ id: notification.id }).set({
-          channels: [...(usedChannels as string[]), channel.type],
+          channels: [...usedChannels, newEntry],
           spentCost,
           // статус остаётся 'sent' — read подтверждает только фронт
         });

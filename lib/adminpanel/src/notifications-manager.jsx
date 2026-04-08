@@ -717,12 +717,32 @@ function NotificationsManagerContent() {
                 <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_status')}:</strong> {statusLabel(selectedNotification.status, t)}</div>
                 <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_group')}:</strong> {groupLabel(selectedNotification.groupTo, t)}</div>
                 <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_badge')}:</strong> {badgeLabel(selectedNotification.badge, t)}</div>
-                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_channels')}:</strong> {(selectedNotification.channels || []).join(', ') || '-'}</div>
+                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_spent_cost')}:</strong> {selectedNotification.spentCost ?? 0}</div>
                 <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_created')}:</strong> {formatDateTime(selectedNotification.createdAt, language)}</div>
-                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_updated')}:</strong> {formatDateTime(selectedNotification.updatedAt, language)}</div>
+                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_read_at')}:</strong> {selectedNotification.readAt ? formatDateTime(selectedNotification.readAt, language) : '—'}</div>
                 <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_user')}:</strong> {selectedNotification.user?.name || t('notifications_manager_unknown_user')}</div>
                 <div><strong style={{ color: theme.textPrimary }}>ID:</strong> {selectedNotification.id}</div>
               </div>
+
+              {Array.isArray(selectedNotification.channels) && selectedNotification.channels.length > 0 ? (
+                <section>
+                  <h3 style={{ fontSize: 14, margin: '0 0 8px', color: theme.textPrimary }}>{t('notifications_manager_channels')}</h3>
+                  <div style={{ border: `1px solid ${theme.panelBorder}`, borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: 10, padding: '8px 12px', background: theme.headerBackground, fontSize: 11, fontWeight: 700, color: theme.headerText }}>
+                      <div>{t('notifications_manager_channel_type')}</div>
+                      <div>{t('notifications_manager_channel_cost')}</div>
+                      <div>{t('notifications_manager_channel_sent_at')}</div>
+                    </div>
+                    {selectedNotification.channels.map((entry, idx) => (
+                      <div key={`${entry.type}-${idx}`} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: 10, padding: '8px 12px', borderTop: `1px solid ${theme.rowBorder}`, background: theme.rowBackground, fontSize: 12, color: theme.textSecondary }}>
+                        <div style={{ fontWeight: 600, color: theme.textPrimary }}>{entry.type || '-'}</div>
+                        <div>{entry.cost ?? 0}</div>
+                        <div>{entry.sentAt ? formatDateTime(entry.sentAt, language) : '—'}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {selectedNotification.user?.id ? (
