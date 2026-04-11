@@ -1,7 +1,10 @@
 export default async function GetSettingsController(req: any, res: any) {
+  if (!req.user?.isAdministrator) {
+    return res.sendStatus(403);
+  }
+
   try {
     const settings = await Settings.find().sort('key ASC');
-    // Strip internal fields, return safe shape
     const result = settings.map((s: any) => ({
       id: s.id,
       key: s.key,

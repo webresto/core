@@ -277,13 +277,19 @@ export default function SettingsManager() {
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const searchRef = useRef(null);
 
-  // ── Load all settings ──────────────────────────────────────────────────────
+  // ── Load all settings + restore from hash ─────────────────────────────────
   useEffect(() => {
     setLoading(true);
     apiGet(`${apiBase}/list`)
       .then(data => {
         setSettings(data);
         setLoading(false);
+        // Select setting from URL hash on initial load
+        const hashKey = decodeURIComponent(window.location.hash.slice(1));
+        if (hashKey) {
+          const found = data.find(s => s.key === hashKey);
+          if (found) selectSetting(found);
+        }
       })
       .catch(e => {
         setError(e.message);
@@ -308,6 +314,7 @@ export default function SettingsManager() {
     setEditValue(s.value !== undefined && s.value !== null ? s.value : s.defaultValue);
     setSaveError(null);
     setSaveSuccess(false);
+    window.location.hash = encodeURIComponent(s.key);
     if (isMobile) {
       setMobileListOpen(false);
       setSearch('');
