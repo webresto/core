@@ -427,6 +427,38 @@ function processBindAdminpanel() {
           sails.log.debug('NotificationsManager channels route bind error', e);
         }
 
+        // Settings Manager module link + routes
+        try {
+          const settingsManagerController = require('../lib/adminpanel/src/controller/settings-manager').default;
+          const getSettingsController = require('../lib/adminpanel/src/controller/get-settings').default;
+          const updateSettingController = require('../lib/adminpanel/src/controller/update-setting').default;
+
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'settings-manager',
+            title: 'Settings',
+            link: `${routePrefix}/settings-manager`,
+            icon: 'settings',
+            section: 'System'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/settings-manager`,
+            adminizer.policyManager.bindPolicies(policies, settingsManagerController)
+          );
+
+          adminizer.app.get(
+            `${routePrefix}/core/settings-manager/list`,
+            adminizer.policyManager.bindPolicies(policies, getSettingsController)
+          );
+
+          adminizer.app.post(
+            `${routePrefix}/core/settings-manager/update/:key`,
+            adminizer.policyManager.bindPolicies(policies, updateSettingController)
+          );
+        } catch (e) {
+          sails.log.debug('SettingsManager route bind error', e);
+        }
+
         // OrdersReport module link + route
         try {
           const ordersReportController = require('../lib/adminpanel/src/controller/orders-report').default;

@@ -22,7 +22,7 @@ export default function OrderKanbanController(req: any, res: any) {
   return req.Inertia.render({
     component: 'module',
     props: {
-      moduleComponent: `/restocore/assets/stockmanager/OrderKanban.js`,
+      moduleComponent: `/restocore/assets/core-adminizer-assets/OrderKanban.js`,
       message: 'Current Orders',
       locale: normalizeLocale(req.user?.language || req.user?.locale)
     }

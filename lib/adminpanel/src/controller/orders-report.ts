@@ -22,7 +22,7 @@ export default function OrdersReportController(req: any, res: any) {
   return req.Inertia.render({
     component: 'module',
     props: {
-      moduleComponent: `/restocore/assets/stockmanager/OrdersReport.js`,
+      moduleComponent: `/restocore/assets/core-adminizer-assets/OrdersReport.js`,
       message: 'Orders Report',
       locale: normalizeLocale(req.user?.language || req.user?.locale)
     }

@@ -1,4 +1,4 @@
-export default function StockManagerController(req: any, res: any) {
+export default function SettingsManagerController(req: any, res: any) {
   const { config } = req.adminizer || {};
   if (config?.auth?.enable && !req.user) {
     return res.redirect(`${config.routePrefix}/model/userap/login`);
@@ -7,8 +7,7 @@ export default function StockManagerController(req: any, res: any) {
   return req.Inertia.render({
     component: 'module',
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/StockManager.js`,
-      message: 'Hello from Stock Manager',
+      moduleComponent: `/restocore/assets/core-adminizer-assets/SettingsManager.js`,
       locale: req.user?.language || req.user?.locale || 'en'
     }
   });

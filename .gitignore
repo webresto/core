@@ -29,4 +29,5 @@ coverage
 .tmp
 backup.tar
 assets/stockmanager
+assets/core-adminizer-assets
 .tsc-models-out
