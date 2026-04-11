@@ -47,20 +47,44 @@ function getAdminPrefix() {
 }
 
 async function apiGet(url) {
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  return apiRequest(url);
 }
 
 async function apiPost(url, body) {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
-  return data;
+  return apiRequest(url, { method: 'POST', body });
+}
+
+function getBaseAdminPath() {
+  if (typeof window !== 'undefined' && typeof window.routePrefix === 'string' && window.routePrefix.trim()) {
+    return window.routePrefix.replace(/\/$/, '');
+  }
+
+  return getAdminPrefix();
+}
+
+async function apiRequest(path, options = {}) {
+  const axios = window.axios;
+  if (!axios) {
+    throw new Error('window.axios is not available');
+  }
+
+  try {
+    const response = await axios({
+      url: `${getBaseAdminPath()}${path}`,
+      method: options.method || 'GET',
+      data: options.body,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      },
+      withCredentials: true,
+    });
+
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Request failed');
+  }
 }
 
 function typeLabel(type) {
@@ -236,8 +260,7 @@ function SchemaHint({ schema, st }) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export default function SettingsManager() {
-  const prefix = getAdminPrefix();
-  const apiBase = `${prefix}/core/settings-manager`;
+  const apiBase = '/core/settings-manager';
   const isMobile = useIsMobile();
   const dark = useDarkMode();
   const st = makeStyles(dark);
