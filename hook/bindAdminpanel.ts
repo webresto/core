@@ -432,6 +432,8 @@ function processBindAdminpanel() {
           const settingsManagerController = require('../lib/adminpanel/src/controller/settings-manager').default;
           const getSettingsController = require('../lib/adminpanel/src/controller/get-settings').default;
           const updateSettingController = require('../lib/adminpanel/src/controller/update-setting').default;
+          const exportSettingsController = require('../lib/adminpanel/src/controller/export-settings').default;
+          const importSettingsController = require('../lib/adminpanel/src/controller/import-settings').default;
 
           adminizer.config.navbar.additionalLinks.push({
             id: 'settings-manager',
@@ -454,6 +456,16 @@ function processBindAdminpanel() {
           adminizer.app.post(
             `${routePrefix}/core/settings-manager/update/:key`,
             adminizer.policyManager.bindPolicies(policies, updateSettingController)
+          );
+
+          adminizer.app.get(
+            `${routePrefix}/core/settings-manager/export`,
+            adminizer.policyManager.bindPolicies(policies, exportSettingsController)
+          );
+
+          adminizer.app.post(
+            `${routePrefix}/core/settings-manager/import`,
+            adminizer.policyManager.bindPolicies(policies, importSettingsController)
           );
         } catch (e) {
           sails.log.debug('SettingsManager route bind error', e);

@@ -276,6 +276,15 @@ export default function SettingsManager() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const searchRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // ── Import state ───────────────────────────────────────────────────────────
+  const [importOpen, setImportOpen] = useState(false);
+  const [importDiff, setImportDiff] = useState(null);   // diff array from preview
+  const [importPayload, setImportPayload] = useState(null); // original settings[]
+  const [importSelected, setImportSelected] = useState({}); // key → bool
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
 
   // ── Load all settings + restore from hash ─────────────────────────────────
   useEffect(() => {
@@ -354,6 +363,98 @@ export default function SettingsManager() {
     setEditValue(selected.defaultValue);
     setSaveError(null);
     setSaveSuccess(false);
+  }
+
+  // ── Export ─────────────────────────────────────────────────────────────────
+  async function handleExport() {
+    try {
+      const axios = window.axios;
+      const url = `${getBaseAdminPath()}/core/settings-manager/export`;
+      const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'blob',
+        withCredentials: true,
+      });
+      const blob = new Blob([response.data], { type: 'application/json' });
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = `settings-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+    } catch (e) {
+      alert('Export failed: ' + (e?.message || String(e)));
+    }
+  }
+
+  // ── Import: file picked ────────────────────────────────────────────────────
+  async function handleFilePicked(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    let json;
+    try {
+      json = JSON.parse(await file.text());
+    } catch {
+      alert('Invalid JSON file');
+      return;
+    }
+    if (!Array.isArray(json?.settings)) {
+      alert('Invalid format: expected { settings: [...] }');
+      return;
+    }
+    // Preview diff
+    try {
+      const result = await apiPost(`${apiBase}/import`, { preview: true, settings: json.settings });
+      setImportPayload(json.settings);
+      setImportDiff(result.diff);
+      // Pre-select all changed keys
+      const sel = {};
+      for (const d of result.diff) {
+        sel[d.key] = d.status === 'changed';
+      }
+      setImportSelected(sel);
+      setImportResult(null);
+      setImportOpen(true);
+    } catch (err) {
+      alert('Preview failed: ' + err.message);
+    }
+  }
+
+  // ── Import: apply selected ─────────────────────────────────────────────────
+  async function handleImportApply() {
+    const keys = Object.keys(importSelected).filter(k => importSelected[k]);
+    if (!keys.length) return;
+    setImporting(true);
+    try {
+      const result = await apiPost(`${apiBase}/import`, { settings: importPayload, keys });
+      setImportResult(result.results);
+      // Refresh settings list
+      const fresh = await apiGet(`${apiBase}/list`);
+      setSettings(fresh);
+      // Re-select current if it was updated
+      if (selected) {
+        const updated = fresh.find(s => s.key === selected.key);
+        if (updated) {
+          setSelected(updated);
+          setEditValue(updated.value !== undefined && updated.value !== null ? updated.value : updated.defaultValue);
+        }
+      }
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  function closeImport() {
+    setImportOpen(false);
+    setImportDiff(null);
+    setImportPayload(null);
+    setImportResult(null);
   }
 
   // ── Shared: list items ─────────────────────────────────────────────────────
@@ -444,7 +545,14 @@ export default function SettingsManager() {
       {/* ── Left panel: list ── */}
       <div style={st.sidebar}>
         <div style={st.sidebarHeader}>
-          <div style={st.sidebarTitle}>Settings</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={st.sidebarTitle}>Settings</div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={handleExport} title="Export JSON" style={st.toolBtn}>↓ Export</button>
+              <button onClick={() => fileInputRef.current?.click()} title="Import JSON" style={st.toolBtn}>↑ Import</button>
+              <input ref={fileInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleFilePicked} />
+            </div>
+          </div>
           <input
             type="search"
             placeholder="Search by key…"
@@ -471,6 +579,20 @@ export default function SettingsManager() {
           handleReset={handleReset}
         />
       </div>
+
+      {/* ── Import dialog ── */}
+      {importOpen && (
+        <ImportDialog
+          st={st}
+          diff={importDiff}
+          selected={importSelected}
+          setSelected={setImportSelected}
+          result={importResult}
+          importing={importing}
+          onApply={handleImportApply}
+          onClose={closeImport}
+        />
+      )}
     </div>
   );
 }
@@ -569,6 +691,121 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Import dialog
+// ──────────────────────────────────────────────────────────────────────────────
+
+function ImportDialog({ st, diff, selected, setSelected, result, importing, onApply, onClose }) {
+  const changedCount = diff ? diff.filter(d => d.status === 'changed').length : 0;
+  const selectedCount = Object.values(selected).filter(Boolean).length;
+
+  function toggleAll(val) {
+    const next = {};
+    for (const d of diff) {
+      if (!d.readOnly) next[d.key] = val && d.status === 'changed';
+    }
+    setSelected(next);
+  }
+
+  return (
+    <div style={st.dialogOverlay} onClick={onClose}>
+      <div style={st.dialog} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div style={st.dialogHeader}>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>Import Settings</span>
+          <button onClick={onClose} style={st.dialogClose}>✕</button>
+        </div>
+
+        {/* Result view (after apply) */}
+        {result ? (
+          <div style={{ padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', flex: 1 }}>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>Applied {result.filter(r => r.status === 'applied').length} / {result.length}</div>
+            {result.map(r => (
+              <div key={r.key} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
+                <span style={{ ...st.statusDot, background: r.status === 'applied' ? '#10b981' : '#ef4444' }} />
+                <code style={{ fontFamily: 'monospace', fontSize: 12, flex: 1 }}>{r.key}</code>
+                <span style={{ color: st.inputStyle.color, opacity: 0.6 }}>{r.status}{r.error ? `: ${r.error}` : ''}</span>
+              </div>
+            ))}
+            <button onClick={onClose} style={{ ...st.btnSave, marginTop: 12, alignSelf: 'flex-end' }}>Close</button>
+          </div>
+        ) : (
+          <>
+            {/* Summary */}
+            <div style={{ padding: '8px 20px', borderBottom: `1px solid ${st.inputStyle.border}`, fontSize: 13, color: st.inputStyle.color, opacity: 0.8 }}>
+              {changedCount} changed · {diff?.length - changedCount} unchanged
+              <span style={{ float: 'right', display: 'flex', gap: 10 }}>
+                <button onClick={() => toggleAll(true)} style={st.linkBtn}>Select all changed</button>
+                <button onClick={() => toggleAll(false)} style={st.linkBtn}>Deselect all</button>
+              </span>
+            </div>
+
+            {/* Diff list */}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {diff?.map(d => (
+                <label key={d.key} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 20px',
+                  borderBottom: `1px solid ${st.inputStyle.border}`,
+                  cursor: d.readOnly || d.status !== 'changed' ? 'default' : 'pointer',
+                  opacity: d.status === 'unchanged' ? 0.5 : 1,
+                }}>
+                  <input
+                    type="checkbox"
+                    disabled={d.readOnly || d.status !== 'changed'}
+                    checked={!!selected[d.key]}
+                    onChange={e => setSelected(prev => ({ ...prev, [d.key]: e.target.checked }))}
+                    style={{ marginTop: 2, flexShrink: 0 }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <code style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{d.key}</code>
+                      <span style={{ ...st.badge, background: d.status === 'changed' ? '#f59e0b' : '#6b7280', fontSize: 10 }}>
+                        {d.status}
+                      </span>
+                      {d.readOnly && <span style={st.readOnlyBadge}>read-only</span>}
+                    </div>
+                    {d.status === 'changed' && (
+                      <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <span style={{ opacity: 0.5, width: 60, flexShrink: 0 }}>current:</span>
+                          <code style={{ ...st.diffCode, background: st.diffRemoveBg, color: st.diffRemoveText }}>
+                            {JSON.stringify(d.currentValue)}
+                          </code>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <span style={{ opacity: 0.5, width: 60, flexShrink: 0 }}>import:</span>
+                          <code style={{ ...st.diffCode, background: st.diffAddBg, color: st.diffAddText }}>
+                            {JSON.stringify(d.importValue)}
+                          </code>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div style={st.dialogFooter}>
+              <span style={{ fontSize: 13, opacity: 0.7 }}>{selectedCount} selected</span>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={onClose} style={st.btnSecondary}>Cancel</button>
+                <button
+                  onClick={onApply}
+                  disabled={importing || selectedCount === 0}
+                  style={{ ...st.btnSave, opacity: selectedCount === 0 ? 0.5 : 1 }}
+                >
+                  {importing ? 'Applying…' : `Apply ${selectedCount}`}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -800,5 +1037,51 @@ function makeStyles(dark) {
     },
     mobileList: { overflowY: 'auto', flex: 1 },
     mobileEditor: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
+    // ── Import/Export ─────────────────────────────────────────────────────────
+    toolBtn: {
+      padding: '5px 10px', borderRadius: 5,
+      border: `1px solid ${t.border}`, background: 'transparent',
+      color: t.text, fontSize: 12, cursor: 'pointer',
+    },
+    linkBtn: {
+      background: 'none', border: 'none', color: '#3b82f6',
+      fontSize: 12, cursor: 'pointer', padding: 0,
+    },
+    dialogOverlay: {
+      position: 'fixed', inset: 0, zIndex: 2000,
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    },
+    dialog: {
+      background: t.bg, borderRadius: 12,
+      width: '90%', maxWidth: 700, maxHeight: '85vh',
+      display: 'flex', flexDirection: 'column',
+      boxShadow: '0 16px 48px rgba(0,0,0,0.3)',
+      border: `1px solid ${t.border}`,
+    },
+    dialogHeader: {
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '16px 20px', borderBottom: `1px solid ${t.border}`, flexShrink: 0,
+    },
+    dialogClose: {
+      background: 'none', border: 'none', fontSize: 18,
+      cursor: 'pointer', color: t.textMuted,
+    },
+    dialogFooter: {
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '12px 20px', borderTop: `1px solid ${t.border}`, flexShrink: 0,
+    },
+    statusDot: {
+      width: 8, height: 8, borderRadius: '50%',
+      flexShrink: 0, display: 'inline-block',
+    },
+    diffCode: {
+      fontFamily: 'monospace', padding: '2px 6px', borderRadius: 4,
+      wordBreak: 'break-all', flex: 1,
+    },
+    diffRemoveBg: dark ? '#2d0e0e' : '#fef2f2',
+    diffRemoveText: dark ? '#fca5a5' : '#b91c1c',
+    diffAddBg: dark ? '#052e16' : '#f0fdf4',
+    diffAddText: dark ? '#86efac' : '#15803d',
   };
 }
