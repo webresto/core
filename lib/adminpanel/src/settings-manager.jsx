@@ -81,7 +81,8 @@ function typeColor(type) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 function StringEditor({ value, onChange, readOnly, st }) {
-  const base = { ...st.inputStyle, resize: 'vertical', fontFamily: 'inherit' };
+  const inputStyle = st?.inputStyle || {};
+  const base = { ...inputStyle, resize: 'vertical', fontFamily: 'inherit' };
   return (
     <textarea
       readOnly={readOnly}
@@ -94,22 +95,24 @@ function StringEditor({ value, onChange, readOnly, st }) {
 }
 
 function NumberEditor({ value, onChange, readOnly, st }) {
+  const inputStyle = st?.inputStyle || {};
   return (
     <input
       type="number"
       readOnly={readOnly}
       value={value == null ? '' : value}
       onChange={e => onChange(e.target.value === '' ? null : Number(e.target.value))}
-      style={readOnly ? { ...st.inputStyle, opacity: 0.7 } : st.inputStyle}
+      style={readOnly ? { ...inputStyle, opacity: 0.7 } : inputStyle}
     />
   );
 }
 
 function BooleanEditor({ value, onChange, readOnly, st }) {
+  const inputStyle = st?.inputStyle || {};
   return (
     <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 4 }}>
       {[true, false].map(opt => (
-        <label key={String(opt)} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: readOnly ? 'default' : 'pointer', fontSize: 14, color: st.inputStyle.color }}>
+        <label key={String(opt)} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: readOnly ? 'default' : 'pointer', fontSize: 14, color: inputStyle.color }}>
           <input
             type="radio"
             disabled={readOnly}
@@ -124,6 +127,7 @@ function BooleanEditor({ value, onChange, readOnly, st }) {
 }
 
 function JsonEditor({ value, schema, onChange, readOnly, st }) {
+  const inputStyle = st?.inputStyle || {};
   const [raw, setRaw] = useState('');
   const [parseError, setParseError] = useState(null);
   const [schemaErrors, setSchemaErrors] = useState([]);
@@ -151,11 +155,11 @@ function JsonEditor({ value, schema, onChange, readOnly, st }) {
   }
 
   const taStyle = {
-    ...st.inputStyle,
+    ...inputStyle,
     resize: 'vertical',
     fontFamily: 'monospace',
     fontSize: 13,
-    border: parseError ? '1.5px solid #ef4444' : st.inputStyle.border,
+    border: parseError ? '1.5px solid #ef4444' : inputStyle.border,
     ...(readOnly ? { opacity: 0.7 } : {}),
   };
 
@@ -487,13 +491,13 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
       <div style={st.fieldBlock}>
         <label style={st.fieldLabel}>Value</label>
         {selected.type === 'string' && (
-          <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} />
+          <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} />
         )}
         {selected.type === 'number' && (
-          <NumberEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} />
+          <NumberEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} />
         )}
         {selected.type === 'boolean' && (
-          <BooleanEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} />
+          <BooleanEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} />
         )}
         {selected.type === 'json' && (
           <JsonEditor
@@ -501,6 +505,7 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
             schema={selected.jsonSchema}
             onChange={setEditValue}
             readOnly={selected.readOnly}
+            st={st}
           />
         )}
       </div>
