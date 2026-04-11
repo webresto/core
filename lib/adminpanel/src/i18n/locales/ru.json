@@ -131,5 +131,24 @@
   "help_visible_desc": "Маркетинговый переключатель. Скрытый товар остается активным в системе, но исчезает из общего списка в приложении. Это позволяет создавать секретные позиции или товары, доступные только по прямым ссылкам.",
   "help_show_all_title": "Фильтр «Показать все»",
   "help_show_all_desc": "По умолчанию Склад скрывает выключенные и спрятанные товары для удобства. Используйте лупу, чтобы увидеть все позиции для управления.",
-  "help_hint": "Совет: Используйте массовые операции в папках для быстрого управления списком товаров."
+  "help_hint": "Совет: Используйте массовые операции в папках для быстрого управления списком товаров.",
+
+  "orders_report_title": "Отчёт по заказам",
+  "orders_report_from": "С",
+  "orders_report_to": "По",
+  "orders_report_apply": "Применить",
+  "orders_report_refresh": "Обновить",
+  "orders_report_custom_range": "Произвольный диапазон",
+  "orders_report_platform": "Платформа",
+  "orders_report_total": "Всего",
+  "orders_report_revenue": "Выручка",
+  "orders_report_summary": "Итого",
+  "orders_report_no_data": "Нет данных за выбранный период",
+  "orders_report_loading": "Загрузка...",
+  "orders_report_error": "Ошибка",
+  "orders_report_state_order": "Заказан",
+  "orders_report_state_cooking": "Готовится",
+  "orders_report_state_on_the_way": "В пути",
+  "orders_report_state_done": "Доставлен",
+  "orders_report_state_reject": "Отклонён"
 }

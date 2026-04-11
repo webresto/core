@@ -184,5 +184,24 @@
   "notifications_manager_channels_cost": "Cost",
   "notifications_manager_channels_force_send": "Force send",
   "notifications_manager_channels_class": "Class",
-  "notifications_manager_channels_error": "Readiness error"
+  "notifications_manager_channels_error": "Readiness error",
+
+  "orders_report_title": "Orders Report",
+  "orders_report_from": "From",
+  "orders_report_to": "To",
+  "orders_report_apply": "Apply",
+  "orders_report_refresh": "Refresh",
+  "orders_report_custom_range": "Custom range",
+  "orders_report_platform": "Platform",
+  "orders_report_total": "Total",
+  "orders_report_revenue": "Revenue",
+  "orders_report_summary": "Total",
+  "orders_report_no_data": "No data for the selected period",
+  "orders_report_loading": "Loading...",
+  "orders_report_error": "Error",
+  "orders_report_state_order": "Ordered",
+  "orders_report_state_cooking": "Cooking",
+  "orders_report_state_on_the_way": "On the way",
+  "orders_report_state_done": "Done",
+  "orders_report_state_reject": "Rejected"
 }

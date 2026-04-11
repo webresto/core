@@ -80,6 +80,12 @@ export default function bindAdminpanel() {
         name: 'Notifications',
         description: 'Access to Notifications module and its API endpoints',
         department: 'Notifications'
+      },
+      {
+        id: 'orders-report',
+        name: 'Orders Report',
+        description: 'Access to Orders Report module and its API endpoints',
+        department: 'Reports'
       }
     ]);
 
@@ -419,6 +425,37 @@ function processBindAdminpanel() {
           );
         } catch (e) {
           sails.log.debug('NotificationsManager channels route bind error', e);
+        }
+
+        // OrdersReport module link + route
+        try {
+          const ordersReportController = require('../lib/adminpanel/src/controller/orders-report').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'orders-report',
+            title: 'Orders Report',
+            link: `${routePrefix}/orders-report`,
+            icon: 'bar_chart',
+            accessToken: 'orders-report',
+            section: 'Reports'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/orders-report`,
+            adminizer.policyManager.bindPolicies(policies, ordersReportController)
+          );
+        } catch (e) {
+          sails.log.debug('OrdersReport route bind error', e);
+        }
+
+        // API route for orders report data
+        try {
+          const getOrdersReportDataController = require('../lib/adminpanel/src/controller/get-orders-report-data').default;
+          adminizer.app.get(
+            `${routePrefix}/core/orders-report/data`,
+            adminizer.policyManager.bindPolicies(policies, getOrdersReportDataController)
+          );
+        } catch (e) {
+          sails.log.debug('OrdersReport data route bind error', e);
         }
 
         // Route for product setup page
