@@ -40,6 +40,8 @@
   "stock_empty_msg": "Great job! All your dishes are currently available. You can check your settings or explore other dishes.",
   "stock_explore_btn": "Explore Dishes",
   "stock_manager_title": "إدارة المخزون",
+  "stock_refresh_btn": "تحديث الآن",
+  "stock_refreshing_btn": "جارٍ التحديث...",
   "unknown_error": "خطأ غير معروف",
   "stock_update_failed": "Update failed: {error}",
   "stock_update_error": "Update error",

@@ -47,6 +47,8 @@
   "stock_empty_msg": "Great job! All your dishes are currently available. You can check your settings or explore other dishes.",
   "stock_explore_btn": "Explore Dishes",
   "stock_manager_title": "Stock Manager",
+  "stock_refresh_btn": "Refresh now",
+  "stock_refreshing_btn": "Refreshing...",
   "unknown_error": "Unknown error",
   "stock_update_failed": "Update failed: {error}",
   "stock_update_error": "Update error",

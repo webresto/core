@@ -47,6 +47,8 @@
   "stock_empty_msg": "Отличная работа! Все ваши блюда доступны. Вы можете проверить настройки или посмотреть другие блюда.",
   "stock_explore_btn": "Обзор блюд",
   "stock_manager_title": "Склад",
+  "stock_refresh_btn": "Обновить сейчас",
+  "stock_refreshing_btn": "Обновление...",
   "unknown_error": "Неизвестная ошибка",
   "stock_update_failed": "Не удалось обновить: {error}",
   "stock_update_error": "Ошибка обновления",

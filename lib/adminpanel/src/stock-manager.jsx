@@ -15,6 +15,7 @@ function StockManagerContent() {
   const { t, language, setLanguage } = useTranslation();
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [results, setResults] = useState([]);
   const [balances, setBalances] = useState({});
   const [initialItems, setInitialItems] = useState([]);
@@ -352,6 +353,22 @@ function StockManagerContent() {
     setBalances(prev => ({ ...prev, [id]: newBalance }));
   }
 
+  async function refreshData() {
+    setIsRefreshing(true);
+    try {
+      await loadInitialItems();
+      if (currentGroup) {
+        await loadDishes(currentGroup.id);
+      }
+      const term = (q || '').trim();
+      if (term) {
+        await performSearch(term);
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
   async function updateStock(id, balance) {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
@@ -592,6 +609,14 @@ function StockManagerContent() {
           <h1 className="text-3xl font-bold">{t('stock_manager_title')}</h1>
           <HelpButton />
         </div>
+        <button
+          type="button"
+          onClick={refreshData}
+          disabled={isRefreshing}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+        >
+          {isRefreshing ? t('stock_refreshing_btn') : t('stock_refresh_btn')}
+        </button>
       </div>
       <Tabs tabs={tabs} defaultTab="out-of-stock" />
     </div>
