@@ -5,6 +5,8 @@
   "view_grid": "网格视图",
   "view_list": "列表视图",
   "stock_manager_title": "库存管理",
+  "stock_refresh_btn": "立即刷新",
+  "stock_refreshing_btn": "刷新中...",
   "unknown_error": "未知错误",
 
   "order_logs_search_placeholder": "搜索日志",
