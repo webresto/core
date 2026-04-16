@@ -63,6 +63,35 @@ function StockManagerContent() {
     return params.get('group') || null;
   }
 
+  function withNoCacheTs(endpoint) {
+    const joinChar = endpoint.includes('?') ? '&' : '?';
+    return `${endpoint}${joinChar}_ts=${Date.now()}`;
+  }
+
+  async function fetchJsonNoCache(endpoint, options = {}) {
+    const response = await fetch(withNoCacheTs(endpoint), {
+      ...options,
+      credentials: options.credentials || 'same-origin',
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+        ...(options.headers || {}),
+      },
+    });
+
+    const contentType = (response.headers.get('content-type') || '').toLowerCase();
+    if (!response.ok || !contentType.includes('application/json')) {
+      const text = await response.text();
+      throw new Error(
+        `HTTP ${response.status}. Expected JSON, got "${contentType || 'unknown'}". ${text.slice(0, 120)}`
+      );
+    }
+
+    return response.json();
+  }
+
   // Update URL with current group slug
   function updateUrl(groupSlug) {
     const url = new URL(window.location);
@@ -80,12 +109,18 @@ function StockManagerContent() {
 
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+      const visitedParents = new Set();
 
       // Recursive function to search for group and build path
       async function searchGroupRecursive(parentId, pathStack) {
+        const parentKey = parentId ? String(parentId) : '__root__';
+        if (visitedParents.has(parentKey)) {
+          return null;
+        }
+        visitedParents.add(parentKey);
+
         const endpoint = `${base}/core/groups${parentId ? `?parent=${parentId}` : ''}`;
-        const resp = await fetch(endpoint);
-        const json = await resp.json();
+        const json = await fetchJsonNoCache(endpoint);
         const groups = json.results || [];
 
         // Check if target group is in current level
@@ -194,8 +229,7 @@ function StockManagerContent() {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/stock-items`;
-      const resp = await fetch(endpoint);
-      const json = await resp.json();
+      const json = await fetchJsonNoCache(endpoint);
       setInitialItems(json.results || []);
       const newBalances = {};
       (json.results || []).forEach(r => newBalances[r.id] = r.balance || 0);
@@ -209,8 +243,7 @@ function StockManagerContent() {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/groups${parentId ? `?parent=${parentId}` : ''}`;
-      const resp = await fetch(endpoint);
-      const json = await resp.json();
+      const json = await fetchJsonNoCache(endpoint);
       setGroups(json.results || []);
     } catch (err) {
       console.error('load groups error', err);
@@ -225,8 +258,7 @@ function StockManagerContent() {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/dishes-by-group?group=${groupId}`;
-      const resp = await fetch(endpoint);
-      const json = await resp.json();
+      const json = await fetchJsonNoCache(endpoint);
       const loadedDishes = json.results || [];
       setDishes(loadedDishes);
 
@@ -239,37 +271,28 @@ function StockManagerContent() {
   }
 
   async function handleGroupClick(group) {
-    setGroupStack([...groupStack, currentGroup]);
+    if (!group || (currentGroup && currentGroup.id === group.id)) {
+      return;
+    }
+
+    const lineage = [...groupStack, currentGroup].filter(Boolean);
+    const existingIndex = lineage.findIndex((g) => g.id === group.id);
+    if (existingIndex !== -1) {
+      const newStack = lineage.slice(0, existingIndex);
+      const existingGroup = lineage[existingIndex];
+      setGroupStack(newStack);
+      setCurrentGroup(existingGroup);
+      updateUrl(existingGroup.slug);
+      await loadGroups(existingGroup.id);
+      await loadDishes(existingGroup.id);
+      return;
+    }
+
+    setGroupStack(lineage);
     setCurrentGroup(group);
     updateUrl(group.slug);
     await loadGroups(group.id);
     await loadDishes(group.id);
-  }
-
-  async function handleBackClick() {
-    if (groupStack.length === 0) {
-      // Back to root
-      setCurrentGroup(null);
-      updateUrl(null);
-      await loadGroups(null);
-      setDishes([]);
-      return;
-    }
-
-    const prevGroup = groupStack[groupStack.length - 1];
-    const newStack = groupStack.slice(0, -1);
-    setGroupStack(newStack);
-    setCurrentGroup(prevGroup);
-
-    if (prevGroup) {
-      updateUrl(prevGroup.slug);
-      await loadGroups(prevGroup.id);
-      await loadDishes(prevGroup.id);
-    } else {
-      updateUrl(null);
-      await loadGroups(null);
-      setDishes([]);
-    }
   }
 
   async function performSearch(term) {
@@ -281,8 +304,7 @@ function StockManagerContent() {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/api?q=${encodeURIComponent(term)}`;
-      const resp = await fetch(endpoint);
-      const json = await resp.json();
+      const json = await fetchJsonNoCache(endpoint);
       setResults(json.results || []);
       const newBalances = {};
       (json.results || []).forEach(r => newBalances[r.id] = r.balance || 0);
@@ -293,6 +315,32 @@ function StockManagerContent() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleBreadcrumbNavigate(level) {
+    const lineage = [...groupStack, currentGroup].filter(Boolean);
+
+    if (level <= 0) {
+      setCurrentGroup(null);
+      setGroupStack([]);
+      updateUrl(null);
+      await loadGroups(null);
+      setDishes([]);
+      return;
+    }
+
+    const targetIndex = level - 1;
+    const targetGroup = lineage[targetIndex] || null;
+    if (!targetGroup) {
+      return;
+    }
+
+    const newStack = lineage.slice(0, targetIndex);
+    setGroupStack(newStack);
+    setCurrentGroup(targetGroup);
+    updateUrl(targetGroup.slug);
+    await loadGroups(targetGroup.id);
+    await loadDishes(targetGroup.id);
   }
 
   function clearSearch() {
@@ -316,7 +364,7 @@ function StockManagerContent() {
         }
         return null;
       })();
-      const resp = await fetch(endpoint, {
+      const json = await fetchJsonNoCache(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -325,7 +373,6 @@ function StockManagerContent() {
         credentials: 'include',
         body: JSON.stringify({ id, balance })
       });
-      const json = await resp.json();
       if (json.success) {
         setBalances(prev => ({ ...prev, [id]: balance }));
 
@@ -360,7 +407,7 @@ function StockManagerContent() {
         }
         return null;
       })();
-      const resp = await fetch(endpoint, {
+      const json = await fetchJsonNoCache(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -369,7 +416,6 @@ function StockManagerContent() {
         credentials: 'include',
         body: JSON.stringify({ id, model, visible })
       });
-      const json = await resp.json();
       if (json.success) {
         // Update state
         if (model === 'dish') {
@@ -400,7 +446,7 @@ function StockManagerContent() {
         }
         return null;
       })();
-      const resp = await fetch(endpoint, {
+      const json = await fetchJsonNoCache(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -409,7 +455,6 @@ function StockManagerContent() {
         credentials: 'include',
         body: JSON.stringify({ id, model, enable })
       });
-      const json = await resp.json();
       if (json.success) {
         // Update state
         if (model === 'dish') {
@@ -502,7 +547,7 @@ function StockManagerContent() {
               <Navigation
                 currentGroup={currentGroup}
                 groupStack={groupStack}
-                onBackClick={handleBackClick}
+                onBreadcrumbNavigate={handleBreadcrumbNavigate}
               />
 
               <GroupsGrid

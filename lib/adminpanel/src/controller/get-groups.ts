@@ -6,6 +6,11 @@ export default async function GetGroupsController(req: any, res: any) {
         return res.sendStatus(403);
     }
     try {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+        res.set('Surrogate-Control', 'no-store');
+
         const parentId = req.query.parent || null;
 
         let groups;
