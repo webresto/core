@@ -973,6 +973,7 @@ let Model = {
                     rmsOrderNumber: orderWithRMS.rmsOrderNumber,
                     rmsOrderData: orderWithRMS.rmsOrderData
                 });
+                await decrementLimitedStockByOrder(order.id);
                 sails.log.info(`RestoCore > new order with id [${orderWithRMS.shortId}] for [${orderWithRMS.customer.phone.code + orderWithRMS.customer.phone.number}] total: ${orderWithRMS.total} has rmsOrderNumber: ${orderWithRMS.rmsOrderNumber}`);
                 await Order.log({ id: order.id }, "info", "core", "order: RMS order created", { rmsOrderNumber: orderWithRMS.rmsOrderNumber, rmsId: orderWithRMS.rmsId });
             }
@@ -1011,6 +1012,40 @@ let Model = {
             emitter.emit("core:order-after-order", order);
             if (order.user) {
                 UserOrderHistory.save(order.id);
+            }
+        }
+        async function decrementLimitedStockByOrder(orderId) {
+            const orderDishes = await OrderDish.find({ order: orderId });
+            if (!orderDishes.length)
+                return;
+            const amountByDishId = {};
+            for (const orderDish of orderDishes) {
+                if (!orderDish?.dish || !orderDish?.amount || orderDish.amount <= 0)
+                    continue;
+                const dishId = String(orderDish.dish);
+                amountByDishId[dishId] = (amountByDishId[dishId] ?? 0) + orderDish.amount;
+            }
+            const dishIds = Object.keys(amountByDishId);
+            if (!dishIds.length)
+                return;
+            const dishes = await Dish.find({ id: dishIds });
+            for (const dish of dishes) {
+                const deductedAmount = amountByDishId[String(dish.id)] ?? 0;
+                if (deductedAmount <= 0)
+                    continue;
+                // -1 means infinite stock; only deduct for explicit finite balances.
+                if (typeof dish.balance !== "number" || dish.balance < 0)
+                    continue;
+                const nextBalance = Math.max(0, dish.balance - deductedAmount);
+                if (nextBalance === dish.balance)
+                    continue;
+                await Dish.update({ id: dish.id }, { balance: nextBalance }).fetch();
+                await Order.log({ id: orderId }, "info", "core", "order: stock deducted", {
+                    dishId: dish.id,
+                    deductedAmount,
+                    balanceBefore: dish.balance,
+                    balanceAfter: nextBalance
+                });
             }
         }
     },
