@@ -95,6 +95,35 @@ function getBaseAdminPath() {
   return (window.location.pathname || '').replace(/\/[^/]*$/, '');
 }
 
+function withNoCacheTs(endpoint) {
+  const joinChar = endpoint.includes('?') ? '&' : '?';
+  return `${endpoint}${joinChar}_ts=${Date.now()}`;
+}
+
+async function fetchJsonNoCache(endpoint, options = {}) {
+  const response = await fetch(withNoCacheTs(endpoint), {
+    ...options,
+    credentials: options.credentials || 'same-origin',
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/json',
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+      ...(options.headers || {}),
+    },
+  });
+
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
+  if (!response.ok || !contentType.includes('application/json')) {
+    const text = await response.text();
+    throw new Error(
+      `HTTP ${response.status}. Expected JSON, got "${contentType || 'unknown'}". ${text.slice(0, 120)}`
+    );
+  }
+
+  return response.json();
+}
+
 function formatNumber(value, language) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return '0';
@@ -175,9 +204,7 @@ function OrdersReportContent({ locale }) {
     try {
       const base = getBaseAdminPath();
       const url = `${base}/core/orders-report/data?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`;
-      const resp = await fetch(url, { credentials: 'same-origin' });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const json = await resp.json();
+      const json = await fetchJsonNoCache(url);
       setData(json);
     } catch (e) {
       setError(e.message || String(e));

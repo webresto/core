@@ -149,6 +149,40 @@ function getBaseAdminPath() {
   return (window.location.pathname || '').replace(/\/[^/]*$/, '');
 }
 
+function withNoCacheTs(endpoint) {
+  const joinChar = endpoint.includes('?') ? '&' : '?';
+  return `${endpoint}${joinChar}_ts=${Date.now()}`;
+}
+
+async function fetchJsonNoCache(endpoint, options = {}) {
+  const response = await fetch(withNoCacheTs(endpoint), {
+    ...options,
+    credentials: options.credentials || 'same-origin',
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/json',
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+      ...(options.headers || {}),
+    },
+  });
+
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
+  if (!contentType.includes('application/json')) {
+    const text = await response.text();
+    throw new Error(
+      `HTTP ${response.status}. Expected JSON, got "${contentType || 'unknown'}". ${text.slice(0, 120)}`
+    );
+  }
+
+  const json = await response.json();
+  if (!response.ok) {
+    throw new Error(json?.error || `HTTP ${response.status}`);
+  }
+
+  return json;
+}
+
 function getOrderModelPath(orderId) {
   return `${getBaseAdminPath()}/model/order/edit/${encodeURIComponent(String(orderId || ''))}`;
 }
@@ -1089,11 +1123,7 @@ function OrderKanbanContent() {
       }
       const base = getBaseAdminPath();
       const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1&newMinutes=${boardWindowMinutes}`;
-      const response = await fetch(endpoint, { credentials: 'same-origin', signal: abortController.signal });
-      const json = await response.json();
-      if (!response.ok) {
-        throw new Error(json?.error || `HTTP ${response.status}`);
-      }
+      const json = await fetchJsonNoCache(endpoint, { signal: abortController.signal });
 
       if (!mountedRef.current || requestId !== loadRequestIdRef.current) return;
 
@@ -1307,14 +1337,10 @@ function OrderKanbanContent() {
     (async () => {
       try {
         const base = getBaseAdminPath();
-        const response = await fetch(
+        const json = await fetchJsonNoCache(
           `${base}/core/order-kanban/order?id=${encodeURIComponent(selectedOrderId)}`,
           { credentials: 'same-origin', signal: abortController.signal }
         );
-        const json = await response.json();
-        if (!response.ok) {
-          throw new Error(json?.error || `HTTP ${response.status}`);
-        }
         if (!mountedRef.current || requestId !== detailsRequestIdRef.current) return;
         setSelectedOrderDetails(normalizeOrderDetails(json.order));
       } catch (detailsError) {
@@ -1365,7 +1391,7 @@ function OrderKanbanContent() {
     try {
       const base = getBaseAdminPath();
       const csrf = getCsrfToken();
-      const response = await fetch(`${base}/core/order-kanban/state`, {
+      const json = await fetchJsonNoCache(`${base}/core/order-kanban/state`, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
@@ -1374,9 +1400,8 @@ function OrderKanbanContent() {
         },
         body: JSON.stringify({ id: orderId, nextState }),
       });
-      const json = await response.json();
-      if (!response.ok || json?.success === false) {
-        throw new Error(json?.error || `HTTP ${response.status}`);
+      if (json?.success === false) {
+        throw new Error(json?.error || 'State update failed');
       }
 
       if (json.order) {

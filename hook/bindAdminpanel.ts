@@ -170,6 +170,15 @@ function processBindAdminpanel() {
         const routePrefix = adminizer.config.routePrefix;
         const policies = adminizer.config.policies;
 
+        // Prevent browser/proxy caching for admin core API responses.
+        adminizer.app.use(`${routePrefix}/core`, (_req: any, res: any, next: any) => {
+          res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+          res.set('Pragma', 'no-cache');
+          res.set('Expires', '0');
+          res.set('Surrogate-Control', 'no-store');
+          next();
+        });
+
         // StockManager module link + route
         try {
           const stockController = require('../lib/adminpanel/src/controller/stock-manager').default;
