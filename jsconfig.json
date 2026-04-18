@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["lib/adminpanel/src/*"],
+      "@/components/ui/*": ["node_modules/adminizer/ui/components/ui/*"]
+    },
+    "checkJs": true,
+    "jsx": "react",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "strict": false,
+    "noEmit": true
+  },
+  "include": ["lib/**/*"],
+  "exclude": ["node_modules"]
+}
