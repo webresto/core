@@ -40,6 +40,8 @@
   "stock_empty_msg": "Great job! All your dishes are currently available. You can check your settings or explore other dishes.",
   "stock_explore_btn": "Explore Dishes",
   "stock_manager_title": "Gestor de inventario",
+  "stock_refresh_btn": "Actualizar ahora",
+  "stock_refreshing_btn": "Actualizando...",
   "unknown_error": "Error desconocido",
   "stock_update_failed": "Update failed: {error}",
   "stock_update_error": "Update error",

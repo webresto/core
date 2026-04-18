@@ -40,6 +40,8 @@
   "stock_empty_msg": "Great job! All your dishes are currently available. You can check your settings or explore other dishes.",
   "stock_explore_btn": "Explore Dishes",
   "stock_manager_title": "स्टॉक मैनेजर",
+  "stock_refresh_btn": "अभी रीफ्रेश करें",
+  "stock_refreshing_btn": "रीफ्रेश हो रहा है...",
   "unknown_error": "अज्ञात त्रुटि",
   "stock_update_failed": "Update failed: {error}",
   "stock_update_error": "Update error",
