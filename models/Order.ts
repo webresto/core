@@ -2116,7 +2116,10 @@ let Model = {
     }
 
     // Perform transition
-    await Order.update(query, patch).fetch();
+    const updated = (await Order.update(query, patch).fetch())[0];
+    if (updated) {
+      emitter.emit("core:order-after-count", updated);
+    }
   }
 };
 
