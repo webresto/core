@@ -9,7 +9,7 @@ export function SearchBar({ query, onQueryChange, onClear }) {
     return (
         <div className="flex gap-2 mb-6">
             <Input
-                placeholder={t('search_placeholder')}
+                placeholder={t('Search dishes...')}
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
                 className="flex-1"

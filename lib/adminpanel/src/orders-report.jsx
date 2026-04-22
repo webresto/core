@@ -169,7 +169,7 @@ function formatMonthLabel(date, language) {
 export default function OrdersReport({ props }) {
   const locale = resolveSystemLocale(props?.locale);
   return (
-    <I18nProvider initialLocale={locale}>
+    <I18nProvider initialLocale={locale} messages={props?.messages}>
       <OrdersReportContent locale={locale} />
     </I18nProvider>
   );
@@ -275,7 +275,7 @@ function OrdersReportContent({ locale }) {
       {/* Header */}
       <div style={{ marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: theme.textPrimary }}>
-          {t('orders_report_title')}
+          {t('Orders Report')}
         </h1>
       </div>
 
@@ -287,7 +287,7 @@ function OrdersReportContent({ locale }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <NavButton theme={theme} onClick={() => navigateMonth(-1)} title="Previous month">‹</NavButton>
             <span style={{ fontWeight: 600, fontSize: '15px', minWidth: '160px', textAlign: 'center', color: theme.textPrimary }}>
-              {isMonthRange ? formatMonthLabel(anchorMonth, language) : t('orders_report_custom_range')}
+              {isMonthRange ? formatMonthLabel(anchorMonth, language) : t('Custom range')}
             </span>
             <NavButton theme={theme} onClick={() => navigateMonth(1)} title="Next month">›</NavButton>
           </div>
@@ -297,13 +297,13 @@ function OrdersReportContent({ locale }) {
 
           {/* Date range inputs */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: theme.textMuted, fontSize: '13px' }}>{t('orders_report_from')}</span>
+            <span style={{ color: theme.textMuted, fontSize: '13px' }}>{t('From')}</span>
             <DateInput
               theme={theme}
               value={toDateInputValue(fromDate)}
               onChange={v => setFromDate(new Date(v + 'T00:00:00'))}
             />
-            <span style={{ color: theme.textMuted, fontSize: '13px' }}>{t('orders_report_to')}</span>
+            <span style={{ color: theme.textMuted, fontSize: '13px' }}>{t('To')}</span>
             <DateInput
               theme={theme}
               value={toDateInputValue(toDate)}
@@ -322,7 +322,7 @@ function OrdersReportContent({ locale }) {
                 fontSize: '13px',
               }}
             >
-              {t('orders_report_apply')}
+              {t('Apply')}
             </button>
           </div>
 
@@ -341,7 +341,7 @@ function OrdersReportContent({ locale }) {
               fontSize: '13px',
               opacity: loading ? 0.6 : 1,
             }}
-            title={t('orders_report_refresh')}
+            title={t('Refresh')}
           >
             ↻
           </button>
@@ -359,14 +359,14 @@ function OrdersReportContent({ locale }) {
           color: isDark ? '#fca5a5' : '#b91c1c',
           fontSize: '13px',
         }}>
-          {t('orders_report_error')}: {error}
+          {t('Error')}: {error}
         </div>
       )}
 
       {/* Table */}
       {loading && !data ? (
         <div style={{ textAlign: 'center', padding: '48px', color: theme.textMuted }}>
-          {t('orders_report_loading')}
+          {t('Loading...')}
         </div>
       ) : rows.length === 0 && !loading ? (
         <div style={{
@@ -375,7 +375,7 @@ function OrdersReportContent({ locale }) {
           padding: '48px',
           color: theme.textMuted,
         }}>
-          {t('orders_report_no_data')}
+          {t('No data for the selected period')}
         </div>
       ) : (
         <ReportTable
@@ -425,9 +425,9 @@ function ReportTable({ theme, language, states, rows, summary, loading, t }) {
       <table style={tableStyle}>
         <thead>
           <tr>
-            <th style={thStyle}>{t('orders_report_platform')}</th>
-            <th style={thCenterStyle}>{t('orders_report_total')}</th>
-            <th style={thCenterStyle}>{t('orders_report_revenue')}</th>
+            <th style={thStyle}>{t('Platform')}</th>
+            <th style={thCenterStyle}>{t('Total')}</th>
+            <th style={thCenterStyle}>{t('Revenue')}</th>
             {states.map(state => (
               <th key={state} style={{ ...thCenterStyle }}>
                 <StateBadge state={state} t={t} />
@@ -523,7 +523,7 @@ function SummaryRow({ summary, states, theme, language, t }) {
 
   return (
     <tr>
-      <td style={tdStyle}>{t('orders_report_summary')}</td>
+      <td style={tdStyle}>{t('Total')}</td>
       <td style={tdCenterStyle}>{formatNumber(summary.total, language)}</td>
       <td style={tdCenterStyle}>{formatNumber(summary.totalRevenue, language)}</td>
       {states.map(state => {
@@ -598,7 +598,15 @@ function DateInput({ theme, value, onChange }) {
 
 function StateBadge({ state, t }) {
   const color = STATE_COLORS[state] || '#64748b';
-  const label = t(`orders_report_state_${state.toLowerCase()}`) || state;
+  const stateLabelMap = {
+    order: 'Ordered',
+    cooking: 'Cooking',
+    on_the_way: 'On the way',
+    done: 'Done',
+    reject: 'Rejected',
+  };
+  const fallbackLabel = stateLabelMap[state.toLowerCase()] || state;
+  const label = t(fallbackLabel) || fallbackLabel;
   return (
     <span style={{
       display: 'inline-block',

@@ -12,7 +12,7 @@ export function Navigation({ currentGroup, groupStack, onBreadcrumbNavigate }) {
     // Build breadcrumb path: Root -> Group1 -> Group2 -> Current
     // Deduplicate by id to avoid loops when data has accidental cycles.
     const rawBreadcrumbs = [
-        { id: null, name: t('back_to_root'), level: 0 },
+        { id: null, name: t('Root'), level: 0 },
         ...groupStack.filter(g => g !== null).map((group, index) => ({
             id: group.id,
             name: group.name,

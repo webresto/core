@@ -1,4 +1,5 @@
 export default async function ExportSettingsController(req: any, res: any) {
+  const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   if (!req.user?.isAdministrator) {
     return res.sendStatus(403);
   }
@@ -24,6 +25,6 @@ export default async function ExportSettingsController(req: any, res: any) {
     return res.send(JSON.stringify(exportData, null, 2));
   } catch (e) {
     sails.log.error('ExportSettingsController error', e);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: t('Internal server error') });
   }
 }

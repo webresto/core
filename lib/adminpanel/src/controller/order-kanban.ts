@@ -1,17 +1,8 @@
-function normalizeLocale(rawLocale: unknown): string {
-  const value = String(rawLocale || "").trim().toLowerCase().replace(/_/g, "-");
-  if (value.startsWith("es")) return "es";
-  if (value.startsWith("zh")) return "zh";
-  if (value.startsWith("hi")) return "hi";
-  if (value.startsWith("ar")) return "ar";
-  if (value.startsWith("ru")) return "ru";
-  if (value.startsWith("fr")) return "fr";
-  if (value.startsWith("ua") || value.startsWith("uk")) return "ua";
-  if (value.startsWith("en")) return "en";
-  return "en";
-}
+import { getInertiaLocaleAndMessages } from "./i18n-messages";
 
 export default function OrderKanbanController(req: any, res: any) {
+  const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
+  const { locale, messages } = getInertiaLocaleAndMessages(req);
   const { config } = req.adminizer || {};
   if (config?.auth?.enable && !req.user) {
     return res.redirect(`${config.routePrefix}/model/userap/login`);
@@ -23,8 +14,9 @@ export default function OrderKanbanController(req: any, res: any) {
     component: 'module',
     props: {
       moduleComponent: `/restocore/assets/core-adminizer-assets/OrderKanban.js`,
-      message: 'Current Orders',
-      locale: normalizeLocale(req.user?.language || req.user?.locale)
+      message: t('Current Orders'),
+      locale,
+      messages
     }
   });
 }

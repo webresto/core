@@ -402,11 +402,11 @@ function StockManagerContent() {
           performSearch((q || '').trim());
         }
       } else {
-        alert(t('stock_update_failed', { error: json.error || t('unknown_error') }));
+        alert(t('Update failed: {error}', { error: json.error || t('Unknown error') }));
       }
     } catch (err) {
       console.error('update error', err);
-      alert(t('stock_update_error'));
+      alert(t('Update error'));
     }
   }
 
@@ -443,11 +443,11 @@ function StockManagerContent() {
           setGroups(prev => prev.map(g => g.id === id ? { ...g, visible } : g));
         }
       } else {
-        alert(t('stock_visibility_update_failed', { error: json.error || t('unknown_error') }));
+        alert(t('Visibility update failed: {error}', { error: json.error || t('Unknown error') }));
       }
     } catch (err) {
       console.error('update visible error', err);
-      alert(t('stock_visibility_update_error'));
+      alert(t('Visibility update error'));
     }
   }
 
@@ -482,11 +482,11 @@ function StockManagerContent() {
           setGroups(prev => prev.map(g => g.id === id ? { ...g, enable } : g));
         }
       } else {
-        alert(t('stock_visibility_update_failed', { error: json.error || t('unknown_error') }));
+        alert(t('Visibility update failed: {error}', { error: json.error || t('Unknown error') }));
       }
     } catch (err) {
       console.error('update enable error', err);
-      alert(t('stock_visibility_update_error'));
+      alert(t('Visibility update error'));
     }
   }
 
@@ -496,7 +496,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk enable error', err);
-      alert(t('stock_bulk_visibility_update_error'));
+      alert(t('Bulk visibility update error'));
     }
   }
 
@@ -506,7 +506,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk visibility error', err);
-      alert(t('stock_bulk_visibility_update_error'));
+      alert(t('Bulk visibility update error'));
     }
   }
 
@@ -517,7 +517,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk balance error', err);
-      alert(t('stock_bulk_balance_update_error'));
+      alert(t('Bulk balance update error'));
     }
   }
 
@@ -526,7 +526,7 @@ function StockManagerContent() {
   const tabs = [
     {
       id: 'out-of-stock',
-      label: t('tab_out_of_stock'),
+      label: t('Out of stock'),
       content: (
         <LimitedStockSection
           items={initialItems}
@@ -538,7 +538,7 @@ function StockManagerContent() {
     },
     {
       id: 'explore',
-      label: t('tab_explore'),
+      label: t('Explore'),
       content: (
         <div>
           <SearchBar query={q} onQueryChange={setQ} onClear={clearSearch} />
@@ -551,7 +551,7 @@ function StockManagerContent() {
               onUpdateEnable={updateEnable}
               onUpdateVisible={updateVisible}
               onBalanceChange={handleBalanceChange}
-              title={results.length === 0 ? t('no_results') : t('search_results')}
+              title={results.length === 0 ? t('No results') : t('Search Results')}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               sortMode={sortMode}
@@ -593,7 +593,7 @@ function StockManagerContent() {
               />
 
               {groups.length === 0 && dishes.length === 0 && (
-                <div className="text-center text-gray-500 py-8">{t('empty_folder')}</div>
+                <div className="text-center text-gray-500 py-8">{t('Empty folder')}</div>
               )}
             </div>
           )}
@@ -606,7 +606,7 @@ function StockManagerContent() {
     <div className="p-6 max-w-[1600px] mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">{t('stock_manager_title')}</h1>
+          <h1 className="text-3xl font-bold">{t('Stock Manager')}</h1>
           <HelpButton />
         </div>
         <button
@@ -615,7 +615,7 @@ function StockManagerContent() {
           disabled={isRefreshing}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
         >
-          {isRefreshing ? t('stock_refreshing_btn') : t('stock_refresh_btn')}
+          {isRefreshing ? t('Refreshing...') : t('Refresh now')}
         </button>
       </div>
       <Tabs tabs={tabs} defaultTab="out-of-stock" />
@@ -626,7 +626,7 @@ function StockManagerContent() {
 // Main component wrapped with I18nProvider
 export default function StockManager(props) {
   return (
-    <I18nProvider initialLocale={props.locale}>
+    <I18nProvider initialLocale={props.locale} messages={props.messages}>
       <StockManagerContent />
     </I18nProvider>
   );

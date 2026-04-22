@@ -16,17 +16,18 @@ function hasAccess(req: any, res: any): boolean {
 }
 
 export default async function EscalateNotificationController(req: any, res: any) {
+  const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   try {
     if (!hasAccess(req, res)) return;
 
     const id = String(req.body?.id || "").trim();
     if (!id) {
-      return res.status(400).json({ error: "Invalid notification id" });
+      return res.status(400).json({ error: t("Invalid notification id") });
     }
 
     const notification = await NotificationModel.findOne({ id });
     if (!notification) {
-      return res.status(404).json({ error: "Notification not found" });
+      return res.status(404).json({ error: t("Notification not found") });
     }
 
     await NotificationModel.log({ id }, "info", "adminizer", "notifications-manager: escalate delivery", {

@@ -150,6 +150,7 @@ function checkAccess(req: any, res: any): boolean {
 }
 
 export default function OrderKanbanStreamController(req: any, res: any) {
+  const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   if (!checkAccess(req, res)) return;
 
   bindEmitterOnce();
@@ -177,7 +178,7 @@ export default function OrderKanbanStreamController(req: any, res: any) {
 
   const sequence = ++state.sequence;
   sendEvent(res, "connected", {
-    message: "Connected to order kanban stream",
+    message: t("Connected to order kanban stream"),
     clientId,
     sequence,
     at: new Date().toISOString(),

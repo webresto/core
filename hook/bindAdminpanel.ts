@@ -1,3 +1,6 @@
+import * as fs from "fs";
+import * as path from "path";
+
 // todo: fix types model instance to {%ModelName%}Record for bind"
 
 export default function bindAdminpanel() {
@@ -18,6 +21,7 @@ export default function bindAdminpanel() {
     }
 
     const adminizer = sails.hooks.adminpanel.adminizer;
+    appendTranslations(adminizer);
 
     // Catalog bind
     const catalogHandler = adminizer.catalogHandler
@@ -30,13 +34,13 @@ export default function bindAdminpanel() {
           id: 'catalog-products',
           name: 'Product catalog',
           description: 'Access to edit catalog for products',
-          department: 'catalog'
+          department: 'Catalog'
         },
         ...catalogIds.map((catalogId: string) => ({
           id: `catalog-products-${catalogId}`,
-          name: `Product catalog (${catalogId})`,
-          description: `Access to edit catalog for products-${catalogId}`,
-          department: 'catalog'
+          name: "Product catalog",
+          description: "Access to edit catalog for products",
+          department: 'Catalog'
         }))
       ]);
     } catch (e) {
@@ -107,6 +111,36 @@ export default function bindAdminpanel() {
   })
 }
 
+function appendTranslations(adminizer: any) {
+  if (!adminizer?.i18n?.appendLocale) {
+    sails.log.warn("Adminizer i18n.appendLocale is not available, skipping core programmatic translations");
+    return;
+  }
+
+  const translationsDir = path.resolve(__dirname, "../lib/adminpanel/i18n/locales");
+  if (!fs.existsSync(translationsDir)) {
+    sails.log.warn(`Adminpanel module translations directory not found: ${translationsDir}`);
+    return;
+  }
+
+  const locales = sails.config.i18n?.locales ?? [];
+  for (const locale of locales) {
+    const localeFile = path.resolve(translationsDir, `${locale}.json`);
+    if (!fs.existsSync(localeFile)) {
+      sails.log.debug(`Adminpanel module translations: locale file not found for ${locale}`);
+      continue;
+    }
+
+    try {
+      const fileContent = fs.readFileSync(localeFile, "utf8");
+      const jsonData = JSON.parse(fileContent);
+      adminizer.i18n.appendLocale(locale, jsonData);
+    } catch (error) {
+      sails.log.error(`Adminpanel module translations > Error when reading ${locale}.json:`, error);
+    }
+  }
+}
+
 // Adding a method to update admin panel models
 function addModelConfig(newModels: Record<string, any>) {
   if (!sails.config.adminpanel || !sails.config.adminpanel.models) return;
@@ -169,6 +203,13 @@ function processBindAdminpanel() {
       adminizer.emitter.on('adminizer:loaded', () => {
         const routePrefix = adminizer.config.routePrefix;
         const policies = adminizer.config.policies;
+        let getInertiaLocaleAndMessages: ((req: any) => { locale: string; messages: Record<string, string> }) | null = null;
+
+        try {
+          ({ getInertiaLocaleAndMessages } = require("../lib/adminpanel/src/controller/i18n-messages"));
+        } catch (e) {
+          sails.log.debug("Adminpanel i18n helper binding skipped", e);
+        }
 
         // Prevent browser/proxy caching for admin core API responses.
         adminizer.app.use(`${routePrefix}/core`, (_req: any, res: any, next: any) => {
@@ -178,6 +219,16 @@ function processBindAdminpanel() {
           res.set('Surrogate-Control', 'no-store');
           next();
         });
+
+        if (getInertiaLocaleAndMessages) {
+          adminizer.app.use(`${routePrefix}`, (req: any, _res: any, next: any) => {
+            if (req?.Inertia?.shareProps) {
+              const { locale, messages } = getInertiaLocaleAndMessages!(req);
+              req.Inertia.shareProps({ locale, messages });
+            }
+            next();
+          });
+        }
 
         // StockManager module link + route
         try {

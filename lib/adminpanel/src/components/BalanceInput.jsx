@@ -67,7 +67,7 @@ export function BalanceInput({ value, onChange }) {
 
             <Button
                 onClick={handleSetUnlimited}
-                title={t('dish_set_unlimited')}
+                title={t('Set to Unlimited')}
                 variant="outline"
                 size="sm"
                 type="button"

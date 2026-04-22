@@ -14,6 +14,7 @@ function hasAccess(req: any, res: any): boolean {
 }
 
 export default async function CreateNotificationController(req: any, res: any) {
+  const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   try {
     if (!hasAccess(req, res)) return;
 
@@ -32,23 +33,23 @@ export default async function CreateNotificationController(req: any, res: any) {
     const normalizedBadge = String(badge || "info").trim().toLowerCase();
 
     if (!["user", "manager"].includes(normalizedGroupTo)) {
-      return res.status(400).json({ error: "Invalid groupTo" });
+      return res.status(400).json({ error: t("Invalid group") });
     }
     if (!["info", "error"].includes(normalizedBadge)) {
-      return res.status(400).json({ error: "Invalid badge" });
+      return res.status(400).json({ error: t("Invalid badge") });
     }
     if (!normalizedTitle) {
-      return res.status(400).json({ error: "Title is required" });
+      return res.status(400).json({ error: t("Title is required") });
     }
     if (!normalizedBody) {
-      return res.status(400).json({ error: "Body is required" });
+      return res.status(400).json({ error: t("Body is required") });
     }
 
     let user: any = null;
     if (normalizedGroupTo === "user") {
       const normalizedUserId = String(userId || "").trim();
       if (!normalizedUserId) {
-        return res.status(400).json({ error: "User is required for user notifications" });
+        return res.status(400).json({ error: t("User is required for user notifications") });
       }
 
       user = await User.findOne({
@@ -61,7 +62,7 @@ export default async function CreateNotificationController(req: any, res: any) {
       });
 
       if (!user) {
-        return res.status(404).json({ error: "User not found" });
+        return res.status(404).json({ error: t("User not found") });
       }
     }
 

@@ -1,4 +1,5 @@
 export default async function GetDishesByGroupController(req: any, res: any) {
+    const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
     try {
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.set('Pragma', 'no-cache');
@@ -14,7 +15,7 @@ export default async function GetDishesByGroupController(req: any, res: any) {
 
         const groupId = req.query.group;
         if (!groupId) {
-            return res.status(400).json({ error: 'Group ID is required' });
+            return res.status(400).json({ error: t('Group ID is required') });
         }
 
         const where: any = {

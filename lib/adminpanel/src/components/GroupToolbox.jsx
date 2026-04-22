@@ -62,28 +62,28 @@ export function GroupToolbox({ dishes, onBulkEnable, onBulkVisibility, onBulkBal
                     size="sm"
                     onClick={() => openDialog(
                         'disable-all',
-                        t('dialog_disable_title'),
-                        t('dialog_disable_msg', { count: dishCount })
+                        t('Disable Dishes'),
+                        t('Disable {count} dish(es)?', { count: dishCount })
                     )}
-                    title={t('toolbox_disable')}
+                    title={t('Disable')}
                     className="h-8 px-2"
                 >
                     <Square className="w-4 h-4 mr-1 text-red-500" />
-                    {t('toolbox_disable')}
+                    {t('Disable')}
                 </Button>
                 <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => openDialog(
                         'enable-all',
-                        t('dialog_enable_title'),
-                        t('dialog_enable_msg', { count: dishCount })
+                        t('Enable Dishes'),
+                        t('Enable {count} dish(es)?', { count: dishCount })
                     )}
-                    title={t('toolbox_enable')}
+                    title={t('Enable')}
                     className="h-8 px-2"
                 >
                     <CheckSquare className="w-4 h-4 mr-1 text-green-500" />
-                    {t('toolbox_enable')}
+                    {t('Enable')}
                 </Button>
             </div>
 
@@ -94,28 +94,28 @@ export function GroupToolbox({ dishes, onBulkEnable, onBulkVisibility, onBulkBal
                     size="sm"
                     onClick={() => openDialog(
                         'hide-all',
-                        t('dialog_hide_title'),
-                        t('dialog_hide_msg', { count: dishCount })
+                        t('Hide Dishes'),
+                        t('Hide {count} dish(es) from catalog?', { count: dishCount })
                     )}
-                    title={t('toolbox_hide')}
+                    title={t('Hide')}
                     className="h-8 px-2"
                 >
                     <EyeOff className="w-4 h-4 mr-1" />
-                    {t('toolbox_hide')}
+                    {t('Hide')}
                 </Button>
                 <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => openDialog(
                         'show-all',
-                        t('dialog_show_title'),
-                        t('dialog_show_msg', { count: dishCount })
+                        t('Show Dishes'),
+                        t('Show {count} dish(es) in catalog?', { count: dishCount })
                     )}
-                    title={t('toolbox_show')}
+                    title={t('Show')}
                     className="h-8 px-2"
                 >
                     <Eye className="w-4 h-4 mr-1" />
-                    {t('toolbox_show')}
+                    {t('Show')}
                 </Button>
             </div>
 
@@ -126,29 +126,29 @@ export function GroupToolbox({ dishes, onBulkEnable, onBulkVisibility, onBulkBal
                     size="sm"
                     onClick={() => openDialog(
                         'set-balance',
-                        t('dialog_balance_title'),
-                        t('dialog_balance_msg', { count: dishCount }),
+                        t('Set Balance'),
+                        t('Set balance for {count} dish(es):', { count: dishCount }),
                         true
                     )}
-                    title={t('toolbox_set_balance')}
+                    title={t('Set Balance')}
                     className="h-8 px-2"
                 >
                     <Hash className="w-4 h-4 mr-1" />
-                    {t('toolbox_set_balance')}
+                    {t('Set Balance')}
                 </Button>
                 <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => openDialog(
                         'set-unlimited',
-                        t('dialog_unlimited_title'),
-                        t('dialog_unlimited_msg', { count: dishCount })
+                        t('Set Unlimited'),
+                        t('Set unlimited stock for {count} dish(es)?', { count: dishCount })
                     )}
-                    title={t('toolbox_set_unlimited')}
+                    title={t('Set Unlimited')}
                     className="h-8 px-2"
                 >
                     <Infinity className="w-4 h-4 mr-1" />
-                    {t('toolbox_set_unlimited')}
+                    {t('Set Unlimited')}
                 </Button>
             </div>
 

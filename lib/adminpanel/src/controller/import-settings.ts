@@ -12,13 +12,14 @@ interface ImportPayload {
 }
 
 export default async function ImportSettingsController(req: any, res: any) {
+  const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   if (!req.user?.isAdministrator) {
     return res.sendStatus(403);
   }
 
   const body: ImportPayload = req.body;
   if (!Array.isArray(body?.settings)) {
-    return res.status(400).json({ error: 'Invalid payload: settings array required' });
+    return res.status(400).json({ error: t('Invalid payload: settings array required') });
   }
 
   try {
@@ -57,7 +58,7 @@ export default async function ImportSettingsController(req: any, res: any) {
     // Apply mode — apply only selected keys
     const keysToApply = Array.isArray(body.keys) ? body.keys : [];
     if (keysToApply.length === 0) {
-      return res.status(400).json({ error: 'No keys selected for import' });
+      return res.status(400).json({ error: t('No keys selected for import') });
     }
 
     const results: Array<{ key: string; status: string; error?: string }> = [];
@@ -67,11 +68,11 @@ export default async function ImportSettingsController(req: any, res: any) {
 
       const existing = currentMap[entry.key];
       if (!existing) {
-        results.push({ key: entry.key, status: 'skipped', error: 'Setting not found in DB' });
+        results.push({ key: entry.key, status: 'skipped', error: t('Setting not found in DB') });
         continue;
       }
       if (existing.readOnly) {
-        results.push({ key: entry.key, status: 'skipped', error: 'read-only' });
+        results.push({ key: entry.key, status: 'skipped', error: t('Setting is read-only') });
         continue;
       }
 
@@ -86,6 +87,6 @@ export default async function ImportSettingsController(req: any, res: any) {
     return res.json({ results });
   } catch (e) {
     sails.log.error('ImportSettingsController error', e);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: t('Internal server error') });
   }
 }

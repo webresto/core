@@ -28,7 +28,7 @@ export function DishesGrid({
     onShowAllChange
 }) {
     const { t } = useTranslation();
-    const displayTitle = title || t('dishes_title');
+    const displayTitle = title || t('Dishes');
 
     // Deleted dishes must never appear in stock manager.
     const visibleDishes = dishes.filter((d) => {
@@ -86,11 +86,11 @@ export function DishesGrid({
                             variant={showAll ? "default" : "outline"}
                             size="sm"
                             onClick={() => onShowAllChange(!showAll)}
-                            title={t('show_all')}
+                            title={t('Show All')}
                             className={`h-8 gap-2 ${showAll ? 'shadow-sm' : ''}`}
                         >
                             <Search className="w-4 h-4" />
-                            {t('show_all')}
+                            {t('Show All')}
                         </Button>
                     )}
                     {onSortModeChange && (

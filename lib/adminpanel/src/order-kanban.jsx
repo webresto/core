@@ -198,7 +198,19 @@ function getCsrfToken() {
 
 function toDisplayState(state, t) {
   const normalized = String(state || '').toLowerCase();
-  const key = `order_kanban_state_${normalized}`;
+  const stateMap = {
+    completed: 'Completed',
+    new: 'New',
+    cart: 'Cart',
+    checkout: 'Checkout',
+    payment: 'Payment',
+    order: 'Ordered',
+    cooking: 'Cooking',
+    on_the_way: 'On the way',
+    done: 'Delivered',
+    reject: 'Rejected',
+  };
+  const key = stateMap[normalized] || state;
   const translated = t(key);
   return translated === key ? state : translated;
 }
@@ -258,9 +270,9 @@ function shouldIncludeOrderByWindow(order, newSinceMs, completedSinceMs) {
 
 function formatBoardWindow(minutes, t) {
   if (minutes < 60) {
-    return t('order_kanban_board_window_minutes', { minutes });
+    return t('{minutes}m', { minutes });
   }
-  return t('order_kanban_board_window_hours', { hours: Math.round(minutes / 60) });
+  return t('{hours}h', { hours: Math.round(minutes / 60) });
 }
 
 function normalizeOrder(order) {
@@ -342,7 +354,7 @@ function normalizeOrderDetails(order) {
 
 function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
   if (!order) return null;
-  const boolText = (value) => value ? t('order_kanban_yes') : t('order_kanban_no');
+  const boolText = (value) => value ? t('Yes') : t('No');
   const orderModelPath = order?.id ? getOrderModelPath(order.id) : '';
   const rowStyle = {
     display: 'grid',
@@ -399,7 +411,7 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>
-            {t('order_kanban_details_title')} #{order.shortId}
+            {t('Order details')} #{order.shortId}
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {orderModelPath ? (
@@ -439,8 +451,8 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
                 borderRadius: 6,
                 cursor: 'pointer',
               }}
-              title={t('order_kanban_close')}
-              aria-label={t('order_kanban_close')}
+              title={t('Close')}
+              aria-label={t('Close')}
             >
               ×
             </button>
@@ -448,18 +460,18 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
         </header>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={rowStyle}><strong>{t('order_kanban_order_id')}</strong><span>{order.id || '-'}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_state')}</strong><span>{toDisplayState(order.state, t)}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_created')}</strong><span>{formatDateTime(order.orderedAt ? new Date(order.orderedAt * 1000) : order.createdAt, language)}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_updated')}</strong><span>{formatDateTime(order.updatedAt, language)}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_customer')}</strong><span>{order.customerName || t('order_kanban_guest')}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_phone')}</strong><span>{order.customerPhone || t('order_kanban_no_phone')}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_total')}</strong><span>{formatTotal(order.total, language)}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_items')}</strong><span>{order.dishesCount}</span></div>
+          <div style={rowStyle}><strong>{t('Order ID')}</strong><span>{order.id || '-'}</span></div>
+          <div style={rowStyle}><strong>{t('State')}</strong><span>{toDisplayState(order.state, t)}</span></div>
+          <div style={rowStyle}><strong>{t('Created')}</strong><span>{formatDateTime(order.orderedAt ? new Date(order.orderedAt * 1000) : order.createdAt, language)}</span></div>
+          <div style={rowStyle}><strong>{t('Updated')}</strong><span>{formatDateTime(order.updatedAt, language)}</span></div>
+          <div style={rowStyle}><strong>{t('Customer')}</strong><span>{order.customerName || t('Guest')}</span></div>
+          <div style={rowStyle}><strong>{t('Phone')}</strong><span>{order.customerPhone || t('No phone')}</span></div>
+          <div style={rowStyle}><strong>{t('Total')}</strong><span>{formatTotal(order.total, language)}</span></div>
+          <div style={rowStyle}><strong>{t('Items')}</strong><span>{order.dishesCount}</span></div>
           <div style={rowStyle}><strong>RMS</strong><span>{order.rmsOrderNumber || '-'}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_tag')}</strong><span>{order.tag || '-'}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_paid')}</strong><span>{boolText(order.paid)}</span></div>
-          <div style={rowStyle}><strong>{t('order_kanban_self_service')}</strong><span>{boolText(order.selfService)}</span></div>
+          <div style={rowStyle}><strong>{t('Tag')}</strong><span>{order.tag || '-'}</span></div>
+          <div style={rowStyle}><strong>{t('Paid')}</strong><span>{boolText(order.paid)}</span></div>
+          <div style={rowStyle}><strong>{t('Self-service')}</strong><span>{boolText(order.selfService)}</span></div>
           {hasExtendedDetails ? (
             <>
               <div style={rowStyle}><strong>Корзина</strong><span>{formatTotal(order.basketTotal, language)}</span></div>
@@ -476,7 +488,7 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
           ) : null}
 
           <div style={{ marginTop: 6 }}>
-            <strong>{t('order_kanban_comment')}</strong>
+            <strong>{t('Comment')}</strong>
             <div
               style={{
                 marginTop: 6,
@@ -489,7 +501,7 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
                 color: theme.textSecondary,
               }}
             >
-              {order.comment || t('order_kanban_no_comment')}
+              {order.comment || t('No comment')}
             </div>
           </div>
 
@@ -644,7 +656,7 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
           ) : null}
 
           <div style={{ marginTop: 6 }}>
-            <strong>{t('order_kanban_raw_payload')}</strong>
+            <strong>{t('Raw payload')}</strong>
             <pre
               style={{
                 marginTop: 6,
@@ -697,7 +709,7 @@ function OrderTransitionSelect({ order, t, theme, isUpdating, onMove, compact = 
         color: theme.controlText,
       }}
     >
-      <option value="">{t('order_kanban_move_to')}</option>
+      <option value="">{t('Move to...')}</option>
       {transitions.map((state) => (
         <option key={state} value={state}>{toDisplayState(state, t)}</option>
       ))}
@@ -711,7 +723,7 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
       draggable={!isUpdating}
       onDragStart={(event) => onDragStart(event, order)}
       onClick={() => onOpen(order.id)}
-      title={t('order_kanban_open_details')}
+      title={t('Open details')}
       style={{
         background: theme.cardBackground,
         border: `1px solid ${theme.cardBorder}`,
@@ -732,17 +744,17 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
           </span>
         ) : null}
         {order.paid ? (
-          <span style={{ color: '#047857', fontSize: 12, fontWeight: 600 }}>{t('order_kanban_paid')}</span>
+          <span style={{ color: '#047857', fontSize: 12, fontWeight: 600 }}>{t('Paid')}</span>
         ) : null}
         </div>
       </div>
 
-      <div style={{ marginTop: 6, fontWeight: 600 }}>{order.customerName || t('order_kanban_guest')}</div>
-      <div style={{ fontSize: 12, color: theme.textMuted }}>{order.customerPhone || t('order_kanban_no_phone')}</div>
+      <div style={{ marginTop: 6, fontWeight: 600 }}>{order.customerName || t('Guest')}</div>
+      <div style={{ fontSize: 12, color: theme.textMuted }}>{order.customerPhone || t('No phone')}</div>
 
       <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', fontSize: 12, color: theme.textSecondary }}>
-        <span>{t('order_kanban_total')}: {formatTotal(order.total, language)}</span>
-        <span>{t('order_kanban_items')}: {order.dishesCount}</span>
+        <span>{t('Total')}: {formatTotal(order.total, language)}</span>
+        <span>{t('Items')}: {order.dishesCount}</span>
       </div>
 
       {order.rmsOrderNumber ? (
@@ -756,7 +768,7 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
       ) : null}
 
       <div style={{ marginTop: 8, fontSize: 11, color: theme.textMuted }}>
-        {t('order_kanban_updated')}: {formatDateTime(order.updatedAt, language)}
+        {t('Updated')}: {formatDateTime(order.updatedAt, language)}
       </div>
 
       <OrderTransitionSelect
@@ -776,7 +788,7 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
   return (
     <article
       onClick={() => onOpen(order.id)}
-      title={t('order_kanban_open_details')}
+      title={t('Open details')}
       style={{
         minWidth: STACK_VIEW_ROW_MIN_WIDTH,
         display: 'grid',
@@ -833,7 +845,7 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
                 fontWeight: 600,
               }}
             >
-              {t('order_kanban_paid')}
+              {t('Paid')}
             </span>
           ) : null}
 
@@ -848,20 +860,20 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
                 fontWeight: 600,
               }}
             >
-              {t('order_kanban_self_service')}
+              {t('Self-service')}
             </span>
           ) : null}
         </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-        <strong>{order.customerName || t('order_kanban_guest')}</strong>
+        <strong>{order.customerName || t('Guest')}</strong>
         <span style={{ fontSize: 12, color: theme.textMuted }}>
-          {order.customerPhone || t('order_kanban_no_phone')}
+          {order.customerPhone || t('No phone')}
         </span>
         {order.tag ? (
           <span style={{ fontSize: 11, color: theme.textSecondary }}>
-            {t('order_kanban_tag')}: {order.tag}
+            {t('Tag')}: {order.tag}
           </span>
         ) : null}
       </div>
@@ -869,25 +881,25 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
         <strong>{formatTotal(order.total, language)}</strong>
         <span style={{ fontSize: 12, color: theme.textMuted }}>
-          {t('order_kanban_items')}: {order.dishesCount}
+          {t('Items')}: {order.dishesCount}
         </span>
       </div>
 
       <div style={{ minWidth: 0 }}>
         <strong style={{ display: 'block' }}>{formatDateTime(order.orderedAt ? new Date(order.orderedAt * 1000) : order.createdAt, language)}</strong>
         <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted }}>
-          {t('order_kanban_created')}
+          {t('Created')}
         </div>
         {order.updatedAt ? (
           <div style={{ marginTop: 4, fontSize: 11, color: theme.textSecondary }}>
-            {t('order_kanban_updated')}: {formatDateTime(order.updatedAt, language)}
+            {t('Updated')}: {formatDateTime(order.updatedAt, language)}
           </div>
         ) : null}
       </div>
 
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 12, color: order.comment ? theme.textSecondary : theme.textMuted, whiteSpace: 'pre-wrap' }}>
-          {order.comment || t('order_kanban_no_comment')}
+          {order.comment || t('No comment')}
         </div>
       </div>
     </article>
@@ -969,7 +981,7 @@ function OrderStackView({
             color: theme.textMuted,
           }}
         >
-          {t('order_kanban_empty_column')}
+          {t('No orders')}
         </div>
       ) : (
         <section
@@ -995,12 +1007,12 @@ function OrderStackView({
                 letterSpacing: '0.03em',
               }}
             >
-              <span>{t('order_kanban_order_id')}</span>
-              <span>{t('order_kanban_state')}</span>
-              <span>{t('order_kanban_customer')}</span>
-              <span>{t('order_kanban_total')}</span>
-              <span>{t('order_kanban_created')}</span>
-              <span>{t('order_kanban_comment')}</span>
+              <span>{t('Order ID')}</span>
+              <span>{t('State')}</span>
+              <span>{t('Customer')}</span>
+              <span>{t('Total')}</span>
+              <span>{t('Created')}</span>
+              <span>{t('Comment')}</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1464,15 +1476,15 @@ function OrderKanbanContent() {
 
   const streamStatusConfig = useMemo(() => {
     if (streamStatus === 'connected') {
-      return { label: t('order_kanban_stream_connected'), color: '#065f46', background: '#d1fae5', border: '#a7f3d0' };
+      return { label: t('Connected to order kanban stream'), color: '#065f46', background: '#d1fae5', border: '#a7f3d0' };
     }
     if (streamStatus === 'reconnecting') {
-      return { label: t('order_kanban_stream_reconnecting'), color: '#92400e', background: '#fef3c7', border: '#fde68a' };
+      return { label: t('Live stream: reconnecting...'), color: '#92400e', background: '#fef3c7', border: '#fde68a' };
     }
     if (streamStatus === 'unsupported') {
-      return { label: t('order_kanban_stream_unsupported'), color: '#7f1d1d', background: '#fee2e2', border: '#fecaca' };
+      return { label: t('Live stream: unsupported'), color: '#7f1d1d', background: '#fee2e2', border: '#fecaca' };
     }
-    return { label: t('order_kanban_stream_connecting'), color: '#1e3a8a', background: '#dbeafe', border: '#bfdbfe' };
+    return { label: t('Live stream: connecting...'), color: '#1e3a8a', background: '#dbeafe', border: '#bfdbfe' };
   }, [streamStatus, t]);
 
   function toggleColumnCollapse(state) {
@@ -1501,7 +1513,7 @@ function OrderKanbanContent() {
       : [];
     if (!allowed.includes(targetState)) {
       setError(
-        t('order_kanban_invalid_transition', {
+        t('Invalid transition: {from} -> {to}', {
           from: toDisplayState(order.state, t),
           to: toDisplayState(targetState, t),
         })
@@ -1515,7 +1527,7 @@ function OrderKanbanContent() {
   return (
     <div className="p-4 max-w-[1900px] mx-auto" style={{ background: theme.pageBackground, color: theme.textPrimary }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: theme.textPrimary }}>{t('order_kanban_title')}</h1>
+        <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: theme.textPrimary }}>{t('Current Orders')}</h1>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span
@@ -1539,7 +1551,7 @@ function OrderKanbanContent() {
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder={t('order_kanban_search_placeholder')}
+          placeholder={t('Search by ID, phone, customer, comment')}
           style={{
             minWidth: 260,
             flex: '1 1 320px',
@@ -1552,7 +1564,7 @@ function OrderKanbanContent() {
         />
 
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: theme.textSecondary }}>
-          <span>{t('order_kanban_board_range_label')}</span>
+          <span>{t('Board period')}</span>
           <select
             value={boardWindowMinutes}
             onChange={(event) => setBoardWindowMinutes(clampBoardWindowMinutes(event.target.value))}
@@ -1584,8 +1596,8 @@ function OrderKanbanContent() {
           }}
         >
           {[
-            { key: 'kanban', icon: '⊞', label: t('view_grid') },
-            { key: 'stack', icon: '☰', label: t('view_list') },
+            { key: 'kanban', icon: '⊞', label: t('Grid view') },
+            { key: 'stack', icon: '☰', label: t('List view') },
           ].map((mode) => {
             const active = viewMode === mode.key;
             return (
@@ -1618,11 +1630,11 @@ function OrderKanbanContent() {
         </div>
 
         <span style={{ fontSize: 13, color: theme.textMuted }}>
-          {t('order_kanban_orders_count')}: {filteredOrders.length}
+          {t('Orders')}: {filteredOrders.length}
         </span>
 
         <span style={{ fontSize: 13, color: theme.textMuted }}>
-          {t('order_kanban_board_window_top', { value: formatBoardWindow(boardWindowMinutes, t) })}
+          {t('Period: last {value}', { value: formatBoardWindow(boardWindowMinutes, t) })}
         </span>
       </div>
 
@@ -1734,8 +1746,8 @@ function OrderKanbanContent() {
                     <button
                       type="button"
                       onClick={() => toggleColumnCollapse(state)}
-                      title={collapsed ? t('order_kanban_expand_column') : t('order_kanban_collapse_column')}
-                      aria-label={collapsed ? t('order_kanban_expand_column') : t('order_kanban_collapse_column')}
+                      title={collapsed ? t('Expand column') : t('Collapse column')}
+                      aria-label={collapsed ? t('Expand column') : t('Collapse column')}
                       style={{
                         border: `1px solid ${theme.controlBorder}`,
                         background: theme.cardBackground,
@@ -1755,7 +1767,7 @@ function OrderKanbanContent() {
                 {!collapsed ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 50 }}>
                   {ordersByState.length === 0 ? (
-                    <div style={{ color: theme.textMuted, fontSize: 12 }}>{t('order_kanban_empty_column')}</div>
+                    <div style={{ color: theme.textMuted, fontSize: 12 }}>{t('No orders')}</div>
                   ) : (
                     ordersByState.map((order) => (
                       <OrderCard
@@ -1800,7 +1812,7 @@ function OrderKanbanContent() {
 export default function OrderKanban(props) {
   const initialLocale = resolveSystemLocale(props?.locale);
   return (
-    <I18nProvider initialLocale={initialLocale}>
+    <I18nProvider initialLocale={initialLocale} messages={props?.messages}>
       <OrderKanbanContent />
     </I18nProvider>
   );

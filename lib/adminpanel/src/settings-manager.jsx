@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { I18nProvider, useTranslation } from './i18n/I18nContext';
 
 const APPEARANCE_KEY = 'adminizer-appearance';
 
@@ -87,8 +88,13 @@ async function apiRequest(path, options = {}) {
   }
 }
 
-function typeLabel(type) {
-  return { string: 'String', boolean: 'Boolean', number: 'Number', json: 'JSON' }[type] || type;
+function typeLabel(type, t) {
+  return {
+    string: t('Type string'),
+    boolean: t('Type boolean'),
+    number: t('Type number'),
+    json: t('Type json'),
+  }[type] || type;
 }
 
 function typeColor(type) {
@@ -131,7 +137,7 @@ function NumberEditor({ value, onChange, readOnly, st }) {
   );
 }
 
-function BooleanEditor({ value, onChange, readOnly, st }) {
+function BooleanEditor({ value, onChange, readOnly, st, t }) {
   const inputStyle = st?.inputStyle || {};
   return (
     <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 4 }}>
@@ -143,14 +149,14 @@ function BooleanEditor({ value, onChange, readOnly, st }) {
             checked={value === opt}
             onChange={() => onChange(opt)}
           />
-          {opt ? 'true' : 'false'}
+          {opt ? t('Boolean true') : t('Boolean false')}
         </label>
       ))}
     </div>
   );
 }
 
-function JsonEditor({ value, schema, onChange, readOnly, st }) {
+function JsonEditor({ value, schema, onChange, readOnly, st, t }) {
   const inputStyle = st?.inputStyle || {};
   const [raw, setRaw] = useState('');
   const [parseError, setParseError] = useState(null);
@@ -170,7 +176,7 @@ function JsonEditor({ value, schema, onChange, readOnly, st }) {
     try {
       const parsed = JSON.parse(text);
       setParseError(null);
-      const errs = schema ? validateAgainstSchema(parsed, schema) : [];
+      const errs = schema ? validateAgainstSchema(parsed, schema, t) : [];
       setSchemaErrors(errs);
       onChange(parsed);
     } catch (e) {
@@ -189,7 +195,7 @@ function JsonEditor({ value, schema, onChange, readOnly, st }) {
 
   return (
     <div>
-      {schema && <div style={{ marginBottom: 8 }}><SchemaHint schema={schema} st={st} /></div>}
+      {schema && <div style={{ marginBottom: 8 }}><SchemaHint schema={schema} st={st} t={t} /></div>}
       <textarea
         readOnly={readOnly}
         value={raw}
@@ -199,17 +205,17 @@ function JsonEditor({ value, schema, onChange, readOnly, st }) {
         style={taStyle}
       />
       {parseError && (
-        <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>Parse error: {parseError}</div>
+        <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{t('Parse error')}: {parseError}</div>
       )}
       {schemaErrors.map((e, i) => (
-        <div key={i} style={{ color: '#f59e0b', fontSize: 12, marginTop: 2 }}>Schema: {e}</div>
+        <div key={i} style={{ color: '#f59e0b', fontSize: 12, marginTop: 2 }}>{t('Schema error')}: {e}</div>
       ))}
     </div>
   );
 }
 
 // Very minimal JSON Schema validation (top-level type, required, enum)
-function validateAgainstSchema(value, schema) {
+function validateAgainstSchema(value, schema, t) {
   const errors = [];
   if (!schema || typeof schema !== 'object') return errors;
   const { type, required, enum: enumVals, minimum, maximum, minLength, maxLength } = schema;
@@ -218,38 +224,38 @@ function validateAgainstSchema(value, schema) {
     const actual = Array.isArray(value) ? 'array' : typeof value;
     const expected = Array.isArray(type) ? type : [type];
     if (!expected.includes(actual) && !(actual === 'number' && expected.includes('integer'))) {
-      errors.push(`Expected type ${expected.join('|')}, got ${actual}`);
+      errors.push(t('Schema expected type', { expected: expected.join('|'), actual }));
     }
   }
   if (enumVals && !enumVals.includes(value)) {
-    errors.push(`Value must be one of: ${enumVals.join(', ')}`);
+    errors.push(t('Schema enum', { values: enumVals.join(', ') }));
   }
   if (typeof value === 'number') {
-    if (minimum != null && value < minimum) errors.push(`Minimum is ${minimum}`);
-    if (maximum != null && value > maximum) errors.push(`Maximum is ${maximum}`);
+    if (minimum != null && value < minimum) errors.push(t('Schema minimum', { value: minimum }));
+    if (maximum != null && value > maximum) errors.push(t('Schema maximum', { value: maximum }));
   }
   if (typeof value === 'string') {
-    if (minLength != null && value.length < minLength) errors.push(`Min length is ${minLength}`);
-    if (maxLength != null && value.length > maxLength) errors.push(`Max length is ${maxLength}`);
+    if (minLength != null && value.length < minLength) errors.push(t('Schema min length', { value: minLength }));
+    if (maxLength != null && value.length > maxLength) errors.push(t('Schema max length', { value: maxLength }));
   }
   if (required && typeof value === 'object' && value !== null && !Array.isArray(value)) {
     for (const key of required) {
-      if (!(key in value)) errors.push(`Missing required field: ${key}`);
+      if (!(key in value)) errors.push(t('Schema required field', { key }));
     }
   }
   return errors;
 }
 
-function SchemaHint({ schema, st }) {
+function SchemaHint({ schema, st, t }) {
   const lines = [];
   if (schema.description) lines.push(schema.description);
-  if (schema.type) lines.push(`Type: ${Array.isArray(schema.type) ? schema.type.join(' | ') : schema.type}`);
-  if (schema.enum) lines.push(`Enum: ${schema.enum.join(', ')}`);
-  if (schema.properties) lines.push('Fields: ' + Object.keys(schema.properties).join(', '));
+  if (schema.type) lines.push(t('Schema type hint', { value: Array.isArray(schema.type) ? schema.type.join(' | ') : schema.type }));
+  if (schema.enum) lines.push(t('Schema enum hint', { value: schema.enum.join(', ') }));
+  if (schema.properties) lines.push(t('Schema fields hint', { value: Object.keys(schema.properties).join(', ') }));
   if (!lines.length) return null;
   return (
     <div style={st.schemaHint}>
-      <div style={{ fontWeight: 600, marginBottom: 4, color: '#8b5cf6' }}>JSON Schema</div>
+      <div style={{ fontWeight: 600, marginBottom: 4, color: '#8b5cf6' }}>{t('Json schema')}</div>
       {lines.map((l, i) => <div key={i}>{l}</div>)}
     </div>
   );
@@ -259,7 +265,8 @@ function SchemaHint({ schema, st }) {
 // Main component
 // ──────────────────────────────────────────────────────────────────────────────
 
-export default function SettingsManager() {
+function SettingsManagerContent() {
+  const { t } = useTranslation();
   const apiBase = '/core/settings-manager';
   const isMobile = useIsMobile();
   const dark = useDarkMode();
@@ -386,7 +393,7 @@ export default function SettingsManager() {
       document.body.removeChild(a);
       URL.revokeObjectURL(objectUrl);
     } catch (e) {
-      alert('Export failed: ' + (e?.message || String(e)));
+      alert(`${t('Export failed')}: ${e?.message || String(e)}`);
     }
   }
 
@@ -399,11 +406,11 @@ export default function SettingsManager() {
     try {
       json = JSON.parse(await file.text());
     } catch {
-      alert('Invalid JSON file');
+      alert(t('Invalid json file'));
       return;
     }
     if (!Array.isArray(json?.settings)) {
-      alert('Invalid format: expected { settings: [...] }');
+      alert(t('Invalid json format'));
       return;
     }
     // Preview diff
@@ -420,7 +427,7 @@ export default function SettingsManager() {
       setImportResult(null);
       setImportOpen(true);
     } catch (err) {
-      alert('Preview failed: ' + err.message);
+      alert(`${t('Preview failed')}: ${err.message}`);
     }
   }
 
@@ -444,7 +451,7 @@ export default function SettingsManager() {
         }
       }
     } catch (err) {
-      alert('Import failed: ' + err.message);
+      alert(`${t('Import failed')}: ${err.message}`);
     } finally {
       setImporting(false);
     }
@@ -460,8 +467,8 @@ export default function SettingsManager() {
   // ── Shared: list items ─────────────────────────────────────────────────────
   const listItems = (
     <>
-      {loading && <div style={st.stateMsg}>Loading…</div>}
-      {error && <div style={{ ...st.stateMsg, color: '#ef4444' }}>Error: {error}</div>}
+      {loading && <div style={st.stateMsg}>{t('Loading')}</div>}
+      {error && <div style={{ ...st.stateMsg, color: '#ef4444' }}>{t('Error')}: {t(error) === error ? error : t(error)}</div>}
       {filtered.map(s => (
         <button
           key={s.key}
@@ -475,15 +482,15 @@ export default function SettingsManager() {
           <div style={st.listItemKey}>{s.key}</div>
           {s.name && <div style={st.listItemName}>{s.name}</div>}
           <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
-            <span style={{ ...st.badge, background: typeColor(s.type) }}>{typeLabel(s.type)}</span>
+            <span style={{ ...st.badge, background: typeColor(s.type) }}>{typeLabel(s.type, t)}</span>
             {s.module && <span style={st.moduleBadge}>{s.module}</span>}
-            {s.readOnly && <span style={st.readOnlyBadge}>read-only</span>}
-            {s.isRequired && <span style={st.requiredBadge}>required</span>}
+            {s.readOnly && <span style={st.readOnlyBadge}>{t('Read only')}</span>}
+            {s.isRequired && <span style={st.requiredBadge}>{t('Required')}</span>}
           </div>
         </button>
       ))}
       {!loading && filtered.length === 0 && (
-        <div style={st.stateMsg}>No settings found</div>
+        <div style={st.stateMsg}>{t('No settings')}</div>
       )}
     </>
   );
@@ -496,7 +503,7 @@ export default function SettingsManager() {
         <div style={st.mobileTopBar}>
           <button onClick={openMobileList} style={st.mobileSelectBtn}>
             <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {selected ? selected.key : 'Select setting…'}
+              {selected ? selected.key : t('Select setting')}
             </span>
             <span style={{ opacity: 0.5, fontSize: 12 }}>▼</span>
           </button>
@@ -510,7 +517,7 @@ export default function SettingsManager() {
                 <input
                   ref={searchRef}
                   type="search"
-                  placeholder="Search by key…"
+                  placeholder={t('Search by key')}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   style={st.searchInput}
@@ -526,6 +533,7 @@ export default function SettingsManager() {
         {/* ── Mobile editor ── */}
         <div style={st.mobileEditor}>
           <EditorPanel st={st}
+            t={t}
             selected={selected}
             editValue={editValue}
             setEditValue={setEditValue}
@@ -546,16 +554,16 @@ export default function SettingsManager() {
       <div style={st.sidebar}>
         <div style={st.sidebarHeader}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={st.sidebarTitle}>Settings</div>
+            <div style={st.sidebarTitle}>{t('Title')}</div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={handleExport} title="Export JSON" style={st.toolBtn}>↓ Export</button>
-              <button onClick={() => fileInputRef.current?.click()} title="Import JSON" style={st.toolBtn}>↑ Import</button>
+              <button onClick={handleExport} title={t('Export json')} style={st.toolBtn}>↓ {t('Export')}</button>
+              <button onClick={() => fileInputRef.current?.click()} title={t('Import json')} style={st.toolBtn}>↑ {t('Import')}</button>
               <input ref={fileInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleFilePicked} />
             </div>
           </div>
           <input
             type="search"
-            placeholder="Search by key…"
+            placeholder={t('Search by key')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={st.searchInput}
@@ -569,6 +577,7 @@ export default function SettingsManager() {
       {/* ── Right panel: editor ── */}
       <div style={st.editor}>
         <EditorPanel st={st}
+          t={t}
           selected={selected}
           editValue={editValue}
           setEditValue={setEditValue}
@@ -584,6 +593,7 @@ export default function SettingsManager() {
       {importOpen && (
         <ImportDialog
           st={st}
+          t={t}
           diff={importDiff}
           selected={importSelected}
           setSelected={setImportSelected}
@@ -597,17 +607,26 @@ export default function SettingsManager() {
   );
 }
 
+export default function SettingsManager({ props }) {
+  const locale = props?.locale || 'en';
+  return (
+    <I18nProvider initialLocale={locale} messages={props?.messages}>
+      <SettingsManagerContent />
+    </I18nProvider>
+  );
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Editor panel (shared between desktop and mobile)
 // ──────────────────────────────────────────────────────────────────────────────
 
-function EditorPanel({ selected, editValue, setEditValue, saving, saveError, saveSuccess, handleSave, handleReset, st }) {
+function EditorPanel({ selected, editValue, setEditValue, saving, saveError, saveSuccess, handleSave, handleReset, st, t }) {
   if (!selected) {
     return (
       <div style={st.editorEmpty}>
         <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>⚙</div>
         <div style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 15 }}>
-          Select a setting from the list to edit it
+          {t('Select hint')}
         </div>
       </div>
     );
@@ -622,10 +641,10 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ ...st.badge, background: typeColor(selected.type), fontSize: 13 }}>
-            {typeLabel(selected.type)}
+            {typeLabel(selected.type, t)}
           </span>
           {selected.module && <span style={st.moduleBadge}>{selected.module}</span>}
-          {selected.readOnly && <span style={st.readOnlyBadge}>read-only</span>}
+          {selected.readOnly && <span style={st.readOnlyBadge}>{t('Read only')}</span>}
         </div>
       </div>
 
@@ -641,7 +660,7 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
 
       {/* Value editor */}
       <div style={st.fieldBlock}>
-        <label style={st.fieldLabel}>Value</label>
+        <label style={st.fieldLabel}>{t('Value')}</label>
         {selected.type === 'string' && (
           <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} />
         )}
@@ -649,7 +668,7 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
           <NumberEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} />
         )}
         {selected.type === 'boolean' && (
-          <BooleanEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} />
+          <BooleanEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} t={t} />
         )}
         {selected.type === 'json' && (
           <JsonEditor
@@ -658,6 +677,7 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
             onChange={setEditValue}
             readOnly={selected.readOnly}
             st={st}
+            t={t}
           />
         )}
       </div>
@@ -665,7 +685,7 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
       {/* Default value info */}
       {selected.defaultValue !== undefined && selected.defaultValue !== null && (
         <div style={st.defaultBlock}>
-          <span style={{ opacity: 0.6, marginRight: 6 }}>Default:</span>
+          <span style={{ opacity: 0.6, marginRight: 6 }}>{t('Default')}:</span>
           <code style={st.defaultCode}>
             {typeof selected.defaultValue === 'object'
               ? JSON.stringify(selected.defaultValue)
@@ -676,17 +696,17 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
 
       {/* Errors / success */}
       {saveError && <div style={st.errorMsg}>⚠ {saveError}</div>}
-      {saveSuccess && <div style={st.successMsg}>✓ Saved successfully</div>}
+      {saveSuccess && <div style={st.successMsg}>✓ {t('Saved successfully')}</div>}
 
       {/* Actions */}
       {!selected.readOnly && (
         <div style={st.actions}>
           <button onClick={handleSave} disabled={saving} style={st.btnSave}>
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? t('Saving') : t('Save')}
           </button>
           {selected.defaultValue !== undefined && selected.defaultValue !== null && (
             <button onClick={handleReset} disabled={saving} style={st.btnSecondary}>
-              Reset to default
+              {t('Reset to default')}
             </button>
           )}
         </div>
@@ -699,9 +719,21 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
 // Import dialog
 // ──────────────────────────────────────────────────────────────────────────────
 
-function ImportDialog({ st, diff, selected, setSelected, result, importing, onApply, onClose }) {
+function ImportDialog({ st, diff, selected, setSelected, result, importing, onApply, onClose, t }) {
   const changedCount = diff ? diff.filter(d => d.status === 'changed').length : 0;
   const selectedCount = Object.values(selected).filter(Boolean).length;
+  const statusLabel = (status) => {
+    const statusMap = {
+      applied: 'Applied',
+      changed: 'Changed',
+      unchanged: 'Unchanged',
+      skipped: 'Skipped',
+      error: 'Error',
+    };
+    const key = statusMap[String(status || '').toLowerCase()] || status;
+    const translated = t(key);
+    return translated === key ? status : translated;
+  };
 
   function toggleAll(val) {
     const next = {};
@@ -716,31 +748,31 @@ function ImportDialog({ st, diff, selected, setSelected, result, importing, onAp
       <div style={st.dialog} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={st.dialogHeader}>
-          <span style={{ fontWeight: 700, fontSize: 16 }}>Import Settings</span>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{t('Import settings')}</span>
           <button onClick={onClose} style={st.dialogClose}>✕</button>
         </div>
 
         {/* Result view (after apply) */}
         {result ? (
           <div style={{ padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', flex: 1 }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>Applied {result.filter(r => r.status === 'applied').length} / {result.length}</div>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>{t('Applied count', { applied: result.filter(r => r.status === 'applied').length, total: result.length })}</div>
             {result.map(r => (
               <div key={r.key} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
                 <span style={{ ...st.statusDot, background: r.status === 'applied' ? '#10b981' : '#ef4444' }} />
                 <code style={{ fontFamily: 'monospace', fontSize: 12, flex: 1 }}>{r.key}</code>
-                <span style={{ color: st.inputStyle.color, opacity: 0.6 }}>{r.status}{r.error ? `: ${r.error}` : ''}</span>
+                <span style={{ color: st.inputStyle.color, opacity: 0.6 }}>{statusLabel(r.status)}{r.error ? `: ${r.error}` : ''}</span>
               </div>
             ))}
-            <button onClick={onClose} style={{ ...st.btnSave, marginTop: 12, alignSelf: 'flex-end' }}>Close</button>
+            <button onClick={onClose} style={{ ...st.btnSave, marginTop: 12, alignSelf: 'flex-end' }}>{t('Close')}</button>
           </div>
         ) : (
           <>
             {/* Summary */}
             <div style={{ padding: '8px 20px', borderBottom: `1px solid ${st.inputStyle.border}`, fontSize: 13, color: st.inputStyle.color, opacity: 0.8 }}>
-              {changedCount} changed · {diff?.length - changedCount} unchanged
+              {t('Changed unchanged', { changed: changedCount, unchanged: (diff?.length || 0) - changedCount })}
               <span style={{ float: 'right', display: 'flex', gap: 10 }}>
-                <button onClick={() => toggleAll(true)} style={st.linkBtn}>Select all changed</button>
-                <button onClick={() => toggleAll(false)} style={st.linkBtn}>Deselect all</button>
+                <button onClick={() => toggleAll(true)} style={st.linkBtn}>{t('Select all changed')}</button>
+                <button onClick={() => toggleAll(false)} style={st.linkBtn}>{t('Deselect all')}</button>
               </span>
             </div>
 
@@ -764,20 +796,20 @@ function ImportDialog({ st, diff, selected, setSelected, result, importing, onAp
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                       <code style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{d.key}</code>
                       <span style={{ ...st.badge, background: d.status === 'changed' ? '#f59e0b' : '#6b7280', fontSize: 10 }}>
-                        {d.status}
+                        {statusLabel(d.status)}
                       </span>
-                      {d.readOnly && <span style={st.readOnlyBadge}>read-only</span>}
+                      {d.readOnly && <span style={st.readOnlyBadge}>{t('Read only')}</span>}
                     </div>
                     {d.status === 'changed' && (
                       <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <span style={{ opacity: 0.5, width: 60, flexShrink: 0 }}>current:</span>
+                          <span style={{ opacity: 0.5, width: 60, flexShrink: 0 }}>{t('Current')}:</span>
                           <code style={{ ...st.diffCode, background: st.diffRemoveBg, color: st.diffRemoveText }}>
                             {JSON.stringify(d.currentValue)}
                           </code>
                         </div>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <span style={{ opacity: 0.5, width: 60, flexShrink: 0 }}>import:</span>
+                          <span style={{ opacity: 0.5, width: 60, flexShrink: 0 }}>{t('Import')}:</span>
                           <code style={{ ...st.diffCode, background: st.diffAddBg, color: st.diffAddText }}>
                             {JSON.stringify(d.importValue)}
                           </code>
@@ -791,15 +823,15 @@ function ImportDialog({ st, diff, selected, setSelected, result, importing, onAp
 
             {/* Footer */}
             <div style={st.dialogFooter}>
-              <span style={{ fontSize: 13, opacity: 0.7 }}>{selectedCount} selected</span>
+              <span style={{ fontSize: 13, opacity: 0.7 }}>{t('Selected count', { count: selectedCount })}</span>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={onClose} style={st.btnSecondary}>Cancel</button>
+                <button onClick={onClose} style={st.btnSecondary}>{t('Cancel')}</button>
                 <button
                   onClick={onApply}
                   disabled={importing || selectedCount === 0}
                   style={{ ...st.btnSave, opacity: selectedCount === 0 ? 0.5 : 1 }}
                 >
-                  {importing ? 'Applying…' : `Apply ${selectedCount}`}
+                  {importing ? t('Applying') : t('Apply count', { count: selectedCount })}
                 </button>
               </div>
             </div>

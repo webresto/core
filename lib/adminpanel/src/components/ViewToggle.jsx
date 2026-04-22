@@ -11,7 +11,7 @@ export function ViewToggle({ viewMode, onViewModeChange }) {
                 variant={viewMode === 'grid' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => onViewModeChange('grid')}
-                title={t('view_grid')}
+                title={t('Grid view')}
                 className="h-8 w-8 p-0"
             >
                 ⊞
@@ -20,7 +20,7 @@ export function ViewToggle({ viewMode, onViewModeChange }) {
                 variant={viewMode === 'list' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => onViewModeChange('list')}
-                title={t('view_list')}
+                title={t('List view')}
                 className="h-8 w-8 p-0"
             >
                 ☰

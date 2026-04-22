@@ -1,4 +1,5 @@
 export default async function UpdateVisibilityController(req: any, res: any) {
+    const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
     try {
         const { config } = req.adminizer || {};
         if (config?.auth?.enable && !req.user) {
@@ -10,7 +11,7 @@ export default async function UpdateVisibilityController(req: any, res: any) {
         const { id, model, visible } = req.body;
 
         if (!id || !model || typeof visible !== 'boolean') {
-            return res.status(400).json({ error: 'Invalid parameters' });
+            return res.status(400).json({ error: t('Invalid parameters') });
         }
 
         if (model === 'dish') {
@@ -18,7 +19,7 @@ export default async function UpdateVisibilityController(req: any, res: any) {
         } else if (model === 'group') {
             await Group.update({ id }, { visible });
         } else {
-            return res.status(400).json({ error: 'Invalid model type' });
+            return res.status(400).json({ error: t('Invalid model type') });
         }
 
         return res.json({ success: true });

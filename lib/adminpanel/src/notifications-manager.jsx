@@ -146,21 +146,38 @@ async function notificationsApi(path, options = {}) {
 }
 
 function statusLabel(status, t) {
-  const key = `notifications_manager_status_${String(status || '').toLowerCase()}`;
+  const statusKey = String(status || '').toLowerCase();
+  const statusMap = {
+    pending: 'Pending',
+    sent: 'Sent',
+    failed: 'Failed',
+    read: 'Read',
+  };
+  const key = statusMap[statusKey] || status || '—';
   const translated = t(key);
-  return translated === key ? status : translated;
+  return translated === key ? (status || '—') : translated;
 }
 
 function groupLabel(groupTo, t) {
-  const key = `notifications_manager_group_${String(groupTo || '').toLowerCase()}`;
+  const groupKey = String(groupTo || '').toLowerCase();
+  const groupMap = {
+    user: 'User',
+    manager: 'Manager',
+  };
+  const key = groupMap[groupKey] || groupTo || '—';
   const translated = t(key);
-  return translated === key ? groupTo : translated;
+  return translated === key ? (groupTo || '—') : translated;
 }
 
 function badgeLabel(badge, t) {
-  const key = `notifications_manager_badge_${String(badge || '').toLowerCase()}`;
+  const badgeKey = String(badge || '').toLowerCase();
+  const badgeMap = {
+    info: 'Info',
+    error: 'Error',
+  };
+  const key = badgeMap[badgeKey] || badge || '—';
   const translated = t(key);
-  return translated === key ? badge : translated;
+  return translated === key ? (badge || '—') : translated;
 }
 
 function formatUserOption(user) {
@@ -361,7 +378,7 @@ function NotificationsManagerContent() {
       await loadItems();
       await loadNotification(id);
     } catch (actionError) {
-      setError(t('notifications_manager_action_failed', {
+      setError(t('Action failed: {error}', {
         error: String(actionError?.message || actionError),
       }));
     } finally {
@@ -373,7 +390,7 @@ function NotificationsManagerContent() {
     setError('');
 
     if (createGroupTo === 'user' && !selectedUser?.id) {
-      setError(t('notifications_manager_create_user_required'));
+      setError(t('Choose a user for user-targeted notification'));
       return;
     }
 
@@ -382,12 +399,12 @@ function NotificationsManagerContent() {
       try {
         parsedPayload = JSON.parse(createPayload);
       } catch {
-        setError(t('notifications_manager_create_invalid_payload'));
+        setError(t('Payload must be a valid JSON object'));
         return;
       }
 
       if (parsedPayload === null || Array.isArray(parsedPayload) || typeof parsedPayload !== 'object') {
-        setError(t('notifications_manager_create_invalid_payload'));
+        setError(t('Payload must be a valid JSON object'));
         return;
       }
     }
@@ -427,11 +444,11 @@ function NotificationsManagerContent() {
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, color: theme.textPrimary }}>
       {!isChannelsView ? (
       <section style={{ border: `1px solid ${theme.panelBorder}`, borderRadius: 14, background: theme.panelBackground, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 20, color: theme.textPrimary }}>{t('notifications_manager_create_title')}</h2>
+        <h2 style={{ margin: 0, fontSize: 20, color: theme.textPrimary }}>{t('Create notification')}</h2>
 
         <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'minmax(160px, 0.7fr) minmax(220px, 1fr) minmax(160px, 0.7fr)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ color: theme.textSecondary }}>{t('notifications_manager_create_target')}</label>
+            <label style={{ color: theme.textSecondary }}>{t('Target')}</label>
             <select value={createGroupTo} onChange={(event) => {
               const nextValue = event.target.value;
               setCreateGroupTo(nextValue);
@@ -442,13 +459,13 @@ function NotificationsManagerContent() {
                 setShowUserAutocomplete(false);
               }
             }} style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText }}>
-              <option value="manager">{t('notifications_manager_create_target_manager')}</option>
-              <option value="user">{t('notifications_manager_create_target_user')}</option>
+              <option value="manager">{t('Manager')}</option>
+              <option value="user">{t('User')}</option>
             </select>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ color: theme.textSecondary }}>{t('notifications_manager_create_user_search')}</label>
+            <label style={{ color: theme.textSecondary }}>{t('Search user by login, phone, email')}</label>
             <div style={{ position: 'relative' }}>
               <input
                 value={createUserQuery}
@@ -464,7 +481,7 @@ function NotificationsManagerContent() {
                   window.setTimeout(() => setShowUserAutocomplete(false), 150);
                 }}
                 disabled={createGroupTo !== 'user'}
-                placeholder={t('notifications_manager_create_user_search')}
+                placeholder={t('Search user by login, phone, email')}
                 style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: createGroupTo === 'user' ? theme.controlBackground : theme.controlBackgroundDisabled, color: theme.controlText, width: '100%', boxSizing: 'border-box' }}
               />
 
@@ -472,7 +489,7 @@ function NotificationsManagerContent() {
                 <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: theme.panelBackground, border: `1px solid ${theme.controlBorder}`, borderRadius: 12, boxShadow: '0 12px 24px rgba(15, 23, 42, 0.18)', maxHeight: 240, overflow: 'auto', zIndex: 20 }}>
                   {userOptions.length === 0 ? (
                     <div style={{ padding: '10px 12px', fontSize: 12, color: theme.textMuted }}>
-                      {t('notifications_manager_create_found_users')}
+                      {t('Found users')}
                     </div>
                   ) : userOptions.map((user) => (
                     <button
@@ -495,20 +512,20 @@ function NotificationsManagerContent() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ color: theme.textSecondary }}>{t('notifications_manager_create_select_user')}</label>
+            <label style={{ color: theme.textSecondary }}>{t('Select user')}</label>
             <div style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackgroundDisabled, minHeight: 22, color: selectedUser ? theme.textPrimary : theme.textMuted }}>
-              {selectedUser ? formatUserOption(selectedUser) : t('notifications_manager_create_found_users')}
+              {selectedUser ? formatUserOption(selectedUser) : t('Found users')}
             </div>
           </div>
         </div>
 
         <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'minmax(220px, 1fr) minmax(160px, 0.5fr)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ color: theme.textSecondary }}>{t('notifications_manager_create_title_label')}</label>
+            <label style={{ color: theme.textSecondary }}>{t('Title')}</label>
             <input value={createTitle} onChange={(event) => setCreateTitle(event.target.value)} style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ color: theme.textSecondary }}>{t('notifications_manager_create_badge_label')}</label>
+            <label style={{ color: theme.textSecondary }}>{t('Badge')}</label>
             <select value={createBadge} onChange={(event) => setCreateBadge(event.target.value)} style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText }}>
               <option value="info">{badgeLabel('info', t)}</option>
               <option value="error">{badgeLabel('error', t)}</option>
@@ -517,13 +534,13 @@ function NotificationsManagerContent() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={{ color: theme.textSecondary }}>{t('notifications_manager_create_body_label')}</label>
+          <label style={{ color: theme.textSecondary }}>{t('Body')}</label>
           <textarea value={createBody} onChange={(event) => setCreateBody(event.target.value)} rows={4} style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText, resize: 'vertical' }} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={{ color: theme.textSecondary }}>{t('notifications_manager_create_payload_label')}</label>
-          <textarea value={createPayload} onChange={(event) => setCreatePayload(event.target.value)} rows={5} placeholder={t('notifications_manager_create_payload_hint')} style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText, resize: 'vertical', fontFamily: 'monospace' }} />
+          <label style={{ color: theme.textSecondary }}>{t('Payload JSON')}</label>
+          <textarea value={createPayload} onChange={(event) => setCreatePayload(event.target.value)} rows={5} placeholder={t('Optional JSON object')} style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText, resize: 'vertical', fontFamily: 'monospace' }} />
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -533,7 +550,7 @@ function NotificationsManagerContent() {
             disabled={createLoading}
             style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${theme.buttonPrimaryBorder}`, background: theme.buttonPrimary, color: theme.buttonPrimaryText, cursor: 'pointer' }}
           >
-            {createLoading ? t('notifications_manager_create_sending') : t('notifications_manager_create_send')}
+            {createLoading ? t('Sending...') : t('Send notification')}
           </button>
         </div>
       </section>
@@ -542,29 +559,29 @@ function NotificationsManagerContent() {
       {isChannelsView ? (
       <section style={{ border: `1px solid ${theme.panelBorder}`, borderRadius: 14, background: theme.panelBackground, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <h2 style={{ margin: 0, fontSize: 20, color: theme.textPrimary }}>{t('notifications_manager_channels_title')}</h2>
+          <h2 style={{ margin: 0, fontSize: 20, color: theme.textPrimary }}>{t('Notification channels')}</h2>
           <button
             type="button"
             onClick={loadChannels}
             disabled={loadingChannels}
             style={{ padding: '8px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText, cursor: 'pointer' }}
           >
-            {t('notifications_manager_channels_refresh')}
+            {t('Refresh channels')}
           </button>
         </div>
 
         {channels.length === 0 ? (
-          <div style={{ color: theme.textMuted }}>{t('notifications_manager_channels_empty')}</div>
+          <div style={{ color: theme.textMuted }}>{t('No notification channels registered')}</div>
         ) : (
           <div style={{ border: `1px solid ${theme.panelBorder}`, borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 1fr) minmax(120px, 0.8fr) minmax(180px, 1fr) minmax(90px, 0.6fr) minmax(90px, 0.6fr) minmax(100px, 0.7fr) minmax(140px, 1fr)', gap: 12, padding: '12px 14px', background: theme.headerBackground, fontSize: 12, fontWeight: 700, color: theme.headerText }}>
               <div>Type</div>
-              <div>{t('notifications_manager_channels_ready')}</div>
-              <div>{t('notifications_manager_channels_groups')}</div>
-              <div>{t('notifications_manager_channels_weight')}</div>
-              <div>{t('notifications_manager_channels_cost')}</div>
-              <div>{t('notifications_manager_channels_force_send')}</div>
-              <div>{t('notifications_manager_channels_class')}</div>
+              <div>{t('Ready')}</div>
+              <div>{t('Groups')}</div>
+              <div>{t('Weight')}</div>
+              <div>{t('Cost')}</div>
+              <div>{t('Force send')}</div>
+              <div>{t('Class')}</div>
             </div>
 
             {channels.map((channel) => (
@@ -574,7 +591,7 @@ function NotificationsManagerContent() {
                   {String(Boolean(channel.ready))}
                   {channel.readinessError ? (
                     <div style={{ marginTop: 4, color: theme.dangerText }}>
-                      {t('notifications_manager_channels_error')}: {channel.readinessError}
+                      {t('Readiness error')}: {channel.readinessError}
                     </div>
                   ) : null}
                 </div>
@@ -592,14 +609,14 @@ function NotificationsManagerContent() {
 
       {!isChannelsView ? (
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <h1 style={{ fontSize: 30, fontWeight: 700, margin: 0, color: theme.textPrimary }}>{t('notifications_manager_title')}</h1>
+        <h1 style={{ fontSize: 30, fontWeight: 700, margin: 0, color: theme.textPrimary }}>{t('Notifications')}</h1>
         <button
           type="button"
           onClick={loadItems}
           disabled={loadingList}
           style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText, cursor: 'pointer' }}
         >
-          {loadingList ? t('notifications_manager_refreshing') : t('notifications_manager_refresh')}
+          {loadingList ? t('Refreshing...') : t('Refresh')}
         </button>
       </div>
       ) : null}
@@ -609,18 +626,18 @@ function NotificationsManagerContent() {
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder={t('notifications_manager_search_placeholder')}
+          placeholder={t('Search by ID, title, body, user, order ID')}
           style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText }}
         />
         <select value={status} onChange={(event) => setStatus(event.target.value)} style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText }}>
-          <option value="">{t('notifications_manager_all_statuses')}</option>
+          <option value="">{t('All statuses')}</option>
           <option value="pending">{statusLabel('pending', t)}</option>
           <option value="sent">{statusLabel('sent', t)}</option>
           <option value="failed">{statusLabel('failed', t)}</option>
           <option value="read">{statusLabel('read', t)}</option>
         </select>
         <select value={groupTo} onChange={(event) => setGroupTo(event.target.value)} style={{ padding: '10px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText }}>
-          <option value="">{t('notifications_manager_all_groups')}</option>
+          <option value="">{t('All groups')}</option>
           <option value="user">{groupLabel('user', t)}</option>
           <option value="manager">{groupLabel('manager', t)}</option>
         </select>
@@ -637,15 +654,15 @@ function NotificationsManagerContent() {
       <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(420px, 1.2fr) minmax(320px, 0.9fr)', alignItems: 'start' }}>
         <div style={{ border: `1px solid ${theme.panelBorder}`, borderRadius: 14, overflow: 'hidden', background: theme.panelBackground }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr 0.7fr 1fr', gap: 12, padding: '14px 16px', background: theme.headerBackground, fontSize: 12, fontWeight: 700, color: theme.headerText }}>
-            <div>{t('notifications_manager_user')}</div>
-            <div>{t('notifications_manager_status')}</div>
-            <div>{t('notifications_manager_group')}</div>
-            <div>{t('notifications_manager_created')}</div>
+            <div>{t('User')}</div>
+            <div>{t('Status')}</div>
+            <div>{t('Group')}</div>
+            <div>{t('Created')}</div>
           </div>
 
           <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
             {items.length === 0 ? (
-              <div style={{ padding: 20, color: theme.textMuted }}>{t('notifications_manager_list_empty')}</div>
+              <div style={{ padding: 20, color: theme.textMuted }}>{t('No notifications found')}</div>
             ) : items.map((item) => {
               const isSelected = item.id === selectedId;
               return (
@@ -666,7 +683,7 @@ function NotificationsManagerContent() {
                 >
                   <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr 0.7fr 1fr', gap: 12, alignItems: 'start' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <strong style={{ fontSize: 13, color: theme.textPrimary }}>{item.user?.name || t('notifications_manager_unknown_user')}</strong>
+                      <strong style={{ fontSize: 13, color: theme.textPrimary }}>{item.user?.name || t('Manager broadcast')}</strong>
                       <span style={{ fontSize: 12, color: theme.textSecondary }}>{item.title || '-'}</span>
                       <span style={{ fontSize: 11, color: theme.textMuted }}>{item.id}</span>
                     </div>
@@ -682,7 +699,7 @@ function NotificationsManagerContent() {
 
         <div style={{ border: `1px solid ${theme.panelBorder}`, borderRadius: 14, background: theme.panelBackground, padding: 16, minHeight: 300 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 12 }}>
-            <h2 style={{ fontSize: 20, margin: 0, color: theme.textPrimary }}>{t('notifications_manager_details')}</h2>
+            <h2 style={{ fontSize: 20, margin: 0, color: theme.textPrimary }}>{t('Notification details')}</h2>
             {selectedSummary ? (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button
@@ -691,7 +708,7 @@ function NotificationsManagerContent() {
                   disabled={actionLoading === selectedSummary.id}
                   style={{ padding: '8px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText, cursor: 'pointer' }}
                 >
-                  {t('notifications_manager_retry')}
+                  {t('Retry delivery')}
                 </button>
                 <button
                   type="button"
@@ -699,14 +716,14 @@ function NotificationsManagerContent() {
                   disabled={actionLoading === selectedSummary.id}
                   style={{ padding: '8px 12px', borderRadius: 10, border: `1px solid ${theme.controlBorder}`, background: theme.controlBackground, color: theme.controlText, cursor: 'pointer' }}
                 >
-                  {t('notifications_manager_escalate')}
+                  {t('Escalate')}
                 </button>
               </div>
             ) : null}
           </div>
 
           {!selectedId ? (
-            <div style={{ color: theme.textMuted }}>{t('notifications_manager_list_empty')}</div>
+            <div style={{ color: theme.textMuted }}>{t('No notifications found')}</div>
           ) : loadingDetails ? (
             <div style={{ color: theme.textMuted }}>{t('loading')}</div>
           ) : selectedNotification ? (
@@ -714,24 +731,24 @@ function NotificationsManagerContent() {
               <div><strong style={{ color: theme.textPrimary }}>{selectedNotification.title || '-'}</strong></div>
               <div style={{ color: theme.textSecondary }}>{selectedNotification.body || '-'}</div>
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr 1fr', color: theme.textSecondary }}>
-                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_status')}:</strong> {statusLabel(selectedNotification.status, t)}</div>
-                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_group')}:</strong> {groupLabel(selectedNotification.groupTo, t)}</div>
-                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_badge')}:</strong> {badgeLabel(selectedNotification.badge, t)}</div>
-                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_spent_cost')}:</strong> {selectedNotification.spentCost ?? 0}</div>
-                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_created')}:</strong> {formatDateTime(selectedNotification.createdAt, language)}</div>
-                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_read_at')}:</strong> {selectedNotification.readAt ? formatDateTime(selectedNotification.readAt, language) : '—'}</div>
-                <div><strong style={{ color: theme.textPrimary }}>{t('notifications_manager_user')}:</strong> {selectedNotification.user?.name || t('notifications_manager_unknown_user')}</div>
+                <div><strong style={{ color: theme.textPrimary }}>{t('Status')}:</strong> {statusLabel(selectedNotification.status, t)}</div>
+                <div><strong style={{ color: theme.textPrimary }}>{t('Group')}:</strong> {groupLabel(selectedNotification.groupTo, t)}</div>
+                <div><strong style={{ color: theme.textPrimary }}>{t('Badge')}:</strong> {badgeLabel(selectedNotification.badge, t)}</div>
+                <div><strong style={{ color: theme.textPrimary }}>{t('Spent cost')}:</strong> {selectedNotification.spentCost ?? 0}</div>
+                <div><strong style={{ color: theme.textPrimary }}>{t('Created')}:</strong> {formatDateTime(selectedNotification.createdAt, language)}</div>
+                <div><strong style={{ color: theme.textPrimary }}>{t('Read at')}:</strong> {selectedNotification.readAt ? formatDateTime(selectedNotification.readAt, language) : '—'}</div>
+                <div><strong style={{ color: theme.textPrimary }}>{t('User')}:</strong> {selectedNotification.user?.name || t('Manager broadcast')}</div>
                 <div><strong style={{ color: theme.textPrimary }}>ID:</strong> {selectedNotification.id}</div>
               </div>
 
               {Array.isArray(selectedNotification.channels) && selectedNotification.channels.length > 0 ? (
                 <section>
-                  <h3 style={{ fontSize: 14, margin: '0 0 8px', color: theme.textPrimary }}>{t('notifications_manager_channels')}</h3>
+                  <h3 style={{ fontSize: 14, margin: '0 0 8px', color: theme.textPrimary }}>{t('Channels')}</h3>
                   <div style={{ border: `1px solid ${theme.panelBorder}`, borderRadius: 10, overflow: 'hidden' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: 10, padding: '8px 12px', background: theme.headerBackground, fontSize: 11, fontWeight: 700, color: theme.headerText }}>
-                      <div>{t('notifications_manager_channel_type')}</div>
-                      <div>{t('notifications_manager_channel_cost')}</div>
-                      <div>{t('notifications_manager_channel_sent_at')}</div>
+                      <div>{t('Channel type')}</div>
+                      <div>{t('Channel cost')}</div>
+                      <div>{t('Channel sent at')}</div>
                     </div>
                     {selectedNotification.channels.map((entry, idx) => (
                       <div key={`${entry.type}-${idx}`} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: 10, padding: '8px 12px', borderTop: `1px solid ${theme.rowBorder}`, background: theme.rowBackground, fontSize: 12, color: theme.textSecondary }}>
@@ -747,25 +764,25 @@ function NotificationsManagerContent() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {selectedNotification.user?.id ? (
                   <a href={`${getBaseAdminPath()}/model/user/edit/${encodeURIComponent(selectedNotification.user.id)}`} style={{ color: theme.linkColor, textDecoration: 'none' }}>
-                    {t('notifications_manager_open_user')}
+                    {t('Open user')}
                   </a>
                 ) : null}
                 {selectedNotification?.data?.orderId ? (
                   <a href={`${getBaseAdminPath()}/model/order/edit/${encodeURIComponent(selectedNotification.data.orderId)}`} style={{ color: theme.linkColor, textDecoration: 'none' }}>
-                    {t('notifications_manager_open_order')}
+                    {t('Open order')}
                   </a>
                 ) : null}
               </div>
 
               <section>
-                <h3 style={{ fontSize: 15, color: theme.textPrimary }}>{t('notifications_manager_payload')}</h3>
+                <h3 style={{ fontSize: 15, color: theme.textPrimary }}>{t('Payload')}</h3>
                 <pre style={{ whiteSpace: 'pre-wrap', overflow: 'auto', padding: 12, background: theme.codeBackground, color: theme.codeText, borderRadius: 12 }}>
-                  {selectedNotification.data ? safeJson(selectedNotification.data) : t('notifications_manager_no_payload')}
+                  {selectedNotification.data ? safeJson(selectedNotification.data) : t('No payload')}
                 </pre>
               </section>
 
               <section>
-                <h3 style={{ fontSize: 15, color: theme.textPrimary }}>{t('notifications_manager_logs')}</h3>
+                <h3 style={{ fontSize: 15, color: theme.textPrimary }}>{t('Logs')}</h3>
                 {Array.isArray(selectedNotification.logs) && selectedNotification.logs.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {selectedNotification.logs.map((entry, index) => (
@@ -784,12 +801,12 @@ function NotificationsManagerContent() {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ color: theme.textMuted }}>{t('notifications_manager_no_logs')}</div>
+                  <div style={{ color: theme.textMuted }}>{t('No logs yet')}</div>
                 )}
               </section>
 
               <section>
-                <h3 style={{ fontSize: 15, color: theme.textPrimary }}>{t('notifications_manager_raw')}</h3>
+                <h3 style={{ fontSize: 15, color: theme.textPrimary }}>{t('Raw record')}</h3>
                 <pre style={{ whiteSpace: 'pre-wrap', overflow: 'auto', padding: 12, background: theme.rawBackground, color: theme.textSecondary, borderRadius: 12 }}>
                   {safeJson(selectedNotification.rawPayload)}
                 </pre>
@@ -805,7 +822,7 @@ function NotificationsManagerContent() {
 
 export default function NotificationsManager(props) {
   return (
-    <I18nProvider initialLocale={props.locale}>
+    <I18nProvider initialLocale={props.locale} messages={props.messages}>
       <NotificationsManagerContent />
     </I18nProvider>
   );

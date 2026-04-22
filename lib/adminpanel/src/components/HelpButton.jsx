@@ -16,7 +16,7 @@ export function HelpButton() {
                 size="sm"
                 onClick={toggle}
                 className="rounded-full w-10 h-10 p-0"
-                title={t('help_title') || 'Help'}
+                title={t('Title') || 'Help'}
             >
                 <Info className="w-6 h-6" />
             </Button>
@@ -36,7 +36,7 @@ export function HelpButton() {
                     <div className="flex items-center justify-between p-4 border-b">
                         <h2 className="text-xl font-bold flex items-center gap-2">
                             <Info className="w-5 h-5 text-blue-500" />
-                            {t('help_title') || 'How it works'}
+                            {t('Title') || 'How it works'}
                         </h2>
                         <Button variant="ghost" size="sm" onClick={toggle} className="p-1 h-auto">
                             <X className="w-6 h-6" />
@@ -48,36 +48,36 @@ export function HelpButton() {
                         <section>
                             <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                                 <span className="w-6 h-6 rounded-md border flex items-center justify-center text-xs">☑</span>
-                                {t('help_enable_title') || 'Enable / Disable'}
+                                {t('Enable title') || 'Enable / Disable'}
                             </h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                {t('help_enable_desc') || 'Administrative switch. Disabling an item completely removes it from active operations. However, if it was already in a user\'s cart, they might still see it there until they checkout (though it will fail validation).'}
+                                {t('Enable desc') || 'Administrative switch. Disabling an item completely removes it from active operations. However, if it was already in a user\'s cart, they might still see it there until they checkout (though it will fail validation).'}
                             </p>
                         </section>
 
                         <section>
                             <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-blue-600">
                                 <span className="w-6 h-6 rounded-md border border-blue-200 flex items-center justify-center text-xs">👁</span>
-                                {t('help_visible_title') || 'Catalog Visibility'}
+                                {t('Visible title') || 'Catalog Visibility'}
                             </h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                {t('help_visible_desc') || 'Marketing switch. Hiding an item keeps it enabled in the system but removes it from the catalog browse view. Useful for secret menu items or items accessible only via direct links / recommendations.'}
+                                {t('Visible desc') || 'Marketing switch. Hiding an item keeps it enabled in the system but removes it from the catalog browse view. Useful for secret menu items or items accessible only via direct links / recommendations.'}
                             </p>
                         </section>
 
                         <section>
                             <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                                 <span className="w-6 h-6 rounded-md border flex items-center justify-center text-xs">🔍</span>
-                                {t('help_show_all_title') || 'Show All Filter'}
+                                {t('Show all title') || 'Show All Filter'}
                             </h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                {t('help_show_all_desc') || 'By default, the Stock Manager hides disabled and hidden items to keep the view clean. Use the "Show All" toggle (magnifying glass) to reveal everything for management.'}
+                                {t('Show all desc') || 'By default, the Stock Manager hides disabled and hidden items to keep the view clean. Use the "Show All" toggle (magnifying glass) to reveal everything for management.'}
                             </p>
                         </section>
 
                         <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
                             <p className="text-xs text-blue-700 italic">
-                                {t('help_hint') || 'Tip: You can use bulk actions in the folder view to quickly manage multiple items at once.'}
+                                {t('Hint') || 'Tip: You can use bulk actions in the folder view to quickly manage multiple items at once.'}
                             </p>
                         </div>
                     </div>

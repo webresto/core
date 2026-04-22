@@ -23,7 +23,7 @@ export function GroupCard({ group, onGroupClick, onUpdateVisible }) {
             <button 
                 onClick={toggleVisibility}
                 className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors"
-                title={t('dish_visible')}
+                title={t('Visible in menu (publicity)')}
             >
                 {group.visible !== false ? (
                     <Eye className="w-4 h-4" />
