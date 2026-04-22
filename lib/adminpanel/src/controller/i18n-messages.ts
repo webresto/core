@@ -52,7 +52,7 @@ export function getAdminpanelMessages(locale: string): Record<string, string> {
 }
 
 export function getInertiaLocaleAndMessages(req: any): { locale: string; messages: Record<string, string> } {
-  const locale = resolveAdminpanelLocale(req?.user?.language || req?.user?.locale || req?.i18n?.getLocale?.());
+  const locale = resolveAdminpanelLocale(req?.user?.language || req?.user?.locale);
   return {
     locale,
     messages: getAdminpanelMessages(locale),

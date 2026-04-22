@@ -266,6 +266,14 @@ function processBindAdminpanel() {
             `${routePrefix}/order-kanban`,
             adminizer.policyManager.bindPolicies(policies, orderKanbanController)
           );
+
+          // Make order kanban the default admin landing page.
+          adminizer.app.get(
+            `${routePrefix}`,
+            adminizer.policyManager.bindPolicies(policies, (_req: any, res: any) => {
+              return res.redirect(`${routePrefix}/order-kanban`);
+            })
+          );
         } catch (e) {
           sails.log.debug('OrderKanban route bind error', e);
         }

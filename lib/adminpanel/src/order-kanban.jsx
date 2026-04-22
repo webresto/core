@@ -134,8 +134,8 @@ function getInitialCollapsedColumns() {
 }
 
 function getInitialViewMode() {
-  if (typeof window === 'undefined') return 'kanban';
-  return localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'stack' ? 'stack' : 'kanban';
+  if (typeof window === 'undefined') return 'stack';
+  return localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'kanban' ? 'kanban' : 'stack';
 }
 
 function isDarkAppearance(appearance) {
