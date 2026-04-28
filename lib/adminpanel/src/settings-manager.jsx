@@ -1,7 +1,52 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 
-const APPEARANCE_KEY = 'adminizer-appearance';
+const APPEARANCE_STORAGE_KEY = 'appearance';
+
+function getPreferredAppearance() {
+  return localStorage.getItem(APPEARANCE_STORAGE_KEY) || 'system';
+}
+
+function isDarkAppearance(appearance) {
+  if (appearance === 'dark') return true;
+  if (appearance === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function useAppearance() {
+  const [appearance, setAppearance] = useState(getPreferredAppearance);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sync = () => setAppearance(getPreferredAppearance());
+    const media = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)')
+      : null;
+    sync();
+    window.addEventListener('appearanceChanged', sync);
+    window.addEventListener('storage', sync);
+    media?.addEventListener('change', sync);
+    return () => {
+      window.removeEventListener('appearanceChanged', sync);
+      window.removeEventListener('storage', sync);
+      media?.removeEventListener('change', sync);
+    };
+  }, []);
+  return useMemo(() => isDarkAppearance(appearance), [appearance]);
+}
+
+const {
+  Button, Badge, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetClose,
+  Input, Textarea, Label, Separator, Checkbox, Skeleton,
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+} = window.UIComponents;
+
+const { MonacoEditor } = window.JSComponents;
+const { Settings, Download, Upload, RotateCcw, Save, ChevronDown } = window.LucideReact;
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────────────────────────────────────
 
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < breakpoint);
@@ -14,135 +59,79 @@ function useIsMobile(breakpoint = 768) {
   return isMobile;
 }
 
-function isDarkAppearance() {
-  const stored = localStorage.getItem(APPEARANCE_KEY) || 'system';
-  if (stored === 'dark') return true;
-  if (stored === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
-function useDarkMode() {
-  const [dark, setDark] = useState(isDarkAppearance);
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => setDark(isDarkAppearance());
-    mq.addEventListener('change', handler);
-    window.addEventListener('storage', handler);
-    return () => {
-      mq.removeEventListener('change', handler);
-      window.removeEventListener('storage', handler);
-    };
-  }, []);
-  return dark;
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ──────────────────────────────────────────────────────────────────────────────
-
 function getAdminPrefix() {
-  // Derive routePrefix from current pathname: /admin/settings-manager → /admin
   const parts = window.location.pathname.split('/');
-  // parts = ['', 'admin', 'settings-manager', ...]
   return '/' + (parts[1] || 'admin');
-}
-
-async function apiGet(url) {
-  return apiRequest(url);
-}
-
-async function apiPost(url, body) {
-  return apiRequest(url, { method: 'POST', body });
 }
 
 function getBaseAdminPath() {
   if (typeof window !== 'undefined' && typeof window.routePrefix === 'string' && window.routePrefix.trim()) {
     return window.routePrefix.replace(/\/$/, '');
   }
-
   return getAdminPrefix();
 }
 
 async function apiRequest(path, options = {}) {
   const axios = window.axios;
-  if (!axios) {
-    throw new Error('window.axios is not available');
-  }
-
+  if (!axios) throw new Error('window.axios is not available');
   try {
     const response = await axios({
       url: `${getBaseAdminPath()}${path}`,
       method: options.method || 'GET',
       data: options.body,
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-      },
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(options.headers || {}) },
       withCredentials: true,
     });
-
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Request failed');
   }
 }
 
+async function apiGet(url) { return apiRequest(url); }
+async function apiPost(url, body) { return apiRequest(url, { method: 'POST', body }); }
+
 function typeLabel(type, t) {
-  return {
-    string: t('Type string'),
-    boolean: t('Type boolean'),
-    number: t('Type number'),
-    json: t('Type json'),
-  }[type] || type;
+  return { string: t('Type string'), boolean: t('Type boolean'), number: t('Type number'), json: t('Type json') }[type] || type;
 }
 
-function typeColor(type) {
-  return {
-    string: '#3b82f6',
-    boolean: '#10b981',
-    number: '#f59e0b',
-    json: '#8b5cf6',
-  }[type] || '#6b7280';
+function typeVariant(type) {
+  return { string: 'default', boolean: 'secondary', number: 'outline', json: 'destructive' }[type] || 'outline';
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Field editors
 // ──────────────────────────────────────────────────────────────────────────────
 
-function StringEditor({ value, onChange, readOnly, st }) {
-  const inputStyle = st?.inputStyle || {};
-  const base = { ...inputStyle, resize: 'vertical', fontFamily: 'inherit' };
+function StringEditor({ value, onChange, readOnly }) {
   return (
-    <textarea
+    <Textarea
       readOnly={readOnly}
       value={value == null ? '' : String(value)}
       onChange={e => onChange(e.target.value)}
       rows={4}
-      style={readOnly ? { ...base, opacity: 0.7 } : base}
+      className={readOnly ? 'opacity-70' : ''}
     />
   );
 }
 
-function NumberEditor({ value, onChange, readOnly, st }) {
-  const inputStyle = st?.inputStyle || {};
+function NumberEditor({ value, onChange, readOnly }) {
   return (
-    <input
+    <Input
       type="number"
       readOnly={readOnly}
       value={value == null ? '' : value}
       onChange={e => onChange(e.target.value === '' ? null : Number(e.target.value))}
-      style={readOnly ? { ...inputStyle, opacity: 0.7 } : inputStyle}
+      className={readOnly ? 'opacity-70' : ''}
     />
   );
 }
 
-function BooleanEditor({ value, onChange, readOnly, st, t }) {
-  const inputStyle = st?.inputStyle || {};
+function BooleanEditor({ value, onChange, readOnly, t }) {
   return (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 4 }}>
+    <div className="flex gap-6 mt-1">
       {[true, false].map(opt => (
-        <label key={String(opt)} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: readOnly ? 'default' : 'pointer', fontSize: 14, color: inputStyle.color }}>
+        <label key={String(opt)} className="flex items-center gap-2 cursor-pointer text-sm">
           <input
             type="radio"
             disabled={readOnly}
@@ -156,8 +145,7 @@ function BooleanEditor({ value, onChange, readOnly, st, t }) {
   );
 }
 
-function JsonEditor({ value, schema, onChange, readOnly, st, t }) {
-  const inputStyle = st?.inputStyle || {};
+function JsonEditor({ value, schema, onChange, readOnly, t }) {
   const [raw, setRaw] = useState('');
   const [parseError, setParseError] = useState(null);
   const [schemaErrors, setSchemaErrors] = useState([]);
@@ -176,50 +164,36 @@ function JsonEditor({ value, schema, onChange, readOnly, st, t }) {
     try {
       const parsed = JSON.parse(text);
       setParseError(null);
-      const errs = schema ? validateAgainstSchema(parsed, schema, t) : [];
-      setSchemaErrors(errs);
+      setSchemaErrors(schema ? validateAgainstSchema(parsed, schema, t) : []);
       onChange(parsed);
     } catch (e) {
       setParseError(e.message);
     }
   }
 
-  const taStyle = {
-    ...inputStyle,
-    resize: 'vertical',
-    fontFamily: 'monospace',
-    fontSize: 13,
-    border: parseError ? '1.5px solid #ef4444' : inputStyle.border,
-    ...(readOnly ? { opacity: 0.7 } : {}),
-  };
-
   return (
-    <div>
-      {schema && <div style={{ marginBottom: 8 }}><SchemaHint schema={schema} st={st} t={t} /></div>}
-      <textarea
-        readOnly={readOnly}
+    <div className="flex flex-col gap-2">
+      {schema && <SchemaHint schema={schema} t={t} />}
+      <MonacoEditor
         value={raw}
-        onChange={e => handleChange(e.target.value)}
-        rows={14}
-        spellCheck={false}
-        style={taStyle}
+        onChange={handleChange}
+        options={{ language: 'json' }}
+        disabled={readOnly}
       />
       {parseError && (
-        <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{t('Parse error')}: {parseError}</div>
+        <p className="text-destructive text-xs">{t('Parse error')}: {parseError}</p>
       )}
       {schemaErrors.map((e, i) => (
-        <div key={i} style={{ color: '#f59e0b', fontSize: 12, marginTop: 2 }}>{t('Schema error')}: {e}</div>
+        <p key={i} className="text-yellow-500 text-xs">{t('Schema error')}: {e}</p>
       ))}
     </div>
   );
 }
 
-// Very minimal JSON Schema validation (top-level type, required, enum)
 function validateAgainstSchema(value, schema, t) {
   const errors = [];
   if (!schema || typeof schema !== 'object') return errors;
   const { type, required, enum: enumVals, minimum, maximum, minLength, maxLength } = schema;
-
   if (type) {
     const actual = Array.isArray(value) ? 'array' : typeof value;
     const expected = Array.isArray(type) ? type : [type];
@@ -227,9 +201,7 @@ function validateAgainstSchema(value, schema, t) {
       errors.push(t('Schema expected type', { expected: expected.join('|'), actual }));
     }
   }
-  if (enumVals && !enumVals.includes(value)) {
-    errors.push(t('Schema enum', { values: enumVals.join(', ') }));
-  }
+  if (enumVals && !enumVals.includes(value)) errors.push(t('Schema enum', { values: enumVals.join(', ') }));
   if (typeof value === 'number') {
     if (minimum != null && value < minimum) errors.push(t('Schema minimum', { value: minimum }));
     if (maximum != null && value > maximum) errors.push(t('Schema maximum', { value: maximum }));
@@ -246,7 +218,7 @@ function validateAgainstSchema(value, schema, t) {
   return errors;
 }
 
-function SchemaHint({ schema, st, t }) {
+function SchemaHint({ schema, t }) {
   const lines = [];
   if (schema.description) lines.push(schema.description);
   if (schema.type) lines.push(t('Schema type hint', { value: Array.isArray(schema.type) ? schema.type.join(' | ') : schema.type }));
@@ -254,10 +226,252 @@ function SchemaHint({ schema, st, t }) {
   if (schema.properties) lines.push(t('Schema fields hint', { value: Object.keys(schema.properties).join(', ') }));
   if (!lines.length) return null;
   return (
-    <div style={st.schemaHint}>
-      <div style={{ fontWeight: 600, marginBottom: 4, color: '#8b5cf6' }}>{t('Json schema')}</div>
+    <div className="bg-muted border rounded-md px-3 py-2 text-xs text-muted-foreground">
+      <div className="font-semibold mb-1 text-purple-500">{t('Json schema')}</div>
       {lines.map((l, i) => <div key={i}>{l}</div>)}
     </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Editor panel (shared between desktop and mobile)
+// ──────────────────────────────────────────────────────────────────────────────
+
+function EditorPanel({ selected, editValue, setEditValue, saving, saveError, saveSuccess, handleSave, handleReset, t }) {
+  if (!selected) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+        <Settings className="w-10 h-10 mb-3 opacity-30" />
+        <p className="text-sm">{t('Select hint')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <div className="font-mono text-base font-bold break-all">{selected.key}</div>
+          {selected.name && <div className="text-sm text-muted-foreground mt-1">{selected.name}</div>}
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <Badge variant={typeVariant(selected.type)}>{typeLabel(selected.type, t)}</Badge>
+          {selected.module && <Badge variant="secondary">{selected.module}</Badge>}
+          {selected.readOnly && <Badge variant="destructive">{t('Read only')}</Badge>}
+        </div>
+      </div>
+
+      {/* Description / tooltip */}
+      {selected.description && (
+        <div className="bg-muted border rounded-md px-3 py-2 text-sm text-muted-foreground leading-relaxed">
+          {selected.description}
+        </div>
+      )}
+      {selected.tooltip && selected.tooltip !== selected.description && (
+        <div className="bg-muted border rounded-md px-3 py-2 text-sm text-muted-foreground italic leading-relaxed">
+          💡 {selected.tooltip}
+        </div>
+      )}
+
+      {/* Value editor */}
+      <div className="flex flex-col gap-2">
+        <Label>{t('Value')}</Label>
+        {selected.type === 'string' && (
+          <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} />
+        )}
+        {selected.type === 'number' && (
+          <NumberEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} />
+        )}
+        {selected.type === 'boolean' && (
+          <BooleanEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} t={t} />
+        )}
+        {selected.type === 'json' && (
+          <JsonEditor value={editValue} schema={selected.jsonSchema} onChange={setEditValue} readOnly={selected.readOnly} t={t} />
+        )}
+      </div>
+
+      {/* Default value */}
+      {selected.defaultValue !== undefined && selected.defaultValue !== null && (
+        <div className="text-xs text-muted-foreground flex items-center flex-wrap gap-1">
+          <span className="opacity-60">{t('Default')}:</span>
+          <code className="text-xs font-mono break-all" style={{ background: 'var(--muted)', padding: '2px 5px', borderRadius: 4 }}>
+            {typeof selected.defaultValue === 'object' ? JSON.stringify(selected.defaultValue) : String(selected.defaultValue)}
+          </code>
+        </div>
+      )}
+
+      {/* Status messages */}
+      {saveError && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 text-sm text-destructive">
+          ⚠ {saveError}
+        </div>
+      )}
+      {saveSuccess && (
+        <div className="bg-green-500/10 border border-green-500/30 rounded-md px-3 py-2 text-sm text-green-600 dark:text-green-400">
+          ✓ {t('Saved successfully')}
+        </div>
+      )}
+
+      {/* Actions */}
+      {!selected.readOnly && (
+        <div className="flex gap-2 items-center mt-1">
+          <Button variant="default" size="sm" onClick={handleSave} disabled={saving}>
+            <Save className="w-4 h-4 mr-1" />
+            {saving ? t('Saving') : t('Save')}
+          </Button>
+          {selected.defaultValue !== undefined && selected.defaultValue !== null && (
+            <Button variant="outline" size="sm" onClick={handleReset} disabled={saving}>
+              <RotateCcw className="w-4 h-4 mr-1" />
+              {t('Reset to default')}
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Import dialog
+// ──────────────────────────────────────────────────────────────────────────────
+
+function ImportDialog({ open, onOpenChange, diff, selected, setSelected, result, importing, onApply, t }) {
+  const changedCount = diff ? diff.filter(d => d.status === 'changed').length : 0;
+  const selectedCount = Object.values(selected).filter(Boolean).length;
+
+  const statusLabel = (status) => {
+    const map = { applied: 'Applied', changed: 'Changed', unchanged: 'Unchanged', skipped: 'Skipped', error: 'Error' };
+    const key = map[String(status || '').toLowerCase()] || status;
+    const tr = t(key);
+    return tr === key ? status : tr;
+  };
+
+  function toggleAll(val) {
+    const next = {};
+    for (const d of diff) {
+      if (!d.readOnly) next[d.key] = val && d.status === 'changed';
+    }
+    setSelected(next);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{t('Import settings')}</DialogTitle>
+        </DialogHeader>
+
+        {result ? (
+          <div className="flex-1 overflow-y-auto flex flex-col gap-2 px-1">
+            <p className="font-semibold text-sm mb-1">
+              {t('Applied count', { applied: result.filter(r => r.status === 'applied').length, total: result.length })}
+            </p>
+            {result.map(r => (
+              <div key={r.key} className="flex gap-2 items-center text-sm">
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${r.status === 'applied' ? 'bg-green-500' : 'bg-destructive'}`} />
+                <code className="font-mono text-xs flex-1">{r.key}</code>
+                <span className="text-muted-foreground text-xs">{statusLabel(r.status)}{r.error ? `: ${r.error}` : ''}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="text-sm text-muted-foreground flex items-center justify-between px-1 py-1">
+              <span>{t('Changed unchanged', { changed: changedCount, unchanged: (diff?.length || 0) - changedCount })}</span>
+              <div className="flex gap-3">
+                <Button variant="ghost" size="sm" onClick={() => toggleAll(true)}>{t('Select all changed')}</Button>
+                <Button variant="ghost" size="sm" onClick={() => toggleAll(false)}>{t('Deselect all')}</Button>
+              </div>
+            </div>
+            <Separator />
+            <div className="flex-1 overflow-y-auto">
+              {diff?.map(d => (
+                <label key={d.key} className={`flex items-start gap-3 px-1 py-3 border-b cursor-pointer ${d.status === 'unchanged' ? 'opacity-50' : ''} ${d.readOnly || d.status !== 'changed' ? 'cursor-default' : ''}`}>
+                  <Checkbox
+                    className="mt-0.5 flex-shrink-0"
+                    disabled={d.readOnly || d.status !== 'changed'}
+                    checked={!!selected[d.key]}
+                    onCheckedChange={v => setSelected(prev => ({ ...prev, [d.key]: v }))}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex gap-2 items-center flex-wrap">
+                      <code className="font-mono text-xs font-bold">{d.key}</code>
+                      <Badge variant={d.status === 'changed' ? 'outline' : 'secondary'} style={{ fontSize: 10 }}>
+                        {statusLabel(d.status)}
+                      </Badge>
+                      {d.readOnly && <Badge variant="destructive" style={{ fontSize: 10 }}>{t('Read only')}</Badge>}
+                    </div>
+                    {d.status === 'changed' && (
+                      <div className="mt-2 flex flex-col gap-1 text-xs">
+                        <div className="flex gap-2">
+                          <span className="opacity-50 w-14 flex-shrink-0">{t('Current')}:</span>
+                          <code className="font-mono break-all flex-1" style={{ background: 'var(--destructive-muted, #fef2f2)', color: 'var(--destructive, #b91c1c)', padding: '2px 5px', borderRadius: 4 }}>
+                            {JSON.stringify(d.currentValue)}
+                          </code>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className="opacity-50 w-14 flex-shrink-0">{t('Import')}:</span>
+                          <code className="font-mono break-all flex-1" style={{ background: 'var(--success-muted, #f0fdf4)', color: 'var(--success, #15803d)', padding: '2px 5px', borderRadius: 4 }}>
+                            {JSON.stringify(d.importValue)}
+                          </code>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </label>
+              ))}
+            </div>
+            <Separator />
+            <DialogFooter className="flex items-center justify-between sm:justify-between">
+              <span className="text-xs text-muted-foreground">{t('Selected count', { count: selectedCount })}</span>
+              <div className="flex gap-2">
+                <DialogClose asChild>
+                  <Button variant="outline" size="sm">{t('Cancel')}</Button>
+                </DialogClose>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={onApply}
+                  disabled={importing || selectedCount === 0}
+                >
+                  {importing ? t('Applying') : t('Apply count', { count: selectedCount })}
+                </Button>
+              </div>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Settings list item
+// ──────────────────────────────────────────────────────────────────────────────
+
+function SettingListItem({ s, isActive, onSelect, t }) {
+  return (
+    <button
+      onClick={() => onSelect(s)}
+      className="block w-full text-left transition-colors hover:bg-accent"
+      style={{
+        padding: '10px 12px',
+        borderBottom: '1px solid color-mix(in srgb, var(--foreground) 15%, transparent)',
+        borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
+        background: isActive ? 'var(--accent)' : 'transparent',
+        paddingLeft: isActive ? 9 : 9,
+      }}
+    >
+      <div className="font-mono text-xs font-semibold break-all">{s.key}</div>
+      {s.name && <div className="text-xs text-muted-foreground" style={{ marginTop: 2 }}>{s.name}</div>}
+      <div className="flex gap-1 flex-wrap" style={{ marginTop: 5 }}>
+        <Badge variant={typeVariant(s.type)} style={{ fontSize: 10, padding: '1px 5px' }}>{typeLabel(s.type, t)}</Badge>
+        {s.module && <Badge variant="secondary" style={{ fontSize: 10, padding: '1px 5px' }}>{s.module}</Badge>}
+        {s.readOnly && <Badge variant="destructive" style={{ fontSize: 10, padding: '1px 5px' }}>{t('Read only')}</Badge>}
+        {s.isRequired && <Badge variant="outline" style={{ fontSize: 10, padding: '1px 5px' }}>{t('Required')}</Badge>}
+      </div>
+    </button>
   );
 }
 
@@ -269,8 +483,7 @@ function SettingsManagerContent() {
   const { t } = useTranslation();
   const apiBase = '/core/settings-manager';
   const isMobile = useIsMobile();
-  const dark = useDarkMode();
-  const st = makeStyles(dark);
+  useAppearance(); // subscribe to theme changes to trigger re-render
 
   const [settings, setSettings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -281,50 +494,38 @@ function SettingsManagerContent() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [mobileListOpen, setMobileListOpen] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const searchRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // ── Import state ───────────────────────────────────────────────────────────
   const [importOpen, setImportOpen] = useState(false);
-  const [importDiff, setImportDiff] = useState(null);   // diff array from preview
-  const [importPayload, setImportPayload] = useState(null); // original settings[]
-  const [importSelected, setImportSelected] = useState({}); // key → bool
+  const [importDiff, setImportDiff] = useState(null);
+  const [importPayload, setImportPayload] = useState(null);
+  const [importSelected, setImportSelected] = useState({});
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
 
-  // ── Load all settings + restore from hash ─────────────────────────────────
   useEffect(() => {
     setLoading(true);
     apiGet(`${apiBase}/list`)
       .then(data => {
         setSettings(data);
         setLoading(false);
-        // Select setting from URL hash on initial load
         const hashKey = decodeURIComponent(window.location.hash.slice(1));
         if (hashKey) {
           const found = data.find(s => s.key === hashKey);
           if (found) selectSetting(found);
         }
       })
-      .catch(e => {
-        setError(e.message);
-        setLoading(false);
-      });
+      .catch(e => { setError(e.message); setLoading(false); });
   }, [apiBase]);
 
-  // ── Filter ─────────────────────────────────────────────────────────────────
   const filtered = settings.filter(s => {
     const q = search.toLowerCase();
     if (!q) return true;
-    return (
-      s.key.toLowerCase().includes(q) ||
-      (s.name || '').toLowerCase().includes(q) ||
-      (s.module || '').toLowerCase().includes(q)
-    );
+    return s.key.toLowerCase().includes(q) || (s.name || '').toLowerCase().includes(q) || (s.module || '').toLowerCase().includes(q);
   });
 
-  // ── Select setting ─────────────────────────────────────────────────────────
   function selectSetting(s) {
     setSelected(s);
     setEditValue(s.value !== undefined && s.value !== null ? s.value : s.defaultValue);
@@ -332,19 +533,11 @@ function SettingsManagerContent() {
     setSaveSuccess(false);
     window.location.hash = encodeURIComponent(s.key);
     if (isMobile) {
-      setMobileListOpen(false);
+      setMobileSheetOpen(false);
       setSearch('');
     }
   }
 
-  // ── Open mobile list ───────────────────────────────────────────────────────
-  function openMobileList() {
-    setMobileListOpen(true);
-    setSearch('');
-    setTimeout(() => searchRef.current?.focus(), 50);
-  }
-
-  // ── Save ───────────────────────────────────────────────────────────────────
   async function handleSave() {
     if (!selected) return;
     setSaving(true);
@@ -352,19 +545,19 @@ function SettingsManagerContent() {
     setSaveSuccess(false);
     try {
       const updated = await apiPost(`${apiBase}/update/${encodeURIComponent(selected.key)}`, { value: editValue });
-      // Patch list in place
       setSettings(prev => prev.map(s => s.key === updated.key ? { ...s, ...updated } : s));
       setSelected(prev => ({ ...prev, ...updated }));
       setSaveSuccess(true);
+      window.sonner?.toast(t('Saved successfully'));
       setTimeout(() => setSaveSuccess(false), 2500);
     } catch (e) {
       setSaveError(e.message);
+      window.sonner?.toast.error(e.message);
     } finally {
       setSaving(false);
     }
   }
 
-  // ── Reset to default ───────────────────────────────────────────────────────
   function handleReset() {
     if (!selected) return;
     setEditValue(selected.defaultValue);
@@ -372,13 +565,11 @@ function SettingsManagerContent() {
     setSaveSuccess(false);
   }
 
-  // ── Export ─────────────────────────────────────────────────────────────────
   async function handleExport() {
     try {
       const axios = window.axios;
-      const url = `${getBaseAdminPath()}/core/settings-manager/export`;
       const response = await axios({
-        url,
+        url: `${getBaseAdminPath()}/core/settings-manager/export`,
         method: 'GET',
         responseType: 'blob',
         withCredentials: true,
@@ -393,11 +584,10 @@ function SettingsManagerContent() {
       document.body.removeChild(a);
       URL.revokeObjectURL(objectUrl);
     } catch (e) {
-      alert(`${t('Export failed')}: ${e?.message || String(e)}`);
+      window.sonner?.toast.error(`${t('Export failed')}: ${e?.message || String(e)}`);
     }
   }
 
-  // ── Import: file picked ────────────────────────────────────────────────────
   async function handleFilePicked(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -406,32 +596,27 @@ function SettingsManagerContent() {
     try {
       json = JSON.parse(await file.text());
     } catch {
-      alert(t('Invalid json file'));
+      window.sonner?.toast.error(t('Invalid json file'));
       return;
     }
     if (!Array.isArray(json?.settings)) {
-      alert(t('Invalid json format'));
+      window.sonner?.toast.error(t('Invalid json format'));
       return;
     }
-    // Preview diff
     try {
       const result = await apiPost(`${apiBase}/import`, { preview: true, settings: json.settings });
       setImportPayload(json.settings);
       setImportDiff(result.diff);
-      // Pre-select all changed keys
       const sel = {};
-      for (const d of result.diff) {
-        sel[d.key] = d.status === 'changed';
-      }
+      for (const d of result.diff) sel[d.key] = d.status === 'changed';
       setImportSelected(sel);
       setImportResult(null);
       setImportOpen(true);
     } catch (err) {
-      alert(`${t('Preview failed')}: ${err.message}`);
+      window.sonner?.toast.error(`${t('Preview failed')}: ${err.message}`);
     }
   }
 
-  // ── Import: apply selected ─────────────────────────────────────────────────
   async function handleImportApply() {
     const keys = Object.keys(importSelected).filter(k => importSelected[k]);
     if (!keys.length) return;
@@ -439,10 +624,8 @@ function SettingsManagerContent() {
     try {
       const result = await apiPost(`${apiBase}/import`, { settings: importPayload, keys });
       setImportResult(result.results);
-      // Refresh settings list
       const fresh = await apiGet(`${apiBase}/list`);
       setSettings(fresh);
-      // Re-select current if it was updated
       if (selected) {
         const updated = fresh.find(s => s.key === selected.key);
         if (updated) {
@@ -451,7 +634,7 @@ function SettingsManagerContent() {
         }
       }
     } catch (err) {
-      alert(`${t('Import failed')}: ${err.message}`);
+      window.sonner?.toast.error(`${t('Import failed')}: ${err.message}`);
     } finally {
       setImporting(false);
     }
@@ -464,75 +647,60 @@ function SettingsManagerContent() {
     setImportResult(null);
   }
 
-  // ── Shared: list items ─────────────────────────────────────────────────────
-  const listItems = (
+  const listContent = (
     <>
-      {loading && <div style={st.stateMsg}>{t('Loading')}</div>}
-      {error && <div style={{ ...st.stateMsg, color: '#ef4444' }}>{t('Error')}: {t(error) === error ? error : t(error)}</div>}
+      {loading && (
+        <div className="flex flex-col gap-2 p-3">
+          {[...Array(5)].map((_, i) => <Skeleton key={i} className="w-full rounded-md" style={{ height: 56 }} />)}
+        </div>
+      )}
+      {error && <p className="p-4 text-sm text-destructive text-center">{t('Error')}: {error}</p>}
       {filtered.map(s => (
-        <button
-          key={s.key}
-          onClick={() => selectSetting(s)}
-          style={{
-            ...st.listItem,
-            background: selected?.key === s.key ? st.listItemActive.background : 'transparent',
-            borderLeft: selected?.key === s.key ? `3px solid ${typeColor(s.type)}` : '3px solid transparent',
-          }}
-        >
-          <div style={st.listItemKey}>{s.key}</div>
-          {s.name && <div style={st.listItemName}>{s.name}</div>}
-          <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
-            <span style={{ ...st.badge, background: typeColor(s.type) }}>{typeLabel(s.type, t)}</span>
-            {s.module && <span style={st.moduleBadge}>{s.module}</span>}
-            {s.readOnly && <span style={st.readOnlyBadge}>{t('Read only')}</span>}
-            {s.isRequired && <span style={st.requiredBadge}>{t('Required')}</span>}
-          </div>
-        </button>
+        <SettingListItem key={s.key} s={s} isActive={selected?.key === s.key} onSelect={selectSetting} t={t} />
       ))}
       {!loading && filtered.length === 0 && (
-        <div style={st.stateMsg}>{t('No settings')}</div>
+        <p className="p-4 text-sm text-muted-foreground text-center">{t('No settings')}</p>
       )}
     </>
   );
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   if (isMobile) {
     return (
-      <div style={st.mobileRoot}>
-        {/* ── Mobile top bar ── */}
-        <div style={st.mobileTopBar}>
-          <button onClick={openMobileList} style={st.mobileSelectBtn}>
-            <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {selected ? selected.key : t('Select setting')}
-            </span>
-            <span style={{ opacity: 0.5, fontSize: 12 }}>▼</span>
-          </button>
+      <div className="absolute inset-0 flex flex-col overflow-hidden" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        {/* Mobile top bar */}
+        <div className="flex-shrink-0 p-3 border-b" style={{ background: 'var(--muted)' }}>
+          <Button
+            variant="outline"
+            className="w-full justify-between font-mono text-sm"
+            onClick={() => { setMobileSheetOpen(true); setSearch(''); setTimeout(() => searchRef.current?.focus(), 50); }}
+          >
+            <span className="truncate">{selected ? selected.key : t('Select setting')}</span>
+            <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0" />
+          </Button>
         </div>
 
-        {/* ── Mobile dropdown list ── */}
-        {mobileListOpen && (
-          <div style={st.mobileOverlay} onClick={() => setMobileListOpen(false)}>
-            <div style={st.mobileSheet} onClick={e => e.stopPropagation()}>
-              <div style={st.mobileSheetHeader}>
-                <input
-                  ref={searchRef}
-                  type="search"
-                  placeholder={t('Search by key')}
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  style={st.searchInput}
-                />
-              </div>
-              <div style={st.mobileList}>
-                {listItems}
-              </div>
+        {/* Mobile sheet with list */}
+        <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+          <SheetContent side="top" className="flex flex-col p-0" style={{ height: '75vh' }}>
+            <SheetHeader className="p-3 border-b flex-shrink-0">
+              <SheetTitle className="sr-only">{t('Title')}</SheetTitle>
+              <Input
+                ref={searchRef}
+                type="search"
+                placeholder={t('Search by key')}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </SheetHeader>
+            <div className="flex-1 overflow-y-auto">
+              {listContent}
             </div>
-          </div>
-        )}
+          </SheetContent>
+        </Sheet>
 
-        {/* ── Mobile editor ── */}
-        <div style={st.mobileEditor}>
-          <EditorPanel st={st}
+        {/* Mobile editor */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <EditorPanel
             t={t}
             selected={selected}
             editValue={editValue}
@@ -549,34 +717,39 @@ function SettingsManagerContent() {
   }
 
   return (
-    <div style={st.root}>
-      {/* ── Left panel: list ── */}
-      <div style={st.sidebar}>
-        <div style={st.sidebarHeader}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={st.sidebarTitle}>{t('Title')}</div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={handleExport} title={t('Export json')} style={st.toolBtn}>↓ {t('Export')}</button>
-              <button onClick={() => fileInputRef.current?.click()} title={t('Import json')} style={st.toolBtn}>↑ {t('Import')}</button>
-              <input ref={fileInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleFilePicked} />
+    <div className="absolute inset-0 flex overflow-hidden" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+      {/* Left panel: list */}
+      <div className="w-80 flex flex-col overflow-hidden border-r" style={{ minWidth: 260, maxWidth: 420, background: 'var(--muted)' }}>
+        <div className="flex-shrink-0 p-3 border-b">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-bold text-base">{t('Title')}</span>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={handleExport} title={t('Export json')}>
+                <Download className="w-3.5 h-3.5 mr-1" />
+                {t('Export')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} title={t('Import json')}>
+                <Upload className="w-3.5 h-3.5 mr-1" />
+                {t('Import')}
+              </Button>
+              <input ref={fileInputRef} type="file" accept=".json,application/json" className="hidden" onChange={handleFilePicked} />
             </div>
           </div>
-          <input
+          <Input
             type="search"
             placeholder={t('Search by key')}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={st.searchInput}
           />
         </div>
-        <div style={st.list}>
-          {listItems}
+        <div className="flex-1 overflow-y-auto">
+          {listContent}
         </div>
       </div>
 
-      {/* ── Right panel: editor ── */}
-      <div style={st.editor}>
-        <EditorPanel st={st}
+      {/* Right panel: editor */}
+      <div className="flex-1 overflow-hidden flex flex-col" style={{ background: 'var(--background)' }}>
+        <EditorPanel
           t={t}
           selected={selected}
           editValue={editValue}
@@ -589,20 +762,18 @@ function SettingsManagerContent() {
         />
       </div>
 
-      {/* ── Import dialog ── */}
-      {importOpen && (
-        <ImportDialog
-          st={st}
-          t={t}
-          diff={importDiff}
-          selected={importSelected}
-          setSelected={setImportSelected}
-          result={importResult}
-          importing={importing}
-          onApply={handleImportApply}
-          onClose={closeImport}
-        />
-      )}
+      {/* Import dialog */}
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={v => { if (!v) closeImport(); }}
+        diff={importDiff}
+        selected={importSelected}
+        setSelected={setImportSelected}
+        result={importResult}
+        importing={importing}
+        onApply={handleImportApply}
+        t={t}
+      />
     </div>
   );
 }
@@ -614,506 +785,4 @@ export default function SettingsManager({ props }) {
       <SettingsManagerContent />
     </I18nProvider>
   );
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Editor panel (shared between desktop and mobile)
-// ──────────────────────────────────────────────────────────────────────────────
-
-function EditorPanel({ selected, editValue, setEditValue, saving, saveError, saveSuccess, handleSave, handleReset, st, t }) {
-  if (!selected) {
-    return (
-      <div style={st.editorEmpty}>
-        <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>⚙</div>
-        <div style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 15 }}>
-          {t('Select hint')}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div style={st.editorContent}>
-      {/* Header */}
-      <div style={st.editorHeader}>
-        <div>
-          <div style={st.editorKey}>{selected.key}</div>
-          {selected.name && <div style={st.editorName}>{selected.name}</div>}
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ ...st.badge, background: typeColor(selected.type), fontSize: 13 }}>
-            {typeLabel(selected.type, t)}
-          </span>
-          {selected.module && <span style={st.moduleBadge}>{selected.module}</span>}
-          {selected.readOnly && <span style={st.readOnlyBadge}>{t('Read only')}</span>}
-        </div>
-      </div>
-
-      {/* Description / tooltip */}
-      {selected.description && (
-        <div style={st.descBlock}>{selected.description}</div>
-      )}
-      {selected.tooltip && selected.tooltip !== selected.description && (
-        <div style={{ ...st.descBlock, fontStyle: 'italic', opacity: 0.8 }}>
-          💡 {selected.tooltip}
-        </div>
-      )}
-
-      {/* Value editor */}
-      <div style={st.fieldBlock}>
-        <label style={st.fieldLabel}>{t('Value')}</label>
-        {selected.type === 'string' && (
-          <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} />
-        )}
-        {selected.type === 'number' && (
-          <NumberEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} />
-        )}
-        {selected.type === 'boolean' && (
-          <BooleanEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} st={st} t={t} />
-        )}
-        {selected.type === 'json' && (
-          <JsonEditor
-            value={editValue}
-            schema={selected.jsonSchema}
-            onChange={setEditValue}
-            readOnly={selected.readOnly}
-            st={st}
-            t={t}
-          />
-        )}
-      </div>
-
-      {/* Default value info */}
-      {selected.defaultValue !== undefined && selected.defaultValue !== null && (
-        <div style={st.defaultBlock}>
-          <span style={{ opacity: 0.6, marginRight: 6 }}>{t('Default')}:</span>
-          <code style={st.defaultCode}>
-            {typeof selected.defaultValue === 'object'
-              ? JSON.stringify(selected.defaultValue)
-              : String(selected.defaultValue)}
-          </code>
-        </div>
-      )}
-
-      {/* Errors / success */}
-      {saveError && <div style={st.errorMsg}>⚠ {saveError}</div>}
-      {saveSuccess && <div style={st.successMsg}>✓ {t('Saved successfully')}</div>}
-
-      {/* Actions */}
-      {!selected.readOnly && (
-        <div style={st.actions}>
-          <button onClick={handleSave} disabled={saving} style={st.btnSave}>
-            {saving ? t('Saving') : t('Save')}
-          </button>
-          {selected.defaultValue !== undefined && selected.defaultValue !== null && (
-            <button onClick={handleReset} disabled={saving} style={st.btnSecondary}>
-              {t('Reset to default')}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Import dialog
-// ──────────────────────────────────────────────────────────────────────────────
-
-function ImportDialog({ st, diff, selected, setSelected, result, importing, onApply, onClose, t }) {
-  const changedCount = diff ? diff.filter(d => d.status === 'changed').length : 0;
-  const selectedCount = Object.values(selected).filter(Boolean).length;
-  const statusLabel = (status) => {
-    const statusMap = {
-      applied: 'Applied',
-      changed: 'Changed',
-      unchanged: 'Unchanged',
-      skipped: 'Skipped',
-      error: 'Error',
-    };
-    const key = statusMap[String(status || '').toLowerCase()] || status;
-    const translated = t(key);
-    return translated === key ? status : translated;
-  };
-
-  function toggleAll(val) {
-    const next = {};
-    for (const d of diff) {
-      if (!d.readOnly) next[d.key] = val && d.status === 'changed';
-    }
-    setSelected(next);
-  }
-
-  return (
-    <div style={st.dialogOverlay} onClick={onClose}>
-      <div style={st.dialog} onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div style={st.dialogHeader}>
-          <span style={{ fontWeight: 700, fontSize: 16 }}>{t('Import settings')}</span>
-          <button onClick={onClose} style={st.dialogClose}>✕</button>
-        </div>
-
-        {/* Result view (after apply) */}
-        {result ? (
-          <div style={{ padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', flex: 1 }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>{t('Applied count', { applied: result.filter(r => r.status === 'applied').length, total: result.length })}</div>
-            {result.map(r => (
-              <div key={r.key} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
-                <span style={{ ...st.statusDot, background: r.status === 'applied' ? '#10b981' : '#ef4444' }} />
-                <code style={{ fontFamily: 'monospace', fontSize: 12, flex: 1 }}>{r.key}</code>
-                <span style={{ color: st.inputStyle.color, opacity: 0.6 }}>{statusLabel(r.status)}{r.error ? `: ${r.error}` : ''}</span>
-              </div>
-            ))}
-            <button onClick={onClose} style={{ ...st.btnSave, marginTop: 12, alignSelf: 'flex-end' }}>{t('Close')}</button>
-          </div>
-        ) : (
-          <>
-            {/* Summary */}
-            <div style={{ padding: '8px 20px', borderBottom: `1px solid ${st.inputStyle.border}`, fontSize: 13, color: st.inputStyle.color, opacity: 0.8 }}>
-              {t('Changed unchanged', { changed: changedCount, unchanged: (diff?.length || 0) - changedCount })}
-              <span style={{ float: 'right', display: 'flex', gap: 10 }}>
-                <button onClick={() => toggleAll(true)} style={st.linkBtn}>{t('Select all changed')}</button>
-                <button onClick={() => toggleAll(false)} style={st.linkBtn}>{t('Deselect all')}</button>
-              </span>
-            </div>
-
-            {/* Diff list */}
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-              {diff?.map(d => (
-                <label key={d.key} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 20px',
-                  borderBottom: `1px solid ${st.inputStyle.border}`,
-                  cursor: d.readOnly || d.status !== 'changed' ? 'default' : 'pointer',
-                  opacity: d.status === 'unchanged' ? 0.5 : 1,
-                }}>
-                  <input
-                    type="checkbox"
-                    disabled={d.readOnly || d.status !== 'changed'}
-                    checked={!!selected[d.key]}
-                    onChange={e => setSelected(prev => ({ ...prev, [d.key]: e.target.checked }))}
-                    style={{ marginTop: 2, flexShrink: 0 }}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <code style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{d.key}</code>
-                      <span style={{ ...st.badge, background: d.status === 'changed' ? '#f59e0b' : '#6b7280', fontSize: 10 }}>
-                        {statusLabel(d.status)}
-                      </span>
-                      {d.readOnly && <span style={st.readOnlyBadge}>{t('Read only')}</span>}
-                    </div>
-                    {d.status === 'changed' && (
-                      <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <span style={{ opacity: 0.5, width: 60, flexShrink: 0 }}>{t('Current')}:</span>
-                          <code style={{ ...st.diffCode, background: st.diffRemoveBg, color: st.diffRemoveText }}>
-                            {JSON.stringify(d.currentValue)}
-                          </code>
-                        </div>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <span style={{ opacity: 0.5, width: 60, flexShrink: 0 }}>{t('Import')}:</span>
-                          <code style={{ ...st.diffCode, background: st.diffAddBg, color: st.diffAddText }}>
-                            {JSON.stringify(d.importValue)}
-                          </code>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </label>
-              ))}
-            </div>
-
-            {/* Footer */}
-            <div style={st.dialogFooter}>
-              <span style={{ fontSize: 13, opacity: 0.7 }}>{t('Selected count', { count: selectedCount })}</span>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={onClose} style={st.btnSecondary}>{t('Cancel')}</button>
-                <button
-                  onClick={onApply}
-                  disabled={importing || selectedCount === 0}
-                  style={{ ...st.btnSave, opacity: selectedCount === 0 ? 0.5 : 1 }}
-                >
-                  {importing ? t('Applying') : t('Apply count', { count: selectedCount })}
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Styles
-// ──────────────────────────────────────────────────────────────────────────────
-
-function makeStyles(dark) {
-  const t = dark ? {
-    bg:           '#0f172a',
-    bgSidebar:    '#0a0f1e',
-    bgInput:      '#1e293b',
-    bgMuted:      '#1e293b',
-    bgAccent:     '#1e293b',
-    bgSheet:      '#0f172a',
-    border:       '#1e293b',
-    borderInput:  '#334155',
-    text:         '#e2e8f0',
-    textMuted:    '#94a3b8',
-    textSecond:   '#cbd5e1',
-    codeText:     '#e2e8f0',
-    // status
-    errorBg:      '#2d0e0e',
-    errorBorder:  '#7f1d1d',
-    errorText:    '#fca5a5',
-    successBg:    '#052e16',
-    successBorder:'#166534',
-    successText:  '#86efac',
-    // badges
-    readOnlyBg:   '#3b0e0e',
-    readOnlyText: '#fca5a5',
-    requiredBg:   '#2d1f00',
-    requiredText: '#fde68a',
-    moduleBg:     '#1e293b',
-    moduleText:   '#94a3b8',
-    // primary btn
-    primaryBg:    '#e2e8f0',
-    primaryText:  '#0f172a',
-  } : {
-    bg:           '#ffffff',
-    bgSidebar:    '#f8fafc',
-    bgInput:      '#ffffff',
-    bgMuted:      '#f8fafc',
-    bgAccent:     '#f1f5f9',
-    bgSheet:      '#ffffff',
-    border:       '#e2e8f0',
-    borderInput:  '#e2e8f0',
-    text:         '#0f172a',
-    textMuted:    '#94a3b8',
-    textSecond:   '#64748b',
-    codeText:     '#0f172a',
-    // status
-    errorBg:      '#fef2f2',
-    errorBorder:  '#fecaca',
-    errorText:    '#b91c1c',
-    successBg:    '#f0fdf4',
-    successBorder:'#bbf7d0',
-    successText:  '#15803d',
-    // badges
-    readOnlyBg:   '#fee2e2',
-    readOnlyText: '#b91c1c',
-    requiredBg:   '#fef9c3',
-    requiredText: '#854d0e',
-    moduleBg:     '#e2e8f0',
-    moduleText:   '#475569',
-    // primary btn
-    primaryBg:    '#0f172a',
-    primaryText:  '#ffffff',
-  };
-
-  return {
-    root: {
-      display: 'flex', height: '100%', minHeight: 0, overflow: 'hidden',
-      fontFamily: 'inherit', position: 'absolute', inset: 0,
-      background: t.bg, color: t.text,
-    },
-    sidebar: {
-      width: 300, minWidth: 220, maxWidth: 380, height: '100%',
-      display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      borderRight: `1px solid ${t.border}`,
-      background: t.bgSidebar,
-    },
-    sidebarHeader: {
-      padding: '16px 12px 10px', flexShrink: 0,
-      borderBottom: `1px solid ${t.border}`,
-    },
-    sidebarTitle: {
-      fontWeight: 700, fontSize: 16, marginBottom: 10, color: t.text,
-    },
-    searchInput: {
-      width: '100%', padding: '7px 10px', borderRadius: 6, outline: 'none',
-      border: `1.5px solid ${t.borderInput}`,
-      background: t.bgInput, color: t.text,
-      fontSize: 13, boxSizing: 'border-box',
-    },
-    list: { flex: 1, overflowY: 'auto', padding: '6px 0' },
-    listItem: {
-      display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px',
-      border: 'none', cursor: 'pointer', background: 'transparent',
-      transition: 'background 0.1s', color: t.text,
-      borderBottom: `1px solid ${t.border}`,
-    },
-    listItemActive: { background: t.bgAccent },
-    listItemKey: {
-      fontFamily: 'monospace', fontSize: 12, fontWeight: 600,
-      wordBreak: 'break-all', color: t.text,
-    },
-    listItemName: { fontSize: 12, marginTop: 2, color: t.textSecond },
-    badge: {
-      display: 'inline-block', color: '#fff', fontSize: 10,
-      fontWeight: 600, padding: '2px 6px', borderRadius: 4,
-    },
-    moduleBadge: {
-      display: 'inline-block', fontSize: 10, fontWeight: 500,
-      padding: '2px 6px', borderRadius: 4,
-      background: t.moduleBg, color: t.moduleText,
-    },
-    readOnlyBadge: {
-      display: 'inline-block', fontSize: 10, fontWeight: 600,
-      padding: '2px 6px', borderRadius: 4,
-      background: t.readOnlyBg, color: t.readOnlyText,
-    },
-    requiredBadge: {
-      display: 'inline-block', fontSize: 10, fontWeight: 600,
-      padding: '2px 6px', borderRadius: 4,
-      background: t.requiredBg, color: t.requiredText,
-    },
-    stateMsg: {
-      padding: '20px 16px', color: t.textMuted, fontSize: 13, textAlign: 'center',
-    },
-    editor: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
-    editorEmpty: {
-      flex: 1, display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center', color: t.textMuted,
-    },
-    editorContent: {
-      flex: 1, overflowY: 'auto', padding: '24px 28px',
-      display: 'flex', flexDirection: 'column', gap: 16,
-    },
-    editorHeader: {
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-      gap: 12, flexWrap: 'wrap',
-    },
-    editorKey: {
-      fontFamily: 'monospace', fontSize: 17, fontWeight: 700,
-      color: t.text, wordBreak: 'break-all',
-    },
-    editorName: { fontSize: 13, color: t.textSecond, marginTop: 3 },
-    descBlock: {
-      background: t.bgMuted, border: `1px solid ${t.border}`,
-      borderRadius: 6, padding: '10px 14px', fontSize: 13,
-      color: t.textSecond, lineHeight: 1.5,
-    },
-    fieldBlock: { display: 'flex', flexDirection: 'column', gap: 6 },
-    fieldLabel: { fontSize: 13, fontWeight: 600, color: t.text },
-    defaultBlock: {
-      fontSize: 12, color: t.textSecond, display: 'flex',
-      alignItems: 'center', flexWrap: 'wrap', gap: 4,
-    },
-    defaultCode: {
-      fontFamily: 'monospace', background: t.bgMuted, color: t.codeText,
-      padding: '2px 6px', borderRadius: 4, fontSize: 12,
-      maxWidth: '100%', wordBreak: 'break-all',
-    },
-    inputStyle: {
-      width: '100%', padding: '8px 12px', borderRadius: 6, outline: 'none',
-      border: `1.5px solid ${t.borderInput}`,
-      background: t.bgInput, color: t.text,
-      fontSize: 14, boxSizing: 'border-box',
-    },
-    errorMsg: {
-      background: t.errorBg, border: `1px solid ${t.errorBorder}`,
-      borderRadius: 6, padding: '10px 14px', color: t.errorText, fontSize: 13,
-    },
-    successMsg: {
-      background: t.successBg, border: `1px solid ${t.successBorder}`,
-      borderRadius: 6, padding: '10px 14px', color: t.successText, fontSize: 13,
-    },
-    actions: { display: 'flex', gap: 10, alignItems: 'center', marginTop: 4 },
-    btnSave: {
-      padding: '9px 22px', borderRadius: 6, border: 'none',
-      background: t.primaryBg, color: t.primaryText,
-      fontWeight: 600, fontSize: 14, cursor: 'pointer',
-    },
-    btnSecondary: {
-      padding: '9px 16px', borderRadius: 6,
-      border: `1.5px solid ${t.border}`,
-      background: 'transparent', color: t.text,
-      fontWeight: 500, fontSize: 14, cursor: 'pointer',
-    },
-    schemaHint: {
-      background: t.bgMuted, border: `1px solid ${t.border}`,
-      borderRadius: 6, padding: '8px 12px', fontSize: 12, color: t.textSecond,
-    },
-    // ── Mobile ────────────────────────────────────────────────────────────────
-    mobileRoot: {
-      display: 'flex', flexDirection: 'column', position: 'absolute',
-      inset: 0, fontFamily: 'inherit', overflow: 'hidden',
-      background: t.bg, color: t.text,
-    },
-    mobileTopBar: {
-      flexShrink: 0, padding: '10px 12px',
-      borderBottom: `1px solid ${t.border}`,
-      background: t.bgSidebar,
-    },
-    mobileSelectBtn: {
-      width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-      padding: '9px 12px', borderRadius: 8,
-      border: `1.5px solid ${t.borderInput}`,
-      background: t.bgInput, color: t.text,
-      fontSize: 13, fontFamily: 'monospace', fontWeight: 600,
-      cursor: 'pointer', textAlign: 'left',
-    },
-    mobileOverlay: {
-      position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,0.5)',
-      display: 'flex', flexDirection: 'column', justifyContent: 'flex-start',
-    },
-    mobileSheet: {
-      background: t.bgSheet,
-      borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
-      maxHeight: '75vh', display: 'flex', flexDirection: 'column',
-      overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-    },
-    mobileSheetHeader: {
-      padding: '12px 12px 8px', flexShrink: 0,
-      borderBottom: `1px solid ${t.border}`,
-    },
-    mobileList: { overflowY: 'auto', flex: 1 },
-    mobileEditor: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
-    // ── Import/Export ─────────────────────────────────────────────────────────
-    toolBtn: {
-      padding: '5px 10px', borderRadius: 5,
-      border: `1px solid ${t.border}`, background: 'transparent',
-      color: t.text, fontSize: 12, cursor: 'pointer',
-    },
-    linkBtn: {
-      background: 'none', border: 'none', color: '#3b82f6',
-      fontSize: 12, cursor: 'pointer', padding: 0,
-    },
-    dialogOverlay: {
-      position: 'fixed', inset: 0, zIndex: 2000,
-      background: 'rgba(0,0,0,0.5)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    },
-    dialog: {
-      background: t.bg, borderRadius: 12,
-      width: '90%', maxWidth: 700, maxHeight: '85vh',
-      display: 'flex', flexDirection: 'column',
-      boxShadow: '0 16px 48px rgba(0,0,0,0.3)',
-      border: `1px solid ${t.border}`,
-    },
-    dialogHeader: {
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '16px 20px', borderBottom: `1px solid ${t.border}`, flexShrink: 0,
-    },
-    dialogClose: {
-      background: 'none', border: 'none', fontSize: 18,
-      cursor: 'pointer', color: t.textMuted,
-    },
-    dialogFooter: {
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '12px 20px', borderTop: `1px solid ${t.border}`, flexShrink: 0,
-    },
-    statusDot: {
-      width: 8, height: 8, borderRadius: '50%',
-      flexShrink: 0, display: 'inline-block',
-    },
-    diffCode: {
-      fontFamily: 'monospace', padding: '2px 6px', borderRadius: 4,
-      wordBreak: 'break-all', flex: 1,
-    },
-    diffRemoveBg: dark ? '#2d0e0e' : '#fef2f2',
-    diffRemoveText: dark ? '#fca5a5' : '#b91c1c',
-    diffAddBg: dark ? '#052e16' : '#f0fdf4',
-    diffAddText: dark ? '#86efac' : '#15803d',
-  };
 }

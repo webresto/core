@@ -64,7 +64,7 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateEnable, onUpdat
                     {dish.visible !== false ? (
                          <Eye className="w-5 h-5" />
                     ) : (
-                         <EyeOff className="w-5 h-5 text-red-500" />
+                         <EyeOff className="w-5 h-5" style={{ color: 'var(--destructive)' }} />
                     )}
                 </button>
             </CardHeader>
@@ -86,7 +86,7 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateEnable, onUpdat
                 <div className="mb-4">
                     <Label className="block mb-1 font-semibold">{t('Stock')}:</Label>
                     {isUnlimited ? (
-                        <span className="font-bold text-green-600">∞ {t('Unlimited')}</span>
+                        <span className="font-bold" style={{ color: '#16a34a' }}>∞ {t('Unlimited')}</span>
                     ) : (
                         <Input
                             type="number"

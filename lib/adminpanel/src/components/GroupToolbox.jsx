@@ -68,7 +68,7 @@ export function GroupToolbox({ dishes, onBulkEnable, onBulkVisibility, onBulkBal
                     title={t('Disable')}
                     className="h-8 px-2"
                 >
-                    <Square className="w-4 h-4 mr-1 text-red-500" />
+                    <Square className="w-4 h-4 mr-1" style={{ color: 'var(--destructive)' }} />
                     {t('Disable')}
                 </Button>
                 <Button
@@ -82,7 +82,7 @@ export function GroupToolbox({ dishes, onBulkEnable, onBulkVisibility, onBulkBal
                     title={t('Enable')}
                     className="h-8 px-2"
                 >
-                    <CheckSquare className="w-4 h-4 mr-1 text-green-500" />
+                    <CheckSquare className="w-4 h-4 mr-1" style={{ color: '#16a34a' }} />
                     {t('Enable')}
                 </Button>
             </div>

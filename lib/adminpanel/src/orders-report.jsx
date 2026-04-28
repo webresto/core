@@ -13,46 +13,7 @@ const STATE_COLORS = {
   REJECT: '#dc2626',
 };
 
-const REPORT_THEME = {
-  light: {
-    pageBackground: '#ffffff',
-    textPrimary: '#0f172a',
-    textSecondary: '#334155',
-    textMuted: '#64748b',
-    panelBackground: '#f8fafc',
-    panelBorder: '#e2e8f0',
-    cardBackground: '#ffffff',
-    cardBorder: '#dbeafe',
-    controlBackground: '#f8fafc',
-    controlBorder: '#cbd5e1',
-    controlText: '#0f172a',
-    tableHeaderBackground: '#f1f5f9',
-    tableRowAlt: '#f8fafc',
-    tableRowHover: '#f0f9ff',
-    tableBorder: '#e2e8f0',
-    summaryRowBackground: '#f1f5f9',
-    zeroText: '#cbd5e1',
-  },
-  dark: {
-    pageBackground: '#020617',
-    textPrimary: '#e2e8f0',
-    textSecondary: '#cbd5e1',
-    textMuted: '#94a3b8',
-    panelBackground: '#0f172a',
-    panelBorder: '#1e293b',
-    cardBackground: '#111827',
-    cardBorder: '#334155',
-    controlBackground: '#1e293b',
-    controlBorder: '#334155',
-    controlText: '#e2e8f0',
-    tableHeaderBackground: '#0f172a',
-    tableRowAlt: '#0a1120',
-    tableRowHover: '#1e293b',
-    tableBorder: '#1e293b',
-    summaryRowBackground: '#1e293b',
-    zeroText: '#334155',
-  },
-};
+const { Button, Input } = window.UIComponents;
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -134,7 +95,6 @@ function formatNumber(value, language) {
 }
 
 function toDateInputValue(date) {
-  // yyyy-mm-dd
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
@@ -182,16 +142,10 @@ function OrdersReportContent({ locale }) {
 
   const [appearance, setAppearance] = useState(getPreferredAppearance);
   const isDark = isDarkAppearance(appearance);
-  const theme = isDark ? REPORT_THEME.dark : REPORT_THEME.light;
 
-  // Current "anchor" month for navigation
   const [anchorMonth, setAnchorMonth] = useState(() => new Date());
-
-  // from / to as Date objects
   const [fromDate, setFromDate] = useState(() => startOfMonth(new Date()));
   const [toDate, setToDate] = useState(() => endOfMonth(new Date()));
-
-  // sync from/to when anchor changes via arrows
   const anchorRef = useRef(anchorMonth);
 
   const [data, setData] = useState(null);
@@ -213,22 +167,24 @@ function OrdersReportContent({ locale }) {
     }
   }, []);
 
-  // Initial load
   useEffect(() => {
     fetchData(fromDate, toDate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Sync appearance from storage changes (other tabs)
   useEffect(() => {
-    function onStorage(e) {
-      if (e.key === APPEARANCE_STORAGE_KEY) setAppearance(e.newValue || 'system');
-    }
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    const sync = () => setAppearance(getPreferredAppearance());
+    const media = window.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    sync();
+    window.addEventListener('appearanceChanged', sync);
+    window.addEventListener('storage', sync);
+    media?.addEventListener('change', sync);
+    return () => {
+      window.removeEventListener('appearanceChanged', sync);
+      window.removeEventListener('storage', sync);
+      media?.removeEventListener('change', sync);
+    };
   }, []);
 
-  // Navigate months
   function navigateMonth(delta) {
     const newAnchor = addMonths(anchorMonth, delta);
     setAnchorMonth(newAnchor);
@@ -240,7 +196,6 @@ function OrdersReportContent({ locale }) {
   }
 
   function applyRange() {
-    // When applying a custom range, clear month anchor sync
     setAnchorMonth(fromDate);
     fetchData(fromDate, toDate);
   }
@@ -250,141 +205,81 @@ function OrdersReportContent({ locale }) {
   const summary = data?.summary || null;
   const isMonthRange = isSameMonth(fromDate, toDate) && fromDate.getDate() === 1 && toDate.getDate() === endOfMonth(toDate).getDate();
 
-  // ── render ─────────────────────────────────────────────────────────────────
-
-  const containerStyle = {
-    minHeight: '100vh',
-    background: theme.pageBackground,
-    color: theme.textPrimary,
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    fontSize: '14px',
-    padding: '24px',
-    boxSizing: 'border-box',
-  };
-
-  const panelStyle = {
-    background: theme.panelBackground,
-    border: `1px solid ${theme.panelBorder}`,
-    borderRadius: '10px',
-    padding: '16px 20px',
-    marginBottom: '20px',
-  };
-
   return (
-    <div style={containerStyle}>
-      {/* Header */}
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: theme.textPrimary }}>
-          {t('Orders Report')}
-        </h1>
+    <div style={{ background: 'var(--background)', color: 'var(--foreground)', minHeight: '100vh', fontSize: 14, padding: 24, boxSizing: 'border-box' }}>
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>{t('Orders Report')}</h1>
       </div>
 
       {/* Controls */}
-      <div style={panelStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+      <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 20px', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
 
-          {/* Month navigation */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <NavButton theme={theme} onClick={() => navigateMonth(-1)} title="Previous month">‹</NavButton>
-            <span style={{ fontWeight: 600, fontSize: '15px', minWidth: '160px', textAlign: 'center', color: theme.textPrimary }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Button variant="outline" size="icon" onClick={() => navigateMonth(-1)} title="Previous month" style={{ width: 32, height: 32, fontSize: 18, fontWeight: 700 }}>‹</Button>
+            <span style={{ fontWeight: 600, fontSize: 15, minWidth: 160, textAlign: 'center' }}>
               {isMonthRange ? formatMonthLabel(anchorMonth, language) : t('Custom range')}
             </span>
-            <NavButton theme={theme} onClick={() => navigateMonth(1)} title="Next month">›</NavButton>
+            <Button variant="outline" size="icon" onClick={() => navigateMonth(1)} title="Next month" style={{ width: 32, height: 32, fontSize: 18, fontWeight: 700 }}>›</Button>
           </div>
 
-          {/* Divider */}
-          <div style={{ width: '1px', height: '28px', background: theme.panelBorder, margin: '0 4px' }} />
+          <div style={{ width: 1, height: 28, background: 'var(--border)', margin: '0 4px' }} />
 
-          {/* Date range inputs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: theme.textMuted, fontSize: '13px' }}>{t('From')}</span>
-            <DateInput
-              theme={theme}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: 'var(--muted-foreground)', fontSize: 13 }}>{t('From')}</span>
+            <input
+              type="date"
               value={toDateInputValue(fromDate)}
-              onChange={v => setFromDate(new Date(v + 'T00:00:00'))}
+              onChange={e => setFromDate(new Date(e.target.value + 'T00:00:00'))}
+              style={{ padding: '5px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)', fontSize: 13, cursor: 'pointer', outline: 'none' }}
             />
-            <span style={{ color: theme.textMuted, fontSize: '13px' }}>{t('To')}</span>
-            <DateInput
-              theme={theme}
+            <span style={{ color: 'var(--muted-foreground)', fontSize: 13 }}>{t('To')}</span>
+            <input
+              type="date"
               value={toDateInputValue(toDate)}
-              onChange={v => setToDate(new Date(v + 'T23:59:59'))}
+              onChange={e => setToDate(new Date(e.target.value + 'T23:59:59'))}
+              style={{ padding: '5px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)', fontSize: 13, cursor: 'pointer', outline: 'none' }}
             />
-            <button
-              onClick={applyRange}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '6px',
-                border: `1px solid ${theme.controlBorder}`,
-                background: theme.controlBackground,
-                color: theme.controlText,
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '13px',
-              }}
-            >
-              {t('Apply')}
-            </button>
+            <Button variant="outline" size="sm" onClick={applyRange}>{t('Apply')}</Button>
           </div>
 
-          {/* Refresh */}
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => fetchData(fromDate, toDate)}
             disabled={loading}
-            style={{
-              marginLeft: 'auto',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: `1px solid ${theme.controlBorder}`,
-              background: theme.controlBackground,
-              color: theme.textMuted,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '13px',
-              opacity: loading ? 0.6 : 1,
-            }}
             title={t('Refresh')}
+            style={{ marginLeft: 'auto', opacity: loading ? 0.6 : 1 }}
           >
             ↻
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Error */}
       {error && (
-        <div style={{
-          padding: '12px 16px',
-          marginBottom: '16px',
-          borderRadius: '8px',
-          background: isDark ? '#1f0a0a' : '#fff1f1',
-          border: `1px solid ${isDark ? '#7f1d1d' : '#fca5a5'}`,
-          color: isDark ? '#fca5a5' : '#b91c1c',
-          fontSize: '13px',
-        }}>
+        <div style={{ padding: '12px 16px', marginBottom: 16, borderRadius: 8, background: 'var(--destructive)', color: '#fff', fontSize: 13, opacity: 0.9 }}>
           {t('Error')}: {error}
         </div>
       )}
 
       {/* Table */}
       {loading && !data ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: theme.textMuted }}>
+        <div style={{ textAlign: 'center', padding: 48, color: 'var(--muted-foreground)' }}>
           {t('Loading...')}
         </div>
       ) : rows.length === 0 && !loading ? (
-        <div style={{
-          ...panelStyle,
-          textAlign: 'center',
-          padding: '48px',
-          color: theme.textMuted,
-        }}>
+        <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 10, textAlign: 'center', padding: 48, color: 'var(--muted-foreground)' }}>
           {t('No data for the selected period')}
         </div>
       ) : (
         <ReportTable
-          theme={theme}
           language={language}
           states={states}
           rows={rows}
           summary={summary}
           loading={loading}
+          isDark={isDark}
           t={t}
         />
       )}
@@ -394,42 +289,30 @@ function OrdersReportContent({ locale }) {
 
 // ─── table ────────────────────────────────────────────────────────────────────
 
-function ReportTable({ theme, language, states, rows, summary, loading, t }) {
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '13px',
-  };
-
-  const thStyle = {
-    padding: '10px 14px',
-    textAlign: 'left',
-    fontWeight: 600,
-    color: theme.textSecondary,
-    background: theme.tableHeaderBackground,
-    borderBottom: `2px solid ${theme.tableBorder}`,
-    whiteSpace: 'nowrap',
-  };
-
-  const thCenterStyle = { ...thStyle, textAlign: 'center' };
-
+function ReportTable({ language, states, rows, summary, loading, isDark, t }) {
   return (
     <div style={{
-      background: theme.cardBackground,
-      border: `1px solid ${theme.cardBorder}`,
-      borderRadius: '10px',
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
       overflow: 'hidden',
       opacity: loading ? 0.6 : 1,
       transition: 'opacity 0.2s',
     }}>
-      <table style={tableStyle}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
           <tr>
-            <th style={thStyle}>{t('Platform')}</th>
-            <th style={thCenterStyle}>{t('Total')}</th>
-            <th style={thCenterStyle}>{t('Revenue')}</th>
+            <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, color: 'var(--muted-foreground)', background: 'var(--muted)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }}>
+              {t('Platform')}
+            </th>
+            <th style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 600, color: 'var(--muted-foreground)', background: 'var(--muted)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }}>
+              {t('Total')}
+            </th>
+            <th style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 600, color: 'var(--muted-foreground)', background: 'var(--muted)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }}>
+              {t('Revenue')}
+            </th>
             {states.map(state => (
-              <th key={state} style={{ ...thCenterStyle }}>
+              <th key={state} style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 600, color: 'var(--muted-foreground)', background: 'var(--muted)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }}>
                 <StateBadge state={state} t={t} />
               </th>
             ))}
@@ -441,9 +324,9 @@ function ReportTable({ theme, language, states, rows, summary, loading, t }) {
               key={row.platform ?? '__null__'}
               row={row}
               states={states}
-              theme={theme}
               language={language}
               isAlt={i % 2 === 1}
+              isDark={isDark}
               t={t}
             />
           ))}
@@ -451,7 +334,6 @@ function ReportTable({ theme, language, states, rows, summary, loading, t }) {
             <SummaryRow
               summary={summary}
               states={states}
-              theme={theme}
               language={language}
               t={t}
             />
@@ -462,44 +344,39 @@ function ReportTable({ theme, language, states, rows, summary, loading, t }) {
   );
 }
 
-function ReportRow({ row, states, theme, language, isAlt, t }) {
+function ReportRow({ row, states, language, isAlt, isDark, t }) {
   const [hovered, setHovered] = useState(false);
+  const altBg = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)';
+  const hoverBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
 
-  const tdStyle = {
+  const tdBase = {
     padding: '10px 14px',
-    borderBottom: `1px solid ${theme.tableBorder}`,
-    background: hovered
-      ? theme.tableRowHover
-      : isAlt ? theme.tableRowAlt : theme.cardBackground,
+    borderBottom: '1px solid var(--border)',
+    background: hovered ? hoverBg : isAlt ? altBg : 'var(--card)',
     transition: 'background 0.1s',
   };
 
-  const tdCenterStyle = { ...tdStyle, textAlign: 'center' };
-
   return (
-    <tr
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <td style={tdStyle}>
-        <span style={{ fontWeight: 500, color: theme.textPrimary }}>
-          {row.platform ?? <span style={{ color: theme.textMuted }}>—</span>}
+    <tr onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+      <td style={tdBase}>
+        <span style={{ fontWeight: 500 }}>
+          {row.platform ?? <span style={{ color: 'var(--muted-foreground)' }}>—</span>}
         </span>
       </td>
-      <td style={tdCenterStyle}>
+      <td style={{ ...tdBase, textAlign: 'center' }}>
         <span style={{ fontWeight: 600 }}>{formatNumber(row.total, language)}</span>
       </td>
-      <td style={tdCenterStyle}>
+      <td style={{ ...tdBase, textAlign: 'center' }}>
         <span style={{ fontWeight: 600 }}>{formatNumber(row.totalRevenue, language)}</span>
       </td>
       {states.map(state => {
         const count = row.byState?.[state] || 0;
         return (
-          <td key={state} style={tdCenterStyle}>
+          <td key={state} style={{ ...tdBase, textAlign: 'center' }}>
             {count === 0 ? (
-              <span style={{ color: theme.zeroText }}>0</span>
+              <span style={{ color: 'var(--muted-foreground)', opacity: 0.4 }}>0</span>
             ) : (
-              <span style={{ color: STATE_COLORS[state] || theme.textPrimary, fontWeight: 500 }}>
+              <span style={{ color: STATE_COLORS[state] || 'var(--foreground)', fontWeight: 500 }}>
                 {formatNumber(count, language)}
               </span>
             )}
@@ -510,30 +387,27 @@ function ReportRow({ row, states, theme, language, isAlt, t }) {
   );
 }
 
-function SummaryRow({ summary, states, theme, language, t }) {
-  const tdStyle = {
+function SummaryRow({ summary, states, language, t }) {
+  const tdBase = {
     padding: '11px 14px',
-    background: theme.summaryRowBackground,
-    borderTop: `2px solid ${theme.tableBorder}`,
+    background: 'var(--muted)',
+    borderTop: '2px solid var(--border)',
     fontWeight: 700,
-    color: theme.textPrimary,
   };
-
-  const tdCenterStyle = { ...tdStyle, textAlign: 'center' };
 
   return (
     <tr>
-      <td style={tdStyle}>{t('Total')}</td>
-      <td style={tdCenterStyle}>{formatNumber(summary.total, language)}</td>
-      <td style={tdCenterStyle}>{formatNumber(summary.totalRevenue, language)}</td>
+      <td style={tdBase}>{t('Total')}</td>
+      <td style={{ ...tdBase, textAlign: 'center' }}>{formatNumber(summary.total, language)}</td>
+      <td style={{ ...tdBase, textAlign: 'center' }}>{formatNumber(summary.totalRevenue, language)}</td>
       {states.map(state => {
         const count = summary.byState?.[state] || 0;
         return (
-          <td key={state} style={tdCenterStyle}>
+          <td key={state} style={{ ...tdBase, textAlign: 'center' }}>
             {count === 0 ? (
-              <span style={{ color: theme.zeroText }}>0</span>
+              <span style={{ color: 'var(--muted-foreground)', opacity: 0.4 }}>0</span>
             ) : (
-              <span style={{ color: STATE_COLORS[state] || theme.textPrimary }}>
+              <span style={{ color: STATE_COLORS[state] || 'var(--foreground)' }}>
                 {formatNumber(count, language)}
               </span>
             )}
@@ -545,56 +419,6 @@ function SummaryRow({ summary, states, theme, language, t }) {
 }
 
 // ─── small ui pieces ──────────────────────────────────────────────────────────
-
-function NavButton({ theme, onClick, title, children }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width: '32px',
-        height: '32px',
-        borderRadius: '6px',
-        border: `1px solid ${theme.controlBorder}`,
-        background: hovered ? theme.controlBorder : theme.controlBackground,
-        color: theme.controlText,
-        cursor: 'pointer',
-        fontWeight: 700,
-        fontSize: '18px',
-        lineHeight: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background 0.15s',
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function DateInput({ theme, value, onChange }) {
-  return (
-    <input
-      type="date"
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      style={{
-        padding: '5px 8px',
-        borderRadius: '6px',
-        border: `1px solid ${theme.controlBorder}`,
-        background: theme.controlBackground,
-        color: theme.controlText,
-        fontSize: '13px',
-        cursor: 'pointer',
-        outline: 'none',
-      }}
-    />
-  );
-}
 
 function StateBadge({ state, t }) {
   const color = STATE_COLORS[state] || '#64748b';
@@ -611,11 +435,11 @@ function StateBadge({ state, t }) {
     <span style={{
       display: 'inline-block',
       padding: '2px 8px',
-      borderRadius: '9999px',
+      borderRadius: 9999,
       background: color + '22',
       color,
       fontWeight: 600,
-      fontSize: '12px',
+      fontSize: 12,
       whiteSpace: 'nowrap',
     }}>
       {label}

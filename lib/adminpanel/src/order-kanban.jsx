@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 
+const { Button, Badge, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } = window.UIComponents;
+
 const ACTIVE_BOARD_STATES = ['CHECKOUT', 'ORDER', 'COOKING', 'ON_THE_WAY'];
 const FINISHED_BOARD_STATES = ['DONE', 'REJECT'];
 const STATE_COLORS = {
@@ -37,48 +39,38 @@ const DEFAULT_COLLAPSED_COLUMNS = VISIBLE_BOARD_STATES
 const STACK_VIEW_ROW_MIN_WIDTH = 1080;
 const STACK_VIEW_GRID_TEMPLATE = 'minmax(104px, 0.9fr) minmax(160px, 1.05fr) minmax(180px, 1.25fr) minmax(120px, 0.9fr) minmax(170px, 1fr) minmax(240px, 1.65fr)';
 
+// CSS-переменные adminizer — автоматически реагируют на смену темы
+const CV = {
+  pageBackground:        'var(--background)',
+  textPrimary:           'var(--foreground)',
+  textSecondary:         'var(--muted-foreground)',
+  textMuted:             'var(--muted-foreground)',
+  panelBackground:       'var(--muted)',
+  panelBorder:           'var(--border)',
+  cardBackground:        'var(--card)',
+  cardBorder:            'var(--border)',
+  controlBackground:     'var(--background)',
+  controlBorder:         'var(--border)',
+  controlText:           'var(--foreground)',
+  softBadgeBackground:   'var(--accent)',
+  softBadgeText:         'var(--accent-foreground)',
+  popupBackground:       'var(--background)',
+  popupBorder:           'var(--border)',
+  popupCommentBackground:'var(--muted)',
+  popupCommentBorder:    'var(--border)',
+};
+
+// Только overlay и code-блок оставляем отдельными для тёмной/светлой
 const KANBAN_THEME = {
   light: {
-    pageBackground: '#ffffff',
-    textPrimary: '#0f172a',
-    textSecondary: '#334155',
-    textMuted: '#64748b',
-    panelBackground: '#f8fafc',
-    panelBorder: '#e2e8f0',
-    cardBackground: '#ffffff',
-    cardBorder: '#dbeafe',
-    controlBackground: '#f8fafc',
-    controlBorder: '#cbd5e1',
-    controlText: '#0f172a',
-    softBadgeBackground: '#e2e8f0',
-    softBadgeText: '#334155',
+    ...CV,
     overlayBackground: 'rgba(2, 6, 23, 0.56)',
-    popupBackground: '#ffffff',
-    popupBorder: '#dbeafe',
-    popupCommentBackground: '#f8fafc',
-    popupCommentBorder: '#e2e8f0',
     popupPayloadBackground: '#0f172a',
     popupPayloadText: '#e2e8f0',
   },
   dark: {
-    pageBackground: '#020617',
-    textPrimary: '#e2e8f0',
-    textSecondary: '#cbd5e1',
-    textMuted: '#94a3b8',
-    panelBackground: '#0f172a',
-    panelBorder: '#1e293b',
-    cardBackground: '#111827',
-    cardBorder: '#334155',
-    controlBackground: '#1e293b',
-    controlBorder: '#334155',
-    controlText: '#e2e8f0',
-    softBadgeBackground: '#334155',
-    softBadgeText: '#e2e8f0',
+    ...CV,
     overlayBackground: 'rgba(2, 6, 23, 0.8)',
-    popupBackground: '#0f172a',
-    popupBorder: '#334155',
-    popupCommentBackground: '#111827',
-    popupCommentBorder: '#334155',
     popupPayloadBackground: '#020617',
     popupPayloadText: '#e2e8f0',
   },
@@ -352,7 +344,11 @@ function normalizeOrderDetails(order) {
   };
 }
 
-function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
+function OrderDetailsPopup({ order, loading, language, t, onClose }) {
+  const isDark = document.documentElement.classList.contains('dark');
+  const overlayBackground = isDark ? 'rgba(2, 6, 23, 0.8)' : 'rgba(2, 6, 23, 0.56)';
+  const popupPayloadBackground = isDark ? '#020617' : '#0f172a';
+  const popupPayloadText = '#e2e8f0';
   if (!order) return null;
   const boolText = (value) => value ? t('Yes') : t('No');
   const orderModelPath = order?.id ? getOrderModelPath(order.id) : '';
@@ -388,7 +384,7 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
         position: 'fixed',
         inset: 0,
         zIndex: 1200,
-        background: theme.overlayBackground,
+        background: overlayBackground,
         padding: 18,
         display: 'flex',
         alignItems: 'center',
@@ -401,12 +397,12 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
           width: 'min(980px, 100%)',
           maxHeight: '90vh',
           overflow: 'auto',
-          background: theme.popupBackground,
-          border: `1px solid ${theme.popupBorder}`,
+          background: 'var(--background)',
+          border: `1px solid ${'var(--border)'}`,
           borderRadius: 12,
           boxShadow: '0 14px 32px rgba(2, 6, 23, 0.2)',
           padding: 16,
-          color: theme.textPrimary,
+          color: 'var(--foreground)',
         }}
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -425,9 +421,9 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
                   justifyContent: 'center',
                   minHeight: 30,
                   padding: '0 10px',
-                  border: `1px solid ${theme.controlBorder}`,
-                  background: theme.controlBackground,
-                  color: theme.controlText,
+                  border: `1px solid ${'var(--border)'}`,
+                  background: 'var(--background)',
+                  color: 'var(--foreground)',
                   borderRadius: 6,
                   cursor: 'pointer',
                   fontSize: 13,
@@ -443,9 +439,9 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
               type="button"
               onClick={onClose}
               style={{
-                border: `1px solid ${theme.controlBorder}`,
-                background: theme.controlBackground,
-                color: theme.controlText,
+                border: `1px solid ${'var(--border)'}`,
+                background: 'var(--background)',
+                color: 'var(--foreground)',
                 width: 30,
                 height: 30,
                 borderRadius: 6,
@@ -492,13 +488,13 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
             <div
               style={{
                 marginTop: 6,
-                border: `1px solid ${theme.popupCommentBorder}`,
-                background: theme.popupCommentBackground,
+                border: `1px solid ${'var(--border)'}`,
+                background: 'var(--muted)',
                 borderRadius: 8,
                 padding: 10,
                 whiteSpace: 'pre-wrap',
                 fontSize: 13,
-                color: theme.textSecondary,
+                color: 'var(--muted-foreground)',
               }}
             >
               {order.comment || t('No comment')}
@@ -506,7 +502,7 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
           </div>
 
           {loading ? (
-            <div style={{ color: theme.textMuted, fontSize: 13 }}>{t('loading')}</div>
+            <div style={{ color: 'var(--muted-foreground)', fontSize: 13 }}>{t('loading')}</div>
           ) : null}
 
           {!loading && items.length > 0 ? (
@@ -517,8 +513,8 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
                   <div
                     key={item.id || `${item.name}-${item.amount}`}
                     style={{
-                      border: `1px solid ${theme.popupCommentBorder}`,
-                      background: theme.popupCommentBackground,
+                      border: `1px solid ${'var(--border)'}`,
+                      background: 'var(--muted)',
                       borderRadius: 8,
                       padding: 10,
                     }}
@@ -527,34 +523,34 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
                       <strong>{item.name}</strong>
                       <strong>{formatTotal(item.itemTotal, language)}</strong>
                     </div>
-                    <div style={{ marginTop: 4, fontSize: 12, color: theme.textSecondary }}>
+                    <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)' }}>
                       Кол-во: {item.amount} · Цена: {formatTotal(item.itemPrice, language)}
                     </div>
                     {item.itemTotalBeforeDiscount > item.itemTotal ? (
-                      <div style={{ marginTop: 4, fontSize: 12, color: theme.textSecondary }}>
+                      <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)' }}>
                         До скидки: {formatTotal(item.itemTotalBeforeDiscount, language)} · Скидка: {formatTotal(item.discountTotal, language)}
                       </div>
                     ) : null}
                     {item.addedBy ? (
-                      <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted }}>
+                      <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)' }}>
                         Источник: {item.addedBy}
                       </div>
                     ) : null}
                     {item.discountMessage ? (
-                      <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted }}>
+                      <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)' }}>
                         Скидка: {item.discountMessage}
                       </div>
                     ) : null}
                     {item.comment ? (
-                      <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted, whiteSpace: 'pre-wrap' }}>
+                      <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)', whiteSpace: 'pre-wrap' }}>
                         Комментарий: {item.comment}
                       </div>
                     ) : null}
                     {item.modifiers.length > 0 ? (
                       <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: theme.textSecondary }}>Модификаторы</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)' }}>Модификаторы</span>
                         {item.modifiers.map((modifier) => (
-                          <div key={modifier.id || modifier.name} style={{ fontSize: 12, color: theme.textMuted }}>
+                          <div key={modifier.id || modifier.name} style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
                             {modifier.name} · {modifier.amount} x {formatTotal(modifier.price, language)}
                             {modifier.total ? ` = ${formatTotal(modifier.total, language)}` : ''}
                           </div>
@@ -573,9 +569,9 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
               <pre
                 style={{
                   marginTop: 6,
-                  border: `1px solid ${theme.popupCommentBorder}`,
-                  background: theme.popupCommentBackground,
-                  color: theme.textSecondary,
+                  border: `1px solid ${'var(--border)'}`,
+                  background: 'var(--muted)',
+                  color: 'var(--muted-foreground)',
                   borderRadius: 8,
                   padding: 10,
                   maxHeight: 180,
@@ -595,9 +591,9 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
               <pre
                 style={{
                   marginTop: 6,
-                  border: `1px solid ${theme.popupCommentBorder}`,
-                  background: theme.popupCommentBackground,
-                  color: theme.textSecondary,
+                  border: `1px solid ${'var(--border)'}`,
+                  background: 'var(--muted)',
+                  color: 'var(--muted-foreground)',
                   borderRadius: 8,
                   padding: 10,
                   maxHeight: 180,
@@ -617,9 +613,9 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
               <pre
                 style={{
                   marginTop: 6,
-                  border: `1px solid ${theme.popupCommentBorder}`,
-                  background: theme.popupCommentBackground,
-                  color: theme.textSecondary,
+                  border: `1px solid ${'var(--border)'}`,
+                  background: 'var(--muted)',
+                  color: 'var(--muted-foreground)',
                   borderRadius: 8,
                   padding: 10,
                   maxHeight: 180,
@@ -639,9 +635,9 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
               <pre
                 style={{
                   marginTop: 6,
-                  border: `1px solid ${theme.popupCommentBorder}`,
-                  background: theme.popupCommentBackground,
-                  color: theme.textSecondary,
+                  border: `1px solid ${'var(--border)'}`,
+                  background: 'var(--muted)',
+                  color: 'var(--muted-foreground)',
                   borderRadius: 8,
                   padding: 10,
                   maxHeight: 180,
@@ -660,9 +656,9 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
             <pre
               style={{
                 marginTop: 6,
-                border: `1px solid ${theme.popupCommentBorder}`,
-                background: theme.popupPayloadBackground,
-                color: theme.popupPayloadText,
+                border: `1px solid ${'var(--border)'}`,
+                background: popupPayloadBackground,
+                color: popupPayloadText,
                 borderRadius: 8,
                 padding: 10,
                 maxHeight: 240,
@@ -680,44 +676,39 @@ function OrderDetailsPopup({ order, loading, language, t, onClose, theme }) {
   );
 }
 
-function OrderTransitionSelect({ order, t, theme, isUpdating, onMove, compact = false }) {
+function OrderTransitionSelect({ order, t, isUpdating, onMove, compact = false }) {
   const transitions = Array.isArray(order.allowedTransitions)
     ? order.allowedTransitions
     : [];
 
   return (
-    <select
+    <Select
       key={`${order.id}-${order.state}`}
-      defaultValue=""
-      onClick={(event) => event.stopPropagation()}
-      onMouseDown={(event) => event.stopPropagation()}
-      onChange={(event) => {
-        const nextState = event.target.value;
+      value=""
+      onValueChange={(nextState) => {
         if (!nextState) return;
         onMove(order.id, nextState);
-        event.target.value = '';
       }}
       disabled={isUpdating || transitions.length === 0}
-      style={{
-        marginTop: compact ? 0 : 8,
-        width: '100%',
-        background: theme.controlBackground,
-        border: `1px solid ${theme.controlBorder}`,
-        borderRadius: 6,
-        padding: '6px 8px',
-        fontSize: 12,
-        color: theme.controlText,
-      }}
     >
-      <option value="">{t('Move to...')}</option>
-      {transitions.map((state) => (
-        <option key={state} value={state}>{toDisplayState(state, t)}</option>
-      ))}
-    </select>
+      <SelectTrigger
+        size="sm"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        style={{ marginTop: compact ? 0 : 8, width: '100%', fontSize: 12 }}
+      >
+        <SelectValue placeholder={t('Move to...')} />
+      </SelectTrigger>
+      <SelectContent>
+        {transitions.map((state) => (
+          <SelectItem key={state} value={state}>{toDisplayState(state, t)}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
-function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen, theme }) {
+function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen }) {
   return (
     <article
       draggable={!isUpdating}
@@ -725,21 +716,21 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
       onClick={() => onOpen(order.id)}
       title={t('Open details')}
       style={{
-        background: theme.cardBackground,
-        border: `1px solid ${theme.cardBorder}`,
+        background: 'var(--card)',
+        border: `1px solid ${'var(--border)'}`,
         borderLeft: `4px solid ${STATE_COLORS[order.state] || '#94a3b8'}`,
         borderRadius: 8,
         padding: 10,
         opacity: isUpdating ? 0.65 : 1,
         cursor: isUpdating ? 'not-allowed' : 'pointer',
-        color: theme.textPrimary,
+        color: 'var(--foreground)',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
         <strong>#{order.shortId}</strong>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
         {isCompletedState(order.state) ? (
-          <span style={{ color: STATE_COLORS[order.state] || theme.textMuted, fontSize: 12, fontWeight: 700 }}>
+          <span style={{ color: STATE_COLORS[order.state] || 'var(--muted-foreground)', fontSize: 12, fontWeight: 700 }}>
             {toDisplayState(order.state, t)}
           </span>
         ) : null}
@@ -750,31 +741,30 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
       </div>
 
       <div style={{ marginTop: 6, fontWeight: 600 }}>{order.customerName || t('Guest')}</div>
-      <div style={{ fontSize: 12, color: theme.textMuted }}>{order.customerPhone || t('No phone')}</div>
+      <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{order.customerPhone || t('No phone')}</div>
 
-      <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', fontSize: 12, color: theme.textSecondary }}>
+      <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted-foreground)' }}>
         <span>{t('Total')}: {formatTotal(order.total, language)}</span>
         <span>{t('Items')}: {order.dishesCount}</span>
       </div>
 
       {order.rmsOrderNumber ? (
-        <div style={{ marginTop: 4, fontSize: 12, color: theme.textSecondary }}>
+        <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)' }}>
           RMS: {order.rmsOrderNumber}
         </div>
       ) : null}
 
       {order.comment ? (
-        <div style={{ marginTop: 8, fontSize: 12, color: theme.textMuted, whiteSpace: 'pre-wrap' }}>{order.comment}</div>
+        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--muted-foreground)', whiteSpace: 'pre-wrap' }}>{order.comment}</div>
       ) : null}
 
-      <div style={{ marginTop: 8, fontSize: 11, color: theme.textMuted }}>
+      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--muted-foreground)' }}>
         {t('Updated')}: {formatDateTime(order.updatedAt, language)}
       </div>
 
       <OrderTransitionSelect
         order={order}
         t={t}
-        theme={theme}
         isUpdating={isUpdating}
         onMove={onMove}
       />
@@ -782,8 +772,8 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
   );
 }
 
-function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
-  const stateColor = STATE_COLORS[order.state] || theme.textMuted;
+function OrderStackRow({ order, language, t, isUpdating, onOpen }) {
+  const stateColor = STATE_COLORS[order.state] || 'var(--muted-foreground)';
 
   return (
     <article
@@ -795,21 +785,21 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
         gridTemplateColumns: STACK_VIEW_GRID_TEMPLATE,
         gap: 12,
         alignItems: 'center',
-        background: theme.cardBackground,
-        border: `1px solid ${theme.cardBorder}`,
+        background: 'var(--card)',
+        border: `1px solid ${'var(--border)'}`,
         borderLeft: `4px solid ${stateColor}`,
         borderRadius: 10,
         padding: '12px 14px',
         opacity: isUpdating ? 0.65 : 1,
         cursor: isUpdating ? 'not-allowed' : 'pointer',
-        color: theme.textPrimary,
+        color: 'var(--foreground)',
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
         <strong style={{ fontSize: 20, lineHeight: 1 }}>#{order.shortId}</strong>
-        <span style={{ fontSize: 11, color: theme.textMuted }}>{order.id || '-'}</span>
+        <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{order.id || '-'}</span>
         {order.rmsOrderNumber ? (
-          <span style={{ fontSize: 11, color: theme.textSecondary }}>
+          <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
             RMS: {order.rmsOrderNumber}
           </span>
         ) : null}
@@ -827,7 +817,7 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
             fontSize: 12,
             fontWeight: 700,
             color: stateColor,
-            background: theme.panelBackground,
+            background: 'var(--muted)',
             whiteSpace: 'nowrap',
           }}
         >
@@ -852,8 +842,8 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
           {order.selfService ? (
             <span
               style={{
-                background: theme.softBadgeBackground,
-                color: theme.softBadgeText,
+                background: 'var(--accent)',
+                color: 'var(--accent-foreground)',
                 borderRadius: 999,
                 padding: '2px 8px',
                 fontSize: 11,
@@ -868,11 +858,11 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
         <strong>{order.customerName || t('Guest')}</strong>
-        <span style={{ fontSize: 12, color: theme.textMuted }}>
+        <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
           {order.customerPhone || t('No phone')}
         </span>
         {order.tag ? (
-          <span style={{ fontSize: 11, color: theme.textSecondary }}>
+          <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
             {t('Tag')}: {order.tag}
           </span>
         ) : null}
@@ -880,25 +870,25 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen, theme }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
         <strong>{formatTotal(order.total, language)}</strong>
-        <span style={{ fontSize: 12, color: theme.textMuted }}>
+        <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
           {t('Items')}: {order.dishesCount}
         </span>
       </div>
 
       <div style={{ minWidth: 0 }}>
         <strong style={{ display: 'block' }}>{formatDateTime(order.orderedAt ? new Date(order.orderedAt * 1000) : order.createdAt, language)}</strong>
-        <div style={{ marginTop: 4, fontSize: 12, color: theme.textMuted }}>
+        <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)' }}>
           {t('Created')}
         </div>
         {order.updatedAt ? (
-          <div style={{ marginTop: 4, fontSize: 11, color: theme.textSecondary }}>
+          <div style={{ marginTop: 4, fontSize: 11, color: 'var(--muted-foreground)' }}>
             {t('Updated')}: {formatDateTime(order.updatedAt, language)}
           </div>
         ) : null}
       </div>
 
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 12, color: order.comment ? theme.textSecondary : theme.textMuted, whiteSpace: 'pre-wrap' }}>
+        <div style={{ fontSize: 12, color: order.comment ? 'var(--muted-foreground)' : 'var(--muted-foreground)', whiteSpace: 'pre-wrap' }}>
           {order.comment || t('No comment')}
         </div>
       </div>
@@ -912,7 +902,6 @@ function OrderStackView({
   orders,
   language,
   t,
-  theme,
   updatingOrderId,
   onOpen,
 }) {
@@ -946,15 +935,15 @@ function OrderStackView({
       >
         {summaryStates.map((state) => {
           const count = (groupedOrders[state] || []).length;
-          const stateColor = STATE_COLORS[state] || theme.textMuted;
+          const stateColor = STATE_COLORS[state] || 'var(--muted-foreground)';
           const isActive = selectedStates.has(state);
           return (
             <div
               key={state}
               onClick={() => toggleStateFilter(state)}
               style={{
-                background: isActive ? stateColor : theme.panelBackground,
-                border: `2px solid ${isActive ? stateColor : theme.panelBorder}`,
+                background: isActive ? stateColor : 'var(--muted)',
+                border: `2px solid ${isActive ? stateColor : 'var(--border)'}`,
                 borderTop: isActive ? `2px solid ${stateColor}` : `3px solid ${stateColor}`,
                 borderRadius: 10,
                 padding: '10px 12px',
@@ -964,8 +953,8 @@ function OrderStackView({
                 transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
               }}
             >
-              <div style={{ fontSize: 12, color: isActive ? 'rgba(255,255,255,0.8)' : theme.textMuted }}>{toDisplayState(state, t)}</div>
-              <div style={{ marginTop: 4, fontSize: 22, fontWeight: 700, color: isActive ? '#fff' : theme.textPrimary }}>{count}</div>
+              <div style={{ fontSize: 12, color: isActive ? 'rgba(255,255,255,0.8)' : 'var(--muted-foreground)' }}>{toDisplayState(state, t)}</div>
+              <div style={{ marginTop: 4, fontSize: 22, fontWeight: 700, color: isActive ? '#fff' : 'var(--foreground)' }}>{count}</div>
             </div>
           );
         })}
@@ -974,11 +963,11 @@ function OrderStackView({
       {displayedOrders.length === 0 ? (
         <div
           style={{
-            background: theme.panelBackground,
-            border: `1px solid ${theme.panelBorder}`,
+            background: 'var(--muted)',
+            border: `1px solid ${'var(--border)'}`,
             borderRadius: 10,
             padding: 16,
-            color: theme.textMuted,
+            color: 'var(--muted-foreground)',
           }}
         >
           {t('No orders')}
@@ -986,8 +975,8 @@ function OrderStackView({
       ) : (
         <section
           style={{
-            background: theme.panelBackground,
-            border: `1px solid ${theme.panelBorder}`,
+            background: 'var(--muted)',
+            border: `1px solid ${'var(--border)'}`,
             borderRadius: 10,
             padding: 12,
           }}
@@ -1000,7 +989,7 @@ function OrderStackView({
                 gridTemplateColumns: STACK_VIEW_GRID_TEMPLATE,
                 gap: 12,
                 padding: '0 14px 8px',
-                color: theme.textMuted,
+                color: 'var(--muted-foreground)',
                 fontSize: 11,
                 fontWeight: 700,
                 textTransform: 'uppercase',
@@ -1024,7 +1013,6 @@ function OrderStackView({
                   t={t}
                   isUpdating={updatingOrderId === order.id}
                   onOpen={onOpen}
-                  theme={theme}
                 />
               ))}
             </div>
@@ -1525,9 +1513,9 @@ function OrderKanbanContent() {
   }
 
   return (
-    <div className="p-4 max-w-[1900px] mx-auto" style={{ background: theme.pageBackground, color: theme.textPrimary }}>
+    <div className="p-4" style={{ background: 'var(--background)', color: 'var(--foreground)', maxWidth: 1900, margin: '0 auto' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: theme.textPrimary }}>{t('Current Orders')}</h1>
+        <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: 'var(--foreground)' }}>{t('Current Orders')}</h1>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span
@@ -1536,7 +1524,7 @@ function OrderKanbanContent() {
               background: streamStatusConfig.background,
               color: streamStatusConfig.color,
               borderRadius: 999,
-              padding: '4px 8px',
+              padding: '3px 10px',
               fontSize: 12,
               fontWeight: 600,
               whiteSpace: 'nowrap',
@@ -1548,40 +1536,30 @@ function OrderKanbanContent() {
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <input
+        <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={t('Search by ID, phone, customer, comment')}
-          style={{
-            minWidth: 260,
-            flex: '1 1 320px',
-            background: theme.cardBackground,
-            border: `1px solid ${theme.controlBorder}`,
-            borderRadius: 6,
-            padding: '8px 10px',
-            color: theme.textPrimary,
-          }}
+          style={{ minWidth: 260, flex: '1 1 320px' }}
         />
 
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: theme.textSecondary }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--muted-foreground)' }}>
           <span>{t('Board period')}</span>
-          <select
-            value={boardWindowMinutes}
-            onChange={(event) => setBoardWindowMinutes(clampBoardWindowMinutes(event.target.value))}
-            style={{
-              background: theme.controlBackground,
-              border: `1px solid ${theme.controlBorder}`,
-              borderRadius: 6,
-              padding: '4px 8px',
-              color: theme.controlText,
-            }}
+          <Select
+            value={String(boardWindowMinutes)}
+            onValueChange={(v) => setBoardWindowMinutes(clampBoardWindowMinutes(v))}
           >
-            {BOARD_WINDOW_OPTIONS.map((minutes) => (
-              <option key={minutes} value={minutes}>
-                {formatBoardWindow(minutes, t)}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger size="sm" style={{ minWidth: 80 }}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {BOARD_WINDOW_OPTIONS.map((minutes) => (
+                <SelectItem key={minutes} value={String(minutes)}>
+                  {formatBoardWindow(minutes, t)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
 
         <div
@@ -1591,8 +1569,8 @@ function OrderKanbanContent() {
             gap: 4,
             padding: 2,
             borderRadius: 8,
-            background: theme.panelBackground,
-            border: `1px solid ${theme.panelBorder}`,
+            background: 'var(--muted)',
+            border: '1px solid var(--border)',
           }}
         >
           {[
@@ -1601,39 +1579,26 @@ function OrderKanbanContent() {
           ].map((mode) => {
             const active = viewMode === mode.key;
             return (
-              <button
+              <Button
                 key={mode.key}
-                type="button"
+                variant={active ? 'secondary' : 'ghost'}
+                size="sm"
                 onClick={() => setViewMode(mode.key)}
                 title={mode.label}
                 aria-label={mode.label}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '6px 10px',
-                  background: active ? theme.cardBackground : 'transparent',
-                  color: active ? theme.textPrimary : theme.textMuted,
-                  boxShadow: active ? `inset 0 0 0 1px ${theme.controlBorder}` : 'none',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  fontWeight: active ? 600 : 500,
-                }}
               >
                 <span aria-hidden="true">{mode.icon}</span>
                 <span>{mode.label}</span>
-              </button>
+              </Button>
             );
           })}
         </div>
 
-        <span style={{ fontSize: 13, color: theme.textMuted }}>
+        <span style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>
           {t('Orders')}: {filteredOrders.length}
         </span>
 
-        <span style={{ fontSize: 13, color: theme.textMuted }}>
+        <span style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>
           {t('Period: last {value}', { value: formatBoardWindow(boardWindowMinutes, t) })}
         </span>
       </div>
@@ -1642,12 +1607,13 @@ function OrderKanbanContent() {
         <div
           style={{
             marginBottom: 12,
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            color: '#991b1b',
+            background: 'var(--destructive)',
+            border: '1px solid var(--destructive)',
+            color: '#fff',
             borderRadius: 8,
             padding: '8px 10px',
             fontSize: 13,
+            opacity: 0.9,
           }}
         >
           {error}
@@ -1655,7 +1621,7 @@ function OrderKanbanContent() {
       ) : null}
 
       {loading ? (
-        <div style={{ padding: 12, color: theme.textMuted }}>{t('loading')}</div>
+        <div style={{ padding: 12, color: 'var(--muted-foreground)' }}>{t('loading')}</div>
       ) : viewMode === 'stack' ? (
         <OrderStackView
           groupedOrders={groupedOrders}
@@ -1663,7 +1629,6 @@ function OrderKanbanContent() {
           orders={stackOrders}
           language={language}
           t={t}
-          theme={theme}
           updatingOrderId={updatingOrderId}
           onOpen={setSelectedOrderId}
         />
@@ -1673,7 +1638,7 @@ function OrderKanbanContent() {
             const ordersByState = groupedOrders[state] || [];
             const collapsed = collapsedColumns.has(state);
             const columnTitle = toDisplayState(state, t);
-            const columnColor = STATE_COLORS[state] || theme.textMuted;
+            const columnColor = STATE_COLORS[state] || 'var(--muted-foreground)';
             return (
               <section
                 key={state}
@@ -1685,8 +1650,8 @@ function OrderKanbanContent() {
                   minWidth: collapsed ? 64 : KANBAN_COLUMN_WIDTH_MIN,
                   maxWidth: collapsed ? 64 : KANBAN_COLUMN_WIDTH_MAX,
                   flex: collapsed ? '0 0 64px' : `1 0 ${KANBAN_COLUMN_WIDTH_MIN}px`,
-                  background: theme.panelBackground,
-                  border: `1px solid ${theme.panelBorder}`,
+                  background: 'var(--muted)',
+                  border: `1px solid ${'var(--border)'}`,
                   borderRadius: 10,
                   padding: collapsed ? '8px 6px' : 10,
                 }}
@@ -1733,8 +1698,8 @@ function OrderKanbanContent() {
                   >
                     <span
                       style={{
-                        background: theme.softBadgeBackground,
-                        color: theme.softBadgeText,
+                        background: 'var(--accent)',
+                        color: 'var(--accent-foreground)',
                         borderRadius: 999,
                         padding: '2px 8px',
                         fontSize: 12,
@@ -1749,9 +1714,9 @@ function OrderKanbanContent() {
                       title={collapsed ? t('Expand column') : t('Collapse column')}
                       aria-label={collapsed ? t('Expand column') : t('Collapse column')}
                       style={{
-                        border: `1px solid ${theme.controlBorder}`,
-                        background: theme.cardBackground,
-                        color: theme.textSecondary,
+                        border: `1px solid ${'var(--border)'}`,
+                        background: 'var(--card)',
+                        color: 'var(--muted-foreground)',
                         borderRadius: 6,
                         width: 24,
                         height: 24,
@@ -1767,7 +1732,7 @@ function OrderKanbanContent() {
                 {!collapsed ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 50 }}>
                   {ordersByState.length === 0 ? (
-                    <div style={{ color: theme.textMuted, fontSize: 12 }}>{t('No orders')}</div>
+                    <div style={{ color: 'var(--muted-foreground)', fontSize: 12 }}>{t('No orders')}</div>
                   ) : (
                     ordersByState.map((order) => (
                       <OrderCard
@@ -1778,7 +1743,6 @@ function OrderKanbanContent() {
                         isUpdating={updatingOrderId === order.id}
                         onMove={moveOrder}
                         onOpen={setSelectedOrderId}
-                        theme={theme}
                         onDragStart={(event, dragOrder) => {
                           setDragOrderId(dragOrder.id);
                           if (event.dataTransfer) {
@@ -1802,7 +1766,6 @@ function OrderKanbanContent() {
         loading={selectedOrderLoading}
         language={language}
         t={t}
-        theme={theme}
         onClose={() => setSelectedOrderId('')}
       />
     </div>

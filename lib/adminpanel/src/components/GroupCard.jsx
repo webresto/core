@@ -18,7 +18,7 @@ export function GroupCard({ group, onGroupClick, onUpdateVisible }) {
     return (
         <Card
             onClick={handleClick}
-            className="cursor-pointer hover:bg-gray-50 flex flex-col items-center justify-center min-h-[100px] text-center relative"
+            className="cursor-pointer hover:bg-accent flex flex-col items-center justify-center text-center relative" style={{ minHeight: 100 }}
         >
             <button 
                 onClick={toggleVisibility}
@@ -28,7 +28,7 @@ export function GroupCard({ group, onGroupClick, onUpdateVisible }) {
                 {group.visible !== false ? (
                     <Eye className="w-4 h-4" />
                 ) : (
-                    <EyeOff className="w-4 h-4 text-red-500" />
+                    <EyeOff className="w-4 h-4" style={{ color: 'var(--destructive)' }} />
                 )}
             </button>
             <CardContent className="p-4 flex flex-col items-center">

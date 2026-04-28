@@ -66,7 +66,7 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateEnable, onU
                 title={t('Visible in menu (publicity)')}
                 className="h-8 w-8 p-0"
             >
-                {dish.visible !== false ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5 text-red-500" />}
+                {dish.visible !== false ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" style={{ color: 'var(--destructive)' }} />}
             </Button>
 
             {/* Enable Toggle */}
@@ -85,7 +85,7 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateEnable, onU
             <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">{t('Stock')}:</span>
                 {isUnlimited ? (
-                    <span className="font-bold text-green-600">∞</span>
+                    <span className="font-bold" style={{ color: '#16a34a' }}>∞</span>
                 ) : (
                     <span className="font-mono font-semibold min-w-[2rem] text-right">{currentBalance}</span>
                 )}

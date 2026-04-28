@@ -1,4 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+
+const APPEARANCE_STORAGE_KEY = 'appearance';
+function getPreferredAppearance() { return localStorage.getItem(APPEARANCE_STORAGE_KEY) || 'system'; }
+function useAppearance() {
+  const [appearance, setAppearance] = useState(getPreferredAppearance);
+  useEffect(() => {
+    const sync = () => setAppearance(getPreferredAppearance());
+    const media = window.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    sync();
+    window.addEventListener('appearanceChanged', sync);
+    window.addEventListener('storage', sync);
+    media?.addEventListener('change', sync);
+    return () => {
+      window.removeEventListener('appearanceChanged', sync);
+      window.removeEventListener('storage', sync);
+      media?.removeEventListener('change', sync);
+    };
+  }, []);
+}
 import { Tabs } from './components/Tabs';
 import { SearchBar } from './components/SearchBar';
 import { Navigation } from './components/Navigation';
@@ -13,6 +32,7 @@ import { HelpButton } from './components/HelpButton';
 // StockManager content component
 function StockManagerContent() {
   const { t, language, setLanguage } = useTranslation();
+  useAppearance();
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -593,7 +613,7 @@ function StockManagerContent() {
               />
 
               {groups.length === 0 && dishes.length === 0 && (
-                <div className="text-center text-gray-500 py-8">{t('Empty folder')}</div>
+                <div className="text-center text-muted-foreground py-8">{t('Empty folder')}</div>
               )}
             </div>
           )}
