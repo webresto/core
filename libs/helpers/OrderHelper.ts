@@ -13,13 +13,15 @@ export type InitCheckout = {
   
   /**
    * Will it be possible to order as quickly as possible?
+   * null means no explicit restriction — frontend should decide based on worktimeIntervals.
    */
-  allowSoonAsPossible: boolean
+  allowSoonAsPossible: boolean | null
 
   /**
    * Allow order by time
+   * null means no explicit restriction — frontend should decide based on worktimeIntervals.
    */
-  allowOrderToTime: boolean
+  allowOrderToTime: boolean | null
 
   /**
    * Above the expenditure of bonuses on a check of a piece that will be shown to the user
@@ -45,8 +47,8 @@ export class OrderHelper {
   public static async initCheckout(populatedOrder: OrderRecord): Promise<InitCheckout> {
     let initCheckout: InitCheckout = {
       worktimeIntervals: [],
-      allowSoonAsPossible: true,
-      allowOrderToTime: true,
+      allowSoonAsPossible: null,
+      allowOrderToTime: null,
       nonce: 0,
       bonusBannerHTMLChunk: null,
       minCookingTimeInMinutes: 0,
