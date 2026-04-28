@@ -371,7 +371,7 @@ let Model = {
                     enable: true,
                     modifier: false
                 });
-                if (children)
+                if (children.length)
                     groups = children;
             }
         }
