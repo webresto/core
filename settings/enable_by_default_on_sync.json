@@ -1,0 +1,9 @@
+{
+  "key": "ENABLE_BY_DEFAULT_ON_SYNC",
+  "type": "boolean",
+  "name": "Enable by default on sync",
+  "description": "If true, new dishes and categories from RMS sync will be enable: true by default",
+  "readOnly": false,
+  "defaultValue": true,
+  "isRequired": true
+}

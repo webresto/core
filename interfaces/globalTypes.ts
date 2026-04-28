@@ -119,6 +119,7 @@ declare global {
     TZ: string
     POSSIBLE_TO_ORDER_IN_MINUTES: number
     DEFAULT_ENABLE_PAYMENT_METHODS: boolean
+    ENABLE_BY_DEFAULT_ON_SYNC: boolean
     PROMOTION_ENABLE_BY_DEFAULT: boolean
     PASSWORD_REGEX: string
     PASSWORD_MIN_LENGTH: number

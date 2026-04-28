@@ -120,6 +120,7 @@ export default abstract class RMSAdapter {
           if (!rootGroupsToSync) rootGroupsToSync = [];
           
           const VISIBLE_BY_DEFAULT_ON_SYNC = (await Settings.get("VISIBLE_BY_DEFAULT_ON_SYNC")) ?? true;
+          const ENABLE_BY_DEFAULT_ON_SYNC = (await Settings.get("ENABLE_BY_DEFAULT_ON_SYNC")) ?? true;
 
           const rmsAdapter = await Adapter.getRMSAdapter();
 
@@ -143,6 +144,10 @@ export default abstract class RMSAdapter {
               
               if (group.visible === undefined) {
                 group.visible = VISIBLE_BY_DEFAULT_ON_SYNC;
+              }
+
+              if (group.enable === undefined) {
+                group.enable = ENABLE_BY_DEFAULT_ON_SYNC;
               }
 
               // Update or create a group
@@ -174,6 +179,10 @@ export default abstract class RMSAdapter {
 
                 if (product.visible === undefined) {
                   product.visible = VISIBLE_BY_DEFAULT_ON_SYNC;
+                }
+
+                if (product.enable === undefined) {
+                  product.enable = ENABLE_BY_DEFAULT_ON_SYNC;
                 }
 
                 let createdProduct = await Dish.createOrUpdate(product);
