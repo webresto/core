@@ -115,6 +115,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       name: name,
       config: cfg
     });
+    this.kickoffProcessing();
 
     let result = {} as typeof name;
     for (const key in name) {
@@ -159,6 +160,17 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
   constructor(config: BaseConfig) {
     super(config);
     this.loadMediaFiles()
+  }
+
+  private kickoffProcessing() {
+    if (this.processing) {
+      return;
+    }
+    if (this.processingTimeout) {
+      clearTimeout(this.processingTimeout);
+    }
+    // Process newly enqueued images immediately to reduce race windows on restart.
+    void this.loadMediaFiles();
   }
 
   public getNameByUrl(url: string, ext: string, options?: any, salt: string = null): string {

@@ -3,6 +3,51 @@ declare const mcp: any;
 export function registerMediaTools() {
     if (process.env.MCP_ENABLED !== 'true') return;
 
+    const uploadSingleImageFromMultipart = async (req: any): Promise<string | null> => {
+        const path = require('path');
+        const fs   = require('fs');
+        const uploadDir = path.join(process.cwd(), '.tmp', 'mcp-media-upload');
+        fs.mkdirSync(uploadDir, { recursive: true });
+
+        const files = await new Promise<any[]>((resolve, reject) => {
+            req.file('image').upload({ dirname: uploadDir }, (err: any, uploaded: any[]) => {
+                if (err) return reject(new Error(`Upload failed: ${err.message}`));
+                resolve(uploaded || []);
+            });
+        });
+
+        if (!files.length) return null;
+        if (files.length > 1) throw new Error('Send exactly one file in multipart field "image".');
+        return `file://${files[0].fd}`;
+    };
+
+    const resolveMediaFileId = async (
+        input: { mediaFileId?: string; url?: string },
+        req: any,
+        target: 'dish' | 'group',
+    ): Promise<string> => {
+        const hasMediaFileId = !!input.mediaFileId;
+        const hasUrl = !!input.url;
+        const uploadedFileUrl = await uploadSingleImageFromMultipart(req);
+        const hasBinary = !!uploadedFileUrl;
+
+        const sourcesCount = [hasMediaFileId, hasUrl, hasBinary].filter(Boolean).length;
+        if (sourcesCount === 0) {
+            throw new Error('Provide exactly one image source: mediaFileId OR url OR multipart file field "image".');
+        }
+        if (sourcesCount > 1) {
+            throw new Error('Provide only one image source: mediaFileId OR url OR multipart file field "image".');
+        }
+
+        if (hasMediaFileId) return input.mediaFileId as string;
+
+        const mfAdapter = await Adapter.getMediaFileAdapter();
+        const sourceUrl = hasUrl ? input.url : uploadedFileUrl;
+
+        const mediaFile = await mfAdapter.toProcess(sourceUrl as string, target, 'image');
+        return mediaFile.id;
+    };
+
     mcp.registerTool({
         name: 'media-upload',
         description:
@@ -54,25 +99,30 @@ export function registerMediaTools() {
     mcp.registerTool({
         name: 'dish-image-add',
         description:
-            'Links a MediaFile to a dish (creates a SelectedMediaFile row).\n\n'
-            + 'FLOW: 1) call media-upload → get mediaFileId; 2) call this tool.\n\n'
+            'Links an image to a dish (creates a SelectedMediaFile row).\n\n'
+            + 'Input modes:\n'
+            + '  1) Existing media file id: pass mediaFileId\n'
+            + '  2) External URL: pass { url: "https://..." }\n'
+            + '  3) Binary upload: send multipart/form-data with field "image"\n\n'
             + 'sortOrder 0 = primary image (shown first).',
         mode: 'protected',
         schema: {
             type: 'object',
             properties: {
                 dishId:      { type: 'string',  description: 'Dish ID.', example: 'dish-abc123' },
-                mediaFileId: { type: 'string',  description: 'MediaFile ID from media-upload.', example: 'mf-abc123' },
+                mediaFileId: { type: 'string',  description: 'Existing MediaFile ID. One-of source with `url` or multipart `image`.', example: 'mf-abc123' },
+                url:         { type: 'string',  description: 'External image URL. One-of source with `mediaFileId` or multipart `image`.', example: 'https://example.com/pizza.jpg' },
                 sortOrder:   { type: 'integer', description: 'Display order. 0 = primary image.', example: 0 },
             },
-            required: ['dishId', 'mediaFileId'],
+            required: ['dishId'],
         },
-        handler: async ({ dishId, mediaFileId, sortOrder = 0 }: { dishId: string; mediaFileId: string; sortOrder?: number }) => {
+        handler: async ({ dishId, mediaFileId, url, sortOrder = 0 }: { dishId: string; mediaFileId?: string; url?: string; sortOrder?: number }, { req }: any) => {
             if (!await Dish.findOne({ id: dishId }))      throw new Error('Dish not found');
-            if (!await MediaFile.findOne({ id: mediaFileId })) throw new Error('MediaFile not found');
+            const resolvedMediaFileId = await resolveMediaFileId({ mediaFileId, url }, req, 'dish');
+            if (!await MediaFile.findOne({ id: resolvedMediaFileId })) throw new Error('MediaFile not found');
             return await SelectedMediaFile.create({
                 dish: dishId,
-                mediafile_dish: mediaFileId,
+                mediafile_dish: resolvedMediaFileId,
                 sortOrder,
             }).fetch();
         },
@@ -123,25 +173,30 @@ export function registerMediaTools() {
     mcp.registerTool({
         name: 'group-image-add',
         description:
-            'Links a MediaFile to a menu category (creates a SelectedMediaFile row).\n\n'
-            + 'FLOW: 1) call media-upload → get mediaFileId; 2) call this tool.\n\n'
+            'Links an image to a menu category (creates a SelectedMediaFile row).\n\n'
+            + 'Input modes:\n'
+            + '  1) Existing media file id: pass mediaFileId\n'
+            + '  2) External URL: pass { url: "https://..." }\n'
+            + '  3) Binary upload: send multipart/form-data with field "image"\n\n'
             + 'sortOrder 0 = primary image.',
         mode: 'protected',
         schema: {
             type: 'object',
             properties: {
                 groupId:     { type: 'string',  description: 'Group ID.', example: 'group-abc123' },
-                mediaFileId: { type: 'string',  description: 'MediaFile ID from media-upload.', example: 'mf-abc123' },
+                mediaFileId: { type: 'string',  description: 'Existing MediaFile ID. One-of source with `url` or multipart `image`.', example: 'mf-abc123' },
+                url:         { type: 'string',  description: 'External image URL. One-of source with `mediaFileId` or multipart `image`.', example: 'https://example.com/group.jpg' },
                 sortOrder:   { type: 'integer', description: 'Display order. 0 = primary image.', example: 0 },
             },
-            required: ['groupId', 'mediaFileId'],
+            required: ['groupId'],
         },
-        handler: async ({ groupId, mediaFileId, sortOrder = 0 }: { groupId: string; mediaFileId: string; sortOrder?: number }) => {
+        handler: async ({ groupId, mediaFileId, url, sortOrder = 0 }: { groupId: string; mediaFileId?: string; url?: string; sortOrder?: number }, { req }: any) => {
             if (!await Group.findOne({ id: groupId }))         throw new Error('Group not found');
-            if (!await MediaFile.findOne({ id: mediaFileId })) throw new Error('MediaFile not found');
+            const resolvedMediaFileId = await resolveMediaFileId({ mediaFileId, url }, req, 'group');
+            if (!await MediaFile.findOne({ id: resolvedMediaFileId })) throw new Error('MediaFile not found');
             return await SelectedMediaFile.create({
                 group: groupId,
-                mediafile_group: mediaFileId,
+                mediafile_group: resolvedMediaFileId,
                 sortOrder,
             }).fetch();
         },
