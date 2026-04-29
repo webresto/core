@@ -566,6 +566,15 @@ function SettingsManagerContent() {
   const [importSelected, setImportSelected] = useState({});
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const rootRef = useRef(null);
+  const listScrollStyle = {
+    overflowY: 'auto',
+  };
+  const rootStyle = {
+    background: 'var(--background)',
+    color: 'var(--foreground)',
+    minHeight: 0,
+  };
 
   const filtered = settings.filter(s => {
     const q = search.toLowerCase();
@@ -580,6 +589,65 @@ function SettingsManagerContent() {
 
   useEffect(() => { selectedRef.current = selected; }, [selected]);
   useEffect(() => { filteredRef.current = filtered; }, [filtered]);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const moduleWrapper = root?.parentElement;
+    const scrollContainer = moduleWrapper?.parentElement;
+    if (!moduleWrapper || !scrollContainer) return;
+
+    const prevModule = {
+      height: moduleWrapper.style.height,
+      minHeight: moduleWrapper.style.minHeight,
+      overflow: moduleWrapper.style.overflow,
+    };
+    const prevScroll = {
+      overflow: scrollContainer.style.overflow,
+      minHeight: scrollContainer.style.minHeight,
+    };
+
+    moduleWrapper.style.height = 'calc(100% - 2.5rem)';
+    moduleWrapper.style.minHeight = '0';
+    moduleWrapper.style.overflow = 'hidden';
+    scrollContainer.style.overflow = 'hidden';
+    scrollContainer.style.minHeight = '0';
+
+    return () => {
+      moduleWrapper.style.height = prevModule.height;
+      moduleWrapper.style.minHeight = prevModule.minHeight;
+      moduleWrapper.style.overflow = prevModule.overflow;
+      scrollContainer.style.overflow = prevScroll.overflow;
+      scrollContainer.style.minHeight = prevScroll.minHeight;
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+
+    const updateHeight = () => {
+      const top = root.getBoundingClientRect().top;
+      const available = Math.max(280, window.innerHeight - top - 8);
+      root.style.height = `${available}px`;
+      root.style.maxHeight = `${available}px`;
+      root.style.minHeight = '0';
+      root.style.overflow = 'hidden';
+    };
+
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -788,7 +856,7 @@ function SettingsManagerContent() {
 
   if (isMobile) {
     return (
-      <div className="absolute inset-0 flex flex-col overflow-hidden" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+      <div ref={rootRef} className="flex w-full min-w-0 flex-col overflow-hidden" style={rootStyle}>
         {/* Mobile top bar */}
         <div className="flex-shrink-0 p-3 border-b" style={{ background: 'var(--muted)' }}>
           <Button
@@ -814,7 +882,7 @@ function SettingsManagerContent() {
                 onChange={e => setSearch(e.target.value)}
               />
             </SheetHeader>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 min-h-0 settings-list-scroll" style={listScrollStyle}>
               {listContent}
             </div>
           </SheetContent>
@@ -839,7 +907,7 @@ function SettingsManagerContent() {
   }
 
   return (
-    <div className="absolute inset-0 flex overflow-hidden" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div ref={rootRef} className="flex w-full min-w-0 overflow-hidden" style={rootStyle}>
       {/* Left panel: list */}
       <div className="w-80 flex flex-col overflow-hidden border-r" style={{ minWidth: 260, maxWidth: 420, background: 'var(--muted)' }}>
         <div className="flex-shrink-0 p-3 border-b">
@@ -864,7 +932,7 @@ function SettingsManagerContent() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 settings-list-scroll" style={listScrollStyle}>
           {listContent}
         </div>
       </div>
