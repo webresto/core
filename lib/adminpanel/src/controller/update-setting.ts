@@ -1,3 +1,5 @@
+import { getSettingSchema, validateSettingValue } from './settings-schema';
+
 export default async function UpdateSettingController(req: any, res: any) {
   const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   if (!req.user?.isAdministrator) {
@@ -16,8 +18,13 @@ export default async function UpdateSettingController(req: any, res: any) {
     }
 
     const { value } = req.body;
+    const jsonSchema = getSettingSchema(setting);
 
-    const updated = await Settings.set(key as any, { value } as any);
+    if (!validateSettingValue(setting, value)) {
+      return res.status(400).json({ error: t('Validation failed. Check schema or value.') });
+    }
+
+    const updated = await Settings.set(key as any, { value, ...(jsonSchema ? { jsonSchema } : {}) } as any);
     if (!updated) {
       return res.status(400).json({ error: t('Validation failed. Check schema or value.') });
     }

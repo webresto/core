@@ -1,3 +1,5 @@
+import { getSettingSchema, validateSettingValue } from './settings-schema';
+
 interface ImportEntry {
   key: string;
   value: any;
@@ -30,10 +32,10 @@ export default async function ImportSettingsController(req: any, res: any) {
     }
 
     // Build diff for every entry in the import file
-    const diff = body.settings.map((entry: ImportEntry) => {
+    const diff: Array<Record<string, any>> = body.settings.map((entry: ImportEntry) => {
       const existing = currentMap[entry.key];
       if (!existing) {
-        return { key: entry.key, status: 'not_found', importValue: entry.value, currentValue: undefined };
+        return { key: entry.key, status: 'not_found', importValue: entry.value, currentValue: undefined as any };
       }
       const currentVal = existing.value !== null && existing.value !== undefined
         ? existing.value
@@ -77,7 +79,12 @@ export default async function ImportSettingsController(req: any, res: any) {
       }
 
       try {
-        await Settings.set(entry.key as any, { value: entry.value } as any);
+        const jsonSchema = getSettingSchema(existing);
+        if (!validateSettingValue(existing, entry.value)) {
+          results.push({ key: entry.key, status: 'error', error: t('Validation failed. Check schema or value.') });
+          continue;
+        }
+        await Settings.set(entry.key as any, { value: entry.value, ...(jsonSchema ? { jsonSchema } : {}) } as any);
         results.push({ key: entry.key, status: 'applied' });
       } catch (err: any) {
         results.push({ key: entry.key, status: 'error', error: err?.message || String(err) });

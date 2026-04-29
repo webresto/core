@@ -319,5 +319,7 @@
 	"I'm not a robot": "Я не робот",
 	"Solving CAPTCHA...": "Решение CAPTCHA...",
 	"Verification complete!": "Проверка завершена!",
-	"Error solving CAPTCHA. Try again.": "Ошибка при решении CAPTCHA. Попробуйте снова."
+	"Error solving CAPTCHA. Try again.": "Ошибка при решении CAPTCHA. Попробуйте снова.",
+	"You have unsaved changes. Discard them and switch settings?": "Есть несохраненные изменения. Сбросить их и перейти к другой настройке?",
+	"Select value": "Выберите значение"
 }

@@ -1,3 +1,5 @@
+import { getSettingSchema } from './settings-schema';
+
 export default async function GetSettingsController(req: any, res: any) {
   const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   if (!req.user?.isAdministrator) {
@@ -15,7 +17,7 @@ export default async function GetSettingsController(req: any, res: any) {
       type: s.type,
       value: s.value,
       defaultValue: s.defaultValue,
-      jsonSchema: s.jsonSchema || null,
+      jsonSchema: getSettingSchema(s),
       uiSchema: s.uiSchema || null,
       readOnly: s.readOnly ?? false,
       isRequired: s.isRequired ?? false,

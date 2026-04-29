@@ -38,10 +38,11 @@ const {
   Button, Badge, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetClose,
   Input, Textarea, Label, Separator, Checkbox, Skeleton,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } = window.UIComponents;
 
-const { MonacoEditor } = window.JSComponents;
+const { VanillaJSONEditor } = window.JSComponents;
 const { Settings, Download, Upload, RotateCcw, Save, ChevronDown } = window.LucideReact;
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -99,11 +100,79 @@ function typeVariant(type) {
   return { string: 'default', boolean: 'secondary', number: 'outline', json: 'destructive' }[type] || 'outline';
 }
 
+function getSettingValue(setting) {
+  return setting?.value !== undefined && setting?.value !== null ? setting.value : setting?.defaultValue;
+}
+
+function valuesEqual(a, b) {
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return Object.is(a, b);
+  }
+}
+
+function isTextEditingTarget(target) {
+  if (!target) return false;
+  const tagName = target.tagName?.toLowerCase();
+  return target.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select'
+    || !!target.closest?.('.vanilla-jsoneditor-react');
+}
+
+function getSchemaTypes(schema) {
+  const type = schema?.type;
+  return Array.isArray(type) ? type : type ? [type] : [];
+}
+
+function isIntegerSchema(schema) {
+  return getSchemaTypes(schema).includes('integer');
+}
+
+function enumOptionToValue(option) {
+  return option === null ? '__NULL__' : String(option);
+}
+
+function valueToEnumOption(value, enumValues, schema) {
+  const selected = enumValues.find(option => enumOptionToValue(option) === value);
+  if (selected !== undefined) return selected;
+  if (value === '__NULL__') return null;
+  if (getSchemaTypes(schema).some(type => type === 'number' || type === 'integer')) return Number(value);
+  if (getSchemaTypes(schema).includes('boolean')) return value === 'true';
+  return value;
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Field editors
 // ──────────────────────────────────────────────────────────────────────────────
 
-function StringEditor({ value, onChange, readOnly }) {
+function EnumEditor({ value, schema, onChange, readOnly, placeholder }) {
+  const enumValues = Array.isArray(schema?.enum) ? schema.enum : [];
+
+  return (
+    <Select
+      disabled={readOnly}
+      value={value === undefined || value === null ? undefined : enumOptionToValue(value)}
+      onValueChange={next => onChange(valueToEnumOption(next, enumValues, schema))}
+    >
+      <SelectTrigger className={readOnly ? 'opacity-70' : ''}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent className="max-h-72" style={{ maxHeight: 288 }}>
+        {enumValues.map(option => (
+          <SelectItem key={enumOptionToValue(option)} value={enumOptionToValue(option)}>
+            {option === null ? 'null' : String(option)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function StringEditor({ value, onChange, readOnly, schema, t }) {
+  if (Array.isArray(schema?.enum)) {
+    return <EnumEditor value={value} schema={schema} onChange={onChange} readOnly={readOnly} placeholder={t('Select value')} />;
+  }
+
   return (
     <Textarea
       readOnly={readOnly}
@@ -115,13 +184,29 @@ function StringEditor({ value, onChange, readOnly }) {
   );
 }
 
-function NumberEditor({ value, onChange, readOnly }) {
+function NumberEditor({ value, onChange, readOnly, schema, t }) {
+  if (Array.isArray(schema?.enum)) {
+    return <EnumEditor value={value} schema={schema} onChange={onChange} readOnly={readOnly} placeholder={t('Select value')} />;
+  }
+
+  const min = schema?.minimum ?? schema?.exclusiveMinimum;
+  const max = schema?.maximum ?? schema?.exclusiveMaximum;
+
   return (
     <Input
       type="number"
+      min={min}
+      max={max}
+      step={isIntegerSchema(schema) ? 1 : 'any'}
       readOnly={readOnly}
       value={value == null ? '' : value}
-      onChange={e => onChange(e.target.value === '' ? null : Number(e.target.value))}
+      onChange={e => {
+        if (e.target.value === '') {
+          onChange(null);
+          return;
+        }
+        onChange(isIntegerSchema(schema) ? parseInt(e.target.value, 10) : Number(e.target.value));
+      }}
       className={readOnly ? 'opacity-70' : ''}
     />
   );
@@ -145,90 +230,57 @@ function BooleanEditor({ value, onChange, readOnly, t }) {
   );
 }
 
-function JsonEditor({ value, schema, onChange, readOnly, t }) {
-  const [raw, setRaw] = useState('');
-  const [parseError, setParseError] = useState(null);
-  const [schemaErrors, setSchemaErrors] = useState([]);
+// JsonEditor wraps VanillaJSONEditor.
+//
+// Root cause of the {"json": [...]} wrapping bug:
+// VanillaJSONEditor has two useEffects that call updateProps:
+//   1. useEffect([props.content]) — wraps correctly as {json: content}
+//   2. useEffect([props]) — sends changedProps including content WITHOUT the
+//      {json:} wrapper, which corrupts the editor on every parent re-render.
+//
+// Fix: pass a stable onChange reference so filterUnchangedProps never detects
+// a change in onChange, preventing useEffect([props]) from running updateProps
+// with a broken content value. Content itself is stable per-selection.
+function JsonEditor({ value, schema, onChange, onValidation, readOnly }) {
+  const onChangeRef = React.useRef(onChange);
+  onChangeRef.current = onChange;
+  const onValidationRef = React.useRef(onValidation);
+  onValidationRef.current = onValidation;
+  const containerRef = React.useRef(null);
 
-  useEffect(() => {
-    try {
-      setRaw(value == null ? '' : JSON.stringify(value, null, 2));
-      setParseError(null);
-    } catch {
-      setRaw('');
-    }
-  }, [value]);
+  // Poll for parse-error indicator in the DOM (vanilla-jsoneditor shows a red banner
+  // but does NOT call onChange when JSON is invalid — so we poll instead)
+  React.useEffect(() => {
+    if (!onValidationRef.current) return;
+    const interval = setInterval(() => {
+      if (!containerRef.current) return;
+      const hasParseError = !!containerRef.current.querySelector('.jse-message.jse-error, .jse-validation-errors');
+      onValidationRef.current(hasParseError);
+    }, 300);
+    return () => clearInterval(interval);
+  }, []);
 
-  function handleChange(text) {
-    setRaw(text);
-    try {
-      const parsed = JSON.parse(text);
-      setParseError(null);
-      setSchemaErrors(schema ? validateAgainstSchema(parsed, schema, t) : []);
-      onChange(parsed);
-    } catch (e) {
-      setParseError(e.message);
+  const stableOnChange = React.useCallback((content, _prev, status) => {
+    if (onValidationRef.current) {
+      const hasParseError = !!status?.contentErrors?.parseError;
+      const hasValidationErrors = Array.isArray(status?.contentErrors?.validationErrors)
+        && status.contentErrors.validationErrors.length > 0;
+      onValidationRef.current(hasParseError || hasValidationErrors);
     }
-  }
+    if (content?.json !== undefined) onChangeRef.current(content.json);
+    else if (content?.text !== undefined) {
+      try { onChangeRef.current(JSON.parse(content.text)); } catch {}
+    }
+  }, []);
 
   return (
-    <div className="flex flex-col gap-2">
-      {schema && <SchemaHint schema={schema} t={t} />}
-      <MonacoEditor
-        value={raw}
-        onChange={handleChange}
-        options={{ language: 'json' }}
+    <div ref={containerRef}>
+      <VanillaJSONEditor
+        content={value ?? null}
+        schema={schema}
         disabled={readOnly}
+        onChange={stableOnChange}
       />
-      {parseError && (
-        <p className="text-destructive text-xs">{t('Parse error')}: {parseError}</p>
-      )}
-      {schemaErrors.map((e, i) => (
-        <p key={i} className="text-yellow-500 text-xs">{t('Schema error')}: {e}</p>
-      ))}
-    </div>
-  );
-}
-
-function validateAgainstSchema(value, schema, t) {
-  const errors = [];
-  if (!schema || typeof schema !== 'object') return errors;
-  const { type, required, enum: enumVals, minimum, maximum, minLength, maxLength } = schema;
-  if (type) {
-    const actual = Array.isArray(value) ? 'array' : typeof value;
-    const expected = Array.isArray(type) ? type : [type];
-    if (!expected.includes(actual) && !(actual === 'number' && expected.includes('integer'))) {
-      errors.push(t('Schema expected type', { expected: expected.join('|'), actual }));
-    }
-  }
-  if (enumVals && !enumVals.includes(value)) errors.push(t('Schema enum', { values: enumVals.join(', ') }));
-  if (typeof value === 'number') {
-    if (minimum != null && value < minimum) errors.push(t('Schema minimum', { value: minimum }));
-    if (maximum != null && value > maximum) errors.push(t('Schema maximum', { value: maximum }));
-  }
-  if (typeof value === 'string') {
-    if (minLength != null && value.length < minLength) errors.push(t('Schema min length', { value: minLength }));
-    if (maxLength != null && value.length > maxLength) errors.push(t('Schema max length', { value: maxLength }));
-  }
-  if (required && typeof value === 'object' && value !== null && !Array.isArray(value)) {
-    for (const key of required) {
-      if (!(key in value)) errors.push(t('Schema required field', { key }));
-    }
-  }
-  return errors;
-}
-
-function SchemaHint({ schema, t }) {
-  const lines = [];
-  if (schema.description) lines.push(schema.description);
-  if (schema.type) lines.push(t('Schema type hint', { value: Array.isArray(schema.type) ? schema.type.join(' | ') : schema.type }));
-  if (schema.enum) lines.push(t('Schema enum hint', { value: schema.enum.join(', ') }));
-  if (schema.properties) lines.push(t('Schema fields hint', { value: Object.keys(schema.properties).join(', ') }));
-  if (!lines.length) return null;
-  return (
-    <div className="bg-muted border rounded-md px-3 py-2 text-xs text-muted-foreground">
-      <div className="font-semibold mb-1 text-purple-500">{t('Json schema')}</div>
-      {lines.map((l, i) => <div key={i}>{l}</div>)}
     </div>
   );
 }
@@ -238,6 +290,10 @@ function SchemaHint({ schema, t }) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 function EditorPanel({ selected, editValue, setEditValue, saving, saveError, saveSuccess, handleSave, handleReset, t }) {
+  const [jsonHasErrors, setJsonHasErrors] = useState(false);
+  // Reset validation state when a different setting is selected
+  React.useEffect(() => { setJsonHasErrors(false); }, [selected?.key]);
+
   if (!selected) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
@@ -278,16 +334,16 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
       <div className="flex flex-col gap-2">
         <Label>{t('Value')}</Label>
         {selected.type === 'string' && (
-          <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} />
+          <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} schema={selected.jsonSchema} t={t} />
         )}
         {selected.type === 'number' && (
-          <NumberEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} />
+          <NumberEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} schema={selected.jsonSchema} t={t} />
         )}
         {selected.type === 'boolean' && (
           <BooleanEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} t={t} />
         )}
         {selected.type === 'json' && (
-          <JsonEditor value={editValue} schema={selected.jsonSchema} onChange={setEditValue} readOnly={selected.readOnly} t={t} />
+          <JsonEditor key={selected.key} value={editValue} schema={selected.jsonSchema} onChange={setEditValue} onValidation={setJsonHasErrors} readOnly={selected.readOnly} />
         )}
       </div>
 
@@ -316,10 +372,14 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
       {/* Actions */}
       {!selected.readOnly && (
         <div className="flex gap-2 items-center mt-1">
-          <Button variant="default" size="sm" onClick={handleSave} disabled={saving}>
+          <Button variant="default" size="sm" onClick={handleSave} disabled={saving || jsonHasErrors}
+            title={jsonHasErrors ? t('Fix schema errors before saving') : undefined}>
             <Save className="w-4 h-4 mr-1" />
             {saving ? t('Saving') : t('Save')}
           </Button>
+          {jsonHasErrors && (
+            <span className="text-xs text-destructive">{t('Fix schema errors before saving')}</span>
+          )}
           {selected.defaultValue !== undefined && selected.defaultValue !== null && (
             <Button variant="outline" size="sm" onClick={handleReset} disabled={saving}>
               <RotateCcw className="w-4 h-4 mr-1" />
@@ -453,6 +513,8 @@ function ImportDialog({ open, onOpenChange, diff, selected, setSelected, result,
 function SettingListItem({ s, isActive, onSelect, t }) {
   return (
     <button
+      data-setting-key={s.key}
+      aria-selected={isActive}
       onClick={() => onSelect(s)}
       className="block w-full text-left transition-colors hover:bg-accent"
       style={{
@@ -505,6 +567,20 @@ function SettingsManagerContent() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
 
+  const filtered = settings.filter(s => {
+    const q = search.toLowerCase();
+    if (!q) return true;
+    return s.key.toLowerCase().includes(q) || (s.name || '').toLowerCase().includes(q) || (s.module || '').toLowerCase().includes(q);
+  });
+
+  const selectedSavedValue = useMemo(() => getSettingValue(selected), [selected]);
+  const hasUnsavedChanges = !!selected && !selected.readOnly && !valuesEqual(editValue, selectedSavedValue);
+  const selectedRef = useRef(selected);
+  const filteredRef = useRef(filtered);
+
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
+  useEffect(() => { filteredRef.current = filtered; }, [filtered]);
+
   useEffect(() => {
     setLoading(true);
     apiGet(`${apiBase}/list`)
@@ -514,21 +590,20 @@ function SettingsManagerContent() {
         const hashKey = decodeURIComponent(window.location.hash.slice(1));
         if (hashKey) {
           const found = data.find(s => s.key === hashKey);
-          if (found) selectSetting(found);
+          if (found) applySelection(found);
         }
       })
       .catch(e => { setError(e.message); setLoading(false); });
   }, [apiBase]);
 
-  const filtered = settings.filter(s => {
-    const q = search.toLowerCase();
-    if (!q) return true;
-    return s.key.toLowerCase().includes(q) || (s.name || '').toLowerCase().includes(q) || (s.module || '').toLowerCase().includes(q);
-  });
+  function canLeaveCurrentSetting() {
+    if (!hasUnsavedChanges) return true;
+    return window.confirm(t('You have unsaved changes. Discard them and switch settings?'));
+  }
 
-  function selectSetting(s) {
+  function applySelection(s) {
     setSelected(s);
-    setEditValue(s.value !== undefined && s.value !== null ? s.value : s.defaultValue);
+    setEditValue(getSettingValue(s));
     setSaveError(null);
     setSaveSuccess(false);
     window.location.hash = encodeURIComponent(s.key);
@@ -537,6 +612,53 @@ function SettingsManagerContent() {
       setSearch('');
     }
   }
+
+  function selectSetting(s) {
+    if (!s || s.key === selected?.key) return;
+    if (!canLeaveCurrentSetting()) return;
+    applySelection(s);
+  }
+
+  function selectByOffset(offset) {
+    const list = filteredRef.current;
+    if (!list.length) return;
+    const current = selectedRef.current;
+    const currentIndex = current ? list.findIndex(s => s.key === current.key) : -1;
+    const baseIndex = currentIndex >= 0 ? currentIndex : (offset > 0 ? -1 : 0);
+    const nextIndex = Math.max(0, Math.min(list.length - 1, baseIndex + offset));
+    const next = list[nextIndex];
+    if (next && next.key !== current?.key) selectSetting(next);
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.defaultPrevented || isTextEditingTarget(event.target)) return;
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+      event.preventDefault();
+      selectByOffset(event.key === 'ArrowDown' ? 1 : -1);
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  });
+
+  useEffect(() => {
+    if (!selected) return;
+    const button = Array.from(document.querySelectorAll('[data-setting-key]'))
+      .find(el => el.getAttribute('data-setting-key') === selected.key);
+    button?.scrollIntoView({ block: 'nearest' });
+  }, [selected?.key, search]);
+
+  useEffect(() => {
+    function handleBeforeUnload(event) {
+      if (!hasUnsavedChanges) return;
+      event.preventDefault();
+      event.returnValue = '';
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   async function handleSave() {
     if (!selected) return;

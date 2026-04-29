@@ -273,5 +273,7 @@
 	"I'm not a robot": "I'm not a robot",
 	"Solving CAPTCHA...": "Solving CAPTCHA...",
 	"Verification complete!": "Verification complete!",
-	"Error solving CAPTCHA. Try again.": "Error solving CAPTCHA. Try again."
+	"Error solving CAPTCHA. Try again.": "Error solving CAPTCHA. Try again.",
+	"You have unsaved changes. Discard them and switch settings?": "You have unsaved changes. Discard them and switch settings?",
+	"Select value": "Select value"
 }
