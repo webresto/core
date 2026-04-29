@@ -492,6 +492,10 @@ let Model = {
       throw new Error(`Dish [${dishObj.id}] is modifier`)
     }
 
+    if (dishObj.enable === false && addedBy === "user") {
+      throw new Error(`Dish [${dishObj.id}] is disabled`)
+    }
+
     if (dishObj.notForSale && addedBy === "user") {
       throw new Error(`Dish [${dishObj.id}] is not for sale`)
     }
@@ -1504,6 +1508,13 @@ let Model = {
             if (!dish) {
               sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
               emitter.emit("core:order-return-full-order-destroy-orderdish", dish, order);
+              await OrderDish.destroy({ id: orderDish.id }).fetch();
+              continue;
+            }
+
+            if (dish.enable === false) {
+              sails.log.warn(`Dish with id ${dish.id} is disabled and removed from cart.`);
+              await Order.log({id: order.id}, "info", "core", "countCart: removed disabled dish", {orderDishId: orderDish.id, dishId: dish.id, dishName: dish.name});
               await OrderDish.destroy({ id: orderDish.id }).fetch();
               continue;
             }

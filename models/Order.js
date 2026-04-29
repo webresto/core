@@ -370,6 +370,9 @@ let Model = {
         if (dishObj.modifier) {
             throw new Error(`Dish [${dishObj.id}] is modifier`);
         }
+        if (dishObj.enable === false && addedBy === "user") {
+            throw new Error(`Dish [${dishObj.id}] is disabled`);
+        }
         if (dishObj.notForSale && addedBy === "user") {
             throw new Error(`Dish [${dishObj.id}] is not for sale`);
         }
@@ -1255,6 +1258,12 @@ let Model = {
                             await OrderDish.destroy({ id: orderDish.id }).fetch();
                             continue;
                         }
+                        if (dish.enable === false) {
+                            sails.log.warn(`Dish with id ${dish.id} is disabled and removed from cart.`);
+                            await Order.log({ id: order.id }, "info", "core", "countCart: removed disabled dish", { orderDishId: orderDish.id, dishId: dish.id, dishName: dish.name });
+                            await OrderDish.destroy({ id: orderDish.id }).fetch();
+                            continue;
+                        }
                         if (dish.balance === -1 ? false : Math.abs(dish.balance) < orderDish.amount) {
                             orderDish.amount = Math.abs(dish.balance);
                             //It is necessary to delete if the amount is 0
@@ -1787,7 +1796,10 @@ let Model = {
             patch.completedAt = Math.floor(Date.now() / 1000);
         }
         // Perform transition
-        await Order.update(query, patch).fetch();
+        const updated = (await Order.update(query, patch).fetch())[0];
+        if (updated) {
+            emitter.emit("core:order-after-count", updated);
+        }
     }
 };
 // Waterline model export
