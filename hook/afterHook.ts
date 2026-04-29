@@ -1,5 +1,6 @@
 import { generateUUID } from "../libs/hashCode";
 import { NotificationDispatcher } from "../libs/NotificationDispatcher";
+import { registerCoreMcpTools } from "./mcp";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -76,6 +77,8 @@ export default async function () {
     const escalationInterval = (await Settings.get("NOTIFICATION_ESCALATION_INTERVAL_SECONDS")) ?? 60;
     NotificationDispatcher.startDeliveryLoop(deliveryInterval);
     NotificationDispatcher.startEscalationLoop(escalationInterval);
+
+    registerCoreMcpTools();
 
   } catch (e) {
     sails.log.error("RestoCore > initialization error > ", e);
