@@ -38,8 +38,7 @@ let attributes = {
     detailInfoLink: "string",
     /** user option */
     enable: {
-        type: "boolean",
-        required: true,
+        type: "boolean"
     },
     automaticUserRegistration: {
         type: "boolean",

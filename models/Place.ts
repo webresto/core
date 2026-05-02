@@ -14,8 +14,7 @@ let attributes = {
   order: 'number' as unknown as number,
   phone: 'string',
   enable: {
-    type: 'boolean',
-    required: true
+    type: 'boolean'
   } as unknown as boolean,
   worktime: 'json' as unknown as WorkTime,
   isPickupPoint: 'boolean'as unknown as boolean,

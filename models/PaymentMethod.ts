@@ -48,8 +48,7 @@ let attributes = {
   sortOrder: "number" as unknown as number,
   description: "string",
   enable: {
-    type: "boolean",
-    required: true,
+    type: "boolean"
   } as unknown as boolean,
 
   customData: "json" as unknown as {
