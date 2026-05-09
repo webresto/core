@@ -600,6 +600,11 @@ let Model = {
       return
     }
 
+    // Ensure CART state (and cancel any pending payment) BEFORE writing dishes,
+    // so a failed cancellation doesn't leave the basket modified while the
+    // payment link is still live in the gateway.
+    await Order.next(order.id, "CART");
+
     if (replace) {
       orderDish = (
         await OrderDish.update(
@@ -629,7 +634,6 @@ let Model = {
 
     try {
       await Order.countCart({ id: order.id }, addedBy === "promotion");
-      await Order.next(order.id, "CART");
     } catch (error) {
       sails.log.error(error)
       await Order.log({id: order.id}, "error", "core", "addDish: countCart failed", {state: order.state, error: error?.message || error});
@@ -669,6 +673,9 @@ let Model = {
       };
     }
 
+    // Ensure CART state (and cancel any pending payment) BEFORE writing dishes.
+    await Order.next(order.id, "CART");
+
     orderDish.amount -= amount;
     if (orderDish.amount > 0) {
       await OrderDish.update({ id: orderDish.id }, { amount: orderDish.amount }).fetch();
@@ -676,7 +683,6 @@ let Model = {
       await OrderDish.destroy({ id: orderDish.id }).fetch();
     }
 
-    await Order.next(order.id, "CART");
     const countedBasket = await Order.countCart({ id: order.id });
     await emitter.emit.apply(emitter, ["core:order-after-remove-dish", countedBasket, ...arguments]);
   },
@@ -702,6 +708,9 @@ let Model = {
     const get = orderDishes.find((item) => item.id === dish.id);
 
     if (get) {
+      // Ensure CART state (and cancel any pending payment) BEFORE writing dishes.
+      await Order.next(order.id, "CART");
+
       get.amount = amount;
       if (get.amount > 0) {
         await OrderDish.update({ id: get.id }, { amount: get.amount }).fetch();
@@ -710,7 +719,6 @@ let Model = {
         sails.log.info("destroy", get.id);
       }
 
-      await Order.next(order.id, "CART");
       const resultOrder = await Order.countCart({ id: order.id });
       Order.update({ id: order.id }, order).fetch();
       await emitter.emit.apply(emitter, ["core:order-after-set-count", resultOrder, ...arguments]);
@@ -724,7 +732,12 @@ let Model = {
     await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
 
     const order = await Order.findOne(criteria).populate("dishes");
-    if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
+    // Comment is editable only while the order is still in pre-order phase
+    // (CART/CHECKOUT/PAYMENT). Once placed (ORDER+) or finalized (DONE/REJECT)
+    // the comment is frozen — kitchen/RMS already saw it.
+    if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state || "")) {
+      throw `order with orderId ${order.id} in state ${order.state} — comment is no longer editable`;
+    }
 
     const orderDish = await OrderDish.findOne({
       order: order.id,
@@ -734,9 +747,6 @@ let Model = {
     if (orderDish) {
       await OrderDish.update({ id: orderDish.id }, { comment: comment }).fetch();
 
-      await Order.next(order.id, "CART");
-      await Order.countCart({ id: order.id });
-      Order.update({ id: order.id }, order).fetch();
       await emitter.emit.apply(emitter, ["core:order-after-set-comment", ...arguments]);
     } else {
       await emitter.emit.apply(emitter, ["core:order-set-comment-reject-no-orderdish", ...arguments]);
@@ -1272,6 +1282,47 @@ let Model = {
           balanceAfter: nextBalance
         });
       }
+    }
+  },
+
+  /**
+   * Cancel any pending PaymentDocument attached to this order.
+   *
+   * Race scenario this protects against:
+   *   1. user clicks "pay" → order goes CHECKOUT, PaymentDocument is created,
+   *      user is redirected to the external payment gateway (e.g. YooKassa).
+   *   2. user comes back (other tab / browser back) and edits the basket.
+   *   3. gateway callback arrives later for an order whose total/contents have changed,
+   *      which is unsafe — the user paid for one basket, we'd ship another.
+   *
+   * Calling this before any basket-mutating operation invalidates the outstanding
+   * payment link so the only way forward is to register a new payment matching
+   * the new basket. If there is no pending PaymentDocument, this is a no-op.
+   *
+   * Errors from the underlying adapter cancel are propagated — callers MUST
+   * abort the basket mutation in that case (see addDish/removeDish/etc.).
+   */
+  async cancelOrderPayment(criteria: CriteriaQuery<OrderRecord>): Promise<void> {
+    const order = await Order.findOne(criteria);
+    if (!order) return;
+
+    const pendingDocs = await PaymentDocument.find({
+      originModel: "order",
+      originModelId: order.id,
+      paid: false,
+      status: ["NEW", "REGISTERED"],
+    });
+
+    if (!pendingDocs.length) return;
+
+    for (const pd of pendingDocs) {
+      sails.log.debug(`Order > cancelOrderPayment: cancelling PaymentDocument ${pd.id} for order ${order.id} (status=${pd.status})`);
+      await Order.log({ id: order.id }, "info", "core", "payment: cancelling pending document due to basket change", {
+        paymentDocumentId: pd.id,
+        status: pd.status,
+        amount: pd.amount,
+      });
+      await PaymentDocument.cancel({ id: pd.id });
     }
   },
 
@@ -1940,8 +1991,36 @@ let Model = {
       emitter.emit("core:order-after-dopaid", order);
 
     } catch (e) {
-      sails.log.error("Order > doPaid error: ", e);
+      const message = [
+        "============================================================",
+        "!!! CRITICAL: MONEY-IN, ORDER-NOT-PLACED CONDITION !!!",
+        "",
+        "We reach this branch AFTER paid=true has already been written",
+        "to the order (see Order.update above), which means the customer",
+        "has been charged but Order.order() failed — the order was NOT",
+        "dispatched to the kitchen / RMS.",
+        "",
+        "Common causes:",
+        "  - state was rolled back to CART by a concurrent basket mutation",
+        "    (race between gateway callback and the user editing the cart);",
+        "  - amount mismatch (total !== paymentDocument.amount);",
+        "  - RMS adapter rejected the order;",
+        "  - maintenance mode is active.",
+        "",
+        "The customer either gets nothing for their money, or we ship a",
+        "basket different from what they paid for. EITHER WAY this needs",
+        "a human (operator / on-call) to look at it within minutes.",
+        "============================================================"
+      ];
+
+      // "TODO: wire an alert here (Notification + operator dashboard +",
+      // "ideally external channel like Telegram/email). Until that lands,",
+      // "grep your logs for \"Order > doPaid error\" — every hit is an incident.",
+
+      sails.log.error("Order > doPaid error: ", message.join("\n"), e);
       await Order.log({id: order.id}, "error", "core", "doPaid: failed", {error: e?.message || e});
+      await Order.log({id: order.id}, "error", "core", "!!! CRITICAL: MONEY-IN, ORDER-NOT-PLACED CONDITION !!!", {error: message});
+      emitter.emit("core:order-after-dopaid-error", order, e);
       throw e;
     }
   },
@@ -2056,8 +2135,9 @@ let Model = {
         await Order.log({ id: order.id }, "warn", "core", `Promotion code [${promotionCodeString}] is expired or not valid`);
       }
     }
-    await Order.update({ id: order.id }, updateData).fetch();
+    // Ensure CART state (and cancel any pending payment) BEFORE writing promo code.
     await Order.next(order.id, "CART");
+    await Order.update({ id: order.id }, updateData).fetch();
     const basket = await Order.countCart({ id: order.id });
     return basket
   },
@@ -2116,6 +2196,31 @@ let Model = {
         `Invalid state transition: ${currentState} → ${nextState}. ` +
         `Allowed transitions from ${currentState}: ${allowedTransitions.join(', ') || 'none'}`
       );
+    }
+
+    // Once paid=true is written, the basket is frozen — money is in and the
+    // order is on its way to ORDER (see Order.doPaid). Allowing →CART here
+    // would be the money-in/order-not-placed race: a concurrent addDish
+    // arriving in the ~10-200ms window between `Order.update({paid:true})`
+    // and `Order.order()` inside doPaid would otherwise roll the order back
+    // to CART, doPaid's `Order.order()` would then throw "in state CART",
+    // and we'd ship a basket different from what the customer paid for.
+    if (nextState === "CART" && order.paid === true) {
+      throw new Error(
+        `Order ${order.id} is already paid — cart is frozen, cannot transition back to CART`
+      );
+    }
+
+    // Rolling back to CART from an in-payment state means the basket is about to
+    // be edited; the outstanding payment link must be invalidated first so the
+    // gateway can't confirm a payment for a basket that no longer exists.
+    // If cancellation throws, the state stays where it is — caller's mutation
+    // must abort, otherwise we re-introduce the original race.
+    if (
+      nextState === "CART" &&
+      (currentState === "CHECKOUT" || currentState === "PAYMENT")
+    ) {
+      await Order.cancelOrderPayment({ id: order.id });
     }
 
     const patch: Partial<OrderRecord> = { state: nextState };
