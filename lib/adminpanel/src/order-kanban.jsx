@@ -179,6 +179,11 @@ function getOrderModelPath(orderId) {
   return `${getBaseAdminPath()}/model/order/edit/${encodeURIComponent(String(orderId || ''))}`;
 }
 
+function getModelPath(modelName, id) {
+  if (!modelName || !id) return '';
+  return `${getBaseAdminPath()}/model/${encodeURIComponent(String(modelName).toLowerCase())}/edit/${encodeURIComponent(String(id))}`;
+}
+
 function getCsrfToken() {
   const cookies = document.cookie.split(';');
   for (const cookie of cookies) {
@@ -340,6 +345,8 @@ function normalizeOrderDetails(order) {
     spendBonus: order?.spendBonus || null,
     date: order?.date || null,
     items: Array.isArray(order?.items) ? order.items.map(normalizeItem).filter(Boolean) : [],
+    relatedRefs: order?.relatedRefs && typeof order.relatedRefs === 'object' ? order.relatedRefs : {},
+    paymentDocuments: Array.isArray(order?.paymentDocuments) ? order.paymentDocuments : [],
     rawPayload: order?.rawPayload || order,
   };
 }
@@ -406,8 +413,8 @@ function OrderDetailsPopup({ order, loading, language, t, onClose }) {
         }}
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>
-            {t('Order details')} #{order.shortId}
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, wordBreak: 'break-all' }}>
+            {t('Order details')} #{order.id || order.shortId}
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {orderModelPath ? (
@@ -648,6 +655,135 @@ function OrderDetailsPopup({ order, loading, language, t, onClose }) {
               >
                 {safeJson(order.customData)}
               </pre>
+            </div>
+          ) : null}
+
+          {(() => {
+            const refs = order.relatedRefs || {};
+            const refLabels = {
+              user: 'Пользователь',
+              paymentMethod: 'Способ оплаты',
+              pickupPoint: 'Точка самовывоза',
+              deliveryItem: 'Доставка (блюдо)',
+              promotionCode: 'Промокод',
+            };
+            const refEntries = Object.entries(refLabels)
+              .map(([key, label]) => [key, label, refs[key]])
+              .filter(([, , ref]) => ref && ref.id);
+            if (refEntries.length === 0) return null;
+            return (
+              <div style={{ marginTop: 6 }}>
+                <strong>Связанные модели</strong>
+                <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {refEntries.map(([key, label, ref]) => {
+                    const href = getModelPath(ref.model, ref.id);
+                    return (
+                      <div key={key} style={rowStyle}>
+                        <strong>{label}</strong>
+                        <span style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'baseline' }}>
+                          <span>{ref.label}</span>
+                          {href ? (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 12 }}
+                            >
+                              открыть →
+                            </a>
+                          ) : null}
+                          <span style={{ fontSize: 11, color: 'var(--muted-foreground)', wordBreak: 'break-all' }}>
+                            {ref.id}
+                          </span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
+          {Array.isArray(order.paymentDocuments) && order.paymentDocuments.length > 0 ? (
+            <div style={{ marginTop: 6 }}>
+              <strong>Платёжные документы</strong>
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {order.paymentDocuments.map((pd) => {
+                  const pdHref = getModelPath('paymentdocument', pd.id);
+                  const pmHref = pd.paymentMethodId ? getModelPath('paymentmethod', pd.paymentMethodId) : '';
+                  return (
+                    <div
+                      key={pd.id}
+                      style={{
+                        border: `1px solid ${'var(--border)'}`,
+                        background: 'var(--muted)',
+                        borderRadius: 8,
+                        padding: 10,
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                        <strong style={{ wordBreak: 'break-all' }}>
+                          {pd.paymentMethodTitle || 'PaymentDocument'}
+                        </strong>
+                        <strong>{formatTotal(pd.amount, language)}</strong>
+                      </div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        <span>Статус: {pd.status || '-'}</span>
+                        <span>Оплачен: {pd.paid ? t('Yes') : t('No')}</span>
+                        {pd.externalId ? <span>Внешний ID: {pd.externalId}</span> : null}
+                      </div>
+                      <div style={{ marginTop: 4, fontSize: 11, color: 'var(--muted-foreground)', wordBreak: 'break-all' }}>
+                        ID: {pd.id}
+                      </div>
+                      {pd.comment ? (
+                        <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)' }}>
+                          Комментарий: {pd.comment}
+                        </div>
+                      ) : null}
+                      {pd.error ? (
+                        <div style={{ marginTop: 4, fontSize: 12, color: 'var(--destructive, #b91c1c)' }}>
+                          Ошибка: {pd.error}
+                        </div>
+                      ) : null}
+                      <div style={{ marginTop: 6, display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 12 }}>
+                        {pdHref ? (
+                          <a href={pdHref} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                            Открыть документ →
+                          </a>
+                        ) : null}
+                        {pmHref ? (
+                          <a href={pmHref} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                            Способ оплаты →
+                          </a>
+                        ) : null}
+                        {pd.redirectLink ? (
+                          <a href={pd.redirectLink} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                            Ссылка на оплату →
+                          </a>
+                        ) : null}
+                      </div>
+                      {pd.data ? (
+                        <pre
+                          style={{
+                            marginTop: 6,
+                            border: `1px solid ${'var(--border)'}`,
+                            background: 'var(--background)',
+                            color: 'var(--muted-foreground)',
+                            borderRadius: 6,
+                            padding: 8,
+                            maxHeight: 140,
+                            overflow: 'auto',
+                            fontSize: 11,
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {safeJson(pd.data)}
+                        </pre>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : null}
 
