@@ -13,6 +13,10 @@ import { Restrictions, WorkTimeValidator } from "@webresto/worktime";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import { phoneValidByMask } from "../libs/phoneValidByMask";
 import { OrderHelper } from "../libs/helpers/OrderHelper";
+import {
+  buildCancelPaymentDialog,
+  CANCEL_PAYMENT_DIALOG_CONFIRM,
+} from "../libs/dialogs/cancelPaymentDialog";
 import { GroupModifier } from "../interfaces/Modifier";
 import { isValue } from "../utils/isValue";
 import { PaymentMethodRecord } from "./PaymentMethod";
@@ -2220,6 +2224,24 @@ let Model = {
       nextState === "CART" &&
       (currentState === "CHECKOUT" || currentState === "PAYMENT")
     ) {
+      // Ask the user before invalidating an outstanding payment link.
+      // If the device confirms — proceed with cancellation.
+      // If the device declines (or no device is bound) — abort the transition;
+      // throwing here is the documented contract (caller's basket mutation aborts).
+      if (order.deviceId) {
+        const answerId = await (global as any).DialogBox.ask(
+          buildCancelPaymentDialog((order as any).locale),
+          order.deviceId,
+          60_000
+        );
+
+        if (answerId !== CANCEL_PAYMENT_DIALOG_CONFIRM) {
+          throw new Error(
+            `Order ${order.id}: user declined to cancel pending payment — basket change aborted`
+          );
+        }
+      }
+
       await Order.cancelOrderPayment({ id: order.id });
     }
 

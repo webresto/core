@@ -63,5 +63,9 @@
 	"Recommended By": "Recommended By",
 	"A self-referential link that connects this dish to other dishes as recommendations. It indicates that this dish recommends or is recommended by others.": "A self-referential link that connects this dish to other dishes as recommendations. It indicates that this dish recommends or is recommended by others.",
 	"Custom Data": "Custom Data",
-	"Additional fields or data that can be set by modules or custom configurations. This allows for flexible extensions and metadata specific to the dish.": "Additional fields or data that can be set by modules or custom configurations. This allows for flexible extensions and metadata specific to the dish."
+	"Additional fields or data that can be set by modules or custom configurations. This allows for flexible extensions and metadata specific to the dish.": "Additional fields or data that can be set by modules or custom configurations. This allows for flexible extensions and metadata specific to the dish.",
+	"Cancel pending payment?": "Cancel pending payment?",
+	"You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?",
+	"Cancel payment and edit basket": "Cancel payment and edit basket",
+	"Keep payment": "Keep payment"
 }
