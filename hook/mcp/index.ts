@@ -6,6 +6,7 @@ import { registerDishesTools } from './dishes';
 import { registerGroupsTools } from './groups';
 import { registerMediaTools } from './media';
 import { registerBackupTools } from './backup';
+import { registerOrderTools } from './order';
 
 export function registerCoreMcpTools() {
     if (process.env.MCP_ENABLED !== 'true') return;
@@ -18,4 +19,5 @@ export function registerCoreMcpTools() {
     registerGroupsTools();
     registerMediaTools();
     registerBackupTools();
+    registerOrderTools();
 }
