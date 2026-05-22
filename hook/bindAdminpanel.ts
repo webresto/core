@@ -202,7 +202,9 @@ function processBindAdminpanel() {
       const adminizer = sails.hooks.adminpanel.adminizer;
       adminizer.emitter.on('adminizer:loaded', () => {
         const routePrefix = adminizer.config.routePrefix;
-        const policies = adminizer.config.policies;
+        const middlewares = adminizer.config.middlewares;
+        const bind = (action: any) => adminizer.middlewareManager.bindMiddlewares(middlewares, action);
+
         let getInertiaLocaleAndMessages: ((req: any) => { locale: string; messages: Record<string, string> }) | null = null;
 
         try {
@@ -244,7 +246,7 @@ function processBindAdminpanel() {
 
           adminizer.app.get(
             `${routePrefix}/stock-manager`,
-            adminizer.policyManager.bindPolicies(policies, stockController)
+            ...bind(stockController)
           );
         } catch (e) {
           sails.log.debug('StockManager route bind error', e);
@@ -264,13 +266,13 @@ function processBindAdminpanel() {
 
           adminizer.app.get(
             `${routePrefix}/order-kanban`,
-            adminizer.policyManager.bindPolicies(policies, orderKanbanController)
+            ...bind(orderKanbanController)
           );
 
           // Make order kanban the default admin landing page.
           adminizer.app.get(
             `${routePrefix}`,
-            adminizer.policyManager.bindPolicies(policies, (_req: any, res: any) => {
+            ...bind((_req: any, res: any) => {
               return res.redirect(`${routePrefix}/order-kanban`);
             })
           );
@@ -292,7 +294,7 @@ function processBindAdminpanel() {
 
           adminizer.app.get(
             `${routePrefix}/notifications-manager`,
-            adminizer.policyManager.bindPolicies(policies, notificationsManagerController)
+            ...bind(notificationsManagerController)
           );
         } catch (e) {
           sails.log.debug('NotificationsManager route bind error', e);
@@ -311,7 +313,7 @@ function processBindAdminpanel() {
 
           adminizer.app.get(
             `${routePrefix}/notification-channels`,
-            adminizer.policyManager.bindPolicies(policies, notificationChannelsController)
+            ...bind(notificationChannelsController)
           );
         } catch (e) {
           sails.log.debug('NotificationChannels route bind error', e);
@@ -321,7 +323,7 @@ function processBindAdminpanel() {
         try {
           const searchController = require('../lib/adminpanel/src/controller/search').default;
           // Expose at <routePrefix>/core/api?q=... for admin-scoped API
-          adminizer.app.get(`${routePrefix}/core/api`, adminizer.policyManager.bindPolicies(policies, searchController));
+          adminizer.app.get(`${routePrefix}/core/api`, ...bind(searchController));
         } catch (e) {
           sails.log.debug('StockManager search route bind error', e);
         }
@@ -329,7 +331,7 @@ function processBindAdminpanel() {
         // API route for updating stock
         try {
           const updateStockController = require('../lib/adminpanel/src/controller/update-stock').default;
-          adminizer.app.post(`${routePrefix}/core/update-stock`, adminizer.policyManager.bindPolicies(policies, updateStockController));
+          adminizer.app.post(`${routePrefix}/core/update-stock`, ...bind(updateStockController));
         } catch (e) {
           sails.log.debug('StockManager update stock route bind error', e);
         }
@@ -337,7 +339,7 @@ function processBindAdminpanel() {
         // API route for getting stock items
         try {
           const getStockItemsController = require('../lib/adminpanel/src/controller/get-stock-items').default;
-          adminizer.app.get(`${routePrefix}/core/stock-items`, adminizer.policyManager.bindPolicies(policies, getStockItemsController));
+          adminizer.app.get(`${routePrefix}/core/stock-items`, ...bind(getStockItemsController));
         } catch (e) {
           sails.log.debug('StockManager get stock items route bind error', e);
         }
@@ -345,7 +347,7 @@ function processBindAdminpanel() {
         // API route for getting groups
         try {
           const getGroupsController = require('../lib/adminpanel/src/controller/get-groups').default;
-          adminizer.app.get(`${routePrefix}/core/groups`, adminizer.policyManager.bindPolicies(policies, getGroupsController));
+          adminizer.app.get(`${routePrefix}/core/groups`, ...bind(getGroupsController));
         } catch (e) {
           sails.log.debug('StockManager get groups route bind error', e);
         }
@@ -353,7 +355,7 @@ function processBindAdminpanel() {
         // API route for getting dishes by group
         try {
           const getDishesByGroupController = require('../lib/adminpanel/src/controller/get-dishes-by-group').default;
-          adminizer.app.get(`${routePrefix}/core/dishes-by-group`, adminizer.policyManager.bindPolicies(policies, getDishesByGroupController));
+          adminizer.app.get(`${routePrefix}/core/dishes-by-group`, ...bind(getDishesByGroupController));
         } catch (e) {
           sails.log.debug('StockManager get dishes by group route bind error', e);
         }
@@ -361,7 +363,7 @@ function processBindAdminpanel() {
         // API route for updating visibility
         try {
           const updateVisibilityController = require('../lib/adminpanel/src/controller/update-visibility').default;
-          adminizer.app.post(`${routePrefix}/core/update-visibility`, adminizer.policyManager.bindPolicies(policies, updateVisibilityController));
+          adminizer.app.post(`${routePrefix}/core/update-visibility`, ...bind(updateVisibilityController));
         } catch (e) {
           sails.log.debug('StockManager update visibility route bind error', e);
         }
@@ -369,7 +371,7 @@ function processBindAdminpanel() {
         // API route for updating isDeleted flag (used by StockManager frontend)
         try {
           const updateIsDeletedController = require('../lib/adminpanel/src/controller/update-is-deleted').default;
-          adminizer.app.post(`${routePrefix}/core/update-is-deleted`, adminizer.policyManager.bindPolicies(policies, updateIsDeletedController));
+          adminizer.app.post(`${routePrefix}/core/update-is-deleted`, ...bind(updateIsDeletedController));
         } catch (e) {
           sails.log.debug('StockManager update isDeleted route bind error', e);
         }
@@ -379,7 +381,7 @@ function processBindAdminpanel() {
           const getOrderKanbanOrdersController = require('../lib/adminpanel/src/controller/get-order-kanban-orders').default;
           adminizer.app.get(
             `${routePrefix}/core/order-kanban/orders`,
-            adminizer.policyManager.bindPolicies(policies, getOrderKanbanOrdersController)
+            ...bind(getOrderKanbanOrdersController)
           );
         } catch (e) {
           sails.log.debug('OrderKanban list route bind error', e);
@@ -390,7 +392,7 @@ function processBindAdminpanel() {
           const getOrderKanbanOrderController = require('../lib/adminpanel/src/controller/get-order-kanban-order').default;
           adminizer.app.get(
             `${routePrefix}/core/order-kanban/order`,
-            adminizer.policyManager.bindPolicies(policies, getOrderKanbanOrderController)
+            ...bind(getOrderKanbanOrderController)
           );
         } catch (e) {
           sails.log.debug('OrderKanban order route bind error', e);
@@ -401,7 +403,7 @@ function processBindAdminpanel() {
           const orderKanbanStreamController = require('../lib/adminpanel/src/controller/order-kanban-stream').default;
           adminizer.app.get(
             `${routePrefix}/core/order-kanban/stream`,
-            adminizer.policyManager.bindPolicies(policies, orderKanbanStreamController)
+            ...bind(orderKanbanStreamController)
           );
         } catch (e) {
           sails.log.debug('OrderKanban stream route bind error', e);
@@ -412,7 +414,7 @@ function processBindAdminpanel() {
           const updateOrderKanbanStateController = require('../lib/adminpanel/src/controller/update-order-kanban-state').default;
           adminizer.app.post(
             `${routePrefix}/core/order-kanban/state`,
-            adminizer.policyManager.bindPolicies(policies, updateOrderKanbanStateController)
+            ...bind(updateOrderKanbanStateController)
           );
         } catch (e) {
           sails.log.debug('OrderKanban state route bind error', e);
@@ -423,7 +425,7 @@ function processBindAdminpanel() {
           const getNotificationsController = require('../lib/adminpanel/src/controller/get-notifications').default;
           adminizer.app.get(
             `${routePrefix}/core/notifications-manager/notifications`,
-            adminizer.policyManager.bindPolicies(policies, getNotificationsController)
+            ...bind(getNotificationsController)
           );
         } catch (e) {
           sails.log.debug('NotificationsManager list route bind error', e);
@@ -434,7 +436,7 @@ function processBindAdminpanel() {
           const getNotificationController = require('../lib/adminpanel/src/controller/get-notification').default;
           adminizer.app.get(
             `${routePrefix}/core/notifications-manager/notification`,
-            adminizer.policyManager.bindPolicies(policies, getNotificationController)
+            ...bind(getNotificationController)
           );
         } catch (e) {
           sails.log.debug('NotificationsManager notification route bind error', e);
@@ -445,7 +447,7 @@ function processBindAdminpanel() {
           const retryNotificationController = require('../lib/adminpanel/src/controller/retry-notification').default;
           adminizer.app.post(
             `${routePrefix}/core/notifications-manager/retry`,
-            adminizer.policyManager.bindPolicies(policies, retryNotificationController)
+            ...bind(retryNotificationController)
           );
         } catch (e) {
           sails.log.debug('NotificationsManager retry route bind error', e);
@@ -456,7 +458,7 @@ function processBindAdminpanel() {
           const escalateNotificationController = require('../lib/adminpanel/src/controller/escalate-notification').default;
           adminizer.app.post(
             `${routePrefix}/core/notifications-manager/escalate`,
-            adminizer.policyManager.bindPolicies(policies, escalateNotificationController)
+            ...bind(escalateNotificationController)
           );
         } catch (e) {
           sails.log.debug('NotificationsManager escalate route bind error', e);
@@ -467,7 +469,7 @@ function processBindAdminpanel() {
           const searchNotificationUsersController = require('../lib/adminpanel/src/controller/search-notification-users').default;
           adminizer.app.get(
             `${routePrefix}/core/notifications-manager/users`,
-            adminizer.policyManager.bindPolicies(policies, searchNotificationUsersController)
+            ...bind(searchNotificationUsersController)
           );
         } catch (e) {
           sails.log.debug('NotificationsManager users route bind error', e);
@@ -478,7 +480,7 @@ function processBindAdminpanel() {
           const createNotificationController = require('../lib/adminpanel/src/controller/create-notification').default;
           adminizer.app.post(
             `${routePrefix}/core/notifications-manager/create`,
-            adminizer.policyManager.bindPolicies(policies, createNotificationController)
+            ...bind(createNotificationController)
           );
         } catch (e) {
           sails.log.debug('NotificationsManager create route bind error', e);
@@ -489,7 +491,7 @@ function processBindAdminpanel() {
           const getNotificationChannelsController = require('../lib/adminpanel/src/controller/get-notification-channels').default;
           adminizer.app.get(
             `${routePrefix}/core/notifications-manager/channels`,
-            adminizer.policyManager.bindPolicies(policies, getNotificationChannelsController)
+            ...bind(getNotificationChannelsController)
           );
         } catch (e) {
           sails.log.debug('NotificationsManager channels route bind error', e);
@@ -513,27 +515,27 @@ function processBindAdminpanel() {
 
           adminizer.app.get(
             `${routePrefix}/settings-manager`,
-            adminizer.policyManager.bindPolicies(policies, settingsManagerController)
+            ...bind(settingsManagerController)
           );
 
           adminizer.app.get(
             `${routePrefix}/core/settings-manager/list`,
-            adminizer.policyManager.bindPolicies(policies, getSettingsController)
+            ...bind(getSettingsController)
           );
 
           adminizer.app.post(
             `${routePrefix}/core/settings-manager/update/:key`,
-            adminizer.policyManager.bindPolicies(policies, updateSettingController)
+            ...bind(updateSettingController)
           );
 
           adminizer.app.get(
             `${routePrefix}/core/settings-manager/export`,
-            adminizer.policyManager.bindPolicies(policies, exportSettingsController)
+            ...bind(exportSettingsController)
           );
 
           adminizer.app.post(
             `${routePrefix}/core/settings-manager/import`,
-            adminizer.policyManager.bindPolicies(policies, importSettingsController)
+            ...bind(importSettingsController)
           );
         } catch (e) {
           sails.log.debug('SettingsManager route bind error', e);
@@ -553,7 +555,7 @@ function processBindAdminpanel() {
 
           adminizer.app.get(
             `${routePrefix}/orders-report`,
-            adminizer.policyManager.bindPolicies(policies, ordersReportController)
+            ...bind(ordersReportController)
           );
         } catch (e) {
           sails.log.debug('OrdersReport route bind error', e);
@@ -564,7 +566,7 @@ function processBindAdminpanel() {
           const getOrdersReportDataController = require('../lib/adminpanel/src/controller/get-orders-report-data').default;
           adminizer.app.get(
             `${routePrefix}/core/orders-report/data`,
-            adminizer.policyManager.bindPolicies(policies, getOrdersReportDataController)
+            ...bind(getOrdersReportDataController)
           );
         } catch (e) {
           sails.log.debug('OrdersReport data route bind error', e);
