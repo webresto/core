@@ -11,7 +11,7 @@ function hasAccess(req: any, res: any): boolean {
   return true;
 }
 
-function mapUser(user: any) {
+function mapUser(user: any, deviceId?: string) {
   const phone = user?.phone && typeof user.phone === "object"
     ? `${user.phone.code || ""}${user.phone.number || ""}${user.phone.additionalNumber || ""}`
     : "";
@@ -22,6 +22,7 @@ function mapUser(user: any) {
     name: user?.name || user?.firstName || user?.email || user?.login || user?.id || "",
     phone,
     email: user?.email || "",
+    ...(deviceId ? { deviceId } : {}),
   };
 }
 
@@ -51,7 +52,22 @@ export default async function SearchNotificationUsersController(req: any, res: a
       return haystack.includes(q);
     });
 
-    return res.json({ results: filtered.slice(0, 10).map(mapUser) });
+    const results = filtered.slice(0, 10).map((user: any) => mapUser(user));
+
+    // Also resolve the query as a device id: a device is bound to its owner after
+    // login, so an operator can paste a device id to reach the user behind it.
+    const seen = new Set(results.map((item) => item.id));
+    const devices = await UserDevice.find({ where: { id: { contains: q } } })
+      .populate("user")
+      .limit(10);
+    for (const device of devices as any[]) {
+      const owner = device?.user && typeof device.user === "object" ? device.user : null;
+      if (!owner?.id || seen.has(owner.id)) continue;
+      seen.add(owner.id);
+      results.push(mapUser(owner, device.id));
+    }
+
+    return res.json({ results: results.slice(0, 10) });
   } catch (error) {
     sails.log.error("Search notification users error", error);
     return res.status(500).json({ error: String(error) });

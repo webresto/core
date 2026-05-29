@@ -177,7 +177,7 @@
 	"Search dishes...": "요리 검색...",
 	"Search logs": "로그 검색",
 	"Search Results": "검색결과",
-	"Search user by login, phone, email": "로그인, 전화, 이메일로 사용자 검색",
+	"Search user by login, phone, email, device id": "로그인, 전화, 이메일, 기기 ID로 사용자 검색",
 	"Select user": "사용자 선택",
 	"Selected": "선택된",
 	"Self-service": "셀프 서비스",
