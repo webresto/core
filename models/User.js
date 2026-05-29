@@ -374,9 +374,27 @@ let Model = {
         // TODO: getBalance BonusProgram
     },
     async authDevice(userId, deviceId, deviceName, userAgent, IP) {
-        let userDevice = await UserDevice.findOrCreate({ id: deviceId }, { id: deviceId, user: userId, name: deviceName });
-        // Need pass sessionId here for except parallels login with one name
-        return await UserDevice.updateOne({ id: userDevice.id }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
+        let userDevice = await UserDevice.findOne({ id: deviceId });
+        if (!userDevice) {
+            // Brand new device — create it already bound to the user that logs in
+            userDevice = await UserDevice.create({ id: deviceId, user: userId, name: deviceName }).fetch();
+        }
+        else if (!userDevice.user) {
+            // Empty (anonymous) device — e.g. created for guest push notifications before login. Bind it now.
+            await UserDevice.updateOne({ id: deviceId }).set({ user: userId });
+        }
+        else if (userDevice.user !== userId) {
+            // The device already belongs to ANOTHER user. Re-binding is forbidden by design.
+            // This must NOT throw — we only log it loudly and keep the original owner. We also do NOT touch
+            // the session fields here, otherwise we would overwrite the real owner's sessionId / isLoggedIn.
+            sails.log.error(`\n========================= [UserDevice] REBIND FORBIDDEN =========================\n` +
+                `Device [${deviceId}] is owned by user [${userDevice.user}], but user [${userId}] just logged in from it.\n` +
+                `Ownership is left UNCHANGED. A deviceId is expected to be unique per physical device.\n` +
+                `=================================================================================\n`);
+            return userDevice;
+        }
+        // Refresh the session for the current login (sessionId guards against parallel logins with one name)
+        return await UserDevice.updateOne({ id: deviceId }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });
     },
     /**
       check all active bonus programs for user

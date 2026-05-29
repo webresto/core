@@ -73,6 +73,14 @@ export interface PaymentDocumentRecord extends OptionalAll<attributes>, ORM {
 }
 declare let Model: {
     beforeCreate(paymentDocumentInit: PaymentDocumentRecord, cb: (err?: string) => void): void;
+    /**
+     * Cancel a pending PaymentDocument (status NEW/REGISTERED).
+     * Calls paymentAdapter.cancelPayment to revoke the payment in the external system,
+     * then sets status='CANCEL' locally.
+     * If the document is already finalized (PAID/REFUND/CANCEL/DECLINE) — no-op.
+     * Used to invalidate a payment link when the underlying basket changes.
+     */
+    cancel: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentRecord | undefined>;
     doCheck: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentRecord>;
     register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: object) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: () => void) => Promise<void>;

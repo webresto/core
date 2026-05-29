@@ -15,7 +15,8 @@ declare let attributes: {
     name: string;
     userAgent: string;
     isLoggedIn: boolean;
-    user: UserRecord | string;
+    /** Owner of the device. May be empty (null) — a device always exists, but it gets bound to a user only after login */
+    user: UserRecord | string | null;
     lastIP: string;
     loginTime: number;
     lastActivity: number;

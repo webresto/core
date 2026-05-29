@@ -11,9 +11,9 @@ let attributes = {
     name: 'string',
     userAgent: 'string',
     isLoggedIn: "boolean",
+    /** Owner of the device. May be empty (null) — a device always exists, but it gets bound to a user only after login */
     user: {
-        model: 'user',
-        required: true
+        model: 'user'
     },
     lastIP: "string",
     loginTime: { type: "number" },
@@ -32,8 +32,9 @@ let attributes = {
 let Model = {
     beforeUpdate(record, cb) {
         record.lastActivity = Date.now();
-        if (record.user)
-            delete record.user;
+        // NOTE: `user` is intentionally NOT stripped here anymore. Binding an empty
+        // device to a user (and the "rebind forbidden" rule) is handled centrally in
+        // `User.authDevice`. Stripping it here made it impossible to ever bind a device.
         if (record.isLoggedIn === false) {
             record.sessionId = null;
         }

@@ -220,6 +220,24 @@ declare let Model: {
     check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus, orderedOnPlatform?: string): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
+    /**
+     * Cancel any pending PaymentDocument attached to this order.
+     *
+     * Race scenario this protects against:
+     *   1. user clicks "pay" → order goes CHECKOUT, PaymentDocument is created,
+     *      user is redirected to the external payment gateway (e.g. YooKassa).
+     *   2. user comes back (other tab / browser back) and edits the basket.
+     *   3. gateway callback arrives later for an order whose total/contents have changed,
+     *      which is unsafe — the user paid for one basket, we'd ship another.
+     *
+     * Calling this before any basket-mutating operation invalidates the outstanding
+     * payment link so the only way forward is to register a new payment matching
+     * the new basket. If there is no pending PaymentDocument, this is a no-op.
+     *
+     * Errors from the underlying adapter cancel are propagated — callers MUST
+     * abort the basket mutation in that case (see addDish/removeDish/etc.).
+     */
+    cancelOrderPayment(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
     payment(criteria: CriteriaQuery<OrderRecord>): Promise<PaymentResponse>;
     clear(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
     /**
