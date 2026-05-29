@@ -273,5 +273,11 @@
 	"I'm not a robot": "Ich bin kein Roboter",
 	"Solving CAPTCHA...": "CAPTCHA wird gelöst...",
 	"Verification complete!": "Verifizierung abgeschlossen!",
-	"Error solving CAPTCHA. Try again.": "Fehler beim Lösen von CAPTCHA. Versuchen Sie es erneut."
+	"Error solving CAPTCHA. Try again.": "Fehler beim Lösen von CAPTCHA. Versuchen Sie es erneut.",
+	"No notification channels registered. You can find notification channels on the marketplace.": "No notification channels registered. You can find notification channels on the marketplace.",
+	"Find notification channels on the marketplace": "Find notification channels on the marketplace",
+	"Configure": "Configure",
+	"Operational": "Operational",
+	"Not configured": "Not configured",
+	"Not ready": "Not ready"
 }

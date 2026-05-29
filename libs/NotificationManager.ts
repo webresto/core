@@ -23,7 +23,6 @@
 
   The channel adapter itself should be an abstract class and will be checked by the notification manager.
  */
-
 import { UserRecord } from "../models/User";
 import { UserDeviceRecord } from "../models/UserDevice";
 
@@ -31,6 +30,18 @@ import { UserDeviceRecord } from "../models/UserDevice";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string
 type ChannelType = "sms" | "email" | "mobile-push" | string
+export type ChannelStatus = "ready" | "error" | string
+export type ChannelManagerState = {
+  enabled?: boolean
+  sortOrder?: number
+  cost?: number
+}
+type ChannelManagerStateMap = Record<string, ChannelManagerState>
+type ChannelSettingsUpdate = {
+  enabled?: boolean
+  sortOrder?: number
+  cost?: number
+}
 
 export type DeliveryStatus = {
   delivered: boolean
@@ -41,6 +52,8 @@ export type DeliveryStatus = {
 }
 
 const NOTIFICATION_CHANNELS_GLOBAL_KEY = "__restoappNotificationManagerChannels";
+const NOTIFICATION_CHANNELS_STATE_SETTING_KEY = "NOTIFICATION_CHANNELS_STATE";
+const NOTIFICATION_CHANNELS_STATE_SETTING = require("../settings/notification_channels_state.json");
 
 function getSharedChannelsRegistry(): Channel[] {
   const globalScope = globalThis as any;
@@ -52,6 +65,45 @@ function getSharedChannelsRegistry(): Channel[] {
 
 export abstract class Channel {
   public abstract type: ChannelType;
+
+  /**
+   * Channel-level status for admin diagnostics.
+   * Use "error" when the adapter detected a persistent channel problem.
+   */
+  public status: ChannelStatus = "ready";
+
+  /**
+   * Human-readable channel-level error for admin diagnostics.
+   * Keep null when there is no persistent channel problem.
+   */
+  public error: string | null = null;
+
+  /**
+   * Runtime switch stored on the channel instance in NotificationManager.channels.
+   * Disabled channels stay visible in admin, but are skipped by delivery.
+   */
+  public enabled: boolean = true;
+
+  public isEnabled(): boolean {
+    return this.enabled !== false;
+  }
+
+  public setEnabled(enabled: boolean): void {
+    this.enabled = enabled === true;
+  }
+
+  public setSortOrder(sortOrder: number): void {
+    this.sortOrder = sortOrder;
+  }
+
+  public setCost(cost: number): void {
+    this.cost = cost;
+  }
+
+  public setStatus(status: ChannelStatus, error: string | null = null): void {
+    this.status = status || "ready";
+    this.error = error;
+  }
 
   /**
    * If forceSend true it should send anytime (e.g. audit channels)
@@ -76,6 +128,24 @@ export abstract class Channel {
     return true;
   }
 
+  /**
+   * Whether the channel has the minimum settings filled in by the operator.
+   * Default: true (no setup required). Override when the adapter needs operator-provided
+   * credentials before it can be used — e.g. FCM service account, SMS API key.
+   * Distinct from isReady(): a channel can be configured but currently not operational.
+   */
+  public async isConfigured(): Promise<boolean> {
+    return true;
+  }
+
+  /**
+   * Admin-panel URL where the operator can finish configuring this channel.
+   * Returned to the channels overview so the UI can link directly to the settings page.
+   */
+  public getConfigUrl(): string | null {
+    return null;
+  }
+
   protected abstract send(
     badge: Badge,
     message: string,
@@ -93,11 +163,17 @@ export abstract class Channel {
     data?: object,
     priorityDevice?: UserDeviceRecord
   ): Promise<boolean> {
+    if (!this.isEnabled()) {
+      sails.log.verbose(`[NotificationManager] Channel ${this.type} disabled, skipping`);
+      return false;
+    }
     try {
       await this.send(badge, message, user, subject, data, priorityDevice);
+      this.setStatus("ready", null);
       sails.log.debug(`Notification manager > ${this.type}: ${badge}, ${message}, ${user}`);
       return true;
     } catch (error) {
+      this.setStatus("error", String(error));
       sails.log.error(`Failed to send message via ${this.type}. Error: ${error}`);
       sails.log.warn(`✉️ Notification manager > console: ${badge}, ${message}, ${user}`)
       return false;
@@ -114,6 +190,144 @@ export abstract class Channel {
 }
 
 export class NotificationManager {
+  public static readonly channelsStateSettingKey = NOTIFICATION_CHANNELS_STATE_SETTING_KEY;
+  private static channelsStateSettingsListenerBound = false;
+  private static channelsStateSettingDeclared = false;
+
+  private static getSettingsModel(): typeof Settings | null {
+    try {
+      if (typeof Settings !== "undefined") {
+        return Settings;
+      }
+    } catch (error) {
+      // Settings is a Sails global and can be unavailable during early imports.
+    }
+    return null;
+  }
+
+  private static declareChannelsStateSetting(): void {
+    const settingsModel = NotificationManager.getSettingsModel();
+    if (!settingsModel || NotificationManager.channelsStateSettingDeclared) return;
+
+    if (typeof settingsModel.setDeclaredSetting === "function") {
+      settingsModel.setDeclaredSetting(NOTIFICATION_CHANNELS_STATE_SETTING_KEY);
+    }
+    NotificationManager.channelsStateSettingDeclared = true;
+  }
+
+  private static normalizeChannelsState(value: unknown): ChannelManagerStateMap {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+
+    return Object.entries(value as Record<string, unknown>).reduce<ChannelManagerStateMap>((state, [type, raw]) => {
+      if (!type || !raw || typeof raw !== "object" || Array.isArray(raw)) return state;
+
+      const enabled = (raw as ChannelManagerState).enabled;
+      const sortOrder = Number((raw as ChannelManagerState).sortOrder);
+      const cost = Number((raw as ChannelManagerState).cost);
+      state[type] = {
+        ...(typeof enabled === "boolean" ? { enabled } : {}),
+        ...(Number.isFinite(sortOrder) ? { sortOrder } : {}),
+        ...(Number.isFinite(cost) ? { cost } : {}),
+      };
+      return state;
+    }, {});
+  }
+
+  private static applyChannelsState(state: ChannelManagerStateMap): void {
+    for (const channel of NotificationManager.channels) {
+      const channelState = state[channel.type];
+      if (!channelState) continue;
+      if (typeof channelState.enabled === "boolean") channel.setEnabled(channelState.enabled);
+      if (Number.isFinite(channelState.sortOrder)) channel.setSortOrder(Number(channelState.sortOrder));
+      if (Number.isFinite(channelState.cost)) channel.setCost(Number(channelState.cost));
+    }
+    NotificationManager.sortChannels();
+  }
+
+  private static getCurrentChannelsState(previousState: ChannelManagerStateMap = {}): ChannelManagerStateMap {
+    const state: ChannelManagerStateMap = { ...previousState };
+    for (const channel of NotificationManager.channels) {
+      state[channel.type] = {
+        ...(state[channel.type] || {}),
+        enabled: channel.isEnabled(),
+        sortOrder: channel.sortOrder,
+        cost: channel.cost,
+      };
+    }
+    return state;
+  }
+
+  private static sortChannels(): void {
+    NotificationManager.channels.sort((a, b) => {
+      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+      return a.cost - b.cost;
+    });
+  }
+
+  private static ensureChannelsStateSettingsListener(): void {
+    if (NotificationManager.channelsStateSettingsListenerBound) return;
+
+    try {
+      if (typeof emitter === "undefined") return;
+      emitter.on(`settings:${NOTIFICATION_CHANNELS_STATE_SETTING_KEY}`, "notification-manager-channels-state", (record: any) => {
+        const state = NotificationManager.normalizeChannelsState(record?.value ?? record?.defaultValue ?? {});
+        NotificationManager.applyChannelsState(state);
+      });
+      NotificationManager.channelsStateSettingsListenerBound = true;
+    } catch (error) {
+      sails.log.silly(`[NotificationManager] Unable to subscribe to channels state setting`, error);
+    }
+  }
+
+  public static async loadChannelsState(): Promise<void> {
+    const settingsModel = NotificationManager.getSettingsModel();
+    if (!settingsModel) return;
+
+    NotificationManager.declareChannelsStateSetting();
+    NotificationManager.ensureChannelsStateSettingsListener();
+
+    const value = await settingsModel.get(NOTIFICATION_CHANNELS_STATE_SETTING_KEY);
+    if (value === undefined) {
+      await NotificationManager.saveChannelsState();
+      return;
+    }
+    NotificationManager.applyChannelsState(NotificationManager.normalizeChannelsState(value));
+  }
+
+  public static async saveChannelsState(): Promise<void> {
+    const settingsModel = NotificationManager.getSettingsModel();
+    if (!settingsModel) return;
+
+    NotificationManager.declareChannelsStateSetting();
+    NotificationManager.ensureChannelsStateSettingsListener();
+
+    const existingState = NotificationManager.normalizeChannelsState(
+      await settingsModel.get(NOTIFICATION_CHANNELS_STATE_SETTING_KEY)
+    );
+    const state = NotificationManager.getCurrentChannelsState(existingState);
+
+    await settingsModel.set(NOTIFICATION_CHANNELS_STATE_SETTING_KEY, {
+      ...NOTIFICATION_CHANNELS_STATE_SETTING,
+      value: state,
+    });
+  }
+
+  public static async setChannelEnabled(channelType: string, enabled: boolean): Promise<Channel | null> {
+    return NotificationManager.setChannelSettings(channelType, { enabled });
+  }
+
+  public static async setChannelSettings(channelType: string, settings: ChannelSettingsUpdate): Promise<Channel | null> {
+    const channel = NotificationManager.channels.find((item) => item.type === channelType);
+    if (!channel) return null;
+
+    if (typeof settings.enabled === "boolean") channel.setEnabled(settings.enabled);
+    if (Number.isFinite(settings.sortOrder)) channel.setSortOrder(Number(settings.sortOrder));
+    if (Number.isFinite(settings.cost)) channel.setCost(Number(settings.cost));
+
+    NotificationManager.sortChannels();
+    await NotificationManager.saveChannelsState();
+    return channel;
+  }
 
   public static async sendMessageToDeliveryManager(badge: Badge, text: string): Promise<void> {
     // I apologize what delivery message channel is direct to manager, its reason to null user. Time will show
@@ -167,6 +381,12 @@ export class NotificationManager {
     for (const channel of this.channels) {
       if (!channel.forGroupTo.includes(groupTo)) continue;
       if (channelType && channel.type !== channelType) continue;
+      if (!channel.isEnabled()) continue;
+
+      if (!(await channel.isConfigured())) {
+        sails.log.verbose(`[NotificationManager] Channel ${channel.type} not configured, skipping`);
+        continue;
+      }
 
       if (!(await channel.isReady())) {
         sails.log.verbose(`[NotificationManager] Channel ${channel.type} not ready, skipping`);
@@ -200,9 +420,8 @@ export class NotificationManager {
 
   public static registerChannel = (channel: Channel): void => {
     NotificationManager.channels.push(channel);
-    NotificationManager.channels.sort((a, b) => {
-      if (a.cost !== b.cost) return a.cost - b.cost;  // бесплатные первыми
-      return a.sortOrder - b.sortOrder;               // внутри группы по sortOrder
-    });
+    NotificationManager.sortChannels();
+    NotificationManager.ensureChannelsStateSettingsListener();
+    void NotificationManager.loadChannelsState();
   };
 }

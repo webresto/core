@@ -273,5 +273,11 @@
 	"I'm not a robot": "Tôi không phải là robot",
 	"Solving CAPTCHA...": "Đang giải CAPTCHA...",
 	"Verification complete!": "Xác minh hoàn tất!",
-	"Error solving CAPTCHA. Try again.": "Lỗi khi giải CAPTCHA. Vui lòng thử lại."
+	"Error solving CAPTCHA. Try again.": "Lỗi khi giải CAPTCHA. Vui lòng thử lại.",
+	"No notification channels registered. You can find notification channels on the marketplace.": "No notification channels registered. You can find notification channels on the marketplace.",
+	"Find notification channels on the marketplace": "Find notification channels on the marketplace",
+	"Configure": "Configure",
+	"Operational": "Operational",
+	"Not configured": "Not configured",
+	"Not ready": "Not ready"
 }

@@ -273,5 +273,11 @@
 	"I'm not a robot": "저는 로봇이 아닙니다",
 	"Solving CAPTCHA...": "CAPTCHA 해결 중...",
 	"Verification complete!": "인증이 완료되었습니다!",
-	"Error solving CAPTCHA. Try again.": "CAPTCHA 해결 중 오류가 발생했습니다. 다시 시도하세요."
+	"Error solving CAPTCHA. Try again.": "CAPTCHA 해결 중 오류가 발생했습니다. 다시 시도하세요.",
+	"No notification channels registered. You can find notification channels on the marketplace.": "No notification channels registered. You can find notification channels on the marketplace.",
+	"Find notification channels on the marketplace": "Find notification channels on the marketplace",
+	"Configure": "Configure",
+	"Operational": "Operational",
+	"Not configured": "Not configured",
+	"Not ready": "Not ready"
 }

@@ -273,5 +273,11 @@
 	"I'm not a robot": "ฉันไม่ใช่หุ่นยนต์",
 	"Solving CAPTCHA...": "กำลังแก้ CAPTCHA...",
 	"Verification complete!": "ยืนยันเสร็จสมบูรณ์!",
-	"Error solving CAPTCHA. Try again.": "เกิดข้อผิดพลาดในการแก้ CAPTCHA กรุณาลองอีกครั้ง"
+	"Error solving CAPTCHA. Try again.": "เกิดข้อผิดพลาดในการแก้ CAPTCHA กรุณาลองอีกครั้ง",
+	"No notification channels registered. You can find notification channels on the marketplace.": "No notification channels registered. You can find notification channels on the marketplace.",
+	"Find notification channels on the marketplace": "Find notification channels on the marketplace",
+	"Configure": "Configure",
+	"Operational": "Operational",
+	"Not configured": "Not configured",
+	"Not ready": "Not ready"
 }

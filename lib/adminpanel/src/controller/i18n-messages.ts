@@ -32,6 +32,16 @@ function loadLocale(locale: string): Record<string, string> {
   return CACHE[normalized];
 }
 
+function loadRuntimeLocale(locale: string): Record<string, string> {
+  try {
+    const locales = sails?.hooks?.i18n?.getLocales?.();
+    const messages = locales?.[locale];
+    return messages && typeof messages === "object" ? messages : {};
+  } catch (_error) {
+    return {};
+  }
+}
+
 export function resolveAdminpanelLocale(rawLocale: unknown): string {
   const available = new Set(getAvailableLocales());
   const value = String(rawLocale || "").trim().toLowerCase().replace(/_/g, "-");
@@ -47,7 +57,9 @@ export function resolveAdminpanelLocale(rawLocale: unknown): string {
 export function getAdminpanelMessages(locale: string): Record<string, string> {
   return {
     ...loadLocale("en"),
+    ...loadRuntimeLocale("en"),
     ...loadLocale(locale),
+    ...loadRuntimeLocale(locale),
   };
 }
 

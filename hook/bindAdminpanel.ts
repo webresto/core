@@ -506,9 +506,14 @@ function processBindAdminpanel() {
         // API route for notification channels overview
         try {
           const getNotificationChannelsController = require('../lib/adminpanel/src/controller/get-notification-channels').default;
+          const updateNotificationChannelSettingsController = require('../lib/adminpanel/src/controller/update-notification-channel-settings').default;
           adminizer.app.get(
             `${routePrefix}/core/notifications-manager/channels`,
             ...bind(getNotificationChannelsController)
+          );
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/channel-settings`,
+            ...bind(updateNotificationChannelSettingsController)
           );
         } catch (e) {
           sails.log.debug('NotificationsManager channels route bind error', e);

@@ -24,7 +24,8 @@ export class NotificationDispatcher {
     data?: object,
     badge: "info" | "error" = "info",
     priorityDevice?: UserDeviceRecord,
-    groupToOverride?: "user" | "manager"
+    groupToOverride?: "user" | "manager",
+    channelTypes?: string[]
   ): Promise<void> {
     const groupTo = groupToOverride || (user ? "user" : "manager");
     const notification = await Notification.create({
@@ -37,7 +38,7 @@ export class NotificationDispatcher {
       status: "pending",
     }).fetch();
 
-    await NotificationDispatcher._deliver(notification, priorityDevice);
+    await NotificationDispatcher._deliver(notification, priorityDevice, channelTypes);
 
     // Emitter — только для наблюдателей (WebSocket, логи, аналитика)
     // Потеря события при рестарте не критична
@@ -48,10 +49,13 @@ export class NotificationDispatcher {
    * Internal delivery method. Called both on send() and on recovery/retry.
    * priorityDevice is not stored in DB — not available on recovery.
    */
-  static async _deliver(notification: NotificationRecord, priorityDevice?: UserDeviceRecord): Promise<void> {
+  static async _deliver(notification: NotificationRecord, priorityDevice?: UserDeviceRecord, channelTypes?: string[]): Promise<void> {
     const successChannels: NotificationChannelEntry[] = [];
     const { groupTo } = notification;
     const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
+    const allowedChannelTypes = Array.isArray(channelTypes) && channelTypes.length > 0
+      ? new Set(channelTypes.map((item) => String(item)))
+      : null;
 
     let spentCost = 0;
 
@@ -68,7 +72,13 @@ export class NotificationDispatcher {
       const priorityChannel = NotificationManager.channels.find(
         (ch) => ch.type === provider && ch.forGroupTo.includes(groupTo)
       );
-      if (priorityChannel && (await priorityChannel.isReady())) {
+      if (
+        priorityChannel &&
+        (!allowedChannelTypes || allowedChannelTypes.has(priorityChannel.type)) &&
+        priorityChannel.isEnabled() &&
+        (await priorityChannel.isConfigured()) &&
+        (await priorityChannel.isReady())
+      ) {
         const ok = await priorityChannel.trySendMessage(
           notification.badge,
           notification.body,
@@ -90,6 +100,9 @@ export class NotificationDispatcher {
 
     for (const channel of NotificationManager.channels) {
       if (!channel.forGroupTo.includes(groupTo)) continue;
+      if (allowedChannelTypes && !allowedChannelTypes.has(channel.type)) continue;
+      if (!channel.isEnabled()) continue;
+      if (!(await channel.isConfigured())) continue;
       if (!(await channel.isReady())) continue;
       if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
 
@@ -213,6 +226,8 @@ export class NotificationDispatcher {
     for (const channel of NotificationManager.channels) {
       if (!channel.forGroupTo.includes(groupTo)) continue;
       if (usedTypes.has(channel.type)) continue;
+      if (!channel.isEnabled()) continue;
+      if (!(await channel.isConfigured())) continue;
       if (!(await channel.isReady())) continue;
       if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
 

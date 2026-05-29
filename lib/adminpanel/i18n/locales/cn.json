@@ -273,5 +273,11 @@
 	"I'm not a robot": "我不是机器人",
 	"Solving CAPTCHA...": "正在解决 CAPTCHA...",
 	"Verification complete!": "验证完成！",
-	"Error solving CAPTCHA. Try again.": "解决 CAPTCHA 时出错。请重试。"
+	"Error solving CAPTCHA. Try again.": "解决 CAPTCHA 时出错。请重试。",
+	"No notification channels registered. You can find notification channels on the marketplace.": "No notification channels registered. You can find notification channels on the marketplace.",
+	"Find notification channels on the marketplace": "Find notification channels on the marketplace",
+	"Configure": "Configure",
+	"Operational": "Operational",
+	"Not configured": "Not configured",
+	"Not ready": "Not ready"
 }
