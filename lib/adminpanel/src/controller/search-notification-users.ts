@@ -29,29 +29,52 @@ export default async function SearchNotificationUsersController(req: any, res: a
   try {
     if (!hasAccess(req, res)) return;
 
-    const q = String(req.query.q || "").trim().toLowerCase();
+    const raw = String(req.query.q || "").trim();
+    const q = raw.toLowerCase();
     if (!q || q.length < 2) {
       return res.json({ results: [] });
     }
 
-    const users = await User.find({}).limit(50);
-    const filtered = users.filter((user: any) => {
-      const phone = user?.phone && typeof user.phone === "object"
-        ? `${user.phone.code || ""}${user.phone.number || ""}${user.phone.additionalNumber || ""}`
-        : "";
-      const haystack = [
-        user?.id,
-        user?.login,
-        user?.name,
-        user?.firstName,
-        user?.lastName,
-        user?.email,
-        phone,
-      ].map((item) => String(item || "").toLowerCase()).join(" ");
-      return haystack.includes(q);
-    });
+    // Filter at the DB level so users beyond the first page are still found.
+    // Text fields are matched with `contains`; phone is JSON so it is matched
+    // in memory below.
+    const textMatches: any[] = await User.find({
+      where: {
+        or: [
+          { login: { contains: raw } },
+          { name: { contains: raw } },
+          { firstName: { contains: raw } },
+          { lastName: { contains: raw } },
+          { email: { contains: raw } },
+        ],
+      },
+    }).limit(50);
 
-    return res.json({ results: filtered.slice(0, 10).map(mapUser) });
+    // Phone is stored as JSON and cannot be queried with `contains`, so for the
+    // phone case we scan users and match the concatenated phone string.
+    const digits = raw.replace(/\D/g, "");
+    let phoneMatches: any[] = [];
+    if (digits.length >= 2) {
+      const all: any[] = await User.find({});
+      phoneMatches = all.filter((user: any) => {
+        const phone = user?.phone && typeof user.phone === "object"
+          ? `${user.phone.code || ""}${user.phone.number || ""}${user.phone.additionalNumber || ""}`
+          : "";
+        return phone.replace(/\D/g, "").includes(digits);
+      });
+    }
+
+    // Merge and de-duplicate by id, preserving order (text matches first).
+    const seen = new Set<any>();
+    const merged: any[] = [];
+    for (const user of [...textMatches, ...phoneMatches]) {
+      if (user && !seen.has(user.id)) {
+        seen.add(user.id);
+        merged.push(user);
+      }
+    }
+
+    return res.json({ results: merged.slice(0, 10).map(mapUser) });
   } catch (error) {
     sails.log.error("Search notification users error", error);
     return res.status(500).json({ error: String(error) });
