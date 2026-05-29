@@ -177,7 +177,7 @@
 	"Search dishes...": "ค้นหาอาหาร...",
 	"Search logs": "ค้นหาบันทึก",
 	"Search Results": "ผลการค้นหา",
-	"Search user by login, phone, email": "ค้นหาผู้ใช้โดยการเข้าสู่ระบบ โทรศัพท์ อีเมล",
+	"Search user by login, phone, email, device id": "ค้นหาผู้ใช้โดยการเข้าสู่ระบบ โทรศัพท์ อีเมล รหัสอุปกรณ์",
 	"Select user": "เลือกผู้ใช้",
 	"Selected": "เลือกแล้ว",
 	"Self-service": "บริการตนเอง",
