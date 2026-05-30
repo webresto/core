@@ -31,8 +31,10 @@ declare let attributes: {
     groupTo: "user" | "manager";
     /** Timestamp прочтения (ms), null пока не прочитано */
     readAt: number | null;
-    /** Каналы доставки с деталями: тип, стоимость, время отправки */
+    /** Каналы доставки с деталями: тип, стоимость, время отправки (фактически отправленные) */
     channels: NotificationChannelEntry[];
+    /** Типы каналов, выбранные для доставки при создании уведомления */
+    requestedChannels: string[];
     /**
      * Суммарная стоимость всех каналов, через которые было отправлено уведомление.
      * Накапливается при доставке и эскалациях. 0 = только бесплатные каналы.
@@ -52,6 +54,6 @@ declare let Model: {
     log(criteria: CriteriaQuery<NotificationRecord>, level: NotificationLogLevel, module: string, message: string, ...data: any[]): Promise<void>;
 };
 declare global {
-    const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "logs" | "spentCost">;
+    const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost">;
 }
 export {};

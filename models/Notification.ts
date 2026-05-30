@@ -63,8 +63,11 @@ let attributes = {
     allowNull: true,
   } as unknown as number | null,
 
-  /** Каналы доставки с деталями: тип, стоимость, время отправки */
+  /** Каналы доставки с деталями: тип, стоимость, время отправки (фактически отправленные) */
   channels: "json" as unknown as NotificationChannelEntry[],
+
+  /** Типы каналов, выбранные для доставки при создании уведомления */
+  requestedChannels: "json" as unknown as string[],
 
   /**
    * Суммарная стоимость всех каналов, через которые было отправлено уведомление.
@@ -117,5 +120,5 @@ module.exports = {
 };
 
 declare global {
-  const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "logs" | "spentCost">;
+  const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost">;
 }

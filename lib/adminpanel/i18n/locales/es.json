@@ -120,6 +120,7 @@
 	"No keys selected for import": "No hay claves seleccionadas para importar",
 	"No logs found": "No se encontraron registros",
 	"No logs yet": "Aún no hay registros",
+	"Requested channels": "Canales seleccionados",
 	"No notification channels registered": "No hay canales de notificación registrados",
 	"No notifications found": "No se encontraron notificaciones",
 	"No orders": "Sin pedidos",
@@ -279,5 +280,8 @@
 	"Configure": "Configure",
 	"Operational": "Operational",
 	"Not configured": "Not configured",
-	"Not ready": "Not ready"
+	"Not ready": "Not ready",
+	"Device": "Device",
+	"Device not found": "Device not found",
+	"Device has no notification token": "Device has no notification token"
 }

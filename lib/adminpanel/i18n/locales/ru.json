@@ -127,6 +127,7 @@
 	"No keys selected for import": "Не выбраны ключи для импорта",
 	"No logs found": "Логи не найдены",
 	"No logs yet": "Журналов пока нет",
+	"Requested channels": "Выбранные каналы",
 	"No available notification channels for selected group": "Нет доступных каналов уведомлений для выбранной группы",
 	"No available notification channels for selected target": "Нет доступных каналов уведомлений для выбранной цели",
 	"No notification channels registered": "Каналы уведомлений не зарегистрированы",
@@ -195,7 +196,7 @@
 	"Search dishes...": "Поиск блюд...",
 	"Search logs": "Поиск по логам",
 	"Search Results": "Результаты поиска",
-	"Search user by login, phone, email, device id": "Поиск пользователя по логину, телефону, электронной почте, ID устройства",
+	"Search user by login, phone, email, device id": "Поиск: пользователь (логин, телефон, e-mail), ID устройства или корзина (ID заказа / краткий номер)",
 	"Select user": "Выберите пользователя",
 	"Selected": "Выбрано",
 	"Selected user": "Выбранный пользователь",
@@ -357,5 +358,8 @@
 	"Send messages and review delivery history in separate notification sections.": "Отправка сообщений и просмотр истории доставки разделены по отдельным разделам уведомлений.",
 	"Manage delivery channels and their routing settings.": "Управление каналами доставки и настройками маршрутизации.",
 	"Prepare the recipient, message content, and optional JSON payload before sending.": "Подготовьте получателя, текст сообщения и необязательный JSON перед отправкой.",
-	"Search sent notifications, check delivery status, and inspect details.": "Ищите отправленные уведомления, проверяйте статус доставки и детали."
+	"Search sent notifications, check delivery status, and inspect details.": "Ищите отправленные уведомления, проверяйте статус доставки и детали.",
+	"Device": "Устройство",
+	"Device not found": "Устройство не найдено",
+	"Device has no notification token": "У устройства нет токена уведомлений"
 }

@@ -97,8 +97,36 @@ function channelNameWithAdapter(channel, t) {
   return `${channelLabel(channel, t)} (${adapter})`;
 }
 
+function formatTargetTimestamp(value) {
+  if (!value) return '';
+  const ms = typeof value === 'number' ? (value < 1e12 ? value * 1000 : value) : Date.parse(value);
+  if (!ms || Number.isNaN(ms)) return '';
+  try { return new Date(ms).toLocaleString(); } catch { return ''; }
+}
+
 function formatUserOption(user) {
   if (!user) return '';
+
+  // Корзина: показываем shortId, состояние, дату и устройство
+  if (user.kind === 'cart') {
+    const parts = [`🛒 ${user.shortId || user.orderId || ''}`];
+    if (user.state) parts.push(user.state);
+    const created = formatTargetTimestamp(user.createdAt);
+    if (created) parts.push(created);
+    if (user.deviceId) parts.push(`📱${user.deviceId}`);
+    if (!user.userId) parts.push('гость');
+    return parts.join(' · ');
+  }
+
+  // Устройство (гостевое): показываем имя, последнюю активность
+  if (user.kind === 'device') {
+    const parts = [`📱 ${user.name || user.deviceId || ''}`];
+    const active = formatTargetTimestamp(user.lastActivity);
+    if (active) parts.push(`акт. ${active}`);
+    if (!user.hasToken) parts.push('без токена');
+    return parts.join(' · ');
+  }
+
   const parts = [];
   if (user.name) parts.push(user.name);
   if (user.phone) parts.push(user.phone);
@@ -410,7 +438,11 @@ function NotificationsManagerContent() {
 
   const submitCreate = async () => {
     setError('');
-    if (createGroupTo === 'user' && !selectedUser?.id) {
+    // Корзина/устройство адресуются по deviceId и не требуют userId
+    const isDeviceTarget = createGroupTo === 'user'
+      && (selectedUser?.kind === 'cart' || selectedUser?.kind === 'device')
+      && selectedUser?.deviceId;
+    if (createGroupTo === 'user' && !isDeviceTarget && !selectedUser?.id) {
       setError(t('Choose a user for user-targeted notification'));
       return;
     }
@@ -435,7 +467,16 @@ function NotificationsManagerContent() {
     try {
       const response = await notificationsApi('/core/notifications-manager/create', {
         method: 'POST',
-        body: JSON.stringify({ groupTo: createGroupTo, userId: createGroupTo === 'user' ? selectedUser?.id : null, title: createTitle, body: createBody, badge: createBadge, data: parsedPayload, channelTypes: createChannelTypes }),
+        body: JSON.stringify({
+          groupTo: createGroupTo,
+          userId: createGroupTo === 'user' && !isDeviceTarget ? selectedUser?.id : null,
+          deviceId: isDeviceTarget ? selectedUser.deviceId : null,
+          title: createTitle,
+          body: createBody,
+          badge: createBadge,
+          data: parsedPayload,
+          channelTypes: createChannelTypes,
+        }),
       });
       if (!response.ok) throw new Error(response.payload?.error || 'Failed to create notification');
       setCreateTitle(''); setCreateBody(''); setCreateBadge('info'); setCreatePayload('');
@@ -588,9 +629,13 @@ function NotificationsManagerContent() {
                         {userOptions.length === 0 ? (
                           <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--muted-foreground)' }}>{t('No users found')}</div>
                         ) : userOptions.map((user) => (
-                          <button key={user.id} type="button" onMouseDown={() => { setSelectedUser(user); setCreateUserQuery(formatUserOption(user)); setShowUserAutocomplete(false); }}
+                          <button key={`${user.kind || 'user'}-${user.id}`} type="button" onMouseDown={() => { setSelectedUser(user); setCreateUserQuery(formatUserOption(user)); setShowUserAutocomplete(false); }}
                             style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 12px', border: 'none', borderTop: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', cursor: 'pointer' }}>
-                            <div style={{ fontSize: 13 }}>{user.name || user.login || user.id}</div>
+                            <div style={{ fontSize: 13 }}>
+                              {user.kind === 'cart' ? `🛒 ${t('Cart')} ${user.shortId || user.orderId || ''}`
+                                : user.kind === 'device' ? `📱 ${t('Device')} ${user.name || user.deviceId || ''}`
+                                : (user.name || user.login || user.id)}
+                            </div>
                             <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{formatUserOption(user)}</div>
                           </button>
                         ))}
@@ -882,6 +927,7 @@ function NotificationsManagerContent() {
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Read at')}:</strong> {selectedNotification.readAt ? formatDateTime(selectedNotification.readAt, language) : '—'}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('User')}:</strong> {selectedNotification.user?.name || t('Manager broadcast')}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>ID:</strong> {selectedNotification.id}</div>
+                  <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: 'var(--foreground)' }}>{t('Requested channels')}:</strong> {Array.isArray(selectedNotification.requestedChannels) && selectedNotification.requestedChannels.length > 0 ? selectedNotification.requestedChannels.join(', ') : '—'}</div>
                 </div>
 
                 {Array.isArray(selectedNotification.channels) && selectedNotification.channels.length > 0 && (

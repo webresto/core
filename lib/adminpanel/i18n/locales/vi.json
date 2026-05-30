@@ -120,6 +120,7 @@
 	"No keys selected for import": "Chưa chọn khóa để import",
 	"No logs found": "Không tìm thấy log",
 	"No logs yet": "Chưa có nhật ký nào",
+	"Requested channels": "Kênh đã chọn",
 	"No notification channels registered": "Không có kênh thông báo nào được đăng ký",
 	"No notifications found": "Không tìm thấy thông báo nào",
 	"No orders": "Không có đơn đặt hàng",
@@ -279,5 +280,8 @@
 	"Configure": "Configure",
 	"Operational": "Operational",
 	"Not configured": "Not configured",
-	"Not ready": "Not ready"
+	"Not ready": "Not ready",
+	"Device": "Device",
+	"Device not found": "Device not found",
+	"Device has no notification token": "Device has no notification token"
 }

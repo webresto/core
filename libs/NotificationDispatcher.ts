@@ -27,7 +27,12 @@ export class NotificationDispatcher {
     groupToOverride?: "user" | "manager",
     channelTypes?: string[]
   ): Promise<void> {
-    const groupTo = groupToOverride || (user ? "user" : "manager");
+    // priorityDevice без user — это адресная доставка на конкретное устройство
+    // (напр. уведомление по гостевой корзине через order.deviceId), а не manager-broadcast
+    const groupTo = groupToOverride || (user || priorityDevice ? "user" : "manager");
+    const requestedChannels = Array.isArray(channelTypes)
+      ? Array.from(new Set(channelTypes.map((item) => String(item || "").trim()).filter(Boolean)))
+      : [];
     const notification = await Notification.create({
       user: user ? (typeof user === "string" ? user : user.id) : null,
       title,
@@ -36,6 +41,7 @@ export class NotificationDispatcher {
       badge,
       groupTo,
       status: "pending",
+      requestedChannels,
     }).fetch();
 
     await NotificationDispatcher._deliver(notification, priorityDevice, channelTypes);
@@ -52,6 +58,14 @@ export class NotificationDispatcher {
   static async _deliver(notification: NotificationRecord, priorityDevice?: UserDeviceRecord, channelTypes?: string[]): Promise<void> {
     const successChannels: NotificationChannelEntry[] = [];
     const { groupTo } = notification;
+
+    // notification.user приходит из БД как id-строка; каналам нужен объект с .id.
+    // Популируем здесь, чтобы и обычная (recovery/retry), и device-доставка работали единообразно.
+    if (notification.user && typeof notification.user === "string") {
+      const populatedUser = await User.findOne({ id: notification.user });
+      if (populatedUser) notification.user = populatedUser as any;
+    }
+
     const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
     const allowedChannelTypes = Array.isArray(channelTypes) && channelTypes.length > 0
       ? new Set(channelTypes.map((item) => String(item)))
@@ -79,6 +93,7 @@ export class NotificationDispatcher {
         (await priorityChannel.isConfigured()) &&
         (await priorityChannel.isReady())
       ) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Attempting delivery via priority channel ${priorityChannel.type}`);
         const ok = await priorityChannel.trySendMessage(
           notification.badge,
           notification.body,
@@ -88,6 +103,7 @@ export class NotificationDispatcher {
           priorityDevice
         );
         if (ok) {
+          await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered via priority channel ${priorityChannel.type}, cost: ${priorityChannel.cost}`);
           await Notification.updateOne({ id: notification.id }).set({
             status: "sent",
             channels: [{ type: priorityChannel.type, cost: priorityChannel.cost, sentAt: Date.now() }],
@@ -95,6 +111,7 @@ export class NotificationDispatcher {
           });
           return;
         }
+        await Notification.log({ id: notification.id! }, "warn", "delivery", `Priority channel ${priorityChannel.type} failed to send: ${priorityChannel.error || "unknown error"}`);
       }
     }
 
@@ -105,6 +122,8 @@ export class NotificationDispatcher {
       if (!(await channel.isConfigured())) continue;
       if (!(await channel.isReady())) continue;
       if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
+
+      await Notification.log({ id: notification.id! }, "info", "delivery", `Attempting delivery via channel ${channel.type}`);
 
       const ok = await channel.trySendMessage(
         notification.badge,
@@ -118,8 +137,15 @@ export class NotificationDispatcher {
       if (ok) {
         successChannels.push({ type: channel.type, cost: channel.cost, sentAt: Date.now() });
         spentCost += channel.cost;
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered via channel ${channel.type}, cost: ${channel.cost}`);
         if (channel.forceSend !== true) break;
+      } else {
+        await Notification.log({ id: notification.id! }, "warn", "delivery", `Channel ${channel.type} failed to send: ${channel.error || "unknown error"}`);
       }
+    }
+
+    if (successChannels.length === 0) {
+      await Notification.log({ id: notification.id! }, "error", "delivery", "Notification was not sent: no channel delivered the message");
     }
 
     await Notification.updateOne({ id: notification.id }).set({

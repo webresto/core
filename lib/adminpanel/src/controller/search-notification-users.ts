@@ -17,12 +17,40 @@ function mapUser(user: any, deviceId?: string) {
     : "";
 
   return {
+    kind: "user",
     id: user?.id,
     login: user?.login || "",
     name: user?.name || user?.firstName || user?.email || user?.login || user?.id || "",
     phone,
     email: user?.email || "",
     ...(deviceId ? { deviceId } : {}),
+  };
+}
+
+// Корзина как таргет: адресуется по устройству (order.deviceId), даже без user.
+function mapCart(order: any) {
+  return {
+    kind: "cart",
+    id: order?.id,
+    orderId: order?.id,
+    shortId: order?.shortId || "",
+    state: order?.state || "",
+    deviceId: order?.deviceId || "",
+    userId: typeof order?.user === "string" ? order.user : (order?.user?.id || ""),
+    createdAt: order?.createdAt || null,
+  };
+}
+
+// Устройство как таргет: адресуется по UserDevice.id напрямую.
+function mapDevice(device: any) {
+  return {
+    kind: "device",
+    id: device?.id,
+    deviceId: device?.id,
+    name: device?.name || "",
+    userId: typeof device?.user === "string" ? device.user : (device?.user?.id || ""),
+    lastActivity: device?.lastActivity || null,
+    hasToken: Boolean(device?.notificationToken),
   };
 }
 
@@ -81,12 +109,36 @@ export default async function SearchNotificationUsersController(req: any, res: a
       .limit(10);
     for (const device of devices as any[]) {
       const owner = device?.user && typeof device.user === "object" ? device.user : null;
-      if (!owner?.id || seen.has(owner.id)) continue;
-      seen.add(owner.id);
-      results.push(mapUser(owner, device.id));
+      if (owner?.id) {
+        // Устройство с владельцем → показываем пользователя (как раньше)
+        if (seen.has(owner.id)) continue;
+        seen.add(owner.id);
+        results.push(mapUser(owner, device.id));
+      } else {
+        // Гостевое устройство без владельца → можно слать прямо на него
+        results.push(mapDevice(device));
+      }
     }
 
-    return res.json({ results: results.slice(0, 10) });
+    // Resolve the query as a cart/order: an operator can paste an order id or
+    // shortId to send a notification straight to the device that cart was
+    // processed on (works even for anonymous carts without a user).
+    const OrderModel = (globalThis as any).Order;
+    const orders = await OrderModel.find({
+      where: {
+        or: [
+          { id: { contains: raw } },
+          { shortId: { contains: raw.toUpperCase() } },
+        ],
+      },
+      limit: 10,
+    });
+    for (const order of orders as any[]) {
+      if (!order?.deviceId) continue; // без устройства слать некуда
+      results.push(mapCart(order));
+    }
+
+    return res.json({ results: results.slice(0, 15) });
   } catch (error) {
     sails.log.error("Search notification users error", error);
     return res.status(500).json({ error: String(error) });

@@ -127,6 +127,7 @@
 	"No keys selected for import": "No keys selected for import",
 	"No logs found": "No logs found",
 	"No logs yet": "No logs yet",
+	"Requested channels": "Requested channels",
 	"No available notification channels for selected group": "No available notification channels for selected group",
 	"No available notification channels for selected target": "No available notification channels for selected target",
 	"No notification channels registered": "No notification channels registered",
@@ -195,7 +196,7 @@
 	"Search dishes...": "Search dishes...",
 	"Search logs": "Search logs",
 	"Search Results": "Search Results",
-	"Search user by login, phone, email, device id": "Search user by login, phone, email, device id",
+	"Search user by login, phone, email, device id": "Search by user (login, phone, email), device id, or cart (order id / short id)",
 	"Select user": "Select user",
 	"Selected": "Selected",
 	"Selected user": "Selected user",
@@ -307,5 +308,8 @@
 	"Send messages and review delivery history in separate notification sections.": "Send messages and review delivery history in separate notification sections.",
 	"Manage delivery channels and their routing settings.": "Manage delivery channels and their routing settings.",
 	"Prepare the recipient, message content, and optional JSON payload before sending.": "Prepare the recipient, message content, and optional JSON payload before sending.",
-	"Search sent notifications, check delivery status, and inspect details.": "Search sent notifications, check delivery status, and inspect details."
+	"Search sent notifications, check delivery status, and inspect details.": "Search sent notifications, check delivery status, and inspect details.",
+	"Device": "Device",
+	"Device not found": "Device not found",
+	"Device has no notification token": "Device has no notification token"
 }

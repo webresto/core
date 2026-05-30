@@ -120,6 +120,7 @@
 	"No keys selected for import": "未选择要导入的键",
 	"No logs found": "未找到日志",
 	"No logs yet": "还没有日志",
+	"Requested channels": "所选渠道",
 	"No notification channels registered": "没有注册通知渠道",
 	"No notifications found": "没有找到通知",
 	"No orders": "暂无订单",
@@ -279,5 +280,8 @@
 	"Configure": "Configure",
 	"Operational": "Operational",
 	"Not configured": "Not configured",
-	"Not ready": "Not ready"
+	"Not ready": "Not ready",
+	"Device": "Device",
+	"Device not found": "Device not found",
+	"Device has no notification token": "Device has no notification token"
 }

@@ -21,6 +21,7 @@ export default async function CreateNotificationController(req: any, res: any) {
 
     const {
       userId,
+      deviceId,
       groupTo,
       title,
       body,
@@ -29,7 +30,12 @@ export default async function CreateNotificationController(req: any, res: any) {
       channelTypes,
     } = req.body || {};
 
-    const normalizedGroupTo = String(groupTo || "user").trim().toLowerCase();
+    const normalizedDeviceId = String(deviceId || "").trim();
+    // Отправка прямо на устройство (корзина/гостевой девайс): адресуется как "user"-доставка,
+    // но без обязательного userId — push уходит на конкретный UserDevice.
+    const normalizedGroupTo = normalizedDeviceId
+      ? "user"
+      : String(groupTo || "user").trim().toLowerCase();
     const normalizedTitle = String(title || "").trim();
     const normalizedBody = String(body || "").trim();
     const normalizedBadge = String(badge || "info").trim().toLowerCase();
@@ -86,7 +92,21 @@ export default async function CreateNotificationController(req: any, res: any) {
     }
 
     let user: any = null;
-    if (normalizedGroupTo === "user") {
+    let priorityDevice: any = undefined;
+
+    if (normalizedDeviceId) {
+      // Таргет — корзина/устройство: шлём на конкретный UserDevice по его id.
+      const UserDeviceModel = (globalThis as any).UserDevice;
+      priorityDevice = await UserDeviceModel.findOne({ id: normalizedDeviceId }).populate("user");
+      if (!priorityDevice) {
+        return res.status(404).json({ error: t("Device not found") });
+      }
+      if (!priorityDevice.notificationToken) {
+        return res.status(400).json({ error: t("Device has no notification token") });
+      }
+      // Если устройство привязано к пользователю — используем его (для истории/ссылок).
+      user = priorityDevice.user && typeof priorityDevice.user === "object" ? priorityDevice.user : null;
+    } else if (normalizedGroupTo === "user") {
       const normalizedUserId = String(userId || "").trim();
       if (!normalizedUserId) {
         return res.status(400).json({ error: t("User is required for user notifications") });
@@ -112,7 +132,7 @@ export default async function CreateNotificationController(req: any, res: any) {
       normalizedBody,
       data && typeof data === "object" ? data : null,
       normalizedBadge as "info" | "error",
-      undefined,
+      priorityDevice,
       normalizedGroupTo as "user" | "manager",
       normalizedChannelTypes,
     );

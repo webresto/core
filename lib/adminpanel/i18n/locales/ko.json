@@ -120,6 +120,7 @@
 	"No keys selected for import": "가져올 키가 선택되지 않았습니다",
 	"No logs found": "로그를 찾을 수 없습니다",
 	"No logs yet": "아직 로그가 없습니다.",
+	"Requested channels": "선택된 채널",
 	"No notification channels registered": "등록된 알림 채널이 없습니다.",
 	"No notifications found": "알림을 찾을 수 없습니다.",
 	"No orders": "주문 없음",
@@ -279,5 +280,8 @@
 	"Configure": "Configure",
 	"Operational": "Operational",
 	"Not configured": "Not configured",
-	"Not ready": "Not ready"
+	"Not ready": "Not ready",
+	"Device": "Device",
+	"Device not found": "Device not found",
+	"Device has no notification token": "Device has no notification token"
 }

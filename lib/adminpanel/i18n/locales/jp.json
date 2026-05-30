@@ -120,6 +120,7 @@
 	"No keys selected for import": "インポートするキーが選択されていません",
 	"No logs found": "ログが見つかりません",
 	"No logs yet": "まだログがありません",
+	"Requested channels": "選択されたチャネル",
 	"No notification channels registered": "通知チャネルが登録されていません",
 	"No notifications found": "通知が見つかりませんでした",
 	"No orders": "注文はありません",
@@ -279,5 +280,8 @@
 	"Configure": "Configure",
 	"Operational": "Operational",
 	"Not configured": "Not configured",
-	"Not ready": "Not ready"
+	"Not ready": "Not ready",
+	"Device": "Device",
+	"Device not found": "Device not found",
+	"Device has no notification token": "Device has no notification token"
 }

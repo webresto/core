@@ -120,6 +120,7 @@
 	"No keys selected for import": "ไม่ได้เลือกคีย์สำหรับนำเข้า",
 	"No logs found": "ไม่พบบันทึก",
 	"No logs yet": "ยังไม่มีบันทึก",
+	"Requested channels": "ช่องทางที่เลือก",
 	"No notification channels registered": "ไม่มีช่องทางการแจ้งเตือนที่ลงทะเบียน",
 	"No notifications found": "ไม่พบการแจ้งเตือน",
 	"No orders": "ไม่มีคำสั่ง",
@@ -279,5 +280,8 @@
 	"Configure": "Configure",
 	"Operational": "Operational",
 	"Not configured": "Not configured",
-	"Not ready": "Not ready"
+	"Not ready": "Not ready",
+	"Device": "Device",
+	"Device not found": "Device not found",
+	"Device has no notification token": "Device has no notification token"
 }
