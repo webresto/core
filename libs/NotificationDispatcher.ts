@@ -273,7 +273,7 @@ export class NotificationDispatcher {
       return;
     }
 
-    const usedChannels: NotificationChannelEntry[] = (notification.channels as NotificationChannelEntry[]) ?? [];
+    const usedChannels: NotificationChannelEntry[] = Array.isArray(notification.channels) ? notification.channels : [];
     const usedTypes = new Set(usedChannels.map((e) => e.type));
     const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
     let spentCost: number = notification.spentCost ?? 0;
