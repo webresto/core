@@ -191,7 +191,7 @@ export function registerNotificationTools() {
             if (!NotificationManager) {
                 throw new Error('NotificationManager is not available on globalThis');
             }
-            const channels = NotificationManager.getChannels ? NotificationManager.getChannels() : [];
+            const channels = Array.isArray(NotificationManager.channels) ? NotificationManager.channels : [];
             return channels.map((ch: any) => ({
                 type: ch.type,
                 enabled: ch.enabled !== false,
