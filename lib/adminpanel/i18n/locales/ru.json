@@ -1,4 +1,11 @@
 {
+	"Copied!": "Скопировано!",
+	"Copy context": "Скопировать контекст",
+	"Filter by order ID": "Фильтр по ID заказа",
+	"Filter by user: name, phone, email, device ID": "Фильтр по пользователю: имя, телефон, email, ID устройства",
+	"Filtered by": "Фильтр",
+	"of": "из",
+	"Search by title, body, ID, order ID": "Поиск по заголовку, тексту, ID, номеру заказа",
 	"{hours}h": "{hours}ч",
 	"{minutes}m": "{minutes}м",
 	"Access to Current Orders module and its API endpoints": "Доступ к модулю Текущие заказы и его API",

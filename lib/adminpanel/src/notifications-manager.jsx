@@ -155,6 +155,74 @@ function setNotificationSectionHash(section) {
   window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
 }
 
+function buildNotificationContext(notification) {
+  const lines = [
+    `Notification ID: ${notification.id}`,
+    `Title: ${notification.title || '-'}`,
+    `Body: ${notification.body || '-'}`,
+    `Status: ${notification.status || '-'}`,
+    `Group: ${notification.groupTo || '-'}`,
+    `Badge: ${notification.badge || '-'}`,
+    `Created: ${notification.createdAt || '-'}`,
+    `Read at: ${notification.readAt || '-'}`,
+  ];
+  if (notification.user) {
+    lines.push(`User ID: ${notification.user.id}`);
+    lines.push(`User name: ${notification.user.name || '-'}`);
+    lines.push(`User phone: ${notification.user.phone || '-'}`);
+  }
+  if (notification.requestedChannels?.length) {
+    lines.push(`Requested channels: ${notification.requestedChannels.join(', ')}`);
+  }
+  if (notification.channels?.length) {
+    lines.push(`Delivery channels:`);
+    for (const ch of notification.channels) {
+      lines.push(`  - ${ch.type}: cost=${ch.cost ?? 0}, sentAt=${ch.sentAt || '-'}`);
+    }
+  }
+  if (notification.data) {
+    lines.push(`\nPayload:\n${JSON.stringify(notification.data, null, 2)}`);
+  }
+  if (notification.logs?.length) {
+    lines.push(`\nLogs (${notification.logs.length}):`);
+    for (const entry of notification.logs) {
+      lines.push(`  [${entry.level || 'info'}] ${entry.timestamp || ''} ${entry.module || ''}: ${entry.message || ''}`);
+      if (entry.data !== undefined) {
+        lines.push(`    ${JSON.stringify(entry.data)}`);
+      }
+    }
+  }
+  return lines.join('\n');
+}
+
+function CopyContextButton({ notification, t }) {
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = React.useCallback(() => {
+    const text = buildNotificationContext(notification);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }).catch(() => {});
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { document.execCommand('copy'); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {}
+      document.body.removeChild(ta);
+    }
+  }, [notification]);
+  return (
+    <Button variant="outline" size="sm" onClick={handleCopy}>
+      {copied ? t('Copied!') : t('Copy context')}
+    </Button>
+  );
+}
+
 function NotificationsManagerContent() {
   const { language, t } = useTranslation();
   const viewMode = getCurrentViewMode();
@@ -182,6 +250,14 @@ function NotificationsManagerContent() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [groupTo, setGroupTo] = useState('');
+  const [filterUser, setFilterUser] = useState(null);
+  const [filterUserQuery, setFilterUserQuery] = useState('');
+  const [filterUserOptions, setFilterUserOptions] = useState([]);
+  const [showFilterUserAutocomplete, setShowFilterUserAutocomplete] = useState(false);
+  const [filterOrderId, setFilterOrderId] = useState('');
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(null);
+  const PAGE_SIZE = 50;
   const [loadingList, setLoadingList] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [loadingChannels, setLoadingChannels] = useState(false);
@@ -189,18 +265,23 @@ function NotificationsManagerContent() {
   const [createLoading, setCreateLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const loadItems = async () => {
+  const loadItems = async (pageArg) => {
     setLoadingList(true);
     setError('');
+    const currentPage = pageArg ?? page;
     try {
       const params = new URLSearchParams();
       if (search.trim()) params.set('q', search.trim());
       if (status) params.set('status', status);
       if (groupTo) params.set('groupTo', groupTo);
-      params.set('limit', '150');
+      if (filterUser?.id) params.set('userId', filterUser.id);
+      if (filterOrderId.trim()) params.set('orderId', filterOrderId.trim());
+      params.set('limit', String(PAGE_SIZE));
+      params.set('skip', String(currentPage * PAGE_SIZE));
       const response = await notificationsApi(`/core/notifications-manager/notifications?${params.toString()}`);
       if (!response.ok) throw new Error(response.payload?.error || 'Failed to load notifications');
       setItems(Array.isArray(response.payload?.results) ? response.payload.results : []);
+      setTotal(response.payload?.meta?.total ?? null);
     } catch (e) {
       setError(String(e?.message || e));
     } finally {
@@ -314,11 +395,21 @@ function NotificationsManagerContent() {
     }
   };
 
+  const searchFilterUsers = async (query) => {
+    const normalized = String(query || '').trim();
+    if (normalized.length < 2) { setFilterUserOptions([]); return; }
+    try {
+      const response = await notificationsApi(`/core/notifications-manager/users?q=${encodeURIComponent(normalized)}`);
+      if (!response.ok) return;
+      setFilterUserOptions(Array.isArray(response.payload?.results) ? response.payload.results : []);
+    } catch {}
+  };
+
   useEffect(() => {
-    if (!isChannelsView) loadItems();
+    if (!isChannelsView) loadItems(0);
     loadChannels();
     if (isChannelsView) return undefined;
-    const timer = window.setInterval(loadItems, 30000);
+    const timer = window.setInterval(() => loadItems(page), 30000);
     return () => window.clearInterval(timer);
   }, [isChannelsView]);
 
@@ -339,9 +430,15 @@ function NotificationsManagerContent() {
 
   useEffect(() => {
     if (isChannelsView) return undefined;
-    const timer = window.setTimeout(() => loadItems(), 250);
+    setPage(0);
+    const timer = window.setTimeout(() => loadItems(0), 250);
     return () => window.clearTimeout(timer);
-  }, [search, status, groupTo, isChannelsView]);
+  }, [search, status, groupTo, filterUser, filterOrderId, isChannelsView]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => searchFilterUsers(filterUserQuery), 250);
+    return () => window.clearTimeout(timer);
+  }, [filterUserQuery]);
 
   useEffect(() => {
     if (isChannelsView) return;
@@ -391,6 +488,12 @@ function NotificationsManagerContent() {
   const changeNotificationSection = (section) => {
     setNotificationSection(section);
     setNotificationSectionHash(section);
+  };
+
+  const goToPage = (newPage) => {
+    setPage(newPage);
+    setSelectedId('');
+    loadItems(newPage);
   };
 
   const selectedSummary = useMemo(() => items.find((item) => item.id === selectedId) || null, [items, selectedId]);
@@ -841,20 +944,74 @@ function NotificationsManagerContent() {
               </Button>
             </div>
 
-            <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'minmax(220px, 1.6fr) minmax(160px, 0.8fr) minmax(160px, 0.8fr)' }}>
-              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by ID, title, body, user, order ID')} />
-              <select value={status} onChange={(e) => setStatus(e.target.value)} style={inputStyle}>
-                <option value="">{t('All statuses')}</option>
-                <option value="pending">{statusLabel('pending', t)}</option>
-                <option value="sent">{statusLabel('sent', t)}</option>
-                <option value="failed">{statusLabel('failed', t)}</option>
-                <option value="read">{statusLabel('read', t)}</option>
-              </select>
-              <select value={groupTo} onChange={(e) => setGroupTo(e.target.value)} style={inputStyle}>
-                <option value="">{t('All groups')}</option>
-                <option value="user">{groupLabel('user', t)}</option>
-                <option value="manager">{groupLabel('manager', t)}</option>
-              </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'minmax(200px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr)' }}>
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by title, body, ID, order ID')} />
+                <select value={status} onChange={(e) => setStatus(e.target.value)} style={inputStyle}>
+                  <option value="">{t('All statuses')}</option>
+                  <option value="pending">{statusLabel('pending', t)}</option>
+                  <option value="sent">{statusLabel('sent', t)}</option>
+                  <option value="failed">{statusLabel('failed', t)}</option>
+                  <option value="read">{statusLabel('read', t)}</option>
+                </select>
+                <select value={groupTo} onChange={(e) => setGroupTo(e.target.value)} style={inputStyle}>
+                  <option value="">{t('All groups')}</option>
+                  <option value="user">{groupLabel('user', t)}</option>
+                  <option value="manager">{groupLabel('manager', t)}</option>
+                </select>
+              </div>
+              {/* Order ID filter */}
+              <div style={{ maxWidth: 300 }}>
+                <Input
+                  value={filterOrderId}
+                  onChange={(e) => setFilterOrderId(e.target.value)}
+                  placeholder={t('Filter by order ID')}
+                />
+              </div>
+              {/* User / device filter */}
+              <div style={{ position: 'relative', maxWidth: 420 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    <Input
+                      value={filterUserQuery}
+                      onFocus={() => setShowFilterUserAutocomplete(true)}
+                      onChange={(e) => { setFilterUserQuery(e.target.value); setFilterUser(null); setShowFilterUserAutocomplete(true); }}
+                      onBlur={() => { window.setTimeout(() => setShowFilterUserAutocomplete(false), 150); }}
+                      placeholder={t('Filter by user: name, phone, email, device ID')}
+                    />
+                    {showFilterUserAutocomplete && filterUserQuery.trim().length >= 2 && (
+                      <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: '0 12px 24px rgba(0,0,0,0.18)', maxHeight: 240, overflow: 'auto', zIndex: 20 }}>
+                        {filterUserOptions.length === 0 ? (
+                          <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--muted-foreground)' }}>{t('No users found')}</div>
+                        ) : filterUserOptions.map((user) => (
+                          <button key={`fu-${user.kind || 'user'}-${user.id}`} type="button"
+                            onMouseDown={() => {
+                              setFilterUser(user);
+                              setFilterUserQuery(formatUserOption(user));
+                              setShowFilterUserAutocomplete(false);
+                            }}
+                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 12px', border: 'none', borderTop: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', cursor: 'pointer' }}>
+                            <div style={{ fontSize: 13 }}>
+                              {user.kind === 'cart' ? `🛒 ${t('Cart')} ${user.shortId || user.orderId || ''}`
+                                : user.kind === 'device' ? `📱 ${t('Device')} ${user.name || user.deviceId || ''}`
+                                : (user.name || user.login || user.id)}
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{formatUserOption(user)}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {filterUser && (
+                    <Button variant="outline" size="sm" onClick={() => { setFilterUser(null); setFilterUserQuery(''); setFilterUserOptions([]); }}>✕</Button>
+                  )}
+                </div>
+                {filterUser && (
+                  <div style={{ marginTop: 6, fontSize: 12, color: 'var(--muted-foreground)' }}>
+                    {t('Filtered by')}: <strong style={{ color: 'var(--foreground)' }}>{formatUserOption(filterUser)}</strong>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 
@@ -865,8 +1022,10 @@ function NotificationsManagerContent() {
             <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr 0.7fr 1fr', gap: 12, padding: '14px 16px', background: 'var(--muted)', fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' }}>
               <div>{t('User')}</div><div>{t('Status')}</div><div>{t('Group')}</div><div>{t('Created')}</div>
             </div>
-            <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
-              {items.length === 0 ? (
+            <div style={{ maxHeight: '60vh', overflow: 'auto' }}>
+              {loadingList && items.length === 0 ? (
+                <div style={{ padding: 20, color: 'var(--muted-foreground)' }}>{t('loading')}</div>
+              ) : items.length === 0 ? (
                 <div style={{ padding: 20, color: 'var(--muted-foreground)' }}>{t('No notifications found')}</div>
               ) : items.map((item) => {
                 const isSelected = item.id === selectedId;
@@ -892,6 +1051,23 @@ function NotificationsManagerContent() {
                 );
               })}
             </div>
+            {/* Pagination */}
+            {(total !== null && total > PAGE_SIZE) && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 16px', borderTop: '1px solid var(--border)', background: 'var(--muted)' }}>
+                <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
+                  {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} {t('of')} {total}
+                </span>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <Button variant="outline" size="sm" onClick={() => goToPage(page - 1)} disabled={page === 0 || loadingList}>←</Button>
+                  <Button variant="outline" size="sm" onClick={() => goToPage(page + 1)} disabled={(page + 1) * PAGE_SIZE >= total || loadingList}>→</Button>
+                </div>
+              </div>
+            )}
+            {(total !== null && total <= PAGE_SIZE && total > 0) && (
+              <div style={{ padding: '8px 16px', borderTop: '1px solid var(--border)', background: 'var(--muted)', fontSize: 12, color: 'var(--muted-foreground)' }}>
+                {total} {t('notifications')}
+              </div>
+            )}
           </div>
 
           {/* Detail panel */}
@@ -948,7 +1124,7 @@ function NotificationsManagerContent() {
                   </section>
                 )}
 
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                   {selectedNotification.user?.id && (
                     <a href={`${getBaseAdminPath()}/model/user/edit/${encodeURIComponent(selectedNotification.user.id)}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
                       {t('Open user')}
@@ -959,6 +1135,7 @@ function NotificationsManagerContent() {
                       {t('Open order')}
                     </a>
                   )}
+                  <CopyContextButton notification={selectedNotification} t={t} />
                 </div>
 
                 <section>
