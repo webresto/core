@@ -81,6 +81,24 @@ let attributes = {
   /** Лог всех попыток доставки, эскалаций, ошибок */
   logs: "json" as unknown as NotificationLogEntry[],
 
+  /**
+   * Важное сообщение. На важные уведомления не действует лимит каналов водопада
+   * (NOTIFICATION_MAX_CHANNELS_PER_MESSAGE) — они эскалируются по всем каналам до успеха.
+   */
+  important: {
+    type: "boolean",
+    defaultsTo: false,
+  } as unknown as boolean,
+
+  /**
+   * Суммарное число попыток доставки по каналам (успешные + неудачные),
+   * накапливается при первичной доставке и эскалациях. Используется для лимита водопада.
+   */
+  deliveryAttempts: {
+    type: "number",
+    defaultsTo: 0,
+  } as unknown as number,
+
   badge: {
     type: "string",
     isIn: ["info", "error"],
@@ -120,5 +138,5 @@ module.exports = {
 };
 
 declare global {
-  const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost">;
+  const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost" | "important" | "deliveryAttempts">;
 }

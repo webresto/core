@@ -283,5 +283,8 @@
 	"Not ready": "Not ready",
 	"Device": "Device",
 	"Device not found": "Device not found",
-	"Device has no notification token": "Device has no notification token"
+	"Device has no notification token": "Device has no notification token",
+	"Important": "Important",
+	"Delivery attempts": "Delivery attempts",
+	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)"
 }

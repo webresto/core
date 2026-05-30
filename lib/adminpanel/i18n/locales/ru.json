@@ -368,5 +368,8 @@
 	"Search sent notifications, check delivery status, and inspect details.": "Ищите отправленные уведомления, проверяйте статус доставки и детали.",
 	"Device": "Устройство",
 	"Device not found": "Устройство не найдено",
-	"Device has no notification token": "У устройства нет токена уведомлений"
+	"Device has no notification token": "У устройства нет токена уведомлений",
+	"Important": "Важное",
+	"Delivery attempts": "Попыток доставки",
+	"Important (ignore channel waterfall limit, escalate until delivered)": "Важное (игнорировать лимит каналов, эскалировать до доставки)"
 }

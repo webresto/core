@@ -52,6 +52,8 @@ export default async function GetNotificationController(req: any, res: any) {
         groupTo: notification.groupTo || "user",
         channels: Array.isArray(notification.channels) ? notification.channels : [],
         requestedChannels: Array.isArray(notification.requestedChannels) ? notification.requestedChannels : [],
+        important: Boolean(notification.important),
+        deliveryAttempts: notification.deliveryAttempts || 0,
         badge: notification.badge || "info",
         readAt: notification.readAt || null,
         createdAt: notification.createdAt || null,

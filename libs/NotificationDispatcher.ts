@@ -25,7 +25,8 @@ export class NotificationDispatcher {
     badge: "info" | "error" = "info",
     priorityDevice?: UserDeviceRecord,
     groupToOverride?: "user" | "manager",
-    channelTypes?: string[]
+    channelTypes?: string[],
+    important: boolean = false
   ): Promise<void> {
     // priorityDevice без user — это адресная доставка на конкретное устройство
     // (напр. уведомление по гостевой корзине через order.deviceId), а не manager-broadcast
@@ -42,6 +43,7 @@ export class NotificationDispatcher {
       groupTo,
       status: "pending",
       requestedChannels,
+      important: Boolean(important),
     }).fetch();
 
     await NotificationDispatcher._deliver(notification, priorityDevice, channelTypes);
@@ -71,6 +73,12 @@ export class NotificationDispatcher {
       ? new Set(channelTypes.map((item) => String(item)))
       : null;
 
+    // Лимит каналов водопада: сколько каналов (успех+неудача) пробуем максимум.
+    // Важные уведомления (important) не ограничиваем.
+    const maxChannels: number = (await Settings.get("NOTIFICATION_MAX_CHANNELS_PER_MESSAGE")) ?? 3;
+    const limitChannels = !notification.important && maxChannels > 0;
+    let attempts = Number(notification.deliveryAttempts) || 0;
+
     let spentCost = 0;
 
     const isCostAllowed = (cost: number): boolean => {
@@ -94,6 +102,7 @@ export class NotificationDispatcher {
         (await priorityChannel.isReady())
       ) {
         await Notification.log({ id: notification.id! }, "info", "delivery", `Attempting delivery via priority channel ${priorityChannel.type}`);
+        attempts += 1;
         const ok = await priorityChannel.trySendMessage(
           notification.badge,
           notification.body,
@@ -109,6 +118,7 @@ export class NotificationDispatcher {
             status: "sent",
             channels: [{ type: priorityChannel.type, cost: priorityCost, sentAt: Date.now() }],
             spentCost: priorityCost,
+            deliveryAttempts: attempts,
           });
           return;
         }
@@ -124,7 +134,15 @@ export class NotificationDispatcher {
       if (!(await channel.isReady())) continue;
       if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
 
+      // Лимит водопада: прекращаем пробовать новые каналы, исчерпав лимит попыток.
+      // forceSend-каналы (напр. audit) не считаются и не ограничиваются.
+      if (limitChannels && !channel.forceSend && attempts >= maxChannels) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Waterfall channel limit reached (${attempts}/${maxChannels}), stopping`);
+        break;
+      }
+
       await Notification.log({ id: notification.id! }, "info", "delivery", `Attempting delivery via channel ${channel.type}`);
+      if (!channel.forceSend) attempts += 1;
 
       const ok = await channel.trySendMessage(
         notification.badge,
@@ -139,7 +157,7 @@ export class NotificationDispatcher {
         const channelCost = Number(channel.cost) || 0;
         successChannels.push({ type: channel.type, cost: channelCost, sentAt: Date.now() });
         spentCost += channelCost;
-        await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered via channel ${channel.type}, cost: ${channel.cost}`);
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered via channel ${channel.type}, cost: ${channelCost}`);
         if (channel.forceSend !== true) break;
       } else {
         await Notification.log({ id: notification.id! }, "warn", "delivery", `Channel ${channel.type} failed to send: ${channel.error || "unknown error"}`);
@@ -154,6 +172,7 @@ export class NotificationDispatcher {
       status: successChannels.length > 0 ? "sent" : "failed",
       channels: successChannels,
       spentCost,
+      deliveryAttempts: attempts,
     });
   }
 
@@ -239,6 +258,21 @@ export class NotificationDispatcher {
    */
   static async _deliverNextChannel(notification: NotificationRecord): Promise<void> {
     const { groupTo } = notification;
+
+    // Эскалация запрещена, если оператор явно выбрал каналы доставки:
+    // уведомление должно уйти только по указанным каналам, без перебора остальных.
+    if (Array.isArray(notification.requestedChannels) && notification.requestedChannels.length > 0) {
+      return;
+    }
+
+    // Лимит водопада: не эскалируем дальше, если исчерпан лимит каналов.
+    // Важные уведомления (important) не ограничиваем.
+    const maxChannels: number = (await Settings.get("NOTIFICATION_MAX_CHANNELS_PER_MESSAGE")) ?? 3;
+    let attempts = Number(notification.deliveryAttempts) || 0;
+    if (!notification.important && maxChannels > 0 && attempts >= maxChannels) {
+      return;
+    }
+
     const usedChannels: NotificationChannelEntry[] = (notification.channels as NotificationChannelEntry[]) ?? [];
     const usedTypes = new Set(usedChannels.map((e) => e.type));
     const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
@@ -259,6 +293,12 @@ export class NotificationDispatcher {
       if (!(await channel.isReady())) continue;
       if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
 
+      // Учитываем лимит и внутри перебора (на случай нескольких подходящих каналов).
+      if (!notification.important && maxChannels > 0 && !channel.forceSend && attempts >= maxChannels) {
+        break;
+      }
+
+      if (!channel.forceSend) attempts += 1;
       const ok = await channel.trySendMessage(
         notification.badge,
         notification.body,
@@ -274,11 +314,20 @@ export class NotificationDispatcher {
         await Notification.updateOne({ id: notification.id }).set({
           channels: [...usedChannels, newEntry],
           spentCost,
+          deliveryAttempts: attempts,
           // статус остаётся 'sent' — read подтверждает только фронт
         });
         await Notification.log({ id: notification.id! }, "info", "escalation", `Escalated to channel ${channel.type}, total spent cost: ${spentCost}`);
-        break;
+        return;
+      } else {
+        await Notification.log({ id: notification.id! }, "warn", "escalation", `Escalation channel ${channel.type} failed to send: ${channel.error || "unknown error"}`);
       }
+    }
+
+    // Перебрали кандидатов без успеха — фиксируем израсходованные попытки,
+    // чтобы лимит водопада соблюдался между тиками эскалации.
+    if (attempts !== (Number(notification.deliveryAttempts) || 0)) {
+      await Notification.updateOne({ id: notification.id }).set({ deliveryAttempts: attempts });
     }
   }
 }

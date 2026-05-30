@@ -42,6 +42,16 @@ declare let attributes: {
     spentCost: number;
     /** Лог всех попыток доставки, эскалаций, ошибок */
     logs: NotificationLogEntry[];
+    /**
+     * Важное сообщение. На важные уведомления не действует лимит каналов водопада
+     * (NOTIFICATION_MAX_CHANNELS_PER_MESSAGE) — они эскалируются по всем каналам до успеха.
+     */
+    important: boolean;
+    /**
+     * Суммарное число попыток доставки по каналам (успешные + неудачные),
+     * накапливается при первичной доставке и эскалациях. Используется для лимита водопада.
+     */
+    deliveryAttempts: number;
     badge: "info" | "error";
     createdAt: number;
     updatedAt: number;
@@ -54,6 +64,6 @@ declare let Model: {
     log(criteria: CriteriaQuery<NotificationRecord>, level: NotificationLogLevel, module: string, message: string, ...data: any[]): Promise<void>;
 };
 declare global {
-    const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost">;
+    const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost" | "important" | "deliveryAttempts">;
 }
 export {};

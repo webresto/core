@@ -28,7 +28,10 @@ export default async function CreateNotificationController(req: any, res: any) {
       badge,
       data,
       channelTypes,
+      important,
     } = req.body || {};
+
+    const normalizedImportant = important === true || important === "true" || important === 1;
 
     const normalizedDeviceId = String(deviceId || "").trim();
     // Отправка прямо на устройство (корзина/гостевой девайс): адресуется как "user"-доставка,
@@ -135,6 +138,7 @@ export default async function CreateNotificationController(req: any, res: any) {
       priorityDevice,
       normalizedGroupTo as "user" | "manager",
       normalizedChannelTypes,
+      normalizedImportant,
     );
 
     return res.json({ success: true });

@@ -245,6 +245,7 @@ function NotificationsManagerContent() {
   const [createTitle, setCreateTitle] = useState('');
   const [createBody, setCreateBody] = useState('');
   const [createBadge, setCreateBadge] = useState('info');
+  const [createImportant, setCreateImportant] = useState(false);
   const [createPayload, setCreatePayload] = useState('');
   const [createChannelTypes, setCreateChannelTypes] = useState([]);
   const [search, setSearch] = useState('');
@@ -577,12 +578,13 @@ function NotificationsManagerContent() {
           title: createTitle,
           body: createBody,
           badge: createBadge,
+          important: createImportant,
           data: parsedPayload,
           channelTypes: createChannelTypes,
         }),
       });
       if (!response.ok) throw new Error(response.payload?.error || 'Failed to create notification');
-      setCreateTitle(''); setCreateBody(''); setCreateBadge('info'); setCreatePayload('');
+      setCreateTitle(''); setCreateBody(''); setCreateBadge('info'); setCreateImportant(false); setCreatePayload('');
       setCreateUserQuery(''); setSelectedUser(null); setUserOptions([]);
       await loadItems();
     } catch (e) {
@@ -772,6 +774,11 @@ function NotificationsManagerContent() {
                 </select>
               </div>
             </div>
+
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+              <input type="checkbox" checked={createImportant} onChange={(e) => setCreateImportant(e.target.checked)} />
+              <span>{t('Important (ignore channel waterfall limit, escalate until delivered)')}</span>
+            </label>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <Label>{t('Message text')}</Label>
@@ -1099,6 +1106,8 @@ function NotificationsManagerContent() {
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Group')}:</strong> {groupLabel(selectedNotification.groupTo, t)}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Badge')}:</strong> {badgeLabel(selectedNotification.badge, t)}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Spent cost')}:</strong> {selectedNotification.spentCost ?? 0}</div>
+                  <div><strong style={{ color: 'var(--foreground)' }}>{t('Important')}:</strong> {selectedNotification.important ? t('Yes') : t('No')}</div>
+                  <div><strong style={{ color: 'var(--foreground)' }}>{t('Delivery attempts')}:</strong> {selectedNotification.deliveryAttempts ?? 0}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Created')}:</strong> {formatDateTime(selectedNotification.createdAt, language)}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Read at')}:</strong> {selectedNotification.readAt ? formatDateTime(selectedNotification.readAt, language) : '—'}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('User')}:</strong> {selectedNotification.user?.name || t('Manager broadcast')}</div>

@@ -190,5 +190,12 @@ declare global {
      * If null/unset: only one paid channel (cost > 0) is allowed per delivery attempt.
      */
     NOTIFICATION_MAX_COST_PER_MESSAGE: number | null
+    /**
+     * Maximum number of channels to attempt per notification (the "waterfall" limit),
+     * counting both successful and failed attempts across initial delivery and escalations.
+     * Once this many channels have been tried, escalation stops. Default: 3.
+     * Important notifications (important = true) are exempt and keep escalating.
+     */
+    NOTIFICATION_MAX_CHANNELS_PER_MESSAGE: number
   }
 }
