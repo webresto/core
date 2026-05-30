@@ -43,6 +43,14 @@ export default async function GetNotificationController(req: any, res: any) {
       return res.status(404).json({ error: t("Notification not found") });
     }
 
+    const parseJsonArray = (value: any): any[] => {
+      if (Array.isArray(value)) return value;
+      if (typeof value === "string" && value.trim()) {
+        try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch {}
+      }
+      return [];
+    };
+
     return res.json({
       notification: {
         id: notification.id,
@@ -50,8 +58,8 @@ export default async function GetNotificationController(req: any, res: any) {
         body: notification.body || "",
         status: notification.status || "pending",
         groupTo: notification.groupTo || "user",
-        channels: Array.isArray(notification.channels) ? notification.channels : [],
-        requestedChannels: Array.isArray(notification.requestedChannels) ? notification.requestedChannels : [],
+        channels: parseJsonArray(notification.channels),
+        requestedChannels: parseJsonArray(notification.requestedChannels),
         important: Boolean(notification.important),
         deliveryAttempts: notification.deliveryAttempts || 0,
         badge: notification.badge || "info",
@@ -60,7 +68,7 @@ export default async function GetNotificationController(req: any, res: any) {
         updatedAt: notification.updatedAt || null,
         data: notification.data || null,
         user: formatUser(notification),
-        logs: Array.isArray(notification.logs) ? notification.logs : [],
+        logs: parseJsonArray(notification.logs),
         rawPayload: notification,
       }
     });
