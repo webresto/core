@@ -28,21 +28,30 @@ function formatUser(notification: any): { id: string; name: string; phone: strin
   };
 }
 
+function parseJsonArray(value: any): any[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch {}
+  }
+  return [];
+}
+
 function mapNotification(notification: any): any {
+  const logs = parseJsonArray(notification?.logs);
   return {
     id: notification?.id,
     title: notification?.title || "",
     body: notification?.body || "",
     status: notification?.status || "pending",
     groupTo: notification?.groupTo || "user",
-    channels: Array.isArray(notification?.channels) ? notification.channels : [],
+    channels: parseJsonArray(notification?.channels),
     badge: notification?.badge || "info",
     readAt: notification?.readAt || null,
     createdAt: notification?.createdAt || null,
     updatedAt: notification?.updatedAt || null,
     data: notification?.data || null,
     user: formatUser(notification),
-    logsCount: Array.isArray(notification?.logs) ? notification.logs.length : 0,
+    logsCount: logs.length,
     orderId: notification?.data && typeof notification.data === "object" ? notification.data.orderId || null : null,
   };
 }

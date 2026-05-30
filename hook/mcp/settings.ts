@@ -1,5 +1,20 @@
 declare const mcp: any;
 
+const SENSITIVE_FIELDS = new Set([
+    'private_key', 'private_key_id', 'password', 'secret', 'api_key', 'apiKey',
+    'token', 'access_token', 'refresh_token', 'client_secret',
+]);
+
+function maskSensitiveValue(value: any): any {
+    if (value === null || value === undefined) return value;
+    if (typeof value !== 'object' || Array.isArray(value)) return value;
+    const masked: Record<string, any> = {};
+    for (const [k, v] of Object.entries(value)) {
+        masked[k] = SENSITIVE_FIELDS.has(k) ? '***' : v;
+    }
+    return masked;
+}
+
 export function registerSettingsTools() {
     if (process.env.MCP_ENABLED !== 'true') return;
 
@@ -16,16 +31,20 @@ export function registerSettingsTools() {
         handler: async ({ module }: { module?: string }) => {
             const criteria: any = module ? { module } : {};
             const settings = await Settings.find(criteria).sort('key ASC');
-            return settings.map((s: any) => ({
-                key: s.key,
-                value: s.value ?? s.defaultValue ?? null,
-                defaultValue: s.defaultValue ?? null,
-                type: s.type,
-                name: s.name,
-                description: s.description ?? null,
-                readOnly: s.readOnly ?? false,
-                module: s.module ?? null,
-            }));
+            return settings.map((s: any) => {
+                const rawValue = s.value ?? s.defaultValue ?? null;
+                const rawDefault = s.defaultValue ?? null;
+                return {
+                    key: s.key,
+                    value: maskSensitiveValue(rawValue),
+                    defaultValue: maskSensitiveValue(rawDefault),
+                    type: s.type,
+                    name: s.name,
+                    description: s.description ?? null,
+                    readOnly: s.readOnly ?? false,
+                    module: s.module ?? null,
+                };
+            });
         },
     });
 
@@ -44,7 +63,11 @@ export function registerSettingsTools() {
             const normalized = key.toUpperCase().replace(/ /g, '_');
             const s = await Settings.findOne({ key: normalized });
             if (!s) throw new Error(`Setting "${key}" not found`);
-            return s;
+            return {
+                ...s,
+                value: maskSensitiveValue(s.value),
+                defaultValue: maskSensitiveValue(s.defaultValue),
+            };
         },
     });
 
@@ -74,7 +97,8 @@ export function registerSettingsTools() {
             if (!s) throw new Error(`Setting "${key}" not found`);
             if (s.readOnly) throw new Error(`Setting "${key}" is read-only`);
             await Settings.set(normalized, { key: normalized, value });
-            return await Settings.findOne({ key: normalized });
+            const updated = await Settings.findOne({ key: normalized });
+            return updated ? { ...updated, value: maskSensitiveValue(updated.value), defaultValue: maskSensitiveValue(updated.defaultValue) } : null;
         },
     });
 }

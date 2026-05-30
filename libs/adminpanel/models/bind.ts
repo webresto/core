@@ -114,6 +114,56 @@ export const models = {
     list: OrderConfig.list(),
     edit: OrderConfig.edit(),
   },
+  userdevice: {
+    model: 'userdevice',
+    title: 'User Devices',
+    icon: 'devices',
+    remove: false,
+    list: {
+      fields: {
+        id: true,
+        name: true,
+        userAgent: true,
+        isLoggedIn: true,
+        user: true,
+        lastIP: true,
+        loginTime: {
+          title: 'Login Time',
+          displayModifier(v: any) {
+            return v ? new Date(v).toLocaleString() : '';
+          }
+        },
+        lastActivity: {
+          title: 'Last Activity',
+          displayModifier(v: any) {
+            return v ? new Date(v).toLocaleString() : '';
+          }
+        },
+        sessionId: false,
+        customData: false,
+        notificationToken: false,
+        createdAt: true,
+        updatedAt: false,
+      }
+    },
+    edit: {
+      fields: {
+        id: { disabled: true },
+        name: true,
+        userAgent: true,
+        isLoggedIn: true,
+        user: true,
+        lastIP: true,
+        loginTime: { title: 'Login Time', disabled: true },
+        lastActivity: { title: 'Last Activity', disabled: true },
+        sessionId: false,
+        customData: { title: 'Custom Data', type: 'json', disabled: true },
+        notificationToken: { title: 'Notification Token', type: 'json', disabled: true },
+        createdAt: false,
+        updatedAt: false,
+      }
+    },
+  },
   bonusprogram: {
     model: 'bonusprogram',
     title: 'Bonus programs',
