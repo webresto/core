@@ -103,11 +103,12 @@ export class NotificationDispatcher {
           priorityDevice
         );
         if (ok) {
-          await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered via priority channel ${priorityChannel.type}, cost: ${priorityChannel.cost}`);
+          const priorityCost = Number(priorityChannel.cost) || 0;
+          await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered via priority channel ${priorityChannel.type}, cost: ${priorityCost}`);
           await Notification.updateOne({ id: notification.id }).set({
             status: "sent",
-            channels: [{ type: priorityChannel.type, cost: priorityChannel.cost, sentAt: Date.now() }],
-            spentCost: priorityChannel.cost,
+            channels: [{ type: priorityChannel.type, cost: priorityCost, sentAt: Date.now() }],
+            spentCost: priorityCost,
           });
           return;
         }
@@ -135,8 +136,9 @@ export class NotificationDispatcher {
       );
 
       if (ok) {
-        successChannels.push({ type: channel.type, cost: channel.cost, sentAt: Date.now() });
-        spentCost += channel.cost;
+        const channelCost = Number(channel.cost) || 0;
+        successChannels.push({ type: channel.type, cost: channelCost, sentAt: Date.now() });
+        spentCost += channelCost;
         await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered via channel ${channel.type}, cost: ${channel.cost}`);
         if (channel.forceSend !== true) break;
       } else {
@@ -266,8 +268,9 @@ export class NotificationDispatcher {
       );
 
       if (ok) {
-        spentCost += channel.cost;
-        const newEntry: NotificationChannelEntry = { type: channel.type, cost: channel.cost, sentAt: Date.now() };
+        const channelCost = Number(channel.cost) || 0;
+        spentCost += channelCost;
+        const newEntry: NotificationChannelEntry = { type: channel.type, cost: channelCost, sentAt: Date.now() };
         await Notification.updateOne({ id: notification.id }).set({
           channels: [...usedChannels, newEntry],
           spentCost,
