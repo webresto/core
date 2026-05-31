@@ -11,6 +11,37 @@ declare const Notification: {
   log: (criteria: { id: string }, level: string, module: string, message: string, ...data: any[]) => Promise<void>;
 };
 
+function normalizeDeviceNotificationToken(device?: UserDeviceRecord): any | null {
+  if (!device?.notificationToken) return null;
+
+  let token = device.notificationToken as any;
+  if (typeof token === "string") {
+    try {
+      token = JSON.parse(token);
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  device.notificationToken = token;
+  return token && typeof token === "object" ? token : null;
+}
+
+function getPriorityDeviceChannelTypes(device?: UserDeviceRecord): string[] {
+  const token = normalizeDeviceNotificationToken(device);
+  if (!token) return [];
+
+  const provider = String(token.provider || "").trim().toLowerCase();
+  const platform = String(token.platform || "").trim().toLowerCase();
+
+  if (provider === "fcm") {
+    if (platform === "web") return ["fcm-web"];
+    if (platform === "ios" || platform === "android") return ["fcm-mobile"];
+  }
+
+  return provider ? [provider] : [];
+}
+
 export class NotificationDispatcher {
 
   /**
@@ -26,15 +57,16 @@ export class NotificationDispatcher {
     priorityDevice?: UserDeviceRecord,
     groupToOverride?: "user" | "manager",
     channelTypes?: string[],
-    important: boolean = false
+    important: boolean = false,
+    priorityDeviceOnly: boolean = false
   ): Promise<void> {
     // priorityDevice без user — это адресная доставка на конкретное устройство
     // (напр. уведомление по гостевой корзине через order.deviceId), а не manager-broadcast
     const groupTo = groupToOverride || (user || priorityDevice ? "user" : "manager");
-    const requestedChannels = Array.isArray(channelTypes)
+    const requestedChannels = !priorityDeviceOnly && Array.isArray(channelTypes)
       ? Array.from(new Set(channelTypes.map((item) => String(item || "").trim()).filter(Boolean)))
       : [];
-    const notification = await Notification.create({
+    const notificationValues: Partial<NotificationRecord> = {
       user: user ? (typeof user === "string" ? user : user.id) : null,
       title,
       body,
@@ -42,11 +74,20 @@ export class NotificationDispatcher {
       badge,
       groupTo,
       status: "pending",
-      requestedChannels,
       important: Boolean(important),
-    }).fetch();
+    };
+    if (requestedChannels.length > 0) {
+      notificationValues.requestedChannels = requestedChannels;
+    }
+    const notification = await Notification.create(notificationValues).fetch();
+    await Notification.log(
+      { id: notification.id! },
+      "info",
+      "delivery",
+      `Notification created for delivery: group=${groupTo}, requestedChannels=${requestedChannels.join(",") || "none"}, priorityDeviceOnly=${priorityDeviceOnly}, priorityDevice=${priorityDevice?.id || "none"}`
+    );
 
-    await NotificationDispatcher._deliver(notification, priorityDevice, channelTypes);
+    await NotificationDispatcher._deliver(notification, priorityDevice, channelTypes, priorityDeviceOnly);
 
     // Emitter — только для наблюдателей (WebSocket, логи, аналитика)
     // Потеря события при рестарте не критична
@@ -57,15 +98,96 @@ export class NotificationDispatcher {
    * Internal delivery method. Called both on send() and on recovery/retry.
    * priorityDevice is not stored in DB — not available on recovery.
    */
-  static async _deliver(notification: NotificationRecord, priorityDevice?: UserDeviceRecord, channelTypes?: string[]): Promise<void> {
+  static async _deliver(notification: NotificationRecord, priorityDevice?: UserDeviceRecord, channelTypes?: string[], priorityDeviceOnly: boolean = false): Promise<void> {
     const successChannels: NotificationChannelEntry[] = [];
     const { groupTo } = notification;
+    await Notification.log(
+      { id: notification.id! },
+      "info",
+      "delivery",
+      `Delivery processor started: group=${groupTo}, priorityDevice=${priorityDevice?.id || "none"}, priorityDeviceOnly=${priorityDeviceOnly}, channelTypes=${Array.isArray(channelTypes) ? channelTypes.join(",") || "empty" : "auto"}, important=${Boolean(notification.important)}`
+    );
 
     // notification.user приходит из БД как id-строка; каналам нужен объект с .id.
     // Популируем здесь, чтобы и обычная (recovery/retry), и device-доставка работали единообразно.
     if (notification.user && typeof notification.user === "string") {
+      await Notification.log({ id: notification.id! }, "info", "delivery", `Resolving notification user ${notification.user}`);
       const populatedUser = await User.findOne({ id: notification.user });
-      if (populatedUser) notification.user = populatedUser as any;
+      if (populatedUser) {
+        notification.user = populatedUser as any;
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Resolved notification user ${populatedUser.id}`);
+      } else {
+        await Notification.log({ id: notification.id! }, "warn", "delivery", "Notification user was not found, channels will receive the raw user value");
+      }
+    }
+
+    let attempts = Number(notification.deliveryAttempts) || 0;
+    await Notification.log({ id: notification.id! }, "info", "delivery", `Initial delivery attempts: ${attempts}`);
+
+    // priorityDeviceOnly — адресная доставка только на выбранный UserDevice:
+    // каналы из формы игнорируются, fallback/waterfall по другим каналам запрещён.
+    if (priorityDeviceOnly) {
+      const priorityChannelTypes = getPriorityDeviceChannelTypes(priorityDevice);
+      const token = normalizeDeviceNotificationToken(priorityDevice);
+      await Notification.log(
+        { id: notification.id! },
+        "info",
+        "delivery",
+        `Priority-device-only mode: token provider=${token?.provider || "unknown"}, platform=${token?.platform || "unknown"}, candidateChannels=${priorityChannelTypes.join(",") || "none"}`
+      );
+      const priorityChannel = NotificationManager.channels.find(
+        (ch) => priorityChannelTypes.includes(ch.type) && ch.forGroupTo.includes(groupTo)
+      );
+
+      if (!priorityChannel) {
+        await Notification.log({ id: notification.id! }, "error", "delivery", `Priority device delivery failed: no registered channel matched ${priorityChannelTypes.join(", ") || "unknown"}`);
+      } else {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Priority device channel candidate: ${priorityChannel.type}`);
+      }
+
+      if (priorityChannel) {
+        const enabled = priorityChannel.isEnabled();
+        await Notification.log({ id: notification.id! }, enabled ? "info" : "warn", "delivery", `Priority device channel ${priorityChannel.type} enabled=${enabled}`);
+        const configured = enabled ? await priorityChannel.isConfigured() : false;
+        await Notification.log({ id: notification.id! }, configured ? "info" : "warn", "delivery", `Priority device channel ${priorityChannel.type} configured=${configured}`);
+        const ready = configured ? await priorityChannel.isReady() : false;
+        await Notification.log({ id: notification.id! }, ready ? "info" : "warn", "delivery", `Priority device channel ${priorityChannel.type} ready=${ready}`);
+
+        if (enabled && configured && ready) {
+          await Notification.log({ id: notification.id! }, "info", "delivery", `Attempting priority-device-only delivery via ${priorityChannel.type}`);
+          attempts += 1;
+          await Notification.log({ id: notification.id! }, "info", "delivery", `Delivery attempts incremented to ${attempts}`);
+          const ok = await priorityChannel.trySendMessage(
+            notification.badge,
+            notification.body,
+            null as any,
+            notification.title,
+            notification.data as any,
+            priorityDevice
+          );
+          if (ok) {
+            await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered to priority device via ${priorityChannel.type}`);
+            await Notification.updateOne({ id: notification.id }).set({
+              status: "sent",
+              channels: [{ type: priorityChannel.type, cost: 0, sentAt: Date.now() }],
+              spentCost: 0,
+              deliveryAttempts: attempts,
+            });
+            await Notification.log({ id: notification.id! }, "info", "delivery", `Priority-device-only delivery finished as sent, attempts=${attempts}`);
+            return;
+          }
+          await Notification.log({ id: notification.id! }, "warn", "delivery", `Priority device channel ${priorityChannel.type} failed to send: ${priorityChannel.error || "unknown error"}`);
+        }
+      }
+
+      await Notification.updateOne({ id: notification.id }).set({
+        status: "failed",
+        channels: [],
+        spentCost: 0,
+        deliveryAttempts: attempts,
+      });
+      await Notification.log({ id: notification.id! }, "error", "delivery", `Priority-device-only delivery finished as failed, attempts=${attempts}`);
+      return;
     }
 
     const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
@@ -77,7 +199,12 @@ export class NotificationDispatcher {
     // Важные уведомления (important) не ограничиваем.
     const maxChannels: number = (await Settings.get("NOTIFICATION_MAX_CHANNELS_PER_MESSAGE")) ?? 3;
     const limitChannels = !notification.important && maxChannels > 0;
-    let attempts = Number(notification.deliveryAttempts) || 0;
+    await Notification.log(
+      { id: notification.id! },
+      "info",
+      "delivery",
+      `Waterfall settings: maxCost=${maxCost === null ? "one paid channel" : maxCost}, maxChannels=${maxChannels}, limitChannels=${limitChannels}, allowedChannelTypes=${allowedChannelTypes ? Array.from(allowedChannelTypes).join(",") || "empty" : "all"}`
+    );
 
     let spentCost = 0;
 
@@ -90,49 +217,79 @@ export class NotificationDispatcher {
 
     // Если передан priorityDevice — ищем канал под его провайдера, пробуем первым
     if (priorityDevice?.notificationToken) {
-      const provider = (priorityDevice.notificationToken as any).provider;
+      const provider = (normalizeDeviceNotificationToken(priorityDevice) as any)?.provider;
+      await Notification.log({ id: notification.id! }, "info", "delivery", `Priority device provided for regular delivery: provider=${provider || "unknown"}, device=${priorityDevice.id || "unknown"}`);
       const priorityChannel = NotificationManager.channels.find(
         (ch) => ch.type === provider && ch.forGroupTo.includes(groupTo)
       );
-      if (
-        priorityChannel &&
-        (!allowedChannelTypes || allowedChannelTypes.has(priorityChannel.type)) &&
-        priorityChannel.isEnabled() &&
-        (await priorityChannel.isConfigured()) &&
-        (await priorityChannel.isReady())
-      ) {
-        await Notification.log({ id: notification.id! }, "info", "delivery", `Attempting delivery via priority channel ${priorityChannel.type}`);
-        attempts += 1;
-        const ok = await priorityChannel.trySendMessage(
-          notification.badge,
-          notification.body,
-          notification.user as any,
-          notification.title,
-          notification.data as any,
-          priorityDevice
-        );
-        if (ok) {
-          const priorityCost = Number(priorityChannel.cost) || 0;
-          await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered via priority channel ${priorityChannel.type}, cost: ${priorityCost}`);
-          await Notification.updateOne({ id: notification.id }).set({
-            status: "sent",
-            channels: [{ type: priorityChannel.type, cost: priorityCost, sentAt: Date.now() }],
-            spentCost: priorityCost,
-            deliveryAttempts: attempts,
-          });
-          return;
+      if (!priorityChannel) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `No priority channel found for provider ${provider || "unknown"}, switching to waterfall`);
+      } else if (allowedChannelTypes && !allowedChannelTypes.has(priorityChannel.type)) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Priority channel ${priorityChannel.type} skipped: not in requested channels`);
+      } else {
+        const enabled = priorityChannel.isEnabled();
+        await Notification.log({ id: notification.id! }, enabled ? "info" : "warn", "delivery", `Priority channel ${priorityChannel.type} enabled=${enabled}`);
+        const configured = enabled ? await priorityChannel.isConfigured() : false;
+        await Notification.log({ id: notification.id! }, configured ? "info" : "warn", "delivery", `Priority channel ${priorityChannel.type} configured=${configured}`);
+        const ready = configured ? await priorityChannel.isReady() : false;
+        await Notification.log({ id: notification.id! }, ready ? "info" : "warn", "delivery", `Priority channel ${priorityChannel.type} ready=${ready}`);
+        if (enabled && configured && ready) {
+          await Notification.log({ id: notification.id! }, "info", "delivery", `Attempting delivery via priority channel ${priorityChannel.type}`);
+          attempts += 1;
+          await Notification.log({ id: notification.id! }, "info", "delivery", `Delivery attempts incremented to ${attempts}`);
+          const ok = await priorityChannel.trySendMessage(
+            notification.badge,
+            notification.body,
+            notification.user as any,
+            notification.title,
+            notification.data as any,
+            priorityDevice
+          );
+          if (ok) {
+            const priorityCost = Number(priorityChannel.cost) || 0;
+            await Notification.log({ id: notification.id! }, "info", "delivery", `Delivered via priority channel ${priorityChannel.type}, cost: ${priorityCost}`);
+            await Notification.updateOne({ id: notification.id }).set({
+              status: "sent",
+              channels: [{ type: priorityChannel.type, cost: priorityCost, sentAt: Date.now() }],
+              spentCost: priorityCost,
+              deliveryAttempts: attempts,
+            });
+            await Notification.log({ id: notification.id! }, "info", "delivery", `Delivery processor finished as sent via priority channel, attempts=${attempts}, spentCost=${priorityCost}`);
+            return;
+          }
+          await Notification.log({ id: notification.id! }, "warn", "delivery", `Priority channel ${priorityChannel.type} failed to send: ${priorityChannel.error || "unknown error"}`);
         }
-        await Notification.log({ id: notification.id! }, "warn", "delivery", `Priority channel ${priorityChannel.type} failed to send: ${priorityChannel.error || "unknown error"}`);
       }
     }
 
     for (const channel of NotificationManager.channels) {
-      if (!channel.forGroupTo.includes(groupTo)) continue;
-      if (allowedChannelTypes && !allowedChannelTypes.has(channel.type)) continue;
-      if (!channel.isEnabled()) continue;
-      if (!(await channel.isConfigured())) continue;
-      if (!(await channel.isReady())) continue;
-      if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
+      await Notification.log({ id: notification.id! }, "info", "delivery", `Analyzing channel ${channel.type}: groups=${channel.forGroupTo.join(",")}, forceSend=${channel.forceSend}, sortOrder=${channel.sortOrder}, cost=${channel.cost}`);
+      if (!channel.forGroupTo.includes(groupTo)) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Skipping channel ${channel.type}: group ${groupTo} is not supported`);
+        continue;
+      }
+      if (allowedChannelTypes && !allowedChannelTypes.has(channel.type)) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Skipping channel ${channel.type}: not in requested channels`);
+        continue;
+      }
+      if (!channel.isEnabled()) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Skipping channel ${channel.type}: disabled`);
+        continue;
+      }
+      const configured = await channel.isConfigured();
+      if (!configured) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Skipping channel ${channel.type}: not configured`);
+        continue;
+      }
+      const ready = await channel.isReady();
+      if (!ready) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Skipping channel ${channel.type}: not ready`);
+        continue;
+      }
+      if (!channel.forceSend && !isCostAllowed(channel.cost)) {
+        await Notification.log({ id: notification.id! }, "info", "delivery", `Skipping channel ${channel.type}: cost limit, spent=${spentCost}, channelCost=${channel.cost}, maxCost=${maxCost === null ? "one paid channel" : maxCost}`);
+        continue;
+      }
 
       // Лимит водопада: прекращаем пробовать новые каналы, исчерпав лимит попыток.
       // forceSend-каналы (напр. audit) не считаются и не ограничиваются.
@@ -143,6 +300,7 @@ export class NotificationDispatcher {
 
       await Notification.log({ id: notification.id! }, "info", "delivery", `Attempting delivery via channel ${channel.type}`);
       if (!channel.forceSend) attempts += 1;
+      await Notification.log({ id: notification.id! }, "info", "delivery", `Delivery attempts incremented to ${attempts}`);
 
       const ok = await channel.trySendMessage(
         notification.badge,
@@ -174,6 +332,7 @@ export class NotificationDispatcher {
       spentCost,
       deliveryAttempts: attempts,
     });
+    await Notification.log({ id: notification.id! }, "info", "delivery", `Delivery processor finished: status=${successChannels.length > 0 ? "sent" : "failed"}, channels=${successChannels.map((channel) => channel.type).join(",") || "none"}, spentCost=${spentCost}, attempts=${attempts}`);
   }
 
   // ─── Delivery loop (retry pending) ───────────────────────────────────────
@@ -258,10 +417,12 @@ export class NotificationDispatcher {
    */
   static async _deliverNextChannel(notification: NotificationRecord): Promise<void> {
     const { groupTo } = notification;
+    await Notification.log({ id: notification.id! }, "info", "escalation", `Escalation processor started: group=${groupTo}, important=${Boolean(notification.important)}`);
 
     // Эскалация запрещена, если оператор явно выбрал каналы доставки:
     // уведомление должно уйти только по указанным каналам, без перебора остальных.
     if (Array.isArray(notification.requestedChannels) && notification.requestedChannels.length > 0) {
+      await Notification.log({ id: notification.id! }, "info", "escalation", `Escalation skipped: requested channels are fixed (${notification.requestedChannels.join(",")})`);
       return;
     }
 
@@ -270,6 +431,7 @@ export class NotificationDispatcher {
     const maxChannels: number = (await Settings.get("NOTIFICATION_MAX_CHANNELS_PER_MESSAGE")) ?? 3;
     let attempts = Number(notification.deliveryAttempts) || 0;
     if (!notification.important && maxChannels > 0 && attempts >= maxChannels) {
+      await Notification.log({ id: notification.id! }, "info", "escalation", `Escalation skipped: channel limit reached (${attempts}/${maxChannels})`);
       return;
     }
 
@@ -277,6 +439,12 @@ export class NotificationDispatcher {
     const usedTypes = new Set(usedChannels.map((e) => e.type));
     const maxCost: number | null = (await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null;
     let spentCost: number = notification.spentCost ?? 0;
+    await Notification.log(
+      { id: notification.id! },
+      "info",
+      "escalation",
+      `Escalation settings: usedChannels=${Array.from(usedTypes).join(",") || "none"}, spentCost=${spentCost}, maxCost=${maxCost === null ? "one paid channel" : maxCost}, maxChannels=${maxChannels}, attempts=${attempts}`
+    );
 
     const isCostAllowed = (cost: number): boolean => {
       if (cost === 0) return true;
@@ -286,19 +454,42 @@ export class NotificationDispatcher {
     };
 
     for (const channel of NotificationManager.channels) {
-      if (!channel.forGroupTo.includes(groupTo)) continue;
-      if (usedTypes.has(channel.type)) continue;
-      if (!channel.isEnabled()) continue;
-      if (!(await channel.isConfigured())) continue;
-      if (!(await channel.isReady())) continue;
-      if (!channel.forceSend && !isCostAllowed(channel.cost)) continue;
+      await Notification.log({ id: notification.id! }, "info", "escalation", `Analyzing escalation channel ${channel.type}: groups=${channel.forGroupTo.join(",")}, forceSend=${channel.forceSend}, sortOrder=${channel.sortOrder}, cost=${channel.cost}`);
+      if (!channel.forGroupTo.includes(groupTo)) {
+        await Notification.log({ id: notification.id! }, "info", "escalation", `Skipping escalation channel ${channel.type}: group ${groupTo} is not supported`);
+        continue;
+      }
+      if (usedTypes.has(channel.type)) {
+        await Notification.log({ id: notification.id! }, "info", "escalation", `Skipping escalation channel ${channel.type}: already used`);
+        continue;
+      }
+      if (!channel.isEnabled()) {
+        await Notification.log({ id: notification.id! }, "info", "escalation", `Skipping escalation channel ${channel.type}: disabled`);
+        continue;
+      }
+      const configured = await channel.isConfigured();
+      if (!configured) {
+        await Notification.log({ id: notification.id! }, "info", "escalation", `Skipping escalation channel ${channel.type}: not configured`);
+        continue;
+      }
+      const ready = await channel.isReady();
+      if (!ready) {
+        await Notification.log({ id: notification.id! }, "info", "escalation", `Skipping escalation channel ${channel.type}: not ready`);
+        continue;
+      }
+      if (!channel.forceSend && !isCostAllowed(channel.cost)) {
+        await Notification.log({ id: notification.id! }, "info", "escalation", `Skipping escalation channel ${channel.type}: cost limit, spent=${spentCost}, channelCost=${channel.cost}, maxCost=${maxCost === null ? "one paid channel" : maxCost}`);
+        continue;
+      }
 
       // Учитываем лимит и внутри перебора (на случай нескольких подходящих каналов).
       if (!notification.important && maxChannels > 0 && !channel.forceSend && attempts >= maxChannels) {
+        await Notification.log({ id: notification.id! }, "info", "escalation", `Escalation channel limit reached (${attempts}/${maxChannels}), stopping`);
         break;
       }
 
       if (!channel.forceSend) attempts += 1;
+      await Notification.log({ id: notification.id! }, "info", "escalation", `Attempting escalation via channel ${channel.type}, attempts=${attempts}`);
       const ok = await channel.trySendMessage(
         notification.badge,
         notification.body,
@@ -328,6 +519,9 @@ export class NotificationDispatcher {
     // чтобы лимит водопада соблюдался между тиками эскалации.
     if (attempts !== (Number(notification.deliveryAttempts) || 0)) {
       await Notification.updateOne({ id: notification.id }).set({ deliveryAttempts: attempts });
+      await Notification.log({ id: notification.id! }, "info", "escalation", `Escalation finished without delivery, attempts updated to ${attempts}`);
+    } else {
+      await Notification.log({ id: notification.id! }, "info", "escalation", "Escalation finished without delivery and without new attempts");
     }
   }
 }
