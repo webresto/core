@@ -97,6 +97,12 @@ function channelNameWithAdapter(channel, t) {
   return `${channelLabel(channel, t)} (${adapter})`;
 }
 
+function extractDeviceId(value) {
+  const text = String(value || '').trim();
+  const match = text.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  return match ? match[0] : '';
+}
+
 function formatTargetTimestamp(value) {
   if (!value) return '';
   const ms = typeof value === 'number' ? (value < 1e12 ? value * 1000 : value) : Date.parse(value);
@@ -132,7 +138,7 @@ function formatUserOption(user) {
   if (user.phone) parts.push(user.phone);
   if (user.email) parts.push(user.email);
   if (user.login) parts.push(`@${user.login}`);
-  if (user.deviceId) parts.push(`📱${user.deviceId}`);
+  if (user.deviceId) parts.push(`${user.foundByDeviceId ? 'найден по ' : ''}📱${user.deviceId}`);
   return parts.join(' · ');
 }
 
@@ -499,9 +505,14 @@ function NotificationsManagerContent() {
   };
 
   const selectedSummary = useMemo(() => items.find((item) => item.id === selectedId) || null, [items, selectedId]);
-  const isDeviceTarget = createGroupTo === 'user'
+  const queryDeviceId = extractDeviceId(createUserQuery);
+  const selectedDeviceId = selectedUser?.deviceId || queryDeviceId;
+  const selectedByDeviceId = Boolean(selectedUser?.foundByDeviceId || selectedUser?.kind === 'cart' || selectedUser?.kind === 'device' || queryDeviceId);
+  const canUsePriorityDevice = createGroupTo === 'user' && selectedByDeviceId && Boolean(selectedDeviceId);
+  const isDirectDeviceTarget = createGroupTo === 'user'
     && (selectedUser?.kind === 'cart' || selectedUser?.kind === 'device')
-    && selectedUser?.deviceId;
+    && selectedDeviceId;
+  const usePriorityDeviceOnly = canUsePriorityDevice && createPriorityDeviceOnly;
   const availableCreateChannels = useMemo(() => {
     return channels.filter((channel) => {
       const groups = Array.isArray(channel?.forGroupTo) ? channel.forGroupTo : [];
@@ -523,10 +534,10 @@ function NotificationsManagerContent() {
   }, [availableCreateChannels]);
 
   useEffect(() => {
-    if (!isDeviceTarget && createPriorityDeviceOnly) {
+    if (!canUsePriorityDevice && createPriorityDeviceOnly) {
       setCreatePriorityDeviceOnly(false);
     }
-  }, [isDeviceTarget, createPriorityDeviceOnly]);
+  }, [canUsePriorityDevice, createPriorityDeviceOnly]);
 
   const toggleCreateChannel = (type, checked) => {
     setCreateChannelTypes((current) => {
@@ -552,11 +563,11 @@ function NotificationsManagerContent() {
 
   const submitCreate = async () => {
     setError('');
-    if (createGroupTo === 'user' && !isDeviceTarget && !selectedUser?.id) {
+    if (createGroupTo === 'user' && !isDirectDeviceTarget && !selectedUser?.id) {
       setError(t('Choose a user for user-targeted notification'));
       return;
     }
-    if (!createPriorityDeviceOnly && createChannelTypes.length === 0) {
+    if (!usePriorityDeviceOnly && createChannelTypes.length === 0) {
       setError(t('Choose at least one notification channel'));
       return;
     }
@@ -579,15 +590,15 @@ function NotificationsManagerContent() {
         method: 'POST',
         body: JSON.stringify({
           groupTo: createGroupTo,
-          userId: createGroupTo === 'user' && !isDeviceTarget ? selectedUser?.id : null,
-          deviceId: isDeviceTarget ? selectedUser.deviceId : null,
+          userId: createGroupTo === 'user' && !isDirectDeviceTarget && !usePriorityDeviceOnly ? selectedUser?.id : null,
+          deviceId: isDirectDeviceTarget || usePriorityDeviceOnly ? selectedDeviceId : null,
           title: createTitle,
           body: createBody,
           badge: createBadge,
           important: createImportant,
-          priorityDeviceOnly: Boolean(isDeviceTarget && createPriorityDeviceOnly),
+          priorityDeviceOnly: Boolean(usePriorityDeviceOnly),
           data: parsedPayload,
-          channelTypes: createPriorityDeviceOnly ? [] : createChannelTypes,
+          channelTypes: usePriorityDeviceOnly ? [] : createChannelTypes,
         }),
       });
       if (!response.ok) throw new Error(response.payload?.error || 'Failed to create notification');
@@ -764,18 +775,21 @@ function NotificationsManagerContent() {
                 </div>
               </div>
 
-              {isDeviceTarget && (
-                <label style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+              {canUsePriorityDevice && (
+                <label style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 10, cursor: 'pointer', fontSize: 13, border: '1px solid var(--border)', borderRadius: 10, background: createPriorityDeviceOnly ? 'var(--muted)' : 'var(--background)', padding: '12px 14px' }}>
                   <input
                     type="checkbox"
                     checked={createPriorityDeviceOnly}
                     onChange={(e) => setCreatePriorityDeviceOnly(e.target.checked)}
-                    style={{ marginTop: 2 }}
+                    style={{ marginTop: 3 }}
                   />
                   <span>
-                    {t('Priority device')}
+                    <strong style={{ display: 'block', color: 'var(--foreground)', marginBottom: 3 }}>{t('Priority device')}</strong>
+                    <span style={{ display: 'block', color: 'var(--foreground)' }}>
+                      {selectedDeviceId}
+                    </span>
                     <span style={{ display: 'block', color: 'var(--muted-foreground)', fontWeight: 400 }}>
-                      {t('Send only to this UserDevice without channel waterfall. Delivery channels will be ignored.')}
+                      {t('The user is shown as the device owner. Send only to this UserDevice without channel waterfall. Delivery channels will be ignored.')}
                     </span>
                   </span>
                 </label>
@@ -815,7 +829,7 @@ function NotificationsManagerContent() {
             </div>
           </div>
 
-          {!createPriorityDeviceOnly && (
+          {!usePriorityDeviceOnly && (
             <div style={formGroupStyle}>
               <h3 style={formGroupTitle}>{t('Delivery channels')}</h3>
               {availableCreateChannels.length === 0 ? (
