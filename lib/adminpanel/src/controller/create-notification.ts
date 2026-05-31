@@ -29,9 +29,11 @@ export default async function CreateNotificationController(req: any, res: any) {
       data,
       channelTypes,
       important,
+      priorityDeviceOnly,
     } = req.body || {};
 
     const normalizedImportant = important === true || important === "true" || important === 1;
+    const normalizedPriorityDeviceOnly = priorityDeviceOnly === true || priorityDeviceOnly === "true" || priorityDeviceOnly === 1;
 
     const normalizedDeviceId = String(deviceId || "").trim();
     // Отправка прямо на устройство (корзина/гостевой девайс): адресуется как "user"-доставка,
@@ -54,44 +56,6 @@ export default async function CreateNotificationController(req: any, res: any) {
     }
     if (!normalizedBody) {
       return res.status(400).json({ error: t("Body is required") });
-    }
-
-    await NotificationManager.loadChannelsState();
-    const defaultChannelTypes: string[] = [];
-    if (!Array.isArray(channelTypes)) {
-      for (const channel of NotificationManager.channels as any[]) {
-        const type = String(channel.type || "").trim();
-        if (!type || !Array.isArray(channel.forGroupTo) || !channel.forGroupTo.includes(normalizedGroupTo)) continue;
-        if (typeof channel.isEnabled === "function" ? !channel.isEnabled() : channel.enabled === false) continue;
-        if (typeof channel.isConfigured === "function" && !(await channel.isConfigured())) continue;
-        if (typeof channel.isReady === "function" && !(await channel.isReady())) continue;
-        defaultChannelTypes.push(type);
-      }
-    }
-    const normalizedChannelTypes = Array.isArray(channelTypes)
-      ? Array.from(new Set(channelTypes.map((item: any) => String(item || "").trim()).filter(Boolean)))
-      : defaultChannelTypes;
-    if (normalizedChannelTypes.length === 0) {
-      return res.status(400).json({ error: t("Choose at least one notification channel") });
-    }
-
-    for (const channelType of normalizedChannelTypes) {
-      const channel: any = NotificationManager.channels.find((item: any) => item.type === channelType);
-      if (!channel) {
-        return res.status(400).json({ error: t("Notification channel not found") });
-      }
-      if (!Array.isArray(channel.forGroupTo) || !channel.forGroupTo.includes(normalizedGroupTo)) {
-        return res.status(400).json({ error: t("Notification channel is not available for selected target") });
-      }
-      if (typeof channel.isEnabled === "function" ? !channel.isEnabled() : channel.enabled === false) {
-        return res.status(400).json({ error: t("Notification channel is disabled") });
-      }
-      if (typeof channel.isConfigured === "function" && !(await channel.isConfigured())) {
-        return res.status(400).json({ error: t("Notification channel is not configured") });
-      }
-      if (typeof channel.isReady === "function" && !(await channel.isReady())) {
-        return res.status(400).json({ error: t("Notification channel is not ready") });
-      }
     }
 
     let user: any = null;
@@ -129,6 +93,53 @@ export default async function CreateNotificationController(req: any, res: any) {
       }
     }
 
+    if (normalizedPriorityDeviceOnly && !priorityDevice) {
+      return res.status(400).json({ error: t("Priority device requires selected device") });
+    }
+
+    await NotificationManager.loadChannelsState();
+    const defaultChannelTypes: string[] = [];
+    if (!normalizedPriorityDeviceOnly && !Array.isArray(channelTypes)) {
+      for (const channel of NotificationManager.channels as any[]) {
+        const type = String(channel.type || "").trim();
+        if (!type || !Array.isArray(channel.forGroupTo) || !channel.forGroupTo.includes(normalizedGroupTo)) continue;
+        if (typeof channel.isEnabled === "function" ? !channel.isEnabled() : channel.enabled === false) continue;
+        if (typeof channel.isConfigured === "function" && !(await channel.isConfigured())) continue;
+        if (typeof channel.isReady === "function" && !(await channel.isReady())) continue;
+        defaultChannelTypes.push(type);
+      }
+    }
+    const normalizedChannelTypes = normalizedPriorityDeviceOnly
+      ? []
+      : Array.isArray(channelTypes)
+        ? Array.from(new Set(channelTypes.map((item: any) => String(item || "").trim()).filter(Boolean)))
+        : defaultChannelTypes;
+
+    if (!normalizedPriorityDeviceOnly && normalizedChannelTypes.length === 0) {
+      return res.status(400).json({ error: t("Choose at least one notification channel") });
+    }
+
+    if (!normalizedPriorityDeviceOnly) {
+      for (const channelType of normalizedChannelTypes) {
+        const channel: any = NotificationManager.channels.find((item: any) => item.type === channelType);
+        if (!channel) {
+          return res.status(400).json({ error: t("Notification channel not found") });
+        }
+        if (!Array.isArray(channel.forGroupTo) || !channel.forGroupTo.includes(normalizedGroupTo)) {
+          return res.status(400).json({ error: t("Notification channel is not available for selected target") });
+        }
+        if (typeof channel.isEnabled === "function" ? !channel.isEnabled() : channel.enabled === false) {
+          return res.status(400).json({ error: t("Notification channel is disabled") });
+        }
+        if (typeof channel.isConfigured === "function" && !(await channel.isConfigured())) {
+          return res.status(400).json({ error: t("Notification channel is not configured") });
+        }
+        if (typeof channel.isReady === "function" && !(await channel.isReady())) {
+          return res.status(400).json({ error: t("Notification channel is not ready") });
+        }
+      }
+    }
+
     await NotificationDispatcher.send(
       user,
       normalizedTitle,
@@ -139,6 +150,7 @@ export default async function CreateNotificationController(req: any, res: any) {
       normalizedGroupTo as "user" | "manager",
       normalizedChannelTypes,
       normalizedImportant,
+      normalizedPriorityDeviceOnly,
     );
 
     return res.json({ success: true });

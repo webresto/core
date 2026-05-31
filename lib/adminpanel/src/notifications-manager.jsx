@@ -246,6 +246,7 @@ function NotificationsManagerContent() {
   const [createBody, setCreateBody] = useState('');
   const [createBadge, setCreateBadge] = useState('info');
   const [createImportant, setCreateImportant] = useState(false);
+  const [createPriorityDeviceOnly, setCreatePriorityDeviceOnly] = useState(false);
   const [createPayload, setCreatePayload] = useState('');
   const [createChannelTypes, setCreateChannelTypes] = useState([]);
   const [search, setSearch] = useState('');
@@ -498,6 +499,9 @@ function NotificationsManagerContent() {
   };
 
   const selectedSummary = useMemo(() => items.find((item) => item.id === selectedId) || null, [items, selectedId]);
+  const isDeviceTarget = createGroupTo === 'user'
+    && (selectedUser?.kind === 'cart' || selectedUser?.kind === 'device')
+    && selectedUser?.deviceId;
   const availableCreateChannels = useMemo(() => {
     return channels.filter((channel) => {
       const groups = Array.isArray(channel?.forGroupTo) ? channel.forGroupTo : [];
@@ -517,6 +521,12 @@ function NotificationsManagerContent() {
       return preserved;
     });
   }, [availableCreateChannels]);
+
+  useEffect(() => {
+    if (!isDeviceTarget && createPriorityDeviceOnly) {
+      setCreatePriorityDeviceOnly(false);
+    }
+  }, [isDeviceTarget, createPriorityDeviceOnly]);
 
   const toggleCreateChannel = (type, checked) => {
     setCreateChannelTypes((current) => {
@@ -542,15 +552,11 @@ function NotificationsManagerContent() {
 
   const submitCreate = async () => {
     setError('');
-    // Корзина/устройство адресуются по deviceId и не требуют userId
-    const isDeviceTarget = createGroupTo === 'user'
-      && (selectedUser?.kind === 'cart' || selectedUser?.kind === 'device')
-      && selectedUser?.deviceId;
     if (createGroupTo === 'user' && !isDeviceTarget && !selectedUser?.id) {
       setError(t('Choose a user for user-targeted notification'));
       return;
     }
-    if (createChannelTypes.length === 0) {
+    if (!createPriorityDeviceOnly && createChannelTypes.length === 0) {
       setError(t('Choose at least one notification channel'));
       return;
     }
@@ -579,12 +585,13 @@ function NotificationsManagerContent() {
           body: createBody,
           badge: createBadge,
           important: createImportant,
+          priorityDeviceOnly: Boolean(isDeviceTarget && createPriorityDeviceOnly),
           data: parsedPayload,
-          channelTypes: createChannelTypes,
+          channelTypes: createPriorityDeviceOnly ? [] : createChannelTypes,
         }),
       });
       if (!response.ok) throw new Error(response.payload?.error || 'Failed to create notification');
-      setCreateTitle(''); setCreateBody(''); setCreateBadge('info'); setCreateImportant(false); setCreatePayload('');
+      setCreateTitle(''); setCreateBody(''); setCreateBadge('info'); setCreateImportant(false); setCreatePriorityDeviceOnly(false); setCreatePayload('');
       setCreateUserQuery(''); setSelectedUser(null); setUserOptions([]);
       await loadItems();
     } catch (e) {
@@ -756,6 +763,23 @@ function NotificationsManagerContent() {
                   </div>
                 </div>
               </div>
+
+              {isDeviceTarget && (
+                <label style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                  <input
+                    type="checkbox"
+                    checked={createPriorityDeviceOnly}
+                    onChange={(e) => setCreatePriorityDeviceOnly(e.target.checked)}
+                    style={{ marginTop: 2 }}
+                  />
+                  <span>
+                    {t('Priority device')}
+                    <span style={{ display: 'block', color: 'var(--muted-foreground)', fontWeight: 400 }}>
+                      {t('Send only to this UserDevice without channel waterfall. Delivery channels will be ignored.')}
+                    </span>
+                  </span>
+                </label>
+              )}
             </div>
           )}
 
@@ -791,31 +815,33 @@ function NotificationsManagerContent() {
             </div>
           </div>
 
-          <div style={formGroupStyle}>
-            <h3 style={formGroupTitle}>{t('Delivery channels')}</h3>
-            {availableCreateChannels.length === 0 ? (
-              <div style={{ padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 10, background: 'var(--muted)', color: 'var(--muted-foreground)', fontSize: 13 }}>
-                {loadingChannels ? t('Loading...') : t('No available notification channels for selected group')}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {availableCreateChannels.map((channel) => {
-                  const type = String(channel.type);
-                  const checked = createChannelTypes.includes(type);
-                  return (
-                    <label key={type} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 36, padding: '8px 10px', border: '1px solid var(--border)', borderRadius: 10, background: checked ? 'var(--muted)' : 'var(--card)', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(e) => toggleCreateChannel(type, e.target.checked)}
-                      />
-                      <span>{channelLabel(channel, t)}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {!createPriorityDeviceOnly && (
+            <div style={formGroupStyle}>
+              <h3 style={formGroupTitle}>{t('Delivery channels')}</h3>
+              {availableCreateChannels.length === 0 ? (
+                <div style={{ padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 10, background: 'var(--muted)', color: 'var(--muted-foreground)', fontSize: 13 }}>
+                  {loadingChannels ? t('Loading...') : t('No available notification channels for selected group')}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {availableCreateChannels.map((channel) => {
+                    const type = String(channel.type);
+                    const checked = createChannelTypes.includes(type);
+                    return (
+                      <label key={type} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 36, padding: '8px 10px', border: '1px solid var(--border)', borderRadius: 10, background: checked ? 'var(--muted)' : 'var(--card)', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => toggleCreateChannel(type, e.target.checked)}
+                        />
+                        <span>{channelLabel(channel, t)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button variant="default" onClick={submitCreate} disabled={createLoading}>
@@ -1112,7 +1138,9 @@ function NotificationsManagerContent() {
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Read at')}:</strong> {selectedNotification.readAt ? formatDateTime(selectedNotification.readAt, language) : '—'}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('User')}:</strong> {selectedNotification.user?.name || t('Manager broadcast')}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>ID:</strong> {selectedNotification.id}</div>
-                  <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: 'var(--foreground)' }}>{t('Requested channels')}:</strong> {Array.isArray(selectedNotification.requestedChannels) && selectedNotification.requestedChannels.length > 0 ? selectedNotification.requestedChannels.join(', ') : '—'}</div>
+                  {Array.isArray(selectedNotification.requestedChannels) && selectedNotification.requestedChannels.length > 0 && (
+                    <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: 'var(--foreground)' }}>{t('Requested channels')}:</strong> {selectedNotification.requestedChannels.join(', ')}</div>
+                  )}
                 </div>
 
                 {Array.isArray(selectedNotification.channels) && selectedNotification.channels.length > 0 && (
