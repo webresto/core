@@ -23,7 +23,7 @@ function mapUser(user: any, deviceId?: string) {
     name: user?.name || user?.firstName || user?.email || user?.login || user?.id || "",
     phone,
     email: user?.email || "",
-    ...(deviceId ? { deviceId } : {}),
+    ...(deviceId ? { deviceId, foundByDeviceId: true } : {}),
   };
 }
 
@@ -111,9 +111,17 @@ export default async function SearchNotificationUsersController(req: any, res: a
       const owner = device?.user && typeof device.user === "object" ? device.user : null;
       if (owner?.id) {
         // Устройство с владельцем → показываем пользователя (как раньше)
-        if (seen.has(owner.id)) continue;
-        seen.add(owner.id);
-        results.push(mapUser(owner, device.id));
+        if (seen.has(owner.id)) {
+          const existing = results.find((item) => item.kind === "user" && item.id === owner.id);
+          if (existing && !existing.deviceId) {
+            existing.deviceId = device.id;
+            existing.foundByDeviceId = true;
+          }
+          continue;
+        } else {
+          seen.add(owner.id);
+          results.push(mapUser(owner, device.id));
+        }
       } else {
         // Гостевое устройство без владельца → можно слать прямо на него
         results.push(mapDevice(device));
