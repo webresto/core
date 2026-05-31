@@ -59,7 +59,7 @@ export class NotificationDispatcher {
     channelTypes?: string[],
     important: boolean = false,
     priorityDeviceOnly: boolean = false
-  ): Promise<void> {
+  ): Promise<NotificationRecord> {
     // priorityDevice без user — это адресная доставка на конкретное устройство
     // (напр. уведомление по гостевой корзине через order.deviceId), а не manager-broadcast
     const groupTo = groupToOverride || (user || priorityDevice ? "user" : "manager");
@@ -92,6 +92,9 @@ export class NotificationDispatcher {
     // Emitter — только для наблюдателей (WebSocket, логи, аналитика)
     // Потеря события при рестарте не критична
     await emitter.emit("core:notification-created", notification);
+
+    const updatedNotification = await (globalThis as any).Notification.findOne({ id: notification.id! });
+    return (updatedNotification || notification) as NotificationRecord;
   }
 
   /**
