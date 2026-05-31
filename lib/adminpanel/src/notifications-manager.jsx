@@ -40,6 +40,15 @@ function safeJson(value) {
   try { return JSON.stringify(value, null, 2); } catch { return String(value); }
 }
 
+function formatDateInputValue(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 async function notificationsApi(path, options = {}) {
   const axios = window.axios;
   if (!axios) throw new Error('window.axios is not available');
@@ -149,14 +158,37 @@ function getCurrentViewMode() {
 }
 
 function getNotificationSectionFromHash() {
-  if (typeof window === 'undefined') return 'history';
-  const hash = String(window.location.hash || '').replace(/^#/, '').toLowerCase();
-  return hash === 'send' ? 'send' : 'history';
+  return parseNotificationHash().section;
 }
 
-function setNotificationSectionHash(section) {
+function parseNotificationHash() {
+  if (typeof window === 'undefined') return { section: 'history', id: '' };
+  const hash = String(window.location.hash || '').replace(/^#/, '');
+  const lowerHash = hash.toLowerCase();
+  if (lowerHash === 'send') return { section: 'send', id: '' };
+  if (lowerHash.startsWith('history/')) {
+    return { section: 'history', id: decodeURIComponent(hash.slice('history/'.length)) };
+  }
+  if (lowerHash.startsWith('history?')) {
+    const params = new URLSearchParams(hash.slice('history?'.length));
+    return { section: 'history', id: params.get('id') || '' };
+  }
+  return { section: 'history', id: '' };
+}
+
+function getNotificationIdFromHash() {
+  const parsed = parseNotificationHash();
+  return parsed.section === 'history' ? parsed.id : '';
+}
+
+function getNotificationUrl(id) {
+  if (typeof window === 'undefined' || !id) return '';
+  return `${window.location.pathname}${window.location.search}#history/${encodeURIComponent(id)}`;
+}
+
+function setNotificationSectionHash(section, id = '') {
   if (typeof window === 'undefined') return;
-  const nextHash = section === 'send' ? '#send' : '#history';
+  const nextHash = section === 'send' ? '#send' : (id ? `#history/${encodeURIComponent(id)}` : '#history');
   if (window.location.hash === nextHash) return;
   window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
 }
@@ -239,8 +271,9 @@ function NotificationsManagerContent() {
   const isDark = useMemo(() => isDarkAppearance(appearance), [appearance]);
 
   const [items, setItems] = useState([]);
-  const [selectedId, setSelectedId] = useState('');
+  const [selectedId, setSelectedId] = useState(getNotificationIdFromHash);
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [createdNotification, setCreatedNotification] = useState(null);
   const [channels, setChannels] = useState([]);
   const [channelDrafts, setChannelDrafts] = useState({});
   const [createGroupTo, setCreateGroupTo] = useState('user');
@@ -263,6 +296,7 @@ function NotificationsManagerContent() {
   const [filterUserOptions, setFilterUserOptions] = useState([]);
   const [showFilterUserAutocomplete, setShowFilterUserAutocomplete] = useState(false);
   const [filterOrderId, setFilterOrderId] = useState('');
+  const [filterDate, setFilterDate] = useState(() => formatDateInputValue());
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(null);
   const PAGE_SIZE = 50;
@@ -284,6 +318,7 @@ function NotificationsManagerContent() {
       if (groupTo) params.set('groupTo', groupTo);
       if (filterUser?.id) params.set('userId', filterUser.id);
       if (filterOrderId.trim()) params.set('orderId', filterOrderId.trim());
+      if (filterDate) params.set('date', filterDate);
       params.set('limit', String(PAGE_SIZE));
       params.set('skip', String(currentPage * PAGE_SIZE));
       const response = await notificationsApi(`/core/notifications-manager/notifications?${params.toString()}`);
@@ -441,7 +476,7 @@ function NotificationsManagerContent() {
     setPage(0);
     const timer = window.setTimeout(() => loadItems(0), 250);
     return () => window.clearTimeout(timer);
-  }, [search, status, groupTo, filterUser, filterOrderId, isChannelsView]);
+  }, [search, status, groupTo, filterUser, filterOrderId, filterDate, isChannelsView]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => searchFilterUsers(filterUserQuery), 250);
@@ -462,11 +497,6 @@ function NotificationsManagerContent() {
   }, [createUserQuery, createGroupTo]);
 
   useEffect(() => {
-    if (!selectedId || selectedNotification?.id === selectedId) return;
-    if (!items.some((item) => item.id === selectedId)) setSelectedId('');
-  }, [items, selectedId, selectedNotification]);
-
-  useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     const sync = () => setAppearance(getPreferredAppearance());
     const media = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
@@ -483,7 +513,11 @@ function NotificationsManagerContent() {
 
   useEffect(() => {
     if (isChannelsView || typeof window === 'undefined') return undefined;
-    const syncSectionFromHash = () => setNotificationSection(getNotificationSectionFromHash());
+    const syncSectionFromHash = () => {
+      const parsed = parseNotificationHash();
+      setNotificationSection(parsed.section);
+      if (parsed.section === 'history') setSelectedId(parsed.id || '');
+    };
     syncSectionFromHash();
     window.addEventListener('hashchange', syncSectionFromHash);
     window.addEventListener('popstate', syncSectionFromHash);
@@ -495,12 +529,18 @@ function NotificationsManagerContent() {
 
   const changeNotificationSection = (section) => {
     setNotificationSection(section);
-    setNotificationSectionHash(section);
+    setNotificationSectionHash(section, section === 'history' ? selectedId : '');
+  };
+
+  const selectNotification = (id) => {
+    setSelectedId(id || '');
+    setNotificationSection('history');
+    setNotificationSectionHash('history', id || '');
   };
 
   const goToPage = (newPage) => {
     setPage(newPage);
-    setSelectedId('');
+    selectNotification('');
     loadItems(newPage);
   };
 
@@ -602,9 +642,16 @@ function NotificationsManagerContent() {
         }),
       });
       if (!response.ok) throw new Error(response.payload?.error || 'Failed to create notification');
+      const notification = response.payload?.notification || null;
       setCreateTitle(''); setCreateBody(''); setCreateBadge('info'); setCreateImportant(false); setCreatePriorityDeviceOnly(false); setCreatePayload('');
       setCreateUserQuery(''); setSelectedUser(null); setUserOptions([]);
-      await loadItems();
+      if (notification?.id) {
+        setCreatedNotification(notification);
+        await loadItems(0);
+      } else {
+        setCreatedNotification(null);
+        await loadItems();
+      }
     } catch (e) {
       setError(String(e?.message || e));
     } finally {
@@ -692,6 +739,17 @@ function NotificationsManagerContent() {
       {error && (
         <div style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--destructive)', color: '#fff', opacity: 0.9 }}>
           {error}
+        </div>
+      )}
+
+      {!isChannelsView && createdNotification?.id && (
+        <div style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--muted)', color: 'var(--foreground)', display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 13 }}>
+            <strong>{t('Notification sent')}:</strong> <span style={{ fontFamily: 'monospace' }}>{createdNotification.id}</span>
+          </div>
+          <a href={getNotificationUrl(createdNotification.id)} onClick={() => selectNotification(createdNotification.id)} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 700 }}>
+            {t('Open notification')}
+          </a>
         </div>
       )}
 
@@ -992,7 +1050,7 @@ function NotificationsManagerContent() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'minmax(200px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr)' }}>
+              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'minmax(200px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(150px, 1fr)' }}>
                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by title, body, ID, order ID')} />
                 <select value={status} onChange={(e) => setStatus(e.target.value)} style={inputStyle}>
                   <option value="">{t('All statuses')}</option>
@@ -1006,6 +1064,7 @@ function NotificationsManagerContent() {
                   <option value="user">{groupLabel('user', t)}</option>
                   <option value="manager">{groupLabel('manager', t)}</option>
                 </select>
+                <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} aria-label={t('Filter by date')} />
               </div>
               {/* Order ID filter */}
               <div style={{ maxWidth: 300 }}>
@@ -1077,7 +1136,7 @@ function NotificationsManagerContent() {
               ) : items.map((item) => {
                 const isSelected = item.id === selectedId;
                 return (
-                  <button key={item.id} type="button" onClick={() => setSelectedId(item.id)}
+                  <button key={item.id} type="button" onClick={() => selectNotification(item.id)}
                     style={{
                       width: '100%', border: 'none', borderTop: '1px solid var(--border)',
                       background: isSelected ? 'var(--accent)' : 'var(--card)',
@@ -1186,6 +1245,9 @@ function NotificationsManagerContent() {
                       {t('Open order')}
                     </a>
                   )}
+                  <a href={getNotificationUrl(selectedNotification.id)} onClick={() => selectNotification(selectedNotification.id)} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                    {t('Open notification link')}
+                  </a>
                   <CopyContextButton notification={selectedNotification} t={t} />
                 </div>
 

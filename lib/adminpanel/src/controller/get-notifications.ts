@@ -61,6 +61,26 @@ const PAGE_SIZE_MAX = 200;
 // When q is present we load this many records to JS-filter, then slice
 const Q_FETCH_LIMIT = 500;
 
+function parseDateFilter(value: string): { start: Date; end: Date } | null {
+  const match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+  if (
+    Number.isNaN(start.getTime())
+    || start.getFullYear() !== year
+    || start.getMonth() !== month - 1
+    || start.getDate() !== day
+  ) {
+    return null;
+  }
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return { start, end };
+}
+
 export default async function GetNotificationsController(req: any, res: any) {
   try {
     if (!hasAccess(req, res)) return;
@@ -76,12 +96,15 @@ export default async function GetNotificationsController(req: any, res: any) {
     const groupTo = String(req.query.groupTo || "").trim().toLowerCase();
     const userId = String(req.query.userId || "").trim();
     const orderId = String(req.query.orderId || "").trim();
+    const date = String(req.query.date || "").trim();
+    const dateFilter = parseDateFilter(date);
 
     // Build DB-level criteria — fields available without populate
     const dbCriteria: Record<string, any> = {};
     if (status) dbCriteria.status = status;
     if (groupTo) dbCriteria.groupTo = groupTo;
     if (userId) dbCriteria.user = userId;
+    if (dateFilter) dbCriteria.createdAt = { ">=": dateFilter.start, "<": dateFilter.end };
 
     // orderId is stored in the JSON `data` field — requires JS filtering after DB fetch
     const needsJsFilter = Boolean(q || orderId);

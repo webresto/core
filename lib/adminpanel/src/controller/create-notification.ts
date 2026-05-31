@@ -140,7 +140,7 @@ export default async function CreateNotificationController(req: any, res: any) {
       }
     }
 
-    await NotificationDispatcher.send(
+    const notification = await NotificationDispatcher.send(
       user,
       normalizedTitle,
       normalizedBody,
@@ -153,7 +153,17 @@ export default async function CreateNotificationController(req: any, res: any) {
       normalizedPriorityDeviceOnly,
     );
 
-    return res.json({ success: true });
+    return res.json({
+      success: true,
+      notification: notification ? {
+        id: notification.id,
+        title: notification.title || "",
+        body: notification.body || "",
+        status: notification.status || "pending",
+        groupTo: notification.groupTo || normalizedGroupTo,
+        createdAt: notification.createdAt || null,
+      } : null,
+    });
   } catch (error) {
     sails.log.error("Create notification error", {
       error: String(error),

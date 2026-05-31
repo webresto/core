@@ -13,7 +13,7 @@ export default function NotificationChannelsController(req: any, res: any) {
   return req.Inertia.render({
     component: "module",
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/NotificationsManager.js?v=20260524-1`,
+      moduleComponent: `/restocore/assets/core-adminizer-assets/NotificationsManager.js?v=20260531-1`,
       message: t("Notification channels"),
       locale,
       messages,
