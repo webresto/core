@@ -61,7 +61,9 @@ const PAGE_SIZE_MAX = 200;
 // When q is present we load this many records to JS-filter, then slice
 const Q_FETCH_LIMIT = 500;
 
-function parseDateFilter(value: string): { start: Date; end: Date } | null {
+// createdAt is stored as a Unix ms timestamp (number), so the filter must
+// compare against millisecond values, not Date objects.
+function parseDateFilter(value: string): { start: number; end: number } | null {
   const match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
   const year = Number(match[1]);
@@ -78,7 +80,7 @@ function parseDateFilter(value: string): { start: Date; end: Date } | null {
   }
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
-  return { start, end };
+  return { start: start.getTime(), end: end.getTime() };
 }
 
 export default async function GetNotificationsController(req: any, res: any) {
