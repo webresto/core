@@ -140,18 +140,18 @@ export default async function CreateNotificationController(req: any, res: any) {
       }
     }
 
-    const notification = await NotificationDispatcher.send(
+    const notification = await NotificationDispatcher.send({
       user,
-      normalizedTitle,
-      normalizedBody,
-      data && typeof data === "object" ? data : null,
-      normalizedBadge as "info" | "error",
+      title: normalizedTitle,
+      body: normalizedBody,
+      data: data && typeof data === "object" ? data : null,
+      badge: normalizedBadge as "info" | "error",
       priorityDevice,
-      normalizedGroupTo as "user" | "manager",
-      normalizedChannelTypes,
-      normalizedImportant,
-      normalizedPriorityDeviceOnly,
-    );
+      groupTo: normalizedGroupTo as "user" | "manager",
+      channelTypes: normalizedChannelTypes,
+      important: normalizedImportant,
+      priorityDeviceOnly: normalizedPriorityDeviceOnly,
+    });
 
     return res.json({
       success: true,
