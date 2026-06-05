@@ -1,6 +1,10 @@
+import { NotificationEventRegistry } from '../../libs/NotificationEventRegistry';
+import { NotificationTypeRegistry, NotificationType } from '../../libs/NotificationTypeRegistry';
+import { NotificationService } from '../../libs/NotificationService';
+
 declare const mcp: any;
 
-const NOTIFICATION_STATUSES = ['pending', 'sent', 'failed', 'read'];
+const NOTIFICATION_STATUSES = ['pending', 'sent', 'failed', 'read', 'cancelled'];
 
 function mapNotification(n: any) {
     const user = n.user && typeof n.user === 'object' ? {
@@ -200,6 +204,128 @@ export function registerNotificationTools() {
                 status: ch.status ?? 'ready',
                 error: ch.error ?? null,
             }));
+        },
+    });
+
+    // ─── Typed notifications: events + types catalog + emit test ──────────────
+
+    mcp.registerTool({
+        name: 'notification-event-list',
+        description:
+            'Returns the registered notification events (business triggers), e.g. order_accepted, order_on_the_way. '
+            + 'Registering an event does NOT enable sending — sending is configured per notification type.',
+        mode: 'protected',
+        schema: { type: 'object', properties: {} },
+        handler: async () => {
+            return { total: NotificationEventRegistry.listEvents().length, events: NotificationEventRegistry.listEvents() };
+        },
+    });
+
+    mcp.registerTool({
+        name: 'notification-type-list',
+        description:
+            'Returns the notification types catalog (NotificationRules model). Each type binds an event to delivery rules '
+            + '(maxDeliveryCost, sendDelaySec, channels mode) and templates. Filter by eventKey or enabled.',
+        mode: 'protected',
+        schema: {
+            type: 'object',
+            properties: {
+                eventKey: { type: 'string', description: 'Filter by bound event key.', example: 'order_on_the_way' },
+                enabled:  { type: 'boolean', description: 'Filter by enabled flag.' },
+            },
+        },
+        handler: async ({ eventKey, enabled }: { eventKey?: string; enabled?: boolean }) => {
+            await NotificationTypeRegistry.load();
+            let types = NotificationTypeRegistry.getAll();
+            if (eventKey) types = types.filter((t) => t.eventKey === eventKey);
+            if (typeof enabled === 'boolean') types = types.filter((t) => Boolean(t.enabled) === enabled);
+            return { total: types.length, types };
+        },
+    });
+
+    mcp.registerTool({
+        name: 'notification-type-get',
+        description: 'Returns a single notification type by key, including its full template configuration.',
+        mode: 'protected',
+        schema: {
+            type: 'object',
+            properties: { key: { type: 'string', description: 'Notification type key.', example: 'order_on_the_way_push' } },
+            required: ['key'],
+        },
+        handler: async ({ key }: { key: string }) => {
+            await NotificationTypeRegistry.load();
+            return NotificationTypeRegistry.get(key);
+        },
+    });
+
+    mcp.registerTool({
+        name: 'notification-type-upsert',
+        description:
+            'Create or update a notification type in the catalog. Validates key (snake_case) and eventKey. '
+            + 'Set enabled:true to allow sending. Provide full type object (see notification-type-get for shape).',
+        mode: 'protected',
+        schema: {
+            type: 'object',
+            properties: {
+                type: {
+                    type: 'object',
+                    description: 'Notification type object. Required: key, eventKey. Optional: name, description, enabled, priority, sendDelaySec, important, maxDeliveryCost, useGlobalFallback, channelsMode, fixedChannels, defaultChannels, templates.',
+                },
+            },
+            required: ['type'],
+        },
+        handler: async ({ type }: { type: NotificationType }) => {
+            await NotificationTypeRegistry.load();
+            const errors = NotificationTypeRegistry.validate(type || ({} as NotificationType));
+            if (errors.length > 0) return { success: false, errors };
+            const saved = await NotificationTypeRegistry.upsert(type);
+            return { success: true, type: saved };
+        },
+    });
+
+    mcp.registerTool({
+        name: 'notification-type-delete',
+        description: 'Remove a notification type from the catalog by key.',
+        mode: 'protected',
+        schema: {
+            type: 'object',
+            properties: { key: { type: 'string', description: 'Notification type key.', example: 'order_on_the_way_push' } },
+            required: ['key'],
+        },
+        handler: async ({ key }: { key: string }) => {
+            await NotificationTypeRegistry.load();
+            const removed = await NotificationTypeRegistry.remove(key);
+            return { success: removed };
+        },
+    });
+
+    mcp.registerTool({
+        name: 'notification-emit-test',
+        description:
+            'Fire a notification event through NotificationService for testing. By default dryRun:true — resolves which '
+            + 'enabled types match and how their templates render WITHOUT creating/sending. Set dryRun:false to actually send '
+            + '(creates Notification records and runs the delivery waterfall).',
+        mode: 'protected',
+        schema: {
+            type: 'object',
+            properties: {
+                eventKey:  { type: 'string',  description: 'Registered event key to emit.', example: 'order_on_the_way' },
+                recipient: { type: 'object',  description: 'Recipient: { userId, locale, timezone }.', example: { userId: 'u-123', locale: 'en' } },
+                context:   { type: 'object',  description: 'Business context: { order, user, store, otp, ... }.', example: { order: { id: '987', shortId: '12345' } } },
+                meta:      { type: 'object',  description: 'Optional meta: { correlationId, idempotencyKey, sourceModule }.' },
+                dryRun:    { type: 'boolean', description: 'Default true. When false, actually creates+delivers notifications.' },
+            },
+            required: ['eventKey'],
+        },
+        handler: async ({ eventKey, recipient, context, meta, dryRun }: {
+            eventKey: string; recipient?: any; context?: any; meta?: any; dryRun?: boolean;
+        }) => {
+            const effectiveDryRun = dryRun !== false; // default true
+            await NotificationTypeRegistry.load();
+            const registered = NotificationEventRegistry.isRegistered(eventKey);
+            const matchedTypes = NotificationTypeRegistry.getByEvent(eventKey).map((t) => t.key);
+            const results = await NotificationService.emit(eventKey, { recipient, context, meta }, effectiveDryRun);
+            return { eventKey, registered, dryRun: effectiveDryRun, matchedTypes, results };
         },
     });
 }
