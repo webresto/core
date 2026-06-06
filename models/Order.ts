@@ -2376,20 +2376,74 @@ async function checkPaymentMethod(paymentMethodId: string) {
   }
 }
 
+/**
+ * Resolve the active timezone.
+ *
+ * The TZ setting may legitimately be empty (no default is applied for it).
+ * When it is, fall back to the TZ environment variable, and only then to undefined.
+ * No 'Etc/GMT' default is applied — a missing timezone is surfaced as undefined so
+ * callers can react (e.g. block ordering, propagate null to the frontend) instead of
+ * silently computing dates in the wrong zone.
+ * This is intentionally TZ-specific and must NOT be generalized into Settings,
+ * because most settings must not silently pick up env/defaults.
+ */
+async function getTimezone(): Promise<string | undefined> {
+  const tzSetting = await Settings.get("TZ");
+  if (typeof tzSetting === "string" && tzSetting.trim() !== "") {
+    return tzSetting;
+  }
+  return process.env.TZ || undefined;
+}
+
 async function checkDate(order: OrderRecord) {
   const MIN_DELIVERY_TIME_MINUTES = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
+
+  // The timezone is mandatory to place an order: every date check below (worktime,
+  // "date is past", min delivery time, maintenance) is meaningless without it.
+  // If it is not configured, refuse the order and shout loudly in the log.
+  const timezone = await getTimezone();
+  if (!timezone) {
+    sails.log.error(
+      '\n' +
+      '╔════════════════════════════════════════════════════════════════════╗\n' +
+      '║  TIMEZONE IS NOT SET. The server timezone (TZ setting) is REQUIRED  ║\n' +
+      '║  for correct order date handling and worktime checks.              ║\n' +
+      '║  Orders CANNOT be placed until a valid timezone is configured.     ║\n' +
+      '║  Set the "TZ" setting (e.g. "Etc/GMT") or the TZ env var.    ║\n' +
+      '╚════════════════════════════════════════════════════════════════════╝'
+    );
+    throw { code: 19, error: 'Server timezone is not configured, ordering is disabled' };
+  }
+
+  // Global worktime restriction via WORK_TIME settings.
+  // Runs for ASAP orders too (order.date may be empty), otherwise the check below
+  // — guarded by `if (order.date)` — would be skipped entirely for "as soon as possible" orders.
+  try {
+    const WORK_TIME = await Settings.get('WORK_TIME');
+    if (WORK_TIME) {
+      const { workNow } = WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME } as Restrictions);
+      if (!workNow) {
+        throw { code: 18, error: 'Order date is outside work time' };
+      }
+    }
+  } catch (e) {
+    // Re-throw the intentional worktime block; only swallow validator/settings failures.
+    if (e && (e as { code?: number }).code === 18) throw e;
+    sails.log.error('Order > checkDate > WORK_TIME validation error:', e);
+  }
 
   if (order.date) {
     const date = new Date(order.date);
 
-    function isDateInPast(date: string, timeZone: string) {
+    function isDateInPast(date: string, timeZone: string | undefined) {
       let currentDate = new Date();
       let currentTimestamp = currentDate.getTime();
       let targetDate = new Date(date);
 
       let targetTimestamp;
       try {
-        targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
+        // When timeZone is undefined, toLocaleString uses the runtime's local time zone.
+        targetTimestamp = new Date(targetDate.toLocaleString('en', timeZone ? { timeZone } : undefined)).getTime();
       } catch (error) {
         sails.log.error(`TimeZone not defined. TZ: [${timeZone}]`);
         targetTimestamp = new Date(targetDate.toLocaleString('en')).getTime();
@@ -2398,28 +2452,11 @@ async function checkDate(order: OrderRecord) {
       return targetTimestamp < currentTimestamp;
     }
 
-    const timezone = await Settings.get('TZ') ?? 'Etc/GMT';
-
     if (isDateInPast(order.date, timezone)) {
       throw {
         code: 15,
         error: "date is past",
       };
-    }
-
-    // Check requested date against WORK_TIME schedule
-    // Global worktime restriction via WORK_TIME settings
-    try {
-      const WORK_TIME = await Settings.get('WORK_TIME');
-      if (WORK_TIME) {
-        const { workNow } = WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME } as Restrictions);
-        if (!workNow) {
-          throw { code: 18, error: 'Order date is outside work time' };
-        }
-      }
-    } catch (e) {
-      // If validator throws because of bad settings, do not block ordering silently
-      sails.log.error('Order > check > WORK_TIME validation error:', e);
     }
 
     // Adding minimum delivery time to order.date
