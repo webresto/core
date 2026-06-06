@@ -182,7 +182,17 @@ declare global {
 
     // Notifications
     NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS: number
+    /**
+     * How long a delivered ("sent") notification may stay unread before escalation tries the
+     * next channel. Default: 5 (minutes). Pairs with NOTIFICATION_ESCALATION_INTERVAL_SECONDS.
+     */
     NOTIFICATION_UNREAD_ESCALATION_MINUTES: number
+    /**
+     * How often the escalation loop ticks to re-scan sent-but-unread notifications (seconds).
+     * This is the poll cadence, NOT the unread wait — see NOTIFICATION_UNREAD_ESCALATION_MINUTES.
+     * Default: 60.
+     */
+    NOTIFICATION_ESCALATION_INTERVAL_SECONDS: number
     NOTIFICATION_LOG_DISABLE: boolean
     /**
      * Maximum total cost allowed per notification (sum across all channels used for one notification).

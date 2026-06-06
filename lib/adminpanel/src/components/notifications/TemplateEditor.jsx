@@ -1,0 +1,83 @@
+import React from 'react';
+import { EditorState, Compartment } from '@codemirror/state';
+import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { closeBrackets } from '@codemirror/autocomplete';
+import { templateExtensions } from './templateEditorExtensions';
+
+/**
+ * CodeMirror-backed template field. Edits one template string (title/subject/body/clickUrl)
+ * with `{{path}}` highlighting, autocomplete, and unknown-variable linting driven by the
+ * event's `contextPaths`.
+ *
+ * Mirrors the controlled-input contract of the old <Input>/<Textarea>: `value` in,
+ * `onChange(next)` out. The editor is created once; value/extensions are pushed in
+ * imperatively so React re-renders don't recreate the instance (see SendTestPanel's
+ * JsonEditor for the same pattern).
+ */
+export default function TemplateEditor({ value, onChange, contextPaths, singleLine, placeholder }) {
+  const hostRef = React.useRef(null);
+  const viewRef = React.useRef(null);
+  const onChangeRef = React.useRef(onChange);
+  onChangeRef.current = onChange;
+  const langCompartment = React.useRef(new Compartment());
+
+  // Create the editor once.
+  React.useEffect(() => {
+    if (!hostRef.current || viewRef.current) return;
+    const startDoc = typeof value === 'string' ? value : '';
+    const state = EditorState.create({
+      doc: startDoc,
+      extensions: [
+        history(),
+        closeBrackets(),
+        keymap.of([...defaultKeymap, ...historyKeymap]),
+        EditorView.lineWrapping,
+        placeholder ? cmPlaceholder(placeholder) : [],
+        langCompartment.current.of(templateExtensions(contextPaths, { singleLine })),
+        EditorView.updateListener.of((update) => {
+          if (update.docChanged) {
+            onChangeRef.current(update.state.doc.toString());
+          }
+        }),
+      ],
+    });
+    const view = new EditorView({ state, parent: hostRef.current });
+    viewRef.current = view;
+    return () => { view.destroy(); viewRef.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Push external value changes in without resetting cursor/selection unnecessarily.
+  React.useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    const next = typeof value === 'string' ? value : '';
+    const current = view.state.doc.toString();
+    if (next !== current) {
+      view.dispatch({ changes: { from: 0, to: current.length, insert: next } });
+    }
+  }, [value]);
+
+  // Reconfigure highlight/autocomplete/lint when the event's context paths change.
+  React.useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    view.dispatch({
+      effects: langCompartment.current.reconfigure(templateExtensions(contextPaths, { singleLine })),
+    });
+  }, [contextPaths, singleLine]);
+
+  return (
+    <div
+      ref={hostRef}
+      style={{
+        border: '1px solid var(--border)',
+        borderRadius: 10,
+        background: 'var(--background)',
+        minHeight: singleLine ? 40 : 88,
+        overflow: 'hidden',
+      }}
+    />
+  );
+}

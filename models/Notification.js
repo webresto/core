@@ -20,18 +20,59 @@ let attributes = {
     body: {
         type: "string",
     },
-    /** Произвольный payload: { type, orderId, ... } */
+    /** Произвольный payload: { type, orderId, render, routing, ... } */
     data: "json",
     /**
+     * Ключ типа уведомления из каталога NOTIFICATION_TYPES (если уведомление типизировано).
+     * null — нетипизированная отправка (напр. ручное создание из админки).
+     */
+    notificationTypeKey: {
+        type: "string",
+        allowNull: true,
+    },
+    /** Ключ бизнес-события (NotificationEventRegistry), породившего уведомление. */
+    eventKey: {
+        type: "string",
+        allowNull: true,
+    },
+    /**
+     * Бизнес-контекст события целиком (order/user/store/...). Доставляется до адаптера канала,
+     * который сам берёт нужные поля (push-notifications.md «единый контракт»).
+     */
+    context: "json",
+    /**
+     * Per-message лимит стоимости доставки (из настройки типа maxDeliveryCost).
+     * Имеет приоритет над глобальным NOTIFICATION_MAX_COST_PER_MESSAGE.
+     * null — лимит типа не задан, действует глобальный fallback.
+     */
+    maxDeliveryCost: {
+        type: "number",
+        allowNull: true,
+    },
+    /**
+     * Время (ms), раньше которого доставка не выполняется (sendDelaySec).
+     * null/в прошлом — доставка сразу. В будущем — delivery-loop подхватит по наступлении.
+     */
+    scheduledAt: {
+        type: "number",
+        allowNull: true,
+    },
+    /** Ключ идемпотентности/корреляции для дедупликации и отмены запланированной доставки. */
+    idempotencyKey: {
+        type: "string",
+        allowNull: true,
+    },
+    /**
      * Жизненный цикл:
-     * pending  → запись создана, доставка ещё не пробовалась
-     * sent     → канал принял сообщение без ошибки (FCM не гарантирует доставку на устройство)
-     * failed   → все каналы вернули ошибку, retry-loop подхватит
-     * read     → фронт подтвердил через markNotificationRead(id)
+     * pending   → запись создана, доставка ещё не пробовалась (или ждёт scheduledAt)
+     * sent      → канал принял сообщение без ошибки (FCM не гарантирует доставку на устройство)
+     * failed    → все каналы вернули ошибку, retry-loop подхватит
+     * read      → фронт подтвердил через markNotificationRead(id)
+     * cancelled → отправка отменена до доставки (напр. догонка по уже завершённому заказу)
      */
     status: {
         type: "string",
-        isIn: ["pending", "sent", "failed", "read"],
+        isIn: ["pending", "sent", "failed", "read", "cancelled"],
         defaultsTo: "pending",
     },
     /** Целевая группа — нужна _deliver() при recovery */

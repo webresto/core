@@ -34,21 +34,68 @@ let attributes = {
     type: "string",
   } as unknown as string,
 
-  /** Произвольный payload: { type, orderId, ... } */
+  /** Произвольный payload: { type, orderId, render, routing, ... } */
   data: "json" as unknown as object | null,
 
   /**
+   * Ключ типа уведомления из каталога NOTIFICATION_TYPES (если уведомление типизировано).
+   * null — нетипизированная отправка (напр. ручное создание из админки).
+   */
+  notificationTypeKey: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string | null,
+
+  /** Ключ бизнес-события (NotificationEventRegistry), породившего уведомление. */
+  eventKey: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string | null,
+
+  /**
+   * Бизнес-контекст события целиком (order/user/store/...). Доставляется до адаптера канала,
+   * который сам берёт нужные поля (push-notifications.md «единый контракт»).
+   */
+  context: "json" as unknown as object | null,
+
+  /**
+   * Per-message лимит стоимости доставки (из настройки типа maxDeliveryCost).
+   * Имеет приоритет над глобальным NOTIFICATION_MAX_COST_PER_MESSAGE.
+   * null — лимит типа не задан, действует глобальный fallback.
+   */
+  maxDeliveryCost: {
+    type: "number",
+    allowNull: true,
+  } as unknown as number | null,
+
+  /**
+   * Время (ms), раньше которого доставка не выполняется (sendDelaySec).
+   * null/в прошлом — доставка сразу. В будущем — delivery-loop подхватит по наступлении.
+   */
+  scheduledAt: {
+    type: "number",
+    allowNull: true,
+  } as unknown as number | null,
+
+  /** Ключ идемпотентности/корреляции для дедупликации и отмены запланированной доставки. */
+  idempotencyKey: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string | null,
+
+  /**
    * Жизненный цикл:
-   * pending  → запись создана, доставка ещё не пробовалась
-   * sent     → канал принял сообщение без ошибки (FCM не гарантирует доставку на устройство)
-   * failed   → все каналы вернули ошибку, retry-loop подхватит
-   * read     → фронт подтвердил через markNotificationRead(id)
+   * pending   → запись создана, доставка ещё не пробовалась (или ждёт scheduledAt)
+   * sent      → канал принял сообщение без ошибки (FCM не гарантирует доставку на устройство)
+   * failed    → все каналы вернули ошибку, retry-loop подхватит
+   * read      → фронт подтвердил через markNotificationRead(id)
+   * cancelled → отправка отменена до доставки (напр. догонка по уже завершённому заказу)
    */
   status: {
     type: "string",
-    isIn: ["pending", "sent", "failed", "read"],
+    isIn: ["pending", "sent", "failed", "read", "cancelled"],
     defaultsTo: "pending",
-  } as unknown as "pending" | "sent" | "failed" | "read",
+  } as unknown as "pending" | "sent" | "failed" | "read" | "cancelled",
 
   /** Целевая группа — нужна _deliver() при recovery */
   groupTo: {
@@ -138,5 +185,5 @@ module.exports = {
 };
 
 declare global {
-  const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost" | "important" | "deliveryAttempts">;
+  const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost" | "important" | "deliveryAttempts" | "notificationTypeKey" | "eventKey" | "context" | "maxDeliveryCost" | "scheduledAt" | "idempotencyKey">;
 }
