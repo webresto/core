@@ -12,9 +12,18 @@ export default async function () {
 
     /**
      * TIMEZONE
+     *
+     * The TZ setting can legitimately be empty (no default is applied for it).
+     * In that case fall back to the TZ environment variable instead of
+     * overwriting process.env.TZ with an empty string.
      */
-    const timezone = await Settings.get("TZ");
-    process.env.TZ = timezone;
+    const tzSetting = await Settings.get("TZ");
+    const timezone = (typeof tzSetting === "string" && tzSetting.trim() !== "")
+      ? tzSetting
+      : (process.env.TZ || undefined);
+    if (timezone) {
+      process.env.TZ = timezone;
+    }
 
     if (await Settings.get("UUID_NAMESPACE") === undefined) {
       await Settings.set("UUID_NAMESPACE", {
