@@ -1,5 +1,7 @@
 import { generateUUID } from "../libs/hashCode";
 import { NotificationDispatcher } from "../libs/NotificationDispatcher";
+import { NotificationEventRegistry } from "../libs/NotificationEventRegistry";
+import { NotificationTypeRegistry } from "../libs/NotificationTypeRegistry";
 import { registerCoreMcpTools } from "./mcp";
 
 /**
@@ -30,7 +32,6 @@ export default async function () {
         value: generateUUID()
       })
     }
-
 
     await PaymentDocument.processor(timeSyncPayments);
 
@@ -80,6 +81,11 @@ export default async function () {
     } catch (error) {
       sails.log.warn(" RestoCore > RMS adapter is not set ");
     }
+
+    // Typed notifications: register core events (registration ≠ enabling send),
+    // then seed/load the notification rules catalog (NotificationRules model) into cache.
+    NotificationEventRegistry.registerCoreDefaults();
+    await NotificationTypeRegistry.load();
 
     // Notification delivery: retry pending + escalate unread sent
     const deliveryInterval = (await Settings.get("NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS")) ?? 60;

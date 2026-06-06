@@ -448,6 +448,17 @@ function processBindAdminpanel() {
           sails.log.debug('NotificationsManager list route bind error', e);
         }
 
+        // API route for notifications dashboard stats (per-channel counts, cost, daily trend)
+        try {
+          const getNotificationStatsController = require('../lib/adminpanel/src/controller/get-notification-stats').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/stats`,
+            ...bind(getNotificationStatsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager stats route bind error', e);
+        }
+
         // API route for single notification details
         try {
           const getNotificationController = require('../lib/adminpanel/src/controller/get-notification').default;
@@ -468,17 +479,6 @@ function processBindAdminpanel() {
           );
         } catch (e) {
           sails.log.debug('NotificationsManager retry route bind error', e);
-        }
-
-        // API route for escalation to the next channel
-        try {
-          const escalateNotificationController = require('../lib/adminpanel/src/controller/escalate-notification').default;
-          adminizer.app.post(
-            `${routePrefix}/core/notifications-manager/escalate`,
-            ...bind(escalateNotificationController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager escalate route bind error', e);
         }
 
         // API route for searching users for notification creation
@@ -517,6 +517,65 @@ function processBindAdminpanel() {
           );
         } catch (e) {
           sails.log.debug('NotificationsManager channels route bind error', e);
+        }
+
+        // API routes for notification types catalog (read + write)
+        try {
+          const getNotificationTypesController = require('../lib/adminpanel/src/controller/get-notification-types').default;
+          const getNotificationTypeController = require('../lib/adminpanel/src/controller/get-notification-type').default;
+          const upsertNotificationTypeController = require('../lib/adminpanel/src/controller/upsert-notification-type').default;
+          const deleteNotificationTypeController = require('../lib/adminpanel/src/controller/delete-notification-type').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/types`,
+            ...bind(getNotificationTypesController)
+          );
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/type`,
+            ...bind(getNotificationTypeController)
+          );
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/type`,
+            ...bind(upsertNotificationTypeController)
+          );
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/type-delete`,
+            ...bind(deleteNotificationTypeController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager types route bind error', e);
+        }
+
+        // API route for notification events catalog (read-only)
+        try {
+          const getNotificationEventsController = require('../lib/adminpanel/src/controller/get-notification-events').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/events`,
+            ...bind(getNotificationEventsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager events route bind error', e);
+        }
+
+        // API route for emitting a test notification (dry-run / real)
+        try {
+          const emitTestNotificationController = require('../lib/adminpanel/src/controller/emit-test-notification').default;
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/emit-test`,
+            ...bind(emitTestNotificationController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager emit-test route bind error', e);
+        }
+
+        // API route for available locales catalog
+        try {
+          const getNotificationLocalesController = require('../lib/adminpanel/src/controller/get-notification-locales').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/locales`,
+            ...bind(getNotificationLocalesController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager locales route bind error', e);
         }
 
         // Settings Manager module link + routes

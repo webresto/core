@@ -28,6 +28,10 @@ export * from './models/Promotion';
 // Helpers
 export * from './libs/helpers/OrderHelper'
 export * from './libs/NotificationDispatcher'
+export * from './libs/NotificationEventRegistry'
+export * from './libs/NotificationTypeRegistry'
+export * from './libs/NotificationTemplateRenderer'
+export * from './libs/NotificationService'
 
 module.exports = function (sails: any) {
   return {

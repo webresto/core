@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
+import TypesSection from './components/notifications/TypesSection';
+import EventsSection from './components/notifications/EventsSection';
+import SendTestPanel from './components/notifications/SendTestPanel';
+import DashboardSection from './components/notifications/DashboardSection';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
 
@@ -161,11 +165,23 @@ function getNotificationSectionFromHash() {
   return parseNotificationHash().section;
 }
 
+// Top-level module section on /notifications-manager (§1): dashboard / types / events / channels / activity.
+function getModuleSectionFromHash() {
+  if (typeof window === 'undefined') return 'activity';
+  const hash = String(window.location.hash || '').replace(/^#/, '').toLowerCase();
+  if (hash === 'dashboard') return 'dashboard';
+  if (hash.startsWith('types')) return 'types';
+  if (hash.startsWith('events')) return 'events';
+  if (hash === 'channels') return 'channels';
+  return 'activity';
+}
+
 function parseNotificationHash() {
   if (typeof window === 'undefined') return { section: 'history', id: '' };
   const hash = String(window.location.hash || '').replace(/^#/, '');
   const lowerHash = hash.toLowerCase();
   if (lowerHash === 'send') return { section: 'send', id: '' };
+  if (lowerHash === 'test') return { section: 'test', id: '' };
   if (lowerHash.startsWith('history/')) {
     return { section: 'history', id: decodeURIComponent(hash.slice('history/'.length)) };
   }
@@ -188,7 +204,16 @@ function getNotificationUrl(id) {
 
 function setNotificationSectionHash(section, id = '') {
   if (typeof window === 'undefined') return;
-  const nextHash = section === 'send' ? '#send' : (id ? `#history/${encodeURIComponent(id)}` : '#history');
+  const nextHash = section === 'send' ? '#send'
+    : section === 'test' ? '#test'
+    : (id ? `#history/${encodeURIComponent(id)}` : '#history');
+  if (window.location.hash === nextHash) return;
+  window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
+}
+
+function setModuleSectionHash(section) {
+  if (typeof window === 'undefined') return;
+  const nextHash = section === 'activity' ? '#history' : `#${section}`;
   if (window.location.hash === nextHash) return;
   window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
 }
@@ -266,6 +291,14 @@ function NotificationsManagerContent() {
   const viewMode = getCurrentViewMode();
   const isChannelsView = viewMode === 'channels';
   const [notificationSection, setNotificationSection] = useState(getNotificationSectionFromHash);
+  const [moduleSection, setModuleSection] = useState(getModuleSectionFromHash);
+
+  // Typed-notifications catalog data (Types/Events sections, Send test, template locales).
+  const [notificationTypes, setNotificationTypes] = useState([]);
+  const [notificationEvents, setNotificationEvents] = useState([]);
+  const [notificationLocales, setNotificationLocales] = useState([]);
+  const [notificationDefaultLocale, setNotificationDefaultLocale] = useState('en');
+  const [createPrefillEvent, setCreatePrefillEvent] = useState('');
 
   const [appearance, setAppearance] = useState(getPreferredAppearance);
   const isDark = useMemo(() => isDarkAppearance(appearance), [appearance]);
@@ -359,6 +392,29 @@ function NotificationsManagerContent() {
     } finally {
       setLoadingChannels(false);
     }
+  };
+
+  const loadNotificationTypes = async () => {
+    const response = await notificationsApi('/core/notifications-manager/types');
+    if (response.ok) setNotificationTypes(Array.isArray(response.payload?.results) ? response.payload.results : []);
+  };
+
+  const loadNotificationEvents = async () => {
+    const response = await notificationsApi('/core/notifications-manager/events');
+    if (response.ok) setNotificationEvents(Array.isArray(response.payload?.results) ? response.payload.results : []);
+  };
+
+  const loadNotificationLocales = async () => {
+    const response = await notificationsApi('/core/notifications-manager/locales');
+    if (response.ok) {
+      setNotificationLocales(Array.isArray(response.payload?.results) ? response.payload.results : []);
+      if (response.payload?.defaultLocale) setNotificationDefaultLocale(String(response.payload.defaultLocale));
+    }
+  };
+
+  // Reload the typed-notifications catalogs together (types + events, since event counts depend on types).
+  const reloadTypesCatalog = async () => {
+    await Promise.all([loadNotificationTypes(), loadNotificationEvents()]);
   };
 
   const updateChannelEnabled = async (channel, enabled) => {
@@ -456,6 +512,14 @@ function NotificationsManagerContent() {
     return () => window.clearInterval(timer);
   }, [isChannelsView]);
 
+  // Load typed-notifications catalogs (types/events/locales) once for /notifications-manager.
+  useEffect(() => {
+    if (isChannelsView) return;
+    reloadTypesCatalog();
+    loadNotificationLocales();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isChannelsView]);
+
   useEffect(() => {
     setChannelDrafts(() => {
       const next = {};
@@ -516,6 +580,7 @@ function NotificationsManagerContent() {
     const syncSectionFromHash = () => {
       const parsed = parseNotificationHash();
       setNotificationSection(parsed.section);
+      setModuleSection(getModuleSectionFromHash());
       if (parsed.section === 'history') setSelectedId(parsed.id || '');
     };
     syncSectionFromHash();
@@ -530,6 +595,17 @@ function NotificationsManagerContent() {
   const changeNotificationSection = (section) => {
     setNotificationSection(section);
     setNotificationSectionHash(section, section === 'history' ? selectedId : '');
+  };
+
+  const changeModuleSection = (section) => {
+    setModuleSection(section);
+    setModuleSectionHash(section);
+  };
+
+  // From Events → "Add type for this event": jump to Types with a prefilled eventKey.
+  const handleAddTypeForEvent = (eventKey) => {
+    setCreatePrefillEvent(eventKey || '');
+    changeModuleSection('types');
   };
 
   const selectNotification = (id) => {
@@ -713,28 +789,102 @@ function NotificationsManagerContent() {
         </div>
 
         {!isChannelsView && (
-          <div role="tablist" aria-label={t('Notifications')} style={tabsStyle}>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={notificationSection === 'history'}
-              onClick={() => changeNotificationSection('history')}
-              style={tabButtonStyle(notificationSection === 'history')}
-            >
-              {t('Notification history')}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={notificationSection === 'send'}
-              onClick={() => changeNotificationSection('send')}
-              style={tabButtonStyle(notificationSection === 'send')}
-            >
-              {t('Send notification')}
-            </button>
+          <div role="tablist" aria-label={t('Sections')} style={tabsStyle}>
+            {[
+              { id: 'dashboard', label: t('Dashboard') },
+              { id: 'types', label: t('Types') },
+              { id: 'events', label: t('Events') },
+              { id: 'channels', label: t('Channels') },
+              { id: 'activity', label: t('Activity') },
+            ].map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                role="tab"
+                aria-selected={moduleSection === s.id}
+                onClick={() => changeModuleSection(s.id)}
+                style={tabButtonStyle(moduleSection === s.id)}
+              >
+                {s.label}
+              </button>
+            ))}
           </div>
         )}
       </header>
+
+      {/* Dashboard section — volume & cost overview */}
+      {!isChannelsView && moduleSection === 'dashboard' && (
+        <DashboardSection
+          t={t}
+          language={language}
+          channelLabel={(type) => channelLabel({ type }, t)}
+          statusLabel={(value) => statusLabel(value, t)}
+        />
+      )}
+
+      {/* Types section */}
+      {!isChannelsView && moduleSection === 'types' && (
+        <TypesSection
+          t={t}
+          language={language}
+          notificationsApi={notificationsApi}
+          types={notificationTypes}
+          events={notificationEvents}
+          channels={channels}
+          locales={notificationLocales}
+          defaultLocale={notificationDefaultLocale}
+          onChanged={reloadTypesCatalog}
+          createPrefillEvent={createPrefillEvent}
+          onConsumePrefill={() => setCreatePrefillEvent('')}
+        />
+      )}
+
+      {/* Events section (read-only) */}
+      {!isChannelsView && moduleSection === 'events' && (
+        <EventsSection
+          t={t}
+          events={notificationEvents}
+          types={notificationTypes}
+          onAddTypeForEvent={handleAddTypeForEvent}
+        />
+      )}
+
+      {/* Activity subnav (history / send / test) */}
+      {!isChannelsView && moduleSection === 'activity' && (
+        <div role="tablist" aria-label={t('Activity')} style={tabsStyle}>
+          <button type="button" role="tab" aria-selected={notificationSection === 'history'}
+            onClick={() => changeNotificationSection('history')} style={tabButtonStyle(notificationSection === 'history')}>
+            {t('Notification history')}
+          </button>
+          <button type="button" role="tab" aria-selected={notificationSection === 'send'}
+            onClick={() => changeNotificationSection('send')} style={tabButtonStyle(notificationSection === 'send')}>
+            {t('Send notification')}
+          </button>
+          <button type="button" role="tab" aria-selected={notificationSection === 'test'}
+            onClick={() => changeNotificationSection('test')} style={tabButtonStyle(notificationSection === 'test')}>
+            {t('Send test')}
+          </button>
+        </div>
+      )}
+
+      {/* Activity → Send test (event dry-run / real) */}
+      {!isChannelsView && moduleSection === 'activity' && notificationSection === 'test' && (
+        <section style={panel}>
+          <div style={panelHeader}>
+            <div>
+              <h2 style={sectionTitle}>{t('Send test')}</h2>
+              <p style={sectionDescription}>{t('Fire an event through the server (dry-run by default) to see which types match and how they render.')}</p>
+            </div>
+          </div>
+          <SendTestPanel
+            t={t}
+            notificationsApi={notificationsApi}
+            events={notificationEvents}
+            locales={notificationLocales}
+            defaultLocale={notificationDefaultLocale}
+          />
+        </section>
+      )}
 
       {error && (
         <div style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--destructive)', color: '#fff', opacity: 0.9 }}>
@@ -742,7 +892,7 @@ function NotificationsManagerContent() {
         </div>
       )}
 
-      {!isChannelsView && createdNotification?.id && (
+      {!isChannelsView && moduleSection === 'activity' && createdNotification?.id && (
         <div style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--muted)', color: 'var(--foreground)', display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
           <div style={{ fontSize: 13 }}>
             <strong>{t('Notification sent')}:</strong> <span style={{ fontFamily: 'monospace' }}>{createdNotification.id}</span>
@@ -754,7 +904,7 @@ function NotificationsManagerContent() {
       )}
 
       {/* Create notification */}
-      {!isChannelsView && notificationSection === 'send' && (
+      {!isChannelsView && moduleSection === 'activity' && notificationSection === 'send' && (
         <section style={panel}>
           <div style={panelHeader}>
             <div>
@@ -923,8 +1073,8 @@ function NotificationsManagerContent() {
         </section>
       )}
 
-      {/* Channels view */}
-      {isChannelsView && (
+      {/* Channels view (standalone page or the Channels section of /notifications-manager) */}
+      {(isChannelsView || (!isChannelsView && moduleSection === 'channels')) && (
         <section style={panel}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <h2 style={{ margin: 0, fontSize: 20 }}>{t('Notification channels')}</h2>
@@ -1036,7 +1186,7 @@ function NotificationsManagerContent() {
       )}
 
       {/* Notifications list + detail */}
-      {!isChannelsView && notificationSection === 'history' && (
+      {!isChannelsView && moduleSection === 'activity' && notificationSection === 'history' && (
         <div style={sectionStack}>
           <section style={panel}>
             <div style={panelHeader}>
@@ -1184,9 +1334,6 @@ function NotificationsManagerContent() {
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <Button variant="outline" size="sm" onClick={() => performAction('/core/notifications-manager/retry', selectedSummary.id)} disabled={actionLoading === selectedSummary.id}>
                     {t('Retry delivery')}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => performAction('/core/notifications-manager/escalate', selectedSummary.id)} disabled={actionLoading === selectedSummary.id}>
-                    {t('Escalate')}
                   </Button>
                 </div>
               )}
