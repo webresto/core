@@ -9,11 +9,11 @@ export type InitCheckout = {
     /**
      * Will it be possible to order as quickly as possible?
      */
-    allowSoonAsPossible: boolean;
+    allowSoonAsPossible: boolean | null;
     /**
      * Allow order by time
      */
-    allowOrderToTime: boolean;
+    allowOrderToTime: boolean | null;
     /**
      * Above the expenditure of bonuses on a check of a piece that will be shown to the user
      */
