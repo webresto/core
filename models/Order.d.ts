@@ -347,6 +347,10 @@ declare let Model: {
      */
     emitAndLog(criteria: CriteriaQuery<OrderRecord>, eventName: string, ...args: any[]): Promise<any[]>;
     /**
+     * Fire emitter.emit without awaiting it and log handler errors/timeouts into order log.
+     */
+    emitAndLogDetached(criteria: CriteriaQuery<OrderRecord>, eventName: string, ...args: any[]): void;
+    /**
      * State transition method with validation
      * @param criteria - Order criteria (id string or query object)
      * @param nextState - Target state to transition to

@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { OrderRecord } from "../../../models/Order";
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 describe("Order logs: beforeUpdate guard", function () {
   this.timeout(30000);
 
@@ -58,5 +60,31 @@ describe("Order logs: beforeUpdate guard", function () {
     const fresh = await Order.findOne({ id: order.id });
     expect(fresh.logs).to.have.length(2);
     expect(fresh.comment).to.equal("after spread");
+  });
+
+  it("Order.emitAndLogDetached logs handler errors without awaiting the caller", async function () {
+    const listenerId = `detached-error-${order.id}`;
+    emitter.on("core:order-after-done", listenerId, async function () {
+      throw new Error("detached test error");
+    });
+
+    try {
+      Order.emitAndLogDetached({ id: order.id }, "core:order-after-done", order, null, { isNewUser: false });
+
+      let saved;
+      for (let i = 0; i < 20; i++) {
+        const logs = await Order.getLogs({ id: order.id });
+        saved = logs.find((entry) => entry.message === "Emitter [core:order-after-done] handler error");
+        if (saved) break;
+        await sleep(50);
+      }
+
+      expect(saved).to.exist;
+      expect(saved.level).to.equal("error");
+      expect(saved.module).to.equal(listenerId);
+      expect(saved.data.error).to.equal("detached test error");
+    } finally {
+      emitter.on("core:order-after-done", listenerId, function () {});
+    }
   });
 });
