@@ -28,8 +28,8 @@ export class OrderLogsViewerControl {
       cssPath: "",
       // Custom admin modules are served by restocore hook bindAssets.ts
       jsPath: {
-        dev: "/restocore/assets/stockmanager/OrderLogsViewer.js",
-        production: "/restocore/assets/stockmanager/OrderLogsViewer.js",
+        dev: "/restocore/assets/core-adminizer-assets/OrderLogsViewer.js",
+        production: "/restocore/assets/core-adminizer-assets/OrderLogsViewer.js",
       },
     };
 
