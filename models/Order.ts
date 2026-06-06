@@ -436,7 +436,7 @@ let Model = {
         await Order.log({id: order.id}, "debug", "core", "Init product added", {productId: ORDER_INIT_PRODUCT_ID});
       }
     }
-    emitter.emit("core:order-after-create", order);
+    Order.emitAndLogDetached({id: order.id}, "core:order-after-create", order);
     cb();
   },
 
@@ -446,7 +446,7 @@ let Model = {
   },
 
   async afterUpdate(order: OrderRecord, cb: (err?: string) => void) {
-    emitter.emit("core:order-after-update", order);
+    Order.emitAndLogDetached({id: order.id}, "core:order-after-update", order);
     cb();
   },
 
@@ -852,7 +852,7 @@ let Model = {
        *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
        */
 
-      emitter.emit("core:order-before-check", order, customer, isSelfService, address);
+      Order.emitAndLogDetached({id: order.id}, "core:order-before-check", order, customer, isSelfService, address);
 
       sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
 
@@ -891,7 +891,7 @@ let Model = {
       if (isSelfService) {
         order.selfService = true;
 
-        emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
+        Order.emitAndLogDetached({id: order.id}, "core:order-is-self-service", order, customer, isSelfService, address);
       } else {
         order.selfService = false;
         softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
@@ -1003,7 +1003,7 @@ let Model = {
 
 
       sails.log.silly("Order > check > after wait general emitter", order, results);
-      emitter.emit("core:order-after-check-counting", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-check-counting", order);
 
       delete (order.dishes);
       await Order.update({ id: order.id }, { ...order }).fetch();
@@ -1111,13 +1111,13 @@ let Model = {
     // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
     //   return 3
 
-    emitter.emit("core:order-before-order", order);
+    Order.emitAndLogDetached({id: order.id}, "core:order-before-order", order);
     sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
 
     if (order.selfService) {
-      emitter.emit("core:order-order-self-service", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-order-self-service", order);
     } else {
-      emitter.emit("core:order-order-delivery", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-order-delivery", order);
     }
 
     /**
@@ -1247,7 +1247,7 @@ let Model = {
       }
 
       sails.log.debug("CORE > about to emit core:order-after-order, orderId:", order?.id, "emitter events count:", emitter?.events?.length, "subscribers:", emitter?.events?.map(e => `${e.name}[${e.subscribers?.length}]`).join(", "));
-      emitter.emit("core:order-after-order", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-order", order);
       if (order.user) {
         UserOrderHistory.save(order.id);
       }
@@ -1532,7 +1532,7 @@ let Model = {
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
       if (!orderDishes) return order;
 
-      emitter.emit("core:order-before-count", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-before-count", order);
       order.isPromoting = isPromoting;
       // const orderDishesClone = {}
       let basketTotal = new Decimal(0);
@@ -1562,7 +1562,7 @@ let Model = {
             // Checks that the dish is available for sale
             if (!dish) {
               sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
-              emitter.emit("core:order-return-full-order-destroy-orderdish", dish, order);
+              Order.emitAndLogDetached({id: order.id}, "core:order-return-full-order-destroy-orderdish", dish, order);
               await OrderDish.destroy({ id: orderDish.id }).fetch();
               continue;
             }
@@ -1580,7 +1580,7 @@ let Model = {
               if (orderDish.amount >= 0) {
                 await Order.removeDish({ id: order.id }, orderDish, 999999);
               }
-              emitter.emit("core:orderproduct-change-amount", orderDish);
+              Order.emitAndLogDetached({id: order.id}, "core:orderproduct-change-amount", orderDish);
               sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
             }
 
@@ -1756,7 +1756,7 @@ let Model = {
 
       // Promotion code
       if (order.isPromoting === false) {
-        emitter.emit("core:count-before-promotion", order);
+        Order.emitAndLogDetached({id: order.id}, "core:count-before-promotion", order);
         try {
           let promotionAdapter: AbstractPromotionAdapter = Adapter.getPromotionAdapter();
           // set lock
@@ -1834,7 +1834,7 @@ let Model = {
         }
 
 
-        emitter.emit("core:order-after-promotion", order);
+        Order.emitAndLogDetached({id: order.id}, "core:order-after-promotion", order);
       }
 
       // Force unpopulated promotionCode, TODO: debug it why is not unpopulated here?!
@@ -1855,7 +1855,7 @@ let Model = {
 
         // The SOFT_DELIVERY_CALCULATION setting disables strict checking of the delivery address.
         softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION")
-        emitter.emit("core:count-before-delivery-cost", order);
+        Order.emitAndLogDetached({id: order.id}, "core:count-before-delivery-cost", order);
 
         // order.promotionDelivery is preferred over the delivery setting
         if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
@@ -1864,7 +1864,7 @@ let Model = {
           let deliveryAdapter = await Adapter.getDeliveryAdapter();
           await deliveryAdapter.reset(order);
           if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
-            emitter.emit("core:order-check-delivery", order);
+            Order.emitAndLogDetached({id: order.id}, "core:order-check-delivery", order);
             try {
               delivery = await deliveryAdapter.calculate(order);
             } catch (error) {
@@ -1927,7 +1927,7 @@ let Model = {
         order.deliveryDescription = '';
       }
 
-      emitter.emit("core:count-after-delivery-cost", order);
+      Order.emitAndLogDetached({id: order.id}, "core:count-after-delivery-cost", order);
       // END calculate delivery cost
 
       order.total = new Decimal(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
@@ -1942,7 +1942,7 @@ let Model = {
         dishesCount: order.dishesCount
       });
 
-      emitter.emit("core:order-after-count", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-count", order);
       return order;
     } catch (error) {
       sails.log.error(" error >", error);
@@ -1992,7 +1992,7 @@ let Model = {
       }
 
       await Order.order({ id: order.id });
-      emitter.emit("core:order-after-dopaid", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-dopaid", order);
 
     } catch (e) {
       const message = [
@@ -2024,7 +2024,7 @@ let Model = {
       sails.log.error("Order > doPaid error: ", message.join("\n"), e);
       await Order.log({id: order.id}, "error", "core", "doPaid: failed", {error: e?.message || e});
       await Order.log({id: order.id}, "error", "core", "!!! CRITICAL: MONEY-IN, ORDER-NOT-PLACED CONDITION !!!", {error: message});
-      emitter.emit("core:order-after-dopaid-error", order, e);
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-dopaid-error", order, e);
       throw e;
     }
   },
@@ -2056,7 +2056,7 @@ let Model = {
 
     await Order.next(criteriaOne, state);
 
-    emitter.emit("core:order-after-done", order, user, { isNewUser });
+    Order.emitAndLogDetached({id: order.id}, "core:order-after-done", order, user, { isNewUser });
   },
 
   async doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord> {
@@ -2172,6 +2172,13 @@ let Model = {
   },
 
   /**
+   * Fire emitter.emit without awaiting it and log handler errors/timeouts into order log.
+   */
+  emitAndLogDetached(criteria: CriteriaQuery<OrderRecord>, eventName: string, ...args: any[]): void {
+    return OrderLogHelper.emitAndLogDetached(criteria, eventName, ...args);
+  },
+
+  /**
    * State transition method with validation
    * @param criteria - Order criteria (id string or query object)
    * @param nextState - Target state to transition to
@@ -2256,7 +2263,7 @@ let Model = {
     // Perform transition
     const updated = (await Order.update(query, patch).fetch())[0];
     if (updated) {
-      emitter.emit("core:order-after-count", updated);
+      Order.emitAndLogDetached({id: updated.id}, "core:order-after-count", updated);
     }
   }
 };
