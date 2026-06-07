@@ -53,8 +53,8 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateEnable, onU
             <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-base truncate">{dish.name || '—'}</h4>
                 <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                    <span>{t('dish_code')}: {dish.code || '—'}</span>
-                    <span>{t('dish_price')}: {dish.price ?? '—'}</span>
+                    <span>{t('Code')}: {dish.code || '—'}</span>
+                    <span>{t('Price')}: {dish.price ?? '—'}</span>
                 </div>
             </div>
 
@@ -63,10 +63,10 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateEnable, onU
                 variant="ghost"
                 size="sm"
                 onClick={toggleVisibility}
-                title={t('dish_visible')}
+                title={t('Visible in menu (publicity)')}
                 className="h-8 w-8 p-0"
             >
-                {dish.visible !== false ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5 text-red-500" />}
+                {dish.visible !== false ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" style={{ color: 'var(--destructive)' }} />}
             </Button>
 
             {/* Enable Toggle */}
@@ -77,15 +77,15 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateEnable, onU
                     onCheckedChange={(checked) => onUpdateEnable(dish.id, 'dish', checked === true)}
                 />
                 <Label htmlFor={`enable-list-${dish.id}`} className="cursor-pointer text-sm">
-                    {t('dish_enable')}
+                    {t('Active (adm. status)')}
                 </Label>
             </div>
 
             {/* Stock Display */}
             <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{t('dish_stock')}:</span>
+                <span className="text-sm text-muted-foreground">{t('Stock')}:</span>
                 {isUnlimited ? (
-                    <span className="font-bold text-green-600">∞</span>
+                    <span className="font-bold" style={{ color: '#16a34a' }}>∞</span>
                 ) : (
                     <span className="font-mono font-semibold min-w-[2rem] text-right">{currentBalance}</span>
                 )}
@@ -123,7 +123,7 @@ export function DishListItem({ dish, balance, onUpdateStock, onUpdateEnable, onU
 
                 <Button
                     onClick={handleSetUnlimited}
-                    title={t('dish_set_unlimited')}
+                    title={t('Set to Unlimited')}
                     variant="outline"
                     size="sm"
                     className="h-8 w-8 p-0"

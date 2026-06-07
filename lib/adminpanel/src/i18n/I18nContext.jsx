@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { locales } from './locales';
 
 const I18nContext = createContext();
 const FALLBACK_LOCALE = 'en';
@@ -7,16 +6,12 @@ const FALLBACK_LOCALE = 'en';
 function normalizeLocale(rawLocale) {
     const normalized = String(rawLocale || '').trim().toLowerCase().replace(/_/g, '-');
     if (!normalized) return '';
-    if (locales[normalized]) return normalized;
-
     const base = normalized.split('-')[0];
-    if (base === 'uk' && locales.ua) return 'ua';
-    if (locales[base]) return base;
-
-    return '';
+    if (base === 'uk') return 'ua';
+    return base || normalized;
 }
 
-export function I18nProvider({ children, initialLocale }) {
+export function I18nProvider({ children, initialLocale, messages = null }) {
     // Get initial language from props, localStorage or browser preference or default to 'en'
     const getInitialLanguage = () => {
         const fromProps = normalizeLocale(initialLocale);
@@ -39,9 +34,8 @@ export function I18nProvider({ children, initialLocale }) {
     }, [language]);
 
     const t = (key, params = {}) => {
-        const dictionary = locales[language] || locales[FALLBACK_LOCALE] || {};
-        const fallback = locales[FALLBACK_LOCALE] || {};
-        const translation = dictionary[key] || fallback[key] || key;
+        const dictionary = messages || {};
+        const translation = dictionary[key] || key;
 
         // Replace params like {count}
         return Object.entries(params).reduce((str, [paramKey, paramValue]) => {

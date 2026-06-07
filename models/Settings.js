@@ -374,7 +374,8 @@ let Model = {
                     ...(settingsSetInput.isRequired !== undefined ? { isRequired: settingsSetInput.isRequired } : {}),
                 };
                 const updated = (await Settings.update({ key: key }, updateData).fetch())[0];
-                sails.log.debug(`CORE > Settings > updated [${key}]:`, JSON.stringify({ value: updateData.value, defaultValue: updateData.defaultValue, type: settingType }));
+                const _fmt = (v) => { const s = JSON.stringify(v); return s && s.length > 1024 ? '[long object]' : s; };
+                sails.log.debug(`CORE > Settings > updated [${key}]:`, JSON.stringify({ value: _fmt(updateData.value), defaultValue: _fmt(updateData.defaultValue), type: settingType }));
                 return updated;
             }
         }

@@ -50,6 +50,39 @@ let Model = {
         }
         cb();
     },
+    /**
+     * Cancel a pending PaymentDocument (status NEW/REGISTERED).
+     * Calls paymentAdapter.cancelPayment to revoke the payment in the external system,
+     * then sets status='CANCEL' locally.
+     * If the document is already finalized (PAID/REFUND/CANCEL/DECLINE) — no-op.
+     * Used to invalidate a payment link when the underlying basket changes.
+     */
+    cancel: async function (criteria) {
+        const self = (await PaymentDocument.find(criteria).limit(1))[0];
+        if (!self)
+            throw `PaymentDocument is not found`;
+        // Cannot cancel finalized payments. Especially PAID — that would lose the user's money.
+        if (self.paid || ["PAID", "REFUND", "CANCEL", "DECLINE"].includes(self.status)) {
+            sails.log.debug(`PaymentDocument > cancel: ${self.id} already finalized (status=${self.status}, paid=${self.paid}), no-op`);
+            return self;
+        }
+        if (typeof self.paymentMethod !== "string") {
+            throw `PaymentDocument > cancel: paymentMethod must be a string id, got ${typeof self.paymentMethod}`;
+        }
+        emitter.emit("core:payment-document-before-cancel", self);
+        try {
+            let paymentAdapter = await PaymentMethod.getAdapterById(self.paymentMethod);
+            let cancelledPaymentDocument = await paymentAdapter.cancelPayment(self);
+            sails.log.silly("PaymentDocument > cancel > adapter result", cancelledPaymentDocument);
+            await PaymentDocument.update({ id: self.id }, { status: "CANCEL" }).fetch();
+            emitter.emit("core:payment-document-canceled", { ...self, status: "CANCEL" });
+            return { ...self, status: "CANCEL" };
+        }
+        catch (e) {
+            sails.log.error("PaymentDocument > cancel error :", e);
+            throw e;
+        }
+    },
     doCheck: async function (criteria) {
         const self = (await PaymentDocument.find(criteria).limit(1))[0];
         if (!self)

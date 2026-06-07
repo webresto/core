@@ -1,0 +1,12 @@
+{
+  "key": "NOTIFICATION_MAX_CHANNELS_PER_MESSAGE",
+  "type": "number",
+  "name": "Notification Max Channels Per Message (waterfall limit)",
+  "description": "Maximum number of channels to attempt per notification, counting both successful and failed attempts across initial delivery and escalations. Once this many channels have been tried, escalation stops. Important notifications (important = true) are exempt and keep escalating. Set to 0 to disable the limit.",
+  "defaultValue": 3,
+  "jsonSchema": {
+    "type": "integer",
+    "minimum": 0
+  },
+  "isRequired": false
+}

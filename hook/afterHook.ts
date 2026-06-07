@@ -1,5 +1,8 @@
 import { generateUUID } from "../libs/hashCode";
 import { NotificationDispatcher } from "../libs/NotificationDispatcher";
+import { NotificationEventRegistry } from "../libs/NotificationEventRegistry";
+import { NotificationTypeRegistry } from "../libs/NotificationTypeRegistry";
+import { registerCoreMcpTools } from "./mcp";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -11,16 +14,24 @@ export default async function () {
 
     /**
      * TIMEZONE
+     *
+     * The TZ setting can legitimately be empty (no default is applied for it).
+     * In that case fall back to the TZ environment variable instead of
+     * overwriting process.env.TZ with an empty string.
      */
-    const timezone = await Settings.get("TZ");
-    process.env.TZ = timezone;
+    const tzSetting = await Settings.get("TZ");
+    const timezone = (typeof tzSetting === "string" && tzSetting.trim() !== "")
+      ? tzSetting
+      : (process.env.TZ || undefined);
+    if (timezone) {
+      process.env.TZ = timezone;
+    }
 
     if (await Settings.get("UUID_NAMESPACE") === undefined) {
       await Settings.set("UUID_NAMESPACE", {
         value: generateUUID()
       })
     }
-
 
     await PaymentDocument.processor(timeSyncPayments);
 
@@ -71,11 +82,18 @@ export default async function () {
       sails.log.warn(" RestoCore > RMS adapter is not set ");
     }
 
+    // Typed notifications: register core events (registration ≠ enabling send),
+    // then seed/load the notification rules catalog (NotificationRules model) into cache.
+    NotificationEventRegistry.registerCoreDefaults();
+    await NotificationTypeRegistry.load();
+
     // Notification delivery: retry pending + escalate unread sent
     const deliveryInterval = (await Settings.get("NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS")) ?? 60;
     const escalationInterval = (await Settings.get("NOTIFICATION_ESCALATION_INTERVAL_SECONDS")) ?? 60;
     NotificationDispatcher.startDeliveryLoop(deliveryInterval);
     NotificationDispatcher.startEscalationLoop(escalationInterval);
+
+    registerCoreMcpTools();
 
   } catch (e) {
     sails.log.error("RestoCore > initialization error > ", e);

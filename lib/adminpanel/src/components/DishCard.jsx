@@ -59,18 +59,18 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateEnable, onUpdat
                 <button 
                     onClick={toggleVisibility}
                     className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-                    title={t('dish_visible')}
+                    title={t('Visible in menu (publicity)')}
                 >
                     {dish.visible !== false ? (
                          <Eye className="w-5 h-5" />
                     ) : (
-                         <EyeOff className="w-5 h-5 text-red-500" />
+                         <EyeOff className="w-5 h-5" style={{ color: 'var(--destructive)' }} />
                     )}
                 </button>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-                <div className="mb-2 text-sm text-muted-foreground">{t('dish_code')}: {dish.code || ''}</div>
-                <div className="mb-2 text-sm text-muted-foreground">{t('dish_price')}: {dish.price ?? ''}</div>
+                <div className="mb-2 text-sm text-muted-foreground">{t('Code')}: {dish.code || ''}</div>
+                <div className="mb-2 text-sm text-muted-foreground">{t('Price')}: {dish.price ?? ''}</div>
 
                 <div className="mb-4 flex items-center space-x-2">
                     <Checkbox
@@ -79,14 +79,14 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateEnable, onUpdat
                         onCheckedChange={(checked) => onUpdateEnable(dish.id, 'dish', checked === true)}
                     />
                     <Label htmlFor={`enable-${dish.id}`} className="cursor-pointer">
-                        {t('dish_enable')}
+                        {t('Active (adm. status)')}
                     </Label>
                 </div>
 
                 <div className="mb-4">
-                    <Label className="block mb-1 font-semibold">{t('dish_stock')}:</Label>
+                    <Label className="block mb-1 font-semibold">{t('Stock')}:</Label>
                     {isUnlimited ? (
-                        <span className="font-bold text-green-600">∞ {t('dish_unlimited')}</span>
+                        <span className="font-bold" style={{ color: '#16a34a' }}>∞ {t('Unlimited')}</span>
                     ) : (
                         <Input
                             type="number"
@@ -134,7 +134,7 @@ export function DishCard({ dish, balance, onUpdateStock, onUpdateEnable, onUpdat
 
                     <Button
                         onClick={handleSetUnlimited}
-                        title={t('dish_set_unlimited')}
+                        title={t('Set to Unlimited')}
                         variant="outline"
                         size="sm"
                         className="h-10 w-10 p-0 text-lg font-bold"

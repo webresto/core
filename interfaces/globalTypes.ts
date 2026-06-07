@@ -119,6 +119,7 @@ declare global {
     TZ: string
     POSSIBLE_TO_ORDER_IN_MINUTES: number
     DEFAULT_ENABLE_PAYMENT_METHODS: boolean
+    ENABLE_BY_DEFAULT_ON_SYNC: boolean
     PROMOTION_ENABLE_BY_DEFAULT: boolean
     PASSWORD_REGEX: string
     PASSWORD_MIN_LENGTH: number
@@ -153,6 +154,14 @@ declare global {
     FIRSTNAME_REQUIRED: boolean
     WORK_TIME: WorkTime[]
     FIELDS_FOR_ORDER_INITIALIZATION: ("address" | "selfService" | "pickupPoint" | "date" | "personsCount" | "comment" | "customer" | "promotionCode" | "paymentMethod" | "concept")[]
+    /**
+     * System-only notification channel runtime state.
+     */
+    NOTIFICATION_CHANNELS_STATE: Record<string, {
+      enabled?: boolean
+      sortOrder?: number
+      cost?: number
+    }>
 
     // for tests
     projectName: string
@@ -170,5 +179,33 @@ declare global {
     DEFAULT_LOCALE: string
     ORDER_LOG_DISABLE: boolean
     ORDER_LOG_USE_MAP: boolean
+
+    // Notifications
+    NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS: number
+    /**
+     * How long a delivered ("sent") notification may stay unread before escalation tries the
+     * next channel. Default: 5 (minutes). Pairs with NOTIFICATION_ESCALATION_INTERVAL_SECONDS.
+     */
+    NOTIFICATION_UNREAD_ESCALATION_MINUTES: number
+    /**
+     * How often the escalation loop ticks to re-scan sent-but-unread notifications (seconds).
+     * This is the poll cadence, NOT the unread wait — see NOTIFICATION_UNREAD_ESCALATION_MINUTES.
+     * Default: 60.
+     */
+    NOTIFICATION_ESCALATION_INTERVAL_SECONDS: number
+    NOTIFICATION_LOG_DISABLE: boolean
+    /**
+     * Maximum total cost allowed per notification (sum across all channels used for one notification).
+     * Channels whose cost would push the total above this limit are skipped.
+     * If null/unset: only one paid channel (cost > 0) is allowed per delivery attempt.
+     */
+    NOTIFICATION_MAX_COST_PER_MESSAGE: number | null
+    /**
+     * Maximum number of channels to attempt per notification (the "waterfall" limit),
+     * counting both successful and failed attempts across initial delivery and escalations.
+     * Once this many channels have been tried, escalation stops. Default: 3.
+     * Important notifications (important = true) are exempt and keep escalating.
+     */
+    NOTIFICATION_MAX_CHANNELS_PER_MESSAGE: number
   }
 }

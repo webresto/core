@@ -37,6 +37,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
 }
 
 export default async function UpdateOrderKanbanStateController(req: any, res: any) {
+  const t = (key: string, params?: any) => req?.i18n?.__ ? req.i18n.__(key, params) : key;
   try {
     const { config } = req.adminizer || {};
     if (config?.auth?.enable && !req.user) {
@@ -47,15 +48,15 @@ export default async function UpdateOrderKanbanStateController(req: any, res: an
 
     const { id, nextState } = req.body || {};
     if (!id || typeof id !== "string") {
-      return res.status(400).json({ error: "Invalid order id" });
+      return res.status(400).json({ error: t("Invalid order id") });
     }
     if (!isValidOrderState(nextState)) {
-      return res.status(400).json({ error: "Invalid nextState" });
+      return res.status(400).json({ error: t("Invalid next state") });
     }
 
     const order = await Order.findOne({ id });
     if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+      return res.status(404).json({ error: t("Order not found") });
     }
     const operatorLimited = isOperatorUser(req.user);
 
@@ -66,7 +67,7 @@ export default async function UpdateOrderKanbanStateController(req: any, res: an
     const allowedTransitions = getAllowedOrderTransitionsByRole(order.state || "NEW", operatorLimited);
     if (!allowedTransitions.includes(nextState)) {
       return res.status(403).json({
-        error: `Forbidden transition: ${order.state} -> ${nextState}`,
+        error: t("Forbidden transition: %s", `${order.state} -> ${nextState}`),
         allowedTransitions,
       });
     }
@@ -83,7 +84,7 @@ export default async function UpdateOrderKanbanStateController(req: any, res: an
 
     const updatedOrder = await Order.findOne({ id });
     if (!updatedOrder) {
-      return res.status(404).json({ error: "Order not found after update" });
+      return res.status(404).json({ error: t("Order not found after update") });
     }
 
     await Order.log({ id }, "info", "adminizer", "order-kanban: state changed", {

@@ -25,10 +25,10 @@ let attributes = {
 
   isLoggedIn: "boolean" as unknown as boolean,
 
+  /** Owner of the device. May be empty (null) — a device always exists, but it gets bound to a user only after login */
   user: {
-    model: 'user',
-    required: true
-  } as unknown as UserRecord | string,
+    model: 'user'
+  } as unknown as UserRecord | string | null,
   lastIP: "string",
   loginTime:  { type: "number"} as unknown as number,
   lastActivity: { type: "number"} as unknown as number,
@@ -42,10 +42,9 @@ let attributes = {
     [key: string]: string | boolean | number;
   } | string,
 
-  /** Провайдер-независимый токен уведомлений (FCM, APNs, WebPush и т.д.) */
+  /** Provider-independent notification token (FCM, APNs, WebPush, etc.). */
   notificationToken: {
     type: "json",
-    allowNull: true,
   } as unknown as NotificationToken | null,
 };
 
@@ -60,7 +59,9 @@ export interface UserDeviceRecord extends RequiredField<OptionalAll<attributes>,
 let Model = {
   beforeUpdate(record: UserDeviceRecord, cb:  (err?: string) => void){
     record.lastActivity = Date.now();
-    if(record.user) delete record.user
+    // NOTE: `user` is intentionally NOT stripped here anymore. Binding an empty
+    // device to a user (and the "rebind forbidden" rule) is handled centrally in
+    // `User.authDevice`. Stripping it here made it impossible to ever bind a device.
     if (record.isLoggedIn === false) {
       record.sessionId = null
     }

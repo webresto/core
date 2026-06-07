@@ -1,4 +1,5 @@
 export default async function UpdateIsDeletedController(req: any, res: any) {
+    const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
     try {
         const { config } = req.adminizer || {};
         if (config?.auth?.enable && !req.user) {
@@ -16,7 +17,7 @@ export default async function UpdateIsDeletedController(req: any, res: any) {
 
         if (!id || !model || (!isDishEnableUpdate && !isLegacyDeleteUpdate)) {
             console.log('[UpdateIsDeleted] Invalid parameters');
-            return res.status(400).json({ error: 'Invalid parameters' });
+            return res.status(400).json({ error: t('Invalid parameters') });
         }
 
         if (model === 'dish' && isDishEnableUpdate) {
@@ -29,7 +30,7 @@ export default async function UpdateIsDeletedController(req: any, res: any) {
             await Group.update({ id }, { isDeleted });
             console.log('[UpdateIsDeleted] Updated group:', id, 'isDeleted:', isDeleted);
         } else {
-            return res.status(400).json({ error: 'Invalid model type' });
+            return res.status(400).json({ error: t('Invalid model type') });
         }
 
         return res.json({ success: true });

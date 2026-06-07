@@ -105,9 +105,16 @@ class OrderLogHelper {
     }
 
     static async emitAndLog(criteria, eventName, ...args) {
+        await OrderLogHelper.log(criteria, "info", "emitter", `Emitter [${eventName}] emitted`);
         const results = await emitter.emit(eventName, ...args);
         await OrderLogHelper.checkResults(criteria, eventName, results);
         return results;
+    }
+
+    static emitAndLogDetached(criteria, eventName, ...args) {
+        void OrderLogHelper.emitAndLog(criteria, eventName, ...args).catch((error) => {
+            sails.log.error(`Order.emitAndLogDetached failed for event [${eventName}]`, error);
+        });
     }
 
     static async getLogs(criteria) {

@@ -63,4 +63,9 @@
     "Recommended By": "Рекомендовано",
     "A self-referential link that connects this dish to other dishes as recommendations. It indicates that this dish recommends or is recommended by others.": "Само-ссылающаяся связь, которая соединяет это блюдо с другими блюдами в качестве рекомендаций. Указывает, что это блюдо рекомендует или рекомендуется другими.",
     "Custom Data": "Пользовательские данные",
-    "Additional fields or data that can be set by modules or custom configurations. This allows for flexible extensions and metadata specific to the dish.": "Дополнительные поля или данные, которые могут быть установлены модулями или пользовательскими настройками. Это позволяет гибко расшир
+    "Additional fields or data that can be set by modules or custom configurations. This allows for flexible extensions and metadata specific to the dish.": "Дополнительные поля или данные, которые могут быть установлены модулями или пользовательскими настройками. Это позволяет гибко расширять функциональность и хранить метаданные, специфичные для блюда.",
+    "Cancel pending payment?": "Отменить ожидающую оплату?",
+    "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "По этому заказу есть активная ссылка на оплату. Изменение корзины отменит эту оплату. Продолжить?",
+    "Cancel payment and edit basket": "Отменить оплату и изменить корзину",
+    "Keep payment": "Оставить оплату"
+}

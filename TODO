@@ -1,9 +1,6 @@
-https://github.com/building5/sails-db-migrate
-
 1. Add model for places, PointOfSale, Stoks, PointOfMade, 
 2. Add street model + maybe need. addreses adapter
 3. We need thinking about separate stopLists for separate category. 
-4. Custom menu unbounded from RMS data. 
 5. Validation modifier
 6. Import worktime module - ok
 7. Change 404, 500 midleware, maybe midleware order repacker
@@ -17,13 +14,13 @@ https://github.com/building5/sails-db-migrate
 15. add state reject for await emmiter ( and get reason to checkout order)
 16. adapter for discount
 17. User's support
-18. Database migration system + automigration submodules (best way automigration from all submodules migration dirs, but for start normaly make migration by bash script)
 19. AwaitEmmiter setup globaly 
 20. persistent OrderDish history
 21. Modifiers is model
 22. Imporeve Product model instead Dish
 23. partial paid order
 24. Cancel payment document from core
+25. Move to new app-manager
 
 Modifiers:Sizes support:
 - Now the sizes are supported at the level of modifiers, but we need to consider that the dish is a wrapper, and add different icons for the size, and can even set them globall. To do this, we can rename Dish to ITEM and add 5 types: SERVICE, DISH,  WRAPPER, PRODUCT, MODIFIER. 

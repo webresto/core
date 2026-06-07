@@ -14,8 +14,8 @@ export function ConfirmDialog({
     cancelText
 }) {
     const { t } = useTranslation();
-    const effectiveConfirmText = confirmText || t('dialog_confirm');
-    const effectiveCancelText = cancelText || t('dialog_cancel');
+    const effectiveConfirmText = confirmText || t('Confirm');
+    const effectiveCancelText = cancelText || t('Cancel');
     const [balanceValue, setBalanceValue] = useState(0);
 
     if (!isOpen) return null;

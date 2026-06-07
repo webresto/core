@@ -91,6 +91,23 @@ initCheckout = {
 > * Bonus banners are shown;
 > * Minimum cooking time is 15 minutes.
 
+#### Null semantics for `allowSoonAsPossible` and `allowOrderToTime`
+
+Both fields use a three-value logic:
+
+| Value   | Meaning |
+|---------|---------|
+| `true`  | Explicitly allowed by backend logic (e.g. a plugin or custom hook). |
+| `false` | Explicitly forbidden regardless of schedule. |
+| `null`  | No explicit override — frontend should decide based on `worktimeIntervals`. |
+
+The default value returned by the server is `null` for both fields. This means:
+
+* If the current time falls within `Restrictions.worktime` → frontend may allow “ASAP” ordering (`allowSoonAsPossible`).
+* If `Restrictions.worktime` contains future intervals → frontend may allow scheduled ordering (`allowOrderToTime`).
+
+A backend plugin can override either field to `true` or `false` via the `core:order-init-checkout` event to enforce business rules independent of the schedule.
+
 ---
 
 ### 🧠 How They Work Together

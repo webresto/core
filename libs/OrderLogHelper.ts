@@ -117,9 +117,20 @@ export default class OrderLogHelper {
    * Returns the results array from emitter.emit.
    */
   static async emitAndLog(criteria: CriteriaQuery<any>, eventName: string, ...args: any[]): Promise<any[]> {
+    await OrderLogHelper.log(criteria, "info", "emitter", `Emitter [${eventName}] emitted`);
     const results = await (emitter as any).emit(eventName, ...args);
     await OrderLogHelper.checkResults(criteria, eventName, results);
     return results;
+  }
+
+  /**
+   * Fire emitter.emit without blocking the caller, but still attach handler
+   * errors/timeouts to the order log when the emitter work finishes.
+   */
+  static emitAndLogDetached(criteria: CriteriaQuery<any>, eventName: string, ...args: any[]): void {
+    void OrderLogHelper.emitAndLog(criteria, eventName, ...args).catch((error) => {
+      sails.log.error(`Order.emitAndLogDetached failed for event [${eventName}]`, error);
+    });
   }
 
   /**

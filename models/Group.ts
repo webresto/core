@@ -453,7 +453,7 @@ let Model = {
           enable: true,
           modifier: false
         });
-        if(children) groups = children;
+        if(children.length) groups = children;
       }
     }
     groups = groups.filter(group => {

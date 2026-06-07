@@ -1,4 +1,25 @@
+import * as fs from "fs";
+import * as path from "path";
+
 // todo: fix types model instance to {%ModelName%}Record for bind"
+
+function normalizeHandlers(bound: any): any[] {
+  return Array.isArray(bound) ? bound : [bound];
+}
+
+function makeAdminizerBinder(adminizer: any): (action: any) => any[] {
+  const hasMiddlewareManager =
+    adminizer.middlewareManager &&
+    typeof adminizer.middlewareManager.bindMiddlewares === 'function';
+
+  if (hasMiddlewareManager) {
+    const middlewares = adminizer.config.middlewares ?? [];
+    return (action: any) => normalizeHandlers(adminizer.middlewareManager.bindMiddlewares(middlewares, action));
+  }
+
+  const policies = adminizer.config.policies;
+  return (action: any) => normalizeHandlers(adminizer.policyManager.bindPolicies(policies, action));
+}
 
 export default function bindAdminpanel() {
   processBindAdminpanel();
@@ -18,6 +39,7 @@ export default function bindAdminpanel() {
     }
 
     const adminizer = sails.hooks.adminpanel.adminizer;
+    appendTranslations(adminizer);
 
     // Catalog bind
     const catalogHandler = adminizer.catalogHandler
@@ -30,13 +52,13 @@ export default function bindAdminpanel() {
           id: 'catalog-products',
           name: 'Product catalog',
           description: 'Access to edit catalog for products',
-          department: 'catalog'
+          department: 'Catalog'
         },
         ...catalogIds.map((catalogId: string) => ({
           id: `catalog-products-${catalogId}`,
-          name: `Product catalog (${catalogId})`,
-          description: `Access to edit catalog for products-${catalogId}`,
-          department: 'catalog'
+          name: "Product catalog",
+          description: "Access to edit catalog for products",
+          department: 'Catalog'
         }))
       ]);
     } catch (e) {
@@ -74,6 +96,18 @@ export default function bindAdminpanel() {
         name: 'Current Orders',
         description: 'Access to Current Orders module and its API endpoints',
         department: 'Orders'
+      },
+      {
+        id: 'notifications-manager',
+        name: 'Notifications',
+        description: 'Access to Notifications module and its API endpoints',
+        department: 'Notifications'
+      },
+      {
+        id: 'orders-report',
+        name: 'Orders Report',
+        description: 'Access to Orders Report module and its API endpoints',
+        department: 'Reports'
       }
     ]);
 
@@ -93,6 +127,36 @@ export default function bindAdminpanel() {
       section: 'Catalog'
     });
   })
+}
+
+function appendTranslations(adminizer: any) {
+  if (!adminizer?.i18n?.appendLocale) {
+    sails.log.warn("Adminizer i18n.appendLocale is not available, skipping core programmatic translations");
+    return;
+  }
+
+  const translationsDir = path.resolve(__dirname, "../lib/adminpanel/i18n/locales");
+  if (!fs.existsSync(translationsDir)) {
+    sails.log.warn(`Adminpanel module translations directory not found: ${translationsDir}`);
+    return;
+  }
+
+  const locales = sails.config.i18n?.locales ?? [];
+  for (const locale of locales) {
+    const localeFile = path.resolve(translationsDir, `${locale}.json`);
+    if (!fs.existsSync(localeFile)) {
+      sails.log.debug(`Adminpanel module translations: locale file not found for ${locale}`);
+      continue;
+    }
+
+    try {
+      const fileContent = fs.readFileSync(localeFile, "utf8");
+      const jsonData = JSON.parse(fileContent);
+      adminizer.i18n.appendLocale(locale, jsonData);
+    } catch (error) {
+      sails.log.error(`Adminpanel module translations > Error when reading ${locale}.json:`, error);
+    }
+  }
 }
 
 // Adding a method to update admin panel models
@@ -156,7 +220,34 @@ function processBindAdminpanel() {
       const adminizer = sails.hooks.adminpanel.adminizer;
       adminizer.emitter.on('adminizer:loaded', () => {
         const routePrefix = adminizer.config.routePrefix;
-        const policies = adminizer.config.policies;
+        const bind = makeAdminizerBinder(adminizer);
+
+        let getInertiaLocaleAndMessages: ((req: any) => { locale: string; messages: Record<string, string> }) | null = null;
+
+        try {
+          ({ getInertiaLocaleAndMessages } = require("../lib/adminpanel/src/controller/i18n-messages"));
+        } catch (e) {
+          sails.log.debug("Adminpanel i18n helper binding skipped", e);
+        }
+
+        // Prevent browser/proxy caching for admin core API responses.
+        adminizer.app.use(`${routePrefix}/core`, (_req: any, res: any, next: any) => {
+          res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+          res.set('Pragma', 'no-cache');
+          res.set('Expires', '0');
+          res.set('Surrogate-Control', 'no-store');
+          next();
+        });
+
+        if (getInertiaLocaleAndMessages) {
+          adminizer.app.use(`${routePrefix}`, (req: any, _res: any, next: any) => {
+            if (req?.Inertia?.shareProps) {
+              const { locale, messages } = getInertiaLocaleAndMessages!(req);
+              req.Inertia.shareProps({ locale, messages });
+            }
+            next();
+          });
+        }
 
         // StockManager module link + route
         try {
@@ -172,7 +263,7 @@ function processBindAdminpanel() {
 
           adminizer.app.get(
             `${routePrefix}/stock-manager`,
-            adminizer.policyManager.bindPolicies(policies, stockController)
+            ...bind(stockController)
           );
         } catch (e) {
           sails.log.debug('StockManager route bind error', e);
@@ -192,17 +283,64 @@ function processBindAdminpanel() {
 
           adminizer.app.get(
             `${routePrefix}/order-kanban`,
-            adminizer.policyManager.bindPolicies(policies, orderKanbanController)
+            ...bind(orderKanbanController)
+          );
+
+          // Make order kanban the default admin landing page.
+          adminizer.app.get(
+            `${routePrefix}`,
+            ...bind((_req: any, res: any) => {
+              return res.redirect(`${routePrefix}/order-kanban`);
+            })
           );
         } catch (e) {
           sails.log.debug('OrderKanban route bind error', e);
+        }
+
+        // Notifications module link + route
+        try {
+          const notificationsManagerController = require('../lib/adminpanel/src/controller/notifications-manager').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'notifications-manager',
+            title: 'Notifications',
+            link: `${routePrefix}/notifications-manager`,
+            icon: 'notifications',
+            accessToken: 'notifications-manager',
+            section: 'Notifications'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/notifications-manager`,
+            ...bind(notificationsManagerController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager route bind error', e);
+        }
+
+        try {
+          const notificationChannelsController = require('../lib/adminpanel/src/controller/notification-channels').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'notification-channels',
+            title: 'Notification channels',
+            link: `${routePrefix}/notification-channels`,
+            icon: 'settings_input_component',
+            accessToken: 'notifications-manager',
+            section: 'Notifications'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/notification-channels`,
+            ...bind(notificationChannelsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationChannels route bind error', e);
         }
 
         // API route for search used by StockManager frontend — expose under admin path
         try {
           const searchController = require('../lib/adminpanel/src/controller/search').default;
           // Expose at <routePrefix>/core/api?q=... for admin-scoped API
-          adminizer.app.get(`${routePrefix}/core/api`, adminizer.policyManager.bindPolicies(policies, searchController));
+          adminizer.app.get(`${routePrefix}/core/api`, ...bind(searchController));
         } catch (e) {
           sails.log.debug('StockManager search route bind error', e);
         }
@@ -210,7 +348,7 @@ function processBindAdminpanel() {
         // API route for updating stock
         try {
           const updateStockController = require('../lib/adminpanel/src/controller/update-stock').default;
-          adminizer.app.post(`${routePrefix}/core/update-stock`, adminizer.policyManager.bindPolicies(policies, updateStockController));
+          adminizer.app.post(`${routePrefix}/core/update-stock`, ...bind(updateStockController));
         } catch (e) {
           sails.log.debug('StockManager update stock route bind error', e);
         }
@@ -218,7 +356,7 @@ function processBindAdminpanel() {
         // API route for getting stock items
         try {
           const getStockItemsController = require('../lib/adminpanel/src/controller/get-stock-items').default;
-          adminizer.app.get(`${routePrefix}/core/stock-items`, adminizer.policyManager.bindPolicies(policies, getStockItemsController));
+          adminizer.app.get(`${routePrefix}/core/stock-items`, ...bind(getStockItemsController));
         } catch (e) {
           sails.log.debug('StockManager get stock items route bind error', e);
         }
@@ -226,7 +364,7 @@ function processBindAdminpanel() {
         // API route for getting groups
         try {
           const getGroupsController = require('../lib/adminpanel/src/controller/get-groups').default;
-          adminizer.app.get(`${routePrefix}/core/groups`, adminizer.policyManager.bindPolicies(policies, getGroupsController));
+          adminizer.app.get(`${routePrefix}/core/groups`, ...bind(getGroupsController));
         } catch (e) {
           sails.log.debug('StockManager get groups route bind error', e);
         }
@@ -234,7 +372,7 @@ function processBindAdminpanel() {
         // API route for getting dishes by group
         try {
           const getDishesByGroupController = require('../lib/adminpanel/src/controller/get-dishes-by-group').default;
-          adminizer.app.get(`${routePrefix}/core/dishes-by-group`, adminizer.policyManager.bindPolicies(policies, getDishesByGroupController));
+          adminizer.app.get(`${routePrefix}/core/dishes-by-group`, ...bind(getDishesByGroupController));
         } catch (e) {
           sails.log.debug('StockManager get dishes by group route bind error', e);
         }
@@ -242,7 +380,7 @@ function processBindAdminpanel() {
         // API route for updating visibility
         try {
           const updateVisibilityController = require('../lib/adminpanel/src/controller/update-visibility').default;
-          adminizer.app.post(`${routePrefix}/core/update-visibility`, adminizer.policyManager.bindPolicies(policies, updateVisibilityController));
+          adminizer.app.post(`${routePrefix}/core/update-visibility`, ...bind(updateVisibilityController));
         } catch (e) {
           sails.log.debug('StockManager update visibility route bind error', e);
         }
@@ -250,7 +388,7 @@ function processBindAdminpanel() {
         // API route for updating isDeleted flag (used by StockManager frontend)
         try {
           const updateIsDeletedController = require('../lib/adminpanel/src/controller/update-is-deleted').default;
-          adminizer.app.post(`${routePrefix}/core/update-is-deleted`, adminizer.policyManager.bindPolicies(policies, updateIsDeletedController));
+          adminizer.app.post(`${routePrefix}/core/update-is-deleted`, ...bind(updateIsDeletedController));
         } catch (e) {
           sails.log.debug('StockManager update isDeleted route bind error', e);
         }
@@ -260,7 +398,7 @@ function processBindAdminpanel() {
           const getOrderKanbanOrdersController = require('../lib/adminpanel/src/controller/get-order-kanban-orders').default;
           adminizer.app.get(
             `${routePrefix}/core/order-kanban/orders`,
-            adminizer.policyManager.bindPolicies(policies, getOrderKanbanOrdersController)
+            ...bind(getOrderKanbanOrdersController)
           );
         } catch (e) {
           sails.log.debug('OrderKanban list route bind error', e);
@@ -271,7 +409,7 @@ function processBindAdminpanel() {
           const getOrderKanbanOrderController = require('../lib/adminpanel/src/controller/get-order-kanban-order').default;
           adminizer.app.get(
             `${routePrefix}/core/order-kanban/order`,
-            adminizer.policyManager.bindPolicies(policies, getOrderKanbanOrderController)
+            ...bind(getOrderKanbanOrderController)
           );
         } catch (e) {
           sails.log.debug('OrderKanban order route bind error', e);
@@ -282,7 +420,7 @@ function processBindAdminpanel() {
           const orderKanbanStreamController = require('../lib/adminpanel/src/controller/order-kanban-stream').default;
           adminizer.app.get(
             `${routePrefix}/core/order-kanban/stream`,
-            adminizer.policyManager.bindPolicies(policies, orderKanbanStreamController)
+            ...bind(orderKanbanStreamController)
           );
         } catch (e) {
           sails.log.debug('OrderKanban stream route bind error', e);
@@ -293,10 +431,226 @@ function processBindAdminpanel() {
           const updateOrderKanbanStateController = require('../lib/adminpanel/src/controller/update-order-kanban-state').default;
           adminizer.app.post(
             `${routePrefix}/core/order-kanban/state`,
-            adminizer.policyManager.bindPolicies(policies, updateOrderKanbanStateController)
+            ...bind(updateOrderKanbanStateController)
           );
         } catch (e) {
           sails.log.debug('OrderKanban state route bind error', e);
+        }
+
+        // API route for notifications list
+        try {
+          const getNotificationsController = require('../lib/adminpanel/src/controller/get-notifications').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/notifications`,
+            ...bind(getNotificationsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager list route bind error', e);
+        }
+
+        // API route for notifications dashboard stats (per-channel counts, cost, daily trend)
+        try {
+          const getNotificationStatsController = require('../lib/adminpanel/src/controller/get-notification-stats').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/stats`,
+            ...bind(getNotificationStatsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager stats route bind error', e);
+        }
+
+        // API route for single notification details
+        try {
+          const getNotificationController = require('../lib/adminpanel/src/controller/get-notification').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/notification`,
+            ...bind(getNotificationController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager notification route bind error', e);
+        }
+
+        // API route for retrying delivery
+        try {
+          const retryNotificationController = require('../lib/adminpanel/src/controller/retry-notification').default;
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/retry`,
+            ...bind(retryNotificationController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager retry route bind error', e);
+        }
+
+        // API route for searching users for notification creation
+        try {
+          const searchNotificationUsersController = require('../lib/adminpanel/src/controller/search-notification-users').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/users`,
+            ...bind(searchNotificationUsersController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager users route bind error', e);
+        }
+
+        // API route for creating notification
+        try {
+          const createNotificationController = require('../lib/adminpanel/src/controller/create-notification').default;
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/create`,
+            ...bind(createNotificationController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager create route bind error', e);
+        }
+
+        // API route for notification channels overview
+        try {
+          const getNotificationChannelsController = require('../lib/adminpanel/src/controller/get-notification-channels').default;
+          const updateNotificationChannelSettingsController = require('../lib/adminpanel/src/controller/update-notification-channel-settings').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/channels`,
+            ...bind(getNotificationChannelsController)
+          );
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/channel-settings`,
+            ...bind(updateNotificationChannelSettingsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager channels route bind error', e);
+        }
+
+        // API routes for notification types catalog (read + write)
+        try {
+          const getNotificationTypesController = require('../lib/adminpanel/src/controller/get-notification-types').default;
+          const getNotificationTypeController = require('../lib/adminpanel/src/controller/get-notification-type').default;
+          const upsertNotificationTypeController = require('../lib/adminpanel/src/controller/upsert-notification-type').default;
+          const deleteNotificationTypeController = require('../lib/adminpanel/src/controller/delete-notification-type').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/types`,
+            ...bind(getNotificationTypesController)
+          );
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/type`,
+            ...bind(getNotificationTypeController)
+          );
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/type`,
+            ...bind(upsertNotificationTypeController)
+          );
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/type-delete`,
+            ...bind(deleteNotificationTypeController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager types route bind error', e);
+        }
+
+        // API route for notification events catalog (read-only)
+        try {
+          const getNotificationEventsController = require('../lib/adminpanel/src/controller/get-notification-events').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/events`,
+            ...bind(getNotificationEventsController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager events route bind error', e);
+        }
+
+        // API route for emitting a test notification (dry-run / real)
+        try {
+          const emitTestNotificationController = require('../lib/adminpanel/src/controller/emit-test-notification').default;
+          adminizer.app.post(
+            `${routePrefix}/core/notifications-manager/emit-test`,
+            ...bind(emitTestNotificationController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager emit-test route bind error', e);
+        }
+
+        // API route for available locales catalog
+        try {
+          const getNotificationLocalesController = require('../lib/adminpanel/src/controller/get-notification-locales').default;
+          adminizer.app.get(
+            `${routePrefix}/core/notifications-manager/locales`,
+            ...bind(getNotificationLocalesController)
+          );
+        } catch (e) {
+          sails.log.debug('NotificationsManager locales route bind error', e);
+        }
+
+        // Settings Manager module link + routes
+        try {
+          const settingsManagerController = require('../lib/adminpanel/src/controller/settings-manager').default;
+          const getSettingsController = require('../lib/adminpanel/src/controller/get-settings').default;
+          const updateSettingController = require('../lib/adminpanel/src/controller/update-setting').default;
+          const exportSettingsController = require('../lib/adminpanel/src/controller/export-settings').default;
+          const importSettingsController = require('../lib/adminpanel/src/controller/import-settings').default;
+
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'settings-manager',
+            title: 'Settings',
+            link: `${routePrefix}/settings-manager`,
+            icon: 'settings',
+            section: 'System'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/settings-manager`,
+            ...bind(settingsManagerController)
+          );
+
+          adminizer.app.get(
+            `${routePrefix}/core/settings-manager/list`,
+            ...bind(getSettingsController)
+          );
+
+          adminizer.app.post(
+            `${routePrefix}/core/settings-manager/update/:key`,
+            ...bind(updateSettingController)
+          );
+
+          adminizer.app.get(
+            `${routePrefix}/core/settings-manager/export`,
+            ...bind(exportSettingsController)
+          );
+
+          adminizer.app.post(
+            `${routePrefix}/core/settings-manager/import`,
+            ...bind(importSettingsController)
+          );
+        } catch (e) {
+          sails.log.debug('SettingsManager route bind error', e);
+        }
+
+        // OrdersReport module link + route
+        try {
+          const ordersReportController = require('../lib/adminpanel/src/controller/orders-report').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'orders-report',
+            title: 'Orders Report',
+            link: `${routePrefix}/orders-report`,
+            icon: 'bar_chart',
+            accessToken: 'orders-report',
+            section: 'Reports'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/orders-report`,
+            ...bind(ordersReportController)
+          );
+        } catch (e) {
+          sails.log.debug('OrdersReport route bind error', e);
+        }
+
+        // API route for orders report data
+        try {
+          const getOrdersReportDataController = require('../lib/adminpanel/src/controller/get-orders-report-data').default;
+          adminizer.app.get(
+            `${routePrefix}/core/orders-report/data`,
+            ...bind(getOrdersReportDataController)
+          );
+        } catch (e) {
+          sails.log.debug('OrdersReport data route bind error', e);
         }
 
         // Route for product setup page

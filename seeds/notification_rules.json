@@ -1,0 +1,110 @@
+[
+  {
+    "key": "order_accepted_push",
+    "name": "Order accepted — push",
+    "description": "Immediate push when an order is accepted for processing.",
+    "eventKey": "order_accepted",
+    "enabled": false,
+    "priority": "normal",
+    "sendDelaySec": 0,
+    "important": false,
+    "maxDeliveryCost": 0,
+    "useGlobalFallback": false,
+    "channelsMode": "waterfall",
+    "fixedChannels": [],
+    "defaultChannels": ["fcm-mobile", "fcm-web"],
+    "templates": {
+      "default": { "title": "Order accepted", "body": "Your order {{order.shortId}} has been accepted." },
+      "locales": {},
+      "channels": {}
+    }
+  },
+  {
+    "key": "order_on_the_way_push",
+    "name": "Order on the way — push",
+    "description": "Immediate push when the order is on the way.",
+    "eventKey": "order_on_the_way",
+    "enabled": false,
+    "priority": "normal",
+    "sendDelaySec": 0,
+    "important": false,
+    "maxDeliveryCost": null,
+    "useGlobalFallback": true,
+    "channelsMode": "waterfall",
+    "fixedChannels": [],
+    "defaultChannels": ["fcm-mobile", "fcm-web"],
+    "templates": {
+      "default": {
+        "title": "Order status",
+        "body": "Order {{order.shortId}} is on the way",
+        "clickUrl": "/order?shortId={{order.shortId}}"
+      },
+      "locales": {},
+      "channels": {
+        "sms": {
+          "default": { "body": "Order {{order.shortId}} is on the way." }
+        }
+      }
+    }
+  },
+  {
+    "key": "order_not_completed_followup",
+    "name": "Order not completed — follow-up",
+    "description": "Follow-up reminder if an order was not completed within the waiting window. First send is delayed 5 minutes (sendDelaySec=300).",
+    "eventKey": "order_accepted",
+    "enabled": false,
+    "priority": "normal",
+    "sendDelaySec": 300,
+    "important": false,
+    "maxDeliveryCost": 0,
+    "useGlobalFallback": false,
+    "channelsMode": "waterfall",
+    "fixedChannels": [],
+    "defaultChannels": ["fcm-mobile", "fcm-web"],
+    "templates": {
+      "default": { "title": "Finish your order", "body": "Your order {{order.shortId}} is still waiting." },
+      "locales": {},
+      "channels": {}
+    }
+  },
+  {
+    "key": "user_birthday_greeting",
+    "name": "User birthday greeting",
+    "description": "Greeting sent on the user's birthday.",
+    "eventKey": "user_birthday",
+    "enabled": false,
+    "priority": "normal",
+    "sendDelaySec": 0,
+    "important": false,
+    "maxDeliveryCost": 0,
+    "useGlobalFallback": false,
+    "channelsMode": "waterfall",
+    "fixedChannels": [],
+    "defaultChannels": ["fcm-mobile", "fcm-web"],
+    "templates": {
+      "default": { "title": "Happy birthday!", "body": "Happy birthday, {{user.name}}!" },
+      "locales": {},
+      "channels": {}
+    }
+  },
+  {
+    "key": "user_otp_sms",
+    "name": "User OTP — SMS",
+    "description": "One-time password delivered to the user. Fixed to SMS only.",
+    "eventKey": "user_otp_requested",
+    "enabled": false,
+    "priority": "high",
+    "sendDelaySec": 0,
+    "important": true,
+    "maxDeliveryCost": null,
+    "useGlobalFallback": true,
+    "channelsMode": "fixed",
+    "fixedChannels": ["sms"],
+    "defaultChannels": [],
+    "templates": {
+      "default": { "title": "Confirmation code", "body": "Your code: {{otp.code}}" },
+      "locales": {},
+      "channels": {}
+    }
+  }
+]

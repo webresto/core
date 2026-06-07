@@ -24,6 +24,7 @@ exports.up = function (db, callback) {
         groupTo:   { type: 'text', notNull: false, defaultValue: 'user' },
         readAt:    { type: 'real', notNull: false },
         channels:  { type: 'text', notNull: false },
+        spentCost: { type: 'real', notNull: false, defaultValue: 0 },
         logs:      { type: 'text', notNull: false },
         badge:     { type: 'text', notNull: false, defaultValue: 'info' },
         createdAt: { type: 'real', notNull: false },

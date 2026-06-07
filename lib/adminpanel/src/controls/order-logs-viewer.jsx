@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { locales } from '../i18n/locales';
+import { usePage } from '@inertiajs/react';
 
 const LEVELS = ['debug', 'info', 'warn', 'error'];
 const LEVEL_COLOR = {
@@ -8,28 +8,27 @@ const LEVEL_COLOR = {
   warn: '#fbbf24',
   error: '#f87171',
 };
-const FALLBACK_LOCALE = 'en';
 const ALL_MODULES_VALUE = '__all_modules__';
 
-function resolveLocale() {
-  if (typeof window === 'undefined') return FALLBACK_LOCALE;
-
-  const saved = window.localStorage?.getItem('stockManagerLanguage');
-  if (saved && locales[saved]) return saved;
-
-  const htmlLang = window.document?.documentElement?.lang?.split('-')[0];
-  if (htmlLang && locales[htmlLang]) return htmlLang;
-
-  const browserLang = window.navigator?.language?.split('-')[0];
-  if (browserLang && locales[browserLang]) return browserLang;
-
-  return FALLBACK_LOCALE;
+function normalizeLocale(rawLocale) {
+  const normalized = String(rawLocale || '').trim().toLowerCase().replace(/_/g, '-');
+  if (!normalized) return 'en';
+  const base = normalized.split('-')[0];
+  return base === 'uk' ? 'ua' : (base || normalized);
 }
 
-function createT(locale) {
-  const dictionary = locales[locale] || locales[FALLBACK_LOCALE] || {};
-  const fallback = locales[FALLBACK_LOCALE] || {};
-  return (key, fallbackText) => dictionary[key] || fallback[key] || fallbackText;
+function createT(messages) {
+  const dictionary = messages || {};
+  return (key) => dictionary[key] || key;
+}
+
+function useOptionalPageProps() {
+  try {
+    const page = usePage();
+    return page?.props || {};
+  } catch {
+    return {};
+  }
 }
 
 function safeStringify(value) {
@@ -69,9 +68,9 @@ function normalizeLogs(initialValue, t) {
     if (!item || typeof item !== 'object') {
       return {
         index,
-        timestamp: t('order_logs_unknown_time', 'unknown-time'),
+        timestamp: t('unknown time'),
         level: 'info',
-        module: t('order_logs_unknown_module', 'unknown-module'),
+        module: t('unknown module'),
         message: String(item),
         data: undefined,
       };
@@ -80,9 +79,9 @@ function normalizeLogs(initialValue, t) {
     const level = LEVELS.includes(item.level) ? item.level : 'info';
     return {
       index,
-      timestamp: item.timestamp || t('order_logs_unknown_time', 'unknown-time'),
+      timestamp: item.timestamp || t('unknown time'),
       level,
-      module: item.module || t('order_logs_unknown_module', 'unknown-module'),
+      module: item.module || t('unknown module'),
       message: item.message || '',
       data: item.data,
     };
@@ -90,8 +89,10 @@ function normalizeLogs(initialValue, t) {
 }
 
 function OrderLogsViewer({ initialValue }) {
-  const locale = useMemo(() => resolveLocale(), []);
-  const t = useMemo(() => createT(locale), [locale]);
+  const pageProps = useOptionalPageProps();
+  const locale = useMemo(() => normalizeLocale(pageProps?.locale), [pageProps?.locale]);
+  const messages = useMemo(() => pageProps?.messages || pageProps?.uiMessages || {}, [pageProps?.messages, pageProps?.uiMessages]);
+  const t = useMemo(() => createT(messages), [messages, locale]);
   const logs = useMemo(() => normalizeLogs(initialValue, t), [initialValue, t]);
   const [query, setQuery] = useState('');
   const [activeLevels, setActiveLevels] = useState(() => new Set(LEVELS));
@@ -139,8 +140,8 @@ function OrderLogsViewer({ initialValue }) {
 
     const timestamp = new Date().toISOString().replace(/[:]/g, '-');
     const header = [
-      `Generated at: ${new Date().toISOString()}`,
-      `Total logs: ${filtered.length}`,
+      `${t('Generated at')}: ${new Date().toISOString()}`,
+      `${t('Total logs')}: ${filtered.length}`,
       '',
     ];
     const body = filtered.map(buildLogText).join('\n\n');
@@ -167,14 +168,14 @@ function OrderLogsViewer({ initialValue }) {
                 fontSize: 12,
               }}
             >
-              {level} ({counters[level] || 0})
+              {t(({ debug: 'Debug', info: 'Info', warn: 'Warn', error: 'Error' }[level] || level))} ({counters[level] || 0})
             </button>
           );
         })}
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('order_logs_search_placeholder', 'Search logs')}
+          placeholder={t('Search logs')}
           style={{
             marginLeft: 'auto',
             minWidth: 220,
@@ -188,8 +189,8 @@ function OrderLogsViewer({ initialValue }) {
         <select
           value={selectedModule}
           onChange={(e) => setSelectedModule(e.target.value)}
-          title={t('order_logs_module_filter', 'Module filter')}
-          aria-label={t('order_logs_module_filter', 'Module filter')}
+          title={t('Module filter')}
+          aria-label={t('Module filter')}
           style={{
             minWidth: 180,
             background: '#020617',
@@ -199,7 +200,7 @@ function OrderLogsViewer({ initialValue }) {
             padding: '4px 8px',
           }}
         >
-          <option value={ALL_MODULES_VALUE}>{t('order_logs_module_all', 'All modules')}</option>
+          <option value={ALL_MODULES_VALUE}>{t('All modules')}</option>
           {moduleOptions.map((moduleName) => (
             <option key={moduleName} value={moduleName}>{moduleName}</option>
           ))}
@@ -208,8 +209,8 @@ function OrderLogsViewer({ initialValue }) {
           type="button"
           onClick={downloadLogs}
           disabled={filtered.length === 0}
-          title={t('order_logs_download_txt', 'Download .txt')}
-          aria-label={t('order_logs_download_txt', 'Download .txt')}
+          title={t('Download .txt')}
+          aria-label={t('Download .txt')}
           style={{
             border: '1px solid #334155',
             color: filtered.length === 0 ? '#64748b' : '#e2e8f0',
@@ -233,7 +234,7 @@ function OrderLogsViewer({ initialValue }) {
 
       <div style={{ maxHeight: 420, overflow: 'auto', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, lineHeight: 1.4 }}>
         {filtered.length === 0 && (
-          <div style={{ opacity: 0.7, padding: 8 }}>{t('order_logs_empty', 'No logs found')}</div>
+          <div style={{ opacity: 0.7, padding: 8 }}>{t('No logs found')}</div>
         )}
 
         {filtered.map((log) => (

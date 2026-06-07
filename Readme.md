@@ -4,15 +4,16 @@
 
 Food E-Commerce backend core repository.
 
-This is a hook for the [SailsJS](https://sailsjs.com/) framework, our core written in TypeScript
-Here you will find basic models and methods for create you own delivery website.
+> ⚠️ **This repository contains only a hook** for the [SailsJS](https://sailsjs.com/) framework, written in TypeScript. It is not a standalone application.
+
+The main application repository is **[webresto/restoapp](https://github.com/webresto/restoapp)** — this is where the full SailsJS project lives, and where this hook is used.
+
+Here you will find basic models and methods for creating your own delivery website.
 
 For integrations with various services, we use abstract classes called [adapters](https://github.com/webresto/core/tree/staging/adapters)
 
-> ⚠️ This repository contains only the core for the backend of the site, although it is the central part of the server; an api is also required, and even the sails project.
-
 ## Setup
-We currently only support installation via docker. Look at this image [webresto/restoapp](https://hub.docker.com/repository/docker/webresto/restoapp/general)
+This hook is used as part of the main [webresto/restoapp](https://github.com/webresto/restoapp) project. We currently only support installation via docker. Look at this image [webresto/restoapp](https://hub.docker.com/repository/docker/webresto/restoapp/general)
 
 ## Join Our Community
 
@@ -20,9 +21,6 @@ Join our community to get support for everyone interested in food delivery using
 
 [![Discord](https://img.shields.io/badge/Join-Discord-%237289DA?logo=discord&style=flat-square)](https://discord.gg/mbT4AeBJZ6)
 [![Telegram](https://img.shields.io/badge/Join-Telegram-%232CA5E0?logo=telegram&style=flat-square)](https://t.me/restoapp_community)
-[![WhatsApp](https://img.shields.io/badge/Join-WhatsApp-%2325D366?logo=whatsapp&style=flat-square)](https://chat.whatsapp.com/CIc1MXXjbquAqeYHCt3k40)
-
-
 
 ## Thanks & Support
 
@@ -32,4 +30,4 @@ Join our community to get support for everyone interested in food delivery using
 
 ## License
 
-[MIT License](https://opensource.org/licenses/MIT)  Copyright © 2018-2024, [WebResto](https://webresto.org)
+[MIT License](https://opensource.org/licenses/MIT)  Copyright © 2018-2026, [WebResto](https://webresto.org)

@@ -7,7 +7,89 @@ export const models = {
   user: {
     title: "User",
     model: "user",
-    icon: "person"
+    icon: "person",
+    fields: {
+      history: false,
+      locations: false,
+      devices: false,
+      favorites: false,
+      bonusProgram: false,
+    },
+    list: {
+      fields: {
+        id: true,
+        login: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        verified: true,
+        isDeleted: true,
+        createdAt: true,
+        updatedAt: true,
+        history: false,
+        locations: false,
+        devices: false,
+        favorites: false,
+        bonusProgram: false,
+      }
+    },
+    edit: {
+      fields: {
+        id: false,
+        login: true,
+        firstName: true,
+        lastName: true,
+        sex: true,
+        email: true,
+        phone: true,
+        birthday: true,
+        verified: true,
+        allRequiredCustomFieldsAreFilled: true,
+        passwordHash: false,
+        lastPasswordChange: false,
+        temporaryCode: false,
+        orderCount: true,
+        isDeleted: true,
+        customFields: true,
+        customData: true,
+        createdAt: false,
+        updatedAt: false,
+        history: false,
+        locations: false,
+        devices: false,
+        favorites: false,
+        bonusProgram: false,
+      }
+    },
+    add: {
+      fields: {
+        id: false,
+        login: true,
+        firstName: true,
+        lastName: true,
+        sex: true,
+        email: true,
+        phone: true,
+        birthday: true,
+        verified: true,
+        allRequiredCustomFieldsAreFilled: true,
+        passwordHash: false,
+        lastPasswordChange: false,
+        temporaryCode: false,
+        orderCount: false,
+        isDeleted: true,
+        customFields: true,
+        customData: true,
+        createdAt: false,
+        updatedAt: false,
+        history: false,
+        locations: false,
+        devices: false,
+        favorites: false,
+        bonusProgram: false,
+      }
+    }
   },
   dish: {
     model: 'dish',
@@ -31,6 +113,56 @@ export const models = {
     icon: 'shopping_cart',
     list: OrderConfig.list(),
     edit: OrderConfig.edit(),
+  },
+  userdevice: {
+    model: 'userdevice',
+    title: 'User Devices',
+    icon: 'devices',
+    remove: false,
+    list: {
+      fields: {
+        id: true,
+        name: true,
+        userAgent: true,
+        isLoggedIn: true,
+        user: true,
+        lastIP: true,
+        loginTime: {
+          title: 'Login Time',
+          displayModifier(v: any) {
+            return v ? new Date(v).toLocaleString() : '';
+          }
+        },
+        lastActivity: {
+          title: 'Last Activity',
+          displayModifier(v: any) {
+            return v ? new Date(v).toLocaleString() : '';
+          }
+        },
+        sessionId: false,
+        customData: false,
+        notificationToken: false,
+        createdAt: true,
+        updatedAt: false,
+      }
+    },
+    edit: {
+      fields: {
+        id: { disabled: true },
+        name: true,
+        userAgent: true,
+        isLoggedIn: true,
+        user: true,
+        lastIP: true,
+        loginTime: { title: 'Login Time', disabled: true },
+        lastActivity: { title: 'Last Activity', disabled: true },
+        sessionId: false,
+        customData: { title: 'Custom Data', type: 'json', disabled: true },
+        notificationToken: { title: 'Notification Token', type: 'json', disabled: true },
+        createdAt: false,
+        updatedAt: false,
+      }
+    },
   },
   bonusprogram: {
     model: 'bonusprogram',

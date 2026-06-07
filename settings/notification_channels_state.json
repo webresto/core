@@ -1,0 +1,28 @@
+{
+  "key": "NOTIFICATION_CHANNELS_STATE",
+  "type": "json",
+  "name": "Notification Channels State",
+  "description": "Notification channel runtime state.",
+  "defaultValue": {},
+  "jsonSchema": {
+    "type": "object",
+    "additionalProperties": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "sortOrder": {
+          "type": "number"
+        },
+        "cost": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "readOnly": false,
+  "isRequired": false
+}

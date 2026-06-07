@@ -102,18 +102,69 @@ async function loadFullOrder(id: string): Promise<any | null> {
     .populate("paymentMethod")
     .populate("user")
     .populate("pickupPoint")
-    .populate("deliveryItem");
+    .populate("deliveryItem")
+    .populate("promotionCode");
 
   if (!fullOrder) return null;
 
   const orderDishes = await OrderDish.find({ order: fullOrder.id }).populate("dish").sort("createdAt");
   fullOrder.dishes = Array.isArray(orderDishes) ? orderDishes : [];
+
+  try {
+    const paymentDocuments = await PaymentDocument.find({
+      originModel: "order",
+      originModelId: fullOrder.id,
+    }).populate("paymentMethod").sort("createdAt");
+    (fullOrder as any).paymentDocuments = Array.isArray(paymentDocuments) ? paymentDocuments : [];
+  } catch (e) {
+    sails.log.warn("get-order-kanban-order: failed to load PaymentDocuments", e);
+    (fullOrder as any).paymentDocuments = [];
+  }
+
   return fullOrder;
+}
+
+function mapRelatedRef(record: any, modelName: string, labelFields: string[] = ["title", "name"]): any {
+  if (!record || typeof record !== "object") return null;
+  const id = record.id;
+  if (!id) return null;
+  let label = "";
+  for (const f of labelFields) {
+    if (record[f]) { label = String(record[f]); break; }
+  }
+  if (!label) label = String(id);
+  return { id, label, model: modelName };
+}
+
+function mapPaymentDocuments(order: any): any[] {
+  const list = Array.isArray((order as any)?.paymentDocuments) ? (order as any).paymentDocuments : [];
+  return list.map((pd: any) => {
+    const pm = pd?.paymentMethod && typeof pd.paymentMethod === "object" ? pd.paymentMethod : null;
+    return {
+      id: pd?.id,
+      status: pd?.status || "",
+      amount: asNumber(pd?.amount),
+      paid: Boolean(pd?.paid),
+      externalId: pd?.externalId || "",
+      comment: pd?.comment || "",
+      error: pd?.error || "",
+      redirectLink: pd?.redirectLink || "",
+      createdAt: pd?.createdAt || null,
+      updatedAt: pd?.updatedAt || null,
+      paymentMethodTitle: pm?.title || "",
+      paymentMethodId: pm?.id || (typeof pd?.paymentMethod === "string" ? pd.paymentMethod : ""),
+      data: pd?.data || null,
+    };
+  });
 }
 
 function mapOrder(order: any, operatorLimited: boolean) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
   const paymentMethod = order?.paymentMethod && typeof order.paymentMethod === "object" ? order.paymentMethod : null;
+  const userRecord = order?.user && typeof order.user === "object" ? order.user : null;
+  const pickupPoint = order?.pickupPoint && typeof order.pickupPoint === "object" ? order.pickupPoint : null;
+  const deliveryItem = order?.deliveryItem && typeof order.deliveryItem === "object" ? order.deliveryItem : null;
+  const promotionCode = order?.promotionCode && typeof order.promotionCode === "object" ? order.promotionCode : null;
 
   return {
     id: order?.id,
@@ -148,11 +199,20 @@ function mapOrder(order: any, operatorLimited: boolean) {
     customData: order?.customData || null,
     items: mapItems(order),
     allowedTransitions: getAllowedOrderTransitionsByRole(order?.state || "NEW", operatorLimited),
+    relatedRefs: {
+      user: mapRelatedRef(userRecord, "user", ["login", "name", "phone"]),
+      paymentMethod: mapRelatedRef(paymentMethod, "paymentmethod", ["title", "name"]),
+      pickupPoint: mapRelatedRef(pickupPoint, "place", ["title", "name"]),
+      deliveryItem: mapRelatedRef(deliveryItem, "dish", ["title", "name"]),
+      promotionCode: mapRelatedRef(promotionCode, "promotioncode", ["title", "code", "name"]),
+    },
+    paymentDocuments: mapPaymentDocuments(order),
     rawPayload: order,
   };
 }
 
 export default async function GetOrderKanbanOrderController(req: any, res: any) {
+  const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   try {
     const { config } = req.adminizer || {};
     if (config?.auth?.enable && !req.user) {
@@ -163,14 +223,14 @@ export default async function GetOrderKanbanOrderController(req: any, res: any) 
 
     const id = String(req.query.id || "").trim();
     if (!id) {
-      return res.status(400).json({ error: "Invalid order id" });
+      return res.status(400).json({ error: t("Invalid order id") });
     }
 
     const operatorLimited = isOperatorUser(req.user);
     const order = await loadFullOrder(id);
 
     if (!order?.id) {
-      return res.status(404).json({ error: "Order not found" });
+      return res.status(404).json({ error: t("Order not found") });
     }
 
     return res.json({ order: mapOrder(order, operatorLimited) });

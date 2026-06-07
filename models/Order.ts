@@ -13,6 +13,10 @@ import { Restrictions, WorkTimeValidator } from "@webresto/worktime";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import { phoneValidByMask } from "../libs/phoneValidByMask";
 import { OrderHelper } from "../libs/helpers/OrderHelper";
+import {
+  buildCancelPaymentDialog,
+  CANCEL_PAYMENT_DIALOG_CONFIRM,
+} from "../libs/dialogs/cancelPaymentDialog";
 import { GroupModifier } from "../interfaces/Modifier";
 import { isValue } from "../utils/isValue";
 import { PaymentMethodRecord } from "./PaymentMethod";
@@ -432,7 +436,7 @@ let Model = {
         await Order.log({id: order.id}, "debug", "core", "Init product added", {productId: ORDER_INIT_PRODUCT_ID});
       }
     }
-    emitter.emit("core:order-after-create", order);
+    Order.emitAndLogDetached({id: order.id}, "core:order-after-create", order);
     cb();
   },
 
@@ -442,7 +446,7 @@ let Model = {
   },
 
   async afterUpdate(order: OrderRecord, cb: (err?: string) => void) {
-    emitter.emit("core:order-after-update", order);
+    Order.emitAndLogDetached({id: order.id}, "core:order-after-update", order);
     cb();
   },
 
@@ -490,6 +494,10 @@ let Model = {
 
     if (dishObj.modifier) {
       throw new Error(`Dish [${dishObj.id}] is modifier`)
+    }
+
+    if (dishObj.enable === false && addedBy === "user") {
+      throw new Error(`Dish [${dishObj.id}] is disabled`)
     }
 
     if (dishObj.notForSale && addedBy === "user") {
@@ -596,6 +604,11 @@ let Model = {
       return
     }
 
+    // Ensure CART state (and cancel any pending payment) BEFORE writing dishes,
+    // so a failed cancellation doesn't leave the basket modified while the
+    // payment link is still live in the gateway.
+    await Order.next(order.id, "CART");
+
     if (replace) {
       orderDish = (
         await OrderDish.update(
@@ -625,7 +638,6 @@ let Model = {
 
     try {
       await Order.countCart({ id: order.id }, addedBy === "promotion");
-      await Order.next(order.id, "CART");
     } catch (error) {
       sails.log.error(error)
       await Order.log({id: order.id}, "error", "core", "addDish: countCart failed", {state: order.state, error: error?.message || error});
@@ -665,6 +677,9 @@ let Model = {
       };
     }
 
+    // Ensure CART state (and cancel any pending payment) BEFORE writing dishes.
+    await Order.next(order.id, "CART");
+
     orderDish.amount -= amount;
     if (orderDish.amount > 0) {
       await OrderDish.update({ id: orderDish.id }, { amount: orderDish.amount }).fetch();
@@ -672,7 +687,6 @@ let Model = {
       await OrderDish.destroy({ id: orderDish.id }).fetch();
     }
 
-    await Order.next(order.id, "CART");
     const countedBasket = await Order.countCart({ id: order.id });
     await emitter.emit.apply(emitter, ["core:order-after-remove-dish", countedBasket, ...arguments]);
   },
@@ -698,6 +712,9 @@ let Model = {
     const get = orderDishes.find((item) => item.id === dish.id);
 
     if (get) {
+      // Ensure CART state (and cancel any pending payment) BEFORE writing dishes.
+      await Order.next(order.id, "CART");
+
       get.amount = amount;
       if (get.amount > 0) {
         await OrderDish.update({ id: get.id }, { amount: get.amount }).fetch();
@@ -706,7 +723,6 @@ let Model = {
         sails.log.info("destroy", get.id);
       }
 
-      await Order.next(order.id, "CART");
       const resultOrder = await Order.countCart({ id: order.id });
       Order.update({ id: order.id }, order).fetch();
       await emitter.emit.apply(emitter, ["core:order-after-set-count", resultOrder, ...arguments]);
@@ -720,7 +736,12 @@ let Model = {
     await emitter.emit.apply(emitter, ["core:order-before-set-comment", ...arguments]);
 
     const order = await Order.findOne(criteria).populate("dishes");
-    if (Order.isOrderedState(order.state)) throw `order with orderId ${order.id} in state ${order.state}`;
+    // Comment is editable only while the order is still in pre-order phase
+    // (CART/CHECKOUT/PAYMENT). Once placed (ORDER+) or finalized (DONE/REJECT)
+    // the comment is frozen — kitchen/RMS already saw it.
+    if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state || "")) {
+      throw `order with orderId ${order.id} in state ${order.state} — comment is no longer editable`;
+    }
 
     const orderDish = await OrderDish.findOne({
       order: order.id,
@@ -730,9 +751,6 @@ let Model = {
     if (orderDish) {
       await OrderDish.update({ id: orderDish.id }, { comment: comment }).fetch();
 
-      await Order.next(order.id, "CART");
-      await Order.countCart({ id: order.id });
-      Order.update({ id: order.id }, order).fetch();
       await emitter.emit.apply(emitter, ["core:order-after-set-comment", ...arguments]);
     } else {
       await emitter.emit.apply(emitter, ["core:order-set-comment-reject-no-orderdish", ...arguments]);
@@ -834,7 +852,7 @@ let Model = {
        *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
        */
 
-      emitter.emit("core:order-before-check", order, customer, isSelfService, address);
+      Order.emitAndLogDetached({id: order.id}, "core:order-before-check", order, customer, isSelfService, address);
 
       sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
 
@@ -873,7 +891,7 @@ let Model = {
       if (isSelfService) {
         order.selfService = true;
 
-        emitter.emit("core:order-is-self-service", order, customer, isSelfService, address);
+        Order.emitAndLogDetached({id: order.id}, "core:order-is-self-service", order, customer, isSelfService, address);
       } else {
         order.selfService = false;
         softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
@@ -985,7 +1003,7 @@ let Model = {
 
 
       sails.log.silly("Order > check > after wait general emitter", order, results);
-      emitter.emit("core:order-after-check-counting", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-check-counting", order);
 
       delete (order.dishes);
       await Order.update({ id: order.id }, { ...order }).fetch();
@@ -1093,13 +1111,13 @@ let Model = {
     // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
     //   return 3
 
-    emitter.emit("core:order-before-order", order);
+    Order.emitAndLogDetached({id: order.id}, "core:order-before-order", order);
     sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
 
     if (order.selfService) {
-      emitter.emit("core:order-order-self-service", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-order-self-service", order);
     } else {
-      emitter.emit("core:order-order-delivery", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-order-delivery", order);
     }
 
     /**
@@ -1189,6 +1207,7 @@ let Model = {
           rmsOrderNumber: orderWithRMS.rmsOrderNumber,
           rmsOrderData: orderWithRMS.rmsOrderData
         })
+        await decrementLimitedStockByOrder(order.id);
         sails.log.info(`RestoCore > new order with id [${orderWithRMS.shortId}] for [${orderWithRMS.customer.phone.code + orderWithRMS.customer.phone.number}] total: ${orderWithRMS.total} has rmsOrderNumber: ${orderWithRMS.rmsOrderNumber}`)
         await Order.log({id: order.id}, "info", "core", "order: RMS order created", {rmsOrderNumber: orderWithRMS.rmsOrderNumber, rmsId: orderWithRMS.rmsId});
       } catch (error) {
@@ -1228,10 +1247,86 @@ let Model = {
       }
 
       sails.log.debug("CORE > about to emit core:order-after-order, orderId:", order?.id, "emitter events count:", emitter?.events?.length, "subscribers:", emitter?.events?.map(e => `${e.name}[${e.subscribers?.length}]`).join(", "));
-      emitter.emit("core:order-after-order", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-order", order);
       if (order.user) {
         UserOrderHistory.save(order.id);
       }
+    }
+
+    async function decrementLimitedStockByOrder(orderId: string): Promise<void> {
+      const orderDishes: OrderDishRecord[] = await OrderDish.find({ order: orderId });
+      if (!orderDishes.length) return;
+
+      const amountByDishId: Record<string, number> = {};
+      for (const orderDish of orderDishes) {
+        if (!orderDish?.dish || !orderDish?.amount || orderDish.amount <= 0) continue;
+        const dishId = String(orderDish.dish);
+        amountByDishId[dishId] = (amountByDishId[dishId] ?? 0) + orderDish.amount;
+      }
+
+      const dishIds = Object.keys(amountByDishId);
+      if (!dishIds.length) return;
+
+      const dishes: DishRecord[] = await Dish.find({ id: dishIds });
+      for (const dish of dishes) {
+        const deductedAmount = amountByDishId[String(dish.id)] ?? 0;
+        if (deductedAmount <= 0) continue;
+
+        // -1 means infinite stock; only deduct for explicit finite balances.
+        if (typeof dish.balance !== "number" || dish.balance < 0) continue;
+
+        const nextBalance = Math.max(0, dish.balance - deductedAmount);
+        if (nextBalance === dish.balance) continue;
+
+        await Dish.update({ id: dish.id }, { balance: nextBalance }).fetch();
+        await Order.log({id: orderId}, "info", "core", "order: stock deducted", {
+          dishId: dish.id,
+          deductedAmount,
+          balanceBefore: dish.balance,
+          balanceAfter: nextBalance
+        });
+      }
+    }
+  },
+
+  /**
+   * Cancel any pending PaymentDocument attached to this order.
+   *
+   * Race scenario this protects against:
+   *   1. user clicks "pay" → order goes CHECKOUT, PaymentDocument is created,
+   *      user is redirected to the external payment gateway (e.g. YooKassa).
+   *   2. user comes back (other tab / browser back) and edits the basket.
+   *   3. gateway callback arrives later for an order whose total/contents have changed,
+   *      which is unsafe — the user paid for one basket, we'd ship another.
+   *
+   * Calling this before any basket-mutating operation invalidates the outstanding
+   * payment link so the only way forward is to register a new payment matching
+   * the new basket. If there is no pending PaymentDocument, this is a no-op.
+   *
+   * Errors from the underlying adapter cancel are propagated — callers MUST
+   * abort the basket mutation in that case (see addDish/removeDish/etc.).
+   */
+  async cancelOrderPayment(criteria: CriteriaQuery<OrderRecord>): Promise<void> {
+    const order = await Order.findOne(criteria);
+    if (!order) return;
+
+    const pendingDocs = await PaymentDocument.find({
+      originModel: "order",
+      originModelId: order.id,
+      paid: false,
+      status: ["NEW", "REGISTERED"],
+    });
+
+    if (!pendingDocs.length) return;
+
+    for (const pd of pendingDocs) {
+      sails.log.debug(`Order > cancelOrderPayment: cancelling PaymentDocument ${pd.id} for order ${order.id} (status=${pd.status})`);
+      await Order.log({ id: order.id }, "info", "core", "payment: cancelling pending document due to basket change", {
+        paymentDocumentId: pd.id,
+        status: pd.status,
+        amount: pd.amount,
+      });
+      await PaymentDocument.cancel({ id: pd.id });
     }
   },
 
@@ -1437,7 +1532,7 @@ let Model = {
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
       if (!orderDishes) return order;
 
-      emitter.emit("core:order-before-count", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-before-count", order);
       order.isPromoting = isPromoting;
       // const orderDishesClone = {}
       let basketTotal = new Decimal(0);
@@ -1467,7 +1562,14 @@ let Model = {
             // Checks that the dish is available for sale
             if (!dish) {
               sails.log.error("Dish with id " + orderDish.dish.id + " not found!");
-              emitter.emit("core:order-return-full-order-destroy-orderdish", dish, order);
+              Order.emitAndLogDetached({id: order.id}, "core:order-return-full-order-destroy-orderdish", dish, order);
+              await OrderDish.destroy({ id: orderDish.id }).fetch();
+              continue;
+            }
+
+            if (dish.enable === false) {
+              sails.log.warn(`Dish with id ${dish.id} is disabled and removed from cart.`);
+              await Order.log({id: order.id}, "info", "core", "countCart: removed disabled dish", {orderDishId: orderDish.id, dishId: dish.id, dishName: dish.name});
               await OrderDish.destroy({ id: orderDish.id }).fetch();
               continue;
             }
@@ -1478,7 +1580,7 @@ let Model = {
               if (orderDish.amount >= 0) {
                 await Order.removeDish({ id: order.id }, orderDish, 999999);
               }
-              emitter.emit("core:orderproduct-change-amount", orderDish);
+              Order.emitAndLogDetached({id: order.id}, "core:orderproduct-change-amount", orderDish);
               sails.log.debug(`Order with id ${order.id} and  CardDish with id ${orderDish.id} amount was changed!`);
             }
 
@@ -1654,7 +1756,7 @@ let Model = {
 
       // Promotion code
       if (order.isPromoting === false) {
-        emitter.emit("core:count-before-promotion", order);
+        Order.emitAndLogDetached({id: order.id}, "core:count-before-promotion", order);
         try {
           let promotionAdapter: AbstractPromotionAdapter = Adapter.getPromotionAdapter();
           // set lock
@@ -1732,7 +1834,7 @@ let Model = {
         }
 
 
-        emitter.emit("core:order-after-promotion", order);
+        Order.emitAndLogDetached({id: order.id}, "core:order-after-promotion", order);
       }
 
       // Force unpopulated promotionCode, TODO: debug it why is not unpopulated here?!
@@ -1753,7 +1855,7 @@ let Model = {
 
         // The SOFT_DELIVERY_CALCULATION setting disables strict checking of the delivery address.
         softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION")
-        emitter.emit("core:count-before-delivery-cost", order);
+        Order.emitAndLogDetached({id: order.id}, "core:count-before-delivery-cost", order);
 
         // order.promotionDelivery is preferred over the delivery setting
         if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
@@ -1762,7 +1864,7 @@ let Model = {
           let deliveryAdapter = await Adapter.getDeliveryAdapter();
           await deliveryAdapter.reset(order);
           if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
-            emitter.emit("core:order-check-delivery", order);
+            Order.emitAndLogDetached({id: order.id}, "core:order-check-delivery", order);
             try {
               delivery = await deliveryAdapter.calculate(order);
             } catch (error) {
@@ -1825,7 +1927,7 @@ let Model = {
         order.deliveryDescription = '';
       }
 
-      emitter.emit("core:count-after-delivery-cost", order);
+      Order.emitAndLogDetached({id: order.id}, "core:count-after-delivery-cost", order);
       // END calculate delivery cost
 
       order.total = new Decimal(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
@@ -1840,7 +1942,7 @@ let Model = {
         dishesCount: order.dishesCount
       });
 
-      emitter.emit("core:order-after-count", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-count", order);
       return order;
     } catch (error) {
       sails.log.error(" error >", error);
@@ -1890,11 +1992,39 @@ let Model = {
       }
 
       await Order.order({ id: order.id });
-      emitter.emit("core:order-after-dopaid", order);
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-dopaid", order);
 
     } catch (e) {
-      sails.log.error("Order > doPaid error: ", e);
+      const message = [
+        "============================================================",
+        "!!! CRITICAL: MONEY-IN, ORDER-NOT-PLACED CONDITION !!!",
+        "",
+        "We reach this branch AFTER paid=true has already been written",
+        "to the order (see Order.update above), which means the customer",
+        "has been charged but Order.order() failed — the order was NOT",
+        "dispatched to the kitchen / RMS.",
+        "",
+        "Common causes:",
+        "  - state was rolled back to CART by a concurrent basket mutation",
+        "    (race between gateway callback and the user editing the cart);",
+        "  - amount mismatch (total !== paymentDocument.amount);",
+        "  - RMS adapter rejected the order;",
+        "  - maintenance mode is active.",
+        "",
+        "The customer either gets nothing for their money, or we ship a",
+        "basket different from what they paid for. EITHER WAY this needs",
+        "a human (operator / on-call) to look at it within minutes.",
+        "============================================================"
+      ];
+
+      // "TODO: wire an alert here (Notification + operator dashboard +",
+      // "ideally external channel like Telegram/email). Until that lands,",
+      // "grep your logs for \"Order > doPaid error\" — every hit is an incident.",
+
+      sails.log.error("Order > doPaid error: ", message.join("\n"), e);
       await Order.log({id: order.id}, "error", "core", "doPaid: failed", {error: e?.message || e});
+      await Order.log({id: order.id}, "error", "core", "!!! CRITICAL: MONEY-IN, ORDER-NOT-PLACED CONDITION !!!", {error: message});
+      Order.emitAndLogDetached({id: order.id}, "core:order-after-dopaid-error", order, e);
       throw e;
     }
   },
@@ -1926,7 +2056,7 @@ let Model = {
 
     await Order.next(criteriaOne, state);
 
-    emitter.emit("core:order-after-done", order, user, { isNewUser });
+    Order.emitAndLogDetached({id: order.id}, "core:order-after-done", order, user, { isNewUser });
   },
 
   async doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord> {
@@ -2009,8 +2139,9 @@ let Model = {
         await Order.log({ id: order.id }, "warn", "core", `Promotion code [${promotionCodeString}] is expired or not valid`);
       }
     }
-    await Order.update({ id: order.id }, updateData).fetch();
+    // Ensure CART state (and cancel any pending payment) BEFORE writing promo code.
     await Order.next(order.id, "CART");
+    await Order.update({ id: order.id }, updateData).fetch();
     const basket = await Order.countCart({ id: order.id });
     return basket
   },
@@ -2038,6 +2169,13 @@ let Model = {
    */
   async emitAndLog(criteria: CriteriaQuery<OrderRecord>, eventName: string, ...args: any[]): Promise<any[]> {
     return OrderLogHelper.emitAndLog(criteria, eventName, ...args);
+  },
+
+  /**
+   * Fire emitter.emit without awaiting it and log handler errors/timeouts into order log.
+   */
+  emitAndLogDetached(criteria: CriteriaQuery<OrderRecord>, eventName: string, ...args: any[]): void {
+    return OrderLogHelper.emitAndLogDetached(criteria, eventName, ...args);
   },
 
   /**
@@ -2071,6 +2209,49 @@ let Model = {
       );
     }
 
+    // Once paid=true is written, the basket is frozen — money is in and the
+    // order is on its way to ORDER (see Order.doPaid). Allowing →CART here
+    // would be the money-in/order-not-placed race: a concurrent addDish
+    // arriving in the ~10-200ms window between `Order.update({paid:true})`
+    // and `Order.order()` inside doPaid would otherwise roll the order back
+    // to CART, doPaid's `Order.order()` would then throw "in state CART",
+    // and we'd ship a basket different from what the customer paid for.
+    if (nextState === "CART" && order.paid === true) {
+      throw new Error(
+        `Order ${order.id} is already paid — cart is frozen, cannot transition back to CART`
+      );
+    }
+
+    // Rolling back to CART from an in-payment state means the basket is about to
+    // be edited; the outstanding payment link must be invalidated first so the
+    // gateway can't confirm a payment for a basket that no longer exists.
+    // If cancellation throws, the state stays where it is — caller's mutation
+    // must abort, otherwise we re-introduce the original race.
+    if (
+      nextState === "CART" &&
+      (currentState === "CHECKOUT" || currentState === "PAYMENT")
+    ) {
+      // Ask the user before invalidating an outstanding payment link.
+      // If the device confirms — proceed with cancellation.
+      // If the device declines (or no device is bound) — abort the transition;
+      // throwing here is the documented contract (caller's basket mutation aborts).
+      if (order.deviceId) {
+        const answerId = await (global as any).DialogBox.ask(
+          buildCancelPaymentDialog((order as any).locale),
+          order.deviceId,
+          60_000
+        );
+
+        if (answerId !== CANCEL_PAYMENT_DIALOG_CONFIRM) {
+          throw new Error(
+            `Order ${order.id}: user declined to cancel pending payment — basket change aborted`
+          );
+        }
+      }
+
+      await Order.cancelOrderPayment({ id: order.id });
+    }
+
     const patch: Partial<OrderRecord> = { state: nextState };
     if (nextState === "ORDER" && !order.orderedAt) {
       patch.orderedAt = Math.floor(Date.now() / 1000);
@@ -2080,7 +2261,10 @@ let Model = {
     }
 
     // Perform transition
-    await Order.update(query, patch).fetch();
+    const updated = (await Order.update(query, patch).fetch())[0];
+    if (updated) {
+      Order.emitAndLogDetached({id: updated.id}, "core:order-after-count", updated);
+    }
   }
 };
 
@@ -2199,20 +2383,74 @@ async function checkPaymentMethod(paymentMethodId: string) {
   }
 }
 
+/**
+ * Resolve the active timezone.
+ *
+ * The TZ setting may legitimately be empty (no default is applied for it).
+ * When it is, fall back to the TZ environment variable, and only then to undefined.
+ * No 'Etc/GMT' default is applied — a missing timezone is surfaced as undefined so
+ * callers can react (e.g. block ordering, propagate null to the frontend) instead of
+ * silently computing dates in the wrong zone.
+ * This is intentionally TZ-specific and must NOT be generalized into Settings,
+ * because most settings must not silently pick up env/defaults.
+ */
+async function getTimezone(): Promise<string | undefined> {
+  const tzSetting = await Settings.get("TZ");
+  if (typeof tzSetting === "string" && tzSetting.trim() !== "") {
+    return tzSetting;
+  }
+  return process.env.TZ || undefined;
+}
+
 async function checkDate(order: OrderRecord) {
   const MIN_DELIVERY_TIME_MINUTES = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
+
+  // The timezone is mandatory to place an order: every date check below (worktime,
+  // "date is past", min delivery time, maintenance) is meaningless without it.
+  // If it is not configured, refuse the order and shout loudly in the log.
+  const timezone = await getTimezone();
+  if (!timezone) {
+    sails.log.error(
+      '\n' +
+      '╔════════════════════════════════════════════════════════════════════╗\n' +
+      '║  TIMEZONE IS NOT SET. The server timezone (TZ setting) is REQUIRED  ║\n' +
+      '║  for correct order date handling and worktime checks.              ║\n' +
+      '║  Orders CANNOT be placed until a valid timezone is configured.     ║\n' +
+      '║  Set the "TZ" setting (e.g. "Etc/GMT") or the TZ env var.    ║\n' +
+      '╚════════════════════════════════════════════════════════════════════╝'
+    );
+    throw { code: 19, error: 'Server timezone is not configured, ordering is disabled' };
+  }
+
+  // Global worktime restriction via WORK_TIME settings.
+  // Runs for ASAP orders too (order.date may be empty), otherwise the check below
+  // — guarded by `if (order.date)` — would be skipped entirely for "as soon as possible" orders.
+  try {
+    const WORK_TIME = await Settings.get('WORK_TIME');
+    if (WORK_TIME) {
+      const { workNow } = WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME } as Restrictions);
+      if (!workNow) {
+        throw { code: 18, error: 'Order date is outside work time' };
+      }
+    }
+  } catch (e) {
+    // Re-throw the intentional worktime block; only swallow validator/settings failures.
+    if (e && (e as { code?: number }).code === 18) throw e;
+    sails.log.error('Order > checkDate > WORK_TIME validation error:', e);
+  }
 
   if (order.date) {
     const date = new Date(order.date);
 
-    function isDateInPast(date: string, timeZone: string) {
+    function isDateInPast(date: string, timeZone: string | undefined) {
       let currentDate = new Date();
       let currentTimestamp = currentDate.getTime();
       let targetDate = new Date(date);
 
       let targetTimestamp;
       try {
-        targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
+        // When timeZone is undefined, toLocaleString uses the runtime's local time zone.
+        targetTimestamp = new Date(targetDate.toLocaleString('en', timeZone ? { timeZone } : undefined)).getTime();
       } catch (error) {
         sails.log.error(`TimeZone not defined. TZ: [${timeZone}]`);
         targetTimestamp = new Date(targetDate.toLocaleString('en')).getTime();
@@ -2221,28 +2459,11 @@ async function checkDate(order: OrderRecord) {
       return targetTimestamp < currentTimestamp;
     }
 
-    const timezone = await Settings.get('TZ') ?? 'Etc/GMT';
-
     if (isDateInPast(order.date, timezone)) {
       throw {
         code: 15,
         error: "date is past",
       };
-    }
-
-    // Check requested date against WORK_TIME schedule
-    // Global worktime restriction via WORK_TIME settings
-    try {
-      const WORK_TIME = await Settings.get('WORK_TIME');
-      if (WORK_TIME) {
-        const { workNow } = WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME } as Restrictions);
-        if (!workNow) {
-          throw { code: 18, error: 'Order date is outside work time' };
-        }
-      }
-    } catch (e) {
-      // If validator throws because of bad settings, do not block ordering silently
-      sails.log.error('Order > check > WORK_TIME validation error:', e);
     }
 
     // Adding minimum delivery time to order.date

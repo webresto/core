@@ -20,6 +20,7 @@ __exportStar(require("./models/Dish"), exports);
 __exportStar(require("./models/Group"), exports);
 __exportStar(require("./models/Maintenance"), exports);
 __exportStar(require("./models/MediaFile"), exports);
+__exportStar(require("./models/Notification"), exports);
 __exportStar(require("./models/OneTimePassword"), exports);
 __exportStar(require("./models/Order"), exports);
 __exportStar(require("./models/OrderDish"), exports);
@@ -38,6 +39,7 @@ __exportStar(require("./models/UserOrderHistory"), exports);
 __exportStar(require("./models/Promotion"), exports);
 // Helpers
 __exportStar(require("./libs/helpers/OrderHelper"), exports);
+__exportStar(require("./libs/NotificationDispatcher"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),

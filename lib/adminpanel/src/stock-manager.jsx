@@ -1,4 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+
+const APPEARANCE_STORAGE_KEY = 'appearance';
+function getPreferredAppearance() { return localStorage.getItem(APPEARANCE_STORAGE_KEY) || 'system'; }
+function useAppearance() {
+  const [appearance, setAppearance] = useState(getPreferredAppearance);
+  useEffect(() => {
+    const sync = () => setAppearance(getPreferredAppearance());
+    const media = window.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    sync();
+    window.addEventListener('appearanceChanged', sync);
+    window.addEventListener('storage', sync);
+    media?.addEventListener('change', sync);
+    return () => {
+      window.removeEventListener('appearanceChanged', sync);
+      window.removeEventListener('storage', sync);
+      media?.removeEventListener('change', sync);
+    };
+  }, []);
+}
 import { Tabs } from './components/Tabs';
 import { SearchBar } from './components/SearchBar';
 import { Navigation } from './components/Navigation';
@@ -13,8 +32,10 @@ import { HelpButton } from './components/HelpButton';
 // StockManager content component
 function StockManagerContent() {
   const { t, language, setLanguage } = useTranslation();
+  useAppearance();
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [results, setResults] = useState([]);
   const [balances, setBalances] = useState({});
   const [initialItems, setInitialItems] = useState([]);
@@ -63,6 +84,35 @@ function StockManagerContent() {
     return params.get('group') || null;
   }
 
+  function withNoCacheTs(endpoint) {
+    const joinChar = endpoint.includes('?') ? '&' : '?';
+    return `${endpoint}${joinChar}_ts=${Date.now()}`;
+  }
+
+  async function fetchJsonNoCache(endpoint, options = {}) {
+    const response = await fetch(withNoCacheTs(endpoint), {
+      ...options,
+      credentials: options.credentials || 'same-origin',
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+        ...(options.headers || {}),
+      },
+    });
+
+    const contentType = (response.headers.get('content-type') || '').toLowerCase();
+    if (!response.ok || !contentType.includes('application/json')) {
+      const text = await response.text();
+      throw new Error(
+        `HTTP ${response.status}. Expected JSON, got "${contentType || 'unknown'}". ${text.slice(0, 120)}`
+      );
+    }
+
+    return response.json();
+  }
+
   // Update URL with current group slug
   function updateUrl(groupSlug) {
     const url = new URL(window.location);
@@ -80,12 +130,18 @@ function StockManagerContent() {
 
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+      const visitedParents = new Set();
 
       // Recursive function to search for group and build path
       async function searchGroupRecursive(parentId, pathStack) {
+        const parentKey = parentId ? String(parentId) : '__root__';
+        if (visitedParents.has(parentKey)) {
+          return null;
+        }
+        visitedParents.add(parentKey);
+
         const endpoint = `${base}/core/groups${parentId ? `?parent=${parentId}` : ''}`;
-        const resp = await fetch(endpoint);
-        const json = await resp.json();
+        const json = await fetchJsonNoCache(endpoint);
         const groups = json.results || [];
 
         // Check if target group is in current level
@@ -194,8 +250,7 @@ function StockManagerContent() {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/stock-items`;
-      const resp = await fetch(endpoint);
-      const json = await resp.json();
+      const json = await fetchJsonNoCache(endpoint);
       setInitialItems(json.results || []);
       const newBalances = {};
       (json.results || []).forEach(r => newBalances[r.id] = r.balance || 0);
@@ -209,8 +264,7 @@ function StockManagerContent() {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/groups${parentId ? `?parent=${parentId}` : ''}`;
-      const resp = await fetch(endpoint);
-      const json = await resp.json();
+      const json = await fetchJsonNoCache(endpoint);
       setGroups(json.results || []);
     } catch (err) {
       console.error('load groups error', err);
@@ -225,8 +279,7 @@ function StockManagerContent() {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/dishes-by-group?group=${groupId}`;
-      const resp = await fetch(endpoint);
-      const json = await resp.json();
+      const json = await fetchJsonNoCache(endpoint);
       const loadedDishes = json.results || [];
       setDishes(loadedDishes);
 
@@ -239,37 +292,28 @@ function StockManagerContent() {
   }
 
   async function handleGroupClick(group) {
-    setGroupStack([...groupStack, currentGroup]);
+    if (!group || (currentGroup && currentGroup.id === group.id)) {
+      return;
+    }
+
+    const lineage = [...groupStack, currentGroup].filter(Boolean);
+    const existingIndex = lineage.findIndex((g) => g.id === group.id);
+    if (existingIndex !== -1) {
+      const newStack = lineage.slice(0, existingIndex);
+      const existingGroup = lineage[existingIndex];
+      setGroupStack(newStack);
+      setCurrentGroup(existingGroup);
+      updateUrl(existingGroup.slug);
+      await loadGroups(existingGroup.id);
+      await loadDishes(existingGroup.id);
+      return;
+    }
+
+    setGroupStack(lineage);
     setCurrentGroup(group);
     updateUrl(group.slug);
     await loadGroups(group.id);
     await loadDishes(group.id);
-  }
-
-  async function handleBackClick() {
-    if (groupStack.length === 0) {
-      // Back to root
-      setCurrentGroup(null);
-      updateUrl(null);
-      await loadGroups(null);
-      setDishes([]);
-      return;
-    }
-
-    const prevGroup = groupStack[groupStack.length - 1];
-    const newStack = groupStack.slice(0, -1);
-    setGroupStack(newStack);
-    setCurrentGroup(prevGroup);
-
-    if (prevGroup) {
-      updateUrl(prevGroup.slug);
-      await loadGroups(prevGroup.id);
-      await loadDishes(prevGroup.id);
-    } else {
-      updateUrl(null);
-      await loadGroups(null);
-      setDishes([]);
-    }
   }
 
   async function performSearch(term) {
@@ -281,8 +325,7 @@ function StockManagerContent() {
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
       const endpoint = `${base}/core/api?q=${encodeURIComponent(term)}`;
-      const resp = await fetch(endpoint);
-      const json = await resp.json();
+      const json = await fetchJsonNoCache(endpoint);
       setResults(json.results || []);
       const newBalances = {};
       (json.results || []).forEach(r => newBalances[r.id] = r.balance || 0);
@@ -295,6 +338,32 @@ function StockManagerContent() {
     }
   }
 
+  async function handleBreadcrumbNavigate(level) {
+    const lineage = [...groupStack, currentGroup].filter(Boolean);
+
+    if (level <= 0) {
+      setCurrentGroup(null);
+      setGroupStack([]);
+      updateUrl(null);
+      await loadGroups(null);
+      setDishes([]);
+      return;
+    }
+
+    const targetIndex = level - 1;
+    const targetGroup = lineage[targetIndex] || null;
+    if (!targetGroup) {
+      return;
+    }
+
+    const newStack = lineage.slice(0, targetIndex);
+    setGroupStack(newStack);
+    setCurrentGroup(targetGroup);
+    updateUrl(targetGroup.slug);
+    await loadGroups(targetGroup.id);
+    await loadDishes(targetGroup.id);
+  }
+
   function clearSearch() {
     setQ('');
     setResults([]);
@@ -302,6 +371,22 @@ function StockManagerContent() {
 
   function handleBalanceChange(id, newBalance) {
     setBalances(prev => ({ ...prev, [id]: newBalance }));
+  }
+
+  async function refreshData() {
+    setIsRefreshing(true);
+    try {
+      await loadInitialItems();
+      if (currentGroup) {
+        await loadDishes(currentGroup.id);
+      }
+      const term = (q || '').trim();
+      if (term) {
+        await performSearch(term);
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
   }
 
   async function updateStock(id, balance) {
@@ -316,7 +401,7 @@ function StockManagerContent() {
         }
         return null;
       })();
-      const resp = await fetch(endpoint, {
+      const json = await fetchJsonNoCache(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -325,7 +410,6 @@ function StockManagerContent() {
         credentials: 'include',
         body: JSON.stringify({ id, balance })
       });
-      const json = await resp.json();
       if (json.success) {
         setBalances(prev => ({ ...prev, [id]: balance }));
 
@@ -338,11 +422,11 @@ function StockManagerContent() {
           performSearch((q || '').trim());
         }
       } else {
-        alert(t('stock_update_failed', { error: json.error || t('unknown_error') }));
+        alert(t('Update failed: {error}', { error: json.error || t('Unknown error') }));
       }
     } catch (err) {
       console.error('update error', err);
-      alert(t('stock_update_error'));
+      alert(t('Update error'));
     }
   }
 
@@ -360,7 +444,7 @@ function StockManagerContent() {
         }
         return null;
       })();
-      const resp = await fetch(endpoint, {
+      const json = await fetchJsonNoCache(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -369,7 +453,6 @@ function StockManagerContent() {
         credentials: 'include',
         body: JSON.stringify({ id, model, visible })
       });
-      const json = await resp.json();
       if (json.success) {
         // Update state
         if (model === 'dish') {
@@ -380,11 +463,11 @@ function StockManagerContent() {
           setGroups(prev => prev.map(g => g.id === id ? { ...g, visible } : g));
         }
       } else {
-        alert(t('stock_visibility_update_failed', { error: json.error || t('unknown_error') }));
+        alert(t('Visibility update failed: {error}', { error: json.error || t('Unknown error') }));
       }
     } catch (err) {
       console.error('update visible error', err);
-      alert(t('stock_visibility_update_error'));
+      alert(t('Visibility update error'));
     }
   }
 
@@ -400,7 +483,7 @@ function StockManagerContent() {
         }
         return null;
       })();
-      const resp = await fetch(endpoint, {
+      const json = await fetchJsonNoCache(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -409,7 +492,6 @@ function StockManagerContent() {
         credentials: 'include',
         body: JSON.stringify({ id, model, enable })
       });
-      const json = await resp.json();
       if (json.success) {
         // Update state
         if (model === 'dish') {
@@ -420,11 +502,11 @@ function StockManagerContent() {
           setGroups(prev => prev.map(g => g.id === id ? { ...g, enable } : g));
         }
       } else {
-        alert(t('stock_visibility_update_failed', { error: json.error || t('unknown_error') }));
+        alert(t('Visibility update failed: {error}', { error: json.error || t('Unknown error') }));
       }
     } catch (err) {
       console.error('update enable error', err);
-      alert(t('stock_visibility_update_error'));
+      alert(t('Visibility update error'));
     }
   }
 
@@ -434,7 +516,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk enable error', err);
-      alert(t('stock_bulk_visibility_update_error'));
+      alert(t('Bulk visibility update error'));
     }
   }
 
@@ -444,7 +526,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk visibility error', err);
-      alert(t('stock_bulk_visibility_update_error'));
+      alert(t('Bulk visibility update error'));
     }
   }
 
@@ -455,7 +537,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk balance error', err);
-      alert(t('stock_bulk_balance_update_error'));
+      alert(t('Bulk balance update error'));
     }
   }
 
@@ -464,7 +546,7 @@ function StockManagerContent() {
   const tabs = [
     {
       id: 'out-of-stock',
-      label: t('tab_out_of_stock'),
+      label: t('Out of stock'),
       content: (
         <LimitedStockSection
           items={initialItems}
@@ -476,7 +558,7 @@ function StockManagerContent() {
     },
     {
       id: 'explore',
-      label: t('tab_explore'),
+      label: t('Explore'),
       content: (
         <div>
           <SearchBar query={q} onQueryChange={setQ} onClear={clearSearch} />
@@ -489,7 +571,7 @@ function StockManagerContent() {
               onUpdateEnable={updateEnable}
               onUpdateVisible={updateVisible}
               onBalanceChange={handleBalanceChange}
-              title={results.length === 0 ? t('no_results') : t('search_results')}
+              title={results.length === 0 ? t('No results') : t('Search Results')}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               sortMode={sortMode}
@@ -502,7 +584,7 @@ function StockManagerContent() {
               <Navigation
                 currentGroup={currentGroup}
                 groupStack={groupStack}
-                onBackClick={handleBackClick}
+                onBreadcrumbNavigate={handleBreadcrumbNavigate}
               />
 
               <GroupsGrid
@@ -531,7 +613,7 @@ function StockManagerContent() {
               />
 
               {groups.length === 0 && dishes.length === 0 && (
-                <div className="text-center text-gray-500 py-8">{t('empty_folder')}</div>
+                <div className="text-center text-muted-foreground py-8">{t('Empty folder')}</div>
               )}
             </div>
           )}
@@ -544,9 +626,17 @@ function StockManagerContent() {
     <div className="p-6 max-w-[1600px] mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">{t('stock_manager_title')}</h1>
+          <h1 className="text-3xl font-bold">{t('Stock Manager')}</h1>
           <HelpButton />
         </div>
+        <button
+          type="button"
+          onClick={refreshData}
+          disabled={isRefreshing}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+        >
+          {isRefreshing ? t('Refreshing...') : t('Refresh now')}
+        </button>
       </div>
       <Tabs tabs={tabs} defaultTab="out-of-stock" />
     </div>
@@ -556,7 +646,7 @@ function StockManagerContent() {
 // Main component wrapped with I18nProvider
 export default function StockManager(props) {
   return (
-    <I18nProvider initialLocale={props.locale}>
+    <I18nProvider initialLocale={props.locale} messages={props.messages}>
       <StockManagerContent />
     </I18nProvider>
   );

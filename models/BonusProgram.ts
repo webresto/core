@@ -54,8 +54,7 @@ let attributes = {
 
   /** user option */
   enable: {
-    type: "boolean",
-    required: true,
+    type: "boolean"
   } as unknown as boolean,
 
   automaticUserRegistration: {

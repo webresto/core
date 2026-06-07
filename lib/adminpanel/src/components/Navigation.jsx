@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '../i18n/I18nContext';
 
-export function Navigation({ currentGroup, groupStack, onBackClick }) {
+export function Navigation({ currentGroup, groupStack, onBreadcrumbNavigate }) {
     const { t } = useTranslation();
 
     if (!currentGroup && groupStack.length === 0) {
@@ -10,8 +10,9 @@ export function Navigation({ currentGroup, groupStack, onBackClick }) {
     }
 
     // Build breadcrumb path: Root -> Group1 -> Group2 -> Current
-    const breadcrumbs = [
-        { id: null, name: t('back_to_root'), level: 0 },
+    // Deduplicate by id to avoid loops when data has accidental cycles.
+    const rawBreadcrumbs = [
+        { id: null, name: t('Root'), level: 0 },
         ...groupStack.filter(g => g !== null).map((group, index) => ({
             id: group.id,
             name: group.name,
@@ -20,23 +21,22 @@ export function Navigation({ currentGroup, groupStack, onBackClick }) {
     ];
 
     if (currentGroup) {
-        breadcrumbs.push({
+        rawBreadcrumbs.push({
             id: currentGroup.id,
             name: currentGroup.name,
-            level: breadcrumbs.length
+            level: rawBreadcrumbs.length
         });
     }
-
-    const handleBreadcrumbClick = (level) => {
-        // Calculate how many times to go back
-        const currentLevel = breadcrumbs.length - 1;
-        const stepsBack = currentLevel - level;
-
-        // Go back the required number of times
-        for (let i = 0; i < stepsBack; i++) {
-            onBackClick();
+    const breadcrumbs = [];
+    const seen = new Set();
+    for (const crumb of rawBreadcrumbs) {
+        const key = crumb.id === null ? '__root__' : String(crumb.id);
+        if (seen.has(key)) {
+            break;
         }
-    };
+        seen.add(key);
+        breadcrumbs.push(crumb);
+    }
 
     return (
         <div className="mb-4 flex items-center gap-2 flex-wrap">
@@ -48,7 +48,7 @@ export function Navigation({ currentGroup, groupStack, onBackClick }) {
                     <Button
                         variant={index === breadcrumbs.length - 1 ? 'default' : 'ghost'}
                         size="sm"
-                        onClick={() => handleBreadcrumbClick(crumb.level)}
+                        onClick={() => onBreadcrumbNavigate?.(crumb.level)}
                         disabled={index === breadcrumbs.length - 1}
                         className={index === breadcrumbs.length - 1 ? 'font-bold cursor-default' : ''}
                     >

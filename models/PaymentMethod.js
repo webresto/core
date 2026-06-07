@@ -35,8 +35,7 @@ let attributes = {
     sortOrder: "number",
     description: "string",
     enable: {
-        type: "boolean",
-        required: true,
+        type: "boolean"
     },
     customData: "json",
 };
