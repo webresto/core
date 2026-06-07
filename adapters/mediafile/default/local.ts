@@ -115,6 +115,8 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
       name: name,
       config: cfg
     });
+    this.kickoffProcessing();
+
 
     let result = {} as typeof name;
     for (const key in name) {
@@ -161,6 +163,17 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     this.loadMediaFiles()
   }
 
+  private kickoffProcessing() {
+    if (this.processing) {
+      return;
+    }
+    if (this.processingTimeout) {
+      clearTimeout(this.processingTimeout);
+    }
+    // Process newly enqueued images immediately to reduce race windows on restart.
+    void this.loadMediaFiles();
+  }
+
   public getNameByUrl(url: string, ext: string, options?: any, salt: string = null): string {
     let baseName = url;
     if (options) baseName += JSON.stringify(options);
@@ -192,28 +205,32 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
 
   protected async download(loadMediaFilesProcess: LoadMediaFilesProcess): Promise<string> {
     const prefix = this.getPrefix(loadMediaFilesProcess.type);
-    const isFilePath = loadMediaFilesProcess.url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
+    const url = loadMediaFilesProcess.url;
+
+    // file:// — already copied by processFile() with .webp extension, just return that path
+    if (url.startsWith('file://')) {
+      const fullPathDl = this.getOriginalFilePath(url, loadMediaFilesProcess.type, true, 'webp');
+      sails.log.silly(`MF local > file:// already copied: ${fullPathDl}`);
+      return fullPathDl;
+    }
+
+    const isFilePath = url.match(/\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim);
     let mediafileExtension = '';
     if (isFilePath && isFilePath.length > 0) {
         mediafileExtension = isFilePath[0].replace('.', '');
     }
-    const fullPathDl = this.getOriginalFilePath(loadMediaFilesProcess.url, loadMediaFilesProcess.type, true, mediafileExtension || 'webp');
-  
-    // Check if file exists
+    const fullPathDl = this.getOriginalFilePath(url, loadMediaFilesProcess.type, true, mediafileExtension || 'webp');
+
     if (!fs.existsSync(fullPathDl)) {
-      let response;
-      const url = loadMediaFilesProcess.url;
-  
       if (url.startsWith('http://') || url.startsWith('https://')) {
-        // Handle HTTP/HTTPS URL
-        response = await axios.get(url, { responseType: 'stream', maxRedirects: 5 });
+        const response = await axios.get(url, { responseType: 'stream', maxRedirects: 5 });
         sails.log.silly(`MF local > download image: ${fullPathDl}, status: ${response.status}`);
-  
+
         fs.mkdirSync(prefix, { recursive: true });
-  
+
         const writer = fs.createWriteStream(fullPathDl);
         response.data.pipe(writer);
-  
+
         await new Promise((resolve, reject) => {
           writer.on('finish', resolve);
           writer.on('error', reject);
@@ -224,7 +241,7 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     } else {
       sails.log.silly(`File ${fullPathDl} already exists. Skipping download.`);
     }
-    return fullPathDl
+    return fullPathDl;
   }
   
 
