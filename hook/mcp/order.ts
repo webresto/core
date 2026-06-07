@@ -44,6 +44,25 @@ async function loadFullOrder(criteria: Record<string, unknown>) {
     return order;
 }
 
+async function findOrderByIdentifier(id?: string, shortId?: string) {
+    const normalizedId = id ? String(id).trim() : '';
+    const normalizedShortId = shortId ? String(shortId).trim().toUpperCase() : '';
+
+    if (normalizedId) {
+        const byId = await Order.findOne({ id: normalizedId });
+        if (byId) return byId;
+
+        const byShortId = await Order.findOne({ shortId: normalizedId.toUpperCase() });
+        if (byShortId) return byShortId;
+    }
+
+    if (normalizedShortId) {
+        return await Order.findOne({ shortId: normalizedShortId });
+    }
+
+    return null;
+}
+
 export function registerOrderTools() {
     if (process.env.MCP_ENABLED !== 'true') return;
 
@@ -67,11 +86,13 @@ export function registerOrderTools() {
             if (!id && !shortId && !rmsOrderNumber) {
                 throw new Error('One of id / shortId / rmsOrderNumber is required');
             }
-            const criteria: Record<string, unknown> = {};
-            if (id) criteria.id = id;
-            else if (shortId) criteria.shortId = shortId.toUpperCase();
-            else if (rmsOrderNumber) criteria.rmsOrderNumber = rmsOrderNumber;
-            return await loadFullOrder(criteria);
+
+            if (id || shortId) {
+                const order: any = await findOrderByIdentifier(id, shortId);
+                return order ? await loadFullOrder({ id: order.id }) : null;
+            }
+
+            return await loadFullOrder({ rmsOrderNumber });
         },
     });
 
@@ -128,21 +149,22 @@ export function registerOrderTools() {
 
     mcp.registerTool({
         name: 'order-logs',
-        description: 'Returns the logs array for an order. Useful for tracing state changes, promotion runs, payment events, RMS sync. Newest entries last.',
+        description: 'Returns the logs array for an order by id or shortId. Useful for tracing state changes, promotion runs, payment events, RMS sync. Newest entries last.',
         mode: 'protected',
         schema: {
             type: 'object',
             properties: {
-                id:    { type: 'string', description: 'Order id.', example: '4b1f...' },
-                level: { type: 'string', description: 'Filter by level: info, warn, error, debug.', example: 'error' },
-                limit: { type: 'number', description: 'Return last N entries (default all).', example: 100 },
+                id:      { type: 'string', description: 'Order id or shortId.', example: '4b1f...' },
+                shortId: { type: 'string', description: 'Order shortId.', example: 'A1B2C3D4' },
+                level:   { type: 'string', description: 'Filter by level: info, warn, error, debug.', example: 'error' },
+                limit:   { type: 'number', description: 'Return last N entries (default all).', example: 100 },
             },
-            required: ['id'],
         },
-        handler: async ({ id, level, limit }: { id: string; level?: string; limit?: number }) => {
-            const order: any = await Order.findOne({ id });
+        handler: async ({ id, shortId, level, limit }: { id?: string; shortId?: string; level?: string; limit?: number }) => {
+            const order: any = await findOrderByIdentifier(id, shortId);
             if (!order) throw new Error('Order not found');
-            let logs: any[] = Array.isArray(order.logs) ? order.logs : [];
+            let logs: any[] = await Order.getLogs({ id: order.id });
+            logs = Array.isArray(logs) ? logs : [];
             if (level) logs = logs.filter(l => l?.level === level);
             if (limit && logs.length > limit) logs = logs.slice(-limit);
             return { id: order.id, shortId: order.shortId, state: order.state, count: logs.length, logs };
@@ -151,17 +173,19 @@ export function registerOrderTools() {
 
     mcp.registerTool({
         name: 'order-payment-documents',
-        description: 'Returns all PaymentDocuments linked to an order (originModel=order, originModelId=<order.id>), with paymentMethod populated. Use to debug payment state.',
+        description: 'Returns all PaymentDocuments linked to an order by id or shortId (originModel=order, originModelId=<order.id>), with paymentMethod populated. Use to debug payment state.',
         mode: 'protected',
         schema: {
             type: 'object',
             properties: {
-                id: { type: 'string', description: 'Order id.', example: '4b1f...' },
+                id:      { type: 'string', description: 'Order id or shortId.', example: '4b1f...' },
+                shortId: { type: 'string', description: 'Order shortId.', example: 'A1B2C3D4' },
             },
-            required: ['id'],
         },
-        handler: async ({ id }: { id: string }) => {
-            return await PaymentDocument.find({ originModel: 'order', originModelId: id })
+        handler: async ({ id, shortId }: { id?: string; shortId?: string }) => {
+            const order: any = await findOrderByIdentifier(id, shortId);
+            if (!order) throw new Error('Order not found');
+            return await PaymentDocument.find({ originModel: 'order', originModelId: order.id })
                 .populate('paymentMethod')
                 .sort('createdAt ASC');
         },
