@@ -2,8 +2,9 @@ import  HookTools from "../libs/hookTools";
 import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
-import bindAssets from "./bindAssets"
+import bindAssets from "./bindAssets";
 import bindDictionaries from "./bindDictionaries";
+import { CartCleanup } from "../libs/CartCleanup";
 
 /**
  * Set global emitter
@@ -84,7 +85,10 @@ export default function ToInitialize(sails: Sails) {
   
       // Bind models
       let modelsToSkip = process.env.CORE_MODELS_TO_SKIP !== undefined ? process.env.CORE_MODELS_TO_SKIP.split(";") : [];
-      HookTools.bindModels(resolve(__dirname, "../models"), modelsToSkip).then(cb);
+      HookTools.bindModels(resolve(__dirname, "../models"), modelsToSkip).then(() => {
+        CartCleanup.start();
+        cb();
+      });
     } catch (error) {
       sails.log.error(`Restocore initializer error`, error)      
     }
