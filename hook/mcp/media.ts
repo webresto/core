@@ -162,7 +162,7 @@ export function registerMediaTools() {
             required: ['selectedMediaFileId'],
         },
         handler: async ({ selectedMediaFileId }: { selectedMediaFileId: number }) => {
-            const deleted = await SelectedMediaFile.destroyOne({ id: selectedMediaFileId });
+            const deleted = await SelectedMediaFile.destroyOne({ id: selectedMediaFileId } as any);
             if (!deleted) throw new Error('Link not found');
             return { success: true };
         },
@@ -236,7 +236,7 @@ export function registerMediaTools() {
             required: ['selectedMediaFileId'],
         },
         handler: async ({ selectedMediaFileId }: { selectedMediaFileId: number }) => {
-            const deleted = await SelectedMediaFile.destroyOne({ id: selectedMediaFileId });
+            const deleted = await SelectedMediaFile.destroyOne({ id: selectedMediaFileId } as any);
             if (!deleted) throw new Error('Link not found');
             return { success: true };
         },

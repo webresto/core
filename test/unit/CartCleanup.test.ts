@@ -12,7 +12,7 @@ describe("CartCleanup", function () {
 
   it("deletes empty CART records older than three days", async function () {
     const now = Date.UTC(2026, 5, 8);
-    const orders = [
+    const orders: Array<Record<string, any>> = [
       { id: "old-empty", state: "CART", dishesCount: 0, updatedAt: now - 4 * 24 * 60 * 60 * 1000, paid: false, orderedAt: null },
       { id: "fresh-empty", state: "CART", dishesCount: 0, updatedAt: now - 1 * 24 * 60 * 60 * 1000, paid: false, orderedAt: null },
       { id: "old-filled", state: "CART", dishesCount: 1, updatedAt: now - 4 * 24 * 60 * 60 * 1000, paid: false, orderedAt: null },
