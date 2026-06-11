@@ -64,15 +64,19 @@ let attributes = {
     },
     /**
      * Lifecycle:
-     * pending   -> record created, delivery has not been attempted yet (or waits for scheduledAt)
-     * sent      -> channel accepted the message without error (FCM does not guarantee device delivery)
-     * failed    -> all channels returned errors, retry loop will pick it up
-     * read      -> frontend acknowledged it via markNotificationRead(id)
-     * cancelled -> sending was cancelled before delivery, e.g. a follow-up for an already completed order
+     * pending    -> record created, delivery has not been attempted yet (or waits for scheduledAt)
+     * processing -> claimed by a delivery worker (atomic CAS pending→processing); stale claims
+     *               (crashed worker) are recovered by the delivery loop after a timeout
+     * sent       -> channel accepted the message without error (FCM does not guarantee device delivery)
+     * failed     -> all channels returned errors. Terminal for automatic delivery: the failed
+     *               attempts already consumed the waterfall (deliveryAttempts), so the loop does NOT
+     *               retry it. Manual re-delivery is available via the admin "retry" action.
+     * read       -> frontend acknowledged it via markNotificationRead(id)
+     * cancelled  -> sending was cancelled before delivery, e.g. a follow-up for an already completed order
      */
     status: {
         type: "string",
-        isIn: ["pending", "sent", "failed", "read", "cancelled"],
+        isIn: ["pending", "processing", "sent", "failed", "read", "cancelled"],
         defaultsTo: "pending",
     },
     /** Target group, needed by _deliver() during recovery. */
@@ -115,6 +119,16 @@ let attributes = {
     deliveryAttempts: {
         type: "number",
         defaultsTo: 0,
+    },
+    /**
+     * Terminal flag for the unread-escalation loop. Set when escalation can never proceed
+     * for this record (channel limit reached / no remaining channels / device-targeted
+     * notification without user). Once true, the record is excluded from the loop forever —
+     * prevents endless rescans and unbounded `logs` growth.
+     */
+    escalationExhausted: {
+        type: "boolean",
+        defaultsTo: false,
     },
     badge: {
         type: "string",

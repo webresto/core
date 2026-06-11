@@ -2,6 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
+import { NotificationService } from "../libs/NotificationService";
 
 let attributes = {
   
@@ -40,6 +41,44 @@ let Model = {
     if (!record.expires) {
       record.expires = Date.now() + 30 * 60 * 1000 // 30 minutes
     }
+    cb();
+  },
+
+  /**
+   * Typed notification event for the notifications pipeline. Universal point covering
+   * every OTP adapter (they all persist through this model). Detached: a notification
+   * problem must not break OTP issuing. The legacy NotificationManager send in the OTP
+   * adapter stays as-is until operators migrate to a notification rule for this event.
+   * Note: with DEMO_OTP_LOGIN the password may be overridden after create — the demo
+   * code then differs from the emitted one; demo-only, acceptable.
+   */
+  afterCreate(record: OneTimePasswordRecord, cb: (err?: string) => void) {
+    void (async () => {
+      try {
+        const user = await User.findOne({ login: record.login });
+        const ttlSec = Math.max(0, Math.round((Number(record.expires || 0) - Date.now()) / 1000));
+        await NotificationService.emit("user_otp_requested", {
+          recipient: user ? { userId: user.id, user } : {},
+          context: {
+            user: user
+              ? {
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  phone: user.phone ? `${(user.phone as any).code || ""}${(user.phone as any).number || ""}` : record.login,
+                  email: (user as any).email,
+                }
+              : { phone: record.login },
+            otp: { code: record.password, ttlSec },
+          },
+          // OTP is always user-facing even when the login has no User record yet;
+          // phone-capable channels take the number from context.user.phone.
+          groupTo: "user",
+          meta: { sourceModule: "core/otp", idempotencyKey: `user_otp:${record.id}` },
+        });
+      } catch (error) {
+        sails.log.error(`OneTimePassword > user_otp_requested emit failed for login ${record.login}`, error);
+      }
+    })();
     cb();
   },
 
