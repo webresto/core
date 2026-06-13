@@ -1,0 +1,6 @@
+{
+  "Cancel pending payment?": "Cancelar pagamento pendente?",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "Existe um link de pagamento ativo para este pedido. Alterar o carrinho cancelará esse pagamento. Deseja continuar?",
+  "Cancel payment and edit basket": "Cancelar pagamento e editar carrinho",
+  "Keep payment": "Manter pagamento"
+}
