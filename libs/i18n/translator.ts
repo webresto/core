@@ -9,38 +9,49 @@
 
 export type Translator = (phrase: string) => string;
 
+const localeAliases: Record<string, string> = {
+  ja: "jp",
+  zh: "cn",
+  vn: "vi",
+};
+
 /**
  * Resolve a locale from preferred → site default → "en", skipping nullish values.
  */
 export function resolveLocale(preferred?: string | null): string {
-  return (
+  const locale = (
     preferred ??
     (sails.config as any).i18n?.defaultLocale ??
     "en"
   );
+  const normalized = locale.toLowerCase().replace("_", "-").split("-")[0];
+  return localeAliases[normalized] ?? normalized;
 }
 
 /**
  * Build a translator bound to a locale.
  * Pass an explicit locale, or use `getTranslatorFor` to resolve one from a hint.
  *
- * Note: the runtime uses the `i18n-2` library, whose `__` reads `this.locale`
- * and whose signature is `__(phrase, ...args)` — it does NOT accept the
- * `{ phrase, locale }` object form of node-`i18n` / sails-hook-i18n. Passing an
- * object made `dotNotation` receive a non-string and throw
- * `is.join is not a function`, crashing buildCancelPaymentDialog (and thus
- * Order.next/checkout). We construct a locale-bound i18n-2 instance instead,
- * matching the pattern used in @webresto/graphql (graphql.ts).
+ * Core translations are appended to the Sails i18n hook during initialization.
+ * Read that merged catalog directly so modal strings do not depend on duplicate
+ * copies in the host application's config/locales directory.
  */
 export function getTranslator(locale: string): Translator {
-  const i18nFactory = require("i18n-2");
-  const i18n = new i18nFactory({
-    ...(sails.config as any).i18n,
-    directory: (sails.config as any).i18n?.localesDirectory,
-    extension: ".json",
-  });
-  i18n.setLocale(locale);
-  return (phrase: string) => i18n.__(phrase);
+  const catalogs = sails.hooks.i18n?.getLocales?.() ?? {};
+  const resolvedLocale = resolveLocale(locale);
+  let coreCatalog: Record<string, string> = {};
+
+  try {
+    coreCatalog = require(`../locales/${resolvedLocale}.json`);
+  } catch {
+    // The host application catalog and English fallback are checked below.
+  }
+
+  return (phrase: string) =>
+    coreCatalog[phrase] ??
+    catalogs[resolvedLocale]?.[phrase] ??
+    catalogs.en?.[phrase] ??
+    phrase;
 }
 
 /**

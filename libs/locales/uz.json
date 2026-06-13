@@ -1,0 +1,6 @@
+{
+  "Cancel pending payment?": "Kutilayotgan to‘lov bekor qilinsinmi?",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "Bu buyurtma uchun faol to‘lov havolasi mavjud. Savatni o‘zgartirish ushbu to‘lovni bekor qiladi. Davom etasizmi?",
+  "Cancel payment and edit basket": "To‘lovni bekor qilish va savatni tahrirlash",
+  "Keep payment": "To‘lovni saqlash"
+}

@@ -1887,11 +1887,18 @@ let Model = {
         // must abort, otherwise we re-introduce the original race.
         if (nextState === "CART" &&
             (currentState === "CHECKOUT" || currentState === "PAYMENT")) {
-            // Ask the user before invalidating an outstanding payment link.
-            // If the device confirms — proceed with cancellation.
-            // If the device declines (or no device is bound) — abort the transition;
-            // throwing here is the documented contract (caller's basket mutation aborts).
-            if (order.deviceId) {
+            const registeredPayment = currentState === "PAYMENT"
+                ? await PaymentDocument.findOne({
+                    originModel: "order",
+                    originModelId: order.id,
+                    paid: false,
+                    status: "REGISTERED",
+                })
+                : undefined;
+            // CHECKOUT alone does not mean that a payment link exists. Ask only when
+            // the order is actually waiting for payment and the gateway link was
+            // registered successfully.
+            if (registeredPayment && order.deviceId) {
                 const answerId = await global.DialogBox.ask((0, cancelPaymentDialog_1.buildCancelPaymentDialog)(order.locale), order.deviceId, 60000);
                 if (answerId !== cancelPaymentDialog_1.CANCEL_PAYMENT_DIALOG_CONFIRM) {
                     throw new Error(`Order ${order.id}: user declined to cancel pending payment — basket change aborted`);
