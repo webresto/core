@@ -11,6 +11,9 @@ import { registerCoreMcpTools } from "./mcp";
 export default async function () {
   try {
 
+    // Mirror settings like JWT_SECRET from the DB into process.env on boot
+    await Settings.syncEnvMirroredSettings();
+
     const timeSyncPayments = await Settings.get("RESTOCORE_TIME_SYNC_PAYMENTS");
 
     /**
