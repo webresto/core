@@ -13,11 +13,25 @@ let settings = {};
 // Declared settings tracker (ported from MM settingsHelper)
 const declaredSettings = ["MODULE_STORAGE_LICENSE", "ALLOW_UNSAFE_SETTINGS"];
 const isInDeclaredSettingsErrorCollector = new Map();
+// Settings whose value, when stored in DB, must also be mirrored into process.env
+// because some libraries read process.env[key] directly instead of Settings.get(key)
+const envMirroredSettings = ["JWT_SECRET"];
 function setDeclaredSetting(key) {
     declaredSettings.push(key);
 }
 function isInDeclaredSettings(key) {
     return declaredSettings.includes(key);
+}
+/** Mirror a setting's value into process.env so libraries reading process.env[key] stay in sync with the DB */
+function syncToEnv(record) {
+    if (!envMirroredSettings.includes(record.key)) {
+        return;
+    }
+    const value = record.value ?? record.defaultValue ?? undefined;
+    if (value === undefined || value === null) {
+        return;
+    }
+    process.env[record.key] = typeof value === "string" ? value : JSON.stringify(value);
 }
 function parseBoolean(value) {
     if (value === undefined || value === null || value === '') {
@@ -105,6 +119,7 @@ let Model = {
             sails.log.silly(`Emitter does not exist`, error);
         }
         settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
+        syncToEnv(record);
         cb();
     },
     afterCreate: async function (record, cb) {
@@ -115,6 +130,7 @@ let Model = {
             sails.log.silly(`Emitter does not exist`, error);
         }
         settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
+        syncToEnv(record);
         cb();
     },
     /** return setting value by unique key */
@@ -399,6 +415,24 @@ let Model = {
         }
         catch {
             return envValue;
+        }
+    },
+    /**
+     * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB
+     * into process.env on boot, so libraries reading process.env[key] directly
+     * stay in sync with the value configured in Settings.
+     * Does not overwrite process.env if it is already set (env takes priority).
+     */
+    async syncEnvMirroredSettings() {
+        for (const key of envMirroredSettings) {
+            if (process.env[key] !== undefined) {
+                continue;
+            }
+            const setting = await Settings.findOne({ key: key });
+            if (!setting) {
+                continue;
+            }
+            syncToEnv(setting);
         }
     },
     // Expose declared settings management for MM settingsHelper

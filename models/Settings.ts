@@ -30,12 +30,28 @@ interface UISchema {
 const declaredSettings: string[] = ["MODULE_STORAGE_LICENSE", "ALLOW_UNSAFE_SETTINGS"];
 const isInDeclaredSettingsErrorCollector = new Map<string, boolean>();
 
+// Settings whose value, when stored in DB, must also be mirrored into process.env
+// because some libraries read process.env[key] directly instead of Settings.get(key)
+const envMirroredSettings: string[] = ["JWT_SECRET"];
+
 function setDeclaredSetting(key: string): void {
   declaredSettings.push(key);
 }
 
 function isInDeclaredSettings(key: string): boolean {
   return declaredSettings.includes(key);
+}
+
+/** Mirror a setting's value into process.env so libraries reading process.env[key] stay in sync with the DB */
+function syncToEnv(record: SettingsRecord): void {
+  if (!envMirroredSettings.includes(record.key)) {
+    return;
+  }
+  const value = record.value ?? record.defaultValue ?? undefined;
+  if (value === undefined || value === null) {
+    return;
+  }
+  process.env[record.key] = typeof value === "string" ? value : JSON.stringify(value);
 }
 
 function parseBoolean(value: string | undefined): boolean | undefined {
@@ -137,6 +153,7 @@ let Model = {
       sails.log.silly(`Emitter does not exist`, error);
     }
     settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
+    syncToEnv(record);
 
 		cb();
 	},
@@ -148,6 +165,7 @@ let Model = {
       sails.log.silly(`Emitter does not exist`, error);
     }
     settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
+    syncToEnv(record);
 
 		cb();
 	},
@@ -452,6 +470,25 @@ let Model = {
       return JSON.parse(envValue) as SettingList[K];
     } catch {
       return envValue as SettingList[K];
+    }
+  },
+
+  /**
+   * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB
+   * into process.env on boot, so libraries reading process.env[key] directly
+   * stay in sync with the value configured in Settings.
+   * Does not overwrite process.env if it is already set (env takes priority).
+   */
+  async syncEnvMirroredSettings(): Promise<void> {
+    for (const key of envMirroredSettings) {
+      if (process.env[key] !== undefined) {
+        continue;
+      }
+      const setting = await Settings.findOne({ key: key });
+      if (!setting) {
+        continue;
+      }
+      syncToEnv(setting);
     }
   },
 
