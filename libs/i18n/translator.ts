@@ -23,9 +23,24 @@ export function resolveLocale(preferred?: string | null): string {
 /**
  * Build a translator bound to a locale.
  * Pass an explicit locale, or use `getTranslatorFor` to resolve one from a hint.
+ *
+ * Note: the runtime uses the `i18n-2` library, whose `__` reads `this.locale`
+ * and whose signature is `__(phrase, ...args)` — it does NOT accept the
+ * `{ phrase, locale }` object form of node-`i18n` / sails-hook-i18n. Passing an
+ * object made `dotNotation` receive a non-string and throw
+ * `is.join is not a function`, crashing buildCancelPaymentDialog (and thus
+ * Order.next/checkout). We construct a locale-bound i18n-2 instance instead,
+ * matching the pattern used in @webresto/graphql (graphql.ts).
  */
 export function getTranslator(locale: string): Translator {
-  return (phrase: string) => (sails as any).__({ phrase, locale });
+  const i18nFactory = require("i18n-2");
+  const i18n = new i18nFactory({
+    ...(sails.config as any).i18n,
+    directory: (sails.config as any).i18n?.localesDirectory,
+    extension: ".json",
+  });
+  i18n.setLocale(locale);
+  return (phrase: string) => i18n.__(phrase);
 }
 
 /**
