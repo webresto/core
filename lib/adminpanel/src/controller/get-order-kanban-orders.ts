@@ -6,6 +6,13 @@ import {
   isOperatorUser,
 } from "../../../../libs/OrderStateFlow";
 
+// Non-completed states that the kanban board actually renders as columns
+// (mirrors VISIBLE_BOARD_STATES minus DONE/REJECT on the frontend).
+// Pre-order states (NEW, CART, PAYMENT) are excluded: those are mostly empty
+// guest carts that otherwise flood the result set and consume the query limit,
+// pushing real active orders out of the board.
+const ACTIVE_BOARD_STATES = ["CHECKOUT", "ORDER", "COOKING", "ON_THE_WAY"];
+
 function parseNewWindowMinutes(rawValue: unknown): number {
   const parsed = Number.parseInt(String(rawValue || ORDER_KANBAN_DEFAULT_NEW_WINDOW_MINUTES), 10);
   if (!Number.isFinite(parsed)) return ORDER_KANBAN_DEFAULT_NEW_WINDOW_MINUTES;
@@ -122,12 +129,12 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
 
     const [ordersWithOrderedAt, ordersWithoutOrderedAt, completedOrders] = await Promise.all([
       Order.find({
-        where: { orderedAt: { '>=': newSinceSeconds } },
+        where: { state: { in: ACTIVE_BOARD_STATES }, orderedAt: { '>=': newSinceSeconds } },
         sort: "orderedAt DESC",
         limit,
       }),
       Order.find({
-        where: { orderedAt: null, createdAt: { '>=': new Date(newSinceMs) } },
+        where: { state: { in: ACTIVE_BOARD_STATES }, orderedAt: null, createdAt: { '>=': newSinceMs } },
         sort: "createdAt DESC",
         limit,
       }),

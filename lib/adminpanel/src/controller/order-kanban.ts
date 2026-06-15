@@ -13,7 +13,7 @@ export default function OrderKanbanController(req: any, res: any) {
   return req.Inertia.render({
     component: 'module',
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/OrderKanban.js`,
+      moduleComponent: `/restocore/assets/core-adminizer-assets/OrderKanban.js?v=20260615-1`,
       message: t('Current Orders'),
       locale,
       messages
