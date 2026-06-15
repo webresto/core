@@ -1561,6 +1561,10 @@ function OrderKanbanContent() {
     const newSinceMs = Date.now() - boardWindowMinutes * 60 * 1000;
     const normalizedQuery = query.trim().toLowerCase();
     return orders.filter((order) => {
+      // Only orders that map to a board column count toward the total / list.
+      // Pre-order states (NEW, CART, PAYMENT) are mostly empty guest carts and
+      // would otherwise inflate the "Orders: N" counter far beyond the columns.
+      if (!VISIBLE_BOARD_STATES.includes(order.state)) return false;
       if (!shouldIncludeOrderByWindow(order, newSinceMs, newSinceMs)) return false;
       if (!normalizedQuery) return true;
 
