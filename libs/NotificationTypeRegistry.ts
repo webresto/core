@@ -80,6 +80,58 @@ function getRulesModel(): typeof NotificationRules | null {
   return null;
 }
 
+/**
+ * The `templates`/`fixedChannels`/`defaultChannels` columns are physical `text` (the migration
+ * predates Waterline auto-migration), while the model declares them `json`. Depending on the
+ * adapter a value can come back as a JSON *string* instead of a parsed object/array — in which
+ * case the old normalizer treated it as non-object and silently dropped it. Parse defensively.
+ */
+function parseMaybeJson(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (!trimmed || (trimmed[0] !== "{" && trimmed[0] !== "[")) return value;
+  try {
+    return JSON.parse(trimmed);
+  } catch (_error) {
+    return value;
+  }
+}
+
+/** True when a template layer (default/locale/channel) carries any non-empty string. */
+function isTemplateLayerFilled(layer: unknown): boolean {
+  return !!layer && typeof layer === "object" && !Array.isArray(layer)
+    && Object.values(layer as Record<string, unknown>).some((v) => typeof v === "string" && v.trim().length > 0);
+}
+
+/** A templates object with nothing renderable anywhere (base/locale/channel all empty). */
+function templatesAreEmpty(templates: NotificationTypeTemplates): boolean {
+  if (isTemplateLayerFilled(templates.default)) return false;
+  if (templates.locales && Object.values(templates.locales).some(isTemplateLayerFilled)) return false;
+  if (templates.channels) {
+    for (const perType of Object.values(templates.channels)) {
+      if (perType && typeof perType === "object" && Object.values(perType).some(isTemplateLayerFilled)) return false;
+    }
+  }
+  return true;
+}
+
+/** Lazy map of seed templates keyed by rule key, for the "empty → fall back to seed" rule. */
+let seedTemplatesByKey: Record<string, NotificationTypeTemplates> | null = null;
+function getSeedTemplates(key: string): NotificationTypeTemplates | null {
+  if (!seedTemplatesByKey) {
+    seedTemplatesByKey = {};
+    try {
+      const seed = require("../seeds/notification_rules.json") as Array<{ key?: string; templates?: NotificationTypeTemplates }>;
+      for (const rule of seed) {
+        if (rule && rule.key) seedTemplatesByKey[rule.key] = rule.templates || {};
+      }
+    } catch (_error) {
+      // seed file unavailable — fall back to no defaults.
+    }
+  }
+  return seedTemplatesByKey[key] || null;
+}
+
 function getCache(): NotificationTypeMap {
   const globalScope = globalThis as any;
   if (!globalScope[NOTIFICATION_TYPES_CACHE_GLOBAL_KEY]) {
@@ -106,6 +158,18 @@ export class NotificationTypeRegistry {
       ? null
       : Number(r.maxDeliveryCost);
 
+    const fixedChannels = parseMaybeJson(r.fixedChannels);
+    const defaultChannels = parseMaybeJson(r.defaultChannels);
+
+    // Templates: parse (json-over-text columns can arrive as strings), then fall back to the
+    // seed when nothing is renderable — so an operator never faces a blank template and delivery
+    // always has something to send. Operator-authored templates are kept as-is.
+    let templates = NotificationTypeRegistry.normalizeTemplates(parseMaybeJson(r.templates));
+    if (templatesAreEmpty(templates)) {
+      const seedTemplates = getSeedTemplates(typeKey);
+      if (seedTemplates) templates = NotificationTypeRegistry.normalizeTemplates(seedTemplates);
+    }
+
     return {
       key: typeKey,
       name: r.name ? String(r.name) : typeKey,
@@ -118,13 +182,13 @@ export class NotificationTypeRegistry {
       maxDeliveryCost: maxDeliveryCost !== null && Number.isFinite(maxDeliveryCost) ? maxDeliveryCost : null,
       useGlobalFallback: r.useGlobalFallback === true,
       channelsMode: r.channelsMode === "fixed" ? "fixed" : "waterfall",
-      fixedChannels: Array.isArray(r.fixedChannels)
-        ? r.fixedChannels.map((c: any) => String(c || "").trim()).filter(Boolean)
+      fixedChannels: Array.isArray(fixedChannels)
+        ? fixedChannels.map((c: any) => String(c || "").trim()).filter(Boolean)
         : [],
-      defaultChannels: Array.isArray(r.defaultChannels)
-        ? r.defaultChannels.map((c: any) => String(c || "").trim()).filter(Boolean)
+      defaultChannels: Array.isArray(defaultChannels)
+        ? defaultChannels.map((c: any) => String(c || "").trim()).filter(Boolean)
         : [],
-      templates: NotificationTypeRegistry.normalizeTemplates(r.templates),
+      templates,
     };
   }
 

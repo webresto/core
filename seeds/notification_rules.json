@@ -24,7 +24,7 @@
     "name": "Order on the way — push",
     "description": "Immediate push when the order is on the way.",
     "eventKey": "order_on_the_way",
-    "enabled": false,
+    "enabled": true,
     "priority": "normal",
     "sendDelaySec": 0,
     "important": false,
