@@ -12,10 +12,18 @@ const { Label, Button, Select, SelectTrigger, SelectValue, SelectContent, Select
  */
 export default function TemplatesTab({ draft, updateDraft, t, locales, channels, contextKeys, contextPaths, defaultLocale }) {
   const templates = draft.templates || { default: {}, locales: {}, channels: {} };
+  const channelTemplates = templates.channels || {};
+  const existingOverridePairs = Object.entries(channelTemplates).flatMap(([type, byLocale]) => (
+    byLocale && typeof byLocale === 'object'
+      ? Object.keys(byLocale).map((loc) => ({ type, locale: loc }))
+      : []
+  ));
+  const initialOverride = existingOverridePairs[0] || null;
 
-  const [channelType, setChannelType] = useState(() => (Array.isArray(channels) && channels[0] ? String(channels[0].type) : ''));
-  const [channelLocale, setChannelLocale] = useState('default');
+  const [channelType, setChannelType] = useState(() => initialOverride?.type || (Array.isArray(channels) && channels[0] ? String(channels[0].type) : ''));
+  const [channelLocale, setChannelLocale] = useState(initialOverride?.locale || 'default');
   const [translationsOpen, setTranslationsOpen] = useState(false);
+  const [editingOverrideKey, setEditingOverrideKey] = useState(initialOverride ? `${initialOverride.type}:${initialOverride.locale}` : '');
 
   const setTemplates = (next) => updateDraft({ ...draft, templates: next });
   const setBase = (content) => setTemplates({ ...templates, default: content });
@@ -23,9 +31,27 @@ export default function TemplatesTab({ draft, updateDraft, t, locales, channels,
   const setChannel = (type, loc, content) => {
     const channelsMap = { ...(templates.channels || {}) };
     const perType = { ...(channelsMap[type] || {}) };
-    perType[loc] = content;
-    channelsMap[type] = perType;
+    const nextContent = content && typeof content === 'object' ? content : {};
+    if (Object.values(nextContent).some((v) => typeof v === 'string' && v.trim() !== '')) {
+      perType[loc] = nextContent;
+      channelsMap[type] = perType;
+    } else {
+      delete perType[loc];
+      if (Object.keys(perType).length > 0) channelsMap[type] = perType;
+      else delete channelsMap[type];
+    }
     setTemplates({ ...templates, channels: channelsMap });
+  };
+  const addChannelOverride = () => {
+    if (!channelType) return;
+    const current = templates.channels?.[channelType]?.[channelLocale];
+    if (current && typeof current === 'object') return;
+    setEditingOverrideKey(`${channelType}:${channelLocale}`);
+  };
+  const removeChannelOverride = () => {
+    if (!channelType) return;
+    setEditingOverrideKey('');
+    setChannel(channelType, channelLocale, {});
   };
 
   const channelOptions = Array.isArray(channels) ? channels.map((c) => String(c.type)).filter(Boolean) : [];
@@ -42,6 +68,10 @@ export default function TemplatesTab({ draft, updateDraft, t, locales, channels,
   }, [locales, channelType, templates.locales, templates.channels]);
 
   const translatedCount = Object.keys(templates.locales || {}).length;
+  const currentChannelOverride = channelType ? templates.channels?.[channelType]?.[channelLocale] : null;
+  const hasChannelOverride = !!(currentChannelOverride && typeof currentChannelOverride === 'object');
+  const isEditingNewOverride = !!channelType && editingOverrideKey === `${channelType}:${channelLocale}`;
+  const showChannelOverrideEditor = hasChannelOverride || isEditingNewOverride;
 
   return (
     <div style={{ display: 'grid', gap: 24 }}>
@@ -64,9 +94,18 @@ export default function TemplatesTab({ draft, updateDraft, t, locales, channels,
 
       {/* Channel-specific */}
       <section style={styles.subsection}>
-        <h3 style={styles.subsectionTitle}>{t('Channel-specific (optional)')}</h3>
-        <p style={{ ...styles.help, margin: 0 }}>{t('If a field is empty — the locale template is used, then the base.')}</p>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <h3 style={styles.subsectionTitle}>{t('Channel-specific (optional)')}</h3>
+            <p style={{ ...styles.help, margin: '2px 0 0' }}>{t('Overrides are optional. Add one only when this channel needs different text or URL.')}</p>
+          </div>
+          {showChannelOverrideEditor && (
+            <Button variant="ghost" size="sm" type="button" onClick={removeChannelOverride}>
+              {t('Remove override')}
+            </Button>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ ...styles.field, minWidth: 200 }}>
             <Label style={styles.fieldLabel}>{t('Channel')}</Label>
             <Select value={channelType} onValueChange={setChannelType}>
@@ -85,16 +124,23 @@ export default function TemplatesTab({ draft, updateDraft, t, locales, channels,
               </SelectContent>
             </Select>
           </div>
+          {channelType && !showChannelOverrideEditor && (
+            <Button variant="outline" type="button" onClick={addChannelOverride}>
+              {t('Add override')}
+            </Button>
+          )}
         </div>
-        {channelType ? (
+        {channelType && showChannelOverrideEditor ? (
           <TemplateFields
-            content={templates.channels?.[channelType]?.[channelLocale] || {}}
+            content={currentChannelOverride || {}}
             onChange={(c) => setChannel(channelType, channelLocale, c)}
             t={t}
             contextPaths={contextPaths}
             fields={channelFields}
             basePlaceholder
           />
+        ) : channelType ? (
+          <p style={{ ...styles.help, margin: 0 }}>{t('No override for this channel and locale. The locale template is used, then the base.')}</p>
         ) : (
           <p style={styles.help}>{t('No notification channels available.')}</p>
         )}

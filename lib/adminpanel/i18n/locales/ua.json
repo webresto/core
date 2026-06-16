@@ -503,5 +503,10 @@
 	"Channel cost": "Вартість каналу",
 	"Channel sent at": "Надіслано каналом",
 	"Priority device": "Пріоритетний пристрій",
-	"The user is shown as the device owner. Send only to this UserDevice without channel waterfall. Delivery channels will be ignored.": "Користувач показаний як власник пристрою. Надіслати лише на цей UserDevice без водоспаду каналів. Канали доставки буде проігноровано."
+	"The user is shown as the device owner. Send only to this UserDevice without channel waterfall. Delivery channels will be ignored.": "Користувач показаний як власник пристрою. Надіслати лише на цей UserDevice без водоспаду каналів. Канали доставки буде проігноровано.",
+	"Overrides are optional. Add one only when this channel needs different text or URL.": "Перевизначення необов'язкові. Додавайте їх лише тоді, коли каналу потрібен інший текст або URL.",
+	"Add override": "Додати перевизначення",
+	"Remove override": "Видалити перевизначення",
+	"No override for this channel and locale. The locale template is used, then the base.": "Для цього каналу й локалі немає перевизначення. Використовується шаблон локалі, потім базовий.",
+	"Back to settings": "Назад до налаштувань"
 }

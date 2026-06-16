@@ -287,5 +287,10 @@
 	"Device has no notification token": "Device has no notification token",
 	"Important": "Important",
 	"Delivery attempts": "Delivery attempts",
-	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)"
+	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)",
+	"Overrides are optional. Add one only when this channel needs different text or URL.": "การแทนที่เป็นทางเลือก เพิ่มเฉพาะเมื่อช่องทางนี้ต้องใช้ข้อความหรือ URL ที่แตกต่างกัน",
+	"Add override": "เพิ่มการแทนที่",
+	"Remove override": "ลบการแทนที่",
+	"No override for this channel and locale. The locale template is used, then the base.": "ไม่มีการแทนที่สำหรับช่องทางและภาษานี้ จะใช้เทมเพลตภาษา แล้วจึงใช้เทมเพลตพื้นฐาน",
+	"Back to settings": "กลับไปที่การตั้งค่า"
 }

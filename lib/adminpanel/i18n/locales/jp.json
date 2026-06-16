@@ -287,5 +287,10 @@
 	"Device has no notification token": "Device has no notification token",
 	"Important": "Important",
 	"Delivery attempts": "Delivery attempts",
-	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)"
+	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)",
+	"Overrides are optional. Add one only when this channel needs different text or URL.": "上書きは任意です。このチャネルで別のテキストまたは URL が必要な場合にのみ追加してください。",
+	"Add override": "上書きを追加",
+	"Remove override": "上書きを削除",
+	"No override for this channel and locale. The locale template is used, then the base.": "このチャネルと言語には上書きがありません。言語テンプレート、その後ベーステンプレートが使用されます。",
+	"Back to settings": "設定に戻る"
 }

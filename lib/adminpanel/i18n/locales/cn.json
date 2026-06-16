@@ -287,5 +287,10 @@
 	"Device has no notification token": "Device has no notification token",
 	"Important": "Important",
 	"Delivery attempts": "Delivery attempts",
-	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)"
+	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)",
+	"Overrides are optional. Add one only when this channel needs different text or URL.": "覆盖是可选的。仅当此渠道需要不同的文本或 URL 时添加。",
+	"Add override": "添加覆盖",
+	"Remove override": "移除覆盖",
+	"No override for this channel and locale. The locale template is used, then the base.": "此渠道和语言没有覆盖。将使用语言模板，然后使用基础模板。",
+	"Back to settings": "返回设置"
 }

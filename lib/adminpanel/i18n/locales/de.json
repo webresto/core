@@ -287,5 +287,10 @@
 	"Device has no notification token": "Device has no notification token",
 	"Important": "Important",
 	"Delivery attempts": "Delivery attempts",
-	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)"
+	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)",
+	"Overrides are optional. Add one only when this channel needs different text or URL.": "Überschreibungen sind optional. Fügen Sie sie nur hinzu, wenn dieser Kanal anderen Text oder eine andere URL benötigt.",
+	"Add override": "Überschreibung hinzufügen",
+	"Remove override": "Überschreibung entfernen",
+	"No override for this channel and locale. The locale template is used, then the base.": "Für diesen Kanal und diese Sprache gibt es keine Überschreibung. Es wird die Sprachvorlage und dann die Basisvorlage verwendet.",
+	"Back to settings": "Zurück zu den Einstellungen"
 }

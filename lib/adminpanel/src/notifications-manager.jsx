@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import TypesSection from './components/notifications/TypesSection';
-import EventsSection from './components/notifications/EventsSection';
 import SendTestPanel from './components/notifications/SendTestPanel';
 import DashboardSection from './components/notifications/DashboardSection';
 
@@ -165,13 +164,12 @@ function getNotificationSectionFromHash() {
   return parseNotificationHash().section;
 }
 
-// Top-level module section on /notifications-manager (§1): dashboard / types / events / channels / activity.
+// Top-level module section on /notifications-manager (§1): dashboard / settings / channels / activity.
 function getModuleSectionFromHash() {
   if (typeof window === 'undefined') return 'activity';
   const hash = String(window.location.hash || '').replace(/^#/, '').toLowerCase();
   if (hash === 'dashboard') return 'dashboard';
-  if (hash.startsWith('types')) return 'types';
-  if (hash.startsWith('events')) return 'events';
+  if (hash.startsWith('settings') || hash.startsWith('types') || hash.startsWith('events')) return 'settings';
   if (hash === 'channels') return 'channels';
   return 'activity';
 }
@@ -213,7 +211,9 @@ function setNotificationSectionHash(section, id = '') {
 
 function setModuleSectionHash(section) {
   if (typeof window === 'undefined') return;
-  const nextHash = section === 'activity' ? '#history' : `#${section}`;
+  const nextHash = section === 'activity' ? '#history'
+    : section === 'settings' ? '#settings'
+    : `#${section}`;
   if (window.location.hash === nextHash) return;
   window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
 }
@@ -298,7 +298,6 @@ function NotificationsManagerContent() {
   const [notificationEvents, setNotificationEvents] = useState([]);
   const [notificationLocales, setNotificationLocales] = useState([]);
   const [notificationDefaultLocale, setNotificationDefaultLocale] = useState('en');
-  const [createPrefillEvent, setCreatePrefillEvent] = useState('');
 
   const [appearance, setAppearance] = useState(getPreferredAppearance);
   const isDark = useMemo(() => isDarkAppearance(appearance), [appearance]);
@@ -602,12 +601,6 @@ function NotificationsManagerContent() {
     setModuleSectionHash(section);
   };
 
-  // From Events → "Add type for this event": jump to Types with a prefilled eventKey.
-  const handleAddTypeForEvent = (eventKey) => {
-    setCreatePrefillEvent(eventKey || '');
-    changeModuleSection('types');
-  };
-
   const selectNotification = (id) => {
     setSelectedId(id || '');
     setNotificationSection('history');
@@ -792,8 +785,7 @@ function NotificationsManagerContent() {
           <div role="tablist" aria-label={t('Sections')} style={tabsStyle}>
             {[
               { id: 'dashboard', label: t('Dashboard') },
-              { id: 'types', label: t('Types') },
-              { id: 'events', label: t('Events') },
+              { id: 'settings', label: t('Settings') },
               { id: 'channels', label: t('Channels') },
               { id: 'activity', label: t('Activity') },
             ].map((s) => (
@@ -822,8 +814,8 @@ function NotificationsManagerContent() {
         />
       )}
 
-      {/* Types section */}
-      {!isChannelsView && moduleSection === 'types' && (
+      {/* Settings section */}
+      {!isChannelsView && moduleSection === 'settings' && (
         <TypesSection
           t={t}
           language={language}
@@ -834,18 +826,6 @@ function NotificationsManagerContent() {
           locales={notificationLocales}
           defaultLocale={notificationDefaultLocale}
           onChanged={reloadTypesCatalog}
-          createPrefillEvent={createPrefillEvent}
-          onConsumePrefill={() => setCreatePrefillEvent('')}
-        />
-      )}
-
-      {/* Events section (read-only) */}
-      {!isChannelsView && moduleSection === 'events' && (
-        <EventsSection
-          t={t}
-          events={notificationEvents}
-          types={notificationTypes}
-          onAddTypeForEvent={handleAddTypeForEvent}
         />
       )}
 

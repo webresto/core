@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { styles, toast, TYPE_KEY_REGEX } from './shared';
 import { ConfirmDialog } from '../ConfirmDialog';
 import TemplatesTab from './TemplatesTab';
 import SendTestPanel from './SendTestPanel';
+import EventsSection from './EventsSection';
 
 const {
   Button, Input, Textarea, Label, Badge, Switch,
@@ -55,7 +56,7 @@ function budgetSummary(typeItem, t) {
 
 export default function TypesSection({
   t, language, notificationsApi, types, events, channels, locales, defaultLocale,
-  onChanged, createPrefillEvent, onConsumePrefill,
+  onChanged,
 }) {
   const typeList = Array.isArray(types) ? types : [];
   const eventList = Array.isArray(events) ? events : [];
@@ -75,6 +76,8 @@ export default function TypesSection({
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [pendingSelect, setPendingSelect] = useState(undefined); // undefined=none, null=create, string=key
+  const [pendingEventCreate, setPendingEventCreate] = useState(undefined);
+  const [showEventsCatalog, setShowEventsCatalog] = useState(false);
 
   const dirty = useMemo(() => (draft ? JSON.stringify(draft) !== baseline : false), [draft, baseline]);
 
@@ -99,14 +102,22 @@ export default function TypesSection({
     setDetailTab('general');
   };
 
-  // Honor a prefilled-event create request coming from the Events section.
-  useEffect(() => {
-    if (createPrefillEvent) {
-      beginCreate(createPrefillEvent);
-      if (onConsumePrefill) onConsumePrefill();
+  const addTypeForEvent = (eventKey) => {
+    if (dirty) {
+      setPendingEventCreate(eventKey || '');
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [createPrefillEvent]);
+    beginCreate(eventKey || '');
+    setShowEventsCatalog(false);
+  };
+
+  const resolvePendingEventCreate = (proceed) => {
+    const eventKey = pendingEventCreate;
+    setPendingEventCreate(undefined);
+    if (!proceed) return;
+    beginCreate(eventKey || '');
+    setShowEventsCatalog(false);
+  };
 
   const guardedSelect = (target) => {
     if (dirty) { setPendingSelect(target === null ? null : target); return; }
@@ -230,13 +241,47 @@ export default function TypesSection({
     background: active ? 'var(--accent)' : 'var(--card)', color: 'var(--foreground)', cursor: 'pointer', fontSize: 13, fontWeight: 700,
   });
 
+  if (showEventsCatalog) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <section style={{ ...styles.panel, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <h2 style={styles.sectionTitle}>{t('Events')}</h2>
+            <p style={styles.sectionDescription}>{t('Read-only catalog of business triggers. Registered in code; bind notification types to them.')}</p>
+          </div>
+          <Button type="button" variant="outline" onClick={() => setShowEventsCatalog(false)}>
+            {t('Back to settings')}
+          </Button>
+        </section>
+        <EventsSection
+          t={t}
+          events={eventList}
+          types={typeList}
+          onAddTypeForEvent={addTypeForEvent}
+        />
+        <ConfirmDialog
+          isOpen={pendingEventCreate !== undefined}
+          onClose={() => resolvePendingEventCreate(false)}
+          onConfirm={() => resolvePendingEventCreate(true)}
+          title={t('Discard unsaved changes?')}
+          message={t('You have unsaved changes that will be lost.')}
+          confirmText={t('Discard')}
+          cancelText={t('Cancel')}
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'minmax(320px, 360px) minmax(420px, 1fr)', alignItems: 'start' }}>
       {/* ── Left panel: filters + list ── */}
       <section style={styles.panel}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
           <h2 style={styles.sectionTitle}>{t('Types')}</h2>
-          <Button type="button" size="sm" onClick={() => guardedSelect(null)}>+ {t('Add Type')}</Button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Button type="button" size="sm" variant="outline" onClick={() => setShowEventsCatalog(true)}>{t('Events')}</Button>
+            <Button type="button" size="sm" onClick={() => guardedSelect(null)}>+ {t('Add Type')}</Button>
+          </div>
         </div>
         <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by key, name, event')} />
         <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr' }}>
@@ -311,7 +356,7 @@ export default function TypesSection({
                 <BreadcrumbList>
                   <BreadcrumbItem><BreadcrumbLink>{t('Notifications')}</BreadcrumbLink></BreadcrumbItem>
                   <BreadcrumbSeparator />
-                  <BreadcrumbItem><BreadcrumbLink>{t('Types')}</BreadcrumbLink></BreadcrumbItem>
+                  <BreadcrumbItem><BreadcrumbLink>{t('Settings')}</BreadcrumbLink></BreadcrumbItem>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem><BreadcrumbPage>{creating ? t('New type') : (draft.name || draft.key)}</BreadcrumbPage></BreadcrumbItem>
                 </BreadcrumbList>
@@ -452,6 +497,7 @@ export default function TypesSection({
 
             {detailTab === 'templates' && (
               <TemplatesTab
+                key={`${draft.key || ''}:${draft.eventKey || ''}`}
                 draft={draft}
                 updateDraft={updateDraft}
                 t={t}
@@ -497,6 +543,15 @@ export default function TypesSection({
         isOpen={pendingSelect !== undefined}
         onClose={() => resolvePendingSelect(false)}
         onConfirm={() => resolvePendingSelect(true)}
+        title={t('Discard unsaved changes?')}
+        message={t('You have unsaved changes that will be lost.')}
+        confirmText={t('Discard')}
+        cancelText={t('Cancel')}
+      />
+      <ConfirmDialog
+        isOpen={pendingEventCreate !== undefined}
+        onClose={() => resolvePendingEventCreate(false)}
+        onConfirm={() => resolvePendingEventCreate(true)}
         title={t('Discard unsaved changes?')}
         message={t('You have unsaved changes that will be lost.')}
         confirmText={t('Discard')}
