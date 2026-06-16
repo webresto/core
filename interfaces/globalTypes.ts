@@ -207,5 +207,19 @@ declare global {
      * Important notifications (important = true) are exempt and keep escalating.
      */
     NOTIFICATION_MAX_CHANNELS_PER_MESSAGE: number
+
+    // Setup checklist
+    /**
+     * Runtime state for the setup checklist: per-checkup dismissals/snoozes.
+     * The only persisted piece of the setup checklist feature.
+     */
+    SETUP_CHECKLIST_DISMISSED: Record<string, {
+      dismissedAt: string
+      snoozeUntil?: string
+    }>
+    /**
+     * Per-check timeout (ms) when evaluating the setup checklist live. Default: 3000.
+     */
+    SETUP_CHECKLIST_CHECK_TIMEOUT_MS: number
   }
 }

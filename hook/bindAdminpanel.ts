@@ -108,6 +108,12 @@ export default function bindAdminpanel() {
         name: 'Orders Report',
         description: 'Access to Orders Report module and its API endpoints',
         department: 'Reports'
+      },
+      {
+        id: 'setup-checklist',
+        name: 'Setup checklist',
+        description: 'Access to the Setup checklist page and its API endpoints',
+        department: 'System'
       }
     ]);
 
@@ -620,6 +626,47 @@ function processBindAdminpanel() {
           );
         } catch (e) {
           sails.log.debug('SettingsManager route bind error', e);
+        }
+
+        // Setup checklist module link + page route + API routes
+        try {
+          const setupChecklistController = require('../lib/adminpanel/src/controller/setup-checklist').default;
+          const getSetupChecklistStatusController = require('../lib/adminpanel/src/controller/get-setup-checklist-status').default;
+          const getSetupChecklistSummaryController = require('../lib/adminpanel/src/controller/get-setup-checklist-summary').default;
+          const dismissSetupCheckupController = require('../lib/adminpanel/src/controller/dismiss-setup-checkup').default;
+          const restoreSetupCheckupController = require('../lib/adminpanel/src/controller/restore-setup-checkup').default;
+
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'setup-checklist',
+            title: 'Setup checklist',
+            link: `${routePrefix}/setup-checklist`,
+            icon: 'checklist',
+            accessToken: 'setup-checklist',
+            section: 'System'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/setup-checklist`,
+            ...bind(setupChecklistController)
+          );
+          adminizer.app.get(
+            `${routePrefix}/core/setup-checklist/status`,
+            ...bind(getSetupChecklistStatusController)
+          );
+          adminizer.app.get(
+            `${routePrefix}/core/setup-checklist/summary`,
+            ...bind(getSetupChecklistSummaryController)
+          );
+          adminizer.app.post(
+            `${routePrefix}/core/setup-checklist/dismiss`,
+            ...bind(dismissSetupCheckupController)
+          );
+          adminizer.app.post(
+            `${routePrefix}/core/setup-checklist/restore`,
+            ...bind(restoreSetupCheckupController)
+          );
+        } catch (e) {
+          sails.log.debug('SetupChecklist route bind error', e);
         }
 
         // OrdersReport module link + route
