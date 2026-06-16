@@ -170,6 +170,8 @@
 	"Payment": "Payment",
 	"Pending": "Pending",
 	"Period: last {value}": "Period: last {value}",
+	"Period: today": "Period: today",
+	"Today": "Today",
 	"Phone": "Phone",
 	"Platform": "Platform",
 	"Preview": "Preview",
