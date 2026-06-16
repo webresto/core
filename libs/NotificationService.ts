@@ -44,6 +44,11 @@ export interface EmitPayload {
   badge?: "info" | "error";
   /** Override target group; default "user" when recipient present else "manager". */
   groupTo?: "user" | "manager";
+  /**
+   * UserDevice id for device-targeted delivery without a bound user (guest order/cart).
+   * The device's push provider channel is tried first; groupTo defaults to "user".
+   */
+  priorityDeviceId?: string | null;
 }
 
 export interface EmitResultEntry {
@@ -102,7 +107,19 @@ export class NotificationService {
     const recipient = payload.recipient || {};
     const locale = resolveLocale(payload);
     const userParam = recipient.user ?? recipient.userId ?? null;
-    const groupTo = payload.groupTo || (userParam ? "user" : "manager");
+
+    // Device-targeted delivery for guest flows (no bound user): resolve the UserDevice
+    // once so the dispatcher can try the device's push provider channel first.
+    let priorityDevice: any = undefined;
+    if (payload.priorityDeviceId) {
+      try {
+        priorityDevice = await (globalThis as any).UserDevice.findOne({ id: String(payload.priorityDeviceId) }) || undefined;
+      } catch (error) {
+        sails.log.warn(`[NotificationService] Failed to resolve priorityDeviceId=${payload.priorityDeviceId}`, error);
+      }
+    }
+
+    const groupTo = payload.groupTo || (userParam || priorityDevice ? "user" : "manager");
 
     for (const type of types) {
       try {
@@ -147,6 +164,7 @@ export class NotificationService {
           body: defaultContent.body,
           data,
           badge: payload.badge || "info",
+          priorityDevice,
           groupTo,
           channelTypes: requestedChannels.length > 0 ? requestedChannels : undefined,
           important: Boolean(type.important),
@@ -205,5 +223,91 @@ export class NotificationService {
       cancelled += 1;
     }
     return cancelled;
+  }
+
+  /**
+   * Cancel all pending notifications anchored to an order (auto-built idempotency keys
+   * end with `_<orderId>`, see buildIdempotencyKey). Called on order completion/rejection
+   * so delayed follow-ups (sendDelaySec) never fire for finished orders.
+   */
+  static async cancelPendingForOrder(orderId: string): Promise<number> {
+    const anchor = String(orderId || "").trim();
+    if (!anchor) return 0;
+
+    const pending = await (globalThis as any).Notification.find({
+      status: "pending",
+      idempotencyKey: { endsWith: `_${anchor}` },
+    });
+    let cancelled = 0;
+    for (const notification of pending) {
+      await (globalThis as any).Notification.updateOne({ id: notification.id }).set({ status: "cancelled" });
+      await (globalThis as any).Notification.log({ id: notification.id }, "info", "delivery", `Notification cancelled: order ${anchor} finished before scheduled delivery`);
+      cancelled += 1;
+    }
+    return cancelled;
+  }
+
+  // ─── user_birthday trigger ──────────────────────────────────────────────────
+
+  private static birthdayInterval: ReturnType<typeof setInterval> | null = null;
+  private static birthdayCheckRunning = false;
+
+  /**
+   * Periodic check that fires the `user_birthday` event for users whose birthday
+   * (stored as "YYYY-MM-DD") matches today. Runs hourly; duplicate sends within a year
+   * are prevented by the idempotencyKey `user_birthday:<userId>:<year>` (dispatcher dedup).
+   * Emitting is cheap when no enabled notification type is bound to the event.
+   */
+  static startBirthdayLoop(intervalMinutes: number = 60): void {
+    if (NotificationService.birthdayInterval) {
+      clearInterval(NotificationService.birthdayInterval);
+    }
+    void NotificationService._checkBirthdays();
+    NotificationService.birthdayInterval = setInterval(
+      () => void NotificationService._checkBirthdays(),
+      intervalMinutes * 60 * 1000
+    );
+  }
+
+  static async _checkBirthdays(): Promise<void> {
+    if (NotificationService.birthdayCheckRunning) return;
+    NotificationService.birthdayCheckRunning = true;
+    try {
+      if (!NotificationEventRegistry.isRegistered("user_birthday")) return;
+      if (NotificationTypeRegistry.getByEvent("user_birthday").length === 0) return;
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const monthDay = `${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+      // birthday is stored as a "YYYY-MM-DD" string (models/User.ts)
+      const users = await (globalThis as any).User.find({ birthday: { endsWith: `-${monthDay}` } });
+      for (const user of users) {
+        try {
+          await NotificationService.emit("user_birthday", {
+            recipient: { userId: user.id, user },
+            context: {
+              user: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone: user.phone ? `${user.phone.code || ""}${user.phone.number || ""}` : undefined,
+                email: user.email,
+                birthday: user.birthday,
+              },
+            },
+            meta: {
+              sourceModule: "core/birthday-loop",
+              idempotencyKey: `user_birthday:${user.id}:${year}`,
+            },
+          });
+        } catch (error) {
+          sails.log.error(`[NotificationService] birthday emit failed for user ${user.id}`, error);
+        }
+      }
+    } catch (error) {
+      sails.log.error("[NotificationService] birthday check failed", error);
+    } finally {
+      NotificationService.birthdayCheckRunning = false;
+    }
   }
 }

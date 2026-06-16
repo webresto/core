@@ -152,6 +152,8 @@
 	"Payment": "支付",
 	"Pending": "待办的",
 	"Period: last {value}": "范围：最近 {value}",
+	"Period: today": "范围：今天",
+	"Today": "今天",
 	"Phone": "电话",
 	"Platform": "平台",
 	"Preview": "预览",

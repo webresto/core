@@ -1,0 +1,6 @@
+{
+  "Cancel pending payment?": "ยกเลิกการชำระเงินที่รออยู่หรือไม่?",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "คำสั่งซื้อนี้มีลิงก์ชำระเงินที่ใช้งานอยู่ การแก้ไขตะกร้าสินค้าจะยกเลิกการชำระเงินนั้น ต้องการดำเนินการต่อหรือไม่?",
+  "Cancel payment and edit basket": "ยกเลิกการชำระเงินและแก้ไขตะกร้า",
+  "Keep payment": "เก็บการชำระเงินไว้"
+}

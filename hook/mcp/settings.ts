@@ -96,7 +96,7 @@ export function registerSettingsTools() {
             const s = await Settings.findOne({ key: normalized });
             if (!s) throw new Error(`Setting "${key}" not found`);
             if (s.readOnly) throw new Error(`Setting "${key}" is read-only`);
-            await Settings.set(normalized, { key: normalized, value });
+            await Settings.set(normalized as any, { key: normalized, value } as any);
             const updated = await Settings.findOne({ key: normalized });
             return updated ? { ...updated, value: maskSensitiveValue(updated.value), defaultValue: maskSensitiveValue(updated.defaultValue) } : null;
         },

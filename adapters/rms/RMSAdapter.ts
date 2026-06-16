@@ -61,7 +61,11 @@ export default abstract class RMSAdapter {
       if (RMSAdapter.syncProductsInterval) clearInterval(RMSAdapter.syncProductsInterval);
       RMSAdapter.syncProductsInterval = setInterval(
         async () => {
-          await this.syncProducts();
+          try {
+            await this.syncProducts();
+          } catch (error) {
+            sails.log.error("RMS syncProducts interval error >> ", error);
+          }
         },
         SYNC_PRODUCTS_INTERVAL_SECONDS < 120 ? 120000 : SYNC_PRODUCTS_INTERVAL_SECONDS * 1000 || 600000
       );
@@ -79,7 +83,11 @@ export default abstract class RMSAdapter {
       if (RMSAdapter.syncOutOfStocksInterval) clearInterval(RMSAdapter.syncOutOfStocksInterval);
       RMSAdapter.syncOutOfStocksInterval = setInterval(
         async () => {
-          await this.syncOutOfStocks();
+          try {
+            await this.syncOutOfStocks();
+          } catch (error) {
+            sails.log.error("RMS syncOutOfStocks interval error >> ", error);
+          }
         },
         SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS < 60 ? 60000 : SYNC_OUT_OF_STOCKS_INTERVAL_SECONDS * 1000 || 600000
       );
@@ -87,7 +95,11 @@ export default abstract class RMSAdapter {
 
     // TODO: it here for fast, better way create new class/adapter for webhook handling
     emitter.on("core:adapter-rms-sync-out-of-stock-touch", "rms-adapter", async () => {
-      await this.syncOutOfStocks();
+      try {
+        await this.syncOutOfStocks();
+      } catch (error) {
+        sails.log.error("RMS sync-out-of-stock-touch handler error >> ", error);
+      }
     })
 
     try {
@@ -111,7 +123,7 @@ export default abstract class RMSAdapter {
       return this.syncProductsPromise.promise;
     }
 
-    const promise = new Promise<void>((resolve, reject) => {
+    const promise = new Promise<void>((resolve) => {
       (async () => {
         try {
           // TODO: implement concept
@@ -250,8 +262,11 @@ export default abstract class RMSAdapter {
           }
           resolve();
         } catch (error) {
+          // Background sync must never reject: nobody is guaranteed to .catch()
+          // this promise (interval tick / ObservablePromise), so a rejection
+          // becomes unhandled and kills the process. The next tick will retry.
           sails.log.error(`RMS adapter syncProducts error:`, error);
-          reject(new Error(error));
+          resolve();
         }
       })();
     });
@@ -269,7 +284,7 @@ export default abstract class RMSAdapter {
       return this.syncOutOfStocksPromise.promise;
     }
 
-    const promise = new Promise<void>((resolve, reject) => {
+    const promise = new Promise<void>((resolve) => {
       (async () => {
         try {
           let outOfStocksDishes = await this.loadOutOfStocksDishes();
@@ -288,8 +303,10 @@ export default abstract class RMSAdapter {
           emitter.emit("rms-sync:after-sync-out-of-stocks");
           resolve();
         } catch (error) {
+          // Same as syncProducts: an unhandled rejection here crashes the
+          // process; log and let the next interval tick retry.
           sails.log.error(`RMS adapter syncOutOfStocks error:`, error);
-          reject(new Error(error));
+          resolve();
         }
       })();
     });

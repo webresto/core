@@ -46,13 +46,17 @@ declare let attributes: {
     idempotencyKey: string | null;
     /**
      * Lifecycle:
-     * pending   -> record created, delivery has not been attempted yet (or waits for scheduledAt)
-     * sent      -> channel accepted the message without error (FCM does not guarantee device delivery)
-     * failed    -> all channels returned errors, retry loop will pick it up
-     * read      -> frontend acknowledged it via markNotificationRead(id)
-     * cancelled -> sending was cancelled before delivery, e.g. a follow-up for an already completed order
+     * pending    -> record created, delivery has not been attempted yet (or waits for scheduledAt)
+     * processing -> claimed by a delivery worker (atomic CAS pending→processing); stale claims
+     *               (crashed worker) are recovered by the delivery loop after a timeout
+     * sent       -> channel accepted the message without error (FCM does not guarantee device delivery)
+     * failed     -> all channels returned errors. Terminal for automatic delivery: the failed
+     *               attempts already consumed the waterfall (deliveryAttempts), so the loop does NOT
+     *               retry it. Manual re-delivery is available via the admin "retry" action.
+     * read       -> frontend acknowledged it via markNotificationRead(id)
+     * cancelled  -> sending was cancelled before delivery, e.g. a follow-up for an already completed order
      */
-    status: "pending" | "sent" | "failed" | "read" | "cancelled";
+    status: "pending" | "processing" | "sent" | "failed" | "read" | "cancelled";
     /** Target group, needed by _deliver() during recovery. */
     groupTo: "user" | "manager";
     /** Read timestamp (ms), null until read. */
@@ -78,6 +82,13 @@ declare let attributes: {
      * accumulated during initial delivery and escalations. Used for the waterfall limit.
      */
     deliveryAttempts: number;
+    /**
+     * Terminal flag for the unread-escalation loop. Set when escalation can never proceed
+     * for this record (channel limit reached / no remaining channels / device-targeted
+     * notification without user). Once true, the record is excluded from the loop forever —
+     * prevents endless rescans and unbounded `logs` growth.
+     */
+    escalationExhausted: boolean;
     badge: "info" | "error";
     createdAt: number;
     updatedAt: number;
@@ -90,6 +101,6 @@ declare let Model: {
     log(criteria: CriteriaQuery<NotificationRecord>, level: NotificationLogLevel, module: string, message: string, ...data: any[]): Promise<void>;
 };
 declare global {
-    const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost" | "important" | "deliveryAttempts" | "notificationTypeKey" | "eventKey" | "context" | "maxDeliveryCost" | "scheduledAt" | "idempotencyKey">;
+    const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost" | "important" | "deliveryAttempts" | "escalationExhausted" | "notificationTypeKey" | "eventKey" | "context" | "maxDeliveryCost" | "scheduledAt" | "idempotencyKey">;
 }
 export {};

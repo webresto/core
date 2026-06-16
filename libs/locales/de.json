@@ -1,4 +1,8 @@
 {
   "Your code is:": "Ihr Code lautet:",
-  "Your secret login code:": "Ihr geheimer Login-Code:"
+  "Your secret login code:": "Ihr geheimer Login-Code:",
+  "Cancel pending payment?": "Ausstehende Zahlung stornieren?",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "Für diese Bestellung gibt es einen aktiven Zahlungslink. Wenn Sie den Warenkorb bearbeiten, wird die Zahlung storniert. Möchten Sie fortfahren?",
+  "Cancel payment and edit basket": "Zahlung stornieren und Warenkorb bearbeiten",
+  "Keep payment": "Zahlung behalten"
 }

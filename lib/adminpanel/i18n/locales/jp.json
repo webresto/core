@@ -152,6 +152,8 @@
 	"Payment": "支払い",
 	"Pending": "保留中",
 	"Period: last {value}": "期間: 過去 {value}",
+	"Period: today": "期間: 今日",
+	"Today": "今日",
 	"Phone": "電話",
 	"Platform": "プラットフォーム",
 	"Preview": "プレビュー",

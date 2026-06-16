@@ -1,1 +1,6 @@
-{}
+{
+  "Cancel pending payment?": "Скасувати очікувану оплату?",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "Для цього замовлення є активне посилання на оплату. Зміна кошика скасує цю оплату. Продовжити?",
+  "Cancel payment and edit basket": "Скасувати оплату та змінити кошик",
+  "Keep payment": "Зберегти оплату"
+}

@@ -27,12 +27,19 @@ export default async function GetOrdersReportDataController(req: any, res: any) 
     const fromDate = parseDateParam(req.query.from, startOfMonth(now));
     const toDate = parseDateParam(req.query.to, endOfMonth(now));
 
-    const fromSec = Math.floor(fromDate.getTime() / 1000);
-    const toSec = Math.floor(toDate.getTime() / 1000);
+    // Filter by createdAt, not orderedAt: orderedAt is only written inside
+    // Order.next() (see Order.ts), but checkout sets state directly to "ORDER"
+    // via Order.update() and bypasses next(), so orderedAt stays null on every
+    // real order — keying the report on it returned zero rows ("no statistics").
+    // createdAt is always set by Waterline (epoch ms), which is what we want here.
+    const fromMs = fromDate.getTime();
+    const toMs = toDate.getTime();
 
     const orders = await Order.find({
       where: {
-        orderedAt: { '>=': fromSec, '<=': toSec },
+        // createdAt is stored as epoch-ms (number) at runtime, though the model
+        // type declares it as Date — hence the cast on the comparator object.
+        createdAt: { '>=': fromMs, '<=': toMs } as any,
         state: REPORT_STATES,
       },
     });

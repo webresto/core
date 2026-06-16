@@ -221,7 +221,7 @@ const answerId = await DialogBox.ask({
 }, deviceId, 60_000);
 ```
 
-Translation keys should be added to [translations/en.json](../translations/en.json) and [translations/ru.json](../translations/ru.json) (and any other locales the project supports).
+Translation keys should be added to [libs/locales/en.json](../libs/locales/en.json) and [libs/locales/ru.json](../libs/locales/ru.json) (and any other locales the project supports).
 
 ### Errors and validation
 

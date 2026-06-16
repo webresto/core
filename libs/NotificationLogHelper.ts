@@ -1,5 +1,9 @@
 import { CriteriaQuery } from "../interfaces/ORMModel";
 
+// The Notification waterline model global; the DOM lib also declares `Notification`,
+// so the model must be taken from globalThis explicitly in this file.
+const NotificationModel = () => (globalThis as any).Notification;
+
 export type NotificationLogLevel = "info" | "warn" | "error" | "debug";
 
 export interface NotificationLogEntry {
@@ -12,6 +16,9 @@ export interface NotificationLogEntry {
 
 // Debounce buffer for DB log writes
 const NOTIFICATION_LOG_DEBOUNCE_MS = 5000;
+// Hard cap for the per-notification logs array: oldest entries are trimmed on flush
+// so a long-lived record can never grow its JSON without bound.
+const NOTIFICATION_LOG_MAX_ENTRIES = 300;
 const notificationLogBuffer = new Map<string, NotificationLogEntry[]>();
 const notificationLogTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
@@ -22,11 +29,14 @@ async function flushNotificationLogs(notificationId: string): Promise<void> {
   if (!entries || entries.length === 0) return;
 
   try {
-    const notification = await Notification.findOne({ id: notificationId });
+    const notification = await NotificationModel().findOne({ id: notificationId });
     if (!notification) return;
-    const logs = (notification.logs as NotificationLogEntry[]) || [];
+    let logs = (notification.logs as NotificationLogEntry[]) || [];
     logs.push(...entries);
-    await (Notification.update({ id: notificationId }, { logs }) as any).meta({ skipAllLifecycleCallbacks: true }).fetch();
+    if (logs.length > NOTIFICATION_LOG_MAX_ENTRIES) {
+      logs = logs.slice(-NOTIFICATION_LOG_MAX_ENTRIES);
+    }
+    await (NotificationModel().update({ id: notificationId }, { logs }) as any).meta({ skipAllLifecycleCallbacks: true }).fetch();
   } catch (e) {
     sails.log.error(`Notification.log flush error for notification [${notificationId}]`, e);
   }
@@ -41,7 +51,7 @@ export default class NotificationLogHelper {
    * DB writes are debounced (5s) to batch multiple entries.
    */
   static async log(criteria: CriteriaQuery<any>, level: NotificationLogLevel, module: string, message: string, ...data: any[]): Promise<void> {
-    const notification = await Notification.findOne(criteria);
+    const notification = await NotificationModel().findOne(criteria);
     if (!notification) {
       sails.log.warn(`Notification.log: notification not found`, criteria);
       return;
@@ -69,9 +79,10 @@ export default class NotificationLogHelper {
     }
     notificationLogBuffer.get(notificationId).push(logEntry);
 
-    if (notificationLogTimers.has(notificationId)) {
-      clearTimeout(notificationLogTimers.get(notificationId));
+    // Schedule the flush once per batch (first buffered entry). Resetting the timer on
+    // every entry (debounce) could postpone the write indefinitely under a steady stream.
+    if (!notificationLogTimers.has(notificationId)) {
+      notificationLogTimers.set(notificationId, setTimeout(() => flushNotificationLogs(notificationId), NOTIFICATION_LOG_DEBOUNCE_MS));
     }
-    notificationLogTimers.set(notificationId, setTimeout(() => flushNotificationLogs(notificationId), NOTIFICATION_LOG_DEBOUNCE_MS));
   }
 }

@@ -13,6 +13,7 @@ const isValue_1 = require("../utils/isValue");
 const ProductModifier_1 = require("../libs/ProductModifier");
 const OrderStateFlow_1 = require("../libs/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
+const NotificationService_1 = require("../libs/NotificationService");
 const OrderLogHelper_1 = __importDefault(require("../libs/OrderLogHelper"));
 const ORDERED_STATES = ["ORDER", "COOKING", "ON_THE_WAY"];
 let attributes = {
@@ -1020,6 +1021,8 @@ let Model = {
             }
             sails.log.debug("CORE > about to emit core:order-after-order, orderId:", order?.id, "emitter events count:", emitter?.events?.length, "subscribers:", emitter?.events?.map(e => `${e.name}[${e.subscribers?.length}]`).join(", "));
             Order.emitAndLogDetached({ id: order.id }, "core:order-after-order", order);
+            // Typed customer notification (notifications pipeline); detached, never blocks the order.
+            void emitOrderNotificationEvent(order.id, "order_accepted");
             if (order.user) {
                 UserOrderHistory.save(order.id);
             }
@@ -1884,11 +1887,18 @@ let Model = {
         // must abort, otherwise we re-introduce the original race.
         if (nextState === "CART" &&
             (currentState === "CHECKOUT" || currentState === "PAYMENT")) {
-            // Ask the user before invalidating an outstanding payment link.
-            // If the device confirms — proceed with cancellation.
-            // If the device declines (or no device is bound) — abort the transition;
-            // throwing here is the documented contract (caller's basket mutation aborts).
-            if (order.deviceId) {
+            const registeredPayment = currentState === "PAYMENT"
+                ? await PaymentDocument.findOne({
+                    originModel: "order",
+                    originModelId: order.id,
+                    paid: false,
+                    status: "REGISTERED",
+                })
+                : undefined;
+            // CHECKOUT alone does not mean that a payment link exists. Ask only when
+            // the order is actually waiting for payment and the gateway link was
+            // registered successfully.
+            if (registeredPayment && order.deviceId) {
                 const answerId = await global.DialogBox.ask((0, cancelPaymentDialog_1.buildCancelPaymentDialog)(order.locale), order.deviceId, 60000);
                 if (answerId !== cancelPaymentDialog_1.CANCEL_PAYMENT_DIALOG_CONFIRM) {
                     throw new Error(`Order ${order.id}: user declined to cancel pending payment — basket change aborted`);
@@ -1907,6 +1917,14 @@ let Model = {
         const updated = (await Order.update(query, patch).fetch())[0];
         if (updated) {
             Order.emitAndLogDetached({ id: updated.id }, "core:order-after-count", updated);
+            if (nextState === "ON_THE_WAY") {
+                // Typed customer notification (notifications pipeline); detached.
+                void emitOrderNotificationEvent(updated.id, "order_on_the_way");
+            }
+            if (nextState === "DONE" || nextState === "REJECT") {
+                // Finished orders must not receive delayed follow-ups (sendDelaySec).
+                NotificationService_1.NotificationService.cancelPendingForOrder(updated.id).catch((error) => sails.log.error(`Order > cancelPendingForOrder failed for order ${updated.id}`, error));
+            }
         }
     }
 };
@@ -1921,6 +1939,79 @@ module.exports = {
 };
 // LOCAL HELPERS
 /////////////////////////////////////////////////////////////////
+/**
+ * Fire a typed notification event for an order (NotificationService pipeline).
+ * Never throws: notification problems must not break the order flow.
+ * The context shape follows CORE_ORDER_SCHEMA in NotificationEventRegistry — keep in sync.
+ */
+async function emitOrderNotificationEvent(orderId, eventKey) {
+    try {
+        const order = await Order.findOne({ id: orderId }).populate("user");
+        if (!order)
+            return;
+        const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
+        const user = order.user && typeof order.user === "object" ? order.user : null;
+        const context = {
+            order: {
+                id: order.id,
+                shortId: order.shortId,
+                state: order.state,
+                total: order.total,
+                basketTotal: order.basketTotal,
+                deliveryCost: order.deliveryCost,
+                dishesCount: order.dishesCount,
+                comment: order.comment,
+                paymentMethod: order.paymentMethodTitle,
+                date: order.date,
+                customer: order.customer
+                    ? {
+                        name: order.customer.name,
+                        phone: order.customer.phone
+                            ? `${order.customer.phone.code || ""}${order.customer.phone.number || ""}`
+                            : undefined,
+                    }
+                    : undefined,
+                address: order.address
+                    ? {
+                        street: order.address.street,
+                        home: order.address.home,
+                        city: order.address.city,
+                    }
+                    : undefined,
+                dishes: orderDishes
+                    .filter((orderDish) => orderDish.dish && typeof orderDish.dish === "object")
+                    .map((orderDish) => ({ name: orderDish.dish.name, amount: orderDish.amount })),
+            },
+        };
+        if (user) {
+            context.user = {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone: user.phone ? `${user.phone.code || ""}${user.phone.number || ""}` : undefined,
+                email: user.email,
+                birthday: user.birthday,
+            };
+        }
+        // The locale attribute is commented out in the model but may exist on the record
+        // (see buildCancelPaymentDialog usage); resolveNotificationLocale has fallbacks.
+        const orderLocale = order.locale || undefined;
+        await NotificationService_1.NotificationService.emit(eventKey, {
+            recipient: user
+                ? { userId: user.id, user, locale: orderLocale }
+                : { locale: orderLocale },
+            context,
+            // Customer-facing event even for guest orders; without user the dispatcher
+            // delivers via the order's device (priorityDeviceId) or records a failed
+            // attempt that is visible to the operator in the admin panel.
+            groupTo: "user",
+            priorityDeviceId: order.deviceId || null,
+            meta: { sourceModule: "core/order" },
+        });
+    }
+    catch (error) {
+        sails.log.error(`Order > notification event "${eventKey}" failed for order ${orderId}`, error);
+    }
+}
 async function checkCustomerInfo(customer) {
     if (!customer.name) {
         throw {
@@ -2009,8 +2100,58 @@ async function checkPaymentMethod(paymentMethodId) {
         };
     }
 }
+/**
+ * Resolve the active timezone.
+ *
+ * The TZ setting may legitimately be empty (no default is applied for it).
+ * When it is, fall back to the TZ environment variable, and only then to undefined.
+ * No 'Etc/GMT' default is applied — a missing timezone is surfaced as undefined so
+ * callers can react (e.g. block ordering, propagate null to the frontend) instead of
+ * silently computing dates in the wrong zone.
+ * This is intentionally TZ-specific and must NOT be generalized into Settings,
+ * because most settings must not silently pick up env/defaults.
+ */
+async function getTimezone() {
+    const tzSetting = await Settings.get("TZ");
+    if (typeof tzSetting === "string" && tzSetting.trim() !== "") {
+        return tzSetting;
+    }
+    return process.env.TZ || undefined;
+}
 async function checkDate(order) {
     const MIN_DELIVERY_TIME_MINUTES = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
+    // The timezone is mandatory to place an order: every date check below (worktime,
+    // "date is past", min delivery time, maintenance) is meaningless without it.
+    // If it is not configured, refuse the order and shout loudly in the log.
+    const timezone = await getTimezone();
+    if (!timezone) {
+        sails.log.error('\n' +
+            '╔════════════════════════════════════════════════════════════════════╗\n' +
+            '║  TIMEZONE IS NOT SET. The server timezone (TZ setting) is REQUIRED  ║\n' +
+            '║  for correct order date handling and worktime checks.              ║\n' +
+            '║  Orders CANNOT be placed until a valid timezone is configured.     ║\n' +
+            '║  Set the "TZ" setting (e.g. "Etc/GMT") or the TZ env var.    ║\n' +
+            '╚════════════════════════════════════════════════════════════════════╝');
+        throw { code: 19, error: 'Server timezone is not configured, ordering is disabled' };
+    }
+    // Global worktime restriction via WORK_TIME settings.
+    // Runs for ASAP orders too (order.date may be empty), otherwise the check below
+    // — guarded by `if (order.date)` — would be skipped entirely for "as soon as possible" orders.
+    try {
+        const WORK_TIME = await Settings.get('WORK_TIME');
+        if (WORK_TIME) {
+            const { workNow } = worktime_1.WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME });
+            if (!workNow) {
+                throw { code: 18, error: 'Order date is outside work time' };
+            }
+        }
+    }
+    catch (e) {
+        // Re-throw the intentional worktime block; only swallow validator/settings failures.
+        if (e && e.code === 18)
+            throw e;
+        sails.log.error('Order > checkDate > WORK_TIME validation error:', e);
+    }
     if (order.date) {
         const date = new Date(order.date);
         function isDateInPast(date, timeZone) {
@@ -2019,7 +2160,8 @@ async function checkDate(order) {
             let targetDate = new Date(date);
             let targetTimestamp;
             try {
-                targetTimestamp = new Date(targetDate.toLocaleString('en', { timeZone: timeZone })).getTime();
+                // When timeZone is undefined, toLocaleString uses the runtime's local time zone.
+                targetTimestamp = new Date(targetDate.toLocaleString('en', timeZone ? { timeZone } : undefined)).getTime();
             }
             catch (error) {
                 sails.log.error(`TimeZone not defined. TZ: [${timeZone}]`);
@@ -2027,27 +2169,11 @@ async function checkDate(order) {
             }
             return targetTimestamp < currentTimestamp;
         }
-        const timezone = await Settings.get('TZ') ?? 'Etc/GMT';
         if (isDateInPast(order.date, timezone)) {
             throw {
                 code: 15,
                 error: "date is past",
             };
-        }
-        // Check requested date against WORK_TIME schedule
-        // Global worktime restriction via WORK_TIME settings
-        try {
-            const WORK_TIME = await Settings.get('WORK_TIME');
-            if (WORK_TIME) {
-                const { workNow } = worktime_1.WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME });
-                if (!workNow) {
-                    throw { code: 18, error: 'Order date is outside work time' };
-                }
-            }
-        }
-        catch (e) {
-            // If validator throws because of bad settings, do not block ordering silently
-            sails.log.error('Order > check > WORK_TIME validation error:', e);
         }
         // Adding minimum delivery time to order.date
         const minDeliveryDate = Date.now() + MIN_DELIVERY_TIME_MINUTES * 60 * 1000;

@@ -1,0 +1,6 @@
+{
+  "Cancel pending payment?": "إلغاء الدفع المعلّق؟",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "يوجد رابط دفع نشط لهذا الطلب. سيؤدي تعديل سلة الطلب إلى إلغاء هذا الدفع. هل تريد المتابعة؟",
+  "Cancel payment and edit basket": "إلغاء الدفع وتعديل السلة",
+  "Keep payment": "الإبقاء على الدفع"
+}

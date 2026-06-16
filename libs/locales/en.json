@@ -1,3 +1,7 @@
 {
-  "Your secret login code:": "Your secret login code:"
+  "Your secret login code:": "Your secret login code:",
+  "Cancel pending payment?": "Cancel pending payment?",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?",
+  "Cancel payment and edit basket": "Cancel payment and edit basket",
+  "Keep payment": "Keep payment"
 }
