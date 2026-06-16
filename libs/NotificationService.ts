@@ -154,6 +154,7 @@ export class NotificationService {
           },
         };
         // Convenient flat fields for FCM data (strings).
+        if ((context as any)?.order?.number) data.number = String((context as any).order.number);
         if ((context as any)?.order?.shortId) data.shortId = String((context as any).order.shortId);
         if ((context as any)?.order?.id) data.orderId = String((context as any).order.id);
         if (defaultContent.clickUrl) data.deeplinkUrl = defaultContent.clickUrl;

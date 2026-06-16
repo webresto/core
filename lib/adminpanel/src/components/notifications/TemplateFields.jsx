@@ -17,8 +17,12 @@ export const FIELD_LABELS = { title: 'Title', subject: 'Subject', body: 'Body', 
 // onChange receives the next object. Empty fields fall back to the base template on the server.
 // Each field is a CodeMirror TemplateEditor with {{path}} highlight/autocomplete/linting
 // driven by `contextPaths` (the event's flattened context schema + recipient.*).
-export function TemplateFields({ content, onChange, t, basePlaceholder, contextPaths }) {
+export function TemplateFields({ content, onChange, t, basePlaceholder, contextPaths, fields }) {
   const value = content && typeof content === 'object' ? content : {};
+  // A channel may declare which fields it renders (Channel.templateFields). When `fields` is
+  // provided, show only those; otherwise show the full set (base/locale templates).
+  const allowed = Array.isArray(fields) && fields.length ? fields : null;
+  const visibleFields = allowed ? TEMPLATE_FIELDS.filter((f) => allowed.includes(f.key)) : TEMPLATE_FIELDS;
   const setField = (field, fieldValue) => {
     const next = { ...value };
     if (!fieldValue) delete next[field];
@@ -27,7 +31,7 @@ export function TemplateFields({ content, onChange, t, basePlaceholder, contextP
   };
   return (
     <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))' }}>
-      {TEMPLATE_FIELDS.map((f) => (
+      {visibleFields.map((f) => (
         <div key={f.key} style={{ ...styles.field, gridColumn: f.key === 'body' ? '1 / -1' : 'auto' }}>
           <Label style={styles.fieldLabel}>{t(FIELD_LABELS[f.key])}</Label>
           <TemplateEditor
@@ -35,7 +39,7 @@ export function TemplateFields({ content, onChange, t, basePlaceholder, contextP
             onChange={(next) => setField(f.key, next)}
             contextPaths={contextPaths}
             singleLine={f.kind !== 'textarea'}
-            placeholder={basePlaceholder ? t('Inherited from base') : (f.key === 'body' ? '{{order.shortId}}' : '')}
+            placeholder={basePlaceholder ? t('Inherited from base') : (f.key === 'body' ? '{{order.number}}' : '')}
           />
         </div>
       ))}
