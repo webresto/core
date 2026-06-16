@@ -1,0 +1,6 @@
+{
+  "Cancel pending payment?": "대기 중인 결제를 취소하시겠습니까?",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "이 주문에는 활성 결제 링크가 있습니다. 장바구니를 수정하면 해당 결제가 취소됩니다. 계속하시겠습니까?",
+  "Cancel payment and edit basket": "결제 취소 후 장바구니 수정",
+  "Keep payment": "결제 유지"
+}

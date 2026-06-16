@@ -360,7 +360,7 @@ function ReportRow({ row, states, language, isAlt, isDark, t }) {
     <tr onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <td style={tdBase}>
         <span style={{ fontWeight: 500 }}>
-          {row.platform ?? <span style={{ color: 'var(--muted-foreground)' }}>—</span>}
+          {row.platform ?? <span style={{ color: 'var(--muted-foreground)' }}>{t('Unknown')}</span>}
         </span>
       </td>
       <td style={{ ...tdBase, textAlign: 'center' }}>

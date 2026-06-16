@@ -32,6 +32,7 @@ import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 import { ProductModifier } from "../libs/ProductModifier";
 import { getAllowedOrderTransitions } from "../libs/OrderStateFlow";
 import { normalizePercent } from "../utils/normalize";
+import { NotificationService } from "../libs/NotificationService";
 
 export interface PromotionState {
   type: string;
@@ -1248,6 +1249,8 @@ let Model = {
 
       sails.log.debug("CORE > about to emit core:order-after-order, orderId:", order?.id, "emitter events count:", emitter?.events?.length, "subscribers:", emitter?.events?.map(e => `${e.name}[${e.subscribers?.length}]`).join(", "));
       Order.emitAndLogDetached({id: order.id}, "core:order-after-order", order);
+      // Typed customer notification (notifications pipeline); detached, never blocks the order.
+      void emitOrderNotificationEvent(order.id, "order_accepted");
       if (order.user) {
         UserOrderHistory.save(order.id);
       }
@@ -2231,11 +2234,19 @@ let Model = {
       nextState === "CART" &&
       (currentState === "CHECKOUT" || currentState === "PAYMENT")
     ) {
-      // Ask the user before invalidating an outstanding payment link.
-      // If the device confirms — proceed with cancellation.
-      // If the device declines (or no device is bound) — abort the transition;
-      // throwing here is the documented contract (caller's basket mutation aborts).
-      if (order.deviceId) {
+      const registeredPayment = currentState === "PAYMENT"
+        ? await PaymentDocument.findOne({
+            originModel: "order",
+            originModelId: order.id,
+            paid: false,
+            status: "REGISTERED",
+          })
+        : undefined;
+
+      // CHECKOUT alone does not mean that a payment link exists. Ask only when
+      // the order is actually waiting for payment and the gateway link was
+      // registered successfully.
+      if (registeredPayment && order.deviceId) {
         const answerId = await (global as any).DialogBox.ask(
           buildCancelPaymentDialog((order as any).locale),
           order.deviceId,
@@ -2264,6 +2275,16 @@ let Model = {
     const updated = (await Order.update(query, patch).fetch())[0];
     if (updated) {
       Order.emitAndLogDetached({id: updated.id}, "core:order-after-count", updated);
+      if (nextState === "ON_THE_WAY") {
+        // Typed customer notification (notifications pipeline); detached.
+        void emitOrderNotificationEvent(updated.id, "order_on_the_way");
+      }
+      if (nextState === "DONE" || nextState === "REJECT") {
+        // Finished orders must not receive delayed follow-ups (sendDelaySec).
+        NotificationService.cancelPendingForOrder(updated.id).catch((error) =>
+          sails.log.error(`Order > cancelPendingForOrder failed for order ${updated.id}`, error)
+        );
+      }
     }
   }
 };
@@ -2285,6 +2306,81 @@ declare global {
 
 // LOCAL HELPERS
 /////////////////////////////////////////////////////////////////
+
+/**
+ * Fire a typed notification event for an order (NotificationService pipeline).
+ * Never throws: notification problems must not break the order flow.
+ * The context shape follows CORE_ORDER_SCHEMA in NotificationEventRegistry — keep in sync.
+ */
+async function emitOrderNotificationEvent(orderId: string, eventKey: string): Promise<void> {
+  try {
+    const order = await Order.findOne({ id: orderId }).populate("user");
+    if (!order) return;
+
+    const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
+    const user = order.user && typeof order.user === "object" ? (order.user as UserRecord) : null;
+
+    const context: Record<string, any> = {
+      order: {
+        id: order.id,
+        shortId: order.shortId,
+        state: order.state,
+        total: order.total,
+        basketTotal: order.basketTotal,
+        deliveryCost: order.deliveryCost,
+        dishesCount: order.dishesCount,
+        comment: order.comment,
+        paymentMethod: order.paymentMethodTitle,
+        date: order.date,
+        customer: order.customer
+          ? {
+              name: order.customer.name,
+              phone: order.customer.phone
+                ? `${order.customer.phone.code || ""}${order.customer.phone.number || ""}`
+                : undefined,
+            }
+          : undefined,
+        address: order.address
+          ? {
+              street: order.address.street,
+              home: order.address.home,
+              city: order.address.city,
+            }
+          : undefined,
+        dishes: orderDishes
+          .filter((orderDish) => orderDish.dish && typeof orderDish.dish === "object")
+          .map((orderDish) => ({ name: (orderDish.dish as DishRecord).name, amount: orderDish.amount })),
+      },
+    };
+    if (user) {
+      context.user = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone ? `${(user.phone as any).code || ""}${(user.phone as any).number || ""}` : undefined,
+        email: (user as any).email,
+        birthday: user.birthday,
+      };
+    }
+
+    // The locale attribute is commented out in the model but may exist on the record
+    // (see buildCancelPaymentDialog usage); resolveNotificationLocale has fallbacks.
+    const orderLocale = (order as any).locale || undefined;
+    await NotificationService.emit(eventKey, {
+      recipient: user
+        ? { userId: user.id, user, locale: orderLocale }
+        : { locale: orderLocale },
+      context,
+      // Customer-facing event even for guest orders; without user the dispatcher
+      // delivers via the order's device (priorityDeviceId) or records a failed
+      // attempt that is visible to the operator in the admin panel.
+      groupTo: "user",
+      priorityDeviceId: order.deviceId || null,
+      meta: { sourceModule: "core/order" },
+    });
+  } catch (error) {
+    sails.log.error(`Order > notification event "${eventKey}" failed for order ${orderId}`, error);
+  }
+}
 
 async function checkCustomerInfo(customer: Customer) {
   if (!customer.name) {

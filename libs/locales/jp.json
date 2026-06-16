@@ -1,1 +1,6 @@
-{}
+{
+  "Cancel pending payment?": "保留中の支払いをキャンセルしますか？",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "この注文には有効な支払いリンクがあります。カートを編集するとその支払いはキャンセルされます。続行しますか？",
+  "Cancel payment and edit basket": "支払いをキャンセルしてカートを編集",
+  "Keep payment": "支払いを維持する"
+}

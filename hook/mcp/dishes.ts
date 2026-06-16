@@ -78,7 +78,7 @@ export function registerDishesTools() {
             required: ['name', 'price'],
         },
         handler: async (params: Record<string, unknown>) => {
-            return await Dish.create(params).fetch();
+            return await Dish.create(params as any).fetch();
         },
     });
 

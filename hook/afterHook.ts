@@ -4,6 +4,7 @@ import { NotificationEventRegistry } from "../libs/NotificationEventRegistry";
 import { NotificationTypeRegistry } from "../libs/NotificationTypeRegistry";
 import { SetupChecklistRegistry } from "../libs/SetupChecklistRegistry";
 import { DISMISSED_SETTING_JSON_SCHEMA } from "../libs/SetupChecklistService";
+import { NotificationService } from "../libs/NotificationService";
 import { registerCoreMcpTools } from "./mcp";
 
 /**
@@ -11,6 +12,9 @@ import { registerCoreMcpTools } from "./mcp";
  */
 export default async function () {
   try {
+
+    // Mirror settings like JWT_SECRET from the DB into process.env on boot
+    await Settings.syncEnvMirroredSettings();
 
     const timeSyncPayments = await Settings.get("RESTOCORE_TIME_SYNC_PAYMENTS");
 
@@ -108,11 +112,22 @@ export default async function () {
       sails.log.warn("RestoCore > setup checklist dismissal seed skipped", e);
     }
 
-    // Notification delivery: retry pending + escalate unread sent
-    const deliveryInterval = (await Settings.get("NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS")) ?? 60;
-    const escalationInterval = (await Settings.get("NOTIFICATION_ESCALATION_INTERVAL_SECONDS")) ?? 60;
-    NotificationDispatcher.startDeliveryLoop(deliveryInterval);
-    NotificationDispatcher.startEscalationLoop(escalationInterval);
+    // Background notification loops are NOT cluster-safe (no cross-process claim
+    // coordination): in PM2 cluster mode run them only in the first worker.
+    // NODE_APP_INSTANCE is set by PM2 (0-based); absent in fork/plain node = run.
+    const pm2Instance = Number(process.env.NODE_APP_INSTANCE ?? 0);
+    if (Number.isFinite(pm2Instance) && pm2Instance > 0) {
+      sails.log.info(`RestoCore > notification loops skipped on PM2 worker ${pm2Instance} (loops run only on worker 0)`);
+    } else {
+      // Notification delivery: retry pending + escalate unread sent
+      const deliveryInterval = (await Settings.get("NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS")) ?? 60;
+      const escalationInterval = (await Settings.get("NOTIFICATION_ESCALATION_INTERVAL_SECONDS")) ?? 60;
+      NotificationDispatcher.startDeliveryLoop(deliveryInterval);
+      NotificationDispatcher.startEscalationLoop(escalationInterval);
+
+      // user_birthday trigger: hourly check, idempotent per user/year (dispatcher dedup).
+      NotificationService.startBirthdayLoop();
+    }
 
     registerCoreMcpTools();
 

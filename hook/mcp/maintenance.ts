@@ -90,7 +90,7 @@ export function registerMaintenanceTools() {
             required: ['id'],
         },
         handler: async ({ id }: { id: string }) => {
-            const deleted = await Maintenance.destroyOne({ id });
+            const deleted = await Maintenance.destroyOne({ id } as any);
             if (!deleted) throw new Error('Maintenance window not found');
             return { success: true, id };
         },

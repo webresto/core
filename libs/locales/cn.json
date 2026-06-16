@@ -1,1 +1,6 @@
-{}
+{
+  "Cancel pending payment?": "取消待处理的付款？",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "此订单存在有效的付款链接。修改购物车将取消该付款。是否继续？",
+  "Cancel payment and edit basket": "取消付款并修改购物车",
+  "Keep payment": "保留付款"
+}

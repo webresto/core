@@ -1,0 +1,6 @@
+{
+  "Cancel pending payment?": "Huỷ thanh toán đang chờ?",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "Đơn hàng này có một liên kết thanh toán đang hoạt động. Việc chỉnh sửa giỏ hàng sẽ huỷ thanh toán đó. Bạn có muốn tiếp tục?",
+  "Cancel payment and edit basket": "Huỷ thanh toán và chỉnh sửa giỏ hàng",
+  "Keep payment": "Giữ lại thanh toán"
+}

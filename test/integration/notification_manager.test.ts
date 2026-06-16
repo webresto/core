@@ -6,6 +6,7 @@ class TestChannel extends Channel {
   public forceSend: boolean = false;
   public forGroupTo: string[] = ['user'];
   public sortOrder: number = 0;
+  public cost: number = 0;
   public type: string = "sms";
   public lastMessage: string = "";
   protected async send(badge: "info" | "error", message: string, user: UserRecord, subject?: string, data?: object): Promise<void> {
@@ -22,8 +23,8 @@ describe("NotificationManager", function () {
   });
 
 
-  it("send message", () => {
-    NotificationManager.send("info", "user", "test123", null);
+  it("send message", async () => {
+    await NotificationManager.send("info", "user", "test123", null);
     if(testChannel.lastMessage !=="test123") throw `Problem in send Notification`
   });
 

@@ -58,6 +58,12 @@ declare let Model: {
     get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined>;
     set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings>;
     env<K extends keyof SettingList>(key: K): SettingList[K] | undefined;
+    /**
+     * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB
+     * into process.env on boot, so libraries reading process.env[key] directly
+     * stay in sync with the value configured in Settings.
+     */
+    syncEnvMirroredSettings(): Promise<void>;
     setDeclaredSetting: typeof setDeclaredSetting;
     isInDeclaredSettings: typeof isInDeclaredSettings;
     parseBoolean: typeof parseBoolean;
