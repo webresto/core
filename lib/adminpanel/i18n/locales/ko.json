@@ -287,5 +287,10 @@
 	"Device has no notification token": "Device has no notification token",
 	"Important": "Important",
 	"Delivery attempts": "Delivery attempts",
-	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)"
+	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)",
+	"Overrides are optional. Add one only when this channel needs different text or URL.": "오버라이드는 선택 사항입니다. 이 채널에 다른 텍스트나 URL이 필요할 때만 추가하세요.",
+	"Add override": "오버라이드 추가",
+	"Remove override": "오버라이드 제거",
+	"No override for this channel and locale. The locale template is used, then the base.": "이 채널과 언어에는 오버라이드가 없습니다. 언어 템플릿을 사용한 뒤 기본 템플릿을 사용합니다.",
+	"Back to settings": "설정으로 돌아가기"
 }

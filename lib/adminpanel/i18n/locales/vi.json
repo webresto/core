@@ -287,5 +287,10 @@
 	"Device has no notification token": "Device has no notification token",
 	"Important": "Important",
 	"Delivery attempts": "Delivery attempts",
-	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)"
+	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)",
+	"Overrides are optional. Add one only when this channel needs different text or URL.": "Ghi đè là tùy chọn. Chỉ thêm khi kênh này cần nội dung hoặc URL khác.",
+	"Add override": "Thêm ghi đè",
+	"Remove override": "Xóa ghi đè",
+	"No override for this channel and locale. The locale template is used, then the base.": "Không có ghi đè cho kênh và ngôn ngữ này. Hệ thống dùng mẫu theo ngôn ngữ, rồi đến mẫu cơ sở.",
+	"Back to settings": "Quay lại cài đặt"
 }

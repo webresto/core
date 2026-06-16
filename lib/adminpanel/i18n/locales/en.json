@@ -315,5 +315,10 @@
 	"Device has no notification token": "Device has no notification token",
 	"Important": "Important",
 	"Delivery attempts": "Delivery attempts",
-	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)"
+	"Important (ignore channel waterfall limit, escalate until delivered)": "Important (ignore channel waterfall limit, escalate until delivered)",
+	"Overrides are optional. Add one only when this channel needs different text or URL.": "Overrides are optional. Add one only when this channel needs different text or URL.",
+	"Add override": "Add override",
+	"Remove override": "Remove override",
+	"No override for this channel and locale. The locale template is used, then the base.": "No override for this channel and locale. The locale template is used, then the base.",
+	"Back to settings": "Back to settings"
 }
