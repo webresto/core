@@ -32,6 +32,8 @@ export * from './libs/NotificationEventRegistry'
 export * from './libs/NotificationTypeRegistry'
 export * from './libs/NotificationTemplateRenderer'
 export * from './libs/NotificationService'
+export * from './libs/SetupChecklistRegistry'
+export * from './libs/SetupChecklistService'
 
 module.exports = function (sails: any) {
   return {

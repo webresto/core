@@ -40,6 +40,8 @@ __exportStar(require("./models/Promotion"), exports);
 // Helpers
 __exportStar(require("./libs/helpers/OrderHelper"), exports);
 __exportStar(require("./libs/NotificationDispatcher"), exports);
+__exportStar(require("./libs/SetupChecklistRegistry"), exports);
+__exportStar(require("./libs/SetupChecklistService"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),
