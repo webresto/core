@@ -135,11 +135,16 @@ let attributes = {
         isIn: ["info", "error"],
         defaultsTo: "info",
     },
+    // autoCreatedAt/autoUpdatedAt are required: without them Waterline leaves these
+    // null, and the admin dashboard/history/activity (which query and sort by a time
+    // window, default "today") render empty even though records exist.
     createdAt: {
         type: "number",
+        autoCreatedAt: true,
     },
     updatedAt: {
         type: "number",
+        autoUpdatedAt: true,
     },
 };
 let Model = {

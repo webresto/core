@@ -18,10 +18,10 @@ const STATE_COLORS = {
 };
 const SUPPORTED_LOCALES = new Set(['en', 'es', 'zh', 'hi', 'ar', 'ru', 'fr', 'ua']);
 // Board period selector. "today" = since local midnight; the rest are rolling
-// windows expressed in minutes (1h / 12h / 24h). Default is always "today".
+// windows expressed in minutes (1h / 3h / 6h / 12h / 24h). Default is always "today".
 const BOARD_PERIOD_TODAY = 'today';
 const BOARD_PERIOD_DEFAULT = BOARD_PERIOD_TODAY;
-const BOARD_PERIOD_OPTIONS = [BOARD_PERIOD_TODAY, '60', '720', '1440'];
+const BOARD_PERIOD_OPTIONS = [BOARD_PERIOD_TODAY, '60', '180', '360', '720', '1440'];
 const COMPLETED_STATES = new Set(['DONE', 'REJECT']);
 const KANBAN_STREAM_RECONNECT_DELAY_MS = 5000;
 const KANBAN_STREAM_STALE_TIMEOUT_MS = 90000;
