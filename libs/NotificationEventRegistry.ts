@@ -80,6 +80,18 @@ const CORE_ORDER_SCHEMA: ContextField = {
   },
 };
 
+// Top-level recipient contact derived from Order.customer. Present even for guest
+// orders (no bound account) and takes priority over the linked account, so order
+// templates can render the real recipient via {{customer.name}} / {{customer.phone}}.
+const CORE_CUSTOMER_SCHEMA: ContextField = {
+  type: "object",
+  description: "Order contact (Order.customer) — the real recipient, present even for guest orders.",
+  fields: {
+    name: { type: "string", description: "Customer name.", example: "Alex" },
+    phone: { type: "string", description: "Customer phone.", example: "+79991234567" },
+  },
+};
+
 export interface NotificationEventDefinition {
   /** Unique event key, snake_case, e.g. "order_on_the_way" */
   key: string;
@@ -184,14 +196,14 @@ export class NotificationEventRegistry {
       name: "Order accepted",
       description: "Fires when an order is accepted/created for processing.",
       sourceModule: "core",
-      contextSchema: { order: CORE_ORDER_SCHEMA, user: CORE_USER_SCHEMA },
+      contextSchema: { order: CORE_ORDER_SCHEMA, user: CORE_USER_SCHEMA, customer: CORE_CUSTOMER_SCHEMA },
     });
     NotificationEventRegistry.registerEvent({
       key: "order_on_the_way",
       name: "Order on the way",
       description: "Fires when an order is dispatched and on the way to the customer.",
       sourceModule: "core",
-      contextSchema: { order: CORE_ORDER_SCHEMA, user: CORE_USER_SCHEMA },
+      contextSchema: { order: CORE_ORDER_SCHEMA, user: CORE_USER_SCHEMA, customer: CORE_CUSTOMER_SCHEMA },
     });
     NotificationEventRegistry.registerEvent({
       key: "user_birthday",
