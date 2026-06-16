@@ -1,0 +1,24 @@
+{
+  "key": "SETUP_CHECKLIST_DISMISSED",
+  "type": "json",
+  "name": "Setup Checklist Dismissed Items",
+  "description": "Runtime state: setup checklist checkups the user hid/snoozed. The only persisted piece of the setup checklist feature.",
+  "defaultValue": {},
+  "jsonSchema": {
+    "type": "object",
+    "additionalProperties": {
+      "type": "object",
+      "properties": {
+        "dismissedAt": {
+          "type": "string"
+        },
+        "snoozeUntil": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "readOnly": false,
+  "isRequired": false
+}

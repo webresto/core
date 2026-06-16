@@ -2,6 +2,8 @@ import { generateUUID } from "../libs/hashCode";
 import { NotificationDispatcher } from "../libs/NotificationDispatcher";
 import { NotificationEventRegistry } from "../libs/NotificationEventRegistry";
 import { NotificationTypeRegistry } from "../libs/NotificationTypeRegistry";
+import { SetupChecklistRegistry } from "../libs/SetupChecklistRegistry";
+import { DISMISSED_SETTING_JSON_SCHEMA } from "../libs/SetupChecklistService";
 import { registerCoreMcpTools } from "./mcp";
 
 /**
@@ -86,6 +88,25 @@ export default async function () {
     // then seed/load the notification rules catalog (NotificationRules model) into cache.
     NotificationEventRegistry.registerCoreDefaults();
     await NotificationTypeRegistry.load();
+
+    // Setup checklist: register core checkups (live-evaluated, blocks nothing) and declare/seed
+    // the dismissal store (the only persisted piece of the feature — see .ai-notes/setup-checklist.md).
+    SetupChecklistRegistry.registerCoreDefaults();
+    try {
+      Settings.setDeclaredSetting("SETUP_CHECKLIST_DISMISSED");
+      Settings.setDeclaredSetting("SETUP_CHECKLIST_CHECK_TIMEOUT_MS");
+      if (await Settings.get("SETUP_CHECKLIST_DISMISSED") === undefined) {
+        await Settings.set("SETUP_CHECKLIST_DISMISSED", {
+          value: {} as any,
+          type: "json",
+          jsonSchema: DISMISSED_SETTING_JSON_SCHEMA as any,
+          name: "Setup checklist dismissed items",
+          description: "Runtime state: checkups the user hid/snoozed on the setup checklist.",
+        });
+      }
+    } catch (e) {
+      sails.log.warn("RestoCore > setup checklist dismissal seed skipped", e);
+    }
 
     // Notification delivery: retry pending + escalate unread sent
     const deliveryInterval = (await Settings.get("NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS")) ?? 60;
