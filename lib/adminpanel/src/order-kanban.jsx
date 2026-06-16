@@ -17,16 +17,16 @@ const STATE_COLORS = {
   REJECT: '#dc2626',
 };
 const SUPPORTED_LOCALES = new Set(['en', 'es', 'zh', 'hi', 'ar', 'ru', 'fr', 'ua']);
-const BOARD_WINDOW_MINUTES_DEFAULT = 180;
-const BOARD_WINDOW_MINUTES_MIN = 1;
-const BOARD_WINDOW_MINUTES_MAX = 10080;
-const BOARD_WINDOW_OPTIONS = [15, 30, 60, 120, 180, 360, 720, 1440, 2880, 4320, 10080];
+// Board period selector. "today" = since local midnight; the rest are rolling
+// windows expressed in minutes (1h / 12h / 24h). Default is always "today".
+const BOARD_PERIOD_TODAY = 'today';
+const BOARD_PERIOD_DEFAULT = BOARD_PERIOD_TODAY;
+const BOARD_PERIOD_OPTIONS = [BOARD_PERIOD_TODAY, '60', '720', '1440'];
 const COMPLETED_STATES = new Set(['DONE', 'REJECT']);
 const KANBAN_STREAM_RECONNECT_DELAY_MS = 5000;
 const KANBAN_STREAM_STALE_TIMEOUT_MS = 90000;
 const KANBAN_FULL_SYNC_INTERVAL_MS = 30000;
 const KANBAN_EVENT_REFRESH_DEBOUNCE_MS = 300;
-const BOARD_WINDOW_STORAGE_KEY = 'orderKanbanBoardWindowMinutes';
 const COLLAPSED_COLUMNS_STORAGE_KEY = 'orderKanbanCollapsedColumnsV2';
 const VIEW_MODE_STORAGE_KEY = 'orderKanbanViewMode';
 const APPEARANCE_STORAGE_KEY = 'appearance';
@@ -99,10 +99,25 @@ function resolveSystemLocale(rawLocale) {
   return 'en';
 }
 
-function clampBoardWindowMinutes(value) {
-  const parsed = Number.parseInt(String(value || BOARD_WINDOW_MINUTES_DEFAULT), 10);
-  if (!Number.isFinite(parsed)) return BOARD_WINDOW_MINUTES_DEFAULT;
-  return Math.min(Math.max(parsed, BOARD_WINDOW_MINUTES_MIN), BOARD_WINDOW_MINUTES_MAX);
+function normalizeBoardPeriod(value) {
+  return BOARD_PERIOD_OPTIONS.includes(value) ? value : BOARD_PERIOD_DEFAULT;
+}
+
+// Cutoff timestamp (ms) for the selected period: local midnight for "today",
+// otherwise a rolling window of N minutes back from now.
+function getBoardPeriodSinceMs(period) {
+  if (period === BOARD_PERIOD_TODAY) {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    return start.getTime();
+  }
+  const minutes = Number.parseInt(period, 10) || 60;
+  return Date.now() - minutes * 60 * 1000;
+}
+
+// Minutes to ask the backend for. "today" maps to minutes elapsed since midnight.
+function getBoardPeriodMinutes(period) {
+  return Math.max(1, Math.ceil((Date.now() - getBoardPeriodSinceMs(period)) / 60000));
 }
 
 function getPreferredAppearance() {
@@ -265,10 +280,11 @@ function shouldIncludeOrderByWindow(order, newSinceMs, completedSinceMs) {
   return getOrderedAtMs(order) >= newSinceMs;
 }
 
-function formatBoardWindow(minutes, t) {
-  if (minutes < 60) {
-    return t('{minutes}m', { minutes });
+function formatBoardPeriod(period, t) {
+  if (period === BOARD_PERIOD_TODAY) {
+    return t('Today');
   }
+  const minutes = Number.parseInt(period, 10) || 60;
   return t('{hours}h', { hours: Math.round(minutes / 60) });
 }
 
@@ -1163,10 +1179,8 @@ function OrderKanbanContent() {
   const { t, language } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [query, setQuery] = useState('');
-  const [boardWindowMinutes, setBoardWindowMinutes] = useState(() => {
-    if (typeof window === 'undefined') return BOARD_WINDOW_MINUTES_DEFAULT;
-    return clampBoardWindowMinutes(localStorage.getItem(BOARD_WINDOW_STORAGE_KEY));
-  });
+  // Always defaults to "today" on each load (not persisted on purpose).
+  const [boardPeriod, setBoardPeriod] = useState(BOARD_PERIOD_DEFAULT);
   const [viewMode, setViewMode] = useState(getInitialViewMode);
   const [appearance, setAppearance] = useState(getPreferredAppearance);
   const [loading, setLoading] = useState(true);
@@ -1190,10 +1204,6 @@ function OrderKanbanContent() {
   const lastStreamSignalAtRef = useRef(Date.now());
   const isDarkTheme = useMemo(() => isDarkAppearance(appearance), [appearance]);
   const theme = useMemo(() => (isDarkTheme ? KANBAN_THEME.dark : KANBAN_THEME.light), [isDarkTheme]);
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(BOARD_WINDOW_STORAGE_KEY, String(boardWindowMinutes));
-  }, [boardWindowMinutes]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -1258,7 +1268,7 @@ function OrderKanbanContent() {
         setLoading(true);
       }
       const base = getBaseAdminPath();
-      const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1&newMinutes=${boardWindowMinutes}`;
+      const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1&newMinutes=${getBoardPeriodMinutes(boardPeriod)}`;
       const json = await fetchJsonNoCache(endpoint, { signal: abortController.signal });
 
       if (!mountedRef.current || requestId !== loadRequestIdRef.current) return;
@@ -1279,7 +1289,7 @@ function OrderKanbanContent() {
       if (!mountedRef.current || requestId !== loadRequestIdRef.current) return;
       setLoading(false);
     }
-  }, [boardWindowMinutes]);
+  }, [boardPeriod]);
 
   const applyOrderHintFromStream = useCallback((payload) => {
     const orderId = payload?.orderId;
@@ -1558,7 +1568,7 @@ function OrderKanbanContent() {
   }
 
   const filteredOrders = useMemo(() => {
-    const newSinceMs = Date.now() - boardWindowMinutes * 60 * 1000;
+    const newSinceMs = getBoardPeriodSinceMs(boardPeriod);
     const normalizedQuery = query.trim().toLowerCase();
     return orders.filter((order) => {
       // Only orders that map to a board column count toward the total / list.
@@ -1580,7 +1590,7 @@ function OrderKanbanContent() {
       ].map((item) => String(item || '').toLowerCase()).join(' ');
       return haystack.includes(normalizedQuery);
     });
-  }, [boardWindowMinutes, orders, query]);
+  }, [boardPeriod, orders, query]);
 
   const groupedOrders = useMemo(() => {
     const grouped = {};
@@ -1686,16 +1696,16 @@ function OrderKanbanContent() {
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--muted-foreground)' }}>
           <span>{t('Board period')}</span>
           <Select
-            value={String(boardWindowMinutes)}
-            onValueChange={(v) => setBoardWindowMinutes(clampBoardWindowMinutes(v))}
+            value={boardPeriod}
+            onValueChange={(v) => setBoardPeriod(normalizeBoardPeriod(v))}
           >
             <SelectTrigger size="sm" style={{ minWidth: 80 }}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {BOARD_WINDOW_OPTIONS.map((minutes) => (
-                <SelectItem key={minutes} value={String(minutes)}>
-                  {formatBoardWindow(minutes, t)}
+              {BOARD_PERIOD_OPTIONS.map((period) => (
+                <SelectItem key={period} value={period}>
+                  {formatBoardPeriod(period, t)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -1739,7 +1749,9 @@ function OrderKanbanContent() {
         </span>
 
         <span style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>
-          {t('Period: last {value}', { value: formatBoardWindow(boardWindowMinutes, t) })}
+          {boardPeriod === BOARD_PERIOD_TODAY
+            ? t('Period: today')
+            : t('Period: last {value}', { value: formatBoardPeriod(boardPeriod, t) })}
         </span>
       </div>
 
