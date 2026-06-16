@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { styles, toast, TYPE_KEY_REGEX } from './shared';
+import { styles, toast, TYPE_KEY_REGEX, useIsMobile } from './shared';
 import { ConfirmDialog } from '../ConfirmDialog';
 import TemplatesTab from './TemplatesTab';
 import SendTestPanel from './SendTestPanel';
@@ -58,6 +58,7 @@ export default function TypesSection({
   t, language, notificationsApi, types, events, channels, locales, defaultLocale,
   onChanged,
 }) {
+  const isMobile = useIsMobile();
   const typeList = Array.isArray(types) ? types : [];
   const eventList = Array.isArray(events) ? events : [];
 
@@ -273,7 +274,7 @@ export default function TypesSection({
   }
 
   return (
-    <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'minmax(320px, 360px) minmax(420px, 1fr)', alignItems: 'start' }}>
+    <div style={{ display: 'grid', gap: isMobile ? 16 : 24, gridTemplateColumns: isMobile ? '1fr' : 'minmax(320px, 360px) minmax(420px, 1fr)', alignItems: 'start' }}>
       {/* ── Left panel: filters + list ── */}
       <section style={styles.panel}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>

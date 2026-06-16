@@ -3,6 +3,7 @@ import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import TypesSection from './components/notifications/TypesSection';
 import SendTestPanel from './components/notifications/SendTestPanel';
 import DashboardSection from './components/notifications/DashboardSection';
+import { useIsMobile } from './components/notifications/shared';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
 
@@ -291,6 +292,7 @@ function CopyContextButton({ notification, t }) {
 
 function NotificationsManagerContent() {
   const { language, t } = useTranslation();
+  const isMobile = useIsMobile();
   const viewMode = getCurrentViewMode();
   const isChannelsView = viewMode === 'channels';
   const [notificationSection, setNotificationSection] = useState(getNotificationSectionFromHash);
@@ -731,7 +733,7 @@ function NotificationsManagerContent() {
     }
   };
 
-  const pageShell = { padding: 24, display: 'flex', flexDirection: 'column', gap: 24, color: 'var(--foreground)', background: 'var(--background)', minHeight: '100%' };
+  const pageShell = { padding: isMobile ? 12 : 24, display: 'flex', flexDirection: 'column', gap: isMobile ? 16 : 24, color: 'var(--foreground)', background: 'var(--background)', minHeight: '100%' };
   const pageHeader = { display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' };
   const pageTitle = { fontSize: 24, lineHeight: '32px', fontWeight: 700, margin: 0, letterSpacing: 0 };
   const pageDescription = { margin: '6px 0 0', color: 'var(--muted-foreground)', fontSize: 14, lineHeight: '20px', maxWidth: 720 };
@@ -741,7 +743,7 @@ function NotificationsManagerContent() {
   const sectionTitle = { margin: 0, fontSize: 20, lineHeight: '28px', fontWeight: 700, letterSpacing: 0 };
   const sectionDescription = { margin: '4px 0 0', color: 'var(--muted-foreground)', fontSize: 14, lineHeight: '20px', maxWidth: 680 };
   const inputStyle = { padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)', width: '100%', boxSizing: 'border-box' };
-  const tabsStyle = { display: 'inline-flex', gap: 4, padding: 4, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--muted)' };
+  const tabsStyle = { display: 'flex', flexWrap: 'wrap', gap: 4, padding: 4, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--muted)', width: isMobile ? '100%' : 'auto' };
   const tabButtonStyle = (active) => ({
     border: '1px solid transparent',
     borderRadius: 9,
@@ -749,6 +751,7 @@ function NotificationsManagerContent() {
     color: active ? 'var(--foreground)' : 'var(--muted-foreground)',
     padding: '8px 12px',
     minHeight: 36,
+    flex: isMobile ? '1 1 auto' : '0 0 auto',
     fontSize: 14,
     lineHeight: '20px',
     fontWeight: 700,
@@ -1069,10 +1072,12 @@ function NotificationsManagerContent() {
               {t('No notification channels registered')}
             </div>
           ) : (
-            <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(90px, 0.6fr) minmax(90px, 0.6fr) minmax(100px, 0.7fr) minmax(140px, 1fr)', gap: 12, padding: '12px 14px', background: 'var(--muted)', fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' }}>
+            <div style={{ border: isMobile ? 'none' : '1px solid var(--border)', borderRadius: 12, overflowX: isMobile ? 'visible' : 'auto', overflowY: 'hidden', display: isMobile ? 'flex' : 'block', flexDirection: 'column', gap: isMobile ? 12 : 0 }}>
+              {!isMobile && (
+              <div style={{ display: 'grid', minWidth: 760, gridTemplateColumns: 'minmax(140px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(90px, 0.6fr) minmax(90px, 0.6fr) minmax(100px, 0.7fr) minmax(140px, 1fr)', gap: 12, padding: '12px 14px', background: 'var(--muted)', fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' }}>
                 <div>{t('Channel')}</div><div>{t('Status')}</div><div>{t('Enabled')}</div><div>{t('Groups')}</div><div>{t('Weight')}</div><div>{t('Cost')}</div><div>{t('Force send')}</div><div>{t('Class')}</div>
               </div>
+              )}
               {channels.map((channel) => {
                 const isConfigured = channel.configured !== false;
                 const isEnabled = channel.enabled !== false;
@@ -1104,60 +1109,109 @@ function NotificationsManagerContent() {
                   borderRadius: 8,
                   fontSize: 12,
                 };
+                const statusBlock = (
+                  <div style={{ fontSize: 12, color: status.color, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontWeight: 600 }}>{status.label}</span>
+                    {href && (
+                      <a href={href} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
+                        {t('Configure')} →
+                      </a>
+                    )}
+                    {channelError && (
+                      <span style={{ color: '#dc2626' }}>{channelError}</span>
+                    )}
+                  </div>
+                );
+                const enabledSwitch = (
+                  <Switch
+                    checked={isEnabled}
+                    onCheckedChange={(checked) => updateChannelEnabled(channel, checked === true)}
+                    disabled={actionLoading === `channel:${channel.type}`}
+                    aria-label={`${t('Enabled')}: ${channel.type || '-'}`}
+                  />
+                );
+                const weightInput = (
+                  <Input
+                    type="number"
+                    step="1"
+                    value={draft.sortOrder ?? String(channel.sortOrder ?? '')}
+                    onChange={(e) => updateChannelDraft(channel.type, 'sortOrder', e.target.value)}
+                    onBlur={() => saveChannelNumber(channel, 'sortOrder')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') e.currentTarget.blur();
+                      if (e.key === 'Escape') updateChannelDraft(channel.type, 'sortOrder', String(channel.sortOrder ?? ''));
+                    }}
+                    disabled={actionLoading === `channel:${channel.type}:sortOrder`}
+                    style={numberCellStyle}
+                  />
+                );
+                const costInput = (
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={draft.cost ?? String(channel.cost ?? '')}
+                    onChange={(e) => updateChannelDraft(channel.type, 'cost', e.target.value)}
+                    onBlur={() => saveChannelNumber(channel, 'cost')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') e.currentTarget.blur();
+                      if (e.key === 'Escape') updateChannelDraft(channel.type, 'cost', String(channel.cost ?? ''));
+                    }}
+                    disabled={actionLoading === `channel:${channel.type}:cost`}
+                    style={numberCellStyle}
+                  />
+                );
+                const groupsText = Array.isArray(channel.forGroupTo) ? channel.forGroupTo.join(', ') : '-';
+
+                // Mobile: stacked card with labelled rows so all fields stay reachable.
+                if (isMobile) {
+                  const cardLabel = { fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' };
+                  const cardValue = { fontSize: 13, color: 'var(--foreground)' };
+                  return (
+                    <div key={channel.type} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--card)', padding: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>{channelNameWithAdapter(channel, t)}</div>
+                        {enabledSwitch}
+                      </div>
+                      {statusBlock}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={cardLabel}>{t('Groups')}</span>
+                        <span style={cardValue}>{groupsText}</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <span style={cardLabel}>{t('Weight')}</span>
+                          {weightInput}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <span style={cardLabel}>{t('Cost')}</span>
+                          {costInput}
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <span style={cardLabel}>{t('Force send')}</span>
+                          <span style={cardValue}>{String(Boolean(channel.forceSend))}</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                          <span style={cardLabel}>{t('Class')}</span>
+                          <span style={{ ...cardValue, wordBreak: 'break-word' }}>{channel.className || '-'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
-                  <div key={channel.type} style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(90px, 0.6fr) minmax(90px, 0.6fr) minmax(100px, 0.7fr) minmax(140px, 1fr)', gap: 12, padding: '12px 14px', borderTop: '1px solid var(--border)', background: 'var(--card)', alignItems: 'start' }}>
+                  <div key={channel.type} style={{ display: 'grid', minWidth: 760, gridTemplateColumns: 'minmax(140px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(90px, 0.6fr) minmax(90px, 0.6fr) minmax(100px, 0.7fr) minmax(140px, 1fr)', gap: 12, padding: '12px 14px', borderTop: '1px solid var(--border)', background: 'var(--card)', alignItems: 'start' }}>
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{channelNameWithAdapter(channel, t)}</div>
-                    <div style={{ fontSize: 12, color: status.color, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <span style={{ fontWeight: 600 }}>{status.label}</span>
-                      {href && (
-                        <a href={href} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
-                          {t('Configure')} →
-                        </a>
-                      )}
-                      {channelError && (
-                        <span style={{ color: '#dc2626' }}>{channelError}</span>
-                      )}
-                    </div>
+                    {statusBlock}
                     <div style={{ display: 'flex', alignItems: 'center', minHeight: 34 }}>
-                      <Switch
-                        checked={isEnabled}
-                        onCheckedChange={(checked) => updateChannelEnabled(channel, checked === true)}
-                        disabled={actionLoading === `channel:${channel.type}`}
-                        aria-label={`${t('Enabled')}: ${channel.type || '-'}`}
-                      />
+                      {enabledSwitch}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{Array.isArray(channel.forGroupTo) ? channel.forGroupTo.join(', ') : '-'}</div>
-                    <div>
-                      <Input
-                        type="number"
-                        step="1"
-                        value={draft.sortOrder ?? String(channel.sortOrder ?? '')}
-                        onChange={(e) => updateChannelDraft(channel.type, 'sortOrder', e.target.value)}
-                        onBlur={() => saveChannelNumber(channel, 'sortOrder')}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') e.currentTarget.blur();
-                          if (e.key === 'Escape') updateChannelDraft(channel.type, 'sortOrder', String(channel.sortOrder ?? ''));
-                        }}
-                        disabled={actionLoading === `channel:${channel.type}:sortOrder`}
-                        style={numberCellStyle}
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={draft.cost ?? String(channel.cost ?? '')}
-                        onChange={(e) => updateChannelDraft(channel.type, 'cost', e.target.value)}
-                        onBlur={() => saveChannelNumber(channel, 'cost')}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') e.currentTarget.blur();
-                          if (e.key === 'Escape') updateChannelDraft(channel.type, 'cost', String(channel.cost ?? ''));
-                        }}
-                        disabled={actionLoading === `channel:${channel.type}:cost`}
-                        style={numberCellStyle}
-                      />
-                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{groupsText}</div>
+                    <div>{weightInput}</div>
+                    <div>{costInput}</div>
                     <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{String(Boolean(channel.forceSend))}</div>
                     <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{channel.className || '-'}</div>
                   </div>
@@ -1183,7 +1237,7 @@ function NotificationsManagerContent() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'minmax(200px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(150px, 1fr)' }}>
+              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: isMobile ? '1fr' : 'minmax(200px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(150px, 1fr)' }}>
                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by title, body, ID, order ID')} />
                 <select value={status} onChange={(e) => setStatus(e.target.value)} style={inputStyle}>
                   <option value="">{t('All statuses')}</option>
@@ -1254,7 +1308,7 @@ function NotificationsManagerContent() {
             </div>
           </section>
 
-          <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'minmax(420px, 1.2fr) minmax(320px, 0.9fr)', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gap: isMobile ? 16 : 24, gridTemplateColumns: isMobile ? '1fr' : 'minmax(420px, 1.2fr) minmax(320px, 0.9fr)', alignItems: 'start' }}>
 
           {/* List */}
           <div style={{ border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', background: 'var(--card)' }}>

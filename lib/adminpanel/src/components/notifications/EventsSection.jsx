@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { styles } from './shared';
+import { styles, useIsMobile } from './shared';
 
 const { Input, Badge, Button } = window.UIComponents;
 
@@ -9,6 +9,7 @@ const { Input, Badge, Button } = window.UIComponents;
  * jump to creating a new type for an event (prefilled eventKey).
  */
 export default function EventsSection({ t, events, types, onAddTypeForEvent }) {
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
 
@@ -29,7 +30,7 @@ export default function EventsSection({ t, events, types, onAddTypeForEvent }) {
   );
 
   return (
-    <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'minmax(320px, 0.9fr) minmax(360px, 1.1fr)', alignItems: 'start' }}>
+    <div style={{ display: 'grid', gap: isMobile ? 16 : 24, gridTemplateColumns: isMobile ? '1fr' : 'minmax(320px, 0.9fr) minmax(360px, 1.1fr)', alignItems: 'start' }}>
       {/* List */}
       <section style={styles.panel}>
         <div>
