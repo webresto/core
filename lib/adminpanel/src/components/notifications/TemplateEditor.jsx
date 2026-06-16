@@ -21,6 +21,9 @@ export default function TemplateEditor({ value, onChange, contextPaths, singleLi
   const onChangeRef = React.useRef(onChange);
   onChangeRef.current = onChange;
   const langCompartment = React.useRef(new Compartment());
+  // Mirror the shadcn <Input> focus affordance (the "Basic" tab uses real Inputs):
+  // border switches to --ring and gains a 2px ring on focus-within.
+  const [focused, setFocused] = React.useState(false);
 
   // Create the editor once.
   React.useEffect(() => {
@@ -71,12 +74,19 @@ export default function TemplateEditor({ value, onChange, contextPaths, singleLi
   return (
     <div
       ref={hostRef}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       style={{
-        border: '1px solid var(--border)',
-        borderRadius: 10,
+        // border-input at rest, border-ring on focus — matches the shadcn <Input>.
+        border: `1px solid ${focused ? 'var(--ring)' : 'var(--input)'}`,
+        borderRadius: 'var(--radius, 10px)',
         background: 'var(--background)',
-        minHeight: singleLine ? 40 : 88,
+        minHeight: singleLine ? 36 : 88,
         overflow: 'hidden',
+        transition: 'color .15s, box-shadow .15s, border-color .15s',
+        boxShadow: focused
+          ? '0 0 0 2px color-mix(in srgb, var(--ring) 50%, transparent)'
+          : 'var(--shadow-xs, 0 1px 2px 0 rgb(0 0 0 / 0.05))',
       }}
     />
   );

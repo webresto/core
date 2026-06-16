@@ -29,8 +29,27 @@ import { UserDeviceRecord } from "../models/UserDevice";
 // todo: fix types model instance to {%ModelName%}Record for User";
 type Badge = "info" | "error";
 type MessageGroupTo = "user" | "manager" | "device" | string
-type ChannelType = "sms" | "email" | "mobile-push" | string
+type ChannelType = "sms" | "email" | string
 export type ChannelStatus = "ready" | "error" | string
+
+/**
+ * Template fields a channel can render. The templates editor shows only the fields a
+ * channel declares (see Channel.templateFields), so e.g. SMS exposes just the body.
+ */
+export type TemplateFieldKey = "title" | "subject" | "body" | "clickUrl"
+
+/**
+ * Fallback field set per known channel type, used when a channel does not declare its own
+ * `templateFields`. Keeps legacy/external channels sensible without code changes on their side.
+ */
+export const DEFAULT_TEMPLATE_FIELDS_BY_TYPE: Record<string, TemplateFieldKey[]> = {
+  "sms": ["body"],
+  "email": ["subject", "body"],
+  "fcm-mobile": ["title", "body", "clickUrl"],
+  "fcm-web": ["title", "body", "clickUrl"],
+}
+
+export const ALL_TEMPLATE_FIELDS: TemplateFieldKey[] = ["title", "subject", "body", "clickUrl"]
 export type ChannelManagerState = {
   enabled?: boolean
   sortOrder?: number
@@ -65,6 +84,24 @@ function getSharedChannelsRegistry(): Channel[] {
 
 export abstract class Channel {
   public abstract type: ChannelType;
+
+  /**
+   * Template fields this channel actually renders. The templates editor shows only these for
+   * channel-specific overrides — e.g. SMS declares ["body"] so title/subject/clickUrl are hidden.
+   * Leave undefined to fall back to DEFAULT_TEMPLATE_FIELDS_BY_TYPE (by `type`), then all fields.
+   */
+  public templateFields?: TemplateFieldKey[];
+
+  /**
+   * Resolve the effective field set: explicit declaration → per-type default → all fields.
+   */
+  public getTemplateFields(): TemplateFieldKey[] {
+    if (Array.isArray(this.templateFields) && this.templateFields.length) {
+      const allowed = this.templateFields.filter((f) => ALL_TEMPLATE_FIELDS.includes(f));
+      if (allowed.length) return allowed;
+    }
+    return DEFAULT_TEMPLATE_FIELDS_BY_TYPE[this.type] || ALL_TEMPLATE_FIELDS;
+  }
 
   /**
    * Channel-level status for admin diagnostics.

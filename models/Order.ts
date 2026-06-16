@@ -2323,6 +2323,7 @@ async function emitOrderNotificationEvent(orderId: string, eventKey: string): Pr
     const context: Record<string, any> = {
       order: {
         id: order.id,
+        number: order.rmsOrderNumber || order.shortId,
         shortId: order.shortId,
         state: order.state,
         total: order.total,

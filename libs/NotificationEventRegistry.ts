@@ -39,7 +39,8 @@ const CORE_ORDER_SCHEMA: ContextField = {
   type: "object",
   description: "The order this notification is about.",
   fields: {
-    shortId: { type: "string", description: "Human-friendly order number.", example: "A-1234" },
+    number: { type: "string", description: "Order number from the RMS/POS (falls back to shortId).", example: "152" },
+    shortId: { type: "string", description: "Internal short order id (last 8 chars).", example: "A-1234" },
     state: { type: "string", description: "Current order state.", example: "ORDER" },
     total: { type: "number", description: "Grand total (currency units).", example: 540 },
     basketTotal: { type: "number", description: "Items subtotal before delivery.", example: 500 },

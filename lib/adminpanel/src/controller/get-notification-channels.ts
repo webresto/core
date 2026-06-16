@@ -65,8 +65,13 @@ export default async function GetNotificationChannelsController(req: any, res: a
           }
         }
 
+        const templateFields = typeof channel.getTemplateFields === "function"
+          ? channel.getTemplateFields()
+          : null;
+
         return {
           type: channel.type || "",
+          templateFields,
           forceSend: Boolean(channel.forceSend),
           forGroupTo: Array.isArray(channel.forGroupTo) ? channel.forGroupTo : [],
           sortOrder: Number.isFinite(Number(channel.sortOrder)) ? Number(channel.sortOrder) : null,

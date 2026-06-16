@@ -29,6 +29,10 @@ export default function TemplatesTab({ draft, updateDraft, t, locales, channels,
   };
 
   const channelOptions = Array.isArray(channels) ? channels.map((c) => String(c.type)).filter(Boolean) : [];
+  // Fields the selected channel declares it renders (Channel.templateFields). When present, the
+  // channel-specific editor shows only these (e.g. SMS → just the body).
+  const selectedChannel = Array.isArray(channels) ? channels.find((c) => String(c.type) === channelType) : null;
+  const channelFields = Array.isArray(selectedChannel?.templateFields) ? selectedChannel.templateFields : null;
   // Channel-specific locale options: configured locales + translated locales + any already set on this channel.
   const localeOptionsForChannel = useMemo(() => {
     const configured = Array.isArray(locales) ? locales : [];
@@ -88,6 +92,7 @@ export default function TemplatesTab({ draft, updateDraft, t, locales, channels,
             onChange={(c) => setChannel(channelType, channelLocale, c)}
             t={t}
             contextPaths={contextPaths}
+            fields={channelFields}
             basePlaceholder
           />
         ) : (
