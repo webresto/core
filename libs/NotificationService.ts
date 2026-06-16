@@ -54,6 +54,8 @@ export interface EmitPayload {
 export interface EmitResultEntry {
   typeKey: string;
   status: "sent" | "scheduled" | "skipped" | "error" | "dry-run";
+  /** Persisted Notification.status (e.g. "sent" | "failed" | "pending"); undefined for dry-run. */
+  notificationStatus?: string;
   notificationId?: string;
   scheduledAt?: number | null;
   requestedChannels?: string[];
@@ -193,6 +195,7 @@ export class NotificationService {
         results.push({
           typeKey: type.key,
           status: scheduledAt ? "scheduled" : (notification.status === "sent" ? "sent" : "skipped"),
+          notificationStatus: notification.status,
           notificationId: notification.id || undefined,
           scheduledAt,
           requestedChannels,
