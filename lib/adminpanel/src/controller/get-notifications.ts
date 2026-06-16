@@ -28,6 +28,24 @@ function formatUser(notification: any): { id: string; name: string; phone: strin
   };
 }
 
+// Resolve who the notification is actually for. Order.customer (carried in
+// data.context.order.customer / data.recipient) is the real contact and wins over
+// the linked account, so guest orders no longer fall back to "Manager broadcast".
+function resolveRecipient(notification: any): { name: string; phone: string; source: "customer" | "account" | null } {
+  const data = notification?.data && typeof notification.data === "object" ? notification.data : {};
+  const customer =
+    (data?.context?.order?.customer && typeof data.context.order.customer === "object" && data.context.order.customer)
+    || (data?.customer && typeof data.customer === "object" && data.customer)
+    || (data?.recipient && typeof data.recipient === "object" && data.recipient)
+    || null;
+  if (customer && (customer.name || customer.phone)) {
+    return { name: String(customer.name || ""), phone: String(customer.phone || ""), source: "customer" };
+  }
+  const account = formatUser(notification);
+  if (account) return { name: account.name, phone: account.phone, source: "account" };
+  return { name: "", phone: "", source: null };
+}
+
 function parseJsonArray(value: any): any[] {
   if (Array.isArray(value)) return value;
   if (typeof value === "string" && value.trim()) {
@@ -51,6 +69,7 @@ function mapNotification(notification: any): any {
     updatedAt: notification?.updatedAt || null,
     data: notification?.data || null,
     user: formatUser(notification),
+    recipient: resolveRecipient(notification),
     logsCount: logs.length,
     orderId: notification?.data && typeof notification.data === "object" ? notification.data.orderId || null : null,
   };

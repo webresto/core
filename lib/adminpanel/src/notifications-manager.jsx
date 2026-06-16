@@ -229,6 +229,9 @@ function buildNotificationContext(notification) {
     `Created: ${notification.createdAt || '-'}`,
     `Read at: ${notification.readAt || '-'}`,
   ];
+  if (notification.recipient?.name || notification.recipient?.phone) {
+    lines.push(`Recipient: ${notification.recipient.name || '-'}${notification.recipient.phone ? ` (${notification.recipient.phone})` : ''}`);
+  }
   if (notification.user) {
     lines.push(`User ID: ${notification.user.id}`);
     lines.push(`User name: ${notification.user.name || '-'}`);
@@ -1275,7 +1278,8 @@ function NotificationsManagerContent() {
                     }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr 0.7fr 1fr', gap: 12, alignItems: 'start' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <strong style={{ fontSize: 13 }}>{item.user?.name || t('Manager broadcast')}</strong>
+                        <strong style={{ fontSize: 13 }}>{item.recipient?.name || item.user?.name || t('Manager broadcast')}</strong>
+                        {item.recipient?.phone && <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{item.recipient.phone}</span>}
                         <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{item.title || '-'}</span>
                         <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{item.id}</span>
                       </div>
@@ -1336,7 +1340,7 @@ function NotificationsManagerContent() {
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Delivery attempts')}:</strong> {selectedNotification.deliveryAttempts ?? 0}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Created')}:</strong> {formatDateTime(selectedNotification.createdAt, language)}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Read at')}:</strong> {selectedNotification.readAt ? formatDateTime(selectedNotification.readAt, language) : '—'}</div>
-                  <div><strong style={{ color: 'var(--foreground)' }}>{t('User')}:</strong> {selectedNotification.user?.name || t('Manager broadcast')}</div>
+                  <div><strong style={{ color: 'var(--foreground)' }}>{t('User')}:</strong> {selectedNotification.recipient?.name || selectedNotification.user?.name || t('Manager broadcast')}{selectedNotification.recipient?.phone ? ` (${selectedNotification.recipient.phone})` : ''}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>ID:</strong> {selectedNotification.id}</div>
                   {Array.isArray(selectedNotification.requestedChannels) && selectedNotification.requestedChannels.length > 0 && (
                     <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: 'var(--foreground)' }}>{t('Requested channels')}:</strong> {selectedNotification.requestedChannels.join(', ')}</div>

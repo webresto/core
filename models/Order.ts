@@ -2320,6 +2320,19 @@ async function emitOrderNotificationEvent(orderId: string, eventKey: string): Pr
     const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
     const user = order.user && typeof order.user === "object" ? (order.user as UserRecord) : null;
 
+    // Order.customer is the authoritative contact for the order — present even for
+    // guest orders without a bound account. It is surfaced as the notification
+    // recipient and a top-level {{customer.*}} template branch, taking priority over
+    // the linked account (an account may differ from who the order is actually for).
+    const customer = order.customer
+      ? {
+          name: order.customer.name,
+          phone: order.customer.phone
+            ? `${order.customer.phone.code || ""}${order.customer.phone.number || ""}`
+            : undefined,
+        }
+      : undefined;
+
     const context: Record<string, any> = {
       order: {
         id: order.id,
@@ -2333,14 +2346,7 @@ async function emitOrderNotificationEvent(orderId: string, eventKey: string): Pr
         comment: order.comment,
         paymentMethod: order.paymentMethodTitle,
         date: order.date,
-        customer: order.customer
-          ? {
-              name: order.customer.name,
-              phone: order.customer.phone
-                ? `${order.customer.phone.code || ""}${order.customer.phone.number || ""}`
-                : undefined,
-            }
-          : undefined,
+        customer,
         address: order.address
           ? {
               street: order.address.street,
@@ -2362,14 +2368,25 @@ async function emitOrderNotificationEvent(orderId: string, eventKey: string): Pr
         birthday: user.birthday,
       };
     }
+    // Top-level {{customer.*}} so any order template can render the real recipient
+    // without digging through {{order.customer.*}} and regardless of account binding.
+    if (customer) context.customer = customer;
 
     // The locale attribute is commented out in the model but may exist on the record
     // (see buildCancelPaymentDialog usage); resolveNotificationLocale has fallbacks.
     const orderLocale = (order as any).locale || undefined;
     const results = await NotificationService.emit(eventKey, {
-      recipient: user
-        ? { userId: user.id, user, locale: orderLocale }
-        : { locale: orderLocale },
+      recipient: {
+        ...(user ? { userId: user.id, user } : {}),
+        // Customer first (the real contact), even when an account is linked.
+        name:
+          customer?.name
+          || (user ? [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || undefined : undefined),
+        phone:
+          customer?.phone
+          || (user?.phone ? `${(user.phone as any).code || ""}${(user.phone as any).number || ""}` : undefined),
+        locale: orderLocale,
+      },
       context,
       // Customer-facing event even for guest orders; without user the dispatcher
       // delivers via the order's device (priorityDeviceId) or records a failed
