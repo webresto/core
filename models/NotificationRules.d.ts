@@ -76,8 +76,10 @@ declare let Model: {
     /** Validate a rule payload (see {@link validateRule}). */
     validateRule(rule: Partial<NotificationRulesRecord>): string[];
     /**
-     * Seed the example rules (all disabled — registration ≠ sending) when the catalog is empty.
-     * Replaces the old `NOTIFICATION_TYPES` settings `defaultValue`.
+     * Seed the example rules (mostly disabled — registration ≠ sending; e.g. `order_on_the_way_push`
+     * ships enabled by default) when the catalog is empty. Replaces the old `NOTIFICATION_TYPES`
+     * settings `defaultValue`. Templates for existing rows are handled on read by
+     * `NotificationTypeRegistry` (parse + seed fallback), so no per-row backfill is needed here.
      */
     seedDefaults(): Promise<void>;
 };

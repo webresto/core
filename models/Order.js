@@ -1954,6 +1954,7 @@ async function emitOrderNotificationEvent(orderId, eventKey) {
         const context = {
             order: {
                 id: order.id,
+                number: order.rmsOrderNumber || order.shortId,
                 shortId: order.shortId,
                 state: order.state,
                 total: order.total,
@@ -1995,7 +1996,7 @@ async function emitOrderNotificationEvent(orderId, eventKey) {
         // The locale attribute is commented out in the model but may exist on the record
         // (see buildCancelPaymentDialog usage); resolveNotificationLocale has fallbacks.
         const orderLocale = order.locale || undefined;
-        await NotificationService_1.NotificationService.emit(eventKey, {
+        const results = await NotificationService_1.NotificationService.emit(eventKey, {
             recipient: user
                 ? { userId: user.id, user, locale: orderLocale }
                 : { locale: orderLocale },
@@ -2007,6 +2008,27 @@ async function emitOrderNotificationEvent(orderId, eventKey) {
             priorityDeviceId: order.deviceId || null,
             meta: { sourceModule: "core/order" },
         });
+        // Trace each emitted notification from the order timeline: one log line per
+        // notification type, carrying its Notification id and delivery status. A
+        // non-delivered notification (skipped/error) is logged at "warn" so the
+        // operator sees the problem in the order log; the id opens the Notification
+        // record with status and the full waterfall trace.
+        for (const result of results) {
+            const delivered = result.status === "sent" || result.status === "scheduled";
+            const level = delivered ? "info" : "warn";
+            // Prefer the persisted Notification.status ("failed"/"sent"/...) so a
+            // delivery error is explicit in the order log; fall back to emit status.
+            const statusLabel = result.notificationStatus || result.status;
+            await Order.log({ id: orderId }, level, "notification", `Notification ${result.notificationId || "(no id)"} ${statusLabel} [event=${eventKey}, type=${result.typeKey}]`, {
+                notificationId: result.notificationId || null,
+                eventKey,
+                typeKey: result.typeKey,
+                status: result.status,
+                notificationStatus: result.notificationStatus,
+                requestedChannels: result.requestedChannels,
+                reason: result.reason,
+            });
+        }
     }
     catch (error) {
         sails.log.error(`Order > notification event "${eventKey}" failed for order ${orderId}`, error);

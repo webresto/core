@@ -62,6 +62,7 @@ declare let Model: {
      * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB
      * into process.env on boot, so libraries reading process.env[key] directly
      * stay in sync with the value configured in Settings.
+     * Does not overwrite process.env if it is already set (env takes priority).
      */
     syncEnvMirroredSettings(): Promise<void>;
     setDeclaredSetting: typeof setDeclaredSetting;
