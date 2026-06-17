@@ -93,10 +93,24 @@ let Model = {
     let OTP = (await OneTimePassword.find({login: login}).sort('createdAt DESC'))[0]
     if (OTP === undefined) return false
     if (password === OTP.password) {
+      // A correct code proves the user received and read the delivered message, so mark
+      // the notification(s) emitted for this OTP (idempotencyKey `user_otp:<id>`, see
+      // afterCreate) as read. Best-effort: a notifications problem must not block login.
+      try {
+        // `(globalThis as any).Notification` references the Sails model, not the
+        // browser-global Notification type pulled in by lib "DOM" (same trick as
+        // NotificationDispatcher).
+        await (globalThis as any).Notification.update(
+          { idempotencyKey: `user_otp:${OTP.id}`, status: { "!=": "read" } },
+          { status: "read", readAt: Date.now() }
+        ).fetch();
+      } catch (error) {
+        sails.log.warn(`OneTimePassword > failed to mark OTP notification read for id ${OTP.id}`, error);
+      }
       await OneTimePassword.destroy({id: OTP.id})
       return true
     }
-    
+
     return false
   }
 };
