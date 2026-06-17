@@ -8,6 +8,7 @@ import { registerMediaTools } from './media';
 import { registerBackupTools } from './backup';
 import { registerOrderTools } from './order';
 import { registerNotificationTools } from './notifications';
+import { registerPromotionsTools } from './promotions';
 
 export function registerCoreMcpTools() {
     if (process.env.MCP_ENABLED !== 'true') return;
@@ -22,4 +23,5 @@ export function registerCoreMcpTools() {
     registerBackupTools();
     registerOrderTools();
     registerNotificationTools();
+    registerPromotionsTools();
 }

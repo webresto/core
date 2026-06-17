@@ -119,14 +119,24 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const filteredByCondition: PromotionRecord[] = this.filterByCondition(filteredPromotionsToApply, target);
-    // Promotion by PromotionCode doesn't need to be filtered
+    /**
+     * Promotions activated by an applied PromotionCode are force-applied, but they
+     * still pass through condition() in promocode mode (viaPromocode=true): the code
+     * relaxes the automatic dish/group targeting, yet code-eligibility rules (e.g. a
+     * minimum basket total) are honoured. A promotion already eligible automatically
+     * is not pushed twice.
+     */
     if (findModelInstanceByAttributes(target) === "Order") {
       const order = target as OrderRecord;
       if (order.promotionCode) {
         const promotionCode = order.promotionCode as PromotionCodeRecord
         if (Array.isArray(promotionCode.promotion)) {
           promotionCode.promotion.forEach((p) => {
-            if(typeof p === "object") {
+            if (typeof p !== "object" || p === null) return;
+            const handler = this.promotions[p.id];
+            if (!handler) return; // not registered (e.g. disabled) → can't apply
+            if (filteredByCondition.some((x) => x.id === p.id)) return; // already eligible
+            if (handler.condition(order, true)) {
               p.sortOrder = -Infinity;
               filteredByCondition.push(p);
             }
