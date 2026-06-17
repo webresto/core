@@ -40,8 +40,18 @@ export default abstract class AbstractPromotionHandler {
    */
   public abstract badge: string;
 
+  /**
+   * Decides whether this promotion applies to the target.
+   *
+   * @param arg1 the order/dish/group being evaluated
+   * @param viaPromocode true when the promotion is being activated by an applied
+   *   PromotionCode. In this mode the handler should NOT require its automatic
+   *   targeting (dish/group match) — the code is an explicit activation — but it
+   *   may still enforce code-eligibility rules (e.g. a minimum basket total).
+   *   Handlers that don't care can ignore this argument (defaults to false).
+   */
   // TODO: makes it not optional
-  public abstract condition(arg1: GroupRecord | DishRecord | OrderRecord): boolean
+  public abstract condition(arg1: GroupRecord | DishRecord | OrderRecord, viaPromocode?: boolean): boolean
 
   /**
    * The order must be modified and recorded in a model within this method

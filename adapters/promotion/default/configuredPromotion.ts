@@ -46,7 +46,28 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   // public configDiscount: IconfigDiscount;
   public externalId: string;
 
-  public condition(arg: GroupRecord | DishRecord | OrderRecord): boolean {
+  public condition(arg: GroupRecord | DishRecord | OrderRecord, viaPromocode: boolean = false): boolean {
+    /**
+     * Promocode mode: the code is an explicit activation, so we don't require the
+     * automatic dish/group targeting. We only enforce code-eligibility rules — the
+     * minimum basket total.
+     *
+     * Threshold precedence (NOT max — first defined wins):
+     *   gift.minBasketTotal  ??  config.minBasketTotal (top-level)  ??  0
+     * i.e. for a gift promotion the gift threshold takes precedence and the generic
+     * top-level one is ignored; 0 means "no threshold" (applies on any basket).
+     *
+     * The check gates the WHOLE promotion: returning false keeps it out of the apply
+     * list, so below the threshold NEITHER the gift NOR any discount in the same
+     * config is applied (and clearOfPromotion already removed any previously added
+     * gift). Re-evaluated on every cart recount → dynamic.
+     */
+    if (viaPromocode && findModelInstanceByAttributes(arg) === "Order") {
+      const order = arg as OrderRecord;
+      const minBasketTotal = this.config.gift?.minBasketTotal ?? this.config.minBasketTotal ?? 0;
+      return new Decimal(order.basketTotal ?? 0).gte(minBasketTotal);
+    }
+
     if (
       findModelInstanceByAttributes(arg) === "Order" && 
       (this.concept[0] === undefined || this.concept[0] === "") ? 
@@ -61,8 +82,13 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       // TODO:  if order.dishes type number[]
       let orderDishes: OrderDishRecord[] = order.dishes as OrderDishRecord[]
 
-      let checkDishes = orderDishes.map(order => order.dish).some((dish: DishRecord) => this.config.dishes.includes(dish.id)) || this.config.dishes.includes("*")
-      let checkGroups = orderDishes.map(order => order.dish).some((dish: DishRecord) => this.config.groups.includes(dish.parentGroup)) || this.config.groups.includes("*")
+      // Gift-only promotions may have no dishes/groups — guard against null so
+      // condition() returns false cleanly instead of throwing (which would
+      // silently abort the whole promotion batch in processOrder).
+      const configDishes = this.config.dishes ?? []
+      const configGroups = this.config.groups ?? []
+      let checkDishes = orderDishes.map(order => order.dish).some((dish: DishRecord) => configDishes.includes(dish.id)) || configDishes.includes("*")
+      let checkGroups = orderDishes.map(order => order.dish).some((dish: DishRecord) => configGroups.includes(dish.parentGroup)) || configGroups.includes("*")
       
       if (checkDishes || checkGroups) {
         if(this.config.deliveryMethod && Array.isArray(this.config.deliveryMethod)) {
@@ -84,12 +110,12 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
     if (findModelInstanceByAttributes(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
       someInArray(arg.concept, this.concept)) {
-      return someInArray(arg.id, this.config.dishes)
+      return someInArray(arg.id, this.config.dishes ?? [])
     }
 
     if (findModelInstanceByAttributes(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
       someInArray(arg.concept, this.concept)) {
-      return someInArray(arg.id, this.config.groups)
+      return someInArray(arg.id, this.config.groups ?? [])
     }
 
 
@@ -137,10 +163,46 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public async applyPromotion(order: OrderRecord): Promise<PromotionState> {
     sails.log.debug(`Configured promotion to be applied. name: [${this.name}], id: [${this.id}]`)
 
+    /**
+     * GIFT: auto-add gift dishes for free when the basket reaches the threshold.
+     *
+     * clearOfPromotion (runs before every action in processOrder) already removed
+     * any previously added gift dishes, so this re-evaluation is idempotent and a
+     * basket that drops below `minBasketTotal` loses the gift automatically.
+     *
+     * basketTotal counts only user dishes (addedBy:"user"), so the gift itself does
+     * not inflate the threshold check. addDish(addedBy:"promotion") goes through
+     * countCart(isPromoting=true) → no recursive promotion processing.
+     *
+     * Second layer: condition(order, viaPromocode=true) already gates this via the
+     * adapter. This guard checks ONLY gift.minBasketTotal (the top-level
+     * config.minBasketTotal is irrelevant to adding a gift) and exists for direct
+     * applyPromotion() calls by custom handlers that bypass the adapter/condition.
+     */
+    if (this.config.gift && Array.isArray(this.config.gift.dishes) && this.config.gift.dishes.length) {
+      const minBasketTotal = this.config.gift.minBasketTotal ?? 0;
+      if (new Decimal(order.basketTotal ?? 0).gte(minBasketTotal)) {
+        for (const giftDish of this.config.gift.dishes) {
+          if (!giftDish?.dishId) continue;
+          try {
+            await Order.addDish({ id: order.id }, giftDish.dishId, giftDish.amount ?? 1, [], "", "promotion");
+          } catch (error) {
+            sails.log.error(`ConfiguredPromotion gift: failed to add gift dish [${giftDish.dishId}] for promotion name: [${this.name}], id: [${this.id}]`, error);
+          }
+        }
+      }
+    }
+
     // order.dishes
     const orderDishes = await OrderDish.find({ order: order.id, addedBy: "user" }).populate("dish");
     let calculatedDiscountAmount: Decimal = new Decimal(0);
 
+    /**
+     * Gift-only promotions carry no discountType — skip the discount math entirely,
+     * otherwise the cart-wide branch dereferences this.config.dishes/discountAmount
+     * and the per-dish branch throws "Unknown discountType".
+     */
+    if (this.configDiscount?.discountType) {
 
     // Discount that applies to all dishes
     if (!this.config.dishes.length && !this.config.groups.length && !this.config.exclude?.dishes?.length && !this.config.exclude?.groups?.length) {
@@ -227,13 +289,15 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
      * Since there can be several promotions, they may already contain promotionFlatDiscount
      */
     if(order.promotionFlatDiscount > 0){
-      order.promotionFlatDiscount =  new Decimal(order.promotionFlatDiscount).plus(calculatedDiscountAmount).toNumber();      
+      order.promotionFlatDiscount =  new Decimal(order.promotionFlatDiscount).plus(calculatedDiscountAmount).toNumber();
     } else {
       order.promotionFlatDiscount = calculatedDiscountAmount.toNumber();
     }
 
     // TODO: this is call in ORM unwanted, but without this the direct call to the cart discount does not work
     await Order.updateOne({id: order.id}, {promotionFlatDiscount: order.promotionFlatDiscount});
+
+    } // end discount calc guard (this.configDiscount.discountType)
 
     return {
       message: `${this.description}`,

@@ -924,7 +924,7 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
   );
 }
 
-function OrderStackRow({ order, language, t, isUpdating, onOpen }) {
+function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen }) {
   const stateColor = STATE_COLORS[order.state] || 'var(--muted-foreground)';
 
   return (
@@ -1006,6 +1006,15 @@ function OrderStackRow({ order, language, t, isUpdating, onOpen }) {
             </span>
           ) : null}
         </div>
+        {onMove ? (
+          <OrderTransitionSelect
+            order={order}
+            t={t}
+            isUpdating={isUpdating}
+            onMove={onMove}
+            compact
+          />
+        ) : null}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
@@ -1055,6 +1064,7 @@ function OrderStackView({
   language,
   t,
   updatingOrderId,
+  onMove,
   onOpen,
 }) {
   const summaryStates = visibleStates;
@@ -1164,6 +1174,7 @@ function OrderStackView({
                   language={language}
                   t={t}
                   isUpdating={updatingOrderId === order.id}
+                  onMove={onMove}
                   onOpen={onOpen}
                 />
               ))}
@@ -1782,6 +1793,7 @@ function OrderKanbanContent() {
           language={language}
           t={t}
           updatingOrderId={updatingOrderId}
+          onMove={moveOrder}
           onOpen={setSelectedOrderId}
         />
       ) : (
