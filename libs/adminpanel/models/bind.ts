@@ -179,16 +179,8 @@ export const models = {
     title: 'Userbonus transactions',
     icon: 'swap_horiz'
   },
-  promotion: {
-    model: 'promotion',
-    title: 'Promotions',
-    icon: 'local_offer'
-  },
-  promotioncode: {
-    model: 'promotioncode',
-    title: 'Promotion codes',
-    icon: 'confirmation_number'
-  },
+  // Promotion & PromotionCode bare CRUD pages are replaced by the Marketing module
+  // (Promo codes + Promotions), registered in hook/bindAdminpanel.ts.
   place: {
     model: 'place',
     title: 'Places',
