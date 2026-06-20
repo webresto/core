@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { ensureDefaultGroups } from "../libs/adminpanel/ensureDefaultGroups";
 
 // todo: fix types model instance to {%ModelName%}Record for bind"
 
@@ -116,6 +117,12 @@ export default function bindAdminpanel() {
         department: 'System'
       }
     ]);
+
+    try {
+      await ensureDefaultGroups(adminizer, adminizer.config.defaultGroups);
+    } catch (e) {
+      sails.log.error('Default admin groups initialization failed', e);
+    }
 
     adminizer.config.navbar.additionalLinks.push({
       id: 'restoapp-catalog',
