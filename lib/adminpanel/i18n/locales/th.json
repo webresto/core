@@ -458,5 +458,7 @@
 	"self-service only": "บริการตนเองเท่านั้น",
 	"stacks with others": "ใช้ร่วมกับโปรโมชันอื่นได้",
 	"total": "รวม",
-	"workTime JSON. Leave empty for always-on.": "workTime JSON เว้นว่างไว้เพื่อให้เปิดตลอด"
+	"workTime JSON. Leave empty for always-on.": "workTime JSON เว้นว่างไว้เพื่อให้เปิดตลอด",
+	"Form": "แบบฟอร์ม",
+	"No dishes found": "ไม่พบเมนู"
 }

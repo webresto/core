@@ -458,5 +458,7 @@
 	"self-service only": "à emporter uniquement",
 	"stacks with others": "cumulable avec d'autres",
 	"total": "total",
-	"workTime JSON. Leave empty for always-on.": "workTime JSON. Laissez vide pour toujours actif."
+	"workTime JSON. Leave empty for always-on.": "workTime JSON. Laissez vide pour toujours actif.",
+	"Form": "Formulaire",
+	"No dishes found": "Aucun plat trouvé"
 }

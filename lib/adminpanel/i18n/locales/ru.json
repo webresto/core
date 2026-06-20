@@ -727,5 +727,7 @@
 	"Add gift items": "Добавить товары-подарки",
 	"Gift items": "Товары-подарки",
 	"Auto-adds these items to the cart once the basket reaches the threshold; removed if it drops below.": "Автоматически добавляет эти товары в корзину при достижении порога; убираются, если сумма опускается ниже.",
-	"Added to the cart as a gift. Use a 0₽ dish for a free gift, or a special promo item at its own price.": "Добавляются в корзину как подарок. Используйте блюдо за 0₽ для бесплатного подарка или специальный акционный товар по своей цене."
+	"Added to the cart as a gift. Use a 0₽ dish for a free gift, or a special promo item at its own price.": "Добавляются в корзину как подарок. Используйте блюдо за 0₽ для бесплатного подарка или специальный акционный товар по своей цене.",
+	"Form": "Форма",
+	"No dishes found": "Блюда не найдены"
 }

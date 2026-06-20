@@ -458,5 +458,7 @@
 	"self-service only": "chỉ tự phục vụ",
 	"stacks with others": "cộng dồn với khuyến mãi khác",
 	"total": "tổng",
-	"workTime JSON. Leave empty for always-on.": "workTime JSON. Để trống để luôn bật."
+	"workTime JSON. Leave empty for always-on.": "workTime JSON. Để trống để luôn bật.",
+	"Form": "Biểu mẫu",
+	"No dishes found": "Không tìm thấy món ăn"
 }

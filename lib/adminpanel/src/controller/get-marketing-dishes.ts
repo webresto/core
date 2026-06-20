@@ -1,25 +1,26 @@
 import { hasAccess } from "./marketing-helpers";
 
 /**
- * GET …/core/marketing/dishes?group=<id>  |  ?q=<search>
- * Dishes for the promotion form's dish MultiSelect: by group (cascade) or by free-text search.
+ * GET …/core/marketing/dishes?group=<id>  |  ?q=<search>  |  ?ids=<id,id,...>
+ * Dishes for the promotion form's dish picker: by group, free-text search, or exact ids.
+ * An empty query returns the first page so focusing the picker opens a useful dropdown.
  * Scoped to promotions-manager (thin wrapper — see §10.4).
  */
 export default async function GetMarketingDishesController(req: any, res: any) {
-  const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
   try {
     if (!hasAccess(req, res, "promotions-manager")) return;
 
     const group = String(req.query.group || "").trim();
     const q = String(req.query.q || "").trim();
+    const ids = String(req.query.ids || "").split(",").map((id) => id.trim()).filter(Boolean).slice(0, 100);
 
-    const where: any = { isDeleted: false };
-    if (group) {
+    const where: any = ids.length ? { id: ids } : { isDeleted: false };
+    if (ids.length) {
+      // Exact lookup also resolves legacy/deleted dishes already referenced by a promotion.
+    } else if (group) {
       where.parentGroup = group;
     } else if (q) {
       where.or = [{ name: { contains: q } }, { code: { contains: q } }];
-    } else {
-      return res.status(400).json({ error: t("Provide a group or a search query") });
     }
 
     const dishes = await Dish.find({ where, limit: 100 }).sort("name ASC");
@@ -28,6 +29,7 @@ export default async function GetMarketingDishesController(req: any, res: any) {
       name: d.name || d.id,
       code: d.code || "",
       parentGroup: d.parentGroup || null,
+      isDeleted: Boolean(d.isDeleted),
     }));
 
     return res.json({ results });

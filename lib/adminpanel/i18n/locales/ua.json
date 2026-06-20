@@ -663,5 +663,7 @@
 	"self-service only": "лише самовивіз",
 	"stacks with others": "сумується з іншими",
 	"total": "усього",
-	"workTime JSON. Leave empty for always-on.": "workTime JSON. Порожньо — діє завжди."
+	"workTime JSON. Leave empty for always-on.": "workTime JSON. Порожньо — діє завжди.",
+	"Form": "Форма",
+	"No dishes found": "Страви не знайдено"
 }

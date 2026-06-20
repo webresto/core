@@ -458,5 +458,7 @@
 	"self-service only": "셀프 서비스만",
 	"stacks with others": "다른 것과 중복 적용",
 	"total": "합계",
-	"workTime JSON. Leave empty for always-on.": "workTime JSON. 항상 켜려면 비워 두세요."
+	"workTime JSON. Leave empty for always-on.": "workTime JSON. 항상 켜려면 비워 두세요.",
+	"Form": "양식",
+	"No dishes found": "메뉴를 찾을 수 없습니다"
 }
