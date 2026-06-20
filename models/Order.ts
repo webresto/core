@@ -1570,7 +1570,7 @@ let Model = {
               continue;
             }
 
-            if (dish.enable === false) {
+                        if (dish.enable === false) {
               sails.log.warn(`Dish with id ${dish.id} is disabled and removed from cart.`);
               await Order.log({id: order.id}, "info", "core", "countCart: removed disabled dish", {orderDishId: orderDish.id, dishId: dish.id, dishName: dish.name});
               await OrderDish.destroy({ id: orderDish.id }).fetch();
@@ -1592,7 +1592,10 @@ let Model = {
               orderDish.itemTotal = 0;
               orderDish.itemPrice = 0;
               orderDish.totalWeight = 0;
-              await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
+              // Update only scalar columns. Passing the whole populated `orderDish` (its
+              // `dish` is a full record object here) makes Waterline reject the update with
+              // "Could not use specified `dish`. Expecting an id" and the row is left unpriced.
+              await OrderDish.update({ id: orderDish.id }, { itemTotal: 0, itemPrice: 0, totalWeight: 0 }).fetch();
               continue;
             }
 

@@ -1327,7 +1327,10 @@ let Model = {
                             orderDish.itemTotal = 0;
                             orderDish.itemPrice = 0;
                             orderDish.totalWeight = 0;
-                            await OrderDish.update({ id: orderDish.id }, orderDish).fetch();
+                            // Update only scalar columns. Passing the whole populated `orderDish` (its
+                            // `dish` is a full record object here) makes Waterline reject the update with
+                            // "Could not use specified `dish`. Expecting an id" and the row is left unpriced.
+                            await OrderDish.update({ id: orderDish.id }, { itemTotal: 0, itemPrice: 0, totalWeight: 0 }).fetch();
                             continue;
                         }
                         orderDish.itemTotal = 0;
