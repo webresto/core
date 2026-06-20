@@ -58,19 +58,24 @@ function DishPicker({ t, value, onChange, names, setNames }) {
   const [q, setQ] = useState('');
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+
+  const load = useCallback(async (query) => {
+    setLoading(true);
+    const res = await api(`/core/marketing/dishes?q=${encodeURIComponent(query)}`);
+    const r = res.ok ? (res.payload?.results || []) : [];
+    setResults(r);
+    setSearched(true);
+    setLoading(false);
+    setNames((n) => { const m = { ...n }; r.forEach((d) => { m[d.id] = d.name; }); return m; });
+  }, [setNames]);
 
   useEffect(() => {
     if (!q.trim()) { setResults([]); return; }
-    const id = setTimeout(async () => {
-      const res = await api(`/core/marketing/dishes?q=${encodeURIComponent(q.trim())}`);
-      if (res.ok) {
-        const r = res.payload?.results || [];
-        setResults(r);
-        setNames((n) => { const m = { ...n }; r.forEach((d) => { m[d.id] = d.name; }); return m; });
-      }
-    }, 300);
+    const id = setTimeout(() => load(q.trim()), 300);
     return () => clearTimeout(id);
-  }, [q, setNames]);
+  }, [q, load]);
 
   const add = (d) => { if (!value.includes(d.id)) onChange([...value, d.id]); setQ(''); setResults([]); setOpen(false); };
   const remove = (id) => onChange(value.filter((x) => x !== id));
@@ -78,9 +83,11 @@ function DishPicker({ t, value, onChange, names, setNames }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ position: 'relative' }}>
-        <Input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} placeholder={t('Search dishes…')} />
-        {open && results.length > 0 && (
+        <Input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => { setOpen(true); if (!q.trim() && results.length === 0) load(''); }} onBlur={() => setTimeout(() => setOpen(false), 150)} placeholder={t('Search dishes…')} />
+        {open && (loading || results.length > 0 || searched) && (
           <div style={{ position: 'absolute', zIndex: 20, top: '100%', left: 0, right: 0, marginTop: 4, maxHeight: 220, overflow: 'auto', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 10px 24px rgba(0,0,0,0.18)' }}>
+            {loading && <div style={{ padding: '10px 12px', color: 'var(--muted-foreground)', fontSize: 13 }}>{t('Loading...')}</div>}
+            {!loading && results.length === 0 && <div style={{ padding: '10px 12px', color: 'var(--muted-foreground)', fontSize: 13 }}>{t('No dishes found')}</div>}
             {results.map((d) => (
               <button key={d.id} type="button" onMouseDown={() => add(d)} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', borderTop: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', cursor: 'pointer', fontSize: 13 }}>
                 {d.name}{d.code ? <span style={{ color: 'var(--muted-foreground)' }}> · {d.code}</span> : null}
@@ -108,19 +115,24 @@ function GiftDishPicker({ t, value, onChange, names, setNames }) {
   const [q, setQ] = useState('');
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+
+  const load = useCallback(async (query) => {
+    setLoading(true);
+    const res = await api(`/core/marketing/dishes?q=${encodeURIComponent(query)}`);
+    const r = res.ok ? (res.payload?.results || []) : [];
+    setResults(r);
+    setSearched(true);
+    setLoading(false);
+    setNames((n) => { const m = { ...n }; r.forEach((d) => { m[d.id] = d.name; }); return m; });
+  }, [setNames]);
 
   useEffect(() => {
     if (!q.trim()) { setResults([]); return; }
-    const id = setTimeout(async () => {
-      const res = await api(`/core/marketing/dishes?q=${encodeURIComponent(q.trim())}`);
-      if (res.ok) {
-        const r = res.payload?.results || [];
-        setResults(r);
-        setNames((n) => { const m = { ...n }; r.forEach((d) => { m[d.id] = d.name; }); return m; });
-      }
-    }, 300);
+    const id = setTimeout(() => load(q.trim()), 300);
     return () => clearTimeout(id);
-  }, [q, setNames]);
+  }, [q, load]);
 
   const add = (d) => {
     if (!value.some((g) => g.dishId === d.id)) onChange([...value, { dishId: d.id, amount: 1 }]);
@@ -132,9 +144,11 @@ function GiftDishPicker({ t, value, onChange, names, setNames }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ position: 'relative' }}>
-        <Input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} placeholder={t('Search dishes…')} />
-        {open && results.length > 0 && (
+        <Input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => { setOpen(true); if (!q.trim() && results.length === 0) load(''); }} onBlur={() => setTimeout(() => setOpen(false), 150)} placeholder={t('Search dishes…')} />
+        {open && (loading || results.length > 0 || searched) && (
           <div style={{ position: 'absolute', zIndex: 20, top: '100%', left: 0, right: 0, marginTop: 4, maxHeight: 220, overflow: 'auto', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 10px 24px rgba(0,0,0,0.18)' }}>
+            {loading && <div style={{ padding: '10px 12px', color: 'var(--muted-foreground)', fontSize: 13 }}>{t('Loading...')}</div>}
+            {!loading && results.length === 0 && <div style={{ padding: '10px 12px', color: 'var(--muted-foreground)', fontSize: 13 }}>{t('No dishes found')}</div>}
             {results.map((d) => (
               <button key={d.id} type="button" onMouseDown={() => add(d)} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', borderTop: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', cursor: 'pointer', fontSize: 13 }}>
                 {d.name}{d.code ? <span style={{ color: 'var(--muted-foreground)' }}> · {d.code}</span> : null}
@@ -199,8 +213,10 @@ function fromRecord(r) {
   };
 }
 
-function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creating, onSave, onDelete, groupOptions, conceptOptions, dishNames, setDishNames }) {
+function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creating, onSave, onDelete, groupOptions, conceptOptions, dishNames, setDishNames, backendRaw }) {
   const [advanced, setAdvanced] = useState(false);
+  const [view, setView] = useState('form');
+  useEffect(() => { setView('form'); }, [draft.id]);
   const setField = (f, v) => setDraft((d) => ({ ...d, [f]: v }));
   const dirty = useMemo(() => (draft ? JSON.stringify(draft) !== baseline : false), [draft, baseline]);
 
@@ -242,6 +258,19 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
           {!creating && <Button type="button" variant="outline" onClick={onDelete} disabled={saving}>{t('Delete')}</Button>}
         </div>
       </div>
+
+      {!creating && (
+        <div style={{ display: 'inline-flex', gap: 6 }}>
+          <button type="button" style={segBtn(view === 'form')} onClick={() => setView('form')}>{t('Form')}</button>
+          <button type="button" style={segBtn(view === 'json')} onClick={() => setView('json')}>JSON</button>
+        </div>
+      )}
+
+      {view === 'json' && (
+        <pre style={{ ...styles.code, margin: 0, padding: 14, overflow: 'auto', maxHeight: '70vh', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', border: '1px solid var(--border)', borderRadius: 10 }}>{JSON.stringify(backendRaw || {}, null, 2)}</pre>
+      )}
+
+      <div style={{ display: view === 'form' ? 'contents' : 'none' }}>
 
       {/* Basic */}
       <section style={styles.subsection}>
@@ -406,6 +435,7 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
           </div>
         )}
       </section>
+      </div>
     </div>
   );
 }
@@ -491,6 +521,8 @@ function PromotionsManagerContent() {
   const [groupOptions, setGroupOptions] = useState([]);
   const [conceptOptions, setConceptOptions] = useState([]);
   const [dishNames, setDishNames] = useState({});
+  const [backendRaw, setBackendRaw] = useState(null);
+  const [detailItem, setDetailItem] = useState(null);
 
   const [draft, setDraft] = useState(null);
   const [baseline, setBaseline] = useState('');
@@ -533,13 +565,19 @@ function PromotionsManagerContent() {
   // Load detail draft when a configured promotion or #new is selected.
   useEffect(() => {
     let cancelled = false;
-    if (route.creating) { const d = emptyDraft(); setDraft(d); setBaseline(JSON.stringify(d)); return () => {}; }
-    if (!route.id) { setDraft(null); setBaseline(''); return () => {}; }
+    if (route.creating) { const d = emptyDraft(); setDraft(d); setBaseline(JSON.stringify(d)); setBackendRaw(null); setDetailItem(null); return () => {}; }
+    if (!route.id) { setDraft(null); setBaseline(''); setBackendRaw(null); setDetailItem(null); return () => {}; }
+    setDraft(null);
+    setBaseline('');
+    setBackendRaw(null);
+    setDetailItem(null);
     (async () => {
       const res = await api(`/core/marketing/promotion?id=${encodeURIComponent(route.id)}`);
       if (cancelled) return;
       if (res.ok && res.payload?.result) {
         const r = res.payload.result;
+        setDetailItem(r);
+        setBackendRaw(res.payload.raw || r);
         if (r.createdByUser) { const d = fromRecord(r); setDraft(d); setBaseline(JSON.stringify(d)); }
         else { setDraft(null); setBaseline(''); } // programmed → read-only via `selected`
       } else { toast('error', res.payload?.error || t('Promotion not found')); setDraft(null); setBaseline(''); }
@@ -547,6 +585,28 @@ function PromotionsManagerContent() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route.id, route.creating]);
+
+  const selectedDishIds = draft ? [...new Set([
+    ...(draft.dishes || []), ...(draft.excludeDishes || []),
+    ...(draft.giftDishes || []).map((g) => g.dishId),
+  ].filter(Boolean))] : [];
+  const selectedDishIdsKey = selectedDishIds.join(',');
+
+  // Resolve ids already stored in a promotion so chips show dish names immediately.
+  useEffect(() => {
+    if (!selectedDishIdsKey) return;
+    let cancelled = false;
+    (async () => {
+      const res = await api(`/core/marketing/dishes?ids=${encodeURIComponent(selectedDishIdsKey)}`);
+      if (cancelled || !res.ok) return;
+      setDishNames((current) => {
+        const next = { ...current };
+        (res.payload?.results || []).forEach((dish) => { next[dish.id] = dish.name; });
+        return next;
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [selectedDishIdsKey]);
 
   const guardedNav = (targetHash) => { if (dirty) { setPendingNav(targetHash); return; } setHash(targetHash); };
   const resolvePendingNav = (proceed) => { const tgt = pendingNav; setPendingNav(null); if (proceed && tgt != null) setHash(tgt); };
@@ -679,16 +739,17 @@ function PromotionsManagerContent() {
         {/* Detail */}
         {editorOpen && (
           <section style={styles.panel}>
-            {route.creating || (selected && selected.createdByUser) ? (
+            {route.creating || (detailItem && detailItem.createdByUser) ? (
               draft ? (
                 <ConfiguredForm
                   t={t} language={language} draft={draft} setDraft={setDraft} baseline={baseline}
                   saving={saving} creating={route.creating} onSave={save} onDelete={() => setConfirmDelete(true)}
                   groupOptions={groupOptions} conceptOptions={conceptOptions} dishNames={dishNames} setDishNames={setDishNames}
+                  backendRaw={backendRaw}
                 />
               ) : <div style={styles.help}>{t('loading')}</div>
-            ) : selected ? (
-              <ProgrammedDetail t={t} language={language} item={selected} onToggle={onToggle} savingToggle={savingToggle} />
+            ) : detailItem ? (
+              <ProgrammedDetail t={t} language={language} item={detailItem} onToggle={onToggle} savingToggle={savingToggle} />
             ) : (
               <div style={styles.help}>{t('loading')}</div>
             )}

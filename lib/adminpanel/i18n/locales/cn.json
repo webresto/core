@@ -458,5 +458,7 @@
 	"self-service only": "仅自取",
 	"stacks with others": "与其他促销叠加",
 	"total": "共",
-	"workTime JSON. Leave empty for always-on.": "workTime JSON。留空表示始终生效。"
+	"workTime JSON. Leave empty for always-on.": "workTime JSON。留空表示始终生效。",
+	"Form": "表单",
+	"No dishes found": "未找到菜品"
 }

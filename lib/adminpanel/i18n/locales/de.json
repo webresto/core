@@ -458,5 +458,7 @@
 	"self-service only": "nur Selbstabholung",
 	"stacks with others": "mit anderen kombinierbar",
 	"total": "gesamt",
-	"workTime JSON. Leave empty for always-on.": "workTime JSON. Leer lassen für „immer aktiv“."
+	"workTime JSON. Leave empty for always-on.": "workTime JSON. Leer lassen für „immer aktiv“.",
+	"Form": "Formular",
+	"No dishes found": "Keine Gerichte gefunden"
 }

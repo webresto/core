@@ -1,5 +1,6 @@
 import { hasAccess } from "./marketing-helpers";
 import { mapPromotionFull } from "./get-marketing-promotions";
+import { parseJsonArray, parseJsonObject } from "./marketing-helpers";
 
 /**
  * GET …/core/marketing/promotion?id=
@@ -19,7 +20,13 @@ export default async function GetMarketingPromotionController(req: any, res: any
     let activeIds: Set<string> | undefined;
     try { activeIds = new Set(Adapter.getPromotionAdapter().getActivePromotionsIds()); } catch { activeIds = undefined; }
 
-    return res.json({ result: mapPromotionFull(promotion, activeIds) });
+    const raw = {
+      ...promotion,
+      concept: parseJsonArray(promotion?.concept),
+      configDiscount: parseJsonObject(promotion?.configDiscount) || promotion?.configDiscount || {},
+    };
+
+    return res.json({ result: mapPromotionFull(promotion, activeIds), raw });
   } catch (error) {
     sails.log.error("Get marketing promotion error", error);
     return res.status(500).json({ error: String(error) });

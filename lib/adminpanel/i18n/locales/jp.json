@@ -458,5 +458,7 @@
 	"self-service only": "セルフサービスのみ",
 	"stacks with others": "他と併用可",
 	"total": "合計",
-	"workTime JSON. Leave empty for always-on.": "workTime JSON。常時オンの場合は空欄。"
+	"workTime JSON. Leave empty for always-on.": "workTime JSON。常時オンの場合は空欄。",
+	"Form": "フォーム",
+	"No dishes found": "料理が見つかりません"
 }
