@@ -143,7 +143,6 @@ export class GroupConfig {
         worktime: {
             title: "Work Time",
             type: "json",
-            disabled: true,
             tooltip: "The operational hours for the group.",
             options: {
                 name: "worktime-viewer",
