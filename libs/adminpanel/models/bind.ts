@@ -2,6 +2,25 @@ import { GroupConfig } from "./lib/group";
 import { ProductConfig } from "./lib/product";
 import { OrderConfig } from "./lib/order";
 import { NotificationConfig } from "./lib/notification";
+import { summarizeWorktime } from "../controls/worktimeViewerHelper";
+
+// Shared worktime field config: read-only dark viewer in edit/add, compact
+// summary in list — mirrors the order "logs" field (order-logs-viewer).
+const worktimeEditField = {
+  title: "Work Time",
+  type: "json",
+  disabled: true,
+  tooltip: "Operating hours schedule.",
+  options: {
+    name: "worktime-viewer",
+  },
+};
+const worktimeListField = {
+  title: "Work Time",
+  displayModifier(value: unknown) {
+    return summarizeWorktime(value);
+  },
+};
 
 export const models = {
   user: {
@@ -184,7 +203,22 @@ export const models = {
   place: {
     model: 'place',
     title: 'Places',
-    icon: 'place'
+    icon: 'place',
+    list: {
+      fields: {
+        worktime: worktimeListField,
+      }
+    },
+    edit: {
+      fields: {
+        worktime: worktimeEditField,
+      }
+    },
+    add: {
+      fields: {
+        worktime: worktimeEditField,
+      }
+    },
   },
   street: {
     model: 'street',
