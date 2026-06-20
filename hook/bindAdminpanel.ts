@@ -141,7 +141,7 @@ export default function bindAdminpanel() {
       title: 'Products',
       link: `/admin/catalog/products`,
       icon: `book`,
-      accessToken: "restoapp-catalog",
+      accessRightsToken: "catalog-products",
       section: 'Catalog'
     });
     adminizer.config.navbar.additionalLinks.push({
@@ -282,7 +282,7 @@ function processBindAdminpanel() {
             title: 'Stock Manager',
             link: `${routePrefix}/stock-manager`,
             icon: 'warehouse',
-            accessToken: 'stock-manager',
+            accessRightsToken: 'stock-manager',
             section: 'Catalog'
           });
 
@@ -302,7 +302,7 @@ function processBindAdminpanel() {
             title: 'Current Orders',
             link: `${routePrefix}/order-kanban`,
             icon: 'view_kanban',
-            accessToken: 'order-kanban',
+            accessRightsToken: 'order-kanban',
             section: 'Orders'
           });
 
@@ -330,7 +330,7 @@ function processBindAdminpanel() {
             title: 'Notifications',
             link: `${routePrefix}/notifications-manager`,
             icon: 'notifications',
-            accessToken: 'notifications-manager',
+            accessRightsToken: 'notifications-manager',
             section: 'Notifications'
           });
 
@@ -349,7 +349,7 @@ function processBindAdminpanel() {
             title: 'Notification channels',
             link: `${routePrefix}/notification-channels`,
             icon: 'settings_input_component',
-            accessToken: 'notifications-manager',
+            accessRightsToken: 'notifications-manager',
             section: 'Notifications'
           });
 
@@ -611,7 +611,7 @@ function processBindAdminpanel() {
             title: 'Promo codes',
             link: `${routePrefix}/promocodes-manager`,
             icon: 'confirmation_number',
-            accessToken: 'promocodes-manager',
+            accessRightsToken: 'promocodes-manager',
             section: 'Marketing'
           });
 
@@ -649,7 +649,7 @@ function processBindAdminpanel() {
             title: 'Promotions',
             link: `${routePrefix}/promotions-manager`,
             icon: 'local_offer',
-            accessToken: 'promotions-manager',
+            accessRightsToken: 'promotions-manager',
             section: 'Marketing'
           });
 
@@ -736,7 +736,7 @@ function processBindAdminpanel() {
             title: 'Setup checklist',
             link: `${routePrefix}/setup-checklist`,
             icon: 'checklist',
-            accessToken: 'setup-checklist',
+            accessRightsToken: 'setup-checklist',
             section: 'System'
           });
 
@@ -772,7 +772,7 @@ function processBindAdminpanel() {
             title: 'Orders Report',
             link: `${routePrefix}/orders-report`,
             icon: 'bar_chart',
-            accessToken: 'orders-report',
+            accessRightsToken: 'orders-report',
             section: 'Reports'
           });
 
