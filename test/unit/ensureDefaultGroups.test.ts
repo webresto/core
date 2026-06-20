@@ -3,6 +3,7 @@ import { ensureDefaultGroups } from '../../libs/adminpanel/ensureDefaultGroups';
 
 describe('ensureDefaultGroups', function () {
   it('creates only groups that do not exist', async function () {
+    const checkedGroupNames: string[] = [];
     const records: any[] = [
       {
         name: 'Operator',
@@ -12,15 +13,18 @@ describe('ensureDefaultGroups', function () {
       },
     ];
     const groupModel = {
-      findOne: async ({ where }: any) => records.find((record) => record.name === where.name),
-      create: async (record: any) => {
+      _findOne: async ({ name }: any) => {
+        checkedGroupNames.push(name);
+        return records.find((record) => record.name === name);
+      },
+      _create: async (record: any) => {
         records.push(record);
         return record;
       },
     };
     const adminizer = {
       modelHandler: {
-        internal: () => ({ get: () => groupModel }),
+        model: { get: () => groupModel },
       },
     };
 
@@ -38,6 +42,7 @@ describe('ensureDefaultGroups', function () {
     ]);
 
     expect(records).to.have.length(2);
+    expect(checkedGroupNames).to.deep.equal(['Operator', 'Marketer']);
     expect(records[0]).to.deep.equal({
       name: 'Operator',
       description: 'Changed by an administrator',

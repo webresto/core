@@ -14,18 +14,16 @@ export async function ensureDefaultGroups(
 ): Promise<void> {
   if (!Array.isArray(defaultGroups) || defaultGroups.length === 0) return;
 
-  const groupModel = adminizer.modelHandler
-    .internal('access-rights')
-    .get('GroupAP');
+  const groupModel = adminizer.modelHandler.model.get('GroupAP');
 
   for (const defaultGroup of defaultGroups) {
-    const existingGroup = await groupModel.findOne({
-      where: { name: defaultGroup.name },
+    const existingGroup = await groupModel._findOne({
+      name: defaultGroup.name,
     });
 
     if (existingGroup) continue;
 
-    await groupModel.create({
+    await groupModel._create({
       name: defaultGroup.name,
       description: defaultGroup.description,
       tokens: [...defaultGroup.tokens],
