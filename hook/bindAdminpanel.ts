@@ -105,6 +105,18 @@ export default function bindAdminpanel() {
         department: 'Notifications'
       },
       {
+        id: 'promocodes-manager',
+        name: 'Promo codes',
+        description: 'Access to the Promo codes module and its API endpoints',
+        department: 'Marketing'
+      },
+      {
+        id: 'promotions-manager',
+        name: 'Promotions',
+        description: 'Access to the Promotions module and its API endpoints',
+        department: 'Marketing'
+      },
+      {
         id: 'orders-report',
         name: 'Orders Report',
         description: 'Access to Orders Report module and its API endpoints',
@@ -589,6 +601,82 @@ function processBindAdminpanel() {
           );
         } catch (e) {
           sails.log.debug('NotificationsManager locales route bind error', e);
+        }
+
+        // Marketing → Promo codes module link + page route + API routes
+        try {
+          const promoCodesManagerController = require('../lib/adminpanel/src/controller/promocodes-manager').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'promocodes-manager',
+            title: 'Promo codes',
+            link: `${routePrefix}/promocodes-manager`,
+            icon: 'confirmation_number',
+            accessToken: 'promocodes-manager',
+            section: 'Marketing'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/promocodes-manager`,
+            ...bind(promoCodesManagerController)
+          );
+
+          const getPromoCodesController = require('../lib/adminpanel/src/controller/get-promocodes').default;
+          const getPromoCodeController = require('../lib/adminpanel/src/controller/get-promocode').default;
+          const upsertPromoCodeController = require('../lib/adminpanel/src/controller/upsert-promocode').default;
+          const deletePromoCodeController = require('../lib/adminpanel/src/controller/delete-promocode').default;
+          const getPromoCodesStatsController = require('../lib/adminpanel/src/controller/get-promocodes-stats').default;
+          const getPromoCodesActivityController = require('../lib/adminpanel/src/controller/get-promocodes-activity').default;
+          const generatePromoCodeController = require('../lib/adminpanel/src/controller/generate-promocode').default;
+          const getPromotionsOptionsController = require('../lib/adminpanel/src/controller/get-promotions-options').default;
+
+          adminizer.app.get(`${routePrefix}/core/marketing/promocodes`, ...bind(getPromoCodesController));
+          adminizer.app.get(`${routePrefix}/core/marketing/promocodes/stats`, ...bind(getPromoCodesStatsController));
+          adminizer.app.get(`${routePrefix}/core/marketing/promocodes/activity`, ...bind(getPromoCodesActivityController));
+          adminizer.app.get(`${routePrefix}/core/marketing/promocodes/generate-code`, ...bind(generatePromoCodeController));
+          adminizer.app.get(`${routePrefix}/core/marketing/promocode`, ...bind(getPromoCodeController));
+          adminizer.app.post(`${routePrefix}/core/marketing/promocode`, ...bind(upsertPromoCodeController));
+          adminizer.app.post(`${routePrefix}/core/marketing/promocode-delete`, ...bind(deletePromoCodeController));
+          adminizer.app.get(`${routePrefix}/core/marketing/promotions-options`, ...bind(getPromotionsOptionsController));
+        } catch (e) {
+          sails.log.debug('Marketing PromoCodes route bind error', e);
+        }
+
+        // Marketing → Promotions module link + page route + API routes
+        try {
+          const promotionsManagerController = require('../lib/adminpanel/src/controller/promotions-manager').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'promotions-manager',
+            title: 'Promotions',
+            link: `${routePrefix}/promotions-manager`,
+            icon: 'local_offer',
+            accessToken: 'promotions-manager',
+            section: 'Marketing'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/promotions-manager`,
+            ...bind(promotionsManagerController)
+          );
+
+          const getMarketingPromotionsController = require('../lib/adminpanel/src/controller/get-marketing-promotions').default;
+          const getMarketingPromotionController = require('../lib/adminpanel/src/controller/get-marketing-promotion').default;
+          const upsertMarketingPromotionController = require('../lib/adminpanel/src/controller/upsert-marketing-promotion').default;
+          const toggleMarketingPromotionController = require('../lib/adminpanel/src/controller/toggle-marketing-promotion').default;
+          const deleteMarketingPromotionController = require('../lib/adminpanel/src/controller/delete-marketing-promotion').default;
+          const getMarketingConceptsController = require('../lib/adminpanel/src/controller/get-marketing-concepts').default;
+          const getMarketingGroupsController = require('../lib/adminpanel/src/controller/get-marketing-groups').default;
+          const getMarketingDishesController = require('../lib/adminpanel/src/controller/get-marketing-dishes').default;
+
+          adminizer.app.get(`${routePrefix}/core/marketing/promotions`, ...bind(getMarketingPromotionsController));
+          adminizer.app.get(`${routePrefix}/core/marketing/promotion`, ...bind(getMarketingPromotionController));
+          adminizer.app.post(`${routePrefix}/core/marketing/promotion`, ...bind(upsertMarketingPromotionController));
+          adminizer.app.post(`${routePrefix}/core/marketing/promotion-toggle`, ...bind(toggleMarketingPromotionController));
+          adminizer.app.post(`${routePrefix}/core/marketing/promotion-delete`, ...bind(deleteMarketingPromotionController));
+          adminizer.app.get(`${routePrefix}/core/marketing/concepts`, ...bind(getMarketingConceptsController));
+          adminizer.app.get(`${routePrefix}/core/marketing/groups`, ...bind(getMarketingGroupsController));
+          adminizer.app.get(`${routePrefix}/core/marketing/dishes`, ...bind(getMarketingDishesController));
+        } catch (e) {
+          sails.log.debug('Marketing Promotions route bind error', e);
         }
 
         // Settings Manager module link + routes
