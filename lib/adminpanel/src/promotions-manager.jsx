@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
+import WorktimeView from './components/WorktimeView';
 import { styles, toast, getBaseAdminPath, notificationsApi as api } from './components/notifications/shared';
 
 const {
@@ -415,6 +416,11 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
         <h3 style={styles.subsectionTitle}>{t('Schedule')}</h3>
         <Textarea value={worktimeText} onChange={(e) => setWorktime(e.target.value)} rows={3} style={styles.code} placeholder='[{ "dayOfWeek": "all", "start": "11:00", "stop": "16:00" }]' />
         <span style={styles.help}>{t('workTime JSON. Leave empty for always-on.')}</span>
+        {draft.worktime != null && typeof draft.worktime === 'object' && (
+          <div style={{ marginTop: 8 }}>
+            <WorktimeView value={draft.worktime} t={t} />
+          </div>
+        )}
       </section>
 
       {/* Summary */}

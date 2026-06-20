@@ -120,7 +120,12 @@ export class ProductConfig {
         },
         worktime: {
             title: "Work Time",
-            tooltip: "Specifies the operational hours during which the dish is available. This can include specific time ranges or days when the dish is offered."
+            type: "json",
+            disabled: true,
+            tooltip: "Specifies the operational hours during which the dish is available. This can include specific time ranges or days when the dish is offered.",
+            options: {
+                name: "worktime-viewer",
+            },
         },
         modifiers: {
             title: "Modifiers",
