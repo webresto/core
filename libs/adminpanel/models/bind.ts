@@ -4,12 +4,12 @@ import { OrderConfig } from "./lib/order";
 import { NotificationConfig } from "./lib/notification";
 import { summarizeWorktime } from "../controls/worktimeViewerHelper";
 
-// Shared worktime field config: read-only dark viewer in edit/add, compact
-// summary in list — mirrors the order "logs" field (order-logs-viewer).
+// Shared worktime field config: clean editable schedule editor in edit/add,
+// compact text summary in list. The custom "worktime-viewer" control renders
+// the editor; the list keeps a read-only summary.
 const worktimeEditField = {
   title: "Work Time",
   type: "json",
-  disabled: true,
   tooltip: "Operating hours schedule.",
   options: {
     name: "worktime-viewer",

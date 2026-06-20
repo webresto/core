@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
-import WorktimeView from '../components/WorktimeView';
+import WorktimeEditor from '../components/WorktimeView';
 
 function normalizeLocale(rawLocale) {
   const normalized = String(rawLocale || '').trim().toLowerCase().replace(/_/g, '-');
@@ -23,13 +23,22 @@ function useOptionalPageProps() {
   }
 }
 
-function WorktimeViewer({ initialValue }) {
+function WorktimeViewer({ initialValue, onChange }) {
   const pageProps = useOptionalPageProps();
   const locale = useMemo(() => normalizeLocale(pageProps?.locale), [pageProps?.locale]);
   const messages = useMemo(() => pageProps?.messages || pageProps?.uiMessages || {}, [pageProps?.messages, pageProps?.uiMessages]);
   const t = useMemo(() => createT(messages), [messages, locale]);
 
-  return <WorktimeView value={initialValue} t={t} />;
+  // The adminizer jsonEditor field reads the new value from `event.json`, so
+  // wrap the editor's plain WorkTime[] output to match that contract.
+  const handleChange = useCallback(
+    (worktime) => {
+      if (typeof onChange === 'function') onChange({ json: worktime });
+    },
+    [onChange],
+  );
+
+  return <WorktimeEditor value={initialValue} onChange={handleChange} t={t} />;
 }
 
 export default WorktimeViewer;
