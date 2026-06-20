@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
-import WorktimeView from './components/WorktimeView';
+import WorktimeEditor from './components/WorktimeEditor';
 import { styles, toast, getBaseAdminPath, notificationsApi as api } from './components/notifications/shared';
 
 const {
@@ -242,9 +242,6 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
 
   const toggleDelivery = (m) => setField('deliveryMethod', draft.deliveryMethod.includes(m) ? draft.deliveryMethod.filter((x) => x !== m) : [...draft.deliveryMethod, m]);
 
-  const worktimeText = draft.worktime == null ? '' : (typeof draft.worktime === 'string' ? draft.worktime : JSON.stringify(draft.worktime, null, 2));
-  const setWorktime = (text) => { if (!text.trim()) { setField('worktime', null); return; } try { setField('worktime', JSON.parse(text)); } catch { setField('worktime', text); } };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Sticky header */}
@@ -414,13 +411,8 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
       {/* Schedule */}
       <section style={styles.subsection}>
         <h3 style={styles.subsectionTitle}>{t('Schedule')}</h3>
-        <Textarea value={worktimeText} onChange={(e) => setWorktime(e.target.value)} rows={3} style={styles.code} placeholder='[{ "dayOfWeek": "all", "start": "11:00", "stop": "16:00" }]' />
-        <span style={styles.help}>{t('workTime JSON. Leave empty for always-on.')}</span>
-        {draft.worktime != null && typeof draft.worktime === 'object' && (
-          <div style={{ marginTop: 8 }}>
-            <WorktimeView value={draft.worktime} t={t} />
-          </div>
-        )}
+        <WorktimeEditor value={draft.worktime} t={t} onChange={(wt) => setField('worktime', wt.length ? wt : null)} />
+        <span style={styles.help}>{t('Leave empty for always-on.')}</span>
       </section>
 
       {/* Summary */}

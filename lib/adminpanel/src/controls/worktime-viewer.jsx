@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
-import WorktimeEditor from '../components/WorktimeView';
+import WorktimeEditor from '../components/WorktimeEditor';
 
 function normalizeLocale(rawLocale) {
   const normalized = String(rawLocale || '').trim().toLowerCase().replace(/_/g, '-');
