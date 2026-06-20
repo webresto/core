@@ -1,4 +1,5 @@
 import { CreateUpdateConfig, FieldsModels, MediaManagerOptionsField } from "adminizer";
+import { summarizeWorktime } from "../../controls/worktimeViewerHelper";
 
 export class GroupConfig {
     static fields: FieldsModels = {
@@ -142,7 +143,11 @@ export class GroupConfig {
         worktime: {
             title: "Work Time",
             type: "json",
-            tooltip: "The operational hours for the group."
+            disabled: true,
+            tooltip: "The operational hours for the group.",
+            options: {
+                name: "worktime-viewer",
+            },
         },
         customData: {
             title: "Custom Data",
@@ -160,6 +165,16 @@ export class GroupConfig {
     }
 
     public static list(): { fields: FieldsModels } {
-        return { fields: this.fields };
+        return {
+            fields: {
+                ...this.fields,
+                worktime: {
+                    title: "Work Time",
+                    displayModifier(value: unknown) {
+                        return summarizeWorktime(value);
+                    },
+                },
+            },
+        };
     }
 }

@@ -81,6 +81,17 @@ export default function bindAdminpanel() {
       sails.log.warn("Order logs viewer control binding skipped", e);
     }
 
+    // Worktime custom viewer control bind
+    try {
+      const WorktimeViewerControl = require("../libs/adminpanel/controls/WorktimeViewerControl").WorktimeViewerControl;
+      const controlsHandler = sails.hooks.adminpanel.adminizer.controlsHandler;
+      if (!controlsHandler.get("jsonEditor", "worktime-viewer")) {
+        controlsHandler.add(new WorktimeViewerControl(sails.hooks.adminpanel.adminizer));
+      }
+    } catch (e) {
+      sails.log.warn("Worktime viewer control binding skipped", e);
+    }
+
     // Initialize dashboard widgets
     initializeWidgets();
 
