@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
+import WorktimeEditor from './components/WorktimeEditor';
 import {
   styles, toast, getBaseAdminPath, notificationsApi as api,
   formatDateTime, COST_NUM_STYLE,
@@ -441,8 +442,8 @@ function CodeEditor({ t, language, draft, setDraft, baseline, promotions, saving
               </div>
             </div>
             <div style={styles.field}>
-              <Label style={styles.fieldLabel}>{t('Schedule (workTime JSON)')}</Label>
-              <Textarea value={jsonField('workTime')} onChange={(e) => setJsonField('workTime', e.target.value)} rows={3} style={styles.code} placeholder='{ "dayOfWeek": "all", "start": "10:00", "stop": "22:00" }' />
+              <Label style={styles.fieldLabel}>{t('Schedule')}</Label>
+              <WorktimeEditor single value={draft.workTime} t={t} onChange={(wt) => setField('workTime', wt)} />
             </div>
             <div style={styles.field}>
               <Label style={styles.fieldLabel}>{t('Custom data (JSON)')}</Label>

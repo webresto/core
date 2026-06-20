@@ -1,10 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // WorkTime shape (see @webresto/worktime):
 //   { dayOfWeek: Day[], start: "HH:MM", stop: "HH:MM", break?: "HH:MM-HH:MM" }
-// The field stores a WorkTime[] on Dish/Group/Promotion and a single WorkTime
-// object on Place/Maintenance — this editor accepts both and always emits an
-// array (a single-object source round-trips as a one-element array).
+//
+// Reusable across the admin panel:
+//   - Field control (worktime-viewer.jsx) on Group / Dish / Place  — array.
+//   - Inertia modules (promotions-manager) — `worktime: WorkTime[]`   — array.
+//   - Inertia modules (promocodes-manager) — `workTime: WorkTime`     — `single`.
+//
+// Input (`value`) accepts a WorkTime[], a single WorkTime, or a JSON string.
+// Output (`onChange`):
+//   - array mode (default): WorkTime[]
+//   - single mode (`single`): a single WorkTime, or null when empty.
 
 export const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
@@ -104,6 +111,14 @@ function serializeRules(rules) {
   });
 }
 
+// Canonical output for a value (matches what onChange emits) — used to tell an
+// external value change apart from our own echoed edit.
+function toCanonical(value, single) {
+  const parsed = normalizeWorktime(value);
+  const arr = serializeRules(single ? parsed.slice(0, 1) : parsed);
+  return JSON.stringify(single ? (arr[0] || null) : arr);
+}
+
 function ruleIssues(rule, tr) {
   const issues = [];
   if (rule.dayOfWeek.length === 0) issues.push({ level: 'error', text: tr('Select at least one day') });
@@ -174,17 +189,18 @@ function Button({ variant = 'default', children, style, ...rest }) {
   );
 }
 
-function DayChip({ day, active, onClick, tr }) {
+function DayChip({ day, active, onClick, tr, readOnly }) {
   return (
     <button
       type="button"
       role="checkbox"
       aria-checked={active}
+      aria-disabled={readOnly || undefined}
       aria-label={tr(DAY_ABBR[day])}
-      onClick={onClick}
+      onClick={readOnly ? undefined : onClick}
       style={{
         minWidth: 42, padding: '5px 8px', borderRadius: 999, fontSize: 12, fontWeight: 600,
-        cursor: 'pointer', userSelect: 'none', transition: 'all .12s',
+        cursor: readOnly ? 'default' : 'pointer', userSelect: 'none', transition: 'all .12s',
         border: `1px solid ${active ? T.primary : T.border}`,
         background: active ? T.primary : 'transparent',
         color: active ? T.primaryFg : T.muted,
@@ -195,7 +211,7 @@ function DayChip({ day, active, onClick, tr }) {
   );
 }
 
-function TimeField({ label, value, onChange, colorScheme, invalid }) {
+function TimeField({ label, value, onChange, colorScheme, invalid, readOnly }) {
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.02em', textTransform: 'uppercase', color: T.muted }}>
@@ -204,10 +220,11 @@ function TimeField({ label, value, onChange, colorScheme, invalid }) {
       <input
         type="time"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        readOnly={readOnly}
+        onChange={readOnly ? undefined : (e) => onChange(e.target.value)}
         style={{
           colorScheme, fontVariantNumeric: 'tabular-nums', fontSize: 14, color: T.fg,
-          background: T.panel, padding: '7px 9px', borderRadius: RADIUS,
+          background: T.panel, padding: '7px 9px', borderRadius: RADIUS, opacity: readOnly ? 0.85 : 1,
           border: `1px solid ${invalid ? T.destructive : T.input}`, outline: 'none', width: '100%',
         }}
       />
@@ -216,7 +233,7 @@ function TimeField({ label, value, onChange, colorScheme, invalid }) {
 }
 
 // ---- a single schedule rule -------------------------------------------------
-function RuleCard({ rule, index, total, tr, colorScheme, onChange, onRemove }) {
+function RuleCard({ rule, index, total, tr, colorScheme, onChange, onRemove, readOnly, showIndex }) {
   const patch = (changes) => onChange({ ...rule, ...changes });
   const toggleDay = (day) =>
     patch({ dayOfWeek: rule.dayOfWeek.includes(day) ? rule.dayOfWeek.filter((d) => d !== day) : [...rule.dayOfWeek, day] });
@@ -234,67 +251,73 @@ function RuleCard({ rule, index, total, tr, colorScheme, onChange, onRemove }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {DAYS.map((day) => (
-            <DayChip key={day} day={day} active={rule.dayOfWeek.includes(day)} onClick={() => toggleDay(day)} tr={tr} />
+            <DayChip key={day} day={day} active={rule.dayOfWeek.includes(day)} onClick={() => toggleDay(day)} tr={tr} readOnly={readOnly} />
           ))}
         </div>
-        <Button variant="danger" onClick={onRemove} aria-label={tr('Remove interval')}
-          title={tr('Remove interval')} style={{ padding: 6, flexShrink: 0 }}>
-          <IconTrash />
-        </Button>
-      </div>
-
-      {/* quick presets */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12, alignItems: 'center' }}>
-        <span style={{ color: T.muted }}>{tr('Quick set')}:</span>
-        {[
-          ['weekdays', tr('Weekdays')],
-          ['weekend', tr('Weekend')],
-          ['everyday', tr('Every day')],
-        ].map(([key, lbl]) => (
-          <button key={key} type="button" onClick={() => patch({ dayOfWeek: [...PRESETS[key]] })}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: T.primary, fontSize: 12, fontWeight: 500 }}>
-            {lbl}
-          </button>
-        ))}
-        {rule.dayOfWeek.length > 0 && (
-          <button type="button" onClick={() => patch({ dayOfWeek: [] })}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: T.muted, fontSize: 12 }}>
-            {tr('Clear')}
-          </button>
+        {!readOnly && (
+          <Button variant="danger" onClick={onRemove} aria-label={tr('Remove interval')}
+            title={tr('Remove interval')} style={{ padding: 6, flexShrink: 0 }}>
+            <IconTrash />
+          </Button>
         )}
       </div>
 
+      {/* quick presets */}
+      {!readOnly && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12, alignItems: 'center' }}>
+          <span style={{ color: T.muted }}>{tr('Quick set')}:</span>
+          {[
+            ['weekdays', tr('Weekdays')],
+            ['weekend', tr('Weekend')],
+            ['everyday', tr('Every day')],
+          ].map(([key, lbl]) => (
+            <button key={key} type="button" onClick={() => patch({ dayOfWeek: [...PRESETS[key]] })}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: T.primary, fontSize: 12, fontWeight: 500 }}>
+              {lbl}
+            </button>
+          ))}
+          {rule.dayOfWeek.length > 0 && (
+            <button type="button" onClick={() => patch({ dayOfWeek: [] })}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: T.muted, fontSize: 12 }}>
+              {tr('Clear')}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* opening hours */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 360 }}>
-        <TimeField label={tr('Opens')} value={rule.start} colorScheme={colorScheme}
+        <TimeField label={tr('Opens')} value={rule.start} colorScheme={colorScheme} readOnly={readOnly}
           invalid={timeInvalid(rule.start)} onChange={(v) => patch({ start: v })} />
-        <TimeField label={tr('Closes')} value={rule.stop} colorScheme={colorScheme}
+        <TimeField label={tr('Closes')} value={rule.stop} colorScheme={colorScheme} readOnly={readOnly}
           invalid={timeInvalid(rule.stop)} onChange={(v) => patch({ stop: v })} />
       </div>
 
       {/* break */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: T.fg, width: 'fit-content' }}>
-          <input type="checkbox" checked={rule.breakEnabled} style={{ colorScheme, cursor: 'pointer', width: 15, height: 15 }}
-            onChange={(e) => patch({
-              breakEnabled: e.target.checked,
-              breakStart: e.target.checked && !rule.breakStart ? '13:00' : rule.breakStart,
-              breakStop: e.target.checked && !rule.breakStop ? '14:00' : rule.breakStop,
-            })} />
-          {tr('Lunch break')}
-        </label>
-        {rule.breakEnabled && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 360 }}>
-            <TimeField label={tr('Break from')} value={rule.breakStart} colorScheme={colorScheme}
-              invalid={timeInvalid(rule.breakStart)} onChange={(v) => patch({ breakStart: v })} />
-            <TimeField label={tr('Break to')} value={rule.breakStop} colorScheme={colorScheme}
-              invalid={timeInvalid(rule.breakStop)} onChange={(v) => patch({ breakStop: v })} />
-          </div>
-        )}
-      </div>
+      {(!readOnly || rule.breakEnabled) && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: readOnly ? 'default' : 'pointer', fontSize: 13, color: T.fg, width: 'fit-content' }}>
+            <input type="checkbox" checked={rule.breakEnabled} disabled={readOnly} style={{ colorScheme, cursor: readOnly ? 'default' : 'pointer', width: 15, height: 15 }}
+              onChange={readOnly ? undefined : (e) => patch({
+                breakEnabled: e.target.checked,
+                breakStart: e.target.checked && !rule.breakStart ? '13:00' : rule.breakStart,
+                breakStop: e.target.checked && !rule.breakStop ? '14:00' : rule.breakStop,
+              })} />
+            {tr('Lunch break')}
+          </label>
+          {rule.breakEnabled && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 360 }}>
+              <TimeField label={tr('Break from')} value={rule.breakStart} colorScheme={colorScheme} readOnly={readOnly}
+                invalid={timeInvalid(rule.breakStart)} onChange={(v) => patch({ breakStart: v })} />
+              <TimeField label={tr('Break to')} value={rule.breakStop} colorScheme={colorScheme} readOnly={readOnly}
+                invalid={timeInvalid(rule.breakStop)} onChange={(v) => patch({ breakStop: v })} />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* validation */}
-      {issues.length > 0 && (
+      {!readOnly && issues.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {issues.map((issue, i) => (
             <span key={i} style={{
@@ -307,34 +330,58 @@ function RuleCard({ rule, index, total, tr, colorScheme, onChange, onRemove }) {
         </div>
       )}
 
-      <span style={{ fontSize: 11, color: T.muted }}>{tr('Interval')} {index + 1} / {total}</span>
+      {showIndex && <span style={{ fontSize: 11, color: T.muted }}>{tr('Interval')} {index + 1} / {total}</span>}
     </div>
   );
 }
 
 // ---- root editor ------------------------------------------------------------
 /**
- * Editable, theme-aware editor for a WorkTime schedule.
+ * Editable, theme-aware editor for a WorkTime schedule. Reusable in the field
+ * control and in custom Inertia modules.
  * @param {object}   props
- * @param {*}        props.value     initial WorkTime[] | WorkTime | JSON string
- * @param {Function} props.onChange  called with the updated WorkTime[] on every edit
- * @param {Function} [props.t]       translate(key) => string
+ * @param {*}        props.value      initial WorkTime[] | WorkTime | JSON string
+ * @param {Function} props.onChange   array mode → WorkTime[]; single mode → WorkTime | null
+ * @param {Function} [props.t]        translate(key) => string
+ * @param {boolean}  [props.single]   manage a single WorkTime object instead of a list
+ * @param {boolean}  [props.readOnly] render the schedule without editing controls
  */
-function WorktimeEditor({ value, onChange, t }) {
+function WorktimeEditor({ value, onChange, t, single = false, readOnly = false }) {
   const tr = useMemo(() => (typeof t === 'function' ? t : (key) => key), [t]);
   const colorScheme = useColorScheme();
-  const [rules, setRules] = useState(() => normalizeWorktime(value));
+  const [rules, setRules] = useState(() => {
+    const parsed = normalizeWorktime(value);
+    return single ? parsed.slice(0, 1) : parsed;
+  });
+  // Tracks the value we last emitted, so an external `value` change (async load,
+  // form reset) re-syncs the editor while our own edits echoing back do not.
+  const lastEmitted = useRef(toCanonical(value, single));
 
   const commit = useCallback((next) => {
     setRules(next);
-    if (typeof onChange === 'function') onChange(serializeRules(next));
-  }, [onChange]);
+    const emitted = single ? (serializeRules(next)[0] || null) : serializeRules(next);
+    lastEmitted.current = JSON.stringify(emitted);
+    if (typeof onChange === 'function') onChange(emitted);
+  }, [onChange, single]);
 
-  const addRule = () =>
-    commit([...rules, {
-      id: nextId(), dayOfWeek: [], start: '09:00', stop: '18:00',
-      breakEnabled: false, breakStart: '', breakStop: '', extra: {},
-    }]);
+  // Re-initialize from `value` when it changes from an outside source (e.g. a
+  // manager that loads the record after mount), but skip the echo of our edits.
+  useEffect(() => {
+    const incoming = toCanonical(value, single);
+    if (incoming === lastEmitted.current) return;
+    lastEmitted.current = incoming;
+    const parsed = normalizeWorktime(value);
+    setRules(single ? parsed.slice(0, 1) : parsed);
+  }, [value, single]);
+
+  const makeRule = () => ({
+    id: nextId(), dayOfWeek: [], start: '09:00', stop: '18:00',
+    breakEnabled: false, breakStart: '', breakStop: '', extra: {},
+  });
+  const addRule = () => {
+    if (single && rules.length >= 1) return;
+    commit([...rules, makeRule()]);
+  };
   const updateRule = (next) => commit(rules.map((r) => (r.id === next.id ? next : r)));
   const removeRule = (id) => commit(rules.filter((r) => r.id !== id));
 
@@ -343,6 +390,8 @@ function WorktimeEditor({ value, onChange, t }) {
     rules.forEach((r) => r.dayOfWeek.forEach((d) => set.add(d)));
     return set;
   }, [rules]);
+
+  const canAdd = !readOnly && !(single && rules.length >= 1);
 
   return (
     <div style={{
@@ -356,26 +405,28 @@ function WorktimeEditor({ value, onChange, t }) {
           <span style={{ color: T.muted, display: 'inline-flex' }}><IconClock /></span>
           <span style={{ fontSize: 14, fontWeight: 600 }}>{tr('Working hours')}</span>
         </div>
-        <Button onClick={addRule}><IconPlus />{tr('Add interval')}</Button>
+        {canAdd && !single && <Button onClick={addRule}><IconPlus />{tr('Add interval')}</Button>}
       </div>
 
-      {/* coverage strip */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        {DAYS.map((day) => {
-          const covered = coverage.has(day);
-          return (
-            <span key={day} title={covered ? tr('Has hours') : tr('No hours')}
-              style={{
-                fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
-                border: `1px solid ${covered ? T.primary : T.border}`,
-                color: covered ? T.primary : T.muted,
-                background: covered ? 'color-mix(in oklab, var(--primary, #2563eb) 12%, transparent)' : 'transparent',
-              }}>
-              {tr(DAY_ABBR[day])}
-            </span>
-          );
-        })}
-      </div>
+      {/* coverage strip (list mode only) */}
+      {!single && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {DAYS.map((day) => {
+            const covered = coverage.has(day);
+            return (
+              <span key={day} title={covered ? tr('Has hours') : tr('No hours')}
+                style={{
+                  fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
+                  border: `1px solid ${covered ? T.primary : T.border}`,
+                  color: covered ? T.primary : T.muted,
+                  background: covered ? 'color-mix(in oklab, var(--primary, #2563eb) 12%, transparent)' : 'transparent',
+                }}>
+                {tr(DAY_ABBR[day])}
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* rules */}
       {rules.length === 0 ? (
@@ -385,13 +436,14 @@ function WorktimeEditor({ value, onChange, t }) {
         }}>
           <span style={{ display: 'inline-flex', opacity: 0.7 }}><IconClock /></span>
           <span style={{ fontSize: 13 }}>{tr('No working hours configured yet')}</span>
-          <Button variant="outline" onClick={addRule}><IconPlus />{tr('Add the first interval')}</Button>
+          {canAdd && <Button variant="outline" onClick={addRule}><IconPlus />{single ? tr('Set working hours') : tr('Add the first interval')}</Button>}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {rules.map((rule, i) => (
             <RuleCard key={rule.id} rule={rule} index={i} total={rules.length} tr={tr}
-              colorScheme={colorScheme} onChange={updateRule} onRemove={() => removeRule(rule.id)} />
+              colorScheme={colorScheme} onChange={updateRule} onRemove={() => removeRule(rule.id)}
+              readOnly={readOnly} showIndex={!single && rules.length > 1} />
           ))}
         </div>
       )}
