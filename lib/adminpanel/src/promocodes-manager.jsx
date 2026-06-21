@@ -4,7 +4,7 @@ import { ConfirmDialog } from './components/ConfirmDialog';
 import WorktimeEditor from './components/WorktimeEditor';
 import {
   styles, toast, getBaseAdminPath, notificationsApi as api,
-  formatDateTime, COST_NUM_STYLE,
+  formatDateTime, COST_NUM_STYLE, useIsMobile,
 } from './components/notifications/shared';
 
 const {
@@ -113,6 +113,7 @@ function CopyButton({ value, t }) {
 
 // ─────────────────────────────── Dashboard ───────────────────────────────
 function DashboardSection({ t, language }) {
+  const isMobile = useIsMobile();
   const [days, setDays] = useState(30);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -145,13 +146,13 @@ function DashboardSection({ t, language }) {
             <h2 style={styles.sectionTitle}>{t('Dashboard')}</h2>
             <p style={styles.sectionDescription}>{t('How promo codes are applied and how much discount they generate over time.')}</p>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ display: 'inline-flex', gap: 4, padding: 4, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--muted)' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
+            <div style={{ display: 'flex', flex: isMobile ? '1 1 auto' : '0 0 auto', gap: 4, padding: 4, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--muted)' }}>
               {RANGE_OPTIONS.map((o) => {
                 const active = o.days === days;
                 return (
                   <button key={o.days} type="button" onClick={() => setDays(o.days)}
-                    style={{ border: '1px solid transparent', borderRadius: 9, background: active ? 'var(--card)' : 'transparent', color: active ? 'var(--foreground)' : 'var(--muted-foreground)', padding: '6px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none' }}>
+                    style={{ flex: isMobile ? '1 1 auto' : '0 0 auto', border: '1px solid transparent', borderRadius: 9, background: active ? 'var(--card)' : 'transparent', color: active ? 'var(--foreground)' : 'var(--muted-foreground)', padding: '6px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none' }}>
                     {t(o.key)}
                   </button>
                 );
@@ -273,7 +274,7 @@ function blankCode() {
   };
 }
 
-function CodeEditor({ t, language, draft, setDraft, baseline, promotions, saving, onSave, onDelete, onDuplicate, creating }) {
+function CodeEditor({ t, language, draft, setDraft, baseline, promotions, saving, onSave, onDelete, onDuplicate, creating, isMobile, onBack }) {
   const [advanced, setAdvanced] = useState(false);
   const [checking, setChecking] = useState(false);
   const [available, setAvailable] = useState(null); // null | true | false
@@ -331,13 +332,16 @@ function CodeEditor({ t, language, draft, setDraft, baseline, promotions, saving
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Sticky header */}
       <div style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--card)', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+        {isMobile && (
+          <Button type="button" variant="outline" size="sm" onClick={onBack} style={{ alignSelf: 'flex-start' }}>← {t('Back')}</Button>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <strong style={{ fontSize: 18 }}>{creating ? t('New promo code') : (draft.code || t('Promo code'))}</strong>
             {!creating && <Badge variant="outline">{statusLabel(draft._status || 'active', t)}</Badge>}
             {dirty && <Badge variant="outline">{t('Unsaved')}</Badge>}
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <Button type="button" onClick={onSave} disabled={saving || !dirty || available === false}>{saving ? t('Saving...') : t('Save')}</Button>
             {!creating && <Button type="button" variant="outline" onClick={onDuplicate} disabled={saving}>{t('Duplicate')}</Button>}
             {!creating && <Button type="button" variant="outline" onClick={onDelete} disabled={saving}>{t('Delete')}</Button>}
@@ -469,6 +473,7 @@ function toDateInput(value) {
 
 // ─────────────────────────────── Codes section (list + editor) ───────────────────────────────
 function CodesSection({ t, language, codeId, creating }) {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -580,10 +585,13 @@ function CodesSection({ t, language, codeId, creating }) {
   };
 
   const editorOpen = creating || Boolean(codeId);
+  // On mobile show either the list OR the editor (master-detail swap), never both side by side.
+  const showList = !isMobile || !editorOpen;
 
   return (
-    <div style={{ display: 'grid', gap: 24, gridTemplateColumns: editorOpen ? 'minmax(300px, 380px) minmax(420px, 1fr)' : '1fr', alignItems: 'start' }}>
+    <div style={{ display: 'grid', gap: isMobile ? 16 : 24, gridTemplateColumns: (editorOpen && !isMobile) ? 'minmax(300px, 380px) minmax(420px, 1fr)' : '1fr', alignItems: 'start' }}>
       {/* List */}
+      {showList && (
       <section style={styles.panel}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
           <h2 style={styles.sectionTitle}>{t('Promo codes')}</h2>
@@ -645,6 +653,7 @@ function CodesSection({ t, language, codeId, creating }) {
           </div>
         )}
       </section>
+      )}
 
       {/* Editor */}
       {editorOpen && (
@@ -654,6 +663,7 @@ function CodesSection({ t, language, codeId, creating }) {
               t={t} language={language} draft={draft} setDraft={setDraft} baseline={baseline}
               promotions={promotions} saving={saving} creating={creating}
               onSave={save} onDelete={() => setConfirmDelete(true)} onDuplicate={duplicate}
+              isMobile={isMobile} onBack={() => guardedNav('list')}
             />
           ) : <div style={styles.help}>{t('loading')}</div>}
         </section>
@@ -671,6 +681,7 @@ function CodesSection({ t, language, codeId, creating }) {
 
 // ─────────────────────────────── Activity ───────────────────────────────
 function ActivitySection({ t, language }) {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -708,16 +719,46 @@ function ActivitySection({ t, language }) {
         </div>
       </div>
 
-      <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 0.8fr 0.8fr', gap: 12, padding: '12px 14px', background: 'var(--muted)', fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' }}>
-          <div>{t('Date / time')}</div><div>{t('Promo code')}</div><div>{t('Order')}</div><div>{t('Discount')}</div><div>{t('Status')}</div>
-        </div>
+      <div style={{ border: isMobile ? 'none' : '1px solid var(--border)', borderRadius: 12, overflow: isMobile ? 'visible' : 'hidden', display: isMobile ? 'flex' : 'block', flexDirection: 'column', gap: isMobile ? 10 : 0 }}>
+        {!isMobile && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 0.8fr 0.8fr', gap: 12, padding: '12px 14px', background: 'var(--muted)', fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' }}>
+            <div>{t('Date / time')}</div><div>{t('Promo code')}</div><div>{t('Order')}</div><div>{t('Discount')}</div><div>{t('Status')}</div>
+          </div>
+        )}
         {loading && items.length === 0 ? (
           <div style={{ padding: 20, ...styles.help }}>{t('loading')}</div>
         ) : items.length === 0 ? (
           <div style={{ padding: 20, ...styles.help }}>{t('No applications found')}</div>
         ) : items.map((row) => {
           const open = expanded === row.orderId;
+          const details = open && (
+            <div style={{ padding: isMobile ? '4px 0 0' : '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {row.description && <div style={styles.help}>{row.description}</div>}
+              {Array.isArray(row.promotionState) && row.promotionState.length > 0 && (
+                <pre style={{ whiteSpace: 'pre-wrap', overflow: 'auto', padding: 10, background: 'var(--muted)', color: 'var(--muted-foreground)', borderRadius: 10, margin: 0, fontSize: 12 }}>{JSON.stringify(row.promotionState, null, 2)}</pre>
+              )}
+              <a href={`${getBaseAdminPath()}/model/order/edit/${encodeURIComponent(row.orderId)}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 13 }}>{t('Open order')} →</a>
+            </div>
+          );
+          if (isMobile) {
+            return (
+              <div key={row.orderId} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--card)', padding: 12 }}>
+                <button type="button" onClick={() => setExpanded(open ? '' : row.orderId)}
+                  style={{ width: '100%', border: 'none', background: 'transparent', color: 'var(--foreground)', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6, padding: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                    <code style={{ fontSize: 14, fontWeight: 700 }}>{row.code}</code>
+                    <StatusPill status={row.status} t={t} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                    <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{formatDateTime(row.createdAt, language)}</span>
+                    <strong style={{ fontSize: 14, ...COST_NUM_STYLE }}>{formatMoney(row.discount, language)}</strong>
+                  </div>
+                  <span style={styles.help}>{t('Order')}: {row.shortId || row.orderId}</span>
+                </button>
+                {details}
+              </div>
+            );
+          }
           return (
             <div key={row.orderId} style={{ borderTop: '1px solid var(--border)', background: 'var(--card)' }}>
               <button type="button" onClick={() => setExpanded(open ? '' : row.orderId)}
@@ -728,15 +769,7 @@ function ActivitySection({ t, language }) {
                 <div style={{ fontSize: 13, ...COST_NUM_STYLE }}>{formatMoney(row.discount, language)}</div>
                 <StatusPill status={row.status} t={t} />
               </button>
-              {open && (
-                <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {row.description && <div style={styles.help}>{row.description}</div>}
-                  {Array.isArray(row.promotionState) && row.promotionState.length > 0 && (
-                    <pre style={{ whiteSpace: 'pre-wrap', overflow: 'auto', padding: 10, background: 'var(--muted)', color: 'var(--muted-foreground)', borderRadius: 10, margin: 0, fontSize: 12 }}>{JSON.stringify(row.promotionState, null, 2)}</pre>
-                  )}
-                  <a href={`${getBaseAdminPath()}/model/order/edit/${encodeURIComponent(row.orderId)}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 13 }}>{t('Open order')} →</a>
-                </div>
-              )}
+              {details}
             </div>
           );
         })}
@@ -758,6 +791,7 @@ function ActivitySection({ t, language }) {
 // ─────────────────────────────── Shell ───────────────────────────────
 function PromoCodesManagerContent() {
   const { language, t } = useTranslation();
+  const isMobile = useIsMobile();
   const [route, setRoute] = useState(parseHash);
 
   useEffect(() => {
@@ -774,19 +808,22 @@ function PromoCodesManagerContent() {
   ];
 
   const tabBtn = (active) => ({
+    flex: isMobile ? '1 1 auto' : '0 0 auto',
     border: '1px solid transparent', borderRadius: 9, background: active ? 'var(--card)' : 'transparent',
     color: active ? 'var(--foreground)' : 'var(--muted-foreground)', padding: '8px 12px', minHeight: 36,
     fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
   });
 
+  const pageShell = { ...styles.pageShell, padding: isMobile ? 12 : 24, gap: isMobile ? 16 : 24 };
+
   return (
-    <div style={styles.pageShell}>
+    <div style={pageShell}>
       <header style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontSize: 24, lineHeight: '32px', fontWeight: 700, margin: 0 }}>{t('Promo codes')}</h1>
           <p style={{ margin: '6px 0 0', color: 'var(--muted-foreground)', fontSize: 14, maxWidth: 720 }}>{t('Manage promo codes, see how they are used, and edit them without raw JSON.')}</p>
         </div>
-        <div role="tablist" style={{ display: 'inline-flex', gap: 4, padding: 4, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--muted)' }}>
+        <div role="tablist" style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: 4, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--muted)', width: isMobile ? '100%' : 'auto' }}>
           {TABS.map((s) => (
             <button key={s.id} type="button" role="tab" aria-selected={route.tab === s.id} onClick={() => setHash(s.hash)} style={tabBtn(route.tab === s.id)}>{s.label}</button>
           ))}

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import WorktimeEditor from './components/WorktimeEditor';
-import { styles, toast, getBaseAdminPath, notificationsApi as api } from './components/notifications/shared';
+import { styles, toast, getBaseAdminPath, notificationsApi as api, useIsMobile } from './components/notifications/shared';
 
 const {
   Button, Input, Textarea, Label, Badge, Switch,
@@ -214,7 +214,7 @@ function fromRecord(r) {
   };
 }
 
-function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creating, onSave, onDelete, groupOptions, conceptOptions, dishNames, setDishNames, backendRaw }) {
+function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creating, onSave, onDelete, groupOptions, conceptOptions, dishNames, setDishNames, backendRaw, isMobile, onBack }) {
   const [advanced, setAdvanced] = useState(false);
   const [view, setView] = useState('form');
   useEffect(() => { setView('form'); }, [draft.id]);
@@ -245,15 +245,20 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Sticky header */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--card)', display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap', paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-          <strong style={{ fontSize: 18 }}>{creating ? t('New promotion') : (draft.name || t('Promotion'))}</strong>
-          <Badge variant="secondary">{t('Configured')}</Badge>
-          {dirty && <Badge variant="outline">{t('Unsaved')}</Badge>}
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button type="button" onClick={onSave} disabled={saving || !dirty}>{saving ? t('Saving...') : t('Save')}</Button>
-          {!creating && <Button type="button" variant="outline" onClick={onDelete} disabled={saving}>{t('Delete')}</Button>}
+      <div style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--card)', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+        {isMobile && (
+          <Button type="button" variant="outline" size="sm" onClick={onBack} style={{ alignSelf: 'flex-start' }}>← {t('Back')}</Button>
+        )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+            <strong style={{ fontSize: 18 }}>{creating ? t('New promotion') : (draft.name || t('Promotion'))}</strong>
+            <Badge variant="secondary">{t('Configured')}</Badge>
+            {dirty && <Badge variant="outline">{t('Unsaved')}</Badge>}
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Button type="button" onClick={onSave} disabled={saving || !dirty}>{saving ? t('Saving...') : t('Save')}</Button>
+            {!creating && <Button type="button" variant="outline" onClick={onDelete} disabled={saving}>{t('Delete')}</Button>}
+          </div>
         </div>
       </div>
 
@@ -439,19 +444,24 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
 }
 
 // ─────────────────────────────── programmed (read-only) detail ───────────────────────────────
-function ProgrammedDetail({ t, language, item, onToggle, savingToggle }) {
+function ProgrammedDetail({ t, language, item, onToggle, savingToggle, isMobile, onBack }) {
   const [sortOrder, setSortOrder] = useState(item.sortOrder || 0);
   useEffect(() => { setSortOrder(item.sortOrder || 0); }, [item.id, item.sortOrder]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--card)', display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap', paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-          <strong style={{ fontSize: 18 }}>{item.name}</strong>
-          <Badge variant="outline">{t('Programmed')}</Badge>
-          {item.badge && <Badge variant="outline">{item.badge}</Badge>}
+      <div style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--card)', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+        {isMobile && (
+          <Button type="button" variant="outline" size="sm" onClick={onBack} style={{ alignSelf: 'flex-start' }}>← {t('Back')}</Button>
+        )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+            <strong style={{ fontSize: 18 }}>{item.name}</strong>
+            <Badge variant="outline">{t('Programmed')}</Badge>
+            {item.badge && <Badge variant="outline">{item.badge}</Badge>}
+          </div>
+          <Switch checked={item.enable} onCheckedChange={(v) => onToggle(item.id, v === true)} disabled={savingToggle} />
         </div>
-        <Switch checked={item.enable} onCheckedChange={(v) => onToggle(item.id, v === true)} disabled={savingToggle} />
       </div>
 
       <div style={{ ...styles.help, padding: '10px 12px', borderRadius: 10, background: 'var(--muted)' }}>
@@ -509,6 +519,7 @@ function PromotionCard({ t, language, item, active, onOpen, onToggle, savingTogg
 // ─────────────────────────────── main ───────────────────────────────
 function PromotionsManagerContent() {
   const { language, t } = useTranslation();
+  const isMobile = useIsMobile();
   const [route, setRoute] = useState(parseHash);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -674,9 +685,12 @@ function PromotionsManagerContent() {
   const configured = items.filter((i) => i.createdByUser);
   const showProgrammed = kind !== 'configured';
   const showConfigured = kind !== 'programmed';
+  // On mobile show either the list OR the detail (master-detail swap), never both side by side.
+  const showList = !isMobile || !editorOpen;
+  const pageShell = { ...styles.pageShell, padding: isMobile ? 12 : 24, gap: isMobile ? 16 : 24 };
 
   return (
-    <div style={styles.pageShell}>
+    <div style={pageShell}>
       <header style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontSize: 24, lineHeight: '32px', fontWeight: 700, margin: 0 }}>{t('Promotions')}</h1>
@@ -684,14 +698,15 @@ function PromotionsManagerContent() {
         </div>
       </header>
 
-      <div style={{ display: 'grid', gap: 24, gridTemplateColumns: editorOpen ? 'minmax(300px, 380px) minmax(420px, 1fr)' : '1fr', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gap: isMobile ? 16 : 24, gridTemplateColumns: (editorOpen && !isMobile) ? 'minmax(300px, 380px) minmax(420px, 1fr)' : '1fr', alignItems: 'start' }}>
         {/* List */}
+        {showList && (
         <section style={styles.panel}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
             <h2 style={styles.sectionTitle}>{t('Promotions')}</h2>
             <Button type="button" size="sm" onClick={() => guardedNav('new')}>+ {t('Promotion')}</Button>
           </div>
-          <div style={{ display: 'inline-flex', gap: 6 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             <button type="button" style={segBtn(kind === 'all')} onClick={() => setKind('all')}>{t('All')}</button>
             <button type="button" style={segBtn(kind === 'programmed')} onClick={() => setKind('programmed')}>{t('Programmed')}</button>
             <button type="button" style={segBtn(kind === 'configured')} onClick={() => setKind('configured')}>{t('Configured')}</button>
@@ -733,6 +748,7 @@ function PromotionsManagerContent() {
             )}
           </div>
         </section>
+        )}
 
         {/* Detail */}
         {editorOpen && (
@@ -743,11 +759,11 @@ function PromotionsManagerContent() {
                   t={t} language={language} draft={draft} setDraft={setDraft} baseline={baseline}
                   saving={saving} creating={route.creating} onSave={save} onDelete={() => setConfirmDelete(true)}
                   groupOptions={groupOptions} conceptOptions={conceptOptions} dishNames={dishNames} setDishNames={setDishNames}
-                  backendRaw={backendRaw}
+                  backendRaw={backendRaw} isMobile={isMobile} onBack={() => guardedNav('list')}
                 />
               ) : <div style={styles.help}>{t('loading')}</div>
             ) : detailItem ? (
-              <ProgrammedDetail t={t} language={language} item={detailItem} onToggle={onToggle} savingToggle={savingToggle} />
+              <ProgrammedDetail t={t} language={language} item={detailItem} onToggle={onToggle} savingToggle={savingToggle} isMobile={isMobile} onBack={() => guardedNav('list')} />
             ) : (
               <div style={styles.help}>{t('loading')}</div>
             )}
