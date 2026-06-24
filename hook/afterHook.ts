@@ -4,6 +4,7 @@ import { NotificationEventRegistry } from "../libs/NotificationEventRegistry";
 import { NotificationTypeRegistry } from "../libs/NotificationTypeRegistry";
 import { SetupChecklistRegistry } from "../libs/SetupChecklistRegistry";
 import { DISMISSED_SETTING_JSON_SCHEMA } from "../libs/SetupChecklistService";
+import { SalesChannelRegistry } from "../libs/SalesChannelRegistry";
 import { NotificationService } from "../libs/NotificationService";
 import { registerCoreMcpTools } from "./mcp";
 
@@ -110,6 +111,38 @@ export default async function () {
       }
     } catch (e) {
       sails.log.warn("RestoCore > setup checklist dismissal seed skipped", e);
+    }
+
+    // Sales channels: register the core channel-type catalog + region recommendation matrix
+    // (in-memory, modules add their own types), then add a setup-checklist item nudging the
+    // operator to create their first channel, and backfill legacy Order.orderedOnPlatform
+    // values into SalesChannel records so reports/frontends keep working. See
+    // ai-notes/sales-channels-research.md.
+    try {
+      SalesChannelRegistry.registerCoreDefaults();
+      SetupChecklistRegistry.registerCheckup({
+        key: "has_sales_channel",
+        group: "project",
+        severity: "required",
+        titleKey: "At least one enabled sales channel",
+        descriptionKey: "Create and enable a sales channel so orders have a known source",
+        icon: "storefront",
+        sourceModule: "core",
+        sortOrder: 9,
+        target: { url: "/sales-channels-manager" },
+        check: async () => {
+          const total = await SalesChannel.count();
+          if (total === 0) return { status: "todo", detailKey: "No sales channels yet" };
+          const enabled = await SalesChannel.count({ enabled: true });
+          if (enabled === 0) {
+            return { status: "todo", detailKey: "{count} created, none enabled — not ready", detailParams: { count: total } };
+          }
+          return { status: "done", detailKey: "{count} of {total} enabled", detailParams: { count: enabled, total } };
+        },
+      });
+      await SalesChannel.backfillFromOrders();
+    } catch (e) {
+      sails.log.warn("RestoCore > sales channels init skipped", e);
     }
 
     // Background notification loops are NOT cluster-safe (no cross-process claim

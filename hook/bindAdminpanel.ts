@@ -134,6 +134,12 @@ export default function bindAdminpanel() {
         department: 'Reports'
       },
       {
+        id: 'sales-channels-manager',
+        name: 'Sales Channels',
+        description: 'Access to the Sales Channels module and its API endpoints',
+        department: 'Store'
+      },
+      {
         id: 'setup-checklist',
         name: 'Setup checklist',
         description: 'Access to the Setup checklist page and its API endpoints',
@@ -804,6 +810,44 @@ function processBindAdminpanel() {
           );
         } catch (e) {
           sails.log.debug('OrdersReport data route bind error', e);
+        }
+
+        // Sales Channels module link + page route + API routes
+        try {
+          const salesChannelsManagerController = require('../lib/adminpanel/src/controller/sales-channels-manager').default;
+          adminizer.config.navbar.additionalLinks.push({
+            id: 'sales-channels-manager',
+            title: 'Sales Channels',
+            link: `${routePrefix}/sales-channels-manager`,
+            icon: 'storefront',
+            accessRightsToken: 'sales-channels-manager',
+            section: 'Store'
+          });
+
+          adminizer.app.get(
+            `${routePrefix}/sales-channels-manager`,
+            ...bind(salesChannelsManagerController)
+          );
+
+          const getSalesChannelsController = require('../lib/adminpanel/src/controller/get-sales-channels').default;
+          const getSalesChannelController = require('../lib/adminpanel/src/controller/get-sales-channel').default;
+          const upsertSalesChannelController = require('../lib/adminpanel/src/controller/upsert-sales-channel').default;
+          const toggleSalesChannelController = require('../lib/adminpanel/src/controller/toggle-sales-channel').default;
+          const deleteSalesChannelController = require('../lib/adminpanel/src/controller/delete-sales-channel').default;
+          const getSalesChannelTypesController = require('../lib/adminpanel/src/controller/get-sales-channel-types').default;
+          const getSalesChannelRecommendationsController = require('../lib/adminpanel/src/controller/get-sales-channel-recommendations').default;
+          const getSalesChannelConceptsController = require('../lib/adminpanel/src/controller/get-sales-channel-concepts').default;
+
+          adminizer.app.get(`${routePrefix}/core/sales-channels`, ...bind(getSalesChannelsController));
+          adminizer.app.get(`${routePrefix}/core/sales-channels/types`, ...bind(getSalesChannelTypesController));
+          adminizer.app.get(`${routePrefix}/core/sales-channels/recommendations`, ...bind(getSalesChannelRecommendationsController));
+          adminizer.app.get(`${routePrefix}/core/sales-channels/concepts`, ...bind(getSalesChannelConceptsController));
+          adminizer.app.get(`${routePrefix}/core/sales-channel`, ...bind(getSalesChannelController));
+          adminizer.app.post(`${routePrefix}/core/sales-channel`, ...bind(upsertSalesChannelController));
+          adminizer.app.post(`${routePrefix}/core/sales-channel-toggle`, ...bind(toggleSalesChannelController));
+          adminizer.app.post(`${routePrefix}/core/sales-channel-delete`, ...bind(deleteSalesChannelController));
+        } catch (e) {
+          sails.log.debug('SalesChannels route bind error', e);
         }
 
         // Route for product setup page

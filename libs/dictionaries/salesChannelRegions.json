@@ -1,0 +1,10 @@
+{
+  "VN": ["web-storefront", "zalo-oa", "facebook", "qr-table-order"],
+  "TH": ["web-storefront", "line-oa", "qr-table-order"],
+  "JP": ["web-storefront", "line-oa", "mobile-app"],
+  "TW": ["web-storefront", "line-oa", "qr-table-order"],
+  "RU": ["web-storefront", "telegram-bot", "vk-miniapp", "max-bot"],
+  "BY": ["web-storefront", "telegram-bot", "vk-miniapp"],
+  "KZ": ["web-storefront", "telegram-bot", "whatsapp-business"],
+  "*": ["web-storefront", "mobile-app", "qr-table-order"]
+}
