@@ -823,7 +823,10 @@ let Model = {
       await Order.log({id: order.id}, "info", "core", "check: started", {isSelfService, paymentMethodId, hasCustomer: !!customer, hasAddress: !!address});
 
       if (typeof orderedOnPlatform !== "undefined") {
-        order.orderedOnPlatform = orderedOnPlatform;
+        // Normalize the order source through the SalesChannel registry. Backward
+        // compatible: keeps the same string and only warns on an unknown channel
+        // (never throws) — see SalesChannel.normalizePlatform / sales-channels-research.md.
+        order.orderedOnPlatform = await SalesChannel.normalizePlatform(orderedOnPlatform);
       }
 
       // CHECKING
