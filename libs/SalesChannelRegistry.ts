@@ -1,9 +1,13 @@
 /**
  * SalesChannelRegistry
  *
- * In-memory catalog of sales-channel *types* (the reusable kinds of channel: web-storefront,
- * telegram-bot, line-oa, …) plus a country → recommended-types matrix. See
+ * In-memory catalog of backend-client *types* that can act as sales channels
+ * (web-storefront, telegram-bot, line-oa, …) plus a country → recommended-types matrix. See
  * ai-notes/sales-channels-research.md (§2 vocabulary, §3.2 type registry, §5 region recs).
+ *
+ * These types describe client integrations, not frontend runtime platform variants.
+ * For example, a website that can run as browser/PWA/iOS-app-layout is still one
+ * web-storefront client unless it is configured as a separate backend integration.
  *
  * Design mirrors SetupChecklistRegistry / NotificationEventRegistry:
  *  - Definitions live ONLY in RAM, on a globalThis singleton (survives hot-reload).

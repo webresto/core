@@ -6,13 +6,24 @@ import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 /**
  * SalesChannel
  *
- * A configured entry point that can create orders for this project — a website,
- * a messenger bot, a kiosk, a staff order-entry surface, an aggregator bridge, etc.
+ * A configured backend client / entry point that can create orders for this project:
+ * a concrete website storefront, messenger bot, kiosk, staff order-entry surface,
+ * aggregator bridge, etc.
+ *
+ * Important vocabulary boundary:
+ * - SalesChannel records are backend clients/integrations owned by the project.
+ * - They are NOT low-level device/platform labels such as "web", "pwa-ios",
+ *   "pwa-android", "ios", or "android" emitted by frontend runtimes.
+ * - Those runtime labels may be useful diagnostics inside Order.orderedOnPlatform,
+ *   but they should not create extra SalesChannel records when they are just modes
+ *   of the same client storefront.
+ *
  * See ai-notes/sales-channels-research.md (§3.1 minimal model).
  *
  * The reusable *kind* of channel ("web-storefront", "telegram-bot", …) is described by
  * SalesChannelRegistry types; THIS model is the concrete enabled instance. The instance
- * `key` is the stable slug written into Order.orderedOnPlatform.
+ * `key` may be used as an Order.orderedOnPlatform source for orders coming from this
+ * backend client.
  */
 
 export type SalesChannelStatus =
@@ -29,8 +40,9 @@ let attributes = {
   } as unknown as string,
 
   /**
-   * Stable slug used as Order.orderedOnPlatform. Uniqueness is enforced in the upsert
-   * controller (mirrors the promo-code precedent — no DB unique constraint/migration).
+   * Stable slug for this backend client. This is distinct from runtime platform strings
+   * like "web", "pwa-ios", or "android". Uniqueness is enforced in the upsert controller
+   * (mirrors the promo-code precedent — no DB unique constraint/migration).
    */
   key: {
     type: "string",
@@ -184,9 +196,11 @@ let Model = {
   },
 
   /**
-   * Idempotent boot-time backfill (doc §14). If the table is empty, create one disabled-or-
-   * enabled SalesChannel per distinct non-empty Order.orderedOnPlatform value so existing
-   * reports and frontends keep working. Marked as type "legacy" / providerModule null.
+   * Idempotent boot-time backfill (doc §14). This is legacy-only migration glue: when
+   * the table is empty, mirror distinct historical Order.orderedOnPlatform values into
+   * type "legacy" records so old reports/frontends keep working. Do not use this as the
+   * conceptual model for new runtime platform labels; new SalesChannel rows should model
+   * backend clients/integrations.
    */
   async backfillFromOrders(): Promise<void> {
     try {

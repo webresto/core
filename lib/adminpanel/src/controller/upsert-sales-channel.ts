@@ -8,8 +8,9 @@ const VALID_STATUS = ["draft", "needs_setup", "ready", "disabled", "error"];
  * Body: { id?, key?, title, type, providerModule?, enabled?, status?, countries[], concepts[],
  *         defaultConcept?, allowConceptSwitch?, url?, settings?, publicConfig?, sortOrder? }
  *
- * `key` is the stable slug written into Order.orderedOnPlatform. Uniqueness is enforced here
- * (mirrors the promo-code precedent — no DB unique constraint).
+ * `key` identifies a backend client/integration. It must not be confused with frontend
+ * runtime platform values such as "web", "pwa-ios", "pwa-android", "ios", or "android".
+ * Uniqueness is enforced here (mirrors the promo-code precedent — no DB unique constraint).
  */
 export default async function UpsertSalesChannelController(req: any, res: any) {
   const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
