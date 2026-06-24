@@ -7,8 +7,9 @@ let attributes = {
         type: "string",
     },
     /**
-     * Stable slug used as Order.orderedOnPlatform. Uniqueness is enforced in the upsert
-     * controller (mirrors the promo-code precedent — no DB unique constraint/migration).
+     * Stable slug for this backend client. This is distinct from runtime platform strings
+     * like "web", "pwa-ios", or "android". Uniqueness is enforced in the upsert controller
+     * (mirrors the promo-code precedent — no DB unique constraint/migration).
      */
     key: {
         type: "string",
@@ -140,9 +141,11 @@ let Model = {
         return trimmed;
     },
     /**
-     * Idempotent boot-time backfill (doc §14). If the table is empty, create one disabled-or-
-     * enabled SalesChannel per distinct non-empty Order.orderedOnPlatform value so existing
-     * reports and frontends keep working. Marked as type "legacy" / providerModule null.
+     * Idempotent boot-time backfill (doc §14). This is legacy-only migration glue: when
+     * the table is empty, mirror distinct historical Order.orderedOnPlatform values into
+     * type "legacy" records so old reports/frontends keep working. Do not use this as the
+     * conceptual model for new runtime platform labels; new SalesChannel rows should model
+     * backend clients/integrations.
      */
     async backfillFromOrders() {
         try {
