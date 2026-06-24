@@ -70,6 +70,7 @@ export function mapChannel(channel: any): any {
     category: typeDef?.category || "custom",
     capabilities: typeDef?.capabilities || [],
     icon: typeDef?.icon || "tune",
+    settingsUrl: typeDef?.settingsUrl || null,
     providerModule: channel?.providerModule || null,
     enabled: channel?.enabled === true,
     status: channel?.status || "draft",

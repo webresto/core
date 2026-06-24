@@ -236,7 +236,8 @@ function processBindAdminpanel() {
     // Add core widgets to default widgets list
     const coreWidgets = ['dish-count',
        'order-count', 
-       'dishes-on-stop'];
+       'dishes-on-stop',
+       'sales-channels-count'];
     coreWidgets.forEach(widgetId => {
       if (!sails.config.adminpanel.dashboard.defaultWidgets.includes(widgetId)) {
         sails.config.adminpanel.dashboard.defaultWidgets.push(widgetId);

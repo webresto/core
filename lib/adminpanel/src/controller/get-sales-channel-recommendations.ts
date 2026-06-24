@@ -1,6 +1,22 @@
 import { hasAccess } from "./sales-channels-helpers";
 import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
 
+async function getInstalledAppIds(): Promise<Set<string>> {
+  const installedAppIds = new Set<string>();
+  try {
+    const ModuleModel: any = (sails as any).models?.module;
+    if (ModuleModel?.find) {
+      const modules = await ModuleModel.find({});
+      for (const m of modules as any[]) {
+        if (m?.appId) installedAppIds.add(String(m.appId));
+      }
+    }
+  } catch (e) {
+    sails.log.debug("Sales channel recommendations: module lookup skipped", e);
+  }
+  return installedAppIds;
+}
+
 /**
  * GET …/core/sales-channels/recommendations
  * Recommended channel types for the project's country (Settings COUNTRY_ISO), resolved
@@ -20,7 +36,11 @@ export default async function GetSalesChannelRecommendationsController(req: any,
       } catch { /* ignore */ }
     }
 
-    const types = SalesChannelRegistry.recommendedTypesForCountry(country);
+    const installedAppIds = await getInstalledAppIds();
+    const types = SalesChannelRegistry.recommendedTypesForCountry(country).map((def) => ({
+      ...def,
+      installed: def.providerModule ? installedAppIds.has(def.providerModule) : true,
+    }));
     return res.json({ country: country || null, results: types });
   } catch (error) {
     sails.log.error("Get sales channel recommendations error", error);

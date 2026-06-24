@@ -49,6 +49,11 @@ function MaterialIcon({ name, size = 20, style }) {
   return <span className="material-icons" style={{ fontSize: size, lineHeight: 1, ...style }}>{name}</span>;
 }
 
+function openSelf(url) {
+  if (!url) return;
+  window.location.href = url;
+}
+
 // ─────────────────────────────── editor panel ───────────────────────────────
 const EMPTY_DRAFT = {
   id: '', key: '', title: '', type: 'custom', url: '',
@@ -197,6 +202,7 @@ function ChannelCard({ channel, onEdit, onToggle, onDelete, t }) {
           <span style={styles.help}>{channel.enabled ? t('Enabled') : t('Disabled')}</span>
         </label>
         <div style={{ display: 'flex', gap: 8 }}>
+          {channel.settingsUrl && <Button variant="outline" size="sm" onClick={() => openSelf(channel.settingsUrl)}>{t('Settings')}</Button>}
           {channel.url && <Button variant="outline" size="sm" onClick={() => window.open(channel.url, '_blank', 'noopener')}>{t('Open')}</Button>}
           <Button variant="outline" size="sm" onClick={() => onEdit(channel)}>{t('Edit')}</Button>
           <Button variant="ghost" size="sm" onClick={() => onDelete(channel)}>{t('Delete')}</Button>
@@ -217,9 +223,15 @@ function RecommendedCard({ typeDef, onAdd, t }) {
           <div style={styles.help}>{typeDef.installed ? t('Provider installed') : t('Provider not installed')}</div>
         </div>
       </div>
-      <Button variant="outline" size="sm" onClick={() => onAdd(typeDef)}>
-        <MaterialIcon name="add" size={16} style={{ marginRight: 4 }} />{t('Add channel')}
-      </Button>
+      {typeDef.installed && typeDef.settingsUrl ? (
+        <Button variant="outline" size="sm" onClick={() => openSelf(typeDef.settingsUrl)}>
+          <MaterialIcon name="settings" size={16} style={{ marginRight: 4 }} />{t('Settings')}
+        </Button>
+      ) : (
+        <Button variant="outline" size="sm" onClick={() => onAdd(typeDef)}>
+          <MaterialIcon name="add" size={16} style={{ marginRight: 4 }} />{t('Add channel')}
+        </Button>
+      )}
     </div>
   );
 }
