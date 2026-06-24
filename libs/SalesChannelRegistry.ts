@@ -54,6 +54,8 @@ export interface SalesChannelTypeDefinition {
   supportsMultipleInstances?: boolean;
   /** Material icon name for the admin UI. */
   icon?: string;
+  /** Admin URL where the provider module can be configured. */
+  settingsUrl?: string | null;
   /** Module that registered the type (diagnostics): "core", "sales-channel-line", … */
   sourceModule?: string;
 }
@@ -108,6 +110,7 @@ export class SalesChannelRegistry {
       capabilities: Array.isArray(def.capabilities) ? def.capabilities : [],
       supportsConcepts: def.supportsConcepts ?? true,
       supportsMultipleInstances: def.supportsMultipleInstances ?? true,
+      settingsUrl: def.settingsUrl ?? null,
     });
   }
 
@@ -164,11 +167,12 @@ export class SalesChannelRegistry {
     this.registerTypes([
       {
         type: "web-storefront",
-        title: "Web storefront",
+        title: "Website",
         category: "storefront",
-        providerModule: "base-storefront",
-        marketplaceAppId: "base-storefront",
+        providerModule: "admin-frontend",
+        marketplaceAppId: "admin-frontend",
         icon: "language",
+        settingsUrl: "/admin/frontend/setup",
         capabilities: ["orders:create", "orders:pay", "orders:status", "menu:browse", "menu:concept-filter", "customers:anonymous", "assets:frontend"],
         sourceModule: "core",
       },

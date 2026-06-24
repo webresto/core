@@ -21,6 +21,11 @@ describe('ensureDefaultGroups', function () {
         records.push(record);
         return record;
       },
+      _updateOne: async ({ name }: any, updates: any) => {
+        const record = records.find((item) => item.name === name);
+        Object.assign(record, updates);
+        return record;
+      },
     };
     const adminizer = {
       modelHandler: {
@@ -33,6 +38,7 @@ describe('ensureDefaultGroups', function () {
         name: 'Operator',
         description: 'Processes and updates current orders',
         tokens: ['order-kanban'],
+        ensureTokens: ['sales-channels-manager'],
       },
       {
         name: 'Marketer',
@@ -46,7 +52,7 @@ describe('ensureDefaultGroups', function () {
     expect(records[0]).to.deep.equal({
       name: 'Operator',
       description: 'Changed by an administrator',
-      tokens: ['custom-token'],
+      tokens: ['custom-token', 'sales-channels-manager'],
       users: [10],
     });
     expect(records[1]).to.deep.equal({
