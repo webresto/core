@@ -366,14 +366,17 @@ export class NotificationDispatcher {
     };
 
     // If priorityDevice is provided, find its provider channel and try it first.
+    // Uses the same provider->channelType mapping as the priorityDeviceOnly path below
+    // (token.provider is "fcm", channels are registered as "fcm-mobile"/"fcm-web" — a
+    // direct ch.type === provider compare never matches).
     let priorityDelivered = false;
     if (priorityDevice?.notificationToken) {
-      const provider = (normalizeDeviceNotificationToken(priorityDevice) as any)?.provider;
+      const priorityChannelTypes = getPriorityDeviceChannelTypes(priorityDevice);
       const priorityChannel = NotificationManager.channels.find(
-        (ch) => ch.type === provider && ch.forGroupTo.includes(groupTo)
+        (ch) => priorityChannelTypes.includes(ch.type) && ch.forGroupTo.includes(groupTo)
       );
       if (!priorityChannel) {
-        trace.push(`priority device provider=${provider || "unknown"}: no channel, waterfall continues`);
+        trace.push(`priority device candidates=${priorityChannelTypes.join(",") || "unknown"}: no channel, waterfall continues`);
       } else if (allowedChannelTypes && !allowedChannelTypes.has(priorityChannel.type)) {
         trace.push(`priority ${priorityChannel.type}: skipped (not in requested channels)`);
       } else {

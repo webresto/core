@@ -59,9 +59,9 @@ export interface UserDeviceRecord extends RequiredField<OptionalAll<attributes>,
 let Model = {
   beforeUpdate(record: UserDeviceRecord, cb:  (err?: string) => void){
     record.lastActivity = Date.now();
-    // NOTE: `user` is intentionally NOT stripped here anymore. Binding an empty
-    // device to a user (and the "rebind forbidden" rule) is handled centrally in
-    // `User.authDevice`. Stripping it here made it impossible to ever bind a device.
+    // NOTE: `user` is intentionally NOT stripped here anymore. (Re)binding a device
+    // to whoever logs in is handled centrally in `User.authDevice`. Stripping it here
+    // made it impossible to ever bind a device.
     if (record.isLoggedIn === false) {
       record.sessionId = null
     }

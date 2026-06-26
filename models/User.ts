@@ -424,20 +424,15 @@ let Model = {
     if (!userDevice) {
       // Brand new device — create it already bound to the user that logs in
       userDevice = await UserDevice.create({ id: deviceId, user: userId, name: deviceName }).fetch();
-    } else if (!userDevice.user) {
-      // Empty (anonymous) device — e.g. created for guest push notifications before login. Bind it now.
-      await UserDevice.updateOne({ id: deviceId }).set({ user: userId });
     } else if (userDevice.user !== userId) {
-      // The device already belongs to ANOTHER user. Re-binding is forbidden by design.
-      // This must NOT throw — we only log it loudly and keep the original owner. We also do NOT touch
-      // the session fields here, otherwise we would overwrite the real owner's sessionId / isLoggedIn.
-      sails.log.error(
-        `\n========================= [UserDevice] REBIND FORBIDDEN =========================\n` +
-        `Device [${deviceId}] is owned by user [${userDevice.user}], but user [${userId}] just logged in from it.\n` +
-        `Ownership is left UNCHANGED. A deviceId is expected to be unique per physical device.\n` +
-        `=================================================================================\n`
-      );
-      return userDevice;
+      // Device is unclaimed, or was claimed by a different user (e.g. shared/test device, or a
+      // previous owner who logged out). A physical device always belongs to whoever is CURRENTLY
+      // authenticated on it, so we (re)bind it — the JWT/session below must always match the user
+      // who just proved their credentials, never a stale owner.
+      if (userDevice.user) {
+        sails.log.info(`[UserDevice] Rebinding device [${deviceId}] from user [${userDevice.user}] to user [${userId}]`);
+      }
+      await UserDevice.updateOne({ id: deviceId }).set({ user: userId });
     }
 
     // Refresh the session for the current login (sessionId guards against parallel logins with one name)
