@@ -76,6 +76,7 @@ export function mapChannel(channel: any): any {
     status: channel?.status || "draft",
     countries: stringArray(channel?.countries),
     concepts: stringArray(channel?.concepts),
+    platforms: stringArray(channel?.platforms),
     defaultConcept: channel?.defaultConcept || null,
     allowConceptSwitch: channel?.allowConceptSwitch !== false,
     url: channel?.url || null,

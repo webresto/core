@@ -8,13 +8,17 @@ import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
  * a concrete website storefront, messenger bot, kiosk, staff order-entry surface,
  * aggregator bridge, etc.
  *
+ * Conceptually a SalesChannel IS a single client. The same client can run on several
+ * runtime platforms (web, PWA, native iOS/Android app) — those go into the `platforms`
+ * list of ONE channel, they do not each get their own SalesChannel record.
+ *
  * Important vocabulary boundary:
  * - SalesChannel records are backend clients/integrations owned by the project.
  * - They are NOT low-level device/platform labels such as "web", "pwa-ios",
  *   "pwa-android", "ios", or "android" emitted by frontend runtimes.
  * - Those runtime labels may be useful diagnostics inside Order.orderedOnPlatform,
  *   but they should not create extra SalesChannel records when they are just modes
- *   of the same client storefront.
+ *   of the same client storefront — list them in this channel's `platforms` instead.
  *
  * See ai-notes/sales-channels-research.md (§3.1 minimal model).
  *
@@ -50,6 +54,14 @@ declare let attributes: {
     countries: string[];
     /** Concept allowlist. Empty array = all concepts (doc §6.2). */
     concepts: string[];
+    /**
+     * Runtime platform/device labels (e.g. "web", "pwa-android", "pwa-ios", "app-ios") that
+     * report orders through this channel. An incoming Order.orderedOnPlatform value resolves
+     * to this channel if it equals `key` OR appears in this list — one channel can cover
+     * several runtime variants of the same backend client. Set manually by the operator;
+     * never filled automatically.
+     */
+    platforms: string[];
     /** Default concept this channel writes into orders, when set. */
     defaultConcept: string | null;
     /** Whether the frontend/bot may expose a concept selector when multiple are bound. */
@@ -72,8 +84,8 @@ export interface SalesChannelRecord extends RequiredField<OptionalAll<attributes
 declare let Model: {
     beforeCreate(init: SalesChannelRecord, cb: (err?: string) => void): void;
     /**
-     * Resolve a channel by its public key. Returns the ENABLED instance or null.
-     * Used to validate/normalize an incoming order source.
+     * Resolve a channel by its public key, or by one of the runtime platforms it declares.
+     * Returns the ENABLED instance or null. Used to validate/normalize an incoming order source.
      */
     resolve(key: string): Promise<SalesChannelRecord | null>;
     /**
@@ -84,16 +96,8 @@ declare let Model: {
      * frontends/bots keep working during the transition.
      */
     normalizePlatform(key: string | null | undefined): Promise<string | null>;
-    /**
-     * Idempotent boot-time backfill (doc §14). This is legacy-only migration glue: when
-     * the table is empty, mirror distinct historical Order.orderedOnPlatform values into
-     * type "legacy" records so old reports/frontends keep working. Do not use this as the
-     * conceptual model for new runtime platform labels; new SalesChannel rows should model
-     * backend clients/integrations.
-     */
-    backfillFromOrders(): Promise<void>;
 };
 declare global {
-    const SalesChannel: typeof Model & ORMModel<SalesChannelRecord, "providerModule" | "enabled" | "status" | "countries" | "concepts" | "defaultConcept" | "allowConceptSwitch" | "url" | "settings" | "publicConfig" | "secretsRef" | "sortOrder" | "type">;
+    const SalesChannel: typeof Model & ORMModel<SalesChannelRecord, "providerModule" | "enabled" | "status" | "countries" | "concepts" | "platforms" | "defaultConcept" | "allowConceptSwitch" | "url" | "settings" | "publicConfig" | "secretsRef" | "sortOrder" | "type">;
 }
 export {};

@@ -5,8 +5,8 @@ const VALID_STATUS = ["draft", "needs_setup", "ready", "disabled", "error"];
 
 /**
  * POST …/core/sales-channel   (create or update an instance)
- * Body: { id?, key?, title, type, providerModule?, enabled?, status?, countries[], concepts[],
- *         defaultConcept?, allowConceptSwitch?, url?, settings?, publicConfig?, sortOrder? }
+ * Body: { id?, key?, title, type, providerModule?, enabled?, status?, countries[], platforms[],
+ *         concepts[], defaultConcept?, allowConceptSwitch?, url?, settings?, publicConfig?, sortOrder? }
  *
  * `key` identifies a backend client/integration. It must not be confused with frontend
  * runtime platform values such as "web", "pwa-ios", "pwa-android", "ios", or "android".
@@ -62,6 +62,7 @@ export default async function UpsertSalesChannelController(req: any, res: any) {
       enabled,
       status,
       countries: stringArray(body.countries),
+      platforms: stringArray(body.platforms),
       concepts,
       defaultConcept,
       allowConceptSwitch: body.allowConceptSwitch !== false,

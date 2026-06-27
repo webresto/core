@@ -58,7 +58,7 @@ function openSelf(url) {
 const EMPTY_DRAFT = {
   id: '', key: '', title: '', type: 'custom', url: '',
   enabled: false, concepts: [], defaultConcept: '', allowConceptSwitch: true,
-  countries: '', providerModule: null,
+  countries: '', platforms: '', providerModule: null,
 };
 
 function slugifyClient(value) {
@@ -90,6 +90,10 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
         <h2 style={styles.subsectionTitle}>{isNew ? t('New sales channel') : t('Edit sales channel')}</h2>
         <StatusBadge status={draft.enabled ? (draft.status || 'ready') : 'disabled'} t={t} />
       </div>
+
+      <span style={styles.help}>
+        {t('A sales channel is essentially a single backend client (a storefront, bot, kiosk, …). The same client can run on several platforms (web, PWA, native apps) — list those runtime platforms below instead of creating a separate channel for each.')}
+      </span>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
         <div style={styles.field}>
@@ -125,6 +129,12 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
         <div style={styles.field}>
           <Label style={styles.fieldLabel}>{t('Countries (ISO, comma-separated)')}</Label>
           <Input value={draft.countries} onChange={(e) => setField('countries', e.target.value)} placeholder="VN, TH" />
+        </div>
+
+        <div style={styles.field}>
+          <Label style={styles.fieldLabel}>{t('Platforms (comma-separated)')}</Label>
+          <Input value={draft.platforms} onChange={(e) => setField('platforms', e.target.value)} placeholder="web, pwa-android, pwa-ios, app-ios" />
+          <span style={styles.help}>{t('Runtime platform values (orderedOnPlatform) that report orders through this channel.')}</span>
         </div>
       </div>
 
@@ -194,6 +204,7 @@ function ChannelCard({ channel, onEdit, onToggle, onDelete, t }) {
           ? <Badge variant="secondary">{t('All concepts')}</Badge>
           : channel.concepts.map((c) => <Badge key={c} variant="secondary">{c}</Badge>)}
         {channel.countries.map((c) => <Badge key={`co-${c}`} variant="outline">{c}</Badge>)}
+        {channel.platforms.map((p) => <Badge key={`pl-${p}`} variant="outline">{p}</Badge>)}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between', flexWrap: 'wrap' }}>
@@ -301,6 +312,7 @@ function SalesChannelsManagerContent() {
       defaultConcept: channel.defaultConcept || '',
       allowConceptSwitch: channel.allowConceptSwitch !== false,
       countries: (channel.countries || []).join(', '),
+      platforms: (channel.platforms || []).join(', '),
       providerModule: channel.providerModule || null,
     });
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -321,6 +333,7 @@ function SalesChannelsManagerContent() {
       allowConceptSwitch: draft.allowConceptSwitch,
       providerModule: draft.providerModule,
       countries: String(draft.countries || '').split(',').map((x) => x.trim().toUpperCase()).filter(Boolean),
+      platforms: String(draft.platforms || '').split(',').map((x) => x.trim()).filter(Boolean),
     };
     const res = await api('/core/sales-channel', { method: 'POST', body: JSON.stringify(body) });
     setSaving(false);
