@@ -115,8 +115,8 @@ export default async function () {
 
     // Sales channels: register the core channel-type catalog + region recommendation matrix
     // (in-memory, modules add their own types), then add a setup-checklist item nudging the
-    // operator to create their first channel, and backfill legacy Order.orderedOnPlatform
-    // values into SalesChannel records so reports/frontends keep working. See
+    // operator to create their first channel. Channels (incl. their `platforms` list) are
+    // configured manually by the operator — never auto-created/backfilled. See
     // ai-notes/sales-channels-research.md.
     try {
       SalesChannelRegistry.registerCoreDefaults();
@@ -140,7 +140,6 @@ export default async function () {
           return { status: "done", detailKey: "{count} of {total} enabled", detailParams: { count: enabled, total } };
         },
       });
-      await SalesChannel.backfillFromOrders();
     } catch (e) {
       sails.log.warn("RestoCore > sales channels init skipped", e);
     }

@@ -52,6 +52,17 @@ let attributes = {
         type: "json",
         defaultsTo: [],
     },
+    /**
+     * Runtime platform/device labels (e.g. "web", "pwa-android", "pwa-ios", "app-ios") that
+     * report orders through this channel. An incoming Order.orderedOnPlatform value resolves
+     * to this channel if it equals `key` OR appears in this list — one channel can cover
+     * several runtime variants of the same backend client. Set manually by the operator;
+     * never filled automatically.
+     */
+    platforms: {
+        type: "json",
+        defaultsTo: [],
+    },
     /** Default concept this channel writes into orders, when set. */
     defaultConcept: {
         type: "string",
@@ -105,15 +116,21 @@ let Model = {
         cb();
     },
     /**
-     * Resolve a channel by its public key. Returns the ENABLED instance or null.
-     * Used to validate/normalize an incoming order source.
+     * Resolve a channel by its public key, or by one of the runtime platforms it declares.
+     * Returns the ENABLED instance or null. Used to validate/normalize an incoming order source.
      */
     async resolve(key) {
         const trimmed = String(key || "").trim();
         if (!trimmed)
             return null;
-        const channel = await SalesChannel.findOne({ key: trimmed, enabled: true });
-        return channel || null;
+        const direct = await SalesChannel.findOne({ key: trimmed, enabled: true });
+        if (direct)
+            return direct;
+        const enabledChannels = await SalesChannel.find({ enabled: true });
+        return (enabledChannels.find((channel) => {
+            const platforms = channel.platforms;
+            return Array.isArray(platforms) && platforms.includes(trimmed);
+        }) || null);
     },
     /**
      * Normalize an order-source value (doc §16 step 3 / §15 open question → warn-only).
@@ -139,45 +156,6 @@ let Model = {
             sails.log.warn("SalesChannel > normalizePlatform failed", e);
         }
         return trimmed;
-    },
-    /**
-     * Idempotent boot-time backfill (doc §14). This is legacy-only migration glue: when
-     * the table is empty, mirror distinct historical Order.orderedOnPlatform values into
-     * type "legacy" records so old reports/frontends keep working. Do not use this as the
-     * conceptual model for new runtime platform labels; new SalesChannel rows should model
-     * backend clients/integrations.
-     */
-    async backfillFromOrders() {
-        try {
-            const existing = await SalesChannel.count();
-            if (existing > 0)
-                return;
-            const orders = await Order.find({ where: { orderedOnPlatform: { "!=": null } } });
-            const keys = new Set();
-            for (const order of orders) {
-                const value = String(order.orderedOnPlatform || "").trim();
-                if (value)
-                    keys.add(value);
-            }
-            if (keys.size === 0)
-                return;
-            let sortOrder = 0;
-            for (const key of keys) {
-                await SalesChannel.findOrCreate({ key }, {
-                    key,
-                    title: key,
-                    type: "legacy",
-                    providerModule: null,
-                    enabled: true,
-                    status: "ready",
-                    sortOrder: sortOrder++,
-                });
-            }
-            sails.log.info(`SalesChannel > backfilled ${keys.size} legacy channel(s) from existing orders`);
-        }
-        catch (e) {
-            sails.log.warn("SalesChannel > backfillFromOrders failed", e);
-        }
     },
 };
 module.exports = {
