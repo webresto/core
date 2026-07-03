@@ -110,6 +110,30 @@ export default function bindAdminpanel() {
         department: 'Orders'
       },
       {
+        id: 'globaly-operator-can-create',
+        name: 'Operator can create',
+        description: 'Global operator create permission for modules that explicitly require this token',
+        department: 'Global role permissions'
+      },
+      {
+        id: 'globaly-operator-can-view',
+        name: 'Operator can view',
+        description: 'Global operator view permission for modules that explicitly require this token',
+        department: 'Global role permissions'
+      },
+      {
+        id: 'globaly-operator-can-write',
+        name: 'Operator can write',
+        description: 'Global operator write permission for modules that explicitly require this token',
+        department: 'Global role permissions'
+      },
+      {
+        id: 'globaly-operator-can-delete',
+        name: 'Operator can delete',
+        description: 'Global operator delete permission for modules that explicitly require this token',
+        department: 'Global role permissions'
+      },
+      {
         id: 'notifications-manager',
         name: 'Notifications',
         description: 'Access to Notifications module and its API endpoints',
@@ -126,6 +150,30 @@ export default function bindAdminpanel() {
         name: 'Promotions',
         description: 'Access to the Promotions module and its API endpoints',
         department: 'Marketing'
+      },
+      {
+        id: 'globaly-marketer-can-create',
+        name: 'Marketer can create',
+        description: 'Global marketer create permission for modules that explicitly require this token',
+        department: 'Global role permissions'
+      },
+      {
+        id: 'globaly-marketer-can-view',
+        name: 'Marketer can view',
+        description: 'Global marketer view permission for modules that explicitly require this token',
+        department: 'Global role permissions'
+      },
+      {
+        id: 'globaly-marketer-can-write',
+        name: 'Marketer can write',
+        description: 'Global marketer write permission for modules that explicitly require this token',
+        department: 'Global role permissions'
+      },
+      {
+        id: 'globaly-marketer-can-delete',
+        name: 'Marketer can delete',
+        description: 'Global marketer delete permission for modules that explicitly require this token',
+        department: 'Global role permissions'
       },
       {
         id: 'orders-report',
