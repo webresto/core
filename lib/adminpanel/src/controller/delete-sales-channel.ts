@@ -1,4 +1,4 @@
-import { hasAccess } from "./sales-channels-helpers";
+import { hasManageAccess } from "./sales-channels-helpers";
 
 /**
  * POST …/core/sales-channel-delete   Body: { id }
@@ -7,7 +7,7 @@ import { hasAccess } from "./sales-channels-helpers";
  */
 export default async function DeleteSalesChannelController(req: any, res: any) {
   try {
-    if (!hasAccess(req, res)) return;
+    if (!hasManageAccess(req, res)) return;
 
     const body = req.body || {};
     const id = String(body.id || "").trim();

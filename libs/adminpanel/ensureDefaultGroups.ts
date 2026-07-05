@@ -3,12 +3,13 @@ export interface DefaultAdminGroup {
   description: string;
   tokens: string[];
   ensureTokens?: string[];
+  removeTokens?: string[];
 }
 
 /**
  * Creates configured groups only when a group with the same name does not exist.
  * Existing groups are left untouched unless ensureTokens explicitly lists new
- * tokens that should be added without changing other fields or memberships.
+ * tokens to add or removeTokens explicitly lists tokens to revoke.
  */
 export async function ensureDefaultGroups(
   adminizer: any,
@@ -26,12 +27,14 @@ export async function ensureDefaultGroups(
     if (existingGroup) {
       const ensureTokens = Array.isArray(defaultGroup.ensureTokens) ? defaultGroup.ensureTokens : [];
       const currentTokens = Array.isArray(existingGroup.tokens) ? existingGroup.tokens : [];
-      const missingTokens = ensureTokens.filter((token) => !currentTokens.includes(token));
+      const removeTokens = Array.isArray(defaultGroup.removeTokens) ? defaultGroup.removeTokens : [];
+      const retainedTokens = currentTokens.filter((token: string) => !removeTokens.includes(token));
+      const missingTokens = ensureTokens.filter((token: string) => !retainedTokens.includes(token));
 
-      if (missingTokens.length > 0) {
+      if (missingTokens.length > 0 || retainedTokens.length !== currentTokens.length) {
         await groupModel._updateOne(
           { name: defaultGroup.name },
-          { tokens: [...currentTokens, ...missingTokens] },
+          { tokens: [...retainedTokens, ...missingTokens] },
         );
       }
       continue;

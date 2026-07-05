@@ -56,7 +56,7 @@ function budgetSummary(typeItem, t) {
 
 export default function TypesSection({
   t, language, notificationsApi, types, events, channels, locales, defaultLocale,
-  onChanged,
+  onChanged, canManage = false,
 }) {
   const isMobile = useIsMobile();
   const typeList = Array.isArray(types) ? types : [];
@@ -94,6 +94,7 @@ export default function TypesSection({
   };
 
   const beginCreate = (eventKey) => {
+    if (!canManage) return;
     const clone = blankType(eventKey);
     setDraft(clone);
     setBaseline(JSON.stringify(clone));
@@ -138,7 +139,7 @@ export default function TypesSection({
   const setField = (field, value) => setDraft((d) => ({ ...d, [field]: value }));
 
   const save = async () => {
-    if (!draft) return;
+    if (!canManage || !draft) return;
     const validation = validateType(draft, t);
     if (validation.length > 0) { setErrors(validation); toast('error', validation[0]); return; }
     setSaving(true);
@@ -179,7 +180,7 @@ export default function TypesSection({
   };
 
   const doDelete = async () => {
-    if (!selectedKey) return;
+    if (!canManage || !selectedKey) return;
     setSaving(true);
     try {
       const response = await notificationsApi('/core/notifications-manager/type-delete', {
@@ -197,7 +198,7 @@ export default function TypesSection({
   };
 
   const duplicate = () => {
-    if (!draft) return;
+    if (!canManage || !draft) return;
     const clone = JSON.parse(JSON.stringify(draft));
     clone.key = `${clone.key}_copy`;
     clone.enabled = false;
@@ -208,7 +209,10 @@ export default function TypesSection({
     setDetailTab('general');
   };
 
-  const toggleEnabled = () => setField('enabled', !draft.enabled);
+  const toggleEnabled = () => {
+    if (!canManage) return;
+    setField('enabled', !draft.enabled);
+  };
 
   // ── Filtering + sorting of the list (enabled first, then name) ──
   const filtered = useMemo(() => {
@@ -258,7 +262,7 @@ export default function TypesSection({
           t={t}
           events={eventList}
           types={typeList}
-          onAddTypeForEvent={addTypeForEvent}
+          onAddTypeForEvent={canManage ? addTypeForEvent : undefined}
         />
         <ConfirmDialog
           isOpen={pendingEventCreate !== undefined}
@@ -281,7 +285,7 @@ export default function TypesSection({
           <h2 style={styles.sectionTitle}>{t('Types')}</h2>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <Button type="button" size="sm" variant="outline" onClick={() => setShowEventsCatalog(true)}>{t('Events')}</Button>
-            <Button type="button" size="sm" onClick={() => guardedSelect(null)}>+ {t('Add Type')}</Button>
+            {canManage && <Button type="button" size="sm" onClick={() => guardedSelect(null)}>+ {t('Add Type')}</Button>}
           </div>
         </div>
         <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by key, name, event')} />
@@ -370,9 +374,9 @@ export default function TypesSection({
                   {dirty && <Badge variant="outline">{t('Unsaved')}</Badge>}
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <Button type="button" onClick={save} disabled={saving || !dirty}>{saving ? t('Saving...') : t('Save')}</Button>
-                  <Button type="button" variant="outline" onClick={discard} disabled={saving || !dirty}>{t('Discard')}</Button>
-                  {DropdownMenu && (
+                  {canManage && <Button type="button" onClick={save} disabled={saving || !dirty}>{saving ? t('Saving...') : t('Save')}</Button>}
+                  {canManage && <Button type="button" variant="outline" onClick={discard} disabled={saving || !dirty}>{t('Discard')}</Button>}
+                  {canManage && DropdownMenu && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button type="button" variant="outline">⋯</Button></DropdownMenuTrigger>
                       <DropdownMenuContent>
@@ -402,16 +406,16 @@ export default function TypesSection({
               <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px,100%),1fr))' }}>
                 <div style={styles.field}>
                   <Label style={styles.fieldLabel}>{t('Name')}</Label>
-                  <Input value={draft.name || ''} onChange={(e) => setField('name', e.target.value)} />
+                  <Input value={draft.name || ''} onChange={(e) => setField('name', e.target.value)} disabled={!canManage} />
                 </div>
                 <div style={styles.field}>
                   <Label style={styles.fieldLabel}>{t('Key')}</Label>
-                  <Input value={draft.key || ''} onChange={(e) => setField('key', e.target.value)} disabled={!creating} style={styles.code} placeholder="snake_case" />
+                  <Input value={draft.key || ''} onChange={(e) => setField('key', e.target.value)} disabled={!canManage || !creating} style={styles.code} placeholder="snake_case" />
                   <span style={styles.help}>{creating ? t('Lowercase, digits, underscores. Read-only after creation.') : t('Read-only after creation.')}</span>
                 </div>
                 <div style={{ ...styles.field, gridColumn: '1 / -1' }}>
                   <Label style={styles.fieldLabel}>{t('Description')}</Label>
-                  <Textarea value={draft.description || ''} onChange={(e) => setField('description', e.target.value)} rows={2} />
+                  <Textarea value={draft.description || ''} onChange={(e) => setField('description', e.target.value)} rows={2} disabled={!canManage} />
                 </div>
                 <div style={styles.field}>
                   <Label style={styles.fieldLabel}>{t('Event')}</Label>
@@ -513,7 +517,7 @@ export default function TypesSection({
             {detailTab === 'logs' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <p style={styles.help}>{t('Run a dry-run for this type\'s event. Full delivery logs live in the Activity section.')}</p>
-                {draft.eventKey ? (
+                {canManage && draft.eventKey ? (
                   <SendTestPanel
                     t={t}
                     notificationsApi={notificationsApi}
@@ -522,6 +526,8 @@ export default function TypesSection({
                     defaultLocale={defaultLocale}
                     lockedEventKey={draft.eventKey}
                   />
+                ) : !canManage ? (
+                  <div style={styles.help}>{t('Test delivery is available to notification managers.')}</div>
                 ) : (
                   <div style={styles.help}>{t('Select an event first.')}</div>
                 )}

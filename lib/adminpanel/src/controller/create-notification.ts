@@ -1,4 +1,5 @@
 import { NotificationDispatcher } from "../../../../libs/NotificationDispatcher";
+import { hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
 import { NotificationManager } from "../../../../libs/NotificationManager";
 
 function hasAccess(req: any, res: any): boolean {
@@ -7,7 +8,7 @@ function hasAccess(req: any, res: any): boolean {
     res.redirect(`${config.routePrefix}/model/userap/login`);
     return false;
   }
-  if (req.adminizer?.accessRightsHelper && !req.adminizer.accessRightsHelper.hasPermission("notifications-manager", req.user)) {
+  if (!hasModulePermission(req, NOTIFICATIONS_ACCESS, "manage")) {
     res.sendStatus(403);
     return false;
   }

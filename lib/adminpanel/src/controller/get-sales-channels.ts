@@ -1,4 +1,4 @@
-import { hasAccess, mapChannel } from "./sales-channels-helpers";
+import { getSalesChannelPermissions, hasAccess, mapChannel } from "./sales-channels-helpers";
 
 /**
  * GET …/core/sales-channels
@@ -8,6 +8,8 @@ import { hasAccess, mapChannel } from "./sales-channels-helpers";
 export default async function GetSalesChannelsController(req: any, res: any) {
   try {
     if (!hasAccess(req, res)) return;
+    const permissions = getSalesChannelPermissions(req);
+    const canManage = permissions.canManage;
 
     const q = String(req.query.q || "").trim().toLowerCase();
     const enabled = String(req.query.enabled || "").trim().toLowerCase();
@@ -15,7 +17,7 @@ export default async function GetSalesChannelsController(req: any, res: any) {
     const concept = String(req.query.concept || "").trim();
 
     const channels = await SalesChannel.find({}).sort("sortOrder ASC");
-    const mapped = channels.map((c: any) => mapChannel(c));
+    const mapped = channels.map((c: any) => mapChannel(c, { canManage }));
 
     const filtered = mapped.filter((c: any) => {
       if (enabled === "on" && !c.enabled) return false;
@@ -27,7 +29,7 @@ export default async function GetSalesChannelsController(req: any, res: any) {
       return haystack.includes(q);
     });
 
-    return res.json({ results: filtered, meta: { total: filtered.length } });
+    return res.json({ results: filtered, meta: { total: filtered.length, permissions, canManage } });
   } catch (error) {
     sails.log.error("Get sales channels error", error);
     return res.status(500).json({ error: String(error) });

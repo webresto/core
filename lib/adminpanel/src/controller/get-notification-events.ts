@@ -1,4 +1,5 @@
 import { NotificationEventRegistry } from "../../../../libs/NotificationEventRegistry";
+import { hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
 import { NotificationTypeRegistry } from "../../../../libs/NotificationTypeRegistry";
 import { FlatContextPath, flattenSchema } from "../../../../libs/notificationContextSchema";
 
@@ -15,7 +16,7 @@ function hasAccess(req: any, res: any): boolean {
     res.redirect(`${config.routePrefix}/model/userap/login`);
     return false;
   }
-  if (req.adminizer?.accessRightsHelper && !req.adminizer.accessRightsHelper.hasPermission("notifications-manager", req.user)) {
+  if (!hasModulePermission(req, NOTIFICATIONS_ACCESS, "view")) {
     res.sendStatus(403);
     return false;
   }
