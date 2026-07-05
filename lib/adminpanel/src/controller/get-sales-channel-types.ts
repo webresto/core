@@ -1,4 +1,4 @@
-import { hasAccess } from "./sales-channels-helpers";
+import { getSalesChannelPermissions, hasAccess } from "./sales-channels-helpers";
 import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
 
 /**
@@ -9,6 +9,8 @@ import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
 export default async function GetSalesChannelTypesController(req: any, res: any) {
   try {
     if (!hasAccess(req, res)) return;
+    const permissions = getSalesChannelPermissions(req);
+    const canManage = permissions.canManage;
 
     // Best-effort: map of installed/enabled module appIds. Module is provided by the
     // app-manager hook and may be absent in minimal installs — never fail on it.
@@ -27,10 +29,12 @@ export default async function GetSalesChannelTypesController(req: any, res: any)
 
     const types = SalesChannelRegistry.listTypes().map((def) => ({
       ...def,
+      settingsUrl: canManage ? def.settingsUrl : null,
+      providerModule: canManage ? def.providerModule : null,
       installed: def.providerModule ? installedAppIds.has(def.providerModule) : true,
     }));
 
-    return res.json({ results: types });
+    return res.json({ results: types, meta: { permissions, canManage } });
   } catch (error) {
     sails.log.error("Get sales channel types error", error);
     return res.status(500).json({ error: String(error) });

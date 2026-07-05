@@ -136,7 +136,19 @@ export default function bindAdminpanel() {
       {
         id: 'notifications-manager',
         name: 'Notifications',
-        description: 'Access to Notifications module and its API endpoints',
+        description: 'Legacy full access to Notifications module and its API endpoints',
+        department: 'Notifications'
+      },
+      {
+        id: 'notifications-manager-view',
+        name: 'Notifications view',
+        description: 'Read-only access to Notifications module',
+        department: 'Notifications'
+      },
+      {
+        id: 'notifications-manager-manage',
+        name: 'Notifications manage',
+        description: 'Access to manage Notifications module settings and write operations',
         department: 'Notifications'
       },
       {
@@ -184,7 +196,19 @@ export default function bindAdminpanel() {
       {
         id: 'sales-channels-manager',
         name: 'Sales Channels',
-        description: 'Access to the Sales Channels module and its API endpoints',
+        description: 'Legacy full access to the Sales Channels module and its API endpoints',
+        department: 'Store'
+      },
+      {
+        id: 'sales-channels-view',
+        name: 'Sales Channels view',
+        description: 'Read-only access to the Sales Channels module',
+        department: 'Store'
+      },
+      {
+        id: 'sales-channels-manage',
+        name: 'Sales Channels manage',
+        description: 'Access to manage Sales Channels module settings and write operations',
         department: 'Store'
       },
       {
@@ -396,7 +420,7 @@ function processBindAdminpanel() {
             title: 'Notifications',
             link: `${routePrefix}/notifications-manager`,
             icon: 'notifications',
-            accessRightsToken: 'notifications-manager',
+            accessRightsToken: 'notifications-manager-view',
             section: 'Notifications'
           });
 
@@ -415,7 +439,7 @@ function processBindAdminpanel() {
             title: 'Notification channels',
             link: `${routePrefix}/notification-channels`,
             icon: 'settings_input_component',
-            accessRightsToken: 'notifications-manager',
+            accessRightsToken: 'notifications-manager-view',
             section: 'Notifications'
           });
 
@@ -869,7 +893,7 @@ function processBindAdminpanel() {
             title: 'Sales Channels',
             link: `${routePrefix}/sales-channels-manager`,
             icon: 'storefront',
-            accessRightsToken: 'sales-channels-manager',
+            accessRightsToken: 'sales-channels-view',
             section: 'Store'
           });
 

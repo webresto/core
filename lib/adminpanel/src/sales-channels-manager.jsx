@@ -185,7 +185,7 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
 }
 
 // ─────────────────────────────── channel card ───────────────────────────────
-function ChannelCard({ channel, onEdit, onToggle, onDelete, t }) {
+function ChannelCard({ channel, onEdit, onToggle, onDelete, canManage, t }) {
   return (
     <div style={{ ...styles.subsection, gap: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
@@ -208,15 +208,19 @@ function ChannelCard({ channel, onEdit, onToggle, onDelete, t }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between', flexWrap: 'wrap' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Switch checked={channel.enabled} onCheckedChange={(v) => onToggle(channel, Boolean(v))} />
+        {canManage ? (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Switch checked={channel.enabled} onCheckedChange={(v) => onToggle(channel, Boolean(v))} />
+            <span style={styles.help}>{channel.enabled ? t('Enabled') : t('Disabled')}</span>
+          </label>
+        ) : (
           <span style={styles.help}>{channel.enabled ? t('Enabled') : t('Disabled')}</span>
-        </label>
+        )}
         <div style={{ display: 'flex', gap: 8 }}>
-          {channel.settingsUrl && <Button variant="outline" size="sm" onClick={() => openSelf(channel.settingsUrl)}>{t('Settings')}</Button>}
+          {canManage && channel.settingsUrl && <Button variant="outline" size="sm" onClick={() => openSelf(channel.settingsUrl)}>{t('Settings')}</Button>}
           {channel.url && <Button variant="outline" size="sm" onClick={() => window.open(channel.url, '_blank', 'noopener')}>{t('Open')}</Button>}
-          <Button variant="outline" size="sm" onClick={() => onEdit(channel)}>{t('Edit')}</Button>
-          <Button variant="ghost" size="sm" onClick={() => onDelete(channel)}>{t('Delete')}</Button>
+          {canManage && <Button variant="outline" size="sm" onClick={() => onEdit(channel)}>{t('Edit')}</Button>}
+          {canManage && <Button variant="ghost" size="sm" onClick={() => onDelete(channel)}>{t('Delete')}</Button>}
         </div>
       </div>
     </div>
@@ -224,7 +228,7 @@ function ChannelCard({ channel, onEdit, onToggle, onDelete, t }) {
 }
 
 // ─────────────────────────────── recommended card ───────────────────────────────
-function RecommendedCard({ typeDef, onAdd, t }) {
+function RecommendedCard({ typeDef, onAdd, canManage, t }) {
   return (
     <div style={{ ...styles.subsection, gap: 10 }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -234,21 +238,22 @@ function RecommendedCard({ typeDef, onAdd, t }) {
           <div style={styles.help}>{typeDef.installed ? t('Provider installed') : t('Provider not installed')}</div>
         </div>
       </div>
-      {typeDef.installed && typeDef.settingsUrl ? (
+      {canManage && typeDef.installed && typeDef.settingsUrl ? (
         <Button variant="outline" size="sm" onClick={() => openSelf(typeDef.settingsUrl)}>
           <MaterialIcon name="settings" size={16} style={{ marginRight: 4 }} />{t('Settings')}
         </Button>
-      ) : (
+      ) : canManage ? (
         <Button variant="outline" size="sm" onClick={() => onAdd(typeDef)}>
           <MaterialIcon name="add" size={16} style={{ marginRight: 4 }} />{t('Add channel')}
         </Button>
-      )}
+      ) : null}
     </div>
   );
 }
 
 // ─────────────────────────────── main content ───────────────────────────────
-function SalesChannelsManagerContent() {
+function SalesChannelsManagerContent({ permissions = { canView: true, canManage: false } }) {
+  const canManage = permissions.canManage === true;
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
@@ -288,6 +293,7 @@ function SalesChannelsManagerContent() {
   }, []);
 
   const startCreate = (typeDef) => {
+    if (!canManage) return;
     setDraft({
       ...EMPTY_DRAFT,
       type: typeDef?.type || 'custom',
@@ -300,6 +306,7 @@ function SalesChannelsManagerContent() {
   };
 
   const startEdit = (channel) => {
+    if (!canManage) return;
     setDraft({
       id: channel.id,
       key: channel.key,
@@ -319,7 +326,7 @@ function SalesChannelsManagerContent() {
   };
 
   const saveDraft = async () => {
-    if (!draft) return;
+    if (!canManage || !draft) return;
     setSaving(true);
     const body = {
       id: draft.id || undefined,
@@ -347,6 +354,7 @@ function SalesChannelsManagerContent() {
   };
 
   const toggleChannel = async (channel, enabled) => {
+    if (!canManage) return;
     const res = await api('/core/sales-channel-toggle', { method: 'POST', body: JSON.stringify({ id: channel.id, enabled }) });
     if (res.ok) {
       setChannels((prev) => prev.map((c) => (c.id === channel.id ? res.payload.result : c)));
@@ -356,7 +364,7 @@ function SalesChannelsManagerContent() {
   };
 
   const confirmDelete = async () => {
-    if (!pendingDelete) return;
+    if (!canManage || !pendingDelete) return;
     const res = await api('/core/sales-channel-delete', { method: 'POST', body: JSON.stringify({ id: pendingDelete.id }) });
     if (res.ok) {
       toast('success', t('Sales channel deleted'));
@@ -384,7 +392,7 @@ function SalesChannelsManagerContent() {
             {t('Manage the entry points that can create orders — websites, bots, kiosks and more.')}
           </p>
         </div>
-        {!draft && (
+        {canManage && !draft && (
           <Button onClick={() => startCreate(null)}>
             <MaterialIcon name="add" size={18} style={{ marginRight: 6 }} />{t('Add custom channel')}
           </Button>
@@ -416,7 +424,7 @@ function SalesChannelsManagerContent() {
             ) : (
               <div style={cardGrid}>
                 {channels.map((c) => (
-                  <ChannelCard key={c.id} channel={c} onEdit={startEdit} onToggle={toggleChannel} onDelete={setPendingDelete} t={t} />
+                  <ChannelCard key={c.id} channel={c} onEdit={startEdit} onToggle={toggleChannel} onDelete={setPendingDelete} canManage={canManage} t={t} />
                 ))}
               </div>
             )}
@@ -433,7 +441,7 @@ function SalesChannelsManagerContent() {
                 <p style={styles.sectionDescription}>{t('Suggestions based on your project country. These are hints — you can install any channel.')}</p>
               </div>
               <div style={cardGrid}>
-                {recommendedToShow.map((ty) => <RecommendedCard key={ty.type} typeDef={ty} onAdd={startCreate} t={t} />)}
+                {recommendedToShow.map((ty) => <RecommendedCard key={ty.type} typeDef={ty} onAdd={startCreate} canManage={canManage} t={t} />)}
               </div>
             </section>
           )}
@@ -453,9 +461,10 @@ function SalesChannelsManagerContent() {
 }
 
 export default function SalesChannelsManager(props) {
+  const permissions = props.permissions || { canView: true, canManage: props.canManage === true };
   return (
     <I18nProvider initialLocale={props.locale} messages={props.messages}>
-      <SalesChannelsManagerContent />
+      <SalesChannelsManagerContent permissions={permissions} />
     </I18nProvider>
   );
 }

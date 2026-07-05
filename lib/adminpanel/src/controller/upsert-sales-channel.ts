@@ -1,4 +1,4 @@
-import { hasAccess, mapChannel, stringArray, toNumber, slugify, parseJsonObject } from "./sales-channels-helpers";
+import { hasManageAccess, mapChannel, stringArray, toNumber, slugify, parseJsonObject } from "./sales-channels-helpers";
 import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
 
 const VALID_STATUS = ["draft", "needs_setup", "ready", "disabled", "error"];
@@ -15,7 +15,7 @@ const VALID_STATUS = ["draft", "needs_setup", "ready", "disabled", "error"];
 export default async function UpsertSalesChannelController(req: any, res: any) {
   const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
   try {
-    if (!hasAccess(req, res)) return;
+    if (!hasManageAccess(req, res)) return;
 
     const body = req.body || {};
     const id = String(body.id || "").trim();
@@ -79,7 +79,7 @@ export default async function UpsertSalesChannelController(req: any, res: any) {
       saved = await SalesChannel.create(values).fetch();
     }
 
-    return res.json({ success: true, result: mapChannel(saved) });
+    return res.json({ success: true, result: mapChannel(saved, { canManage: true }) });
   } catch (error) {
     sails.log.error("Upsert sales channel error", error);
     return res.status(500).json({ error: String(error) });

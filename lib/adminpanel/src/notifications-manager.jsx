@@ -290,12 +290,14 @@ function CopyContextButton({ notification, t }) {
   );
 }
 
-function NotificationsManagerContent() {
+function NotificationsManagerContent({ permissions = { canView: true, canManage: false } }) {
+  const canManage = permissions.canManage === true;
   const { language, t } = useTranslation();
   const isMobile = useIsMobile();
   const viewMode = getCurrentViewMode();
   const isChannelsView = viewMode === 'channels';
   const [notificationSection, setNotificationSection] = useState(getNotificationSectionFromHash);
+  const activeNotificationSection = canManage ? notificationSection : 'history';
   const [moduleSection, setModuleSection] = useState(getModuleSectionFromHash);
 
   // Typed-notifications catalog data (Types/Events sections, Send test, template locales).
@@ -832,29 +834,30 @@ function NotificationsManagerContent() {
           locales={notificationLocales}
           defaultLocale={notificationDefaultLocale}
           onChanged={reloadTypesCatalog}
+          canManage={canManage}
         />
       )}
 
       {/* Activity subnav (history / send / test) */}
       {!isChannelsView && moduleSection === 'activity' && (
         <div role="tablist" aria-label={t('Activity')} style={tabsStyle}>
-          <button type="button" role="tab" aria-selected={notificationSection === 'history'}
-            onClick={() => changeNotificationSection('history')} style={tabButtonStyle(notificationSection === 'history')}>
+          <button type="button" role="tab" aria-selected={activeNotificationSection === 'history'}
+            onClick={() => changeNotificationSection('history')} style={tabButtonStyle(activeNotificationSection === 'history')}>
             {t('Notification history')}
           </button>
-          <button type="button" role="tab" aria-selected={notificationSection === 'send'}
-            onClick={() => changeNotificationSection('send')} style={tabButtonStyle(notificationSection === 'send')}>
+          {canManage && <button type="button" role="tab" aria-selected={activeNotificationSection === 'send'}
+            onClick={() => changeNotificationSection('send')} style={tabButtonStyle(activeNotificationSection === 'send')}>
             {t('Send notification')}
-          </button>
-          <button type="button" role="tab" aria-selected={notificationSection === 'test'}
-            onClick={() => changeNotificationSection('test')} style={tabButtonStyle(notificationSection === 'test')}>
+          </button>}
+          {canManage && <button type="button" role="tab" aria-selected={activeNotificationSection === 'test'}
+            onClick={() => changeNotificationSection('test')} style={tabButtonStyle(activeNotificationSection === 'test')}>
             {t('Send test')}
-          </button>
+          </button>}
         </div>
       )}
 
       {/* Activity → Send test (event dry-run / real) */}
-      {!isChannelsView && moduleSection === 'activity' && notificationSection === 'test' && (
+      {canManage && !isChannelsView && moduleSection === 'activity' && activeNotificationSection === 'test' && (
         <section style={panel}>
           <div style={panelHeader}>
             <div>
@@ -890,7 +893,7 @@ function NotificationsManagerContent() {
       )}
 
       {/* Create notification */}
-      {!isChannelsView && moduleSection === 'activity' && notificationSection === 'send' && (
+      {canManage && !isChannelsView && moduleSection === 'activity' && activeNotificationSection === 'send' && (
         <section style={panel}>
           <div style={panelHeader}>
             <div>
@@ -1130,7 +1133,7 @@ function NotificationsManagerContent() {
                     aria-label={`${t('Enabled')}: ${channel.type || '-'}`}
                   />
                 );
-                const weightInput = (
+                const weightInput = canManage ? (
                   <Input
                     type="number"
                     step="1"
@@ -1144,8 +1147,10 @@ function NotificationsManagerContent() {
                     disabled={actionLoading === `channel:${channel.type}:sortOrder`}
                     style={numberCellStyle}
                   />
+                ) : (
+                  <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{channel.sortOrder ?? '-'}</span>
                 );
-                const costInput = (
+                const costInput = canManage ? (
                   <Input
                     type="number"
                     min="0"
@@ -1160,6 +1165,8 @@ function NotificationsManagerContent() {
                     disabled={actionLoading === `channel:${channel.type}:cost`}
                     style={numberCellStyle}
                   />
+                ) : (
+                  <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{channel.cost ?? '-'}</span>
                 );
                 const groupsText = Array.isArray(channel.forGroupTo) ? channel.forGroupTo.join(', ') : '-';
 
@@ -1171,7 +1178,7 @@ function NotificationsManagerContent() {
                     <div key={channel.type} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--card)', padding: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                         <div style={{ fontSize: 14, fontWeight: 700 }}>{channelNameWithAdapter(channel, t)}</div>
-                        {enabledSwitch}
+                        {canManage ? enabledSwitch : <span style={cardValue}>{isEnabled ? t('Enabled') : t('Disabled')}</span>}
                       </div>
                       {statusBlock}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -1207,7 +1214,7 @@ function NotificationsManagerContent() {
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{channelNameWithAdapter(channel, t)}</div>
                     {statusBlock}
                     <div style={{ display: 'flex', alignItems: 'center', minHeight: 34 }}>
-                      {enabledSwitch}
+                      {canManage ? enabledSwitch : <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{isEnabled ? t('Enabled') : t('Disabled')}</span>}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{groupsText}</div>
                     <div>{weightInput}</div>
@@ -1223,7 +1230,7 @@ function NotificationsManagerContent() {
       )}
 
       {/* Notifications list + detail */}
-      {!isChannelsView && moduleSection === 'activity' && notificationSection === 'history' && (
+      {!isChannelsView && moduleSection === 'activity' && activeNotificationSection === 'history' && (
         <div style={sectionStack}>
           <section style={panel}>
             <div style={panelHeader}>
@@ -1368,7 +1375,7 @@ function NotificationsManagerContent() {
           <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--card)', padding: 16, minHeight: 300 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 12 }}>
               <h2 style={{ fontSize: 20, margin: 0 }}>{t('Notification details')}</h2>
-              {selectedSummary && (
+              {canManage && selectedSummary && (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <Button variant="outline" size="sm" onClick={() => performAction('/core/notifications-manager/retry', selectedSummary.id)} disabled={actionLoading === selectedSummary.id}>
                     {t('Retry delivery')}
@@ -1484,9 +1491,10 @@ function NotificationsManagerContent() {
 }
 
 export default function NotificationsManager(props) {
+  const permissions = props.permissions || { canView: true, canManage: props.canManage === true };
   return (
     <I18nProvider initialLocale={props.locale} messages={props.messages}>
-      <NotificationsManagerContent />
+      <NotificationsManagerContent permissions={permissions} />
     </I18nProvider>
   );
 }

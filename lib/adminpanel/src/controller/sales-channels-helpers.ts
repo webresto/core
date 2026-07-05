@@ -3,23 +3,25 @@
 // mapping. The `${routePrefix}/core` middleware already sets no-store on every /core route.
 
 import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
-
-export const SALES_CHANNELS_TOKEN = "sales-channels-manager";
+import {
+  getModulePermissions,
+  requireModulePermission,
+  SALES_CHANNELS_ACCESS,
+} from "./access-rights";
 
 /**
  * Auth + permission guard. Returns false (and writes the response) when access is denied.
  */
-export function hasAccess(req: any, res: any, token: string = SALES_CHANNELS_TOKEN): boolean {
-  const { config } = req.adminizer || {};
-  if (config?.auth?.enable && !req.user) {
-    res.redirect(`${config.routePrefix}/model/userap/login`);
-    return false;
-  }
-  if (req.adminizer?.accessRightsHelper && !req.adminizer.accessRightsHelper.hasPermission(token, req.user)) {
-    res.sendStatus(403);
-    return false;
-  }
-  return true;
+export function hasAccess(req: any, res: any): boolean {
+  return requireModulePermission(req, res, SALES_CHANNELS_ACCESS, "view");
+}
+
+export function hasManageAccess(req: any, res: any): boolean {
+  return requireModulePermission(req, res, SALES_CHANNELS_ACCESS, "manage");
+}
+
+export function getSalesChannelPermissions(req: any) {
+  return getModulePermissions(req, SALES_CHANNELS_ACCESS);
 }
 
 export function toNumber(value: any): number {
@@ -59,8 +61,9 @@ export function slugify(value: string): string {
 }
 
 /** Map a SalesChannel record into the shape used by the admin frontend. */
-export function mapChannel(channel: any): any {
+export function mapChannel(channel: any, options: { canManage?: boolean } = {}): any {
   const typeDef = SalesChannelRegistry.getType(channel?.type);
+  const canManage = options.canManage === true;
   return {
     id: channel?.id,
     key: channel?.key || "",
@@ -70,8 +73,8 @@ export function mapChannel(channel: any): any {
     category: typeDef?.category || "custom",
     capabilities: typeDef?.capabilities || [],
     icon: typeDef?.icon || "tune",
-    settingsUrl: typeDef?.settingsUrl || null,
-    providerModule: channel?.providerModule || null,
+    settingsUrl: canManage ? (typeDef?.settingsUrl || null) : null,
+    providerModule: canManage ? (channel?.providerModule || null) : null,
     enabled: channel?.enabled === true,
     status: channel?.status || "draft",
     countries: stringArray(channel?.countries),
@@ -80,7 +83,7 @@ export function mapChannel(channel: any): any {
     defaultConcept: channel?.defaultConcept || null,
     allowConceptSwitch: channel?.allowConceptSwitch !== false,
     url: channel?.url || null,
-    settings: parseJsonObject(channel?.settings),
+    settings: canManage ? parseJsonObject(channel?.settings) : {},
     publicConfig: parseJsonObject(channel?.publicConfig),
     sortOrder: toNumber(channel?.sortOrder),
     createdAt: channel?.createdAt ?? null,

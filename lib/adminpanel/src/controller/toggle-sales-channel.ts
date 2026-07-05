@@ -1,4 +1,4 @@
-import { hasAccess, mapChannel } from "./sales-channels-helpers";
+import { hasManageAccess, mapChannel } from "./sales-channels-helpers";
 
 /**
  * POST …/core/sales-channel-toggle   Body: { id, enabled }
@@ -7,7 +7,7 @@ import { hasAccess, mapChannel } from "./sales-channels-helpers";
  */
 export default async function ToggleSalesChannelController(req: any, res: any) {
   try {
-    if (!hasAccess(req, res)) return;
+    if (!hasManageAccess(req, res)) return;
 
     const body = req.body || {};
     const id = String(body.id || "").trim();
@@ -25,7 +25,7 @@ export default async function ToggleSalesChannelController(req: any, res: any) {
     }
 
     const saved = (await SalesChannel.update({ id }, { enabled, status }).fetch())[0];
-    return res.json({ success: true, result: mapChannel(saved) });
+    return res.json({ success: true, result: mapChannel(saved, { canManage: true }) });
   } catch (error) {
     sails.log.error("Toggle sales channel error", error);
     return res.status(500).json({ error: String(error) });

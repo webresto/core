@@ -1,4 +1,5 @@
 import { NotificationManager } from "../../../../libs/NotificationManager";
+import { getModulePermissions, hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
 
 function hasAccess(req: any, res: any): boolean {
   const { config } = req.adminizer || {};
@@ -6,7 +7,7 @@ function hasAccess(req: any, res: any): boolean {
     res.redirect(`${config.routePrefix}/model/userap/login`);
     return false;
   }
-  if (req.adminizer?.accessRightsHelper && !req.adminizer.accessRightsHelper.hasPermission("notifications-manager", req.user)) {
+  if (!hasModulePermission(req, NOTIFICATIONS_ACCESS, "view")) {
     res.sendStatus(403);
     return false;
   }
@@ -18,6 +19,8 @@ export default async function GetNotificationChannelsController(req: any, res: a
     if (!hasAccess(req, res)) return;
 
     const routePrefix: string = (req.adminizer?.config?.routePrefix || "").replace(/\/$/, "");
+    const permissions = getModulePermissions(req, NOTIFICATIONS_ACCESS);
+    const canManage = permissions.canManage;
     await NotificationManager.loadChannelsState();
 
     const channels = await Promise.all(
@@ -84,7 +87,7 @@ export default async function GetNotificationChannelsController(req: any, res: a
           manualSendAvailable: enabled && configured && ready,
           status,
           error: channelError,
-          configUrl,
+          configUrl: canManage ? configUrl : null,
           className: channel.constructor?.name || "",
         };
       })
@@ -94,6 +97,8 @@ export default async function GetNotificationChannelsController(req: any, res: a
       results: channels,
       meta: {
         total: channels.length,
+        permissions,
+        canManage,
       },
     });
   } catch (error) {

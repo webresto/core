@@ -1,4 +1,4 @@
-import { hasAccess } from "./sales-channels-helpers";
+import { getSalesChannelPermissions, hasAccess } from "./sales-channels-helpers";
 import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
 
 async function getInstalledAppIds(): Promise<Set<string>> {
@@ -26,6 +26,8 @@ async function getInstalledAppIds(): Promise<Set<string>> {
 export default async function GetSalesChannelRecommendationsController(req: any, res: any) {
   try {
     if (!hasAccess(req, res)) return;
+    const permissions = getSalesChannelPermissions(req);
+    const canManage = permissions.canManage;
 
     const override = String(req.query.country || "").trim();
     let country = override;
@@ -39,9 +41,11 @@ export default async function GetSalesChannelRecommendationsController(req: any,
     const installedAppIds = await getInstalledAppIds();
     const types = SalesChannelRegistry.recommendedTypesForCountry(country).map((def) => ({
       ...def,
+      settingsUrl: canManage ? def.settingsUrl : null,
+      providerModule: canManage ? def.providerModule : null,
       installed: def.providerModule ? installedAppIds.has(def.providerModule) : true,
     }));
-    return res.json({ country: country || null, results: types });
+    return res.json({ country: country || null, results: types, meta: { permissions, canManage } });
   } catch (error) {
     sails.log.error("Get sales channel recommendations error", error);
     return res.status(500).json({ error: String(error) });

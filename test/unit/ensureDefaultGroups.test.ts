@@ -61,4 +61,47 @@ describe('ensureDefaultGroups', function () {
       tokens: ['read-promotion-model'],
     });
   });
+
+  it('adds ensured tokens and removes explicitly revoked tokens on existing groups', async function () {
+    const records: any[] = [
+      {
+        name: 'Marketer',
+        description: 'Changed by an administrator',
+        tokens: ['notifications-manager', 'sales-channels-manager', 'promocodes-manager'],
+      },
+    ];
+    const groupModel = {
+      _findOne: async ({ name }: any) => records.find((record) => record.name === name),
+      _create: async (record: any) => {
+        records.push(record);
+        return record;
+      },
+      _updateOne: async ({ name }: any, updates: any) => {
+        const record = records.find((item) => item.name === name);
+        Object.assign(record, updates);
+        return record;
+      },
+    };
+    const adminizer = {
+      modelHandler: {
+        model: { get: () => groupModel },
+      },
+    };
+
+    await ensureDefaultGroups(adminizer, [
+      {
+        name: 'Marketer',
+        description: 'Manages promotions',
+        tokens: [],
+        ensureTokens: ['notifications-manager-view', 'sales-channels-view'],
+        removeTokens: ['notifications-manager', 'sales-channels-manager'],
+      },
+    ]);
+
+    expect(records[0].tokens).to.deep.equal([
+      'promocodes-manager',
+      'notifications-manager-view',
+      'sales-channels-view',
+    ]);
+  });
 });
