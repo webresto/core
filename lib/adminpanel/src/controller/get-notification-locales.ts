@@ -1,3 +1,5 @@
+import { hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
+
 function hasAccess(req: any, res: any): boolean {
   const { config } = req.adminizer || {};
   if (config?.auth?.enable && !req.user) {
