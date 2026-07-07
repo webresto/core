@@ -54,6 +54,34 @@ const segBtn = (active) => ({
   background: active ? 'var(--accent)' : 'var(--card)', color: 'var(--foreground)', cursor: 'pointer', fontSize: 13, fontWeight: 700,
 });
 
+// Shows why a selected dish may not actually work as intended (deleted / disabled / hidden / no stock).
+function dishStatusIssues(dish, t) {
+  if (!dish) return [];
+  const issues = [];
+  if (dish.isDeleted) issues.push(t('deleted'));
+  if (dish.enable === false) issues.push(t('disabled'));
+  if (dish.notForSale) issues.push(t('not for sale'));
+  if (dish.visible === false) issues.push(t('hidden'));
+  if (dish.balance === 0) issues.push(t('out of stock'));
+  return issues;
+}
+function DishStatusBadge({ t, dish }) {
+  const issues = dishStatusIssues(dish, t);
+  if (!issues.length) return null;
+  return (
+    <span
+      title={issues.join(', ')}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
+        padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+        background: 'var(--destructive)', color: '#fff', opacity: 0.9,
+      }}
+    >
+      ⚠ {issues.join(', ')}
+    </span>
+  );
+}
+
 // ─────────────────────────────── dish picker (search → chips) ───────────────────────────────
 function DishPicker({ t, value, onChange, names, setNames }) {
   const [q, setQ] = useState('');
@@ -69,7 +97,7 @@ function DishPicker({ t, value, onChange, names, setNames }) {
     setResults(r);
     setSearched(true);
     setLoading(false);
-    setNames((n) => { const m = { ...n }; r.forEach((d) => { m[d.id] = d.name; }); return m; });
+    setNames((n) => { const m = { ...n }; r.forEach((d) => { m[d.id] = d; }); return m; });
   }, [setNames]);
 
   useEffect(() => {
@@ -101,7 +129,8 @@ function DishPicker({ t, value, onChange, names, setNames }) {
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {value.map((id) => (
             <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 8px', borderRadius: 999, background: 'var(--muted)', fontSize: 12 }}>
-              {names[id] || id}
+              {names[id]?.name || id}
+              <DishStatusBadge t={t} dish={names[id]} />
               <button type="button" onClick={() => remove(id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}>✕</button>
             </span>
           ))}
@@ -126,7 +155,7 @@ function GiftDishPicker({ t, value, onChange, names, setNames }) {
     setResults(r);
     setSearched(true);
     setLoading(false);
-    setNames((n) => { const m = { ...n }; r.forEach((d) => { m[d.id] = d.name; }); return m; });
+    setNames((n) => { const m = { ...n }; r.forEach((d) => { m[d.id] = d; }); return m; });
   }, [setNames]);
 
   useEffect(() => {
@@ -161,13 +190,16 @@ function GiftDishPicker({ t, value, onChange, names, setNames }) {
       {value.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {value.map((g) => (
-            <div key={g.dishId} style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--border)', borderRadius: 10, padding: '6px 10px' }}>
-              <span style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{names[g.dishId] || g.dishId}</span>
-              <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{t('Qty')}</span>
-                <Input type="number" min="1" step="1" value={g.amount} onChange={(e) => setAmount(g.dishId, e.target.value === '' ? 1 : Math.max(1, Number(e.target.value)))} style={{ width: 72 }} />
-                <button type="button" onClick={() => remove(g.dishId)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}>✕</button>
-              </span>
+            <div key={g.dishId} style={{ display: 'flex', flexDirection: 'column', gap: 6, border: '1px solid var(--border)', borderRadius: 10, padding: '6px 10px' }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{names[g.dishId]?.name || g.dishId}</span>
+                <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{t('Qty')}</span>
+                  <Input type="number" min="1" step="1" value={g.amount} onChange={(e) => setAmount(g.dishId, e.target.value === '' ? 1 : Math.max(1, Number(e.target.value)))} style={{ width: 72 }} />
+                  <button type="button" onClick={() => remove(g.dishId)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}>✕</button>
+                </span>
+              </div>
+              <DishStatusBadge t={t} dish={names[g.dishId]} />
             </div>
           ))}
         </div>
@@ -610,7 +642,7 @@ function PromotionsManagerContent() {
       if (cancelled || !res.ok) return;
       setDishNames((current) => {
         const next = { ...current };
-        (res.payload?.results || []).forEach((dish) => { next[dish.id] = dish.name; });
+        (res.payload?.results || []).forEach((dish) => { next[dish.id] = dish; });
         return next;
       });
     })();
