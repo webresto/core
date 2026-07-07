@@ -30,6 +30,10 @@ export default async function GetMarketingDishesController(req: any, res: any) {
       code: d.code || "",
       parentGroup: d.parentGroup || null,
       isDeleted: Boolean(d.isDeleted),
+      enable: d.enable !== false,
+      visible: d.visible !== false,
+      notForSale: Boolean(d.notForSale),
+      balance: typeof d.balance === "number" ? d.balance : null,
     }));
 
     return res.json({ results });
