@@ -62,6 +62,18 @@ let attributes = {
         isIn: ["waterfall", "fixed"],
         defaultsTo: "waterfall",
     },
+    /**
+     * Which acknowledgement stops the unread-escalation waterfall for this rule:
+     *  - "read" (default) — escalate until the recipient actually opened it (readAt);
+     *  - "delivered" — stop as soon as the device confirmed receipt (deliveredAt),
+     *    even if the user has not looked at it yet. Web push reports delivery
+     *    reliably; native apps can only ack on tap, so there "delivered" ≈ "read".
+     */
+    escalateBy: {
+        type: "string",
+        isIn: ["read", "delivered"],
+        defaultsTo: "read",
+    },
     /** Used only when channelsMode === "fixed". */
     fixedChannels: {
         type: "json",
@@ -108,6 +120,9 @@ function validateRule(rule) {
     }
     if (rule?.channelsMode === "fixed" && (!Array.isArray(rule.fixedChannels) || rule.fixedChannels.length === 0)) {
         errors.push("fixedChannels must list at least one channel when channelsMode is 'fixed'");
+    }
+    if (rule?.escalateBy !== undefined && rule.escalateBy !== null && !["read", "delivered"].includes(String(rule.escalateBy))) {
+        errors.push("escalateBy must be 'read' or 'delivered'");
     }
     return errors;
 }

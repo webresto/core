@@ -2,6 +2,7 @@ import { NotificationRecord, NotificationChannelEntry } from "../models/Notifica
 import { UserDeviceRecord } from "../models/UserDevice";
 import { UserRecord } from "../models/User";
 import { NotificationManager } from "./NotificationManager";
+import { NotificationTypeRegistry } from "./NotificationTypeRegistry";
 import { ObservablePromise } from "./ObservablePromise";
 
 // Alias to avoid conflict with the browser-global Notification type
@@ -607,6 +608,22 @@ export class NotificationDispatcher {
     };
 
     let attempts = Number(notification.deliveryAttempts) || 0;
+
+    // escalateBy=delivered: the device already confirmed receipt (deliveredAt via
+    // markNotificationDelivered) — the waterfall's job is done even though the user
+    // has not read it yet. deliveredAt is never cleared, so this is terminal.
+    // Default (escalateBy=read, untyped notifications) keeps the current behavior:
+    // escalate until the record leaves status "sent" by being read.
+    if (notification.deliveredAt) {
+      const rule = notification.notificationTypeKey ? NotificationTypeRegistry.get(notification.notificationTypeKey) : null;
+      if (rule?.escalateBy === "delivered") {
+        await markExhausted(
+          `delivery acknowledged at ${new Date(Number(notification.deliveredAt)).toISOString()} and type "${rule.key}" escalates by delivered`,
+          attempts
+        );
+        return;
+      }
+    }
 
     // Device-targeted notification without a bound user: no other channel can reach
     // the recipient (priorityDevice is not persisted), escalating is pointless.

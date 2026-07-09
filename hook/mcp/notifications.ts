@@ -269,7 +269,7 @@ export function registerNotificationTools() {
             properties: {
                 type: {
                     type: 'object',
-                    description: 'Notification type object. Required: key, eventKey. Optional: name, description, enabled, priority, sendDelaySec, important, maxDeliveryCost, useGlobalFallback, channelsMode, fixedChannels, defaultChannels, templates.',
+                    description: 'Notification type object. Required: key, eventKey. Optional: name, description, enabled, priority, sendDelaySec, important, maxDeliveryCost, useGlobalFallback, channelsMode, escalateBy (read|delivered), fixedChannels, defaultChannels, templates.',
                 },
             },
             required: ['type'],

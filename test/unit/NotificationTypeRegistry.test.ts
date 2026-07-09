@@ -33,4 +33,34 @@ describe("NotificationTypeRegistry.normalize", function () {
     ]);
     expect(map["order_on_the_way_push"].templates?.default?.body).to.equal("custom");
   });
+
+  it("defaults escalateBy to read and keeps an explicit delivered", function () {
+    const map = NotificationTypeRegistry.normalize([
+      { key: "order_accepted_push", eventKey: "order_accepted" },
+      { key: "order_on_the_way_push", eventKey: "order_on_the_way", escalateBy: "delivered" },
+      { key: "user_otp_sms", eventKey: "user_otp", escalateBy: "garbage" },
+    ]);
+    expect(map["order_accepted_push"].escalateBy).to.equal("read");
+    expect(map["order_on_the_way_push"].escalateBy).to.equal("delivered");
+    // Unknown values are coerced to the safe default.
+    expect(map["user_otp_sms"].escalateBy).to.equal("read");
+  });
+});
+
+describe("NotificationTypeRegistry.validate", function () {
+  it("rejects an invalid escalateBy value", function () {
+    const errors = NotificationTypeRegistry.validate({
+      key: "order_accepted_push",
+      eventKey: "order_accepted",
+      escalateBy: "garbage" as any,
+    });
+    expect(errors.some((e) => e.includes("escalateBy"))).to.equal(true);
+  });
+
+  it("accepts read and delivered", function () {
+    for (const escalateBy of ["read", "delivered"] as const) {
+      const errors = NotificationTypeRegistry.validate({ key: "order_accepted_push", eventKey: "order_accepted", escalateBy });
+      expect(errors).to.deep.equal([]);
+    }
+  });
 });

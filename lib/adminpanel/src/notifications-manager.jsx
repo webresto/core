@@ -1468,6 +1468,7 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Delivery attempts')}:</strong> {selectedNotification.deliveryAttempts ?? 0}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Created')}:</strong> {formatDateTime(selectedNotification.createdAt, language)}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Read at')}:</strong> {selectedNotification.readAt ? formatDateTime(selectedNotification.readAt, language) : '—'}</div>
+                  <div><strong style={{ color: 'var(--foreground)' }}>{t('Delivered at')}:</strong> {selectedNotification.deliveredAt ? formatDateTime(selectedNotification.deliveredAt, language) : '—'}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('User')}:</strong> {recipientDisplay(selectedNotification, t)}{selectedNotification.recipient?.phone ? ` (${selectedNotification.recipient.phone})` : ''}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>ID:</strong> {selectedNotification.id}</div>
                   {Array.isArray(selectedNotification.requestedChannels) && selectedNotification.requestedChannels.length > 0 && (

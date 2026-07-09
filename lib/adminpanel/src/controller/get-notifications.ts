@@ -96,6 +96,7 @@ function mapNotification(notification: any): any {
     deliveryAttempts: notification?.deliveryAttempts || 0,
     badge: notification?.badge || "info",
     readAt: notification?.readAt || null,
+    deliveredAt: notification?.deliveredAt || null,
     createdAt: notification?.createdAt || null,
     updatedAt: notification?.updatedAt || null,
     data: notification?.data || null,
