@@ -204,6 +204,19 @@ export class NotificationDispatcher {
       notificationValues.requestedChannels = requestedChannels;
     }
     const notification = await Notification.create(notificationValues).fetch();
+
+    // Expose the notification id inside the FCM `data` payload so the client can
+    // acknowledge it as read (markNotificationRead) once the user interacts with it
+    // — the id doubles as the read token. Persisted back so recovery/escalation
+    // sends (which reload the record from DB) carry it too.
+    {
+      const dataObj: Record<string, any> =
+        notification.data && typeof notification.data === "object" ? (notification.data as any) : {};
+      dataObj.notificationId = notification.id;
+      notification.data = dataObj as any;
+      await Notification.updateOne({ id: notification.id }).set({ data: dataObj });
+    }
+
     await Notification.log(
       { id: notification.id! },
       "info",
