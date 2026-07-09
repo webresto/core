@@ -313,18 +313,19 @@ export function registerNotificationTools() {
                 recipient: { type: 'object',  description: 'Recipient: { userId, locale, timezone }.', example: { userId: 'u-123', locale: 'en' } },
                 context:   { type: 'object',  description: 'Business context: { order, user, store, otp, ... }.', example: { order: { id: '987', shortId: '12345' } } },
                 meta:      { type: 'object',  description: 'Optional meta: { correlationId, idempotencyKey, sourceModule }.' },
+                priorityDeviceId: { type: 'string', description: 'UserDevice id for device-targeted delivery without a bound user (e.g. guest/anonymous browser deviceId). The device push channel is tried first; groupTo defaults to "user".', example: 'd850dddf-e36e-4324-ac96-661af0712be5' },
                 dryRun:    { type: 'boolean', description: 'Default true. When false, actually creates+delivers notifications.' },
             },
             required: ['eventKey'],
         },
-        handler: async ({ eventKey, recipient, context, meta, dryRun }: {
-            eventKey: string; recipient?: any; context?: any; meta?: any; dryRun?: boolean;
+        handler: async ({ eventKey, recipient, context, meta, priorityDeviceId, dryRun }: {
+            eventKey: string; recipient?: any; context?: any; meta?: any; priorityDeviceId?: string; dryRun?: boolean;
         }) => {
             const effectiveDryRun = dryRun !== false; // default true
             await NotificationTypeRegistry.load();
             const registered = NotificationEventRegistry.isRegistered(eventKey);
             const matchedTypes = NotificationTypeRegistry.getByEvent(eventKey).map((t) => t.key);
-            const results = await NotificationService.emit(eventKey, { recipient, context, meta }, effectiveDryRun);
+            const results = await NotificationService.emit(eventKey, { recipient, context, meta, priorityDeviceId }, effectiveDryRun);
             return { eventKey, registered, dryRun: effectiveDryRun, matchedTypes, results };
         },
     });
