@@ -1,6 +1,5 @@
 {
 	"Copied!": "Скопійовано!",
-	"Copy context": "Скопіювати контекст",
 	"Filter by order ID": "Фільтр за ID замовлення",
 	"Filter by user: name, phone, email, device ID": "Фільтр за користувачем: ім'я, телефон, email, ID пристрою",
 	"Filtered by": "Фільтр",
@@ -116,7 +115,6 @@
 	"Loading...": "Завантаження...",
 	"Logs": "Журнали",
 	"Manager": "Менеджер",
-	"Manager broadcast": "Трансляція менеджера",
 	"Message": "Повідомлення",
 	"Message text": "Текст повідомлення",
 	"Module filter": "Фільтр за модулем",

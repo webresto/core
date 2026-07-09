@@ -32,7 +32,7 @@ function formatUser(notification: any): { id: string; name: string; phone: strin
 
 // Resolve who the notification is actually for. Order.customer (carried in
 // data.context.order.customer / data.recipient) is the real contact and wins over
-// the linked account, so guest orders no longer fall back to "Manager broadcast".
+// the linked account, so guest orders do not look like manager-originated messages.
 function resolveRecipient(notification: any): { name: string; phone: string; source: "customer" | "account" | null } {
   const data = notification?.data && typeof notification.data === "object" ? notification.data : {};
   const customer =
@@ -56,6 +56,32 @@ function parseJsonArray(value: any): any[] {
   return [];
 }
 
+function parseStringList(value: any): string[] {
+  const source = Array.isArray(value) ? value : String(value || "").split(",");
+  return source
+    .map((item: any) => String(item || "").trim())
+    .filter(Boolean);
+}
+
+function parseNumberFilter(value: any): number | null {
+  if (value === undefined || value === null || String(value).trim() === "") return null;
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function notificationChannelTypes(notification: any): Set<string> {
+  const types = new Set<string>();
+  for (const type of parseJsonArray(notification?.requestedChannels)) {
+    const normalized = String(type || "").trim();
+    if (normalized) types.add(normalized);
+  }
+  for (const channel of parseJsonArray(notification?.channels)) {
+    const normalized = String(channel?.type || "").trim();
+    if (normalized) types.add(normalized);
+  }
+  return types;
+}
+
 function mapNotification(notification: any): any {
   const logs = parseJsonArray(notification?.logs);
   return {
@@ -65,6 +91,9 @@ function mapNotification(notification: any): any {
     status: notification?.status || "pending",
     groupTo: notification?.groupTo || "user",
     channels: parseJsonArray(notification?.channels),
+    requestedChannels: parseJsonArray(notification?.requestedChannels),
+    spentCost: notification?.spentCost ?? 0,
+    deliveryAttempts: notification?.deliveryAttempts || 0,
     badge: notification?.badge || "info",
     readAt: notification?.readAt || null,
     createdAt: notification?.createdAt || null,
@@ -121,6 +150,9 @@ export default async function GetNotificationsController(req: any, res: any) {
     const orderId = String(req.query.orderId || "").trim();
     const date = String(req.query.date || "").trim();
     const dateFilter = parseDateFilter(date);
+    const channelTypes = parseStringList(req.query.channelTypes);
+    const attemptsMin = parseNumberFilter(req.query.attemptsMin);
+    const attemptsMax = parseNumberFilter(req.query.attemptsMax);
 
     // Build DB-level criteria — fields available without populate
     const dbCriteria: Record<string, any> = {};
@@ -128,9 +160,14 @@ export default async function GetNotificationsController(req: any, res: any) {
     if (groupTo) dbCriteria.groupTo = groupTo;
     if (userId) dbCriteria.user = userId;
     if (dateFilter) dbCriteria.createdAt = { ">=": dateFilter.start, "<": dateFilter.end };
+    if (attemptsMin !== null || attemptsMax !== null) {
+      dbCriteria.deliveryAttempts = {};
+      if (attemptsMin !== null) dbCriteria.deliveryAttempts[">="] = attemptsMin;
+      if (attemptsMax !== null) dbCriteria.deliveryAttempts["<="] = attemptsMax;
+    }
 
-    // orderId is stored in the JSON `data` field — requires JS filtering after DB fetch
-    const needsJsFilter = Boolean(q || orderId);
+    // orderId and channel type live in JSON fields — filter them in JS after DB fetch.
+    const needsJsFilter = Boolean(q || orderId || channelTypes.length > 0);
 
     if (!needsJsFilter) {
       // Efficient path: DB count + paginated fetch
@@ -163,22 +200,33 @@ export default async function GetNotificationsController(req: any, res: any) {
       // Exact orderId filter
       if (orderId && notifOrderId !== orderId) return false;
 
+      if (channelTypes.length > 0) {
+        const notificationChannels = notificationChannelTypes(notification);
+        if (!channelTypes.some((type) => notificationChannels.has(type))) return false;
+      }
+
       if (!q) return true;
 
       const user = notification?.user && typeof notification.user === "object" ? notification.user : {};
       const phone = user?.phone && typeof user.phone === "object"
         ? `${user.phone.code || ""}${user.phone.number || ""}${user.phone.additionalNumber || ""}`
         : "";
+      const recipient = resolveRecipient(notification);
+      const channelHaystack = Array.from(notificationChannelTypes(notification)).join(" ");
       const haystack = [
         notification?.id,
         notification?.title,
         notification?.body,
+        notification?.deliveryAttempts,
         user?.id,
         user?.name,
         user?.email,
         user?.login,
         phone,
+        recipient?.name,
+        recipient?.phone,
         notifOrderId,
+        channelHaystack,
       ].map((item) => String(item || "").toLowerCase()).join(" ");
 
       return haystack.includes(q);

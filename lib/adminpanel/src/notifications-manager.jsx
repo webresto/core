@@ -91,6 +91,11 @@ function badgeLabel(badge, t) {
   return tr === key ? (badge || '—') : tr;
 }
 
+function recipientDisplay(notification, t) {
+  const name = notification?.recipient?.name || notification?.user?.name || '';
+  return name || t('Unknown recipient');
+}
+
 function channelLabel(channel, t) {
   const type = String(channel?.type || '');
   const map = {
@@ -219,77 +224,6 @@ function setModuleSectionHash(section) {
   window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
 }
 
-function buildNotificationContext(notification) {
-  const lines = [
-    `Notification ID: ${notification.id}`,
-    `Title: ${notification.title || '-'}`,
-    `Body: ${notification.body || '-'}`,
-    `Status: ${notification.status || '-'}`,
-    `Group: ${notification.groupTo || '-'}`,
-    `Badge: ${notification.badge || '-'}`,
-    `Created: ${notification.createdAt || '-'}`,
-    `Read at: ${notification.readAt || '-'}`,
-  ];
-  if (notification.recipient?.name || notification.recipient?.phone) {
-    lines.push(`Recipient: ${notification.recipient.name || '-'}${notification.recipient.phone ? ` (${notification.recipient.phone})` : ''}`);
-  }
-  if (notification.user) {
-    lines.push(`User ID: ${notification.user.id}`);
-    lines.push(`User name: ${notification.user.name || '-'}`);
-    lines.push(`User phone: ${notification.user.phone || '-'}`);
-  }
-  if (notification.requestedChannels?.length) {
-    lines.push(`Requested channels: ${notification.requestedChannels.join(', ')}`);
-  }
-  if (notification.channels?.length) {
-    lines.push(`Delivery channels:`);
-    for (const ch of notification.channels) {
-      lines.push(`  - ${ch.type}: cost=${ch.cost ?? 0}, sentAt=${ch.sentAt || '-'}`);
-    }
-  }
-  if (notification.data) {
-    lines.push(`\nPayload:\n${JSON.stringify(notification.data, null, 2)}`);
-  }
-  if (notification.logs?.length) {
-    lines.push(`\nLogs (${notification.logs.length}):`);
-    for (const entry of notification.logs) {
-      lines.push(`  [${entry.level || 'info'}] ${entry.timestamp || ''} ${entry.module || ''}: ${entry.message || ''}`);
-      if (entry.data !== undefined) {
-        lines.push(`    ${JSON.stringify(entry.data)}`);
-      }
-    }
-  }
-  return lines.join('\n');
-}
-
-function CopyContextButton({ notification, t }) {
-  const [copied, setCopied] = React.useState(false);
-  const handleCopy = React.useCallback(() => {
-    const text = buildNotificationContext(notification);
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }).catch(() => {});
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      try { document.execCommand('copy'); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {}
-      document.body.removeChild(ta);
-    }
-  }, [notification]);
-  return (
-    <Button variant="outline" size="sm" onClick={handleCopy}>
-      {copied ? t('Copied!') : t('Copy context')}
-    </Button>
-  );
-}
-
 function NotificationsManagerContent({ permissions = { canView: true, canManage: false } }) {
   const canManage = permissions.canManage === true;
   const { language, t } = useTranslation();
@@ -335,6 +269,9 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
   const [filterUserOptions, setFilterUserOptions] = useState([]);
   const [showFilterUserAutocomplete, setShowFilterUserAutocomplete] = useState(false);
   const [filterOrderId, setFilterOrderId] = useState('');
+  const [filterChannelTypes, setFilterChannelTypes] = useState([]);
+  const [filterAttemptsMin, setFilterAttemptsMin] = useState('');
+  const [filterAttemptsMax, setFilterAttemptsMax] = useState('');
   const [filterDate, setFilterDate] = useState(() => formatDateInputValue());
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(null);
@@ -357,6 +294,9 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
       if (groupTo) params.set('groupTo', groupTo);
       if (filterUser?.id) params.set('userId', filterUser.id);
       if (filterOrderId.trim()) params.set('orderId', filterOrderId.trim());
+      if (filterChannelTypes.length > 0) params.set('channelTypes', filterChannelTypes.join(','));
+      if (filterAttemptsMin.trim()) params.set('attemptsMin', filterAttemptsMin.trim());
+      if (filterAttemptsMax.trim()) params.set('attemptsMax', filterAttemptsMax.trim());
       if (filterDate) params.set('date', filterDate);
       params.set('limit', String(PAGE_SIZE));
       params.set('skip', String(currentPage * PAGE_SIZE));
@@ -546,7 +486,7 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
     setPage(0);
     const timer = window.setTimeout(() => loadItems(0), 250);
     return () => window.clearTimeout(timer);
-  }, [search, status, groupTo, filterUser, filterOrderId, filterDate, isChannelsView]);
+  }, [search, status, groupTo, filterUser, filterOrderId, filterChannelTypes, filterAttemptsMin, filterAttemptsMax, filterDate, isChannelsView]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => searchFilterUsers(filterUserQuery), 250);
@@ -621,6 +561,17 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
   };
 
   const selectedSummary = useMemo(() => items.find((item) => item.id === selectedId) || null, [items, selectedId]);
+  const availableHistoryChannels = useMemo(() => {
+    const byType = new Map();
+    for (const channel of channels) {
+      const type = String(channel?.type || '').trim();
+      if (type) byType.set(type, channel);
+    }
+    for (const type of filterChannelTypes) {
+      if (type && !byType.has(type)) byType.set(type, { type });
+    }
+    return Array.from(byType.values()).sort((a, b) => String(a.type || '').localeCompare(String(b.type || '')));
+  }, [channels, filterChannelTypes]);
   const queryDeviceId = extractDeviceId(createUserQuery);
   const selectedDeviceId = selectedUser?.deviceId || queryDeviceId;
   const selectedByDeviceId = Boolean(selectedUser?.foundByDeviceId || selectedUser?.kind === 'cart' || selectedUser?.kind === 'device' || queryDeviceId);
@@ -657,6 +608,13 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
 
   const toggleCreateChannel = (type, checked) => {
     setCreateChannelTypes((current) => {
+      if (checked) return current.includes(type) ? current : [...current, type];
+      return current.filter((item) => item !== type);
+    });
+  };
+
+  const toggleFilterChannel = (type, checked) => {
+    setFilterChannelTypes((current) => {
       if (checked) return current.includes(type) ? current : [...current, type];
       return current.filter((item) => item !== type);
     });
@@ -745,6 +703,23 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
   const sectionTitle = { margin: 0, fontSize: 20, lineHeight: '28px', fontWeight: 700, letterSpacing: 0 };
   const sectionDescription = { margin: '4px 0 0', color: 'var(--muted-foreground)', fontSize: 14, lineHeight: '20px', maxWidth: 680 };
   const inputStyle = { padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)', width: '100%', boxSizing: 'border-box' };
+  const filterGroupStyle = { border: '1px solid var(--border)', borderRadius: 10, background: 'var(--background)', padding: 12, display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 };
+  const filterLabelStyle = { fontSize: 12, fontWeight: 700, lineHeight: '16px', color: 'var(--muted-foreground)' };
+  const checkboxPillStyle = (active) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 7,
+    minHeight: 32,
+    padding: '6px 9px',
+    border: '1px solid var(--border)',
+    borderRadius: 8,
+    background: active ? 'var(--accent)' : 'var(--card)',
+    color: 'var(--foreground)',
+    fontSize: 12,
+    lineHeight: '16px',
+    cursor: 'pointer',
+  });
+  const messagePanelStyle = { border: '1px solid var(--border)', borderLeft: '4px solid var(--primary)', borderRadius: 12, background: 'var(--background)', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 };
   const tabsStyle = { display: 'flex', flexWrap: 'wrap', gap: 4, padding: 4, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--muted)', width: isMobile ? '100%' : 'auto' };
   const tabButtonStyle = (active) => ({
     border: '1px solid transparent',
@@ -1260,16 +1235,68 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                 </select>
                 <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} aria-label={t('Filter by date')} />
               </div>
-              {/* Order ID filter */}
-              <div style={{ maxWidth: 300 }}>
-                <Input
-                  value={filterOrderId}
-                  onChange={(e) => setFilterOrderId(e.target.value)}
-                  placeholder={t('Filter by order ID')}
-                />
+              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: isMobile ? '1fr' : 'minmax(220px, 0.9fr) minmax(280px, 1.3fr) minmax(260px, 1.1fr)' }}>
+                <div style={filterGroupStyle}>
+                  <span style={filterLabelStyle}>{t('Order')}</span>
+                  <Input
+                    value={filterOrderId}
+                    onChange={(e) => setFilterOrderId(e.target.value)}
+                    placeholder={t('Filter by order ID')}
+                  />
+                </div>
+
+                <div style={filterGroupStyle}>
+                  <span style={filterLabelStyle}>{t('Channel types')}</span>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {loadingChannels ? (
+                      <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{t('Loading...')}</span>
+                    ) : availableHistoryChannels.length === 0 ? (
+                      <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{t('No notification channels registered')}</span>
+                    ) : availableHistoryChannels.map((channel) => {
+                      const type = String(channel.type || '');
+                      const checked = filterChannelTypes.includes(type);
+                      return (
+                        <label key={`filter-channel-${type}`} style={checkboxPillStyle(checked)}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => toggleFilterChannel(type, e.target.checked)}
+                            style={{ margin: 0 }}
+                          />
+                          <span>{channelNameWithAdapter(channel, t)}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {filterChannelTypes.length > 0 && (
+                    <button type="button" onClick={() => setFilterChannelTypes([])} style={{ alignSelf: 'flex-start', border: 'none', background: 'transparent', color: 'var(--primary)', padding: 0, fontSize: 12, cursor: 'pointer' }}>
+                      {t('Clear channel filter')}
+                    </button>
+                  )}
+                </div>
+
+                <div style={filterGroupStyle}>
+                  <span style={filterLabelStyle}>{t('Delivery attempts')}</span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={filterAttemptsMin}
+                      onChange={(e) => setFilterAttemptsMin(e.target.value)}
+                      placeholder={t('Min attempts')}
+                    />
+                    <Input
+                      type="number"
+                      min="0"
+                      value={filterAttemptsMax}
+                      onChange={(e) => setFilterAttemptsMax(e.target.value)}
+                      placeholder={t('Max attempts')}
+                    />
+                  </div>
+                </div>
               </div>
-              {/* User / device filter */}
-              <div style={{ position: 'relative', maxWidth: 420 }}>
+
+              <div style={{ position: 'relative', maxWidth: isMobile ? '100%' : 520 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <div style={{ flex: 1, position: 'relative' }}>
                     <Input
@@ -1319,9 +1346,11 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
 
           {/* List */}
           <div style={{ border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', background: 'var(--card)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr 0.7fr 1fr', gap: 12, padding: '14px 16px', background: 'var(--muted)', fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' }}>
-              <div>{t('User')}</div><div>{t('Status')}</div><div>{t('Group')}</div><div>{t('Created')}</div>
-            </div>
+            {!isMobile && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr 0.7fr 1fr', gap: 12, padding: '14px 16px', background: 'var(--muted)', fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' }}>
+                <div>{t('User')}</div><div>{t('Status')}</div><div>{t('Group')}</div><div>{t('Created')}</div>
+              </div>
+            )}
             <div style={{ maxHeight: '60vh', overflow: 'auto' }}>
               {loadingList && items.length === 0 ? (
                 <div style={{ padding: 20, color: 'var(--muted-foreground)' }}>{t('loading')}</div>
@@ -1329,6 +1358,33 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                 <div style={{ padding: 20, color: 'var(--muted-foreground)' }}>{t('No notifications found')}</div>
               ) : items.map((item) => {
                 const isSelected = item.id === selectedId;
+                if (isMobile) {
+                  return (
+                    <button key={item.id} type="button" onClick={() => selectNotification(item.id)}
+                      style={{
+                        width: '100%', border: 'none', borderTop: '1px solid var(--border)',
+                        background: isSelected ? 'var(--accent)' : 'var(--card)',
+                        color: 'var(--foreground)', textAlign: 'left', padding: 14, cursor: 'pointer',
+                        borderLeft: isSelected ? '3px solid var(--primary)' : '3px solid transparent',
+                        display: 'flex', flexDirection: 'column', gap: 10,
+                      }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                          <strong style={{ fontSize: 13, wordBreak: 'break-word' }}>{recipientDisplay(item, t)}</strong>
+                          {item.recipient?.phone && <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{item.recipient.phone}</span>}
+                        </div>
+                        <span style={{ flex: '0 0 auto', fontSize: 12, color: 'var(--muted-foreground)' }}>{statusLabel(item.status, t)}</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title || '-'}</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 11, color: 'var(--muted-foreground)' }}>
+                        <span>{groupLabel(item.groupTo, t)}</span>
+                        <span>{t('Attempts')}: {item.deliveryAttempts ?? 0}</span>
+                        <span>{formatDateTime(item.createdAt, language)}</span>
+                      </div>
+                      <span style={{ fontSize: 11, color: 'var(--muted-foreground)', wordBreak: 'break-all' }}>{item.id}</span>
+                    </button>
+                  );
+                }
                 return (
                   <button key={item.id} type="button" onClick={() => selectNotification(item.id)}
                     style={{
@@ -1339,7 +1395,7 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                     }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr 0.7fr 1fr', gap: 12, alignItems: 'start' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <strong style={{ fontSize: 13 }}>{item.recipient?.name || item.user?.name || t('Manager broadcast')}</strong>
+                        <strong style={{ fontSize: 13 }}>{recipientDisplay(item, t)}</strong>
                         {item.recipient?.phone && <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{item.recipient.phone}</span>}
                         <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{item.title || '-'}</span>
                         <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{item.id}</span>
@@ -1390,9 +1446,20 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
               <div style={{ color: 'var(--muted-foreground)' }}>{t('loading')}</div>
             ) : selectedNotification ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div><strong>{selectedNotification.title || '-'}</strong></div>
-                <div style={{ color: 'var(--muted-foreground)' }}>{selectedNotification.body || '-'}</div>
-                <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr 1fr', color: 'var(--muted-foreground)' }}>
+                <section style={messagePanelStyle}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={filterLabelStyle}>{t('Title')}</span>
+                    <strong style={{ fontSize: 16, lineHeight: '22px', color: 'var(--foreground)', wordBreak: 'break-word' }}>{selectedNotification.title || '-'}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <span style={filterLabelStyle}>{t('Message text')}</span>
+                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: 'var(--foreground)', background: 'var(--muted)', borderRadius: 10, padding: 12, lineHeight: '20px' }}>
+                      {selectedNotification.body || '-'}
+                    </div>
+                  </div>
+                </section>
+
+                <div style={{ display: 'grid', gap: 10, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', color: 'var(--muted-foreground)' }}>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Status')}:</strong> {statusLabel(selectedNotification.status, t)}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Group')}:</strong> {groupLabel(selectedNotification.groupTo, t)}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Badge')}:</strong> {badgeLabel(selectedNotification.badge, t)}</div>
@@ -1401,7 +1468,7 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Delivery attempts')}:</strong> {selectedNotification.deliveryAttempts ?? 0}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Created')}:</strong> {formatDateTime(selectedNotification.createdAt, language)}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>{t('Read at')}:</strong> {selectedNotification.readAt ? formatDateTime(selectedNotification.readAt, language) : '—'}</div>
-                  <div><strong style={{ color: 'var(--foreground)' }}>{t('User')}:</strong> {selectedNotification.recipient?.name || selectedNotification.user?.name || t('Manager broadcast')}{selectedNotification.recipient?.phone ? ` (${selectedNotification.recipient.phone})` : ''}</div>
+                  <div><strong style={{ color: 'var(--foreground)' }}>{t('User')}:</strong> {recipientDisplay(selectedNotification, t)}{selectedNotification.recipient?.phone ? ` (${selectedNotification.recipient.phone})` : ''}</div>
                   <div><strong style={{ color: 'var(--foreground)' }}>ID:</strong> {selectedNotification.id}</div>
                   {Array.isArray(selectedNotification.requestedChannels) && selectedNotification.requestedChannels.length > 0 && (
                     <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: 'var(--foreground)' }}>{t('Requested channels')}:</strong> {selectedNotification.requestedChannels.join(', ')}</div>
@@ -1411,18 +1478,32 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                 {Array.isArray(selectedNotification.channels) && selectedNotification.channels.length > 0 && (
                   <section>
                     <h3 style={{ fontSize: 14, margin: '0 0 8px' }}>{t('Channels')}</h3>
-                    <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: 10, padding: '8px 12px', background: 'var(--muted)', fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground)' }}>
-                        <div>{t('Channel type')}</div><div>{t('Channel cost')}</div><div>{t('Channel sent at')}</div>
+                    {isMobile ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {selectedNotification.channels.map((entry, idx) => (
+                          <div key={`${entry.type}-${idx}`} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 10, background: 'var(--card)', display: 'grid', gap: 6 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)' }}>{entry.type || '-'}</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12, color: 'var(--muted-foreground)' }}>
+                              <span>{t('Channel cost')}: {entry.cost ?? 0}</span>
+                              <span>{t('Channel sent at')}: {entry.sentAt ? formatDateTime(entry.sentAt, language) : '—'}</span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      {selectedNotification.channels.map((entry, idx) => (
-                        <div key={`${entry.type}-${idx}`} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: 10, padding: '8px 12px', borderTop: '1px solid var(--border)', background: 'var(--card)', fontSize: 12, color: 'var(--muted-foreground)' }}>
-                          <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>{entry.type || '-'}</div>
-                          <div>{entry.cost ?? 0}</div>
-                          <div>{entry.sentAt ? formatDateTime(entry.sentAt, language) : '—'}</div>
+                    ) : (
+                      <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: 10, padding: '8px 12px', background: 'var(--muted)', fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground)' }}>
+                          <div>{t('Channel type')}</div><div>{t('Channel cost')}</div><div>{t('Channel sent at')}</div>
                         </div>
-                      ))}
-                    </div>
+                        {selectedNotification.channels.map((entry, idx) => (
+                          <div key={`${entry.type}-${idx}`} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: 10, padding: '8px 12px', borderTop: '1px solid var(--border)', background: 'var(--card)', fontSize: 12, color: 'var(--muted-foreground)' }}>
+                            <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>{entry.type || '-'}</div>
+                            <div>{entry.cost ?? 0}</div>
+                            <div>{entry.sentAt ? formatDateTime(entry.sentAt, language) : '—'}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </section>
                 )}
 
@@ -1440,7 +1521,6 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                   <a href={getNotificationUrl(selectedNotification.id)} onClick={() => selectNotification(selectedNotification.id)} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
                     {t('Open notification link')}
                   </a>
-                  <CopyContextButton notification={selectedNotification} t={t} />
                 </div>
 
                 <section>

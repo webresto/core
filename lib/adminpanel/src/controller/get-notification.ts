@@ -32,7 +32,7 @@ function formatUser(notification: any): { id: string; name: string; phone: strin
 
 // Resolve who the notification is actually for. Order.customer (carried in
 // data.context.order.customer / data.recipient) is the real contact and wins over
-// the linked account, so guest orders no longer fall back to "Manager broadcast".
+// the linked account, so guest orders do not look like manager-originated messages.
 function resolveRecipient(notification: any): { name: string; phone: string; source: "customer" | "account" | null } {
   const data = notification?.data && typeof notification.data === "object" ? notification.data : {};
   const customer =
@@ -80,6 +80,7 @@ export default async function GetNotificationController(req: any, res: any) {
         groupTo: notification.groupTo || "user",
         channels: parseJsonArray(notification.channels),
         requestedChannels: parseJsonArray(notification.requestedChannels),
+        spentCost: notification.spentCost ?? 0,
         important: Boolean(notification.important),
         deliveryAttempts: notification.deliveryAttempts || 0,
         badge: notification.badge || "info",
