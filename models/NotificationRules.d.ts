@@ -19,6 +19,7 @@ import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
  */
 export type NotificationPriority = "normal" | "high" | "critical";
 export type NotificationChannelsMode = "waterfall" | "fixed";
+export type NotificationEscalateBy = "read" | "delivered";
 export interface NotificationTemplateContent {
     title?: string;
     body?: string;
@@ -60,6 +61,14 @@ declare let attributes: {
     /** If true, ignore maxDeliveryCost and use the global NOTIFICATION_MAX_COST_PER_MESSAGE. */
     useGlobalFallback: boolean;
     channelsMode: NotificationChannelsMode;
+    /**
+     * Which acknowledgement stops the unread-escalation waterfall for this rule:
+     *  - "read" (default) — escalate until the recipient actually opened it (readAt);
+     *  - "delivered" — stop as soon as the device confirmed receipt (deliveredAt),
+     *    even if the user has not looked at it yet. Web push reports delivery
+     *    reliably; native apps can only ack on tap, so there "delivered" ≈ "read".
+     */
+    escalateBy: NotificationEscalateBy;
     /** Used only when channelsMode === "fixed". */
     fixedChannels: string[];
     /** Preferred channels for starting the waterfall (channelsMode === "waterfall"). */
@@ -84,6 +93,6 @@ declare let Model: {
     seedDefaults(): Promise<void>;
 };
 declare global {
-    const NotificationRules: typeof Model & ORMModel<NotificationRulesRecord, "name" | "description" | "enabled" | "priority" | "sendDelaySec" | "important" | "maxDeliveryCost" | "useGlobalFallback" | "channelsMode" | "fixedChannels" | "defaultChannels" | "templates">;
+    const NotificationRules: typeof Model & ORMModel<NotificationRulesRecord, "name" | "description" | "enabled" | "priority" | "sendDelaySec" | "important" | "maxDeliveryCost" | "useGlobalFallback" | "channelsMode" | "fixedChannels" | "defaultChannels" | "templates" | "escalateBy">;
 }
 export {};

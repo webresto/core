@@ -61,6 +61,16 @@ declare let attributes: {
     groupTo: "user" | "manager";
     /** Read timestamp (ms), null until read. */
     readAt: number | null;
+    /**
+     * Delivery acknowledgement timestamp (ms), null until acked. A parallel signal,
+     * NOT a status: set by markNotificationDelivered when our code on the device
+     * reported that the OS displayed the notification (web onMessage / service
+     * worker showNotification / native receive callback). A notification can be
+     * delivered but not yet read. No provider (FCM/APNs) confirms delivery to the
+     * server, so absence of an ack does NOT mean "not delivered" (offline device
+     * acks later). Used by the escalation loop for rules with escalateBy=delivered.
+     */
+    deliveredAt: number | null;
     /** Delivery channels with details: type, cost, and send time (actually sent). */
     channels: NotificationChannelEntry[];
     /** Channel types selected for delivery when the notification was created. */
@@ -101,6 +111,6 @@ declare let Model: {
     log(criteria: CriteriaQuery<NotificationRecord>, level: NotificationLogLevel, module: string, message: string, ...data: any[]): Promise<void>;
 };
 declare global {
-    const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost" | "important" | "deliveryAttempts" | "escalationExhausted" | "notificationTypeKey" | "eventKey" | "context" | "maxDeliveryCost" | "scheduledAt" | "idempotencyKey">;
+    const Notification: typeof Model & ORMModel<NotificationRecord, "readAt" | "deliveredAt" | "data" | "channels" | "requestedChannels" | "logs" | "spentCost" | "important" | "deliveryAttempts" | "escalationExhausted" | "notificationTypeKey" | "eventKey" | "context" | "maxDeliveryCost" | "scheduledAt" | "idempotencyKey">;
 }
 export {};

@@ -25,7 +25,7 @@ function blankType(eventKey) {
     key: '', name: '', description: '', eventKey: eventKey || '',
     enabled: false, priority: 'normal', sendDelaySec: 0, important: false,
     maxDeliveryCost: 0, useGlobalFallback: false,
-    channelsMode: 'waterfall', fixedChannels: [], defaultChannels: [],
+    channelsMode: 'waterfall', escalateBy: 'read', fixedChannels: [], defaultChannels: [],
     templates: { default: {}, locales: {}, channels: {} },
   };
 }
@@ -149,6 +149,7 @@ export default function TypesSection({
       if (payload.useGlobalFallback) payload.maxDeliveryCost = null;
       else payload.maxDeliveryCost = payload.maxDeliveryCost === '' || payload.maxDeliveryCost == null ? null : Number(payload.maxDeliveryCost);
       payload.sendDelaySec = Number(payload.sendDelaySec) || 0;
+      payload.escalateBy = payload.escalateBy === 'delivered' ? 'delivered' : 'read';
       const response = await notificationsApi('/core/notifications-manager/type', {
         method: 'POST',
         body: JSON.stringify(payload),
@@ -340,6 +341,7 @@ export default function TypesSection({
                 <div style={{ ...styles.help, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <span>→ {ti.eventKey}</span>
                   <span style={{ fontVariantNumeric: 'tabular-nums' }}>{ti.channelsMode || 'waterfall'}</span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums' }}>{t('escalate by')}: {ti.escalateBy === 'delivered' ? t('delivered') : t('read')}</span>
                   <span style={{ fontVariantNumeric: 'tabular-nums' }}>{t('budget')}: {budgetSummary(ti, t)}</span>
                   {ti.sendDelaySec > 0 && <span style={{ fontVariantNumeric: 'tabular-nums' }}>{t('delay')}: {ti.sendDelaySec}s</span>}
                 </div>
@@ -496,6 +498,19 @@ export default function TypesSection({
                     )}
                     <span style={styles.help}>{t('Delivery and escalation stay within the selected channels.')}</span>
                   </div>
+                </section>
+
+                <section style={styles.subsection}>
+                  <h3 style={styles.subsectionTitle}>{t('Escalation Trigger')}</h3>
+                  <div style={{ display: 'inline-flex', gap: 6 }}>
+                    <button type="button" style={segBtn(draft.escalateBy !== 'delivered')} onClick={() => setField('escalateBy', 'read')}>{t('By read')}</button>
+                    <button type="button" style={segBtn(draft.escalateBy === 'delivered')} onClick={() => setField('escalateBy', 'delivered')}>{t('By delivered')}</button>
+                  </div>
+                  <span style={styles.help}>
+                    {draft.escalateBy === 'delivered'
+                      ? t('Waterfall stops once the device confirms receipt (deliveredAt), even if not read. Reliable for web push; native apps can only confirm on tap.')
+                      : t('Waterfall escalates to the next channel until the recipient opens the notification (readAt). Default behavior.')}
+                  </span>
                 </section>
               </div>
             )}

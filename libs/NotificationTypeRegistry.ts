@@ -21,6 +21,7 @@ import { UnknownVariable, validateTemplatePaths } from "./notificationContextSch
 
 export type NotificationPriority = "normal" | "high" | "critical";
 export type NotificationChannelsMode = "waterfall" | "fixed";
+export type NotificationEscalateBy = "read" | "delivered";
 
 export interface NotificationTemplateContent {
   title?: string;
@@ -60,6 +61,12 @@ export interface NotificationType {
   /** If true, ignore maxDeliveryCost and use the global NOTIFICATION_MAX_COST_PER_MESSAGE fallback. */
   useGlobalFallback?: boolean;
   channelsMode?: NotificationChannelsMode;
+  /**
+   * Which ack stops the unread-escalation waterfall: "read" (default) — until the
+   * recipient opened it (readAt); "delivered" — as soon as the device confirmed
+   * receipt (deliveredAt), even if not read yet.
+   */
+  escalateBy?: NotificationEscalateBy;
   /** Only used when channelsMode === "fixed". */
   fixedChannels?: string[];
   /** Preferred channels to seed the waterfall (channelsMode === "waterfall"). */
@@ -182,6 +189,7 @@ export class NotificationTypeRegistry {
       maxDeliveryCost: maxDeliveryCost !== null && Number.isFinite(maxDeliveryCost) ? maxDeliveryCost : null,
       useGlobalFallback: r.useGlobalFallback === true,
       channelsMode: r.channelsMode === "fixed" ? "fixed" : "waterfall",
+      escalateBy: r.escalateBy === "delivered" ? "delivered" : "read",
       fixedChannels: Array.isArray(fixedChannels)
         ? fixedChannels.map((c: any) => String(c || "").trim()).filter(Boolean)
         : [],
@@ -247,6 +255,9 @@ export class NotificationTypeRegistry {
     }
     if (type?.channelsMode === "fixed" && (!Array.isArray(type.fixedChannels) || type.fixedChannels.length === 0)) {
       errors.push("fixedChannels must list at least one channel when channelsMode is 'fixed'");
+    }
+    if (type?.escalateBy !== undefined && type.escalateBy !== null && !["read", "delivered"].includes(String(type.escalateBy))) {
+      errors.push("escalateBy must be 'read' or 'delivered'");
     }
     return errors;
   }

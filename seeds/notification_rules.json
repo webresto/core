@@ -11,6 +11,7 @@
     "maxDeliveryCost": 0,
     "useGlobalFallback": false,
     "channelsMode": "waterfall",
+    "escalateBy": "read",
     "fixedChannels": [],
     "defaultChannels": ["fcm-mobile", "fcm-web"],
     "templates": {
@@ -31,6 +32,7 @@
     "maxDeliveryCost": null,
     "useGlobalFallback": true,
     "channelsMode": "waterfall",
+    "escalateBy": "read",
     "fixedChannels": [],
     "defaultChannels": ["fcm-mobile", "fcm-web"],
     "templates": {
@@ -59,6 +61,7 @@
     "maxDeliveryCost": 0,
     "useGlobalFallback": false,
     "channelsMode": "waterfall",
+    "escalateBy": "read",
     "fixedChannels": [],
     "defaultChannels": ["fcm-mobile", "fcm-web"],
     "templates": {
@@ -79,6 +82,7 @@
     "maxDeliveryCost": 0,
     "useGlobalFallback": false,
     "channelsMode": "waterfall",
+    "escalateBy": "read",
     "fixedChannels": [],
     "defaultChannels": ["fcm-mobile", "fcm-web"],
     "templates": {
@@ -99,6 +103,7 @@
     "maxDeliveryCost": null,
     "useGlobalFallback": true,
     "channelsMode": "fixed",
+    "escalateBy": "read",
     "fixedChannels": ["sms"],
     "defaultChannels": [],
     "templates": {
