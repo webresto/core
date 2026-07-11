@@ -56,6 +56,7 @@ export function registerSalesChannelsTools() {
 
     mcp.registerTool({
         name: 'sales-channel-list',
+        group: 'sales-channels',
         description: 'Lists configured sales channels (order sources). Supports filtering by enabled, type and concept.',
         mode: 'protected',
         schema: {
@@ -81,6 +82,7 @@ export function registerSalesChannelsTools() {
 
     mcp.registerTool({
         name: 'sales-channel-get',
+        group: 'sales-channels',
         description: 'Returns a single sales channel by id or key.',
         mode: 'protected',
         schema: {
@@ -99,6 +101,7 @@ export function registerSalesChannelsTools() {
 
     mcp.registerTool({
         name: 'sales-channel-types',
+        group: 'sales-channels',
         description: 'Lists the registered channel TYPES (web-storefront, telegram-bot, …) available to assign to a channel — not configured instances.',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
@@ -109,6 +112,7 @@ export function registerSalesChannelsTools() {
 
     mcp.registerTool({
         name: 'sales-channel-resolve',
+        group: 'sales-channels',
         description:
             'Diagnostic: resolves an order-source string (Order.orderedOnPlatform value) the way order creation does — '
             + 'matches an ENABLED channel by `key` first, then by membership in any channel\'s `platforms` list. '
@@ -129,6 +133,7 @@ export function registerSalesChannelsTools() {
 
     mcp.registerTool({
         name: 'sales-channel-upsert',
+        group: 'sales-channels',
         description:
             'Creates or updates a sales channel. Pass id to update an existing one. `key` is slugified and must be '
             + 'unique; if omitted it is derived from title (create) or kept (update). `platforms` is the set of '
@@ -209,6 +214,7 @@ export function registerSalesChannelsTools() {
 
     mcp.registerTool({
         name: 'sales-channel-delete',
+        group: 'sales-channels',
         description: 'Deletes a configured sales channel. Existing orders keep their orderedOnPlatform string for reports — this is not destructive to order history.',
         mode: 'protected',
         schema: {

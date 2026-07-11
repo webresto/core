@@ -5,6 +5,7 @@ export function registerPaymentTools() {
 
     mcp.registerTool({
         name: 'payment-method-list',
+        group: 'payment',
         description: 'Returns all payment methods with title, type, enable status, sortOrder and isCash flag.',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
@@ -15,6 +16,7 @@ export function registerPaymentTools() {
 
     mcp.registerTool({
         name: 'payment-method-update',
+        group: 'payment',
         description:
             'Updates a payment method. Safe fields only: title, enable, sortOrder, description.\n\n'
             + 'WARNING: adapter and type are NOT editable — they are structural and must not change.',

@@ -24,6 +24,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promotion-list',
+        group: 'promotions',
         description: 'Returns a list of promotions. By default excludes soft-deleted. Supports filtering by concept, enable and createdByUser.',
         mode: 'protected',
         schema: {
@@ -52,6 +53,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promotion-get',
+        group: 'promotions',
         description: 'Returns a single promotion by id, including linked promocodes.',
         mode: 'protected',
         schema: {
@@ -68,6 +70,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promotion-create',
+        group: 'promotions',
         description:
             'Creates a promotion (createdByUser:true → registered as a ConfiguredPromotion).\n\n'
             + 'configDiscount holds the discount and/or gift config (stored as JSON):\n'
@@ -120,6 +123,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promotion-update',
+        group: 'promotions',
         description:
             'Updates a promotion. Pass id and only the fields to change.\n\n'
             + 'To enable/register:  { id, enable: true }\n'
@@ -154,6 +158,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promotion-delete',
+        group: 'promotions',
         description: 'Permanently deletes a promotion (and unlinks it from promocodes). To merely disable it use promotion-update with { enable: false }.',
         mode: 'protected',
         schema: {
@@ -174,6 +179,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promocode-list',
+        group: 'promotions',
         description: 'Returns a list of promocodes, including linked promotions. Supports filtering by code.',
         mode: 'protected',
         schema: {
@@ -193,6 +199,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promocode-get',
+        group: 'promotions',
         description: 'Returns a single promocode by id or code (case-sensitive), including linked promotions.',
         mode: 'protected',
         schema: {
@@ -211,6 +218,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promocode-create',
+        group: 'promotions',
         description:
             'Creates a promocode and (optionally) links it to promotions.\n\n'
             + 'The code is matched on checkout exactly and case-sensitively, so enter it precisely '
@@ -248,6 +256,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promocode-update',
+        group: 'promotions',
         description:
             'Updates a promocode. Pass id and the fields to change.\n\n'
             + 'To re-bind promotions pass promotion: [promotionId, ...] — it REPLACES the current set '
@@ -280,6 +289,7 @@ export function registerPromotionsTools() {
 
     mcp.registerTool({
         name: 'promocode-delete',
+        group: 'promotions',
         description: 'Permanently deletes a promocode (unlinks it from promotions; the promotions themselves are kept).',
         mode: 'protected',
         schema: {

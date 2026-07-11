@@ -151,8 +151,8 @@ const { MonacoEditor, MultiSelect, VanillaJSONEditor } = window.JSComponents;
 // All Lucide icons
 const { Save, Download, Upload, Settings, ChevronDown, X, Plus } = window.LucideReact;
 
-// HTTP client (axios)
-const axios = window.axios;
+// HTTP client — use adminApi, not the legacy window.axios shim (see "API requests" below)
+const adminApi = window.adminApi;
 
 // Toast notifications
 window.sonner?.toast('Saved');
@@ -469,6 +469,13 @@ window.sonner?.toast.promise(
 
 ## API requests
 
+Use `window.adminApi` — the host app's canonical HTTP client (cookie auth is
+automatic, no `withCredentials` flag). Don't use `window.axios`: it's a
+legacy compat shim that only exposes method shortcuts (`axios.get/post/...`)
+and is **not callable** as `axios(config)` — calling it that way throws
+`TypeError: window.axios is not a function` before any request is sent. See
+`adminizer/docs/BuildingModules.md` §9 for the full migration writeup.
+
 ```js
 function getBaseAdminPath() {
   if (typeof window.routePrefix === 'string' && window.routePrefix.trim()) {
@@ -478,13 +485,13 @@ function getBaseAdminPath() {
 }
 
 async function apiRequest(path, options = {}) {
-  const response = await window.axios({
-    url: `${getBaseAdminPath()}${path}`,
-    method: options.method || 'GET',
-    data: options.body,
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    withCredentials: true,
-  });
+  const adminApi = window.adminApi;
+  const method = (options.method || 'GET').toLowerCase();
+  const url = `${getBaseAdminPath()}${path}`;
+  const config = { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } };
+  const response = ['get', 'delete'].includes(method)
+    ? await adminApi[method](url, config)
+    : await adminApi[method](url, options.body, config);
   return response.data;
   // throws on non-2xx — catch at call site and show toast
 }

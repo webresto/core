@@ -5,6 +5,7 @@ export function registerMaintenanceTools() {
 
     mcp.registerTool({
         name: 'maintenance-status',
+        group: 'maintenance',
         description: 'Returns whether the site is currently in maintenance mode. Fast check — call before other operations if you suspect downtime.',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
@@ -20,6 +21,7 @@ export function registerMaintenanceTools() {
 
     mcp.registerTool({
         name: 'maintenance-list',
+        group: 'maintenance',
         description: 'Returns all maintenance windows including inactive ones.',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
@@ -30,6 +32,7 @@ export function registerMaintenanceTools() {
 
     mcp.registerTool({
         name: 'maintenance-create',
+        group: 'maintenance',
         description:
             'Creates a maintenance window that closes the site to orders.\n\n'
             + 'Two scheduling modes:\n'
@@ -56,6 +59,7 @@ export function registerMaintenanceTools() {
 
     mcp.registerTool({
         name: 'maintenance-update',
+        group: 'maintenance',
         description: 'Updates a maintenance window. To close immediately: { id, enable: false }.',
         mode: 'protected',
         schema: {
@@ -80,6 +84,7 @@ export function registerMaintenanceTools() {
 
     mcp.registerTool({
         name: 'maintenance-delete',
+        group: 'maintenance',
         description: 'Permanently deletes a maintenance window. To temporarily stop it use maintenance-update with { enable: false } instead.',
         mode: 'protected',
         schema: {

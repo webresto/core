@@ -54,16 +54,16 @@ function formatDateInputValue(value = new Date()) {
 }
 
 async function notificationsApi(path, options = {}) {
-  const axios = window.axios;
-  if (!axios) throw new Error('window.axios is not available');
+  const adminApi = window.adminApi;
+  if (!adminApi) throw new Error('window.adminApi is not available');
+  const method = (options.method || 'GET').toLowerCase();
   try {
-    const response = await axios({
-      url: `${getBaseAdminPath()}${path}`,
-      method: options.method || 'GET',
-      data: options.body ? JSON.parse(options.body) : undefined,
-      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-      withCredentials: true,
-    });
+    const url = `${getBaseAdminPath()}${path}`;
+    const data = options.body ? JSON.parse(options.body) : undefined;
+    const config = { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } };
+    const response = ['get', 'delete'].includes(method)
+      ? await adminApi[method](url, config)
+      : await adminApi[method](url, data, config);
     return { ok: true, status: response.status, payload: response.data };
   } catch (error) {
     return { ok: false, status: error?.response?.status || 500, payload: error?.response?.data || { error: error?.message || 'Request failed' } };
