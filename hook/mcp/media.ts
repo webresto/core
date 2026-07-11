@@ -50,6 +50,7 @@ export function registerMediaTools() {
 
     mcp.registerTool({
         name: 'media-upload',
+        group: 'media',
         description:
             'Uploads an image and registers it in the MediaFile catalogue via MediaFileAdapter.\n\n'
             + 'Unlike upload-image, this creates a MediaFile DB record with processed variants (small, large, origin).\n'
@@ -98,6 +99,7 @@ export function registerMediaTools() {
 
     mcp.registerTool({
         name: 'dish-image-add',
+        group: 'media',
         description:
             'Links an image to a dish (creates a SelectedMediaFile row).\n\n'
             + 'Input modes:\n'
@@ -130,6 +132,7 @@ export function registerMediaTools() {
 
     mcp.registerTool({
         name: 'dish-image-list',
+        group: 'media',
         description: 'Returns all images linked to a dish, sorted by sortOrder.',
         mode: 'protected',
         schema: {
@@ -152,6 +155,7 @@ export function registerMediaTools() {
 
     mcp.registerTool({
         name: 'dish-image-delete',
+        group: 'media',
         description: 'Removes the link between a dish and a MediaFile. Does NOT delete the MediaFile from the catalogue.',
         mode: 'protected',
         schema: {
@@ -172,6 +176,7 @@ export function registerMediaTools() {
 
     mcp.registerTool({
         name: 'group-image-add',
+        group: 'media',
         description:
             'Links an image to a menu category (creates a SelectedMediaFile row).\n\n'
             + 'Input modes:\n'
@@ -204,6 +209,7 @@ export function registerMediaTools() {
 
     mcp.registerTool({
         name: 'group-image-list',
+        group: 'media',
         description: 'Returns all images linked to a menu category, sorted by sortOrder.',
         mode: 'protected',
         schema: {
@@ -226,6 +232,7 @@ export function registerMediaTools() {
 
     mcp.registerTool({
         name: 'group-image-delete',
+        group: 'media',
         description: 'Removes the link between a menu category and a MediaFile. Does NOT delete the MediaFile from the catalogue.',
         mode: 'protected',
         schema: {

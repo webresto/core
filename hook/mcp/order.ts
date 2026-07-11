@@ -68,6 +68,7 @@ export function registerOrderTools() {
 
     mcp.registerTool({
         name: 'order-get',
+        group: 'order',
         description:
             'Investigation tool. Returns a single order with EVERYTHING needed to debug status and relations: '
             + 'populated paymentMethod/user/pickupPoint/deliveryItem/promotionCode, full OrderDish list (with dish populated), '
@@ -98,6 +99,7 @@ export function registerOrderTools() {
 
     mcp.registerTool({
         name: 'order-list',
+        group: 'order',
         description:
             'Investigation tool. Returns a slim list of orders matching filters. '
             + 'Use this to find candidate orders, then call order-get for the full picture. '
@@ -149,6 +151,7 @@ export function registerOrderTools() {
 
     mcp.registerTool({
         name: 'order-logs',
+        group: 'order',
         description: 'Returns the logs array for an order by id or shortId. Useful for tracing state changes, promotion runs, payment events, RMS sync. Newest entries last.',
         mode: 'protected',
         schema: {
@@ -173,6 +176,7 @@ export function registerOrderTools() {
 
     mcp.registerTool({
         name: 'order-payment-documents',
+        group: 'order',
         description: 'Returns all PaymentDocuments linked to an order by id or shortId (originModel=order, originModelId=<order.id>), with paymentMethod populated. Use to debug payment state.',
         mode: 'protected',
         schema: {

@@ -5,6 +5,7 @@ export function registerPlacesTools() {
 
     mcp.registerTool({
         name: 'place-list',
+        group: 'places',
         description: 'Returns all restaurant/pickup locations with address, phone, working hours and type flags (isPickupPoint, isCookingPoint, isSalePoint).',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
@@ -15,6 +16,7 @@ export function registerPlacesTools() {
 
     mcp.registerTool({
         name: 'place-get',
+        group: 'places',
         description: 'Returns a single place by id. Includes full worktime and customData.',
         mode: 'protected',
         schema: {
@@ -31,6 +33,7 @@ export function registerPlacesTools() {
 
     mcp.registerTool({
         name: 'place-create',
+        group: 'places',
         description: 'Creates a new restaurant/pickup location.',
         mode: 'protected',
         schema: {
@@ -56,6 +59,7 @@ export function registerPlacesTools() {
 
     mcp.registerTool({
         name: 'place-update',
+        group: 'places',
         description: 'Updates a place. Pass id and only the fields to change.',
         mode: 'protected',
         schema: {

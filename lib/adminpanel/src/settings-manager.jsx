@@ -73,16 +73,15 @@ function getBaseAdminPath() {
 }
 
 async function apiRequest(path, options = {}) {
-  const axios = window.axios;
-  if (!axios) throw new Error('window.axios is not available');
+  const adminApi = window.adminApi;
+  if (!adminApi) throw new Error('window.adminApi is not available');
+  const method = (options.method || 'GET').toLowerCase();
   try {
-    const response = await axios({
-      url: `${getBaseAdminPath()}${path}`,
-      method: options.method || 'GET',
-      data: options.body,
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(options.headers || {}) },
-      withCredentials: true,
-    });
+    const url = `${getBaseAdminPath()}${path}`;
+    const config = { headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(options.headers || {}) } };
+    const response = ['get', 'delete'].includes(method)
+      ? await adminApi[method](url, config)
+      : await adminApi[method](url, options.body, config);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Request failed');
@@ -757,15 +756,10 @@ function SettingsManagerContent() {
 
   async function handleExport() {
     try {
-      const axios = window.axios;
-      const response = await axios({
-        url: `${getBaseAdminPath()}/core/settings-manager/export`,
-        method: 'GET',
+      const response = await window.adminApi.get(`${getBaseAdminPath()}/core/settings-manager/export`, {
         responseType: 'blob',
-        withCredentials: true,
       });
-      const blob = new Blob([response.data], { type: 'application/json' });
-      const objectUrl = URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(response.data);
       const a = document.createElement('a');
       a.href = objectUrl;
       a.download = `settings-${new Date().toISOString().slice(0, 10)}.json`;

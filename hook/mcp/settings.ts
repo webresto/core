@@ -20,6 +20,7 @@ export function registerSettingsTools() {
 
     mcp.registerTool({
         name: 'settings-list',
+        group: 'settings',
         description: 'Returns all settings with key, current value, type, description and jsonSchema. Read this before calling settings-set to understand what can be changed and what format is expected.',
         mode: 'protected',
         schema: {
@@ -50,6 +51,7 @@ export function registerSettingsTools() {
 
     mcp.registerTool({
         name: 'settings-get',
+        group: 'settings',
         description: 'Returns a single setting by key. Includes current value, default, type, description and jsonSchema (validation rules).',
         mode: 'protected',
         schema: {
@@ -73,6 +75,7 @@ export function registerSettingsTools() {
 
     mcp.registerTool({
         name: 'settings-set',
+        group: 'settings',
         description:
             'Updates a setting value. Value is validated against jsonSchema before saving.\n\n'
             + 'Call settings-get first to see the expected type and schema.\n\n'

@@ -5,6 +5,7 @@ export function registerGroupsTools() {
 
     mcp.registerTool({
         name: 'group-list',
+        group: 'groups',
         description: 'Returns menu categories. By default excludes soft-deleted. Supports filtering by concept and enable status.',
         mode: 'protected',
         schema: {
@@ -26,6 +27,7 @@ export function registerGroupsTools() {
 
     mcp.registerTool({
         name: 'group-get',
+        group: 'groups',
         description: 'Returns a single menu category by id or slug. Includes all fields: SEO, worktime, parentGroup.',
         mode: 'protected',
         schema: {
@@ -44,6 +46,7 @@ export function registerGroupsTools() {
 
     mcp.registerTool({
         name: 'group-create',
+        group: 'groups',
         description: 'Creates a new menu category. Slug is auto-generated from name. Pass parentGroup to nest inside another category.',
         mode: 'protected',
         schema: {
@@ -68,6 +71,7 @@ export function registerGroupsTools() {
 
     mcp.registerTool({
         name: 'group-update',
+        group: 'groups',
         description:
             'Updates a menu category. Pass id and only the fields to change.\n\n'
             + 'To move to another parent: { id, parentGroup: "newParentId" }\n'

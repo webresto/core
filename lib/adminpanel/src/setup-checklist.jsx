@@ -38,14 +38,14 @@ function getBaseAdminPath() {
 }
 
 async function apiRequest(path, options = {}) {
-  const axios = window.axios;
-  if (!axios) throw new Error('window.axios is not available');
-  const response = await axios({
-    url: `${getBaseAdminPath()}${path}`,
-    method: options.method || 'GET',
-    data: options.data,
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-  });
+  const adminApi = window.adminApi;
+  if (!adminApi) throw new Error('window.adminApi is not available');
+  const method = (options.method || 'GET').toLowerCase();
+  const url = `${getBaseAdminPath()}${path}`;
+  const config = { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } };
+  const response = ['get', 'delete'].includes(method)
+    ? await adminApi[method](url, config)
+    : await adminApi[method](url, options.data, config);
   return response.data;
 }
 

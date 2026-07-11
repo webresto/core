@@ -9,6 +9,7 @@ export function registerBackupTools() {
 
     mcp.registerTool({
         name: 'backup-list',
+        group: 'backup',
         description: 'Returns a list of available backup files in .tmp/backups/. Includes filename, size and creation date.',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
@@ -25,6 +26,7 @@ export function registerBackupTools() {
 
     mcp.registerTool({
         name: 'backup-create',
+        group: 'backup',
         description:
             'Creates a .tar.gz backup of dishes, groups and their images.\n\n'
             + 'Options:\n'
@@ -52,6 +54,7 @@ export function registerBackupTools() {
 
     mcp.registerTool({
         name: 'backup-restore',
+        group: 'backup',
         description:
             'Restores dishes, groups and images from a .tar.gz backup file.\n\n'
             + 'WARNING: if truncate:true — all existing dishes and groups for the given concepts are DELETED before restore.\n\n'
@@ -79,6 +82,7 @@ export function registerBackupTools() {
 
     mcp.registerTool({
         name: 'backup-settings-export',
+        group: 'backup',
         description: 'Exports all Settings to a JSON file in .tmp/backups/settings-<timestamp>.json. Returns the file path and count.',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
@@ -93,6 +97,7 @@ export function registerBackupTools() {
 
     mcp.registerTool({
         name: 'backup-settings-import',
+        group: 'backup',
         description:
             'Imports settings from a JSON file exported by backup-settings-export.\n\n'
             + 'Only updates existing settings — does NOT create new keys.\n'

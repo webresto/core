@@ -40,6 +40,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-list',
+        group: 'notifications',
         description:
             'Investigation tool. Returns a paginated list of notifications.\n\n'
             + 'Efficient filters (DB-level): status, groupTo, userId.\n'
@@ -133,6 +134,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-get',
+        group: 'notifications',
         description:
             'Investigation tool. Returns full details of a single notification: all fields, full logs array, rawPayload. '
             + 'Use to diagnose delivery failures, inspect channel results, trace log entries.',
@@ -158,6 +160,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-logs',
+        group: 'notifications',
         description:
             'Returns the logs array for a notification. Use to trace channel-level delivery attempts, errors, retries. '
             + 'Each entry has: level, timestamp, module, message, data.',
@@ -185,6 +188,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-channels-state',
+        group: 'notifications',
         description:
             'Returns current state of all registered notification channels: type, enabled flag, sortOrder, cost, status, error. '
             + 'Use to diagnose why a channel is not delivering (disabled, error state, misconfigured).',
@@ -211,6 +215,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-event-list',
+        group: 'notifications',
         description:
             'Returns the registered notification events (business triggers), e.g. order_accepted, order_on_the_way. '
             + 'Registering an event does NOT enable sending — sending is configured per notification type.',
@@ -223,6 +228,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-type-list',
+        group: 'notifications',
         description:
             'Returns the notification types catalog (NotificationRules model). Each type binds an event to delivery rules '
             + '(maxDeliveryCost, sendDelaySec, channels mode) and templates. Filter by eventKey or enabled.',
@@ -245,6 +251,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-type-get',
+        group: 'notifications',
         description: 'Returns a single notification type by key, including its full template configuration.',
         mode: 'protected',
         schema: {
@@ -260,6 +267,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-type-upsert',
+        group: 'notifications',
         description:
             'Create or update a notification type in the catalog. Validates key (snake_case) and eventKey. '
             + 'Set enabled:true to allow sending. Provide full type object (see notification-type-get for shape).',
@@ -285,6 +293,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-type-delete',
+        group: 'notifications',
         description: 'Remove a notification type from the catalog by key.',
         mode: 'protected',
         schema: {
@@ -301,6 +310,7 @@ export function registerNotificationTools() {
 
     mcp.registerTool({
         name: 'notification-emit-test',
+        group: 'notifications',
         description:
             'Fire a notification event through NotificationService for testing. By default dryRun:true — resolves which '
             + 'enabled types match and how their templates render WITHOUT creating/sending. Set dryRun:false to actually send '

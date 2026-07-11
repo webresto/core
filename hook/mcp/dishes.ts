@@ -5,6 +5,7 @@ export function registerDishesTools() {
 
     mcp.registerTool({
         name: 'dish-list',
+        group: 'dishes',
         description: 'Returns a list of dishes. By default excludes soft-deleted. Supports filtering by parentGroup, concept, enable status.',
         mode: 'protected',
         schema: {
@@ -33,6 +34,7 @@ export function registerDishesTools() {
 
     mcp.registerTool({
         name: 'dish-get',
+        group: 'dishes',
         description: 'Returns a single dish by id or slug. Includes all fields: price, description, SEO, worktime, modifiers.',
         mode: 'protected',
         schema: {
@@ -51,6 +53,7 @@ export function registerDishesTools() {
 
     mcp.registerTool({
         name: 'dish-create',
+        group: 'dishes',
         description:
             'Creates a new dish. Slug is auto-generated from name.\n\n'
             + 'Note: dishes created via MCP are not linked to any RMS — rmsId will be empty.\n'
@@ -84,6 +87,7 @@ export function registerDishesTools() {
 
     mcp.registerTool({
         name: 'dish-update',
+        group: 'dishes',
         description:
             'Updates a dish. Pass id and only the fields to change.\n\n'
             + 'To move to another category: { id, parentGroup: "newGroupId" }\n'
