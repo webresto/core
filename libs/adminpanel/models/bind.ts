@@ -3,6 +3,7 @@ import { ProductConfig } from "./lib/product";
 import { OrderConfig } from "./lib/order";
 import { NotificationConfig } from "./lib/notification";
 import { summarizeWorktime } from "../controls/worktimeViewerHelper";
+import { summarizeModifiers } from "../controls/modifiersEditorHelper";
 
 // Shared worktime field config: clean editable schedule editor in edit/add,
 // compact text summary in list. The custom "worktime-viewer" control renders
@@ -19,6 +20,23 @@ const worktimeListField = {
   title: "Work Time",
   displayModifier(value: unknown) {
     return summarizeWorktime(value);
+  },
+};
+
+// Shared modifiers field config: the "modifiers-editor" custom control renders a
+// two-level form (groups → options) in add/edit; the list shows a compact summary.
+const modifiersEditField = {
+  title: "Modifiers",
+  type: "json",
+  tooltip: "Dish modifiers: groups of modifier options with min/max/required rules.",
+  options: {
+    name: "modifiers-editor",
+  },
+};
+const modifiersListField = {
+  title: "Modifiers",
+  displayModifier(value: unknown) {
+    return summarizeModifiers(value);
   },
 };
 
@@ -115,8 +133,22 @@ export const models = {
     title: 'Products',
     icon: 'restaurant_menu',
     list: ProductConfig.list(),
-    edit: ProductConfig.edit(),
-    add: ProductConfig.add(),
+    edit: {
+      ...ProductConfig.edit(),
+      fields: {
+        ...ProductConfig.edit().fields,
+        worktime: worktimeEditField,
+        modifiers: modifiersEditField,
+      },
+    },
+    add: {
+      ...ProductConfig.add(),
+      fields: {
+        ...ProductConfig.add().fields,
+        worktime: worktimeEditField,
+        modifiers: modifiersEditField,
+      },
+    },
   },
   group: {
     model: 'group',

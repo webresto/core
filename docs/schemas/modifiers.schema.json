@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://webresto.dev/schemas/modifiers.schema.json",
+  "title": "Dish modifiers",
+  "description": "Value stored in Dish.modifiers — an array of modifier groups (GroupModifier[]). See docs/Modifiers.md.",
+  "type": "array",
+  "items": { "$ref": "#/definitions/GroupModifier" },
+  "definitions": {
+    "nonNegativeIntOrNull": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "GroupModifier": {
+      "type": "object",
+      "description": "A modifier group bound to a catalog Group, carrying the group-level selection rules.",
+      "required": ["id", "childModifiers"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "restocore Group.id this modifier group points at."
+        },
+        "rmsId": {
+          "type": "string",
+          "description": "External RMS id of the group. May be empty for locally-created groups."
+        },
+        "childModifiers": {
+          "type": "array",
+          "description": "The concrete modifier options in this group.",
+          "items": { "$ref": "#/definitions/Modifier" }
+        },
+        "minAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "Minimum total amount the guest must select from this group. 0/null = optional."
+        },
+        "maxAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "Maximum total amount selectable. null = unlimited."
+        },
+        "required": {
+          "type": ["boolean", "null"],
+          "description": "Convenience flag; equivalent to minAmount >= 1."
+        },
+        "defaultAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "Group-level default amount (per-child defaultAmount is preferred)."
+        },
+        "freeOfChargeAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "How many picks in this group are free before charging."
+        },
+        "freeAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "DEPRECATED — use freeOfChargeAmount."
+        },
+        "amount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "Fixed amount (legacy)."
+        },
+        "isSingleModifierGroupWrapper": {
+          "type": "boolean",
+          "description": "true when this group is a synthetic wrapper around a single stand-alone modifier."
+        },
+        "groupId": {
+          "type": "string",
+          "description": "Alias sometimes present alongside id."
+        },
+        "modifierId": {
+          "type": ["string", "null"],
+          "description": "DEPRECATED alias — historically the group's rmsId. Use id."
+        }
+      },
+      "additionalProperties": true
+    },
+    "Modifier": {
+      "type": "object",
+      "description": "A single selectable modifier option — a Dish with modifier: true.",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "restocore Dish.id of the modifier dish."
+        },
+        "rmsId": {
+          "type": "string",
+          "description": "External RMS id of the modifier dish. May be empty."
+        },
+        "minAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "Minimum amount of this specific option."
+        },
+        "maxAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "Maximum amount of this specific option."
+        },
+        "defaultAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "Amount pre-selected by default."
+        },
+        "required": {
+          "type": ["boolean", "null"],
+          "description": "Whether this specific option must be present."
+        },
+        "freeOfChargeAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "Free quantity of this option before charging."
+        },
+        "freeAmount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "DEPRECATED — use freeOfChargeAmount."
+        },
+        "amount": {
+          "$ref": "#/definitions/nonNegativeIntOrNull",
+          "description": "Fixed amount (legacy)."
+        },
+        "modifierId": {
+          "description": "DEPRECATED alias — historically the modifier's rmsId. Use id."
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
