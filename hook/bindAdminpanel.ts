@@ -93,6 +93,17 @@ export default function bindAdminpanel() {
       sails.log.warn("Worktime viewer control binding skipped", e);
     }
 
+    // Modifiers editor custom control bind (dish modifiers form + editor)
+    try {
+      const ModifiersEditorControl = require("../libs/adminpanel/controls/ModifiersEditorControl").ModifiersEditorControl;
+      const controlsHandler = sails.hooks.adminpanel.adminizer.controlsHandler;
+      if (!controlsHandler.get("jsonEditor", "modifiers-editor")) {
+        controlsHandler.add(new ModifiersEditorControl(sails.hooks.adminpanel.adminizer));
+      }
+    } catch (e) {
+      sails.log.warn("Modifiers editor control binding skipped", e);
+    }
+
     // Initialize dashboard widgets
     initializeWidgets();
 
@@ -923,6 +934,17 @@ function processBindAdminpanel() {
           adminizer.app.post(`${routePrefix}/core/sales-channel-delete`, ...bind(deleteSalesChannelController));
         } catch (e) {
           sails.log.debug('SalesChannels route bind error', e);
+        }
+
+        // Modifiers editor data routes (category + dish pickers for the modifiers-editor
+        // control). Gated inside the controllers by the catalog-products access token.
+        try {
+          const getModifierGroupsController = require('../lib/adminpanel/src/controller/get-modifier-groups').default;
+          const getModifierDishesController = require('../lib/adminpanel/src/controller/get-modifier-dishes').default;
+          adminizer.app.get(`${routePrefix}/core/modifiers/groups`, ...bind(getModifierGroupsController));
+          adminizer.app.get(`${routePrefix}/core/modifiers/dishes`, ...bind(getModifierDishesController));
+        } catch (e) {
+          sails.log.debug('Modifiers editor route bind error', e);
         }
 
         // Route for product setup page
