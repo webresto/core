@@ -132,12 +132,14 @@ function CheckupRow({ item, t, onDismiss, onRestore, busy }) {
   const isSkipped = item.dismissed || item.status === 'skipped';
 
   return (
-    <div className="flex items-start gap-3 py-3">
-      <Icon className={`size-5 shrink-0 mt-0.5 ${className} ${item.status === 'in_progress' ? 'animate-pulse' : ''}`} />
+    <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-start">
+      <div className={`flex size-9 shrink-0 items-center justify-center rounded-full bg-muted ${className}`}>
+        <Icon className={`size-5 ${item.status === 'in_progress' ? 'animate-pulse' : ''}`} />
+      </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className={`text-sm font-medium ${isSkipped ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+          <span className={`text-sm font-semibold ${isSkipped ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
             {item.title}
           </span>
           <Badge variant="outline" className={`text-[10px] font-normal ${SEVERITY_BADGE[item.severity] || ''}`}>
@@ -152,7 +154,7 @@ function CheckupRow({ item, t, onDismiss, onRestore, busy }) {
             <span className="text-xs text-destructive">{t('Could not check')}</span>
           )}
         </div>
-        {item.description && <p className="mt-0.5 text-xs text-muted-foreground">{item.description}</p>}
+        {item.description && <p className="mt-1.5 max-w-2xl text-sm leading-5 text-muted-foreground">{item.description}</p>}
         {item.detail && (
           <p className="mt-1 truncate text-xs text-foreground/70" title={item.detail}>
             {item.detail}
@@ -160,7 +162,7 @@ function CheckupRow({ item, t, onDismiss, onRestore, busy }) {
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1 pl-13 sm:pl-0">
         {item.target && !isSkipped && (
           <GoToSetupLink target={item.target} label={item.target.label || t('Go to setup')} />
         )}
@@ -202,17 +204,19 @@ function GroupCard({ group, t, showHidden, onDismiss, onRestore, busy }) {
   if (items.length === 0) return null;
 
   return (
-    <Card className="overflow-hidden py-0 gap-0">
+    <Card className="overflow-hidden gap-0 py-0 shadow-sm">
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger asChild>
-          <button type="button" className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50">
-            <IconChevron className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`} />
+          <button type="button" className="flex w-full items-center gap-4 px-5 py-5 text-left transition-colors hover:bg-muted/40 sm:px-6">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
+              <IconChevron className={`size-4 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`} />
+            </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-base font-semibold text-foreground">{group.title}</span>
+                <span className="text-base font-semibold text-foreground sm:text-lg">{group.title}</span>
                 {group.ready && <IconDone className="size-4 text-primary" />}
               </div>
-              {group.description && <p className="text-xs text-muted-foreground">{group.description}</p>}
+              {group.description && <p className="mt-1 text-sm text-muted-foreground">{group.description}</p>}
             </div>
             <div className="hidden w-40 items-center gap-2 sm:flex">
               <ProgressBar percent={group.progressPercent} />
@@ -222,7 +226,7 @@ function GroupCard({ group, t, showHidden, onDismiss, onRestore, busy }) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <Separator />
-          <div className="divide-y divide-border px-4">
+          <div className="divide-y divide-border px-5 sm:px-6">
             {items.map((item) => (
               <CheckupRow key={item.key} item={item} t={t} onDismiss={onDismiss} onRestore={onRestore} busy={busy} />
             ))}
@@ -302,27 +306,27 @@ function SetupChecklistContent() {
   const requiredLeft = status ? status.counts.required.total - status.counts.required.done : 0;
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-8 pb-10">
       {/* Header */}
-      <div className="space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">{t('Finish the setup')}</h1>
-            <p className="text-sm text-muted-foreground">{t('Complete these steps to get your store ready.')}</p>
+      <div className="space-y-5">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
+          <div className="max-w-2xl space-y-2">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">{t('Finish the setup')}</h1>
+            <p className="text-sm leading-6 text-muted-foreground sm:text-base">{t('Complete these steps to get your store ready.')}</p>
           </div>
-          <Button size="sm" variant="outline" className="gap-1" onClick={fetchStatus} disabled={loading || busy}>
+          <Button size="sm" variant="outline" className="gap-2" onClick={fetchStatus} disabled={loading || busy}>
             <IconRefresh className={`size-4 ${loading ? 'animate-spin' : ''}`} />
             {t('Refresh')}
           </Button>
         </div>
 
         {status && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <ProgressBar percent={status.progressPercent} />
-              <span className="w-10 text-right text-sm font-medium tabular-nums">{status.progressPercent}%</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          <Card className="gap-5 p-5 sm:p-6">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">{t('Setup progress')}</p>
+                <p className="mt-1 text-3xl font-semibold tabular-nums text-foreground">{status.progressPercent}%</p>
+              </div>
               {status.overallReady ? (
                 <Badge className="bg-primary text-primary-foreground hover:bg-primary">{t('Ready to go')}</Badge>
               ) : (
@@ -330,6 +334,9 @@ function SetupChecklistContent() {
                   {t('{count} required steps left', { count: requiredLeft })}
                 </Badge>
               )}
+            </div>
+            <ProgressBar percent={status.progressPercent} className="h-2.5" />
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-4">
               <CountChip label={t('Required')} done={status.counts.required.done} total={status.counts.required.total} />
               <CountChip label={t('Recommended')} done={status.counts.recommended.done} total={status.counts.recommended.total} />
               <CountChip label={t('Optional')} done={status.counts.optional.done} total={status.counts.optional.total} />
@@ -338,13 +345,13 @@ function SetupChecklistContent() {
                 {t('Show hidden')}
               </label>
             </div>
-          </div>
+          </Card>
         )}
       </div>
 
       {/* Body */}
       {loading && !status && (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {[0, 1, 2].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
         </div>
       )}
@@ -362,17 +369,21 @@ function SetupChecklistContent() {
         <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">{t('No checkups yet')}</CardContent></Card>
       )}
 
-      {status && status.groups.map((group) => (
-        <GroupCard
-          key={group.key}
-          group={group}
-          t={t}
-          showHidden={showHidden}
-          onDismiss={onDismiss}
-          onRestore={onRestore}
-          busy={busy}
-        />
-      ))}
+      {status && (
+        <div className="space-y-6">
+          {status.groups.map((group) => (
+            <GroupCard
+              key={group.key}
+              group={group}
+              t={t}
+              showHidden={showHidden}
+              onDismiss={onDismiss}
+              onRestore={onRestore}
+              busy={busy}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

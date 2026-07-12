@@ -101,6 +101,13 @@ export interface SetupChecklistSummary {
   overallReady: boolean;
   progressPercent: number;
   generatedAt: string;
+  labels: {
+    title: string;
+    ready: string;
+    incomplete: string;
+    open: string;
+    checked: string;
+  };
 }
 
 function emptyCounts(): SeverityCounts {
@@ -286,6 +293,16 @@ export class SetupChecklistService {
       overallReady: status.overallReady,
       progressPercent: status.progressPercent,
       generatedAt: status.generatedAt,
+      labels: {
+        title: ctx.t("Setup checklist"),
+        ready: ctx.t("Ready to go"),
+        incomplete: ctx.t("Setup is incomplete"),
+        open: ctx.t("Open checklist"),
+        checked: ctx.t("{done} of {total} checked", {
+          done: status.counts.required.done + status.counts.recommended.done + status.counts.optional.done,
+          total: status.counts.required.total + status.counts.recommended.total + status.counts.optional.total,
+        }),
+      },
     };
   }
 

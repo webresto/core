@@ -309,7 +309,9 @@ function processBindAdminpanel() {
     const coreWidgets = ['dish-count',
        'order-count', 
        'dishes-on-stop',
-       'sales-channels-count'];
+       'sales-channels-count',
+       // Adminizer custom widgets use a single-underscore instance suffix.
+       'setup-checklist-status_0'];
     coreWidgets.forEach(widgetId => {
       if (!sails.config.adminpanel.dashboard.defaultWidgets.includes(widgetId)) {
         sails.config.adminpanel.dashboard.defaultWidgets.push(widgetId);

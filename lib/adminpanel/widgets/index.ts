@@ -3,6 +3,7 @@ import TodayOrdersCountWidget from "./TodayOrdersCount";
 import DishesOnStopWidget from "./DishesOnStop";
 import NotificationsTodayCountWidget from "./NotificationsTodayCount";
 import SalesChannelsCountWidget from "./SalesChannelsCount";
+import SetupChecklistWidget from "./SetupChecklist";
 
 /**
  * Initialize and register all dashboard widgets
@@ -27,6 +28,7 @@ export function initializeWidgets() {
     widgetHandler.add(new DishesOnStopWidget());
     widgetHandler.add(new NotificationsTodayCountWidget());
     widgetHandler.add(new SalesChannelsCountWidget());
+    widgetHandler.add(new SetupChecklistWidget(sails.config.adminpanel.routePrefix || '/admin'));
     
     sails.log.info('Dashboard widgets registered successfully');
   } catch (error) {
@@ -34,4 +36,4 @@ export function initializeWidgets() {
   }
 }
 
-export { DishCountWidget, TodayOrdersCountWidget, DishesOnStopWidget, NotificationsTodayCountWidget, SalesChannelsCountWidget };
+export { DishCountWidget, TodayOrdersCountWidget, DishesOnStopWidget, NotificationsTodayCountWidget, SalesChannelsCountWidget, SetupChecklistWidget };
