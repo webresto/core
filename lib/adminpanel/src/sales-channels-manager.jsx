@@ -185,7 +185,10 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
 }
 
 // ─────────────────────────────── channel card ───────────────────────────────
-function ChannelCard({ channel, onEdit, onToggle, onDelete, canManage, t }) {
+function ChannelCard({ channel, onEdit, onToggle, onDelete, canManage, isMobile, t }) {
+  // On mobile let the action buttons grow to fill the row so they don't overflow the card.
+  const cardActionsStyle = isMobile ? { width: '100%' } : {};
+  const cardActionButtonStyle = isMobile ? { flex: '1 1 auto', minWidth: 0 } : undefined;
   return (
     <div style={{ ...styles.subsection, gap: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
@@ -207,7 +210,7 @@ function ChannelCard({ channel, onEdit, onToggle, onDelete, canManage, t }) {
         {channel.platforms.map((p) => <Badge key={`pl-${p}`} variant="outline">{p}</Badge>)}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between', flexWrap: 'wrap', rowGap: 12 }}>
         {canManage ? (
           <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Switch checked={channel.enabled} onCheckedChange={(v) => onToggle(channel, Boolean(v))} />
@@ -216,11 +219,11 @@ function ChannelCard({ channel, onEdit, onToggle, onDelete, canManage, t }) {
         ) : (
           <span style={styles.help}>{channel.enabled ? t('Enabled') : t('Disabled')}</span>
         )}
-        <div style={{ display: 'flex', gap: 8 }}>
-          {canManage && channel.settingsUrl && <Button variant="outline" size="sm" onClick={() => openSelf(channel.settingsUrl)}>{t('Settings')}</Button>}
-          {channel.url && <Button variant="outline" size="sm" onClick={() => window.open(channel.url, '_blank', 'noopener')}>{t('Open')}</Button>}
-          {canManage && <Button variant="outline" size="sm" onClick={() => onEdit(channel)}>{t('Edit')}</Button>}
-          {canManage && <Button variant="ghost" size="sm" onClick={() => onDelete(channel)}>{t('Delete')}</Button>}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, minWidth: 0, ...cardActionsStyle }}>
+          {canManage && channel.settingsUrl && <Button variant="outline" size="sm" style={cardActionButtonStyle} onClick={() => openSelf(channel.settingsUrl)}>{t('Settings')}</Button>}
+          {channel.url && <Button variant="outline" size="sm" style={cardActionButtonStyle} onClick={() => window.open(channel.url, '_blank', 'noopener')}>{t('Open')}</Button>}
+          {canManage && <Button variant="outline" size="sm" style={cardActionButtonStyle} onClick={() => onEdit(channel)}>{t('Edit')}</Button>}
+          {canManage && <Button variant="ghost" size="sm" style={cardActionButtonStyle} onClick={() => onDelete(channel)}>{t('Delete')}</Button>}
         </div>
       </div>
     </div>
@@ -424,7 +427,7 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
             ) : (
               <div style={cardGrid}>
                 {channels.map((c) => (
-                  <ChannelCard key={c.id} channel={c} onEdit={startEdit} onToggle={toggleChannel} onDelete={setPendingDelete} canManage={canManage} t={t} />
+                  <ChannelCard key={c.id} channel={c} onEdit={startEdit} onToggle={toggleChannel} onDelete={setPendingDelete} canManage={canManage} isMobile={isMobile} t={t} />
                 ))}
               </div>
             )}
