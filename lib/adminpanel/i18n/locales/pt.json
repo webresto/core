@@ -62,5 +62,10 @@
 	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Esta é uma prévia simplificada para verificar a configuração. A aparência no site pode ser diferente — aqui se verifica o comportamento: cálculo de preço, regras de obrigatoriedade e limites dos modificadores.",
 	"Preview": "Pré-visualização",
 	"Close": "Fechar",
-	"Total": "Total"
+	"Total": "Total",
+	"Add tag…": "Adicionar etiqueta…",
+	"No tags yet": "Ainda não há etiquetas",
+	"Remove tag": "Remover etiqueta",
+	"This tag is already added": "Esta etiqueta já foi adicionada",
+	"Press Enter or comma to add": "Pressione Enter ou vírgula para adicionar"
 }

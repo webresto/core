@@ -62,5 +62,10 @@
 	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Bu sozlamalarni tekshirish uchun soddalashtirilgan ko'rib chiqish. Saytdagi ko'rinish farq qilishi mumkin — bu yerda ishlash tekshiriladi: narx hisobi, majburiylik qoidalari va modifikator limitlari.",
 	"Preview": "Oldindan ko'rish",
 	"Close": "Yopish",
-	"Total": "Jami"
+	"Total": "Jami",
+	"Add tag…": "Teg qoʻshish…",
+	"No tags yet": "Hozircha teglar yoʻq",
+	"Remove tag": "Tegni oʻchirish",
+	"This tag is already added": "Bu teg allaqachon qoʻshilgan",
+	"Press Enter or comma to add": "Qoʻshish uchun Enter yoki vergulni bosing"
 }

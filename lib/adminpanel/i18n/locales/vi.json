@@ -562,5 +562,10 @@
 	"Upload failed": "Tải lên thất bại",
 	"Only JPEG or PNG images are allowed": "Chỉ cho phép ảnh JPEG hoặc PNG",
 	"Image is too large (max {n} MB)": "Ảnh quá lớn (tối đa {n} MB)",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Đây là bản xem trước đơn giản hóa để kiểm tra cấu hình. Giao diện trên trang web có thể khác — ở đây kiểm tra hành vi: tính giá, quy tắc bắt buộc và giới hạn của các modifier."
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Đây là bản xem trước đơn giản hóa để kiểm tra cấu hình. Giao diện trên trang web có thể khác — ở đây kiểm tra hành vi: tính giá, quy tắc bắt buộc và giới hạn của các modifier.",
+	"Add tag…": "Thêm thẻ…",
+	"No tags yet": "Chưa có thẻ nào",
+	"Remove tag": "Xóa thẻ",
+	"This tag is already added": "Thẻ này đã được thêm",
+	"Press Enter or comma to add": "Nhấn Enter hoặc dấu phẩy để thêm"
 }

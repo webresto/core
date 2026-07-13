@@ -4,6 +4,7 @@ import { OrderConfig } from "./lib/order";
 import { NotificationConfig } from "./lib/notification";
 import { summarizeWorktime } from "../controls/worktimeViewerHelper";
 import { summarizeModifiers } from "../controls/modifiersEditorHelper";
+import { summarizeTags } from "../controls/tagsEditorHelper";
 
 // Shared worktime field config: clean editable schedule editor in edit/add,
 // compact text summary in list. The custom "worktime-viewer" control renders
@@ -37,6 +38,23 @@ const modifiersListField = {
   title: "Modifiers",
   displayModifier(value: unknown) {
     return summarizeModifiers(value);
+  },
+};
+
+// Shared tags field config: the "tags-editor" custom control renders a chips input
+// with autocomplete of existing catalog tags in add/edit; the list shows the names.
+const tagsEditField = {
+  title: "Tags",
+  type: "json",
+  tooltip: "Free-form labels for filtering (vegetarian, spicy, ...).",
+  options: {
+    name: "tags-editor",
+  },
+};
+const tagsListField = {
+  title: "Tags",
+  displayModifier(value: unknown) {
+    return summarizeTags(value);
   },
 };
 
@@ -132,13 +150,20 @@ export const models = {
     model: 'dish',
     title: 'Products',
     icon: 'restaurant_menu',
-    list: ProductConfig.list(),
+    list: {
+      ...ProductConfig.list(),
+      fields: {
+        ...ProductConfig.list().fields,
+        tags: tagsListField,
+      },
+    },
     edit: {
       ...ProductConfig.edit(),
       fields: {
         ...ProductConfig.edit().fields,
         worktime: worktimeEditField,
         modifiers: modifiersEditField,
+        tags: tagsEditField,
       },
     },
     add: {
@@ -147,6 +172,7 @@ export const models = {
         ...ProductConfig.add().fields,
         worktime: worktimeEditField,
         modifiers: modifiersEditField,
+        tags: tagsEditField,
       },
     },
   },

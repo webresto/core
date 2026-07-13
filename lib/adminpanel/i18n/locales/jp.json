@@ -562,5 +562,10 @@
 	"Upload failed": "アップロード失敗",
 	"Only JPEG or PNG images are allowed": "JPEG または PNG 画像のみ許可されています",
 	"Image is too large (max {n} MB)": "画像が大きすぎます（最大 {n} MB）",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "これは設定確認用の簡易プレビューです。サイト上の見た目は異なる場合があります — ここでは価格計算、必須ルール、モディファイアの制限などの動作を検証します。"
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "これは設定確認用の簡易プレビューです。サイト上の見た目は異なる場合があります — ここでは価格計算、必須ルール、モディファイアの制限などの動作を検証します。",
+	"Add tag…": "タグを追加…",
+	"No tags yet": "タグはまだありません",
+	"Remove tag": "タグを削除",
+	"This tag is already added": "このタグは既に追加されています",
+	"Press Enter or comma to add": "Enter またはカンマで追加"
 }

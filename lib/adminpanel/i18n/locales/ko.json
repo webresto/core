@@ -562,5 +562,10 @@
 	"Upload failed": "업로드 실패",
 	"Only JPEG or PNG images are allowed": "JPEG 또는 PNG 이미지만 허용됩니다",
 	"Image is too large (max {n} MB)": "이미지가 너무 큽니다(최대 {n}MB)",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "이것은 설정 확인을 위한 간소화된 미리보기입니다. 사이트의 실제 모습은 다를 수 있으며, 여기서는 가격 계산, 필수 규칙, 수정자 한도 등 동작을 검증합니다."
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "이것은 설정 확인을 위한 간소화된 미리보기입니다. 사이트의 실제 모습은 다를 수 있으며, 여기서는 가격 계산, 필수 규칙, 수정자 한도 등 동작을 검증합니다.",
+	"Add tag…": "태그 추가…",
+	"No tags yet": "아직 태그가 없습니다",
+	"Remove tag": "태그 삭제",
+	"This tag is already added": "이미 추가된 태그입니다",
+	"Press Enter or comma to add": "Enter 또는 쉼표를 눌러 추가"
 }
