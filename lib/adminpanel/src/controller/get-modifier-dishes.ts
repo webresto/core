@@ -5,7 +5,22 @@
  * returned (onlyModifiers=1 default); pass onlyModifiers=0 to list any dish. Exact-id
  * lookups always resolve regardless of the modifier flag so already-referenced options
  * stay visible. Access is gated by the `catalog-products` token.
+ *
+ * Besides picker fields, returns price/weight/measureUnit/images/notForSale/description
+ * so the modifiers preview popup can render option cards and compute the total price.
+ * `images` is the size→URL dict of the dish's most recent MediaFile (paths under the
+ * public static root), or null when the dish has no images.
  */
+
+function pickImages(dish: any): Record<string, string> | null {
+  const list = Array.isArray(dish.images) ? [...dish.images] : [];
+  if (!list.length) return null;
+  // Most recent image first — same ordering Dish.display uses.
+  if (list.length >= 2) list.sort((a, b) => String(b.uploadDate || "").localeCompare(String(a.uploadDate || "")));
+  const variant = list[0]?.variant ?? list[0]?.images;
+  if (!variant || typeof variant !== "object" || !Object.keys(variant).length) return null;
+  return variant;
+}
 export default async function GetModifierDishesController(req: any, res: any) {
   try {
     const { config } = req.adminizer || {};
@@ -39,7 +54,7 @@ export default async function GetModifierDishesController(req: any, res: any) {
       if (q) where.or = [{ name: { contains: q } }, { code: { contains: q } }];
     }
 
-    const dishes = await Dish.find({ where, limit: 200 }).sort("name ASC");
+    const dishes = await Dish.find({ where, limit: 200 }).populate("images").sort("name ASC");
     const results = dishes.map((d: any) => ({
       id: d.id,
       rmsId: d.rmsId || "",
@@ -51,6 +66,12 @@ export default async function GetModifierDishesController(req: any, res: any) {
       enable: d.enable !== false,
       visible: d.visible !== false,
       balance: typeof d.balance === "number" ? d.balance : null,
+      price: typeof d.price === "number" ? d.price : 0,
+      weight: typeof d.weight === "number" ? d.weight : null,
+      measureUnit: d.measureUnit || null,
+      notForSale: Boolean(d.notForSale),
+      description: d.description || null,
+      images: pickImages(d),
     }));
 
     return res.json({ results });
