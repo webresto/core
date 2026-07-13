@@ -62,5 +62,10 @@
 	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "هذه معاينة مبسّطة للتحقق من الإعدادات. قد يختلف المظهر على الموقع — ما يتم التحقق منه هنا هو السلوك: حساب السعر وقواعد الإلزام وحدود المعدِّلات.",
 	"Preview": "معاينة",
 	"Close": "إغلاق",
-	"Total": "الإجمالي"
+	"Total": "الإجمالي",
+	"Add tag…": "إضافة وسم…",
+	"No tags yet": "لا توجد وسوم بعد",
+	"Remove tag": "إزالة الوسم",
+	"This tag is already added": "هذا الوسم مضاف بالفعل",
+	"Press Enter or comma to add": "اضغط Enter أو الفاصلة للإضافة"
 }

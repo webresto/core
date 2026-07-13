@@ -815,5 +815,10 @@
 	"Upload failed": "Помилка завантаження",
 	"Only JPEG or PNG images are allowed": "Дозволені лише зображення JPEG або PNG",
 	"Image is too large (max {n} MB)": "Зображення завелике (макс. {n} МБ)",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Це спрощений попередній перегляд для перевірки налаштувань. Вигляд на сайті може відрізнятися — тут перевіряється працездатність: розрахунок ціни, обовʼязковість і ліміти модифікаторів."
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Це спрощений попередній перегляд для перевірки налаштувань. Вигляд на сайті може відрізнятися — тут перевіряється працездатність: розрахунок ціни, обовʼязковість і ліміти модифікаторів.",
+	"Add tag…": "Додати тег…",
+	"No tags yet": "Тегів поки немає",
+	"Remove tag": "Видалити тег",
+	"This tag is already added": "Цей тег уже додано",
+	"Press Enter or comma to add": "Натисніть Enter або кому, щоб додати"
 }

@@ -562,5 +562,10 @@
 	"Upload failed": "Error al subir",
 	"Only JPEG or PNG images are allowed": "Solo se permiten imágenes JPEG o PNG",
 	"Image is too large (max {n} MB)": "La imagen es demasiado grande (máx. {n} MB)",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Esta es una vista previa simplificada para comprobar la configuración. El aspecto en el sitio puede diferir: aquí se verifica el comportamiento: cálculo del precio, reglas de obligatoriedad y límites de los modificadores."
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Esta es una vista previa simplificada para comprobar la configuración. El aspecto en el sitio puede diferir: aquí se verifica el comportamiento: cálculo del precio, reglas de obligatoriedad y límites de los modificadores.",
+	"Add tag…": "Añadir etiqueta…",
+	"No tags yet": "Aún no hay etiquetas",
+	"Remove tag": "Eliminar etiqueta",
+	"This tag is already added": "Esta etiqueta ya está añadida",
+	"Press Enter or comma to add": "Pulsa Enter o coma para añadir"
 }

@@ -844,5 +844,10 @@
 	"Upload failed": "Ошибка загрузки",
 	"Only JPEG or PNG images are allowed": "Допустимы только изображения JPEG или PNG",
 	"Image is too large (max {n} MB)": "Изображение слишком большое (макс. {n} МБ)",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Это упрощённый предпросмотр для проверки настроек. Внешний вид на сайте может отличаться — здесь проверяется работоспособность: расчёт цены, обязательность и лимиты модификаторов."
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Это упрощённый предпросмотр для проверки настроек. Внешний вид на сайте может отличаться — здесь проверяется работоспособность: расчёт цены, обязательность и лимиты модификаторов.",
+	"Add tag…": "Добавить тег…",
+	"No tags yet": "Тегов пока нет",
+	"Remove tag": "Удалить тег",
+	"This tag is already added": "Этот тег уже добавлен",
+	"Press Enter or comma to add": "Нажмите Enter или запятую, чтобы добавить"
 }

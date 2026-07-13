@@ -562,5 +562,10 @@
 	"Upload failed": "上传失败",
 	"Only JPEG or PNG images are allowed": "仅允许 JPEG 或 PNG 图片",
 	"Image is too large (max {n} MB)": "图片过大（最大 {n} MB）",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "这是用于检查配置的简化预览。网站上的实际外观可能不同——此处验证的是行为：价格计算、必选规则和修饰符限制。"
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "这是用于检查配置的简化预览。网站上的实际外观可能不同——此处验证的是行为：价格计算、必选规则和修饰符限制。",
+	"Add tag…": "添加标签…",
+	"No tags yet": "暂无标签",
+	"Remove tag": "删除标签",
+	"This tag is already added": "该标签已添加",
+	"Press Enter or comma to add": "按 Enter 或逗号添加"
 }

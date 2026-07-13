@@ -562,5 +562,10 @@
 	"Upload failed": "Échec du téléchargement",
 	"Only JPEG or PNG images are allowed": "Seules les images JPEG ou PNG sont autorisées",
 	"Image is too large (max {n} MB)": "L'image est trop volumineuse (max {n} Mo)",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Ceci est un aperçu simplifié pour vérifier la configuration. L'apparence sur le site peut différer — on vérifie ici le comportement : calcul du prix, règles d'obligation et limites des modificateurs."
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "Ceci est un aperçu simplifié pour vérifier la configuration. L'apparence sur le site peut différer — on vérifie ici le comportement : calcul du prix, règles d'obligation et limites des modificateurs.",
+	"Add tag…": "Ajouter un tag…",
+	"No tags yet": "Aucun tag pour le moment",
+	"Remove tag": "Supprimer le tag",
+	"This tag is already added": "Ce tag est déjà ajouté",
+	"Press Enter or comma to add": "Appuyez sur Entrée ou virgule pour ajouter"
 }

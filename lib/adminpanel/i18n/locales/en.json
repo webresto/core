@@ -639,5 +639,10 @@
 	"Upload failed": "Upload failed",
 	"Only JPEG or PNG images are allowed": "Only JPEG or PNG images are allowed",
 	"Image is too large (max {n} MB)": "Image is too large (max {n} MB)",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits."
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.",
+	"Add tag…": "Add tag…",
+	"No tags yet": "No tags yet",
+	"Remove tag": "Remove tag",
+	"This tag is already added": "This tag is already added",
+	"Press Enter or comma to add": "Press Enter or comma to add"
 }

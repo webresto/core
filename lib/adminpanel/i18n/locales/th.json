@@ -562,5 +562,10 @@
 	"Upload failed": "อัปโหลดล้มเหลว",
 	"Only JPEG or PNG images are allowed": "อนุญาตเฉพาะรูปภาพ JPEG หรือ PNG เท่านั้น",
 	"Image is too large (max {n} MB)": "รูปภาพใหญ่เกินไป (สูงสุด {n} MB)",
-	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "นี่คือตัวอย่างแบบง่ายสำหรับตรวจสอบการตั้งค่า รูปลักษณ์บนเว็บไซต์อาจแตกต่าง — สิ่งที่ตรวจสอบคือการทำงาน: การคำนวณราคา กฎการบังคับเลือก และขีดจำกัดของตัวปรับแต่ง"
+	"This is a simplified preview for checking the configuration. The look on the site may differ — what is verified here is behaviour: price calculation, required rules and modifier limits.": "นี่คือตัวอย่างแบบง่ายสำหรับตรวจสอบการตั้งค่า รูปลักษณ์บนเว็บไซต์อาจแตกต่าง — สิ่งที่ตรวจสอบคือการทำงาน: การคำนวณราคา กฎการบังคับเลือก และขีดจำกัดของตัวปรับแต่ง",
+	"Add tag…": "เพิ่มแท็ก…",
+	"No tags yet": "ยังไม่มีแท็ก",
+	"Remove tag": "ลบแท็ก",
+	"This tag is already added": "แท็กนี้ถูกเพิ่มแล้ว",
+	"Press Enter or comma to add": "กด Enter หรือจุลภาคเพื่อเพิ่ม"
 }

@@ -104,6 +104,17 @@ export default function bindAdminpanel() {
       sails.log.warn("Modifiers editor control binding skipped", e);
     }
 
+    // Tags editor custom control bind (dish tags chips input)
+    try {
+      const TagsEditorControl = require("../libs/adminpanel/controls/TagsEditorControl").TagsEditorControl;
+      const controlsHandler = sails.hooks.adminpanel.adminizer.controlsHandler;
+      if (!controlsHandler.get("jsonEditor", "tags-editor")) {
+        controlsHandler.add(new TagsEditorControl(sails.hooks.adminpanel.adminizer));
+      }
+    } catch (e) {
+      sails.log.warn("Tags editor control binding skipped", e);
+    }
+
     // Initialize dashboard widgets
     initializeWidgets();
 
@@ -948,6 +959,15 @@ function processBindAdminpanel() {
           adminizer.app.post(`${routePrefix}/core/modifiers/dish-image`, ...bind(uploadModifierDishImageController));
         } catch (e) {
           sails.log.debug('Modifiers editor route bind error', e);
+        }
+
+        // Tags editor data route (autocomplete of tag names already used in the
+        // catalog). Gated inside the controller by the catalog-products access token.
+        try {
+          const getDishTagsController = require('../lib/adminpanel/src/controller/get-dish-tags').default;
+          adminizer.app.get(`${routePrefix}/core/tags`, ...bind(getDishTagsController));
+        } catch (e) {
+          sails.log.debug('Tags editor route bind error', e);
         }
 
         // Route for product setup page
