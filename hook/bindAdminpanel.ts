@@ -937,12 +937,15 @@ function processBindAdminpanel() {
         }
 
         // Modifiers editor data routes (category + dish pickers for the modifiers-editor
-        // control). Gated inside the controllers by the catalog-products access token.
+        // control, plus option photo upload for the preview popup). Gated inside the
+        // controllers by the catalog-products access token.
         try {
           const getModifierGroupsController = require('../lib/adminpanel/src/controller/get-modifier-groups').default;
           const getModifierDishesController = require('../lib/adminpanel/src/controller/get-modifier-dishes').default;
+          const uploadModifierDishImageController = require('../lib/adminpanel/src/controller/upload-modifier-dish-image').default;
           adminizer.app.get(`${routePrefix}/core/modifiers/groups`, ...bind(getModifierGroupsController));
           adminizer.app.get(`${routePrefix}/core/modifiers/dishes`, ...bind(getModifierDishesController));
+          adminizer.app.post(`${routePrefix}/core/modifiers/dish-image`, ...bind(uploadModifierDishImageController));
         } catch (e) {
           sails.log.debug('Modifiers editor route bind error', e);
         }

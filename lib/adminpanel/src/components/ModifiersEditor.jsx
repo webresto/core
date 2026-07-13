@@ -3,6 +3,8 @@ import {
   normalizeModifiers, serializeModifiers, toCanonical, validateModifiers,
   makeEmptyGroup, makeEmptyChild,
 } from './modifiers/modifiersModel';
+import { apiGet } from './modifiers/api';
+import ModifiersPreview from './modifiers/ModifiersPreview';
 
 // Editor for Dish.modifiers (GroupModifier[]). Two-level form:
 //   - each modifier GROUP binds a catalog category + carries min/max/required/free rules;
@@ -39,28 +41,7 @@ const Svg = (props) => (
 const IconPlus = () => (<Svg><path d="M12 5v14M5 12h14" /></Svg>);
 const IconTrash = () => (<Svg width="15" height="15"><path d="M3 6h18M8 6V4h8v2m-9 0v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6" /></Svg>);
 const IconLayers = () => (<Svg width="18" height="18"><path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="m2 17 10 5 10-5" /><path d="m2 12 10 5 10-5" /></Svg>);
-
-// ---- data layer -------------------------------------------------------------
-function getBaseAdminPath() {
-  if (typeof window !== 'undefined' && typeof window.routePrefix === 'string' && window.routePrefix.trim()) {
-    return window.routePrefix.replace(/\/$/, '');
-  }
-  const pathname = (typeof window !== 'undefined' && window.location.pathname) || '';
-  const normalized = pathname.replace(/\/+$/, '');
-  return normalized.replace(/\/[^/]*$/, '') || '/admin';
-}
-
-async function apiGet(path) {
-  // Prefer the shared admin fetcher when present; fall back to plain fetch.
-  const base = getBaseAdminPath();
-  const url = `${base}${path}`;
-  if (typeof window !== 'undefined' && typeof window.adminApi === 'function') {
-    return window.adminApi(url);
-  }
-  const res = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-  return res.json();
-}
+const IconEye = () => (<Svg><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></Svg>);
 
 // ---- presentational atoms ---------------------------------------------------
 function Button({ variant = 'default', children, style, ...rest }) {
@@ -326,13 +307,16 @@ function GroupCard({ group, index, total, issues, groupLabels, dishLabels, onCha
 
 // ---- root editor ------------------------------------------------------------
 /**
- * @param {*}        value     initial GroupModifier[] | JSON string
- * @param {Function} onChange  emits serialized GroupModifier[]
- * @param {Function} [t]       translate(key) => string (optional)
+ * @param {*}        value      initial GroupModifier[] | JSON string
+ * @param {Function} onChange   emits serialized GroupModifier[]
+ * @param {Function} [t]        translate(key) => string (optional)
+ * @param {Object}   [dishMeta] edited dish context for the preview popup:
+ *                              { id, name, price, description } (saved form values)
  */
-function ModifiersEditor({ value, onChange, t }) {
+function ModifiersEditor({ value, onChange, t, dishMeta }) {
   const tr = useMemo(() => (typeof t === 'function' ? t : (key) => key), [t]);
   const [groups, setGroups] = useState(() => normalizeModifiers(value));
+  const [previewOpen, setPreviewOpen] = useState(false);
   const lastEmitted = useRef(toCanonical(value));
 
   // Cache of id -> display label so already-referenced entities render a name
@@ -408,7 +392,12 @@ function ModifiersEditor({ value, onChange, t }) {
           <span style={{ color: T.muted, display: 'inline-flex' }}><IconLayers /></span>
           <span style={{ fontSize: 14, fontWeight: 600 }}>{tr('Modifiers')}</span>
         </div>
-        <Button onClick={addGroup}><IconPlus />{tr('Add group')}</Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Button variant="outline" onClick={() => setPreviewOpen(true)} data-testid="modifiers-preview-button">
+            <IconEye />{tr('Preview')}
+          </Button>
+          <Button onClick={addGroup}><IconPlus />{tr('Add group')}</Button>
+        </div>
       </div>
 
       {errorCount > 0 && (
@@ -448,6 +437,17 @@ function ModifiersEditor({ value, onChange, t }) {
             />
           ))}
         </div>
+      )}
+
+      {previewOpen && (
+        <ModifiersPreview
+          groups={groups}
+          groupLabels={groupLabels}
+          dishLabels={dishLabels}
+          dishMeta={dishMeta}
+          tr={tr}
+          onClose={() => setPreviewOpen(false)}
+        />
       )}
     </div>
   );
