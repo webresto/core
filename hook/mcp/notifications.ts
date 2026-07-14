@@ -36,7 +36,7 @@ function mapNotification(n: any) {
 }
 
 export function registerNotificationTools() {
-    if (process.env.MCP_ENABLED !== 'true') return;
+    if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
 
     mcp.registerTool({
         name: 'notification-list',

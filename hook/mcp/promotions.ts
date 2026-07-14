@@ -18,7 +18,7 @@ declare const mcp: any;
  * promotion-update { enable } afterwards.
  */
 export function registerPromotionsTools() {
-    if (process.env.MCP_ENABLED !== 'true') return;
+    if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
 
     // ----------------------------- Promotion ------------------------------ //
 

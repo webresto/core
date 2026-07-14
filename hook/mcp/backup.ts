@@ -1,7 +1,7 @@
 declare const mcp: any;
 
 export function registerBackupTools() {
-    if (process.env.MCP_ENABLED !== 'true') return;
+    if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
 
     const path = require('path');
     const fs   = require('fs');

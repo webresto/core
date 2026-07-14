@@ -132,6 +132,12 @@ export default function bindAdminpanel() {
         department: 'Orders'
       },
       {
+        id: 'ai-assistant-openharness',
+        name: 'OpenHarness Agent',
+        description: 'Use the streaming OpenHarness data agent',
+        department: 'AI assistant'
+      },
+      {
         id: 'globaly-operator-can-create',
         name: 'Operator can create',
         description: 'Global operator create permission for modules that explicitly require this token',
@@ -388,7 +394,9 @@ function processBindAdminpanel() {
           });
         }
 
-        // StockManager module link + route
+        // The OpenHarness Agent page moved to the restoapp project
+        // (api/hooks/openharness-ui); only the access token stays here.
+
         try {
           const stockController = require('../lib/adminpanel/src/controller/stock-manager').default;
           adminizer.config.navbar.additionalLinks.push({
