@@ -1786,7 +1786,10 @@ let Model = {
             try {
               const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
               if (promotionEndDate > currentDate) {
-                order.promotionCode = await PromotionCode.findOne({ id: order.promotionCode as string }).populate('promotion');
+                // Re-check the code on every cart calculation. This makes disabling
+                // a code effective immediately, even for carts where it was applied
+                // before the operator turned it off.
+                order.promotionCode = await PromotionCode.getValidPromotionCode(order.promotionCodeString);
                 if (!order.promotionCode || !order.promotionCode.promotion || typeof order.promotionCode.promotion !== "object") {
                   throw `No valid promotion for promocode`
                 }
@@ -1830,6 +1833,8 @@ let Model = {
           order = orderPopulate;
 
           let promotionOrderToSave = {
+            promotionCode: order.promotionCode,
+            promotionCodeCheckValidTill: order.promotionCodeCheckValidTill,
             promotionCodeDescription: order.promotionCodeDescription,
             promotionState: order.promotionState,
             promotionErrors: order.promotionErrors,

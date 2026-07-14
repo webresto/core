@@ -11,6 +11,8 @@ declare let attributes: {
     type: string;
     /** base for PromotionCode */
     prefix: string;
+    /** Whether customers can apply this promo code. */
+    enable: boolean;
     startDate: string;
     stopDate: string;
     workTime: WorkTime;
@@ -30,7 +32,7 @@ declare let Model: {
     /**
      * Check promocode is work now
      */
-    getValidPromotionCode(promotionCodeString: string): Promise<PromotionCodeRecord>;
+    getValidPromotionCode(promotionCodeString: string): Promise<PromotionCodeRecord | null>;
 };
 declare global {
     /**

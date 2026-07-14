@@ -25,6 +25,8 @@ export function mapPromotionCode(code: any): any {
     type: code?.type || "static",
     externalId: code?.externalId || "",
     prefix: code?.prefix || "",
+    // Older records have no value; they remain active after the feature rollout.
+    enable: code?.enable !== false,
     startDate: code?.startDate || "",
     stopDate: code?.stopDate || "",
     workTime: code?.workTime ?? null,
@@ -41,7 +43,8 @@ export function mapPromotionCode(code: any): any {
 /**
  * GET …/core/marketing/promocodes
  * List/search/filter/paginate promotion codes (populated with their promotions).
- * Query: q, status (active|scheduled|expired), type, binding (with|without), skip, limit.
+ * Query: q, status (active|disabled|scheduled|expired), enable (true|false), type,
+ * binding (with|without), skip, limit.
  */
 export default async function GetPromoCodesController(req: any, res: any) {
   try {
@@ -54,6 +57,7 @@ export default async function GetPromoCodesController(req: any, res: any) {
 
     const q = String(req.query.q || "").trim().toLowerCase();
     const status = String(req.query.status || "").trim().toLowerCase();
+    const enable = String(req.query.enable || "").trim().toLowerCase();
     const type = String(req.query.type || "").trim().toLowerCase();
     const binding = String(req.query.binding || "").trim().toLowerCase();
 
@@ -66,6 +70,8 @@ export default async function GetPromoCodesController(req: any, res: any) {
 
     const filtered = mapped.filter((code: any) => {
       if (status && code.status !== status) return false;
+      if (enable === "true" && !code.enable) return false;
+      if (enable === "false" && code.enable) return false;
       if (type && code.type !== type) return false;
       if (binding === "with" && code.promotion.length === 0) return false;
       if (binding === "without" && code.promotion.length > 0) return false;

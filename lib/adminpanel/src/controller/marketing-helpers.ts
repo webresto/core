@@ -54,7 +54,8 @@ export function dayKey(ms: number): string {
 }
 
 /** A promotion code is "valid now" when the current date is within its start/stop window. */
-export function promotionCodeStatus(code: any, now: Date = new Date()): "active" | "scheduled" | "expired" {
+export function promotionCodeStatus(code: any, now: Date = new Date()): "active" | "disabled" | "scheduled" | "expired" {
+  if (code?.enable === false) return "disabled";
   const start = parseDateLoose(code?.startDate);
   const stop = parseDateLoose(code?.stopDate);
   const ts = now.getTime();
