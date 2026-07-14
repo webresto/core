@@ -16,7 +16,7 @@ function maskSensitiveValue(value: any): any {
 }
 
 export function registerSettingsTools() {
-    if (process.env.MCP_ENABLED !== 'true') return;
+    if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
 
     mcp.registerTool({
         name: 'settings-list',

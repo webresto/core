@@ -34,7 +34,7 @@ const CORE_GROUPS: Array<{ name: string; description: string }> = [
 ];
 
 export function registerCoreMcpTools() {
-    if (process.env.MCP_ENABLED !== 'true') return;
+    if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
 
     for (const group of CORE_GROUPS) {
         mcp.registerGroup(group);

@@ -1,7 +1,7 @@
 declare const mcp: any;
 
 export function registerMediaTools() {
-    if (process.env.MCP_ENABLED !== 'true') return;
+    if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
 
     const uploadSingleImageFromMultipart = async (req: any): Promise<string | null> => {
         const path = require('path');
