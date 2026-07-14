@@ -39,6 +39,12 @@ let attributes = {
     allowNull: true
   } as unknown as string,
 
+  /** Whether customers can apply this promo code. */
+  enable: {
+    type: "boolean",
+    defaultsTo: true,
+  } as unknown as boolean,
+
   startDate: "string",
   stopDate: "string",
   workTime: "json" as unknown as WorkTime,
@@ -87,9 +93,11 @@ let Model = {
   /**
    * Check promocode is work now
    */
-  async getValidPromotionCode(promotionCodeString: string): Promise<PromotionCodeRecord> {
-    return await PromotionCode.findOne({code: promotionCodeString}).populate("promotion")
-    //return null
+  async getValidPromotionCode(promotionCodeString: string): Promise<PromotionCodeRecord | null> {
+    // `enable` was added after promo codes already existed. Treat records without
+    // the flag as enabled so a deploy does not silently disable existing codes.
+    const promotionCode = await PromotionCode.findOne({code: promotionCodeString}).populate("promotion");
+    return promotionCode?.enable === false ? null : promotionCode;
   }
 };
 

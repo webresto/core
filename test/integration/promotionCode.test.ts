@@ -120,6 +120,29 @@ describe("111 Promotion code integration test", function () {
     expect(result.basketTotal).to.equal(111.3);
   });
 
+  it("Disabled promocode cannot be applied and is removed from an existing cart", async () => {
+    const order = await Order.create({ id: "promotion-disabled-code-integration-test" }).fetch();
+    await Order.addDish({ id: order.id }, dish1, 1, [], "", "user");
+
+    await Order.applyPromotionCode({ id: order.id }, "TEST123");
+    let result = await Order.findOne({ id: order.id });
+    expect(result.promotionCode).to.not.equal(null);
+    expect(result.discountTotal).to.equal(1.45);
+
+    await PromotionCode.updateOne({ id: "promocode-test-123" }).set({ enable: false });
+    await Order.countCart({ id: order.id });
+    result = await Order.findOne({ id: order.id });
+    expect(result.promotionCode).to.equal(null);
+    expect(result.discountTotal).to.equal(0);
+
+    await Order.applyPromotionCode({ id: order.id }, "TEST123");
+    result = await Order.findOne({ id: order.id });
+    expect(result.promotionCode).to.equal(null);
+    expect(result.discountTotal).to.equal(0);
+
+    await PromotionCode.updateOne({ id: "promocode-test-123" }).set({ enable: true });
+  });
+
   it("Percentage discount by promocode (Hot change existing + apply)", async () => {
     let a = await Promotion.update({ id: "promo-flat-123" }, {
       configDiscount: {

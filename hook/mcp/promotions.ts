@@ -85,7 +85,7 @@ export function registerPromotionsTools() {
         schema: {
             type: 'object',
             properties: {
-                name:           { type: 'string',  description: 'Promotion name.', example: 'МАГНИТ' },
+                name:           { type: 'string',  description: 'Promotion name.', example: 'EXAMPLE_CODE_123' },
                 description:    { type: 'string',  description: 'Description (defaults to name).', example: 'Подарочные магниты по промокоду' },
                 configDiscount: { type: 'object',  description: 'Discount/gift config (JSON).', example: { gift: { minBasketTotal: 1449, dishes: [{ dishId: 'magnet-id', amount: 2 }] }, dishes: [], groups: [] } },
                 concept:        { type: 'array',   description: 'Concept names array.', example: ['origin'] },
@@ -134,7 +134,7 @@ export function registerPromotionsTools() {
             type: 'object',
             properties: {
                 id:             { type: 'string',  description: 'Promotion ID.', example: 'abc123' },
-                name:           { type: 'string',  description: 'New name.', example: 'МАГНИТ' },
+                name:           { type: 'string',  description: 'New name.', example: 'EXAMPLE_CODE_123' },
                 description:    { type: 'string',  description: 'New description.', example: 'Updated description.' },
                 configDiscount: { type: 'object',  description: 'New discount/gift config (JSON).', example: { gift: { minBasketTotal: 1449, dishes: [{ dishId: 'magnet-id', amount: 2 }] }, dishes: [], groups: [] } },
                 concept:        { type: 'array',   description: 'New concept array.', example: ['origin'] },
@@ -180,19 +180,21 @@ export function registerPromotionsTools() {
     mcp.registerTool({
         name: 'promocode-list',
         group: 'promotions',
-        description: 'Returns a list of promocodes, including linked promotions. Supports filtering by code.',
+        description: 'Returns a list of promocodes, including linked promotions. Supports filtering by code and enable state.',
         mode: 'protected',
         schema: {
             type: 'object',
             properties: {
-                code:  { type: 'string',  description: 'Filter by exact code (case-sensitive).', example: 'МАГНИТ' },
+                code:  { type: 'string',  description: 'Filter by exact code (case-sensitive).', example: 'EXAMPLE_CODE_123' },
+                enable:{ type: 'boolean', description: 'Filter by enabled state.', example: true },
                 limit: { type: 'integer', description: 'Max results.', example: 50 },
                 skip:  { type: 'integer', description: 'Offset for pagination.', example: 0 },
             },
         },
-        handler: async ({ code, limit = 50, skip = 0 }: { code?: string; limit?: number; skip?: number }) => {
+        handler: async ({ code, enable, limit = 50, skip = 0 }: { code?: string; enable?: boolean; limit?: number; skip?: number }) => {
             const criteria: any = {};
             if (code !== undefined) criteria.code = code;
+            if (enable !== undefined) criteria.enable = enable;
             return await PromotionCode.find(criteria).limit(limit).skip(skip).populate('promotion');
         },
     });
@@ -206,7 +208,7 @@ export function registerPromotionsTools() {
             type: 'object',
             properties: {
                 id:   { type: 'string', description: 'Promocode ID.', example: 'abc123' },
-                code: { type: 'string', description: 'Promocode string (exact, case-sensitive).', example: 'МАГНИТ' },
+                code: { type: 'string', description: 'Promocode string (exact, case-sensitive).', example: 'EXAMPLE_CODE_123' },
             },
         },
         handler: async ({ id, code }: { id?: string; code?: string }) => {
@@ -222,18 +224,19 @@ export function registerPromotionsTools() {
         description:
             'Creates a promocode and (optionally) links it to promotions.\n\n'
             + 'The code is matched on checkout exactly and case-sensitively, so enter it precisely '
-            + '(e.g. Cyrillic "МАГНИТ"). Pass promotion: [promotionId, ...] to bind the promotions it activates.',
+            + '(e.g. "EXAMPLE_CODE_123"). Pass promotion: [promotionId, ...] to bind the promotions it activates.',
         mode: 'protected',
         schema: {
             type: 'object',
             properties: {
-                code:        { type: 'string', description: 'The code customers type. Exact, case-sensitive.', example: 'МАГНИТ' },
+                code:        { type: 'string', description: 'The code customers type. Exact, case-sensitive.', example: 'EXAMPLE_CODE_123' },
                 description: { type: 'string', description: 'Description (defaults to code).', example: 'Подарочные магниты' },
                 type:        { type: 'string', description: 'Code type.', example: 'static' },
                 promotion:   { type: 'array',  description: 'Promotion IDs to link (activated by this code).', example: ['promo-id'] },
                 externalId:  { type: 'string', description: 'External id.', example: 'magnit-code' },
                 startDate:   { type: 'string', description: 'Start date.', example: '2026-06-17' },
                 stopDate:    { type: 'string', description: 'Stop date.', example: '2026-12-31' },
+                enable:      { type: 'boolean', description: 'Whether customers can apply the code.', example: true },
             },
             required: ['code'],
         },
@@ -246,6 +249,7 @@ export function registerPromotionsTools() {
                 ...(params.externalId !== undefined && { externalId: params.externalId }),
                 ...(params.startDate  !== undefined && { startDate: params.startDate }),
                 ...(params.stopDate   !== undefined && { stopDate: params.stopDate }),
+                ...(params.enable     !== undefined && { enable: params.enable }),
             }).fetch();
             if (promotionIds.length) {
                 await PromotionCode.addToCollection(created.id, 'promotion').members(promotionIds);
@@ -260,18 +264,19 @@ export function registerPromotionsTools() {
         description:
             'Updates a promocode. Pass id and the fields to change.\n\n'
             + 'To re-bind promotions pass promotion: [promotionId, ...] — it REPLACES the current set '
-            + '(pass [] to unlink all).',
+            + '(pass [] to unlink all). Set enable:false to turn the code off.',
         mode: 'protected',
         schema: {
             type: 'object',
             properties: {
                 id:          { type: 'string', description: 'Promocode ID.', example: 'abc123' },
-                code:        { type: 'string', description: 'New code (exact, case-sensitive).', example: 'МАГНИТ' },
+                code:        { type: 'string', description: 'New code (exact, case-sensitive).', example: 'EXAMPLE_CODE_123' },
                 description: { type: 'string', description: 'New description.', example: 'Updated.' },
                 type:        { type: 'string', description: 'Code type.', example: 'static' },
                 promotion:   { type: 'array',  description: 'Promotion IDs — replaces the linked set.', example: ['promo-id'] },
                 startDate:   { type: 'string', description: 'Start date.', example: '2026-06-17' },
                 stopDate:    { type: 'string', description: 'Stop date.', example: '2026-12-31' },
+                enable:      { type: 'boolean', description: 'Enable/disable this promo code.', example: true },
             },
             required: ['id'],
         },

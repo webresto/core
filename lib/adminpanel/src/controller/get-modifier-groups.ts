@@ -5,6 +5,18 @@
  * `catalog-products` token — the same one that guards the product catalog — so a user who
  * cannot see the catalog cannot enumerate modifier groups.
  */
+
+// Waterline `contains` is case-sensitive on Postgres; search several case variants
+// (same helper as get-modifier-dishes.ts).
+function caseVariants(q: string): string[] {
+  return Array.from(new Set([
+    q,
+    q.toLowerCase(),
+    q.toUpperCase(),
+    q.charAt(0).toUpperCase() + q.slice(1).toLowerCase(),
+  ]));
+}
+
 export default async function GetModifierGroupsController(req: any, res: any) {
   try {
     const { config } = req.adminizer || {};
@@ -27,7 +39,10 @@ export default async function GetModifierGroupsController(req: any, res: any) {
 
     const where: any = ids.length ? { id: ids } : { isDeleted: false };
     if (!ids.length && q) {
-      where.or = [{ name: { contains: q } }, { code: { contains: q } }];
+      where.or = caseVariants(q).flatMap((v) => [
+        { name: { contains: v } },
+        { code: { contains: v } },
+      ]);
     }
 
     const groups = await Group.find({ where, limit: 200 }).sort("name ASC");

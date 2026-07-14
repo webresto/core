@@ -13,7 +13,7 @@ const {
 } = window.UIComponents;
 const { MultiSelect } = window.JSComponents || {};
 
-const STATUS_COLORS = { active: '#16a34a', scheduled: '#d97706', expired: '#64748b' };
+const STATUS_COLORS = { active: '#16a34a', disabled: '#dc2626', scheduled: '#d97706', expired: '#64748b' };
 const APPLY_STATUS_COLORS = { applied: '#16a34a', invalid: '#dc2626' };
 const TREND_COLOR = '#6366f1';
 const TOP_COLOR = '#0ea5e9';
@@ -41,7 +41,7 @@ function formatDayLabel(dateStr, language) {
 }
 
 function statusLabel(status, t) {
-  const map = { active: 'Active', scheduled: 'Scheduled', expired: 'Expired', applied: 'Applied', invalid: 'Invalid' };
+  const map = { active: 'Active', disabled: 'Disabled', scheduled: 'Scheduled', expired: 'Expired', applied: 'Applied', invalid: 'Invalid' };
   return t(map[status] || status || '—');
 }
 
@@ -268,6 +268,7 @@ function DashboardSection({ t, language }) {
 function blankCode() {
   return {
     id: '', code: '', description: '', type: 'static',
+    enable: true,
     startDate: '', stopDate: '', workTime: null,
     externalId: '', prefix: '', generateConfig: null, customData: null,
     promotionIds: [], promotion: [],
@@ -364,6 +365,13 @@ function CodeEditor({ t, language, draft, setDraft, baseline, promotions, saving
               : available === true && draft.code ? <span style={{ color: '#16a34a' }}>{t('Code is available')}</span>
               : t('The code the customer enters at checkout. Letters and digits.')}
           </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 10 }}>
+          <div>
+            <Label style={styles.fieldLabel}>{t('Promo code is enabled')}</Label>
+            <span style={styles.help}>{t('Disabled codes cannot be applied to new or existing carts.')}</span>
+          </div>
+          <Switch checked={draft.enable !== false} onCheckedChange={(value) => setField('enable', value)} />
         </div>
         <div style={styles.field}>
           <Label style={styles.fieldLabel}>{t('Description')} *</Label>
@@ -482,6 +490,7 @@ function CodesSection({ t, language, codeId, creating }) {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [enableFilter, setEnableFilter] = useState('all');
   const [bindingFilter, setBindingFilter] = useState('all');
 
   const [draft, setDraft] = useState(null);
@@ -502,11 +511,12 @@ function CodesSection({ t, language, codeId, creating }) {
     const params = new URLSearchParams({ skip: String(page * PAGE_SIZE), limit: String(PAGE_SIZE) });
     if (search.trim()) params.set('q', search.trim());
     if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (enableFilter !== 'all') params.set('enable', enableFilter);
     if (bindingFilter !== 'all') params.set('binding', bindingFilter);
     const res = await api(`/core/marketing/promocodes?${params.toString()}`);
     if (res.ok) { setItems(res.payload?.results || []); setTotal(res.payload?.meta?.total || 0); }
     setLoading(false);
-  }, [page, search, statusFilter, bindingFilter]);
+  }, [page, search, statusFilter, enableFilter, bindingFilter]);
 
   useEffect(() => { loadPromotions(); }, [loadPromotions]);
   useEffect(() => { const id = setTimeout(loadList, 200); return () => clearTimeout(id); }, [loadList]);
@@ -525,7 +535,7 @@ function CodesSection({ t, language, codeId, creating }) {
       if (cancelled) return;
       if (res.ok && res.payload?.result) {
         const r = res.payload.result;
-        const d = { id: r.id, code: r.code, description: r.description, type: r.type, startDate: r.startDate, stopDate: r.stopDate, workTime: r.workTime, externalId: r.externalId, prefix: r.prefix, generateConfig: r.generateConfig, customData: r.customData, promotionIds: r.promotionIds || [], _status: r.status };
+        const d = { id: r.id, code: r.code, description: r.description, type: r.type, enable: r.enable !== false, startDate: r.startDate, stopDate: r.stopDate, workTime: r.workTime, externalId: r.externalId, prefix: r.prefix, generateConfig: r.generateConfig, customData: r.customData, promotionIds: r.promotionIds || [], _status: r.status };
         setDraft(d); setBaseline(JSON.stringify(d));
       } else {
         toast('error', res.payload?.error || t('Promo code not found'));
@@ -550,7 +560,7 @@ function CodesSection({ t, language, codeId, creating }) {
     if (!String(draft.description || '').trim()) { toast('error', t('Description is required')); return; }
     setSaving(true);
     const body = {
-      id: draft.id || undefined, code: draft.code || null, description: draft.description, type: draft.type,
+      id: draft.id || undefined, code: draft.code || null, description: draft.description, type: draft.type, enable: draft.enable !== false,
       startDate: draft.startDate || null, stopDate: draft.stopDate || null, workTime: draft.workTime ?? null,
       externalId: draft.externalId || null, prefix: draft.prefix || null,
       generateConfig: draft.generateConfig ?? null, customData: draft.customData ?? null,
@@ -598,14 +608,23 @@ function CodesSection({ t, language, codeId, creating }) {
           <Button type="button" size="sm" onClick={() => guardedNav('new')}>+ {t('Promo code')}</Button>
         </div>
         <Input value={search} onChange={(e) => { setPage(0); setSearch(e.target.value); }} placeholder={t('Search by code, description, promotion')} />
-        <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr' }}>
+        <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
           <Select value={statusFilter} onValueChange={(v) => { setPage(0); setStatusFilter(v); }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('All statuses')}</SelectItem>
               <SelectItem value="active">{t('Active')}</SelectItem>
+              <SelectItem value="disabled">{t('Disabled')}</SelectItem>
               <SelectItem value="scheduled">{t('Scheduled')}</SelectItem>
               <SelectItem value="expired">{t('Expired')}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={enableFilter} onValueChange={(v) => { setPage(0); setEnableFilter(v); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('All availability')}</SelectItem>
+              <SelectItem value="true">{t('Enabled')}</SelectItem>
+              <SelectItem value="false">{t('Disabled')}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={bindingFilter} onValueChange={(v) => { setPage(0); setBindingFilter(v); }}>

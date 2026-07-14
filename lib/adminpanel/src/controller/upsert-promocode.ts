@@ -5,7 +5,7 @@ const ALLOWED_TYPES = ["static"];
 
 /**
  * POST …/core/marketing/promocode   (upsert)
- * Body: { id?, code, description (required), type, startDate, stopDate, workTime,
+ * Body: { id?, code, description (required), type, enable, startDate, stopDate, workTime,
  *         externalId, prefix, generateConfig, customData, promotionIds: string[] }
  *
  * Enforces code uniqueness here (the model leaves `code` non-unique + nullable, and
@@ -41,6 +41,7 @@ export default async function UpsertPromoCodeController(req: any, res: any) {
       description,
       type,
       code,
+      enable: body.enable !== false,
       // startDate/stopDate are plain `string` (no allowNull) in the model — use "" when empty.
       startDate: body.startDate ? String(body.startDate) : "",
       stopDate: body.stopDate ? String(body.stopDate) : "",
