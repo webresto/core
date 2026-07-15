@@ -11,6 +11,7 @@ import { OptionalAll } from "../interfaces/toolsTS";
 import { Adapter } from "../adapters";
 import { slugIt } from "../libs/slugIt";
 import { DishRecord } from "./Dish";
+import { buildAuditDiff, logAuditEvent } from "../libs/auditLog";
 export type GetGroupType = { [x: string]: GroupWithAdditionalFields }
 
 let attributes = {
@@ -202,6 +203,18 @@ let Model = {
 
   afterCreate: function (record: GroupRecord, cb:  (err?: string) => void) {
     emitter.emit('core:group-after-create', record);
+    logAuditEvent("model.group", "created", {
+      groupId: record.id,
+      rmsId: record.rmsId ?? null,
+      name: record.name,
+      state: {
+        enable: record.enable ?? null,
+        isDeleted: record.isDeleted ?? null,
+        visible: record.visible ?? null,
+        parentGroup: typeof record.parentGroup === "string" ? record.parentGroup : record.parentGroup?.id ?? null,
+        sortOrder: record.sortOrder ?? null,
+      },
+    });
     return cb();
   },
 
@@ -586,9 +599,29 @@ let Model = {
     const group = await Group.findOne(criteria);
 
     if (!group) {
-      return Group.create(values).fetch();
+      const created = await Group.create(values).fetch();
+      logAuditEvent("model.group", "createOrUpdate-created", {
+        groupId: created.id,
+        rmsId: created.rmsId ?? null,
+        name: created.name,
+        sourceValues: {
+          enable: values.enable ?? null,
+          isDeleted: values.isDeleted ?? null,
+          visible: values.visible ?? null,
+          parentGroup: typeof values.parentGroup === "string" ? values.parentGroup : values.parentGroup?.id ?? null,
+          sortOrder: values.sortOrder ?? null,
+        },
+      });
+      return created;
     } else {
-      return (await Group.update(criteria, values).fetch())[0];
+      const updated = (await Group.update(criteria, values).fetch())[0];
+      logAuditEvent("model.group", "createOrUpdate-updated", {
+        groupId: updated.id,
+        rmsId: updated.rmsId ?? null,
+        name: updated.name,
+        ...buildAuditDiff(group, updated),
+      });
+      return updated;
     }
   },
 };

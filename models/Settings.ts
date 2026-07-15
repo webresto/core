@@ -517,6 +517,10 @@ declare global {
      * Set visible: true for new dishes and groups from RMS sync
      * */
     VISIBLE_BY_DEFAULT_ON_SYNC: boolean
+    /**
+     * Set enable: true for new dishes and groups from RMS sync
+     * */
+    ENABLE_BY_DEFAULT_ON_SYNC: boolean
   }
 }
 
