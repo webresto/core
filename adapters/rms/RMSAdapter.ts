@@ -144,7 +144,6 @@ export default abstract class RMSAdapter {
 
             // Get ids of all current RMS groups
             const rmsGroupIds = currentRMSGroupsFlatTree.map((group) => group.rmsId);
-
             // Set all groups not in the list to inactive
             await Group.update({ where: { rmsId: { "!=": rmsGroupIds } } }, { isDeleted: true }).fetch();
 
@@ -158,7 +157,13 @@ export default abstract class RMSAdapter {
                 group.visible = VISIBLE_BY_DEFAULT_ON_SYNC;
               }
 
-              if (group.enable === undefined) {
+              // If sync default is enabled, explicitly enable imported groups.
+              // If sync default is disabled, do not touch the enable field at all.
+              // NOTE: This branch only defines behavior when RMS omits `enable`.
+              // If RMS starts sending `enable` explicitly, that value will still be
+              // passed through createOrUpdate() and may overwrite the current state.
+              // That case is not handled here and must be reviewed separately.
+              if (group.enable === undefined && ENABLE_BY_DEFAULT_ON_SYNC === true) {
                 group.enable = ENABLE_BY_DEFAULT_ON_SYNC;
               }
 
@@ -193,7 +198,13 @@ export default abstract class RMSAdapter {
                   product.visible = VISIBLE_BY_DEFAULT_ON_SYNC;
                 }
 
-                if (product.enable === undefined) {
+                // If sync default is enabled, explicitly enable imported dishes.
+                // If sync default is disabled, do not touch the enable field at all.
+                // NOTE: This branch only defines behavior when RMS omits `enable`.
+                // If RMS starts sending `enable` explicitly, that value will still be
+                // passed through createOrUpdate() and may overwrite the current state.
+                // That case is not handled here and must be reviewed separately.
+                if (product.enable === undefined && ENABLE_BY_DEFAULT_ON_SYNC === true) {
                   product.enable = ENABLE_BY_DEFAULT_ON_SYNC;
                 }
 
