@@ -9,6 +9,7 @@ const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 const CustomData_1 = require("../interfaces/CustomData");
 const slugIt_1 = require("../libs/slugIt");
+const auditLog_1 = require("../libs/auditLog");
 let attributes = {
     /** */
     id: {
@@ -273,6 +274,19 @@ let Model = {
     },
     afterCreate: function (record, cb) {
         emitter.emit('core:product-after-create', record);
+        (0, auditLog_1.logAuditEvent)("model.dish", "created", {
+            dishId: record.id,
+            rmsId: record.rmsId ?? null,
+            name: record.name,
+            state: {
+                enable: record.enable ?? null,
+                isDeleted: record.isDeleted ?? null,
+                visible: record.visible ?? null,
+                balance: record.balance ?? null,
+                parentGroup: typeof record.parentGroup === "string" ? record.parentGroup : (record.parentGroup === null || record.parentGroup === void 0 ? void 0 : record.parentGroup.id) ?? null,
+                price: record.price ?? null,
+            },
+        });
         return cb();
     },
     /**
@@ -470,13 +484,34 @@ let Model = {
         }
         const dish = await Dish.findOne(criteria);
         if (!dish) {
-            return await Dish.create({ hash, ...values }).fetch();
+            const created = await Dish.create({ hash, ...values }).fetch();
+            (0, auditLog_1.logAuditEvent)("model.dish", "createOrUpdate-created", {
+                dishId: created.id,
+                rmsId: created.rmsId ?? null,
+                name: created.name,
+                sourceValues: {
+                    enable: values.enable ?? null,
+                    isDeleted: values.isDeleted ?? null,
+                    visible: values.visible ?? null,
+                    balance: values.balance ?? null,
+                    parentGroup: typeof values.parentGroup === "string" ? values.parentGroup : (values.parentGroup === null || values.parentGroup === void 0 ? void 0 : values.parentGroup.id) ?? null,
+                    price: values.price ?? null,
+                },
+            });
+            return created;
         }
         else {
             if (hash === dish.hash) {
                 return dish;
             }
-            return (await Dish.update(criteria, { hash, ...values }).fetch())[0];
+            const updated = (await Dish.update(criteria, { hash, ...values }).fetch())[0];
+            (0, auditLog_1.logAuditEvent)("model.dish", "createOrUpdate-updated", {
+                dishId: updated.id,
+                rmsId: updated.rmsId ?? null,
+                name: updated.name,
+                ...(0, auditLog_1.buildAuditDiff)(dish, updated),
+            });
+            return updated;
         }
     },
 };

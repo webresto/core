@@ -9,6 +9,7 @@ const worktime_1 = require("@webresto/worktime");
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 const slugIt_1 = require("../libs/slugIt");
+const auditLog_1 = require("../libs/auditLog");
 let attributes = {
     /**Id */
     id: {
@@ -149,6 +150,18 @@ let Model = {
     },
     afterCreate: function (record, cb) {
         emitter.emit('core:group-after-create', record);
+        (0, auditLog_1.logAuditEvent)("model.group", "created", {
+            groupId: record.id,
+            rmsId: record.rmsId ?? null,
+            name: record.name,
+            state: {
+                enable: record.enable ?? null,
+                isDeleted: record.isDeleted ?? null,
+                visible: record.visible ?? null,
+                parentGroup: typeof record.parentGroup === "string" ? record.parentGroup : (record.parentGroup === null || record.parentGroup === void 0 ? void 0 : record.parentGroup.id) ?? null,
+                sortOrder: record.sortOrder ?? null,
+            },
+        });
         return cb();
     },
     /**
@@ -483,10 +496,30 @@ let Model = {
         // TODO: possible to error find many by rmsId
         const group = await Group.findOne(criteria);
         if (!group) {
-            return Group.create(values).fetch();
+            const created = await Group.create(values).fetch();
+            (0, auditLog_1.logAuditEvent)("model.group", "createOrUpdate-created", {
+                groupId: created.id,
+                rmsId: created.rmsId ?? null,
+                name: created.name,
+                sourceValues: {
+                    enable: values.enable ?? null,
+                    isDeleted: values.isDeleted ?? null,
+                    visible: values.visible ?? null,
+                    parentGroup: typeof values.parentGroup === "string" ? values.parentGroup : (values.parentGroup === null || values.parentGroup === void 0 ? void 0 : values.parentGroup.id) ?? null,
+                    sortOrder: values.sortOrder ?? null,
+                },
+            });
+            return created;
         }
         else {
-            return (await Group.update(criteria, values).fetch())[0];
+            const updated = (await Group.update(criteria, values).fetch())[0];
+            (0, auditLog_1.logAuditEvent)("model.group", "createOrUpdate-updated", {
+                groupId: updated.id,
+                rmsId: updated.rmsId ?? null,
+                name: updated.name,
+                ...(0, auditLog_1.buildAuditDiff)(group, updated),
+            });
+            return updated;
         }
     },
 };
