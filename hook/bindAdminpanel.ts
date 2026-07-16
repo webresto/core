@@ -4,6 +4,16 @@ import { ensureDefaultGroups } from "../libs/adminpanel/ensureDefaultGroups";
 
 // todo: fix types model instance to {%ModelName%}Record for bind"
 
+/** One admin page, as offered to `admin-panel:collect-links` subscribers. */
+interface AdminPageLink {
+  type: 'app';
+  name: string;
+  link: string;
+  title?: string;
+  section?: string;
+  accessRightsToken?: string;
+}
+
 function normalizeHandlers(bound: any): any[] {
   return Array.isArray(bound) ? bound : [bound];
 }
@@ -133,8 +143,8 @@ export default function bindAdminpanel() {
       },
       {
         id: 'ai-assistant-openharness',
-        name: 'OpenHarness Agent',
-        description: 'Use the streaming OpenHarness data agent',
+        name: 'RestoApp Assistant',
+        description: 'Use the streaming RestoApp Assistant data agent',
         department: 'AI assistant'
       },
       {
@@ -367,6 +377,25 @@ function processBindAdminpanel() {
         const routePrefix = adminizer.config.routePrefix;
         const bind = makeAdminizerBinder(adminizer);
 
+        // Admin pages this module owns. Recorded as they are registered so the
+        // list cannot drift from the navbar, and offered over the emitter to
+        // whoever builds links into the admin router.
+        const corePages: AdminPageLink[] = [];
+        const addAdminPage = (entry: any) => {
+          adminizer.config.navbar.additionalLinks.push(entry);
+          corePages.push({
+            type: 'app',
+            name: entry.id,
+            link: entry.link,
+            title: entry.title,
+            section: entry.section,
+            accessRightsToken: entry.accessRightsToken,
+          });
+        };
+        // Answered live on every read, so it does not matter who loads first,
+        // and nothing breaks when no one is collecting.
+        emitter.on('admin-panel:collect-links', 'restocore', () => corePages);
+
         let getInertiaLocaleAndMessages: ((req: any) => { locale: string; messages: Record<string, string> }) | null = null;
 
         try {
@@ -399,7 +428,7 @@ function processBindAdminpanel() {
 
         try {
           const stockController = require('../lib/adminpanel/src/controller/stock-manager').default;
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'stock-manager',
             title: 'Stock Manager',
             link: `${routePrefix}/stock-manager`,
@@ -419,7 +448,7 @@ function processBindAdminpanel() {
         // OrderKanban module link + route
         try {
           const orderKanbanController = require('../lib/adminpanel/src/controller/order-kanban').default;
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'order-kanban',
             title: 'Current Orders',
             link: `${routePrefix}/order-kanban`,
@@ -447,7 +476,7 @@ function processBindAdminpanel() {
         // Notifications module link + route
         try {
           const notificationsManagerController = require('../lib/adminpanel/src/controller/notifications-manager').default;
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'notifications-manager',
             title: 'Notifications',
             link: `${routePrefix}/notifications-manager`,
@@ -466,7 +495,7 @@ function processBindAdminpanel() {
 
         try {
           const notificationChannelsController = require('../lib/adminpanel/src/controller/notification-channels').default;
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'notification-channels',
             title: 'Notification channels',
             link: `${routePrefix}/notification-channels`,
@@ -728,7 +757,7 @@ function processBindAdminpanel() {
         // Marketing → Promo codes module link + page route + API routes
         try {
           const promoCodesManagerController = require('../lib/adminpanel/src/controller/promocodes-manager').default;
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'promocodes-manager',
             title: 'Promo codes',
             link: `${routePrefix}/promocodes-manager`,
@@ -766,7 +795,7 @@ function processBindAdminpanel() {
         // Marketing → Promotions module link + page route + API routes
         try {
           const promotionsManagerController = require('../lib/adminpanel/src/controller/promotions-manager').default;
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'promotions-manager',
             title: 'Promotions',
             link: `${routePrefix}/promotions-manager`,
@@ -809,7 +838,7 @@ function processBindAdminpanel() {
           const exportSettingsController = require('../lib/adminpanel/src/controller/export-settings').default;
           const importSettingsController = require('../lib/adminpanel/src/controller/import-settings').default;
 
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'settings-manager',
             title: 'Settings',
             link: `${routePrefix}/settings-manager`,
@@ -853,7 +882,7 @@ function processBindAdminpanel() {
           const dismissSetupCheckupController = require('../lib/adminpanel/src/controller/dismiss-setup-checkup').default;
           const restoreSetupCheckupController = require('../lib/adminpanel/src/controller/restore-setup-checkup').default;
 
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'setup-checklist',
             title: 'Setup checklist',
             link: `${routePrefix}/setup-checklist`,
@@ -889,7 +918,7 @@ function processBindAdminpanel() {
         // OrdersReport module link + route
         try {
           const ordersReportController = require('../lib/adminpanel/src/controller/orders-report').default;
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'orders-report',
             title: 'Orders Report',
             link: `${routePrefix}/orders-report`,
@@ -920,7 +949,7 @@ function processBindAdminpanel() {
         // Sales Channels module link + page route + API routes
         try {
           const salesChannelsManagerController = require('../lib/adminpanel/src/controller/sales-channels-manager').default;
-          adminizer.config.navbar.additionalLinks.push({
+          addAdminPage({
             id: 'sales-channels-manager',
             title: 'Sales Channels',
             link: `${routePrefix}/sales-channels-manager`,

@@ -101,6 +101,8 @@ declare global {
         "core:order-set-tag": [CriteriaQuery<OrderRecord>, string];
         "core:order-set-custom-data": [CriteriaQuery<OrderRecord>, object];
         "core:order-after-remove-dish": [OrderRecord, string, DishRecord, number, boolean];
+        /** Collected by the admin panel link registry. Subscribers return admin page links. */
+        "admin-panel:collect-links": [];
     }
 }
 /**
