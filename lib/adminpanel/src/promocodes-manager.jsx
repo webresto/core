@@ -65,6 +65,7 @@ function parseHash() {
   if (lower === 'dashboard') return { tab: 'dashboard', codeId: '', creating: false };
   if (lower === 'activity') return { tab: 'activity', codeId: '', creating: false };
   if (lower === 'new') return { tab: 'codes', codeId: '', creating: true };
+  if (lower.startsWith('id/')) return { tab: 'codes', codeId: decodeURIComponent(hash.slice('id/'.length)), creating: false };
   if (lower.startsWith('code/')) return { tab: 'codes', codeId: decodeURIComponent(hash.slice('code/'.length)), creating: false };
   return { tab: 'codes', codeId: '', creating: false };
 }
@@ -521,6 +522,17 @@ function CodesSection({ t, language, codeId, creating }) {
   useEffect(() => { loadPromotions(); }, [loadPromotions]);
   useEffect(() => { const id = setTimeout(loadList, 200); return () => clearTimeout(id); }, [loadList]);
 
+  // Canonical deep links use the internal record id (`#id/<uuid>`), but keep
+  // accepting legacy `#code/...` links and human promo-code values like SAVE25.
+  useEffect(() => {
+    if (creating || !codeId || draft || items.length === 0) return;
+    const normalizedCode = String(codeId).trim().toUpperCase();
+    const matched = items.find((item) => (
+      item?.id === codeId || String(item?.code || '').trim().toUpperCase() === normalizedCode
+    ));
+    if (matched?.id && matched.id !== codeId) setHash(`id/${encodeURIComponent(matched.id)}`);
+  }, [codeId, creating, draft, items]);
+
   // Sync editor state to the hash-driven selection.
   useEffect(() => {
     let cancelled = false;
@@ -572,7 +584,7 @@ function CodesSection({ t, language, codeId, creating }) {
     toast('success', t('Promo code saved'));
     const saved = res.payload?.result;
     await loadList();
-    if (saved?.id) setHash(`code/${encodeURIComponent(saved.id)}`); else setHash('list');
+    if (saved?.id) setHash(`id/${encodeURIComponent(saved.id)}`); else setHash('list');
   };
 
   const doDelete = async () => {
@@ -645,7 +657,7 @@ function CodesSection({ t, language, codeId, creating }) {
           ) : items.map((c) => {
             const active = c.id === codeId;
             return (
-              <button key={c.id} type="button" onClick={() => guardedNav(`code/${encodeURIComponent(c.id)}`)}
+              <button key={c.id} type="button" onClick={() => guardedNav(`id/${encodeURIComponent(c.id)}`)}
                 style={{ textAlign: 'left', border: active ? '1px solid var(--primary)' : '1px solid var(--border)', borderRadius: 12, padding: 12, background: active ? 'var(--accent)' : 'var(--card)', color: 'var(--foreground)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
                   <code style={{ fontSize: 14, fontWeight: 700 }}>{c.code || t('(no code)')}</code>

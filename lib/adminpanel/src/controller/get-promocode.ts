@@ -4,16 +4,21 @@ import { mapPromotionCode } from "./get-promocodes";
 /**
  * GET …/core/marketing/promocode?id=
  * Returns a single promotion code (populated with its promotions).
+ * For deep links, the `id` query may contain either the record id or the human
+ * promo-code value (e.g. SAVE25).
  */
 export default async function GetPromoCodeController(req: any, res: any) {
   const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
   try {
     if (!hasAccess(req, res, "promocodes-manager")) return;
 
-    const id = String(req.query?.id || "").trim();
-    if (!id) return res.status(400).json({ error: t("Promo code id is required") });
+    const rawId = String(req.query?.id || "").trim();
+    if (!rawId) return res.status(400).json({ error: t("Promo code id is required") });
 
-    const code = await PromotionCode.findOne({ id }).populate("promotion");
+    const normalizedCode = rawId.toUpperCase();
+    const code = await PromotionCode.findOne({
+      or: [{ id: rawId }, { code: normalizedCode }],
+    }).populate("promotion");
     if (!code) return res.status(404).json({ error: t("Promo code not found") });
 
     return res.json({ result: mapPromotionCode(code) });
