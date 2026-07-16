@@ -2118,11 +2118,14 @@ let Model = {
   async applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord> {
     let order = await Order.findOne(criteria);
     let updateData = {};
+    const normalizedPromotionCodeString = promotionCodeString === null || promotionCodeString === undefined
+      ? null
+      : String(promotionCodeString).trim().toUpperCase() || null;
 
     if (["DONE", "REJECT"].includes(order.state)) throw `Order with orderId ${order.id} - was finished (${order.state})`;
     if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - apply promocode on current state: (${order.state})`;
 
-    if (!promotionCodeString) {
+    if (!normalizedPromotionCodeString) {
       updateData = {
         promotionCode: null,
         promotionCodeCheckValidTill: null,
@@ -2131,34 +2134,34 @@ let Model = {
       };
       await Order.log({ id: order.id }, "info", "core", `Promotion code removed`, { state: order.state });
     } else {
-      const validPromotionCode = await PromotionCode.getValidPromotionCode(promotionCodeString);
+      const validPromotionCode = await PromotionCode.getValidPromotionCode(normalizedPromotionCodeString);
       const isValidTill = "2099-01-01T00:00:00.000Z" // TODO: recursive check Codes and Promotions
 
       if (validPromotionCode) {
         let description = validPromotionCode.description;
 
         if (!validPromotionCode.promotion) {
-          sails.log.error(`No valid promotions for ${promotionCodeString}`);
+          sails.log.error(`No valid promotions for ${normalizedPromotionCodeString}`);
           description += " [Error: No valid promotions]";
-          await Order.log({ id: order.id }, "warn", "core", `Promotion code [${promotionCodeString}] has no valid promotions`, { promotionCodeId: validPromotionCode.id });
+          await Order.log({ id: order.id }, "warn", "core", `Promotion code [${normalizedPromotionCodeString}] has no valid promotions`, { promotionCodeId: validPromotionCode.id });
         }
 
         updateData = {
           promotionCode: validPromotionCode.id,
           promotionCodeCheckValidTill: isValidTill,
-          promotionCodeString: promotionCodeString,
+          promotionCodeString: normalizedPromotionCodeString,
           promotionCodeDescription: description
         };
-        await Order.log({ id: order.id }, "info", "core", `Promotion code [${promotionCodeString}] applied`, { promotionCodeId: validPromotionCode.id, description });
+        await Order.log({ id: order.id }, "info", "core", `Promotion code [${normalizedPromotionCodeString}] applied`, { promotionCodeId: validPromotionCode.id, description });
       } else {
         updateData = {
           promotionCode: null,
           promotionCodeCheckValidTill: null,
-          promotionCodeString: promotionCodeString,
+          promotionCodeString: normalizedPromotionCodeString,
           promotionCodeDescription: `Promocode expired or not valid`
         };
-        sails.log.debug(`No valid promocodes for ${promotionCodeString} order: [${order.id}]`);
-        await Order.log({ id: order.id }, "warn", "core", `Promotion code [${promotionCodeString}] is expired or not valid`);
+        sails.log.debug(`No valid promocodes for ${normalizedPromotionCodeString} order: [${order.id}]`);
+        await Order.log({ id: order.id }, "warn", "core", `Promotion code [${normalizedPromotionCodeString}] is expired or not valid`);
       }
     }
     // Ensure CART state (and cancel any pending payment) BEFORE writing promo code.

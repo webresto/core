@@ -72,7 +72,7 @@ describe("111 Promotion code integration test", function () {
     await Order.addDish({ id: order.id }, dish2, 4, [], "", "user");
 
     // VALID PROMOCODE
-    await Order.applyPromotionCode({ id: order.id }, "TEST123");
+    await Order.applyPromotionCode({ id: order.id }, "TeSt123");
     let result = await Order.findOne({ id: order.id })
     expect(result.promotionCodeString).to.equal("TEST123");    expect(result.promotionFlatDiscount).to.equal(1.45);
 
@@ -163,4 +163,26 @@ describe("111 Promotion code integration test", function () {
     let result = await Order.findOne({ id: order.id })
     expect(result.discountTotal).to.equal(11.13);
   })
+
+  it("Promocode is normalized to uppercase when saving and applying", async () => {
+    const created = await PromotionCode.create({
+      id: "promocode-lowercase-test",
+      description: "lowercase code",
+      code: "lower123",
+      prefix: "sale"
+    }).fetch();
+
+    expect(created.code).to.equal("LOWER123");
+    expect(created.prefix).to.equal("SALE");
+
+    const order = await Order.create({ id: "promotion-code-uppercase-normalization-test" }).fetch();
+    await Order.addDish({ id: order.id }, dish1, 1, [], "", "user");
+
+    await PromotionCode.addToCollection("promocode-lowercase-test", "promotion", ["promo-flat-123"]);
+    await Order.applyPromotionCode({ id: order.id }, "lower123");
+
+    const result = await Order.findOne({ id: order.id });
+    expect(result.promotionCodeString).to.equal("LOWER123");
+    expect(result.promotionCode).to.equal("promocode-lowercase-test");
+  });
 });

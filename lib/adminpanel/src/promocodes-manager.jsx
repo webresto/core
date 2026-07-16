@@ -450,7 +450,7 @@ function CodeEditor({ t, language, draft, setDraft, baseline, promotions, saving
               </div>
               <div style={styles.field}>
                 <Label style={styles.fieldLabel}>{t('Prefix')}</Label>
-                <Input value={draft.prefix || ''} onChange={(e) => setField('prefix', e.target.value)} style={styles.code} />
+                <Input value={draft.prefix || ''} onChange={(e) => setField('prefix', e.target.value.toUpperCase())} style={styles.code} />
               </div>
             </div>
             <div style={styles.field}>
@@ -560,9 +560,9 @@ function CodesSection({ t, language, codeId, creating }) {
     if (!String(draft.description || '').trim()) { toast('error', t('Description is required')); return; }
     setSaving(true);
     const body = {
-      id: draft.id || undefined, code: draft.code || null, description: draft.description, type: draft.type, enable: draft.enable !== false,
+      id: draft.id || undefined, code: draft.code ? String(draft.code).trim().toUpperCase() : null, description: draft.description, type: draft.type, enable: draft.enable !== false,
       startDate: draft.startDate || null, stopDate: draft.stopDate || null, workTime: draft.workTime ?? null,
-      externalId: draft.externalId || null, prefix: draft.prefix || null,
+      externalId: draft.externalId || null, prefix: draft.prefix ? String(draft.prefix).trim().toUpperCase() : null,
       generateConfig: draft.generateConfig ?? null, customData: draft.customData ?? null,
       promotionIds: draft.promotionIds || [],
     };
