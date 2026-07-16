@@ -47,7 +47,7 @@ export default async function UpsertPromoCodeController(req: any, res: any) {
       stopDate: body.stopDate ? String(body.stopDate) : "",
       workTime: body.workTime ?? null,
       externalId: body.externalId ? String(body.externalId) : null,
-      prefix: body.prefix ? String(body.prefix) : null,
+      prefix: body.prefix ? String(body.prefix).trim().toUpperCase() || null : null,
       generateConfig: body.generateConfig ?? null,
       customData: body.customData ?? null,
     };

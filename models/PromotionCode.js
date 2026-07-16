@@ -1,6 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
+function normalizePromotionCodeValue(value) {
+    if (value === null || value === undefined) {
+        return null;
+    }
+    const normalized = String(value).trim().toUpperCase();
+    return normalized || null;
+}
 let attributes = {
     /** ID */
     id: {
@@ -56,14 +63,29 @@ let Model = {
         if (!promotionCodeInit.id) {
             promotionCodeInit.id = (0, uuid_1.v4)();
         }
+        promotionCodeInit.code = normalizePromotionCodeValue(promotionCodeInit.code);
+        promotionCodeInit.prefix = normalizePromotionCodeValue(promotionCodeInit.prefix);
+        cb();
+    },
+    beforeUpdate(values, cb) {
+        if (Object.prototype.hasOwnProperty.call(values, "code")) {
+            values.code = normalizePromotionCodeValue(values.code);
+        }
+        if (Object.prototype.hasOwnProperty.call(values, "prefix")) {
+            values.prefix = normalizePromotionCodeValue(values.prefix);
+        }
         cb();
     },
     /**
      * Check promocode is work now
      */
     async getValidPromotionCode(promotionCodeString) {
-        return await PromotionCode.findOne({ code: promotionCodeString }).populate("promotion");
-        //return null
+        const normalizedCode = normalizePromotionCodeValue(promotionCodeString);
+        if (!normalizedCode) {
+            return null;
+        }
+        const promotionCode = await PromotionCode.findOne({ code: normalizedCode }).populate("promotion");
+        return (promotionCode === null || promotionCode === void 0 ? void 0 : promotionCode.enable) === false ? null : promotionCode;
     }
 };
 module.exports = {

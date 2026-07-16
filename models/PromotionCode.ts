@@ -4,6 +4,16 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { PromotionRecord } from "./Promotion";
 import { WorkTime } from "@webresto/worktime/lib/worktime.validator";
+
+function normalizePromotionCodeValue(value: unknown): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const normalized = String(value).trim().toUpperCase();
+  return normalized || null;
+}
+
 let attributes = {
 
   /** ID */
@@ -87,6 +97,21 @@ let Model = {
       promotionCodeInit.id = uuid();
     }
 
+    promotionCodeInit.code = normalizePromotionCodeValue(promotionCodeInit.code);
+    promotionCodeInit.prefix = normalizePromotionCodeValue(promotionCodeInit.prefix);
+
+    cb();
+  },
+
+  beforeUpdate(values: Partial<PromotionCodeRecord>, cb: (err?: string) => void) {
+    if (Object.prototype.hasOwnProperty.call(values, "code")) {
+      values.code = normalizePromotionCodeValue(values.code);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(values, "prefix")) {
+      values.prefix = normalizePromotionCodeValue(values.prefix);
+    }
+
     cb();
   },
 
@@ -94,9 +119,14 @@ let Model = {
    * Check promocode is work now
    */
   async getValidPromotionCode(promotionCodeString: string): Promise<PromotionCodeRecord | null> {
+    const normalizedCode = normalizePromotionCodeValue(promotionCodeString);
+    if (!normalizedCode) {
+      return null;
+    }
+
     // `enable` was added after promo codes already existed. Treat records without
     // the flag as enabled so a deploy does not silently disable existing codes.
-    const promotionCode = await PromotionCode.findOne({code: promotionCodeString}).populate("promotion");
+    const promotionCode = await PromotionCode.findOne({code: normalizedCode}).populate("promotion");
     return promotionCode?.enable === false ? null : promotionCode;
   }
 };
