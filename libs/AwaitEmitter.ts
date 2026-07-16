@@ -116,6 +116,8 @@ declare global {
     "core:order-after-remove-dish": [OrderRecord, string, DishRecord, number, boolean]
     "core:notification-created": [import("../models/Notification").NotificationRecord]
     "core:notification-log": [import("../models/Notification").NotificationRecord, import("./NotificationLogHelper").NotificationLogEntry]
+    /** Collected by the admin panel link registry. Subscribers return admin page links. */
+    "admin-panel:collect-links": []
   }
 }
 
