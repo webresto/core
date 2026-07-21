@@ -13,7 +13,7 @@ export default function PromoCodesManagerController(req: any, res: any) {
   return req.Inertia.render({
     component: "module",
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/PromoCodesManager.js?v=20260716-2`,
+      moduleComponent: `/restocore/assets/core-adminizer-assets/PromoCodesManager.js?v=20260721-1`,
       message: t("Promo codes"),
       locale,
       messages,

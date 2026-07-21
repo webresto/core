@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
+import { requireAdminApi } from './lib/admin-api';
 
 const {
   Card, CardContent,
@@ -38,8 +39,7 @@ function getBaseAdminPath() {
 }
 
 async function apiRequest(path, options = {}) {
-  const adminApi = window.adminApi;
-  if (!adminApi) throw new Error('window.adminApi is not available');
+  const adminApi = requireAdminApi();
   const method = (options.method || 'GET').toLowerCase();
   const url = `${getBaseAdminPath()}${path}`;
   const config = { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } };

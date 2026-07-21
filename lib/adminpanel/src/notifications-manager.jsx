@@ -4,6 +4,7 @@ import TypesSection from './components/notifications/TypesSection';
 import SendTestPanel from './components/notifications/SendTestPanel';
 import DashboardSection from './components/notifications/DashboardSection';
 import { useIsMobile } from './components/notifications/shared';
+import { requireAdminApi } from './lib/admin-api';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
 
@@ -54,8 +55,7 @@ function formatDateInputValue(value = new Date()) {
 }
 
 async function notificationsApi(path, options = {}) {
-  const adminApi = window.adminApi;
-  if (!adminApi) throw new Error('window.adminApi is not available');
+  const adminApi = requireAdminApi();
   const method = (options.method || 'GET').toLowerCase();
   try {
     const url = `${getBaseAdminPath()}${path}`;

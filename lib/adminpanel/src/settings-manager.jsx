@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
+import { requireAdminApi } from './lib/admin-api';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
 
@@ -73,8 +74,7 @@ function getBaseAdminPath() {
 }
 
 async function apiRequest(path, options = {}) {
-  const adminApi = window.adminApi;
-  if (!adminApi) throw new Error('window.adminApi is not available');
+  const adminApi = requireAdminApi();
   const method = (options.method || 'GET').toLowerCase();
   try {
     const url = `${getBaseAdminPath()}${path}`;
@@ -756,7 +756,7 @@ function SettingsManagerContent() {
 
   async function handleExport() {
     try {
-      const response = await window.adminApi.get(`${getBaseAdminPath()}/core/settings-manager/export`, {
+      const response = await requireAdminApi().get(`${getBaseAdminPath()}/core/settings-manager/export`, {
         responseType: 'blob',
       });
       const objectUrl = URL.createObjectURL(response.data);
