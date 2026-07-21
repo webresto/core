@@ -1,3 +1,5 @@
+import { boundedPage, DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT } from './pagination';
+
 declare const mcp: any;
 
 export function registerDishesTools() {
@@ -15,14 +17,16 @@ export function registerDishesTools() {
                 concept:        { type: 'string',  description: 'Filter by concept name.', example: 'origin' },
                 enable:         { type: 'boolean', description: 'Filter by enable flag.', example: true },
                 includeDeleted: { type: 'boolean', description: 'Include soft-deleted dishes.', example: false },
-                limit:          { type: 'integer', description: 'Max results.', example: 50 },
+                limit:          { type: 'integer', description: `Max results (default ${DEFAULT_LIST_LIMIT}, hard cap ${MAX_LIST_LIMIT}).`, example: 50 },
                 skip:           { type: 'integer', description: 'Offset for pagination.', example: 0 },
             },
         },
-        handler: async ({ parentGroup, concept, enable, includeDeleted, limit = 50, skip = 0 }: {
+        handler: async (params: {
             parentGroup?: string; concept?: string; enable?: boolean;
             includeDeleted?: boolean; limit?: number; skip?: number;
         }) => {
+            const { parentGroup, concept, enable, includeDeleted } = params;
+            const { limit, skip } = boundedPage(params.limit, params.skip);
             const criteria: any = {};
             if (!includeDeleted)     criteria.isDeleted = false;
             if (parentGroup !== undefined) criteria.parentGroup = parentGroup;

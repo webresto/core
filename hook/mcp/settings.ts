@@ -1,4 +1,11 @@
+import { boundedPage, MAX_LIST_LIMIT } from './pagination';
+
 declare const mcp: any;
+
+// Setting values are arbitrary JSON blobs (module configs, worktime tables,
+// cached payloads). The list view only needs to show what a value looks like —
+// anything bigger is replaced by a marker and can be read with settings-get.
+const MAX_LIST_VALUE_CHARS = 2000;
 
 const SENSITIVE_FIELDS = new Set([
     'private_key', 'private_key_id', 'password', 'secret', 'api_key', 'apiKey',
@@ -15,30 +22,53 @@ function maskSensitiveValue(value: any): any {
     return masked;
 }
 
+function shrinkListValue(value: any): any {
+    if (value === null || value === undefined) return value;
+    if (typeof value === 'number' || typeof value === 'boolean') return value;
+    let serialized: string;
+    try {
+        serialized = typeof value === 'string' ? value : JSON.stringify(value);
+    } catch (e) {
+        return '[unserializable value — use settings-get]';
+    }
+    if (!serialized || serialized.length <= MAX_LIST_VALUE_CHARS) return value;
+    return `[value omitted: ${serialized.length} chars — use settings-get for the full value]`;
+}
+
 export function registerSettingsTools() {
     if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
 
     mcp.registerTool({
         name: 'settings-list',
         group: 'settings',
-        description: 'Returns all settings with key, current value, type, description and jsonSchema. Read this before calling settings-set to understand what can be changed and what format is expected.',
+        description:
+            'Returns settings with key, current value, type, description and jsonSchema. Read this before calling settings-set to understand what can be changed and what format is expected.\n\n'
+            + `Returns { total, skip, limit, items }. Paginated: use skip+limit (default and hard cap ${MAX_LIST_LIMIT}) — compare items.length with total to see if another page is needed. Values longer than ${MAX_LIST_VALUE_CHARS} chars are replaced by a marker — fetch them with settings-get.`,
         mode: 'protected',
         schema: {
             type: 'object',
             properties: {
-                module: { type: 'string', description: 'Filter by module name.', example: 'core' },
+                module: { type: 'string',  description: 'Filter by module name.', example: 'core' },
+                limit:  { type: 'integer', description: `Page size (default and hard cap ${MAX_LIST_LIMIT}).`, example: 200 },
+                skip:   { type: 'integer', description: 'Offset. Use skip=N*limit for page N.', example: 0 },
             },
         },
-        handler: async ({ module }: { module?: string }) => {
-            const criteria: any = module ? { module } : {};
-            const settings = await Settings.find(criteria).sort('key ASC');
-            return settings.map((s: any) => {
+        handler: async (params: { module?: string; limit?: number; skip?: number }) => {
+            const criteria: any = params.module ? { module: params.module } : {};
+            // Settings rows are small once oversized values are shrunk, so the
+            // page defaults to the cap: most installs fit in a single call.
+            const { limit, skip } = boundedPage(params.limit, params.skip, { defaultLimit: MAX_LIST_LIMIT });
+            const [total, settings] = await Promise.all([
+                Settings.count(criteria),
+                Settings.find(criteria).limit(limit).skip(skip).sort('key ASC'),
+            ]);
+            const items = settings.map((s: any) => {
                 const rawValue = s.value ?? s.defaultValue ?? null;
                 const rawDefault = s.defaultValue ?? null;
                 return {
                     key: s.key,
-                    value: maskSensitiveValue(rawValue),
-                    defaultValue: maskSensitiveValue(rawDefault),
+                    value: shrinkListValue(maskSensitiveValue(rawValue)),
+                    defaultValue: shrinkListValue(maskSensitiveValue(rawDefault)),
                     type: s.type,
                     name: s.name,
                     description: s.description ?? null,
@@ -46,6 +76,7 @@ export function registerSettingsTools() {
                     module: s.module ?? null,
                 };
             });
+            return { total, skip, limit, items };
         },
     });
 

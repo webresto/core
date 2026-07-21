@@ -1,4 +1,5 @@
 import hashCode, { generateUUID } from '../../libs/hashCode';
+import { boundedPage, DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT } from './pagination';
 
 declare const mcp: any;
 
@@ -34,14 +35,16 @@ export function registerPromotionsTools() {
                 enable:         { type: 'boolean', description: 'Filter by enable flag.', example: true },
                 createdByUser:  { type: 'boolean', description: 'Filter by createdByUser flag (false = registered from code).', example: true },
                 includeDeleted: { type: 'boolean', description: 'Include soft-deleted promotions.', example: false },
-                limit:          { type: 'integer', description: 'Max results.', example: 50 },
+                limit:          { type: 'integer', description: `Max results (default ${DEFAULT_LIST_LIMIT}, hard cap ${MAX_LIST_LIMIT}).`, example: 50 },
                 skip:           { type: 'integer', description: 'Offset for pagination.', example: 0 },
             },
         },
-        handler: async ({ concept, enable, createdByUser, includeDeleted, limit = 50, skip = 0 }: {
+        handler: async (params: {
             concept?: string; enable?: boolean; createdByUser?: boolean;
             includeDeleted?: boolean; limit?: number; skip?: number;
         }) => {
+            const { concept, enable, createdByUser, includeDeleted } = params;
+            const { limit, skip } = boundedPage(params.limit, params.skip);
             const criteria: any = {};
             if (!includeDeleted)            criteria.isDeleted = false;
             if (enable        !== undefined) criteria.enable        = enable;
@@ -187,11 +190,13 @@ export function registerPromotionsTools() {
             properties: {
                 code:  { type: 'string',  description: 'Filter by exact code (case-sensitive).', example: 'EXAMPLE_CODE_123' },
                 enable:{ type: 'boolean', description: 'Filter by enabled state.', example: true },
-                limit: { type: 'integer', description: 'Max results.', example: 50 },
+                limit: { type: 'integer', description: `Max results (default ${DEFAULT_LIST_LIMIT}, hard cap ${MAX_LIST_LIMIT}).`, example: 50 },
                 skip:  { type: 'integer', description: 'Offset for pagination.', example: 0 },
             },
         },
-        handler: async ({ code, enable, limit = 50, skip = 0 }: { code?: string; enable?: boolean; limit?: number; skip?: number }) => {
+        handler: async (params: { code?: string; enable?: boolean; limit?: number; skip?: number }) => {
+            const { code, enable } = params;
+            const { limit, skip } = boundedPage(params.limit, params.skip);
             const criteria: any = {};
             if (code !== undefined) criteria.code = code;
             if (enable !== undefined) criteria.enable = enable;
