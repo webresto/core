@@ -1,3 +1,5 @@
+import { boundedPage, DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT } from './pagination';
+
 declare const mcp: any;
 
 export function registerGroupsTools() {
@@ -6,7 +8,7 @@ export function registerGroupsTools() {
     mcp.registerTool({
         name: 'group-list',
         group: 'groups',
-        description: 'Returns menu categories. By default excludes soft-deleted. Supports filtering by concept and enable status.',
+        description: 'Returns menu categories. By default excludes soft-deleted. Supports filtering by concept and enable status. Paginated: use skip+limit.',
         mode: 'protected',
         schema: {
             type: 'object',
@@ -14,14 +16,18 @@ export function registerGroupsTools() {
                 concept:        { type: 'string',  description: 'Filter by concept name.', example: 'origin' },
                 enable:         { type: 'boolean', description: 'Filter by enable flag.', example: true },
                 includeDeleted: { type: 'boolean', description: 'Include soft-deleted groups.', example: false },
+                limit:          { type: 'integer', description: `Max results (default ${DEFAULT_LIST_LIMIT}, hard cap ${MAX_LIST_LIMIT}).`, example: 50 },
+                skip:           { type: 'integer', description: 'Offset for pagination.', example: 0 },
             },
         },
-        handler: async ({ concept, enable, includeDeleted }: { concept?: string; enable?: boolean; includeDeleted?: boolean }) => {
+        handler: async (params: { concept?: string; enable?: boolean; includeDeleted?: boolean; limit?: number; skip?: number }) => {
+            const { concept, enable, includeDeleted } = params;
+            const { limit, skip } = boundedPage(params.limit, params.skip);
             const criteria: any = {};
             if (!includeDeleted)     criteria.isDeleted = false;
             if (enable  !== undefined) criteria.enable  = enable;
             if (concept !== undefined) criteria.concept = { contains: concept };
-            return await Group.find(criteria).sort('sortOrder ASC');
+            return await Group.find(criteria).limit(limit).skip(skip).sort('sortOrder ASC');
         },
     });
 
