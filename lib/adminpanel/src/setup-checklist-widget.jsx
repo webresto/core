@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { requireAdminApi } from './lib/admin-api';
 
 const Lucide = window.LucideReact || {};
 const Check = Lucide.CheckCircle2 || Lucide.Check || (() => null);
@@ -20,7 +21,7 @@ export default function SetupChecklistWidget() {
     setLoading(true);
     setError(false);
     try {
-      const response = await window.adminApi.get(adminPath('/core/setup-checklist/summary'));
+      const response = await requireAdminApi().get(adminPath('/core/setup-checklist/summary'));
       setSummary(response.data);
     } catch (_error) {
       setError(true);

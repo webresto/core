@@ -10,7 +10,7 @@ export default function SalesChannelsManagerController(req: any, res: any) {
   return req.Inertia.render({
     component: "module",
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/SalesChannelsManager.js?v=20260623-1`,
+      moduleComponent: `/restocore/assets/core-adminizer-assets/SalesChannelsManager.js?v=20260721-1`,
       message: t("Sales Channels"),
       locale,
       messages,
