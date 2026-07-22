@@ -1,0 +1,9 @@
+{
+  "key": "ALLOW_USER_WITHOUT_PHONE",
+  "type": "boolean",
+  "name": "Allow user without phone",
+  "description": "Relax the User phone-required invariant for social-first login.",
+  "readOnly": false,
+  "defaultValue": false,
+  "isRequired": false
+}

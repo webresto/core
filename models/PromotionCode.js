@@ -37,6 +37,11 @@ let attributes = {
         type: "string",
         allowNull: true
     },
+    /** Whether customers can apply this promo code. */
+    enable: {
+        type: "boolean",
+        defaultsTo: true,
+    },
     startDate: "string",
     stopDate: "string",
     workTime: "json",
@@ -84,8 +89,10 @@ let Model = {
         if (!normalizedCode) {
             return null;
         }
+        // `enable` was added after promo codes already existed. Treat records without
+        // the flag as enabled so a deploy does not silently disable existing codes.
         const promotionCode = await PromotionCode.findOne({ code: normalizedCode }).populate("promotion");
-        return (promotionCode === null || promotionCode === void 0 ? void 0 : promotionCode.enable) === false ? null : promotionCode;
+        return promotionCode?.enable === false ? null : promotionCode;
     }
 };
 module.exports = {

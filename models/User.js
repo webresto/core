@@ -125,6 +125,17 @@ let attributes = {
         type: 'boolean'
     },
     /**
+     *  Has a verified email (email-link login or a social provider that returned a verified email)
+     */
+    emailVerified: {
+        type: 'boolean'
+    },
+    /** External auth accounts linked to this user (telegram / max / vk / …) */
+    identities: {
+        collection: 'authidentity',
+        via: 'user'
+    },
+    /**
      * Indicate filled all required custom fields
      */
     allRequiredCustomFieldsAreFilled: {
@@ -175,8 +186,12 @@ let Model = {
         if (!userInit.isDeleted)
             userInit.isDeleted = false;
         userInit.orderCount = 0;
-        // Phone required
-        if ((await Settings.get("CORE_LOGIN_FIELD")) === undefined || (await Settings.get("CORE_LOGIN_FIELD")) === "phone") {
+        // Phone required — unless a social/email-first login mode is enabled (ALLOW_USER_WITHOUT_PHONE).
+        // In that mode social providers may create a user with a synthetic login and no phone yet;
+        // the user attaches (and thus verifies) a phone later via confirmAuthPhone.
+        const loginField = await Settings.get("CORE_LOGIN_FIELD");
+        const allowWithoutPhone = (await Settings.get("ALLOW_USER_WITHOUT_PHONE")) ?? false;
+        if ((loginField === undefined || loginField === "phone") && !allowWithoutPhone) {
             if (!userInit.phone) {
                 sails.log.error(`User with login: ${userInit.login} should has phone on creation`);
                 throw `User phone is required`;
@@ -379,19 +394,15 @@ let Model = {
             // Brand new device — create it already bound to the user that logs in
             userDevice = await UserDevice.create({ id: deviceId, user: userId, name: deviceName }).fetch();
         }
-        else if (!userDevice.user) {
-            // Empty (anonymous) device — e.g. created for guest push notifications before login. Bind it now.
-            await UserDevice.updateOne({ id: deviceId }).set({ user: userId });
-        }
         else if (userDevice.user !== userId) {
-            // The device already belongs to ANOTHER user. Re-binding is forbidden by design.
-            // This must NOT throw — we only log it loudly and keep the original owner. We also do NOT touch
-            // the session fields here, otherwise we would overwrite the real owner's sessionId / isLoggedIn.
-            sails.log.error(`\n========================= [UserDevice] REBIND FORBIDDEN =========================\n` +
-                `Device [${deviceId}] is owned by user [${userDevice.user}], but user [${userId}] just logged in from it.\n` +
-                `Ownership is left UNCHANGED. A deviceId is expected to be unique per physical device.\n` +
-                `=================================================================================\n`);
-            return userDevice;
+            // Device is unclaimed, or was claimed by a different user (e.g. shared/test device, or a
+            // previous owner who logged out). A physical device always belongs to whoever is CURRENTLY
+            // authenticated on it, so we (re)bind it — the JWT/session below must always match the user
+            // who just proved their credentials, never a stale owner.
+            if (userDevice.user) {
+                sails.log.info(`[UserDevice] Rebinding device [${deviceId}] from user [${userDevice.user}] to user [${userId}]`);
+            }
+            await UserDevice.updateOne({ id: deviceId }).set({ user: userId });
         }
         // Refresh the session for the current login (sessionId guards against parallel logins with one name)
         return await UserDevice.updateOne({ id: deviceId }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: (0, uuid_1.v4)() });

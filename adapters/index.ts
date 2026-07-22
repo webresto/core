@@ -12,6 +12,7 @@ import { Config } from "../interfaces/Config";
 import DeliveryAdapter from "./delivery/DeliveryAdapter";
 import { DefaultDeliveryAdapter } from "./delivery/default/defaultDelivery";
 import { PromotionAdapter } from "./promotion/default/promotionAdapter";
+import AuthProviderAdapter from "./auth/AuthProviderAdapter";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -346,6 +347,46 @@ export class Adapter {
       return adapter.PaymentProgramAdapter[adapterName].getInstance(initParams) as PaymentAdapter;
     } catch (e) {
       sails.log.error("CORE > getAdapter Payment > error; ", e);
+      throw new Error("Module " + adapterLocation + " not found");
+    }
+  }
+
+  // Auth providers that self-registered on boot. Populated by AuthProvider.alive().
+  private static aliveAuthAdapters: { [slug: string]: AuthProviderAdapter } = {};
+
+  /**
+   * Register a live auth adapter instance (called from AuthProvider.alive).
+   * Kept on the Adapter class so the GraphQL/HTTP layer can resolve an adapter by slug
+   * without importing the model, mirroring how live payment methods are tracked.
+   */
+  public static registerAuthAdapter(adapter: AuthProviderAdapter): void {
+    this.aliveAuthAdapters[adapter.adapter] = adapter;
+  }
+
+  /**
+   * returns a live Auth-provider adapter by its slug.
+   * First checks adapters that self-registered on boot (modules loaded as sails hooks,
+   * e.g. ru_auth_providers), then falls back to requiring an `@webresto/<slug>-auth-adapter`
+   * npm module — mirroring getPaymentAdapter.
+   */
+  public static async getAuthAdapter(adapterName: string): Promise<AuthProviderAdapter> {
+    if (!adapterName) throw "AuthProviderAdapter name is required";
+
+    if (this.aliveAuthAdapters[adapterName]) {
+      return this.aliveAuthAdapters[adapterName];
+    }
+
+    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-auth-adapter";
+    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-auth-adapter";
+
+    try {
+      const adapterModule = require(adapterLocation);
+      const instance = new adapterModule.AuthProviderAdapter() as AuthProviderAdapter;
+      await instance.wait();
+      this.aliveAuthAdapters[adapterName] = instance;
+      return instance;
+    } catch (e) {
+      sails.log.error("CORE > getAdapter Auth > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
   }

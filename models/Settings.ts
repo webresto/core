@@ -8,6 +8,27 @@ import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { ControlElement, Layout } from "@jsonforms/core";
 import Ajv from 'ajv';
+import fs from 'fs';
+import path from 'path';
+
+// Directory holding per-setting manifest files (settings/*.json). Each manifest
+// declares a setting (key/type/name/defaultValue/jsonSchema/...) and is the single
+// source of truth for seeding it at boot. See loadSettingsManifests().
+const SETTINGS_MANIFEST_DIR = path.resolve(__dirname, "../settings");
+
+interface SettingManifest {
+  key: string;
+  type: SettingType;
+  name: string;
+  description?: string;
+  tooltip?: string;
+  defaultValue?: any;
+  value?: any;
+  jsonSchema?: any;
+  uiSchema?: UISchema;
+  readOnly?: boolean;
+  isRequired?: boolean;
+}
 
 // Memory store
 let settings: SettingValue = {}
@@ -492,6 +513,72 @@ let Model = {
     }
   },
 
+  /**
+   * Seed settings from the manifest files in settings/*.json.
+   *
+   * Each manifest is the declarative source of truth for one setting (replacing
+   * hardcoded Settings.set(...) calls at boot). For every manifest we:
+   *   1. declare the key (so Settings.get passes the declared-settings guard), and
+   *   2. seed it into the DB only when it is not already present — an existing
+   *      value (operator-configured or previously seeded) is never overwritten.
+   *
+   * Manifests must satisfy libs/schemas/settingsFile.json (json type requires a
+   * jsonSchema). Malformed or invalid manifests are logged and skipped.
+   */
+  async loadSettingsManifests(): Promise<void> {
+    if (!fs.existsSync(SETTINGS_MANIFEST_DIR)) {
+      sails.log.warn(`CORE > Settings > manifest dir not found: ${SETTINGS_MANIFEST_DIR}`);
+      return;
+    }
+
+    for (const file of fs.readdirSync(SETTINGS_MANIFEST_DIR)) {
+      if (!file.endsWith(".json")) continue;
+
+      let manifest: SettingManifest;
+      try {
+        manifest = JSON.parse(fs.readFileSync(path.join(SETTINGS_MANIFEST_DIR, file), "utf8"));
+      } catch (e) {
+        sails.log.error(`CORE > Settings > failed to parse manifest [${file}]`, e);
+        continue;
+      }
+
+      if (!manifest || !manifest.key || !manifest.type || !manifest.name) {
+        sails.log.error(`CORE > Settings > manifest [${file}] missing required fields (key/type/name)`);
+        continue;
+      }
+      if (manifest.type === "json" && manifest.jsonSchema === undefined) {
+        sails.log.error(`CORE > Settings > manifest [${file}] type "json" requires jsonSchema`);
+        continue;
+      }
+
+      // Always declare, so Settings.get(key) never trips the declared-settings guard.
+      setDeclaredSetting(manifest.key);
+
+      // Seed only if absent — do not clobber operator-configured values.
+      if (await Settings.get(manifest.key as keyof SettingList) !== undefined) {
+        continue;
+      }
+
+      try {
+        await Settings.set(manifest.key as keyof SettingList, {
+          key: manifest.key,
+          type: manifest.type,
+          name: manifest.name,
+          description: manifest.description,
+          tooltip: manifest.tooltip,
+          value: manifest.value,
+          defaultValue: manifest.defaultValue,
+          jsonSchema: manifest.jsonSchema,
+          uiSchema: manifest.uiSchema,
+          readOnly: manifest.readOnly,
+          isRequired: manifest.isRequired,
+        } as any);
+      } catch (e) {
+        sails.log.error(`CORE > Settings > failed to seed manifest [${manifest.key}]`, e);
+      }
+    }
+  },
+
   // Expose declared settings management for MM settingsHelper
   setDeclaredSetting,
   isInDeclaredSettings,
@@ -521,6 +608,12 @@ declare global {
      * Set enable: true for new dishes and groups from RMS sync
      * */
     ENABLE_BY_DEFAULT_ON_SYNC: boolean
+    /** Newly self-registered auth providers start disabled by default */
+    DEFAULT_ENABLE_AUTH_PROVIDERS: boolean
+    /** Relax the User phone-required invariant for social-first login */
+    ALLOW_USER_WITHOUT_PHONE: boolean
+    /** Public base URL used to build OAuth redirect_uri and post-login redirect */
+    AUTH_CALLBACK_BASE_URL: string
   }
 }
 

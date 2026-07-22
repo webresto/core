@@ -121,6 +121,19 @@ let attributes = {
   } as unknown as boolean,
 
   /**
+   *  Has a verified email (email-link login or a social provider that returned a verified email)
+   */
+  emailVerified: {
+    type: 'boolean'
+  } as unknown as boolean,
+
+  /** External auth accounts linked to this user (telegram / max / vk / …) */
+  identities: {
+    collection: 'authidentity',
+    via: 'user'
+  } as unknown as import("./AuthIdentity").AuthIdentityRecord[],
+
+  /**
    * Indicate filled all required custom fields
    */
   allRequiredCustomFieldsAreFilled: {
@@ -195,8 +208,12 @@ let Model = {
 
     if (!userInit.isDeleted) userInit.isDeleted = false;
     userInit.orderCount = 0;
-    // Phone required
-    if ((await Settings.get("CORE_LOGIN_FIELD")) === undefined || (await Settings.get("CORE_LOGIN_FIELD")) === "phone") {
+    // Phone required — unless a social/email-first login mode is enabled (ALLOW_USER_WITHOUT_PHONE).
+    // In that mode social providers may create a user with a synthetic login and no phone yet;
+    // the user attaches (and thus verifies) a phone later via confirmAuthPhone.
+    const loginField = await Settings.get("CORE_LOGIN_FIELD");
+    const allowWithoutPhone = (await Settings.get("ALLOW_USER_WITHOUT_PHONE")) ?? false;
+    if ((loginField === undefined || loginField === "phone") && !allowWithoutPhone) {
       if (!userInit.phone) {
         sails.log.error(`User with login: ${userInit.login} should has phone on creation`);
         throw `User phone is required`;

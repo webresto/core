@@ -3,7 +3,6 @@ import { NotificationDispatcher } from "../libs/NotificationDispatcher";
 import { NotificationEventRegistry } from "../libs/NotificationEventRegistry";
 import { NotificationTypeRegistry } from "../libs/NotificationTypeRegistry";
 import { SetupChecklistRegistry } from "../libs/SetupChecklistRegistry";
-import { DISMISSED_SETTING_JSON_SCHEMA } from "../libs/SetupChecklistService";
 import { SalesChannelRegistry } from "../libs/SalesChannelRegistry";
 import { NotificationService } from "../libs/NotificationService";
 import { registerCoreMcpTools } from "./mcp";
@@ -16,6 +15,11 @@ export default async function () {
 
     // Mirror settings like JWT_SECRET from the DB into process.env on boot
     await Settings.syncEnvMirroredSettings();
+
+    // Declare + seed all settings from their manifests (settings/*.json).
+    // Manifests are the declarative source of truth; seeding is idempotent and
+    // never overwrites an already-present value.
+    await Settings.loadSettingsManifests();
 
     const timeSyncPayments = await Settings.get("RESTOCORE_TIME_SYNC_PAYMENTS");
 
@@ -80,6 +84,17 @@ export default async function () {
      */
     await Settings.set("VISIBLE_BY_DEFAULT_ON_SYNC", { key: "VISIBLE_BY_DEFAULT_ON_SYNC", value: true });
 
+    // Auth providers layer settings (see .ai-notes/auth.md) are declared + seeded
+    // from their manifests by Settings.loadSettingsManifests() above:
+    //   DEFAULT_ENABLE_AUTH_PROVIDERS, ALLOW_USER_WITHOUT_PHONE, AUTH_CALLBACK_BASE_URL
+
+    // Periodic cleanup of expired auth-login attempts.
+    try {
+      setInterval(() => { AuthState.cleanupExpired().catch(() => {}); }, 5 * 60 * 1000);
+    } catch (e) {
+      sails.log.warn("RestoCore > AuthState cleanup loop skipped", e);
+    }
+
     try {
       /**
        * Run instance RMS
@@ -94,23 +109,16 @@ export default async function () {
     NotificationEventRegistry.registerCoreDefaults();
     await NotificationTypeRegistry.load();
 
-    // Setup checklist: register core checkups (live-evaluated, blocks nothing) and declare/seed
-    // the dismissal store (the only persisted piece of the feature — see .ai-notes/setup-checklist.md).
+    // Setup checklist: register core checkups (live-evaluated, blocks nothing).
+    // SETUP_CHECKLIST_DISMISSED (the only persisted piece of the feature — see
+    // .ai-notes/setup-checklist.md) is declared + seeded from its manifest by
+    // Settings.loadSettingsManifests(). SETUP_CHECKLIST_CHECK_TIMEOUT_MS has no
+    // manifest (read from env/config on demand), so it is only declared here.
     SetupChecklistRegistry.registerCoreDefaults();
     try {
-      Settings.setDeclaredSetting("SETUP_CHECKLIST_DISMISSED");
       Settings.setDeclaredSetting("SETUP_CHECKLIST_CHECK_TIMEOUT_MS");
-      if (await Settings.get("SETUP_CHECKLIST_DISMISSED") === undefined) {
-        await Settings.set("SETUP_CHECKLIST_DISMISSED", {
-          value: {} as any,
-          type: "json",
-          jsonSchema: DISMISSED_SETTING_JSON_SCHEMA as any,
-          name: "Setup checklist dismissed items",
-          description: "Runtime state: checkups the user hid/snoozed on the setup checklist.",
-        });
-      }
     } catch (e) {
-      sails.log.warn("RestoCore > setup checklist dismissal seed skipped", e);
+      sails.log.warn("RestoCore > setup checklist declaration skipped", e);
     }
 
     // Sales channels: register the core channel-type catalog + region recommendation matrix

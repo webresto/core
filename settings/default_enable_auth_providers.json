@@ -1,0 +1,9 @@
+{
+  "key": "DEFAULT_ENABLE_AUTH_PROVIDERS",
+  "type": "boolean",
+  "name": "Default enable auth providers",
+  "description": "Newly self-registered auth providers start disabled by default.",
+  "readOnly": false,
+  "defaultValue": false,
+  "isRequired": false
+}
