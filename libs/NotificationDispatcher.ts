@@ -49,6 +49,10 @@ function buildChannelData(notification: NotificationRecord): Record<string, any>
   return merged;
 }
 
+async function emitDeliveryAttempt(notification: NotificationRecord, channel: string, result: "success" | "failed"): Promise<void> {
+  await emitter.emit("core:notification-delivery-attempt", notification, { channel, result });
+}
+
 /**
  * Options for NotificationDispatcher.send. Replaces the previous positional argument list.
  * The first block is the legacy delivery payload; the second block carries typed-notification
@@ -243,11 +247,7 @@ export class NotificationDispatcher {
     // sends (which reload the record from DB) carry it too.
     {
       const dataObj: Record<string, any> =
-<<<<<<< HEAD
-        notification.data && typeof notification.data === "object" ? (notification.data as any) : {};
-=======
         parseRecordObject(notification.data) || parseRecordObject(data) || {};
->>>>>>> 54c814c3e7116ecf40adeaac9dcb842924afb6f5
       dataObj.notificationId = notification.id;
       notification.data = dataObj as any;
       await Notification.updateOne({ id: notification.id }).set({ data: dataObj });
@@ -363,6 +363,7 @@ export class NotificationDispatcher {
             channelData as any,
             priorityDevice
           );
+          await emitDeliveryAttempt(notification, priorityChannel.type, sent ? "success" : "failed");
           trace.push(`${priorityChannel.type}: ${sent ? "sent" : `failed (${priorityChannel.error || "unknown error"})`}`);
         }
       }
@@ -447,6 +448,7 @@ export class NotificationDispatcher {
             channelData as any,
             priorityDevice
           );
+          await emitDeliveryAttempt(notification, priorityChannel.type, ok ? "success" : "failed");
           if (ok) {
             const priorityCost = Number(priorityChannel.cost) || 0;
             successChannels.push({ type: priorityChannel.type, cost: priorityCost, sentAt: Date.now() });
@@ -503,6 +505,7 @@ export class NotificationDispatcher {
           channelData as any,
           priorityDevice
         );
+        await emitDeliveryAttempt(notification, channel.type, ok ? "success" : "failed");
 
         if (ok) {
           const channelCost = Number(channel.cost) || 0;
@@ -746,6 +749,7 @@ export class NotificationDispatcher {
         content.title,
         channelData as any
       );
+      await emitDeliveryAttempt(notification, channel.type, ok ? "success" : "failed");
 
       if (ok) {
         const channelCost = Number(channel.cost) || 0;
