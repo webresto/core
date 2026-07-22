@@ -19,6 +19,36 @@ const PROCESSING_STALE_MS = 10 * 60 * 1000;
 const DELIVERY_BATCH_LIMIT = 100;
 const ESCALATION_BATCH_LIMIT = 100;
 
+function parseRecordObject(value: unknown): Record<string, any> | null {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed || (trimmed[0] !== "{" && trimmed[0] !== "[")) return null;
+    try {
+      const parsed = JSON.parse(trimmed);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+    } catch (_error) {
+      return null;
+    }
+  }
+  if (typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, any>;
+  }
+  return null;
+}
+
+function buildChannelData(notification: NotificationRecord): Record<string, any> | null {
+  const data = parseRecordObject(notification.data);
+  const context = parseRecordObject(notification.context);
+  if (!data && !context) return null;
+
+  const merged = { ...(data || {}) };
+  if (context && merged.context === undefined) {
+    merged.context = context;
+  }
+  return merged;
+}
+
 /**
  * Options for NotificationDispatcher.send. Replaces the previous positional argument list.
  * The first block is the legacy delivery payload; the second block carries typed-notification
@@ -56,8 +86,9 @@ export interface NotificationSendOptions {
  * the locale comes from the notification context (recipient.locale), filled at emit time.
  */
 async function resolveNotificationLocale(notification: NotificationRecord): Promise<string> {
-  const ctx = (notification.context || (notification.data as any)?.context) as any;
-  const fromContext = ctx?.recipient?.locale || (notification.data as any)?.recipient?.locale;
+  const data = parseRecordObject(notification.data) || (notification.data as any);
+  const ctx = parseRecordObject(notification.context) || data?.context;
+  const fromContext = ctx?.recipient?.locale || data?.recipient?.locale;
   if (fromContext) return String(fromContext);
   const user = notification.user;
   if (user && typeof user === "object" && (user as any).locale) return String((user as any).locale);
@@ -212,7 +243,11 @@ export class NotificationDispatcher {
     // sends (which reload the record from DB) carry it too.
     {
       const dataObj: Record<string, any> =
+<<<<<<< HEAD
         notification.data && typeof notification.data === "object" ? (notification.data as any) : {};
+=======
+        parseRecordObject(notification.data) || parseRecordObject(data) || {};
+>>>>>>> 54c814c3e7116ecf40adeaac9dcb842924afb6f5
       dataObj.notificationId = notification.id;
       notification.data = dataObj as any;
       await Notification.updateOne({ id: notification.id }).set({ data: dataObj });
@@ -276,6 +311,8 @@ export class NotificationDispatcher {
 
     // Recipient locale for channel-specific/localized template selection.
     // For targeted delivery/guest carts, the language is taken from context.recipient.locale.
+    const channelData = buildChannelData(notification);
+    if (channelData) notification.data = channelData as any;
     const locale = await resolveNotificationLocale(notification);
 
     // notification.user comes from the DB as an id string; channels need an object with .id.
@@ -323,7 +360,7 @@ export class NotificationDispatcher {
             content.body,
             null as any,
             content.title,
-            notification.data as any,
+            channelData as any,
             priorityDevice
           );
           trace.push(`${priorityChannel.type}: ${sent ? "sent" : `failed (${priorityChannel.error || "unknown error"})`}`);
@@ -407,7 +444,7 @@ export class NotificationDispatcher {
             content.body,
             notification.user as any,
             content.title,
-            notification.data as any,
+            channelData as any,
             priorityDevice
           );
           if (ok) {
@@ -463,7 +500,7 @@ export class NotificationDispatcher {
           content.body,
           notification.user as any,
           content.title,
-          notification.data as any,
+          channelData as any,
           priorityDevice
         );
 
@@ -654,6 +691,8 @@ export class NotificationDispatcher {
       ? Number(perMessageCost)
       : ((await Settings.get("NOTIFICATION_MAX_COST_PER_MESSAGE")) ?? null);
     const maxCostSource = perMessageCost !== null ? "notification type" : "global fallback";
+    const channelData = buildChannelData(notification);
+    if (channelData) notification.data = channelData as any;
     const locale = await resolveNotificationLocale(notification);
     let spentCost: number = notification.spentCost ?? 0;
     const trace: string[] = [];
@@ -705,7 +744,7 @@ export class NotificationDispatcher {
         content.body,
         notification.user as any,
         content.title,
-        notification.data as any
+        channelData as any
       );
 
       if (ok) {
