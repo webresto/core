@@ -973,6 +973,14 @@ let Model = {
                 orderDate: new Date() + ``,
                 state: "ORDER"
             };
+            // Stamp the moment the order was actually placed. The kanban board anchors
+            // its time window on orderedAt and only falls back to createdAt when this is
+            // null — without it, an order checked out from a cart created earlier
+            // (e.g. a day-old cart) gets filtered out of the board. Mirrors the
+            // transition path in Order.next()/setState.
+            if (!order.orderedAt) {
+                data.orderedAt = Math.floor(Date.now() / 1000);
+            }
             /** ⚠️ If the preservation of the model is caused to NEXT, then there will be an endless cycle */
             sails.log.silly("Order > order > before save order", order);
             // await Order.update({id: order.id}).fetch();
@@ -1489,7 +1497,10 @@ let Model = {
                         try {
                             const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
                             if (promotionEndDate > currentDate) {
-                                order.promotionCode = await PromotionCode.findOne({ id: order.promotionCode }).populate('promotion');
+                                // Re-check the code on every cart calculation. This makes disabling
+                                // a code effective immediately, even for carts where it was applied
+                                // before the operator turned it off.
+                                order.promotionCode = await PromotionCode.getValidPromotionCode(order.promotionCodeString);
                                 if (!order.promotionCode || !order.promotionCode.promotion || typeof order.promotionCode.promotion !== "object") {
                                     throw `No valid promotion for promocode`;
                                 }
@@ -1528,6 +1539,8 @@ let Model = {
                     orderPopulate.promotionFlatDiscount = orderPromoted.promotionFlatDiscount;
                     order = orderPopulate;
                     let promotionOrderToSave = {
+                        promotionCode: order.promotionCode,
+                        promotionCodeCheckValidTill: order.promotionCodeCheckValidTill,
                         promotionCodeDescription: order.promotionCodeDescription,
                         promotionState: order.promotionState,
                         promotionErrors: order.promotionErrors,

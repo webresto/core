@@ -158,7 +158,7 @@ let Model = {
                 enable: record.enable ?? null,
                 isDeleted: record.isDeleted ?? null,
                 visible: record.visible ?? null,
-                parentGroup: typeof record.parentGroup === "string" ? record.parentGroup : (record.parentGroup === null || record.parentGroup === void 0 ? void 0 : record.parentGroup.id) ?? null,
+                parentGroup: typeof record.parentGroup === "string" ? record.parentGroup : record.parentGroup?.id ?? null,
                 sortOrder: record.sortOrder ?? null,
             },
         });
@@ -505,7 +505,7 @@ let Model = {
                     enable: values.enable ?? null,
                     isDeleted: values.isDeleted ?? null,
                     visible: values.visible ?? null,
-                    parentGroup: typeof values.parentGroup === "string" ? values.parentGroup : (values.parentGroup === null || values.parentGroup === void 0 ? void 0 : values.parentGroup.id) ?? null,
+                    parentGroup: typeof values.parentGroup === "string" ? values.parentGroup : values.parentGroup?.id ?? null,
                     sortOrder: values.sortOrder ?? null,
                 },
             });

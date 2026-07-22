@@ -68,7 +68,15 @@ export default function ToInitialize(sails: Sails) {
   
       // Bind assets
       bindAssets();
-  
+
+      // Bind auth-provider HTTP routes (raw express, CSRF-exempt) — callback + bot webhooks
+      try {
+        const bindAuthRoutes = require("./bindAuthRoutes").default;
+        bindAuthRoutes();
+      } catch (error) {
+        sails.log.warn("Auth provider HTTP routes binding skipped", error);
+      }
+
       // Bind dictonaries
       bindDictionaries();
   

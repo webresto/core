@@ -8,6 +8,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const ajv_1 = __importDefault(require("ajv"));
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+// Directory holding per-setting manifest files (settings/*.json). Each manifest
+// declares a setting (key/type/name/defaultValue/jsonSchema/...) and is the single
+// source of truth for seeding it at boot. See loadSettingsManifests().
+const SETTINGS_MANIFEST_DIR = path_1.default.resolve(__dirname, "../settings");
 // Memory store
 let settings = {};
 // Declared settings tracker (ported from MM settingsHelper)
@@ -433,6 +439,68 @@ let Model = {
                 continue;
             }
             syncToEnv(setting);
+        }
+    },
+    /**
+     * Seed settings from the manifest files in settings/*.json.
+     *
+     * Each manifest is the declarative source of truth for one setting (replacing
+     * hardcoded Settings.set(...) calls at boot). For every manifest we:
+     *   1. declare the key (so Settings.get passes the declared-settings guard), and
+     *   2. seed it into the DB only when it is not already present — an existing
+     *      value (operator-configured or previously seeded) is never overwritten.
+     *
+     * Manifests must satisfy libs/schemas/settingsFile.json (json type requires a
+     * jsonSchema). Malformed or invalid manifests are logged and skipped.
+     */
+    async loadSettingsManifests() {
+        if (!fs_1.default.existsSync(SETTINGS_MANIFEST_DIR)) {
+            sails.log.warn(`CORE > Settings > manifest dir not found: ${SETTINGS_MANIFEST_DIR}`);
+            return;
+        }
+        for (const file of fs_1.default.readdirSync(SETTINGS_MANIFEST_DIR)) {
+            if (!file.endsWith(".json"))
+                continue;
+            let manifest;
+            try {
+                manifest = JSON.parse(fs_1.default.readFileSync(path_1.default.join(SETTINGS_MANIFEST_DIR, file), "utf8"));
+            }
+            catch (e) {
+                sails.log.error(`CORE > Settings > failed to parse manifest [${file}]`, e);
+                continue;
+            }
+            if (!manifest || !manifest.key || !manifest.type || !manifest.name) {
+                sails.log.error(`CORE > Settings > manifest [${file}] missing required fields (key/type/name)`);
+                continue;
+            }
+            if (manifest.type === "json" && manifest.jsonSchema === undefined) {
+                sails.log.error(`CORE > Settings > manifest [${file}] type "json" requires jsonSchema`);
+                continue;
+            }
+            // Always declare, so Settings.get(key) never trips the declared-settings guard.
+            setDeclaredSetting(manifest.key);
+            // Seed only if absent — do not clobber operator-configured values.
+            if (await Settings.get(manifest.key) !== undefined) {
+                continue;
+            }
+            try {
+                await Settings.set(manifest.key, {
+                    key: manifest.key,
+                    type: manifest.type,
+                    name: manifest.name,
+                    description: manifest.description,
+                    tooltip: manifest.tooltip,
+                    value: manifest.value,
+                    defaultValue: manifest.defaultValue,
+                    jsonSchema: manifest.jsonSchema,
+                    uiSchema: manifest.uiSchema,
+                    readOnly: manifest.readOnly,
+                    isRequired: manifest.isRequired,
+                });
+            }
+            catch (e) {
+                sails.log.error(`CORE > Settings > failed to seed manifest [${manifest.key}]`, e);
+            }
         }
     },
     // Expose declared settings management for MM settingsHelper

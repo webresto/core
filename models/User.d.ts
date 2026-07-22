@@ -39,6 +39,12 @@ declare let attributes: {
      */
     verified: boolean;
     /**
+     *  Has a verified email (email-link login or a social provider that returned a verified email)
+     */
+    emailVerified: boolean;
+    /** External auth accounts linked to this user (telegram / max / vk / …) */
+    identities: import("./AuthIdentity").AuthIdentityRecord[];
+    /**
      * Indicate filled all required custom fields
      */
     allRequiredCustomFieldsAreFilled: boolean;

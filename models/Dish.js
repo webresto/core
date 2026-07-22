@@ -283,7 +283,7 @@ let Model = {
                 isDeleted: record.isDeleted ?? null,
                 visible: record.visible ?? null,
                 balance: record.balance ?? null,
-                parentGroup: typeof record.parentGroup === "string" ? record.parentGroup : (record.parentGroup === null || record.parentGroup === void 0 ? void 0 : record.parentGroup.id) ?? null,
+                parentGroup: typeof record.parentGroup === "string" ? record.parentGroup : record.parentGroup?.id ?? null,
                 price: record.price ?? null,
             },
         });
@@ -494,7 +494,7 @@ let Model = {
                     isDeleted: values.isDeleted ?? null,
                     visible: values.visible ?? null,
                     balance: values.balance ?? null,
-                    parentGroup: typeof values.parentGroup === "string" ? values.parentGroup : (values.parentGroup === null || values.parentGroup === void 0 ? void 0 : values.parentGroup.id) ?? null,
+                    parentGroup: typeof values.parentGroup === "string" ? values.parentGroup : values.parentGroup?.id ?? null,
                     price: values.price ?? null,
                 },
             });

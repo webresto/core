@@ -1,0 +1,9 @@
+{
+  "key": "AUTH_CALLBACK_BASE_URL",
+  "type": "string",
+  "name": "Auth callback base URL",
+  "description": "Public base URL of this server, used to build OAuth redirect_uri and the post-login redirect.",
+  "readOnly": false,
+  "defaultValue": "",
+  "isRequired": false
+}

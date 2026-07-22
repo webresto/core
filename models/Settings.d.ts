@@ -65,6 +65,19 @@ declare let Model: {
      * Does not overwrite process.env if it is already set (env takes priority).
      */
     syncEnvMirroredSettings(): Promise<void>;
+    /**
+     * Seed settings from the manifest files in settings/*.json.
+     *
+     * Each manifest is the declarative source of truth for one setting (replacing
+     * hardcoded Settings.set(...) calls at boot). For every manifest we:
+     *   1. declare the key (so Settings.get passes the declared-settings guard), and
+     *   2. seed it into the DB only when it is not already present — an existing
+     *      value (operator-configured or previously seeded) is never overwritten.
+     *
+     * Manifests must satisfy libs/schemas/settingsFile.json (json type requires a
+     * jsonSchema). Malformed or invalid manifests are logged and skipped.
+     */
+    loadSettingsManifests(): Promise<void>;
     setDeclaredSetting: typeof setDeclaredSetting;
     isInDeclaredSettings: typeof isInDeclaredSettings;
     parseBoolean: typeof parseBoolean;
@@ -81,6 +94,16 @@ declare global {
          * Set visible: true for new dishes and groups from RMS sync
          * */
         VISIBLE_BY_DEFAULT_ON_SYNC: boolean;
+        /**
+         * Set enable: true for new dishes and groups from RMS sync
+         * */
+        ENABLE_BY_DEFAULT_ON_SYNC: boolean;
+        /** Newly self-registered auth providers start disabled by default */
+        DEFAULT_ENABLE_AUTH_PROVIDERS: boolean;
+        /** Relax the User phone-required invariant for social-first login */
+        ALLOW_USER_WITHOUT_PHONE: boolean;
+        /** Public base URL used to build OAuth redirect_uri and post-login redirect */
+        AUTH_CALLBACK_BASE_URL: string;
     }
 }
 interface SettingsSetInputBase<K extends string, F> {

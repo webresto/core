@@ -29,6 +29,7 @@ export interface PromotionCodeRecord extends attributes, ORM {
 }
 declare let Model: {
     beforeCreate(promotionCodeInit: PromotionCodeRecord, cb: (err?: string) => void): void;
+    beforeUpdate(values: Partial<PromotionCodeRecord>, cb: (err?: string) => void): void;
     /**
      * Check promocode is work now
      */
