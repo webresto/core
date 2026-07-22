@@ -12,6 +12,7 @@ class StubChannel extends Channel {
   public sendCount: number = 0;
   public failNext: boolean = false;
   public delayMs: number = 0;
+  public lastData: any = null;
 
   constructor(type: string, sortOrder: number) {
     super();
@@ -19,12 +20,13 @@ class StubChannel extends Channel {
     this.sortOrder = sortOrder;
   }
 
-  protected async send(): Promise<void> {
+  protected async send(_badge: any, _message: any, _user: any, _subject?: any, data?: any): Promise<void> {
     if (this.delayMs > 0) await new Promise((resolve) => setTimeout(resolve, this.delayMs));
     if (this.failNext) {
       this.failNext = false;
       throw new Error("stub channel failure");
     }
+    this.lastData = data;
     this.sendCount += 1;
   }
 }
@@ -97,6 +99,54 @@ describe("NotificationDispatcher", function () {
     if (updated.status !== "sent") throw new Error(`expected sent, got ${updated.status}`);
     if (!updated.channels?.length || updated.channels[0].type !== "stub-b") {
       throw new Error(`expected channels [stub-b], got ${JSON.stringify(updated.channels)}`);
+    }
+  });
+
+  it("keeps canonical data when create returns JSON strings", async () => {
+    const originalCreate = NotificationModel().create.bind(NotificationModel());
+    (NotificationModel() as any).create = (values: any) => ({
+      fetch: async () => {
+        const record = await originalCreate(values).fetch();
+        if (record.data && typeof record.data === "object") {
+          record.data = JSON.stringify(record.data) as any;
+        }
+        if (record.context && typeof record.context === "object") {
+          record.context = JSON.stringify(record.context) as any;
+        }
+        return record;
+      },
+    });
+
+    const sentBefore = stubA.sendCount;
+    try {
+      const notification = await NotificationDispatcher.send({
+        title: "otp",
+        body: "code",
+        groupTo: "user",
+        channelTypes: ["stub-a"],
+        data: {
+          eventKey: "user_otp_requested",
+          recipient: {},
+          context: { user: { phone: "79000000000" }, otp: { code: "123456" } },
+        },
+        context: { user: { phone: "79000000000" }, otp: { code: "123456" } },
+      });
+
+      if (stubA.sendCount !== sentBefore + 1) throw new Error("stub-a must receive the notification");
+      if (stubA.lastData?.context?.user?.phone !== "79000000000") {
+        throw new Error(`expected channel data to keep context.user.phone, got ${JSON.stringify(stubA.lastData)}`);
+      }
+
+      const persisted = await NotificationModel().findOne({ id: notification.id });
+      const persistedData = typeof persisted.data === "string" ? JSON.parse(persisted.data) : persisted.data;
+      if (persistedData?.context?.user?.phone !== "79000000000") {
+        throw new Error(`expected persisted data to keep context.user.phone, got ${JSON.stringify(persistedData)}`);
+      }
+      if (persistedData?.notificationId !== notification.id) {
+        throw new Error(`expected notificationId in persisted data, got ${JSON.stringify(persistedData)}`);
+      }
+    } finally {
+      (NotificationModel() as any).create = originalCreate;
     }
   });
 
