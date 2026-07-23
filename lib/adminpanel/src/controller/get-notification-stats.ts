@@ -47,7 +47,7 @@ function dayKey(ms: number): string {
 /**
  * Aggregated stats for the notifications dashboard:
  *  - per-channel notification counts + accumulated cost (for the channels chart);
- *  - a daily time-series of sent counts and cost (for the trend chart);
+ *  - a daily time-series of counts, failed counts, and cost (for the trend chart);
  *  - status totals and overall summary (total notifications, total spent cost).
  *
  * `channels` on a Notification is a JSON array of actually-sent entries
@@ -87,6 +87,7 @@ export default async function GetNotificationStatsController(req: any, res: any)
     const dayMap: Record<string, {
       date: string;
       count: number;
+      failedCount: number;
       cost: number;
       channelCounts: Record<string, number>;
       channelCosts: Record<string, number>;
@@ -97,7 +98,7 @@ export default async function GetNotificationStatsController(req: any, res: any)
       const d = new Date(rangeStart);
       d.setDate(d.getDate() + i);
       const key = dayKey(d.getTime());
-      if (key) dayMap[key] = { date: key, count: 0, cost: 0, channelCounts: {}, channelCosts: {} };
+      if (key) dayMap[key] = { date: key, count: 0, failedCount: 0, cost: 0, channelCounts: {}, channelCosts: {} };
     }
 
     let totalNotifications = 0;
@@ -116,6 +117,7 @@ export default async function GetNotificationStatsController(req: any, res: any)
       const key = createdAt ? dayKey(createdAt) : "";
       if (key && dayMap[key]) {
         dayMap[key].count += 1;
+        if (status === "failed") dayMap[key].failedCount += 1;
         dayMap[key].cost += spentCost;
       }
 
