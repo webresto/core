@@ -22,6 +22,7 @@ const RANGE_OPTIONS = [
 ];
 
 const PLOT_HEIGHT = 200;
+const FAILED_TREND_TYPE = '__failed_notifications';
 
 // Compact number formatting for axis/labels (1.2k, 3.4M).
 function formatCount(value, language) {
@@ -115,7 +116,7 @@ function ChannelBars({ channels, channelLabel, colorForType, t, language }) {
  * on the right toggles channels in/out of the stack; hovering a day shows a tooltip with the
  * per-channel breakdown and the day's total. Pure SVG/CSS — no charting dependency.
  */
-function StackedTrendChart({ title, description, series, channels, field, colorForType, channelLabel, formatValue, t, language, hidden, onToggleChannel }) {
+function StackedTrendChart({ title, description, series, channels, field, colorForType, channelLabel, legendTitle, formatValue, t, language, hidden, onToggleChannel }) {
   const [hoverIndex, setHoverIndex] = useState(null);
 
   const visibleChannels = useMemo(() => channels.filter((c) => !hidden.has(c.type)), [channels, hidden]);
@@ -238,7 +239,7 @@ function StackedTrendChart({ title, description, series, channels, field, colorF
 
         {/* Legend (right) — click a channel to toggle it in the stack */}
         <div style={{ flex: '0 0 190px', minWidth: 170, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 0.4 }}>{t('Channels')}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 0.4 }}>{legendTitle || t('Channels')}</span>
           {channels.length === 0 ? (
             <span style={styles.help}>{t('No channel activity in this period')}</span>
           ) : channels.map((c) => {
@@ -342,15 +343,36 @@ export default function DashboardSection({ t, language, channelLabel, statusLabe
   const channels = Array.isArray(stats?.channels) ? stats.channels : [];
   const series = Array.isArray(stats?.series) ? stats.series : [];
   const statuses = Array.isArray(stats?.statuses) ? stats.statuses : [];
+  const failedTrendTotal = useMemo(
+    () => series.reduce((sum, point) => sum + (Number(point?.failedCount) || 0), 0),
+    [series],
+  );
+  const volumeChannels = useMemo(
+    () => (failedTrendTotal > 0 ? [...channels, { type: FAILED_TREND_TYPE, count: failedTrendTotal, cost: 0, sentCount: 0 }] : channels),
+    [channels, failedTrendTotal],
+  );
+  const volumeSeries = useMemo(
+    () => series.map((point) => ({
+      ...point,
+      channelCounts: {
+        ...(point?.channelCounts || {}),
+        ...(Number(point?.failedCount) > 0 ? { [FAILED_TREND_TYPE]: Number(point.failedCount) || 0 } : {}),
+      },
+    })),
+    [series],
+  );
 
   // Stable channel → color map, shared across every chart and legend.
   const colorForType = useMemo(() => {
     const order = channels.map((c) => c.type);
     return (type) => {
+      if (type === FAILED_TREND_TYPE) return STATUS_COLORS.failed;
       const idx = order.indexOf(type);
       return CHANNEL_COLORS[(idx < 0 ? 0 : idx) % CHANNEL_COLORS.length];
     };
   }, [channels]);
+
+  const trendChannelLabel = (type) => (type === FAILED_TREND_TYPE ? t('Failed') : channelLabel(type));
 
   const toggleChannel = (type) => {
     setHiddenChannels((current) => {
@@ -436,12 +458,13 @@ export default function DashboardSection({ t, language, channelLabel, statusLabe
       {/* Stacked trend — volume */}
       <StackedTrendChart
         title={t('Notifications over time')}
-        description={t('Notifications sent per day, stacked by channel. Hover a day for the breakdown.')}
-        series={series}
-        channels={channels}
+        description={t('Notifications per day, stacked by channel; failed notifications are shown separately. Hover a day for the breakdown.')}
+        series={volumeSeries}
+        channels={volumeChannels}
         field="channelCounts"
         colorForType={colorForType}
-        channelLabel={channelLabel}
+        channelLabel={trendChannelLabel}
+        legendTitle={t('Channels and status')}
         formatValue={formatCount}
         t={t}
         language={language}
