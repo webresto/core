@@ -12,14 +12,16 @@ import { registerCoreMcpTools } from "./mcp";
  */
 export default async function () {
   try {
+    const loadCoreSettingsManifests = process.env.CORE_LOAD_SETTINGS_MANIFESTS === "true";
 
     // Mirror settings like JWT_SECRET from the DB into process.env on boot
     await Settings.syncEnvMirroredSettings();
 
-    // Declare + seed all settings from their manifests (settings/*.json).
-    // Manifests are the declarative source of truth; seeding is idempotent and
-    // never overwrites an already-present value.
-    await Settings.loadSettingsManifests();
+    // Legacy setups still seed settings through modulemanager. Keep manifests
+    // opt-in so tests or targeted runs can enable the new path explicitly.
+    if (loadCoreSettingsManifests) {
+      await Settings.loadSettingsManifests();
+    }
 
     const timeSyncPayments = await Settings.get("RESTOCORE_TIME_SYNC_PAYMENTS");
 

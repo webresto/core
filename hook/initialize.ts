@@ -94,7 +94,9 @@ export default function ToInitialize(sails: Sails) {
       // Bind models
       let modelsToSkip = process.env.CORE_MODELS_TO_SKIP !== undefined ? process.env.CORE_MODELS_TO_SKIP.split(";") : [];
       HookTools.bindModels(resolve(__dirname, "../models"), modelsToSkip).then(() => {
-        CartCleanup.start();
+        sails.after(["hook:orm:loaded"], () => {
+          CartCleanup.start();
+        });
         cb();
       });
     } catch (error) {

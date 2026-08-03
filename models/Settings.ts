@@ -433,44 +433,58 @@ let Model = {
 
     // Write to Database
     try {
-      const setting = await Settings.findOne({ key: key });
+      let setting = await Settings.findOne({ key: key });
       let inputValue = settingsSetInput.isRequired ? settingsSetInput.value ?? settingsSetInput.defaultValue : settingsSetInput.value;
+      const createData = {
+        key: key,
+        type: settingType,
+        module: settingsSetInput.appId || null,
+        jsonSchema: settingsSetInput.jsonSchema,
+        name: settingsSetInput.name,
+        value: inputValue,
+        defaultValue: settingsSetInput.defaultValue,
+        description: settingsSetInput.description,
+        tooltip: settingsSetInput.tooltip,
+        uiSchema: settingsSetInput.uiSchema,
+        readOnly: settingsSetInput.readOnly ?? false,
+        isRequired: settingsSetInput.isRequired ?? false
+      };
+      const updateData = {
+        key: key,
+        type: settingType,
+        ...(settingsSetInput.jsonSchema !== undefined ? { jsonSchema: settingsSetInput.jsonSchema } : {}),
+        ...(settingsSetInput.name !== undefined ? { name: settingsSetInput.name } : {}),
+        ...(inputValue !== undefined ? { value: inputValue } : {}),
+        ...(settingsSetInput.defaultValue !== undefined ? { defaultValue: settingsSetInput.defaultValue } : {}),
+        ...(settingsSetInput.description !== undefined ? { description: settingsSetInput.description } : {}),
+        ...(settingsSetInput.tooltip !== undefined ? { tooltip: settingsSetInput.tooltip } : {}),
+        ...(settingsSetInput.uiSchema !== undefined ? { uiSchema: settingsSetInput.uiSchema } : {}),
+        ...(settingsSetInput.readOnly !== undefined ? { readOnly: settingsSetInput.readOnly } : {}),
+        ...(settingsSetInput.isRequired !== undefined ? { isRequired: settingsSetInput.isRequired } : {}),
+      };
+
       if (!setting) {
-        const created = await Settings.create({
-          key: key,
-          type: settingType,
-          module: settingsSetInput.appId || null,
-          jsonSchema: settingsSetInput.jsonSchema,
-          name: settingsSetInput.name,
-          value: inputValue,
-          defaultValue: settingsSetInput.defaultValue,
-          description: settingsSetInput.description,
-          tooltip: settingsSetInput.tooltip,
-          uiSchema: settingsSetInput.uiSchema,
-          readOnly: settingsSetInput.readOnly ?? false,
-          isRequired: settingsSetInput.isRequired ?? false
-        }).fetch();
-        sails.log.debug(`CORE > Settings > created [${key}]:`, JSON.stringify({ value: inputValue, defaultValue: settingsSetInput.defaultValue, type: settingType }));
-        return created;
-      } else {
-        const updateData = {
-          key: key,
-          type: settingType,
-          ...(settingsSetInput.jsonSchema !== undefined ? { jsonSchema: settingsSetInput.jsonSchema } : {}),
-          ...(settingsSetInput.name !== undefined ? { name: settingsSetInput.name } : {}),
-          ...(inputValue !== undefined ? { value: inputValue } : {}),
-          ...(settingsSetInput.defaultValue !== undefined ? { defaultValue: settingsSetInput.defaultValue } : {}),
-          ...(settingsSetInput.description !== undefined ? { description: settingsSetInput.description } : {}),
-          ...(settingsSetInput.tooltip !== undefined ? { tooltip: settingsSetInput.tooltip } : {}),
-          ...(settingsSetInput.uiSchema !== undefined ? { uiSchema: settingsSetInput.uiSchema } : {}),
-          ...(settingsSetInput.readOnly !== undefined ? { readOnly: settingsSetInput.readOnly } : {}),
-          ...(settingsSetInput.isRequired !== undefined ? { isRequired: settingsSetInput.isRequired } : {}),
-        };
-        const updated = (await Settings.update({ key: key }, updateData).fetch())[0];
-        const _fmt = (v: unknown) => { const s = JSON.stringify(v); return s && s.length > 1024 ? '[long object]' : s; };
-        sails.log.debug(`CORE > Settings > updated [${key}]:`, JSON.stringify({ value: _fmt(updateData.value), defaultValue: _fmt(updateData.defaultValue), type: settingType }));
-        return updated;
+        try {
+          const created = await Settings.create(createData).fetch();
+          sails.log.debug(`CORE > Settings > created [${key}]:`, JSON.stringify({ value: inputValue, defaultValue: settingsSetInput.defaultValue, type: settingType }));
+          return created;
+        } catch (e: any) {
+          if (e?.code !== "E_UNIQUE") {
+            throw e;
+          }
+
+          // Another bootstrap path created the same setting between findOne and create.
+          setting = await Settings.findOne({ key: key });
+          if (!setting) {
+            throw e;
+          }
+        }
       }
+
+      const updated = (await Settings.update({ key: key }, updateData).fetch())[0];
+      const _fmt = (v: unknown) => { const s = JSON.stringify(v); return s && s.length > 1024 ? '[long object]' : s; };
+      sails.log.debug(`CORE > Settings > updated [${key}]:`, JSON.stringify({ value: _fmt(updateData.value), defaultValue: _fmt(updateData.defaultValue), type: settingType }));
+      return updated;
     } catch (e) {
       sails.log.error(`CORE > Settings > set DB error: key [${key}]`, settingsSetInput, e);
     }
