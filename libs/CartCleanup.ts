@@ -5,13 +5,29 @@ const EMPTY_CART_TTL_MS = 3 * DAY_MS;
 const CLEANUP_INTERVAL_MS = DAY_MS;
 const CLEANUP_BATCH_SIZE = 500;
 
-declare const Order: any;
-declare const OrderDish: any;
-
 export type CartCleanupResult = {
   emptyCarts: number;
   abandonedCheckoutCarts: number;
 };
+
+function getModels(): { Order: any; OrderDish: any } {
+  const globalObject = global as any;
+  const sailsObject = globalObject.sails;
+  const Order =
+    globalObject.Order
+    || sailsObject?.models?.Order
+    || sailsObject?.models?.order;
+  const OrderDish =
+    globalObject.OrderDish
+    || sailsObject?.models?.OrderDish
+    || sailsObject?.models?.orderdish;
+
+  if (!Order || !OrderDish || typeof Order.find !== "function" || typeof OrderDish.destroy !== "function") {
+    throw new Error("CartCleanup models are not available");
+  }
+
+  return { Order, OrderDish };
+}
 
 function twoMonthsBefore(timestamp: number): number {
   const date = new Date(timestamp);
@@ -21,6 +37,7 @@ function twoMonthsBefore(timestamp: number): number {
 
 async function destroyOrdersByCriteria(criteria: object): Promise<number> {
   let deleted = 0;
+  const { Order, OrderDish } = getModels();
 
   while (true) {
     const orders = await Order.find(criteria).limit(CLEANUP_BATCH_SIZE);
