@@ -351,29 +351,19 @@ export class Adapter {
     }
   }
 
-  // Auth providers that self-registered on boot. Populated by AuthProvider.alive().
-  private static aliveAuthAdapters: { [slug: string]: AuthProviderAdapter } = {};
-
-  /**
-   * Register a live auth adapter instance (called from AuthProvider.alive).
-   * Kept on the Adapter class so the GraphQL/HTTP layer can resolve an adapter by slug
-   * without importing the model, mirroring how live payment methods are tracked.
-   */
-  public static registerAuthAdapter(adapter: AuthProviderAdapter): void {
-    this.aliveAuthAdapters[adapter.adapter] = adapter;
-  }
-
   /**
    * returns a live Auth-provider adapter by its slug.
-   * First checks adapters that self-registered on boot (modules loaded as sails hooks,
-   * e.g. ru_auth_providers), then falls back to requiring an `@webresto/<slug>-auth-adapter`
-   * npm module — mirroring getPaymentAdapter.
+   * First checks providers that already self-registered into AuthProvider.alive() (modules
+   * loaded as sails hooks, e.g. ru_auth_providers — AuthProvider is a sails global, same as
+   * Settings above, so no import/circular-dependency concern here), then falls back to
+   * requiring an `@webresto/<slug>-auth-adapter` npm module — mirroring getPaymentAdapter.
    */
   public static async getAuthAdapter(adapterName: string): Promise<AuthProviderAdapter> {
     if (!adapterName) throw "AuthProviderAdapter name is required";
 
-    if (this.aliveAuthAdapters[adapterName]) {
-      return this.aliveAuthAdapters[adapterName];
+    const alive = AuthProvider.getAdapter(adapterName);
+    if (alive) {
+      return alive;
     }
 
     let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-auth-adapter";
@@ -382,8 +372,9 @@ export class Adapter {
     try {
       const adapterModule = require(adapterLocation);
       const instance = new adapterModule.AuthProviderAdapter() as AuthProviderAdapter;
+      // Constructing the adapter self-registers it into AuthProvider.alive(), which is the
+      // single cache getAuthAdapter reads from — no separate bookkeeping needed here.
       await instance.wait();
-      this.aliveAuthAdapters[adapterName] = instance;
       return instance;
     } catch (e) {
       sails.log.error("CORE > getAdapter Auth > error; ", e);
