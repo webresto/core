@@ -6,11 +6,10 @@ import { AuthIdentityRecord } from "../../models/AuthIdentity";
  * how to present the button and where the `complete` data comes from.
  */
 export type AuthFlowKind =
-  | "oauth2"           // redirect to provider, code → token → profile (VK, Yandex, FB, generic)
-  | "oidc"             // oauth2 subtype with id_token (Google/Apple/Keycloak)
-  | "telegram_widget"  // Telegram Login Widget (bot-signed hash on the page)
-  | "telegram_bot"     // login through a bot dialog + "share contact"
-  | "max_bot"          // login through a MAX messenger bot dialog + shared contact
+  | "oauth2"          // redirect to provider, code → token → profile (VK, Yandex, FB, generic)
+  | "oidc"            // oauth2 subtype with id_token (Google/Apple/Keycloak)
+  | "signed_widget"   // provider-signed widget embedded on the page (e.g. Telegram Login Widget)
+  | "bot_dialog"       // login through a messenger bot dialog + "share contact" (e.g. Telegram, MAX)
   | "email_link"       // magic-link / code sent to email
   | "phone_otp";       // baseline, implemented by the core (OTP adapter)
 
