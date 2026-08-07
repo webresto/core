@@ -91,14 +91,6 @@ let Model = {
             healthStatus: "needs_setup",
         });
         aliveAuthProviders[init.adapter] = authAdapter;
-        // Also register on the global Adapter class so getAuthAdapter() resolves boot-registered
-        // adapters. Uses the runtime global (set in hook/initialize) to avoid a circular import.
-        try {
-            global.Adapter?.registerAuthAdapter?.(authAdapter);
-        }
-        catch (e) {
-            sails.log.silly("AuthProvider > alive: Adapter.registerAuthAdapter unavailable", e);
-        }
         // Refresh denormalized UI fields (kind/title/icon can change between versions) and health.
         let health = { ok: true };
         try {
