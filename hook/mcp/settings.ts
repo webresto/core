@@ -22,6 +22,18 @@ function maskSensitiveValue(value: any): any {
     return masked;
 }
 
+/**
+ * A setting flagged `secret` holds a token/password/key: it lives in the DB only
+ * and is never disclosed, not even to an operator-driven model. It stays settable
+ * (settings-set writes it), so only the readout is replaced by this marker.
+ */
+const SECRET_PLACEHOLDER = '[secret — stored, never disclosed]';
+
+function maskSettingValue(setting: any, value: any): any {
+    if (setting?.secret) return value === null || value === undefined ? null : SECRET_PLACEHOLDER;
+    return maskSensitiveValue(value);
+}
+
 function shrinkListValue(value: any): any {
     if (value === null || value === undefined) return value;
     if (typeof value === 'number' || typeof value === 'boolean') return value;
@@ -67,12 +79,14 @@ export function registerSettingsTools() {
                 const rawDefault = s.defaultValue ?? null;
                 return {
                     key: s.key,
-                    value: shrinkListValue(maskSensitiveValue(rawValue)),
-                    defaultValue: shrinkListValue(maskSensitiveValue(rawDefault)),
+                    value: shrinkListValue(maskSettingValue(s, rawValue)),
+                    defaultValue: shrinkListValue(maskSettingValue(s, rawDefault)),
                     type: s.type,
                     name: s.name,
                     description: s.description ?? null,
                     readOnly: s.readOnly ?? false,
+                    secret: s.secret ?? false,
+                    restartRequired: s.restartRequired ?? false,
                     module: s.module ?? null,
                 };
             });
@@ -98,8 +112,8 @@ export function registerSettingsTools() {
             if (!s) throw new Error(`Setting "${key}" not found`);
             return {
                 ...s,
-                value: maskSensitiveValue(s.value),
-                defaultValue: maskSensitiveValue(s.defaultValue),
+                value: maskSettingValue(s, s.value),
+                defaultValue: maskSettingValue(s, s.defaultValue),
             };
         },
     });
@@ -132,7 +146,13 @@ export function registerSettingsTools() {
             if (s.readOnly) throw new Error(`Setting "${key}" is read-only`);
             await Settings.set(normalized as any, { key: normalized, value } as any);
             const updated = await Settings.findOne({ key: normalized });
-            return updated ? { ...updated, value: maskSensitiveValue(updated.value), defaultValue: maskSensitiveValue(updated.defaultValue) } : null;
+            if (!updated) return null;
+            return {
+                ...updated,
+                value: maskSettingValue(updated, updated.value),
+                defaultValue: maskSettingValue(updated, updated.defaultValue),
+                ...(updated.restartRequired ? { note: 'Restart the application for this change to take effect.' } : {}),
+            };
         },
     });
 }

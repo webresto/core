@@ -298,6 +298,7 @@ function ModifiersPreview({ groups, groupLabels, dishLabels, dishMeta, tr, onClo
 
   // ---- option row pieces -------------------------------------------------------
   const optionName = (child) => dishLabels[child.id] || dishInfo[child.id]?.name || child.id || '—';
+  const optionDescription = (child) => dishInfo[child.id]?.description || null;
   const optionPrice = (child) => dishInfo[child.id]?.price ?? 0;
   const optionUnavailable = (child) => {
     const d = dishInfo[child.id];
@@ -387,6 +388,11 @@ function ModifiersPreview({ groups, groupLabels, dishLabels, dishMeta, tr, onClo
             {price > 0 && <span style={{ fontSize: 12.5, fontWeight: 600, color: T.muted }}>+{fmt(price)}</span>}
             {optionMetaLine(child) && <span style={{ fontSize: 12, color: T.muted }}>{optionMetaLine(child)}</span>}
           </div>
+          {optionDescription(child) && (
+            <div style={{ marginTop: 3, fontSize: 12, lineHeight: 1.35, color: T.muted }}>
+              {optionDescription(child)}
+            </div>
+          )}
           {optionExtras(child, gi, ci, amount)}
         </div>
         <span style={{ display: 'inline-flex', alignItems: 'center', marginTop: 2 }}>{control}</span>
@@ -438,6 +444,11 @@ function ModifiersPreview({ groups, groupLabels, dishLabels, dishMeta, tr, onClo
                   <span style={{ fontSize: 13, fontWeight: 500, color: T.fg }}>{optionName(child)}</span>
                   {optionBadges(child, gi, ci, amount)}
                 </div>
+                {optionDescription(child) && (
+                  <div style={{ marginTop: 2, fontSize: 12, lineHeight: 1.35, color: T.muted }}>
+                    {optionDescription(child)}
+                  </div>
+                )}
                 {optionExtras(child, gi, ci, amount)}
               </div>
               <span style={{ fontSize: 12.5, color: T.muted, whiteSpace: 'nowrap', marginTop: 3 }}>
@@ -699,6 +710,7 @@ function ModifiersPreview({ groups, groupLabels, dishLabels, dishMeta, tr, onClo
 
   // ---- shell ----------------------------------------------------------------------
   const dishName = dishMeta?.name || editedDishInfo?.name || tr('Dish');
+  const dishDescription = dishMeta?.description || editedDishInfo?.description || null;
   const headerImage = pickImageUrl(editedDishInfo?.images, LG_KEYS);
   const dishWeight = editedDishInfo && editedDishInfo.weight > 0
     ? `${fmt(editedDishInfo.weight)}${editedDishInfo.measureUnit ? ` ${editedDishInfo.measureUnit}` : ''}`
@@ -770,6 +782,11 @@ function ModifiersPreview({ groups, groupLabels, dishLabels, dishMeta, tr, onClo
               <span style={{ fontSize: 14, fontWeight: 600, color: T.fg }} data-testid="preview-base-price">{fmt(basePrice)}</span>
               {dishWeight && <span style={{ fontSize: 12.5, color: T.muted }}>{dishWeight}</span>}
             </div>
+            {dishDescription && (
+              <div style={{ marginTop: 5, fontSize: 13, lineHeight: 1.4, color: T.muted }} data-testid="preview-dish-description">
+                {dishDescription}
+              </div>
+            )}
           </div>
 
           {/* preview-nature note (spec §4.3) */}

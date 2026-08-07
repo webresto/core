@@ -4,5 +4,6 @@
   "name": "No Sync Out Of Stocks",
   "description": "",
   "defaultValue": false,
-  "isRequired": true
+  "isRequired": true,
+  "restartRequired": true
 }

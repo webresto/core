@@ -364,75 +364,10 @@ export const models = {
     edit: NotificationConfig.edit(),
     remove: false,
   },
-  settings: {
-    title: "Settings",
-    model: "settings",
-    icon: "settings",
-    fields: {
-      id: false,
-      key: "Key",
-      name: "Name",
-      description: "Description",
-      tooltip: "Tooltip",
-      value: "Value",
-      defaultValue: "Default value",
-      type: "Type",
-      jsonSchema: "JSON Schema",
-      readOnly: "Read only",
-      uiSchema: "UI Schema",
-      module: "Module",
-      createdAt: false,
-      updatedAt: false,
-      isRequired: "Is required"
-    },
-
-    list: {
-      fields: {
-        id: false,
-        defaultValue: false,
-        description: false,
-        tooltip: false,
-        uiSchema: false,
-        readOnly: false,
-        isRequired: false,
-        jsonSchema: false,
-        type: false,
-        value: {
-          displayModifier(v: any) {
-              sails.log.debug(v)
-              if(typeof v === "object" && v !== null && Object.keys(v).length > 5) {
-                return "long object"
-              }
-              return v
-          },
-        }
-      },
-    },
-
-    add: {
-      fields: {
-        value: {
-          title: "Key",
-          type: "json",
-        },
-      },
-    },
-
-    edit: {
-      fields: {
-        description: {
-          title: "Описание",
-          type: "longtext",
-          disabled: true,
-        },
-        key: {
-          disabled: true,
-        },
-        value: {
-          title: "Value",
-          type: "json",
-        }
-      }
-    }
-  }
+  // The `settings` model is deliberately NOT bound here. Settings are edited through
+  // the dedicated Settings Manager page (hook/bindAdminpanel.ts → /settings-manager),
+  // which is the only UI that honours the model's `secret` flag: the generic model CRUD
+  // renders every column as-is and would print tokens/passwords in the list, and its
+  // per-field displayModifier receives only the value, never the row, so a secret row
+  // cannot be masked there.
 };

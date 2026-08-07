@@ -4,5 +4,6 @@
   "name": "No Sync Nomenclature",
   "description": "Do not synchronise nomenclature",
   "defaultValue": false,
-  "isRequired": true
+  "isRequired": true,
+  "restartRequired": true
 }

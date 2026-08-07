@@ -29,11 +29,16 @@ export default async function UpdateSettingController(req: any, res: any) {
       return res.status(400).json({ error: t('Validation failed. Check schema or value.') });
     }
 
+    // A secret setting is writable but never readable: echo back only that it is set.
     return res.json({
       id: updated.id,
       key: updated.key,
-      value: updated.value,
-      defaultValue: updated.defaultValue,
+      secret: setting.secret ?? false,
+      // The UI raises a "restart to apply" notice off this flag after a successful save.
+      restartRequired: setting.restartRequired ?? false,
+      hasValue: updated.value !== null && updated.value !== undefined,
+      value: setting.secret ? null : updated.value,
+      defaultValue: setting.secret ? null : updated.defaultValue,
       type: updated.type,
     });
   } catch (e) {
