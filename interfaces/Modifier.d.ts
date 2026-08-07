@@ -5,7 +5,7 @@ export interface OrderModifier {
      * restocore dishId
     */
     id: string;
-    rmsId: string;
+    rmsId?: string;
     /**
      * Default for amount is 1
      * This will be changed in a future version to have stricter rules
@@ -34,6 +34,10 @@ interface BaseModifier {
     minAmount?: number | null;
     defaultAmount?: number | null;
     /**
+     * Client presentation hint. It does not affect server-side validation or price.
+     */
+    hideIfDefaultAmount?: boolean | null;
+    /**
      * @deprecated use freeOfChargeAmount
      */
     freeAmount?: number | null;
@@ -48,16 +52,16 @@ export interface Modifier extends BaseModifier {
      * meaning is rmsId
      * @deprecated use id
      */
-    modifierId: any;
+    modifierId?: any;
     id: string;
-    rmsId: string;
+    rmsId?: string;
 }
 export interface GroupModifier extends BaseModifier {
     /**
      * restocore group.id
      */
     id: string;
-    rmsId: string;
+    rmsId?: string;
     childModifiers: Modifier[];
     group?: GroupRecord | string;
     groupId?: string;
@@ -66,6 +70,6 @@ export interface GroupModifier extends BaseModifier {
      * meaning is rmsId
      * @deprecated use id
      */
-    modifierId: string;
+    modifierId?: string;
 }
 export {};

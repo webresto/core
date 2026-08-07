@@ -1,5 +1,12 @@
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
 
+/**
+ * Identifies this process run. The settings page uses it to drop its "restart pending"
+ * notice: a value that only takes effect at boot is applied once the app comes back up
+ * with a different boot id, so the reminder must not survive the restart it asked for.
+ */
+const BOOT_ID = `${process.pid}-${Math.round(Date.now() - process.uptime() * 1000)}`;
+
 function isAdmin(req: any): boolean {
   return req.user?.isAdministrator === true;
 }
@@ -19,7 +26,8 @@ export default function SettingsManagerController(req: any, res: any) {
     props: {
       moduleComponent: `/restocore/assets/core-adminizer-assets/SettingsManager.js`,
       locale,
-      messages
+      messages,
+      bootId: BOOT_ID
     }
   });
 }

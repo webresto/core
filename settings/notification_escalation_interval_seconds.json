@@ -8,5 +8,6 @@
     "type": "integer",
     "minimum": 10
   },
-  "isRequired": false
+  "isRequired": false,
+  "restartRequired": true
 }

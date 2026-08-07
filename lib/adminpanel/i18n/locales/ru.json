@@ -851,5 +851,13 @@
 	"No tags yet": "Тегов пока нет",
 	"Remove tag": "Удалить тег",
 	"This tag is already added": "Этот тег уже добавлен",
-	"Press Enter or comma to add": "Нажмите Enter или запятую, чтобы добавить"
+	"Press Enter or comma to add": "Нажмите Enter или запятую, чтобы добавить",
+	"Secret": "Секрет",
+	"Restart required": "Требуется перезагрузка",
+	"The value is stored and cannot be shown. Enter a new one to replace it.": "Значение сохранено и не может быть показано. Введите новое, чтобы заменить его.",
+	"The value is not set yet. Enter one to store it.": "Значение ещё не задано. Введите его, чтобы сохранить.",
+	"Restart to apply": "Значение сохранено, но читается при запуске — перезагрузите приложение, чтобы оно применилось.",
+	"Restart pending title": "Для применения изменений нужна перезагрузка",
+	"Restart pending hint": "Сохранено в этой сессии, ожидает перезагрузки:",
+	"Dismiss": "Скрыть"
 }
