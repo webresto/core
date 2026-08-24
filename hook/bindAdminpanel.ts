@@ -1,6 +1,31 @@
+/**
+ * Binds the core's admin panel the Sails way: through `sails-adminpanel`'s events, onto a live
+ * Adminizer instance.
+ *
+ * What the panel consists of is no longer written here — it is data in
+ * `lib/adminpanel/manifest.ts`. This file only knows how a Sails host delivers it: which event
+ * carries what, in which order, and that a broken module must not take the rest down with it.
+ * A host that runs the core outside Sails reads the same manifest and binds it its own way, so
+ * a module added to the manifest appears in both without either binder being touched.
+ */
 import * as fs from "fs";
 import * as path from "path";
 import { ensureDefaultGroups } from "../libs/adminpanel/ensureDefaultGroups";
+import {
+  AdminPanelModule,
+  adminPanelAccessTokens,
+  adminPanelCatalog,
+  adminPanelControls,
+  adminPanelDashboardWidgets,
+  adminPanelDefaultModule,
+  adminPanelLocalesDir,
+  adminPanelMediaManager,
+  adminPanelMiddlewares,
+  adminPanelModules,
+  adminPanelNavbarLinks,
+  loadAdminPanelController,
+  loadAdminPanelModule,
+} from "../lib/adminpanel/manifest";
 
 // todo: fix types model instance to {%ModelName%}Record for bind"
 
@@ -37,225 +62,59 @@ export default function bindAdminpanel() {
   sails.on('Adminpanel:loaded', async () => {
     if (!sails.hooks.adminpanel?.adminizer) return;
 
-    let ProductCatalog: any;
-    let ProductMediaManager: any;
-    let initializeWidgets: any;
-    try {
-      ProductCatalog = require("../libs/adminpanel/ProductCatalog/ProductCatalog").ProductCatalog;
-      ProductMediaManager = require("../libs/adminpanel/ProductMediaManager/ProductMediaManager").ProductMediaManager;
-      initializeWidgets = require("../lib/adminpanel/widgets").initializeWidgets;
-    } catch (e) {
-      sails.log.warn("Adminpanel bindings are skipped: failed to load adminpanel modules", e);
-      return;
-    }
-
     const adminizer = sails.hooks.adminpanel.adminizer;
+    const routePrefix = adminizer.config.routePrefix;
     appendTranslations(adminizer);
 
+    adminizer.accessRightsHelper.registerTokens(adminPanelAccessTokens);
+
     // Catalog bind
-    const catalogHandler = adminizer.catalogHandler
-    const productCatalog = new ProductCatalog()
-    catalogHandler.add(productCatalog);
     try {
+      const ProductCatalog = loadAdminPanelModule(adminPanelCatalog.module)[adminPanelCatalog.export];
+      const productCatalog = new ProductCatalog();
+      adminizer.catalogHandler.add(productCatalog);
+
+      // One token per catalog on top of the catalog-wide one from the manifest: they only
+      // exist once the catalog can say what it holds.
       const catalogIds = await productCatalog.getIdList();
-      adminizer.accessRightsHelper.registerTokens([
-        {
-          id: 'catalog-products',
-          name: 'Product catalog',
-          description: 'Access to edit catalog for products',
-          department: 'Catalog'
-        },
-        ...catalogIds.map((catalogId: string) => ({
-          id: `catalog-products-${catalogId}`,
+      adminizer.accessRightsHelper.registerTokens(
+        catalogIds.map((catalogId: string) => ({
+          id: `${adminPanelCatalog.accessRightsToken}-${catalogId}`,
           name: "Product catalog",
           description: "Access to edit catalog for products",
           department: 'Catalog'
         }))
-      ]);
+      );
     } catch (e) {
-      sails.log.warn('Catalog access rights registration skipped', e);
+      sails.log.warn('Adminpanel product catalog binding skipped', e);
     }
 
     // Product media manager bind
-    const mediaManagerHandler = adminizer.mediaManagerHandler
-    const productMediaManager = new ProductMediaManager()
-    mediaManagerHandler.add(productMediaManager)
-
-    // Order logs custom viewer control bind
     try {
-      const OrderLogsViewerControl = require("../libs/adminpanel/controls/OrderLogsViewerControl").OrderLogsViewerControl;
-      const controlsHandler = sails.hooks.adminpanel.adminizer.controlsHandler;
-      if (!controlsHandler.get("jsonEditor", "order-logs-viewer")) {
-        controlsHandler.add(new OrderLogsViewerControl(sails.hooks.adminpanel.adminizer));
-      }
+      const ProductMediaManager = loadAdminPanelModule(adminPanelMediaManager.module)[adminPanelMediaManager.export];
+      adminizer.mediaManagerHandler.add(new ProductMediaManager());
     } catch (e) {
-      sails.log.warn("Order logs viewer control binding skipped", e);
+      sails.log.warn('Adminpanel product media manager binding skipped', e);
     }
 
-    // Worktime custom viewer control bind
-    try {
-      const WorktimeViewerControl = require("../libs/adminpanel/controls/WorktimeViewerControl").WorktimeViewerControl;
-      const controlsHandler = sails.hooks.adminpanel.adminizer.controlsHandler;
-      if (!controlsHandler.get("jsonEditor", "worktime-viewer")) {
-        controlsHandler.add(new WorktimeViewerControl(sails.hooks.adminpanel.adminizer));
+    // Custom controls used by the model forms (order logs, worktime, modifiers, tags)
+    for (const control of adminPanelControls) {
+      try {
+        if (adminizer.controlsHandler.get(control.type, control.name)) continue;
+        const ControlClass = loadAdminPanelModule(control.module)[control.export];
+        adminizer.controlsHandler.add(new ControlClass(adminizer));
+      } catch (e) {
+        sails.log.warn(`Adminpanel control \`${control.name}\` binding skipped`, e);
       }
-    } catch (e) {
-      sails.log.warn("Worktime viewer control binding skipped", e);
-    }
-
-    // Modifiers editor custom control bind (dish modifiers form + editor)
-    try {
-      const ModifiersEditorControl = require("../libs/adminpanel/controls/ModifiersEditorControl").ModifiersEditorControl;
-      const controlsHandler = sails.hooks.adminpanel.adminizer.controlsHandler;
-      if (!controlsHandler.get("jsonEditor", "modifiers-editor")) {
-        controlsHandler.add(new ModifiersEditorControl(sails.hooks.adminpanel.adminizer));
-      }
-    } catch (e) {
-      sails.log.warn("Modifiers editor control binding skipped", e);
-    }
-
-    // Tags editor custom control bind (dish tags chips input)
-    try {
-      const TagsEditorControl = require("../libs/adminpanel/controls/TagsEditorControl").TagsEditorControl;
-      const controlsHandler = sails.hooks.adminpanel.adminizer.controlsHandler;
-      if (!controlsHandler.get("jsonEditor", "tags-editor")) {
-        controlsHandler.add(new TagsEditorControl(sails.hooks.adminpanel.adminizer));
-      }
-    } catch (e) {
-      sails.log.warn("Tags editor control binding skipped", e);
     }
 
     // Initialize dashboard widgets
-    initializeWidgets();
-
-    adminizer.accessRightsHelper.registerTokens([
-      {
-        id: 'stock-manager',
-        name: 'Stock Manager',
-        description: 'Access to Stock Manager module and its API endpoints',
-        department: 'Catalog'
-      },
-      {
-        id: 'order-kanban',
-        name: 'Current Orders',
-        description: 'Access to Current Orders module and its API endpoints',
-        department: 'Orders'
-      },
-      {
-        id: 'ai-assistant-openharness',
-        name: 'RestoApp Assistant',
-        description: 'Use the streaming RestoApp Assistant data agent',
-        department: 'AI assistant'
-      },
-      {
-        id: 'globaly-operator-can-create',
-        name: 'Operator can create',
-        description: 'Global operator create permission for modules that explicitly require this token',
-        department: 'Global role permissions'
-      },
-      {
-        id: 'globaly-operator-can-view',
-        name: 'Operator can view',
-        description: 'Global operator view permission for modules that explicitly require this token',
-        department: 'Global role permissions'
-      },
-      {
-        id: 'globaly-operator-can-write',
-        name: 'Operator can write',
-        description: 'Global operator write permission for modules that explicitly require this token',
-        department: 'Global role permissions'
-      },
-      {
-        id: 'globaly-operator-can-delete',
-        name: 'Operator can delete',
-        description: 'Global operator delete permission for modules that explicitly require this token',
-        department: 'Global role permissions'
-      },
-      {
-        id: 'notifications-manager',
-        name: 'Notifications',
-        description: 'Legacy full access to Notifications module and its API endpoints',
-        department: 'Notifications'
-      },
-      {
-        id: 'notifications-manager-view',
-        name: 'Notifications view',
-        description: 'Read-only access to Notifications module',
-        department: 'Notifications'
-      },
-      {
-        id: 'notifications-manager-manage',
-        name: 'Notifications manage',
-        description: 'Access to manage Notifications module settings and write operations',
-        department: 'Notifications'
-      },
-      {
-        id: 'promocodes-manager',
-        name: 'Promo codes',
-        description: 'Access to the Promo codes module and its API endpoints',
-        department: 'Marketing'
-      },
-      {
-        id: 'promotions-manager',
-        name: 'Promotions',
-        description: 'Access to the Promotions module and its API endpoints',
-        department: 'Marketing'
-      },
-      {
-        id: 'globaly-marketer-can-create',
-        name: 'Marketer can create',
-        description: 'Global marketer create permission for modules that explicitly require this token',
-        department: 'Global role permissions'
-      },
-      {
-        id: 'globaly-marketer-can-view',
-        name: 'Marketer can view',
-        description: 'Global marketer view permission for modules that explicitly require this token',
-        department: 'Global role permissions'
-      },
-      {
-        id: 'globaly-marketer-can-write',
-        name: 'Marketer can write',
-        description: 'Global marketer write permission for modules that explicitly require this token',
-        department: 'Global role permissions'
-      },
-      {
-        id: 'globaly-marketer-can-delete',
-        name: 'Marketer can delete',
-        description: 'Global marketer delete permission for modules that explicitly require this token',
-        department: 'Global role permissions'
-      },
-      {
-        id: 'orders-report',
-        name: 'Orders Report',
-        description: 'Access to Orders Report module and its API endpoints',
-        department: 'Reports'
-      },
-      {
-        id: 'sales-channels-manager',
-        name: 'Sales Channels',
-        description: 'Legacy full access to the Sales Channels module and its API endpoints',
-        department: 'Store'
-      },
-      {
-        id: 'sales-channels-view',
-        name: 'Sales Channels view',
-        description: 'Read-only access to the Sales Channels module',
-        department: 'Store'
-      },
-      {
-        id: 'sales-channels-manage',
-        name: 'Sales Channels manage',
-        description: 'Access to manage Sales Channels module settings and write operations',
-        department: 'Store'
-      },
-      {
-        id: 'setup-checklist',
-        name: 'Setup checklist',
-        description: 'Access to the Setup checklist page and its API endpoints',
-        department: 'System'
-      }
-    ]);
+    try {
+      const { initializeWidgets } = loadAdminPanelModule("widgets");
+      initializeWidgets();
+    } catch (e) {
+      sails.log.warn("Adminpanel widgets initialization skipped", e);
+    }
 
     try {
       await ensureDefaultGroups(adminizer, adminizer.config.defaultGroups);
@@ -263,21 +122,18 @@ export default function bindAdminpanel() {
       sails.log.error('Default admin groups initialization failed', e);
     }
 
-    adminizer.config.navbar.additionalLinks.push({
-      id: 'restoapp-catalog',
-      title: 'Products',
-      link: `/admin/catalog/products`,
-      icon: `book`,
-      accessRightsToken: "catalog-products",
-      section: 'Catalog'
-    });
-    adminizer.config.navbar.additionalLinks.push({
-      id: 'restoapp-catalog-preview',
-      title: 'Preview',
-      link: `/menu`,
-      icon: `web`,
-      section: 'Catalog'
-    });
+    if (Array.isArray(adminizer.config.navbar?.additionalLinks)) {
+      for (const link of adminPanelNavbarLinks) {
+        adminizer.config.navbar.additionalLinks.push({
+          id: link.id,
+          title: link.title,
+          link: link.linkType === "admin" ? `${routePrefix}${link.link}` : link.link,
+          icon: link.icon as any,
+          section: link.section as any,
+          ...(link.accessRightsToken ? { accessRightsToken: link.accessRightsToken } : {}),
+        });
+      }
+    }
   })
 }
 
@@ -287,15 +143,14 @@ function appendTranslations(adminizer: any) {
     return;
   }
 
-  const translationsDir = path.resolve(__dirname, "../lib/adminpanel/i18n/locales");
-  if (!fs.existsSync(translationsDir)) {
-    sails.log.warn(`Adminpanel module translations directory not found: ${translationsDir}`);
+  if (!fs.existsSync(adminPanelLocalesDir)) {
+    sails.log.warn(`Adminpanel module translations directory not found: ${adminPanelLocalesDir}`);
     return;
   }
 
   const locales = sails.config.i18n?.locales ?? [];
   for (const locale of locales) {
-    const localeFile = path.resolve(translationsDir, `${locale}.json`);
+    const localeFile = path.resolve(adminPanelLocalesDir, `${locale}.json`);
     if (!fs.existsSync(localeFile)) {
       sails.log.debug(`Adminpanel module translations: locale file not found for ${locale}`);
       continue;
@@ -328,48 +183,20 @@ function processBindAdminpanel() {
     sails.log.warn("Adminpanel model bindings are skipped: failed to load model configs", e);
   }
 
-  // if (Array.isArray(sails.config.adminpanel?.sections)) {
-  //   let baseRoute = sails.config.adminpanel.routePrefix;
-  //   sails.config.adminpanel.sections.push({
-  //     id: 'products',
-  //     title: 'Products',
-  //     link: `${baseRoute}/catalog/products`,
-  //     icon: `barcode`
-  //   });
-  // }
-
   // Configure dashboard widgets
   if (sails.config.adminpanel?.dashboard) {
     if (!sails.config.adminpanel.dashboard.defaultWidgets) {
       sails.config.adminpanel.dashboard.defaultWidgets = [];
     }
-    // Add core widgets to default widgets list
-    const coreWidgets = ['dish-count',
-       'order-count', 
-       'dishes-on-stop',
-       'sales-channels-count',
-       // Adminizer custom widgets use a single-underscore instance suffix.
-       'setup-checklist-status_0'];
-    coreWidgets.forEach(widgetId => {
-      if (!sails.config.adminpanel.dashboard.defaultWidgets.includes(widgetId)) {
-        sails.config.adminpanel.dashboard.defaultWidgets.push(widgetId);
+    const defaultWidgets = sails.config.adminpanel.dashboard.defaultWidgets;
+    for (const widgetId of adminPanelDashboardWidgets) {
+      if (!defaultWidgets.includes(widgetId)) {
+        defaultWidgets.push(widgetId);
       }
-    });
+    }
   }
 
-  // Add navbar link for product catalog
-  if (sails.config.adminpanel?.navbar && Array.isArray(sails.config.adminpanel.navbar.additionalLinks)) {
-    let baseRoute = sails.config.adminpanel.routePrefix;
-    sails.config.adminpanel.navbar.additionalLinks.push({
-      id: 'product-catalog',
-      title: 'Catalog',
-      link: `${baseRoute}/catalog/products`,
-      icon: 'shopping-cart' as any,
-      section: 'Store' as any
-    });
-  }
-
-  // Add routes for product setup  
+  // Module routes are bound once the panel's own router exists.
   sails.on('Adminpanel:afterHook:loaded', async () => {
     if (sails.hooks.adminpanel && sails.hooks.adminpanel.adminizer) {
       const adminizer = sails.hooks.adminpanel.adminizer;
@@ -381,631 +208,31 @@ function processBindAdminpanel() {
         // list cannot drift from the navbar, and offered over the emitter to
         // whoever builds links into the admin router.
         const corePages: AdminPageLink[] = [];
-        const addAdminPage = (entry: any) => {
-          adminizer.config.navbar.additionalLinks.push(entry);
-          corePages.push({
-            type: 'app',
-            name: entry.id,
-            link: entry.link,
-            title: entry.title,
-            section: entry.section,
-            accessRightsToken: entry.accessRightsToken,
-          });
-        };
         // Answered live on every read, so it does not matter who loads first,
         // and nothing breaks when no one is collecting.
         emitter.on('admin-panel:collect-links', 'restocore', () => corePages);
 
-        let getInertiaLocaleAndMessages: ((req: any) => { locale: string; messages: Record<string, string> }) | null = null;
-
-        try {
-          ({ getInertiaLocaleAndMessages } = require("../lib/adminpanel/src/controller/i18n-messages"));
-        } catch (e) {
-          sails.log.debug("Adminpanel i18n helper binding skipped", e);
+        for (const middleware of adminPanelMiddlewares) {
+          try {
+            adminizer.app.use(
+              `${routePrefix}${middleware.route}`,
+              loadAdminPanelController(middleware.handler)
+            );
+          } catch (e) {
+            sails.log.debug(`Adminpanel middleware \`${middleware.id}\` bind error`, e);
+          }
         }
 
-        // Prevent browser/proxy caching for admin core API responses.
-        adminizer.app.use(`${routePrefix}/core`, (_req: any, res: any, next: any) => {
-          res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-          res.set('Pragma', 'no-cache');
-          res.set('Expires', '0');
-          res.set('Surrogate-Control', 'no-store');
-          next();
-        });
-
-        if (getInertiaLocaleAndMessages) {
-          adminizer.app.use(`${routePrefix}`, (req: any, _res: any, next: any) => {
-            if (req?.Inertia?.shareProps) {
-              const { locale, messages } = getInertiaLocaleAndMessages!(req);
-              req.Inertia.shareProps({ locale, messages });
-            }
-            next();
-          });
+        for (const module of adminPanelModules) {
+          try {
+            bindModule(adminizer, module, routePrefix, bind, corePages);
+          } catch (e) {
+            sails.log.debug(`Adminpanel module \`${module.id}\` bind error`, e);
+          }
         }
 
         // The OpenHarness Agent page moved to the restoapp project
         // (api/hooks/openharness-ui); only the access token stays here.
-
-        try {
-          const stockController = require('../lib/adminpanel/src/controller/stock-manager').default;
-          addAdminPage({
-            id: 'stock-manager',
-            title: 'Stock Manager',
-            link: `${routePrefix}/stock-manager`,
-            icon: 'warehouse',
-            accessRightsToken: 'stock-manager',
-            section: 'Catalog'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/stock-manager`,
-            ...bind(stockController)
-          );
-        } catch (e) {
-          sails.log.debug('StockManager route bind error', e);
-        }
-
-        // OrderKanban module link + route
-        try {
-          const orderKanbanController = require('../lib/adminpanel/src/controller/order-kanban').default;
-          addAdminPage({
-            id: 'order-kanban',
-            title: 'Current Orders',
-            link: `${routePrefix}/order-kanban`,
-            icon: 'view_kanban',
-            accessRightsToken: 'order-kanban',
-            section: 'Orders'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/order-kanban`,
-            ...bind(orderKanbanController)
-          );
-
-          // Make order kanban the default admin landing page.
-          adminizer.app.get(
-            `${routePrefix}`,
-            ...bind((_req: any, res: any) => {
-              return res.redirect(`${routePrefix}/order-kanban`);
-            })
-          );
-        } catch (e) {
-          sails.log.debug('OrderKanban route bind error', e);
-        }
-
-        // Notifications module link + route
-        try {
-          const notificationsManagerController = require('../lib/adminpanel/src/controller/notifications-manager').default;
-          addAdminPage({
-            id: 'notifications-manager',
-            title: 'Notifications',
-            link: `${routePrefix}/notifications-manager`,
-            icon: 'notifications',
-            accessRightsToken: 'notifications-manager-view',
-            section: 'Notifications'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/notifications-manager`,
-            ...bind(notificationsManagerController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager route bind error', e);
-        }
-
-        try {
-          const notificationChannelsController = require('../lib/adminpanel/src/controller/notification-channels').default;
-          addAdminPage({
-            id: 'notification-channels',
-            title: 'Notification channels',
-            link: `${routePrefix}/notification-channels`,
-            icon: 'settings_input_component',
-            accessRightsToken: 'notifications-manager-view',
-            section: 'Notifications'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/notification-channels`,
-            ...bind(notificationChannelsController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationChannels route bind error', e);
-        }
-
-        // API route for search used by StockManager frontend — expose under admin path
-        try {
-          const searchController = require('../lib/adminpanel/src/controller/search').default;
-          // Expose at <routePrefix>/core/api?q=... for admin-scoped API
-          adminizer.app.get(`${routePrefix}/core/api`, ...bind(searchController));
-        } catch (e) {
-          sails.log.debug('StockManager search route bind error', e);
-        }
-
-        // API route for updating stock
-        try {
-          const updateStockController = require('../lib/adminpanel/src/controller/update-stock').default;
-          adminizer.app.post(`${routePrefix}/core/update-stock`, ...bind(updateStockController));
-        } catch (e) {
-          sails.log.debug('StockManager update stock route bind error', e);
-        }
-
-        // API route for getting stock items
-        try {
-          const getStockItemsController = require('../lib/adminpanel/src/controller/get-stock-items').default;
-          adminizer.app.get(`${routePrefix}/core/stock-items`, ...bind(getStockItemsController));
-        } catch (e) {
-          sails.log.debug('StockManager get stock items route bind error', e);
-        }
-
-        // API route for getting groups
-        try {
-          const getGroupsController = require('../lib/adminpanel/src/controller/get-groups').default;
-          adminizer.app.get(`${routePrefix}/core/groups`, ...bind(getGroupsController));
-        } catch (e) {
-          sails.log.debug('StockManager get groups route bind error', e);
-        }
-
-        // API route for getting dishes by group
-        try {
-          const getDishesByGroupController = require('../lib/adminpanel/src/controller/get-dishes-by-group').default;
-          adminizer.app.get(`${routePrefix}/core/dishes-by-group`, ...bind(getDishesByGroupController));
-        } catch (e) {
-          sails.log.debug('StockManager get dishes by group route bind error', e);
-        }
-
-        // API route for updating visibility
-        try {
-          const updateVisibilityController = require('../lib/adminpanel/src/controller/update-visibility').default;
-          adminizer.app.post(`${routePrefix}/core/update-visibility`, ...bind(updateVisibilityController));
-        } catch (e) {
-          sails.log.debug('StockManager update visibility route bind error', e);
-        }
-
-        // API route for updating isDeleted flag (used by StockManager frontend)
-        try {
-          const updateIsDeletedController = require('../lib/adminpanel/src/controller/update-is-deleted').default;
-          adminizer.app.post(`${routePrefix}/core/update-is-deleted`, ...bind(updateIsDeletedController));
-        } catch (e) {
-          sails.log.debug('StockManager update isDeleted route bind error', e);
-        }
-
-        // API route for order kanban list
-        try {
-          const getOrderKanbanOrdersController = require('../lib/adminpanel/src/controller/get-order-kanban-orders').default;
-          adminizer.app.get(
-            `${routePrefix}/core/order-kanban/orders`,
-            ...bind(getOrderKanbanOrdersController)
-          );
-        } catch (e) {
-          sails.log.debug('OrderKanban list route bind error', e);
-        }
-
-        // API route for order kanban single order details
-        try {
-          const getOrderKanbanOrderController = require('../lib/adminpanel/src/controller/get-order-kanban-order').default;
-          adminizer.app.get(
-            `${routePrefix}/core/order-kanban/order`,
-            ...bind(getOrderKanbanOrderController)
-          );
-        } catch (e) {
-          sails.log.debug('OrderKanban order route bind error', e);
-        }
-
-        // API route for order kanban SSE stream
-        try {
-          const orderKanbanStreamController = require('../lib/adminpanel/src/controller/order-kanban-stream').default;
-          adminizer.app.get(
-            `${routePrefix}/core/order-kanban/stream`,
-            ...bind(orderKanbanStreamController)
-          );
-        } catch (e) {
-          sails.log.debug('OrderKanban stream route bind error', e);
-        }
-
-        // API route for order kanban state update
-        try {
-          const updateOrderKanbanStateController = require('../lib/adminpanel/src/controller/update-order-kanban-state').default;
-          adminizer.app.post(
-            `${routePrefix}/core/order-kanban/state`,
-            ...bind(updateOrderKanbanStateController)
-          );
-        } catch (e) {
-          sails.log.debug('OrderKanban state route bind error', e);
-        }
-
-        // API route for notifications list
-        try {
-          const getNotificationsController = require('../lib/adminpanel/src/controller/get-notifications').default;
-          adminizer.app.get(
-            `${routePrefix}/core/notifications-manager/notifications`,
-            ...bind(getNotificationsController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager list route bind error', e);
-        }
-
-        // API route for notifications dashboard stats (per-channel counts, cost, daily trend)
-        try {
-          const getNotificationStatsController = require('../lib/adminpanel/src/controller/get-notification-stats').default;
-          adminizer.app.get(
-            `${routePrefix}/core/notifications-manager/stats`,
-            ...bind(getNotificationStatsController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager stats route bind error', e);
-        }
-
-        // API route for single notification details
-        try {
-          const getNotificationController = require('../lib/adminpanel/src/controller/get-notification').default;
-          adminizer.app.get(
-            `${routePrefix}/core/notifications-manager/notification`,
-            ...bind(getNotificationController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager notification route bind error', e);
-        }
-
-        // API route for retrying delivery
-        try {
-          const retryNotificationController = require('../lib/adminpanel/src/controller/retry-notification').default;
-          adminizer.app.post(
-            `${routePrefix}/core/notifications-manager/retry`,
-            ...bind(retryNotificationController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager retry route bind error', e);
-        }
-
-        // API route for searching users for notification creation
-        try {
-          const searchNotificationUsersController = require('../lib/adminpanel/src/controller/search-notification-users').default;
-          adminizer.app.get(
-            `${routePrefix}/core/notifications-manager/users`,
-            ...bind(searchNotificationUsersController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager users route bind error', e);
-        }
-
-        // API route for creating notification
-        try {
-          const createNotificationController = require('../lib/adminpanel/src/controller/create-notification').default;
-          adminizer.app.post(
-            `${routePrefix}/core/notifications-manager/create`,
-            ...bind(createNotificationController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager create route bind error', e);
-        }
-
-        // API route for notification channels overview
-        try {
-          const getNotificationChannelsController = require('../lib/adminpanel/src/controller/get-notification-channels').default;
-          const updateNotificationChannelSettingsController = require('../lib/adminpanel/src/controller/update-notification-channel-settings').default;
-          adminizer.app.get(
-            `${routePrefix}/core/notifications-manager/channels`,
-            ...bind(getNotificationChannelsController)
-          );
-          adminizer.app.post(
-            `${routePrefix}/core/notifications-manager/channel-settings`,
-            ...bind(updateNotificationChannelSettingsController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager channels route bind error', e);
-        }
-
-        // API routes for notification types catalog (read + write)
-        try {
-          const getNotificationTypesController = require('../lib/adminpanel/src/controller/get-notification-types').default;
-          const getNotificationTypeController = require('../lib/adminpanel/src/controller/get-notification-type').default;
-          const upsertNotificationTypeController = require('../lib/adminpanel/src/controller/upsert-notification-type').default;
-          const deleteNotificationTypeController = require('../lib/adminpanel/src/controller/delete-notification-type').default;
-          adminizer.app.get(
-            `${routePrefix}/core/notifications-manager/types`,
-            ...bind(getNotificationTypesController)
-          );
-          adminizer.app.get(
-            `${routePrefix}/core/notifications-manager/type`,
-            ...bind(getNotificationTypeController)
-          );
-          adminizer.app.post(
-            `${routePrefix}/core/notifications-manager/type`,
-            ...bind(upsertNotificationTypeController)
-          );
-          adminizer.app.post(
-            `${routePrefix}/core/notifications-manager/type-delete`,
-            ...bind(deleteNotificationTypeController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager types route bind error', e);
-        }
-
-        // API route for notification events catalog (read-only)
-        try {
-          const getNotificationEventsController = require('../lib/adminpanel/src/controller/get-notification-events').default;
-          adminizer.app.get(
-            `${routePrefix}/core/notifications-manager/events`,
-            ...bind(getNotificationEventsController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager events route bind error', e);
-        }
-
-        // API route for emitting a test notification (dry-run / real)
-        try {
-          const emitTestNotificationController = require('../lib/adminpanel/src/controller/emit-test-notification').default;
-          adminizer.app.post(
-            `${routePrefix}/core/notifications-manager/emit-test`,
-            ...bind(emitTestNotificationController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager emit-test route bind error', e);
-        }
-
-        // API route for available locales catalog
-        try {
-          const getNotificationLocalesController = require('../lib/adminpanel/src/controller/get-notification-locales').default;
-          adminizer.app.get(
-            `${routePrefix}/core/notifications-manager/locales`,
-            ...bind(getNotificationLocalesController)
-          );
-        } catch (e) {
-          sails.log.debug('NotificationsManager locales route bind error', e);
-        }
-
-        // Marketing → Promo codes module link + page route + API routes
-        try {
-          const promoCodesManagerController = require('../lib/adminpanel/src/controller/promocodes-manager').default;
-          addAdminPage({
-            id: 'promocodes-manager',
-            title: 'Promo codes',
-            link: `${routePrefix}/promocodes-manager`,
-            icon: 'confirmation_number',
-            accessRightsToken: 'promocodes-manager',
-            section: 'Marketing'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/promocodes-manager`,
-            ...bind(promoCodesManagerController)
-          );
-
-          const getPromoCodesController = require('../lib/adminpanel/src/controller/get-promocodes').default;
-          const getPromoCodeController = require('../lib/adminpanel/src/controller/get-promocode').default;
-          const upsertPromoCodeController = require('../lib/adminpanel/src/controller/upsert-promocode').default;
-          const deletePromoCodeController = require('../lib/adminpanel/src/controller/delete-promocode').default;
-          const getPromoCodesStatsController = require('../lib/adminpanel/src/controller/get-promocodes-stats').default;
-          const getPromoCodesActivityController = require('../lib/adminpanel/src/controller/get-promocodes-activity').default;
-          const generatePromoCodeController = require('../lib/adminpanel/src/controller/generate-promocode').default;
-          const getPromotionsOptionsController = require('../lib/adminpanel/src/controller/get-promotions-options').default;
-
-          adminizer.app.get(`${routePrefix}/core/marketing/promocodes`, ...bind(getPromoCodesController));
-          adminizer.app.get(`${routePrefix}/core/marketing/promocodes/stats`, ...bind(getPromoCodesStatsController));
-          adminizer.app.get(`${routePrefix}/core/marketing/promocodes/activity`, ...bind(getPromoCodesActivityController));
-          adminizer.app.get(`${routePrefix}/core/marketing/promocodes/generate-code`, ...bind(generatePromoCodeController));
-          adminizer.app.get(`${routePrefix}/core/marketing/promocode`, ...bind(getPromoCodeController));
-          adminizer.app.post(`${routePrefix}/core/marketing/promocode`, ...bind(upsertPromoCodeController));
-          adminizer.app.post(`${routePrefix}/core/marketing/promocode-delete`, ...bind(deletePromoCodeController));
-          adminizer.app.get(`${routePrefix}/core/marketing/promotions-options`, ...bind(getPromotionsOptionsController));
-        } catch (e) {
-          sails.log.debug('Marketing PromoCodes route bind error', e);
-        }
-
-        // Marketing → Promotions module link + page route + API routes
-        try {
-          const promotionsManagerController = require('../lib/adminpanel/src/controller/promotions-manager').default;
-          addAdminPage({
-            id: 'promotions-manager',
-            title: 'Promotions',
-            link: `${routePrefix}/promotions-manager`,
-            icon: 'local_offer',
-            accessRightsToken: 'promotions-manager',
-            section: 'Marketing'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/promotions-manager`,
-            ...bind(promotionsManagerController)
-          );
-
-          const getMarketingPromotionsController = require('../lib/adminpanel/src/controller/get-marketing-promotions').default;
-          const getMarketingPromotionController = require('../lib/adminpanel/src/controller/get-marketing-promotion').default;
-          const upsertMarketingPromotionController = require('../lib/adminpanel/src/controller/upsert-marketing-promotion').default;
-          const toggleMarketingPromotionController = require('../lib/adminpanel/src/controller/toggle-marketing-promotion').default;
-          const deleteMarketingPromotionController = require('../lib/adminpanel/src/controller/delete-marketing-promotion').default;
-          const getMarketingConceptsController = require('../lib/adminpanel/src/controller/get-marketing-concepts').default;
-          const getMarketingGroupsController = require('../lib/adminpanel/src/controller/get-marketing-groups').default;
-          const getMarketingDishesController = require('../lib/adminpanel/src/controller/get-marketing-dishes').default;
-
-          adminizer.app.get(`${routePrefix}/core/marketing/promotions`, ...bind(getMarketingPromotionsController));
-          adminizer.app.get(`${routePrefix}/core/marketing/promotion`, ...bind(getMarketingPromotionController));
-          adminizer.app.post(`${routePrefix}/core/marketing/promotion`, ...bind(upsertMarketingPromotionController));
-          adminizer.app.post(`${routePrefix}/core/marketing/promotion-toggle`, ...bind(toggleMarketingPromotionController));
-          adminizer.app.post(`${routePrefix}/core/marketing/promotion-delete`, ...bind(deleteMarketingPromotionController));
-          adminizer.app.get(`${routePrefix}/core/marketing/concepts`, ...bind(getMarketingConceptsController));
-          adminizer.app.get(`${routePrefix}/core/marketing/groups`, ...bind(getMarketingGroupsController));
-          adminizer.app.get(`${routePrefix}/core/marketing/dishes`, ...bind(getMarketingDishesController));
-        } catch (e) {
-          sails.log.debug('Marketing Promotions route bind error', e);
-        }
-
-        // Settings Manager module link + routes
-        try {
-          const settingsManagerController = require('../lib/adminpanel/src/controller/settings-manager').default;
-          const getSettingsController = require('../lib/adminpanel/src/controller/get-settings').default;
-          const updateSettingController = require('../lib/adminpanel/src/controller/update-setting').default;
-          const exportSettingsController = require('../lib/adminpanel/src/controller/export-settings').default;
-          const importSettingsController = require('../lib/adminpanel/src/controller/import-settings').default;
-
-          addAdminPage({
-            id: 'settings-manager',
-            title: 'Settings',
-            link: `${routePrefix}/settings-manager`,
-            icon: 'settings',
-            section: 'System'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/settings-manager`,
-            ...bind(settingsManagerController)
-          );
-
-          adminizer.app.get(
-            `${routePrefix}/core/settings-manager/list`,
-            ...bind(getSettingsController)
-          );
-
-          adminizer.app.post(
-            `${routePrefix}/core/settings-manager/update/:key`,
-            ...bind(updateSettingController)
-          );
-
-          adminizer.app.get(
-            `${routePrefix}/core/settings-manager/export`,
-            ...bind(exportSettingsController)
-          );
-
-          adminizer.app.post(
-            `${routePrefix}/core/settings-manager/import`,
-            ...bind(importSettingsController)
-          );
-        } catch (e) {
-          sails.log.debug('SettingsManager route bind error', e);
-        }
-
-        // Setup checklist module link + page route + API routes
-        try {
-          const setupChecklistController = require('../lib/adminpanel/src/controller/setup-checklist').default;
-          const getSetupChecklistStatusController = require('../lib/adminpanel/src/controller/get-setup-checklist-status').default;
-          const getSetupChecklistSummaryController = require('../lib/adminpanel/src/controller/get-setup-checklist-summary').default;
-          const dismissSetupCheckupController = require('../lib/adminpanel/src/controller/dismiss-setup-checkup').default;
-          const restoreSetupCheckupController = require('../lib/adminpanel/src/controller/restore-setup-checkup').default;
-
-          addAdminPage({
-            id: 'setup-checklist',
-            title: 'Setup checklist',
-            link: `${routePrefix}/setup-checklist`,
-            icon: 'checklist',
-            accessRightsToken: 'setup-checklist',
-            section: 'System'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/setup-checklist`,
-            ...bind(setupChecklistController)
-          );
-          adminizer.app.get(
-            `${routePrefix}/core/setup-checklist/status`,
-            ...bind(getSetupChecklistStatusController)
-          );
-          adminizer.app.get(
-            `${routePrefix}/core/setup-checklist/summary`,
-            ...bind(getSetupChecklistSummaryController)
-          );
-          adminizer.app.post(
-            `${routePrefix}/core/setup-checklist/dismiss`,
-            ...bind(dismissSetupCheckupController)
-          );
-          adminizer.app.post(
-            `${routePrefix}/core/setup-checklist/restore`,
-            ...bind(restoreSetupCheckupController)
-          );
-        } catch (e) {
-          sails.log.debug('SetupChecklist route bind error', e);
-        }
-
-        // OrdersReport module link + route
-        try {
-          const ordersReportController = require('../lib/adminpanel/src/controller/orders-report').default;
-          addAdminPage({
-            id: 'orders-report',
-            title: 'Orders Report',
-            link: `${routePrefix}/orders-report`,
-            icon: 'bar_chart',
-            accessRightsToken: 'orders-report',
-            section: 'Reports'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/orders-report`,
-            ...bind(ordersReportController)
-          );
-        } catch (e) {
-          sails.log.debug('OrdersReport route bind error', e);
-        }
-
-        // API route for orders report data
-        try {
-          const getOrdersReportDataController = require('../lib/adminpanel/src/controller/get-orders-report-data').default;
-          adminizer.app.get(
-            `${routePrefix}/core/orders-report/data`,
-            ...bind(getOrdersReportDataController)
-          );
-        } catch (e) {
-          sails.log.debug('OrdersReport data route bind error', e);
-        }
-
-        // Sales Channels module link + page route + API routes
-        try {
-          const salesChannelsManagerController = require('../lib/adminpanel/src/controller/sales-channels-manager').default;
-          addAdminPage({
-            id: 'sales-channels-manager',
-            title: 'Sales Channels',
-            link: `${routePrefix}/sales-channels-manager`,
-            icon: 'storefront',
-            accessRightsToken: 'sales-channels-view',
-            section: 'Store'
-          });
-
-          adminizer.app.get(
-            `${routePrefix}/sales-channels-manager`,
-            ...bind(salesChannelsManagerController)
-          );
-
-          const getSalesChannelsController = require('../lib/adminpanel/src/controller/get-sales-channels').default;
-          const getSalesChannelController = require('../lib/adminpanel/src/controller/get-sales-channel').default;
-          const upsertSalesChannelController = require('../lib/adminpanel/src/controller/upsert-sales-channel').default;
-          const toggleSalesChannelController = require('../lib/adminpanel/src/controller/toggle-sales-channel').default;
-          const deleteSalesChannelController = require('../lib/adminpanel/src/controller/delete-sales-channel').default;
-          const getSalesChannelTypesController = require('../lib/adminpanel/src/controller/get-sales-channel-types').default;
-          const getSalesChannelRecommendationsController = require('../lib/adminpanel/src/controller/get-sales-channel-recommendations').default;
-          const getSalesChannelConceptsController = require('../lib/adminpanel/src/controller/get-sales-channel-concepts').default;
-
-          adminizer.app.get(`${routePrefix}/core/sales-channels`, ...bind(getSalesChannelsController));
-          adminizer.app.get(`${routePrefix}/core/sales-channels/types`, ...bind(getSalesChannelTypesController));
-          adminizer.app.get(`${routePrefix}/core/sales-channels/recommendations`, ...bind(getSalesChannelRecommendationsController));
-          adminizer.app.get(`${routePrefix}/core/sales-channels/concepts`, ...bind(getSalesChannelConceptsController));
-          adminizer.app.get(`${routePrefix}/core/sales-channel`, ...bind(getSalesChannelController));
-          adminizer.app.post(`${routePrefix}/core/sales-channel`, ...bind(upsertSalesChannelController));
-          adminizer.app.post(`${routePrefix}/core/sales-channel-toggle`, ...bind(toggleSalesChannelController));
-          adminizer.app.post(`${routePrefix}/core/sales-channel-delete`, ...bind(deleteSalesChannelController));
-        } catch (e) {
-          sails.log.debug('SalesChannels route bind error', e);
-        }
-
-        // Modifiers editor data routes (category + dish pickers for the modifiers-editor
-        // control, plus option photo upload for the preview popup). Gated inside the
-        // controllers by the catalog-products access token.
-        try {
-          const getModifierGroupsController = require('../lib/adminpanel/src/controller/get-modifier-groups').default;
-          const getModifierDishesController = require('../lib/adminpanel/src/controller/get-modifier-dishes').default;
-          const uploadModifierDishImageController = require('../lib/adminpanel/src/controller/upload-modifier-dish-image').default;
-          adminizer.app.get(`${routePrefix}/core/modifiers/groups`, ...bind(getModifierGroupsController));
-          adminizer.app.get(`${routePrefix}/core/modifiers/dishes`, ...bind(getModifierDishesController));
-          adminizer.app.post(`${routePrefix}/core/modifiers/dish-image`, ...bind(uploadModifierDishImageController));
-        } catch (e) {
-          sails.log.debug('Modifiers editor route bind error', e);
-        }
-
-        // Tags editor data route (autocomplete of tag names already used in the
-        // catalog). Gated inside the controller by the catalog-products access token.
-        try {
-          const getDishTagsController = require('../lib/adminpanel/src/controller/get-dish-tags').default;
-          adminizer.app.get(`${routePrefix}/core/tags`, ...bind(getDishTagsController));
-        } catch (e) {
-          sails.log.debug('Tags editor route bind error', e);
-        }
 
         // Route for product setup page
         // adminizer.app.get(`${routePrefix}/product-setup`, (req: any, res: any) => {
@@ -1015,16 +242,55 @@ function processBindAdminpanel() {
         //   // For now, redirect to catalog - later can render ProductSetup component
         //   return res.redirect(`${routePrefix}/catalog/products`);
         // });
-
-        // // API routes for concepts
-        // // @ts-ignore
-        // adminizer.app.get(`${routePrefix}/catalog/products/concepts`, sails.controllers.productsetup.concepts);
-        // // @ts-ignore
-        // adminizer.app.post(`${routePrefix}/catalog/products/concepts`, sails.controllers.productsetup.addConcept);
-        // // @ts-ignore
-        // adminizer.app.delete(`${routePrefix}/catalog/products/concepts/:concept`, sails.controllers.productsetup.deleteConcept);
       });
     }
   });
 
+}
+
+/** Binds one manifest module: its page (plus sidebar entry) and its API routes. */
+function bindModule(
+  adminizer: any,
+  module: AdminPanelModule,
+  routePrefix: string,
+  bind: (action: any) => any[],
+  corePages: AdminPageLink[]
+): void {
+  const page = module.page;
+  if (page) {
+    const link = `${routePrefix}${page.route}`;
+    adminizer.config.navbar.additionalLinks.push({
+      id: page.id,
+      title: page.title,
+      link,
+      icon: page.icon,
+      accessRightsToken: page.accessRightsToken,
+      section: page.section,
+    });
+    corePages.push({
+      type: 'app',
+      name: page.id,
+      link,
+      title: page.title,
+      section: page.section,
+      accessRightsToken: page.accessRightsToken,
+    });
+
+    adminizer.app.get(link, ...bind(loadAdminPanelController(page.controller)));
+
+    if (module.id === adminPanelDefaultModule) {
+      // Make this module the default admin landing page.
+      adminizer.app.get(
+        `${routePrefix}`,
+        ...bind((_req: any, res: any) => res.redirect(link))
+      );
+    }
+  }
+
+  for (const route of module.routes ?? []) {
+    adminizer.app[route.method](
+      `${routePrefix}${route.route}`,
+      ...bind(loadAdminPanelController(route.controller))
+    );
+  }
 }
