@@ -4,9 +4,31 @@ import DishesOnStopWidget from "./DishesOnStop";
 import NotificationsTodayCountWidget from "./NotificationsTodayCount";
 import SalesChannelsCountWidget from "./SalesChannelsCount";
 import SetupChecklistWidget from "./SetupChecklist";
+import { adminPanelWidgets, loadAdminPanelModule } from "../manifest";
 
 /**
- * Initialize and register all dashboard widgets
+ * Builds the core's dashboard widgets from the manifest.
+ *
+ * Kept separate from registration so a host that owns its own widget registry (Adminizer's app
+ * API) can take the instances without a live `widgetHandler`.
+ */
+export function createWidgets(routePrefix: string): any[] {
+  const widgets: any[] = [];
+
+  for (const widget of adminPanelWidgets) {
+    try {
+      const WidgetClass = loadAdminPanelModule(widget.module).default;
+      widgets.push(widget.needsRoutePrefix ? new WidgetClass(routePrefix) : new WidgetClass());
+    } catch (error) {
+      sails.log.error(`Error creating dashboard widget \`${widget.id}\`:`, error);
+    }
+  }
+
+  return widgets;
+}
+
+/**
+ * Registers all dashboard widgets on the panel Sails handed us.
  */
 export function initializeWidgets() {
   if (!sails.hooks?.adminpanel?.adminizer) {
@@ -14,22 +36,21 @@ export function initializeWidgets() {
     return;
   }
 
-  const widgetHandler = sails.hooks.adminpanel.adminizer.widgetHandler;
-  
+  const adminizer = sails.hooks.adminpanel.adminizer;
+  const widgetHandler = adminizer.widgetHandler;
+
   if (!widgetHandler) {
     sails.log.warn('Widget handler not available, skipping widget initialization');
     return;
   }
 
+  const routePrefix = adminizer.config?.routePrefix || sails.config.adminpanel?.routePrefix || '/admin';
+
   try {
-    // Register widgets
-    widgetHandler.add(new DishCountWidget());
-    widgetHandler.add(new TodayOrdersCountWidget());
-    widgetHandler.add(new DishesOnStopWidget());
-    widgetHandler.add(new NotificationsTodayCountWidget());
-    widgetHandler.add(new SalesChannelsCountWidget());
-    widgetHandler.add(new SetupChecklistWidget(sails.config.adminpanel.routePrefix || '/admin'));
-    
+    for (const widget of createWidgets(routePrefix)) {
+      widgetHandler.add(widget);
+    }
+
     sails.log.info('Dashboard widgets registered successfully');
   } catch (error) {
     sails.log.error('Error registering dashboard widgets:', error);
