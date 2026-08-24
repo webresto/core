@@ -28,6 +28,8 @@ interface SettingManifest {
   uiSchema?: UISchema;
   readOnly?: boolean;
   isRequired?: boolean;
+  secret?: boolean;
+  restartRequired?: boolean;
 }
 
 // Memory store
@@ -133,7 +135,22 @@ let attributes = {
   isRequired: {
     type: "boolean",
     allowNull: true
-  } as unknown as boolean
+  } as unknown as boolean,
+  /** Value is a secret (token/password/key): it is stored in the DB only and must never be shown in any UI or API output. */
+  secret: {
+    type: "boolean",
+    allowNull: true
+  } as unknown as boolean,
+  /** Changing the value takes effect only after the application is restarted. */
+  restartRequired: {
+    type: "boolean",
+    allowNull: true
+  } as unknown as boolean,
+  /** SHA-256 checksum of the JSON manifest that declared this setting. */
+  manifestChecksum: {
+    type: "string",
+    allowNull: true
+  } as unknown as string
 };
 
 type attributes = typeof attributes & ORM;
@@ -447,7 +464,10 @@ let Model = {
         tooltip: settingsSetInput.tooltip,
         uiSchema: settingsSetInput.uiSchema,
         readOnly: settingsSetInput.readOnly ?? false,
-        isRequired: settingsSetInput.isRequired ?? false
+        isRequired: settingsSetInput.isRequired ?? false,
+        secret: settingsSetInput.secret ?? false,
+        restartRequired: settingsSetInput.restartRequired ?? false,
+        manifestChecksum: settingsSetInput.manifestChecksum
       };
       const updateData = {
         key: key,
@@ -461,6 +481,9 @@ let Model = {
         ...(settingsSetInput.uiSchema !== undefined ? { uiSchema: settingsSetInput.uiSchema } : {}),
         ...(settingsSetInput.readOnly !== undefined ? { readOnly: settingsSetInput.readOnly } : {}),
         ...(settingsSetInput.isRequired !== undefined ? { isRequired: settingsSetInput.isRequired } : {}),
+        ...(settingsSetInput.secret !== undefined ? { secret: settingsSetInput.secret } : {}),
+        ...(settingsSetInput.restartRequired !== undefined ? { restartRequired: settingsSetInput.restartRequired } : {}),
+        ...(settingsSetInput.manifestChecksum !== undefined ? { manifestChecksum: settingsSetInput.manifestChecksum } : {}),
       };
 
       if (!setting) {
@@ -586,6 +609,8 @@ let Model = {
           uiSchema: manifest.uiSchema,
           readOnly: manifest.readOnly,
           isRequired: manifest.isRequired,
+          secret: manifest.secret,
+          restartRequired: manifest.restartRequired,
         } as any);
       } catch (e) {
         sails.log.error(`CORE > Settings > failed to seed manifest [${manifest.key}]`, e);
@@ -650,6 +675,12 @@ interface SettingsSetInputBase<K extends string, F> {
   uiSchema?: UISchema
   readOnly?: boolean
   isRequired?: boolean
+  /** Secret value: kept in the DB only, never exposed in UI/API output */
+  secret?: boolean
+  /** Change takes effect only after an application restart */
+  restartRequired?: boolean
+  /** SHA-256 checksum of the JSON manifest that declared this setting. */
+  manifestChecksum?: string
 }
 
 type SettingsSetInput<K extends string, F> =

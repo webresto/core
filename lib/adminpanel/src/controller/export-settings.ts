@@ -5,7 +5,9 @@ export default async function ExportSettingsController(req: any, res: any) {
   }
 
   try {
-    const settings = await Settings.find().sort('key ASC');
+    // Secret settings are write-only: their value must never leave the DB, so they
+    // are omitted from the export file entirely (import can still set them).
+    const settings = (await Settings.find().sort('key ASC')).filter((s: any) => !s.secret);
     const exportData = {
       exportedAt: new Date().toISOString(),
       count: settings.length,

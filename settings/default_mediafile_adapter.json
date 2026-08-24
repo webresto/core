@@ -4,5 +4,6 @@
   "name": "Default Media File Adapter",
   "description": "",
   "defaultValue": "default",
-  "isRequired": true
+  "isRequired": true,
+  "restartRequired": true
 }

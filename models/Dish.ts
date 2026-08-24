@@ -421,18 +421,15 @@ let Model = {
 
         if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined) {
 
-          let criteria: {
-            id?: string;
-            rmsId?: string;
-            concept?: string;
-          } = {};
-          
-          criteria.concept = dish.concept ?? undefined;
-          
+          let criteria: any = { concept: dish.concept ?? undefined };
+
           if (modifier.modifierId) {
-            criteria["id"] = modifier.modifierId;
+            // Legacy shape: modifierId is the restocore id.
+            criteria.id = modifier.modifierId;
           } else if (modifier.id) {
-            criteria["rmsId"] = modifier.id;
+            // Modern shape: id is the restocore id. Also accept legacy rows where
+            // this field held rmsId, so existing imported configurations still work.
+            criteria.or = [{ id: modifier.id }, { rmsId: modifier.id }];
           } else {
             throw `Group modifierId or rmsId not found`;
           }
@@ -443,18 +440,14 @@ let Model = {
         if (!modifier.childModifiers) modifier.childModifiers = [];
 
         for await (let childModifier of modifier.childModifiers) {
-          let criteria: {
-            id?: string;
-            rmsId?: string;
-            concept?: string;
-          } = {
-            concept: dish.concept ?? undefined
-          }
+          let criteria: any = { concept: dish.concept ?? undefined }
 
           if (childModifier.modifierId) {
-            criteria["id"] = childModifier.modifierId
+            // Legacy shape: modifierId is the restocore id.
+            criteria.id = childModifier.modifierId
           } else if (childModifier.id) {
-            criteria["rmsId"] = childModifier.id
+            // Prefer the modern restocore id and fall back to old RMS-id rows.
+            criteria.or = [{ id: childModifier.id }, { rmsId: childModifier.id }]
           } else {
             throw `Dish modifierId or rmsId not found`
           }

@@ -103,5 +103,6 @@
       "Pacific/Tongatapu",
       "Pacific/Apia"
     ]
-  }
+  },
+  "restartRequired": true
 }
