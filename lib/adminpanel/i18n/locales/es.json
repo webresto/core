@@ -567,5 +567,7 @@
 	"No tags yet": "Aún no hay etiquetas",
 	"Remove tag": "Eliminar etiqueta",
 	"This tag is already added": "Esta etiqueta ya está añadida",
-	"Press Enter or comma to add": "Pulsa Enter o coma para añadir"
+	"Press Enter or comma to add": "Pulsa Enter o coma para añadir",
+	"Final channel": "Canal final",
+	"A successful send through this channel stops the unread escalation": "Un envío correcto a través de este canal detiene la escalación de no leídos"
 }

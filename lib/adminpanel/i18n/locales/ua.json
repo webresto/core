@@ -820,5 +820,7 @@
 	"No tags yet": "Тегів поки немає",
 	"Remove tag": "Видалити тег",
 	"This tag is already added": "Цей тег уже додано",
-	"Press Enter or comma to add": "Натисніть Enter або кому, щоб додати"
+	"Press Enter or comma to add": "Натисніть Enter або кому, щоб додати",
+	"Final channel": "Фінальний канал",
+	"A successful send through this channel stops the unread escalation": "Успішна відправка через цей канал зупиняє екскалацію непрочитаного"
 }

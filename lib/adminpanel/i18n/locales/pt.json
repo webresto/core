@@ -67,5 +67,7 @@
 	"No tags yet": "Ainda não há etiquetas",
 	"Remove tag": "Remover etiqueta",
 	"This tag is already added": "Esta etiqueta já foi adicionada",
-	"Press Enter or comma to add": "Pressione Enter ou vírgula para adicionar"
+	"Press Enter or comma to add": "Pressione Enter ou vírgula para adicionar",
+	"Final channel": "Canal final",
+	"A successful send through this channel stops the unread escalation": "Um envio bem-sucedido por este canal interrompe a escalada de não lidos"
 }

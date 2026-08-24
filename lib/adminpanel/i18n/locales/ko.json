@@ -567,5 +567,7 @@
 	"No tags yet": "아직 태그가 없습니다",
 	"Remove tag": "태그 삭제",
 	"This tag is already added": "이미 추가된 태그입니다",
-	"Press Enter or comma to add": "Enter 또는 쉼표를 눌러 추가"
+	"Press Enter or comma to add": "Enter 또는 쉼표를 눌러 추가",
+	"Final channel": "최종 채널",
+	"A successful send through this channel stops the unread escalation": "이 채널을 통한 발송이 성공하면 읽지 않음 에스컬레이션이 중지됩니다"
 }

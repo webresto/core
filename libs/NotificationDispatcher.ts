@@ -50,6 +50,20 @@ function buildChannelData(notification: NotificationRecord): Record<string, any>
 }
 
 /**
+ * True when the notification was delivered through a channel marked terminal
+ * (Channel.stopEscalation): a successful send there ends the waterfall, so the unread
+ * escalation loop must not spend a further (paid) channel on the same message.
+ * Messenger channels use this — they land the message in a personal dialog but never
+ * report a read receipt, so `readAt` would stay empty forever.
+ */
+function findTerminalDeliveryChannel(entries: NotificationChannelEntry[]): NotificationChannelEntry | undefined {
+  return (Array.isArray(entries) ? entries : []).find((entry) => {
+    const channel: any = NotificationManager.channels.find((item) => item.type === entry.type);
+    return typeof channel?.isStopEscalation === "function" && channel.isStopEscalation();
+  });
+}
+
+/**
  * Options for NotificationDispatcher.send. Replaces the previous positional argument list.
  * The first block is the legacy delivery payload; the second block carries typed-notification
  * metadata (notification type / event / per-type budget / scheduled delay) produced by
@@ -363,17 +377,22 @@ export class NotificationDispatcher {
         }
       }
 
+      const priorityEntries: NotificationChannelEntry[] = sent
+        ? [{ type: priorityChannel!.type, cost: 0, sentAt: Date.now() }]
+        : [];
+      const priorityTerminal = findTerminalDeliveryChannel(priorityEntries);
       await Notification.updateOne({ id: notification.id }).set({
         status: sent ? "sent" : "failed",
-        channels: sent ? [{ type: priorityChannel!.type, cost: 0, sentAt: Date.now() }] : [],
+        channels: priorityEntries,
         spentCost: 0,
         deliveryAttempts: attempts,
+        ...(priorityTerminal ? { escalationExhausted: true } : {}),
       });
       await Notification.log(
         { id: notification.id! },
         sent ? "info" : "error",
         "delivery",
-        `Priority-device-only delivery finished: status=${sent ? "sent" : "failed"}, attempts=${attempts}; ${trace.join("; ")}`
+        `Priority-device-only delivery finished: status=${sent ? "sent" : "failed"}, attempts=${attempts}${priorityTerminal ? `, escalation stopped by terminal channel "${priorityTerminal.type}"` : ""}; ${trace.join("; ")}`
       );
       return;
     }
@@ -513,17 +532,21 @@ export class NotificationDispatcher {
     }
 
     const sent = successChannels.length > 0;
+    // A terminal channel (Channel.stopEscalation) delivered it: close the record for the
+    // escalation loop right away instead of waiting for a read that will never arrive.
+    const terminalChannel = findTerminalDeliveryChannel(successChannels);
     await Notification.updateOne({ id: notification.id }).set({
       status: sent ? "sent" : "failed",
       channels: successChannels,
       spentCost,
       deliveryAttempts: attempts,
+      ...(terminalChannel ? { escalationExhausted: true } : {}),
     });
     await Notification.log(
       { id: notification.id! },
       sent ? "info" : "error",
       "delivery",
-      `Delivery finished: status=${sent ? "sent" : "failed"}, channels=${successChannels.map((channel) => channel.type).join(",") || "none"}, spentCost=${spentCost}, attempts=${attempts}, maxAllowedCost=${maxCost === null ? "one paid channel" : maxCost} (${maxCostSource})${budgetSkips > 0 ? `, budgetSkips=${budgetSkips}` : ""}; waterfall: ${trace.join("; ") || "no candidate channels"}`
+      `Delivery finished: status=${sent ? "sent" : "failed"}, channels=${successChannels.map((channel) => channel.type).join(",") || "none"}, spentCost=${spentCost}, attempts=${attempts}, maxAllowedCost=${maxCost === null ? "one paid channel" : maxCost} (${maxCostSource})${budgetSkips > 0 ? `, budgetSkips=${budgetSkips}` : ""}${terminalChannel ? `, escalation stopped by terminal channel "${terminalChannel.type}"` : ""}; waterfall: ${trace.join("; ") || "no candidate channels"}`
     );
   }
 
@@ -662,6 +685,15 @@ export class NotificationDispatcher {
     // the recipient (priorityDevice is not persisted), escalating is pointless.
     if (groupTo === "user" && !notification.user) {
       await markExhausted("user-group notification without user (device-targeted), nothing to escalate", attempts);
+      return;
+    }
+
+    // Delivered through a terminal channel (Channel.stopEscalation): the message is already
+    // in the recipient's messenger, escalating would only add a paid duplicate. Records
+    // delivered before the flag was switched on are caught here too.
+    const terminalDelivery = findTerminalDeliveryChannel(notification.channels as NotificationChannelEntry[]);
+    if (terminalDelivery) {
+      await markExhausted(`already delivered via terminal channel "${terminalDelivery.type}" (stopEscalation)`, attempts);
       return;
     }
 

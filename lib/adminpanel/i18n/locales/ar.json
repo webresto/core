@@ -67,5 +67,7 @@
 	"No tags yet": "لا توجد وسوم بعد",
 	"Remove tag": "إزالة الوسم",
 	"This tag is already added": "هذا الوسم مضاف بالفعل",
-	"Press Enter or comma to add": "اضغط Enter أو الفاصلة للإضافة"
+	"Press Enter or comma to add": "اضغط Enter أو الفاصلة للإضافة",
+	"Final channel": "القناة النهائية",
+	"A successful send through this channel stops the unread escalation": "الإرسال الناجح عبر هذه القناة يوقف تصعيد الإشعارات غير المقروءة"
 }

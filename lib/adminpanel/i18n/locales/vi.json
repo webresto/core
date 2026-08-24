@@ -567,5 +567,7 @@
 	"No tags yet": "Chưa có thẻ nào",
 	"Remove tag": "Xóa thẻ",
 	"This tag is already added": "Thẻ này đã được thêm",
-	"Press Enter or comma to add": "Nhấn Enter hoặc dấu phẩy để thêm"
+	"Press Enter or comma to add": "Nhấn Enter hoặc dấu phẩy để thêm",
+	"Final channel": "Kênh cuối cùng",
+	"A successful send through this channel stops the unread escalation": "Gửi thành công qua kênh này sẽ dừng việc leo thang thông báo chưa đọc"
 }

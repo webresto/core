@@ -567,5 +567,7 @@
 	"No tags yet": "Aucun tag pour le moment",
 	"Remove tag": "Supprimer le tag",
 	"This tag is already added": "Ce tag est déjà ajouté",
-	"Press Enter or comma to add": "Appuyez sur Entrée ou virgule pour ajouter"
+	"Press Enter or comma to add": "Appuyez sur Entrée ou virgule pour ajouter",
+	"Final channel": "Canal final",
+	"A successful send through this channel stops the unread escalation": "Un envoi réussi via ce canal arrête l'escalade des messages non lus"
 }
