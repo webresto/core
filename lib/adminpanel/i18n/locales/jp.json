@@ -567,5 +567,7 @@
 	"No tags yet": "タグはまだありません",
 	"Remove tag": "タグを削除",
 	"This tag is already added": "このタグは既に追加されています",
-	"Press Enter or comma to add": "Enter またはカンマで追加"
+	"Press Enter or comma to add": "Enter またはカンマで追加",
+	"Final channel": "最終チャネル",
+	"A successful send through this channel stops the unread escalation": "このチャネルでの送信が成功すると、未読エスカレーションが停止します"
 }

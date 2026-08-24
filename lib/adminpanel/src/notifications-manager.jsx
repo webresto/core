@@ -382,6 +382,27 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
     }
   };
 
+  // Terminal channel: when it delivered a notification, the unread-escalation loop stops
+  // instead of spending a further (usually paid) channel on the same message.
+  const updateChannelStopEscalation = async (channel, stopEscalation) => {
+    const type = String(channel?.type || '');
+    if (!type) return;
+    setActionLoading(`channel:${type}:stopEscalation`);
+    setError('');
+    try {
+      const response = await notificationsApi('/core/notifications-manager/channel-settings', {
+        method: 'POST',
+        body: JSON.stringify({ type, stopEscalation }),
+      });
+      if (!response.ok) throw new Error(response.payload?.error || 'Failed to update channel');
+      await loadChannels();
+    } catch (e) {
+      setError(String(e?.message || e));
+    } finally {
+      setActionLoading('');
+    }
+  };
+
   const updateChannelDraft = (type, field, value) => {
     setChannelDrafts((current) => ({
       ...current,
@@ -1052,8 +1073,8 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
           ) : (
             <div style={{ border: isMobile ? 'none' : '1px solid var(--border)', borderRadius: 12, overflowX: isMobile ? 'visible' : 'auto', overflowY: 'hidden', display: isMobile ? 'flex' : 'block', flexDirection: 'column', gap: isMobile ? 12 : 0 }}>
               {!isMobile && (
-              <div style={{ display: 'grid', minWidth: 760, gridTemplateColumns: 'minmax(140px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(90px, 0.6fr) minmax(90px, 0.6fr) minmax(100px, 0.7fr) minmax(140px, 1fr)', gap: 12, padding: '12px 14px', background: 'var(--muted)', fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' }}>
-                <div>{t('Channel')}</div><div>{t('Status')}</div><div>{t('Enabled')}</div><div>{t('Groups')}</div><div>{t('Weight')}</div><div>{t('Cost')}</div><div>{t('Force send')}</div><div>{t('Class')}</div>
+              <div style={{ display: 'grid', minWidth: 860, gridTemplateColumns: 'minmax(140px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(90px, 0.6fr) minmax(90px, 0.6fr) minmax(110px, 0.7fr) minmax(100px, 0.7fr) minmax(140px, 1fr)', gap: 12, padding: '12px 14px', background: 'var(--muted)', fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)' }}>
+                <div>{t('Channel')}</div><div>{t('Status')}</div><div>{t('Enabled')}</div><div>{t('Groups')}</div><div>{t('Weight')}</div><div>{t('Cost')}</div><div title={t('A successful send through this channel stops the unread escalation')}>{t('Final channel')}</div><div>{t('Force send')}</div><div>{t('Class')}</div>
               </div>
               )}
               {channels.map((channel) => {
@@ -1107,6 +1128,16 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                     disabled={actionLoading === `channel:${channel.type}`}
                     aria-label={`${t('Enabled')}: ${channel.type || '-'}`}
                   />
+                );
+                const stopEscalationSwitch = canManage ? (
+                  <Switch
+                    checked={channel.stopEscalation === true}
+                    onCheckedChange={(checked) => updateChannelStopEscalation(channel, checked === true)}
+                    disabled={actionLoading === `channel:${channel.type}:stopEscalation`}
+                    aria-label={`${t('Final channel')}: ${channel.type || '-'}`}
+                  />
+                ) : (
+                  <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{String(channel.stopEscalation === true)}</span>
                 );
                 const weightInput = canManage ? (
                   <Input
@@ -1172,6 +1203,10 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <span style={cardLabel}>{t('Final channel')}</span>
+                          {stopEscalationSwitch}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           <span style={cardLabel}>{t('Force send')}</span>
                           <span style={cardValue}>{String(Boolean(channel.forceSend))}</span>
                         </div>
@@ -1185,7 +1220,7 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                 }
 
                 return (
-                  <div key={channel.type} style={{ display: 'grid', minWidth: 760, gridTemplateColumns: 'minmax(140px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(90px, 0.6fr) minmax(90px, 0.6fr) minmax(100px, 0.7fr) minmax(140px, 1fr)', gap: 12, padding: '12px 14px', borderTop: '1px solid var(--border)', background: 'var(--card)', alignItems: 'start' }}>
+                  <div key={channel.type} style={{ display: 'grid', minWidth: 860, gridTemplateColumns: 'minmax(140px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(90px, 0.6fr) minmax(90px, 0.6fr) minmax(110px, 0.7fr) minmax(100px, 0.7fr) minmax(140px, 1fr)', gap: 12, padding: '12px 14px', borderTop: '1px solid var(--border)', background: 'var(--card)', alignItems: 'start' }}>
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{channelNameWithAdapter(channel, t)}</div>
                     {statusBlock}
                     <div style={{ display: 'flex', alignItems: 'center', minHeight: 34 }}>
@@ -1194,6 +1229,7 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                     <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{groupsText}</div>
                     <div>{weightInput}</div>
                     <div>{costInput}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', minHeight: 34 }}>{stopEscalationSwitch}</div>
                     <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{String(Boolean(channel.forceSend))}</div>
                     <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{channel.className || '-'}</div>
                   </div>

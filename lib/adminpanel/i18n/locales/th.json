@@ -567,5 +567,7 @@
 	"No tags yet": "ยังไม่มีแท็ก",
 	"Remove tag": "ลบแท็ก",
 	"This tag is already added": "แท็กนี้ถูกเพิ่มแล้ว",
-	"Press Enter or comma to add": "กด Enter หรือจุลภาคเพื่อเพิ่ม"
+	"Press Enter or comma to add": "กด Enter หรือจุลภาคเพื่อเพิ่ม",
+	"Final channel": "ช่องทางสุดท้าย",
+	"A successful send through this channel stops the unread escalation": "การส่งสำเร็จผ่านช่องทางนี้จะหยุดการทวีระดับการแจ้งเตือนที่ยังไม่อ่าน"
 }

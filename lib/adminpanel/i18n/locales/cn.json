@@ -567,5 +567,7 @@
 	"No tags yet": "暂无标签",
 	"Remove tag": "删除标签",
 	"This tag is already added": "该标签已添加",
-	"Press Enter or comma to add": "按 Enter 或逗号添加"
+	"Press Enter or comma to add": "按 Enter 或逗号添加",
+	"Final channel": "最终渠道",
+	"A successful send through this channel stops the unread escalation": "通过此渠道成功发送后将停止未读升级"
 }

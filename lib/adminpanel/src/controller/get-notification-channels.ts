@@ -76,6 +76,9 @@ export default async function GetNotificationChannelsController(req: any, res: a
           type: channel.type || "",
           templateFields,
           forceSend: Boolean(channel.forceSend),
+          stopEscalation: typeof channel.isStopEscalation === "function"
+            ? channel.isStopEscalation()
+            : channel.stopEscalation === true,
           forGroupTo: Array.isArray(channel.forGroupTo) ? channel.forGroupTo : [],
           sortOrder: Number.isFinite(Number(channel.sortOrder)) ? Number(channel.sortOrder) : null,
           cost: Number.isFinite(Number(channel.cost)) ? Number(channel.cost) : null,

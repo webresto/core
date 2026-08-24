@@ -204,6 +204,49 @@ describe("NotificationDispatcher", function () {
     if (updated.escalationExhausted !== true) throw new Error("record must be marked escalationExhausted when nothing is left to try");
   });
 
+  it("stops escalation when the notification was delivered by a terminal channel", async () => {
+    // Messenger/bot channels get no read receipt: a delivered message must end the
+    // waterfall, otherwise every free delivery is duplicated by a paid channel.
+    stubA.stopEscalation = true;
+    try {
+      const record = await NotificationModel().create({
+        user: userId,
+        title: "terminal",
+        body: "terminal body",
+        groupTo: "user",
+        status: "sent",
+        channels: [{ type: "stub-a", cost: 0, sentAt: Date.now() }],
+        deliveryAttempts: 1,
+      }).fetch();
+
+      const sentBefore = stubA.sendCount + stubB.sendCount;
+      await NotificationDispatcher._deliverNextChannel(record);
+
+      const updated = await NotificationModel().findOne({ id: record.id });
+      if (updated.escalationExhausted !== true) throw new Error("terminal delivery must end the escalation");
+      if (stubA.sendCount + stubB.sendCount !== sentBefore) throw new Error("terminal delivery must not attempt another channel");
+    } finally {
+      stubA.stopEscalation = false;
+    }
+  });
+
+  it("closes the record for escalation as soon as a terminal channel delivers it", async () => {
+    stubA.stopEscalation = true;
+    try {
+      const notification = await NotificationDispatcher.send({
+        user: userId,
+        title: "terminal delivery",
+        body: "terminal delivery body",
+        channelTypes: ["stub-a"],
+      });
+
+      if (notification.status !== "sent") throw new Error(`expected status sent, got ${notification.status}`);
+      if (notification.escalationExhausted !== true) throw new Error("a terminal channel delivery must set escalationExhausted");
+    } finally {
+      stubA.stopEscalation = false;
+    }
+  });
+
   it("marks device-targeted (userless) notifications exhausted without escalation attempts", async () => {
     const record = await NotificationModel().create({
       title: "guest",

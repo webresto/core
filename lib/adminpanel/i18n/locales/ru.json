@@ -851,5 +851,7 @@
 	"No tags yet": "Тегов пока нет",
 	"Remove tag": "Удалить тег",
 	"This tag is already added": "Этот тег уже добавлен",
-	"Press Enter or comma to add": "Нажмите Enter или запятую, чтобы добавить"
+	"Press Enter or comma to add": "Нажмите Enter или запятую, чтобы добавить",
+	"Final channel": "Финальный канал",
+	"A successful send through this channel stops the unread escalation": "Успешная отправка через этот канал останавливает эскалацию непрочитанного"
 }

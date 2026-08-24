@@ -646,5 +646,7 @@
 	"This tag is already added": "This tag is already added",
 	"Press Enter or comma to add": "Press Enter or comma to add",
 	"Notifications per day, stacked by channel; failed notifications are shown separately. Hover a day for the breakdown.": "Notifications per day, stacked by channel; failed notifications are shown separately. Hover a day for the breakdown.",
-	"Channels and status": "Channels and status"
+	"Channels and status": "Channels and status",
+	"Final channel": "Final channel",
+	"A successful send through this channel stops the unread escalation": "A successful send through this channel stops the unread escalation"
 }

@@ -14,6 +14,8 @@ This module provides a flexible notification system that allows messages to be s
      - `forceSend`: If set to `true`, the message will be sent regardless of any conditions.
      - `forGroupTo`: Array of message group identifiers specifying the target recipients for this channel.
      - `sortOrder`: Priority level for this channel in the delivery queue.
+     - `cost`: Cost per message in arbitrary units (`0` = free). Free channels are tried first and the per-notification budget (`maxDeliveryCost`) is spent against this value.
+     - `stopEscalation`: Terminal channel. When it delivered a notification, the unread-escalation loop stops instead of trying a further (usually paid) channel. Needed for messenger/bot channels that never report a read receipt — otherwise every free messenger delivery would be duplicated by SMS after `NOTIFICATION_UNREAD_ESCALATION_MINUTES`. Editable per channel on the channels admin page (persisted in `NOTIFICATION_CHANNELS_STATE`).
 
    - **Methods:**
      - `send(badge, user, message, subject?, data?)`: Abstract method to send a notification. Must be implemented by each channel.
@@ -78,6 +80,8 @@ NotificationManager.registerChannel(emailChannel);
 - Channels can have different priorities (`sortOrder`) which determine their position in the delivery queue.
 
 - The system supports different message groups (`MessageGroupTo`) for targeted notifications.
+
+- A successful send through a channel with `stopEscalation = true` also sets `Notification.escalationExhausted`, so the record leaves the escalation loop immediately. Records delivered before the flag was switched on are recognised by the loop itself (it re-checks the used channels).
 
 ---
 

@@ -54,12 +54,14 @@ export type ChannelManagerState = {
   enabled?: boolean
   sortOrder?: number
   cost?: number
+  stopEscalation?: boolean
 }
 type ChannelManagerStateMap = Record<string, ChannelManagerState>
 type ChannelSettingsUpdate = {
   enabled?: boolean
   sortOrder?: number
   cost?: number
+  stopEscalation?: boolean
 }
 
 export type DeliveryStatus = {
@@ -140,6 +142,28 @@ export abstract class Channel {
   public setStatus(status: ChannelStatus, error: string | null = null): void {
     this.status = status || "ready";
     this.error = error;
+  }
+
+  /**
+   * Terminal channel: once it delivered a notification, the unread-escalation loop must not
+   * try any further channel for that record.
+   *
+   * Messenger/bot channels put the message straight into a personal dialog but never report
+   * a read receipt, so `readAt` stays empty forever. Without this flag every free messenger
+   * delivery would be duplicated by a paid channel (SMS) after
+   * NOTIFICATION_UNREAD_ESCALATION_MINUTES — exactly the cost the messenger was meant to save.
+   *
+   * Operator-editable on the channels admin page; persisted in NOTIFICATION_CHANNELS_STATE
+   * together with enabled/sortOrder/cost.
+   */
+  public stopEscalation: boolean = false;
+
+  public isStopEscalation(): boolean {
+    return this.stopEscalation === true;
+  }
+
+  public setStopEscalation(stopEscalation: boolean): void {
+    this.stopEscalation = stopEscalation === true;
   }
 
   /**
@@ -261,10 +285,12 @@ export class NotificationManager {
       const enabled = (raw as ChannelManagerState).enabled;
       const sortOrder = Number((raw as ChannelManagerState).sortOrder);
       const cost = Number((raw as ChannelManagerState).cost);
+      const stopEscalation = (raw as ChannelManagerState).stopEscalation;
       state[type] = {
         ...(typeof enabled === "boolean" ? { enabled } : {}),
         ...(Number.isFinite(sortOrder) ? { sortOrder } : {}),
         ...(Number.isFinite(cost) ? { cost } : {}),
+        ...(typeof stopEscalation === "boolean" ? { stopEscalation } : {}),
       };
       return state;
     }, {});
@@ -277,6 +303,7 @@ export class NotificationManager {
       if (typeof channelState.enabled === "boolean") channel.setEnabled(channelState.enabled);
       if (Number.isFinite(channelState.sortOrder)) channel.setSortOrder(Number(channelState.sortOrder));
       if (Number.isFinite(channelState.cost)) channel.setCost(Number(channelState.cost));
+      if (typeof channelState.stopEscalation === "boolean") channel.setStopEscalation(channelState.stopEscalation);
     }
     NotificationManager.sortChannels();
   }
@@ -289,6 +316,7 @@ export class NotificationManager {
         enabled: channel.isEnabled(),
         sortOrder: channel.sortOrder,
         cost: channel.cost,
+        stopEscalation: channel.isStopEscalation(),
       };
     }
     return state;
@@ -360,6 +388,7 @@ export class NotificationManager {
     if (typeof settings.enabled === "boolean") channel.setEnabled(settings.enabled);
     if (Number.isFinite(settings.sortOrder)) channel.setSortOrder(Number(settings.sortOrder));
     if (Number.isFinite(settings.cost)) channel.setCost(Number(settings.cost));
+    if (typeof settings.stopEscalation === "boolean") channel.setStopEscalation(settings.stopEscalation);
 
     NotificationManager.sortChannels();
     await NotificationManager.saveChannelsState();

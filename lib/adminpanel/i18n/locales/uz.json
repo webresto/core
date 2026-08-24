@@ -67,5 +67,7 @@
 	"No tags yet": "Hozircha teglar yoʻq",
 	"Remove tag": "Tegni oʻchirish",
 	"This tag is already added": "Bu teg allaqachon qoʻshilgan",
-	"Press Enter or comma to add": "Qoʻshish uchun Enter yoki vergulni bosing"
+	"Press Enter or comma to add": "Qoʻshish uchun Enter yoki vergulni bosing",
+	"Final channel": "Yakuniy kanal",
+	"A successful send through this channel stops the unread escalation": "Ushbu kanal orqali muvaffaqiyatli yuborish oʻqilmagan xabarlar eskalatsiyasini toʻxtatadi"
 }

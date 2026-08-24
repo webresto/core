@@ -28,7 +28,7 @@ export default async function UpdateNotificationChannelSettingsController(req: a
       return res.status(404).json({ error: t("Notification channel not found") });
     }
 
-    const updates: { enabled?: boolean; sortOrder?: number; cost?: number } = {};
+    const updates: { enabled?: boolean; sortOrder?: number; cost?: number; stopEscalation?: boolean } = {};
     if (Object.prototype.hasOwnProperty.call(req.body || {}, "enabled")) {
       updates.enabled = req.body?.enabled === true;
     }
@@ -47,6 +47,12 @@ export default async function UpdateNotificationChannelSettingsController(req: a
       updates.cost = cost;
     }
 
+    // Terminal channel: a successful send here ends the waterfall (no unread escalation
+    // to a further, usually paid, channel). See Channel.stopEscalation.
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, "stopEscalation")) {
+      updates.stopEscalation = req.body?.stopEscalation === true;
+    }
+
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: t("No channel settings to update") });
     }
@@ -63,6 +69,9 @@ export default async function UpdateNotificationChannelSettingsController(req: a
         enabled: typeof updatedChannel.isEnabled === "function" ? updatedChannel.isEnabled() : updatedChannel.enabled !== false,
         sortOrder: Number.isFinite(Number(updatedChannel.sortOrder)) ? Number(updatedChannel.sortOrder) : null,
         cost: Number.isFinite(Number(updatedChannel.cost)) ? Number(updatedChannel.cost) : null,
+        stopEscalation: typeof updatedChannel.isStopEscalation === "function"
+          ? updatedChannel.isStopEscalation()
+          : (updatedChannel as any).stopEscalation === true,
         status: updatedChannel.status || "ready",
         error: updatedChannel.error || null,
       },
