@@ -83,15 +83,19 @@ export function registerBackupTools() {
     mcp.registerTool({
         name: 'backup-settings-export',
         group: 'backup',
-        description: 'Exports all Settings to a JSON file in .tmp/backups/settings-<timestamp>.json. Returns the file path and count.',
+        description: 'Exports Settings to a JSON file in .tmp/backups/settings-<timestamp>.json. Settings flagged as secret are skipped — their values never leave the database. Returns the file path and count.',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
         handler: async () => {
             fs.mkdirSync(BACKUP_DIR, { recursive: true });
             const filePath = path.join(BACKUP_DIR, `settings-${Date.now()}.json`);
-            const settings = await Settings.find().sort('key ASC');
+            const all = await Settings.find().sort('key ASC');
+            // Secret settings (tokens/passwords/keys) are DB-only: a backup file is a
+            // readable artifact, so they are left out entirely — same rule as the
+            // admin panel settings export.
+            const settings = all.filter((s: any) => !s.secret);
             fs.writeFileSync(filePath, JSON.stringify(settings, null, 2));
-            return { success: true, filePath, count: settings.length };
+            return { success: true, filePath, count: settings.length, skippedSecret: all.length - settings.length };
         },
     });
 

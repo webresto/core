@@ -3,5 +3,6 @@
   "type": "string",
   "name": "RMS Adapter",
   "description": "",
-  "TODO": "There is a problem that core is arguing if this field is not set"
+  "TODO": "There is a problem that core is arguing if this field is not set",
+  "restartRequired": true
 }

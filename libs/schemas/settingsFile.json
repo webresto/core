@@ -20,7 +20,7 @@
       "description": "The description of the description."
     },
     "defaultValue": {
-      "type": ["string", "boolean", "object", "number"],
+      "type": ["string", "boolean", "object", "number", "array", "null"],
       "description": "The default value"
     },
     "value": {
@@ -30,6 +30,18 @@
     "isRequired": {
       "type": "boolean",
       "description": "Specifies whether the description is required or not."
+    },
+    "readOnly": {
+      "type": "boolean",
+      "description": "The value is maintained by the application and cannot be edited by an operator."
+    },
+    "secret": {
+      "type": "boolean",
+      "description": "The value is a secret (token/password/key): it is kept in the database only and is never shown in the UI or API output."
+    },
+    "restartRequired": {
+      "type": "boolean",
+      "description": "Changing the value takes effect only after the application is restarted."
     },
     "jsonSchema": {
       "$ref": "http://json-schema.org/draft-07/schema#"

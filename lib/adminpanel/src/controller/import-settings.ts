@@ -37,6 +37,20 @@ export default async function ImportSettingsController(req: any, res: any) {
       if (!existing) {
         return { key: entry.key, status: 'not_found', importValue: entry.value, currentValue: undefined as any };
       }
+      // A secret setting is write-only: its current value is never sent to the client,
+      // so it also cannot be compared — such an entry is always offered as a change.
+      if (existing.secret) {
+        return {
+          key: entry.key,
+          status: 'changed',
+          secret: true,
+          currentValue: null as any,
+          importValue: entry.value,
+          readOnly: existing.readOnly ?? false,
+          type: existing.type,
+          name: existing.name || null,
+        };
+      }
       const currentVal = existing.value !== null && existing.value !== undefined
         ? existing.value
         : existing.defaultValue;

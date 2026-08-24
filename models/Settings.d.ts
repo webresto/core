@@ -39,6 +39,12 @@ declare let attributes: {
     readOnly: boolean;
     module: string;
     isRequired: boolean;
+    /** Value is a secret (token/password/key): it is stored in the DB only and must never be shown in any UI or API output. */
+    secret: boolean;
+    /** Changing the value takes effect only after the application is restarted. */
+    restartRequired: boolean;
+    /** SHA-256 checksum of the JSON manifest that declared this setting. */
+    manifestChecksum: string;
 };
 type attributes = typeof attributes & ORM;
 /**
@@ -117,6 +123,12 @@ interface SettingsSetInputBase<K extends string, F> {
     uiSchema?: UISchema;
     readOnly?: boolean;
     isRequired?: boolean;
+    /** Secret value: kept in the DB only, never exposed in UI/API output */
+    secret?: boolean;
+    /** Change takes effect only after an application restart */
+    restartRequired?: boolean;
+    /** SHA-256 checksum of the JSON manifest that declared this setting. */
+    manifestChecksum?: string;
 }
 type SettingsSetInput<K extends string, F> = ({
     value: F;

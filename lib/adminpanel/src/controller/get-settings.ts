@@ -8,6 +8,8 @@ export default async function GetSettingsController(req: any, res: any) {
 
   try {
     const settings = await Settings.find().sort('key ASC');
+    // A secret setting is write-only: the UI may set a new value, but the stored one
+    // (token/password/key) is never sent to the client — only the fact that it is set.
     const result = settings.map((s: any) => ({
       id: s.id,
       key: s.key,
@@ -15,12 +17,15 @@ export default async function GetSettingsController(req: any, res: any) {
       description: s.description || null,
       tooltip: s.tooltip || null,
       type: s.type,
-      value: s.value,
-      defaultValue: s.defaultValue,
+      secret: s.secret ?? false,
+      hasValue: s.value !== null && s.value !== undefined,
+      value: s.secret ? null : s.value,
+      defaultValue: s.secret ? null : s.defaultValue,
       jsonSchema: getSettingSchema(s),
       uiSchema: s.uiSchema || null,
       readOnly: s.readOnly ?? false,
       isRequired: s.isRequired ?? false,
+      restartRequired: s.restartRequired ?? false,
       module: s.module || null,
     }));
     return res.json(result);

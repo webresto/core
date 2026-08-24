@@ -44,7 +44,7 @@ const {
 } = window.UIComponents;
 
 const { VanillaJSONEditor } = window.JSComponents;
-const { Settings, Download, Upload, RotateCcw, Save, ChevronDown } = window.LucideReact;
+const { Settings, Download, Upload, RotateCcw, Save, ChevronDown, AlertTriangle, X } = window.LucideReact;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -90,6 +90,72 @@ async function apiRequest(path, options = {}) {
 
 async function apiGet(url) { return apiRequest(url); }
 async function apiPost(url, body) { return apiRequest(url, { method: 'POST', body }); }
+
+/** Placeholder shown instead of a secret value — the server never sends the real one. */
+const MASKED = '••••••••';
+
+/**
+ * Keys saved whose setting is flagged `restartRequired`. Kept in sessionStorage together
+ * with the boot id of the process that served the page: the value is already in the DB but
+ * only takes effect at startup, so the notice must survive a page reload — and disappear by
+ * itself once the app comes back up under a new boot id.
+ */
+const RESTART_PENDING_KEY = 'settings-manager:restart-pending';
+
+function readRestartPending(bootId) {
+  try {
+    const raw = sessionStorage.getItem(RESTART_PENDING_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (!parsed || !Array.isArray(parsed.keys)) return [];
+    // A different (or unknown) boot id means the app has restarted since — nothing is pending.
+    if (!bootId || parsed.bootId !== bootId) return [];
+    return parsed.keys;
+  } catch {
+    return [];
+  }
+}
+
+function useRestartPending(bootId) {
+  const [keys, setKeys] = useState(() => readRestartPending(bootId));
+
+  useEffect(() => {
+    try {
+      if (keys.length) sessionStorage.setItem(RESTART_PENDING_KEY, JSON.stringify({ bootId, keys }));
+      else sessionStorage.removeItem(RESTART_PENDING_KEY);
+    } catch { /* private mode / quota — the in-page notice still works */ }
+  }, [keys, bootId]);
+
+  const markRestartPending = React.useCallback((newKeys) => {
+    const incoming = (Array.isArray(newKeys) ? newKeys : [newKeys]).filter(Boolean);
+    if (!incoming.length) return;
+    setKeys(prev => Array.from(new Set([...prev, ...incoming])));
+  }, []);
+
+  const clearRestartPending = React.useCallback(() => setKeys([]), []);
+
+  return { restartPending: keys, markRestartPending, clearRestartPending };
+}
+
+function RestartBanner({ keys, onDismiss, t }) {
+  if (!keys.length) return null;
+  return (
+    <div
+      className="flex-shrink-0 flex items-start gap-2 border-b px-4 py-2 text-sm"
+      style={{ background: 'color-mix(in srgb, var(--destructive) 10%, transparent)' }}
+    >
+      <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0 text-destructive" />
+      <div className="flex-1 min-w-0">
+        <div className="font-medium">{t('Restart pending title')}</div>
+        <div className="text-muted-foreground text-xs mt-0.5 break-all">
+          {t('Restart pending hint')} <span className="font-mono">{keys.join(', ')}</span>
+        </div>
+      </div>
+      <Button variant="ghost" size="sm" onClick={onDismiss} title={t('Dismiss')}>
+        <X className="w-3.5 h-3.5" />
+      </Button>
+    </div>
+  );
+}
 
 function typeLabel(type, t) {
   return { string: t('Type string'), boolean: t('Type boolean'), number: t('Type number'), json: t('Type json') }[type] || type;
@@ -167,9 +233,24 @@ function EnumEditor({ value, schema, onChange, readOnly, placeholder }) {
   );
 }
 
-function StringEditor({ value, onChange, readOnly, schema, t }) {
+function StringEditor({ value, onChange, readOnly, schema, secret, t }) {
   if (Array.isArray(schema?.enum)) {
     return <EnumEditor value={value} schema={schema} onChange={onChange} readOnly={readOnly} placeholder={t('Select value')} />;
+  }
+
+  // A secret is write-only: nothing to display, so the field starts empty and masked.
+  if (secret) {
+    return (
+      <Input
+        type="password"
+        autoComplete="new-password"
+        readOnly={readOnly}
+        placeholder={MASKED}
+        value={value == null ? '' : String(value)}
+        onChange={e => onChange(e.target.value)}
+        className={readOnly ? 'opacity-70' : ''}
+      />
+    );
   }
 
   return (
@@ -314,6 +395,8 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
           <Badge variant={typeVariant(selected.type)}>{typeLabel(selected.type, t)}</Badge>
           {selected.module && <Badge variant="secondary">{selected.module}</Badge>}
           {selected.readOnly && <Badge variant="destructive">{t('Read only')}</Badge>}
+          {selected.secret && <Badge variant="outline">{t('Secret')}</Badge>}
+          {selected.restartRequired && <Badge variant="outline">{t('Restart required')}</Badge>}
         </div>
       </div>
 
@@ -332,8 +415,15 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
       {/* Value editor */}
       <div className="flex flex-col gap-2">
         <Label>{t('Value')}</Label>
+        {selected.secret && (
+          <div className="bg-muted border rounded-md px-3 py-2 text-xs text-muted-foreground leading-relaxed">
+            🔒 {selected.hasValue
+              ? t('The value is stored and cannot be shown. Enter a new one to replace it.')
+              : t('The value is not set yet. Enter one to store it.')}
+          </div>
+        )}
         {selected.type === 'string' && (
-          <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} schema={selected.jsonSchema} t={t} />
+          <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} schema={selected.jsonSchema} secret={selected.secret} t={t} />
         )}
         {selected.type === 'number' && (
           <NumberEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} schema={selected.jsonSchema} t={t} />
@@ -365,6 +455,13 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
       {saveSuccess && (
         <div className="bg-green-500/10 border border-green-500/30 rounded-md px-3 py-2 text-sm text-green-600 dark:text-green-400">
           ✓ {t('Saved successfully')}
+        </div>
+      )}
+      {/* The value is stored, but it is read at boot — say so instead of letting it look applied. */}
+      {saveSuccess && selected.restartRequired && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 text-sm flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0 text-destructive" />
+          <span>{t('Restart to apply')}</span>
         </div>
       )}
 
@@ -460,19 +557,21 @@ function ImportDialog({ open, onOpenChange, diff, selected, setSelected, result,
                         {statusLabel(d.status)}
                       </Badge>
                       {d.readOnly && <Badge variant="destructive" style={{ fontSize: 10 }}>{t('Read only')}</Badge>}
+                      {d.secret && <Badge variant="outline" style={{ fontSize: 10 }}>{t('Secret')}</Badge>}
                     </div>
                     {d.status === 'changed' && (
                       <div className="mt-2 flex flex-col gap-1 text-xs">
                         <div className="flex gap-2">
                           <span className="opacity-50 w-14 flex-shrink-0">{t('Current')}:</span>
                           <code className="font-mono break-all flex-1" style={{ background: 'var(--destructive-muted, #fef2f2)', color: 'var(--destructive, #b91c1c)', padding: '2px 5px', borderRadius: 4 }}>
-                            {JSON.stringify(d.currentValue)}
+                            {/* Secret values are never readable — neither the stored one nor the imported one is shown */}
+                            {d.secret ? MASKED : JSON.stringify(d.currentValue)}
                           </code>
                         </div>
                         <div className="flex gap-2">
                           <span className="opacity-50 w-14 flex-shrink-0">{t('Import')}:</span>
                           <code className="font-mono break-all flex-1" style={{ background: 'var(--success-muted, #f0fdf4)', color: 'var(--success, #15803d)', padding: '2px 5px', borderRadius: 4 }}>
-                            {JSON.stringify(d.importValue)}
+                            {d.secret ? MASKED : JSON.stringify(d.importValue)}
                           </code>
                         </div>
                       </div>
@@ -531,6 +630,8 @@ function SettingListItem({ s, isActive, onSelect, t }) {
         {s.module && <Badge variant="secondary" style={{ fontSize: 10, padding: '1px 5px' }}>{s.module}</Badge>}
         {s.readOnly && <Badge variant="destructive" style={{ fontSize: 10, padding: '1px 5px' }}>{t('Read only')}</Badge>}
         {s.isRequired && <Badge variant="outline" style={{ fontSize: 10, padding: '1px 5px' }}>{t('Required')}</Badge>}
+        {s.secret && <Badge variant="outline" style={{ fontSize: 10, padding: '1px 5px' }}>{t('Secret')}</Badge>}
+        {s.restartRequired && <Badge variant="outline" style={{ fontSize: 10, padding: '1px 5px' }}>{t('Restart required')}</Badge>}
       </div>
     </button>
   );
@@ -540,7 +641,7 @@ function SettingListItem({ s, isActive, onSelect, t }) {
 // Main component
 // ──────────────────────────────────────────────────────────────────────────────
 
-function SettingsManagerContent() {
+function SettingsManagerContent({ bootId }) {
   const { t } = useTranslation();
   const apiBase = '/core/settings-manager';
   const isMobile = useIsMobile();
@@ -556,6 +657,7 @@ function SettingsManagerContent() {
   const [saveError, setSaveError] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const { restartPending, markRestartPending, clearRestartPending } = useRestartPending(bootId);
   const searchRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -736,7 +838,13 @@ function SettingsManagerContent() {
       const updated = await apiPost(`${apiBase}/update/${encodeURIComponent(selected.key)}`, { value: editValue });
       setSettings(prev => prev.map(s => s.key === updated.key ? { ...s, ...updated } : s));
       setSelected(prev => ({ ...prev, ...updated }));
+      // Nothing to keep on screen for a secret — the saved value is not readable back.
+      if (updated.secret) setEditValue(undefined);
       setSaveSuccess(true);
+      if (updated.restartRequired ?? selected.restartRequired) {
+        markRestartPending(updated.key || selected.key);
+        window.sonner?.toast?.warning?.(t('Restart to apply'));
+      }
       window.sonner?.toast(t('Saved successfully'));
       setTimeout(() => setSaveSuccess(false), 2500);
     } catch (e) {
@@ -810,6 +918,8 @@ function SettingsManagerContent() {
       setImportResult(result.results);
       const fresh = await apiGet(`${apiBase}/list`);
       setSettings(fresh);
+      // An import writes many keys at once; any of them may need a restart to take effect.
+      markRestartPending(fresh.filter(s => s.restartRequired && keys.includes(s.key)).map(s => s.key));
       if (selected) {
         const updated = fresh.find(s => s.key === selected.key);
         if (updated) {
@@ -882,6 +992,8 @@ function SettingsManagerContent() {
           </SheetContent>
         </Sheet>
 
+        <RestartBanner keys={restartPending} onDismiss={clearRestartPending} t={t} />
+
         {/* Mobile editor */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <EditorPanel
@@ -933,6 +1045,7 @@ function SettingsManagerContent() {
 
       {/* Right panel: editor */}
       <div className="flex-1 overflow-hidden flex flex-col" style={{ background: 'var(--background)' }}>
+        <RestartBanner keys={restartPending} onDismiss={clearRestartPending} t={t} />
         <EditorPanel
           t={t}
           selected={selected}
@@ -966,7 +1079,7 @@ export default function SettingsManager({ props }) {
   const locale = props?.locale || 'en';
   return (
     <I18nProvider initialLocale={locale} messages={props?.messages}>
-      <SettingsManagerContent />
+      <SettingsManagerContent bootId={props?.bootId || null} />
     </I18nProvider>
   );
 }

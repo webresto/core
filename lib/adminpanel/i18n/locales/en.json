@@ -648,5 +648,13 @@
 	"Notifications per day, stacked by channel; failed notifications are shown separately. Hover a day for the breakdown.": "Notifications per day, stacked by channel; failed notifications are shown separately. Hover a day for the breakdown.",
 	"Channels and status": "Channels and status",
 	"Final channel": "Final channel",
-	"A successful send through this channel stops the unread escalation": "A successful send through this channel stops the unread escalation"
+	"A successful send through this channel stops the unread escalation": "A successful send through this channel stops the unread escalation",
+	"Secret": "Secret",
+	"Restart required": "Restart required",
+	"The value is stored and cannot be shown. Enter a new one to replace it.": "The value is stored and cannot be shown. Enter a new one to replace it.",
+	"The value is not set yet. Enter one to store it.": "The value is not set yet. Enter one to store it.",
+	"Restart to apply": "The value is saved, but it is read at startup — restart the application to apply it.",
+	"Restart pending title": "Restart required to apply the changes",
+	"Restart pending hint": "Saved in this session, waiting for a restart:",
+	"Dismiss": "Dismiss"
 }
