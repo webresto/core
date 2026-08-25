@@ -75,7 +75,7 @@
     "react-dom": "^18.2.0",
     "sinon": "19.0.2",
     "ts-node": "^10.9.2",
-    "typescript": "^7.0.2",
+    "typescript": "^5.6.2",
     "vite": "^4.0.0",
     "vite-plugin-externals": "^0.6.2"
   },
