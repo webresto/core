@@ -176,7 +176,7 @@ export const models = {
       },
     },
   },
-  group: {
+  DishGroup: {
     model: 'group',
     title: 'Groups',
     icon: 'group',
@@ -356,7 +356,7 @@ export const models = {
       }
     }
   },
-  notification: {
+  UserNotification: {
     model: "notification",
     title: "Notifications",
     icon: "notifications",
