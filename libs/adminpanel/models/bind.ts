@@ -59,7 +59,7 @@ const tagsListField = {
 };
 
 export const models = {
-  user: {
+  Customer: {
     title: "User",
     model: "user",
     icon: "person",
