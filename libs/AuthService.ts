@@ -33,14 +33,23 @@ export class AuthService {
     return `p:${profile.provider}:${profile.externalId}`;
   }
 
+  private static async samePhone(a: Phone, b: Phone): Promise<boolean> {
+    return (await User.getPhoneString(a, "login")) === (await User.getPhoneString(b, "login"));
+  }
+
   /**
    * Decide whether a profile can proceed to authorization, or must first confirm a phone.
    * Rules (see auth.md §6.3 / §9):
    *  - phone counts as owned only if verified by the provider OR just confirmed by OTP;
    *  - if the provider config requires phone verification and we don't have a trusted phone,
-   *    the caller must run the OTP flow (confirmAuthPhone) before we authorize.
+   *    the caller must run the OTP flow (confirmAuthPhone) before we authorize;
+   *  - one-click for returning accounts: the trust anchor is the (provider, externalId) identity,
+   *    not the (spoofable) provider-supplied phone. Once a first OTP proved the phone behind an
+   *    externalId, we bind AuthIdentity and skip the code on later logins of the SAME externalId —
+   *    but only while the phone now presented still matches the bound one. A different phone means a
+   *    number change and must be re-proven by OTP (we never trust a new phone silently).
    */
-  static needsPhoneConfirmation(profile: NormalizedProfile, providerConfig: AuthProviderRecord | undefined, ctx: ResolveContext): boolean {
+  static async needsPhoneConfirmation(profile: NormalizedProfile, providerConfig: AuthProviderRecord | undefined, ctx: ResolveContext): Promise<boolean> {
     const hasTrustedPhone = Boolean(
       profile.phone && (
         (profile.phoneVerifiedByProvider && providerConfig?.trustProviderPhone !== false) ||
@@ -48,7 +57,13 @@ export class AuthService {
       )
     );
     if (hasTrustedPhone) return false;
-    return Boolean(providerConfig?.requirePhoneVerification);
+    if (!providerConfig?.requirePhoneVerification) return false;
+
+    const identity = await AuthIdentity.findByExternal(profile.provider, profile.externalId);
+    if (identity && identity.phone && profile.phone && (await this.samePhone(profile.phone as Phone, identity.phone as Phone))) {
+      return false;
+    }
+    return true;
   }
 
   /**
