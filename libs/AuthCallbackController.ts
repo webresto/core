@@ -23,7 +23,7 @@ async function resolveAndFinish(providerSlug: string, state: any, completeInput:
   const providerConfig = await AuthProvider.getBySlug(providerSlug);
   const ctx = { deviceId: state.deviceId, userAgent: "", IP: "0.0.0.0" };
 
-  if (AuthService.needsPhoneConfirmation(profile, providerConfig, ctx)) {
+  if (await AuthService.needsPhoneConfirmation(profile, providerConfig, ctx)) {
     await AuthState.updateOne({ id: state.id }, { status: "awaiting_phone", pendingProfile: profile } as any);
     return { status: "awaiting_phone" };
   }
@@ -81,7 +81,7 @@ export default {
       const providerConfig = await AuthProvider.getBySlug(providerSlug);
       const ctx = { deviceId: state.deviceId, userAgent: "", IP: "0.0.0.0" };
 
-      if (AuthService.needsPhoneConfirmation(parsed.profile, providerConfig, ctx)) {
+      if (await AuthService.needsPhoneConfirmation(parsed.profile, providerConfig, ctx)) {
         await AuthState.updateOne({ id: state.id }, { status: "awaiting_phone", pendingProfile: parsed.profile } as any);
         return res.status(200).json({ ok: true, status: "awaiting_phone" });
       }
