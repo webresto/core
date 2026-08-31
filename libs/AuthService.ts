@@ -1,4 +1,5 @@
 import { v4 as uuid } from "uuid";
+import { Adapter } from "../adapters";
 import { NormalizedProfile } from "../adapters/auth/AuthProviderAdapter";
 import { UserRecord, Phone } from "../models/User";
 import { UserDeviceRecord } from "../models/UserDevice";
@@ -152,6 +153,32 @@ export class AuthService {
     );
 
     return { status: "authorized", user, userDevice };
+  }
+
+  /**
+   * Unlink a provider — or one specific external account of it — from a user, and let the adapter
+   * clean up its own side (recipient rows, provider-side session) via `revoke()`. Domain logic lives
+   * here so every entry point (GraphQL, admin, account deletion) unlinks identically; callers only
+   * handle transport/response. Provider-side cleanup is best-effort: the core link is removed first,
+   * so a `revoke` failure must not fail the unlink. Returns the number of identities removed.
+   */
+  static async unlink(userId: string, provider: string, externalId?: string): Promise<number> {
+    const criteria: { provider: string; user: string; externalId?: string } = { provider, user: userId };
+    if (externalId) criteria.externalId = externalId;
+
+    // Read the identities before deleting so the adapter can clean up its own side per identity.
+    const identities = await AuthIdentity.find(criteria);
+    await AuthIdentity.destroy(criteria);
+
+    try {
+      const adapter = await Adapter.getAuthAdapter(provider);
+      if (typeof adapter.revoke === "function") {
+        for (const identity of identities) await adapter.revoke(identity);
+      }
+    } catch (e) {
+      sails.log.error(`AuthService.unlink revoke [${provider}]`, e);
+    }
+    return identities.length;
   }
 }
 
