@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
 function getPreferredAppearance() { return localStorage.getItem(APPEARANCE_STORAGE_KEY) || 'system'; }
@@ -28,17 +28,33 @@ import { I18nProvider, useTranslation } from './i18n/I18nContext';
 
 import { HelpButton } from './components/HelpButton';
 
+const { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } = window.UIComponents;
+
+const TAB_OUT_OF_STOCK = 'out-of-stock';
+const TAB_EXPLORE = 'explore';
+const TAB_IDS = [TAB_OUT_OF_STOCK, TAB_EXPLORE];
+
+function readTabFromUrl() {
+  const hash = (window.location.hash || '').replace(/^#/, '');
+  return TAB_IDS.includes(hash) ? hash : TAB_OUT_OF_STOCK;
+}
+
 // StockManager component with folder navigation and search
 // StockManager content component
-function StockManagerContent() {
+function StockManagerContent({ canManage = false }) {
   const { t, language, setLanguage } = useTranslation();
   useAppearance();
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [results, setResults] = useState([]);
-  const [balances, setBalances] = useState({});
+  const [localBalances, setLocalBalances] = useState({});
+  const [balanceMode, setBalanceMode] = useState('minimum');
   const [initialItems, setInitialItems] = useState([]);
+  const [places, setPlaces] = useState([]);
+  const [selectedPlaceId, setSelectedPlaceId] = useState(null);
+  const [activeTab, setActiveTab] = useState(readTabFromUrl);
+  const accessRecoveryRef = useRef(false);
 
   // Navigation state
   const [currentGroup, setCurrentGroup] = useState(null); // null = root
@@ -54,7 +70,7 @@ function StockManagerContent() {
 
   // Sort mode state
   const [sortMode, setSortMode] = useState(() => {
-    return localStorage.getItem('stockManagerSortMode') || 'status';
+    return localStorage.getItem('stockManagerSortMode') || 'name-asc';
   });
 
   // Show all dishes state (including disabled and hidden)
@@ -105,28 +121,101 @@ function StockManagerContent() {
     const contentType = (response.headers.get('content-type') || '').toLowerCase();
     if (!response.ok || !contentType.includes('application/json')) {
       const text = await response.text();
-      throw new Error(
+      const error = new Error(
         `HTTP ${response.status}. Expected JSON, got "${contentType || 'unknown'}". ${text.slice(0, 120)}`
       );
+      error.status = response.status;
+      // Rights are checked per request, so a 403 here means they changed under
+      // the open page rather than that the caller did something wrong.
+      if (response.status === 403) recoverFromAccessLoss();
+      throw error;
     }
 
     return response.json();
   }
 
-  // Update URL with current group slug
-  function updateUrl(groupSlug) {
+  /**
+   * Re-reads the granted points after a 403.
+   *
+   * That is the whole recovery: the list either still holds a point the
+   * operator may use, and the page moves to it, or it comes back empty and the
+   * page falls through to the "no points assigned" screen it already renders.
+   * Guarded by a ref so a burst of failed requests recovers once, and so the
+   * point request made by the recovery cannot start another one.
+   */
+  async function recoverFromAccessLoss() {
+    if (accessRecoveryRef.current) return;
+    accessRecoveryRef.current = true;
+    const lostPlaceId = selectedPlaceId;
+    try {
+      const loaded = await loadStockPlaces();
+      if (!loaded.length) {
+        notifyError(t('Your Stock Manager access was revoked. Contact an administrator.'));
+      } else if (lostPlaceId && !loaded.some(place => place.id === lostPlaceId)) {
+        notifyError(t('Access to this cooking point was revoked. Switched to another point.'));
+      }
+    } finally {
+      accessRecoveryRef.current = false;
+    }
+  }
+
+  function notifyError(message) {
+    if (window.sonner?.toast?.error) window.sonner.toast.error(message);
+    else console.error(message);
+  }
+
+  /**
+   * Seeds the editable state from `localBalance`, never from the effective one.
+   *
+   * The control edits the operator value, so seeding it from the computed
+   * effective balance would make every reload silently revert the edit.
+   */
+  function applyStockPayload(json) {
+    const items = json.results || [];
+    if (json.mode) setBalanceMode(json.mode);
+    setLocalBalances(prev => {
+      const next = { ...prev };
+      items.forEach(item => { next[item.id] = item.localBalance ?? null; });
+      return next;
+    });
+    return items;
+  }
+
+  /**
+   * Single writer for the address: the tab in the hash, the browsed group in
+   * `?group`.
+   *
+   * `group` is kept only for Explore. Out of stock always lists the whole
+   * point, so carrying the parameter over would read as a group-scoped list.
+   * The group itself is not lost — it stays in state and comes back with the
+   * tab.
+   */
+  function writeUrl(groupSlug, tabId, { replace = false } = {}) {
     const url = new URL(window.location);
-    if (groupSlug) {
+    if (groupSlug && tabId === TAB_EXPLORE) {
       url.searchParams.set('group', groupSlug);
     } else {
       url.searchParams.delete('group');
     }
-    window.history.pushState({}, '', url);
+    url.hash = tabId;
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+  }
+
+  // Update URL with current group slug
+  function updateUrl(groupSlug) {
+    writeUrl(groupSlug, activeTab);
+  }
+
+  // Switching tabs is not navigation inside the catalog, so it replaces the
+  // entry instead of stacking one up per click.
+  function handleTabChange(tabId) {
+    setActiveTab(tabId);
+    writeUrl(currentGroup?.slug ?? null, tabId, { replace: true });
   }
 
   // Load group by slug with recursive search and build navigation stack
   async function loadGroupBySlug(slug) {
-    if (!slug) return null;
+    if (!slug || !selectedPlaceId) return null;
 
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
@@ -140,7 +229,11 @@ function StockManagerContent() {
         }
         visitedParents.add(parentKey);
 
-        const endpoint = `${base}/core/groups${parentId ? `?parent=${parentId}` : ''}`;
+        // Same place scope as loadGroups: /core/groups is gated by
+        // requireStockPlaceAccess and answers 403 without a placeId.
+        const params = new URLSearchParams({ placeId: selectedPlaceId });
+        if (parentId) params.set('parent', parentId);
+        const endpoint = `${base}/core/groups?${params}`;
         const json = await fetchJsonNoCache(endpoint);
         const groups = json.results || [];
 
@@ -174,26 +267,76 @@ function StockManagerContent() {
     }
   }
 
-  // Initial load: check URL for group slug
+  /** Returns the granted points so callers can tell an empty list from a failure. */
+  async function loadStockPlaces() {
+    try {
+      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+      const json = await fetchJsonNoCache(`${base}/core/stock-places`);
+      const loadedPlaces = json.results || [];
+      setPlaces(loadedPlaces);
+      const savedPlaceId = localStorage.getItem('stockManagerPlaceId');
+      const initialPlace = loadedPlaces.find(place => place.id === savedPlaceId) || loadedPlaces[0];
+      // Persisted as well, so a point that is no longer granted does not come
+      // back as the preferred one on the next visit.
+      localStorage.setItem('stockManagerPlaceId', initialPlace ? initialPlace.id : '');
+      setSelectedPlaceId(initialPlace ? initialPlace.id : null);
+      return loadedPlaces;
+    } catch (err) {
+      console.error('load stock places error', err);
+      setPlaces([]);
+      setSelectedPlaceId(null);
+      return [];
+    }
+  }
+
+  // Initial load only gets contextual places. Product data starts after a point is selected.
   useEffect(() => {
+    loadStockPlaces();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedPlaceId) {
+      setInitialItems([]);
+      setGroups([]);
+      setDishes([]);
+      setResults([]);
+      return undefined;
+    }
+
     async function initializeFromUrl() {
       loadInitialItems();
 
+      // Root means no group is open, so no dishes are listed. Leaving them
+      // behind is how the previous kitchen's dishes used to survive a switch.
+      async function showRoot() {
+        setCurrentGroup(null);
+        setGroupStack([]);
+        setDishes([]);
+        await loadGroups(null);
+      }
+
       const groupSlug = getGroupSlugFromUrl();
+      let resolvedSlug = null;
       if (groupSlug) {
         const result = await loadGroupBySlug(groupSlug);
         if (result) {
+          resolvedSlug = result.group.slug;
           setCurrentGroup(result.group);
           setGroupStack(result.stack);
           await loadGroups(result.group.id);
           await loadDishes(result.group.id);
         } else {
           // Group not found, load root
-          await loadGroups(null);
+          await showRoot();
         }
       } else {
-        await loadGroups(null);
+        await showRoot();
       }
+
+      // Clears a stale `?group` left by a link that opened on another tab or
+      // that names a group which no longer resolves. The hash is read again
+      // rather than taken from state: it is the truth this effect started from.
+      writeUrl(resolvedSlug, readTabFromUrl(), { replace: true });
 
       setIsInitialLoad(false);
     }
@@ -205,11 +348,13 @@ function StockManagerContent() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedPlaceId]);
 
   // Handle browser back/forward navigation
   useEffect(() => {
+    if (!selectedPlaceId) return undefined;
     async function handlePopState() {
+      setActiveTab(readTabFromUrl());
       const groupSlug = getGroupSlugFromUrl();
       if (groupSlug) {
         const result = await loadGroupBySlug(groupSlug);
@@ -229,10 +374,14 @@ function StockManagerContent() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [selectedPlaceId]);
 
   // Debounced search effect
   useEffect(() => {
+    if (!selectedPlaceId) {
+      setResults([]);
+      return undefined;
+    }
     const term = (q || '').trim();
     if (!term) {
       setResults([]);
@@ -244,26 +393,27 @@ function StockManagerContent() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [q]);
+  }, [q, selectedPlaceId]);
 
   async function loadInitialItems() {
+    if (!selectedPlaceId) return;
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
-      const endpoint = `${base}/core/stock-items`;
+      const endpoint = `${base}/core/stock-items?placeId=${encodeURIComponent(selectedPlaceId)}`;
       const json = await fetchJsonNoCache(endpoint);
-      setInitialItems(json.results || []);
-      const newBalances = {};
-      (json.results || []).forEach(r => newBalances[r.id] = r.balance || 0);
-      setBalances(prev => ({ ...prev, ...newBalances }));
+      setInitialItems(applyStockPayload(json));
     } catch (err) {
       console.error('load initial items error', err);
     }
   }
 
   async function loadGroups(parentId) {
+    if (!selectedPlaceId) return;
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
-      const endpoint = `${base}/core/groups${parentId ? `?parent=${parentId}` : ''}`;
+      const params = new URLSearchParams({ placeId: selectedPlaceId });
+      if (parentId) params.set('parent', parentId);
+      const endpoint = `${base}/core/groups?${params}`;
       const json = await fetchJsonNoCache(endpoint);
       setGroups(json.results || []);
     } catch (err) {
@@ -272,20 +422,15 @@ function StockManagerContent() {
   }
 
   async function loadDishes(groupId) {
-    if (!groupId) {
+    if (!groupId || !selectedPlaceId) {
       setDishes([]);
       return;
     }
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
-      const endpoint = `${base}/core/dishes-by-group?group=${groupId}`;
+      const endpoint = `${base}/core/dishes-by-group?group=${encodeURIComponent(groupId)}&placeId=${encodeURIComponent(selectedPlaceId)}`;
       const json = await fetchJsonNoCache(endpoint);
-      const loadedDishes = json.results || [];
-      setDishes(loadedDishes);
-
-      const newBalances = {};
-      loadedDishes.forEach(r => newBalances[r.id] = r.balance || 0);
-      setBalances(prev => ({ ...prev, ...newBalances }));
+      setDishes(applyStockPayload(json));
     } catch (err) {
       console.error('load dishes error', err);
     }
@@ -317,19 +462,16 @@ function StockManagerContent() {
   }
 
   async function performSearch(term) {
-    if (!term) {
+    if (!term || !selectedPlaceId) {
       setResults([]);
       return;
     }
     setLoading(true);
     try {
       const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
-      const endpoint = `${base}/core/api?q=${encodeURIComponent(term)}`;
+      const endpoint = `${base}/core/api?q=${encodeURIComponent(term)}&placeId=${encodeURIComponent(selectedPlaceId)}`;
       const json = await fetchJsonNoCache(endpoint);
-      setResults(json.results || []);
-      const newBalances = {};
-      (json.results || []).forEach(r => newBalances[r.id] = r.balance || 0);
-      setBalances(prev => ({ ...prev, ...newBalances }));
+      setResults(applyStockPayload(json));
     } catch (err) {
       console.error('search error', err);
       setResults([]);
@@ -369,8 +511,8 @@ function StockManagerContent() {
     setResults([]);
   }
 
-  function handleBalanceChange(id, newBalance) {
-    setBalances(prev => ({ ...prev, [id]: newBalance }));
+  function handleLocalBalanceChange(id, newBalance) {
+    setLocalBalances(prev => ({ ...prev, [id]: newBalance }));
   }
 
   async function refreshData() {
@@ -389,44 +531,64 @@ function StockManagerContent() {
     }
   }
 
-  async function updateStock(id, balance) {
-    try {
-      const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
-      const endpoint = `${base}/core/update-stock`;
-      const csrfToken = (() => {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          const [name, value] = cookie.trim().split('=');
-          if (name === 'XSRF-TOKEN') return decodeURIComponent(value);
-        }
-        return null;
-      })();
-      const json = await fetchJsonNoCache(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-xsrf-token': csrfToken
-        },
-        credentials: 'include',
-        body: JSON.stringify({ id, balance })
-      });
-      if (json.success) {
-        setBalances(prev => ({ ...prev, [id]: balance }));
+  function readCsrfToken() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'XSRF-TOKEN') return decodeURIComponent(value);
+    }
+    return null;
+  }
 
-        // Refresh data to get latest balances
-        loadInitialItems();
-        if (currentGroup) {
-          loadDishes(currentGroup.id);
-        }
-        if ((q || '').trim()) {
-          performSearch((q || '').trim());
-        }
+  async function postStockChange(path, body) {
+    const base = (window.location.pathname || '').replace(/\/[^/]*$/, '');
+    return fetchJsonNoCache(`${base}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-xsrf-token': readCsrfToken()
+      },
+      credentials: 'include',
+      body: JSON.stringify({ ...body, placeId: selectedPlaceId })
+    });
+  }
+
+  /** Reloads every list so effective values and the Out of stock tab stay in sync. */
+  async function reloadStockViews() {
+    await loadInitialItems();
+    if (currentGroup) await loadDishes(currentGroup.id);
+    if ((q || '').trim()) await performSearch((q || '').trim());
+  }
+
+  async function updateStock(id, balance) {
+    if (!selectedPlaceId) return;
+    try {
+      const json = await postStockChange('/core/update-stock', { id, balance });
+      if (json.success) {
+        setLocalBalances(prev => ({ ...prev, [id]: json.dishPlace?.localBalance ?? balance }));
+        await reloadStockViews();
       } else {
-        alert(t('Update failed: {error}', { error: json.error || t('Unknown error') }));
+        notifyError(t('Update failed: {error}', { error: json.error || t('Unknown error') }));
       }
     } catch (err) {
       console.error('update error', err);
-      alert(t('Update error'));
+      notifyError(t('Update error'));
+    }
+  }
+
+  /** Point-local switch; the catalog-wide `Dish.enable` is not touched here. */
+  async function toggleDishPlaceEnable(id, enable) {
+    if (!selectedPlaceId) return;
+    try {
+      const json = await postStockChange('/core/update-dish-place-enable', { id, enable });
+      if (json.success) {
+        await reloadStockViews();
+      } else {
+        notifyError(t('Update failed: {error}', { error: json.error || t('Unknown error') }));
+      }
+    } catch (err) {
+      console.error('toggle product place enable error', err);
+      notifyError(t('Update error'));
     }
   }
 
@@ -463,11 +625,11 @@ function StockManagerContent() {
           setGroups(prev => prev.map(g => g.id === id ? { ...g, visible } : g));
         }
       } else {
-        alert(t('Visibility update failed: {error}', { error: json.error || t('Unknown error') }));
+        notifyError(t('Visibility update failed: {error}', { error: json.error || t('Unknown error') }));
       }
     } catch (err) {
       console.error('update visible error', err);
-      alert(t('Visibility update error'));
+      notifyError(t('Visibility update error'));
     }
   }
 
@@ -502,11 +664,11 @@ function StockManagerContent() {
           setGroups(prev => prev.map(g => g.id === id ? { ...g, enable } : g));
         }
       } else {
-        alert(t('Visibility update failed: {error}', { error: json.error || t('Unknown error') }));
+        notifyError(t('Visibility update failed: {error}', { error: json.error || t('Unknown error') }));
       }
     } catch (err) {
       console.error('update enable error', err);
-      alert(t('Visibility update error'));
+      notifyError(t('Visibility update error'));
     }
   }
 
@@ -516,7 +678,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk enable error', err);
-      alert(t('Bulk visibility update error'));
+      notifyError(t('Bulk visibility update error'));
     }
   }
 
@@ -526,7 +688,7 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk visibility error', err);
-      alert(t('Bulk visibility update error'));
+      notifyError(t('Bulk visibility update error'));
     }
   }
 
@@ -537,27 +699,41 @@ function StockManagerContent() {
       await Promise.all(promises);
     } catch (err) {
       console.error('bulk balance error', err);
-      alert(t('Bulk balance update error'));
+      notifyError(t('Bulk balance update error'));
     }
   }
 
   const isSearching = (q || '').trim().length > 0;
 
+  function handlePlaceChange(placeId) {
+    localStorage.setItem('stockManagerPlaceId', placeId || '');
+    setCurrentGroup(null);
+    setGroupStack([]);
+    setDishes([]);
+    updateUrl(null);
+    // Stock is per point, so values from the previous kitchen must not linger.
+    setLocalBalances({});
+    setSelectedPlaceId(placeId);
+  }
+
   const tabs = [
     {
-      id: 'out-of-stock',
+      id: TAB_OUT_OF_STOCK,
       label: t('Out of stock'),
       content: (
         <LimitedStockSection
           items={initialItems}
-          balances={balances}
+          mode={balanceMode}
+          localBalances={localBalances}
           onUpdateStock={updateStock}
-          onBalanceChange={handleBalanceChange}
+          onLocalBalanceChange={handleLocalBalanceChange}
+          onToggleEnable={toggleDishPlaceEnable}
+          canManage={canManage}
         />
       )
     },
     {
-      id: 'explore',
+      id: TAB_EXPLORE,
       label: t('Explore'),
       content: (
         <div>
@@ -566,12 +742,13 @@ function StockManagerContent() {
           {isSearching ? (
             <DishesGrid
               dishes={results}
-              balances={balances}
+              mode={balanceMode}
+              localBalances={localBalances}
               onUpdateStock={updateStock}
-              onUpdateEnable={updateEnable}
-              onUpdateVisible={updateVisible}
-              onBalanceChange={handleBalanceChange}
+              onLocalBalanceChange={handleLocalBalanceChange}
+              onToggleEnable={toggleDishPlaceEnable}
               title={results.length === 0 ? t('No results') : t('Search Results')}
+              canManage={canManage}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               sortMode={sortMode}
@@ -590,20 +767,20 @@ function StockManagerContent() {
               <GroupsGrid
                 groups={groups}
                 onGroupClick={handleGroupClick}
-                onUpdateVisible={updateVisible}
               />
 
               <DishesGrid
                 dishes={dishes}
-                balances={balances}
+                mode={balanceMode}
+                localBalances={localBalances}
                 onUpdateStock={updateStock}
-                onUpdateEnable={updateEnable}
-                onUpdateVisible={updateVisible}
-                onBalanceChange={handleBalanceChange}
+                onLocalBalanceChange={handleLocalBalanceChange}
+                onToggleEnable={toggleDishPlaceEnable}
                 onBulkEnable={handleBulkEnable}
                 onBulkVisibility={handleBulkVisibility}
                 onBulkBalance={handleBulkBalance}
                 showToolbox={true}
+                canManage={canManage}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
                 sortMode={sortMode}
@@ -629,16 +806,34 @@ function StockManagerContent() {
           <h1 className="text-3xl font-bold">{t('Stock Manager')}</h1>
           <HelpButton />
         </div>
-        <button
-          type="button"
-          onClick={refreshData}
-          disabled={isRefreshing}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-        >
-          {isRefreshing ? t('Refreshing...') : t('Refresh now')}
-        </button>
+        <div className="flex items-center gap-3">
+          {places.length > 0 && (
+            <Select value={selectedPlaceId || undefined} onValueChange={handlePlaceChange}>
+              <SelectTrigger className="h-10 min-w-56" aria-label={t('Cooking point')}>
+                <SelectValue placeholder={t('Select cooking point')} />
+              </SelectTrigger>
+              <SelectContent>
+                {places.map(place => (
+                  <SelectItem key={place.id} value={place.id}>{place.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <button
+            type="button"
+            onClick={refreshData}
+            disabled={isRefreshing || !selectedPlaceId}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          >
+            {isRefreshing ? t('Refreshing...') : t('Refresh now')}
+          </button>
+        </div>
       </div>
-      <Tabs tabs={tabs} defaultTab="out-of-stock" />
+      {!selectedPlaceId ? (
+        <div className="rounded-md border border-dashed p-8 text-center text-muted-foreground">
+          {t('No cooking points are assigned to your Stock Manager access. Contact an administrator.')}
+        </div>
+      ) : <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />}
     </div>
   );
 }
@@ -647,7 +842,7 @@ function StockManagerContent() {
 export default function StockManager(props) {
   return (
     <I18nProvider initialLocale={props.locale} messages={props.messages}>
-      <StockManagerContent />
+      <StockManagerContent canManage={props.canManage} />
     </I18nProvider>
   );
 }

@@ -1,0 +1,8 @@
+{
+  "key": "DELIVERY_CITY_SPEED_KMH",
+  "type": "number",
+  "name": "Courier city speed, km/h",
+  "description": "Average speed used to turn a straight-line distance into a travel time when no routing provider is registered. Stands in for streets not being straight.",
+  "defaultValue": 20,
+  "isRequired": false
+}

@@ -4,43 +4,29 @@ import { DishListItem } from './DishListItem';
 import { GroupToolbox } from './GroupToolbox';
 import { ViewToggle } from './ViewToggle';
 import { SortToggle } from './SortToggle';
-import { Button } from '@/components/ui/button';
-import { Search, CheckSquare, Square } from 'lucide-react';
 import { useTranslation } from '../i18n/I18nContext';
 
 export function DishesGrid({
     dishes,
-    balances,
+    mode,
+    localBalances,
     onUpdateStock,
-    onUpdateEnable,
-    onUpdateVisible,
-    onBalanceChange,
-    onBulkEnable,
-    onBulkVisibility,
+    onLocalBalanceChange,
+    onToggleEnable,
     onBulkBalance,
     title,
     showToolbox = false,
+    canManage = false,
     viewMode = 'grid',
     onViewModeChange,
-    sortMode = 'status',
-    onSortModeChange,
-    showAll = true,
-    onShowAllChange
+    sortMode = 'name-asc',
+    onSortModeChange
 }) {
     const { t } = useTranslation();
     const displayTitle = title || t('Dishes');
 
     // Deleted dishes must never appear in stock manager.
-    const visibleDishes = dishes.filter((d) => {
-        if (d.isDeleted) return false;
-        if (showAll) return true;
-        return d.enable !== false && d.visible !== false;
-    });
-
-    if (visibleDishes.length === 0 && dishes.length > 0 && !showAll) {
-        // If all dishes are hidden, show a message or just empty grid?
-        // For now, let's just show empty grid, or maybe we should show the toggle even if empty?
-    }
+    const visibleDishes = dishes.filter((d) => !d.isDeleted);
 
     if (dishes.length === 0) {
         return null;
@@ -60,15 +46,7 @@ export function DishesGrid({
                 const orderB = b.sortOrder ?? 999999;
                 return orderA - orderB;
 
-            case 'status':
-                // Disabled dishes (enable === false or isDeleted === true) go to the bottom.
-                const isDisabledA = a.enable === false || a.isDeleted === true;
-                const isDisabledB = b.enable === false || b.isDeleted === true;
-
-                if (isDisabledA && !isDisabledB) return 1;  // A is disabled, B is not -> A goes down
-                if (!isDisabledA && isDisabledB) return -1; // B is disabled, A is not -> B goes down
-
-                // If both have same status, sort by name
+            case 'status': // Saved preference from the old UI: no longer uses enable/visible.
                 return (a.name || '').localeCompare(b.name || '');
 
             default:
@@ -81,18 +59,6 @@ export function DishesGrid({
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold">{displayTitle}</h3>
                 <div className="flex items-center gap-2">
-                    {onShowAllChange && (
-                        <Button
-                            variant={showAll ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => onShowAllChange(!showAll)}
-                            title={t('Show All')}
-                            className={`h-8 gap-2 ${showAll ? 'shadow-sm' : ''}`}
-                        >
-                            <Search className="w-4 h-4" />
-                            {t('Show All')}
-                        </Button>
-                    )}
                     {onSortModeChange && (
                         <SortToggle sortMode={sortMode} onSortModeChange={onSortModeChange} />
                     )}
@@ -102,11 +68,9 @@ export function DishesGrid({
                 </div>
             </div>
 
-            {showToolbox && (
+            {showToolbox && canManage && (
                 <GroupToolbox
                     dishes={sortedDishes}
-                    onBulkEnable={onBulkEnable}
-                    onBulkVisibility={onBulkVisibility}
                     onBulkBalance={onBulkBalance}
                 />
             )}
@@ -117,11 +81,12 @@ export function DishesGrid({
                         <DishCard
                             key={dish.id}
                             dish={dish}
-                            balance={balances[dish.id]}
+                            mode={mode}
+                            localBalance={localBalances[dish.id]}
                             onUpdateStock={onUpdateStock}
-                            onUpdateEnable={onUpdateEnable}
-                            onUpdateVisible={onUpdateVisible}
-                            onBalanceChange={onBalanceChange}
+                            onLocalBalanceChange={onLocalBalanceChange}
+                            onToggleEnable={onToggleEnable}
+                            canManage={canManage}
                         />
                     ))}
                 </div>
@@ -131,11 +96,12 @@ export function DishesGrid({
                         <DishListItem
                             key={dish.id}
                             dish={dish}
-                            balance={balances[dish.id]}
+                            mode={mode}
+                            localBalance={localBalances[dish.id]}
                             onUpdateStock={onUpdateStock}
-                            onUpdateEnable={onUpdateEnable}
-                            onUpdateVisible={onUpdateVisible}
-                            onBalanceChange={onBalanceChange}
+                            onLocalBalanceChange={onLocalBalanceChange}
+                            onToggleEnable={onToggleEnable}
+                            canManage={canManage}
                         />
                     ))}
                 </div>

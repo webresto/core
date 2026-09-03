@@ -1,0 +1,8 @@
+{
+  "key": "OUTSIDE_DELIVERY_AREA_DEFAULT_COST",
+  "type": "number",
+  "name": "Delivery cost outside every zone",
+  "description": "Charged when the address falls outside every zone. Empty or 0 means delivery there is refused, which is why zones are usually drawn in the first place.",
+  "defaultValue": 0,
+  "isRequired": false
+}

@@ -1,5 +1,7 @@
 import { CreateUpdateConfig, FieldsModels, MediaManagerOptionsField } from "adminizer"
 
+const hiddenField = { visible: false };
+
 export class ProductConfig {
     static fields: FieldsModels = {
         id: {
@@ -93,15 +95,11 @@ export class ProductConfig {
             type: "json",
             tooltip: "A list of tags that can be applied to a dish or group. Tags help categorize and identify dishes based on attributes such as 'sweet', 'sour', 'salty', 'fried', 'boiled', 'hearty', 'fish', 'chicken', 'vegetarian', etc., making it easier to navigate the menu."
         },
-        balance: {
-            title: "Balance",
-            tooltip: "Indicates the availability of the dish based on its balance. If the balance is 0, the dish is no longer available for sale. If the balance is -1, the dish is available for sale with no restrictions."
-        },
         slug: {
             title: "Slug",
             tooltip: "A URL-friendly version of the dish's name. It is used to create a readable and unique identifier for the dish in the URL, typically consisting of lowercase letters, numbers, and hyphens."
         },
-        hash: false,
+        hash: hiddenField,
         concept: {
             title: "Concept",
             tooltip: "The concept represents a broad category or section that distinguishes dishes and menus. It can be used to define different sections such as 'Burgers', 'Pizza', 'Kids Menu', or even separate restaurants operating under the same backend but with different frontends. Concepts can also be used to manage delivery from different regions, making it a versatile and abstract categorization tool."
@@ -159,7 +157,7 @@ export class ProductConfig {
             } as MediaManagerOptionsField,
             tooltip: "A list of images associated with the dish. These images are used to visually represent the dish and can be selected for display in the menu."
         },
-        favorites: false,
+        favorites: hiddenField,
         recommendations: {
             title: "Recommendations",
             tooltip: "A list of dishes recommended based on this dish. It helps suggest similar or complementary items to users."

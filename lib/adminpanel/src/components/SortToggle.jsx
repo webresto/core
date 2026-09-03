@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, ArrowUpAZ, ArrowDownZA, ListOrdered, CheckCircle2 } from 'lucide-react';
+import { ArrowUpDown, ArrowUpAZ, ArrowDownZA, ListOrdered } from 'lucide-react';
 import { useTranslation } from '../i18n/I18nContext';
 
 export function SortToggle({ sortMode, onSortModeChange }) {
@@ -12,10 +12,9 @@ export function SortToggle({ sortMode, onSortModeChange }) {
         { value: 'name-asc', label: t('Name (A-Z)'), icon: ArrowUpAZ },
         { value: 'name-desc', label: t('Name (Z-A)'), icon: ArrowDownZA },
         { value: 'sortOrder', label: t('By Order'), icon: ListOrdered },
-        { value: 'status', label: t('Active First'), icon: CheckCircle2 },
     ];
 
-    const currentOption = sortOptions.find(opt => opt.value === sortMode) || sortOptions[3];
+    const currentOption = sortOptions.find(opt => opt.value === sortMode) || sortOptions[0];
     const CurrentIcon = currentOption.icon;
 
     useEffect(() => {

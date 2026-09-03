@@ -30,10 +30,15 @@ global.DialogBox = DialogBox
 
 
 
-import { Adapter } from "../adapters/index";
+import { Adapter, Menu } from "../adapters/index";
 import bindLocales from "./bindLocales";
 // @ts-ignore
 global.Adapter = Adapter
+// Global for the same reason `Adapter` is: `models/Order` reaches for it and does
+// not import the adapters barrel, which is what keeps that file out of a require
+// cycle with everything the barrel pulls in.
+// @ts-ignore
+global.Menu = Menu
 
 export default function ToInitialize(sails: Sails) {
   /**

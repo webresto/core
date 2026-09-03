@@ -17,11 +17,13 @@ export async function ensureDefaultGroups(
 ): Promise<void> {
   if (!Array.isArray(defaultGroups) || defaultGroups.length === 0) return;
 
-  const groupModel = adminizer.modelHandler.model.get('GroupAP');
+  // `Group` is Adminizer's canonical internal model name. The Sails adapter
+  // maps it to GroupAP; this cannot accidentally resolve core's `group`.
+  const groupModel = adminizer.modelHandler.internal('access-rights').get('Group');
 
   for (const defaultGroup of defaultGroups) {
-    const existingGroup = await groupModel._findOne({
-      name: defaultGroup.name,
+    const existingGroup = await groupModel.findOne({
+      where: { name: defaultGroup.name },
     });
 
     if (existingGroup) {
@@ -32,15 +34,15 @@ export async function ensureDefaultGroups(
       const missingTokens = ensureTokens.filter((token: string) => !retainedTokens.includes(token));
 
       if (missingTokens.length > 0 || retainedTokens.length !== currentTokens.length) {
-        await groupModel._updateOne(
-          { name: defaultGroup.name },
+        await groupModel.updateOne(
+          { where: { name: defaultGroup.name } },
           { tokens: [...retainedTokens, ...missingTokens] },
         );
       }
       continue;
     }
 
-    await groupModel._create({
+    await groupModel.create({
       name: defaultGroup.name,
       description: defaultGroup.description,
       tokens: [...defaultGroup.tokens],

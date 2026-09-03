@@ -17,7 +17,6 @@ export default function dishGenerator(
   return {
     id: config?.id || faker.random.uuid(),
     additionalInfo: config?.additionalInfo || "null",
-    balance:  config?.balance || -1,
     modifiers: config?.modifiers || [],
     parentGroup: config?.parentGroup || null,
     weight: 100,
@@ -34,4 +33,4 @@ export default function dishGenerator(
   }
 }
 
-export let dishFields = ["id", "additionalInfo", "balance", "modifiers", "weight", "price", "order", "images", "name", "description", "rmsId", "code", "tags", "isDeleted"];
+export let dishFields = ["id", "additionalInfo", "modifiers", "weight", "price", "order", "images", "name", "description", "rmsId", "code", "tags", "isDeleted"];

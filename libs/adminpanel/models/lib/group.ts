@@ -1,10 +1,12 @@
 import { CreateUpdateConfig, FieldsModels, MediaManagerOptionsField } from "adminizer";
 import { summarizeWorktime } from "../../controls/worktimeViewerHelper";
 
+const hiddenField = { visible: false };
+
 export class GroupConfig {
     static fields: FieldsModels = {
-        createdAt: false,
-        updatedAt: false,
+        createdAt: hiddenField,
+        updatedAt: hiddenField,
         name: {
             title: "Name",
             tooltip: "The name of the group or dish category."

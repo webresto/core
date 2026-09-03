@@ -6,15 +6,18 @@ Each module is a React component built with Vite and loaded dynamically by admin
 
 ## Quick-start: creating a new module
 
-### 1. Add the entry point to `vite.config.js`
+### 1. Add the entry point to `adminModules.ts`
 
-```js
-// local_modules/core/lib/adminpanel/vite.config.js
-entry: {
-  MyModule: path.resolve(__dirname, 'src/my-module.jsx'),
+```ts
+// local_modules/core/lib/adminpanel/adminModules.ts
+export const ADMIN_MODULE_ENTRIES = {
+  MyModule: "src/my-module.jsx",
   // ...existing entries
-}
+} as const;
 ```
+
+`vite.config.js` builds this map, the dev server serves it, and `adminModuleUrl()`
+hands out the URLs — one entry here is all that is needed.
 
 ### 2. Create `src/my-module.jsx`
 
@@ -82,9 +85,15 @@ export default function MyModule({ props }) {
 ### 3. Register the route in adminizer
 
 Add a controller entry (see existing controllers in `src/controller/`) pointing to:
+```ts
+import { adminModuleUrl } from "../../adminModules";
+
+moduleComponent: adminModuleUrl("MyModule"),
+// optional cache buster for the built file: adminModuleUrl("MyModule", "20260721-1")
 ```
-moduleComponent: `/restocore/assets/core-adminizer-assets/MyModule.js`
-```
+
+Never hardcode `/restocore/assets/core-adminizer-assets/MyModule.js` — that path
+skips the dev server and the module stops hot-reloading under `npm run dev:hmr`.
 
 ### 4. Build and deploy
 
@@ -98,6 +107,46 @@ cp assets/core-adminizer-assets/MyModule.js \
 ```
 
 > **Why the copy step?** `@webresto/core` is installed as a `file:` dependency but npm copies it instead of symlinking. The server serves assets from `node_modules/@webresto/core/assets/`, not `local_modules/core/assets/`. Always copy after build.
+
+---
+
+## Live development (`npm run dev:hmr`)
+
+Rebuilding and copying after every edit is only needed for the built assets. For
+day-to-day work on the .jsx sources, start the app in HMR mode from the app root:
+
+```bash
+npm run dev:hmr
+```
+
+That runs the app **and** a Vite dev server (127.0.0.1:5174) over
+`lib/adminpanel`. With `RESTOCORE_HMR=1` set, `adminModuleUrl()` returns dev
+server URLs, so the admin page imports the module from Vite instead of from
+`/restocore/assets/core-adminizer-assets`. Editing a .jsx file then reloads the
+open page with the new code — no build, no copy, no server restart.
+
+Updates arrive as a full page reload, not as react-refresh. The modules render
+against adminizer's `window.React`, which comes from its *production* bundle, and
+fast refresh only works against a development React build — `performReactRefresh()`
+would be a silent no-op there. Component state is therefore not preserved.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `RESTOCORE_HMR` | unset | `1`/`true` turns the dev URLs on (set by `dev:hmr`) |
+| `RESTOCORE_HMR_PORT` | `5174` | dev server port |
+| `RESTOCORE_HMR_ORIGIN` | `http://127.0.0.1:<port>` | origin the browser loads modules from — set it when the app is opened from another host |
+
+Notes:
+
+- Only the modules of this hook are served from Vite. Adminizer itself keeps
+  serving its own prebuilt assets: `ADMINIZER_ENV=dev` is *not* set, because that
+  switches adminizer to its own dev server, which needs adminizer's sources.
+- The dev server can also be started on its own:
+  `npm run dev:adminizer --prefix local_modules/core`.
+- Server-side changes (controllers under `src/controller/`, hooks) still need an
+  app restart — HMR covers the browser modules only.
+- Nothing changes for production: without `RESTOCORE_HMR` the URLs are exactly
+  the built asset paths as before.
 
 ---
 
@@ -115,7 +164,8 @@ local_modules/core/lib/adminpanel/
   i18n/                       ← I18nProvider + useTranslation
   docs/
     AdminpanelModules.md      ← this file
-  vite.config.js
+  adminModules.ts             ← entry map + URL resolver (build / HMR)
+  vite.config.js              ← build config + HMR dev server
 ```
 
 ---
@@ -151,8 +201,9 @@ const { MonacoEditor, MultiSelect, VanillaJSONEditor } = window.JSComponents;
 // All Lucide icons
 const { Save, Download, Upload, Settings, ChevronDown, X, Plus } = window.LucideReact;
 
-// HTTP client — use adminApi, not the legacy window.axios shim (see "API requests" below)
-const adminApi = window.adminApi;
+// HTTP client — see "API requests" below. NOTE: it hangs off JSComponents,
+// there is no `window.adminApi`.
+const adminApi = window.JSComponents.adminApi;
 
 // Toast notifications
 window.sonner?.toast('Saved');
@@ -469,39 +520,84 @@ window.sonner?.toast.promise(
 
 ## API requests
 
-Use `window.adminApi` — the host app's canonical HTTP client (cookie auth is
-automatic, no `withCredentials` flag). Don't use `window.axios`: it's a
-legacy compat shim that only exposes method shortcuts (`axios.get/post/...`)
-and is **not callable** as `axios(config)` — calling it that way throws
-`TypeError: window.axios is not a function` before any request is sent. See
-`adminizer/docs/BuildingModules.md` §9 for the full migration writeup.
+The client lives at **`window.JSComponents.adminApi`**. There is no
+`window.adminApi` — reaching for it yields `undefined`, and the first call fails
+with `Cannot read properties of undefined (reading 'get')` before any request is
+sent. `window.axios` still exists as a legacy compatibility shim and logs a
+deprecation warning; it also is **not callable** as `axios(config)`, only through
+its method shortcuts.
+
+### CSRF
+
+Adminizer issues a non-`httpOnly` cookie `XSRF-TOKEN` on every non-API page
+request, and rejects any `POST`/`PUT`/`PATCH`/`DELETE` whose `x-xsrf-token`
+header does not match that cookie — `403 {"message": "Invalid CSRF token"}`.
+
+`adminApi` is axios-based and sends the header itself. **Plain `fetch` does not**,
+so a hand-rolled fallback has to read the cookie and set the header, or every
+write it makes will 403 while every read keeps working — a failure that looks
+like a permissions problem and is not.
+
+```js
+function csrfHeader() {
+  const token = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+  return token ? { 'X-XSRF-TOKEN': decodeURIComponent(token[1]) } : {};
+}
+```
+
+### Base path
 
 ```js
 function getBaseAdminPath() {
   if (typeof window.routePrefix === 'string' && window.routePrefix.trim()) {
     return window.routePrefix.replace(/\/$/, '');
   }
-  return (window.location.pathname || '').replace(/\/[^/]*$/, '');
+  // Cut at `/model/` rather than stripping the last segment: on a record page
+  // (`/admin/model/order/edit/<id>`) dropping one segment leaves a path that is
+  // still three levels deep, and every request goes to a 404.
+  const match = (window.location.pathname || '').match(/^(.*?)\/model\//);
+  return match ? match[1] : '/admin';
 }
-
-async function apiRequest(path, options = {}) {
-  const adminApi = window.adminApi;
-  const method = (options.method || 'GET').toLowerCase();
-  const url = `${getBaseAdminPath()}${path}`;
-  const config = { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } };
-  const response = ['get', 'delete'].includes(method)
-    ? await adminApi[method](url, config)
-    : await adminApi[method](url, options.body, config);
-  return response.data;
-  // throws on non-2xx — catch at call site and show toast
-}
-
-async function apiGet(path) { return apiRequest(path); }
-async function apiPost(path, body) { return apiRequest(path, { method: 'POST', body }); }
 ```
 
----
+### Request helper
 
+```js
+async function apiRequest(path, options = {}) {
+  const adminApi = window.JSComponents?.adminApi;
+  const method = (options.method || 'GET').toLowerCase();
+  const url = `${getBaseAdminPath()}${path}`;
+  const headers = { Accept: 'application/json', 'Content-Type': 'application/json' };
+
+  if (adminApi && typeof adminApi[method] === 'function') {
+    const response = ['get', 'delete'].includes(method)
+      ? await adminApi[method](url, { headers })
+      : await adminApi[method](url, options.body, { headers });
+    return response.data;  // throws on non-2xx
+  }
+
+  // Fallback: same cookie auth, but the CSRF header is ours to set.
+  const response = await fetch(url, {
+    method: method.toUpperCase(),
+    credentials: 'same-origin',
+    headers: { ...headers, ...csrfHeader() },
+    ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw Object.assign(new Error(data?.message || data?.error || response.statusText), { response: { data } });
+  return data;
+}
+```
+
+### Controls are not modules
+
+A module owns its page and is mounted by adminizer with the full set of globals.
+A **control** renders inside a form the host built, and not every global is
+guaranteed to be there — `window.adminApi` is the obvious trap, but treat any of
+them as possibly absent and degrade rather than throw. A control that throws
+takes its field's whole area down with it.
+
+---
 ## Scrollbars
 
 Thin styled scrollbars are applied automatically to all elements inside `.m-5` (the adminizer page wrapper) via global CSS in `adminizer/src/assets/css/app.css`. They adapt to the active theme via `var(--foreground)`:
@@ -535,7 +631,7 @@ cd /prj/adminizer
 npm run build:assets
 ```
 
-### Module list (`vite.config.js` entries)
+### Module list (`adminModules.ts` entries)
 
 | Entry key | File | Route |
 |---|---|---|
@@ -556,5 +652,6 @@ npm run build:assets
 - [ ] No arbitrary Tailwind values (`text-[10px]`, `h-[75vh]`) — use `style={}` instead
 - [ ] No `alert()` / `confirm()` — use `window.sonner?.toast`
 - [ ] No npm imports for React, UI components, or icons — use `window.*` globals
-- [ ] Entry added to `vite.config.js`
+- [ ] Entry added to `ADMIN_MODULE_ENTRIES` in `adminModules.ts`
+- [ ] Controller/control/widget URL built with `adminModuleUrl()`, not hardcoded
 - [ ] After build: copied to `node_modules/@webresto/core/assets/core-adminizer-assets/`

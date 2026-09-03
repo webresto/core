@@ -1,136 +1,55 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { useTranslation } from '../i18n/I18nContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { PlaceEnableToggle, StockBalancePanel } from './StockBalancePanel';
 
-export function DishListItem({ dish, balance, onUpdateStock, onUpdateEnable, onUpdateVisible, onBalanceChange }) {
+const { Badge } = window.UIComponents;
+
+export function DishListItem({
+    dish,
+    mode,
+    localBalance,
+    onUpdateStock,
+    onLocalBalanceChange,
+    onToggleEnable,
+    canManage = false,
+}) {
     const { t } = useTranslation();
-    const currentBalance = balance ?? dish.balance ?? 0;
-    const isUnlimited = currentBalance === -1;
-
-    const handleDecrement = () => {
-        const newVal = isUnlimited ? 0 : Math.max(0, currentBalance - 1);
-        onBalanceChange(dish.id, newVal);
-        onUpdateStock(dish.id, newVal);
-    };
-
-    const handleIncrement = () => {
-        const newVal = isUnlimited ? 1 : currentBalance + 1;
-        onBalanceChange(dish.id, newVal);
-        onUpdateStock(dish.id, newVal);
-    };
-
-    const handleInputChange = (ev) => {
-        const val = ev.target.value;
-        if (val === '' || /^\d+$/.test(val)) {
-            onBalanceChange(dish.id, val === '' ? 0 : Number(val));
-        }
-    };
-
-    const handleInputBlur = (ev) => {
-        const val = ev.target.value;
-        if (val === '∞' || isUnlimited) return;
-        const numVal = val === '' ? 0 : Number(val);
-        if (!isNaN(numVal)) {
-            onUpdateStock(dish.id, numVal);
-        }
-    };
-
-    const handleSetUnlimited = () => {
-        onUpdateStock(dish.id, -1);
-    };
-
-    const toggleVisibility = () => {
-        onUpdateVisible(dish.id, 'dish', !dish.visible);
-    };
+    const disabledHere = dish.placeEnable === false;
 
     return (
-        <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-card hover:bg-muted/50 transition-colors">
-            {/* Name and Info */}
+        <div
+            className={`flex items-center gap-4 p-4 border border-border rounded-lg transition-colors ${
+                disabledHere ? 'opacity-60 bg-muted/50' : 'bg-card hover:bg-muted/50'
+            }`}
+        >
             <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-base truncate">{dish.name || '—'}</h4>
-                <div className="flex gap-4 text-sm text-muted-foreground mt-1">
+                <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-base truncate">{dish.name || '—'}</h4>
+                    {disabledHere && (
+                        <Badge variant="destructive" style={{ fontSize: 10, padding: '1px 5px' }}>
+                            {t('Disabled here')}
+                        </Badge>
+                    )}
+                </div>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                    {canManage && (
+                        <PlaceEnableToggle dish={dish} onToggleEnable={onToggleEnable} />
+                    )}
                     <span>{t('Code')}: {dish.code || '—'}</span>
                     <span>{t('Price')}: {dish.price ?? '—'}</span>
                 </div>
             </div>
 
-            {/* Visibility Toggle */}
-            <Button
-                variant="ghost"
+            <StockBalancePanel
+                dish={dish}
+                mode={mode}
+                localBalance={localBalance}
+                onUpdateStock={onUpdateStock}
+                onLocalBalanceChange={onLocalBalanceChange}
+                canManage={canManage}
                 size="sm"
-                onClick={toggleVisibility}
-                title={t('Visible in menu (publicity)')}
-                className="h-8 w-8 p-0"
-            >
-                {dish.visible !== false ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" style={{ color: 'var(--destructive)' }} />}
-            </Button>
-
-            {/* Enable Toggle */}
-            <div className="flex items-center gap-2">
-                <Checkbox
-                    id={`enable-list-${dish.id}`}
-                    checked={dish.enable !== false}
-                    onCheckedChange={(checked) => onUpdateEnable(dish.id, 'dish', checked === true)}
-                />
-                <Label htmlFor={`enable-list-${dish.id}`} className="cursor-pointer text-sm">
-                    {t('Active (adm. status)')}
-                </Label>
-            </div>
-
-            {/* Stock Display */}
-            <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{t('Stock')}:</span>
-                {isUnlimited ? (
-                    <span className="font-bold" style={{ color: '#16a34a' }}>∞</span>
-                ) : (
-                    <span className="font-mono font-semibold min-w-[2rem] text-right">{currentBalance}</span>
-                )}
-            </div>
-
-            {/* Stock Controls */}
-            <div className="flex items-center gap-2">
-                <Button
-                    onClick={handleDecrement}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                >
-                    −
-                </Button>
-
-                <Input
-                    type="text"
-                    placeholder="0"
-                    value={isUnlimited ? '∞' : currentBalance}
-                    onChange={handleInputChange}
-                    onBlur={handleInputBlur}
-                    className="w-16 text-center h-8"
-                    readOnly={isUnlimited}
-                />
-
-                <Button
-                    onClick={handleIncrement}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                >
-                    +
-                </Button>
-
-                <Button
-                    onClick={handleSetUnlimited}
-                    title={t('Set to Unlimited')}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                >
-                    ∞
-                </Button>
-            </div>
+                compact
+            />
         </div>
     );
 }

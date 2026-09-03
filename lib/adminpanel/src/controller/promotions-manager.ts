@@ -1,3 +1,4 @@
+import { adminModuleUrl } from "../../adminModules";
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
 
 export default function PromotionsManagerController(req: any, res: any) {
@@ -13,7 +14,7 @@ export default function PromotionsManagerController(req: any, res: any) {
   return req.Inertia.render({
     component: "module",
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/PromotionsManager.js?v=20260721-1`,
+      moduleComponent: adminModuleUrl("PromotionsManager", "20260721-1"),
       message: t("Promotions"),
       locale,
       messages,

@@ -58,17 +58,22 @@ const tagsListField = {
   },
 };
 
+// Adminizer v5 accepts object field configs only. Keep technical fields out of
+// CRUD screens.
+const hiddenField = { visible: false };
+
 export const models = {
   Customer: {
-    title: "User",
+    title: "Customers",
     model: "user",
     icon: "person",
     fields: {
-      history: false,
-      locations: false,
-      devices: false,
-      favorites: false,
-      bonusProgram: false,
+      history: hiddenField,
+      locations: hiddenField,
+      devices: hiddenField,
+      favorites: hiddenField,
+      bonusProgram: hiddenField,
+      identities: hiddenField,
     },
     list: {
       fields: {
@@ -82,16 +87,17 @@ export const models = {
         isDeleted: true,
         createdAt: true,
         updatedAt: true,
-        history: false,
-        locations: false,
-        devices: false,
-        favorites: false,
-        bonusProgram: false,
+        history: hiddenField,
+        locations: hiddenField,
+        devices: hiddenField,
+        favorites: hiddenField,
+        bonusProgram: hiddenField,
+        identities: hiddenField,
       }
     },
     edit: {
       fields: {
-        id: false,
+        id: hiddenField,
         login: true,
         firstName: true,
         lastName: true,
@@ -101,25 +107,26 @@ export const models = {
         birthday: true,
         verified: true,
         allRequiredCustomFieldsAreFilled: true,
-        passwordHash: false,
-        lastPasswordChange: false,
-        temporaryCode: false,
+        passwordHash: hiddenField,
+        lastPasswordChange: hiddenField,
+        temporaryCode: hiddenField,
         orderCount: true,
         isDeleted: true,
         customFields: true,
         customData: true,
-        createdAt: false,
-        updatedAt: false,
-        history: false,
-        locations: false,
-        devices: false,
-        favorites: false,
-        bonusProgram: false,
+        createdAt: hiddenField,
+        updatedAt: hiddenField,
+        history: hiddenField,
+        locations: hiddenField,
+        devices: hiddenField,
+        favorites: hiddenField,
+        bonusProgram: hiddenField,
+        identities: hiddenField,
       }
     },
     add: {
       fields: {
-        id: false,
+        id: hiddenField,
         login: true,
         firstName: true,
         lastName: true,
@@ -129,20 +136,21 @@ export const models = {
         birthday: true,
         verified: true,
         allRequiredCustomFieldsAreFilled: true,
-        passwordHash: false,
-        lastPasswordChange: false,
-        temporaryCode: false,
-        orderCount: false,
+        passwordHash: hiddenField,
+        lastPasswordChange: hiddenField,
+        temporaryCode: hiddenField,
+        orderCount: hiddenField,
         isDeleted: true,
         customFields: true,
         customData: true,
-        createdAt: false,
-        updatedAt: false,
-        history: false,
-        locations: false,
-        devices: false,
-        favorites: false,
-        bonusProgram: false,
+        createdAt: hiddenField,
+        updatedAt: hiddenField,
+        history: hiddenField,
+        locations: hiddenField,
+        devices: hiddenField,
+        favorites: hiddenField,
+        bonusProgram: hiddenField,
+        identities: hiddenField,
       }
     }
   },
@@ -216,11 +224,11 @@ export const models = {
             return v ? new Date(v).toLocaleString() : '';
           }
         },
-        sessionId: false,
-        customData: false,
-        notificationToken: false,
+        sessionId: hiddenField,
+        customData: hiddenField,
+        notificationToken: hiddenField,
         createdAt: true,
-        updatedAt: false,
+        updatedAt: hiddenField,
       }
     },
     edit: {
@@ -233,11 +241,11 @@ export const models = {
         lastIP: true,
         loginTime: { title: 'Login Time', disabled: true },
         lastActivity: { title: 'Last Activity', disabled: true },
-        sessionId: false,
+        sessionId: hiddenField,
         customData: { title: 'Custom Data', type: 'json', disabled: true },
         notificationToken: { title: 'Notification Token', type: 'json', disabled: true },
-        createdAt: false,
-        updatedAt: false,
+        createdAt: hiddenField,
+        updatedAt: hiddenField,
       }
     },
   },
@@ -255,6 +263,24 @@ export const models = {
     model: 'userbonustransaction',
     title: 'Userbonus transactions',
     icon: 'swap_horiz'
+  },
+  // These models are relation targets of Customer's technical fields. Adminizer
+  // resolves associations before it applies `visible: false`, so register them
+  // without exposing standalone CRUD items in the navigation.
+  CustomerOrderHistory: {
+    model: 'userorderhistory',
+    title: 'Customer order history',
+    navbar: { visible: false },
+  },
+  CustomerLocation: {
+    model: 'userlocation',
+    title: 'Customer locations',
+    navbar: { visible: false },
+  },
+  ExternalIdentity: {
+    model: 'authidentity',
+    title: 'External identities',
+    navbar: { visible: false },
   },
   // Promotion & PromotionCode bare CRUD pages are replaced by the Marketing module
   // (Promo codes + Promotions), registered in hook/bindAdminpanel.ts.
@@ -283,6 +309,15 @@ export const models = {
     title: 'Street',
     icon: 'location_on'
   },
+  // Registered as Street's relation target first, and hidden on that basis. It
+  // has its own page now: a city is what an address is resolved in, what a zone
+  // belongs to and what a map link is pasted for — and none of that could be
+  // reached without one.
+  city: {
+    model: 'city',
+    title: 'Cities',
+    icon: 'location_city',
+  },
   paymentMethod: {
     model: 'paymentmethod',
     title: 'Payment method',
@@ -293,9 +328,9 @@ export const models = {
     title: "Scheduled Maintenance on the Website",
     icon: "build",
     fields: {
-      id: false,
-      createdAt: false,
-      updatedAt: false,
+      id: hiddenField,
+      createdAt: hiddenField,
+      updatedAt: hiddenField,
       title: "Title",
       description: "Description",
       enable: "Active",
@@ -304,9 +339,9 @@ export const models = {
     },
     edit: {
       fields: {
-        id: false,
-        createdAt: false,
-        updatedAt: false,
+        id: hiddenField,
+        createdAt: hiddenField,
+        updatedAt: hiddenField,
         title: "Title",
         description: {
           title: "Description",
@@ -324,9 +359,9 @@ export const models = {
     },
     add: {
       fields: {
-        id: false,
-        createdAt: false,
-        updatedAt: false,
+        id: hiddenField,
+        createdAt: hiddenField,
+        updatedAt: hiddenField,
         title: "Title",
         description: {
           title: "Description",
@@ -356,7 +391,7 @@ export const models = {
       }
     }
   },
-  UserNotification: {
+  CustomerNotification: {
     model: "notification",
     title: "Notifications",
     icon: "notifications",

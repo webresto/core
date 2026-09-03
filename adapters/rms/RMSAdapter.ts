@@ -7,9 +7,43 @@ import { DishRecord } from "../../models/Dish";
 import { GroupRecord } from "../../models/Group";
 import { OrderRecord } from "../../models/Order";
 import { SelectedMediaFileRecord } from "../../models/SelectedMediaFile";
+import { getEnabledCookingPlaceIds } from "../../lib/cooking-place";
+import { UNLIMITED_BALANCE } from "../../lib/dish-place-balance";
 export type ConfigRMSAdapter = {
   [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };
+
+/**
+ * One product of an RMS stop list snapshot.
+ *
+ * Field names match what adapters have always returned; only the declaration
+ * moved here, because the stock column it used to point at is gone from `Dish`.
+ */
+export interface RMSOutOfStockItem {
+  rmsId: string;
+  balance: number;
+  /**
+   * Whether the RMS says this product is on at the point.
+   *
+   * Optional, and the absence is meaningful: turning a product on and off is the
+   * operator's call, and the RMS overrules them only by saying so. A snapshot
+   * that omits the field leaves whatever the operator set. There is deliberately
+   * no default — "not sent" and `false` are different statements.
+   */
+  enable?: boolean;
+}
+
+/** A stop list snapshot of one RMS terminal, addressed by `Place.rmsId`. */
+export interface RMSPlaceOutOfStockSnapshot {
+  placeRmsId: string;
+  items: RMSOutOfStockItem[];
+}
+
+/** What `rms-sync:out-of-stocks-before-each-product-item` carries. */
+export interface RMSOutOfStockEventItem extends RMSOutOfStockItem {
+  /** The point the value was applied to; absent for a snapshot without terminals. */
+  placeId?: string;
+}
 
 /**
  * An abstract RMS adapter class. Used to create new RMS adapters.
@@ -17,6 +51,27 @@ export type ConfigRMSAdapter = {
 
 export default abstract class RMSAdapter {
   public readonly config: ConfigRMSAdapter = {};
+
+  /**
+   * Whether this RMS reports stock per terminal.
+   *
+   * `false` means one snapshot describes the whole install, so it covers every
+   * enabled cooking point — the behaviour every existing adapter already has.
+   */
+  public readonly supportsPlaceBalances: boolean = false;
+
+  /**
+   * Whether this RMS can take one order cooked at several kitchens.
+   *
+   * `false` — the default, and the answer for every adapter written before this
+   * existed. Core refuses such an order at checkout rather than sending it: an
+   * RMS that cannot split it would either reject the whole thing or, worse,
+   * accept it as one kitchen's work and let a customer wait for food nobody is
+   * making. Falling back to a single kitchen silently is the one thing the plan
+   * names as forbidden here, because it turns a configuration problem into a
+   * lost order that looks fine on every screen.
+   */
+  public readonly supportsMultiKitchen: boolean = false;
 
   private static syncProductsInterval: ReturnType<typeof setInterval>;
   private static syncOutOfStocksInterval: ReturnType<typeof setInterval>;
@@ -210,7 +265,7 @@ export default abstract class RMSAdapter {
 
                 let createdProduct = await Dish.createOrUpdate(product);
 
-                // Set isDeleted for absent products in ERP
+                // Set isDeleted for absent products in RMS
                 await Dish.update({id: { "!=": allProductIds }}, {isDeleted: true}).fetch();
                 sails.log.silly(`ADAPTER RMS > syncProducts sync Group [${group.id}] '${group.name}' dishes:`, JSON.stringify(productIds))
 
@@ -286,7 +341,66 @@ export default abstract class RMSAdapter {
   }
 
   /**
-   * Synchronizing the balance of dishes with the RMS adapter
+   * Loads the stop list snapshot and groups it by the points it covers.
+   *
+   * An RMS that knows nothing about terminals sends one snapshot for the whole
+   * install, so it covers every enabled cooking point. An RMS that does send
+   * terminals covers only the points its snapshot names: resetting the others
+   * would let a sync of one kitchen lift the limits of another.
+   */
+  private async loadOutOfStocksByPlace(): Promise<Map<string, RMSOutOfStockItem[]>> {
+    const byPlace = new Map<string, RMSOutOfStockItem[]>();
+
+    if (this.supportsPlaceBalances) {
+      const snapshots = await this.loadOutOfStocksDishesByPlace();
+      if (snapshots) {
+        const places = await Place.find({});
+        const placeByRmsId = new Map<string, string>();
+        for (const place of places) {
+          const rmsId = typeof place.rmsId === "string" ? place.rmsId.trim() : "";
+          if (rmsId && place.isCookingPoint === true && place.enable !== false) {
+            placeByRmsId.set(rmsId, String(place.id));
+          }
+        }
+
+        for (const snapshot of snapshots) {
+          const placeId = placeByRmsId.get(String(snapshot.placeRmsId).trim());
+          if (!placeId) {
+            sails.log.warn(
+              `RMS adapter syncOutOfStocks: no enabled cooking point with rmsId "${snapshot.placeRmsId}", snapshot skipped`,
+            );
+            continue;
+          }
+          byPlace.set(placeId, [...(byPlace.get(placeId) ?? []), ...(snapshot.items ?? [])]);
+        }
+        return byPlace;
+      }
+
+      sails.log.warn(
+        `RMS adapter declares supportsPlaceBalances but returned no per-place snapshot, ` +
+        `falling back to the global stop list`,
+      );
+    }
+
+    const items = await this.loadOutOfStocksDishes();
+    for (const placeId of await getEnabledCookingPlaceIds()) {
+      byPlace.set(placeId, items);
+    }
+    return byPlace;
+  }
+
+  /**
+   * Synchronizing the RMS stock of products with the RMS adapter.
+   *
+   * The RMS sends a full snapshot rather than a diff: everything outside it is
+   * available. `DishPlace.rmsBalance` is always written — the operator's balance
+   * column next to it is physically out of reach, which is the whole point of
+   * splitting them.
+   *
+   * `enable` is written only when the snapshot carries it. Switching a product
+   * on and off at a point is the operator's call, and an RMS that says nothing
+   * must not undo it; an RMS that says `false` is making a statement and is
+   * obeyed. Nothing is defaulted to `true` on the way through.
    */
   public async syncOutOfStocks(): Promise<void> {
     sails.log.silly("ADAPTER RMS > syncOutOfStocks")
@@ -298,18 +412,39 @@ export default abstract class RMSAdapter {
     const promise = new Promise<void>((resolve) => {
       (async () => {
         try {
-          let outOfStocksDishes = await this.loadOutOfStocksDishes();
-          const outOfStocksDishesIds = outOfStocksDishes.map(d => d.rmsId);
+          const itemsByPlace = await this.loadOutOfStocksByPlace();
+          const coveredPlaceIds = [...itemsByPlace.keys()];
 
-          await Dish.update({
-            rmsId: { nin: outOfStocksDishesIds },
-            balance: { '!=': -1 }
-          }, { balance: -1 }).fetch()
-
-          for(let item of outOfStocksDishes) {
-            emitter.emit("rms-sync:out-of-stocks-before-each-product-item", item);
-            await Dish.update({rmsId: item.rmsId}, {balance: item.balance}).fetch()
+          if (!coveredPlaceIds.length) {
+            sails.log.warn("RMS adapter syncOutOfStocks: no cooking point to apply the stop list to");
           }
+
+          for (const [placeId, items] of itemsByPlace) {
+            const products = items.length
+              ? await Dish.find({ where: { rmsId: items.map((item) => item.rmsId) } })
+              : [];
+            const productIdByRmsId = new Map<string, string>(
+              products.map((product: DishRecord) => [String(product.rmsId), String(product.id)]),
+            );
+
+            await this.resetOutOfStocksAtPlace(placeId, new Set(productIdByRmsId.values()));
+
+            for (const item of items) {
+              const productId = productIdByRmsId.get(String(item.rmsId));
+              if (!productId) continue;
+
+              const event: RMSOutOfStockEventItem = { ...item, placeId };
+              emitter.emit("rms-sync:out-of-stocks-before-each-product-item", event);
+              // `enable` is passed only when the snapshot stated it: `upsertForPlace`
+              // keeps the stored value for any key it is not given, so an absent
+              // field leaves the operator's switch alone.
+              await DishPlace.upsertForPlace(productId, placeId, {
+                rmsBalance: item.balance,
+                ...(item.enable !== undefined && { enable: item.enable }),
+              });
+            }
+          }
+
           await this.writeLastSuccessfulSyncDate("RMS_LAST_SUCCESSFUL_STOPLISTS_SYNC_AT");
           emitter.emit("rms-sync:after-sync-out-of-stocks");
           resolve();
@@ -324,6 +459,37 @@ export default abstract class RMSAdapter {
 
     this.syncOutOfStocksPromise = new ObservablePromise(promise)
     return promise;
+  }
+
+  /**
+   * Drops the RMS limit of every product of one point that left the stop list.
+   *
+   * Existing rows only: a product that never had one is already unlimited, and
+   * creating rows here would grow a row per product on every tick. The rows to
+   * touch are picked in JS on purpose — `{'!=': -1}` skips NULL rows on Postgres
+   * but matches them on sails-disk, so the same query would mean two things.
+   */
+  private async resetOutOfStocksAtPlace(placeId: string, keepProductIds: Set<string>): Promise<void> {
+    const rows = await DishPlace.find({ where: { place: placeId } });
+
+    const resetIds: string[] = [];
+    const emptyIds: string[] = [];
+    for (const row of rows) {
+      if (keepProductIds.has(String(row.dish))) continue;
+
+      // Once the RMS limit is dropped this row would say nothing at all.
+      const localLimits = typeof row.localBalance === "number" && row.localBalance !== UNLIMITED_BALANCE;
+      if (!localLimits && row.enable !== false) {
+        emptyIds.push(row.id);
+        continue;
+      }
+
+      const rmsLimits = typeof row.rmsBalance === "number" && row.rmsBalance !== UNLIMITED_BALANCE;
+      if (rmsLimits) resetIds.push(row.id);
+    }
+
+    if (resetIds.length) await DishPlace.update({ id: { in: resetIds } }, { rmsBalance: UNLIMITED_BALANCE }).fetch();
+    if (emptyIds.length) await DishPlace.destroy({ id: { in: emptyIds } }).fetch();
   }
 
   /**
@@ -353,7 +519,34 @@ export default abstract class RMSAdapter {
 
   protected abstract loadProductsByGroup(group: GroupRecord): Promise<DishRecord[]>;
 
-  protected abstract loadOutOfStocksDishes(concept?: string): Promise<Pick<DishRecord, "balance" | "rmsId">[]>;
+  /** The whole stop list as one snapshot. Everything outside it is available. */
+  protected abstract loadOutOfStocksDishes(concept?: string): Promise<RMSOutOfStockItem[]>;
+
+  /**
+   * The stop list split by RMS terminal, for adapters that can report it.
+   *
+   * Deliberately not abstract: making it abstract would break every existing
+   * adapter's build. Returning `null` — the default — means "this RMS has no
+   * terminals", and the base class falls back to the global snapshot.
+   */
+  protected async loadOutOfStocksDishesByPlace(concept?: string): Promise<RMSPlaceOutOfStockSnapshot[] | null> {
+    return null;
+  }
+
+  /**
+   * Which RMS terminal serves this address, for the `rms` kitchen strategy.
+   *
+   * Public rather than protected: core asks the question, the adapter answers
+   * it. Deliberately not abstract, and `null` — the default — means "this RMS
+   * does not route orders to terminals", which is the honest answer for every
+   * adapter that exists today. The returned value is a `Place.rmsId`, not a
+   * `Place.id`: an RMS knows its own terminals and nothing about our rows.
+   */
+  public async resolveCookingPlaceRmsId(context: {
+    coordinate: { lat: number; lng: number } | null;
+  }): Promise<string | null> {
+    return null;
+  }
 
   /**
    * Create an order

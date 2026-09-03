@@ -6,7 +6,7 @@ import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
-import { Delivery } from "../adapters/delivery/DeliveryAdapter";
+import { Delivery } from "../adapters/delivery/contracts";
 import { PaymentMethodRecord } from "./PaymentMethod";
 import { OrderDishRecord } from "./OrderDish";
 import { PromotionCodeRecord } from "./PromotionCode";
@@ -123,6 +123,35 @@ declare let attributes: {
     rmsStatusCode: string;
     rmsOrderStatus: string;
     pickupPoint: PlaceRecord | string;
+    /**
+     * The kitchen this order is cooked at.
+     *
+     * `null` until a resolver chain is configured: an installation that never sets
+     * `KITCHEN_RESOLVE_CHAIN` keeps working off the single default cooking point,
+     * exactly as it did before an order could carry one of its own.
+     */
+    cookingPoint: PlaceRecord | string | null;
+    /**
+     * Every kitchen this order is cooked at, in route order.
+     *
+     * Derived from the lines and stored, not computed on read. A route is decided
+     * once and then acted on: couriers are told, kitchens are told, and a list
+     * that recomputed itself from current stock would answer differently tomorrow
+     * than it did when the order was placed.
+     *
+     * Empty on every single-kitchen order, which is every order until a router
+     * module is installed. `cookingPoint` remains the order's primary kitchen and
+     * the first stop of the route — nothing reads `cookingPoints` to find it.
+     */
+    cookingPoints: string[];
+    /**
+     * How long the customer is willing to wait, in minutes, for an ASAP order.
+     *
+     * Mutually exclusive with `date`: an order is either "as soon as you can, but
+     * no later than this" or "at this time". Both filled in is not a stricter
+     * order, it is two different orders, so it is refused rather than reconciled.
+     */
+    maxWaitMinutes: number;
     selfService: boolean;
     delivery: Delivery | null;
     /** Notification about delivery
@@ -201,7 +230,14 @@ declare let Model: {
     beforeUpdate(values: Partial<OrderRecord>, cb: (err?: string) => void): void;
     afterUpdate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
     /** Add a dish into order */
-    addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, 
+    /**
+     * user - added manually by human
+     * promotion - cleaned in each calculated promotion
+     * core - is reserved for
+     * custom - custom integration can process it
+     */
+    addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, comment: string): Promise<void>;
@@ -295,6 +331,9 @@ declare let Model: {
         rmsStatusCode?: string;
         rmsOrderStatus?: string;
         pickupPoint?: PlaceRecord | string;
+        cookingPoint?: PlaceRecord | string | null;
+        cookingPoints?: string[];
+        maxWaitMinutes?: number;
         selfService?: boolean;
         delivery?: Delivery | null;
         deliveryDescription?: string;

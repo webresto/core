@@ -418,7 +418,7 @@ let Model = {
                     return created;
                 }
                 catch (e) {
-                    if ((e === null || e === void 0 ? void 0 : e.code) !== "E_UNIQUE") {
+                    if (e?.code !== "E_UNIQUE") {
                         throw e;
                     }
                     // Another bootstrap path created the same setting between findOne and create.

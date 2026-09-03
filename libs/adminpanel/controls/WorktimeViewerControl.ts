@@ -1,3 +1,5 @@
+import { adminModuleUrl } from "../../../lib/adminpanel/adminModules";
+
 type Config = Record<string, string | string[] | object | number | boolean>;
 type ControlType = "jsonEditor";
 type Path = {
@@ -28,8 +30,8 @@ export class WorktimeViewerControl {
       cssPath: "",
       // Custom admin modules are served by restocore hook bindAssets.ts
       jsPath: {
-        dev: "/restocore/assets/core-adminizer-assets/WorktimeViewer.js",
-        production: "/restocore/assets/core-adminizer-assets/WorktimeViewer.js",
+        dev: adminModuleUrl("WorktimeViewer"),
+        production: adminModuleUrl("WorktimeViewer"),
       },
     };
 

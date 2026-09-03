@@ -16,7 +16,7 @@ export interface AuthProviderPublic {
 declare let attributes: {
     /** ID of the auth provider config-instance */
     id: string;
-    /** Slug of the provider *type* (telegram, max, vk …). One row = one button on the login page. */
+    /** Slug of the provider *type* (telegram, zalo, fb …). One row = one button on the login page. */
     adapter: string;
     /** Button label */
     title: string;

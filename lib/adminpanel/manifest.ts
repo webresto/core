@@ -20,6 +20,7 @@
  * `loadAdminPanelModule()`, so importing the manifest does not pull in the controller graph.
  */
 import * as path from "path";
+import { checkStockManagerToken } from "../stock-manager-rights";
 
 /** Route under the admin panel's route prefix, e.g. `/stock-manager`. */
 export type AdminPanelRoutePath = string;
@@ -54,6 +55,15 @@ export interface AdminPanelModule {
   id: string;
   page?: AdminPanelPage;
   routes?: AdminPanelRoute[];
+  /**
+   * Whether this module belongs in the panel of this installation at all.
+   *
+   * Answered once per boot and only by modules that depend on something the
+   * operator can switch off elsewhere. Absent means always. Loaded lazily
+   * inside the function, the way controllers are, so the manifest stays
+   * importable without Sails.
+   */
+  available?: () => Promise<boolean>;
 }
 
 /** Middleware mounted on a route prefix (`app.use`), not on an exact path. */
@@ -65,11 +75,25 @@ export interface AdminPanelMiddleware {
   handler: string;
 }
 
+/** One option a contextual token can be granted on — for Stock Manager, a cooking point. */
+export interface AdminPanelAccessTokenOption {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 export interface AdminPanelAccessToken {
   id: string;
   name: string;
   description: string;
   department: string;
+  /**
+   * Contextual tokens only: `getOptions` fills the list the group editor shows next to the
+   * checkbox, `check` reads back what that group was granted. Both run at request time, so a
+   * token that queries a model does not make the manifest need Sails at import.
+   */
+  getOptions?: (user: unknown) => Promise<AdminPanelAccessTokenOption[]>;
+  check?: (user: unknown, context?: { rights?: string[]; [key: string]: unknown }) => boolean | Promise<boolean>;
 }
 
 export interface AdminPanelNavbarLink {
@@ -129,6 +153,10 @@ export const adminPanelModules: AdminPanelModule[] = [
       { method: "get", route: "/core/api", controller: "src/controller/search" },
       { method: "post", route: "/core/update-stock", controller: "src/controller/update-stock" },
       { method: "get", route: "/core/stock-items", controller: "src/controller/get-stock-items" },
+      // Multi-kitchen: the points visible here follow the contextual token, and a
+      // dish can be switched off at one point without touching its stock.
+      { method: "get", route: "/core/stock-places", controller: "src/controller/get-stock-places" },
+      { method: "post", route: "/core/update-dish-place-enable", controller: "src/controller/update-dish-place-enable" },
       { method: "get", route: "/core/groups", controller: "src/controller/get-groups" },
       { method: "get", route: "/core/dishes-by-group", controller: "src/controller/get-dishes-by-group" },
       { method: "post", route: "/core/update-visibility", controller: "src/controller/update-visibility" },
@@ -327,6 +355,31 @@ export const adminPanelModules: AdminPanelModule[] = [
       { method: "get", route: "/core/tags", controller: "src/controller/get-dish-tags" },
     ],
   },
+  {
+    // The only CRUD surface for `DeliveryZone`. The model is deliberately not
+    // registered with Adminizer — see the comment on `models/DeliveryZone.ts`.
+    id: "delivery-zones-manager",
+    // `DeliveryZone` is the default adapter’s model. Point delivery at another
+    // adapter and these polygons are a map nothing reads, so the page goes.
+    available: () => require("../../adapters").Delivery.isDefault(),
+    page: {
+      id: "delivery-zones-manager",
+      title: "Delivery zones",
+      route: "/delivery-zones-manager",
+      icon: "map",
+      accessRightsToken: "delivery-zones-view",
+      section: "Store",
+      controller: "src/controller/delivery-zones-manager",
+    },
+    routes: [
+      { method: "get", route: "/core/delivery-zones", controller: "src/controller/get-delivery-zones" },
+      { method: "post", route: "/core/delivery-zone", controller: "src/controller/upsert-delivery-zone" },
+      { method: "post", route: "/core/delivery-zone-delete", controller: "src/controller/delete-delivery-zone" },
+      // The gear next to the city: the map link and how often it is re-read.
+      { method: "get", route: "/core/delivery-zone-source", controller: "src/controller/get-delivery-zone-source" },
+      { method: "post", route: "/core/delivery-zone-source", controller: "src/controller/set-delivery-zone-source" },
+    ],
+  },
 ];
 
 /** Module whose page the panel root redirects to. */
@@ -340,7 +393,22 @@ export const adminPanelDefaultModule = "order-kanban";
  */
 export const adminPanelAccessTokens: AdminPanelAccessToken[] = [
   { id: "catalog-products", name: "Product catalog", description: "Access to edit catalog for products", department: "Catalog" },
-  { id: "stock-manager", name: "Stock Manager", description: "Access to Stock Manager module and its API endpoints", department: "Catalog" },
+  // Contextual: the group picks the cooking points it may see, the token alone only opens the page.
+  {
+    id: "stock-manager",
+    name: "Stock Manager",
+    description: "View and change stock for selected cooking points",
+    department: "Catalog",
+    getOptions: async () => {
+      const places = await Place.find({ where: { isCookingPoint: true, enable: true }, sort: "title ASC" });
+      return places.map((place: any) => ({
+        id: String(place.id),
+        name: place.title || String(place.id),
+        description: place.address || undefined,
+      }));
+    },
+    check: checkStockManagerToken,
+  },
   { id: "order-kanban", name: "Current Orders", description: "Access to Current Orders module and its API endpoints", department: "Orders" },
   { id: "ai-assistant-openharness", name: "RestoApp Assistant", description: "Use the streaming RestoApp Assistant data agent", department: "AI assistant" },
   { id: "globaly-operator-can-create", name: "Operator can create", description: "Global operator create permission for modules that explicitly require this token", department: "Global role permissions" },
@@ -361,6 +429,8 @@ export const adminPanelAccessTokens: AdminPanelAccessToken[] = [
   { id: "sales-channels-view", name: "Sales Channels view", description: "Read-only access to the Sales Channels module", department: "Store" },
   { id: "sales-channels-manage", name: "Sales Channels manage", description: "Access to manage Sales Channels module settings and write operations", department: "Store" },
   { id: "setup-checklist", name: "Setup checklist", description: "Access to the Setup checklist page and its API endpoints", department: "System" },
+  { id: "delivery-zones-view", name: "Delivery zones view", description: "Read-only access to the Delivery zones module", department: "Store" },
+  { id: "delivery-zones-manage", name: "Delivery zones manage", description: "Edit delivery zones", department: "Store" },
 ];
 
 /**
@@ -368,7 +438,6 @@ export const adminPanelAccessTokens: AdminPanelAccessToken[] = [
  * route of ours) and the storefront preview.
  */
 export const adminPanelNavbarLinks: AdminPanelNavbarLink[] = [
-  { id: "product-catalog", title: "Catalog", linkType: "admin", link: "/catalog/products", icon: "shopping-cart", section: "Store" },
   { id: "restoapp-catalog", title: "Products", linkType: "admin", link: "/catalog/products", icon: "book", accessRightsToken: "catalog-products", section: "Catalog" },
   { id: "restoapp-catalog-preview", title: "Preview", linkType: "absolute", link: "/menu", icon: "web", section: "Catalog" },
 ];

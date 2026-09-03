@@ -1,41 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-export function Tabs({ tabs, defaultTab }) {
-    // Initialize from URL hash or defaultTab
-    const getInitialTab = () => {
-        if (typeof window !== 'undefined' && window.location.hash) {
-            const hash = window.location.hash.substring(1);
-            const tabExists = tabs.some(tab => tab.id === hash);
-            if (tabExists) return hash;
-        }
-        return defaultTab || tabs[0]?.id;
-    };
-
-    const [activeTab, setActiveTab] = useState(getInitialTab);
-
-    // Update URL hash when tab changes
-    useEffect(() => {
-        if (typeof window !== 'undefined' && activeTab) {
-            window.history.replaceState(null, '', `#${activeTab}`);
-        }
-    }, [activeTab]);
-
-    // Listen to hash changes (browser back/forward)
-    useEffect(() => {
-        const handleHashChange = () => {
-            const hash = window.location.hash.substring(1);
-            if (hash && tabs.some(tab => tab.id === hash)) {
-                setActiveTab(hash);
-            }
-        };
-
-        if (typeof window !== 'undefined') {
-            window.addEventListener('hashchange', handleHashChange);
-            return () => window.removeEventListener('hashchange', handleHashChange);
-        }
-    }, [tabs]);
-
-    const activeTabContent = tabs.find(tab => tab.id === activeTab);
+/**
+ * Controlled tab strip.
+ *
+ * The active tab lives in the page, not here: it is part of the address
+ * alongside the browsed group, and both have to be written together.
+ */
+export function Tabs({ tabs, activeTab, onTabChange }) {
+    const current = tabs.find(tab => tab.id === activeTab) || tabs[0];
 
     return (
         <div className="w-full">
@@ -45,11 +17,11 @@ export function Tabs({ tabs, defaultTab }) {
                         <button
                             key={tab.id}
                             role="tab"
-                            aria-selected={activeTab === tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            aria-selected={current?.id === tab.id}
+                            onClick={() => onTabChange(tab.id)}
                             className={`
                 px-4 py-2 font-medium text-sm rounded-t-lg transition-colors
-                ${activeTab === tab.id
+                ${current?.id === tab.id
                                     ? 'bg-background text-foreground border-b-2 border-primary'
                                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                 }
@@ -61,7 +33,7 @@ export function Tabs({ tabs, defaultTab }) {
                 </div>
             </div>
             <div className="tab-content">
-                {activeTabContent?.content}
+                {current?.content}
             </div>
         </div>
     );

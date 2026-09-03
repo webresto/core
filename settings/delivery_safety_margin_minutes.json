@@ -1,0 +1,8 @@
+{
+  "key": "DELIVERY_SAFETY_MARGIN_MINUTES",
+  "type": "number",
+  "name": "Delivery safety margin, minutes",
+  "description": "Added to every quoted delivery time to absorb inaccuracy in the cooking and travel estimates. 0 quotes the raw estimate.",
+  "defaultValue": 0,
+  "isRequired": false
+}

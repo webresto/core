@@ -1,0 +1,71 @@
+{
+  "key": "DELIVERY_ZONE_SYNC_CONFIG",
+  "type": "json",
+  "name": "Delivery zone source configuration",
+  "description": "Passed to the registered zone source as is. The keys below are the ones the KML source reads; another source may accept others. One city: write the keys flat. Several cities: add a \"cities\" list, where every entry inherits the keys outside it and may override them.",
+  "jsonSchema": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "Google My Maps viewer link or any URL that returns KML. On a multi-city installation this belongs inside each cities entry."
+      },
+      "timeoutMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "description": "Download timeout"
+      },
+      "externalIdSource": {
+        "type": "string",
+        "enum": [
+          "placemark-id",
+          "extended-data",
+          "name"
+        ],
+        "description": "Where the stable zone key comes from. \"name\" detaches local settings when a zone is renamed in the map, so choose it deliberately."
+      },
+      "extendedDataField": {
+        "type": "string",
+        "description": "Which ExtendedData field holds the identifier"
+      },
+      "updateDescriptions": {
+        "type": "boolean",
+        "description": "Lets the source own zone descriptions. Off by default, because operators write delivery terms into that field."
+      },
+      "cities": {
+        "type": "array",
+        "minItems": 1,
+        "description": "One entry per city, each with its own document. Leave this out entirely on a single-city installation. A city listed twice is refused: the second run would mark everything the first imported as missing.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "City id. Zones imported here are scoped to it, and the same external id in another city is a different zone."
+            },
+            "url": {
+              "type": "string",
+              "description": "The document for this city"
+            },
+            "externalIdSource": {
+              "type": "string",
+              "enum": [
+                "placemark-id",
+                "extended-data",
+                "name"
+              ],
+              "description": "Where this city's zone keys come from. Written by the source popup; a Google My Maps export has only names, so a link pasted there gets \"name\"."
+            }
+          },
+          "required": [
+            "city"
+          ],
+          "additionalProperties": true
+        }
+      }
+    },
+    "additionalProperties": true
+  },
+  "defaultValue": {},
+  "isRequired": false
+}

@@ -1,0 +1,8 @@
+{
+  "key": "DELIVERY_ZONE_SYNC_ON_START",
+  "type": "boolean",
+  "name": "Delivery zone sync on start",
+  "description": "Runs one zone synchronisation shortly after the application starts.",
+  "defaultValue": false,
+  "isRequired": false
+}

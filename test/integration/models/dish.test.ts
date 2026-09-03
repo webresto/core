@@ -46,7 +46,6 @@ describe('Dish', function () {
     'modifiers',
     'parentGroup',
     'tags',
-    'balance',
     'images',
     'slug',
     'hash',

@@ -1,3 +1,4 @@
+import { adminModuleUrl } from "../../adminModules";
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
 import { getSalesChannelPermissions, hasAccess } from "./sales-channels-helpers";
 
@@ -10,7 +11,7 @@ export default function SalesChannelsManagerController(req: any, res: any) {
   return req.Inertia.render({
     component: "module",
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/SalesChannelsManager.js?v=20260721-1`,
+      moduleComponent: adminModuleUrl("SalesChannelsManager", "20260721-1"),
       message: t("Sales Channels"),
       locale,
       messages,

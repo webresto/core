@@ -16,6 +16,7 @@ import { DialogBox } from "./DialogBox";
 import { InitCheckout } from "./helpers/OrderHelper";
 import { GetGroupType, GroupRecord } from "../models/Group";
 import { DishRecord } from "../models/Dish";
+import { RMSOutOfStockEventItem } from "../adapters/rms/RMSAdapter";
 import { CriteriaQuery } from "../interfaces/ORMModel";
 import { OrderModifier } from "../interfaces/Modifier";
 
@@ -42,9 +43,11 @@ declare global {
     "rms-sync:before-each-group-item": [GroupRecord],
     "rms-sync:before-each-product-item": [DishRecord]
     "rms-sync:after-sync-products": []
-    "rms-sync:out-of-stocks-before-each-product-item": [Pick<DishRecord, "balance" | "rmsId">]
+    "rms-sync:out-of-stocks-before-each-product-item": [RMSOutOfStockEventItem]
     "rms-sync:after-sync-out-of-stocks": []
     "core:product-before-create": [DishRecord]
+    /** The multi-kitchen demo seed finished. Development stands only. */
+    "core:demo-seed:done": []
     "core:payment-document-check": [PaymentDocumentRecord]
     "core:payment-document-paid": [PaymentDocumentRecord]
     "core:payment-document-checked-document": [PaymentDocumentRecord]
@@ -75,6 +78,8 @@ declare global {
     "core:orderproduct-change-amount": [OrderDishRecord]
     "core:order-return-full-order-destroy-orderdish": [DishRecord, OrderRecord]
     "core:order-before-count": [OrderRecord]
+    /** The order moved to another kitchen, and these products did not come with it. */
+    "core:order-cooking-place-changed": [OrderRecord, string[]]
     "core:order-log": [OrderRecord, import("../models/Order").OrderLogEntry]
     "core:order-payment": [OrderRecord, PaymentBack]
     "core:order-init-checkout": [OrderRecord, InitCheckout]
@@ -100,6 +105,8 @@ declare global {
     "core:order-after-update": [OrderRecord],
     "core:order-before-add-dish": [CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],
     "core:order-add-dish-reject-amount": [CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],
+    /** A place-based menu mode could not name a cooking point, so nothing may be added yet. */
+    "core:order-add-dish-reject-no-place": [CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],
     "core:order-after-add-dish": [OrderDishRecord, CriteriaQuery<OrderRecord>, DishRecord | string, number, OrderModifier[], string, "user" | "promotion" | "core" | "custom", boolean | undefined, number | undefined],
     "core:order-before-remove-dish": [CriteriaQuery<OrderRecord>, OrderDishRecord, number, boolean | undefined],
     "core:order-remove-dish-reject-no-orderdish": [CriteriaQuery<OrderRecord>, OrderDishRecord, number, boolean | undefined],

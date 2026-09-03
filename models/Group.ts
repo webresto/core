@@ -8,10 +8,11 @@ import { MediaFileRecord } from "./MediaFile";
 import { WorkTime, WorkTimeValidator } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
-import { Adapter } from "../adapters";
+import { Adapter, Menu } from "../adapters";
 import { slugIt } from "../libs/slugIt";
 import { DishRecord } from "./Dish";
 import { buildAuditDiff, logAuditEvent } from "../libs/auditLog";
+import { MenuRequest } from "../adapters/menu/contracts";
 export type GetGroupType = { [x: string]: GroupWithAdditionalFields }
 
 let attributes = {
@@ -231,9 +232,14 @@ let Model = {
    * According to some dinich, the values of this object are the reasons why the group was not obtained.
    * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:GroupRecord}, errors: {[groupId]: error}}
    */
-  async getGroups(groupsId: string[]): Promise<{ groups: GroupWithAdditionalFields[]; errors: Record<string, string> }> {
+  async getGroups(groupsId: string[], order?: MenuRequest["order"]): Promise<{ groups: GroupWithAdditionalFields[]; errors: Record<string, string> }> {
 
     let menu = {} as GetGroupType;
+    // Resolved once for the whole menu: every group below reads stock at the same
+    // point. Asking per group would let one menu be assembled from two kitchens.
+    // The order, when the caller has one, lets the adapter read the menu at the
+    // order's kitchen — and a future adapter react to the basket's contents.
+    const placeIds = (await (await Menu.getAdapter()).resolveContext({ order: order ?? null })).placeIds;
     const groups = await Group.find({ where: {
       id: groupsId,
       isDeleted: false,
@@ -281,7 +287,7 @@ let Model = {
 
         menu[group.id].dishesList = await Dish.getDishes({
           parentGroup: group.id
-        });
+        }, placeIds);
       } else {
         errors[group.id] = reason;
       }
@@ -305,8 +311,12 @@ let Model = {
    */
   async getGroup(groupId: string): Promise<GroupRecord> {
     const result = await Group.getGroups([groupId]);
-    if (result.errors[0]) {
-      throw result.errors[0];
+    // `errors` is keyed by group id, so `errors[0]` only ever matched a group
+    // literally called "0" — the reason a group was withheld was swallowed and
+    // the caller got `null` with nothing to say about it.
+    const reason = Object.values(result.errors)[0];
+    if (reason) {
+      throw reason;
     }
     const group = result.groups;
     return group[0] ? group[0] : null;
@@ -335,8 +345,9 @@ let Model = {
       throw "group with slug " + groupSlug + " not found";
     }
     const result = await this.getGroups([groupObj.id]);
-    if (result.errors[0]) {
-      throw result.errors[0];
+    const reason = Object.values(result.errors)[0];
+    if (reason) {
+      throw reason;
     }
 
     const group = result.groups;
@@ -524,7 +535,6 @@ let Model = {
     }).populate('recommendedDishes', {
       where: {
         'and': [
-          { 'balance': { "!=": 0 } },
           { 'modifier': false },
           { 'isDeleted': false },
           { 'enable': true }
@@ -546,8 +556,9 @@ let Model = {
       });
     }
 
+    // Stock is per cooking point, so it is filtered out of the result below
+    // rather than asked for in the query.
     const baseCriteriaDish = {
-      balance: { "!=": 0 },
       modifier: false,
       isDeleted: false,
       enable: true
@@ -568,6 +579,9 @@ let Model = {
     recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
 
     let dishForRecommend = [...groupRecommendedDishes, ...recommendedDishes]
+
+    const adapter = await Menu.getAdapter();
+    dishForRecommend = await adapter.filterProducts(dishForRecommend, await adapter.resolveContext({}));
 
     if (limit && Number.isInteger(limit) && limit > 0) {
       dishForRecommend = dishForRecommend.slice(0, limit);

@@ -1,0 +1,9 @@
+{
+  "key": "DELIVERY_ADAPTER",
+  "type": "string",
+  "name": "Delivery adapter",
+  "description": "Delivery implementation to use. Empty means the built-in zone-aware default, which needs no external service.",
+  "defaultValue": "",
+  "isRequired": false,
+  "restartRequired": true
+}

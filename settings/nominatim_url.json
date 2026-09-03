@@ -1,0 +1,12 @@
+{
+  "key": "NOMINATIM_URL",
+  "type": "string",
+  "name": "Nominatim URL",
+  "description": "Geocoder the default delivery adapter resolves addresses with, and searches streets and organizations against, e.g. https://nominatim.openstreetmap.org",
+  "jsonSchema": {
+    "type": "string",
+    "pattern": "^(https?://)([^/]+)$"
+  },
+  "defaultValue": "https://nominatim.openstreetmap.org",
+  "isRequired": false
+}

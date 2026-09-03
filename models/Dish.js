@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PRODUCT_TYPES = void 0;
 const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
 const hashCode_1 = __importDefault(require("../libs/hashCode"));
 const uuid_1 = require("uuid");
@@ -10,6 +11,7 @@ const adapters_1 = require("../adapters");
 const CustomData_1 = require("../interfaces/CustomData");
 const slugIt_1 = require("../libs/slugIt");
 const auditLog_1 = require("../libs/auditLog");
+exports.PRODUCT_TYPES = ["dish", "product", "service"];
 let attributes = {
     /** */
     id: {
@@ -143,8 +145,23 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    /** Type */
-    type: "string", //TODO: product, dish, service
+    /** Catalog product type. Existing integrations without a type default to `dish`. */
+    type: "string",
+    /**
+     * How long the kitchen needs for this product, in minutes.
+     *
+     * One number, not a range. A range was two columns an operator had to fill in
+     * twice to say one thing, and it turned the promise into "40–40" whenever they
+     * did. Stays `null` until somebody fills it in — a default here would put an
+     * invented figure into a promise made to a customer.
+     *
+     * Only read for `type: "dish"`. A bottle of water is not cooked, and letting
+     * it carry a preparation time would mean a basket of drinks quotes one.
+     */
+    cookingTimeMax: {
+        type: "number",
+        allowNull: true,
+    },
     /** Weight  */
     weight: {
         type: "number",
@@ -165,11 +182,6 @@ let attributes = {
     /** Tags for filtering (vegetarian, sharp ...) */
     tags: {
         type: "json",
-    },
-    /** Stock availability quantity. Use -1 for infinite stock, 0 for out of stock. Managed by inventory synchronization. */
-    balance: {
-        type: "number",
-        defaultsTo: -1,
     },
     /** The human easy readable */
     slug: {
@@ -244,6 +256,14 @@ let Model = {
         if (!init.concept) {
             init.concept = "origin";
         }
+        // Legacy adapters frequently omit type. Keep those adapters valid while making
+        // the new canonical value explicit for every newly-created product.
+        if (!init.type) {
+            init.type = "dish";
+        }
+        if (!exports.PRODUCT_TYPES.includes(init.type)) {
+            return cb(`Unsupported product type: ${init.type}`);
+        }
         const slugOpts = [];
         if (init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
             slugOpts.push(init.concept);
@@ -282,7 +302,6 @@ let Model = {
                 enable: record.enable ?? null,
                 isDeleted: record.isDeleted ?? null,
                 visible: record.visible ?? null,
-                balance: record.balance ?? null,
                 parentGroup: typeof record.parentGroup === "string" ? record.parentGroup : record.parentGroup?.id ?? null,
                 price: record.price ?? null,
             },
@@ -290,22 +309,36 @@ let Model = {
         return cb();
     },
     /**
-     * Accepts Waterline Criteria and prepares it there isDeleted = false, balance! = 0. Thus, this function allows
+     * Accepts Waterline Criteria and prepares it there isDeleted = false. Thus, this function allows
      *  finding in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.
+     *
+     * Stock is no longer a column of this model, so it cannot be part of the
+     * criteria: it belongs to the pair "product + cooking point". Products that
+     * are stopped at the point are dropped after the query instead, by the menu
+     * adapter — which mode is in force decides what "stopped" narrows to.
      * @param criteria - criteria asked
+     * @param placeIds - cooking points the stock is read for; omitted asks the menu adapter
+     * @param order - the order this menu is browsed for, when the caller has one;
+     *   lets the adapter read the menu at the order's kitchen, and a future
+     *   adapter react to what is already in the basket
      * @return Found dishes
      */
-    async getDishes(criteria = {}) {
+    async getDishes(criteria = {}, placeIds, order) {
         criteria.isDeleted = false;
         criteria.enable = true;
-        if (!(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) {
-            criteria.balance = { "!=": 0 };
-        }
         let dishes = await Dish.find(criteria).populate("images");
+        // Explicit `placeIds` are an answer, not a question: `Group.getGroups`
+        // resolves the points once for a whole menu and passes them down, and asking
+        // the adapter again per group would let one menu be built out of two.
+        const adapter = await adapters_1.Menu.getAdapter();
+        const context = placeIds === undefined
+            ? await adapter.resolveContext({ order: order ?? null })
+            : { placeIds, source: "requested", placeRequired: false, diagnostics: [] };
+        dishes = await adapter.filterProducts(dishes, context);
         for await (let dish of dishes) {
             const reason = (0, checkExpression_1.default)(dish);
             if (!reason) {
-                await Dish.getDishModifiers(dish);
+                await Dish.getDishModifiers(dish, context.placeIds);
                 if (dish.images.length >= 2)
                     dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
             }
@@ -321,8 +354,16 @@ let Model = {
      * Popularizes the modifiers of the dish, that is, all the Group modifiers are preparing a group and dishes that correspond to them,
      * And ordinary modifiers are preparing their dish.
      * @param dish
+     * @param placeIds - cooking points a modifier's stock is read for; omitted asks the menu adapter
      */
-    async getDishModifiers(dish) {
+    async getDishModifiers(dish, placeIds) {
+        // In the menu path this arrives already resolved, once per menu. A caller
+        // without it reaches the adapter, and it should: which points a modifier's
+        // stock is read at is the same question as for the dish, union included.
+        const adapter = await adapters_1.Menu.getAdapter();
+        const context = placeIds === undefined
+            ? await adapter.resolveContext({})
+            : { placeIds, source: "requested", placeRequired: false, diagnostics: [] };
         if (dish.modifiers) {
             let index = 0;
             // group modofiers
@@ -361,7 +402,10 @@ let Model = {
                         throw `Dish modifierId or rmsId not found`;
                     }
                     let childModifierDish = (await Dish.find({ where: criteria, limit: 1 }).populate('images'))[0];
-                    if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)) {
+                    const childIsStopped = childModifierDish
+                        ? !(await adapter.canAddProduct(childModifierDish, 1, context)).available
+                        : false;
+                    if (!childModifierDish || childIsStopped) {
                         // delete if dish not found
                         sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
                     }
@@ -410,12 +454,13 @@ let Model = {
         }
         return updatedDishes;
     },
-    getRecommended: async function (ids, limit = 12, includeReverse = false) {
+    getRecommended: async function (ids, limit = 12, includeReverse = false, placeIds) {
         if (!Array.isArray(ids) || ids.length === 0) {
             throw new Error('You must provide an array of IDs.');
         }
+        // Stock is per cooking point, so it cannot be a populate criterion any more;
+        // stopped products are filtered out of the collected result below.
         const baseCriteriaDish = {
-            balance: { "!=": 0 },
             modifier: false,
             isDeleted: false,
             enable: true
@@ -429,7 +474,6 @@ let Model = {
         }).populate('recommendations', {
             where: {
                 'and': [
-                    { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
                     { 'enable': true }
@@ -439,7 +483,6 @@ let Model = {
         }).populate('recommendedBy', {
             where: {
                 'and': [
-                    { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
                     { 'enable': true }
@@ -457,6 +500,11 @@ let Model = {
         }
         recommendedDishes = [...new Set(recommendedDishes.map((dish) => dish.id))].map(id => recommendedDishes.find((dish) => dish.id === id));
         recommendedDishes = recommendedDishes.filter((dish) => !ids.includes(dish.id));
+        const adapter = await adapters_1.Menu.getAdapter();
+        const context = placeIds === undefined
+            ? await adapter.resolveContext({})
+            : { placeIds, source: "requested", placeRequired: false, diagnostics: [] };
+        recommendedDishes = await adapter.filterProducts(recommendedDishes, context);
         // Fisher-Yates shifle
         recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
         if (limit && Number.isInteger(limit) && limit > 0) {
@@ -495,7 +543,6 @@ let Model = {
                     enable: values.enable ?? null,
                     isDeleted: values.isDeleted ?? null,
                     visible: values.visible ?? null,
-                    balance: values.balance ?? null,
                     parentGroup: typeof values.parentGroup === "string" ? values.parentGroup : values.parentGroup?.id ?? null,
                     price: values.price ?? null,
                 },

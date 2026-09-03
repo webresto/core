@@ -2,6 +2,27 @@
 
 const path = require("path");
 const fs = require("fs");
+const slugify = require("slugify");
+
+/**
+ * The city an operator names during installation, as a `City` row.
+ *
+ * The setting is a form field and nothing more: the install is multi-city, so
+ * every consumer — geocoding, zones, the storefront's city list — works from
+ * `City` records. This is the one place the setting is turned into one, and
+ * after it nothing reads `CITY` again.
+ */
+async function ensureCityRecord(name) {
+    if (!name || !String(name).trim()) return;
+
+    const cityName = String(name).trim();
+    const slug = slugify(cityName, { remove: /[*+~.()'"!:@\\/]/g, lower: true, strict: true, locale: "en" });
+
+    const existing = await City.findOne({ slug: slug });
+    if (existing) return;
+
+    await City.create({ name: cityName, slug: slug, isDeleted: false }).fetch();
+}
 
 class AboutProjectStep {
     constructor() {
@@ -92,7 +113,9 @@ class AboutProjectStep {
                 await Settings.set(key, { value: data[key] });
             }
         }
-        
+
+        await ensureCityRecord(data["CITY"]);
+
         // Mark this step as completed
         await Settings.set("PROJECT_INIT_STEPS", { value: 1 });
         

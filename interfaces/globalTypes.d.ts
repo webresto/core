@@ -75,6 +75,19 @@ declare global {
         DELIVERY_COST: number;
         DELIVERY_ITEM: string;
         DELIVERY_MESSAGE: string;
+        DELIVERY_ADAPTER: string;
+        DELIVERY_ZONE_SOURCE: string;
+        DELIVERY_GEOCODER: string;
+        DELIVERY_ZONE_SYNC_ENABLED: boolean;
+        DELIVERY_ZONE_SYNC_INTERVAL_SECONDS: number;
+        DELIVERY_ZONE_SYNC_ON_START: boolean;
+        DELIVERY_ZONE_SYNC_CONFIG: {
+            [key: string]: any;
+        };
+        DELIVERY_ZONE_MAP_TILE_URL: string;
+        DELIVERY_ZONE_MAP_ATTRIBUTION: string;
+        OUTSIDE_DELIVERY_AREA_DEFAULT_COST: number;
+        OUTSIDE_DELIVERY_AREA_DEFAULT_ITEM: string;
         FREE_DELIVERY_FROM: number;
         MIN_DELIVERY_AMOUNT: number;
         MIN_DELIVERY_TIME_IN_MINUTES: number;
@@ -90,6 +103,13 @@ declare global {
         SKIP_LOAD_PRODUCT_IMAGES: boolean;
         DELETE_EXISTING_IMAGES_BEFORE_SYNC: boolean;
         SHOW_UNAVAILABLE_DISHES: boolean;
+        MULTI_KITCHEN_ENABLED: boolean;
+        /** Source of the effective stock at a cooking point: local-only | rms-only | minimum */
+        DISH_PLACE_BALANCE_MODE: string;
+        /** Cooking point used for stock and availability until orders carry their own. */
+        DEFAULT_COOKING_PLACE: string;
+        /** Version of the multi-kitchen demo stock values already written. */
+        MULTI_KITCHEN_DEMO_BALANCES_VERSION: string;
         [key: `SLUG_MENU_TOP_LEVEL_CONCEPT_${string}`]: string;
         SLUG_MENU_TOP_LEVEL: string;
         ORDER_INIT_PRODUCT_ID: string;

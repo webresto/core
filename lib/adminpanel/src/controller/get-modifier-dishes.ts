@@ -1,3 +1,6 @@
+import { getDefaultCookingPlaceId } from "../../../cooking-place";
+import { getEffectiveBalances, readEffectiveBalance } from "../../../dish-place-balance";
+
 /**
  * GET …/core/modifiers/dishes?group=<id>&q=<search>&ids=<id,id,...>&onlyModifiers=0
  * Dishes usable as modifier options in the modifiers editor's option picker: by group,
@@ -76,6 +79,11 @@ export default async function GetModifierDishesController(req: any, res: any) {
     }
 
     const dishes = await Dish.find({ where, limit: 200 }).populate("images").sort("name ASC");
+    // Stock lives per cooking point; the picker shows it for the default one.
+    const balances = await getEffectiveBalances(
+      dishes.map((d: any) => String(d.id)),
+      await getDefaultCookingPlaceId(),
+    );
     // Flagged modifier dishes first (stable within: name ASC from the query above).
     if (!ids.length) dishes.sort((a: any, b: any) => Number(Boolean(b.modifier)) - Number(Boolean(a.modifier)));
     const results = dishes.map((d: any) => ({
@@ -88,7 +96,7 @@ export default async function GetModifierDishesController(req: any, res: any) {
       isDeleted: Boolean(d.isDeleted),
       enable: d.enable !== false,
       visible: d.visible !== false,
-      balance: typeof d.balance === "number" ? d.balance : null,
+      balance: readEffectiveBalance(balances, d.id),
       price: typeof d.price === "number" ? d.price : 0,
       weight: typeof d.weight === "number" ? d.weight : null,
       measureUnit: d.measureUnit || null,

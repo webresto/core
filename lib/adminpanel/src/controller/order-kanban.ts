@@ -1,3 +1,4 @@
+import { adminModuleUrl } from "../../adminModules";
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
 
 export default function OrderKanbanController(req: any, res: any) {
@@ -13,7 +14,7 @@ export default function OrderKanbanController(req: any, res: any) {
   return req.Inertia.render({
     component: 'module',
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/OrderKanban.js?v=20260617-1`,
+      moduleComponent: adminModuleUrl("OrderKanban", "20260617-1"),
       message: t('Current Orders'),
       locale,
       messages

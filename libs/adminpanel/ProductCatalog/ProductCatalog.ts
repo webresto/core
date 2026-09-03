@@ -112,13 +112,15 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 	public type = 'group'
 	public isGroup: boolean = true;
 	public model: string = "group";
+	/** Adminizer CRUD resource; distinct from the physical Sails model above. */
+	public resourceName: string = "ProductGroup";
 	public readonly actionHandlers: any[] = []
 
 	async getAddTemplate(req: any): Promise<any> {
 		return {
 		type: 'model',
 		data: {
-			model: this.model,
+			model: this.resourceName,
 			labels: {
 				//@ts-ignore
 				title: req.i18n.__('Add Group'),
@@ -137,7 +139,7 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 			item: {
 				modelId: item.id
 			},
-			model: this.model,
+			model: this.resourceName,
 			labels: {
 				title: req.i18n.__('Edit Group'),
 				save: req.i18n.__('Save'),

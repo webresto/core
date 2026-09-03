@@ -12,6 +12,15 @@ export class OrderConfig {
   };
 
   static editFields: FieldsModels = {
+    /**
+     * Read-only: the kitchen is resolved on every recalculation, and there is no
+     * operator to overrule it. Shown so it can be read, never edited.
+     */
+    cookingPoint: {
+      title: "Cooking point (assigned)",
+      disabled: true,
+      tooltip: "Кухня заказа. Назначается автоматически при пересчёте",
+    },
     logs: {
       title: "Order logs",
       type: "json",
