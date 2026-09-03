@@ -22,7 +22,13 @@ export function DishListItem({
                 disabledHere ? 'opacity-60 bg-muted/50' : 'bg-card hover:bg-muted/50'
             }`}
         >
-            <div className="flex-1 min-w-0">
+            {/*
+              * The 200px floor is what makes the row wrap: without it this
+              * column shrinks to nothing and the name truncates while the
+              * stepper stays glued to its right. Below ~470px of row the
+              * stepper drops to its own line instead.
+              */}
+            <div className="flex-1" style={{ minWidth: 200 }}>
                 <div className="flex items-center gap-2">
                     <h4 className="font-semibold text-base truncate">{dish.name || '—'}</h4>
                     {disabledHere && (

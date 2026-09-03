@@ -48,7 +48,12 @@ function SecondaryBalances({ view, compact = false }) {
 function LocalBalanceControl({ dish, view, onUpdateStock, onLocalBalanceChange, size = 'default', disabled = false }) {
     const { t } = useTranslation();
     const buttonClass = size === 'sm' ? 'h-8 w-8 p-0' : 'h-10 w-10 p-0 text-lg font-bold';
-    const inputClass = size === 'sm' ? 'w-16 text-center h-8' : 'w-20 text-center h-10';
+    const inputClass = size === 'sm' ? 'text-center h-8' : 'text-center h-10';
+    // Width inline: the admin stylesheet is built from adminizer's sources, and
+    // neither `w-16` nor `w-20` is among the classes it saw. The field had no
+    // width of its own and took whatever was left over — 82px in a card, 207px
+    // in a list row, so no two steppers were the same size.
+    const inputStyle = { width: size === 'sm' ? 64 : 80, flexShrink: 0 };
 
     // No local value yet means unlimited, so stepping down starts from "none left".
     const current = view.local ?? UNLIMITED;
@@ -93,6 +98,7 @@ function LocalBalanceControl({ dish, view, onUpdateStock, onLocalBalanceChange, 
                 onChange={handleInputChange}
                 onBlur={handleInputBlur}
                 className={inputClass}
+                style={inputStyle}
                 readOnly={isUnlimited}
                 disabled={disabled}
             />
