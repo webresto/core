@@ -36,13 +36,13 @@ export function SortToggle({ sortMode, onSortModeChange }) {
     };
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative flex gap-1 border border-border rounded-md p-1" ref={dropdownRef}>
             <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(!isOpen)}
                 title={`Sort: ${currentOption.label}`}
-                className="h-8 gap-2"
+                className="h-8 gap-2 px-2"
             >
                 <CurrentIcon className="w-4 h-4" />
                 <ArrowUpDown className="w-3 h-3 opacity-50" />

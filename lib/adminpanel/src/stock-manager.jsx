@@ -28,7 +28,7 @@ import { I18nProvider, useTranslation } from './i18n/I18nContext';
 
 import { HelpButton } from './components/HelpButton';
 
-const { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } = window.UIComponents;
+const { Button, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } = window.UIComponents;
 
 const TAB_OUT_OF_STOCK = 'out-of-stock';
 const TAB_EXPLORE = 'explore';
@@ -800,16 +800,28 @@ function StockManagerContent({ canManage = false }) {
   ];
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    // The width cap is inline because `max-w-[1600px]` is an arbitrary value:
+    // Tailwind can only emit one it has seen, and the admin stylesheet is built
+    // from adminizer's sources, not from this file. It never applied.
+    <div className="p-6 mx-auto" style={{ maxWidth: 1600 }}>
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div className="flex items-center gap-4">
           <h1 className="text-3xl font-bold">{t('Stock Manager')}</h1>
           <HelpButton />
         </div>
-        <div className="flex items-center gap-3">
+        {/*
+          * Both controls keep the height their component chooses, which is the
+          * only way the two end up level. The trigger used to ask for h-10 and
+          * render at h-9: SelectTrigger carries `data-[size=default]:h-9`,
+          * which tailwind-merge does not cancel against a plain h-10 and which
+          * the stylesheet defines later and more specifically. The button next
+          * to it was a hand-written copy of the Button classes, h-10 among
+          * them, so it stood four pixels taller.
+          */}
+        <div className="flex flex-wrap items-center gap-3">
           {places.length > 0 && (
             <Select value={selectedPlaceId || undefined} onValueChange={handlePlaceChange}>
-              <SelectTrigger className="h-10 min-w-56" aria-label={t('Cooking point')}>
+              <SelectTrigger className="min-w-56" aria-label={t('Cooking point')}>
                 <SelectValue placeholder={t('Select cooking point')} />
               </SelectTrigger>
               <SelectContent>
@@ -819,14 +831,9 @@ function StockManagerContent({ canManage = false }) {
               </SelectContent>
             </Select>
           )}
-          <button
-            type="button"
-            onClick={refreshData}
-            disabled={isRefreshing || !selectedPlaceId}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-          >
+          <Button type="button" onClick={refreshData} disabled={isRefreshing || !selectedPlaceId}>
             {isRefreshing ? t('Refreshing...') : t('Refresh now')}
-          </button>
+          </Button>
         </div>
       </div>
       {!selectedPlaceId ? (

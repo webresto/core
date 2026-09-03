@@ -18,7 +18,7 @@ export function DishListItem({
 
     return (
         <div
-            className={`flex items-center gap-4 p-4 border border-border rounded-lg transition-colors ${
+            className={`flex flex-wrap items-center gap-4 p-4 border border-border rounded-lg transition-colors ${
                 disabledHere ? 'opacity-60 bg-muted/50' : 'bg-card hover:bg-muted/50'
             }`}
         >
@@ -31,7 +31,11 @@ export function DishListItem({
                         </Badge>
                     )}
                 </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                {/* Gaps inline: the admin stylesheet has no gap-y-1 to offer. */}
+                <div
+                    className="flex flex-wrap items-center text-sm text-muted-foreground mt-1"
+                    style={{ columnGap: 16, rowGap: 4 }}
+                >
                     {canManage && (
                         <PlaceEnableToggle dish={dish} onToggleEnable={onToggleEnable} />
                     )}

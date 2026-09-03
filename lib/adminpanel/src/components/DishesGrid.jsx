@@ -76,7 +76,14 @@ export function DishesGrid({
             )}
 
             {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                // 260px is what a card needs: the stepper is three 40px buttons,
+                // an 80px input and the gaps between them, inside 16px padding.
+                // Below that the control overflowed its card — which is what the
+                // three columns this asked for at 768px did.
+                <div
+                    className="grid gap-4"
+                    style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}
+                >
                     {sortedDishes.map((dish) => (
                         <DishCard
                             key={dish.id}

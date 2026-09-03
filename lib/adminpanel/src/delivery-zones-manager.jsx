@@ -636,7 +636,10 @@ function ZonePanel({ zones, selectedId, hoveredId, onSelect, onHover, onOpenTari
 function DeliveryZonesContent({ canManage }) {
   const { t } = useTranslation();
   const dark = useAppearance();
+  // Two widths matter here. Below 720 the list cannot stand beside the map at
+  // all and becomes a column above it; below 1024 it still fits, narrower.
   const isMobile = useIsMobile();
+  const isNarrow = useIsMobile(1024);
 
   const [zones, setZones] = useState([]);
   const [places, setPlaces] = useState([]);
@@ -857,13 +860,18 @@ function DeliveryZonesContent({ canManage }) {
 
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
-      <div style={{ display: 'flex', height: '100%', minHeight: 0 }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100%', minHeight: 0 }}>
         {/* the narrow second panel, next to the admin sidebar */}
         <aside
           style={{
-            width: isMobile ? '100%' : 280,
+            width: isMobile ? '100%' : (isNarrow ? 220 : 280),
             flexShrink: 0,
-            borderRight: '1px solid var(--border)',
+            // Stacked on a phone, so the border that divides it from the map
+            // moves with it. Two fifths of the height at most: past that the
+            // map is a strip, and a list of five zones needs nothing like it.
+            ...(isMobile
+              ? { maxHeight: '40vh', borderBottom: '1px solid var(--border)' }
+              : { borderRight: '1px solid var(--border)' }),
             padding: 12,
             overflowY: 'auto',
             display: isMobile && editing ? 'none' : 'block',
@@ -905,8 +913,8 @@ function DeliveryZonesContent({ canManage }) {
         </aside>
 
         {/* the map, showing every zone of the city at once */}
-        <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8, alignItems: 'center' }}>
+        <main style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: 4, border: '1px solid var(--border)', borderRadius: 6, padding: 2 }}>
               <Button
                 variant={editing ? 'ghost' : 'default'}
@@ -928,12 +936,12 @@ function DeliveryZonesContent({ canManage }) {
                 {t('Edit')}
               </Button>
             </div>
-            <span style={{ ...styles.help, flex: 1, minWidth: 0 }}>
+            <span style={{ ...styles.help, flex: 1, minWidth: 0, flexBasis: isMobile ? '100%' : 'auto' }}>
               {editing
                 ? t('Only the selected zone can be reshaped. Leaving this mode discards what is unsaved.')
                 : (canEnterEditing
                   ? t('The map is read-only. Double-click a zone to open its delivery terms.')
-                  : t('Pick a zone on the left, or start a new one, to change its shape.'))}
+                  : t('Pick a zone in the list, or start a new one, to change its shape.'))}
             </span>
           </div>
 
@@ -971,7 +979,7 @@ function DeliveryZonesContent({ canManage }) {
                 </>
               )}
 
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 {needsShape && (
                   <span style={{ ...styles.help, maxWidth: 260, color: 'var(--destructive)' }}>
                     {t('Draw the zone on the map first — click its corners, then click the first one again.')}
@@ -1022,7 +1030,7 @@ function DeliveryZonesContent({ canManage }) {
                   // and no zone picked at all. The first is the state the page
                   // opens in, and the toolbar above already explains it.
                   readOnlyHint={editing
-                    ? (selected ? undefined : t('Pick a zone on the left, or start a new one, to draw its shape.'))
+                    ? (selected ? undefined : t('Pick a zone in the list, or start a new one, to draw its shape.'))
                     : t('Double-click a zone to open its delivery terms.')}
                   otherZones={contextZones}
                   highlightIds={highlightIds}

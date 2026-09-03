@@ -52,7 +52,7 @@ export function GroupToolbox({ dishes, onBulkBalance }) {
     return (
         <div className="flex gap-2 mb-4 flex-wrap">
             {/* Balances */}
-            <div className="flex gap-1 border border-border rounded-md p-0.5">
+            <div className="flex gap-1 border border-border rounded-md">
                 <Button
                     variant="ghost"
                     size="sm"

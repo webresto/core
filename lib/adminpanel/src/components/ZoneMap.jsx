@@ -14,7 +14,7 @@ import Modify from 'ol/interaction/Modify.js';
 import Snap from 'ol/interaction/Snap.js';
 import { fromLonLat } from 'ol/proj.js';
 import { createEmpty, extend, isEmpty } from 'ol/extent.js';
-import { Fill, Stroke, Style, Text, Circle as CircleStyle } from 'ol/style.js';
+import { Fill, Icon, Stroke, Style, Text, Circle as CircleStyle } from 'ol/style.js';
 import Attribution from 'ol/control/Attribution.js';
 import Zoom from 'ol/control/Zoom.js';
 import { geometryToRing, isUsableRing, ringToGeometry } from './zone-ring';
@@ -79,22 +79,59 @@ const HOVER_STYLE = new Style({
 // city has nothing to do with. That is the honest picture — the alternative is
 // hiding a kitchen that does serve the zone — and it is also why the opening
 // view below still ignores these points unless there is nothing else to fit.
+const KITCHEN_ON = '#dc2626';
+const KITCHEN_OFF = '#6b7280';
+
+// A pin, not a dot: a dot is what a polygon vertex looks like on this map, and
+// at six pixels over a city basemap it read as one more piece of the tiles. The
+// shape is anchored at its tip, so the point it marks is the tip.
+function pinImage(color, halo) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="38" viewBox="0 0 28 38">`
+    + `<path d="M14 1.5C7.6 1.5 2.5 6.6 2.5 13c0 8.4 11.5 23 11.5 23S25.5 21.4 25.5 13C25.5 6.6 20.4 1.5 14 1.5z" `
+    + `fill="${color}" stroke="${halo}" stroke-width="2.5"/>`
+    + `<circle cx="14" cy="13" r="4.6" fill="${halo}"/></svg>`;
+  return new Icon({
+    src: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
+    anchor: [0.5, 1],
+    // The pin is the answer; only its name gives way when two kitchens stand
+    // close enough for their labels to collide.
+    declutterMode: 'none',
+  });
+}
+
+// Built once per appearance and state and then re-used: the style function runs
+// for every feature on every frame, and the name is the only thing in here that
+// differs between two kitchens.
+const kitchenStyles = new Map();
 function kitchenStyle(feature, dark) {
   const off = feature.get('enable') === false;
-  return new Style({
-    image: new CircleStyle({
-      radius: 6,
-      fill: new Fill({ color: off ? 'rgba(120, 120, 120, 0.55)' : 'rgba(220, 38, 38, 0.9)' }),
-      stroke: new Stroke({ color: '#ffffff', width: 2 }),
-    }),
-    text: new Text({
-      text: feature.get('title') || '',
-      offsetY: -14,
-      font: '12px sans-serif',
-      fill: new Fill({ color: dark ? '#f5f5f5' : '#1f2937' }),
-      stroke: new Stroke({ color: dark ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.85)', width: 3 }),
-    }),
-  });
+  const key = `${dark ? 'dark' : 'light'}:${off ? 'off' : 'on'}`;
+
+  let style = kitchenStyles.get(key);
+  if (!style) {
+    const color = off ? KITCHEN_OFF : KITCHEN_ON;
+    const halo = dark ? '#111827' : '#ffffff';
+    style = new Style({
+      image: pinImage(color, halo),
+      // A chip rather than a haloed string. The name crosses streets, other
+      // labels and water in turn, and only a background of its own is legible
+      // over all three — the halo it had was a compromise that suited none.
+      text: new Text({
+        // Clear of the pin, which is 38 pixels tall above its tip.
+        offsetY: -52,
+        font: '600 13px system-ui, -apple-system, "Segoe UI", sans-serif',
+        fill: new Fill({ color: '#ffffff' }),
+        backgroundFill: new Fill({ color }),
+        backgroundStroke: new Stroke({ color: halo, width: 2 }),
+        padding: [3, 7, 2, 7],
+        declutterMode: 'declutter',
+      }),
+    });
+    kitchenStyles.set(key, style);
+  }
+
+  style.getText().setText(feature.get('title') || '');
+  return style;
 }
 
 export default function ZoneMap({
@@ -163,7 +200,12 @@ export default function ZoneMap({
           style: (feature) => (highlightRef.current.has(feature.get('zoneId')) ? HOVER_STYLE : CONTEXT_STYLE),
         }),
         new VectorLayer({ source, style: EDIT_STYLE }),
-        new VectorLayer({ source: kitchenSource, style: (feature) => kitchenStyle(feature, dark) }),
+        new VectorLayer({
+          source: kitchenSource,
+          // Only the names are decluttered — see `declutterMode` in the style.
+          declutter: true,
+          style: (feature) => kitchenStyle(feature, dark),
+        }),
       ],
       view: new View({ center: fromLonLat([0, 20]), zoom: 2 }),
     });

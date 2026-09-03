@@ -18,7 +18,7 @@ function SecondaryBalances({ view, compact = false }) {
     if (!view.showEffective && !view.showRms) return null;
 
     return (
-        <div className={compact ? 'flex items-center gap-3' : 'flex items-center gap-3 mb-3'}>
+        <div className={compact ? 'flex flex-wrap items-center gap-3' : 'flex flex-wrap items-center gap-3 mb-3'}>
             {view.showEffective && (
                 <div className="flex items-center gap-1">
                     <span className="text-xs text-muted-foreground">{t('Effective stock')}:</span>
@@ -166,7 +166,7 @@ export function StockBalancePanel({
     const view = getStockView(dish, mode, localBalance);
 
     return (
-        <div className={compact ? 'flex items-center gap-4' : ''}>
+        <div className={compact ? 'flex flex-wrap items-center gap-4' : ''}>
             <SecondaryBalances view={view} compact={compact} />
 
             <div className={compact ? 'flex items-center gap-2' : ''}>

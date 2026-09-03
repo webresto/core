@@ -20,7 +20,7 @@ export function Tabs({ tabs, activeTab, onTabChange }) {
                             aria-selected={current?.id === tab.id}
                             onClick={() => onTabChange(tab.id)}
                             className={`
-                px-4 py-2 font-medium text-sm rounded-t-lg transition-colors
+                px-4 py-2 font-medium text-sm transition-colors
                 ${current?.id === tab.id
                                     ? 'bg-background text-foreground border-b-2 border-primary'
                                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -32,7 +32,7 @@ export function Tabs({ tabs, activeTab, onTabChange }) {
                     ))}
                 </div>
             </div>
-            <div className="tab-content">
+            <div>
                 {current?.content}
             </div>
         </div>
