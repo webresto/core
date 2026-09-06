@@ -1,5 +1,6 @@
 import { OrderDishId, RoutePlan, RoutePlanRequest } from "../adapters/menu/route-contracts";
 import { toPlaceId } from "./cooking-place";
+import { getMenuPlaceBasedMode } from "./product-availability";
 
 /**
  * Handing an order's lines to the kitchens of a route.
@@ -46,6 +47,13 @@ export async function planOrderRoute(
 ): Promise<RouteAssignment> {
   const planner = Menu.routePlanner();
   if (!planner) return NO_ROUTE;
+
+  // A registered planner is not a permission. The routing module registers its
+  // planner unconditionally and gates the feature on the menu mode, so the same
+  // gate has to hold here: in any other mode the menu shows one kitchen's stock,
+  // and a route that rescues a line from another kitchen keeps in the basket a
+  // product the menu just said was not there.
+  if ((await getMenuPlaceBasedMode()) !== "multi-place-route") return NO_ROUTE;
 
   // A placed order is not re-routed. Kitchens have been told what to cook and a
   // courier has a list of stops; changing either now leaves two truths in the

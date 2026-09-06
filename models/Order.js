@@ -428,25 +428,17 @@ let Model = {
         // addable if any kitchen the courier could reach has it, and the menu that
         // showed it to the customer used exactly that rule.
         const availability = await (await Menu.getAdapter()).canAddProduct(dishObj, amount, menuContext);
-        // What a refusal costs depends on the menu mode, and the two answers are not
-        // interchangeable.
-        //
-        // In the legacy `default` mode core accepts a product it cannot currently
-        // sell and lets the recount trim the basket later — the TODO that used to sit
-        // here said as much, and every existing installation is built on it. So only
-        // a genuine shortfall is refused, exactly as before: a stop (`0`) still goes
-        // in and still gets dropped at recount.
-        //
-        // Once a mode ties the menu to a point, that leniency becomes the bug the
-        // iteration is meant to fix: "you cannot put a product in the basket that the
-        // chosen point does not have" is an acceptance criterion, and letting it in
-        // to delete it a moment later is not a way of meeting it.
-        const refuse = menuContext.placeRequired
-            ? !availability.available
-            : availability.reason === "PRODUCT_NOT_ENOUGH_AT_PLACE" && availability.balance > 0;
-        if (refuse) {
+        // Refused in the same words the menu used: the context that hid a stopped
+        // product from the storefront is the one asked here, so a product the
+        // customer was shown goes in and one they were not shown does not. Core used
+        // to accept a stop and let the recount trim it later; that told the customer
+        // nothing and left the basket silently short. Without a point (no address
+        // yet, no installation default) stock is unknown and everything is addable.
+        if (!availability.available) {
             await emitter.emit.apply(emitter, ["core:order-add-dish-reject-amount", ...arguments]);
-            throw new Error(`Not enough dishes with id ${dishObj.id}. Available quantity: ${availability.balance}`);
+            throw new Error(availability.reason === "PRODUCT_NOT_ENOUGH_AT_PLACE"
+                ? `Not enough dishes with id ${dishObj.id}. Available quantity: ${availability.balance}`
+                : `Dish [${dishObj.id}] is not available at the kitchen serving this order`);
         }
         if (dishObj.modifier) {
             throw new Error(`Dish [${dishObj.id}] is modifier`);
