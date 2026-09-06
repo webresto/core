@@ -641,6 +641,14 @@ export async function seedMultiKitchenDemo(adminizer: any): Promise<void> {
     key: "KITCHEN_RESOLVE_CHAIN",
     value: ["delivery-zone", "nearest-geo", "single-point"],
   } as any);
+  // The storefront asks for an address or a pickup point before the first
+  // product goes into the basket, which is where the menu starts being read at
+  // one kitchen. Without this the popup never opens and the whole demo is a
+  // single global menu.
+  await Settings.set("FIELDS_FOR_ORDER_INITIALIZATION", {
+    key: "FIELDS_FOR_ORDER_INITIALIZATION",
+    value: ["address", "pickupPoint"],
+  } as any);
   await seedGeocoder(recreate);
   await seedPromotions(recreate);
   await seedOperators(adminizer, recreate);
