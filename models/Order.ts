@@ -2217,9 +2217,15 @@ let Model = {
 
       order.delivery = delivery;
 
-      if (order.delivery && isValidDelivery(order.delivery, softDeliveryCalculation)) {
+      // `strict` is the opposite of soft: under soft calculation an allowed
+      // delivery with no cost is a valid answer, and its message — "a manager
+      // will call" — is exactly what `deliveryDescription` has to carry to the
+      // basket. Passing the flag straight through was what left the basket blank.
+      if (order.delivery && isValidDelivery(order.delivery, !softDeliveryCalculation)) {
         if (!order.delivery.item) {
-          order.deliveryCost = order.delivery.cost
+          // `null` is the soft answer — the cost is unknown, not zero — but the
+          // total is arithmetic and needs a number; the message carries the rest.
+          order.deliveryCost = order.delivery.cost ?? 0;
         } else {
           const deliveryItem = await Dish.findOne({ where: { or: [{ id: order.delivery.item }, { rmsId: order.delivery.item }] } });
           if (deliveryItem) {
@@ -3083,9 +3089,11 @@ async function getOrderDateLimit(): Promise<Date> {
 }
 
 function isValidDelivery(delivery: Delivery, strict: boolean = true): boolean {
-  // Check if the required properties exist and have the correct types
+  // Check if the required properties exist and have the correct types. The
+  // minutes may be `null`: a zone without a stated time and the soft fallback
+  // both answer that way, and neither is an invalid delivery.
   if (
-    typeof delivery.deliveryTimeMinutes === 'number' &&
+    (typeof delivery.deliveryTimeMinutes === 'number' || delivery.deliveryTimeMinutes === null) &&
     typeof delivery.allowed === 'boolean' &&
     typeof delivery.message === 'string'
   ) {
