@@ -1397,6 +1397,10 @@ let Model = {
             const kitchen = await (0, kitchen_assignment_1.assignOrderCookingPlace)(order);
             if (kitchen.changed)
                 order.cookingPoint = kitchen.placeId;
+            // `message` describes this recalculation and nothing older: a basket that
+            // lost a product says so once, in the response that lost it, and the next
+            // recount starts silent. Left alone it would be repeated on every response.
+            order.message = "";
             if (kitchen.changed) {
                 await Order.log({ id: order.id }, "info", "core", kitchen_assignment_1.KITCHEN_LOG.assigned, {
                     from: kitchen.previousPlaceId,
