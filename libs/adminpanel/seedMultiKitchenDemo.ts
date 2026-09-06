@@ -43,6 +43,23 @@ const PLACES = [
     coordinate: { lat: 56.8907, lng: 60.6103 },
     isPickupPoint: false,
   },
+  // One kitchen in each of the other two cities. Neither city has a zone, so
+  // an address there resolves through `nearest-geo`; both hand orders over so
+  // the pickup tab can pick a city by choosing a point.
+  {
+    id: "demo-kitchen-tyumen",
+    title: "Demo kitchen: Tyumen",
+    address: "Тюмень, улица Республики, 1",
+    coordinate: { lat: 57.153, lng: 65.5343 },
+    isPickupPoint: true,
+  },
+  {
+    id: "demo-kitchen-nhatrang",
+    title: "Demo kitchen: Nha Trang",
+    address: "Нячанг, Tran Phu, 1",
+    coordinate: { lat: 12.2388, lng: 109.1967 },
+    isPickupPoint: true,
+  },
 ] as const;
 
 /**
@@ -145,6 +162,45 @@ const PRODUCTS = [
 const CATALOG_GROUP_ID = "demo-stock-group";
 
 /**
+ * A menu of its own for each out-of-town kitchen.
+ *
+ * Before an address is given the menu is global, so these show up next to the
+ * Yekaterinburg catalog; once the order has a kitchen only the dishes cooked
+ * there survive. That is done with stock, not with a menu model: every dish
+ * below gets `localBalance: 0` at every kitchen except its own, which is how the
+ * storefront proves that `dish(orderId)` is what filters the menu after the
+ * address. The Yekaterinburg catalog gets no zero rows here — its menu is never
+ * requested with a Tyumen or Nha Trang coordinate, and a row that nobody reads
+ * is noise on the Stock Manager screen.
+ */
+const CITY_MENUS = [
+  {
+    kitchen: "demo-kitchen-tyumen",
+    group: { id: "demo-tyumen-group", name: "Demo Tyumen" },
+    dishes: [
+      { id: "demo-tyumen-pelmeni", name: "Сибирские пельмени", price: 390, cookingTimeMax: 20 },
+      { id: "demo-tyumen-stroganina", name: "Строганина из муксуна", price: 690, cookingTimeMax: 10 },
+      { id: "demo-tyumen-ukha", name: "Уха по-тюменски", price: 320, cookingTimeMax: 25 },
+      { id: "demo-tyumen-shangi", name: "Шаньги с картофелем", price: 180, cookingTimeMax: 15 },
+      { id: "demo-tyumen-kedr", name: "Десерт с кедровым орехом", price: 240, cookingTimeMax: 10 },
+      { id: "demo-tyumen-mors", name: "Морс брусничный", price: 120, cookingTimeMax: 5 },
+    ],
+  },
+  {
+    kitchen: "demo-kitchen-nhatrang",
+    group: { id: "demo-nhatrang-group", name: "Demo Nha Trang" },
+    dishes: [
+      { id: "demo-nhatrang-pho", name: "Фо бо", price: 350, cookingTimeMax: 15 },
+      { id: "demo-nhatrang-banhmi", name: "Бань ми", price: 220, cookingTimeMax: 10 },
+      { id: "demo-nhatrang-goicuon", name: "Гой куон", price: 260, cookingTimeMax: 10 },
+      { id: "demo-nhatrang-buncha", name: "Бун ча", price: 380, cookingTimeMax: 20 },
+      { id: "demo-nhatrang-comtam", name: "Ком там", price: 340, cookingTimeMax: 20 },
+      { id: "demo-nhatrang-caphe", name: "Кофе со сгущёнкой", price: 150, cookingTimeMax: 5 },
+    ],
+  },
+] as const;
+
+/**
  * Rows exist only where a source actually supplied a value. `null` means the
  * source said nothing, and a missing pair means the product is unlimited there.
  *
@@ -178,8 +234,22 @@ const BALANCES: Record<string, Record<string, { localBalance?: number | null; rm
  * once per version so a new layout actually lands, and are left alone on later
  * boots so manual edits made while testing the UI survive a restart.
  */
-const DEMO_BALANCES_VERSION = "2026-08-19-empty-row-rule";
+const DEMO_BALANCES_VERSION = "2026-09-07-city-menus";
 const DEMO_BALANCES_VERSION_KEY = "MULTI_KITCHEN_DEMO_BALANCES_VERSION";
+
+/** The hand-written rows plus a zero for every city dish at every foreign kitchen. */
+function demoBalances(): typeof BALANCES {
+  const merged: typeof BALANCES = {};
+  for (const [placeId, rows] of Object.entries(BALANCES)) merged[placeId] = { ...rows };
+  for (const menu of CITY_MENUS) {
+    for (const place of PLACES) {
+      if (place.id === menu.kitchen) continue;
+      merged[place.id] ??= {};
+      for (const dish of menu.dishes) merged[place.id][dish.id] = { localBalance: 0 };
+    }
+  }
+  return merged;
+}
 
 async function createIfMissing(model: any, where: any, values: any): Promise<any> {
   const existing = await model.findOne({ where });
@@ -244,12 +314,16 @@ async function seedCatalog(recreate: boolean): Promise<void> {
 
 /** The demo places, products and stock rows the Stock Manager screenshots use. */
 async function seedStockDemo(recreate: boolean): Promise<void> {
-  const demoProductIds = PRODUCTS.map((product) => product.id);
+  const demoProductIds = [
+    ...PRODUCTS.map((product) => product.id),
+    ...CITY_MENUS.flatMap((menu) => menu.dishes.map((dish) => dish.id)),
+  ];
+  const demoGroupIds = [CATALOG_GROUP_ID, ...CITY_MENUS.map((menu) => menu.group.id)];
 
   if (recreate) {
     await DishPlace.destroy({ dish: { in: demoProductIds } }).fetch();
     await Dish.destroy({ id: { in: demoProductIds } }).fetch();
-    await Group.destroy({ id: CATALOG_GROUP_ID }).fetch();
+    await Group.destroy({ id: { in: demoGroupIds } }).fetch();
     await Place.destroy({ id: { in: PLACES.map((place) => place.id) } }).fetch();
   }
 
@@ -281,10 +355,29 @@ async function seedStockDemo(recreate: boolean): Promise<void> {
     });
   }
 
+  for (const menu of CITY_MENUS) {
+    const group = await createIfMissing(Group, { id: menu.group.id }, {
+      ...menu.group,
+      enable: true,
+      isDeleted: false,
+    });
+    for (const dish of menu.dishes) {
+      await createIfMissing(Dish, { id: dish.id }, {
+        ...dish,
+        type: "dish",
+        parentGroup: group.id,
+        enable: true,
+        visible: true,
+        isDeleted: false,
+      });
+    }
+  }
+
+  const balances = demoBalances();
   const seededVersion = await Settings.get(DEMO_BALANCES_VERSION_KEY);
   const rewriteBalances = recreate || seededVersion !== DEMO_BALANCES_VERSION;
 
-  for (const [placeId, productBalances] of Object.entries(BALANCES)) {
+  for (const [placeId, productBalances] of Object.entries(balances)) {
     for (const [productId, values] of Object.entries(productBalances)) {
       if (!rewriteBalances && (await DishPlace.findOne({ dish: productId, place: placeId }))) continue;
       await DishPlace.upsertForPlace(productId, placeId, {
@@ -296,10 +389,10 @@ async function seedStockDemo(recreate: boolean): Promise<void> {
   }
 
   if (rewriteBalances) {
-    // Pairs dropped from BALANCES must lose their row: no row is how the demo
+    // Pairs dropped from the balances must lose their row: no row is how the demo
     // shows a product that is unlimited at every point.
     const keep = new Set(
-      Object.entries(BALANCES).flatMap(([placeId, productBalances]) =>
+      Object.entries(balances).flatMap(([placeId, productBalances]) =>
         Object.keys(productBalances).map((productId) => `${productId} ${placeId}`),
       ),
     );
@@ -500,8 +593,8 @@ async function seedOperators(adminizer: any, recreate: boolean): Promise<void> {
 }
 
 /**
- * Fills a development database with a usable catalog, two kitchens, per-place
- * stock and the operators to look at it with.
+ * Fills a development database with a usable catalog, four kitchens in three
+ * cities, per-place stock and the operators to look at it with.
  *
  * Driven by `MULTI_KITCHEN_DEMO_SEED`: `true` adds what is missing and never
  * overwrites anything, `recreate` first deletes the entities the seed owns.
