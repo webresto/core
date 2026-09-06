@@ -175,7 +175,9 @@ export async function matchZone(adapter: DeliveryAdapter, address: Address | und
     return { zone: null, zonesConfigured: true, location };
   }
 
-  return { zone: findZoneForCoordinate(zones, location.coordinate), zonesConfigured: true, location };
+  const zone = findZoneForCoordinate(zones, location.coordinate);
+  location.diagnostics.push(zone ? `zone ${zone.id} matched` : `coordinate is in none of ${zones.length} zone(s)`);
+  return { zone, zonesConfigured: true, location };
 }
 
 /** The result for an address the adapter tried and failed to place on the map. */

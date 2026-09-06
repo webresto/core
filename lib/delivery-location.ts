@@ -128,6 +128,7 @@ export async function resolveSelectedLocation(
     }
 
     if (geocoded && isValidCoordinate(geocoded)) {
+      diagnostics.push(`geocoder placed "${street} ${home}"${city ? ` (${city})` : ""} at ${geocoded.lat}, ${geocoded.lng}`);
       return {
         coordinate: geocoded,
         streetId,
