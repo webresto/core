@@ -37,6 +37,10 @@ export default async function ImportSettingsController(req: any, res: any) {
       if (!existing) {
         return { key: entry.key, status: 'not_found', importValue: entry.value, currentValue: undefined as any };
       }
+      // An env-pinned setting cannot be imported: report it as locked so the UI offers
+      // it the same way it offers a read-only one, and compare against the env value.
+      const env = Settings.envOverride(existing);
+      const locked = (existing.readOnly ?? false) || env.active;
       // A secret setting is write-only: its current value is never sent to the client,
       // so it also cannot be compared — such an entry is always offered as a change.
       if (existing.secret) {
@@ -46,21 +50,23 @@ export default async function ImportSettingsController(req: any, res: any) {
           secret: true,
           currentValue: null as any,
           importValue: entry.value,
-          readOnly: existing.readOnly ?? false,
+          readOnly: locked,
+          envOverride: env.active,
           type: existing.type,
           name: existing.name || null,
         };
       }
-      const currentVal = existing.value !== null && existing.value !== undefined
-        ? existing.value
-        : existing.defaultValue;
+      const currentVal = env.active
+        ? (env.valid ? env.value : null)
+        : (existing.value !== null && existing.value !== undefined ? existing.value : existing.defaultValue);
       const changed = JSON.stringify(currentVal) !== JSON.stringify(entry.value);
       return {
         key: entry.key,
         status: changed ? 'changed' : 'unchanged',
         currentValue: currentVal,
         importValue: entry.value,
-        readOnly: existing.readOnly ?? false,
+        readOnly: locked,
+        envOverride: env.active,
         type: existing.type,
         name: existing.name || null,
       };
@@ -89,6 +95,13 @@ export default async function ImportSettingsController(req: any, res: any) {
       }
       if (existing.readOnly) {
         results.push({ key: entry.key, status: 'skipped', error: t('Setting is read-only') });
+        continue;
+      }
+
+      // Same rule as the single-setting update: env pins the value, so importing one
+      // would only write dead weight into the DB.
+      if (Settings.envOverride(existing).active) {
+        results.push({ key: entry.key, status: 'skipped', error: t('Setting is set via an environment variable and cannot be changed here') });
         continue;
       }
 

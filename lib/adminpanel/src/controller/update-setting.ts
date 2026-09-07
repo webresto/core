@@ -17,6 +17,13 @@ export default async function UpdateSettingController(req: any, res: any) {
       return res.status(403).json({ error: t('Setting is read-only') });
     }
 
+    // process.env outranks the DB (see Settings.use), so writing here would store a
+    // value that no Settings.get() consumer ever reads. Refuse instead of accepting a
+    // save that silently does nothing.
+    if (Settings.envOverride(setting).active) {
+      return res.status(403).json({ error: t('Setting is set via an environment variable and cannot be changed here') });
+    }
+
     const { value } = req.body;
     const jsonSchema = getSettingSchema(setting);
 
