@@ -160,6 +160,66 @@ type attributes = typeof attributes & ORM;
 interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> { }
 export interface SettingsRecord extends RequiredField<OptionalAll<attributes>, "key" | "type"> { }
 
+/**
+ * Parse the process.env value for a setting exactly as Settings.use() consumes it.
+ * Single source of truth for the "ENV wins over DB" rule: callers that only need to
+ * know *whether* a setting is pinned by env (UI badges, write guards) then cannot
+ * drift from the precedence actually applied when the value is read.
+ *
+ * present:false — env holds nothing for this key, the DB value is in effect.
+ * ok:false with present:true — env holds a value that fails parsing/validation, so
+ * the setting reads as undefined. That is not the same as "overridden with a value".
+ */
+function parseEnvValue(setting: SettingsRecord): { present: boolean; ok: boolean; value?: SettingValue } {
+  const key = setting.key;
+  const raw = process.env[key];
+  if (raw === undefined) {
+    return { present: false, ok: false };
+  }
+
+  let value: SettingValue;
+
+  if (setting.type !== "json") {
+    value = raw;
+
+  } else {
+    try {
+      // Check if jsonSchema expects a primitive type (string, number, boolean)
+      const schemaType = setting.jsonSchema?.type;
+
+      if (schemaType === "string") {
+        value = raw;
+      } else if (schemaType === "number" || schemaType === "integer") {
+        value = parseInt(raw, 10);
+        if (isNaN(value)) {
+          sails.log.error(`Error: Value [${raw}] for [${key}] cannot be converted to number`);
+          return { present: true, ok: false };
+        }
+      } else if (schemaType === "boolean") {
+        const parsed = parseBoolean(raw);
+        value = parsed !== undefined ? parsed : false;
+      } else {
+        value = JSON.parse(raw);
+      }
+
+      // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
+      if (!(Settings.env("ALLOW_UNSAFE_SETTINGS") ?? false)) {
+        const ajv = new Ajv();
+        const validate = ajv.compile(setting.jsonSchema);
+        if (!validate(value)) {
+          sails.log.error(`AJV Validation Error: Value [${value}] from process.env for [${key}] does not match the schema`, validate.errors);
+          return { present: true, ok: false };
+        }
+      }
+    } catch (e) {
+      sails.log.error(`Error trying to parse value from process.env: ${e}`);
+      return { present: true, ok: false };
+    }
+  }
+
+  return { present: true, ok: true, value: cleanValue(value) };
+}
+
 let Model = {
   beforeCreate: function (record: SettingsRecord, cb: (err?: string) => void) {
     record.key = record.key.replace(/ /g, '_');
@@ -221,45 +281,8 @@ let Model = {
         return undefined;
       }
 
-      if (setting.type !== "json") {
-        value = process.env[key];
-
-      } else {
-        try {
-          // Check if jsonSchema expects a primitive type (string, number, boolean)
-          const schemaType = setting.jsonSchema?.type;
-
-          if (schemaType === "string") {
-            value = process.env[key];
-          } else if (schemaType === "number" || schemaType === "integer") {
-            value = parseInt(process.env[key], 10);
-            if (isNaN(value)) {
-              sails.log.error(`Error: Value [${process.env[key]}] for [${key}] cannot be converted to number`);
-              return undefined;
-            }
-          } else if (schemaType === "boolean") {
-            const parsed = parseBoolean(process.env[key]);
-            value = parsed !== undefined ? parsed : false;
-          } else {
-            value = JSON.parse(process.env[key]);
-          }
-
-          // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
-          if (!(Settings.env("ALLOW_UNSAFE_SETTINGS") ?? false)) {
-            const ajv = new Ajv();
-            const validate = ajv.compile(setting.jsonSchema);
-            if (!validate(value)) {
-              sails.log.error(`AJV Validation Error: Value [${value}] from process.env for [${key}] does not match the schema`, validate.errors);
-              return undefined;
-            }
-          }
-        } catch (e) {
-          sails.log.error(`Error trying to parse value from process.env: ${e}`);
-          return undefined;
-        }
-      }
-
-      return cleanValue(value);
+      const parsedEnv = parseEnvValue(setting);
+      return parsedEnv.ok ? parsedEnv.value : undefined;
     }
 
     /** If variable present in database */
@@ -529,6 +552,16 @@ let Model = {
     } catch {
       return envValue as SettingList[K];
     }
+  },
+
+  /**
+   * Whether process.env pins this setting, shadowing whatever is stored in the DB.
+   * Used by the admin API to label such settings and to refuse writes that would be
+   * saved but never take effect.
+   */
+  envOverride(setting: SettingsRecord): { active: boolean; valid: boolean; value?: SettingValue } {
+    const parsed = parseEnvValue(setting);
+    return { active: parsed.present, valid: parsed.ok, value: parsed.value };
   },
 
   /**

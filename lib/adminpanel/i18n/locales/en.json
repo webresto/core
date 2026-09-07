@@ -656,5 +656,9 @@
 	"Restart to apply": "The value is saved, but it is read at startup — restart the application to apply it.",
 	"Restart pending title": "Restart required to apply the changes",
 	"Restart pending hint": "Saved in this session, waiting for a restart:",
-	"Dismiss": "Dismiss"
+	"Dismiss": "Dismiss",
+	"Set via ENV": "Set via ENV",
+	"This value comes from an environment variable and overrides the stored one. Change it where the container environment is defined.": "This value comes from an environment variable and overrides the stored one. Change it where the container environment is defined.",
+	"The environment variable set for this setting does not match its schema, so the setting reads as empty. Fix it where the container environment is defined.": "The environment variable set for this setting does not match its schema, so the setting reads as empty. Fix it where the container environment is defined.",
+	"Setting is set via an environment variable and cannot be changed here": "Setting is set via an environment variable and cannot be changed here"
 }

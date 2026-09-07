@@ -861,5 +861,9 @@
 	"Restart to apply": "Значение сохранено, но читается при запуске — перезагрузите приложение, чтобы оно применилось.",
 	"Restart pending title": "Для применения изменений нужна перезагрузка",
 	"Restart pending hint": "Сохранено в этой сессии, ожидает перезагрузки:",
-	"Dismiss": "Скрыть"
+	"Dismiss": "Скрыть",
+	"Set via ENV": "Задано через ENV",
+	"This value comes from an environment variable and overrides the stored one. Change it where the container environment is defined.": "Значение приходит из переменной окружения и перекрывает сохранённое. Меняйте его там, где задаётся окружение контейнера.",
+	"The environment variable set for this setting does not match its schema, so the setting reads as empty. Fix it where the container environment is defined.": "Переменная окружения для этой настройки не проходит её схему, поэтому настройка читается как пустая. Исправьте её там, где задаётся окружение контейнера.",
+	"Setting is set via an environment variable and cannot be changed here": "Настройка задана переменной окружения и не может быть изменена здесь"
 }

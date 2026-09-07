@@ -113,6 +113,58 @@ let attributes = {
         allowNull: true
     }
 };
+/**
+ * Parse the process.env value for a setting exactly as Settings.use() consumes it.
+ * Single source of truth for the "ENV wins over DB" rule.
+ */
+function parseEnvValue(setting) {
+    const key = setting.key;
+    const raw = process.env[key];
+    if (raw === undefined) {
+        return { present: false, ok: false };
+    }
+    let value;
+    if (setting.type !== "json") {
+        value = raw;
+    }
+    else {
+        try {
+            // Check if jsonSchema expects a primitive type (string, number, boolean)
+            const schemaType = setting.jsonSchema?.type;
+            if (schemaType === "string") {
+                value = raw;
+            }
+            else if (schemaType === "number" || schemaType === "integer") {
+                value = parseInt(raw, 10);
+                if (isNaN(value)) {
+                    sails.log.error(`Error: Value [${raw}] for [${key}] cannot be converted to number`);
+                    return { present: true, ok: false };
+                }
+            }
+            else if (schemaType === "boolean") {
+                const parsed = parseBoolean(raw);
+                value = parsed !== undefined ? parsed : false;
+            }
+            else {
+                value = JSON.parse(raw);
+            }
+            // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
+            if (!(Settings.env("ALLOW_UNSAFE_SETTINGS") ?? false)) {
+                const ajv = new ajv_1.default();
+                const validate = ajv.compile(setting.jsonSchema);
+                if (!validate(value)) {
+                    sails.log.error(`AJV Validation Error: Value [${value}] from process.env for [${key}] does not match the schema`, validate.errors);
+                    return { present: true, ok: false };
+                }
+            }
+        }
+        catch (e) {
+            sails.log.error(`Error trying to parse value from process.env: ${e}`);
+            return { present: true, ok: false };
+        }
+    }
+    return { present: true, ok: true, value: cleanValue(value) };
+}
 let Model = {
     beforeCreate: function (record, cb) {
         record.key = record.key.replace(/ /g, '_');
@@ -164,46 +216,8 @@ let Model = {
             if (!setting) {
                 return undefined;
             }
-            if (setting.type !== "json") {
-                value = process.env[key];
-            }
-            else {
-                try {
-                    // Check if jsonSchema expects a primitive type (string, number, boolean)
-                    const schemaType = setting.jsonSchema?.type;
-                    if (schemaType === "string") {
-                        value = process.env[key];
-                    }
-                    else if (schemaType === "number" || schemaType === "integer") {
-                        value = parseInt(process.env[key], 10);
-                        if (isNaN(value)) {
-                            sails.log.error(`Error: Value [${process.env[key]}] for [${key}] cannot be converted to number`);
-                            return undefined;
-                        }
-                    }
-                    else if (schemaType === "boolean") {
-                        const parsed = parseBoolean(process.env[key]);
-                        value = parsed !== undefined ? parsed : false;
-                    }
-                    else {
-                        value = JSON.parse(process.env[key]);
-                    }
-                    // if value was parsed, check that given json matches the schema (if !ALLOW_UNSAFE_SETTINGS)
-                    if (!(Settings.env("ALLOW_UNSAFE_SETTINGS") ?? false)) {
-                        const ajv = new ajv_1.default();
-                        const validate = ajv.compile(setting.jsonSchema);
-                        if (!validate(value)) {
-                            sails.log.error(`AJV Validation Error: Value [${value}] from process.env for [${key}] does not match the schema`, validate.errors);
-                            return undefined;
-                        }
-                    }
-                }
-                catch (e) {
-                    sails.log.error(`Error trying to parse value from process.env: ${e}`);
-                    return undefined;
-                }
-            }
-            return cleanValue(value);
+            const parsedEnv = parseEnvValue(setting);
+            return parsedEnv.ok ? parsedEnv.value : undefined;
         }
         /** If variable present in database */
         let setting = await Settings.findOne({ key: key });
@@ -454,6 +468,13 @@ let Model = {
         catch {
             return envValue;
         }
+    },
+    /**
+     * Whether process.env pins this setting, shadowing whatever is stored in the DB.
+     */
+    envOverride(setting) {
+        const parsed = parseEnvValue(setting);
+        return { active: parsed.present, valid: parsed.ok, value: parsed.value };
     },
     /**
      * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB
