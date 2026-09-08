@@ -63,6 +63,10 @@ function findTerminalDeliveryChannel(entries: NotificationChannelEntry[]): Notif
   });
 }
 
+async function emitDeliveryAttempt(notification: NotificationRecord, channel: string, result: "success" | "failed"): Promise<void> {
+  await emitter.emit("core:notification-delivery-attempt", notification, { channel, result });
+}
+
 /**
  * Options for NotificationDispatcher.send. Replaces the previous positional argument list.
  * The first block is the legacy delivery payload; the second block carries typed-notification
@@ -373,6 +377,7 @@ export class NotificationDispatcher {
             channelData as any,
             priorityDevice
           );
+          await emitDeliveryAttempt(notification, priorityChannel.type, sent ? "success" : "failed");
           trace.push(`${priorityChannel.type}: ${sent ? "sent" : `failed (${priorityChannel.error || "unknown error"})`}`);
         }
       }
@@ -462,6 +467,7 @@ export class NotificationDispatcher {
             channelData as any,
             priorityDevice
           );
+          await emitDeliveryAttempt(notification, priorityChannel.type, ok ? "success" : "failed");
           if (ok) {
             const priorityCost = Number(priorityChannel.cost) || 0;
             successChannels.push({ type: priorityChannel.type, cost: priorityCost, sentAt: Date.now() });
@@ -518,6 +524,7 @@ export class NotificationDispatcher {
           channelData as any,
           priorityDevice
         );
+        await emitDeliveryAttempt(notification, channel.type, ok ? "success" : "failed");
 
         if (ok) {
           const channelCost = Number(channel.cost) || 0;
@@ -774,6 +781,7 @@ export class NotificationDispatcher {
         content.title,
         channelData as any
       );
+      await emitDeliveryAttempt(notification, channel.type, ok ? "success" : "failed");
 
       if (ok) {
         const channelCost = Number(channel.cost) || 0;
