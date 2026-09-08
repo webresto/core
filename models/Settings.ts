@@ -10,6 +10,7 @@ import { ControlElement, Layout } from "@jsonforms/core";
 import Ajv from 'ajv';
 import fs from 'fs';
 import path from 'path';
+import { maskSettingValueForLog } from '../libs/maskSecrets';
 
 // Directory holding per-setting manifest files (settings/*.json). Each manifest
 // declares a setting (key/type/name/defaultValue/jsonSchema/...) and is the single
@@ -192,7 +193,7 @@ function parseEnvValue(setting: SettingsRecord): { present: boolean; ok: boolean
       } else if (schemaType === "number" || schemaType === "integer") {
         value = parseInt(raw, 10);
         if (isNaN(value)) {
-          sails.log.error(`Error: Value [${raw}] for [${key}] cannot be converted to number`);
+          sails.log.error(`Error: Value [${maskSettingValueForLog(setting, raw)}] for [${key}] cannot be converted to number`);
           return { present: true, ok: false };
         }
       } else if (schemaType === "boolean") {
@@ -207,12 +208,15 @@ function parseEnvValue(setting: SettingsRecord): { present: boolean; ok: boolean
         const ajv = new Ajv();
         const validate = ajv.compile(setting.jsonSchema);
         if (!validate(value)) {
-          sails.log.error(`AJV Validation Error: Value [${value}] from process.env for [${key}] does not match the schema`, validate.errors);
+          sails.log.error(`AJV Validation Error: Value [${maskSettingValueForLog(setting, value)}] from process.env for [${key}] does not match the schema`, validate.errors);
           return { present: true, ok: false };
         }
       }
     } catch (e) {
-      sails.log.error(`Error trying to parse value from process.env: ${e}`);
+      // JSON.parse quotes the offending input in its message, so for a secret
+      // setting the error text itself would leak the env value.
+      const reason = maskSettingValueForLog(setting, `${e}`);
+      sails.log.error(`Error trying to parse value from process.env for [${key}]: ${reason}`);
       return { present: true, ok: false };
     }
   }
@@ -451,13 +455,13 @@ let Model = {
 
       // undefined if value is from input, null if value is from origSettings
       if (settingsSetInput.value !== undefined && settingsSetInput.value !== null && !validate(settingsSetInput.value)) {
-        let mErr = `AJV Validation Error: [${key}] Value [${settingsSetInput.value}] does not match the schema, see logs for more info`;
+        let mErr = `AJV Validation Error: [${key}] Value [${maskSettingValueForLog({ key, secret: settingsSetInput.secret }, settingsSetInput.value)}] does not match the schema, see logs for more info`;
         sails.log.error(mErr, JSON.stringify(validate.errors, null, 2));
         return;
       }
 
       if (settingsSetInput.defaultValue !== undefined && settingsSetInput.defaultValue !== null && !validate(settingsSetInput.defaultValue)) {
-        let mErr = `AJV Validation Error: [${key}] DefaultValue [${settingsSetInput.defaultValue}] does not match the schema, see logs for more info`;
+        let mErr = `AJV Validation Error: [${key}] DefaultValue [${maskSettingValueForLog({ key, secret: settingsSetInput.secret }, settingsSetInput.defaultValue)}] does not match the schema, see logs for more info`;
         sails.log.error(mErr, JSON.stringify(validate.errors, null, 2));
         return;
       }
@@ -509,10 +513,18 @@ let Model = {
         ...(settingsSetInput.manifestChecksum !== undefined ? { manifestChecksum: settingsSetInput.manifestChecksum } : {}),
       };
 
+      // The stored row is the truth about `secret`, but a module manifest may omit
+      // the flag and settingsHelper then merges the stored one away, so the effective
+      // flag is whichever source says "secret" (see maskSettingValueForLog).
+      const _mask = (v: unknown) => maskSettingValueForLog({ key, secret: settingsSetInput.secret || setting?.secret }, v);
+      // Cap the value before it goes into the log payload, not after: stringifying an
+      // already serialized string would only escape it again.
+      const _fmt = (v: unknown) => { const s = JSON.stringify(v); return s && s.length > 1024 ? '[long object]' : v; };
+
       if (!setting) {
         try {
           const created = await Settings.create(createData).fetch();
-          sails.log.debug(`CORE > Settings > created [${key}]:`, JSON.stringify({ value: inputValue, defaultValue: settingsSetInput.defaultValue, type: settingType }));
+          sails.log.debug(`CORE > Settings > created [${key}]:`, JSON.stringify({ value: _fmt(_mask(inputValue)), defaultValue: _fmt(_mask(settingsSetInput.defaultValue)), type: settingType }));
           return created;
         } catch (e: any) {
           if (e?.code !== "E_UNIQUE") {
@@ -528,11 +540,11 @@ let Model = {
       }
 
       const updated = (await Settings.update({ key: key }, updateData).fetch())[0];
-      const _fmt = (v: unknown) => { const s = JSON.stringify(v); return s && s.length > 1024 ? '[long object]' : s; };
-      sails.log.debug(`CORE > Settings > updated [${key}]:`, JSON.stringify({ value: _fmt(updateData.value), defaultValue: _fmt(updateData.defaultValue), type: settingType }));
+      sails.log.debug(`CORE > Settings > updated [${key}]:`, JSON.stringify({ value: _fmt(_mask(updateData.value)), defaultValue: _fmt(_mask(updateData.defaultValue)), type: settingType }));
       return updated;
     } catch (e) {
-      sails.log.error(`CORE > Settings > set DB error: key [${key}]`, settingsSetInput, e);
+      // settingsSetInput carries the value itself — log only what identifies the write.
+      sails.log.error(`CORE > Settings > set DB error: key [${key}] type [${settingType}]`, e);
     }
   },
 

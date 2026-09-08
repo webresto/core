@@ -1,4 +1,6 @@
 import { boundedPage, MAX_LIST_LIMIT } from './pagination';
+// Secret settings are hidden the same way here and in the model's own logging.
+import { maskSettingValue } from '../../libs/maskSecrets';
 
 declare const mcp: any;
 
@@ -6,33 +8,6 @@ declare const mcp: any;
 // cached payloads). The list view only needs to show what a value looks like —
 // anything bigger is replaced by a marker and can be read with settings-get.
 const MAX_LIST_VALUE_CHARS = 2000;
-
-const SENSITIVE_FIELDS = new Set([
-    'private_key', 'private_key_id', 'password', 'secret', 'api_key', 'apiKey',
-    'token', 'access_token', 'refresh_token', 'client_secret',
-]);
-
-function maskSensitiveValue(value: any): any {
-    if (value === null || value === undefined) return value;
-    if (typeof value !== 'object' || Array.isArray(value)) return value;
-    const masked: Record<string, any> = {};
-    for (const [k, v] of Object.entries(value)) {
-        masked[k] = SENSITIVE_FIELDS.has(k) ? '***' : v;
-    }
-    return masked;
-}
-
-/**
- * A setting flagged `secret` holds a token/password/key: it lives in the DB only
- * and is never disclosed, not even to an operator-driven model. It stays settable
- * (settings-set writes it), so only the readout is replaced by this marker.
- */
-const SECRET_PLACEHOLDER = '[secret — stored, never disclosed]';
-
-function maskSettingValue(setting: any, value: any): any {
-    if (setting?.secret) return value === null || value === undefined ? null : SECRET_PLACEHOLDER;
-    return maskSensitiveValue(value);
-}
 
 function shrinkListValue(value: any): any {
     if (value === null || value === undefined) return value;
