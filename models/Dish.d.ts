@@ -61,10 +61,6 @@ declare let attributes: {
      * @deprecated
      * The number of proteins in the dish */
     proteinFullAmount: number;
-    /** The group identifier in which the dish is located
-     * @deprecated will be deleted in v2
-    */
-    groupId: string;
     /** Unit of measurement of goods (kg, l, pcs, port.)*/
     measureUnit: string;
     /** The price of the dish */

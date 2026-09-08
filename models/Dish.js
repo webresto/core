@@ -124,13 +124,6 @@ let attributes = {
         type: "number",
         allowNull: true
     },
-    /** The group identifier in which the dish is located
-     * @deprecated will be deleted in v2
-    */
-    groupId: {
-        type: "string",
-        allowNull: true,
-    },
     /** Unit of measurement of goods (kg, l, pcs, port.)*/
     measureUnit: {
         type: "string",

@@ -151,14 +151,6 @@ let attributes = {
   } as unknown as number,
 
 
-  /** The group identifier in which the dish is located
-   * @deprecated will be deleted in v2
-  */
-  groupId: {
-    type: "string",
-    allowNull: true,
-  } as unknown as string,
-
   /** Unit of measurement of goods (kg, l, pcs, port.)*/
   measureUnit: {
     type: "string",

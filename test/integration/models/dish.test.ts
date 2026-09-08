@@ -34,7 +34,6 @@ describe('Dish', function () {
     'fatFullAmount',
     'fiberAmount',
     'fiberFullAmount',
-    'groupId',
     'measureUnit',
     'price',
     'productCategoryId',
