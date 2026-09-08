@@ -569,5 +569,19 @@
 	"This tag is already added": "このタグは既に追加されています",
 	"Press Enter or comma to add": "Enter またはカンマで追加",
 	"Final channel": "最終チャネル",
-	"A successful send through this channel stops the unread escalation": "このチャネルでの送信が成功すると、未読エスカレーションが停止します"
+	"A successful send through this channel stops the unread escalation": "このチャネルでの送信が成功すると、未読エスカレーションが停止します",
+	"Value must not be empty": "値を空にできません",
+	"Value must be a number": "値は数値である必要があります",
+	"Value must be a whole number": "値は整数である必要があります",
+	"Value must be at least {count} characters long": "値は {count} 文字以上である必要があります",
+	"Value must be no longer than {count} characters": "値は {count} 文字以内である必要があります",
+	"Value must match the pattern": "値はパターンに一致する必要があります",
+	"Value must be one of": "使用できる値",
+	"Value must be {min} or greater": "値は {min} 以上である必要があります",
+	"Value must be {max} or less": "値は {max} 以下である必要があります",
+	"Value must be of type {type}": "値の型は {type} である必要があります",
+	"Value must contain at least {count} item(s)": "値には少なくとも {count} 件必要です",
+	"Missing required property {property}": "必須項目 {property} がありません",
+	"Unexpected property {property}": "不明な項目 {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "店舗の表示名ではなく、プロジェクトの技術的な識別子です。半角英小文字・数字・ハイフンのみ、3 文字以上"
 }

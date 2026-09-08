@@ -569,5 +569,19 @@
 	"This tag is already added": "该标签已添加",
 	"Press Enter or comma to add": "按 Enter 或逗号添加",
 	"Final channel": "最终渠道",
-	"A successful send through this channel stops the unread escalation": "通过此渠道成功发送后将停止未读升级"
+	"A successful send through this channel stops the unread escalation": "通过此渠道成功发送后将停止未读升级",
+	"Value must not be empty": "值不能为空",
+	"Value must be a number": "值必须是数字",
+	"Value must be a whole number": "值必须是整数",
+	"Value must be at least {count} characters long": "值长度至少为 {count} 个字符",
+	"Value must be no longer than {count} characters": "值长度不能超过 {count} 个字符",
+	"Value must match the pattern": "值必须匹配指定格式",
+	"Value must be one of": "允许的值",
+	"Value must be {min} or greater": "值必须大于或等于 {min}",
+	"Value must be {max} or less": "值必须小于或等于 {max}",
+	"Value must be of type {type}": "值的类型必须是 {type}",
+	"Value must contain at least {count} item(s)": "值至少需要包含 {count} 项",
+	"Missing required property {property}": "缺少必填字段 {property}",
+	"Unexpected property {property}": "多余的字段 {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "项目的技术标识符，而非门店显示名称：仅限小写拉丁字母、数字和连字符，至少 3 个字符"
 }

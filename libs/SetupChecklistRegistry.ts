@@ -261,13 +261,15 @@ export class SetupChecklistRegistry {
       key: string,
       settingKey: keyof SettingList,
       titleKey: string,
-      sortOrder: number
+      sortOrder: number,
+      descriptionKey?: string
     ): void => {
       this.registerCheckup({
         key,
         group: "project",
         severity: "required",
         titleKey,
+        descriptionKey,
         sourceModule: "core",
         sortOrder,
         // settings-manager selects a setting by URL hash (#KEY), read on mount.
@@ -281,7 +283,15 @@ export class SetupChecklistRegistry {
       });
     };
 
-    requiredSetting("project_name", "PROJECT_NAME", "Project name", 0);
+    // "Project name" reads as the venue's display name, so people type one and the
+    // schema (^[a-z0-9-]+$) rejects it. Say up front that this is a slug.
+    requiredSetting(
+      "project_name",
+      "PROJECT_NAME",
+      "Project name",
+      0,
+      "Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters"
+    );
     requiredSetting("project_country", "COUNTRY_ISO", "Country", 1);
     requiredSetting("project_currency", "DEFAULT_CURRENCY_ISO", "Default currency", 2);
     requiredSetting("project_locale", "DEFAULT_LOCALE", "Default locale", 3);

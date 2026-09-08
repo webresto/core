@@ -660,5 +660,19 @@
 	"Set via ENV": "Set via ENV",
 	"This value comes from an environment variable and overrides the stored one. Change it where the container environment is defined.": "This value comes from an environment variable and overrides the stored one. Change it where the container environment is defined.",
 	"The environment variable set for this setting does not match its schema, so the setting reads as empty. Fix it where the container environment is defined.": "The environment variable set for this setting does not match its schema, so the setting reads as empty. Fix it where the container environment is defined.",
-	"Setting is set via an environment variable and cannot be changed here": "Setting is set via an environment variable and cannot be changed here"
+	"Setting is set via an environment variable and cannot be changed here": "Setting is set via an environment variable and cannot be changed here",
+	"Value must not be empty": "Value must not be empty",
+	"Value must be a number": "Value must be a number",
+	"Value must be a whole number": "Value must be a whole number",
+	"Value must be at least {count} characters long": "Value must be at least {count} characters long",
+	"Value must be no longer than {count} characters": "Value must be no longer than {count} characters",
+	"Value must match the pattern": "Value must match the pattern",
+	"Value must be one of": "Value must be one of",
+	"Value must be {min} or greater": "Value must be {min} or greater",
+	"Value must be {max} or less": "Value must be {max} or less",
+	"Value must be of type {type}": "Value must be of type {type}",
+	"Value must contain at least {count} item(s)": "Value must contain at least {count} item(s)",
+	"Missing required property {property}": "Missing required property {property}",
+	"Unexpected property {property}": "Unexpected property {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters"
 }

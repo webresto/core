@@ -69,5 +69,19 @@
 	"This tag is already added": "Bu teg allaqachon qoʻshilgan",
 	"Press Enter or comma to add": "Qoʻshish uchun Enter yoki vergulni bosing",
 	"Final channel": "Yakuniy kanal",
-	"A successful send through this channel stops the unread escalation": "Ushbu kanal orqali muvaffaqiyatli yuborish oʻqilmagan xabarlar eskalatsiyasini toʻxtatadi"
+	"A successful send through this channel stops the unread escalation": "Ushbu kanal orqali muvaffaqiyatli yuborish oʻqilmagan xabarlar eskalatsiyasini toʻxtatadi",
+	"Value must not be empty": "Qiymat bo'sh bo'lishi mumkin emas",
+	"Value must be a number": "Qiymat son bo'lishi kerak",
+	"Value must be a whole number": "Qiymat butun son bo'lishi kerak",
+	"Value must be at least {count} characters long": "Qiymat kamida {count} ta belgidan iborat bo'lishi kerak",
+	"Value must be no longer than {count} characters": "Qiymat {count} ta belgidan uzun bo'lmasligi kerak",
+	"Value must match the pattern": "Qiymat shablonga mos bo'lishi kerak",
+	"Value must be one of": "Ruxsat etilgan qiymatlar",
+	"Value must be {min} or greater": "Qiymat {min} yoki undan katta bo'lishi kerak",
+	"Value must be {max} or less": "Qiymat {max} yoki undan kichik bo'lishi kerak",
+	"Value must be of type {type}": "Qiymat {type} turida bo'lishi kerak",
+	"Value must contain at least {count} item(s)": "Qiymatda kamida {count} ta element bo'lishi kerak",
+	"Missing required property {property}": "Majburiy maydon {property} yo'q",
+	"Unexpected property {property}": "Ortiqcha maydon {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Loyihaning texnik identifikatori, muassasaning ko'rinadigan nomi emas: faqat kichik lotin harflari, raqamlar va defis, kamida 3 ta belgi"
 }

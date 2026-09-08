@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
-import { requireAdminApi } from './lib/admin-api';
+import { extractApiErrorMessage, requireAdminApi } from './lib/admin-api';
+import { getSchemaTypes, isIntegerSchema, validateValueBySchema } from './lib/setting-schema';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
 
@@ -84,7 +85,7 @@ async function apiRequest(path, options = {}) {
       : await adminApi[method](url, options.body, config);
     return response.data;
   } catch (error) {
-    throw new Error(error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Request failed');
+    throw new Error(extractApiErrorMessage(error) || 'Request failed');
   }
 }
 
@@ -182,15 +183,6 @@ function isTextEditingTarget(target) {
   const tagName = target.tagName?.toLowerCase();
   return target.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select'
     || !!target.closest?.('.vanilla-jsoneditor-react');
-}
-
-function getSchemaTypes(schema) {
-  const type = schema?.type;
-  return Array.isArray(type) ? type : type ? [type] : [];
-}
-
-function isIntegerSchema(schema) {
-  return getSchemaTypes(schema).includes('integer');
 }
 
 function enumOptionToValue(option) {
@@ -375,6 +367,15 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
   // refuses the write, because env outranks the DB when the value is read back.
   const envPinned = !!selected?.envOverride;
   const locked = !!selected?.readOnly || envPinned;
+  // The same jsonSchema the API validates against, checked while typing: without it the
+  // only feedback on a broken value is the API rejecting the save after the round trip.
+  // JSON values are left out — JsonEditor reports them through jsonHasErrors.
+  // A secret is write-only, so its field starts blank whether or not a value is stored:
+  // "blank" means "keep the stored one" and must not read as "the value is empty".
+  const blankSecret = !!selected?.secret && (editValue === null || editValue === undefined || editValue === '');
+  const schemaError = locked || blankSecret || selected?.type === 'json'
+    ? null
+    : validateValueBySchema(selected?.jsonSchema, editValue, t);
   // Reset validation state when a different setting is selected
   React.useEffect(() => { setJsonHasErrors(false); }, [selected?.key]);
 
@@ -447,6 +448,9 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
         {selected.type === 'json' && (
           <JsonEditor key={selected.key} value={editValue} schema={selected.jsonSchema} onChange={setEditValue} onValidation={setJsonHasErrors} readOnly={locked} />
         )}
+        {schemaError && (
+          <span className="text-xs text-destructive">{schemaError}</span>
+        )}
       </div>
 
       {/* Default value */}
@@ -481,8 +485,8 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
       {/* Actions */}
       {!locked && (
         <div className="flex gap-2 items-center mt-1">
-          <Button variant="default" size="sm" onClick={handleSave} disabled={saving || jsonHasErrors}
-            title={jsonHasErrors ? t('Fix schema errors before saving') : undefined}>
+          <Button variant="default" size="sm" onClick={handleSave} disabled={saving || jsonHasErrors || !!schemaError}
+            title={schemaError || (jsonHasErrors ? t('Fix schema errors before saving') : undefined)}>
             <Save className="w-4 h-4 mr-1" />
             {saving ? t('Saving') : t('Save')}
           </Button>
@@ -890,7 +894,7 @@ function SettingsManagerContent({ bootId }) {
       document.body.removeChild(a);
       URL.revokeObjectURL(objectUrl);
     } catch (e) {
-      window.sonner?.toast.error(`${t('Export failed')}: ${e?.message || String(e)}`);
+      window.sonner?.toast.error(`${t('Export failed')}: ${extractApiErrorMessage(e) || String(e)}`);
     }
   }
 

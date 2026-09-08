@@ -569,5 +569,19 @@
 	"This tag is already added": "แท็กนี้ถูกเพิ่มแล้ว",
 	"Press Enter or comma to add": "กด Enter หรือจุลภาคเพื่อเพิ่ม",
 	"Final channel": "ช่องทางสุดท้าย",
-	"A successful send through this channel stops the unread escalation": "การส่งสำเร็จผ่านช่องทางนี้จะหยุดการทวีระดับการแจ้งเตือนที่ยังไม่อ่าน"
+	"A successful send through this channel stops the unread escalation": "การส่งสำเร็จผ่านช่องทางนี้จะหยุดการทวีระดับการแจ้งเตือนที่ยังไม่อ่าน",
+	"Value must not be empty": "ค่าต้องไม่ว่าง",
+	"Value must be a number": "ค่าต้องเป็นตัวเลข",
+	"Value must be a whole number": "ค่าต้องเป็นจำนวนเต็ม",
+	"Value must be at least {count} characters long": "ค่าต้องมีอย่างน้อย {count} ตัวอักษร",
+	"Value must be no longer than {count} characters": "ค่าต้องยาวไม่เกิน {count} ตัวอักษร",
+	"Value must match the pattern": "ค่าต้องตรงกับรูปแบบที่กำหนด",
+	"Value must be one of": "ค่าที่อนุญาต",
+	"Value must be {min} or greater": "ค่าต้องไม่น้อยกว่า {min}",
+	"Value must be {max} or less": "ค่าต้องไม่เกิน {max}",
+	"Value must be of type {type}": "ค่าต้องเป็นชนิด {type}",
+	"Value must contain at least {count} item(s)": "ค่าต้องมีอย่างน้อย {count} รายการ",
+	"Missing required property {property}": "ไม่มีฟิลด์ที่จำเป็น {property}",
+	"Unexpected property {property}": "ฟิลด์ที่ไม่รู้จัก {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "ตัวระบุทางเทคนิคของโปรเจกต์ ไม่ใช่ชื่อร้านที่แสดง: ใช้ตัวอักษรละตินพิมพ์เล็ก ตัวเลข และขีดกลาง อย่างน้อย 3 ตัวอักษร"
 }
