@@ -822,5 +822,19 @@
 	"This tag is already added": "Цей тег уже додано",
 	"Press Enter or comma to add": "Натисніть Enter або кому, щоб додати",
 	"Final channel": "Фінальний канал",
-	"A successful send through this channel stops the unread escalation": "Успішна відправка через цей канал зупиняє екскалацію непрочитаного"
+	"A successful send through this channel stops the unread escalation": "Успішна відправка через цей канал зупиняє екскалацію непрочитаного",
+	"Value must not be empty": "Значення не може бути порожнім",
+	"Value must be a number": "Значення має бути числом",
+	"Value must be a whole number": "Значення має бути цілим числом",
+	"Value must be at least {count} characters long": "Значення має бути не коротшим за {count} символів",
+	"Value must be no longer than {count} characters": "Значення має бути не довшим за {count} символів",
+	"Value must match the pattern": "Значення має відповідати шаблону",
+	"Value must be one of": "Допустимі значення",
+	"Value must be {min} or greater": "Значення має бути не меншим за {min}",
+	"Value must be {max} or less": "Значення має бути не більшим за {max}",
+	"Value must be of type {type}": "Значення має бути типу {type}",
+	"Value must contain at least {count} item(s)": "Значення має містити щонайменше {count} елем.",
+	"Missing required property {property}": "Відсутнє обов'язкове поле {property}",
+	"Unexpected property {property}": "Зайве поле {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технічний ідентифікатор проєкту, а не назва закладу: рядкові латинські літери, цифри та дефіс, щонайменше 3 символи"
 }

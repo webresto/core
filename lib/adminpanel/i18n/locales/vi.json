@@ -569,5 +569,19 @@
 	"This tag is already added": "Thẻ này đã được thêm",
 	"Press Enter or comma to add": "Nhấn Enter hoặc dấu phẩy để thêm",
 	"Final channel": "Kênh cuối cùng",
-	"A successful send through this channel stops the unread escalation": "Gửi thành công qua kênh này sẽ dừng việc leo thang thông báo chưa đọc"
+	"A successful send through this channel stops the unread escalation": "Gửi thành công qua kênh này sẽ dừng việc leo thang thông báo chưa đọc",
+	"Value must not be empty": "Giá trị không được để trống",
+	"Value must be a number": "Giá trị phải là một số",
+	"Value must be a whole number": "Giá trị phải là số nguyên",
+	"Value must be at least {count} characters long": "Giá trị phải có ít nhất {count} ký tự",
+	"Value must be no longer than {count} characters": "Giá trị không được dài quá {count} ký tự",
+	"Value must match the pattern": "Giá trị phải khớp với mẫu",
+	"Value must be one of": "Giá trị hợp lệ",
+	"Value must be {min} or greater": "Giá trị phải lớn hơn hoặc bằng {min}",
+	"Value must be {max} or less": "Giá trị phải nhỏ hơn hoặc bằng {max}",
+	"Value must be of type {type}": "Giá trị phải có kiểu {type}",
+	"Value must contain at least {count} item(s)": "Giá trị phải chứa ít nhất {count} mục",
+	"Missing required property {property}": "Thiếu trường bắt buộc {property}",
+	"Unexpected property {property}": "Trường không hợp lệ {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Định danh kỹ thuật của dự án, không phải tên hiển thị của cửa hàng: chỉ chữ latinh thường, chữ số và dấu gạch nối, ít nhất 3 ký tự"
 }

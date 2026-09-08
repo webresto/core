@@ -69,5 +69,19 @@
 	"This tag is already added": "Esta etiqueta já foi adicionada",
 	"Press Enter or comma to add": "Pressione Enter ou vírgula para adicionar",
 	"Final channel": "Canal final",
-	"A successful send through this channel stops the unread escalation": "Um envio bem-sucedido por este canal interrompe a escalada de não lidos"
+	"A successful send through this channel stops the unread escalation": "Um envio bem-sucedido por este canal interrompe a escalada de não lidos",
+	"Value must not be empty": "O valor não pode ficar vazio",
+	"Value must be a number": "O valor deve ser um número",
+	"Value must be a whole number": "O valor deve ser um número inteiro",
+	"Value must be at least {count} characters long": "O valor deve ter pelo menos {count} caracteres",
+	"Value must be no longer than {count} characters": "O valor não pode ter mais de {count} caracteres",
+	"Value must match the pattern": "O valor deve corresponder ao padrão",
+	"Value must be one of": "Valores permitidos",
+	"Value must be {min} or greater": "O valor deve ser {min} ou maior",
+	"Value must be {max} or less": "O valor deve ser {max} ou menor",
+	"Value must be of type {type}": "O valor deve ser do tipo {type}",
+	"Value must contain at least {count} item(s)": "O valor deve conter pelo menos {count} item(ns)",
+	"Missing required property {property}": "Propriedade obrigatória ausente: {property}",
+	"Unexpected property {property}": "Propriedade inesperada: {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Identificador técnico do projeto, não o nome visível do estabelecimento: letras latinas minúsculas, dígitos e hífens, pelo menos 3 caracteres"
 }

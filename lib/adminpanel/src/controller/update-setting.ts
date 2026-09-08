@@ -1,4 +1,4 @@
-import { getSettingSchema, validateSettingValue } from './settings-schema';
+import { describeSettingValueProblem, getSettingSchema } from './settings-schema';
 
 export default async function UpdateSettingController(req: any, res: any) {
   const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
@@ -27,8 +27,11 @@ export default async function UpdateSettingController(req: any, res: any) {
     const { value } = req.body;
     const jsonSchema = getSettingSchema(setting);
 
-    if (!validateSettingValue(setting, value)) {
-      return res.status(400).json({ error: t('Validation failed. Check schema or value.') });
+    // Say which rule the value broke: this body is what the settings page shows inline,
+    // and "check the value" leaves the admin guessing at a pattern they cannot see.
+    const problem = describeSettingValueProblem(setting, value, t);
+    if (problem) {
+      return res.status(400).json({ error: problem });
     }
 
     const updated = await Settings.set(key as any, { value, ...(jsonSchema ? { jsonSchema } : {}) } as any);

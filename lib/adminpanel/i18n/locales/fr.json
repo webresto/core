@@ -569,5 +569,19 @@
 	"This tag is already added": "Ce tag est déjà ajouté",
 	"Press Enter or comma to add": "Appuyez sur Entrée ou virgule pour ajouter",
 	"Final channel": "Canal final",
-	"A successful send through this channel stops the unread escalation": "Un envoi réussi via ce canal arrête l'escalade des messages non lus"
+	"A successful send through this channel stops the unread escalation": "Un envoi réussi via ce canal arrête l'escalade des messages non lus",
+	"Value must not be empty": "La valeur ne peut pas être vide",
+	"Value must be a number": "La valeur doit être un nombre",
+	"Value must be a whole number": "La valeur doit être un nombre entier",
+	"Value must be at least {count} characters long": "La valeur doit contenir au moins {count} caractères",
+	"Value must be no longer than {count} characters": "La valeur ne doit pas dépasser {count} caractères",
+	"Value must match the pattern": "La valeur doit correspondre au motif",
+	"Value must be one of": "Valeurs autorisées",
+	"Value must be {min} or greater": "La valeur doit être supérieure ou égale à {min}",
+	"Value must be {max} or less": "La valeur doit être inférieure ou égale à {max}",
+	"Value must be of type {type}": "La valeur doit être de type {type}",
+	"Value must contain at least {count} item(s)": "La valeur doit contenir au moins {count} élément(s)",
+	"Missing required property {property}": "Propriété obligatoire manquante : {property}",
+	"Unexpected property {property}": "Propriété inattendue : {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Identifiant technique du projet, et non le nom affiché de l'établissement : lettres latines minuscules, chiffres et tirets, au moins 3 caractères"
 }

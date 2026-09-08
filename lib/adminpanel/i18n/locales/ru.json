@@ -865,5 +865,19 @@
 	"Set via ENV": "Задано через ENV",
 	"This value comes from an environment variable and overrides the stored one. Change it where the container environment is defined.": "Значение приходит из переменной окружения и перекрывает сохранённое. Меняйте его там, где задаётся окружение контейнера.",
 	"The environment variable set for this setting does not match its schema, so the setting reads as empty. Fix it where the container environment is defined.": "Переменная окружения для этой настройки не проходит её схему, поэтому настройка читается как пустая. Исправьте её там, где задаётся окружение контейнера.",
-	"Setting is set via an environment variable and cannot be changed here": "Настройка задана переменной окружения и не может быть изменена здесь"
+	"Setting is set via an environment variable and cannot be changed here": "Настройка задана переменной окружения и не может быть изменена здесь",
+	"Value must not be empty": "Значение не может быть пустым",
+	"Value must be a number": "Значение должно быть числом",
+	"Value must be a whole number": "Значение должно быть целым числом",
+	"Value must be at least {count} characters long": "Значение должно быть не короче {count} символов",
+	"Value must be no longer than {count} characters": "Значение должно быть не длиннее {count} символов",
+	"Value must match the pattern": "Значение должно соответствовать шаблону",
+	"Value must be one of": "Допустимые значения",
+	"Value must be {min} or greater": "Значение должно быть не меньше {min}",
+	"Value must be {max} or less": "Значение должно быть не больше {max}",
+	"Value must be of type {type}": "Значение должно быть типа {type}",
+	"Value must contain at least {count} item(s)": "Значение должно содержать не менее {count} элем.",
+	"Missing required property {property}": "Отсутствует обязательное поле {property}",
+	"Unexpected property {property}": "Лишнее поле {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технический идентификатор проекта, а не название заведения: строчные латинские буквы, цифры и дефис, не менее 3 символов"
 }

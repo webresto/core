@@ -569,5 +569,19 @@
 	"This tag is already added": "Dieser Tag ist bereits hinzugefügt",
 	"Press Enter or comma to add": "Enter oder Komma drücken zum Hinzufügen",
 	"Final channel": "Finaler Kanal",
-	"A successful send through this channel stops the unread escalation": "Ein erfolgreicher Versand über diesen Kanal stoppt die Eskalation für ungelesene Nachrichten"
+	"A successful send through this channel stops the unread escalation": "Ein erfolgreicher Versand über diesen Kanal stoppt die Eskalation für ungelesene Nachrichten",
+	"Value must not be empty": "Wert darf nicht leer sein",
+	"Value must be a number": "Wert muss eine Zahl sein",
+	"Value must be a whole number": "Wert muss eine ganze Zahl sein",
+	"Value must be at least {count} characters long": "Wert muss mindestens {count} Zeichen lang sein",
+	"Value must be no longer than {count} characters": "Wert darf höchstens {count} Zeichen lang sein",
+	"Value must match the pattern": "Wert muss dem Muster entsprechen",
+	"Value must be one of": "Zulässige Werte",
+	"Value must be {min} or greater": "Wert muss {min} oder größer sein",
+	"Value must be {max} or less": "Wert muss {max} oder kleiner sein",
+	"Value must be of type {type}": "Wert muss vom Typ {type} sein",
+	"Value must contain at least {count} item(s)": "Wert muss mindestens {count} Element(e) enthalten",
+	"Missing required property {property}": "Pflichtfeld {property} fehlt",
+	"Unexpected property {property}": "Unerwartetes Feld {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Technische Kennung des Projekts, nicht der Anzeigename des Lokals: nur Kleinbuchstaben, Ziffern und Bindestriche, mindestens 3 Zeichen"
 }

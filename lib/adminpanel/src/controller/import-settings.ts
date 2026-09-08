@@ -1,4 +1,4 @@
-import { getSettingSchema, validateSettingValue } from './settings-schema';
+import { describeSettingValueProblem, getSettingSchema } from './settings-schema';
 
 interface ImportEntry {
   key: string;
@@ -107,8 +107,9 @@ export default async function ImportSettingsController(req: any, res: any) {
 
       try {
         const jsonSchema = getSettingSchema(existing);
-        if (!validateSettingValue(existing, entry.value)) {
-          results.push({ key: entry.key, status: 'error', error: t('Validation failed. Check schema or value.') });
+        const problem = describeSettingValueProblem(existing, entry.value, t);
+        if (problem) {
+          results.push({ key: entry.key, status: 'error', error: problem });
           continue;
         }
         await Settings.set(entry.key as any, { value: entry.value, ...(jsonSchema ? { jsonSchema } : {}) } as any);

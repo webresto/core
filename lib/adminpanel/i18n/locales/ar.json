@@ -69,5 +69,19 @@
 	"This tag is already added": "هذا الوسم مضاف بالفعل",
 	"Press Enter or comma to add": "اضغط Enter أو الفاصلة للإضافة",
 	"Final channel": "القناة النهائية",
-	"A successful send through this channel stops the unread escalation": "الإرسال الناجح عبر هذه القناة يوقف تصعيد الإشعارات غير المقروءة"
+	"A successful send through this channel stops the unread escalation": "الإرسال الناجح عبر هذه القناة يوقف تصعيد الإشعارات غير المقروءة",
+	"Value must not be empty": "لا يمكن أن تكون القيمة فارغة",
+	"Value must be a number": "يجب أن تكون القيمة رقمًا",
+	"Value must be a whole number": "يجب أن تكون القيمة عددًا صحيحًا",
+	"Value must be at least {count} characters long": "يجب ألا تقل القيمة عن {count} حرفًا",
+	"Value must be no longer than {count} characters": "يجب ألا تزيد القيمة عن {count} حرفًا",
+	"Value must match the pattern": "يجب أن تطابق القيمة النمط",
+	"Value must be one of": "القيم المسموح بها",
+	"Value must be {min} or greater": "يجب أن تكون القيمة {min} أو أكبر",
+	"Value must be {max} or less": "يجب أن تكون القيمة {max} أو أقل",
+	"Value must be of type {type}": "يجب أن تكون القيمة من النوع {type}",
+	"Value must contain at least {count} item(s)": "يجب أن تحتوي القيمة على {count} عنصر على الأقل",
+	"Missing required property {property}": "الحقل المطلوب {property} غير موجود",
+	"Unexpected property {property}": "حقل غير متوقع {property}",
+	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "المعرّف التقني للمشروع، وليس الاسم الظاهر للمطعم: حروف لاتينية صغيرة وأرقام وشرطات فقط، 3 أحرف على الأقل"
 }
