@@ -78,7 +78,7 @@ export async function assignOrderCookingPlace(order: OrderRecord): Promise<Cooki
   const previousPlaceId = toPlaceId(order.cookingPoint);
   let coordinate: DeliveryCoordinate | null = null;
 
-  if (order.selfService !== true) {
+  if (order.serviceType === "delivery") {
     const adapter = await Adapter.getDeliveryAdapter();
 
     const location = await locateAddress(adapter, order.address);
@@ -97,7 +97,7 @@ export async function assignOrderCookingPlace(order: OrderRecord): Promise<Cooki
   const resolution = await resolveCookingPlace({
     coordinate,
     pickupPointId: toPlaceId(order.pickupPoint),
-    selfService: order.selfService === true,
+    serviceType: order.serviceType,
   });
 
   return {

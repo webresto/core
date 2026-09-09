@@ -2,6 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
+import { PlaceRecord } from "./Place";
 
 let attributes = {
   /** ID */
@@ -31,6 +32,12 @@ let attributes = {
     type:'boolean'
   } as unknown as boolean,
 
+  /** The points that serve this city: what the storefront lists after a city is chosen. */
+  places: {
+    collection: "place",
+    via: "city",
+  } as unknown as PlaceRecord[],
+
   customData: "json" as unknown as {
     [key: string]: string | boolean | number;
   } | string,
@@ -56,5 +63,5 @@ module.exports = {
 };
 
 declare global {
-  const City: typeof Model & ORMModel<CityRecord, null>;
+  const City: typeof Model & ORMModel<CityRecord, never>;
 }

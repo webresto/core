@@ -3,7 +3,7 @@ import path = require("path");
 import { TestRMS } from "../../mocks/adapter/RMS";
 import { Adapter } from "../../../adapters";
 import { expect } from "chai";
-import { address, customer } from "../../mocks/customer";
+import { address, customer, toPickup } from "../../mocks/customer";
 
 
 describe("RMS adapter", function () {
@@ -25,7 +25,7 @@ describe("RMS adapter", function () {
     order = await Order.findOne({id: order.id});
 
 
-    await Order.check({id: order.id}, customer, false, address);
+    await Order.check({id: order.id}, customer, "delivery", address);
     order = await Order.findOne(order.id)
     expect(order.deliveryCost).to.equal(0);
     expect(order.deliveryItem).to.equal(null);
@@ -33,14 +33,15 @@ describe("RMS adapter", function () {
     // Flat delivery cost
     const deliveryCost = 2.75;
     await Settings.set("DELIVERY_COST", {key: "DELIVERY_COST", value: deliveryCost});
-    await Order.check({id: order.id}, customer, false, address);
+    await Order.check({id: order.id}, customer, "delivery", address);
     order = await Order.findOne(order.id)
     expect(order.deliveryCost).to.equal(2.75);
     expect(order.deliveryItem).to.equal(null);
 
 
-    // check self service
-    await Order.check({id: order.id}, customer, true);
+    // check pickup
+    await toPickup(order.id);
+    await Order.check({id: order.id}, customer, "pickup");
     order = await Order.findOne(order.id)
 
     expect(order.delivery).to.equal(null);
@@ -52,7 +53,7 @@ describe("RMS adapter", function () {
     // Delivery item
     const deliveryItem = dishes[2]
     await Settings.set("DELIVERY_ITEM", {key: "DELIVERY_ITEM", value: deliveryItem.id});
-    await Order.check({id: order.id}, customer, false, address);
+    await Order.check({id: order.id}, customer, "delivery", address);
     order = await Order.findOne(order.id)
     expect(order.delivery.allowed).to.equal(true);
     expect(order.deliveryCost).to.equal(deliveryItem.price);
@@ -61,7 +62,7 @@ describe("RMS adapter", function () {
     // Delivery message
     const deliveryMessage = "Test123 123 %%%"
     await Settings.set("DELIVERY_MESSAGE", {key: "DELIVERY_MESSAGE", value: deliveryMessage});
-    await Order.check({id: order.id}, customer, false, address);
+    await Order.check({id: order.id}, customer, "delivery", address);
     order = await Order.findOne(order.id)
     expect(order.delivery.allowed).to.equal(true);
     expect(order.deliveryDescription).to.equal(deliveryMessage);
@@ -70,7 +71,7 @@ describe("RMS adapter", function () {
     const freeDeliveryFrom = 333
     await Settings.set("FREE_DELIVERY_FROM", {key: "FREE_DELIVERY_FROM", value: freeDeliveryFrom});
     await Order.addDish({id: order.id}, dishes[3], Math.ceil(freeDeliveryFrom/dishes[3].price), [], "", "user");
-    await Order.check({id: order.id}, customer, false, address);
+    await Order.check({id: order.id}, customer, "delivery", address);
     order = await Order.findOne(order.id)
 
     expect(order.delivery.allowed).to.equal(true);
@@ -83,7 +84,7 @@ describe("RMS adapter", function () {
     const minDeliveryAmount = order.basketTotal + 100;
     await Settings.set("MIN_DELIVERY_AMOUNT", {key: "MIN_DELIVERY_AMOUNT", value: minDeliveryAmount});
 
-    await Order.check({id: order.id}, customer, false, address);
+    await Order.check({id: order.id}, customer, "delivery", address);
     order = await Order.findOne(order.id)
     expect(order.total > minDeliveryAmount).to.equal(false);
     expect(order.delivery.message).to.equal(`Minimum amount not allowed`);

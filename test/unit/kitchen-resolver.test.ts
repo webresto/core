@@ -210,7 +210,16 @@ describe("kitchen-resolver", function () {
   it("serves a pickup order from the point the customer chose", async function () {
     bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["nearest-geo"] }, [center, north]);
 
-    const resolution = await resolveCookingPlace({ selfService: true, pickupPointId: "north" });
+    const resolution = await resolveCookingPlace({ serviceType: "pickup", pickupPointId: "north" });
+
+    expect(resolution.placeId).to.equal("north");
+    expect(resolution.strategy).to.equal("pickup-point");
+  });
+
+  it("serves a dine-in order from the point the customer chose", async function () {
+    bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["nearest-geo"] }, [center, north]);
+
+    const resolution = await resolveCookingPlace({ serviceType: "dine-in", pickupPointId: "north" });
 
     expect(resolution.placeId).to.equal("north");
     expect(resolution.strategy).to.equal("pickup-point");

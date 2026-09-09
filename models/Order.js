@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SERVICE_TYPES = void 0;
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const worktime_1 = require("@webresto/worktime");
@@ -22,6 +23,14 @@ const ProductModifier_1 = require("../libs/ProductModifier");
 const OrderStateFlow_1 = require("../libs/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
 const NotificationService_1 = require("../libs/NotificationService");
+/**
+ * How the customer gets the food.
+ *
+ * `delivery` needs an address, the other two need a point — and they need
+ * different things of it: a counter can hand an order over without having a
+ * room to eat it in.
+ */
+exports.SERVICE_TYPES = ["delivery", "pickup", "dine-in"];
 const OrderLogHelper_1 = __importDefault(require("../libs/OrderLogHelper"));
 const ORDERED_STATES = ["ORDER", "COOKING", "ON_THE_WAY"];
 let attributes = {
@@ -217,8 +226,19 @@ let attributes = {
         type: "number",
         allowNull: true,
     },
-    selfService: {
-        type: "boolean"
+    /**
+     * How the customer gets the food: a courier brings it, they collect it, or
+     * they eat at the point.
+     *
+     * `pickup` and `dine-in` are one thing to the kitchen — the point the customer
+     * chose cooks the order — and two different things to the point: a counter in
+     * a mall hands orders over without a room to sit in. That is why this is a
+     * type and not the boolean it replaces.
+     */
+    serviceType: {
+        type: "string",
+        isIn: exports.SERVICE_TYPES,
+        defaultsTo: "delivery",
     },
     delivery: {
         type: "json"
@@ -352,7 +372,7 @@ let Model = {
             orderInit.orderedOnPlatform = null;
         }
         orderInit.promotionState = [];
-        orderInit.selfService = false;
+        orderInit.serviceType = "delivery";
         orderInit.state = "NEW";
         cb();
     },
@@ -698,23 +718,25 @@ let Model = {
         return newOrder;
     },
     /**
-     * Set order selfService field. Use this method to change selfService.
+     * Set how the customer gets the food. Use this method to change `serviceType`.
      * @param criteria
-     * @param selfService
+     * @param serviceType
      */
-    async setSelfService(criteria, selfService = true) {
-        sails.log.silly("Order > setSelfService >", selfService);
+    async setServiceType(criteria, serviceType) {
+        sails.log.silly("Order > setServiceType >", serviceType);
+        if (!exports.SERVICE_TYPES.includes(serviceType))
+            throw `unknown serviceType ${serviceType}`;
         const order = await Order.findOne(criteria);
         if (Order.isOrderedState(order.state))
             throw `order with orderId ${order.id} in state ${order.state}`;
-        return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
+        return (await Order.update(criteria, { serviceType }).fetch())[0];
     },
     ////////////////////////////////////////////////////////////////////////////////////
     // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
-    async check(criteria, customer, isSelfService, address, paymentMethodId, userId, spendBonus, orderedOnPlatform) {
+    async check(criteria, customer, serviceType, address, paymentMethodId, userId, spendBonus, orderedOnPlatform) {
         try {
             let order = await Order.findOne(criteria);
-            await Order.log({ id: order.id }, "info", "core", "check: started", { isSelfService, paymentMethodId, hasCustomer: !!customer, hasAddress: !!address });
+            await Order.log({ id: order.id }, "info", "core", "check: started", { serviceType, paymentMethodId, hasCustomer: !!customer, hasAddress: !!address });
             if (typeof orderedOnPlatform !== "undefined") {
                 // Normalize the order source through the SalesChannel registry. Backward
                 // compatible: keeps the same string and only warns on an unknown channel
@@ -746,8 +768,8 @@ let Model = {
             /**
              *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
              */
-            Order.emitAndLogDetached({ id: order.id }, "core:order-before-check", order, customer, isSelfService, address);
-            sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
+            Order.emitAndLogDetached({ id: order.id }, "core:order-before-check", order, customer, serviceType, address);
+            sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${serviceType} ${JSON.stringify(address)} ${paymentMethodId}`);
             // Start checking
             await Order.next(order.id, "CART");
             if (customer) {
@@ -768,6 +790,14 @@ let Model = {
             else {
                 order.user = userId;
             }
+            // Settled before the date checks, because `checkDate` asks the point
+            // whether it is open and that question only exists for pickup and dine-in.
+            if (serviceType) {
+                if (!exports.SERVICE_TYPES.includes(serviceType)) {
+                    throw `unknown serviceType ${serviceType}`;
+                }
+                order.serviceType = serviceType;
+            }
             await checkDate(order);
             await checkMultiKitchenSupport(order);
             if (paymentMethodId) {
@@ -777,20 +807,16 @@ let Model = {
                 order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
             }
             let softDeliveryCalculation = true;
-            /** if pickup, then you do not need to check the address*/
-            if (isSelfService) {
-                order.selfService = true;
-                Order.emitAndLogDetached({ id: order.id }, "core:order-is-self-service", order, customer, isSelfService, address);
-            }
-            else {
-                order.selfService = false;
+            Order.emitAndLogDetached({ id: order.id }, "core:order-service-type", order, customer, order.serviceType, address);
+            /** the customer comes to the point, so there is no address to check */
+            if (order.serviceType === "delivery") {
                 softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
                 if (address) {
                     checkAddress(address, softDeliveryCalculation);
                     order.address = { ...address };
                 }
                 else {
-                    if (!isSelfService && order.address === null && !softDeliveryCalculation) {
+                    if (order.address === null && !softDeliveryCalculation) {
                         throw {
                             code: 5,
                             error: "address is required",
@@ -799,7 +825,7 @@ let Model = {
                 }
             }
             // Custom emitters checks
-            const results = await Order.emitAndLog({ id: order.id }, "core:order-check", order, customer, isSelfService, address, paymentMethodId);
+            const results = await Order.emitAndLog({ id: order.id }, "core:order-check", order, customer, order.serviceType, address, paymentMethodId);
             delete (order.dishes);
             await Order.update({ id: order.id }, { ...order }).fetch();
             ////////////////////
@@ -815,7 +841,7 @@ let Model = {
                     error: "Problem with counting cart",
                 };
             }
-            if (!order.selfService && softDeliveryCalculation === false && order.delivery?.allowed === false) {
+            if (order.serviceType === "delivery" && softDeliveryCalculation === false && order.delivery?.allowed === false) {
                 throw {
                     code: 11,
                     error: "Delivery not allowed",
@@ -941,7 +967,7 @@ let Model = {
                 args: {
                     criteria,
                     customer,
-                    isSelfService,
+                    serviceType,
                     address,
                     paymentMethodId,
                     userId,
@@ -963,7 +989,7 @@ let Model = {
         sails.log.debug("CORE > Order.order() CALLED, criteria:", JSON.stringify(criteria));
         const order = await Order.findOne(criteria);
         sails.log.debug("CORE > Order.order() found order:", order?.id, "state:", order?.state);
-        await Order.log({ id: order.id }, "info", "core", "order: placing order", { state: order.state, selfService: order.selfService, total: order.total });
+        await Order.log({ id: order.id }, "info", "core", "order: placing order", { state: order.state, serviceType: order.serviceType, total: order.total });
         // Check maintenance
         if (await Maintenance.getActiveMaintenance() !== undefined)
             throw `Currently site is off`;
@@ -981,13 +1007,10 @@ let Model = {
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
         //   return 3
         Order.emitAndLogDetached({ id: order.id }, "core:order-before-order", order);
-        sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
-        if (order.selfService) {
-            Order.emitAndLogDetached({ id: order.id }, "core:order-order-self-service", order);
-        }
-        else {
-            Order.emitAndLogDetached({ id: order.id }, "core:order-order-delivery", order);
-        }
+        sails.log.silly("Order > order > before order >", order.customer, order.serviceType, order.address);
+        // One event with the type in it, rather than one event per type: every
+        // listener has to branch on the type anyway now that there are three.
+        Order.emitAndLogDetached({ id: order.id }, "core:order-order-service-type", order, order.serviceType);
         /**
          *  I think that this function is unnecessary here, although the entire emitter was created for it.
          *  Obviously, having an RMS adapter at your disposal, you don’t need a waiting listener at all
@@ -1825,7 +1848,7 @@ let Model = {
                 message: ""
             };
             let softDeliveryCalculation = null;
-            if (order.selfService === false) {
+            if (order.serviceType === "delivery") {
                 // The SOFT_DELIVERY_CALCULATION setting disables strict checking of the delivery address.
                 softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
                 Order.emitAndLogDetached({ id: order.id }, "core:count-before-delivery-cost", order);
@@ -1836,7 +1859,7 @@ let Model = {
                 else {
                     let deliveryAdapter = await Adapter.getDeliveryAdapter();
                     await deliveryAdapter.reset(order);
-                    if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
+                    if (order.address?.city && order.address?.street && order.address?.home) {
                         Order.emitAndLogDetached({ id: order.id }, "core:order-check-delivery", order);
                         try {
                             delivery = await deliveryAdapter.calculate(order);
@@ -2068,16 +2091,18 @@ let Model = {
             if (!order.hasOwnProperty(field)) {
                 throw new Error(`Missing required field: ${field}`);
             }
-            if (field === "address" && order.selfService) {
+            // An address is a delivery's requirement, a point is the requirement of
+            // the two types where the customer comes to it.
+            if (field === "address" && order.serviceType !== "delivery") {
                 continue;
             }
-            if (field === "pickupPoint" && !order.selfService) {
+            if (field === "pickupPoint" && order.serviceType === "delivery") {
                 continue;
             }
             if (!(0, isValue_1.isValue)(order[field])) {
                 throw new Error(`Cart required field error: ${field} is value [${order[field]}], check FIELDS_FOR_ORDER_INITIALIZATION setting`);
             }
-            // <-- !order.selfService is continued
+            // <-- only reached on a delivery order
             if (field === "address" && !checkAddress(order.address)) {
                 throw `do cart: Address check failed`;
             }
@@ -2491,6 +2516,42 @@ async function checkMultiKitchenSupport(order) {
         error: "RMS_MULTIPLACE_UNSUPPORTED",
     };
 }
+/**
+ * The point a `pickup` or `dine-in` order is going to has to be able to take it.
+ *
+ * Two different refusals, because the customer can do something about only one:
+ * a closed point may be open later or another one may be open now, while a point
+ * that does not serve this type will never serve it. Neither is asked of a
+ * delivery — that order's point is chosen by the kitchen resolver, not by the
+ * customer, and it is the delivery calculation that refuses when nobody can cook.
+ *
+ * `isCookingPoint` is deliberately not checked: a counter that hands over food
+ * cooked elsewhere is a valid pickup point, and which kitchen cooks is the
+ * resolver's question.
+ */
+async function checkPickupPoint(order, at) {
+    if (order.serviceType === "delivery")
+        return;
+    const pickupPointId = (0, cooking_place_1.toPlaceId)(order.pickupPoint);
+    if (!pickupPointId) {
+        throw { code: 24, error: `PLACE_NOT_SERVING: no point chosen for ${order.serviceType}` };
+    }
+    const place = await Place.findOne({ id: pickupPointId });
+    if (!place) {
+        throw { code: 24, error: `PLACE_NOT_SERVING: point ${pickupPointId} does not exist` };
+    }
+    const serves = order.serviceType === "pickup" ? place.isPickupPoint === true : place.hasDiningArea === true;
+    if (!serves) {
+        throw { code: 24, error: `PLACE_NOT_SERVING: ${place.title || place.id} does not serve ${order.serviceType}` };
+    }
+    if (!(0, cooking_place_1.placeIsOpen)(place, at)) {
+        await Order.log({ id: order.id }, "warn", "core", "check: point is closed", {
+            pickupPoint: pickupPointId,
+            serviceType: order.serviceType,
+        });
+        throw { code: 23, error: "PLACE_CLOSED" };
+    }
+}
 async function checkPaymentMethod(paymentMethodId) {
     if (!(await PaymentMethod.checkAvailable(paymentMethodId))) {
         throw {
@@ -2571,6 +2632,7 @@ async function checkDate(order) {
             throw e;
         sails.log.error('Order > checkDate > WORK_TIME validation error:', e);
     }
+    await checkPickupPoint(order, order.date ? new Date(order.date) : undefined);
     if (order.date) {
         const date = new Date(order.date);
         function isDateInPast(date, timeZone) {

@@ -15,6 +15,6 @@ export default interface OrderData {
   comment: string;
   date: string;
   personsCount: string;
-  selfService: boolean;
+  serviceType: "delivery" | "pickup" | "dine-in";
   customInfo: any;
 }

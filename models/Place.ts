@@ -3,6 +3,7 @@ import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
 import { WorkTime } from "@webresto/worktime";
+import { CityRecord } from "./City";
 
 export interface PlaceCoordinate {
   lat: number;
@@ -49,7 +50,15 @@ let attributes = {
   worktime: 'json' as unknown as WorkTime,
   isPickupPoint: 'boolean'as unknown as boolean,
   isCookingPoint: 'boolean'as unknown as boolean,
-  isSalePoint: 'boolean'as unknown as boolean,
+  /** The point has a room to eat in: what `dine-in` orders are taken at. */
+  hasDiningArea: {
+    type: 'boolean',
+    defaultsTo: false,
+  } as unknown as boolean,
+  /** Which city's list of points this one is in. */
+  city: {
+    model: 'city',
+  } as unknown as CityRecord | string,
   /** Geographic position of the point. Required only by geo/route kitchen modes. */
   coordinate: {
     type: 'json',

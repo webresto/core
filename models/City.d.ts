@@ -1,5 +1,6 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
+import { PlaceRecord } from "./Place";
 declare let attributes: {
     /** ID */
     id: string;
@@ -18,6 +19,8 @@ declare let attributes: {
     url: string;
     /** City was deleted */
     isDeleted: boolean;
+    /** The points that serve this city: what the storefront lists after a city is chosen. */
+    places: PlaceRecord[];
     customData: {
         [key: string]: string | boolean | number;
     } | string;

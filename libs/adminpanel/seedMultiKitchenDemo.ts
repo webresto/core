@@ -31,17 +31,21 @@ const PLACES = [
     title: "Demo kitchen: Center",
     address: "Екатеринбург, улица Малышева, 44",
     coordinate: { lat: 56.8371, lng: 60.6019 },
-    // Also a pickup point, so the storefront's self-service tab has something in
-    // it. Pickup points are not a separate model: a Place carries both flags and
-    // may cook and hand orders over at once.
+    city: "demo-city-ekaterinburg",
+    // Also a pickup point and the one with a room to eat in, so the storefront's
+    // pickup and dine-in tabs each have something. Pickup points are not a
+    // separate model: a Place carries the flags and may do all three at once.
     isPickupPoint: true,
+    hasDiningArea: true,
   },
   {
     id: "demo-kitchen-north",
     title: "Demo kitchen: North",
     address: "Екатеринбург, проспект Космонавтов, 41",
     coordinate: { lat: 56.8907, lng: 60.6103 },
+    city: "demo-city-ekaterinburg",
     isPickupPoint: false,
+    hasDiningArea: false,
   },
   // One kitchen in each of the other two cities. Neither city has a zone, so
   // an address there resolves through `nearest-geo`; both hand orders over so
@@ -51,14 +55,18 @@ const PLACES = [
     title: "Demo kitchen: Tyumen",
     address: "Тюмень, улица Республики, 1",
     coordinate: { lat: 57.153, lng: 65.5343 },
+    city: "demo-city-tyumen",
     isPickupPoint: true,
+    hasDiningArea: false,
   },
   {
     id: "demo-kitchen-nhatrang",
     title: "Demo kitchen: Nha Trang",
     address: "Нячанг, Tran Phu, 1",
     coordinate: { lat: 12.2388, lng: 109.1967 },
+    city: "demo-city-nhatrang",
     isPickupPoint: true,
+    hasDiningArea: false,
   },
 ] as const;
 
@@ -331,7 +339,6 @@ async function seedStockDemo(recreate: boolean): Promise<void> {
     await createIfMissing(Place, { id: place.id }, {
       enable: true,
       isCookingPoint: true,
-      isSalePoint: true,
       ...place,
     });
   }
@@ -634,8 +641,9 @@ export async function seedMultiKitchenDemo(adminizer: any): Promise<void> {
   }
 
   await seedCatalog(recreate);
-  await seedStockDemo(recreate);
+  // Cities first: every point names the one it is listed in.
   await seedDeliveryZones(recreate);
+  await seedStockDemo(recreate);
   // The zones above are only exercised if the chain asks them first.
   await Settings.set("KITCHEN_RESOLVE_CHAIN", {
     key: "KITCHEN_RESOLVE_CHAIN",

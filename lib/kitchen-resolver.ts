@@ -4,6 +4,7 @@ import {
   placeAcceptsOrdersNow,
   toPlaceId,
 } from "./cooking-place";
+import { ServiceType } from "../models/Order";
 
 /**
  * Which kitchen cooks an order.
@@ -36,9 +37,10 @@ export type KitchenStrategyName = (typeof KITCHEN_STRATEGY_NAMES)[number];
 export interface KitchenResolveContext {
   /** Where the customer is, once resolved by iteration 3's rules. */
   coordinate?: { lat: number; lng: number } | null;
-  /** Set on pickup orders: the point the customer chose to collect from. */
+  /** Set on pickup and dine-in orders: the point the customer chose. */
   pickupPointId?: string | null;
-  selfService?: boolean;
+  /** Defaults to delivery: a bare coordinate has no order and no service type. */
+  serviceType?: ServiceType;
 }
 
 export interface KitchenResolution {
@@ -258,12 +260,12 @@ export async function getKitchenResolveChain(): Promise<KitchenStrategyName[]> {
 /**
  * Asks the configured chain, in order, until one strategy names a kitchen.
  *
- * Pickup is settled before the chain and not by it. The customer already chose
- * the point they will collect from, so there is nothing left to resolve, and a
- * strategy that "decided" to cook somewhere the customer is not going would be a
- * bug rather than a fallback. It stays gated on a configured chain, so an
- * installation that never asked for kitchen resolution does not quietly acquire
- * it through the pickup form.
+ * Pickup and dine-in are settled before the chain and not by it. The customer
+ * already chose the point they are going to, so there is nothing left to
+ * resolve, and a strategy that "decided" to cook somewhere the customer is not
+ * going would be a bug rather than a fallback. It stays gated on a configured
+ * chain, so an installation that never asked for kitchen resolution does not
+ * quietly acquire it through the pickup form.
  */
 export async function resolveCookingPlace(
   context: KitchenResolveContext = {},
@@ -276,10 +278,10 @@ export async function resolveCookingPlace(
     return { placeId: null, strategy: null, diagnostics };
   }
 
-  if (context.selfService) {
+  if (context.serviceType && context.serviceType !== "delivery") {
     const pickupPointId = toPlaceId(context.pickupPointId);
     if (!pickupPointId) {
-      diagnostics.push("pickup: self-service order without a chosen point");
+      diagnostics.push(`pickup: ${context.serviceType} order without a chosen point`);
       return { placeId: null, strategy: null, diagnostics };
     }
 

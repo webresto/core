@@ -95,7 +95,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
     comment: order?.comment || "",
     tag: order?.tag || "",
     paid: Boolean(order?.paid),
-    selfService: Boolean(order?.selfService),
+    serviceType: order?.serviceType || "delivery",
     rmsOrderNumber: order?.rmsOrderNumber || "",
     orderedAt: order?.orderedAt || null,
     createdAt: order?.createdAt || null,

@@ -91,15 +91,9 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       let checkGroups = orderDishes.map(order => order.dish).some((dish: DishRecord) => configGroups.includes(dish.parentGroup)) || configGroups.includes("*")
       
       if (checkDishes || checkGroups) {
-        if(this.config.deliveryMethod && Array.isArray(this.config.deliveryMethod)) {
-          if(order.selfService) {
-            if(!this.config.deliveryMethod.includes("selfService")) {
-              return false
-            }
-          } else {
-            if(!this.config.deliveryMethod.includes("delivery")) {
-              return false
-            }
+        if(Array.isArray(this.config.serviceType) && this.config.serviceType.length) {
+          if(!this.config.serviceType.includes(order.serviceType ?? "delivery")) {
+            return false
           }
         }
         return true

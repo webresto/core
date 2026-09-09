@@ -37,7 +37,15 @@ let attributes = {
     worktime: 'json',
     isPickupPoint: 'boolean',
     isCookingPoint: 'boolean',
-    isSalePoint: 'boolean',
+    /** The point has a room to eat in: what `dine-in` orders are taken at. */
+    hasDiningArea: {
+        type: 'boolean',
+        defaultsTo: false,
+    },
+    /** Which city's list of points this one is in. */
+    city: {
+        model: 'city',
+    },
     /** Geographic position of the point. Required only by geo/route kitchen modes. */
     coordinate: {
         type: 'json',

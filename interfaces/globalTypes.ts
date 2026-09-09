@@ -191,7 +191,7 @@ declare global {
     DELIVERY_DESCRIPTION: string
     FIRSTNAME_REQUIRED: boolean
     WORK_TIME: WorkTime[]
-    FIELDS_FOR_ORDER_INITIALIZATION: ("address" | "selfService" | "pickupPoint" | "date" | "personsCount" | "comment" | "customer" | "promotionCode" | "paymentMethod" | "concept")[]
+    FIELDS_FOR_ORDER_INITIALIZATION: ("address" | "serviceType" | "pickupPoint" | "date" | "personsCount" | "comment" | "customer" | "promotionCode" | "paymentMethod" | "concept")[]
     /**
      * System-only notification channel runtime state.
      */

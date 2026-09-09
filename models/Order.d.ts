@@ -19,6 +19,15 @@ export interface PromotionState {
     message: string;
     state: object | object[];
 }
+/**
+ * How the customer gets the food.
+ *
+ * `delivery` needs an address, the other two need a point — and they need
+ * different things of it: a counter can hand an order over without having a
+ * room to eat it in.
+ */
+export declare const SERVICE_TYPES: readonly ["delivery", "pickup", "dine-in"];
+export type ServiceType = (typeof SERVICE_TYPES)[number];
 import { OrderLogLevel, OrderLogEntry } from "../libs/OrderLogHelper";
 export type { OrderLogLevel, OrderLogEntry };
 export type PaymentBack = {
@@ -152,7 +161,16 @@ declare let attributes: {
      * order, it is two different orders, so it is refused rather than reconciled.
      */
     maxWaitMinutes: number;
-    selfService: boolean;
+    /**
+     * How the customer gets the food: a courier brings it, they collect it, or
+     * they eat at the point.
+     *
+     * `pickup` and `dine-in` are one thing to the kitchen — the point the customer
+     * chose cooks the order — and two different things to the point: a counter in
+     * a mall hands orders over without a room to sit in. That is why this is a
+     * type and not the boolean it replaces.
+     */
+    serviceType: ServiceType;
     delivery: Delivery | null;
     /** Notification about delivery
      * ex: time increased due to traffic jams
@@ -248,12 +266,12 @@ declare let Model: {
      */
     clone(source: CriteriaQuery<OrderRecord>): Promise<OrderRecord>;
     /**
-     * Set order selfService field. Use this method to change selfService.
+     * Set how the customer gets the food. Use this method to change `serviceType`.
      * @param criteria
-     * @param selfService
+     * @param serviceType
      */
-    setSelfService(criteria: CriteriaQuery<OrderRecord>, selfService?: boolean): Promise<OrderRecord>;
-    check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus, orderedOnPlatform?: string): Promise<void>;
+    setServiceType(criteria: CriteriaQuery<OrderRecord>, serviceType: ServiceType): Promise<OrderRecord>;
+    check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, serviceType?: ServiceType, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus, orderedOnPlatform?: string): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
     /**
@@ -334,7 +352,7 @@ declare let Model: {
         cookingPoint?: PlaceRecord | string | null;
         cookingPoints?: string[];
         maxWaitMinutes?: number;
-        selfService?: boolean;
+        serviceType?: ServiceType;
         delivery?: Delivery | null;
         deliveryDescription?: string;
         message?: string;

@@ -27,9 +27,19 @@ exports.setup = function (options, seedLink) {
 
 exports.up = function (db, callback) {
   async.series([
-    // --- place: where it is, and who it is to an RMS ------------------------
+    // --- place: where it is, who it is to an RMS, what it can take ----------
+    //
+    // `city` is plain text, like every other singular association in this
+    // schema: Waterline stores the foreign primary key and declares no
+    // constraint. Deleting a city must not delete the points in it.
     (cb) => db.addColumn('place', 'coordinate', { type: 'json', notNull: false }, cb),
     (cb) => db.addColumn('place', 'rmsId', { type: 'text', notNull: false }, cb),
+    (cb) => db.addColumn('place', 'hasDiningArea', { type: 'boolean', notNull: false, defaultValue: false }, cb),
+    (cb) => db.addColumn('place', 'city', { type: 'text', notNull: false }, cb),
+
+    // Nothing ever read this to decide anything: the only consumer was the
+    // `places` MCP tool, which listed it.
+    (cb) => db.removeColumn('place', 'isSalePoint', cb),
 
     // --- dish: how long it takes to cook -----------------------------------
     (cb) => db.addColumn('dish', 'cookingTimeMax', { type: 'int', notNull: false }, cb),
@@ -123,6 +133,10 @@ exports.up = function (db, callback) {
 
     (cb) => db.addColumn('order', 'maxWaitMinutes', { type: 'int', notNull: false }, cb),
 
+    // Delivery, pickup or dine-in — the boolean could only say two of the three.
+    (cb) => db.addColumn('order', 'serviceType', { type: 'text', notNull: false, defaultValue: 'delivery' }, cb),
+    (cb) => db.removeColumn('order', 'selfService', cb),
+
     // --- orderdish: which kitchen cooks this line --------------------------
     (cb) => db.addColumn('orderdish', 'cookingPoint', { type: 'text', notNull: false }, cb),
   ], callback);
@@ -131,6 +145,9 @@ exports.up = function (db, callback) {
 exports.down = function (db, callback) {
   async.series([
     (cb) => db.removeColumn('orderdish', 'cookingPoint', cb),
+
+    (cb) => db.addColumn('order', 'selfService', { type: 'boolean', notNull: false, defaultValue: false }, cb),
+    (cb) => db.removeColumn('order', 'serviceType', cb),
 
     (cb) => db.removeColumn('order', 'maxWaitMinutes', cb),
 
@@ -146,6 +163,9 @@ exports.down = function (db, callback) {
     (cb) => db.addColumn('dish', 'balance', { type: 'real', notNull: false }, cb),
     (cb) => db.removeColumn('dish', 'cookingTimeMax', cb),
 
+    (cb) => db.addColumn('place', 'isSalePoint', { type: 'boolean', notNull: false }, cb),
+    (cb) => db.removeColumn('place', 'city', cb),
+    (cb) => db.removeColumn('place', 'hasDiningArea', cb),
     (cb) => db.removeColumn('place', 'rmsId', cb),
     (cb) => db.removeColumn('place', 'coordinate', cb),
   ], callback);

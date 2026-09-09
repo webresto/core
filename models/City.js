@@ -26,6 +26,11 @@ let attributes = {
     isDeleted: {
         type: 'boolean'
     },
+    /** The points that serve this city: what the storefront lists after a city is chosen. */
+    places: {
+        collection: "place",
+        via: "city",
+    },
     customData: "json",
 };
 let Model = {

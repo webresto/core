@@ -17,6 +17,11 @@ const STATE_COLORS = {
   REJECT: '#dc2626',
 };
 const SUPPORTED_LOCALES = new Set(['en', 'es', 'zh', 'hi', 'ar', 'ru', 'fr', 'ua']);
+const SERVICE_TYPE_LABEL = {
+  delivery: 'Delivery',
+  pickup: 'Pickup',
+  'dine-in': 'Dine-in',
+};
 // Board period selector. "today" = since local midnight; the rest are rolling
 // windows expressed in minutes (1h / 3h / 6h / 12h / 24h). Default is always "today".
 const BOARD_PERIOD_TODAY = 'today';
@@ -302,7 +307,7 @@ function normalizeOrder(order) {
     comment: order.comment || '',
     tag: order.tag || '',
     paid: Boolean(order.paid),
-    selfService: Boolean(order.selfService),
+    serviceType: order.serviceType || 'delivery',
     rmsOrderNumber: order.rmsOrderNumber || '',
     orderedAt: order.orderedAt || null,
     createdAt: order.createdAt || null,
@@ -490,7 +495,7 @@ function OrderDetailsPopup({ order, loading, language, t, onClose }) {
           <div style={rowStyle}><strong>RMS</strong><span>{order.rmsOrderNumber || '-'}</span></div>
           <div style={rowStyle}><strong>{t('Tag')}</strong><span>{order.tag || '-'}</span></div>
           <div style={rowStyle}><strong>{t('Paid')}</strong><span>{boolText(order.paid)}</span></div>
-          <div style={rowStyle}><strong>{t('Self-service')}</strong><span>{boolText(order.selfService)}</span></div>
+          <div style={rowStyle}><strong>{t('Service type')}</strong><span>{t(SERVICE_TYPE_LABEL[order.serviceType] || order.serviceType)}</span></div>
           {hasExtendedDetails ? (
             <>
               <div style={rowStyle}><strong>Корзина</strong><span>{formatTotal(order.basketTotal, language)}</span></div>
@@ -991,7 +996,7 @@ function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen }) {
             </span>
           ) : null}
 
-          {order.selfService ? (
+          {order.serviceType && order.serviceType !== 'delivery' ? (
             <span
               style={{
                 background: 'var(--accent)',
@@ -1002,7 +1007,7 @@ function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen }) {
                 fontWeight: 600,
               }}
             >
-              {t('Self-service')}
+              {t(SERVICE_TYPE_LABEL[order.serviceType] || order.serviceType)}
             </span>
           ) : null}
         </div>

@@ -36,9 +36,8 @@ export function isEnabledKitchen(place: any): boolean {
 /**
  * Whether the point is open at a moment — by default, this one.
  *
- * Kept apart from `isEnabledKitchen`: "switched off" is an operator's lasting
- * decision, "closed right now" passes on its own. Callers that must not change
- * behaviour with the clock — stock lookups, for one — ask only the first.
+ * Says nothing about kitchens: a counter that only hands orders over closes and
+ * opens like any other point, and that is exactly what pickup and dine-in ask.
  *
  * `at` exists because a pre-order is not asking about now. An order for tomorrow
  * noon must be judged against tomorrow noon, and the clock's answer today would
@@ -47,19 +46,30 @@ export function isEnabledKitchen(place: any): boolean {
  * A point with no schedule is treated as always open, which is how zones with
  * no `worktime` already behave.
  */
-export function placeAcceptsOrdersNow(place: any, at?: Date): boolean {
-  if (!isEnabledKitchen(place)) return false;
-  if (!place?.worktime || !place.worktime.length) return true;
+export function placeIsOpen(place: any, at?: Date): boolean {
+  if (!place || place.enable === false) return false;
+  if (!place.worktime || !place.worktime.length) return true;
 
   try {
     return WorkTimeValidator.isWorkNow({ worktime: place.worktime } as any, at).workNow !== false;
   } catch {
     // The validator throws rather than answering when the schedule says nothing
-    // about today — a kitchen that works Monday to Friday, asked on a Sunday.
-    // That is a closed kitchen, not a broken one. A point with no schedule at
+    // about today — a point that works Monday to Friday, asked on a Sunday.
+    // That is a closed point, not a broken one. A point with no schedule at
     // all never reaches this line.
     return false;
   }
+}
+
+/**
+ * Whether the point can cook at a moment.
+ *
+ * Kept apart from `isEnabledKitchen`: "switched off" is an operator's lasting
+ * decision, "closed right now" passes on its own. Callers that must not change
+ * behaviour with the clock — stock lookups, for one — ask only the first.
+ */
+export function placeAcceptsOrdersNow(place: any, at?: Date): boolean {
+  return isEnabledKitchen(place) && placeIsOpen(place, at);
 }
 
 export async function getDefaultCookingPlaceId(): Promise<string | null> {

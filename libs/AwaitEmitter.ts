@@ -24,7 +24,7 @@ import { PaymentDocumentRecord } from "../models/PaymentDocument";
 import { SettingsRecord } from "../models/Settings";
 import { UserRecord } from "../models/User";
 import { OrderDishRecord } from "../models/OrderDish";
-import { OrderRecord, PaymentBack } from "../models/Order";
+import { OrderRecord, PaymentBack, ServiceType } from "../models/Order";
 import { MaintenanceRecord } from "../models/Maintenance";
 import { PromotionRecord } from "../models/Promotion";
 
@@ -54,14 +54,13 @@ declare global {
     "core:payment-document-before-cancel": [PaymentDocumentRecord]
     "core:payment-document-canceled": [PaymentDocumentRecord]
     "core:order-after-order": [OrderRecord]
-    "core:order-order-delivery": [OrderRecord]
     "core:order-before-order": [OrderRecord]
     "core:order-order": [OrderRecord]
-    "core:order-order-self-service": [OrderRecord]
-    "core:order-is-self-service": [OrderRecord, Customer, boolean, Address]
-    "core:order-check": [OrderRecord, Customer, boolean, Address, string]
+    "core:order-order-service-type": [OrderRecord, ServiceType]
+    "core:order-service-type": [OrderRecord, Customer, ServiceType, Address]
+    "core:order-check": [OrderRecord, Customer, ServiceType, Address, string]
     "core:order-after-check-counting": [OrderRecord]
-    "core:order-before-check": [OrderRecord, Customer, boolean, Address]
+    "core:order-before-check": [OrderRecord, Customer, ServiceType, Address]
     "core:order-check-delivery": [OrderRecord]
     [key: `settings:${string}`]: [SettingsRecord];
     "core:user-after-create": [UserRecord]

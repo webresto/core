@@ -29,7 +29,7 @@ describe("Maintenance", function () {
     try {
       let order = await Order.create({id: "test--maintenece"}).fetch();
       await Order.addDish({id: order.id}, dishes[0], 5, [], "", "user");
-      await Order.check({id: order.id}, customer, true, undefined, undefined);  
+      await Order.check({id: order.id}, customer, "delivery", undefined, undefined);
     } catch (e) {
       error = e;
     }
