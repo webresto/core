@@ -1,7 +1,8 @@
 import ORM from "../interfaces/ORM";
 import {ORMModel} from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
-import { StreetRecord } from "./Street";
+import { AddressRecord } from "./Address";
+import { formatAddressPath } from "../lib/address";
 import { UserRecord } from "./User";
 let attributes = {
   
@@ -46,10 +47,11 @@ let attributes = {
     type: "string",
     allowNull: true,
   } as unknown as string,
-  street: {
-    model: 'street',
+  /** Deepest catalog node this location points at. */
+  node: {
+    model: 'address',
     required: true
-  } as unknown as StreetRecord | string,
+  } as unknown as AddressRecord | string,
   
   /**
    * Set as default for specific user
@@ -97,8 +99,8 @@ let Model = {
     }
 
     if (!init.name) {
-      const street = await Street.findOne({id: init.street as string});
-      init.name = `${street.name} ${init.home}`;
+      const path = await Address.path(init.node as string);
+      init.name = formatAddressPath([...path.map((node) => node.name), init.home]);
     }
 
     if(init.isDefault === true) {
@@ -116,5 +118,5 @@ module.exports = {
 };
 
 declare global {
-  const UserLocation: typeof Model & ORMModel<UserLocationRecord, null>;
+  const UserLocation: typeof Model & ORMModel<UserLocationRecord, never>;
 }

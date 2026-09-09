@@ -1,6 +1,6 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import { StreetRecord } from "./Street";
+import { AddressRecord } from "./Address";
 import { UserRecord } from "./User";
 declare let attributes: {
     /** ID */
@@ -14,7 +14,8 @@ declare let attributes: {
     floor: string;
     apartment: string;
     doorphone: string;
-    street: StreetRecord | string;
+    /** Deepest catalog node this location points at. */
+    node: AddressRecord | string;
     /**
      * Set as default for specific user
      * */
@@ -33,6 +34,6 @@ declare let Model: {
     beforeCreate(init: UserLocationRecord, cb: (err?: string) => void): Promise<void>;
 };
 declare global {
-    const UserLocation: typeof Model & ORMModel<UserLocationRecord, null>;
+    const UserLocation: typeof Model & ORMModel<UserLocationRecord, never>;
 }
 export {};

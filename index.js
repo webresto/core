@@ -29,7 +29,7 @@ __exportStar(require("./models/PaymentMethod"), exports);
 __exportStar(require("./models/Place"), exports);
 __exportStar(require("./models/Settings"), exports);
 __exportStar(require("./models/City"), exports);
-__exportStar(require("./models/Street"), exports);
+__exportStar(require("./models/Address"), exports);
 __exportStar(require("./models/User"), exports);
 __exportStar(require("./models/UserBonusProgram"), exports);
 __exportStar(require("./models/UserBonusTransaction"), exports);

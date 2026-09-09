@@ -1,4 +1,4 @@
-import Address from "../interfaces/Address";
+import OrderAddress from "../interfaces/Address";
 import {
   DeliveryCapabilityError,
   DeliveryCoordinate,
@@ -7,6 +7,7 @@ import {
   ResolvedDeliveryLocation,
 } from "../adapters/delivery/contracts";
 import DeliveryAdapter from "../adapters/delivery/DeliveryAdapter";
+import { LEAF_WITH_POINT, formatAddressPath } from "./address";
 
 /**
  * Turning an address into a coordinate.
@@ -160,20 +161,11 @@ export async function resolveSelectedLocation(
   );
 }
 
-/** Reads `Address.coordinate`, whose parts are strings of unknown quality. */
-export function coordinateFromAddress(address: {
-  coordinate?: { lat?: string | number; lon?: string | number };
-} | null | undefined): DeliveryCoordinate | null {
-  const raw = address?.coordinate;
-  if (!raw) return null;
 
-  const lat = typeof raw.lat === "number" ? raw.lat : parseFloat(String(raw.lat));
-  const lng = typeof raw.lon === "number" ? raw.lon : parseFloat(String(raw.lon));
-
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
-
-  return { lat, lng };
+/** The coordinate the client sent with the address, when it is a usable one. */
+export function coordinateFromAddress(address: OrderAddress | null | undefined): DeliveryCoordinate | null {
+  const coordinate = address?.coordinate;
+  return isValidCoordinate(coordinate) ? coordinate : null;
 }
 
 /** Where an address turned out to be, and whether the attempt failed outright. */
@@ -185,40 +177,68 @@ export interface AddressLocation {
 }
 
 /**
- * Finds the coordinate of an address.
+ * Finds the coordinate of an address, in this order:
  *
- * A coordinate already on the address is used as is. Otherwise the adapter is
- * asked to resolve the street and house number, but only if it implements
- * resolution at all: an adapter without a geocoder is not an error, it just
- * means there is no coordinate and callers fall back to what they did before.
+ * 1. the coordinate the address already carries;
+ * 2. the `point` of the catalog node the customer chose;
+ * 3. the geocoder, on the node's path plus the house number.
+ *
+ * The catalog comes before the geocoder because it is the only one of the three
+ * that gives the same answer twice. A house entered in the catalog is a fact an
+ * operator put there; Nominatim's answer for the same words is a guess that can
+ * change between two recounts of one basket.
+ *
+ * The last step is skipped unless both halves are known. A street without a
+ * house number points at a line on the map, and a house number without a street
+ * is meaningless — geocoding either one puts the order somewhere plausible and
+ * wrong.
  */
 export async function locateAddress(
   adapter: DeliveryAdapter,
-  address: Address | undefined | null,
+  address: OrderAddress | undefined | null,
 ): Promise<AddressLocation> {
   const diagnostics: string[] = [];
 
   const supplied = coordinateFromAddress(address);
   if (supplied) {
+    diagnostics.push("address point source: given");
     return { coordinate: supplied, unrecognized: false, diagnostics };
   }
 
-  if (!address?.street || !address?.home) {
-    diagnostics.push("address has no coordinate and no street with house number");
+  const node = trimmed(address?.node);
+  const path = node ? await Address.path(node) : [];
+  const chosen = path[path.length - 1];
+
+  if (chosen && isValidCoordinate(chosen.point)) {
+    diagnostics.push(`address point source: address-node (${chosen.type} "${chosen.name}")`);
+    return { coordinate: chosen.point, unrecognized: false, diagnostics };
+  }
+
+  // The words to geocode. With a node they are its path — a leaf carries the
+  // house number in its own name, so it becomes `home` and leaves the street
+  // behind it. Without a node the customer typed the line themselves.
+  const names = path.map((step) => step.name);
+  let home = trimmed(address?.home);
+  if (!home && chosen && LEAF_WITH_POINT.includes(chosen.type)) {
+    home = names.pop();
+  }
+  const street = names.length ? formatAddressPath(names) : trimmed(address?.formatted);
+
+  if (!street || !home) {
+    diagnostics.push("address has no coordinate, no node with a point and no street with a house number");
     return { coordinate: null, unrecognized: false, diagnostics };
   }
 
   try {
     const resolved = await adapter.resolveDeliveryLocation({
-      id: address.streetId ?? `${address.street} ${address.home}`,
+      id: node ?? formatAddressPath([street, home]),
       kind: "street",
-      label: `${address.street} ${address.home}`,
-      streetId: address.streetId,
-      street: address.street,
-      home: address.home,
-      city: address.city,
+      label: formatAddressPath([street, home]),
+      street,
+      home,
+      city: trimmed(address?.city),
     });
-    diagnostics.push(...(resolved.diagnostics ?? []));
+    diagnostics.push(...(resolved.diagnostics ?? []), "address point source: geocoder");
     return { coordinate: resolved.coordinate, unrecognized: false, diagnostics };
   } catch (error) {
     if (error instanceof DeliveryCapabilityError) {

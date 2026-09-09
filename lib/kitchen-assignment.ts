@@ -59,10 +59,11 @@ const UNCHANGED = (order: OrderRecord, reason: string): CookingPlaceAssignment =
 /**
  * Resolves the kitchen for an order being recalculated and reports what changed.
  *
- * The address is turned into a coordinate through iteration 3's rule and nothing
- * else: a client coordinate, an organization's coordinate, or a geocoded
- * street-and-house pair. Free text naming an organization is never handed to a
- * geocoder, so "Памятник Ленину" cannot become a delivery address by accident.
+ * The address is turned into a coordinate by `locateAddress` and nothing else:
+ * the coordinate the client sent, the point of the catalog node they chose, or
+ * a geocoded street-and-house pair. Free text naming an organization is never
+ * handed to a geocoder, so "Памятник Ленину" cannot become a delivery address
+ * by accident.
  *
  * The resolved coordinate is written back onto the address. That is not a
  * convenience — the delivery calculation runs later in the same recalculation and
@@ -85,12 +86,7 @@ export async function assignOrderCookingPlace(order: OrderRecord): Promise<Cooki
     coordinate = location.coordinate;
 
     if (coordinate && order.address) {
-      // Stored as strings because that is what `Address.coordinate` has always
-      // been; the reader parses either form.
-      order.address = {
-        ...order.address,
-        coordinate: { lat: String(coordinate.lat), lon: String(coordinate.lng) },
-      };
+      order.address = { ...order.address, coordinate };
     }
   }
 

@@ -119,6 +119,41 @@ exports.up = function (db, callback) {
     // Exactly the lookup the import runs: everything this source owns in this city.
     (cb) => db.addIndex('deliveryzone', 'deliveryzone_source_city', ['source', 'city'], false, cb),
 
+    // --- address: the address catalog of a city ----------------------------
+    //
+    // One flat table for the whole graph: district, quarter, street, house,
+    // entrance, POI. `parent` is self-referencing and `city` sits on every row,
+    // so a search filters by city without walking up. No foreign keys, for the
+    // same reason as everywhere else here: Waterline stores a singular
+    // association as plain text and this schema declares no constraint for those.
+    (cb) => db.createTable('address', {
+      columns: {
+        id: { type: 'text', primaryKey: true },
+        city: { type: 'text', notNull: false },
+        parent: { type: 'text', notNull: false },
+        type: { type: 'text', notNull: false },
+        name: { type: 'text', notNull: false },
+        // Aliases and former names. An array, read whole and written whole.
+        names: { type: 'json', notNull: false },
+        // Only leaves carry one, which is what lets a chosen address skip the geocoder.
+        point: { type: 'json', notNull: false },
+        externalId: { type: 'text', notNull: false },
+        enable: { type: 'boolean', notNull: false, defaultValue: true },
+        createdAt: { type: 'bigint', notNull: false },
+        updatedAt: { type: 'bigint', notNull: false },
+      },
+    }, cb),
+
+    // Exactly the two queries the catalog answers: the roots of a city by type,
+    // and the children of a chosen node.
+    (cb) => db.addIndex('address', 'address_city_parent_type', ['city', 'parent', 'type'], false, cb),
+
+    // `street` came from the released initial schema, so unlike everything else
+    // in this migration it does exist somewhere and has to be dropped rather
+    // than simply not created. A street is an `address` row of type "street" now.
+    (cb) => db.dropTable('street', cb),
+    (cb) => db.renameColumn('userlocation', 'street', 'node', cb),
+
     // --- order: which kitchen, how long the customer will wait -------------
     //
     // `cookingPoint` is plain text like the `pickupPoint` that has always been
@@ -145,6 +180,23 @@ exports.up = function (db, callback) {
 exports.down = function (db, callback) {
   async.series([
     (cb) => db.removeColumn('orderdish', 'cookingPoint', cb),
+
+    (cb) => db.renameColumn('userlocation', 'node', 'street', cb),
+    (cb) => db.createTable('street', {
+      columns: {
+        id: { type: 'text', primaryKey: true },
+        externalId: { type: 'text', notNull: false },
+        name: { type: 'text' },
+        hash: { type: 'text' },
+        isDeleted: { type: 'boolean' },
+        enable: { type: 'boolean', notNull: false },
+        city: { type: 'text' },
+        customData: { type: 'json' },
+        createdAt: { type: 'bigint' },
+        updatedAt: { type: 'bigint' },
+      },
+    }, cb),
+    (cb) => db.dropTable('address', cb),
 
     (cb) => db.addColumn('order', 'selfService', { type: 'boolean', notNull: false, defaultValue: false }, cb),
     (cb) => db.removeColumn('order', 'serviceType', cb),

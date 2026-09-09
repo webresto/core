@@ -11,7 +11,7 @@ export * from './models/PaymentMethod';
 export * from './models/Place';
 export * from './models/Settings';
 export * from './models/City';
-export * from './models/Street';
+export * from './models/Address';
 export * from './models/User';
 export * from './models/UserBonusProgram';
 export * from './models/UserBonusTransaction';

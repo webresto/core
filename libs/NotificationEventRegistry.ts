@@ -61,7 +61,7 @@ const CORE_ORDER_SCHEMA: ContextField = {
       type: "object",
       description: "Delivery address.",
       fields: {
-        street: { type: "string", description: "Street.", example: "Lenina" },
+        formatted: { type: "string", description: "The whole address line.", example: "Lenina, 10" },
         home: { type: "string", description: "House/building.", example: "10" },
         city: { type: "string", description: "City.", example: "Moscow" },
       },

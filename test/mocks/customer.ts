@@ -10,9 +10,8 @@ export const customer: Customer = {
 };
 
 export const address: Address = {
-  streetId: "1234",
   city: "New York",
-  street: "Courtlandt Ave",
+  formatted: "Courtlandt Ave, 681",
   home: "681",
   comment: "My Bronx",
 };

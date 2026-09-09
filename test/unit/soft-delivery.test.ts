@@ -169,8 +169,8 @@ describe("Soft delivery calculation", function () {
    */
   describe("both entry points", function () {
     const adapter = new DefaultDeliveryAdapter();
-    const outside = { city: "Demo", street: "Far", home: "1", coordinate: { lat: 50, lon: 50 } } as any;
-    const inside = { city: "Demo", street: "Near", home: "1", coordinate: { lat: 10, lon: 10 } } as any;
+    const outside = { city: "Demo", formatted: "Far, 1", home: "1", coordinate: { lat: 50, lng: 50 } } as any;
+    const inside = { city: "Demo", formatted: "Near, 1", home: "1", coordinate: { lat: 10, lng: 10 } } as any;
 
     it("answers the address form the way checkout will answer", async function () {
       settings.SOFT_DELIVERY_CALCULATION = true;

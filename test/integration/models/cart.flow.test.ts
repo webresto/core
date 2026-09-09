@@ -265,9 +265,8 @@ describe("Flows: Checkout", function () {
       order = await Order.findOne({id: order.id});
 
       let address: Address = {
-        streetId: "1234abcd",
         city: "New York",
-        street: "Green Road",
+        formatted: "Green Road, 42",
         home: "42",
         comment: "test",
       };
@@ -284,7 +283,7 @@ describe("Flows: Checkout", function () {
       // @ts-ignore
       let badAddress: Address = {
         city: "New York",
-        // street: 'Green Road',
+        // formatted: 'Green Road, 42',
         home: "42",
         comment: "test",
       };

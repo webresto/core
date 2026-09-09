@@ -32,6 +32,6 @@ declare let Model: {
     beforeCreate(streetInit: CityRecord, cb: (err?: string) => void): void;
 };
 declare global {
-    const City: typeof Model & ORMModel<CityRecord, null>;
+    const City: typeof Model & ORMModel<CityRecord, never>;
 }
 export {};

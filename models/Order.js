@@ -15,6 +15,7 @@ const cooking_place_1 = require("../lib/cooking-place");
 const kitchen_assignment_1 = require("../lib/kitchen-assignment");
 const soft_delivery_1 = require("../lib/soft-delivery");
 const delivery_location_1 = require("../lib/delivery-location");
+const address_1 = require("../lib/address");
 const dish_place_balance_1 = require("../lib/dish-place-balance");
 const product_availability_1 = require("../lib/product-availability");
 const order_timing_1 = require("../lib/order-timing");
@@ -812,8 +813,8 @@ let Model = {
             if (order.serviceType === "delivery") {
                 softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
                 if (address) {
-                    checkAddress(address, softDeliveryCalculation);
-                    order.address = { ...address };
+                    await checkAddress(address, softDeliveryCalculation);
+                    order.address = { ...address, formatted: await formatAddress(address) };
                 }
                 else {
                     if (order.address === null && !softDeliveryCalculation) {
@@ -1859,7 +1860,7 @@ let Model = {
                 else {
                     let deliveryAdapter = await Adapter.getDeliveryAdapter();
                     await deliveryAdapter.reset(order);
-                    if (order.address?.city && order.address?.street && order.address?.home) {
+                    if (order.address) {
                         Order.emitAndLogDetached({ id: order.id }, "core:order-check-delivery", order);
                         try {
                             delivery = await deliveryAdapter.calculate(order);
@@ -2103,8 +2104,8 @@ let Model = {
                 throw new Error(`Cart required field error: ${field} is value [${order[field]}], check FIELDS_FOR_ORDER_INITIALIZATION setting`);
             }
             // <-- only reached on a delivery order
-            if (field === "address" && !checkAddress(order.address)) {
-                throw `do cart: Address check failed`;
+            if (field === "address") {
+                await checkAddress(order.address);
             }
         }
         await Order.next({ id: order.id }, "CART");
@@ -2324,7 +2325,7 @@ async function emitOrderNotificationEvent(orderId, eventKey) {
                 customer,
                 address: order.address
                     ? {
-                        street: order.address.street,
+                        formatted: order.address.formatted,
                         home: order.address.home,
                         city: order.address.city,
                     }
@@ -2445,15 +2446,35 @@ async function checkCustomerInfo(customer) {
         };
     }
 }
-function checkAddress(address, softDeliveryCalculation = false) {
+/**
+ * The address line an operator and a courier read.
+ *
+ * Rebuilt from the catalog on every save rather than trusted from the client:
+ * the node is the fact, the string is a rendering of it. Free text is kept as
+ * typed — there is no path to rebuild it from.
+ */
+async function formatAddress(address) {
+    if (!address.node)
+        return address.formatted;
+    const path = await Address.path(address.node);
+    const names = path.map((step) => step.name);
+    const leaf = path[path.length - 1];
+    if (address.home && !(leaf && address_1.SELF_ADDRESSED.includes(leaf.type)))
+        names.push(address.home);
+    return (0, address_1.formatAddressPath)(names);
+}
+async function checkAddress(address, softDeliveryCalculation = false) {
     let error = [];
-    if (!address.street && !address.streetId && !address.buildingName) {
+    if (!address.node && !address.formatted) {
         error.push({
             code: 5,
-            error: "one of (street, streetId  or buildingName) is required",
+            error: "one of (node, formatted) is required",
         });
     }
-    if (!address.home) {
+    // A node that is itself the place to knock at answers the question the house
+    // number asks. Anything above one — a street, a quarter — does not.
+    const node = address.node ? await Address.findOne({ id: address.node }) : undefined;
+    if (!address.home && !(node && address_1.SELF_ADDRESSED.includes(node.type))) {
         error.push({
             code: 6,
             error: "address.home is required",

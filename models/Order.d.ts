@@ -1,5 +1,5 @@
 import { OrderModifier } from "../interfaces/Modifier";
-import Address from "../interfaces/Address";
+import OrderAddress from "../interfaces/Address";
 import Customer from "../interfaces/Customer";
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
@@ -114,7 +114,7 @@ declare let attributes: {
     uniqueDishes: number;
     modifiers: any;
     customer: Customer;
-    address: Address;
+    address: OrderAddress;
     comment: string;
     personsCount: string;
     /** The desired date and delivery time*/
@@ -271,7 +271,7 @@ declare let Model: {
      * @param serviceType
      */
     setServiceType(criteria: CriteriaQuery<OrderRecord>, serviceType: ServiceType): Promise<OrderRecord>;
-    check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, serviceType?: ServiceType, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus, orderedOnPlatform?: string): Promise<void>;
+    check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, serviceType?: ServiceType, address?: OrderAddress, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus, orderedOnPlatform?: string): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
     /**
@@ -334,7 +334,7 @@ declare let Model: {
         uniqueDishes?: number;
         modifiers?: any;
         customer?: Customer;
-        address?: Address;
+        address?: OrderAddress;
         comment?: string;
         personsCount?: string;
         date?: string;

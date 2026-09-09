@@ -304,15 +304,13 @@ export const models = {
       }
     },
   },
-  street: {
-    model: 'street',
-    title: 'Street',
+  address: {
+    model: 'address',
+    title: 'Addresses',
     icon: 'location_on'
   },
-  // Registered as Street's relation target first, and hidden on that basis. It
-  // has its own page now: a city is what an address is resolved in, what a zone
-  // belongs to and what a map link is pasted for — and none of that could be
-  // reached without one.
+  // A city is what an address is resolved in, what a zone belongs to and what a
+  // map link is pasted for; none of that could be reached without one.
   city: {
     model: 'city',
     title: 'Cities',

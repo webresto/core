@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
+const address_1 = require("../lib/address");
 let attributes = {
     /** ID */
     id: {
@@ -43,8 +44,9 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    street: {
-        model: 'street',
+    /** Deepest catalog node this location points at. */
+    node: {
+        model: 'address',
         required: true
     },
     /**
@@ -75,8 +77,8 @@ let Model = {
             init.id = (0, uuid_1.v4)();
         }
         if (!init.name) {
-            const street = await Street.findOne({ id: init.street });
-            init.name = `${street.name} ${init.home}`;
+            const path = await Address.path(init.node);
+            init.name = (0, address_1.formatAddressPath)([...path.map((node) => node.name), init.home]);
         }
         if (init.isDefault === true) {
             await UserLocation.update({ user: init.user }, { isDefault: false });

@@ -1,24 +1,28 @@
 /**
- * Describes the recipient's address for delivery
+ * The address on an order: a leaf of the catalog plus the part of an address
+ * that is never in a catalog.
+ *
+ * `node` is the deepest node the customer actually chose — a street when the
+ * catalog has no houses under it, a house when it does. `formatted` is that
+ * node's path with the house number appended, rebuilt on save, and it is what
+ * an operator and a courier read. Everything below `city` is the tail that only
+ * the recipient knows.
  */
-
-type Coordinate = {
-  lon: string,
-  lat: string
-}
+import { AddressPoint } from "../lib/address";
 
 export default interface Address {
-  buildingName?: string;
-  coordinate?: Coordinate;
-  streetId?: string;
-  home: string;
-  comment?: string;
+  /** Deepest chosen node of the city's address catalog. Null for free text. */
+  node?: string | null;
+  /** "Ленина, 12". Rebuilt from `Address.path(node)` and `home` when there is a node. */
+  formatted?: string;
   city?: string;
-  street: string;
+  home?: string;
   housing?: string;
-  index?: string;
+  apartment?: string;
   entrance?: string;
   floor?: string;
-  apartment?: string;
   doorphone?: string;
+  comment?: string;
+  /** Set when it is known without asking a geocoder. Same shape as `Place.coordinate`. */
+  coordinate?: AddressPoint | null;
 }
