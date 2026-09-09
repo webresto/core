@@ -18,8 +18,8 @@ const DB_DIR = process.argv[2] || path.join(__dirname, "..", "..", "..", ".tmp",
 const OUT = path.join(__dirname, "..", "libs", "adminpanel", "fixtures", "dev-catalog.json");
 
 /** Ids the demo seed creates itself; keeping them here would duplicate them. */
-const SKIP_IDS = new Set(["demo-stock-group"]);
-const SKIP_PREFIX = "demo-product-";
+const SKIP_IDS = new Set(["demo-tyumen-group", "demo-nhatrang-group"]);
+const SKIP_PREFIX = "demo-";
 
 function readCollection(name) {
   const file = path.join(DB_DIR, `${name}.db`);

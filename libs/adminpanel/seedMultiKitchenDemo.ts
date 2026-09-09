@@ -9,8 +9,6 @@ const devCatalog = require("./fixtures/dev-catalog.json") as {
   dishes: CatalogRow[];
 };
 
-const DEMO_PASSWORD = process.env.MULTI_KITCHEN_DEMO_PASSWORD || "stock-demo-2026";
-
 /**
  * `true` creates whatever is missing and leaves everything else alone.
  * `recreate` drops the entities this seed owns and writes them again, which is
@@ -25,165 +23,56 @@ function readSeedMode(): SeedMode {
   return "off";
 }
 
-const PLACES = [
-  {
-    id: "demo-kitchen-center",
-    title: "Demo kitchen: Center",
-    address: "Екатеринбург, улица Малышева, 44",
-    coordinate: { lat: 56.8371, lng: 60.6019 },
-    city: "demo-city-ekaterinburg",
-    // Also a pickup point and the one with a room to eat in, so the storefront's
-    // pickup and dine-in tabs each have something. Pickup points are not a
-    // separate model: a Place carries the flags and may do all three at once.
-    isPickupPoint: true,
-    hasDiningArea: true,
-  },
-  {
-    id: "demo-kitchen-north",
-    title: "Demo kitchen: North",
-    address: "Екатеринбург, проспект Космонавтов, 41",
-    coordinate: { lat: 56.8907, lng: 60.6103 },
-    city: "demo-city-ekaterinburg",
-    isPickupPoint: false,
-    hasDiningArea: false,
-  },
-  // One kitchen in each of the other two cities. Neither city has a zone, so
-  // an address there resolves through `nearest-geo`; both hand orders over so
-  // the pickup tab can pick a city by choosing a point.
-  {
-    id: "demo-kitchen-tyumen",
-    title: "Demo kitchen: Tyumen",
-    address: "Тюмень, улица Республики, 1",
-    coordinate: { lat: 57.153, lng: 65.5343 },
-    city: "demo-city-tyumen",
-    isPickupPoint: true,
-    hasDiningArea: false,
-  },
-  {
-    id: "demo-kitchen-nhatrang",
-    title: "Demo kitchen: Nha Trang",
-    address: "Нячанг, Tran Phu, 1",
-    coordinate: { lat: 12.2388, lng: 109.1967 },
-    city: "demo-city-nhatrang",
-    isPickupPoint: true,
-    hasDiningArea: false,
-  },
-] as const;
-
 /**
- * The cities the demo is set in.
+ * What the seed no longer creates: cities, kitchens, zones and the operators
+ * scoped to a point.
  *
- * The stand carried two invented cities for a while, to show that synchronising
- * one leaves the other's zones alone; they were dropped because every address
- * used to be qualified with the single `CITY` setting and a second city's
- * addresses resolved into the first one. That is fixed — the city now travels
- * with the address — so the three below are a demo-content decision rather than
- * a workaround.
- *
- * Yekaterinburg is the hand-drawn one: the storefront design is set there, the
- * geocoder answers for it, and its only zone is drawn locally with no source at
- * all. The other two are empty on purpose — they exist to have a real Google My
- * Maps link pasted into them, one document keeping every zone in a single
- * folder and one grouping them into three, which is both shapes a layer import
- * can arrive in.
- *
- * The links are not written here. They are an operator's to paste, and a seed
- * that filled them in would be answering the question the page exists to ask.
- * A reseed forgets the ones that were pasted, which is what keeps the field
- * empty on the second run as well as the first.
+ * They are made by an operator now, in scenario 01 — a seeded Yekaterinburg
+ * sitting next to the one the scenario creates is a second answer to the
+ * question the scenario asks. A seed only ever deletes what it knows the ids of,
+ * so what it used to create it still has to clean up: otherwise `dev:seed`
+ * leaves four kitchens and three cities behind and they look like an operator's.
  */
-const CITIES = [
-  { id: "demo-city-ekaterinburg", name: "Екатеринбург", slug: "ekaterinburg" },
-  { id: "demo-city-tyumen", name: "Тюмень", slug: "tyumen" },
-  { id: "demo-city-nhatrang", name: "Нячанг", slug: "nha-trang" },
-] as const;
+const RETIRED_PLACE_IDS = [
+  "demo-kitchen-center",
+  "demo-kitchen-north",
+  "demo-kitchen-tyumen",
+  "demo-kitchen-nhatrang",
+];
+const RETIRED_CITY_IDS = [
+  "demo-city-ekaterinburg",
+  "demo-city-tyumen",
+  "demo-city-nhatrang",
+  "demo-city",
+  "demo-city-1",
+  "demo-city-2",
+];
+const RETIRED_ZONE_IDS = ["demo-zone-local", "demo-zone-center", "demo-zone-north"];
+const RETIRED_PRODUCT_IDS = [
+  "demo-product-pizza",
+  "demo-product-soup",
+  "demo-product-dessert",
+  "demo-product-everywhere",
+];
+const RETIRED_GROUP_IDS = ["demo-stock-group"];
+const RETIRED_PROMOTION_IDS = ["demo-promo-local-zone"];
+const RETIRED_OPERATOR_LOGINS = ["stock-demo-center", "stock-demo-north", "stock-demo-both"];
+const RETIRED_OPERATOR_GROUPS = ["Demo stock: Center", "Demo stock: North"];
+/** Stock rows were rewritten once per version; there are no seeded stock rows left. */
+const RETIRED_SETTINGS = ["MULTI_KITCHEN_DEMO_BALANCES_VERSION"];
 
 /**
- * Ids this seed used to create and no longer does.
+ * A menu of its own for each out-of-town city.
  *
- * A seed only ever deletes what it knows the ids of, so renaming a demo entity
- * strands the previous one: it stops being recreated and stops being cleaned up,
- * and it sits in the database looking like something an operator made. Anything
- * dropped from the lists above belongs here instead of just disappearing.
- */
-const RETIRED_CITY_IDS = ["demo-city", "demo-city-1", "demo-city-2"];
-const RETIRED_ZONE_IDS = ["demo-zone-center", "demo-zone-north"];
-
-/**
- * One locally drawn zone.
- *
- * Local means no `source` and no `externalId`: nothing synchronises it, nothing
- * locks it, and every field including the polygon is the operator's. It exists
- * next to the zones that arrive from the KML fixture so both states are on one
- * screen — the difference between a zone you may reshape and one you may only
- * price is otherwise hard to believe until you meet it.
- *
- * It is also the only zone here bound to a kitchen. Zones from a source arrive
- * without one, which is normal: a document knows about shapes, not about
- * kitchens, and binding them is the operator's job.
- */
-const ZONES = [
-  {
-    id: "demo-zone-local",
-    name: "Demo zone: local (centre and east)",
-    description: "Drawn here, not imported. Everything about it is editable.",
-    city: "demo-city-ekaterinburg",
-    // Listed before the imported zones so an overlap resolves in its favour,
-    // which is what makes the "first hit wins" rule visible.
-    sortOrder: 1,
-    minDeliveryTime: 45,
-    minOrderTotal: 500,
-    freeDeliveryFrom: 2000,
-    deliveryCost: 200,
-    deliveryMessage: "Delivery in the local zone",
-    // Yekaterinburg, centre and east. Covers Gagarina 76, the address the
-    // storefront design uses, so the whole path can be walked with a real one.
-    polygon: [
-      [60.58, 56.80],
-      [60.70, 56.80],
-      [60.70, 56.88],
-      [60.58, 56.88],
-      [60.58, 56.80],
-    ],
-  },
-] as const;
-
-/**
- * `type` and the cooking times are here to make the delivery estimate visible.
- *
- * Only a `dish` is cooked, so the bottled drink carries a type of `product` and
- * no times: a basket of it alone must quote the road and nothing else. The pizza
- * has the widest range so the promise is plainly an interval rather than a
- * number, and the dessert has none at all — a cooked product nobody has timed
- * contributes nothing rather than a guess, and that state needs to be on the
- * stand too.
- */
-const PRODUCTS = [
-  { id: "demo-product-pizza", name: "Demo Pizza", code: "DEMO-PIZZA", price: 550, type: "dish", cookingTimeMax: 35 },
-  { id: "demo-product-soup", name: "Demo Soup", code: "DEMO-SOUP", price: 250, type: "dish", cookingTimeMax: 20 },
-  { id: "demo-product-dessert", name: "Demo Dessert", code: "DEMO-DESSERT", price: 190, type: "dish" },
-  // Deliberately absent from BALANCES: it demonstrates the default state where a
-  // product has no DishPlace row and is therefore unlimited at every point.
-  { id: "demo-product-everywhere", name: "Demo Everywhere", code: "DEMO-EVERYWHERE", price: 120, type: "product" },
-] as const;
-
-const CATALOG_GROUP_ID = "demo-stock-group";
-
-/**
- * A menu of its own for each out-of-town kitchen.
- *
- * Before an address is given the menu is global, so these show up next to the
- * Yekaterinburg catalog; once the order has a kitchen only the dishes cooked
- * there survive. That is done with stock, not with a menu model: every dish
- * below gets `localBalance: 0` at every kitchen except its own, which is how the
- * storefront proves that `dish(orderId)` is what filters the menu after the
- * address. The Yekaterinburg catalog gets no zero rows here — its menu is never
- * requested with a Tyumen or Nha Trang coordinate, and a row that nobody reads
- * is noise on the Stock Manager screen.
+ * Groups and dishes and nothing else. Which kitchen cooks them is stock, not a
+ * menu model — and stock names a point, which this seed no longer creates: the
+ * operator makes the kitchens in scenario 01 and puts the dishes in stop at the
+ * ones that should not sell them. Before an address is given the menu is global,
+ * so all three catalogs are on the screen at once; after it, `dish(orderId)` is
+ * what narrows the menu to one kitchen.
  */
 const CITY_MENUS = [
   {
-    kitchen: "demo-kitchen-tyumen",
     group: { id: "demo-tyumen-group", name: "Demo Tyumen" },
     dishes: [
       { id: "demo-tyumen-pelmeni", name: "Сибирские пельмени", price: 390, cookingTimeMax: 20 },
@@ -195,7 +84,6 @@ const CITY_MENUS = [
     ],
   },
   {
-    kitchen: "demo-kitchen-nhatrang",
     group: { id: "demo-nhatrang-group", name: "Demo Nha Trang" },
     dishes: [
       { id: "demo-nhatrang-pho", name: "Фо бо", price: 350, cookingTimeMax: 15 },
@@ -208,81 +96,11 @@ const CITY_MENUS = [
   },
 ] as const;
 
-/**
- * Rows exist only where a source actually supplied a value. `null` means the
- * source said nothing, and a missing pair means the product is unlimited there.
- *
- * Every pair below survives the emptiness rule on purpose: a row whose balances
- * are all `null` or `-1` while `enable` is `true` limits nothing, so it would be
- * deleted the moment it was written. That state is demonstrated by the absence
- * of a row (see `demo-product-everywhere`), which is what it actually means.
- */
-const BALANCES: Record<string, Record<string, { localBalance?: number | null; rmsBalance?: number | null; enable?: boolean }>> = {
-  "demo-kitchen-center": {
-    // Both sources known: `minimum` mode shows 3, `rms-only` shows 8.
-    "demo-product-pizza": { localBalance: 3, rmsBalance: 8 },
-    // Operator pressed ∞, RMS still limits it: the row stays and `minimum` shows 2.
-    "demo-product-soup": { localBalance: -1, rmsBalance: 2 },
-    // Equal values: `minimum` mode hides the RMS and effective rows in the UI.
-    "demo-product-dessert": { localBalance: 4, rmsBalance: 4 },
-  },
-  "demo-kitchen-north": {
-    // Local stop at one point only.
-    "demo-product-pizza": { localBalance: 0, rmsBalance: 5 },
-    // RMS only: no operator value at this point.
-    "demo-product-soup": { rmsBalance: 1 },
-    // Disabled by the operator: a hard stop that wins over both balances and
-    // keeps the row alive no matter what the balances say.
-    "demo-product-dessert": { localBalance: 2, rmsBalance: 6, enable: false },
-  },
-};
-
-/**
- * Bumped when the demo values themselves change. The stock rows are rewritten
- * once per version so a new layout actually lands, and are left alone on later
- * boots so manual edits made while testing the UI survive a restart.
- */
-const DEMO_BALANCES_VERSION = "2026-09-07-city-menus";
-const DEMO_BALANCES_VERSION_KEY = "MULTI_KITCHEN_DEMO_BALANCES_VERSION";
-
-/** The hand-written rows plus a zero for every city dish at every foreign kitchen. */
-function demoBalances(): typeof BALANCES {
-  const merged: typeof BALANCES = {};
-  for (const [placeId, rows] of Object.entries(BALANCES)) merged[placeId] = { ...rows };
-  for (const menu of CITY_MENUS) {
-    for (const place of PLACES) {
-      if (place.id === menu.kitchen) continue;
-      merged[place.id] ??= {};
-      for (const dish of menu.dishes) merged[place.id][dish.id] = { localBalance: 0 };
-    }
-  }
-  return merged;
-}
-
 async function createIfMissing(model: any, where: any, values: any): Promise<any> {
   const existing = await model.findOne({ where });
   if (existing) return existing;
   await model.create(values);
   return model.findOne({ where });
-}
-
-async function ensureDemoAdminGroup(model: any, name: string, description: string, placeId: string): Promise<any> {
-  const tokenGrant = { tokenId: "stock-manager", rights: [placeId] };
-  const existing = await model.findOne({ where: { name } });
-  if (!existing) {
-    return model.create({ name, description, tokens: ["access-to-adminpanel", tokenGrant] });
-  }
-
-  const tokens = Array.isArray(existing.tokens) ? existing.tokens : [];
-  const hasLogin = tokens.includes("access-to-adminpanel");
-  const hasStockGrant = tokens.some((token: any) => token?.tokenId === "stock-manager");
-  if (!hasLogin || !hasStockGrant) {
-    await model.updateOne(
-      { where: { name } },
-      { tokens: [...tokens, ...(!hasLogin ? ["access-to-adminpanel"] : []), ...(!hasStockGrant ? [tokenGrant] : [])] },
-    );
-  }
-  return model.findOne({ where: { name } });
 }
 
 /**
@@ -320,46 +138,17 @@ async function seedCatalog(recreate: boolean): Promise<void> {
   }
 }
 
-/** The demo places, products and stock rows the Stock Manager screenshots use. */
-async function seedStockDemo(recreate: boolean): Promise<void> {
-  const demoProductIds = [
-    ...PRODUCTS.map((product) => product.id),
-    ...CITY_MENUS.flatMap((menu) => menu.dishes.map((dish) => dish.id)),
-  ];
-  const demoGroupIds = [CATALOG_GROUP_ID, ...CITY_MENUS.map((menu) => menu.group.id)];
+/** The two out-of-town menus, so a city switch has something to switch to. */
+async function seedCityMenus(recreate: boolean): Promise<void> {
+  const dishIds = CITY_MENUS.flatMap((menu) => menu.dishes.map((dish) => dish.id));
+  const groupIds = CITY_MENUS.map((menu) => menu.group.id);
 
   if (recreate) {
-    await DishPlace.destroy({ dish: { in: demoProductIds } }).fetch();
-    await Dish.destroy({ id: { in: demoProductIds } }).fetch();
-    await Group.destroy({ id: { in: demoGroupIds } }).fetch();
-    await Place.destroy({ id: { in: PLACES.map((place) => place.id) } }).fetch();
-  }
-
-  for (const place of PLACES) {
-    await createIfMissing(Place, { id: place.id }, {
-      enable: true,
-      isCookingPoint: true,
-      ...place,
-    });
-  }
-
-  const catalogGroup = await createIfMissing(Group, { id: CATALOG_GROUP_ID }, {
-    id: CATALOG_GROUP_ID,
-    name: "Demo stock catalog",
-    enable: true,
-    isDeleted: false,
-  });
-
-  for (const product of PRODUCTS) {
-    // `type` comes from the product itself now — one of them is deliberately not
-    // a dish, to show that a drink adds no cooking time to the promise.
-    await createIfMissing(Dish, { id: product.id }, {
-      ...product,
-      parentGroup: catalogGroup.id,
-      enable: true,
-      visible: true,
-      isDeleted: false,
-    });
+    // Stock set by hand while testing goes with the dish it was set on: a
+    // `DishPlace` whose dish is gone is a row nobody can see or delete.
+    await DishPlace.destroy({ dish: { in: dishIds } }).fetch();
+    await Dish.destroy({ id: { in: dishIds } }).fetch();
+    await Group.destroy({ id: { in: groupIds } }).fetch();
   }
 
   for (const menu of CITY_MENUS) {
@@ -378,99 +167,6 @@ async function seedStockDemo(recreate: boolean): Promise<void> {
         isDeleted: false,
       });
     }
-  }
-
-  const balances = demoBalances();
-  const seededVersion = await Settings.get(DEMO_BALANCES_VERSION_KEY);
-  const rewriteBalances = recreate || seededVersion !== DEMO_BALANCES_VERSION;
-
-  for (const [placeId, productBalances] of Object.entries(balances)) {
-    for (const [productId, values] of Object.entries(productBalances)) {
-      if (!rewriteBalances && (await DishPlace.findOne({ dish: productId, place: placeId }))) continue;
-      await DishPlace.upsertForPlace(productId, placeId, {
-        localBalance: values.localBalance ?? null,
-        rmsBalance: values.rmsBalance ?? null,
-        enable: values.enable ?? true,
-      });
-    }
-  }
-
-  if (rewriteBalances) {
-    // Pairs dropped from the balances must lose their row: no row is how the demo
-    // shows a product that is unlimited at every point.
-    const keep = new Set(
-      Object.entries(balances).flatMap(([placeId, productBalances]) =>
-        Object.keys(productBalances).map((productId) => `${productId} ${placeId}`),
-      ),
-    );
-    const stale = (await DishPlace.find({ where: { dish: { in: demoProductIds } } }))
-      .filter((row: any) => !keep.has(`${row.dish} ${row.place}`))
-      .map((row: any) => row.id);
-    if (stale.length) await DishPlace.destroy({ id: { in: stale } }).fetch();
-
-    await Settings.set(DEMO_BALANCES_VERSION_KEY, {
-      key: DEMO_BALANCES_VERSION_KEY,
-      value: DEMO_BALANCES_VERSION,
-    });
-  }
-}
-
-/**
- * Drops the demo cities from the installation-wide sync config.
- *
- * The map link is not a column on `City`, it is an entry in
- * `DELIVERY_ZONE_SYNC_CONFIG` keyed by city id — so recreating the cities under
- * the same ids re-attaches the link pasted before the reseed. A reseed owns
- * those entries as much as it owns the rows. Entries for cities this seed did
- * not create are left alone.
- */
-async function forgetDeliveryZoneSources(cityIds: string[]): Promise<void> {
-  const config = ((await Settings.get("DELIVERY_ZONE_SYNC_CONFIG")) ?? {}) as Record<string, any>;
-  const { cities, ...shared } = config;
-  if (!Array.isArray(cities)) return;
-  const kept = cities.filter((entry: any) => !cityIds.includes(entry?.city));
-  if (kept.length === cities.length) return;
-  // Same shape the popup writes when the last link is cleared: `cities` is
-  // omitted rather than emptied, because an empty array fails the target check.
-  await Settings.set("DELIVERY_ZONE_SYNC_CONFIG", {
-    key: "DELIVERY_ZONE_SYNC_CONFIG",
-    value: { ...shared, ...(kept.length ? { cities: kept } : {}) },
-  } as any);
-}
-
-/**
- * Local delivery zones over the demo kitchens.
- *
- * Local means no `source` and no `externalId`, which is exactly the state the
- * iteration requires to be usable on its own: an operator can create and edit
- * these without configuring an external source, and no schedule starts because
- * of them.
- */
-async function seedDeliveryZones(recreate: boolean): Promise<void> {
-  const cityIds = [...CITIES.map((city) => city.id), ...RETIRED_CITY_IDS];
-  const zoneIds = [...ZONES.map((zone) => zone.id), ...RETIRED_ZONE_IDS];
-
-  if (recreate) {
-    // Zones before cities, because zones point at them. Everything imported into
-    // a demo city goes too, not just the zones listed here: the source that
-    // brought them in is forgotten in the same breath, so a reseed leaves the
-    // demo with the locally drawn zones and an empty link field again.
-    await DeliveryZone.destroy({ city: { in: cityIds } }).fetch();
-    await DeliveryZone.destroy({ id: { in: zoneIds } }).fetch();
-    await City.destroy({ id: { in: cityIds } }).fetch();
-    await forgetDeliveryZoneSources(cityIds);
-  }
-
-  for (const city of CITIES) {
-    await createIfMissing(City, { id: city.id }, { ...city });
-  }
-
-  for (const zone of ZONES) {
-    await createIfMissing(DeliveryZone, { id: zone.id }, {
-      ...zone,
-      polygon: zone.polygon.map((point) => [...point]),
-      enable: true,
-    });
   }
 }
 
@@ -496,14 +192,9 @@ const PROMOTIONS = [
   },
 ] as const;
 
-/** Seeded once, no longer created — destroyed so a reseed does not strand it. */
-const RETIRED_PROMOTION_IDS = ["demo-promo-local-zone"];
-
 async function seedPromotions(recreate: boolean): Promise<void> {
-  const promotionIds = [...PROMOTIONS.map((promotion) => promotion.id), ...RETIRED_PROMOTION_IDS];
-
   if (recreate) {
-    await Promotion.destroy({ id: { in: promotionIds } }).fetch();
+    await Promotion.destroy({ id: { in: PROMOTIONS.map((promotion) => promotion.id) } }).fetch();
   }
 
   for (const promotion of PROMOTIONS) {
@@ -535,7 +226,7 @@ async function seedPromotions(recreate: boolean): Promise<void> {
         // a null guard — so `groups: null` throws inside the discount loop, the
         // promotion is silently skipped, and the result is indistinguishable
         // from a zone rule that refused it. `["*"]` is how "any basket" is
-        // spelled here, and it keeps the zone the only thing these two vary.
+        // spelled here.
         dishes: ["*"],
         groups: ["*"],
       },
@@ -554,101 +245,23 @@ async function seedPromotions(recreate: boolean): Promise<void> {
   }
 }
 
-/** The operators used to demonstrate per-place rights in the Stock Manager. */
-async function seedOperators(adminizer: any, recreate: boolean): Promise<void> {
-  const accessRights = adminizer.modelHandler.internal("access-rights");
-  const users = adminizer.modelHandler.internal("users");
-  const groupModel = accessRights.get("Group");
-  const userModel = users.get("User");
-
-  const logins = ["stock-demo-center", "stock-demo-north", "stock-demo-both"];
-  const groupNames = ["Demo stock: Center", "Demo stock: North"];
-
-  if (recreate) {
-    for (const login of logins) await userModel.destroy({ login });
-    for (const name of groupNames) await groupModel.destroy({ name });
-  }
-
-  const centerGroup = await ensureDemoAdminGroup(
-    groupModel,
-    groupNames[0],
-    "Can work with Demo kitchen: Center only",
-    "demo-kitchen-center",
-  );
-  const northGroup = await ensureDemoAdminGroup(
-    groupModel,
-    groupNames[1],
-    "Can work with Demo kitchen: North only",
-    "demo-kitchen-north",
-  );
-
-  const { generate } = require("password-hash") as { generate(value: string): string };
-  const password = (login: string) => generate(login + DEMO_PASSWORD + process.env.AP_PASSWORD_SALT);
-  for (const user of [
-    { login: logins[0], fullName: "Demo operator Center", groups: [centerGroup.id] },
-    { login: logins[1], fullName: "Demo operator North", groups: [northGroup.id] },
-    { login: logins[2], fullName: "Demo operator Both kitchens", groups: [centerGroup.id, northGroup.id] },
-  ]) {
-    await createIfMissing(userModel, { login: user.login }, {
-      ...user,
-      passwordHashed: password(user.login),
-      isActive: true,
-      isConfirmed: true,
-      isAdministrator: false,
-    });
-  }
-}
-
 /**
- * Fills a development database with a usable catalog, four kitchens in three
- * cities, per-place stock and the operators to look at it with.
+ * The settings the scenarios are written against.
  *
- * Driven by `MULTI_KITCHEN_DEMO_SEED`: `true` adds what is missing and never
- * overwrites anything, `recreate` first deletes the entities the seed owns.
- * Anything else leaves the database untouched.
+ * Written every time the seed runs, not only on a recreate: a scenario that
+ * depends on soft calculation being on cannot start by asking the operator
+ * whether it is. The geocoder URL is deliberately not among them — it belongs to
+ * the installation, and pointing a real one at a test instance is not a demo
+ * decision.
  */
-/**
- * An Asia extract of OSM: what this project runs against, and what answers for
- * the demo cities. A real installation keeps the public instance.
- */
-const DEV_GEOCODER_URL = "https://asia.nominatim.m42.cx";
-
-/**
- * Points the geocoder at the development instance, and only on an explicit
- * recreate.
- *
- * That flag is the operator saying "rebuild the demo"; an ordinary boot must
- * never replace a real geocoder with a test one. Map links are deliberately not
- * seeded — they are pasted per city on the delivery zones page, which is the
- * path worth exercising.
- */
-async function seedGeocoder(recreate: boolean): Promise<void> {
-  if (!recreate || process.env.NODE_ENV === "production") return;
-
-  await Settings.set("NOMINATIM_URL", { key: "NOMINATIM_URL", value: DEV_GEOCODER_URL } as any);
-  sails.log.warn(`[MultiKitchen demo] geocoder set to ${DEV_GEOCODER_URL}`);
-}
-
-export async function seedMultiKitchenDemo(adminizer: any): Promise<void> {
-  const mode = readSeedMode();
-  if (mode === "off") return;
-
-  const recreate = mode === "recreate";
-  if (recreate) {
-    sails.log.warn(
-      "[MultiKitchen demo] recreate mode: seeded catalog, places, stock, zones, demo cities and operators are dropped first",
-    );
-  }
-
-  await seedCatalog(recreate);
-  // Cities first: every point names the one it is listed in.
-  await seedDeliveryZones(recreate);
-  await seedStockDemo(recreate);
-  // The zones above are only exercised if the chain asks them first.
+async function seedSettings(): Promise<void> {
+  // Zones first, so an address inside one is priced by it; the straight-line
+  // fallback follows, and a single point answers when there is nothing else.
   await Settings.set("KITCHEN_RESOLVE_CHAIN", {
     key: "KITCHEN_RESOLVE_CHAIN",
     value: ["delivery-zone", "nearest-geo", "single-point"],
   } as any);
+
   // The storefront asks for an address or a pickup point before the first
   // product goes into the basket, which is where the menu starts being read at
   // one kitchen. Without this the popup never opens and the whole demo is a
@@ -657,22 +270,116 @@ export async function seedMultiKitchenDemo(adminizer: any): Promise<void> {
     key: "FIELDS_FOR_ORDER_INITIALIZATION",
     value: ["address", "pickupPoint"],
   } as any);
-  await seedGeocoder(recreate);
+
+  await Settings.set("MENU_PLACE_BASED_MODE", {
+    key: "MENU_PLACE_BASED_MODE",
+    value: "default",
+  } as any);
+
+  // No cap on how far `nearest-geo` may reach: an address outside every zone
+  // still gets a kitchen, and what happens next is the soft calculation's
+  // answer rather than "no kitchen". `type` is spelled out because `0` is
+  // falsy and the setting would otherwise be saved without one.
+  await Settings.set("DELIVERY_MAX_RADIUS_KM", {
+    key: "DELIVERY_MAX_RADIUS_KM",
+    type: "number",
+    value: 0,
+  } as any);
+
+  // An address the calculation cannot price is taken anyway, with a message —
+  // scenarios 05 and 06 read that message.
+  await Settings.set("SOFT_DELIVERY_CALCULATION", {
+    key: "SOFT_DELIVERY_CALCULATION",
+    value: true,
+  } as any);
+}
+
+/**
+ * Drops the demo cities from the installation-wide sync config.
+ *
+ * The map link is not a column on `City`, it is an entry in
+ * `DELIVERY_ZONE_SYNC_CONFIG` keyed by city id, so it outlives the row it points
+ * at. Entries for cities this seed did not create are left alone.
+ */
+async function forgetDeliveryZoneSources(cityIds: string[]): Promise<void> {
+  const config = ((await Settings.get("DELIVERY_ZONE_SYNC_CONFIG")) ?? {}) as Record<string, any>;
+  const { cities, ...shared } = config;
+  if (!Array.isArray(cities)) return;
+  const kept = cities.filter((entry: any) => !cityIds.includes(entry?.city));
+  if (kept.length === cities.length) return;
+  // Same shape the popup writes when the last link is cleared: `cities` is
+  // omitted rather than emptied, because an empty array fails the target check.
+  await Settings.set("DELIVERY_ZONE_SYNC_CONFIG", {
+    key: "DELIVERY_ZONE_SYNC_CONFIG",
+    value: { ...shared, ...(kept.length ? { cities: kept } : {}) },
+  } as any);
+}
+
+/**
+ * Deletes what the seed used to create and no longer does. Recreate only.
+ *
+ * A list rather than a run of statements because the order is the interesting
+ * part: zones and addresses point at a city, stock points at a dish and a place,
+ * so each row goes before the row it hangs from. Everything belonging to a demo
+ * city goes, not only the ids listed — a zone imported into one has no owner
+ * left once the city is gone.
+ */
+async function retireDemoEntities(adminizer: any): Promise<void> {
+  const rows: [any, any][] = [
+    [DeliveryZone, { city: { in: RETIRED_CITY_IDS } }],
+    [DeliveryZone, { id: { in: RETIRED_ZONE_IDS } }],
+    [Address, { city: { in: RETIRED_CITY_IDS } }],
+    [City, { id: { in: RETIRED_CITY_IDS } }],
+    [DishPlace, { place: { in: RETIRED_PLACE_IDS } }],
+    [DishPlace, { dish: { in: RETIRED_PRODUCT_IDS } }],
+    [Place, { id: { in: RETIRED_PLACE_IDS } }],
+    [Dish, { id: { in: RETIRED_PRODUCT_IDS } }],
+    [Group, { id: { in: RETIRED_GROUP_IDS } }],
+    [Promotion, { id: { in: RETIRED_PROMOTION_IDS } }],
+    [Settings, { key: { in: RETIRED_SETTINGS } }],
+  ];
+  for (const [model, criteria] of rows) await model.destroy(criteria).fetch();
+
+  await forgetDeliveryZoneSources(RETIRED_CITY_IDS);
+
+  const users = adminizer.modelHandler.internal("users").get("User");
+  const groups = adminizer.modelHandler.internal("access-rights").get("Group");
+  for (const login of RETIRED_OPERATOR_LOGINS) await users.destroy({ login });
+  for (const name of RETIRED_OPERATOR_GROUPS) await groups.destroy({ name });
+}
+
+/**
+ * Fills a development database with a usable catalog, the two out-of-town menus,
+ * one promotion and the settings the scenarios expect.
+ *
+ * Cities, kitchens, zones and addresses are not here: an operator creates them
+ * in scenario 01, from the fixtures in
+ * `dev-docs/Сквозной-сценарий/fixtures/`.
+ *
+ * Driven by `MULTI_KITCHEN_DEMO_SEED`: `true` adds what is missing and never
+ * overwrites anything, `recreate` first deletes the entities the seed owns.
+ * Anything else leaves the database untouched.
+ */
+export async function seedMultiKitchenDemo(adminizer: any): Promise<void> {
+  const mode = readSeedMode();
+  if (mode === "off") return;
+
+  const recreate = mode === "recreate";
+  if (recreate) {
+    sails.log.warn("[MultiKitchen demo] recreate mode: the seeded catalog, menus and promotions are dropped first");
+    await retireDemoEntities(adminizer);
+  }
+
+  await seedCatalog(recreate);
+  await seedCityMenus(recreate);
   await seedPromotions(recreate);
-  await seedOperators(adminizer, recreate);
+  await seedSettings();
 
   const groups = devCatalog.groups?.length ?? 0;
   const dishes = devCatalog.dishes?.length ?? 0;
   sails.log.info(
     `[MultiKitchen demo] Seeded ${groups} catalog groups, ${dishes} catalog products, ` +
-    `${PLACES.length} kitchens, ${CITIES.length} cities, ${ZONES.length} local zone(s), ` +
-    `${PROMOTIONS.length} promotions, two admin groups and three users. Password: ${DEMO_PASSWORD}`,
+    `${CITY_MENUS.length} city menus and ${PROMOTIONS.length} promotions. ` +
+    `Cities, kitchens, zones and addresses are the operator's to create.`,
   );
-
-  // A module that ships development fixtures cannot know when the demo cities
-  // appear: hook load order decides whether it initialised before or after this
-  // seed, and on a normal boot it is before. So the seed says when it is done
-  // rather than leaving anyone to guess.
-  emitter.declare("core:demo-seed:done", "The multi-kitchen demo seed has finished");
-  emitter.emit("core:demo-seed:done");
 }

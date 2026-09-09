@@ -46,8 +46,6 @@ declare global {
     "rms-sync:out-of-stocks-before-each-product-item": [RMSOutOfStockEventItem]
     "rms-sync:after-sync-out-of-stocks": []
     "core:product-before-create": [DishRecord]
-    /** The multi-kitchen demo seed finished. Development stands only. */
-    "core:demo-seed:done": []
     "core:payment-document-check": [PaymentDocumentRecord]
     "core:payment-document-paid": [PaymentDocumentRecord]
     "core:payment-document-checked-document": [PaymentDocumentRecord]
