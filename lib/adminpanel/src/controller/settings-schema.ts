@@ -4,32 +4,43 @@ import path from 'path';
 const Ajv = require('ajv');
 
 const settingsDir = path.resolve(__dirname, '../../../../settings');
-let schemaByKey: Record<string, any> | null = null;
+let manifestByKey: Record<string, any> | null = null;
 
-function loadSchemaByKey(): Record<string, any> {
-  if (schemaByKey) return schemaByKey;
+function loadManifestByKey(): Record<string, any> {
+  if (manifestByKey) return manifestByKey;
 
-  schemaByKey = {};
-  if (!fs.existsSync(settingsDir)) return schemaByKey;
+  manifestByKey = {};
+  if (!fs.existsSync(settingsDir)) return manifestByKey;
 
   for (const file of fs.readdirSync(settingsDir)) {
     if (!file.endsWith('.json')) continue;
 
     try {
       const setting = JSON.parse(fs.readFileSync(path.join(settingsDir, file), 'utf8'));
-      if (setting?.key && setting?.jsonSchema) {
-        schemaByKey[setting.key] = setting.jsonSchema;
+      if (setting?.key) {
+        manifestByKey[setting.key] = setting;
       }
     } catch (e) {
       sails.log.warn(`SettingsManager: failed to read setting schema from ${file}`, e);
     }
   }
 
-  return schemaByKey;
+  return manifestByKey;
 }
 
 export function getSettingSchema(setting: any): any {
-  return setting?.jsonSchema || loadSchemaByKey()[setting?.key] || null;
+  return setting?.jsonSchema || loadManifestByKey()[setting?.key]?.jsonSchema || null;
+}
+
+/**
+ * Human wording of the `pattern` rule, when the manifest provides one.
+ *
+ * The stored row has no column for it — the hint belongs to the manifest, not to the
+ * value — so it is read from settings/*.json for both fresh and upgraded installs.
+ */
+export function getSettingPatternHint(setting: any): string | null {
+  const hint = setting?.patternHint || loadManifestByKey()[setting?.key]?.patternHint;
+  return typeof hint === 'string' && hint.trim() ? hint : null;
 }
 
 type Translate = (key: string) => string;
@@ -56,15 +67,20 @@ function fill(template: string, params: Record<string, string | number>): string
  *
  * Keywords not listed here fall back to Ajv's own English wording — worse than a translated
  * string, still better than hiding the reason.
+ *
+ * `patternHint` (from the manifest) replaces the raw regular expression: `^[a-z0-9\-]+$`
+ * tells an operator nothing, "lowercase latin letters, digits and hyphens" does.
  */
-function describeAjvError(error: any, t: Translate): string {
+function describeAjvError(error: any, t: Translate, patternHint: string | null): string {
   const params = error?.params || {};
   const path = String(error?.instancePath || '').replace(/^\//, '').split('/').join('.');
   const at = path ? `${path}: ` : '';
 
   switch (error?.keyword) {
     case 'pattern':
-      return `${at}${t('Value must match the pattern')}: ${params.pattern}`;
+      return patternHint
+        ? `${at}${t('Value must contain only')}: ${t(patternHint)}`
+        : `${at}${t('Value must match the pattern')}: ${params.pattern}`;
     case 'minLength':
       return at + fill(t('Value must be at least {count} characters long'), { count: params.limit });
     case 'maxLength':
@@ -116,7 +132,8 @@ export function describeSettingValueProblem(setting: any, value: any, t: Transla
   const errors: any[] = validate.errors || [];
   sails.log.warn(`SettingsManager: value for [${setting?.key}] does not match jsonSchema`, errors);
 
-  const described = [...new Set(errors.map((error) => describeAjvError(error, t)))].filter(Boolean);
+  const patternHint = getSettingPatternHint(setting);
+  const described = [...new Set(errors.map((error) => describeAjvError(error, t, patternHint)))].filter(Boolean);
   if (!described.length) return t('Validation failed. Check schema or value.');
 
   return described.slice(0, MAX_REPORTED_PROBLEMS).join('; ');

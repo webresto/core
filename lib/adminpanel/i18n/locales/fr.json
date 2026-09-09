@@ -462,8 +462,9 @@
 	"No dishes found": "Aucun plat trouvé",
 	"Setup checklist": "Setup checklist",
 	"Project setup": "Project setup",
+	"Project ID": "ID du projet",
 	"Basic project configuration": "Basic project configuration",
-	"Project name": "Project name",
+	"Project ID": "ID du projet",
 	"Country": "Country",
 	"Default currency": "Default currency",
 	"Default locale": "Default locale",
@@ -576,6 +577,8 @@
 	"Value must be at least {count} characters long": "La valeur doit contenir au moins {count} caractères",
 	"Value must be no longer than {count} characters": "La valeur ne doit pas dépasser {count} caractères",
 	"Value must match the pattern": "La valeur doit correspondre au motif",
+	"Value must contain only": "La valeur ne peut contenir que",
+	"lowercase latin letters, digits and hyphens, for example: resto-acceptance": "des lettres latines minuscules, des chiffres et des traits d'union, par exemple : resto-acceptance",
 	"Value must be one of": "Valeurs autorisées",
 	"Value must be {min} or greater": "La valeur doit être supérieure ou égale à {min}",
 	"Value must be {max} or less": "La valeur doit être inférieure ou égale à {max}",
@@ -583,5 +586,5 @@
 	"Value must contain at least {count} item(s)": "La valeur doit contenir au moins {count} élément(s)",
 	"Missing required property {property}": "Propriété obligatoire manquante : {property}",
 	"Unexpected property {property}": "Propriété inattendue : {property}",
-	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Identifiant technique du projet, et non le nom affiché de l'établissement : lettres latines minuscules, chiffres et tirets, au moins 3 caractères"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Identifiant technique (slug) de cette installation, et non le nom affiché de l'établissement : lettres latines minuscules, chiffres et tirets, au moins 3 caractères"
 }

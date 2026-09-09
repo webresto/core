@@ -549,8 +549,9 @@
 	"Toggle channel": "Показать/скрыть канал",
 	"Setup checklist": "Чек-лист настройки",
 	"Project setup": "Настройка проекта",
+	"Project ID": "Идентификатор проекта",
 	"Basic project configuration": "Базовая конфигурация проекта",
-	"Project name": "Название проекта",
+	"Project ID": "Идентификатор проекта",
 	"Country": "Страна",
 	"Default currency": "Валюта по умолчанию",
 	"Default locale": "Язык по умолчанию",
@@ -872,6 +873,8 @@
 	"Value must be at least {count} characters long": "Значение должно быть не короче {count} символов",
 	"Value must be no longer than {count} characters": "Значение должно быть не длиннее {count} символов",
 	"Value must match the pattern": "Значение должно соответствовать шаблону",
+	"Value must contain only": "Значение может содержать только",
+	"lowercase latin letters, digits and hyphens, for example: resto-acceptance": "строчные латинские буквы, цифры и дефис, например: resto-acceptance",
 	"Value must be one of": "Допустимые значения",
 	"Value must be {min} or greater": "Значение должно быть не меньше {min}",
 	"Value must be {max} or less": "Значение должно быть не больше {max}",
@@ -879,5 +882,5 @@
 	"Value must contain at least {count} item(s)": "Значение должно содержать не менее {count} элем.",
 	"Missing required property {property}": "Отсутствует обязательное поле {property}",
 	"Unexpected property {property}": "Лишнее поле {property}",
-	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технический идентификатор проекта, а не название заведения: строчные латинские буквы, цифры и дефис, не менее 3 символов"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технический идентификатор (слаг) этой установки, а не название заведения: строчные латинские буквы, цифры и дефис, не менее 3 символов"
 }

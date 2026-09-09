@@ -1,4 +1,4 @@
-import { getSettingSchema } from './settings-schema';
+import { getSettingSchema, getSettingPatternHint } from './settings-schema';
 
 export default async function GetSettingsController(req: any, res: any) {
   const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
@@ -28,6 +28,8 @@ export default async function GetSettingsController(req: any, res: any) {
         value: s.secret ? null : effectiveValue,
         defaultValue: s.secret ? null : s.defaultValue,
         jsonSchema: getSettingSchema(s),
+        // Human wording of the `pattern` rule, so the UI never shows a raw regexp.
+        patternHint: getSettingPatternHint(s),
         uiSchema: s.uiSchema || null,
         readOnly: s.readOnly ?? false,
         isRequired: s.isRequired ?? false,

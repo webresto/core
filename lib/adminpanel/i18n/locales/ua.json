@@ -717,8 +717,9 @@
 	"Draft": "Чернетка",
 	"Setup checklist": "Чекліст налаштування",
 	"Project setup": "Налаштування проєкту",
+	"Project ID": "Ідентифікатор проєкту",
 	"Basic project configuration": "Основна конфігурація проєкту",
-	"Project name": "Назва проєкту",
+	"Project ID": "Ідентифікатор проєкту",
 	"Country": "Країна",
 	"Default currency": "Валюта за замовчуванням",
 	"Default locale": "Мова за замовчуванням",
@@ -829,6 +830,8 @@
 	"Value must be at least {count} characters long": "Значення має бути не коротшим за {count} символів",
 	"Value must be no longer than {count} characters": "Значення має бути не довшим за {count} символів",
 	"Value must match the pattern": "Значення має відповідати шаблону",
+	"Value must contain only": "Значення може містити лише",
+	"lowercase latin letters, digits and hyphens, for example: resto-acceptance": "малі латинські літери, цифри та дефіс, наприклад: resto-acceptance",
 	"Value must be one of": "Допустимі значення",
 	"Value must be {min} or greater": "Значення має бути не меншим за {min}",
 	"Value must be {max} or less": "Значення має бути не більшим за {max}",
@@ -836,5 +839,5 @@
 	"Value must contain at least {count} item(s)": "Значення має містити щонайменше {count} елем.",
 	"Missing required property {property}": "Відсутнє обов'язкове поле {property}",
 	"Unexpected property {property}": "Зайве поле {property}",
-	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технічний ідентифікатор проєкту, а не назва закладу: рядкові латинські літери, цифри та дефіс, щонайменше 3 символи"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технічний ідентифікатор (слаг) цієї інсталяції, а не назва закладу: рядкові латинські літери, цифри та дефіс, щонайменше 3 символи"
 }

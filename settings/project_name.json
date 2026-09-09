@@ -1,8 +1,9 @@
 {
   "key": "PROJECT_NAME",
   "type": "string",
-  "name": "Project Name",
-  "description": "Technical identifier of the project — used in metric labels, integration ids and as the default OTP sender name, not as the venue's display name. Lowercase latin letters, digits and hyphens only, at least 3 characters. Example: resto-acceptance",
+  "name": "Project ID",
+  "description": "Technical identifier (slug) of this installation — used in metric labels, integration ids and as the default OTP sender name. It is not the venue's display name and is not shown to guests. Lowercase latin letters, digits and hyphens only, at least 3 characters. Example: resto-acceptance",
+  "patternHint": "lowercase latin letters, digits and hyphens, for example: resto-acceptance",
   "jsonSchema": {
     "type": "string",
     "pattern": "^[a-z0-9\\-]+$",

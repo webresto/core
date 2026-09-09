@@ -76,6 +76,8 @@
 	"Value must be at least {count} characters long": "Qiymat kamida {count} ta belgidan iborat bo'lishi kerak",
 	"Value must be no longer than {count} characters": "Qiymat {count} ta belgidan uzun bo'lmasligi kerak",
 	"Value must match the pattern": "Qiymat shablonga mos bo'lishi kerak",
+	"Value must contain only": "Qiymatda faqat quyidagilar bo'lishi mumkin",
+	"lowercase latin letters, digits and hyphens, for example: resto-acceptance": "kichik lotin harflari, raqamlar va defis, masalan: resto-acceptance",
 	"Value must be one of": "Ruxsat etilgan qiymatlar",
 	"Value must be {min} or greater": "Qiymat {min} yoki undan katta bo'lishi kerak",
 	"Value must be {max} or less": "Qiymat {max} yoki undan kichik bo'lishi kerak",
@@ -83,5 +85,6 @@
 	"Value must contain at least {count} item(s)": "Qiymatda kamida {count} ta element bo'lishi kerak",
 	"Missing required property {property}": "Majburiy maydon {property} yo'q",
 	"Unexpected property {property}": "Ortiqcha maydon {property}",
-	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Loyihaning texnik identifikatori, muassasaning ko'rinadigan nomi emas: faqat kichik lotin harflari, raqamlar va defis, kamida 3 ta belgi"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Ushbu o'rnatmaning texnik identifikatori (slug), muassasaning ko'rinadigan nomi emas: faqat kichik lotin harflari, raqamlar va defis, kamida 3 ta belgi",
+	"Project ID": "Loyiha ID"
 }

@@ -45,6 +45,10 @@
     },
     "jsonSchema": {
       "$ref": "http://json-schema.org/draft-07/schema#"
+    },
+    "patternHint": {
+      "type": "string",
+      "description": "Human wording of the jsonSchema `pattern` rule, shown instead of the raw regular expression when a value is rejected."
     }
   },
   "required": ["key", "type", "name"],
