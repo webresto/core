@@ -76,6 +76,8 @@
 	"Value must be at least {count} characters long": "يجب ألا تقل القيمة عن {count} حرفًا",
 	"Value must be no longer than {count} characters": "يجب ألا تزيد القيمة عن {count} حرفًا",
 	"Value must match the pattern": "يجب أن تطابق القيمة النمط",
+	"Value must contain only": "يجب أن تحتوي القيمة فقط على",
+	"lowercase latin letters, digits and hyphens, for example: resto-acceptance": "أحرف لاتينية صغيرة وأرقام وشرطات، على سبيل المثال: resto-acceptance",
 	"Value must be one of": "القيم المسموح بها",
 	"Value must be {min} or greater": "يجب أن تكون القيمة {min} أو أكبر",
 	"Value must be {max} or less": "يجب أن تكون القيمة {max} أو أقل",
@@ -83,5 +85,6 @@
 	"Value must contain at least {count} item(s)": "يجب أن تحتوي القيمة على {count} عنصر على الأقل",
 	"Missing required property {property}": "الحقل المطلوب {property} غير موجود",
 	"Unexpected property {property}": "حقل غير متوقع {property}",
-	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "المعرّف التقني للمشروع، وليس الاسم الظاهر للمطعم: حروف لاتينية صغيرة وأرقام وشرطات فقط، 3 أحرف على الأقل"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "المعرّف التقني (slug) لهذا التثبيت، وليس الاسم الظاهر للمطعم: حروف لاتينية صغيرة وأرقام وشرطات فقط، 3 أحرف على الأقل",
+	"Project ID": "معرّف المشروع"
 }

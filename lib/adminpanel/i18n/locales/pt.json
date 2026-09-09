@@ -76,6 +76,8 @@
 	"Value must be at least {count} characters long": "O valor deve ter pelo menos {count} caracteres",
 	"Value must be no longer than {count} characters": "O valor não pode ter mais de {count} caracteres",
 	"Value must match the pattern": "O valor deve corresponder ao padrão",
+	"Value must contain only": "O valor só pode conter",
+	"lowercase latin letters, digits and hyphens, for example: resto-acceptance": "letras latinas minúsculas, dígitos e hífens, por exemplo: resto-acceptance",
 	"Value must be one of": "Valores permitidos",
 	"Value must be {min} or greater": "O valor deve ser {min} ou maior",
 	"Value must be {max} or less": "O valor deve ser {max} ou menor",
@@ -83,5 +85,6 @@
 	"Value must contain at least {count} item(s)": "O valor deve conter pelo menos {count} item(ns)",
 	"Missing required property {property}": "Propriedade obrigatória ausente: {property}",
 	"Unexpected property {property}": "Propriedade inesperada: {property}",
-	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Identificador técnico do projeto, não o nome visível do estabelecimento: letras latinas minúsculas, dígitos e hífens, pelo menos 3 caracteres"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Identificador técnico (slug) desta instalação, não o nome visível do estabelecimento: letras latinas minúsculas, dígitos e hífens, pelo menos 3 caracteres",
+	"Project ID": "ID do projeto"
 }

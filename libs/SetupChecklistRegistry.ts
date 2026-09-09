@@ -283,14 +283,14 @@ export class SetupChecklistRegistry {
       });
     };
 
-    // "Project name" reads as the venue's display name, so people type one and the
-    // schema (^[a-z0-9-]+$) rejects it. Say up front that this is a slug.
+    // Titled "Project ID", not "Project name": the setting holds a slug (^[a-z0-9-]+$),
+    // and while it read as a display name people typed one and hit the schema.
     requiredSetting(
       "project_name",
       "PROJECT_NAME",
-      "Project name",
+      "Project ID",
       0,
-      "Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters"
+      "Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters"
     );
     requiredSetting("project_country", "COUNTRY_ISO", "Country", 1);
     requiredSetting("project_currency", "DEFAULT_CURRENCY_ISO", "Default currency", 2);

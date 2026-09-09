@@ -375,7 +375,7 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
   const blankSecret = !!selected?.secret && (editValue === null || editValue === undefined || editValue === '');
   const schemaError = locked || blankSecret || selected?.type === 'json'
     ? null
-    : validateValueBySchema(selected?.jsonSchema, editValue, t);
+    : validateValueBySchema(selected?.jsonSchema, editValue, t, selected?.patternHint);
   // Reset validation state when a different setting is selected
   React.useEffect(() => { setJsonHasErrors(false); }, [selected?.key]);
 

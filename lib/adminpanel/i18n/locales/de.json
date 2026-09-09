@@ -462,8 +462,9 @@
 	"No dishes found": "Keine Gerichte gefunden",
 	"Setup checklist": "Setup checklist",
 	"Project setup": "Project setup",
+	"Project ID": "Projekt-ID",
 	"Basic project configuration": "Basic project configuration",
-	"Project name": "Project name",
+	"Project ID": "Projekt-ID",
 	"Country": "Country",
 	"Default currency": "Default currency",
 	"Default locale": "Default locale",
@@ -576,6 +577,8 @@
 	"Value must be at least {count} characters long": "Wert muss mindestens {count} Zeichen lang sein",
 	"Value must be no longer than {count} characters": "Wert darf höchstens {count} Zeichen lang sein",
 	"Value must match the pattern": "Wert muss dem Muster entsprechen",
+	"Value must contain only": "Der Wert darf nur enthalten",
+	"lowercase latin letters, digits and hyphens, for example: resto-acceptance": "lateinische Kleinbuchstaben, Ziffern und Bindestriche, zum Beispiel: resto-acceptance",
 	"Value must be one of": "Zulässige Werte",
 	"Value must be {min} or greater": "Wert muss {min} oder größer sein",
 	"Value must be {max} or less": "Wert muss {max} oder kleiner sein",
@@ -583,5 +586,5 @@
 	"Value must contain at least {count} item(s)": "Wert muss mindestens {count} Element(e) enthalten",
 	"Missing required property {property}": "Pflichtfeld {property} fehlt",
 	"Unexpected property {property}": "Unerwartetes Feld {property}",
-	"Technical identifier of the project, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Technische Kennung des Projekts, nicht der Anzeigename des Lokals: nur Kleinbuchstaben, Ziffern und Bindestriche, mindestens 3 Zeichen"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Technische Kennung (Slug) dieser Installation, nicht der Anzeigename des Lokals: nur Kleinbuchstaben, Ziffern und Bindestriche, mindestens 3 Zeichen"
 }
