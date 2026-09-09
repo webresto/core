@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import {
   DeliveryZoneImportService,
+  importLocalZones,
   sourceHashOf,
   validateSnapshot,
 } from "../../adapters/delivery/default/zone-import";
@@ -321,6 +322,37 @@ describe("Delivery zone import", function () {
       const again = await DeliveryZoneImportService.apply(snapshot(zones));
 
       expect(again.stats.missing).to.equal(0);
+    });
+  });
+
+  describe("zones out of a file", function () {
+    it("creates them switched on, in the file order, owned by nobody", async function () {
+      const result = await importLocalZones({
+        city: "city-ekb",
+        zones: [{ name: "A", polygon: ring }, { name: "B", polygon: ring }],
+      });
+
+      expect(result).to.deep.equal({ created: 2, skipped: [] });
+      expect(rows.map((row) => [row.name, row.sortOrder])).to.deep.equal([["A", 0], ["B", 1]]);
+      expect(rows.every((row) => row.enable === true && row.city === "city-ekb")).to.equal(true);
+      expect(rows.every((row) => row.source === undefined && row.externalId === undefined)).to.equal(true);
+    });
+
+    it("skips a shape that cannot enclose an area and names it", async function () {
+      const result = await importLocalZones({
+        city: null,
+        zones: [{ name: "Полоска", polygon: [[9, 9], [11, 9], [9, 9]] }, { name: "A", polygon: ring }],
+      });
+
+      expect(result).to.deep.equal({ created: 1, skipped: ["Полоска"] });
+      expect(rows.map((row) => row.name)).to.deep.equal(["A"]);
+    });
+
+    it("makes the same zones again when the same file is loaded twice", async function () {
+      await importLocalZones({ city: "city-ekb", zones: [{ name: "A", polygon: ring }] });
+      await importLocalZones({ city: "city-ekb", zones: [{ name: "A", polygon: ring }] });
+
+      expect(rows.map((row) => row.name)).to.deep.equal(["A", "A"]);
     });
   });
 });

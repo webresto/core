@@ -378,6 +378,19 @@ export const adminPanelModules: AdminPanelModule[] = [
       // The gear next to the city: the map link and how often it is re-read.
       { method: "get", route: "/core/delivery-zone-source", controller: "src/controller/get-delivery-zone-source" },
       { method: "post", route: "/core/delivery-zone-source", controller: "src/controller/set-delivery-zone-source" },
+      // A map drawn elsewhere, uploaded once as local zones of this city.
+      { method: "post", route: "/core/delivery-zones-upload", controller: "src/controller/upload-delivery-zones" },
+    ],
+  },
+  {
+    // Loading a city's address catalog from a file. No page: the button sits on
+    // the zones page, which is the only place where a city is already chosen,
+    // and the rows themselves are an ordinary Adminizer model. Separate from
+    // that module all the same — the catalog is not the delivery adapter's, and
+    // pointing delivery elsewhere must not take the addresses with it.
+    id: "addresses",
+    routes: [
+      { method: "post", route: "/core/addresses-upload", controller: "src/controller/upload-addresses" },
     ],
   },
 ];
@@ -431,6 +444,7 @@ export const adminPanelAccessTokens: AdminPanelAccessToken[] = [
   { id: "setup-checklist", name: "Setup checklist", description: "Access to the Setup checklist page and its API endpoints", department: "System" },
   { id: "delivery-zones-view", name: "Delivery zones view", description: "Read-only access to the Delivery zones module", department: "Store" },
   { id: "delivery-zones-manage", name: "Delivery zones manage", description: "Edit delivery zones", department: "Store" },
+  { id: "addresses-manage", name: "Addresses manage", description: "Load a city's address catalog from a file", department: "Store" },
 ];
 
 /**

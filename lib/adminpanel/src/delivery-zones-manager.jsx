@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import WorktimeEditor from './components/WorktimeEditor';
@@ -290,6 +290,52 @@ function TariffDialog({ zone, layerName, layerTerms, canManage, onSave, onClose,
         </DialogStackContent>
       </DialogStackBody>
     </DialogStack>
+  );
+}
+
+// ─────────────────────────── uploading a file ────────────────────────────
+
+/**
+ * A button that reads a file and hands its text over.
+ *
+ * Text, not a multipart upload: both endpoints behind this take a string, which
+ * is the whole difference between a file input and a temporary file on the
+ * server. The input itself is hidden — a bare `<input type=file>` cannot be
+ * styled into the panel, and there is nothing to show once the file is read.
+ */
+function FileUploadButton({ icon, label, accept, disabled, onFile, t }) {
+  const inputRef = useRef(null);
+  const [busy, setBusy] = useState(false);
+
+  const onChange = async (event) => {
+    const file = event.target.files?.[0];
+    // Cleared before the work, so picking the same file twice in a row — the
+    // usual thing after fixing it — still fires a change.
+    event.target.value = '';
+    if (!file) return;
+
+    setBusy(true);
+    try {
+      await onFile(await file.text());
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={disabled || busy}
+        onClick={() => inputRef.current?.click()}
+        style={{ flex: 1, minWidth: 0, justifyContent: 'flex-start' }}
+      >
+        <MaterialIcon name={icon} size={14} style={{ marginRight: 4 }} />
+        {busy ? t('Loading…') : t(label)}
+      </Button>
+      <input ref={inputRef} type="file" accept={accept} onChange={onChange} style={{ display: 'none' }} />
+    </>
   );
 }
 
@@ -633,7 +679,7 @@ function ZonePanel({ zones, selectedId, hoveredId, onSelect, onHover, onOpenTari
 
 // ──────────────────────────── the page ────────────────────────────
 
-function DeliveryZonesContent({ canManage }) {
+function DeliveryZonesContent({ canManage, canManageAddresses }) {
   const { t } = useTranslation();
   const dark = useAppearance();
   // Two widths matter here. Below 720 the list cannot stand beside the map at
@@ -774,6 +820,37 @@ function DeliveryZonesContent({ canManage }) {
     setEditing(false);
   };
 
+  // ── files ──
+  //
+  // Both uploads create rows and match nothing: the same file twice makes the
+  // same zones twice. Reported in the toast rather than guarded against — the
+  // list below is where a duplicate is seen and deleted.
+  const uploadZones = useCallback(async (content) => {
+    const { ok, payload } = await api('/core/delivery-zones-upload', {
+      method: 'POST',
+      body: JSON.stringify({ city: cityId || '', content }),
+    });
+    if (!ok) {
+      toast('error', payload?.error || t('Could not read the file'));
+      return;
+    }
+    const skipped = payload.skipped?.length ? ` · ${t('shapes skipped')}: ${payload.skipped.length}` : '';
+    toast('success', `${t('Zones created')}: ${payload.created}${skipped}`);
+    await loadZones();
+  }, [cityId, loadZones, t]);
+
+  const uploadAddresses = useCallback(async (content) => {
+    const { ok, payload } = await api('/core/addresses-upload', {
+      method: 'POST',
+      body: JSON.stringify({ city: cityId || '', content }),
+    });
+    if (!ok) {
+      toast('error', payload?.error || t('Could not read the file'));
+      return;
+    }
+    toast('success', `${t('Addresses created')}: ${payload.created}`);
+  }, [cityId, t]);
+
   const onNew = (asLayer) => {
     setDraft({
       ...EMPTY_DRAFT,
@@ -894,6 +971,34 @@ function DeliveryZonesContent({ canManage }) {
               t={t}
             />
           </div>
+
+          {/* A map and a street list drawn somewhere else. Both are read once:
+              nothing here is kept in step with the file afterwards. */}
+          {(canManage || canManageAddresses) && (
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+              {canManage && (
+                <FileUploadButton
+                  icon="upload_file"
+                  label="Zones from a file"
+                  accept=".kml,.geojson,.json"
+                  onFile={uploadZones}
+                  t={t}
+                />
+              )}
+              {canManageAddresses && (
+                <FileUploadButton
+                  icon="location_on"
+                  label="Addresses from a file"
+                  accept=".json"
+                  // Every address belongs to a city, so an installation that has
+                  // never created one has nothing to load them into.
+                  disabled={!cityId}
+                  onFile={uploadAddresses}
+                  t={t}
+                />
+              )}
+            </div>
+          )}
 
           {loading ? (
             <span style={styles.help}>{t('Loading…')}</span>
@@ -1079,7 +1184,10 @@ function DeliveryZonesContent({ canManage }) {
 export default function DeliveryZonesManager({ props }) {
   return (
     <I18nProvider initialLocale={props?.locale || 'en'} messages={props?.messages}>
-      <DeliveryZonesContent canManage={props?.canManage !== false} />
+      <DeliveryZonesContent
+        canManage={props?.canManage !== false}
+        canManageAddresses={props?.canManageAddresses === true}
+      />
     </I18nProvider>
   );
 }

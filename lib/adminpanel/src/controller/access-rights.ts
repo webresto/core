@@ -81,6 +81,15 @@ export const DELIVERY_ZONES_ACCESS: ModuleAccessConfig = {
   manageToken: "delivery-zones-manage",
 };
 
+/**
+ * Writing the address catalog of a city.
+ *
+ * One token and no view counterpart: reading the catalog is what the storefront
+ * does on every keystroke, and the rows themselves are an ordinary Adminizer
+ * model. This gates the one thing that is not ordinary — dropping a file in.
+ */
+export const ADDRESSES_MANAGE_TOKEN = "addresses-manage";
+
 export const STOCK_MANAGER_TOKEN = "stock-manager";
 
 /** A group may have the token but no selected points; that grants the page, not stock data. */

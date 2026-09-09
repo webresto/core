@@ -8,6 +8,7 @@ import {
 import { DeliveryZoneRecord } from "../../../models/DeliveryZone";
 import { isValidPolygon } from "./zone-match";
 import { invalidateDeliveryZoneCache } from "./zone-cache";
+import { LocalZoneGeometry } from "./geojson";
 
 /**
  * Applying an external snapshot to the zones core owns.
@@ -369,4 +370,44 @@ export class DeliveryZoneImportService {
   public static sourceOwnedFields(): readonly string[] {
     return SOURCE_OWNED_FIELDS;
   }
+}
+
+/**
+ * Zones out of a file the operator picked, as rows of their own.
+ *
+ * The opposite of everything above: no source, no external id, no diff. A file
+ * is read once, and from the moment the rows exist nothing upstream has an
+ * opinion about them — a second upload of the same file makes a second set of
+ * zones with the same names, which the operator sees in the list and deletes.
+ *
+ * They arrive switched on, unlike a synchronised zone: an operator who just
+ * picked a file is looking at the map they meant to draw, not at a polygon
+ * somebody else changed.
+ */
+export async function importLocalZones(params: {
+  city: string | null;
+  zones: LocalZoneGeometry[];
+}): Promise<{ created: number; skipped: string[] }> {
+  const skipped: string[] = [];
+  let created = 0;
+
+  for (const zone of params.zones) {
+    if (!isValidPolygon(zone.polygon)) {
+      skipped.push(zone.name);
+      continue;
+    }
+
+    await DeliveryZone.create({
+      name: zone.name,
+      polygon: zone.polygon,
+      city: params.city,
+      enable: true,
+      // The file's own order: a map drawn north to south stays that way in the
+      // list, and matching walks the zones in it.
+      sortOrder: created,
+    } as any).fetch();
+    created++;
+  }
+
+  return { created, skipped };
 }

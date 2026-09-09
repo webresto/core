@@ -1,5 +1,6 @@
 import { adminModuleUrl } from "../../adminModules";
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
+import { ADDRESSES_MANAGE_TOKEN, hasAnyPermission } from "./access-rights";
 import { getDeliveryZonePermissions, hasAccess } from "./delivery-zones-helpers";
 
 export default async function DeliveryZonesManagerController(req: any, res: any) {
@@ -17,6 +18,9 @@ export default async function DeliveryZonesManagerController(req: any, res: any)
       messages,
       permissions,
       canManage: permissions.canManage,
+      // The address upload lives on this page but is not this module's right:
+      // a group may draw zones without owning the city's address catalog.
+      canManageAddresses: hasAnyPermission(req, req.user, [ADDRESSES_MANAGE_TOKEN]),
     },
   });
 }
