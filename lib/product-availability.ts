@@ -111,16 +111,7 @@ export interface PlaceAvailability {
  * under which a basket of drinks is not quoted a kitchen's cooking time.
  */
 export function isCooked(product: Pick<AvailabilityProduct, "type">): boolean {
-  // Rows created before the type existed were backfilled to `dish`, and an
-  // adapter that omits the field still gets `dish` on create — so an absent type
-  // means "dish" here too, rather than silently dropping out of the estimate.
-  //
-  // "Absent" arrives two ways: `null` from a record that never had the column,
-  // and `""` from a `string` attribute nobody filled in — which is what every
-  // RMS import writes. Reading only the first left a whole catalog uncooked and
-  // its cooking times unread.
-  const type = typeof product?.type === "string" ? product.type.trim() : product?.type;
-  return !type || type === "dish";
+  return product?.type === "dish";
 }
 
 /**

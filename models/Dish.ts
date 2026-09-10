@@ -179,8 +179,12 @@ let attributes = {
     allowNull: true,
   } as unknown as string,
 
-  /** Catalog product type. Existing integrations without a type default to `dish`. */
-  type: "string" as unknown as ProductType,
+  /** Catalog product type. An integration that omits it gets `dish`. */
+  type: {
+    type: "string",
+    isIn: [...PRODUCT_TYPES],
+    defaultsTo: "dish",
+  } as unknown as ProductType,
 
   /**
    * How long the kitchen needs for this product, in minutes.
@@ -332,16 +336,6 @@ let Model = {
 
     if (!init.concept) {
       init.concept = "origin"
-    }
-
-    // Legacy adapters frequently omit type. Keep those adapters valid while making
-    // the new canonical value explicit for every newly-created product.
-    if (!init.type) {
-      init.type = "dish";
-    }
-
-    if (!PRODUCT_TYPES.includes(init.type as ProductType)) {
-      return cb(`Unsupported product type: ${init.type}`);
     }
 
     const slugOpts = [];
@@ -640,6 +634,11 @@ let Model = {
    */
   async createOrUpdate(values: DishRecord): Promise<DishRecord> {
     sails.log.silly(`Core > Dish > createOrUpdate: ${values.name}`)
+
+    // RMS payloads spell "no type" as an empty string, which `isIn` refuses.
+    // Dropping the key is what lets `defaultsTo: "dish"` answer instead.
+    if (typeof values.type === "string" && values.type.trim() === "") delete values.type;
+
     let hash = hashCode(JSON.stringify(values));
 
     let criteria:{

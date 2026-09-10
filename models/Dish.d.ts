@@ -75,7 +75,7 @@ declare let attributes: {
     price: number;
     /**  */
     productCategoryId: string;
-    /** Catalog product type. Existing integrations without a type default to `dish`. */
+    /** Catalog product type. An integration that omits it gets `dish`. */
     type: ProductType;
     /**
      * How long the kitchen needs for this product, in minutes.

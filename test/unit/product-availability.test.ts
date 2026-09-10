@@ -115,10 +115,8 @@ describe("product-availability", function () {
   describe("preparation time", function () {
     it("counts only cooked products", function () {
       expect(isCooked({ type: "dish" })).to.equal(true);
-      expect(isCooked({ type: undefined })).to.equal(true);
-      // A `string` column nobody filled in is `""`, which is what an RMS import
-      // writes — the same "no type", and the same answer.
-      expect(isCooked({ type: "" as any })).to.equal(true);
+      // The model defaults an omitted type to `dish`, so nothing reaches here
+      // without one.
       expect(isCooked({ type: "product" })).to.equal(false);
       expect(isCooked({ type: "service" })).to.equal(false);
     });
