@@ -116,6 +116,13 @@ let Model = {
      * make sense on their own; with one it sees that node's children, whatever
      * they are. Matching is done here rather than in the query because `names` is
      * a json array and because "лени" has to find "Ленина".
+     *
+     * The type is the whole filter at the root — depth deliberately is not. A
+     * street under a ward is still a street, and a customer who types "Trần Phú"
+     * must not have to know which ward it is in first. Requiring `parent: null`
+     * there was a per-city assumption about structure, which is the one thing this
+     * model set out not to have. House numbers stay out either way: `house` is not
+     * a root type, so "10" with nothing chosen still finds nothing.
      */
     async search(params) {
         const criteria = { city: params.city, enable: true };
@@ -123,7 +130,6 @@ let Model = {
             criteria.parent = params.parent;
         }
         else {
-            criteria.parent = null;
             criteria.type = address_1.ROOT_SEARCHABLE;
         }
         const nodes = await Address.find(criteria).sort("name ASC");
