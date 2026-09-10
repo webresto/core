@@ -257,6 +257,10 @@ let Model = {
             init.enable = true;
         if (init.notForSale === undefined)
             init.notForSale = false;
+        // An empty string slips past both `isIn` and `defaultsTo`; dropping the
+        // key is what lets the default answer, whoever wrote the record.
+        if (typeof init.type === "string" && init.type.trim() === "")
+            delete init.type;
         if (!init.concept) {
             init.concept = "origin";
         }
@@ -273,6 +277,8 @@ let Model = {
     },
     beforeUpdate: async function (value, cb) {
         emitter.emit('core:product-before-update', value);
+        if (typeof value.type === "string" && value.type.trim() === "")
+            delete value.type;
         if (value.customData) {
             if (value.id !== undefined) {
                 let current = await Dish.findOne({ id: value.id });
@@ -517,10 +523,6 @@ let Model = {
      */
     async createOrUpdate(values) {
         sails.log.silly(`Core > Dish > createOrUpdate: ${values.name}`);
-        // RMS payloads spell "no type" as an empty string, which `isIn` refuses.
-        // Dropping the key is what lets `defaultsTo: "dish"` answer instead.
-        if (typeof values.type === "string" && values.type.trim() === "")
-            delete values.type;
         let hash = (0, hashCode_1.default)(JSON.stringify(values));
         let criteria = {};
         if (values.id) {
