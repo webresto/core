@@ -27,8 +27,8 @@ describe("Stock Manager contextual access", function () {
     const accessRights = helper();
 
     expect(accessRights.getPermissionRights("stock-manager", user)).to.deep.equal(["center", "north"]);
-    expect(await accessRights.hasPermission("stock-manager", user, { placeId: "north" })).to.equal(true);
-    expect(await accessRights.hasPermission("stock-manager", user, { placeId: "other" })).to.equal(false);
+    expect(await accessRights.checkPermission("stock-manager", user, { placeId: "north" })).to.equal(true);
+    expect(await accessRights.checkPermission("stock-manager", user, { placeId: "other" })).to.equal(false);
   });
 
   it("allows the page but no stock data for a token with no selected points", async function () {
@@ -38,8 +38,8 @@ describe("Stock Manager contextual access", function () {
     };
     const accessRights = helper();
 
-    expect(await accessRights.hasPermission("stock-manager", user)).to.equal(true);
-    expect(await accessRights.hasPermission("stock-manager", user, { placeId: "center" })).to.equal(false);
+    expect(await accessRights.checkPermission("stock-manager", user)).to.equal(true);
+    expect(await accessRights.checkPermission("stock-manager", user, { placeId: "center" })).to.equal(false);
   });
 
   // The tests above build their own token, so they stayed green when the manifest rewrite

@@ -105,5 +105,8 @@ export function getStockManagerPlaceRights(req: any): string[] | null {
 export async function hasStockManagerPlaceAccess(req: any, placeId: unknown): Promise<boolean> {
   if (!placeId || typeof placeId !== "string") return false;
   if (!req.adminizer?.accessRightsHelper) return true;
-  return Boolean(await req.adminizer.accessRightsHelper.hasPermission(STOCK_MANAGER_TOKEN, req.user, { placeId }));
+  // `checkPermission`, not `hasPermission`: the latter is the frozen synchronous
+  // one and ignores the context entirely, so every holder of the token would be
+  // granted every point.
+  return Boolean(await req.adminizer.accessRightsHelper.checkPermission(STOCK_MANAGER_TOKEN, req.user, { placeId }));
 }
