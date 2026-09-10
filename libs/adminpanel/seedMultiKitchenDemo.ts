@@ -23,79 +23,6 @@ function readSeedMode(): SeedMode {
   return "off";
 }
 
-/**
- * What the seed no longer creates: cities, kitchens, zones and the operators
- * scoped to a point.
- *
- * They are made by an operator now, in scenario 01 — a seeded Yekaterinburg
- * sitting next to the one the scenario creates is a second answer to the
- * question the scenario asks. A seed only ever deletes what it knows the ids of,
- * so what it used to create it still has to clean up: otherwise `dev:seed`
- * leaves four kitchens and three cities behind and they look like an operator's.
- */
-const RETIRED_PLACE_IDS = [
-  "demo-kitchen-center",
-  "demo-kitchen-north",
-  "demo-kitchen-tyumen",
-  "demo-kitchen-nhatrang",
-];
-const RETIRED_CITY_IDS = [
-  "demo-city-ekaterinburg",
-  "demo-city-tyumen",
-  "demo-city-nhatrang",
-  "demo-city",
-  "demo-city-1",
-  "demo-city-2",
-];
-const RETIRED_ZONE_IDS = ["demo-zone-local", "demo-zone-center", "demo-zone-north"];
-const RETIRED_PRODUCT_IDS = [
-  "demo-product-pizza",
-  "demo-product-soup",
-  "demo-product-dessert",
-  "demo-product-everywhere",
-];
-const RETIRED_GROUP_IDS = ["demo-stock-group"];
-const RETIRED_PROMOTION_IDS = ["demo-promo-local-zone"];
-const RETIRED_OPERATOR_LOGINS = ["stock-demo-center", "stock-demo-north", "stock-demo-both"];
-const RETIRED_OPERATOR_GROUPS = ["Demo stock: Center", "Demo stock: North"];
-/** Stock rows were rewritten once per version; there are no seeded stock rows left. */
-const RETIRED_SETTINGS = ["MULTI_KITCHEN_DEMO_BALANCES_VERSION"];
-
-/**
- * A menu of its own for each out-of-town city.
- *
- * Groups and dishes and nothing else. Which kitchen cooks them is stock, not a
- * menu model — and stock names a point, which this seed no longer creates: the
- * operator makes the kitchens in scenario 01 and puts the dishes in stop at the
- * ones that should not sell them. Before an address is given the menu is global,
- * so all three catalogs are on the screen at once; after it, `dish(orderId)` is
- * what narrows the menu to one kitchen.
- */
-const CITY_MENUS = [
-  {
-    group: { id: "demo-tyumen-group", name: "Demo Tyumen" },
-    dishes: [
-      { id: "demo-tyumen-pelmeni", name: "Сибирские пельмени", price: 390, cookingTimeMax: 20 },
-      { id: "demo-tyumen-stroganina", name: "Строганина из муксуна", price: 690, cookingTimeMax: 10 },
-      { id: "demo-tyumen-ukha", name: "Уха по-тюменски", price: 320, cookingTimeMax: 25 },
-      { id: "demo-tyumen-shangi", name: "Шаньги с картофелем", price: 180, cookingTimeMax: 15 },
-      { id: "demo-tyumen-kedr", name: "Десерт с кедровым орехом", price: 240, cookingTimeMax: 10 },
-      { id: "demo-tyumen-mors", name: "Морс брусничный", price: 120, cookingTimeMax: 5 },
-    ],
-  },
-  {
-    group: { id: "demo-nhatrang-group", name: "Demo Nha Trang" },
-    dishes: [
-      { id: "demo-nhatrang-pho", name: "Фо бо", price: 350, cookingTimeMax: 15 },
-      { id: "demo-nhatrang-banhmi", name: "Бань ми", price: 220, cookingTimeMax: 10 },
-      { id: "demo-nhatrang-goicuon", name: "Гой куон", price: 260, cookingTimeMax: 10 },
-      { id: "demo-nhatrang-buncha", name: "Бун ча", price: 380, cookingTimeMax: 20 },
-      { id: "demo-nhatrang-comtam", name: "Ком там", price: 340, cookingTimeMax: 20 },
-      { id: "demo-nhatrang-caphe", name: "Кофе со сгущёнкой", price: 150, cookingTimeMax: 5 },
-    ],
-  },
-] as const;
-
 async function createIfMissing(model: any, where: any, values: any): Promise<any> {
   const existing = await model.findOne({ where });
   if (existing) return existing;
@@ -135,38 +62,6 @@ async function seedCatalog(recreate: boolean): Promise<void> {
 
   for (const dish of dishes) {
     await createIfMissing(Dish, { id: dish.id }, dish);
-  }
-}
-
-/** The two out-of-town menus, so a city switch has something to switch to. */
-async function seedCityMenus(recreate: boolean): Promise<void> {
-  const dishIds = CITY_MENUS.flatMap((menu) => menu.dishes.map((dish) => dish.id));
-  const groupIds = CITY_MENUS.map((menu) => menu.group.id);
-
-  if (recreate) {
-    // Stock set by hand while testing goes with the dish it was set on: a
-    // `DishPlace` whose dish is gone is a row nobody can see or delete.
-    await DishPlace.destroy({ dish: { in: dishIds } }).fetch();
-    await Dish.destroy({ id: { in: dishIds } }).fetch();
-    await Group.destroy({ id: { in: groupIds } }).fetch();
-  }
-
-  for (const menu of CITY_MENUS) {
-    const group = await createIfMissing(Group, { id: menu.group.id }, {
-      ...menu.group,
-      enable: true,
-      isDeleted: false,
-    });
-    for (const dish of menu.dishes) {
-      await createIfMissing(Dish, { id: dish.id }, {
-        ...dish,
-        type: "dish",
-        parentGroup: group.id,
-        enable: true,
-        visible: true,
-        isDeleted: false,
-      });
-    }
   }
 }
 
@@ -309,62 +204,8 @@ async function seedSettings(): Promise<void> {
 }
 
 /**
- * Drops the demo cities from the installation-wide sync config.
- *
- * The map link is not a column on `City`, it is an entry in
- * `DELIVERY_ZONE_SYNC_CONFIG` keyed by city id, so it outlives the row it points
- * at. Entries for cities this seed did not create are left alone.
- */
-async function forgetDeliveryZoneSources(cityIds: string[]): Promise<void> {
-  const config = ((await Settings.get("DELIVERY_ZONE_SYNC_CONFIG")) ?? {}) as Record<string, any>;
-  const { cities, ...shared } = config;
-  if (!Array.isArray(cities)) return;
-  const kept = cities.filter((entry: any) => !cityIds.includes(entry?.city));
-  if (kept.length === cities.length) return;
-  // Same shape the popup writes when the last link is cleared: `cities` is
-  // omitted rather than emptied, because an empty array fails the target check.
-  await Settings.set("DELIVERY_ZONE_SYNC_CONFIG", {
-    key: "DELIVERY_ZONE_SYNC_CONFIG",
-    value: { ...shared, ...(kept.length ? { cities: kept } : {}) },
-  } as any);
-}
-
-/**
- * Deletes what the seed used to create and no longer does. Recreate only.
- *
- * A list rather than a run of statements because the order is the interesting
- * part: zones and addresses point at a city, stock points at a dish and a place,
- * so each row goes before the row it hangs from. Everything belonging to a demo
- * city goes, not only the ids listed — a zone imported into one has no owner
- * left once the city is gone.
- */
-async function retireDemoEntities(adminizer: any): Promise<void> {
-  const rows: [any, any][] = [
-    [DeliveryZone, { city: { in: RETIRED_CITY_IDS } }],
-    [DeliveryZone, { id: { in: RETIRED_ZONE_IDS } }],
-    [Address, { city: { in: RETIRED_CITY_IDS } }],
-    [City, { id: { in: RETIRED_CITY_IDS } }],
-    [DishPlace, { place: { in: RETIRED_PLACE_IDS } }],
-    [DishPlace, { dish: { in: RETIRED_PRODUCT_IDS } }],
-    [Place, { id: { in: RETIRED_PLACE_IDS } }],
-    [Dish, { id: { in: RETIRED_PRODUCT_IDS } }],
-    [Group, { id: { in: RETIRED_GROUP_IDS } }],
-    [Promotion, { id: { in: RETIRED_PROMOTION_IDS } }],
-    [Settings, { key: { in: RETIRED_SETTINGS } }],
-  ];
-  for (const [model, criteria] of rows) await model.destroy(criteria).fetch();
-
-  await forgetDeliveryZoneSources(RETIRED_CITY_IDS);
-
-  const users = adminizer.modelHandler.internal("users").get("User");
-  const groups = adminizer.modelHandler.internal("access-rights").get("Group");
-  for (const login of RETIRED_OPERATOR_LOGINS) await users.destroy({ login });
-  for (const name of RETIRED_OPERATOR_GROUPS) await groups.destroy({ name });
-}
-
-/**
- * Fills a development database with a usable catalog, the two out-of-town menus,
- * one promotion and the settings the scenarios expect.
+ * Fills a development database with a usable catalog, one promotion and the
+ * settings the scenarios expect.
  *
  * Cities, kitchens, zones and addresses are not here: an operator creates them
  * in scenario 01, from the fixtures in
@@ -374,26 +215,24 @@ async function retireDemoEntities(adminizer: any): Promise<void> {
  * overwrites anything, `recreate` first deletes the entities the seed owns.
  * Anything else leaves the database untouched.
  */
-export async function seedMultiKitchenDemo(adminizer: any): Promise<void> {
+export async function seedMultiKitchenDemo(): Promise<void> {
   const mode = readSeedMode();
   if (mode === "off") return;
 
   const recreate = mode === "recreate";
   if (recreate) {
-    sails.log.warn("[MultiKitchen demo] recreate mode: the seeded catalog, menus and promotions are dropped first");
-    await retireDemoEntities(adminizer);
+    sails.log.warn("[MultiKitchen demo] recreate mode: the seeded catalog and promotions are dropped first");
   }
 
   await seedCatalog(recreate);
-  await seedCityMenus(recreate);
   await seedPromotions(recreate);
   await seedSettings();
 
   const groups = devCatalog.groups?.length ?? 0;
   const dishes = devCatalog.dishes?.length ?? 0;
   sails.log.info(
-    `[MultiKitchen demo] Seeded ${groups} catalog groups, ${dishes} catalog products, ` +
-    `${CITY_MENUS.length} city menus and ${PROMOTIONS.length} promotions. ` +
+    `[MultiKitchen demo] Seeded ${groups} catalog groups, ${dishes} catalog products ` +
+    `and ${PROMOTIONS.length} promotions. ` +
     `Cities, kitchens, zones and addresses are the operator's to create.`,
   );
 }
