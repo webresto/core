@@ -1075,7 +1075,7 @@ function SettingsManagerContent({ bootId }) {
   );
 }
 
-export default function SettingsManager({ props }) {
+export default function SettingsManager(props) {
   const locale = props?.locale || 'en';
   return (
     <I18nProvider initialLocale={locale} messages={props?.messages}>

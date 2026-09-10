@@ -1181,7 +1181,7 @@ function DeliveryZonesContent({ canManage, canManageAddresses }) {
   );
 }
 
-export default function DeliveryZonesManager({ props }) {
+export default function DeliveryZonesManager(props) {
   return (
     <I18nProvider initialLocale={props?.locale || 'en'} messages={props?.messages}>
       <DeliveryZonesContent
