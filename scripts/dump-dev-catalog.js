@@ -44,10 +44,19 @@ function readCollection(name) {
   return [...byId.values()];
 }
 
-/** Drops runtime noise: NeDB's own key, timestamps and the removed stock column. */
+/**
+ * Drops runtime noise: NeDB's own key, timestamps and the removed stock column.
+ *
+ * An empty `type` goes too. A `string` attribute nobody filled in is stored as
+ * `""`, and writing that back would defeat `Dish.type`'s `defaultsTo: "dish"` —
+ * every product in the fixture would come up typeless again, and a typeless
+ * product is not cooked, so no cooking time would ever reach a promise.
+ */
 function clean(row) {
   const { _id, createdAt, updatedAt, balance, ...rest } = row;
-  return Object.fromEntries(Object.entries(rest).filter(([, value]) => value !== null));
+  return Object.fromEntries(
+    Object.entries(rest).filter(([key, value]) => value !== null && !(key === "type" && value === "")),
+  );
 }
 
 const groups = readCollection("group")
