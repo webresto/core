@@ -112,15 +112,17 @@ describe("Delivery zone geometry", function () {
   });
 
   describe("address coordinate", function () {
-    it("reads the string pair stored on an address", function () {
-      expect(coordinateFromAddress({ coordinate: { lat: "55.75", lon: "37.61" } }))
+    it("reads the pair stored on an address", function () {
+      expect(coordinateFromAddress({ coordinate: { lat: 55.75, lng: 37.61 } } as any))
         .to.deep.equal({ lat: 55.75, lng: 37.61 });
     });
 
     it("returns null for anything unusable", function () {
-      expect(coordinateFromAddress({ coordinate: { lat: "abc", lon: "37.61" } })).to.equal(null);
-      expect(coordinateFromAddress({ coordinate: { lat: "95", lon: "0" } })).to.equal(null);
-      expect(coordinateFromAddress({})).to.equal(null);
+      // Numbers only, and `lng`: a string pair or a `lon` key is not a coordinate.
+      expect(coordinateFromAddress({ coordinate: { lat: "55.75", lng: "37.61" } } as any)).to.equal(null);
+      expect(coordinateFromAddress({ coordinate: { lat: 55.75, lon: 37.61 } } as any)).to.equal(null);
+      expect(coordinateFromAddress({ coordinate: { lat: 95, lng: 0 } } as any)).to.equal(null);
+      expect(coordinateFromAddress({} as any)).to.equal(null);
       expect(coordinateFromAddress(null)).to.equal(null);
     });
   });
