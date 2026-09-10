@@ -292,6 +292,20 @@ async function seedSettings(): Promise<void> {
     key: "SOFT_DELIVERY_CALCULATION",
     value: true,
   } as any);
+
+  // Round the clock, because the scenarios run at whatever hour they run.
+  // The default 10:00–20:00 makes the checkout offer "as soon as possible" and
+  // "for a time" only during the day, so scenario 10 passed in the afternoon and
+  // failed at night — on a stand where nothing had changed. Closing a *point* is
+  // still tested, deliberately, by scenarios 03 and 07 through `Place.worktime`.
+  await Settings.set("WORK_TIME", {
+    key: "WORK_TIME",
+    value: [{
+      dayOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+      start: "00:00",
+      stop: "23:59",
+    }],
+  } as any);
 }
 
 /**
