@@ -29,7 +29,11 @@ export default function dishGenerator(
     rmsId: config?.rmsId || faker.random.uuid(),
     code: null,
     tags: [],
-    isDeleted: config?.isDeleted || false
+    isDeleted: config?.isDeleted || false,
+    // Spelled out because a boolean attribute with no `defaultsTo` starts at
+    // `false`: without this every generated product is disabled, and a disabled
+    // product cannot go into a basket.
+    enable: config?.enable ?? true
   }
 }
 

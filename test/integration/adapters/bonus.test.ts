@@ -57,7 +57,9 @@ describe("Bonus program adapter", function () {
   });
 
   it("apply bonus in order on check", async () => {
-    const dishes = await Dish.find({});
+    // Enabled only: a disabled product is refused by `addDish`, and the RMS mock
+    // sync leaves what it imports disabled.
+    const dishes = await Dish.find({ enable: true });
     order1 = await Order.create({id: "test--apply--bonus"}).fetch();
     
     await Order.addDish({id: order1.id}, dishes[0], 5, [], "", "user");

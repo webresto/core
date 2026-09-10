@@ -18,7 +18,9 @@ describe("RMS adapter", function () {
     // if the Cost is added, he set
     // if item is borrowed from him
 
-    var dishes = await Dish.find({})
+    // Enabled only: a disabled product is refused by `addDish`, and the RMS mock
+    // sync leaves what it imports disabled.
+    var dishes = await Dish.find({ enable: true })
 
     let order = await Order.create({id: "test-delivery-adpter"}).fetch();
     await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
