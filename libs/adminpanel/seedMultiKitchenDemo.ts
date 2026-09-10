@@ -9,6 +9,9 @@ const devCatalog = require("./fixtures/dev-catalog.json") as {
   dishes: CatalogRow[];
 };
 
+/** The `WORK_TIME` manifest, for its `jsonSchema` — see `seedSettings`. */
+const worktimeManifest = require("../../settings/worktime.json") as { jsonSchema: unknown };
+
 /**
  * `true` creates whatever is missing and leaves everything else alone.
  * `recreate` drops the entities this seed owns and writes them again, which is
@@ -193,8 +196,17 @@ async function seedSettings(): Promise<void> {
   // "for a time" only during the day, so scenario 10 passed in the afternoon and
   // failed at night — on a stand where nothing had changed. Closing a *point* is
   // still tested, deliberately, by scenarios 03 and 07 through `Place.worktime`.
+  //
+  // The schema is passed in, unlike every setting above: the seed runs while the
+  // manifests are still being registered, and `WORK_TIME` — a `W` in an
+  // alphabetical list — is regularly not among them yet. `Settings.set` refuses a
+  // `json` value with no schema, and the refusal is a log line, not a throw, so
+  // for one whole iteration this setting was quietly not applied at all. Read from
+  // the manifest rather than copied, so there is still one schema.
   await Settings.set("WORK_TIME", {
     key: "WORK_TIME",
+    type: "json",
+    jsonSchema: worktimeManifest.jsonSchema,
     value: [{
       dayOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
       start: "00:00",
