@@ -73,7 +73,27 @@ function isOrderInActiveWindow(order: any, sinceMs: number): boolean {
   return orderedAtMs >= sinceMs;
 }
 
-function mapOrder(order: any, operatorLimited: boolean) {
+/** A populated association arrives as a record, an unpopulated one as its id. */
+function toId(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "object") return String((value as { id?: unknown }).id || "");
+  return String(value);
+}
+
+/**
+ * Where the order is cooked: a courier order goes to the resolved kitchen,
+ * pickup and dine-in to the point the customer picked.
+ */
+function getKitchenId(order: any): string {
+  return toId(order?.serviceType && order.serviceType !== "delivery" ? order?.pickupPoint : order?.cookingPoint);
+}
+
+function mapOrder(
+  order: any,
+  operatorLimited: boolean,
+  placeNames: Map<string, string>,
+  zoneNames: Map<string, string>,
+) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
   const phone = customer?.phone && typeof customer.phone === "object"
     ? `${customer.phone.code || ""}${customer.phone.number || ""}`
@@ -96,6 +116,8 @@ function mapOrder(order: any, operatorLimited: boolean) {
     tag: order?.tag || "",
     paid: Boolean(order?.paid),
     serviceType: order?.serviceType || "delivery",
+    kitchenName: placeNames.get(getKitchenId(order)) || "",
+    zoneName: zoneNames.get(String(order?.delivery?.zoneId || "")) || "",
     rmsOrderNumber: order?.rmsOrderNumber || "",
     orderedAt: order?.orderedAt || null,
     createdAt: order?.createdAt || null,
@@ -185,8 +207,30 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
       })
       : filteredByState;
 
+    // Кухня и зона — подписи для карточки, и собираются двумя запросами на весь
+    // список, а не по одному на карточку.
+    const placeIds = new Set<string>();
+    const zoneIds = new Set<string>();
+    for (const order of filteredByQuery) {
+      const placeId = getKitchenId(order);
+      if (placeId) placeIds.add(placeId);
+      const zoneId = String(order?.delivery?.zoneId || "");
+      if (zoneId) zoneIds.add(zoneId);
+    }
+
+    const [places, zones] = await Promise.all([
+      placeIds.size ? Place.find({ id: Array.from(placeIds) }) : Promise.resolve([]),
+      zoneIds.size ? DeliveryZone.find({ id: Array.from(zoneIds) }) : Promise.resolve([]),
+    ]);
+    const placeNames = new Map<string, string>(
+      places.map((place: any) => [String(place.id), String(place.title || place.address || "")]),
+    );
+    const zoneNames = new Map<string, string>(
+      zones.map((zone: any) => [String(zone.id), String(zone.name || "")]),
+    );
+
     return res.json({
-      results: filteredByQuery.map((order: any) => mapOrder(order, operatorLimited)),
+      results: filteredByQuery.map((order: any) => mapOrder(order, operatorLimited, placeNames, zoneNames)),
       meta: {
         newWindowMinutes,
         newSince: new Date(newSinceMs).toISOString(),

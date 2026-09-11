@@ -14,7 +14,7 @@ export default function OrderKanbanController(req: any, res: any) {
   return req.Inertia.render({
     component: 'module',
     props: {
-      moduleComponent: adminModuleUrl("OrderKanban", "20260617-1"),
+      moduleComponent: adminModuleUrl("OrderKanban", "20260911-1"),
       message: t('Current Orders'),
       locale,
       messages

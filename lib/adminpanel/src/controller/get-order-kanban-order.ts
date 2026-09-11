@@ -102,6 +102,7 @@ async function loadFullOrder(id: string): Promise<any | null> {
     .populate("paymentMethod")
     .populate("user")
     .populate("pickupPoint")
+    .populate("cookingPoint")
     .populate("deliveryItem")
     .populate("promotionCode");
 
@@ -122,6 +123,33 @@ async function loadFullOrder(id: string): Promise<any | null> {
   }
 
   return fullOrder;
+}
+
+/**
+ * Where the order is cooked: a courier order goes to the resolved kitchen,
+ * pickup and dine-in to the point the customer picked — which is the same
+ * place, just chosen instead of resolved.
+ */
+function getKitchenName(order: any): string {
+  const point = order?.serviceType && order.serviceType !== "delivery"
+    ? order?.pickupPoint
+    : order?.cookingPoint;
+  if (!point || typeof point !== "object") return "";
+  return String(point.title || point.address || "");
+}
+
+/**
+ * The zone's name, read by the id the calculation reported back.
+ *
+ * A label only: the zone stays a transient of the delivery calculation, and a
+ * copy of it on the order would be a second answer going stale the moment the
+ * map is redrawn.
+ */
+async function getZoneName(order: any): Promise<string> {
+  const zoneId = order?.delivery?.zoneId;
+  if (!zoneId) return "";
+  const zone = await DeliveryZone.findOne({ id: String(zoneId) });
+  return zone?.name ? String(zone.name) : "";
 }
 
 function mapRelatedRef(record: any, modelName: string, labelFields: string[] = ["title", "name"]): any {
@@ -158,7 +186,7 @@ function mapPaymentDocuments(order: any): any[] {
   });
 }
 
-function mapOrder(order: any, operatorLimited: boolean) {
+function mapOrder(order: any, operatorLimited: boolean, zoneName: string) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
   const paymentMethod = order?.paymentMethod && typeof order.paymentMethod === "object" ? order.paymentMethod : null;
   const userRecord = order?.user && typeof order.user === "object" ? order.user : null;
@@ -183,6 +211,8 @@ function mapOrder(order: any, operatorLimited: boolean) {
     tag: order?.tag || "",
     paid: Boolean(order?.paid),
     serviceType: order?.serviceType || "delivery",
+    kitchenName: getKitchenName(order),
+    zoneName,
     rmsOrderNumber: order?.rmsOrderNumber || "",
     createdAt: order?.createdAt || null,
     updatedAt: order?.updatedAt || null,
@@ -233,7 +263,7 @@ export default async function GetOrderKanbanOrderController(req: any, res: any) 
       return res.status(404).json({ error: t("Order not found") });
     }
 
-    return res.json({ order: mapOrder(order, operatorLimited) });
+    return res.json({ order: mapOrder(order, operatorLimited, await getZoneName(order)) });
   } catch (error) {
     sails.log.error("Get order kanban order error", error);
     return res.status(500).json({ error: String(error) });

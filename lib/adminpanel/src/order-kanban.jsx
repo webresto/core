@@ -236,6 +236,22 @@ function isCompletedState(state) {
   return COMPLETED_STATES.has(String(state || ''));
 }
 
+/**
+ * Кто готовит и куда везти — одной строкой: «Север-запад · зона B».
+ * Самовывоз и зал везти некуда, у них вместо зоны способ получения.
+ * Зоны нет (мягкий расчёт, адрес вне зон) — остаётся одна кухня.
+ */
+function formatKitchenLine(order, t) {
+  const parts = [];
+  if (order.kitchenName) parts.push(order.kitchenName);
+  if (order.serviceType === 'delivery') {
+    if (order.zoneName) parts.push(t('zone {name}', { name: order.zoneName }));
+  } else {
+    parts.push(t(SERVICE_TYPE_LABEL[order.serviceType] || order.serviceType));
+  }
+  return parts.join(' · ');
+}
+
 function formatDateTime(value, language) {
   if (!value) return '-';
   const date = new Date(value);
@@ -308,6 +324,8 @@ function normalizeOrder(order) {
     tag: order.tag || '',
     paid: Boolean(order.paid),
     serviceType: order.serviceType || 'delivery',
+    kitchenName: order.kitchenName || '',
+    zoneName: order.zoneName || '',
     rmsOrderNumber: order.rmsOrderNumber || '',
     orderedAt: order.orderedAt || null,
     createdAt: order.createdAt || null,
@@ -496,6 +514,7 @@ function OrderDetailsPopup({ order, loading, language, t, onClose }) {
           <div style={rowStyle}><strong>{t('Tag')}</strong><span>{order.tag || '-'}</span></div>
           <div style={rowStyle}><strong>{t('Paid')}</strong><span>{boolText(order.paid)}</span></div>
           <div style={rowStyle}><strong>{t('Service type')}</strong><span>{t(SERVICE_TYPE_LABEL[order.serviceType] || order.serviceType)}</span></div>
+          <div style={rowStyle}><strong>{t('Kitchen')}</strong><span>{formatKitchenLine(order, t) || '-'}</span></div>
           {hasExtendedDetails ? (
             <>
               <div style={rowStyle}><strong>Корзина</strong><span>{formatTotal(order.basketTotal, language)}</span></div>
@@ -866,6 +885,7 @@ function OrderTransitionSelect({ order, t, isUpdating, onMove, compact = false }
 }
 
 function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen }) {
+  const kitchenLine = formatKitchenLine(order, t);
   return (
     <article
       draggable={!isUpdating}
@@ -900,6 +920,12 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
       <div style={{ marginTop: 6, fontWeight: 600 }}>{order.customerName || t('Guest')}</div>
       <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{order.customerPhone || t('No phone')}</div>
 
+      {kitchenLine ? (
+        <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted-foreground)' }}>
+          {kitchenLine}
+        </div>
+      ) : null}
+
       <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted-foreground)' }}>
         <span>{t('Total')}: {formatTotal(order.total, language)}</span>
         <span>{t('Items')}: {order.dishesCount}</span>
@@ -931,6 +957,7 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
 
 function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen }) {
   const stateColor = STATE_COLORS[order.state] || 'var(--muted-foreground)';
+  const kitchenLine = formatKitchenLine(order, t);
 
   return (
     <article
@@ -959,6 +986,9 @@ function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen }) {
           <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
             RMS: {order.rmsOrderNumber}
           </span>
+        ) : null}
+        {kitchenLine ? (
+          <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{kitchenLine}</span>
         ) : null}
       </div>
 
