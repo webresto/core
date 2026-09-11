@@ -679,7 +679,7 @@ function ZonePanel({ zones, selectedId, hoveredId, onSelect, onHover, onOpenTari
 
 // ──────────────────────────── the page ────────────────────────────
 
-function DeliveryZonesContent({ canManage, canManageAddresses }) {
+function DeliveryZonesContent({ canManage }) {
   const { t } = useTranslation();
   const dark = useAppearance();
   // Two widths matter here. Below 720 the list cannot stand beside the map at
@@ -839,18 +839,6 @@ function DeliveryZonesContent({ canManage, canManageAddresses }) {
     await loadZones();
   }, [cityId, loadZones, t]);
 
-  const uploadAddresses = useCallback(async (content) => {
-    const { ok, payload } = await api('/core/addresses-upload', {
-      method: 'POST',
-      body: JSON.stringify({ city: cityId || '', content }),
-    });
-    if (!ok) {
-      toast('error', payload?.error || t('Could not read the file'));
-      return;
-    }
-    toast('success', `${t('Addresses created')}: ${payload.created}`);
-  }, [cityId, t]);
-
   const onNew = (asLayer) => {
     setDraft({
       ...EMPTY_DRAFT,
@@ -972,31 +960,18 @@ function DeliveryZonesContent({ canManage, canManageAddresses }) {
             />
           </div>
 
-          {/* A map and a street list drawn somewhere else. Both are read once:
-              nothing here is kept in step with the file afterwards. */}
-          {(canManage || canManageAddresses) && (
-            <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-              {canManage && (
-                <FileUploadButton
-                  icon="upload_file"
-                  label="Zones from a file"
-                  accept=".kml,.geojson,.json"
-                  onFile={uploadZones}
-                  t={t}
-                />
-              )}
-              {canManageAddresses && (
-                <FileUploadButton
-                  icon="location_on"
-                  label="Addresses from a file"
-                  accept=".json"
-                  // Every address belongs to a city, so an installation that has
-                  // never created one has nothing to load them into.
-                  disabled={!cityId}
-                  onFile={uploadAddresses}
-                  t={t}
-                />
-              )}
+          {/* A map drawn somewhere else, read once: nothing here is kept in
+              step with the file afterwards. The catalog of addresses is loaded
+              from its own list — this page is about polygons. */}
+          {canManage && (
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <FileUploadButton
+                icon="upload_file"
+                label="Zones from a file"
+                accept=".kml,.geojson,.json"
+                onFile={uploadZones}
+                t={t}
+              />
             </div>
           )}
 
@@ -1184,10 +1159,7 @@ function DeliveryZonesContent({ canManage, canManageAddresses }) {
 export default function DeliveryZonesManager(props) {
   return (
     <I18nProvider initialLocale={props?.locale || 'en'} messages={props?.messages}>
-      <DeliveryZonesContent
-        canManage={props?.canManage !== false}
-        canManageAddresses={props?.canManageAddresses === true}
-      />
+      <DeliveryZonesContent canManage={props?.canManage !== false} />
     </I18nProvider>
   );
 }

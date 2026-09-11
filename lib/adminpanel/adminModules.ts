@@ -32,6 +32,7 @@ export const ADMIN_MODULE_ENTRIES = {
   SetupChecklistWidget: "src/setup-checklist-widget.jsx",
   SalesChannelsManager: "src/sales-channels-manager.jsx",
   DeliveryZonesManager: "src/delivery-zones-manager.jsx",
+  AddressesUpload: "src/addresses-upload.jsx",
 } as const;
 
 export type AdminModuleName = keyof typeof ADMIN_MODULE_ENTRIES;

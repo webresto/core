@@ -307,7 +307,25 @@ export const models = {
   address: {
     model: 'address',
     title: 'Addresses',
-    icon: 'location_on'
+    icon: 'location_on',
+    list: {
+      // The catalog arrives by the thousand, so the list toolbar carries the
+      // way to load one. Adminizer's global list actions are links, so the
+      // button goes to a form — the `addresses` module route, which also asks
+      // which city the file describes (the list shows every city at once).
+      actions: {
+        global: [
+          {
+            id: 'addresses-upload',
+            title: 'Addresses from a file',
+            link: `${sails.config.adminpanel.routePrefix}/addresses-upload`,
+            type: 'self',
+            icon: 'upload_file',
+            accessRightsToken: 'addresses-manage',
+          },
+        ],
+      },
+    },
   },
   // A city is what an address is resolved in, what a zone belongs to and what a
   // map link is pasted for; none of that could be reached without one.

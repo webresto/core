@@ -383,13 +383,17 @@ export const adminPanelModules: AdminPanelModule[] = [
     ],
   },
   {
-    // Loading a city's address catalog from a file. No page: the button sits on
-    // the zones page, which is the only place where a city is already chosen,
-    // and the rows themselves are an ordinary Adminizer model. Separate from
-    // that module all the same — the catalog is not the delivery adapter's, and
-    // pointing delivery elsewhere must not take the addresses with it.
+    // Loading a city's address catalog from a file. The rows are an ordinary
+    // Adminizer model, so the way in is its list: the `Address` list carries a
+    // global action (see `libs/adminpanel/models/bind.ts`) pointing at the form
+    // below. A route and not a `page` — a page would also put the form in the
+    // sidebar, and the catalog is already reachable through its list.
+    //
+    // Its own module and not the delivery adapter's: pointing delivery
+    // elsewhere must not take the addresses with it.
     id: "addresses",
     routes: [
+      { method: "get", route: "/addresses-upload", controller: "src/controller/addresses-upload" },
       { method: "post", route: "/core/addresses-upload", controller: "src/controller/upload-addresses" },
     ],
   },
