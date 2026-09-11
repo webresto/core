@@ -63,6 +63,25 @@ const CONTEXT_STYLE = new Style({
   stroke: new Stroke({ color: 'rgba(35, 55, 85, 0.95)', width: 1.75, lineDash: [6, 4] }),
 });
 
+// A zone that is switched off, and a zone being edited that is switched off.
+// Red because that is what the admin panel says "off" with everywhere else, and
+// because an operator looking at the map is asking which shapes are live — a
+// grey outline was the same answer as "not selected".
+const OFF_STYLE = new Style({
+  fill: new Fill({ color: 'rgba(220, 38, 38, 0.18)' }),
+  stroke: new Stroke({ color: 'rgba(185, 28, 28, 0.95)', width: 1.75, lineDash: [6, 4] }),
+});
+
+const EDIT_OFF_STYLE = new Style({
+  fill: new Fill({ color: 'rgba(220, 38, 38, 0.30)' }),
+  stroke: new Stroke({ color: '#b91c1c', width: 2.5 }),
+  image: new CircleStyle({
+    radius: 5,
+    fill: new Fill({ color: '#ffffff' }),
+    stroke: new Stroke({ color: '#dc2626', width: 2 }),
+  }),
+});
+
 // The one the cursor is over in the list. Amber rather than a stronger blue:
 // blue is what "being edited" means here, and pointing at a row is not editing
 // it. Solid, because the dashes are what say "not this one".
@@ -137,6 +156,8 @@ function kitchenStyle(feature, dark) {
 export default function ZoneMap({
   value,
   onChange,
+  /** The zone being edited is switched off — draw it as such, still editable. */
+  valueOff = false,
   readOnly = false,
   readOnlyHint,
   otherZones = [],
@@ -163,6 +184,9 @@ export default function ZoneMap({
   // the set in a ref rather than rebuilding the layer means hovering a row
   // repaints the features instead of dropping and re-adding all of them.
   const highlightRef = useRef(new Set());
+  // Same reason as the highlight set: the edit layer's style function is created
+  // with the layer, so switching a zone off repaints instead of rebuilding.
+  const valueOffRef = useRef(valueOff);
   const [hasRing, setHasRing] = useState(() => isUsableRing(value));
 
   // The interactions are created once and keep the first callback otherwise.
@@ -197,9 +221,15 @@ export default function ZoneMap({
         }),
         new VectorLayer({
           source: contextSource,
-          style: (feature) => (highlightRef.current.has(feature.get('zoneId')) ? HOVER_STYLE : CONTEXT_STYLE),
+          style: (feature) => {
+            if (highlightRef.current.has(feature.get('zoneId'))) return HOVER_STYLE;
+            return feature.get('off') ? OFF_STYLE : CONTEXT_STYLE;
+          },
         }),
-        new VectorLayer({ source, style: EDIT_STYLE }),
+        new VectorLayer({
+          source,
+          style: () => (valueOffRef.current ? EDIT_OFF_STYLE : EDIT_STYLE),
+        }),
         new VectorLayer({
           source: kitchenSource,
           // Only the names are decluttered — see `declutterMode` in the style.
@@ -212,6 +242,7 @@ export default function ZoneMap({
     mapRef.current = map;
     map.set('contextSource', contextSource);
     map.set('contextLayer', map.getLayers().item(1));
+    map.set('editLayer', map.getLayers().item(2));
     map.set('kitchenSource', kitchenSource);
 
     return () => {
@@ -241,7 +272,7 @@ export default function ZoneMap({
   // render: pointing at a zone is a render, and dropping and re-adding every
   // feature under the cursor made the shapes flicker while the mouse crossed
   // them. Same idiom as `fitKey` below.
-  const contextKey = JSON.stringify(otherZones.map((zone) => [zone.id, zone.polygon]));
+  const contextKey = JSON.stringify(otherZones.map((zone) => [zone.id, zone.polygon, zone.off === true]));
   useEffect(() => {
     const map = mapRef.current;
     const contextSource = map?.get('contextSource');
@@ -252,6 +283,7 @@ export default function ZoneMap({
       if (!isUsableRing(zone.polygon)) continue;
       const feature = new Feature(ringToGeometry(zone.polygon));
       feature.set('zoneId', zone.id);
+      feature.set('off', zone.off === true);
       contextSource.addFeature(feature);
     }
   }, [contextKey]);
@@ -316,6 +348,11 @@ export default function ZoneMap({
     map.on('dblclick', open);
     return () => map.un('dblclick', open);
   }, [readOnly]);
+
+  useEffect(() => {
+    valueOffRef.current = valueOff;
+    mapRef.current?.get('editLayer')?.changed();
+  }, [valueOff]);
 
   // Pointing at a row in the list.
   const highlightKey = highlightIds.join(',');

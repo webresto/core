@@ -110,6 +110,23 @@ function isLayer(zone) {
   return zone.isLayer === true || !Array.isArray(zone.polygon) || zone.polygon.length === 0;
 }
 
+/**
+ * A zone that delivers to nobody — as drawn, which is one question wider than
+ * its own switch: a layer is switched off with everything in it, and
+ * `findServing` already skips those. So the list and the map say so too.
+ */
+function isZoneOff(zone, zones) {
+  if (zone.enable === false) return true;
+  if (!zone.parent) return false;
+  return zones.find((other) => other.id === zone.parent)?.enable === false;
+}
+
+// The row of a zone that is off. A tint of the panel's own `--destructive`
+// rather than a red of ours; the stronger one is the same row when it is also
+// the selected one, since a row has one background and has to say both.
+const OFF_ROW = 'color-mix(in srgb, var(--destructive) 14%, transparent)';
+const OFF_ROW_SELECTED = 'color-mix(in srgb, var(--destructive) 30%, transparent)';
+
 // ─────────────────────────── the tariff popup ───────────────────────────
 
 /**
@@ -549,7 +566,7 @@ function SourceSettingsDialog({ cityId, cityName, canManage, onSaved, t }) {
 
 // ───────────────────────────── the left panel ─────────────────────────────
 
-function PanelRow({ zone, selected, hovered, onSelect, onHover, onOpenTariff, indent, layerTerms, t }) {
+function PanelRow({ zone, selected, hovered, off, onSelect, onHover, onOpenTariff, indent, layerTerms, t }) {
   const pricedByLayer = Boolean(zone.parent) && layerTerms !== false;
   // Dimmed, not hidden: the shape is still edited here and an address still
   // matches it — only the terms belong to the row above.
@@ -565,7 +582,9 @@ function PanelRow({ zone, selected, hovered, onSelect, onHover, onOpenTariff, in
       style={{
         display: 'flex', alignItems: 'center', gap: 4,
         paddingLeft: 8 + indent * 16, paddingRight: 4,
-        background: selected ? 'var(--accent)' : 'transparent',
+        // One background, two answers: which row is picked and which rows
+        // deliver to nobody. Off wins the hue, selection wins the strength.
+        background: off ? (selected ? OFF_ROW_SELECTED : OFF_ROW) : (selected ? 'var(--accent)' : 'transparent'),
         borderRadius: 6,
         // A bar rather than a background: a row can be both selected and
         // pointed at, and the two answers must not overwrite each other.
@@ -645,6 +664,7 @@ function ZonePanel({ zones, selectedId, hoveredId, onSelect, onHover, onOpenTari
             indent={0}
             selected={selectedId === layer.id}
             hovered={hoveredId === layer.id}
+            off={layer.enable === false}
             onSelect={onSelect}
           />
           {(byParent.get(layer.id) ?? []).map((zone) => (
@@ -656,6 +676,7 @@ function ZonePanel({ zones, selectedId, hoveredId, onSelect, onHover, onOpenTari
               layerTerms={layer.termsApplyToZones !== false}
               selected={selectedId === zone.id}
               hovered={hoveredId === zone.id}
+              off={zone.enable === false || layer.enable === false}
               onSelect={onSelect}
             />
           ))}
@@ -670,6 +691,7 @@ function ZonePanel({ zones, selectedId, hoveredId, onSelect, onHover, onOpenTari
           indent={0}
           selected={selectedId === zone.id}
           hovered={hoveredId === zone.id}
+          off={zone.enable === false}
           onSelect={onSelect}
         />
       ))}
@@ -822,7 +844,7 @@ function DeliveryZonesContent({ canManage }) {
 
   // ── files ──
   //
-  // Both uploads create rows and match nothing: the same file twice makes the
+  // The upload creates rows and matches nothing: the same file twice makes the
   // same zones twice. Reported in the toast rather than guarded against — the
   // list below is where a duplicate is seen and deleted.
   const uploadZones = useCallback(async (content) => {
@@ -890,9 +912,10 @@ function DeliveryZonesContent({ canManage }) {
   // What the map draws as context. In the reading mode that is every zone of
   // the city, the selected one included: nothing is being reshaped, so nothing
   // needs to be lifted out onto the editing layer.
-  const contextZones = editing
+  const contextZones = (editing
     ? cityZones.filter((zone) => zone.id !== selected?.id && !isLayer(zone))
-    : cityZones.filter((zone) => !isLayer(zone));
+    : cityZones.filter((zone) => !isLayer(zone))
+  ).map((zone) => ({ ...zone, off: isZoneOff(zone, cityZones) }));
 
   // The row whose terms are open, re-read from the list on every render so a
   // save is reflected in the popup that caused it.
@@ -1103,6 +1126,7 @@ function DeliveryZonesContent({ canManage }) {
               <Suspense fallback={<div style={{ padding: 24 }}><span style={styles.help}>{t('Loading the map…')}</span></div>}>
                 <ZoneMap
                   value={editing ? (selected?.polygon ?? []) : []}
+                  valueOff={Boolean(editing && selected && isZoneOff(selected, cityZones))}
                   onChange={(ring) => setDraft((prev) => (prev ? { ...prev, polygon: ring } : prev))}
                   readOnly={!editing || !canEditGeometry}
                   // "Read-only" has three reasons and they read nothing alike:
