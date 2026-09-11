@@ -227,6 +227,16 @@ async function seedSettings(): Promise<void> {
  * overwrites anything, `recreate` first deletes the entities the seed owns.
  * Anything else leaves the database untouched.
  */
+/**
+ * A recreated stand starts without orders: every scenario places its own, and
+ * a kanban full of yesterday's carts is what the operator would otherwise read.
+ */
+async function dropOrders(): Promise<void> {
+  await PaymentDocument.destroy({});
+  await OrderDish.destroy({});
+  await Order.destroy({});
+}
+
 export async function seedMultiKitchenDemo(): Promise<void> {
   const mode = readSeedMode();
   if (mode === "off") return;
@@ -236,6 +246,7 @@ export async function seedMultiKitchenDemo(): Promise<void> {
     sails.log.warn("[MultiKitchen demo] recreate mode: the seeded catalog and promotions are dropped first");
   }
 
+  if (recreate) await dropOrders();
   await seedCatalog(recreate);
   await seedPromotions(recreate);
   await seedSettings();
