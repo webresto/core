@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import WorktimeEditor from './components/WorktimeEditor';
-import { styles, toast, getBaseAdminPath, notificationsApi as api, useIsMobile } from './components/notifications/shared';
+import { styles, toast, getBaseAdminPath, notificationsApi as api, useIsMobile, ModuleToaster } from './components/notifications/shared';
 
 const {
   Button, Input, Textarea, Label, Badge, Switch,
@@ -824,6 +824,7 @@ function PromotionsManagerContent() {
 export default function PromotionsManager(props) {
   return (
     <I18nProvider initialLocale={props.locale} messages={props.messages}>
+      <ModuleToaster />
       <PromotionsManagerContent />
     </I18nProvider>
   );

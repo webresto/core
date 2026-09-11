@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import {
-  styles, toast, notificationsApi as api, useIsMobile,
+  styles, toast, notificationsApi as api, useIsMobile, ModuleToaster,
 } from './components/notifications/shared';
 
 const {
@@ -467,6 +467,7 @@ export default function SalesChannelsManager(props) {
   const permissions = props.permissions || { canView: true, canManage: props.canManage === true };
   return (
     <I18nProvider initialLocale={props.locale} messages={props.messages}>
+      <ModuleToaster />
       <SalesChannelsManagerContent permissions={permissions} />
     </I18nProvider>
   );

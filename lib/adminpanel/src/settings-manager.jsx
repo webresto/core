@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { requireAdminApi } from './lib/admin-api';
+import { ModuleToaster } from './components/notifications/shared';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
 
@@ -1079,6 +1080,7 @@ export default function SettingsManager(props) {
   const locale = props?.locale || 'en';
   return (
     <I18nProvider initialLocale={locale} messages={props?.messages}>
+      <ModuleToaster />
       <SettingsManagerContent bootId={props?.bootId || null} />
     </I18nProvider>
   );

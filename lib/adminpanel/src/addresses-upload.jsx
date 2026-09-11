@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
-import { styles, toast, notificationsApi as api } from './components/notifications/shared';
+import { styles, toast, notificationsApi as api, ModuleToaster } from './components/notifications/shared';
 
 const { Button, Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } = window.UIComponents;
 
@@ -106,6 +106,7 @@ function AddressesUploadContent({ cities, listUrl }) {
 export default function AddressesUpload(props) {
   return (
     <I18nProvider initialLocale={props?.locale || 'en'} messages={props?.messages}>
+      <ModuleToaster />
       <AddressesUploadContent
         cities={Array.isArray(props?.cities) ? props.cities : []}
         listUrl={props?.listUrl || ''}

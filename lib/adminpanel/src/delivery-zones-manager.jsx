@@ -3,7 +3,7 @@ import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import WorktimeEditor from './components/WorktimeEditor';
 import {
-  styles, toast, notificationsApi as api, useIsMobile,
+  styles, toast, notificationsApi as api, useIsMobile, ModuleToaster,
 } from './components/notifications/shared';
 
 // OpenLayers is by a wide margin the heaviest thing on this page, and the city
@@ -1183,6 +1183,7 @@ function DeliveryZonesContent({ canManage }) {
 export default function DeliveryZonesManager(props) {
   return (
     <I18nProvider initialLocale={props?.locale || 'en'} messages={props?.messages}>
+      <ModuleToaster />
       <DeliveryZonesContent canManage={props?.canManage !== false} />
     </I18nProvider>
   );
