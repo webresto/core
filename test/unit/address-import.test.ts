@@ -63,12 +63,24 @@ describe("Address import", function () {
     expect(rows[2].parent).to.equal(rows[1].id);
   });
 
-  it("refuses a house with no parent, and writes nothing", async function () {
-    const result = await importAddresses({ city, nodes: [lenina, { type: "house", name: "12" }] });
+  it("refuses a parity it does not know, and writes nothing", async function () {
+    const result = await importAddresses({
+      city,
+      nodes: [lenina, { parent: "lenina", type: "range", name: "1–99", lo: 1, hi: 99, parity: "odd " as never }],
+    });
 
     expect(result.created).to.equal(0);
-    expect(result.errors[0]).to.contain("needs a parent");
+    expect(result.errors[0]).to.contain("unknown parity");
     expect(rows).to.deep.equal([]);
+  });
+
+  it("carries the bounds of a range through", async function () {
+    await importAddresses({
+      city,
+      nodes: [lenina, { parent: "lenina", type: "range", name: "1–99, нечётные", lo: 1, hi: 99, parity: "odd" }],
+    });
+
+    expect(rows[1]).to.include({ type: "range", lo: 1, hi: 99, parity: "odd" });
   });
 
   it("refuses a parent the file does not define", async function () {
