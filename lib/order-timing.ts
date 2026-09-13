@@ -27,7 +27,7 @@ export interface DeliveryTimeEstimate {
   distanceKm: number | null;
   travelSource: string;
   safetyMarginMinutes: number;
-  /** What the customer is shown: "totalMinutes минут". */
+  /** The number of minutes shown to the customer. */
   totalMinutes: number;
   diagnostics: string[];
 }

@@ -237,9 +237,9 @@ function isCompletedState(state) {
 }
 
 /**
- * Кто готовит и куда везти — одной строкой: «Север-запад · зона B».
- * Самовывоз и зал везти некуда, у них вместо зоны способ получения.
- * Зоны нет (мягкий расчёт, адрес вне зон) — остаётся одна кухня.
+ * Who cooks and where to drive, in one line: "North-west · zone B".
+ * Pickup and dine-in go nowhere, so they show the service type instead of a zone.
+ * No zone (soft calculation, address outside every zone) leaves the kitchen alone.
  */
 function formatKitchenLine(order, t) {
   const parts = [];

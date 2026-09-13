@@ -207,8 +207,8 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
       })
       : filteredByState;
 
-    // Кухня и зона — подписи для карточки, и собираются двумя запросами на весь
-    // список, а не по одному на карточку.
+    // Kitchen and zone are card captions, collected in two queries for the whole
+    // list rather than one query per card.
     const placeIds = new Set<string>();
     const zoneIds = new Set<string>();
     for (const order of filteredByQuery) {

@@ -32,19 +32,19 @@ describe("ProductModifier.ensureMinDefaults", () => {
       childModifiers: [
         {
           id: "mod3",
-          defaultAmount: 0, // Нет defaultAmount
+          defaultAmount: 0, // no defaultAmount
           rmsId: "r3",
           modifierId: "mod-3"
         },
         {
-          id: "mod4", // Этот можно выбрать
+          id: "mod4", // this one can be picked
           rmsId: "r4",
           modifierId: "mod-4"
         }
       ]
     },
     {
-      id: "group3", // Группа с minAmount = 0
+      id: "group3", // group with minAmount = 0
       minAmount: 0,
       rmsId: "rms-group3",
       modifierId: "modifier-group3",
@@ -58,7 +58,7 @@ describe("ProductModifier.ensureMinDefaults", () => {
       ]
     },
     {
-      id: "group4", // Группа без minAmount
+      id: "group4", // group without minAmount
       rmsId: "rms-group4",
       modifierId: "modifier-group4",
       childModifiers: [
@@ -73,37 +73,37 @@ describe("ProductModifier.ensureMinDefaults", () => {
   ];
 
   it("should set first modifier to minAmount if no defaultAmount exists", () => {
-    const orderModifiers: OrderModifier[] = []; // Пусто
+    const orderModifiers: OrderModifier[] = []; // empty
 
     const productMod = new ProductModifier(productModifiers);
     const result = productMod.ensureMinDefaults(orderModifiers);
 
-    // Для group1: minAmount = 1 → должен выбрать модификатор mod1 (с defaultAmount)
+    // group1: minAmount = 1 → modifier mod1 (the one with defaultAmount) must be picked
     expect(result[0]).to.deep.include({
-      id: "mod1", // Первый модификатор
+      id: "mod1", // the first modifier
       groupId: "group1",
-      amount: 1, // На minAmount
+      amount: 1, // up to minAmount
       rmsId: "r1"
     });
 
-    // Для group2: minAmount = 1, нет defaultAmount → должен выбрать mod4 (первый по списку)
+    // group2: minAmount = 1, no defaultAmount → mod4 (first in the list) must be picked
     expect(result[1]).to.deep.include({
       id: "mod3",
       groupId: "group2",
-      amount: 1, // На minAmount
+      amount: 1, // up to minAmount
       rmsId: "r3"
     });
 
-    expect(result).to.have.lengthOf(2); // Должно быть два модификатора
+    expect(result).to.have.lengthOf(2); // two modifiers expected
   });
 
   it("should add defaultAmount modifiers if available", () => {
-    const orderModifiers: OrderModifier[] = []; // Пусто
+    const orderModifiers: OrderModifier[] = []; // empty
 
     const productMod = new ProductModifier(productModifiers);
     const result = productMod.ensureMinDefaults(orderModifiers);
 
-    // Для group1: minAmount = 1 → должен выбрать mod1 (с defaultAmount)
+    // group1: minAmount = 1 → mod1 (the one with defaultAmount) must be picked
     expect(result[0]).to.deep.include({
       id: "mod1",
       groupId: "group1",
@@ -111,24 +111,24 @@ describe("ProductModifier.ensureMinDefaults", () => {
       rmsId: "r1"
     });
 
-    expect(result).to.have.lengthOf(2); // Должно быть два модификатора
+    expect(result).to.have.lengthOf(2); // two modifiers expected
   });
 
   it("should do nothing if minAmount is 0 or does not exist", () => {
-    const orderModifiers: OrderModifier[] = []; // Пусто
+    const orderModifiers: OrderModifier[] = []; // empty
 
     const productMod = new ProductModifier(productModifiers);
     const result = productMod.ensureMinDefaults(orderModifiers);
 
-    // Для group3 (minAmount = 0): ничего не должно быть добавлено
+    // group3 (minAmount = 0): nothing must be added
     const group3Modifier = result.find(mod => mod.groupId === "group3");
-    expect(group3Modifier).to.be.undefined; // Модификатор не должен быть добавлен для group3
+    expect(group3Modifier).to.be.undefined; // no modifier must be added for group3
 
-    // Для group4 (minAmount не указан): ничего не должно быть добавлено
+    // group4 (no minAmount): nothing must be added
     const group4Modifier = result.find(mod => mod.groupId === "group4");
-    expect(group4Modifier).to.be.undefined; // Модификатор не должен быть добавлен для group4
+    expect(group4Modifier).to.be.undefined; // no modifier must be added for group4
 
-    // Для других групп модификаторы все равно добавятся
-    expect(result).to.have.lengthOf(2); // Только 2 модификатора должны быть добавлены
+    // modifiers for the other groups are added anyway
+    expect(result).to.have.lengthOf(2); // only 2 modifiers must be added
   });
 });

@@ -108,7 +108,7 @@ describe('BackupHandler', () => {
     const spy = sinon.spy(console, 'warn');
   
     // Check that a warning appears when an image is not found
-    await backupHandler['checkAndLoadImage']('/nonexistent__1.jpg'); // await добавлен
+    await backupHandler['checkAndLoadImage']('/nonexistent__1.jpg'); // await added
   
     sinon.assert.calledWith(spy, 'Image not found: /nonexistent__1.jpg');
   

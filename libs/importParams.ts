@@ -16,7 +16,7 @@ type importParamObject = {
 let importFns: importParamObject[] = [];
 
 /**
- * Параметры импорта блюд и групп при синхронизации из RMS adapter
+ * Import parameters for dishes and groups when syncing from an RMS adapter
  * @param obj
  */
 export default async function (obj: DishRecord | GroupRecord): Promise<void> {
@@ -47,8 +47,9 @@ export default async function (obj: DishRecord | GroupRecord): Promise<void> {
 }
 
 /**
- * Добавление кастомной функции импорта, функция принимает блюдо или группу, может менять их поля как угодно, сохранять
- * модель после изменений не обязательно, это сделает модуль обработки импорта
+ * Adds a custom import function. It takes a dish or a group and may change their
+ * fields however it likes; saving the model afterwards is not required, the import
+ * handling module does that.
  * @param label - label for debugging
  * @param fn - function to do
  */

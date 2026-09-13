@@ -218,7 +218,7 @@ export default class HookTools {
    * @param folder - folder where policies load
    */
 
-  // TODO: Проблема в том что система полиси совсем не предназначена для хуков, нельзя сделать хук который будет добавлять чтото в полиси, можно сделать только полностью замеяющий хук сейчас
+  // TODO: the policy system is not meant for hooks at all. A hook cannot add anything to the policies, it can only replace them wholesale as things stand
 
   public static loadPolicies(folder: string) {
     const normalizedPath = path.normalize(folder);
