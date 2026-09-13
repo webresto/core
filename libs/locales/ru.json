@@ -5,15 +5,5 @@
   "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "По этому заказу есть активная ссылка на оплату. Изменение корзины отменит эту оплату. Продолжить?",
   "Cancel payment and edit basket": "Отменить оплату и изменить корзину",
   "Keep payment": "Оставить оплату",
-  "Coordinates not found": "Координаты не найдены",
-  "Outside the delivery area": "За пределами зоны доставки",
-  "Delivery conditions apply": "Применяются условия доставки",
-  "Delivery cost: %s": "Стоимость доставки: %s",
-  "Minimum order price: %s": "Минимальная сумма заказа: %s",
-  "Free delivery for orders above: %s": "Бесплатная доставка для заказов от: %s",
-  "At the moment, the delivery area does not work, try it later": "Сейчас зона доставки не работает, попробуйте позже",
-  "Minimum order amount: %s": "Минимальная сумма заказа: %s",
-  "Free delivery": "Бесплатная доставка",
-  "Shipping cost cannot be calculated": "Стоимость доставки не удалось рассчитать",
   "Some products are not available at the kitchen serving this address and were removed: %s": "Некоторые товары недоступны на кухне, обслуживающей этот адрес, и были убраны: %s"
 }

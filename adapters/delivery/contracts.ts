@@ -28,7 +28,21 @@ export interface Delivery {
   /** `undefined` when `item` carries the price instead. */
   cost: number | null | undefined
   item: string | undefined
+  /**
+   * What the customer is told, in English, as a translation key.
+   *
+   * Core does not translate it: `sails.__` knows the installation's default
+   * locale, not the locale of the person who is reading, and the two are the
+   * same only by accident. GraphQL translates the field on the way out, where
+   * the request says which language to use — so the dictionary for these lines
+   * lives in `@webresto/graphql/translations`, not in core.
+   *
+   * Text an operator typed (a zone's `deliveryMessage`, a message setting) goes
+   * through untouched: it is already in the language its author chose.
+   */
   message: string,
+  /** `sprintf` arguments for `message`, one per `%s`, lines counted in order. */
+  messageArgs?: string[],
   /**
    * A flag that shows that it was not possible to recognize how to make a delivery
    * street and house number not found.

@@ -35,7 +35,12 @@ export async function softDeliveryFallback(diagnostics: string[] = []): Promise<
   };
 }
 
-/** The operator's "a manager will call you" text, or a usable default. */
+/**
+ * The operator's "a manager will call you" text, or a usable default.
+ *
+ * The default is a translation key, translated by GraphQL where the request
+ * says which language to use. The operator's own text is not.
+ */
 export async function softDeliveryMessage(): Promise<string> {
   const message = await Settings.get("SOFT_DELIVERY_CALCULATION_MESSAGE");
 
@@ -44,5 +49,5 @@ export async function softDeliveryMessage(): Promise<string> {
   // which coerced every message an operator typed into `false`.
   return typeof message === "string" && message
     ? message
-    : sails.__("Shipping cost cannot be calculated");
+    : "Shipping cost cannot be calculated";
 }

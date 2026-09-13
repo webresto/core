@@ -38,20 +38,39 @@ export async function outsideDeliveryArea(diagnostics: string[] = []): Promise<D
     deliveryTimeMinutes: null,
     cost: item ? 0 : cost || 0,
     item: cost ? undefined : item || undefined,
-    message: sails.__("Outside the delivery area"),
+    message: "Outside the delivery area",
     diagnostics,
   };
 }
 
-function zoneDescription(zone: DeliveryZoneRecord): string {
-  if (zone.description) return zone.description;
+/**
+ * The zone's terms in words, for a zone whose operator wrote none.
+ *
+ * Keys and their numbers travel apart: the numbers are not translatable and the
+ * sentences are. One key per line, the arguments in the order the lines take
+ * them.
+ */
+function zoneDescription(zone: DeliveryZoneRecord): { message: string; messageArgs?: string[] } {
+  // The operator's own text is not a key and is never translated.
+  if (zone.description) return { message: zone.description };
 
-  const parts: string[] = [];
-  if (zone.deliveryCost) parts.push(sails.__("Delivery cost: %s", String(zone.deliveryCost)));
-  if (zone.minOrderTotal) parts.push(sails.__("Minimum order price: %s", String(zone.minOrderTotal)));
-  if (zone.freeDeliveryFrom) parts.push(sails.__("Free delivery for orders above: %s", String(zone.freeDeliveryFrom)));
+  const lines: string[] = [];
+  const messageArgs: string[] = [];
+  if (zone.deliveryCost) {
+    lines.push("Delivery cost: %s");
+    messageArgs.push(String(zone.deliveryCost));
+  }
+  if (zone.minOrderTotal) {
+    lines.push("Minimum order price: %s");
+    messageArgs.push(String(zone.minOrderTotal));
+  }
+  if (zone.freeDeliveryFrom) {
+    lines.push("Free delivery for orders above: %s");
+    messageArgs.push(String(zone.freeDeliveryFrom));
+  }
 
-  return parts.length ? parts.join("\n") : sails.__("Delivery conditions apply");
+  if (!lines.length) return { message: "Delivery conditions apply" };
+  return { message: lines.join("\n"), messageArgs };
 }
 
 /** Whether the zone accepts orders right now. */
@@ -81,7 +100,7 @@ export async function applyZone(
       deliveryTimeMinutes: zone.minDeliveryTime ?? null,
       cost: 0,
       item: undefined,
-      message: sails.__("At the moment, the delivery area does not work, try it later"),
+      message: "At the moment, the delivery area does not work, try it later",
       zoneId,
       diagnostics,
     };
@@ -93,7 +112,8 @@ export async function applyZone(
       deliveryTimeMinutes: zone.minDeliveryTime ?? null,
       cost: 0,
       item: undefined,
-      message: sails.__("Minimum order amount: %s", String(zone.minOrderTotal)),
+      message: "Minimum order amount: %s",
+      messageArgs: [String(zone.minOrderTotal)],
       zoneId,
       diagnostics,
     };
@@ -107,7 +127,7 @@ export async function applyZone(
       deliveryTimeMinutes: zone.minDeliveryTime ?? null,
       cost: 0,
       item: undefined,
-      message: sails.__("Free delivery"),
+      message: "Free delivery",
       zoneId,
       diagnostics,
     };
@@ -145,7 +165,7 @@ export async function describeZone(zone: DeliveryZoneRecord, diagnostics: string
     deliveryTimeMinutes: zone.minDeliveryTime ?? null,
     cost: zone.deliveryCost ?? 0,
     item: zone.deliveryItem ? (zone.deliveryItem as string) : undefined,
-    message: sails.__(zoneDescription(zone)),
+    ...zoneDescription(zone),
     zoneId: zone.id as string,
     diagnostics,
   };
@@ -198,7 +218,7 @@ export async function locationUnrecognized(diagnostics: string[]): Promise<Deliv
     deliveryTimeMinutes: null,
     cost: 0,
     item: undefined,
-    message: sails.__("Coordinates not found"),
+    message: "Coordinates not found",
     diagnostics,
   };
 }
