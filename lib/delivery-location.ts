@@ -180,8 +180,15 @@ export interface AddressLocation {
  * Finds the coordinate of an address, in this order:
  *
  * 1. the coordinate the address already carries;
- * 2. the `point` of the catalog node the customer chose;
+ * 2. the `point` of the catalog node the customer chose, or of the nearest node
+ *    above it that has one;
  * 3. the geocoder, on the node's path plus the house number.
+ *
+ * The point is inherited because that is what the graph already says: a table on
+ * a food court, a cabin in a hotel, a doorway of a house are all at the place
+ * they hang from. Making every one of them carry a copy of its parent's
+ * coordinate would be the same fact written twice, and the second copy is the
+ * one that goes stale.
  *
  * The catalog comes before the geocoder because it is the only one of the three
  * that gives the same answer twice. A house entered in the catalog is a fact an
@@ -209,15 +216,22 @@ export async function locateAddress(
   const path = node ? await Address.path(node) : [];
   const chosen = path[path.length - 1];
 
-  if (chosen && isValidCoordinate(chosen.point)) {
-    diagnostics.push(`address point source: address-node (${chosen.type} "${chosen.name}")`);
-    return { coordinate: chosen.point, unrecognized: false, diagnostics };
+  // From the chosen node upwards: the first ancestor with a point is where it
+  // stands. A tent with its own coordinate answers for itself, a table on a
+  // food court is at the mall.
+  for (let step = path.length - 1; step >= 0; step--) {
+    const above = path[step];
+    if (isValidCoordinate(above.point)) {
+      diagnostics.push(`address point source: address-node (${above.type} "${above.name}")`);
+      return { coordinate: above.point, unrecognized: false, diagnostics };
+    }
   }
 
   // The words to geocode. With a node they are its path — a leaf carries the
   // house number in its own name, so it becomes `home` and leaves the street
-  // behind it. Without a node the customer typed the line themselves.
-  const names = path.map((step) => step.name);
+  // behind it. A range is a span of numbers, not a word on any map, so it drops
+  // out and the number the customer typed stands in for it.
+  const names = path.filter((step) => step.type !== "range").map((step) => step.name);
   let home = trimmed(address?.home);
   if (!home && chosen && LEAF_WITH_POINT.includes(chosen.type)) {
     home = names.pop();

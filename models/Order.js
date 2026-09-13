@@ -2456,12 +2456,7 @@ async function checkCustomerInfo(customer) {
 async function formatAddress(address) {
     if (!address.node)
         return address.formatted;
-    const path = await Address.path(address.node);
-    const names = path.map((step) => step.name);
-    const leaf = path[path.length - 1];
-    if (address.home && !(leaf && address_1.SELF_ADDRESSED.includes(leaf.type)))
-        names.push(address.home);
-    return (0, address_1.formatAddressPath)(names);
+    return (0, address_1.formatAddressLine)(await Address.path(address.node), address.home);
 }
 async function checkAddress(address, softDeliveryCalculation = false) {
     let error = [];

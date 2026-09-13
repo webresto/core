@@ -28,7 +28,7 @@ import { getDefaultCookingPlaceId, getOrderCookingPlaceId, placeIsOpen, toPlaceI
 import { assignOrderCookingPlace, KITCHEN_LOG } from "../lib/kitchen-assignment";
 import { softDeliveryMessage } from "../lib/soft-delivery";
 import { coordinateFromAddress } from "../lib/delivery-location";
-import { SELF_ADDRESSED, formatAddressPath } from "../lib/address";
+import { SELF_ADDRESSED, formatAddressLine } from "../lib/address";
 import { UNLIMITED_BALANCE } from "../lib/dish-place-balance";
 import { ProductAvailability, getProductAvailability, getProductsAvailability } from "../lib/product-availability";
 import { estimateDeliveryTime, fitsMaxWait, resolveOrderTiming } from "../lib/order-timing";
@@ -2884,13 +2884,7 @@ async function checkCustomerInfo(customer: Customer) {
  */
 async function formatAddress(address: OrderAddress): Promise<string> {
   if (!address.node) return address.formatted;
-
-  const path = await Address.path(address.node);
-  const names = path.map((step) => step.name);
-  const leaf = path[path.length - 1];
-  if (address.home && !(leaf && SELF_ADDRESSED.includes(leaf.type))) names.push(address.home);
-
-  return formatAddressPath(names);
+  return formatAddressLine(await Address.path(address.node), address.home);
 }
 
 async function checkAddress(address: OrderAddress, softDeliveryCalculation: boolean = false) {
