@@ -4,12 +4,16 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { CityRecord } from "./City";
 import {
+  ADDRESS_PARITIES,
   ADDRESS_SEARCH_LIMIT,
   ADDRESS_TYPES,
+  AddressParity,
   AddressPoint,
   AddressType,
-  CHILD_ONLY,
   ROOT_SEARCHABLE,
+  compareAddressNames,
+  leadingNumber,
+  rangeCovers,
 } from "../lib/address";
 import { isValidCoordinate } from "../lib/delivery-location";
 
@@ -17,8 +21,8 @@ import { isValidCoordinate } from "../lib/delivery-location";
  * The address catalog of a city: one flat table, one row per node.
  *
  * A node knows its city and its parent, and nothing else about where it sits.
- * There is no `ancestors` column and no table of names or codes: the graph is at
- * most four deep, so the path is read by following `parent`, and every query the
+ * There is no `ancestors` column and no table of names or codes: the graph is
+ * shallow, so the path is read by following `parent`, and every query the
  * storefront makes is "the children of this node" or "the roots of this city".
  *
  * Houses are rows here too, with their own `point`. That is the whole reason the
@@ -61,10 +65,34 @@ let attributes = {
     defaultsTo: [],
   } as unknown as string[],
 
-  /** Only leaves carry one: `house`, `entrance`, `place`. */
+  /** Only leaves carry one: `house`, `entrance`, `unit`, `place`, and a `range` for its middle. */
   point: {
     type: "json",
   } as unknown as AddressPoint | null,
+
+  /**
+   * The house numbers a `range` node stands for, and nobody else's business.
+   *
+   * A street of five hundred houses is not worth five hundred rows when the
+   * whole block delivers the same: one node says "1 to 99, odd", carries the
+   * point of its middle, and the number the customer types stays in `home`.
+   * `null` on either side is a range open at that end.
+   */
+  lo: {
+    type: "number",
+    allowNull: true,
+  } as unknown as number | null,
+
+  hi: {
+    type: "number",
+    allowNull: true,
+  } as unknown as number | null,
+
+  parity: {
+    type: "string",
+    isIn: [...ADDRESS_PARITIES],
+    defaultsTo: "any",
+  } as unknown as AddressParity,
 
   /** Id of the street in an RMS. Null for everything entered here or imported from a file. */
   externalId: {
@@ -97,11 +125,19 @@ async function assertNode(values: Partial<AddressRecord>): Promise<void> {
     throw new Error("Address point must contain a valid latitude and longitude");
   }
 
-  const parentId = idOf(values.parent);
-
-  if (values.type && CHILD_ONLY.includes(values.type) && !parentId) {
-    throw new Error(`Address of type "${values.type}" is only ever a child: parent is required`);
+  // Bounds belong to a range and to nothing else. On any other type they would
+  // be a second, silent answer to "which house is this" that no search reads.
+  if (values.type && values.type !== "range") {
+    const bounded =
+      typeof values.lo === "number" ||
+      typeof values.hi === "number" ||
+      (typeof values.parity === "string" && values.parity !== "any");
+    if (bounded) {
+      throw new Error(`Address of type "${values.type}" cannot carry lo, hi or parity: those make a range`);
+    }
   }
+
+  const parentId = idOf(values.parent);
 
   if (parentId) {
     const parent = await Address.findOne({ id: parentId });
@@ -110,6 +146,23 @@ async function assertNode(values: Partial<AddressRecord>): Promise<void> {
     const city = idOf(values.city);
     if (city && idOf(parent.city) !== city) {
       throw new Error("Address parent belongs to another city");
+    }
+  }
+
+  // Two identical names of one type under one parent are a data entry mistake:
+  // the list would show the same word twice and the customer would take
+  // whichever came first. Two "Ленина" in one city are fine — under two
+  // different districts, which is exactly what tells them apart.
+  const city = idOf(values.city);
+  if (city && values.type && values.name) {
+    const twin = await Address.findOne({
+      city,
+      parent: parentId ?? null,
+      type: values.type,
+      name: values.name,
+    });
+    if (twin && twin.id !== values.id) {
+      throw new Error(`Address "${values.name}" of type "${values.type}" already exists here`);
     }
   }
 }
@@ -137,17 +190,22 @@ let Model = {
   /**
    * What to offer for what the customer has typed.
    *
-   * With no `parent` the search starts at the city and sees only the types that
-   * make sense on their own; with one it sees that node's children, whatever
-   * they are. Matching is done here rather than in the query because `names` is
-   * a json array and because "лени" has to find "Ленина".
+   * With no `parent` the search starts at the city, with one it sees that node's
+   * children, whatever they are. Matching is done here rather than in the query
+   * because `names` is a json array and because "лени" has to find "Ленина".
    *
-   * The type is the whole filter at the root — depth deliberately is not. A
-   * street under a ward is still a street, and a customer who types "Trần Phú"
-   * must not have to know which ward it is in first. Requiring `parent: null`
-   * there was a per-city assumption about structure, which is the one thing this
-   * model set out not to have. House numbers stay out either way: `house` is not
-   * a root type, so "10" with nothing chosen still finds nothing.
+   * At the root a node qualifies two ways. By type: a street under a ward is
+   * still a street, and a customer who types "Trần Phú" must not have to know
+   * which ward it is in first — depth deliberately is not a filter, that was a
+   * per-city assumption about structure. Or by hanging off the city itself: a
+   * camp site has no streets, its tents are direct children of the city, and
+   * "42" has to find "Шатёр 42". House numbers stay out of both: a `house`
+   * hangs under a street, so "10" still finds nothing in a town.
+   *
+   * A `range` never matches its own name — nobody types "1–99, нечётные". It
+   * matches the number in front of what was typed, and only after every node
+   * that matched by name: a house that is really in the catalog is a better
+   * answer than the block it belongs to.
    */
   async search(params: { city: string; parent?: string | null; query: string }): Promise<AddressRecord[]> {
     const criteria: Record<string, unknown> = { city: params.city, enable: true };
@@ -155,14 +213,20 @@ let Model = {
     if (params.parent) {
       criteria.parent = params.parent;
     } else {
-      criteria.type = ROOT_SEARCHABLE;
+      criteria.or = [{ type: ROOT_SEARCHABLE }, { parent: null }];
     }
 
-    const nodes = await Address.find(criteria).sort("name ASC");
+    const nodes = await Address.find(criteria);
     const needle = (params.query ?? "").trim().toLowerCase();
-    const found = needle ? nodes.filter((node) => matches(node, needle)) : nodes;
+    const number = leadingNumber(needle);
 
-    return found.slice(0, ADDRESS_SEARCH_LIMIT);
+    const named = nodes.filter((node) => node.type !== "range" && (!needle || matches(node, needle)));
+    const ranges =
+      number === null ? [] : nodes.filter((node) => node.type === "range" && rangeCovers(node, number));
+
+    const byName = (a: AddressRecord, b: AddressRecord) => compareAddressNames(a.name, b.name);
+
+    return [...named.sort(byName), ...ranges.sort(byName)].slice(0, ADDRESS_SEARCH_LIMIT);
   },
 
   /** The nodes from the city down to `id`, in that order. What `formatted` is built from. */
@@ -170,9 +234,10 @@ let Model = {
     const chain: AddressRecord[] = [];
     let current: string | undefined = id;
 
-    // The graph is at most four deep; the bound is what stops a parent set to
-    // its own descendant from spinning the server instead of returning junk.
-    while (current && chain.length < ADDRESS_TYPES.length) {
+    // Not a depth limit: a graph is as deep as its data, and the list of types
+    // says nothing about that. The bound is what stops a parent set to its own
+    // descendant from spinning the server instead of returning junk.
+    while (current && chain.length < 32) {
       const node: AddressRecord = await Address.findOne({ id: current });
       if (!node) break;
       chain.unshift(node);

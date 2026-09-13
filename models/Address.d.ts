@@ -1,13 +1,13 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { CityRecord } from "./City";
-import { AddressPoint, AddressType } from "../lib/address";
+import { AddressParity, AddressPoint, AddressType } from "../lib/address";
 /**
  * The address catalog of a city: one flat table, one row per node.
  *
  * A node knows its city and its parent, and nothing else about where it sits.
- * There is no `ancestors` column and no table of names or codes: the graph is at
- * most four deep, so the path is read by following `parent`, and every query the
+ * There is no `ancestors` column and no table of names or codes: the graph is
+ * shallow, so the path is read by following `parent`, and every query the
  * storefront makes is "the children of this node" or "the roots of this city".
  *
  * Houses are rows here too, with their own `point`. That is the whole reason the
@@ -26,8 +26,19 @@ declare let attributes: {
     name: string;
     /** Aliases, former names, transliterations. Searched together with `name`. */
     names: string[];
-    /** Only leaves carry one: `house`, `entrance`, `place`. */
+    /** Only leaves carry one: `house`, `entrance`, `unit`, `place`, and a `range` for its middle. */
     point: AddressPoint | null;
+    /**
+     * The house numbers a `range` node stands for, and nobody else's business.
+     *
+     * A street of five hundred houses is not worth five hundred rows when the
+     * whole block delivers the same: one node says "1 to 99, odd", carries the
+     * point of its middle, and the number the customer types stays in `home`.
+     * `null` on either side is a range open at that end.
+     */
+    lo: number | null;
+    hi: number | null;
+    parity: AddressParity;
     /** Id of the street in an RMS. Null for everything entered here or imported from a file. */
     externalId: string | null;
     enable: boolean;
@@ -41,17 +52,22 @@ declare let Model: {
     /**
      * What to offer for what the customer has typed.
      *
-     * With no `parent` the search starts at the city and sees only the types that
-     * make sense on their own; with one it sees that node's children, whatever
-     * they are. Matching is done here rather than in the query because `names` is
-     * a json array and because "лени" has to find "Ленина".
+     * With no `parent` the search starts at the city, with one it sees that node's
+     * children, whatever they are. Matching is done here rather than in the query
+     * because `names` is a json array and because "лени" has to find "Ленина".
      *
-     * The type is the whole filter at the root — depth deliberately is not. A
-     * street under a ward is still a street, and a customer who types "Trần Phú"
-     * must not have to know which ward it is in first. Requiring `parent: null`
-     * there was a per-city assumption about structure, which is the one thing this
-     * model set out not to have. House numbers stay out either way: `house` is not
-     * a root type, so "10" with nothing chosen still finds nothing.
+     * At the root a node qualifies two ways. By type: a street under a ward is
+     * still a street, and a customer who types "Trần Phú" must not have to know
+     * which ward it is in first — depth deliberately is not a filter, that was a
+     * per-city assumption about structure. Or by hanging off the city itself: a
+     * camp site has no streets, its tents are direct children of the city, and
+     * "42" has to find "Шатёр 42". House numbers stay out of both: a `house`
+     * hangs under a street, so "10" still finds nothing in a town.
+     *
+     * A `range` never matches its own name — nobody types "1–99, нечётные". It
+     * matches the number in front of what was typed, and only after every node
+     * that matched by name: a house that is really in the catalog is a better
+     * answer than the block it belongs to.
      */
     search(params: {
         city: string;

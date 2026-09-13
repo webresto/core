@@ -1,4 +1,4 @@
-import { ADDRESS_TYPES, AddressPoint, AddressType, CHILD_ONLY } from "./address";
+import { ADDRESS_PARITIES, ADDRESS_TYPES, AddressParity, AddressPoint, AddressType } from "./address";
 
 /**
  * Loading an address catalog from a file.
@@ -21,6 +21,10 @@ export interface AddressImportNode {
   name: string;
   names?: string[];
   point?: AddressPoint | null;
+  /** Only a `range` carries these; the model refuses them on anything else. */
+  lo?: number | null;
+  hi?: number | null;
+  parity?: AddressParity;
 }
 
 export interface AddressImportResult {
@@ -48,8 +52,10 @@ export function validateAddressNodes(nodes: unknown): string[] {
 
     if (!ADDRESS_TYPES.includes(node?.type)) {
       errors.push(`Node ${where} has an unknown type "${node?.type}"`);
-    } else if (CHILD_ONLY.includes(node.type) && !node.parent) {
-      errors.push(`Node ${where} is a ${node.type} and needs a parent`);
+    }
+
+    if (node?.parity !== undefined && !ADDRESS_PARITIES.includes(node.parity)) {
+      errors.push(`Node ${where} has an unknown parity "${node.parity}"`);
     }
 
     if (node?.key !== undefined) {
@@ -116,6 +122,9 @@ export async function importAddresses(params: {
       name: node.name.trim(),
       names: Array.isArray(node.names) ? node.names : [],
       point: node.point ?? null,
+      lo: node.lo ?? null,
+      hi: node.hi ?? null,
+      parity: node.parity ?? "any",
     }).fetch();
 
     if (node.key !== undefined) ids.set(node.key, row.id);

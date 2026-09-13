@@ -137,6 +137,13 @@ exports.up = function (db, callback) {
         names: { type: 'json', notNull: false },
         // Only leaves carry one, which is what lets a chosen address skip the geocoder.
         point: { type: 'json', notNull: false },
+        // A `range` node stands for a span of house numbers — "1 to 99, odd" —
+        // so a street of five hundred houses is one row instead of five hundred.
+        // Null on either side is a span open at that end; on any other type the
+        // model refuses all three.
+        lo: { type: 'int', notNull: false },
+        hi: { type: 'int', notNull: false },
+        parity: { type: 'text', notNull: false, defaultValue: 'any' },
         externalId: { type: 'text', notNull: false },
         enable: { type: 'boolean', notNull: false, defaultValue: true },
         createdAt: { type: 'bigint', notNull: false },
