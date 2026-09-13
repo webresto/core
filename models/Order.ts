@@ -2220,19 +2220,16 @@ let Model = {
         }
 
 
-        // Case when the shipping cost cannot be calculated
+        // Nothing was calculated at all — no address yet, or an adapter that
+        // answered with an empty object. The addresses the adapter cannot price
+        // are its own business: it already answers them softly, the same way on
+        // the address form and here, so there is nothing to re-stamp.
         if (
           softDeliveryCalculation &&
-          (!order.delivery ||
-            Object.keys(order.delivery).length === 0 ||
-            delivery.deliveryLocationUnrecognized === true
-          )
+          (!order.delivery || Object.keys(order.delivery).length === 0)
         ) {
           delivery.allowed = true;
           delivery.cost = null;
-          // Same text the delivery adapter already showed on the address form,
-          // read from the same place: the customer must not be told "we do not
-          // deliver there" and then "a manager will call" one screen apart.
           delivery.message = await softDeliveryMessage();
         }
       } else {

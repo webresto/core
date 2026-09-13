@@ -47,7 +47,7 @@ export class DefaultDeliveryAdapter extends DeliveryAdapter {
 
     if (match.zonesConfigured) {
       if (match.location.unrecognized) {
-        return locationUnrecognized(match.location.diagnostics);
+        return await locationUnrecognized(match.location.diagnostics);
       }
       if (match.location.coordinate) {
         return outsideDeliveryArea(match.location.diagnostics);
@@ -128,7 +128,7 @@ export class DefaultDeliveryAdapter extends DeliveryAdapter {
 
     if (match.zonesConfigured) {
       if (match.location.unrecognized) {
-        return locationUnrecognized(match.location.diagnostics);
+        return await locationUnrecognized(match.location.diagnostics);
       }
       if (match.location.coordinate) {
         return outsideDeliveryArea(match.location.diagnostics);

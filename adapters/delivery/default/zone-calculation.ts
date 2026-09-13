@@ -180,15 +180,24 @@ export async function matchZone(adapter: DeliveryAdapter, address: Address | und
   return { zone, zonesConfigured: true, location };
 }
 
-/** The result for an address the adapter tried and failed to place on the map. */
-export function locationUnrecognized(diagnostics: string[]): Delivery {
+/**
+ * The result for an address the adapter tried and failed to place on the map.
+ *
+ * The same answer as an address outside every zone, and for the same reason:
+ * checkout under soft calculation takes the order whatever the map said, so the
+ * address form must not refuse what the next screen accepts. `hasError` is not
+ * set — the calculation did not break, it simply has no coordinate to price.
+ * Why it has none is in `diagnostics`.
+ */
+export async function locationUnrecognized(diagnostics: string[]): Promise<Delivery> {
+  const soft = await softDeliveryFallback(diagnostics);
+  if (soft) return soft;
+
   return {
     allowed: false,
     deliveryTimeMinutes: null,
     cost: 0,
     item: undefined,
-    hasError: true,
-    deliveryLocationUnrecognized: true,
     message: sails.__("Coordinates not found"),
     diagnostics,
   };

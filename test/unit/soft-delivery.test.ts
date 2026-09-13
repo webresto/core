@@ -1,8 +1,9 @@
 import { expect } from "chai";
 import { softDeliveryFallback, softDeliveryMessage } from "../../lib/soft-delivery";
-import { applyZone, outsideDeliveryArea } from "../../adapters/delivery/default/zone-calculation";
+import { applyZone, locationUnrecognized, outsideDeliveryArea } from "../../adapters/delivery/default/zone-calculation";
 import { invalidateDeliveryZoneCache } from "../../adapters/delivery/default/zone-cache";
 import { DefaultDeliveryAdapter } from "../../adapters/delivery/default/defaultDelivery";
+import { DeliveryLocationError } from "../../adapters/delivery/contracts";
 
 /**
  * An address outside every zone is not a refusal while soft calculation is on.
@@ -162,6 +163,42 @@ describe("Soft delivery calculation", function () {
   });
 
   /**
+   * An address the map could not place is the same kind of answer as one
+   * outside every zone, and has to be answered the same way: checkout under
+   * soft calculation takes the order either way, so refusing on the address
+   * form would promise the opposite of what the next screen does.
+   */
+  describe("an address the map could not place", function () {
+    it("hands it to a manager instead of refusing", async function () {
+      settings.SOFT_DELIVERY_CALCULATION = true;
+      settings.SOFT_DELIVERY_CALCULATION_MESSAGE = "A manager will call you back";
+
+      const delivery = await locationUnrecognized(["DELIVERY_LOCATION_GEOCODER_FAILED"]);
+
+      expect(delivery.allowed).to.equal(true);
+      expect(delivery.cost).to.equal(null);
+      expect(delivery.message).to.equal("A manager will call you back");
+      expect(delivery.deliveryLocationUnrecognized).to.equal(true);
+      // Not an error: the calculation did not break, it has no coordinate to
+      // price. Why it has none is in the diagnostics.
+      expect(delivery.hasError).to.equal(undefined);
+      expect(delivery.diagnostics).to.deep.equal(["DELIVERY_LOCATION_GEOCODER_FAILED"]);
+    });
+
+    it("refuses when soft calculation is off", async function () {
+      settings.SOFT_DELIVERY_CALCULATION = false;
+
+      const delivery = await locationUnrecognized(["DELIVERY_LOCATION_GEOCODER_FAILED"]);
+
+      expect(delivery.allowed).to.equal(false);
+      expect(delivery.cost).to.equal(0);
+      expect(delivery.message).to.equal("Coordinates not found");
+      expect(delivery.deliveryLocationUnrecognized).to.equal(undefined);
+      expect(delivery.hasError).to.equal(undefined);
+    });
+  });
+
+  /**
    * The customer meets delivery twice: once typing the address, where GraphQL
    * `checkDeliveryAbility` calls the adapter directly, and once at checkout,
    * where `Order.countCart` calls it and then applies the soft branch. The two
@@ -171,6 +208,13 @@ describe("Soft delivery calculation", function () {
     const adapter = new DefaultDeliveryAdapter();
     const outside = { city: "Demo", formatted: "Far, 1", home: "1", coordinate: { lat: 50, lng: 50 } } as any;
     const inside = { city: "Demo", formatted: "Near, 1", home: "1", coordinate: { lat: 10, lng: 10 } } as any;
+    // The stand's geocoder has been dead since scenario 01, and that is the
+    // state this has to answer for: a street the catalog does not carry.
+    const deadGeocoder = new (class extends DefaultDeliveryAdapter {
+      public async resolveDeliveryLocation(): Promise<never> {
+        throw new DeliveryLocationError("DELIVERY_LOCATION_GEOCODER_FAILED", "Geocoder request failed", ["geocoder failed"]);
+      }
+    })();
 
     it("answers the address form the way checkout will answer", async function () {
       settings.SOFT_DELIVERY_CALCULATION = true;
@@ -209,5 +253,34 @@ describe("Soft delivery calculation", function () {
       const calculated = await adapter.calculate({ address: inside, basketTotal: 1000 } as any);
       expect(calculated.cost).to.equal(300);
     });
+    it("answers a dead geocoder the way checkout will answer", async function () {
+      settings.SOFT_DELIVERY_CALCULATION = true;
+      settings.SOFT_DELIVERY_CALCULATION_MESSAGE = "A manager will call you back";
+
+      // A street with a house number and nothing else: the catalog has no point
+      // for it, so the adapter geocodes — and the geocoder is down.
+      const typed = { city: "Demo", formatted: "Вайнера", home: "9" } as any;
+
+      const ability = await deadGeocoder.checkAbility(typed);
+      expect(ability.allowed).to.equal(true);
+      expect(ability.cost).to.equal(null);
+      expect(ability.message).to.equal("A manager will call you back");
+      expect(ability.hasError).to.equal(undefined);
+
+      const calculated = await deadGeocoder.calculate({ address: typed, basketTotal: 1000 } as any);
+      expect(calculated.allowed).to.equal(ability.allowed);
+      expect(calculated.cost).to.equal(ability.cost);
+      expect(calculated.message).to.equal(ability.message);
+    });
+
+    it("refuses a dead geocoder on the address form when soft calculation is off", async function () {
+      settings.SOFT_DELIVERY_CALCULATION = false;
+      const typed = { city: "Demo", formatted: "Вайнера", home: "9" } as any;
+
+      const ability = await deadGeocoder.checkAbility(typed);
+      expect(ability.allowed).to.equal(false);
+      expect(ability.message).to.equal("Coordinates not found");
+    });
+
   });
 });
