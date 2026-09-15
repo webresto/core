@@ -586,5 +586,6 @@
 	"Value must contain at least {count} item(s)": "El valor debe contener al menos {count} elemento(s)",
 	"Missing required property {property}": "Falta la propiedad obligatoria {property}",
 	"Unexpected property {property}": "Propiedad no esperada {property}",
-	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Identificador técnico (slug) de esta instalación, no el nombre visible del local: letras latinas minúsculas, dígitos y guiones, al menos 3 caracteres"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Identificador técnico (slug) de esta instalación, no el nombre visible del local: letras latinas minúsculas, dígitos y guiones, al menos 3 caracteres",
+	"You can set any sign for the currency": "Puedes establecer cualquier signo para la moneda"
 }

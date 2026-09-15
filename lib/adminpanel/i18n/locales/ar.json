@@ -86,5 +86,6 @@
 	"Missing required property {property}": "الحقل المطلوب {property} غير موجود",
 	"Unexpected property {property}": "حقل غير متوقع {property}",
 	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "المعرّف التقني (slug) لهذا التثبيت، وليس الاسم الظاهر للمطعم: حروف لاتينية صغيرة وأرقام وشرطات فقط، 3 أحرف على الأقل",
-	"Project ID": "معرّف المشروع"
+	"Project ID": "معرّف المشروع",
+	"You can set any sign for the currency": "يمكنك تعيين أي رمز للعملة"
 }

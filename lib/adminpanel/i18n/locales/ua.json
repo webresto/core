@@ -839,5 +839,6 @@
 	"Value must contain at least {count} item(s)": "Значення має містити щонайменше {count} елем.",
 	"Missing required property {property}": "Відсутнє обов'язкове поле {property}",
 	"Unexpected property {property}": "Зайве поле {property}",
-	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технічний ідентифікатор (слаг) цієї інсталяції, а не назва закладу: рядкові латинські літери, цифри та дефіс, щонайменше 3 символи"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технічний ідентифікатор (слаг) цієї інсталяції, а не назва закладу: рядкові латинські літери, цифри та дефіс, щонайменше 3 символи",
+	"You can set any sign for the currency": "Ви можете встановити будь-який знак для валюти"
 }

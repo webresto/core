@@ -586,5 +586,6 @@
 	"Missing required property {property}": "ไม่มีฟิลด์ที่จำเป็น {property}",
 	"Unexpected property {property}": "ฟิลด์ที่ไม่รู้จัก {property}",
 	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "ตัวระบุทางเทคนิค (slug) ของการติดตั้งนี้ ไม่ใช่ชื่อร้านที่แสดง: ใช้ตัวอักษรละตินพิมพ์เล็ก ตัวเลข และขีดกลาง อย่างน้อย 3 ตัวอักษร",
-	"Project ID": "รหัสโปรเจกต์"
+	"Project ID": "รหัสโปรเจกต์",
+	"You can set any sign for the currency": "คุณสามารถกำหนดสัญลักษณ์ใดก็ได้สำหรับสกุลเงิน"
 }

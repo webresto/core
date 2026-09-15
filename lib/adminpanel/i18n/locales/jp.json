@@ -586,5 +586,6 @@
 	"Missing required property {property}": "必須項目 {property} がありません",
 	"Unexpected property {property}": "不明な項目 {property}",
 	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "店舗の表示名ではなく、このインストールの技術的な識別子（スラッグ）です。半角英小文字・数字・ハイフンのみ、3 文字以上",
-	"Project ID": "プロジェクト ID"
+	"Project ID": "プロジェクト ID",
+	"You can set any sign for the currency": "通貨に任意の記号を設定できます"
 }

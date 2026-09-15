@@ -2,6 +2,6 @@
   "key": "CURRENCY_SIGN",
   "type": "string",
   "name": "Custom currency sign",
-  "description": "Вы можете установить любой знак для валюты",
+  "description": "You can set any sign for the currency",
   "isRequired": false
 }
