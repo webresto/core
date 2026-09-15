@@ -586,5 +586,6 @@
 	"Missing required property {property}": "Thiếu trường bắt buộc {property}",
 	"Unexpected property {property}": "Trường không hợp lệ {property}",
 	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Định danh kỹ thuật (slug) của bản cài đặt này, không phải tên hiển thị của cửa hàng: chỉ chữ latinh thường, chữ số và dấu gạch nối, ít nhất 3 ký tự",
-	"Project ID": "ID dự án"
+	"Project ID": "ID dự án",
+	"You can set any sign for the currency": "Bạn có thể đặt bất kỳ ký hiệu nào cho đơn vị tiền tệ"
 }

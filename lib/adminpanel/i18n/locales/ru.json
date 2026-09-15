@@ -882,5 +882,6 @@
 	"Value must contain at least {count} item(s)": "Значение должно содержать не менее {count} элем.",
 	"Missing required property {property}": "Отсутствует обязательное поле {property}",
 	"Unexpected property {property}": "Лишнее поле {property}",
-	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технический идентификатор (слаг) этой установки, а не название заведения: строчные латинские буквы, цифры и дефис, не менее 3 символов"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Технический идентификатор (слаг) этой установки, а не название заведения: строчные латинские буквы, цифры и дефис, не менее 3 символов",
+	"You can set any sign for the currency": "Вы можете установить любой знак для валюты"
 }

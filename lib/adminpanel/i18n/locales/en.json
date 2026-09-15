@@ -677,5 +677,6 @@
 	"Value must contain at least {count} item(s)": "Value must contain at least {count} item(s)",
 	"Missing required property {property}": "Missing required property {property}",
 	"Unexpected property {property}": "Unexpected property {property}",
-	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters"
+	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters",
+	"You can set any sign for the currency": "You can set any sign for the currency"
 }

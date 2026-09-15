@@ -586,5 +586,6 @@
 	"Missing required property {property}": "缺少必填字段 {property}",
 	"Unexpected property {property}": "多余的字段 {property}",
 	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "本安装的技术标识符（slug），而非门店显示名称：仅限小写拉丁字母、数字和连字符，至少 3 个字符",
-	"Project ID": "项目 ID"
+	"Project ID": "项目 ID",
+	"You can set any sign for the currency": "您可以为货币设置任意符号"
 }
