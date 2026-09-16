@@ -19,6 +19,12 @@ function dishGenerator(config = {
         id: config?.id || faker_1.default.random.uuid(),
         additionalInfo: config?.additionalInfo || "null",
         balance: config?.balance || -1,
+        /**
+         * Waterline fills the boolean default (false) before beforeCreate runs, so the
+         * `init.enable === undefined` fallback in the Dish model never fires and a
+         * generated dish comes out disabled — Order.addDish then rejects it.
+         */
+        enable: config?.enable ?? true,
         modifiers: config?.modifiers || [],
         parentGroup: config?.parentGroup || null,
         weight: 100,
