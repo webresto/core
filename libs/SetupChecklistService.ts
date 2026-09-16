@@ -24,13 +24,6 @@ const DISMISSED_SETTING_KEY = "SETUP_CHECKLIST_DISMISSED";
 const DEFAULT_CHECK_TIMEOUT_MS = 3000;
 const DEFAULT_GO_FIX_LABEL_KEY = "Go to setup";
 
-/** Severity weights for the global weighted progress percentage. */
-const SEVERITY_WEIGHT: Record<CheckupSeverity, number> = {
-  required: 3,
-  recommended: 1,
-  optional: 0,
-};
-
 export interface DismissalEntry {
   dismissedAt: string;
   /** ISO timestamp; when present and in the future the item is snoozed (auto-returns after). */
@@ -84,6 +77,7 @@ export interface CheckupGroupStatus {
   items: CheckupItemStatus[];
   counts: SeverityCounts;
   ready: boolean;
+  /** 0..100 over the group's required items (see `percent`); 100 ⟺ `ready`. */
   progressPercent: number;
 }
 
@@ -91,6 +85,7 @@ export interface SetupChecklistStatus {
   groups: CheckupGroupStatus[];
   counts: SeverityCounts;
   overallReady: boolean;
+  /** 0..100 over all required items (see `percent`); 100 ⟺ `overallReady`. */
   progressPercent: number;
   generatedAt: string;
   locale: string;
@@ -372,16 +367,21 @@ export class SetupChecklistService {
     if (item.status === "done") bucket.done += 1;
   }
 
-  /** Weighted progress percentage (required weighs most). Errors/skipped excluded. */
+  /**
+   * Progress towards "ready to go" — driven by the REQUIRED items only, so that
+   * `progressPercent === 100` exactly when `ready`/`overallReady` is true. Recommended and
+   * optional items are extras: they are reported in `counts` (and as their own rows), but
+   * they must never hold the bar below 100 % — some of them are simply not applicable to a
+   * given installation (e.g. no RMS at all) and would make 100 % unreachable forever.
+   *
+   * Sets without any required item fall back to their recommended items so the bar still
+   * carries a signal; skipped (dismissed) items are already out of `counts`.
+   */
   private static percent(counts: SeverityCounts): number {
-    let weightedTotal = 0;
-    let weightedDone = 0;
-    (["required", "recommended", "optional"] as CheckupSeverity[]).forEach((sev) => {
-      const w = SEVERITY_WEIGHT[sev];
-      weightedTotal += w * counts[sev].total;
-      weightedDone += w * counts[sev].done;
-    });
-    if (weightedTotal === 0) return 100;
-    return Math.round((weightedDone / weightedTotal) * 100);
+    const scale = counts.required.total > 0 ? counts.required : counts.recommended;
+    if (scale.total === 0) return 100;
+    if (scale.done >= scale.total) return 100;
+    // Never let rounding claim 100 % while something is still open.
+    return Math.min(99, Math.round((scale.done / scale.total) * 100));
   }
 }

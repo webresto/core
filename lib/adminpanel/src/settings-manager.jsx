@@ -170,6 +170,17 @@ function getSettingValue(setting) {
   return setting?.value !== undefined && setting?.value !== null ? setting.value : setting?.defaultValue;
 }
 
+/** Setting key the address bar points at, or '' — a malformed hash names no setting. */
+function readHashKey() {
+  const raw = window.location.hash.slice(1);
+  if (!raw) return '';
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 function valuesEqual(a, b) {
   try {
     return JSON.stringify(a) === JSON.stringify(b);
@@ -774,7 +785,7 @@ function SettingsManagerContent({ bootId }) {
       .then(data => {
         setSettings(data);
         setLoading(false);
-        const hashKey = decodeURIComponent(window.location.hash.slice(1));
+        const hashKey = readHashKey();
         if (hashKey) {
           const found = data.find(s => s.key === hashKey);
           if (found) applySelection(found);
@@ -827,6 +838,29 @@ function SettingsManagerContent({ bootId }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  });
+
+  // The hash is the address of a setting, not a bookmark read once at load: a link to
+  // /admin/settings-manager#KEY from an already-open page, or the back button, must move the
+  // editor too. `applySelection` writes the hash itself, so selecting a setting lands here as a
+  // no-op; only a hash pointing elsewhere switches anything.
+  useEffect(() => {
+    function handleHashChange() {
+      const key = readHashKey();
+      const current = selectedRef.current;
+      if (!key || key === current?.key) return;
+      const found = settings.find(s => s.key === key);
+      if (!found) return;
+      if (!canLeaveCurrentSetting()) {
+        // Declined: put the address back on the setting still in the editor.
+        if (current) window.location.hash = encodeURIComponent(current.key);
+        return;
+      }
+      applySelection(found);
+    }
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   });
 
   useEffect(() => {

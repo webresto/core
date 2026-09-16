@@ -105,6 +105,33 @@ describe("SetupChecklist registry + service", () => {
     expect(st.overallReady).to.equal(true);
   });
 
+  it("progress reaches 100 % on required alone — recommended extras never hold it back", async () => {
+    // continues from the previous test: every required item is done, but the recommended
+    // ones (place, RMS adapter, the partial demo) are not — and some never will be on a
+    // given installation. 100 % must still be reachable, in step with "Ready to go".
+    const st = await SetupChecklistService.getStatus(ctx);
+    expect(st.counts.recommended.done).to.be.lessThan(st.counts.recommended.total);
+    expect(st.progressPercent).to.equal(100);
+    expect(st.overallReady).to.equal(true);
+
+    const project = st.groups.find((g: any) => g.key === "project");
+    expect(project.ready).to.equal(true);
+    expect(project.progressPercent).to.equal(100);
+  });
+
+  it("progress tracks the required items proportionally", async () => {
+    store["PROJECT_NAME"] = "";
+    store["COUNTRY_ISO"] = "";
+    const st = await SetupChecklistService.getStatus(ctx);
+    const { done, total } = st.counts.required;
+    expect(done).to.equal(total - 2);
+    expect(st.progressPercent).to.equal(Math.round((done / total) * 100));
+    expect(st.progressPercent).to.be.lessThan(100);
+
+    store["PROJECT_NAME"] = "My Resto"; // restore for the following tests
+    store["COUNTRY_ISO"] = "RU";
+  });
+
   it("created-but-not-enabled → still 'todo' with an explanatory hint", async () => {
     // a place exists but none is enabled → not ready yet
     placeTotal = 1; placeEnabled = 0;
