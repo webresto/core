@@ -373,6 +373,138 @@ describe("Promotion adapter integration test", function () {
   // })
 
 
+  /**
+   * excludeModifiers: the percentage discount base is the position price the guest
+   * sees (dish + modifiers) unless the promotion asks to keep modifiers out of it.
+   */
+  it("Percentage discount counts modifiers price by default", async () => {
+    let order = await Order.create({ id: "configured-promotion-modifiers-included" }).fetch();
+    await Order.updateOne({ id: order.id }, { user: "user" });
+
+    const groups = await Group.find({})
+    const groupsId = groups.map(group => group.id)
+
+    let dish = await Dish.createOrUpdate(dishGenerator({ name: "dish with paid modifier", price: 100, concept: "modifiersIncluded", parentGroup: groupsId[0] }));
+    let modifier = await Dish.createOrUpdate(dishGenerator({ name: "paid modifier", price: 30, concept: "modifiersIncluded", parentGroup: groupsId[0] }));
+
+    let config: IconfigDiscount = {
+      discountType: "percentage",
+      discountAmount: 20,
+      dishes: [dish.id],
+      groups: groupsId,
+    }
+
+    await promotionAdapter.addPromotionHandler(new ConfiguredPromotion({
+      concept: ["modifiersIncluded"],
+      id: 'promotion-modifiers-included',
+      badge: 'test',
+      isJoint: true,
+      name: 'modifiers included',
+      isPublic: true,
+      configDiscount: config,
+      description: "modifiers included",
+      externalId: "externalID-modifiers-included"
+    }, config))
+
+    await Order.addDish({ id: order.id }, dish, 1, [{ id: modifier.id, modifierId: modifier.id, rmsId: modifier.rmsId, amount: 1 }], "", "user");
+
+    let result = await Order.findOne(order.id)
+    // 100 dish + 30 modifier = 130, 20% of it
+    expect(result.basketTotal).to.equal(130);
+    expect(result.discountTotal).to.equal(26);
+  })
+
+
+  it("excludeModifiers: true keeps the modifiers price out of the discount", async () => {
+    let order = await Order.create({ id: "configured-promotion-modifiers-excluded" }).fetch();
+    await Order.updateOne({ id: order.id }, { user: "user" });
+
+    const groups = await Group.find({})
+    const groupsId = groups.map(group => group.id)
+
+    let dish = await Dish.createOrUpdate(dishGenerator({ name: "dish with excluded modifier", price: 100, concept: "modifiersExcluded", parentGroup: groupsId[0] }));
+    let modifier = await Dish.createOrUpdate(dishGenerator({ name: "excluded modifier", price: 30, concept: "modifiersExcluded", parentGroup: groupsId[0] }));
+
+    let config: IconfigDiscount = {
+      discountType: "percentage",
+      discountAmount: 20,
+      dishes: [dish.id],
+      groups: groupsId,
+      excludeModifiers: true
+    }
+
+    await promotionAdapter.addPromotionHandler(new ConfiguredPromotion({
+      concept: ["modifiersExcluded"],
+      id: 'promotion-modifiers-excluded',
+      badge: 'test',
+      isJoint: true,
+      name: 'modifiers excluded',
+      isPublic: true,
+      configDiscount: config,
+      description: "modifiers excluded",
+      externalId: "externalID-modifiers-excluded"
+    }, config))
+
+    await Order.addDish({ id: order.id }, dish, 1, [{ id: modifier.id, modifierId: modifier.id, rmsId: modifier.rmsId, amount: 1 }], "", "user");
+
+    let result = await Order.findOne(order.id)
+    // modifier is sold full price: 20% of the 100 dish only
+    expect(result.basketTotal).to.equal(130);
+    expect(result.discountTotal).to.equal(20);
+  })
+
+
+  /**
+   * The cart-wide branch (no dishes/groups/exclude in the config) must answer the
+   * same as the per-dish one, otherwise the same promotion counts differently
+   * depending on whether an exclusion is configured.
+   */
+  it("Cart-wide percentage discount respects excludeModifiers", async () => {
+    const groups = await Group.find({})
+    const groupsId = groups.map(group => group.id)
+
+    let dish = await Dish.createOrUpdate(dishGenerator({ name: "cart wide dish", price: 100, concept: "cartWideModifiers", parentGroup: groupsId[0] }));
+    let modifier = await Dish.createOrUpdate(dishGenerator({ name: "cart wide modifier", price: 30, concept: "cartWideModifiers", parentGroup: groupsId[0] }));
+
+    const makePromotion = (id: string, excludeModifiers: boolean) => {
+      const config: IconfigDiscount = {
+        discountType: "percentage",
+        discountAmount: 20,
+        dishes: [],
+        groups: [],
+        excludeModifiers
+      }
+      return new ConfiguredPromotion({
+        concept: ["cartWideModifiers"],
+        id,
+        badge: 'test',
+        isJoint: true,
+        name: id,
+        isPublic: true,
+        configDiscount: config,
+        description: id,
+        externalId: id
+      }, config)
+    }
+
+    // The cart-wide config never passes condition() automatically (it targets no
+    // dish and no group), so the handler is applied directly here.
+    let orderIncluded = await Order.create({ id: "configured-promotion-cart-wide-included" }).fetch();
+    await Order.updateOne({ id: orderIncluded.id }, { user: "user" });
+    await Order.addDish({ id: orderIncluded.id }, dish, 1, [{ id: modifier.id, modifierId: modifier.id, rmsId: modifier.rmsId, amount: 1 }], "", "user");
+    orderIncluded = await Order.findOne(orderIncluded.id)
+    await makePromotion('promotion-cart-wide-included', false).applyPromotion(orderIncluded)
+    expect((await Order.findOne(orderIncluded.id)).promotionFlatDiscount).to.equal(26);
+
+    let orderExcluded = await Order.create({ id: "configured-promotion-cart-wide-excluded" }).fetch();
+    await Order.updateOne({ id: orderExcluded.id }, { user: "user" });
+    await Order.addDish({ id: orderExcluded.id }, dish, 1, [{ id: modifier.id, modifierId: modifier.id, rmsId: modifier.rmsId, amount: 1 }], "", "user");
+    orderExcluded = await Order.findOne(orderExcluded.id)
+    await makePromotion('promotion-cart-wide-excluded', true).applyPromotion(orderExcluded)
+    expect((await Order.findOne(orderExcluded.id)).promotionFlatDiscount).to.equal(20);
+  })
+
+
   it("Check prepend recursion discount", async () => {
     // TODO: check recrsion behavior
   })

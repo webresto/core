@@ -14,14 +14,19 @@ export interface IconfigDiscount {
     discountAmount: number,
     dishes: string[] | null,
     groups: string[] | null,
-    /** // TODO: implement excludeModifiers
+    /**
+     * Keep the modifiers price out of the percentage discount base.
+     *
      * examples:
      * Buy cofee for $1 with 20% discount and modifier milk for $0.5 without this discount.
      * excludeModifiers: true  $1.30
      * excludeModifiers: false  $1.20
      * by default modifiers will be calculated with discount
+     *
+     * Applies to `discountType: "percentage"` only — a "flat" discount is a fixed
+     * amount per position and does not depend on the price at all.
      */
-    excludeModifiers?: boolean; 
+    excludeModifiers?: boolean;
     deliveryMethod?: ("delivery"|"selfService")[]
     /**
      * Minimum basket total (user dishes only) required for this promotion to be

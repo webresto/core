@@ -46,6 +46,38 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   // public configDiscount: IconfigDiscount;
   public externalId: string;
 
+  /**
+   * Should the modifiers price be kept out of the percentage discount base?
+   *
+   * Default is `false` (see IconfigDiscount): the position is discounted as the
+   * guest sees it in the receipt — dish price plus the selected modifiers.
+   * `true` discounts the dish price only, so a paid modifier is sold full price.
+   */
+  private get excludeModifiers(): boolean {
+    return (this.configDiscount?.excludeModifiers ?? this.config?.excludeModifiers) === true;
+  }
+
+  /**
+   * Price of ONE item the percentage discount is calculated from.
+   *
+   * `itemPrice` is written by countCart before promotions run and already holds
+   * dish price + modifiers (see Order.countCart). Zero-priced positions
+   * (notForSale, gifts) stay out of the base. For legacy rows without
+   * `itemPrice` we fall back to the dish price.
+   */
+  private discountBaseItemPrice(orderDish: OrderDishRecord): Decimal {
+    const dish = orderDish.dish as DishRecord;
+    const dishPrice = new Decimal(dish?.price ?? 0);
+
+    if (orderDish.itemPrice === undefined || orderDish.itemPrice === null) return dishPrice;
+
+    const itemPrice = new Decimal(orderDish.itemPrice);
+    if (itemPrice.lte(0)) return new Decimal(0);
+
+    // itemPrice - dishPrice is the modifiers part, drop it when excluded
+    return this.excludeModifiers ? Decimal.min(itemPrice, dishPrice) : itemPrice;
+  }
+
   public condition(arg: GroupRecord | DishRecord | OrderRecord, viaPromocode: boolean = false): boolean {
     /**
      * Promocode mode: the code is an explicit activation, so we don't require the
@@ -207,8 +239,19 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     // Discount that applies to all dishes
     if (!this.config.dishes.length && !this.config.groups.length && !this.config.exclude?.dishes?.length && !this.config.exclude?.groups?.length) {
       if (this.configDiscount.discountType === "percentage") {
-        calculatedDiscountAmount = new Decimal(order.basketTotal)
-          .mul(+this.configDiscount.discountAmount / 100);
+        /**
+         * basketTotal is the receipt total (dishes + modifiers). With
+         * excludeModifiers the base is re-collected from the dish prices only,
+         * so this branch and the per-dish one below give the same answer.
+         */
+        const base = this.excludeModifiers
+          ? orderDishes.reduce(
+              (acc, orderDish) => acc.plus(this.discountBaseItemPrice(orderDish).mul(orderDish.amount)),
+              new Decimal(0)
+            )
+          : new Decimal(order.basketTotal);
+
+        calculatedDiscountAmount = base.mul(+this.configDiscount.discountAmount / 100);
       // This is the case when a discount is set on the general receipt
       } else {
         calculatedDiscountAmount = new Decimal(this.configDiscount.discountAmount ?? this.config.discountAmount)
@@ -264,7 +307,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
         } else if (this.configDiscount.discountType === "percentage") {
           // let discountPrice:number = new Decimal(orderDish.dish.price).mul(orderDish.amount).mul(+this.configDiscount.discountAmount / 100).toNumber();
-          let orderDishDiscountItemCost = new Decimal(orderDish.dish.price).mul(this.configDiscount.discountAmount).mul(0.01)
+          let orderDishDiscountItemCost = this.discountBaseItemPrice(orderDish).mul(this.configDiscount.discountAmount).mul(0.01)
           orderDishDiscountCost = orderDishDiscountItemCost.mul(orderDish.amount).toNumber();
           discountAmount = orderDishDiscountItemCost.toNumber();
           calculatedDiscountAmount = new Decimal(orderDishDiscountCost).add(calculatedDiscountAmount);
