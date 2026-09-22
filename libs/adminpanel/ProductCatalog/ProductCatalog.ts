@@ -27,6 +27,16 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	public icon: string = "bread-slice";
 	public model: string = null;
 
+	/**
+	 * Key of the admin page that renders the add/edit form, as registered in
+	 * `libs/adminpanel/models/bind.ts`. It is NOT always the Waterline model name: the catalog
+	 * fetches the form from `/model/<adminResource>/add`, and that lookup is case-insensitive,
+	 * so a raw model name can collide with a page Adminizer ships itself. Defaults to `model`.
+	 */
+	public get adminResource(): string {
+		return this.model;
+	}
+
 	public readonly actionHandlers: any[] = []
 
 	protected resolveModelId(modelId: string | number, data?: any): string | number {
@@ -112,13 +122,17 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 	public type = 'group'
 	public isGroup: boolean = true;
 	public model: string = "group";
+	/** `group` collides with the built-in Adminizer user-groups page; ours is `DishGroup`. */
+	public get adminResource(): string {
+		return "DishGroup";
+	}
 	public readonly actionHandlers: any[] = []
 
 	async getAddTemplate(req: any): Promise<any> {
 		return {
 		type: 'model',
 		data: {
-			model: this.model,
+			model: this.adminResource,
 			labels: {
 				//@ts-ignore
 				title: req.i18n.__('Add Group'),
@@ -137,7 +151,7 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 			item: {
 				modelId: item.id
 			},
-			model: this.model,
+			model: this.adminResource,
 			labels: {
 				title: req.i18n.__('Edit Group'),
 				save: req.i18n.__('Save'),
@@ -166,7 +180,7 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 		return {
 			type: type,
 			data: {
-				model: this.model,
+				model: this.adminResource,
 				labels: {
 					//@ts-ignore
 					title: req.i18n.__('Add Product'),
@@ -183,7 +197,7 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 		return Promise.resolve({
 			type: 'model',
 			data: {
-				model: this.model,
+				model: this.adminResource,
 				item:  {
 					modelId: item.id
 				},

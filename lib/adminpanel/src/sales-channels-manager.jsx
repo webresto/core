@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import slugifyLib from 'slugify';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import {
@@ -61,13 +62,20 @@ const EMPTY_DRAFT = {
   countries: '', platforms: '', providerModule: null,
 };
 
+// Mirrors slugify() in src/controller/sales-channels-helpers.ts. `slugify` transliterates
+// Cyrillic, so a Title of "Сайт" yields "sajt" instead of an empty key that the backend rejects.
 function slugifyClient(value) {
-  return String(value || '').toLowerCase().trim()
+  return slugifyLib(String(value || ''), { lower: true, strict: true, locale: 'en' })
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64);
 }
 
-function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, saving, t }) {
+function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, saving, error, t }) {
   const isNew = !draft.id;
+  // A title in a script the slug charmap does not cover (CJK and the like) leaves the key
+  // empty; saving it would come back as a 400, so the form asks for a key instead. The hint
+  // waits for a title, otherwise a freshly opened empty form starts out complaining.
+  const keyMissing = !String(draft.key || '').trim();
+  const showKeyHint = keyMissing && Boolean(String(draft.title || '').trim());
   const [keyTouched, setKeyTouched] = useState(Boolean(draft.id));
 
   const setField = (field, value) => setDraft((prev) => ({ ...prev, [field]: value }));
@@ -91,6 +99,12 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
         <StatusBadge status={draft.enabled ? (draft.status || 'ready') : 'disabled'} t={t} />
       </div>
 
+      {error && (
+        <div style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--destructive)', color: '#fff', opacity: 0.9 }}>
+          {error}
+        </div>
+      )}
+
       <span style={styles.help}>
         {t('A sales channel is essentially a single backend client (a storefront, bot, kiosk, …). The same client can run on several platforms (web, PWA, native apps) — list those runtime platforms below instead of creating a separate channel for each.')}
       </span>
@@ -109,6 +123,9 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
             placeholder="web-main"
           />
           <span style={styles.help}>{t('Stable id written into the order source (orderedOnPlatform).')}</span>
+          {showKeyHint && (
+            <span style={{ ...styles.help, color: 'var(--destructive)' }}>{t('Channel key is required')}</span>
+          )}
         </div>
 
         <div style={styles.field}>
@@ -178,7 +195,7 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
 
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
         <Button variant="outline" onClick={onCancel} disabled={saving}>{t('Cancel')}</Button>
-        <Button onClick={onSave} disabled={saving || !draft.title.trim()}>{saving ? t('Saving…') : t('Save channel')}</Button>
+        <Button onClick={onSave} disabled={saving || !draft.title.trim() || keyMissing}>{saving ? t('Saving…') : t('Save channel')}</Button>
       </div>
     </section>
   );
@@ -267,6 +284,8 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
+  // Toasts need a mounted <Toaster/>; a rejected save has to stay visible in the form either way.
+  const [saveError, setSaveError] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
 
   const loadChannels = useCallback(async () => {
@@ -297,6 +316,7 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
 
   const startCreate = (typeDef) => {
     if (!canManage) return;
+    setSaveError(null);
     setDraft({
       ...EMPTY_DRAFT,
       type: typeDef?.type || 'custom',
@@ -310,6 +330,7 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
 
   const startEdit = (channel) => {
     if (!canManage) return;
+    setSaveError(null);
     setDraft({
       id: channel.id,
       key: channel.key,
@@ -331,6 +352,7 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
   const saveDraft = async () => {
     if (!canManage || !draft) return;
     setSaving(true);
+    setSaveError(null);
     const body = {
       id: draft.id || undefined,
       key: draft.key,
@@ -352,7 +374,9 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
       setDraft(null);
       await loadChannels();
     } else {
-      toast('error', res.payload?.error || t('Failed to save channel'));
+      const message = res.payload?.error || t('Failed to save channel');
+      setSaveError(message);
+      toast('error', message);
     }
   };
 
@@ -405,7 +429,8 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
       {draft && (
         <ChannelEditor
           draft={draft} setDraft={setDraft} types={types} concepts={concepts}
-          onSave={saveDraft} onCancel={() => setDraft(null)} saving={saving} t={t}
+          onSave={saveDraft} onCancel={() => { setSaveError(null); setDraft(null); }}
+          saving={saving} error={saveError} t={t}
         />
       )}
 

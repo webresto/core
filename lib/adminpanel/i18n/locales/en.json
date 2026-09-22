@@ -501,6 +501,7 @@
 	"Edit sales channel": "Edit sales channel",
 	"e.g. Main website": "e.g. Main website",
 	"Channel key": "Channel key",
+	"Channel key is required": "Channel key is required",
 	"Stable id written into the order source (orderedOnPlatform).": "Stable id written into the order source (orderedOnPlatform).",
 	"Select type": "Select type",
 	"URL / link": "URL / link",

@@ -148,7 +148,10 @@ let attributes = {
     /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
     isDeleted: "boolean",
     /** System status flag. When false, the item is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
-    enable: "boolean",
+    enable: {
+        type: "boolean",
+        defaultsTo: true,
+    },
     /** The dish can be modified*/
     isModificable: "boolean",
     /** Parental group */
@@ -228,10 +231,8 @@ let Model = {
         }
         if (!init.modifiers)
             init.modifiers = [];
-        if (init.visible === undefined)
-            init.visible = true;
-        if (init.enable === undefined)
-            init.enable = true;
+        // `visible` and `enable` default to true via `defaultsTo`: Waterline fills in missing
+        // attributes before `beforeCreate` runs, so a guard on `undefined` here never fires.
         if (init.notForSale === undefined)
             init.notForSale = false;
         if (!init.concept) {
@@ -245,7 +246,6 @@ let Model = {
         if (!(0, CustomData_1.isCustomData)(init.customData)) {
             init.customData = {};
         }
-        init.visible = init.visible ?? true;
         cb();
     },
     beforeUpdate: async function (value, cb) {
