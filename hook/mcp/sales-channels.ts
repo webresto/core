@@ -1,3 +1,4 @@
+import slugifyLib from 'slugify';
 import { SalesChannelRegistry } from '../../libs/SalesChannelRegistry';
 
 declare const mcp: any;
@@ -9,10 +10,9 @@ function stringArray(value: any): string[] {
     return value.filter((x: any) => typeof x === 'string' && x.trim()).map((x: string) => x.trim());
 }
 
+/** Same transliterating slug as the admin page uses, so both produce the same channel key. */
 function slugify(value: string): string {
-    return String(value || '')
-        .toLowerCase()
-        .trim()
+    return slugifyLib(String(value || ''), { lower: true, strict: true, locale: 'en' })
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .slice(0, 64);

@@ -680,6 +680,7 @@
 	"Edit sales channel": "Редагувати канал продажів",
 	"e.g. Main website": "напр. Основний сайт",
 	"Channel key": "Ключ каналу",
+	"Channel key is required": "Потрібен ключ каналу",
 	"Stable id written into the order source (orderedOnPlatform).": "Стабільний ідентифікатор, що записується у джерело замовлення (orderedOnPlatform).",
 	"Select type": "Оберіть тип",
 	"URL / link": "URL / посилання",

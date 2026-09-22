@@ -754,6 +754,7 @@
 	"Edit sales channel": "Редактировать канал продаж",
 	"e.g. Main website": "напр. Основной сайт",
 	"Channel key": "Ключ канала",
+	"Channel key is required": "Нужен ключ канала",
 	"Stable id written into the order source (orderedOnPlatform).": "Стабильный идентификатор, записываемый в источник заказа (orderedOnPlatform).",
 	"Select type": "Выберите тип",
 	"URL / link": "URL / ссылка",

@@ -2,6 +2,7 @@
 // Mirrors the marketing/notifications controllers: access guard + JSON parsing + record
 // mapping. The `${routePrefix}/core` middleware already sets no-store on every /core route.
 
+import slugifyLib from "slugify";
 import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
 import {
   getModulePermissions,
@@ -50,11 +51,17 @@ export function parseJsonObject(value: any): Record<string, unknown> {
   return {};
 }
 
-/** Slugify a free-text title into a stable channel key. */
+/**
+ * Slugify a free-text title into a stable channel key.
+ *
+ * `slugify` transliterates Cyrillic and other charmapped alphabets, so a title like "Сайт"
+ * becomes "sajt" instead of an empty key. The same helper backs the Dish/Group slugs, and the
+ * admin page runs it on the client, so the key the operator sees is the key that gets stored.
+ * Scripts outside the charmap (CJK and the like) still slugify to "", and the caller decides
+ * what to do about that.
+ */
 export function slugify(value: string): string {
-  return String(value || "")
-    .toLowerCase()
-    .trim()
+  return slugifyLib(String(value || ""), { lower: true, strict: true, locale: "en" })
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 64);
