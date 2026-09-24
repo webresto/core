@@ -4,7 +4,7 @@ import faker from "faker";
 // todo: fix types model instance to {%ModelName%}Record for OrderDish';
 // todo: fix types model instance to {%ModelName%}Record for Order';
 import findModelInstanceByAttributes from "../../lib/findModelInstance";
-import AbstractPromotionHandler from "../../adapters/promotion/AbstractPromotion";
+import { AbstractPromotionHandler } from "../../adapters/promotion/PromotionAdapter";
 import ConfiguredPromotion from "../../adapters/promotion/default/configuredPromotion";
 import { someInArray } from "../../lib/stringsInArray";
 import Decimal from "decimal.js";
@@ -104,7 +104,6 @@ export default function discountGenerator(config: Omit<AbstractPromotionHandler,
         //   // 
         dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
         dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-        dish.oldPrice = dish.salePrice
         dish.salePrice = this.configDiscount.discountType === "flat" 
         ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
         : new Decimal(dish.price)

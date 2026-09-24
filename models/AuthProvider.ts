@@ -2,8 +2,8 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import type AuthProviderAdapter from "../adapters/auth/AuthProviderAdapter";
-import type { AuthFlowKind } from "../adapters/auth/AuthProviderAdapter";
+import type { AuthProviderAdapter, AuthFlowKind } from "../adapters";
+import { toPublic } from "../lib/auth-provider";
 
 /** Live adapter instances that self-registered on boot (slug → adapter). */
 let aliveAuthProviders = {} as { [slug: string]: AuthProviderAdapter };
@@ -89,19 +89,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `AuthProviderRecord` instead
- */
-interface AuthProvider extends RequiredField<OptionalAll<attributes>, "adapter">, ORM {}
 export interface AuthProviderRecord extends RequiredField<OptionalAll<attributes>, "adapter">, ORM {}
-
-const PUBLIC_FIELDS: (keyof AuthProviderPublic)[] = ["adapter", "title", "kind", "iconUrl", "buttonColor", "buttonTextColor", "sortOrder"];
-
-function toPublic(row: AuthProviderRecord): AuthProviderPublic {
-  const out: any = {};
-  for (const f of PUBLIC_FIELDS) out[f] = (row as any)[f];
-  return out as AuthProviderPublic;
-}
 
 let Model = {
   beforeCreate: function (record: AuthProviderRecord, cb: (err?: string) => void) {

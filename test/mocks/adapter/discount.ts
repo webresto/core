@@ -1,4 +1,4 @@
-import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
+import { AbstractPromotionHandler } from "../../../adapters/promotion/PromotionAdapter";
 import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
 import findModelInstanceByAttributes from "../../../lib/findModelInstance";
 import { someInArray } from "../../../lib/stringsInArray";
@@ -81,7 +81,6 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
             // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
             dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-            dish.oldPrice = dish.price
   
             dish.price = this.configDiscount.discountType === "flat" 
             ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()

@@ -6,30 +6,7 @@ import { Country, Currency, CountryISOList, CurrencyISOList } from "./Country";
 
 type sailsConfig = typeof sails.config;
 
-interface RestocoreHook {
-  dictionaries: {
-    countries: {
-      [key: string]: {
-        phoneCode: string;
-        iso: string;
-        name: string;
-        nativeCountryName: string;
-        language: string[];
-        currency: string;
-        currencySymbol: string;
-        currencyISO: string;
-        currencyUnit: string;
-        currencyDenomination: number;
-        phoneMask: string[];
-        flag: string;
-      }
-    }
-  }
-  [key: string]: any | object | Function;
-}
-
 interface SailsHooks {
-  restocore: RestocoreHook;
   [key: string]: any | object | Function;
 }
 
@@ -89,7 +66,7 @@ declare global {
     DEFAULT_MEDIAFILE_ADAPTER: string
     /** Configured delivery adapter; empty means the built-in zone-aware default. */
     DELIVERY_ADAPTER: string
-    /** Configured geo adapter; empty means Nominatim. */
+    /** Configured geo adapter; empty means the built-in default. */
     GEO_ADAPTER: string
     /** Server of the default geo adapter. */
     NOMINATIM_URL: string
@@ -148,7 +125,7 @@ declare global {
     ORDER: { requireAll: boolean, justOne: boolean }
     FRONTEND_ORDER_PAGE: string
     FRONTEND_CHECKOUT_PAGE: string
-    ALLOWED_PHONE_COUNTRIES: string[]
+    ALLOWED_PHONE_COUNTRIES: CountryISOList[]
     NAME_REGEX: string
     TZ: string
     POSSIBLE_TO_ORDER_IN_MINUTES: number
@@ -203,7 +180,6 @@ declare global {
     PasswordRegex: string
     PasswordMinLength: string
     EMITTER_CHECKOUT_STRATEGY: "JUST_ONE" | "NOT_REQUIRED" | "ALL_REQUIRED"
-    EMITTER_ORDER_STRATEGY: "JUST_ONE" | "NOT_REQUIRED" | "ALL_REQUIRED"
     /**
      * Strict phone check by mask
      */

@@ -90,8 +90,8 @@ describe("Order pending payment dialog", function () {
       expect(dialog.message, locale).to.not.equal(
         "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?"
       );
-      expect(dialog.options[0].label, locale).to.not.equal("Cancel payment and edit basket");
-      expect(dialog.options[1].label, locale).to.not.equal("Keep payment");
+      expect(dialog.options[0].button?.label, locale).to.not.equal("Cancel payment and edit basket");
+      expect(dialog.options[1].button?.label, locale).to.not.equal("Keep payment");
     }
   });
 

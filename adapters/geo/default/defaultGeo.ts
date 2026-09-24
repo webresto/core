@@ -1,6 +1,7 @@
 import axios from "axios";
-import GeoAdapter, { GeoAddress } from "../GeoAdapter";
-import { AddressPoint, formatAddressPath } from "../address";
+import GeoAdapter from "../GeoAdapter";
+import { AddressPoint, GeoAddress } from "../../../interfaces/Geo";
+import { formatAddressPath } from "../../../lib/address/format";
 
 /**
  * Nominatim as the geocoder of an installation that names no other.
@@ -52,7 +53,7 @@ function pointOf(result: NominatimResult | undefined): AddressPoint | null {
   return { lat, lon };
 }
 
-export class NominatimGeoAdapter extends GeoAdapter {
+export class DefaultGeoAdapter extends GeoAdapter {
   public async geocode(parts: { street: string; home: string; city?: string }): Promise<AddressPoint | null> {
     const query = [parts.city, parts.street, parts.home].filter(Boolean).join(", ");
     const results = await get("search", { q: query, limit: 1 });

@@ -10,49 +10,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ajv_1 = __importDefault(require("ajv"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const declared_1 = require("../lib/settings/declared");
+const env_mirror_1 = require("../lib/settings/env-mirror");
+const value_1 = require("../lib/settings/value");
 // Directory holding per-setting manifest files (settings/*.json). Each manifest
 // declares a setting (key/type/name/defaultValue/jsonSchema/...) and is the single
 // source of truth for seeding it at boot. See loadSettingsManifests().
 const SETTINGS_MANIFEST_DIR = path_1.default.resolve(__dirname, "../settings");
 // Memory store
 let settings = {};
-// Declared settings tracker (ported from MM settingsHelper)
-const declaredSettings = ["MODULE_STORAGE_LICENSE", "ALLOW_UNSAFE_SETTINGS"];
 const isInDeclaredSettingsErrorCollector = new Map();
-// Settings whose value, when stored in DB, must also be mirrored into process.env
-// because some libraries read process.env[key] directly instead of Settings.get(key)
-const envMirroredSettings = ["JWT_SECRET"];
-function setDeclaredSetting(key) {
-    declaredSettings.push(key);
-}
-function isInDeclaredSettings(key) {
-    return declaredSettings.includes(key);
-}
-/** Mirror a setting's value into process.env so libraries reading process.env[key] stay in sync with the DB */
-function syncToEnv(record) {
-    if (!envMirroredSettings.includes(record.key)) {
-        return;
-    }
-    const value = record.value ?? record.defaultValue ?? undefined;
-    if (value === undefined || value === null) {
-        return;
-    }
-    process.env[record.key] = typeof value === "string" ? value : JSON.stringify(value);
-}
-function parseBoolean(value) {
-    if (value === undefined || value === null || value === '') {
-        return undefined;
-    }
-    const trueValues = ["yes", "YES", "Yes", "1", "true", "TRUE", "True"];
-    const falseValues = ["no", "NO", "No", "0", "false", "FALSE", "False"];
-    if (trueValues.includes(value)) {
-        return true;
-    }
-    if (falseValues.includes(value)) {
-        return false;
-    }
-    return false;
-}
 let attributes = {
     id: {
         type: "number",
@@ -139,8 +106,8 @@ let Model = {
         catch (error) {
             sails.log.silly(`Emitter does not exist`, error);
         }
-        settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
-        syncToEnv(record);
+        settings[record.key] = (0, value_1.cleanValue)(record.value ?? record.defaultValue ?? undefined);
+        (0, env_mirror_1.syncToEnv)(record);
         cb();
     },
     afterCreate: async function (record, cb) {
@@ -150,8 +117,8 @@ let Model = {
         catch (error) {
             sails.log.silly(`Emitter does not exist`, error);
         }
-        settings[record.key] = cleanValue(record.value ?? record.defaultValue ?? undefined);
-        syncToEnv(record);
+        settings[record.key] = (0, value_1.cleanValue)(record.value ?? record.defaultValue ?? undefined);
+        (0, env_mirror_1.syncToEnv)(record);
         cb();
     },
     /** return setting value by unique key */
@@ -182,7 +149,7 @@ let Model = {
                         }
                     }
                     else if (schemaType === "boolean") {
-                        const parsed = parseBoolean(process.env[key]);
+                        const parsed = (0, value_1.parseBoolean)(process.env[key]);
                         value = parsed !== undefined ? parsed : false;
                     }
                     else {
@@ -203,20 +170,20 @@ let Model = {
                     return undefined;
                 }
             }
-            return cleanValue(value);
+            return (0, value_1.cleanValue)(value);
         }
         /** If variable present in database */
         let setting = await Settings.findOne({ key: key });
         if (setting && (setting.value !== null || setting.defaultValue !== null)) {
             value = setting.value !== null ? setting.value : setting.defaultValue;
-            return cleanValue(value);
+            return (0, value_1.cleanValue)(value);
         }
         /** Variable present in sails config */
         if (setting && setting.module) {
             let appId = setting.module;
             if (sails.config[appId] && sails.config[appId][key]) {
                 value = sails.config[appId][key];
-                return cleanValue(value);
+                return (0, value_1.cleanValue)(value);
             }
         }
         sails.log.silly(`Settings: [${key}] not found`);
@@ -225,7 +192,7 @@ let Model = {
     async get(key) {
         let _key = key;
         // return error if setting was not declared by specification
-        if (!isInDeclaredSettings(key) && !Settings.env("ALLOW_UNSAFE_SETTINGS")) {
+        if (!(0, declared_1.isInDeclaredSettings)(key) && !Settings.env("ALLOW_UNSAFE_SETTINGS")) {
             if (!isInDeclaredSettingsErrorCollector.has(key)) {
                 sails.log.warn(`Settings get error: Requested setting [${key}] was not declared by specification`);
                 isInDeclaredSettingsErrorCollector.set(key, true);
@@ -233,13 +200,13 @@ let Model = {
         }
         if (settings[_key] !== undefined) {
             //@ts-ignore
-            return cleanValue(settings[_key]);
+            return (0, value_1.cleanValue)(settings[_key]);
         }
         else {
             const value = await Settings.use(_key);
             settings[_key] = value;
             //@ts-ignore
-            return cleanValue(value);
+            return (0, value_1.cleanValue)(value);
         }
     },
     async set(key, settingsSetInput) {
@@ -313,13 +280,13 @@ let Model = {
         // convert some values for boolean type
         if (settingType === "boolean") {
             if (settingsSetInput.value !== undefined) {
-                const parsedValue = parseBoolean(`${settingsSetInput.value}`);
+                const parsedValue = (0, value_1.parseBoolean)(`${settingsSetInput.value}`);
                 if (parsedValue !== undefined) {
                     settingsSetInput.value = parsedValue;
                 }
             }
             if (settingsSetInput.defaultValue !== undefined) {
-                const parsedDefaultValue = parseBoolean(`${settingsSetInput.defaultValue}`);
+                const parsedDefaultValue = (0, value_1.parseBoolean)(`${settingsSetInput.defaultValue}`);
                 if (parsedDefaultValue !== undefined) {
                     settingsSetInput.defaultValue = parsedDefaultValue;
                 }
@@ -444,7 +411,7 @@ let Model = {
         }
         // For ALLOW_UNSAFE_SETTINGS, we know it's boolean
         if (key === "ALLOW_UNSAFE_SETTINGS") {
-            const parsed = parseBoolean(envValue);
+            const parsed = (0, value_1.parseBoolean)(envValue);
             return (parsed !== undefined ? parsed : false);
         }
         // For other keys, try to parse as JSON, fallback to string
@@ -462,7 +429,7 @@ let Model = {
      * Does not overwrite process.env if it is already set (env takes priority).
      */
     async syncEnvMirroredSettings() {
-        for (const key of envMirroredSettings) {
+        for (const key of env_mirror_1.envMirroredSettings) {
             if (process.env[key] !== undefined) {
                 continue;
             }
@@ -470,7 +437,7 @@ let Model = {
             if (!setting) {
                 continue;
             }
-            syncToEnv(setting);
+            (0, env_mirror_1.syncToEnv)(setting);
         }
     },
     /**
@@ -510,7 +477,7 @@ let Model = {
                 continue;
             }
             // Always declare, so Settings.get(key) never trips the declared-settings guard.
-            setDeclaredSetting(manifest.key);
+            (0, declared_1.setDeclaredSetting)(manifest.key);
             // Seed only if absent — do not clobber operator-configured values.
             if (await Settings.get(manifest.key) !== undefined) {
                 continue;
@@ -538,18 +505,12 @@ let Model = {
         }
     },
     // Expose declared settings management for MM settingsHelper
-    setDeclaredSetting,
-    isInDeclaredSettings,
-    parseBoolean
+    setDeclaredSetting: declared_1.setDeclaredSetting,
+    isInDeclaredSettings: declared_1.isInDeclaredSettings,
+    parseBoolean: value_1.parseBoolean
 };
 module.exports = {
     primaryKey: "id",
     attributes: attributes,
     ...Model,
 };
-function cleanValue(value) {
-    if (value === "undefined" || value === "NaN" || value === "null") {
-        return undefined;
-    }
-    return value;
-}

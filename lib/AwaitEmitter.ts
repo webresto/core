@@ -16,7 +16,7 @@ import { DialogBox } from "./DialogBox";
 import { InitCheckout } from "./order/OrderHelper";
 import { GetGroupType, GroupRecord } from "../models/Group";
 import { DishRecord } from "../models/Dish";
-import { RMSOutOfStockEventItem } from "../adapters/rms/RMSAdapter";
+import type { RMSOutOfStockEventItem } from "../adapters";
 import { CriteriaQuery } from "../interfaces/ORMModel";
 import { OrderModifier } from "../interfaces/Modifier";
 
@@ -53,7 +53,6 @@ declare global {
     "core:payment-document-canceled": [PaymentDocumentRecord]
     "core:order-after-order": [OrderRecord]
     "core:order-before-order": [OrderRecord]
-    "core:order-order": [OrderRecord]
     "core:order-order-service-type": [OrderRecord, ServiceType]
     "core:order-service-type": [OrderRecord, Customer, ServiceType, OrderAddress]
     "core:order-check": [OrderRecord, Customer, ServiceType, OrderAddress, string]
@@ -132,17 +131,13 @@ declare global {
  */
 export default class AwaitEmitter {
   readonly events: Event[];
-  /** @deprecated not used */
-  readonly name: string;
   readonly timeout: number;
   readonly declarations: { name: string, description: string }[]
 
   /**
-   * @param name - name of the new emitter
    * @param timeout - specifies how many milliseconds to wait for functions that return a Promise.
    */
-  constructor(name: string, timeout?: number) {
-    this.name = name;
+  constructor(timeout?: number) {
     this.timeout = timeout || 1000;
     this.events = [];
     this.declarations = [];
@@ -306,7 +301,7 @@ export default class AwaitEmitter {
                     res.push(new HandlerResponse(subscriber.id, result));
                   } else {
                     const listenerName = subscriber.id;
-                    sails.log.silly(`[${listenerName}] event of action [${name}] in [${that.name}] emitter end after [${new Date().getTime() - now.getTime()}] ms`);
+                    sails.log.silly(`[${listenerName}] event of action [${name}] end after [${new Date().getTime() - now.getTime()}] ms`);
                   }
                 } catch (e) {
                   successEnd = true;

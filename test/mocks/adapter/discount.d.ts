@@ -1,4 +1,4 @@
-import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
+import { AbstractPromotionHandler } from "../../../adapters/promotion/PromotionAdapter";
 import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
 import { GroupRecord } from "../../../models/Group";
 import { DishRecord } from "../../../models/Dish";

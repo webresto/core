@@ -13,7 +13,7 @@ import { slugIt } from "../lib/slugIt";
 import { UserRecord } from "./User";
 import { GroupRecord } from "./Group";
 import { buildAuditDiff, logAuditEvent } from "../lib/auditLog";
-import { MenuContext } from "../adapters/menu/contracts";
+import { MenuContext } from "../interfaces/Menu";
 
 /** Canonical business types for a catalog product. `Dish` remains the Sails model during migration. */
 export type ProductType = "dish" | "product" | "service";
@@ -89,9 +89,7 @@ let attributes = {
   /** The number of carbohydrates per (100g)*/
   carbohydrateAmount: "number" as unknown as number,
 
-  /**
-   * @deprecated  
-   * The number of carbohydrates in the dish */
+  /** The number of carbohydrates in the dish */
   carbohydrateFullAmount: {
     type: "number",
     allowNull: true
@@ -103,9 +101,7 @@ let attributes = {
     allowNull: true
   } as unknown as number,
 
-  /** 
-   * @deprecated 
-   * Energy value */
+  /** Energy value of the dish */
   energyFullAmount: {
     type: "number",
     allowNull: true
@@ -117,9 +113,7 @@ let attributes = {
     allowNull: true
   } as unknown as number,
 
-  /** 
-   * @deprecated
-   * The amount of fat in the dish */
+  /** The amount of fat in the dish */
   fatFullAmount: {
     type: "number",
     allowNull: true
@@ -132,9 +126,7 @@ let attributes = {
     allowNull: true
   } as unknown as number,
 
-  /**
-   * @deprecated 
-   * The number of proteins in the dish */
+  /** The number of fiber in the dish */
   fiberFullAmount: {
     type: "number",
     allowNull: true
@@ -147,22 +139,12 @@ let attributes = {
     allowNull: true
   } as unknown as number,
 
-  /**
-   * @deprecated 
-   * The number of proteins in the dish */
+  /** The number of proteins in the dish */
   proteinFullAmount: {
     type: "number",
     allowNull: true
   } as unknown as number,
 
-
-  /** The group identifier in which the dish is located
-   * @deprecated will be deleted in v2
-  */
-  groupId: {
-    type: "string",
-    allowNull: true,
-  } as unknown as string,
 
   /** Unit of measurement of goods (kg, l, pcs, port.)*/
   measureUnit: {
@@ -306,19 +288,11 @@ let attributes = {
 interface IVirtualFields {
   discountAmount?: number;
   discountType?: "flat" | "percentage"
-  /**
-   * @deprecated change to oldPrice
-   */
-  oldPrice?: number;
   salePrice?: number;
 }
 
 type attributes = typeof attributes;
 
-/**
- * @deprecated use `DishRecord` instead
- */
-interface Dish extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM { }
 export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM { }
 
 let Model = {
@@ -450,19 +424,16 @@ let Model = {
         let childIndex = 0
         let childModifiers = []
 
-        if (dish.modifiers[index].modifierId !== undefined || dish.modifiers[index].id !== undefined) {
+        if (dish.modifiers[index].id !== undefined) {
 
           let criteria: any = { concept: dish.concept ?? undefined };
 
-          if (modifier.modifierId) {
-            // Legacy shape: modifierId is the restocore id.
-            criteria.id = modifier.modifierId;
-          } else if (modifier.id) {
-            // Modern shape: id is the restocore id. Also accept legacy rows where
-            // this field held rmsId, so existing imported configurations still work.
+          if (modifier.id) {
+            // id is the restocore id. Also accept legacy rows where this field
+            // held rmsId, so existing imported configurations still work.
             criteria.or = [{ id: modifier.id }, { rmsId: modifier.id }];
           } else {
-            throw `Group modifierId or rmsId not found`;
+            throw `Group modifier id not found`;
           }
 
           dish.modifiers[index].group = (await Group.find(criteria).limit(1))[0];
@@ -473,14 +444,11 @@ let Model = {
         for await (let childModifier of modifier.childModifiers) {
           let criteria: any = { concept: dish.concept ?? undefined }
 
-          if (childModifier.modifierId) {
-            // Legacy shape: modifierId is the restocore id.
-            criteria.id = childModifier.modifierId
-          } else if (childModifier.id) {
-            // Prefer the modern restocore id and fall back to old RMS-id rows.
+          if (childModifier.id) {
+            // Prefer the restocore id and fall back to old RMS-id rows.
             criteria.or = [{ id: childModifier.id }, { rmsId: childModifier.id }]
           } else {
-            throw `Dish modifierId or rmsId not found`
+            throw `Dish modifier id not found`
           }
 
           let childModifierDish = (await Dish.find({ where: criteria, limit: 1 }).populate('images'))[0]
@@ -489,13 +457,13 @@ let Model = {
             : false;
           if (!childModifierDish || childIsStopped) {
             // delete if dish not found
-            sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found")
+            sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.id + " from dish:" + dish.name + " not found")
           } else {
             try {
               childModifier.dish = childModifierDish
               childModifiers.push(childModifier);
             } catch (error) {
-              sails.log.error("DISH > getDishModifiers: problem with: " + childModifier.modifierId + " in dish:" + dish.name);
+              sails.log.error("DISH > getDishModifiers: problem with: " + childModifier.id + " in dish:" + dish.name);
             }
           }
           childIndex++;
@@ -522,7 +490,6 @@ let Model = {
     dishes.forEach((dish) => {
       dish.discountAmount = 0;
       dish.discountType = null;
-      dish.oldPrice = null;
       dish.salePrice = null;
     });
 

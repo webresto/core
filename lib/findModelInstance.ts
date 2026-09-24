@@ -8,7 +8,6 @@ export default function findModelInstanceByAttributes(obj: any): string | null {
       if(model.globalId === "Dish"){
         delete data.discountAmount
         delete data.discountType
-        delete data.oldPrice
         delete data.salePrice
       }
 

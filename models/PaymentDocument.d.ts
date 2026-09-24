@@ -64,11 +64,6 @@ declare let attributes: {
     data: object;
 };
 type attributes = typeof attributes;
-/**
- * @deprecated use PaymentDocumentRecord instead
- */
-interface PaymentDocument extends OptionalAll<attributes>, ORM {
-}
 export interface PaymentDocumentRecord extends OptionalAll<attributes>, ORM {
 }
 declare let Model: {
@@ -83,7 +78,7 @@ declare let Model: {
     cancel: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentRecord | undefined>;
     doCheck: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentRecord>;
     register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: object) => Promise<PaymentResponse>;
-    afterUpdate: (values: PaymentDocument, next: () => void) => Promise<void>;
+    afterUpdate: (values: PaymentDocumentRecord, next: () => void) => Promise<void>;
     /** Payment check cycle*/
     processor: (timeout: number) => Promise<ReturnType<typeof setInterval>>;
 };

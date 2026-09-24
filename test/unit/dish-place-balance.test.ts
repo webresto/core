@@ -1,9 +1,10 @@
 import { expect } from "chai";
+import { isBalanceValue, isEmptyRow, limitsNothing, mergeValues } from "../../lib/dish-place/row";
 import {
   getEffectiveBalance,
   normalizeBalanceMode,
   DISH_PLACE_BALANCE_MODES,
-} from "../../adapters/menu/dish-place-balance";
+} from "../../lib/menu/dish-place-balance";
 
 describe("DishPlace effective balance", function () {
   it("treats a product with no row as unlimited in every mode", function () {
@@ -45,5 +46,30 @@ describe("DishPlace effective balance", function () {
     expect(normalizeBalanceMode("legacy-global")).to.equal("minimum");
     expect(normalizeBalanceMode(undefined)).to.equal("minimum");
     expect(normalizeBalanceMode("rms-only")).to.equal("rms-only");
+  });
+});
+
+describe("DishPlace row", function () {
+  it("takes null and anything from -1 up as a balance", function () {
+    expect([null, -1, 0, 5].every(isBalanceValue)).to.equal(true);
+    expect(isBalanceValue(-2)).to.equal(false);
+  });
+
+  it("reads -1, null and a missing value as no limit", function () {
+    expect([-1, null, undefined].every(limitsNothing)).to.equal(true);
+    expect(limitsNothing(0)).to.equal(false);
+  });
+
+  it("calls an enabled row without limits empty", function () {
+    expect(isEmptyRow({ localBalance: -1, rmsBalance: null })).to.equal(true);
+    expect(isEmptyRow({ localBalance: -1, rmsBalance: null, enable: false })).to.equal(false);
+  });
+
+  it("keeps the stored value of a source the update leaves out", function () {
+    expect(mergeValues({ localBalance: 0, enable: true }, { rmsBalance: -1 })).to.deep.equal({
+      localBalance: 0,
+      rmsBalance: -1,
+      enable: true,
+    });
   });
 });

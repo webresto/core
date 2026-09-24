@@ -69,42 +69,35 @@ describe("Delivery adapter", function () {
 
     // The zone's cost, time and identity
     let order = await check("delivery");
-    expect(order.delivery).to.include({ allowed: true, zoneId, deliveryTimeMinutes: 40 });
-    expect(order.deliveryCost).to.equal(2.75);
-    expect(order.deliveryItem).to.equal(null);
+    expect(order.delivery).to.include({ allowed: true, zoneId, deliveryTimeMinutes: 40, cost: 2.75 });
+    expect(order.delivery.item ?? null).to.equal(null);
+    expect(order.total).to.be.closeTo(order.basketTotal + 2.75 - order.discountTotal, 1e-9);
 
     // Pickup has no delivery at all
     await toPickup(orderId);
     order = await check("pickup");
     expect(order.delivery).to.equal(null);
-    expect(order.deliveryDescription).to.equal("");
-    expect(order.deliveryCost).to.equal(0);
-    expect(order.deliveryItem).to.equal(null);
+    expect(order.total).to.be.closeTo(order.basketTotal - order.discountTotal, 1e-9);
 
     // A delivery product instead of the cost
     const deliveryItem = dishes[2];
     await setZone({ deliveryItem: deliveryItem.id });
     order = await check("delivery");
-    expect(order.delivery.allowed).to.equal(true);
-    expect(order.deliveryCost).to.equal(deliveryItem.price);
-    expect(order.deliveryItem).to.equal(deliveryItem.id);
+    expect(order.delivery).to.include({ allowed: true, item: deliveryItem.id, cost: deliveryItem.price });
 
     // The zone's message reaches the order
     const deliveryMessage = "Test123 123 %%%";
     await setZone({ deliveryItem: null, deliveryMessage });
     order = await check("delivery");
-    expect(order.delivery.allowed).to.equal(true);
-    expect(order.deliveryDescription).to.equal(deliveryMessage);
+    expect(order.delivery).to.include({ allowed: true, message: deliveryMessage });
 
     // Free from a threshold
     const freeDeliveryFrom = 333;
     await setZone({ freeDeliveryFrom });
     await Order.addDish({ id: orderId }, dishes[3], Math.ceil(freeDeliveryFrom / dishes[3].price), [], "", "user");
     order = await check("delivery");
-    expect(order.delivery.allowed).to.equal(true);
-    expect(order.deliveryDescription).to.equal("Free delivery");
-    expect(order.deliveryCost).to.equal(0);
-    expect(order.deliveryItem).to.equal(null);
+    expect(order.delivery).to.include({ allowed: true, message: "Free delivery", cost: 0 });
+    expect(order.delivery.item ?? null).to.equal(null);
 
     // Below the zone's minimum. Refused on the delivery; checkout itself goes
     // through, because soft calculation is on by default.
@@ -112,11 +105,15 @@ describe("Delivery adapter", function () {
     order = await check("delivery");
     expect(order.delivery).to.include({ allowed: false, message: "Minimum order amount: %s" });
 
-    // No zone that can take an order: no delivery, and nothing to fall back on.
+    // No zone that can take an order: no delivery, and checkout refuses it
+    // whatever SOFT_DELIVERY_CALCULATION says — soft calculation covers an
+    // address outside the zones, not an installation without any.
     await setZone({ minOrderTotal: null, enable: false });
-    order = await check("delivery");
+    const refusal = await check("delivery").then(() => null, (error) => error);
+    expect(refusal).to.include({ code: 11, error: "Delivery not allowed" });
+    order = await Order.findOne!({ id: orderId });
     expect(order.delivery).to.include({ allowed: false, message: "Delivery is not available" });
     expect(order.delivery.diagnostics).to.include("no delivery zones configured");
-    expect(order.deliveryCost).to.equal(0);
+    expect(order.total).to.be.closeTo(order.basketTotal - order.discountTotal, 1e-9);
   });
 });

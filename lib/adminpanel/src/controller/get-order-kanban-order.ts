@@ -3,7 +3,7 @@ import {
   isCompletedOrderState,
   isOperatorUser,
 } from "../../../order/OrderStateFlow";
-import { primaryCookingPoint } from "../../../../adapters/menu/cooking-place";
+import { primaryCookingPoint } from "../../../menu/cooking-place";
 
 function parseTimestamp(value: unknown): number {
   const timestamp = new Date(value as any).getTime();
@@ -103,7 +103,6 @@ async function loadFullOrder(id: string): Promise<any | null> {
     .populate("paymentMethod")
     .populate("user")
     .populate("pickupPoint")
-    .populate("deliveryItem")
     .populate("promotionCode");
 
   if (!fullOrder) return null;
@@ -153,6 +152,13 @@ async function getZoneName(order: any): Promise<string> {
   return zone?.name ? String(zone.name) : "";
 }
 
+/** The product the delivery is charged as, when the calculation named one. */
+async function getDeliveryDish(order: any): Promise<any | null> {
+  const item = order?.delivery?.item;
+  if (!item) return null;
+  return (await Dish.findOne!({ where: { or: [{ id: String(item) }, { rmsId: String(item) }] } })) ?? null;
+}
+
 function mapRelatedRef(record: any, modelName: string, labelFields: string[] = ["title", "name"]): any {
   if (!record || typeof record !== "object") return null;
   const id = record.id;
@@ -187,12 +193,11 @@ function mapPaymentDocuments(order: any): any[] {
   });
 }
 
-function mapOrder(order: any, operatorLimited: boolean, kitchenName: string, zoneName: string) {
+function mapOrder(order: any, operatorLimited: boolean, kitchenName: string, zoneName: string, deliveryDish: any) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
   const paymentMethod = order?.paymentMethod && typeof order.paymentMethod === "object" ? order.paymentMethod : null;
   const userRecord = order?.user && typeof order.user === "object" ? order.user : null;
   const pickupPoint = order?.pickupPoint && typeof order.pickupPoint === "object" ? order.pickupPoint : null;
-  const deliveryItem = order?.deliveryItem && typeof order.deliveryItem === "object" ? order.deliveryItem : null;
   const promotionCode = order?.promotionCode && typeof order.promotionCode === "object" ? order.promotionCode : null;
 
   return {
@@ -204,7 +209,7 @@ function mapOrder(order: any, operatorLimited: boolean, kitchenName: string, zon
     discountTotal: asNumber(order?.discountTotal),
     bonusesTotal: asNumber(order?.bonusesTotal),
     promotionFlatDiscount: asNumber(order?.promotionFlatDiscount),
-    deliveryCost: asNumber(order?.deliveryCost ?? order?.delivery?.cost),
+    deliveryCost: asNumber(order?.delivery?.cost),
     dishesCount: asNumber(order?.dishesCount, Array.isArray(order?.dishes) ? order.dishes.length : 0),
     customerName: customer?.name || "",
     customerPhone: getCustomerPhone(order),
@@ -234,7 +239,7 @@ function mapOrder(order: any, operatorLimited: boolean, kitchenName: string, zon
       user: mapRelatedRef(userRecord, "user", ["login", "name", "phone"]),
       paymentMethod: mapRelatedRef(paymentMethod, "paymentmethod", ["title", "name"]),
       pickupPoint: mapRelatedRef(pickupPoint, "place", ["title", "name"]),
-      deliveryItem: mapRelatedRef(deliveryItem, "dish", ["title", "name"]),
+      deliveryItem: mapRelatedRef(deliveryDish, "dish", ["title", "name"]),
       promotionCode: mapRelatedRef(promotionCode, "promotioncode", ["title", "code", "name"]),
     },
     paymentDocuments: mapPaymentDocuments(order),
@@ -264,7 +269,9 @@ export default async function GetOrderKanbanOrderController(req: any, res: any) 
       return res.status(404).json({ error: t("Order not found") });
     }
 
-    return res.json({ order: mapOrder(order, operatorLimited, await getKitchenName(order), await getZoneName(order)) });
+    return res.json({
+      order: mapOrder(order, operatorLimited, await getKitchenName(order), await getZoneName(order), await getDeliveryDish(order)),
+    });
   } catch (error) {
     sails.log.error("Get order kanban order error", error);
     return res.status(500).json({ error: String(error) });

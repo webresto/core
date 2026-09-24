@@ -8,7 +8,7 @@ Bonuses are implemented through a Bonus Program, managed by the Bonus Program mo
 - `decimals`: Number, default is 0 (denomination)
 - `description`: String
 
-The Bonus Program should be implemented as an adapter from the abstract class `@webresto/core/adapters/bonusprogram/BonusProgramAdapter.ts` and added to the model via `BonusProgram.alive()`. The adapter is responsible for recording transactions in an external source or syncing from an external source by implementing the abstract class `BonusProgramAdapter`.
+The Bonus Program should be implemented as an adapter from the abstract class `BonusProgramAdapter` (`import { BonusProgramAdapter } from "@webresto/core/adapters"`) and added to the model via `BonusProgram.alive()`. The adapter is responsible for recording transactions in an external source or syncing from an external source by implementing the abstract class `BonusProgramAdapter`.
 
 > ⚠️ Any bonus adapter must be passed to the `BonusProgram` model in the `alive()` method. Example: `await BonusProgram.alive(new LocalBonusProgramAdapter());`
 

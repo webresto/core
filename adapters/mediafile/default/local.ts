@@ -134,8 +134,8 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
   public async checkFileExist(mediaFile: MediaFileRecord): Promise<boolean> {
     let allFileExist: boolean = true;
   
-    if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.images === "object" && mediaFile.images !== null && Object.keys(mediaFile.images).length) {
-      const images = mediaFile.images;
+    if (mediaFile && /* mediaFile.type === "image" && **/ typeof mediaFile.variant === "object" && mediaFile.variant !== null && Object.keys(mediaFile.variant).length) {
+      const images = mediaFile.variant;
       
       for (const key in images) {
         const imageFilePath = path.join(this.getPrefix(), images[key]);

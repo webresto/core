@@ -1,6 +1,6 @@
 import { DeliveryCoordinate } from "../../adapters/delivery/contracts";
 import DeliveryAdapter from "../../adapters/delivery/DeliveryAdapter";
-import { AvailabilityProduct, getPreparationMinutes } from "../../adapters/menu/product-availability";
+import { AvailabilityProduct, getPreparationMinutes } from "../menu/product-availability";
 
 /**
  * When an order is promised, and whether that promise fits what was asked for.

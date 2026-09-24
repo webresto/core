@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import { NormalizedProfile } from "../adapters/auth/AuthProviderAdapter";
+import type { NormalizedProfile } from "../adapters";
 export type AuthStateStatus = "started" | "awaiting_phone" | "done" | "expired";
 /**
  * Ephemeral state of a single login attempt. Holds the oauth state/nonce/PKCE and,

@@ -18,7 +18,7 @@ describe('Dish', function () {
     });
     it('Dish Model attributes', async () => {
         let dish = (await Dish.find({}).limit(1).populate("images"))[0];
-        (0, chai_1.expect)(dish).to.include.all.keys('id', 'rmsId', 'additionalInfo', 'code', 'name', 'seoDescription', 'seoKeywords', 'seoText', 'seoTitle', 'carbohydrateAmount', 'carbohydrateFullAmount', 'energyAmount', 'energyFullAmount', 'fatAmount', 'fatFullAmount', 'fiberAmount', 'fiberFullAmount', 'groupId', 'measureUnit', 'price', 'productCategoryId', 'type', 'weight', 'sortOrder', 'isDeleted', 'isModificable', 'modifiers', 'parentGroup', 'tags', 'balance', 'images', 'slug', 'hash', 'description', 'visible', 'modifier', 'promo', 'worktime', 'concept', 'ingredients', 'updatedAt', 'createdAt');
+        (0, chai_1.expect)(dish).to.include.all.keys('id', 'rmsId', 'additionalInfo', 'code', 'name', 'seoDescription', 'seoKeywords', 'seoText', 'seoTitle', 'carbohydrateAmount', 'carbohydrateFullAmount', 'energyAmount', 'energyFullAmount', 'fatAmount', 'fatFullAmount', 'fiberAmount', 'fiberFullAmount', 'measureUnit', 'price', 'productCategoryId', 'type', 'weight', 'sortOrder', 'isDeleted', 'isModificable', 'modifiers', 'parentGroup', 'tags', 'balance', 'images', 'slug', 'hash', 'description', 'visible', 'modifier', 'promo', 'worktime', 'concept', 'ingredients', 'updatedAt', 'createdAt');
     });
     it('getDishes', function () {
         // it's planned implement after connect @webresto/worktime
@@ -30,12 +30,11 @@ describe('Dish', function () {
         let group = (await Group.find({}).limit(1))[0];
         let modifiers = [
             {
-                modifierId: group.id,
                 childModifiers: [
-                    { id: dishes[0].id, modifierId: dishes[0].id, rmsId: dishes[0].rmsId }
+                    { id: dishes[0].id, rmsId: dishes[0].rmsId }
                 ],
                 groupId: group.id,
-                id: "",
+                id: group.id,
                 rmsId: ""
             }
         ];

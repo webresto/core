@@ -48,7 +48,6 @@ Each option:
 ```ts
 {
   id: string;        // returned as the answer
-  label: string;     // legacy field, kept for compatibility
   button: {
     label: string;   // text shown on the button (required by the JSON schema)
     type: "primary" | "secondary" | "link" | "abort";
@@ -69,7 +68,6 @@ Used to ask the user to pick one item from a list of dishes. Each option:
 ```ts
 {
   id: string;
-  label: string;
   product: DishRecord;   // a Dish model record
 }
 ```
@@ -97,7 +95,6 @@ const dialogConfig = {
   options: [
     {
       id: "createCattering",
-      label: "I have read this and want to place the order",
       button: {
         label: "I have read this and want to place the order",
         type: "primary",
@@ -105,7 +102,6 @@ const dialogConfig = {
     },
     {
       id: "cancelCreateCattering",
-      label: "Cancel",
       button: {
         label: "Cancel adding",
         type: "secondary",
@@ -140,8 +136,8 @@ const answerId = await DialogBox.ask({
   optionsType: "button",
   defaultOptionId: "no",
   options: [
-    { id: "yes", label: "Yes", button: { label: "Yes, cancel", type: "primary" } },
-    { id: "no",  label: "No",  button: { label: "Keep order",  type: "abort"   } },
+    { id: "yes", button: { label: "Yes, cancel", type: "primary" } },
+    { id: "no",  button: { label: "Keep order",  type: "abort"   } },
   ],
 }, deviceId, 45_000);
 
@@ -160,8 +156,8 @@ const answerId = await DialogBox.ask({
   message: "The dish you ordered is unavailable. Pick a replacement:",
   optionsType: "product",
   options: [
-    { id: "dish-a", label: "Dish A", product: dishA },
-    { id: "dish-b", label: "Dish B", product: dishB },
+    { id: "dish-a", product: dishA },
+    { id: "dish-b", product: dishB },
   ],
 }, deviceId);
 
@@ -209,12 +205,10 @@ const answerId = await DialogBox.ask({
   options: [
     {
       id: "ok",
-      label: t("I read it, create the order"),
       button: { label: t("I read it, create the order"), type: "primary" },
     },
     {
       id: "cancel",
-      label: t("Cancel"),
       button: { label: t("Cancel adding"), type: "secondary" },
     },
   ],

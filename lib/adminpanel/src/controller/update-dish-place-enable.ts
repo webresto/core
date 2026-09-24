@@ -1,4 +1,4 @@
-import { getDishPlaceBalanceMode } from "../../../../adapters/menu/dish-place-balance";
+import { getDishPlaceBalanceMode } from "../../../menu/dish-place-balance";
 import { requireStockManagerAccess } from "./access-rights";
 import { requireStockPlaceAccess, toDishPlaceResponse } from "./stock-place-items";
 

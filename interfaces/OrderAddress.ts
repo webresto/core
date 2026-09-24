@@ -12,7 +12,7 @@
  * `UserLocation` (without `node`), what a delivery adapter checks and what
  * `addressByCoordinate` answers. The catalog itself is `AddressRecord`.
  */
-import { AddressPoint } from "../adapters/geo/address";
+import { AddressPoint } from "./Geo";
 
 export default interface OrderAddress {
   /** Deepest chosen node of the city's address catalog. Null for free text. */

@@ -1,7 +1,7 @@
 /**
  * The bonus program implements the spending of virtual bonuses through the adapter.
  */
-import BonusProgramAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
+import { type BonusProgramAdapter } from "../adapters";
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 declare let attributes: {

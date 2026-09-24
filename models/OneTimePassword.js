@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const NotificationService_1 = require("../lib/notifications/NotificationService");
+const one_time_password_1 = require("../lib/one-time-password");
 let attributes = {
     /** ID */
     id: {
@@ -20,7 +21,7 @@ let attributes = {
 let Model = {
     beforeCreate(record, cb) {
         if (!record.password) {
-            record.password = generateOtp();
+            record.password = (0, one_time_password_1.generateOtp)();
         }
         if (!record.expires) {
             record.expires = Date.now() + 30 * 60 * 1000; // 30 minutes
@@ -98,17 +99,3 @@ module.exports = {
     attributes: attributes,
     ...Model,
 };
-function generateOtp() {
-    if ((process.env.DEMO_MODE || "").toLowerCase() === "true") {
-        return "999999";
-    }
-    if (process.env.NODE_ENV !== "production" && process.env.DEFAULT_OTP) {
-        return process.env.DEFAULT_OTP;
-    }
-    let digits = '1234567890';
-    let otp = '';
-    for (let i = 0; i < 6; i++) {
-        otp += digits[Math.floor(Math.random() * 10)];
-    }
-    return otp;
-}

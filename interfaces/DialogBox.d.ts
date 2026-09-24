@@ -50,10 +50,6 @@ export interface DialogBoxProduct extends DialogBoxBase {
 }
 interface DialogOptionBase {
     id: string;
-    /**
-     * @deprecated
-     */
-    label: string;
 }
 interface DialogOptionProduct extends DialogOptionBase {
     product: DishRecord;

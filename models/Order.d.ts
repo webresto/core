@@ -50,9 +50,6 @@ declare let attributes: {
     concept: string[];
     /** the basket contains mixed types of concepts */
     isMixedConcept: boolean;
-    /**
-     * @deprecated will be rename to `Items` in **v2**
-     */
     dishes: OrderDishRecord[] | number[];
     paymentMethod: PaymentMethodRecord | string;
     /** */
@@ -166,20 +163,7 @@ declare let attributes: {
      */
     serviceType: ServiceType;
     delivery: Delivery | null;
-    /** Notification about delivery
-     * ex: time increased due to traffic jams
-     * @deprecated should changed for order.delivery.message
-     * */
-    deliveryDescription: string;
     message: string;
-    /**
-     * @deprecated use order.delivery.item
-     */
-    deliveryItem: DishRecord | string;
-    /**
-     * @deprecated use order.delivery.cost
-     */
-    deliveryCost: number;
     /** order total weight */
     totalWeight: number;
     /** Change */
@@ -187,16 +171,12 @@ declare let attributes: {
     /** Sum of all bonuses */
     bonusesTotal: number;
     spendBonus: SpendBonus;
-    /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
+    /** total = basketTotal + delivery.cost - discountTotal - bonusesTotal */
     total: number;
     /**
       * Sum dishes user added
       */
     basketTotal: number;
-    /**
-    *   @deprecated orderTotal use basketTotal
-    */
-    orderTotal: number;
     /**
      * Calculated discount, not recommend for changing
      *
@@ -347,17 +327,13 @@ declare let Model: {
         maxWaitMinutes?: number;
         serviceType?: ServiceType;
         delivery?: Delivery | null;
-        deliveryDescription?: string;
         message?: string;
-        deliveryItem?: DishRecord | string;
-        deliveryCost?: number;
         totalWeight?: number;
         trifleFrom?: number;
         bonusesTotal?: number;
         spendBonus?: SpendBonus;
         total?: number;
         basketTotal?: number;
-        orderTotal?: number;
         discountTotal?: number;
         orderDate?: string;
         tag?: string;

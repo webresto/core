@@ -193,10 +193,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `UserRecord` instead
- */
-interface User extends OptionalAll<attributes>, ORM {}
 export interface UserRecord extends OptionalAll<attributes>, ORM {}
 
 
@@ -302,7 +298,7 @@ let Model = {
    *
    * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
    */
-  async setPassword(userId: string, newPassword: string, oldPassword: string, force: boolean = false, temporaryCode?: string): Promise<User> {
+  async setPassword(userId: string, newPassword: string, oldPassword: string, force: boolean = false, temporaryCode?: string): Promise<UserRecord> {
     if (!userId || !newPassword) throw "UserId and newPassword is required";
 
     if (!(await Settings.get("CORE_SET_LAST_OTP_AS_PASSWORD"))) {

@@ -7,7 +7,7 @@ import {
   isCooked,
   modeRequiresPlace,
   normalizeMenuPlaceBasedMode,
-} from "../../adapters/menu/product-availability";
+} from "../../lib/menu/product-availability";
 
 describe("product-availability", function () {
   const realSettings = (global as any).Settings;

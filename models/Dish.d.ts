@@ -7,7 +7,7 @@ import { GroupModifier } from "../interfaces/Modifier";
 import { CustomData } from "../interfaces/CustomData";
 import { UserRecord } from "./User";
 import { GroupRecord } from "./Group";
-import { MenuContext } from "../adapters/menu/contracts";
+import { MenuContext } from "../interfaces/Menu";
 /** Canonical business types for a catalog product. `Dish` remains the Sails model during migration. */
 export type ProductType = "dish" | "product" | "service";
 export declare const PRODUCT_TYPES: readonly ProductType[];
@@ -36,39 +36,25 @@ declare let attributes: {
     seoTitle: string;
     /** The number of carbohydrates per (100g)*/
     carbohydrateAmount: number;
-    /**
-     * @deprecated
-     * The number of carbohydrates in the dish */
+    /** The number of carbohydrates in the dish */
     carbohydrateFullAmount: number;
     /** Energy value (100 g) */
     energyAmount: number;
-    /**
-     * @deprecated
-     * Energy value */
+    /** Energy value of the dish */
     energyFullAmount: number;
     /**  The amount of fat (100 g) */
     fatAmount: number;
-    /**
-     * @deprecated
-     * The amount of fat in the dish */
+    /** The amount of fat in the dish */
     fatFullAmount: number;
     /**
      * The number of fiber (100g)  */
     fiberAmount: number;
-    /**
-     * @deprecated
-     * The number of proteins in the dish */
+    /** The number of fiber in the dish */
     fiberFullAmount: number;
     /** The number of proteins (100g)  */
     proteinAmount: number;
-    /**
-     * @deprecated
-     * The number of proteins in the dish */
+    /** The number of proteins in the dish */
     proteinFullAmount: number;
-    /** The group identifier in which the dish is located
-     * @deprecated will be deleted in v2
-    */
-    groupId: string;
     /** Unit of measurement of goods (kg, l, pcs, port.)*/
     measureUnit: string;
     /** The price of the dish */
@@ -132,10 +118,6 @@ declare let attributes: {
 interface IVirtualFields {
     discountAmount?: number;
     discountType?: "flat" | "percentage";
-    /**
-     * @deprecated change to oldPrice
-     */
-    oldPrice?: number;
     salePrice?: number;
 }
 type attributes = typeof attributes;

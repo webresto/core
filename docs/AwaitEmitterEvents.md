@@ -26,7 +26,6 @@ emitter.on("core:order-after-create", "my-listener", async (order) => {
 | `core:payment-document-checked-document` | `[PaymentDocumentRecord]` |
 | `core:order-after-order` | `[OrderRecord]` |
 | `core:order-before-order` | `[OrderRecord]` |
-| `core:order-order` | `[OrderRecord]` |
 | `core:order-order-service-type` | `[OrderRecord, ServiceType]` |
 | `core:order-service-type` | `[OrderRecord, Customer, ServiceType, Address]` |
 | `core:order-check` | `[OrderRecord, Customer, ServiceType, Address, string]` |

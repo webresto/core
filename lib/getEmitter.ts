@@ -18,7 +18,7 @@ export default function getEmitter(): AwaitEmitter {
   const g = global as unknown as { [GLOBAL_KEY]?: AwaitEmitter };
   if (!g[GLOBAL_KEY]) {
     const awaitEmitterTimeout = sails.config.restocore ? sails.config.restocore.awaitEmitterTimeout || 60000 : 60000;
-    g[GLOBAL_KEY] = new AwaitEmitter("core", parseInt(awaitEmitterTimeout as string));
+    g[GLOBAL_KEY] = new AwaitEmitter(parseInt(awaitEmitterTimeout as string));
   }
   return g[GLOBAL_KEY];
 }

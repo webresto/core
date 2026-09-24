@@ -3,24 +3,32 @@ import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
 import { DefaultOTP } from "./otp/default/defaultOTP";
 import LocalMediaFileAdapter from "./mediafile/default/local";
-import OTPAdapter from "./otp/OneTimePasswordAdapter";
+import OTPAdapter from "./otp/OTPAdapter";
 import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
-import { Config } from "../interfaces/Config";
 import DeliveryAdapter from "./delivery/DeliveryAdapter";
 import { DefaultDeliveryAdapter } from "./delivery/default/defaultDelivery";
 import { PromotionAdapter } from "./promotion/default/promotionAdapter";
+import AbstractPromotionAdapter, { AbstractPromotionHandler } from "./promotion/PromotionAdapter";
 import MenuAdapter from "./menu/MenuAdapter";
 import { DefaultMenuAdapter } from "./menu/default/defaultMenu";
 import { SingleKitchenMenuAdapter } from "./menu/default/singleKitchenMenu";
-import { RoutePlanner } from "./menu/route-contracts";
-import { getMenuPlaceBasedMode } from "./menu/product-availability";
-import AuthProviderAdapter from "./auth/AuthProviderAdapter";
+import { getMenuPlaceBasedMode } from "../lib/menu/product-availability";
+import AuthProviderAdapter from "./auth/AuthAdapter";
 import GeoAdapter from "./geo/GeoAdapter";
-import { NominatimGeoAdapter } from "./geo/default/nominatim";
+import { DefaultGeoAdapter } from "./geo/default/defaultGeo";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
+
+// Code outside `adapters/` reaches an adapter only through this file: the base
+// classes a module extends or types against, and the types they carry.
+export { MenuAdapter, RMSAdapter, PaymentAdapter, BonusProgramAdapter, AuthProviderAdapter, AbstractPromotionAdapter, AbstractPromotionHandler };
+export type { RMSOutOfStockEventItem } from "./rms/RMSAdapter";
+export type { BonusTransaction } from "./bonusprogram/BonusProgramAdapter";
+export type { AuthFlowKind, NormalizedProfile } from "./auth/AuthAdapter";
+export type { ResolvedCaptcha } from "./captcha/CaptchaAdapter";
+
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
 
@@ -52,19 +60,9 @@ export class Captcha {
 }
 
 /**
- * returns OTP-adapter
+ * Where delivery adapters are registered and the chosen one is kept.
+ * `Adapter.getDeliveryAdapter` is the way to get it.
  */
-export class OTP {
-  /**
-   * @deprecated use Adapter.getOTPAdapter instead
-   * @param adapterName
-   */
-  public static async getAdapter(adapterName?: string): Promise<OTPAdapter> {
-    return Adapter.getOTPAdapter(adapterName);
-  }
-}
-
-
 export class Delivery {
   public static instanceDeliveryAdapter: DeliveryAdapter | null;
 
@@ -73,10 +71,11 @@ export class Delivery {
    *
    * There is one registry for delivery and it lives here — no separate street
    * or zone-source registries. A module loaded as a sails hook cannot
-   * be reached by the `@webresto/<name>-delivery-adapter` require path below,
-   * so it announces itself instead, the same way auth providers do.
+   * be reached by the `@webresto/<name>-delivery-adapter` require path of
+   * `Adapter.getDeliveryAdapter`, so it announces itself instead, the same way
+   * auth providers do.
    */
-  private static registered = new Map<string, DeliveryAdapter>();
+  public static readonly registered = new Map<string, DeliveryAdapter>();
 
   /** Forgets the cached instance so the next call re-reads `DELIVERY_ADAPTER`. */
   public static resetAdapter(): void {
@@ -102,75 +101,12 @@ export class Delivery {
    * Asked by things that only make sense next to it — the zones module owns
    * `DeliveryZone`, and an installation delivering through somebody else’s
    * adapter has no use for a map of polygons nothing reads. The two ways of
-   * saying “the built-in one” are the same two `getAdapter` accepts below.
+   * saying “the built-in one” are the same two `Adapter.getDeliveryAdapter` accepts.
    */
   public static async isDefault(): Promise<boolean> {
     const configured = await Settings.get("DELIVERY_ADAPTER");
     const name = typeof configured === "string" ? configured.trim() : "";
     return !name || name === "default";
-  }
-
-  /** Names currently available for `DELIVERY_ADAPTER`. */
-  public static registeredNames(): string[] {
-    return [...this.registered.keys()];
-  }
-
-  /**
-   * returns Delivery-adapter
-   *
-   * Without an argument the configured `DELIVERY_ADAPTER` is used, falling back
-   * to the default adapter — which is itself zone-aware, so an install with
-   * local zones and no external source needs no adapter setting at all.
-   */
-  public static async getAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
-    // Return the singleton
-    const cached = this.instanceDeliveryAdapter;
-    if (cached) {
-      return cached;
-    }
-
-    let adapterName: string = "";
-    if (adapter) {
-      if (typeof adapter === "string") {
-        adapterName = adapter;
-      } else if (adapter instanceof DeliveryAdapter) {
-        this.instanceDeliveryAdapter = adapter;
-        return adapter;
-      }
-    }
-
-    if (!adapterName) {
-      const configured = await Settings.get("DELIVERY_ADAPTER");
-      adapterName = typeof configured === "string" ? configured.trim() : "";
-    }
-
-    if (!adapterName || adapterName === "default") {
-      const instance = new DefaultDeliveryAdapter();
-      this.instanceDeliveryAdapter = instance;
-      return instance;
-    }
-
-    const alive = this.registered.get(adapterName.toLowerCase());
-    if (alive) {
-      this.instanceDeliveryAdapter = alive;
-      return alive;
-    }
-
-    let adapterLocation = fs.existsSync(WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? "@webresto/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : adapterName;
-
-    try {
-      const adapterModule = require(adapterLocation);
-      const instance = new adapterModule.DeliveryAdapter() as DeliveryAdapter;
-      this.instanceDeliveryAdapter = instance;
-      return instance;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
   }
 }
 
@@ -181,42 +117,15 @@ export class Delivery {
  * ways to say the same thing is how `supportsZoneSync` went wrong, and the mode
  * has existed since the first iteration precisely to answer this.
  *
- * `multi-place-route` belongs to the sixth iteration and to a module that does
- * not exist yet. Until one registers, the mode resolves to the default adapter
- * and says so loudly. That is the safe direction — a global menu is what every
+ * `multi-place-route` is registered by the `multi-place-router` module. Until a
+ * module registers the named mode, it resolves to the default adapter and says
+ * so loudly. That is the safe direction — a global menu is what every
  * installation already has — and the alternative, refusing to serve a menu at
  * all, would turn one wrong setting into a dark storefront.
  */
 export class Menu {
   private static instance: MenuAdapter | null = null;
   private static registered = new Map<string, MenuAdapter>();
-
-  /**
-   * The route planner, when a module provides one.
-   *
-   * A single slot rather than a map: an order has one route, and two planners
-   * would have to agree about it. The registry pattern is the delivery
-   * extensions' — registering *is* the statement that routing is available, and
-   * `MENU_PLACE_BASED_MODE` still decides whether it is used.
-   */
-  private static planner: RoutePlanner | null = null;
-
-  public static useRoutePlanner(planner: RoutePlanner): void {
-    if (!planner?.name) throw new Error("A route planner must have a name");
-    if (this.planner && this.planner.name !== planner.name) {
-      sails.log.warn(
-        `CORE > Menu > route planner "${planner.name}" replaces "${this.planner.name}". ` +
-        `An order has one route, so only the last registration is in force.`,
-      );
-    }
-    this.planner = planner;
-    sails.log.info(`CORE > Menu > route planner "${planner.name}" registered`);
-  }
-
-  /** `null` when nothing routes across kitchens, which is the default. */
-  public static routePlanner(): RoutePlanner | null {
-    return this.planner;
-  }
 
   /** Forgets the cached instance so the next call re-reads the mode. */
   public static resetAdapter(): void {
@@ -276,7 +185,6 @@ export class Adapter {
   // Singletons
   private static instanceRMS: RMSAdapter;
   private static instancePromotionAdapter: PromotionAdapter;
-  private static instanceDeliveryAdapter: DeliveryAdapter;
   private static instanceMF: MediaFileAdapter;
   private static instanceGeo: GeoAdapter;
 
@@ -415,19 +323,66 @@ export class Adapter {
 
   /**
    * returns Delivery-adapter
-   * @deprecated use Class Delivery istead
+   *
+   * Without an argument the configured `DELIVERY_ADAPTER` is used, falling back
+   * to the default adapter — which is itself zone-aware, so an install with
+   * local zones and no external source needs no adapter setting at all.
    */
   public static async getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
-    // One resolution path, so `DELIVERY_ADAPTER` and the live registry apply no
-    // matter which of the two entry points a caller happens to use. This one is
-    // what `Order.countCart` calls on every cart recount.
-    return Delivery.getAdapter(adapter);
+    // Return the singleton
+    const cached = Delivery.instanceDeliveryAdapter;
+    if (cached) {
+      return cached;
+    }
+
+    let adapterName: string = "";
+    if (adapter) {
+      if (typeof adapter === "string") {
+        adapterName = adapter;
+      } else if (adapter instanceof DeliveryAdapter) {
+        Delivery.instanceDeliveryAdapter = adapter;
+        return adapter;
+      }
+    }
+
+    if (!adapterName) {
+      const configured = await Settings.get("DELIVERY_ADAPTER");
+      adapterName = typeof configured === "string" ? configured.trim() : "";
+    }
+
+    if (!adapterName || adapterName === "default") {
+      const instance = new DefaultDeliveryAdapter();
+      Delivery.instanceDeliveryAdapter = instance;
+      return instance;
+    }
+
+    const alive = Delivery.registered.get(adapterName.toLowerCase());
+    if (alive) {
+      Delivery.instanceDeliveryAdapter = alive;
+      return alive;
+    }
+
+    let adapterLocation = fs.existsSync(WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
+      ? WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
+      : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
+      ? "@webresto/" + adapterName.toLowerCase() + "-delivery-adapter"
+      : adapterName;
+
+    try {
+      const adapterModule = require(adapterLocation);
+      const instance = new adapterModule.DeliveryAdapter() as DeliveryAdapter;
+      Delivery.instanceDeliveryAdapter = instance;
+      return instance;
+    } catch (e) {
+      sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
+      throw new Error("Module " + adapterLocation + " not found");
+    }
   }
 
   /**
    * returns Geo-adapter
    *
-   * The configured `GEO_ADAPTER`; empty or `default` is Nominatim. An instance
+   * The configured `GEO_ADAPTER`; empty or `default` is `DefaultGeoAdapter`. An instance
    * passed in becomes the one every caller gets.
    */
   public static async getGeoAdapter(adapter?: GeoAdapter): Promise<GeoAdapter> {
@@ -445,7 +400,7 @@ export class Adapter {
     const adapterName = typeof configured === "string" ? configured.trim() : "";
 
     if (!adapterName || adapterName === "default") {
-      this.instanceGeo = new NominatimGeoAdapter();
+      this.instanceGeo = new DefaultGeoAdapter();
       return this.instanceGeo;
     }
 
@@ -509,32 +464,11 @@ export class Adapter {
   }
 
   /**
-   * returns PaymentAdapter-adapter
-   */
-  public static async getPaymentAdapter(adapterName?: string, initParams?: Config): Promise<PaymentAdapter> {
-    if (!adapterName) {
-      let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
-      if (!defaultAdapterName) throw "BonusProgramAdapter is not set ";
-    }
-
-    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
-
-    try {
-      const adapter = require(adapterLocation);
-      return adapter.PaymentProgramAdapter[adapterName].getInstance(initParams) as PaymentAdapter;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Payment > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-
-  /**
    * returns a live Auth-provider adapter by its slug.
    * First checks providers that already self-registered into AuthProvider.alive() (modules
    * loaded as sails hooks, e.g. ru_auth_providers — AuthProvider is a sails global, same as
    * Settings above, so no import/circular-dependency concern here), then falls back to
-   * requiring an `@webresto/<slug>-auth-adapter` npm module — mirroring getPaymentAdapter.
+   * requiring an `@webresto/<slug>-auth-adapter` npm module.
    */
   public static async getAuthAdapter(adapterName: string): Promise<AuthProviderAdapter> {
     if (!adapterName) throw "AuthProviderAdapter name is required";

@@ -12,7 +12,7 @@ declare let attributes: {
     floor?: string;
     doorphone?: string;
     comment?: string;
-    coordinate?: import("../adapters/geo/address").AddressPoint | null;
+    coordinate?: import("../interfaces/Geo").AddressPoint | null;
     /** ID */
     id: string;
     /** What the storefront lists. `formatted` unless given. */
@@ -30,8 +30,14 @@ type attributes = typeof attributes;
 export interface UserLocationRecord extends attributes, ORM {
 }
 declare let Model: {
-    beforeUpdate(record: UserLocationRecord, cb: (err?: string) => void): Promise<void>;
     beforeCreate(init: UserLocationRecord, cb: (err?: string) => void): Promise<void>;
+    /**
+     * Makes one of the user's locations the default and unsets the rest of theirs.
+     *
+     * Scoped by the owner in both writes: an id of someone else's location finds
+     * nothing and changes nothing, and is refused like an id that does not exist.
+     */
+    setDefault(user: string, id: string): Promise<UserLocationRecord>;
     /**
      * Keeps the address of a delivered order, once per line.
      *

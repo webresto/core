@@ -3,6 +3,33 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { WorkTime } from "@webresto/worktime";
 import { DishRecord } from "./Dish";
 import { CityRecord } from "./City";
+/**
+ * A delivery zone: a polygon plus the commercial terms that apply inside it.
+ *
+ * The attribute list below is the schema the legacy `modules/delivery-zones`
+ * created, extended with the two things core needs to own it: the kitchen the
+ * zone belongs to (`city`) and where the polygon came from (`source`,
+ * `externalId`, ...). Nothing was renamed or dropped, because migrations have to
+ * keep working against a `deliveryzone` table that already exists in production.
+ *
+ * **Who may touch this model.** Only the delivery adapter and the things that
+ * exist to serve it:
+ *
+ * - everything in `adapters/delivery/default/` — matching, pricing, the cache,
+ *   the KML import and the sync;
+ * - the admin page of the zones module (`delivery-zones-manager`), which is the
+ *   only CRUD surface. There is deliberately no Adminizer model registration;
+ * - the demo seed, which is a development tool we control.
+ *
+ * Nobody else — and in particular not `Order`. A zone is a transient of the
+ * delivery calculation, not a property of an order: it is decided from the
+ * address, it is reported back on `Delivery` (`zoneId`, `deliveryTimeMinutes`),
+ * and storing a copy on the order only creates a second answer that goes stale
+ * when the map is redrawn.
+ *
+ * Nothing enforces this — eslint does not run in this repository — so it is a
+ * convention. It is also written down in CLAUDE.md.
+ */
 declare let attributes: {
     id: string;
     name: string;
@@ -121,14 +148,8 @@ declare let attributes: {
     updatedAt: number;
 };
 type attributes = typeof attributes;
-/**
- * @deprecated use `DeliveryZoneRecord` instead
- */
-interface DeliveryZone extends Partial<Omit<attributes, "createdAt" | "updatedAt">>, ORM {
-}
 export interface DeliveryZoneRecord extends Partial<Omit<attributes, "createdAt" | "updatedAt">>, ORM {
 }
-export default DeliveryZone;
 declare let Model: {
     beforeCreate(init: DeliveryZoneRecord, cb: (err?: string) => void): Promise<void>;
     beforeUpdate(values: Partial<DeliveryZoneRecord>, cb: (err?: string) => void): Promise<void>;
@@ -161,3 +182,4 @@ declare let Model: {
 declare global {
     const DeliveryZone: typeof Model & ORMModel<DeliveryZoneRecord, "id">;
 }
+export {};

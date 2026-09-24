@@ -4,30 +4,11 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { WorkTime } from "@webresto/worktime";
 import { CityRecord } from "./City";
+import { assertCoordinate } from "../lib/place";
 
 export interface PlaceCoordinate {
   lat: number;
   lon: number;
-}
-
-function assertCoordinate(value: unknown): asserts value is PlaceCoordinate {
-  if (!value || typeof value !== "object") {
-    throw new Error("Place coordinate must be an object with lat and lon");
-  }
-
-  const coordinate = value as Partial<PlaceCoordinate>;
-  if (
-    typeof coordinate.lat !== "number" ||
-    !Number.isFinite(coordinate.lat) ||
-    coordinate.lat < -90 ||
-    coordinate.lat > 90 ||
-    typeof coordinate.lon !== "number" ||
-    !Number.isFinite(coordinate.lon) ||
-    coordinate.lon < -180 ||
-    coordinate.lon > 180
-  ) {
-    throw new Error("Place coordinate must contain a valid latitude and longitude");
-  }
 }
 
 let attributes = {
@@ -73,10 +54,6 @@ let attributes = {
 };
 type attributes = typeof attributes;
 
-/**
- * @deprecated use `PlaceRecord` instead
- */
-interface Place extends attributes, ORM {}
 export interface PlaceRecord extends attributes, ORM {}
 
 let Model = {

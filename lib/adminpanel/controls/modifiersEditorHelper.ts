@@ -16,7 +16,7 @@ export interface NormalizedModifier {
   defaultAmount: number | null;
   freeOfChargeAmount: number | null;
   required: boolean | null;
-  /** Unknown / deprecated keys preserved on save (e.g. amount, modifierId). */
+  /** Unknown keys preserved on save (e.g. amount). */
   extra: Record<string, unknown>;
 }
 
@@ -48,8 +48,6 @@ const CHILD_KNOWN_KEYS = new Set([
   "maxAmount",
   "defaultAmount",
   "freeOfChargeAmount",
-  // freeAmount is deprecated: consumed into freeOfChargeAmount, not preserved as an extra.
-  "freeAmount",
   "required",
 ]);
 
@@ -60,7 +58,6 @@ const GROUP_KNOWN_KEYS = new Set([
   "maxAmount",
   "required",
   "freeOfChargeAmount",
-  "freeAmount",
   "isSingleModifierGroupWrapper",
   "childModifiers",
 ]);
@@ -86,26 +83,14 @@ function collectExtra(source: Record<string, unknown>, known: Set<string>): Reco
 
 function normalizeChild(input: unknown): NormalizedModifier {
   const source = input && typeof input === "object" ? (input as Record<string, unknown>) : {};
-  // Legacy: modifierId used to carry rmsId; id is the modern anchor.
-  const id = typeof source.id === "string" ? source.id : "";
-  const rmsId =
-    typeof source.rmsId === "string"
-      ? source.rmsId
-      : typeof source.modifierId === "string"
-        ? source.modifierId
-        : "";
-  const freeOfChargeAmount =
-    source.freeOfChargeAmount !== undefined
-      ? toNumberOrNull(source.freeOfChargeAmount)
-      : toNumberOrNull(source.freeAmount);
 
   return {
-    id,
-    rmsId,
+    id: typeof source.id === "string" ? source.id : "",
+    rmsId: typeof source.rmsId === "string" ? source.rmsId : "",
     minAmount: toNumberOrNull(source.minAmount),
     maxAmount: toNumberOrNull(source.maxAmount),
     defaultAmount: toNumberOrNull(source.defaultAmount),
-    freeOfChargeAmount,
+    freeOfChargeAmount: toNumberOrNull(source.freeOfChargeAmount),
     required: toBooleanOrNull(source.required),
     extra: collectExtra(source, CHILD_KNOWN_KEYS),
   };
@@ -113,26 +98,15 @@ function normalizeChild(input: unknown): NormalizedModifier {
 
 function normalizeGroup(input: unknown): NormalizedGroup {
   const source = input && typeof input === "object" ? (input as Record<string, unknown>) : {};
-  const id = typeof source.id === "string" ? source.id : "";
-  const rmsId =
-    typeof source.rmsId === "string"
-      ? source.rmsId
-      : typeof source.modifierId === "string"
-        ? source.modifierId
-        : "";
-  const freeOfChargeAmount =
-    source.freeOfChargeAmount !== undefined
-      ? toNumberOrNull(source.freeOfChargeAmount)
-      : toNumberOrNull(source.freeAmount);
   const childrenRaw = Array.isArray(source.childModifiers) ? source.childModifiers : [];
 
   return {
-    id,
-    rmsId,
+    id: typeof source.id === "string" ? source.id : "",
+    rmsId: typeof source.rmsId === "string" ? source.rmsId : "",
     minAmount: toNumberOrNull(source.minAmount),
     maxAmount: toNumberOrNull(source.maxAmount),
     required: toBooleanOrNull(source.required),
-    freeOfChargeAmount,
+    freeOfChargeAmount: toNumberOrNull(source.freeOfChargeAmount),
     isSingleModifierGroupWrapper: Boolean(source.isSingleModifierGroupWrapper),
     childModifiers: childrenRaw.map(normalizeChild),
     extra: collectExtra(source, GROUP_KNOWN_KEYS),

@@ -4,12 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryDiscountAdapter = void 0;
-const AbstractPromotion_1 = __importDefault(require("../../../adapters/promotion/AbstractPromotion"));
+const PromotionAdapter_1 = require("../../../adapters/promotion/PromotionAdapter");
 const findModelInstance_1 = __importDefault(require("../../../lib/findModelInstance"));
 const stringsInArray_1 = require("../../../lib/stringsInArray");
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
-class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
+class InMemoryDiscountAdapter extends PromotionAdapter_1.AbstractPromotionHandler {
     constructor() {
         super(...arguments);
         this.id = "InMemoryDiscountAdapterTest";
@@ -74,7 +74,6 @@ class InMemoryDiscountAdapter extends AbstractPromotion_1.default {
             // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
             dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-            dish.oldPrice = dish.price;
             dish.price = this.configDiscount.discountType === "flat"
                 ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
                 : new decimal_js_1.default(dish.price)

@@ -166,7 +166,6 @@ let Model = {
     },
     /**
      * Returns an object with groups and errors of obtaining these very groups.
-     * @deprecated not used
      * @param groupsId - array of ID groups that should be obtained
      * @return Object {
      *   groups: [],
@@ -242,7 +241,6 @@ let Model = {
     },
     /**
      * Returns a group with a given ID
-     * @deprecated not used
      * @param groupId - ID groups
      * @return The requested group
      * @throws The error of obtaining a group
@@ -262,7 +260,6 @@ let Model = {
     },
     /**
      * Returns a group with a given Slug
-     * @deprecated not used
      * @param groupSlug - Slug groups
      * @return The requested group
      * @throws The error of obtaining a group

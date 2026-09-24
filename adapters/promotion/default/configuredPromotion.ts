@@ -1,5 +1,5 @@
 // import { WorkTime } from "@webresto/worktime";
-import AbstractPromotionHandler from "../AbstractPromotion";
+import { AbstractPromotionHandler } from "../PromotionAdapter";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
 import findModelInstanceByAttributes from "../../../lib/findModelInstance";
 import Decimal from "decimal.js";
@@ -42,7 +42,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
   public isPublic: boolean;
   public description: string;
   public concept: string[];
-  // Look core/adapters/promotion/AbstractPromotion.ts 26L todo
+  // Look AbstractPromotionHandler.configDiscount in core/adapters/promotion/PromotionAdapter.ts, todo
   // public configDiscount: IconfigDiscount;
   public externalId: string;
 
@@ -140,7 +140,6 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       // 
       dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
       dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-      dish.oldPrice = 123456 // TODO: delete it
 
       dish.salePrice = this.configDiscount.discountType === "flat"
         ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()

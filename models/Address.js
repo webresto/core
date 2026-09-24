@@ -1,8 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const address_1 = require("../adapters/geo/address");
-const delivery_location_1 = require("../adapters/geo/delivery-location");
+const adapters_1 = require("../adapters");
+const compare_1 = require("../lib/address/compare");
+const range_1 = require("../lib/address/range");
+const coordinate_1 = require("../lib/address/coordinate");
+const name_match_1 = require("../lib/address/name-match");
+const association_id_1 = require("../lib/association-id");
 /**
  * The address catalog of a city: one flat table, one row per node.
  *
@@ -29,9 +33,12 @@ let attributes = {
     parent: {
         model: "address",
     },
+    /**
+     * One of the geo adapter's `addressTypes`. Checked by `assertNode`, not by
+     * `isIn`: attributes are read when models load, before the adapter exists.
+     */
     type: {
         type: "string",
-        isIn: [...address_1.ADDRESS_TYPES],
         required: true,
     },
     /** "Ленина", "12", "гост. Прибалтийская". */
@@ -77,20 +84,11 @@ let attributes = {
         allowNull: true,
     },
 };
-function idOf(value) {
-    if (typeof value === "string")
-        return value;
-    if (value && typeof value === "object")
-        return value.id;
-    return undefined;
-}
-function matches(node, needle) {
-    if (node.name?.toLowerCase().includes(needle))
-        return true;
-    return (node.names ?? []).some((alias) => typeof alias === "string" && alias.toLowerCase().includes(needle));
-}
 async function assertNode(values) {
-    if (values.point !== undefined && values.point !== null && !(0, delivery_location_1.isValidCoordinate)(values.point)) {
+    if (values.type !== undefined && !(await adapters_1.Adapter.getGeoAdapter()).addressTypes.includes(values.type)) {
+        throw new Error(`Address type "${values.type}" is unknown`);
+    }
+    if (values.point !== undefined && values.point !== null && !(0, coordinate_1.isValidCoordinate)(values.point)) {
         throw new Error("Address point must contain a valid latitude and longitude");
     }
     // Bounds belong to a range and to nothing else. On any other type they would
@@ -100,13 +98,13 @@ async function assertNode(values) {
             throw new Error(`Address of type "${values.type}" cannot carry lo or hi: those make a range`);
         }
     }
-    const parentId = idOf(values.parent);
+    const parentId = (0, association_id_1.toId)(values.parent);
     if (parentId) {
         const parent = await Address.findOne({ id: parentId });
         if (!parent)
             throw new Error(`Address parent ${parentId} not found`);
-        const city = idOf(values.city);
-        if (city && idOf(parent.city) !== city) {
+        const city = (0, association_id_1.toId)(values.city);
+        if (city && (0, association_id_1.toId)(parent.city) !== city) {
             throw new Error("Address parent belongs to another city");
         }
     }
@@ -114,7 +112,7 @@ async function assertNode(values) {
     // the list would show the same word twice and the customer would take
     // whichever came first. Two "Ленина" in one city are fine — under two
     // different districts, which is exactly what tells them apart.
-    const city = idOf(values.city);
+    const city = (0, association_id_1.toId)(values.city);
     if (city && values.type && values.name) {
         const twin = await Address.findOne({
             city,
@@ -169,20 +167,21 @@ let Model = {
      * answer than the block it belongs to.
      */
     async search(params) {
+        const geo = await adapters_1.Adapter.getGeoAdapter();
         const criteria = { city: params.city };
         if (params.parent) {
             criteria.parent = params.parent;
         }
         else {
-            criteria.or = [{ type: address_1.ROOT_SEARCHABLE }, { parent: null }];
+            criteria.or = [{ type: geo.rootSearchable }, { parent: null }];
         }
         const nodes = await Address.find(criteria);
         const needle = (params.query ?? "").trim().toLowerCase();
-        const number = (0, address_1.leadingNumber)(needle);
-        const named = nodes.filter((node) => node.type !== "range" && (!needle || matches(node, needle)));
-        const ranges = number === null ? [] : nodes.filter((node) => node.type === "range" && (0, address_1.rangeCovers)(node, number));
-        const byName = (a, b) => (0, address_1.compareAddressNames)(a.name, b.name);
-        return [...named.sort(byName), ...ranges.sort(byName)].slice(0, address_1.ADDRESS_SEARCH_LIMIT);
+        const number = (0, range_1.leadingNumber)(needle);
+        const named = nodes.filter((node) => node.type !== "range" && (!needle || (0, name_match_1.nameMatches)(node, needle)));
+        const ranges = number === null ? [] : nodes.filter((node) => node.type === "range" && (0, range_1.rangeCovers)(node, number));
+        const byName = (a, b) => (0, compare_1.compareAddressNames)(a.name, b.name);
+        return [...named.sort(byName), ...ranges.sort(byName)].slice(0, geo.addressSearchLimit);
     },
     /** The nodes from the city down to `id`, in that order. What `formatted` is built from. */
     async path(id) {
@@ -196,7 +195,7 @@ let Model = {
             if (!node)
                 break;
             chain.unshift(node);
-            current = idOf(node.parent);
+            current = (0, association_id_1.toId)(node.parent);
         }
         return chain;
     },

@@ -1,5 +1,7 @@
 import { expect } from "chai";
-import { AddressImportNode, importAddresses, validateAddressNodes } from "../../adapters/geo/address-import";
+import { AddressImportNode, importAddresses, validateAddressNodes } from "../../lib/address/import-from-file";
+import { Adapter } from "../../adapters";
+import GeoAdapter from "../../adapters/geo/GeoAdapter";
 
 /**
  * The address catalog out of a file, against an in-memory model.
@@ -11,8 +13,24 @@ import { AddressImportNode, importAddresses, validateAddressNodes } from "../../
 describe("Address import", function () {
   const city = "city-ekb";
   const realAddress = (global as any).Address;
+  /** The node types are the geo adapter's; nothing here geocodes. */
+  const geo = new (class extends GeoAdapter {
+    public async geocode() {
+      return null;
+    }
+  })();
+  let installedGeo: GeoAdapter | undefined;
 
   let rows: any[] = [];
+
+  before(async function () {
+    installedGeo = (Adapter as any).instanceGeo;
+    await Adapter.getGeoAdapter(geo);
+  });
+
+  after(function () {
+    (Adapter as any).instanceGeo = installedGeo;
+  });
 
   beforeEach(function () {
     rows = [];
@@ -79,13 +97,13 @@ describe("Address import", function () {
   });
 
   it("refuses two nodes with the same key", function () {
-    const errors = validateAddressNodes([lenina, { ...lenina, name: "Ленина 2" }]);
+    const errors = validateAddressNodes([lenina, { ...lenina, name: "Ленина 2" }], geo.addressTypes);
 
     expect(errors[0]).to.contain('Key "lenina"');
   });
 
   it("refuses an unknown type", function () {
-    expect(validateAddressNodes([{ type: "planet", name: "Земля" }])[0]).to.contain("unknown type");
+    expect(validateAddressNodes([{ type: "planet", name: "Земля" }], geo.addressTypes)[0]).to.contain("unknown type");
   });
 
   it("refuses nodes that name each other in a circle", async function () {
@@ -103,7 +121,7 @@ describe("Address import", function () {
   });
 
   it("refuses a file with no node list", function () {
-    expect(validateAddressNodes(undefined)[0]).to.contain('"nodes"');
-    expect(validateAddressNodes([])[0]).to.contain("no nodes");
+    expect(validateAddressNodes(undefined, geo.addressTypes)[0]).to.contain('"nodes"');
+    expect(validateAddressNodes([], geo.addressTypes)[0]).to.contain("no nodes");
   });
 });

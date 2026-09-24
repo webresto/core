@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { addressByCoordinate } from "../../adapters/geo/address-by-coordinate";
-import GeoAdapter, { GeoAddress } from "../../adapters/geo/GeoAdapter";
+import GeoAdapter from "../../adapters/geo/GeoAdapter";
+import { GeoAddress } from "../../interfaces/Geo";
 
 const AddressModel = require("../../models/Address");
 
@@ -78,7 +78,7 @@ describe("Address by coordinate", function () {
     it("gives the house node, its line and its point", async function () {
       const geo = geocoder({ street: "улица Малышева", home: "145", formatted: "улица Малышева, 145" });
 
-      const address = await addressByCoordinate(geo, { lat: 56.85, lon: 60.7 }, city);
+      const address = await geo.addressByCoordinate({ lat: 56.85, lon: 60.7 }, city);
 
       expect(address).to.deep.equal({
         node: "malysheva-145",
@@ -91,7 +91,7 @@ describe("Address by coordinate", function () {
     it("finds the street by an alias as well as by its name", async function () {
       const geo = geocoder({ street: "Lenina Avenue", home: "97", formatted: "Lenina Avenue, 97" });
 
-      const address = await addressByCoordinate(geo, nearHouse145, city);
+      const address = await geo.addressByCoordinate(nearHouse145, city);
 
       expect(address?.node).to.equal("lenina-97");
     });
@@ -99,7 +99,7 @@ describe("Address by coordinate", function () {
     it("tells a house with a letter from the one without", async function () {
       const geo = geocoder({ street: "улица Малышева", home: "145 А", formatted: "улица Малышева, 145 А" });
 
-      const address = await addressByCoordinate(geo, nearHouse145, city);
+      const address = await geo.addressByCoordinate(nearHouse145, city);
 
       expect(address?.node).to.equal("malysheva-145a");
     });
@@ -107,7 +107,7 @@ describe("Address by coordinate", function () {
     it("gives a range with the geocoder's number when the house itself is not in the catalog", async function () {
       const geo = geocoder({ street: "улица Малышева", home: "45", formatted: "улица Малышева, 45" });
 
-      const address = await addressByCoordinate(geo, nearHouse145, city);
+      const address = await geo.addressByCoordinate(nearHouse145, city);
 
       expect(address).to.deep.equal({
         node: "malysheva-low",
@@ -121,7 +121,7 @@ describe("Address by coordinate", function () {
       const geo = geocoder({ street: "проспект Ленина", home: "12", formatted: "проспект Ленина, 12" });
       const requested = { lat: 56.84, lon: 60.61 };
 
-      const address = await addressByCoordinate(geo, requested, city);
+      const address = await geo.addressByCoordinate(requested, city);
 
       // A street has no point of its own: the coordinate asked about stands in.
       expect(address).to.deep.equal({ node: "lenina", formatted: "Ленина, 12", home: "12", coordinate: requested });
@@ -132,7 +132,7 @@ describe("Address by coordinate", function () {
     it("gives the nearest node with a point, however far", async function () {
       const geo = geocoder({ street: "улица Неизвестная", home: "1", formatted: "улица Неизвестная, 1" });
 
-      const address = await addressByCoordinate(geo, nearHouse145, city);
+      const address = await geo.addressByCoordinate(nearHouse145, city);
 
       expect(address?.node).to.equal("malysheva-145");
       expect(address?.coordinate).to.deep.equal({ lat: 56.8421, lon: 60.664 });
@@ -141,7 +141,7 @@ describe("Address by coordinate", function () {
     it("does the same for a street the geocoder named without a house number", async function () {
       const geo = geocoder({ street: "улица Малышева", formatted: "улица Малышева" });
 
-      const address = await addressByCoordinate(geo, { lat: 56.9, lon: 60.71 }, city);
+      const address = await geo.addressByCoordinate({ lat: 56.9, lon: 60.71 }, city);
 
       expect(address?.node).to.equal("hotel");
       expect(address?.formatted).to.equal("Гостиница");
@@ -150,14 +150,14 @@ describe("Address by coordinate", function () {
 
   describe("the geocoder had nothing to say", function () {
     it("gives the nearest node with a point", async function () {
-      const address = await addressByCoordinate(geocoder(null), { lat: 56.836, lon: 60.61 }, city);
+      const address = await geocoder(null).addressByCoordinate({ lat: 56.836, lon: 60.61 }, city);
 
       expect(address?.node).to.equal("malysheva-low");
       expect(address?.home).to.equal(undefined);
     });
 
     it("treats a geocoder that failed as one that had nothing to say", async function () {
-      const address = await addressByCoordinate(geocoder(new Error("network down")), nearHouse145, city);
+      const address = await geocoder(new Error("network down")).addressByCoordinate(nearHouse145, city);
 
       expect(address?.node).to.equal("malysheva-145");
     });
@@ -168,7 +168,7 @@ describe("Address by coordinate", function () {
       const geo = geocoder({ city: "City name", street: "улица Лесная", home: "3", formatted: "улица Лесная, 3" });
       const requested = { lat: 55, lon: 37 };
 
-      const address = await addressByCoordinate(geo, requested, bare);
+      const address = await geo.addressByCoordinate(requested, bare);
 
       // A line and a house number, the way the storefront sends free text.
       expect(address).to.deep.equal({ node: null, formatted: "улица Лесная", home: "3", coordinate: requested });
@@ -177,14 +177,14 @@ describe("Address by coordinate", function () {
     it("gives the whole line when the geocoder knows no street", async function () {
       const geo = geocoder({ formatted: "Парк Победы" });
 
-      const address = await addressByCoordinate(geo, { lat: 55, lon: 37 }, bare);
+      const address = await geo.addressByCoordinate({ lat: 55, lon: 37 }, bare);
 
       expect(address?.node).to.equal(null);
       expect(address?.formatted).to.equal("Парк Победы");
     });
 
     it("is null when the geocoder is silent too", async function () {
-      const address = await addressByCoordinate(geocoder(null), { lat: 55, lon: 37 }, bare);
+      const address = await geocoder(null).addressByCoordinate({ lat: 55, lon: 37 }, bare);
 
       expect(address).to.equal(null);
     });

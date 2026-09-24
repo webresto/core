@@ -2,8 +2,7 @@
  * The bonus program implements the spending of virtual bonuses through the adapter.
  */
 
-import { Adapter } from "../adapters";
-import BonusProgramAdapter from "../adapters/bonusprogram/BonusProgramAdapter";
+import { Adapter, type BonusProgramAdapter } from "../adapters";
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 

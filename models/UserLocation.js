@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const address_1 = require("../adapters/geo/address");
+const user_location_1 = require("../lib/user-location");
 /** One attribute per field of `OrderAddress`, so the two shapes cannot drift apart. */
 const addressAttributes = {
     formatted: {
@@ -68,28 +68,7 @@ let attributes = {
     },
     customData: "json",
 };
-/**
- * The whole line, house number included.
- *
- * A catalog line already ends with the number — `formatAddressLine` put it
- * there — and so does a line that came from a saved location. Free text keeps
- * the number in `home`, and without it two houses on one street would be one
- * location.
- */
-function wholeLine(formatted, home) {
-    const line = formatted.trim();
-    const number = home?.trim();
-    if (!number || line.slice(line.lastIndexOf(",") + 1).trim() === number)
-        return line;
-    return (0, address_1.formatAddressPath)([line, number]);
-}
 let Model = {
-    async beforeUpdate(record, cb) {
-        if (record.isDefault === true) {
-            await UserLocation.update({ user: record.user }, { isDefault: false });
-        }
-        cb();
-    },
     async beforeCreate(init, cb) {
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
@@ -103,6 +82,19 @@ let Model = {
         cb();
     },
     /**
+     * Makes one of the user's locations the default and unsets the rest of theirs.
+     *
+     * Scoped by the owner in both writes: an id of someone else's location finds
+     * nothing and changes nothing, and is refused like an id that does not exist.
+     */
+    async setDefault(user, id) {
+        const [location] = await UserLocation.update({ id, user }, { isDefault: true }).fetch();
+        if (!location)
+            throw `User location not found`;
+        await UserLocation.update({ user, id: { "!=": id } }, { isDefault: false });
+        return location;
+    },
+    /**
      * Keeps the address of a delivered order, once per line.
      *
      * The only way a location is written: the customer's own deliveries are the
@@ -112,7 +104,7 @@ let Model = {
     async remember(user, address) {
         if (!address.formatted)
             return;
-        const formatted = wholeLine(address.formatted, address.home);
+        const formatted = (0, user_location_1.wholeLine)(address.formatted, address.home);
         if (await UserLocation.findOne({ user, formatted }))
             return;
         const given = address;

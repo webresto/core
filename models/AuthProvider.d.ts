@@ -1,8 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import type AuthProviderAdapter from "../adapters/auth/AuthProviderAdapter";
-import type { AuthFlowKind } from "../adapters/auth/AuthProviderAdapter";
+import type { AuthProviderAdapter, AuthFlowKind } from "../adapters";
 /** Public projection of an AuthProvider — the ONLY shape allowed to reach the frontend. */
 export interface AuthProviderPublic {
     adapter: string;

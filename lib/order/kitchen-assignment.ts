@@ -1,19 +1,16 @@
-import { Adapter } from "../../adapters";
+import { Adapter, Menu } from "../../adapters";
 import { DeliveryCoordinate } from "../../adapters/delivery/contracts";
 import { OrderRecord } from "../../models/Order";
-import { primaryCookingPoint, toPlaceId } from "../../adapters/menu/cooking-place";
-import { locateAddress } from "../../adapters/geo/delivery-location";
-import { KitchenResolution, resolveCookingPlace } from "../../adapters/menu/kitchen-resolver";
+import { primaryCookingPoint, toPlaceId } from "../menu/cooking-place";
+import { KitchenResolution } from "../../interfaces/Menu";
 
 /**
  * Giving an order its kitchen.
  *
- * The resolver answers *which* kitchen; this answers *whether the one already
- * there may be replaced*, and the two are deliberately separate questions.
- *
- * Whether it may be replaced is answered here rather than by a chain entry: a
- * chain entry can be left out of the setting, and "a placed order keeps its
- * kitchen" is not a policy an installation gets to switch off.
+ * The menu adapter's `resolveCookingPlace` answers *which* kitchen; this turns
+ * the order's address into the coordinate it asks about and reports whether the
+ * answer moved the order. Only a basket gets here: `countCart` refuses every
+ * state outside CART, CHECKOUT and PAYMENT before asking.
  *
  * Nothing here writes to the database. The caller is mid-recalculation and saves
  * the order once, at the end, with the delivery result — the plan asks for the
@@ -42,43 +39,26 @@ export interface CookingPlaceAssignment {
   changed: boolean;
   /** Where the customer is, once resolved by iteration 3's rules. */
   coordinate: DeliveryCoordinate | null;
-  resolution: KitchenResolution | null;
+  resolution: KitchenResolution;
 }
-
-const UNCHANGED = (order: OrderRecord, reason: string): CookingPlaceAssignment => {
-  const current = primaryCookingPoint(order);
-  return {
-    placeId: current,
-    previousPlaceId: current,
-    changed: false,
-    coordinate: null,
-    resolution: { placeId: current, strategy: null, diagnostics: [reason] },
-  };
-};
 
 /**
  * Resolves the kitchen for an order being recalculated and reports what changed.
  *
- * The address is turned into a coordinate by `locateAddress` and nothing else:
- * the coordinate the client sent, the point of the catalog node they chose, or
- * a street-and-house pair geocoded by the geo adapter.
+ * The address is turned into a coordinate by the geo adapter's `locate` and
+ * nothing else: the coordinate the client sent, the point of the catalog node
+ * they chose, or a street-and-house pair geocoded by the geo adapter.
  *
  * The resolved coordinate is written back onto the address. That is not a
  * convenience — the delivery calculation runs later in the same recalculation and
  * would otherwise geocode the identical address a second time.
  */
 export async function assignOrderCookingPlace(order: OrderRecord): Promise<CookingPlaceAssignment> {
-  // A placed order is not re-routed. The kitchen has already been told what to
-  // cook; moving it now would leave two kitchens with two truths.
-  if (Order.isOrderedState(String(order.state))) {
-    return UNCHANGED(order, "order is already placed, its kitchen is not reassigned");
-  }
-
   const previousPlaceId = primaryCookingPoint(order);
   let coordinate: DeliveryCoordinate | null = null;
 
   if (order.serviceType === "delivery") {
-    const location = await locateAddress(await Adapter.getGeoAdapter(), order.address);
+    const location = await (await Adapter.getGeoAdapter()).locate(order.address);
     coordinate = location.coordinate;
 
     if (coordinate && order.address) {
@@ -86,7 +66,7 @@ export async function assignOrderCookingPlace(order: OrderRecord): Promise<Cooki
     }
   }
 
-  const resolution = await resolveCookingPlace({
+  const resolution = await (await Menu.getAdapter()).resolveCookingPlace({
     coordinate,
     pickupPointId: toPlaceId(order.pickupPoint),
     serviceType: order.serviceType,

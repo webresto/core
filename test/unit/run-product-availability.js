@@ -1,5 +1,5 @@
 /**
- * Node assertions over the compiled `adapters/menu/product-availability.js`.
+ * Node assertions over the compiled `lib/menu/product-availability.js`.
  *
  * The mocha suite next to this file is the one kept in the repository style;
  * mocha does not run here, so this walks the same ground with `assert` against
@@ -15,7 +15,7 @@ globalThis.Place = { async findOne() { return undefined; } };
 globalThis.DishPlace = { async find() { return []; } };
 globalThis.sails = { log: { warn() {}, error() {}, silly() {}, debug() {} } };
 
-const A = require(path.join(BUILD, "adapters/menu/product-availability.js"));
+const A = require(path.join(BUILD, "lib/menu/product-availability.js"));
 
 let passed = 0;
 function check(name, fn) {

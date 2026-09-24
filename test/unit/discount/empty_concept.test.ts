@@ -4,7 +4,7 @@ import { expect } from 'chai';
 // import AbstractPromotionHandler from '@webresto/core/adapters/discount/AbstractPromotion';
 import { InMemoryDiscountAdapter } from '../../mocks/adapter/discount';
 
-import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';
+import { AbstractPromotionHandler } from '../../../adapters/promotion/PromotionAdapter';
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
 import findModelInstanceByAttributes from '../../../lib/findModelInstance';
 import { Adapter } from '../../../adapters/index';
@@ -66,7 +66,6 @@ describe('Discount_Empty', function () {
         //
         dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
         dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-        dish.oldPrice = dish.price
 
         dish.price = this.configDiscount.discountType === "flat"
           ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()

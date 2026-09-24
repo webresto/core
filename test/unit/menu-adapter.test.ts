@@ -2,6 +2,7 @@ import { expect } from "chai";
 import MenuAdapter from "../../adapters/menu/MenuAdapter";
 import { DefaultMenuAdapter } from "../../adapters/menu/default/defaultMenu";
 import { SingleKitchenMenuAdapter } from "../../adapters/menu/default/singleKitchenMenu";
+import { KitchenResolution } from "../../interfaces/Menu";
 
 describe("menu-adapter", function () {
   const realSettings = (global as any).Settings;
@@ -64,6 +65,20 @@ describe("menu-adapter", function () {
       expect(context.placeIds).to.deep.equal(["north"]);
       expect(context.source).to.equal("order");
       expect(context.order).to.equal(order);
+    });
+  });
+
+  describe("kitchen for a coordinate", function () {
+    it("reads the menu at the kitchen the adapter's own resolveCookingPlace names", async function () {
+      bindGlobals({ DEFAULT_COOKING_PLACE: "center" }, [center, north]);
+      class NorthOnly extends DefaultMenuAdapter {
+        async resolveCookingPlace(): Promise<KitchenResolution> {
+          return { placeId: "north", strategy: null, diagnostics: ["north only"] };
+        }
+      }
+      const context = await new NorthOnly().resolveContext({ coordinate: { lat: 56.84, lon: 60.61 } });
+      expect(context.placeIds).to.deep.equal(["north"]);
+      expect(context.source).to.equal("coordinate");
     });
   });
 
@@ -157,6 +172,42 @@ describe("menu-adapter", function () {
         placeIds: [], source: "none", placeRequired: false, diagnostics: [], order: null,
       });
       expect(filtered).to.have.length(2);
+    });
+  });
+
+  describe("placing lines", function () {
+    const pizza = { id: "pizza", type: "dish", enable: true };
+    const water = { id: "water", type: "product", enable: true };
+    const lines = [
+      { orderDishId: 1, dish: pizza, amount: 1 },
+      { orderDishId: 2, dish: water, amount: 1 },
+    ];
+    const context = (placeIds: string[]) => ({
+      placeIds, source: "order" as const, placeRequired: false, diagnostics: [] as string[], order: null,
+    });
+
+    it("keeps the basket on the order's kitchen and judges each line there", async function () {
+      bindGlobals({ DISH_PLACE_BALANCE_MODE: "minimum" }, [center], [
+        { dish: "pizza", place: "center", localBalance: 0, rmsBalance: null, enable: true },
+      ]);
+      const placement = await new DefaultMenuAdapter().placeLines(
+        { cookingPoints: ["center"] } as any, lines as any, context(["center"]), null,
+      );
+
+      expect(placement.placeIds).to.deep.equal(["center"]);
+      expect(placement.plan).to.equal(null);
+      expect(placement.byOrderDish.get(1)).to.deep.include({ placeId: null });
+      expect(placement.byOrderDish.get(1)!.availability.balance).to.equal(0);
+      // No stock row for the pair: unlimited, the line passes.
+      expect(placement.byOrderDish.get(2)!.availability).to.deep.include({ available: true, balance: -1 });
+    });
+
+    it("names no kitchen for an order that has none", async function () {
+      bindGlobals({}, [center, north]);
+      const placement = await new DefaultMenuAdapter().placeLines({ cookingPoints: [] } as any, lines as any, context([]), null);
+
+      expect(placement.placeIds).to.deep.equal([]);
+      expect(placement.byOrderDish.get(1)!.availability.available).to.equal(true);
     });
   });
 

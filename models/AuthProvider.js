@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
+const auth_provider_1 = require("../lib/auth-provider");
 /** Live adapter instances that self-registered on boot (slug → adapter). */
 let aliveAuthProviders = {};
 let attributes = {
@@ -53,13 +54,6 @@ let attributes = {
     healthStatus: "string",
     customData: "json",
 };
-const PUBLIC_FIELDS = ["adapter", "title", "kind", "iconUrl", "buttonColor", "buttonTextColor", "sortOrder"];
-function toPublic(row) {
-    const out = {};
-    for (const f of PUBLIC_FIELDS)
-        out[f] = row[f];
-    return out;
-}
 let Model = {
     beforeCreate: function (record, cb) {
         if (!record.id) {
@@ -141,7 +135,7 @@ let Model = {
             }
             return true;
         });
-        return filtered.map(toPublic);
+        return filtered.map(auth_provider_1.toPublic);
     },
     /** Returns the full config row by slug (server-side only — includes secrets). */
     async getBySlug(slug) {

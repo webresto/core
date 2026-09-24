@@ -1,4 +1,5 @@
-import { ADDRESS_TYPES, AddressPoint, AddressType } from "./address";
+import { Adapter } from "../../adapters";
+import { AddressPoint } from "../../interfaces/Geo";
 
 /**
  * Loading an address catalog from a file.
@@ -17,7 +18,7 @@ import { ADDRESS_TYPES, AddressPoint, AddressType } from "./address";
 export interface AddressImportNode {
   key?: string;
   parent?: string;
-  type: AddressType;
+  type: string;
   name: string;
   names?: string[];
   point?: AddressPoint | null;
@@ -36,8 +37,9 @@ export interface AddressImportResult {
  * Everything wrong with the file, before a single row is created.
  *
  * All of it, not the first one: an operator fixing an export wants the list.
+ * `types` is the geo adapter's `addressTypes`.
  */
-export function validateAddressNodes(nodes: unknown): string[] {
+export function validateAddressNodes(nodes: unknown, types: readonly string[]): string[] {
   if (!Array.isArray(nodes)) return ['File has no "nodes" list'];
   if (!nodes.length) return ["File lists no nodes"];
 
@@ -49,7 +51,7 @@ export function validateAddressNodes(nodes: unknown): string[] {
 
     if (typeof node?.name !== "string" || !node.name.trim()) errors.push(`Node ${where} has no name`);
 
-    if (!ADDRESS_TYPES.includes(node?.type)) {
+    if (!types.includes(node?.type)) {
       errors.push(`Node ${where} has an unknown type "${node?.type}"`);
     }
 
@@ -100,7 +102,7 @@ export async function importAddresses(params: {
   city: string;
   nodes: AddressImportNode[];
 }): Promise<AddressImportResult> {
-  const errors = validateAddressNodes(params.nodes);
+  const errors = validateAddressNodes(params.nodes, (await Adapter.getGeoAdapter()).addressTypes);
   if (errors.length) return { created: 0, errors };
 
   const ordered = byDepth(params.nodes);

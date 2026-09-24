@@ -7,7 +7,7 @@ const ORDER_INVESTIGATION_PROJECTION = [
     'problem',
     'rmsDelivered', 'rmsId', 'rmsOrderNumber', 'rmsDeliveryDate',
     'rmsErrorMessage', 'rmsErrorCode', 'rmsStatusCode', 'rmsOrderStatus',
-    'serviceType', 'delivery', 'deliveryDescription', 'deliveryCost',
+    'serviceType', 'delivery',
     'totalWeight', 'trifleFrom',
     'bonusesTotal', 'spendBonus',
     'total', 'basketTotal', 'discountTotal',
@@ -24,7 +24,6 @@ async function loadFullOrder(criteria: Record<string, unknown>) {
         .populate('paymentMethod')
         .populate('user')
         .populate('pickupPoint')
-        .populate('deliveryItem')
         .populate('promotionCode');
     if (!order) return null;
 
@@ -71,7 +70,7 @@ export function registerOrderTools() {
         group: 'order',
         description:
             'Investigation tool. Returns a single order with EVERYTHING needed to debug status and relations: '
-            + 'populated paymentMethod/user/pickupPoint/deliveryItem/promotionCode, full OrderDish list (with dish populated), '
+            + 'populated paymentMethod/user/pickupPoint/promotionCode, full OrderDish list (with dish populated), '
             + 'all PaymentDocuments (originModel=order), and allowedTransitions from the current state.\n\n'
             + 'Lookup by id OR shortId (last 8 chars of id, uppercase) OR rmsOrderNumber.',
         mode: 'protected',

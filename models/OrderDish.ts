@@ -107,10 +107,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `OrderDishRecord` instead
- */
-interface OrderDish extends RequiredField<OptionalAll<attributes>, "dish" | "amount" >, ORM {}
 
 export interface OrderDishRecord extends RequiredField<OptionalAll<attributes>, "dish" | "amount" >, ORM {}
 

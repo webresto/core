@@ -1,1 +1,0 @@
-Apply discount, singletone

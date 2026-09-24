@@ -18,7 +18,7 @@ export const DEFAULT_CITY_SPEED_KMH = 20;
  * One adapter serves an installation, chosen by `DELIVERY_ADAPTER`, and it owns
  * what delivery decides: where zone geometry comes from, what an address is
  * charged, how long the road takes. How an address becomes a coordinate is the
- * geo adapter's question (`GEO_ADAPTER`), asked by `locateAddress`.
+ * geo adapter's question (`GEO_ADAPTER`), asked by `GeoAdapter.locate`.
  *
  * An adapter that wants the built-in zone handling does not inherit it — it
  * calls the same plain functions `DefaultDeliveryAdapter` calls
@@ -124,9 +124,6 @@ export default abstract class DeliveryAdapter {
       item: undefined,
       message: 'Shipping cost will be calculated'
     }
-    order.deliveryCost = 0;
-    order.deliveryItem = null;
-    order.deliveryDescription = '';
   }
 
   public abstract checkAbility(address: OrderAddress): Promise<Delivery>;

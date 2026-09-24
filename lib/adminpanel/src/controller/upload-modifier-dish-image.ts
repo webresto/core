@@ -74,7 +74,7 @@ export default async function UploadModifierDishImageController(req: any, res: a
 
         return res.json({
           id: mediaFile.id,
-          variants: mediaFile.variant ?? mediaFile.images ?? {},
+          variants: mediaFile.variant ?? {},
         });
       } catch (error) {
         sails.log.error("Upload modifier dish image error", error);

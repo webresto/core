@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const zone_cache_1 = require("../adapters/delivery/default/zone-cache");
 const zone_match_1 = require("../adapters/delivery/default/zone-match");
+const association_id_1 = require("../lib/association-id");
+const inherited_terms_1 = require("../lib/delivery-zone/inherited-terms");
 /**
  * A delivery zone: a polygon plus the commercial terms that apply inside it.
  *
@@ -30,14 +32,6 @@ const zone_match_1 = require("../adapters/delivery/default/zone-match");
  * Nothing enforces this — eslint does not run in this repository — so it is a
  * convention. It is also written down in CLAUDE.md.
  */
-function toId(value) {
-    if (typeof value === "string")
-        return value.trim() || null;
-    if (value && typeof value === "object" && typeof value.id === "string") {
-        return value.id.trim() || null;
-    }
-    return null;
-}
 let attributes = {
     id: {
         type: "string",
@@ -208,39 +202,10 @@ let attributes = {
     },
 };
 // Which fields a source owns and which are the operator's is decided in
-// `lib/delivery-zone-ownership.ts`. It cannot be stated here: the
+// `adapters/delivery/default/zone-ownership.ts`. It cannot be stated here: the
 // `module.exports = {...}` below replaces every named export of this file at
 // runtime, so a constant declared in a model type-checks at the import site and
 // arrives as `undefined`.
-/**
- * What a layer owns and a polygon inherits.
- *
- * Kept as a list rather than "everything except geometry and identity": a field
- * added later must be a deliberate choice about who prices it, and a default of
- * "inherited" would silently move somebody's tariff.
- */
-/**
- * What a layer lends its zones when `termsApplyToZones` is on.
- *
- * Terms only. `enable` and `sortOrder` used to be here and are not settings a
- * layer hands down — they are combined instead, in `findServing`.
- */
-const INHERITED_FIELDS = [
-    "worktime",
-    "minDeliveryTime",
-    "minOrderTotal",
-    "freeDeliveryFrom",
-    "deliveryCost",
-    "deliveryItem",
-    "deliveryMessage",
-];
-function pickInheritedFields(layer) {
-    const inherited = {};
-    for (const field of INHERITED_FIELDS) {
-        inherited[field] = layer[field];
-    }
-    return inherited;
-}
 /** One row by id — the only read the write hooks below make. */
 async function findZone(id) {
     return await DeliveryZone.findOne({ id });
@@ -258,14 +223,14 @@ async function assertZone(record) {
     // One level, and it is checked rather than assumed: nesting a layer under a
     // layer would make "the tariff is the parent's" a walk instead of a lookup,
     // and the walk would price somebody's zones from a row they never opened.
-    const parentId = record.parent === null ? null : toId(record.parent);
+    const parentId = record.parent === null ? null : (0, association_id_1.toId)(record.parent);
     if (parentId) {
-        if (parentId === toId(record.id))
+        if (parentId === (0, association_id_1.toId)(record.id))
             throw new Error("DeliveryZone cannot be its own layer");
         const layer = await findZone(parentId);
         if (!layer)
             throw new Error(`DeliveryZone parent "${parentId}" does not exist`);
-        if (toId(layer.parent))
+        if ((0, association_id_1.toId)(layer.parent))
             throw new Error(`DeliveryZone parent "${parentId}" is itself inside a layer`);
         if ((0, zone_match_1.isValidPolygon)(layer.polygon)) {
             throw new Error(`DeliveryZone parent "${parentId}" has a polygon, so it is a zone and not a layer`);
@@ -288,7 +253,7 @@ const TERMS_RULE_FIELDS = ["parent", ...REQUIRED_TERMS];
  * have to; a zone in a layer with `termsApplyToZones` on does not.
  */
 async function assertTerms(record) {
-    const parentId = toId(record.parent);
+    const parentId = (0, association_id_1.toId)(record.parent);
     const layer = parentId ? await findZone(parentId) : null;
     if (layer && layer.termsApplyToZones !== false)
         return;
@@ -316,12 +281,12 @@ async function assertTerms(record) {
 async function assertUniqueExternalId(record) {
     if (!record.source || !record.externalId)
         return;
-    const city = toId(record.city);
+    const city = (0, association_id_1.toId)(record.city);
     const clashes = (await DeliveryZone.find({
         source: record.source,
         externalId: record.externalId,
     }));
-    if (clashes.some((zone) => toId(zone.city) === city)) {
+    if (clashes.some((zone) => (0, association_id_1.toId)(zone.city) === city)) {
         throw new Error(`DeliveryZone "${record.externalId}" of source "${record.source}"` +
             `${city ? ` in city "${city}"` : ""} already exists`);
     }
@@ -401,7 +366,7 @@ let Model = {
         const zones = (await DeliveryZone.find({}));
         const byId = new Map(zones.map((zone) => [String(zone.id), zone]));
         const layerOf = (zone) => {
-            const parentId = toId(zone.parent);
+            const parentId = (0, association_id_1.toId)(zone.parent);
             return parentId ? byId.get(parentId) : undefined;
         };
         // [where the layer sits, where the zone sits inside it]. A zone with no
@@ -421,7 +386,7 @@ let Model = {
             .map((zone) => {
             const layer = layerOf(zone);
             return layer && layer.termsApplyToZones !== false
-                ? { ...zone, ...pickInheritedFields(layer) }
+                ? { ...zone, ...(0, inherited_terms_1.pickInheritedFields)(layer) }
                 : zone;
         })
             .sort((a, b) => {

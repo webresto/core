@@ -1,7 +1,7 @@
 import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
-import PaymentAdapter from "../adapters/payment/PaymentAdapter";
+import type { PaymentAdapter } from "../adapters";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { PaymentMethodType } from "../lib/enums/PaymentMethodTypes";
 
@@ -57,10 +57,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `PaymentMethodRecord` instead
- */
-interface PaymentMethod extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {}
 export interface PaymentMethodRecord extends RequiredField<OptionalAll<attributes>, "type" | "adapter" | "enable">, ORM {}
 
 let Model = {

@@ -5,7 +5,7 @@ import {
   isCompletedOrderState,
   isOperatorUser,
 } from "../../../order/OrderStateFlow";
-import { primaryCookingPoint } from "../../../../adapters/menu/cooking-place";
+import { primaryCookingPoint } from "../../../menu/cooking-place";
 
 // Non-completed states that the kanban board actually renders as columns
 // (mirrors VISIBLE_BOARD_STATES minus DONE/REJECT on the frontend).

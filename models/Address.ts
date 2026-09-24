@@ -3,17 +3,13 @@ import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
 import { CityRecord } from "./City";
-import {
-  ADDRESS_SEARCH_LIMIT,
-  ADDRESS_TYPES,
-  AddressPoint,
-  AddressType,
-  ROOT_SEARCHABLE,
-  compareAddressNames,
-  leadingNumber,
-  rangeCovers,
-} from "../adapters/geo/address";
-import { isValidCoordinate } from "../adapters/geo/delivery-location";
+import { Adapter } from "../adapters";
+import { AddressPoint } from "../interfaces/Geo";
+import { compareAddressNames } from "../lib/address/compare";
+import { leadingNumber, rangeCovers } from "../lib/address/range";
+import { isValidCoordinate } from "../lib/address/coordinate";
+import { nameMatches } from "../lib/address/name-match";
+import { toId } from "../lib/association-id";
 
 /**
  * The address catalog of a city: one flat table, one row per node.
@@ -45,11 +41,14 @@ let attributes = {
     model: "address",
   } as unknown as AddressRecord | string | null,
 
+  /**
+   * One of the geo adapter's `addressTypes`. Checked by `assertNode`, not by
+   * `isIn`: attributes are read when models load, before the adapter exists.
+   */
   type: {
     type: "string",
-    isIn: [...ADDRESS_TYPES],
     required: true,
-  } as unknown as AddressType,
+  } as unknown as string,
 
   /** "Ленина", "12", "гост. Прибалтийская". */
   name: {
@@ -104,18 +103,11 @@ let attributes = {
 type attributes = typeof attributes;
 export interface AddressRecord extends attributes, ORM {}
 
-function idOf(value: unknown): string | undefined {
-  if (typeof value === "string") return value;
-  if (value && typeof value === "object") return (value as { id?: string }).id;
-  return undefined;
-}
-
-function matches(node: AddressRecord, needle: string): boolean {
-  if (node.name?.toLowerCase().includes(needle)) return true;
-  return (node.names ?? []).some((alias) => typeof alias === "string" && alias.toLowerCase().includes(needle));
-}
-
 async function assertNode(values: Partial<AddressRecord>): Promise<void> {
+  if (values.type !== undefined && !(await Adapter.getGeoAdapter()).addressTypes.includes(values.type)) {
+    throw new Error(`Address type "${values.type}" is unknown`);
+  }
+
   if (values.point !== undefined && values.point !== null && !isValidCoordinate(values.point)) {
     throw new Error("Address point must contain a valid latitude and longitude");
   }
@@ -128,14 +120,14 @@ async function assertNode(values: Partial<AddressRecord>): Promise<void> {
     }
   }
 
-  const parentId = idOf(values.parent);
+  const parentId = toId(values.parent);
 
   if (parentId) {
     const parent = await Address.findOne({ id: parentId });
     if (!parent) throw new Error(`Address parent ${parentId} not found`);
 
-    const city = idOf(values.city);
-    if (city && idOf(parent.city) !== city) {
+    const city = toId(values.city);
+    if (city && toId(parent.city) !== city) {
       throw new Error("Address parent belongs to another city");
     }
   }
@@ -144,7 +136,7 @@ async function assertNode(values: Partial<AddressRecord>): Promise<void> {
   // the list would show the same word twice and the customer would take
   // whichever came first. Two "Ленина" in one city are fine — under two
   // different districts, which is exactly what tells them apart.
-  const city = idOf(values.city);
+  const city = toId(values.city);
   if (city && values.type && values.name) {
     const twin = await Address.findOne({
       city,
@@ -199,31 +191,32 @@ let Model = {
    * answer than the block it belongs to.
    */
   async search(params: { city: string; parent?: string | null; query: string }): Promise<AddressRecord[]> {
+    const geo = await Adapter.getGeoAdapter();
     const criteria: Record<string, unknown> = { city: params.city };
 
     if (params.parent) {
       criteria.parent = params.parent;
     } else {
-      criteria.or = [{ type: ROOT_SEARCHABLE }, { parent: null }];
+      criteria.or = [{ type: geo.rootSearchable }, { parent: null }];
     }
 
     const nodes = await Address.find(criteria);
     const needle = (params.query ?? "").trim().toLowerCase();
     const number = leadingNumber(needle);
 
-    const named = nodes.filter((node) => node.type !== "range" && (!needle || matches(node, needle)));
+    const named = nodes.filter((node) => node.type !== "range" && (!needle || nameMatches(node, needle)));
     const ranges =
       number === null ? [] : nodes.filter((node) => node.type === "range" && rangeCovers(node, number));
 
     const byName = (a: AddressRecord, b: AddressRecord) => compareAddressNames(a.name, b.name);
 
-    return [...named.sort(byName), ...ranges.sort(byName)].slice(0, ADDRESS_SEARCH_LIMIT);
+    return [...named.sort(byName), ...ranges.sort(byName)].slice(0, geo.addressSearchLimit);
   },
 
   /** The nodes from the city down to `id`, in that order. What `formatted` is built from. */
   async path(id: string): Promise<AddressRecord[]> {
     const chain: AddressRecord[] = [];
-    let current: string | undefined = id;
+    let current: string | null = id;
 
     // Not a depth limit: a graph is as deep as its data, and the list of types
     // says nothing about that. The bound is what stops a parent set to its own
@@ -232,7 +225,7 @@ let Model = {
       const node: AddressRecord = await Address.findOne({ id: current });
       if (!node) break;
       chain.unshift(node);
-      current = idOf(node.parent);
+      current = toId(node.parent);
     }
 
     return chain;

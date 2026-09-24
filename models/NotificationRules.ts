@@ -2,6 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
+import { validateRule } from "../lib/notification-rules";
 
 /**
  * NotificationRules
@@ -153,45 +154,7 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `NotificationRulesRecord` instead
- */
-interface NotificationRules extends RequiredField<OptionalAll<attributes>, null>, ORM {}
 export interface NotificationRulesRecord extends RequiredField<OptionalAll<attributes>, null>, ORM {}
-
-const KEY_REGEX = /^[a-z0-9]+(?:_[a-z0-9]+)*$/;
-
-/**
- * Validate a rule payload. Returns an array of human-readable errors (empty = valid).
- * Mirrors the lifecycle checks below so callers (controllers/MCP) can validate before write.
- */
-function validateRule(rule: Partial<NotificationRulesRecord>): string[] {
-  const errors: string[] = [];
-  const key = String(rule?.key || "").trim();
-  if (!key) {
-    errors.push("key is required");
-  } else if (!KEY_REGEX.test(key)) {
-    errors.push("key must be snake_case (lowercase, digits, underscores)");
-  }
-  if (!String(rule?.eventKey || "").trim()) {
-    errors.push("eventKey is required");
-  }
-  if (rule?.sendDelaySec !== undefined && rule.sendDelaySec !== null) {
-    const d = Number(rule.sendDelaySec);
-    if (!Number.isFinite(d) || d < 0) errors.push("sendDelaySec must be a non-negative number");
-  }
-  if (rule?.maxDeliveryCost !== undefined && rule.maxDeliveryCost !== null) {
-    const c = Number(rule.maxDeliveryCost);
-    if (!Number.isFinite(c) || c < 0) errors.push("maxDeliveryCost must be null or a non-negative number");
-  }
-  if (rule?.channelsMode === "fixed" && (!Array.isArray(rule.fixedChannels) || rule.fixedChannels.length === 0)) {
-    errors.push("fixedChannels must list at least one channel when channelsMode is 'fixed'");
-  }
-  if (rule?.escalateBy !== undefined && rule.escalateBy !== null && !["read", "delivered"].includes(String(rule.escalateBy))) {
-    errors.push("escalateBy must be 'read' or 'delivered'");
-  }
-  return errors;
-}
 
 let Model = {
   beforeCreate(init: NotificationRulesRecord, cb: (err?: string) => void) {

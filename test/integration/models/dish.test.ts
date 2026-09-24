@@ -34,7 +34,6 @@ describe('Dish', function () {
     'fatFullAmount',
     'fiberAmount',
     'fiberFullAmount',
-    'groupId',
     'measureUnit',
     'price',
     'productCategoryId',
@@ -75,11 +74,10 @@ describe('Dish', function () {
 
     let modifiers: GroupModifier[]  = [
       {
-        modifierId: group.id, 
         childModifiers: [
-          { id: dishes[0].id, modifierId: dishes[0].id, rmsId: dishes[0].rmsId }], 
+          { id: dishes[0].id, rmsId: dishes[0].rmsId }], 
           groupId: group.id,
-        id: "",
+        id: group.id!,
         rmsId: ""
       }
     ];

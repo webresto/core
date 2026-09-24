@@ -9,7 +9,6 @@ describe('DialogBox', () => {
         optionsType: 'button',
         options: [{
                 id: 'button1',
-                label: 'Button 1',
                 button: {
                     label: 'Button 1',
                     type: 'primary'
@@ -17,7 +16,6 @@ describe('DialogBox', () => {
             },
             {
                 id: 'button2',
-                label: 'Button 2',
                 button: {
                     label: 'Button 2',
                     type: 'secondary'

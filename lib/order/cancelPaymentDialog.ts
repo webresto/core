@@ -1,4 +1,4 @@
-import { DialogBoxConfig } from "../../interfaces/DialogBox";
+import { DialogBoxButton } from "../../interfaces/DialogBox";
 import { getTranslatorFor } from "../i18n/translator";
 
 /**
@@ -13,7 +13,7 @@ import { getTranslatorFor } from "../i18n/translator";
  */
 export function buildCancelPaymentDialog(
   preferredLocale?: string | null
-): DialogBoxConfig {
+): DialogBoxButton {
   const t = getTranslatorFor(preferredLocale);
 
   return {
@@ -28,16 +28,14 @@ export function buildCancelPaymentDialog(
     options: [
       {
         id: CANCEL_PAYMENT_DIALOG_CONFIRM,
-        label: t("Cancel payment and edit basket"),
         button: { label: t("Cancel payment and edit basket"), type: "primary" },
       },
       {
         id: CANCEL_PAYMENT_DIALOG_DEFAULT,
-        label: t("Keep payment"),
         button: { label: t("Keep payment"), type: "abort" },
       },
     ],
-  } as DialogBoxConfig;
+  } as DialogBoxButton;
 }
 
 export const CANCEL_PAYMENT_DIALOG_CONFIRM = "cancelPayment";

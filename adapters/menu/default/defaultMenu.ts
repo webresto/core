@@ -1,7 +1,6 @@
-import { getDefaultCookingPlaceId, primaryCookingPoint, toPlaceId } from "../cooking-place";
-import { resolveCookingPlaceForCoordinate } from "../kitchen-resolver";
+import { getDefaultCookingPlaceId, primaryCookingPoint, toPlaceId } from "../../../lib/menu/cooking-place";
 import MenuAdapter from "../MenuAdapter";
-import { MenuContext, MenuRequest } from "../contracts";
+import { MenuContext, MenuRequest } from "../../../interfaces/Menu";
 
 /**
  * The menu every installation had before this iteration.
@@ -43,17 +42,20 @@ export class DefaultMenuAdapter extends MenuAdapter {
     }
 
     // The customer's coordinate, resolved exactly the way an order's kitchen is:
-    // through the configured `KITCHEN_RESOLVE_CHAIN` of strategies. Asked of the
-    // resolver rather than reimplemented here, because the menu shown before an
-    // order and the kitchen chosen for it have to agree.
-    const fromCoordinate = await resolveCookingPlaceForCoordinate(request?.coordinate);
-    if (fromCoordinate) {
-      return {
-        placeIds: [fromCoordinate.placeId],
-        source: "coordinate",
-        placeRequired: false,
-        diagnostics: fromCoordinate.diagnostics,
-      };
+    // through `resolveCookingPlace` and its `KITCHEN_RESOLVE_CHAIN`, because the
+    // menu shown before an order and the kitchen chosen for it have to agree.
+    // Nothing chosen falls through to the installation default, which is what a
+    // customer who has typed no address has always been shown.
+    if (request?.coordinate) {
+      const resolution = await this.resolveCookingPlace({ coordinate: request.coordinate });
+      if (resolution.placeId) {
+        return {
+          placeIds: [resolution.placeId],
+          source: "coordinate",
+          placeRequired: false,
+          diagnostics: resolution.diagnostics,
+        };
+      }
     }
 
     const fallback = await getDefaultCookingPlaceId();

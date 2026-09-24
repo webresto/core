@@ -6,7 +6,7 @@ import { DeliveryZoneRecord } from "../../../models/DeliveryZone";
 import { getServingZones } from "./zone-cache";
 import { softDeliveryFallback } from "../soft-delivery";
 import { findZoneForCoordinate } from "./zone-match";
-import { AddressLocation, locateAddress } from "../../geo/delivery-location";
+import { AddressLocation } from "../../../interfaces/Geo";
 
 /**
  * Zone-based delivery: the zone is the tariff, and there is no other.
@@ -213,8 +213,8 @@ export function noDeliveryZones(diagnostics: string[] = []): Delivery {
 /**
  * Resolves the address and finds its zone, without deciding what to charge.
  *
- * The address is placed the way `kitchen-assignment` places it: `locateAddress`
- * with the installation's geo adapter.
+ * The address is placed the way `kitchen-assignment` places it: `locate` of
+ * the installation's geo adapter.
  */
 export async function matchZone(address: OrderAddress | undefined | null): Promise<ZoneMatch> {
   const zones = await getServingZones();
@@ -226,7 +226,7 @@ export async function matchZone(address: OrderAddress | undefined | null): Promi
     };
   }
 
-  const location = await locateAddress(await Adapter.getGeoAdapter(), address);
+  const location = await (await Adapter.getGeoAdapter()).locate(address);
   if (!location.coordinate) {
     return { zone: null, zonesConfigured: true, location };
   }

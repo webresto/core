@@ -95,7 +95,6 @@ function discountGenerator(config = {
             //   // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
             dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-            dish.oldPrice = dish.salePrice;
             dish.salePrice = this.configDiscount.discountType === "flat"
                 ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
                 : new decimal_js_1.default(dish.price)

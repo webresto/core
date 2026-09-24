@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { CityRecord } from "./City";
-import { AddressPoint, AddressType } from "../adapters/geo/address";
+import { AddressPoint } from "../interfaces/Geo";
 /**
  * The address catalog of a city: one flat table, one row per node.
  *
@@ -21,7 +21,11 @@ declare let attributes: {
     city: CityRecord | string;
     /** The node above. Null means a direct child of the city. */
     parent: AddressRecord | string | null;
-    type: AddressType;
+    /**
+     * One of the geo adapter's `addressTypes`. Checked by `assertNode`, not by
+     * `isIn`: attributes are read when models load, before the adapter exists.
+     */
+    type: string;
     /** "Ленина", "12", "гост. Прибалтийская". */
     name: string;
     /** Aliases, former names, transliterations. Searched together with `name`. */

@@ -49,10 +49,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `UserDeviceRecord` instead
- */
-interface UserDevice extends RequiredField<OptionalAll<attributes>, null >, ORM {}
 export interface UserDeviceRecord extends RequiredField<OptionalAll<attributes>, null >, ORM {}
 
 

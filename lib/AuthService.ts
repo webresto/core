@@ -1,6 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { Adapter } from "../adapters";
-import { NormalizedProfile } from "../adapters/auth/AuthProviderAdapter";
+import { Adapter, type NormalizedProfile } from "../adapters";
 import { UserRecord, Phone } from "../models/User";
 import { UserDeviceRecord } from "../models/UserDevice";
 import { AuthProviderRecord } from "../models/AuthProvider";

@@ -10,6 +10,9 @@ import { ControlElement, Layout } from "@jsonforms/core";
 import Ajv from 'ajv';
 import fs from 'fs';
 import path from 'path';
+import { isInDeclaredSettings, setDeclaredSetting } from "../lib/settings/declared";
+import { envMirroredSettings, syncToEnv } from "../lib/settings/env-mirror";
+import { cleanValue, parseBoolean } from "../lib/settings/value";
 
 // Directory holding per-setting manifest files (settings/*.json). Each manifest
 // declares a setting (key/type/name/defaultValue/jsonSchema/...) and is the single
@@ -35,7 +38,7 @@ interface SettingManifest {
 // Memory store
 let settings: SettingValue = {}
 type PlainValue = string | boolean | number | string[] | number[] | SettingValue[]
-type SettingValue = PlainValue | {
+export type SettingValue = PlainValue | {
   [key: string]: SettingList[keyof SettingList];
 };
 type SettingType = "string" | "boolean" | "json" | "number"
@@ -49,48 +52,7 @@ interface UISchema {
   options?: any;
 }
 
-// Declared settings tracker (ported from MM settingsHelper)
-const declaredSettings: string[] = ["MODULE_STORAGE_LICENSE", "ALLOW_UNSAFE_SETTINGS"];
 const isInDeclaredSettingsErrorCollector = new Map<string, boolean>();
-
-// Settings whose value, when stored in DB, must also be mirrored into process.env
-// because some libraries read process.env[key] directly instead of Settings.get(key)
-const envMirroredSettings: string[] = ["JWT_SECRET"];
-
-function setDeclaredSetting(key: string): void {
-  declaredSettings.push(key);
-}
-
-function isInDeclaredSettings(key: string): boolean {
-  return declaredSettings.includes(key);
-}
-
-/** Mirror a setting's value into process.env so libraries reading process.env[key] stay in sync with the DB */
-function syncToEnv(record: SettingsRecord): void {
-  if (!envMirroredSettings.includes(record.key)) {
-    return;
-  }
-  const value = record.value ?? record.defaultValue ?? undefined;
-  if (value === undefined || value === null) {
-    return;
-  }
-  process.env[record.key] = typeof value === "string" ? value : JSON.stringify(value);
-}
-
-function parseBoolean(value: string | undefined): boolean | undefined {
-  if (value === undefined || value === null || value === '') {
-    return undefined;
-  }
-  const trueValues = ["yes", "YES", "Yes", "1", "true", "TRUE", "True"];
-  const falseValues = ["no", "NO", "No", "0", "false", "FALSE", "False"];
-  if (trueValues.includes(value)) {
-    return true;
-  }
-  if (falseValues.includes(value)) {
-    return false;
-  }
-  return false;
-}
 
 let attributes = {
   id: {
@@ -154,10 +116,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes & ORM;
-/**
- * @deprecated use `SettingsRecord` instead
- */
-interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> { }
 export interface SettingsRecord extends RequiredField<OptionalAll<attributes>, "key" | "type"> { }
 
 let Model = {
@@ -304,7 +262,7 @@ let Model = {
     }
   },
 
-  async set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings> {
+  async set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<SettingsRecord> {
     let origSettings = await Settings.findOne({ key: key });
     if (origSettings) {
       Object.assign(origSettings, settingsSetInput)
@@ -654,14 +612,6 @@ declare global {
     /** Public base URL used to build OAuth redirect_uri and post-login redirect */
     AUTH_CALLBACK_BASE_URL: string
   }
-}
-
-function cleanValue(value: string | number | boolean | SettingValue[] | { [key: string]: any; }) {
-  if (value === "undefined" || value === "NaN" || value === "null") {
-    return undefined
-  }
-
-  return value
 }
 
 interface SettingsSetInputBase<K extends string, F> {

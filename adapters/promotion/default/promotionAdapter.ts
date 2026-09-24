@@ -1,6 +1,5 @@
 import Decimal from "decimal.js";
-import AbstractPromotionHandler from "../AbstractPromotion";
-import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
+import AbstractPromotionAdapter, { AbstractPromotionHandler } from "../PromotionAdapter";
 import { WorkTimeValidator } from "@webresto/worktime";
 import ConfiguredPromotion from "./configuredPromotion";
 import findModelInstanceByAttributes from "../../../lib/findModelInstance";

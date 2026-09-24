@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import {ORMModel} from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import OrderAddress from "../interfaces/OrderAddress";
-import { formatAddressPath } from "../adapters/geo/address";
+import { wholeLine } from "../lib/user-location";
 import { UserRecord } from "./User";
 
 /**
@@ -94,30 +94,7 @@ let attributes = {
 type attributes = typeof attributes;
 export interface UserLocationRecord extends attributes, ORM {}
 
-/**
- * The whole line, house number included.
- *
- * A catalog line already ends with the number — `formatAddressLine` put it
- * there — and so does a line that came from a saved location. Free text keeps
- * the number in `home`, and without it two houses on one street would be one
- * location.
- */
-function wholeLine(formatted: string, home: string | undefined): string {
-  const line = formatted.trim();
-  const number = home?.trim();
-  if (!number || line.slice(line.lastIndexOf(",") + 1).trim() === number) return line;
-  return formatAddressPath([line, number]);
-}
-
 let Model = {
-
-  async beforeUpdate(record: UserLocationRecord, cb:  (err?: string) => void) {
-    if(record.isDefault === true) {
-      await UserLocation.update({user: record.user}, {isDefault: false})
-    }
-
-    cb();
-  },
 
   async beforeCreate(init: UserLocationRecord, cb:  (err?: string) => void) {
     if (!init.id) {
@@ -133,6 +110,19 @@ let Model = {
     }
 
     cb();
+  },
+
+  /**
+   * Makes one of the user's locations the default and unsets the rest of theirs.
+   *
+   * Scoped by the owner in both writes: an id of someone else's location finds
+   * nothing and changes nothing, and is refused like an id that does not exist.
+   */
+  async setDefault(user: string, id: string): Promise<UserLocationRecord> {
+    const [location] = await UserLocation.update!({ id, user }, { isDefault: true }).fetch();
+    if (!location) throw `User location not found`;
+    await UserLocation.update!({ user, id: { "!=": id } }, { isDefault: false });
+    return location;
   },
 
   /**

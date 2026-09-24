@@ -20,17 +20,7 @@ let attributes = {
    isIn: ['video', 'image', 'audio']
   } as unknown as "video" | "image" | "audio",
 
-  /** 
-   * @deprecated use variant field
-   * TODO: delete in ver 3
-   * Image items */
-  images: "json" as unknown as {[key: string]: string | undefined},
-
-  /** 
-   * variants is just an array containing the variant name and its local path
-   * clone from images
-   * This is automatically cloned from images and vice versa
-   * Image items */
+  /** Image items: the variant name and its local path */
   variant: "json" as unknown as {[key: string]: string | undefined} ,
 
   /** It means Original URL http:// or file:// */
@@ -53,15 +43,10 @@ let attributes = {
     through: 'selectedmediafile'
   } as unknown as GroupRecord[] | string [],
 
-  /** upload date 
-   * @deprecated (del in v2)
-   */
+  /** upload date */
     uploadDate: "string",
 };
 type attributes = typeof attributes;
-
-/** @deprecated use `MediaFileRecord` */
-export type IMediaFile = OptionalAll<attributes>;
 
 export interface MediaFileRecord extends OptionalAll<attributes>, ORM { }
 
@@ -70,48 +55,12 @@ let Model = {
     if (!imageInit.id) {
       imageInit.id = uuid();
     }
-
-    /**
-     * TODO: delete in ver 3
-     */
-    if (imageInit.variant && imageInit.images) {
-      return cb('variant & image not allowed');
-    }
-    let variant = {
-      ...(imageInit.variant ? { ...imageInit.variant } : {}),
-      ...(imageInit.images ? {... imageInit.images } : {})
-    };
-    imageInit.variant = variant
-    imageInit.images = variant
-    // 
-    cb();
-  },
-
-
-  beforeUpdate(imageInit: MediaFileRecord, cb: (err?: string) => void) {
-    /**
-     * TODO: delete in ver 3
-     */
-    if (imageInit.variant && imageInit.images) {
-      return cb('variant & image not allowed');
-    }
-    let variant = {
-      ...(imageInit.variant ? { ...imageInit.variant } : {}),
-      ...(imageInit.images ? { ... imageInit.images } : {})
-    };
-    imageInit.variant = variant
-    imageInit.images = variant
-    // 
     cb();
   },
 
   async afterDestroy(mf: MediaFileRecord, cb: (err?: string | Error) => void) {
     try {
-      let variant: {[key: string]: string} = {
-        // TODO:delete in v3
-        ...(mf.variant ? { ...mf.variant } : {}),
-        ...(mf.images ? { ...mf.images } : {})
-      };
+      const variant = mf.variant ?? {};
 
       for (const key in variant) {
         const filePath = variant[key] as string;

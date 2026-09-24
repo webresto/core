@@ -13,11 +13,6 @@ export interface OrderModifier {
     amount?: number;
     dish?: DishRecord;
     /**
-   * meaning is rmsId
-   * @deprecated use id
-   */
-    modifierId?: string;
-    /**
      * restocore group.id
      */
     groupId?: string;
@@ -37,10 +32,6 @@ interface BaseModifier {
      * Client presentation hint. It does not affect server-side validation or price.
      */
     hideIfDefaultAmount?: boolean | null;
-    /**
-     * @deprecated use freeOfChargeAmount
-     */
-    freeAmount?: number | null;
     required?: boolean | null;
     /**
      * How many free modifiers can you add?
@@ -48,11 +39,6 @@ interface BaseModifier {
     freeOfChargeAmount?: number | null;
 }
 export interface Modifier extends BaseModifier {
-    /**
-     * meaning is rmsId
-     * @deprecated use id
-     */
-    modifierId?: any;
     id: string;
     rmsId?: string;
 }
@@ -66,10 +52,5 @@ export interface GroupModifier extends BaseModifier {
     group?: GroupRecord | string;
     groupId?: string;
     isSingleModifierGroupWrapper?: boolean;
-    /**
-     * meaning is rmsId
-     * @deprecated use id
-     */
-    modifierId?: string;
 }
 export {};

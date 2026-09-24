@@ -2,15 +2,6 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { DishRecord } from "./Dish";
 import { PlaceRecord } from "./Place";
-/**
- * A row that limits nothing and is enabled says exactly what a missing row says.
- *
- * The rule deliberately ignores the balance mode: the mode is a setting an
- * operator flips on a live system, while deleting a row is irreversible. Judging
- * emptiness by the active mode would throw away a real RMS value in `local-only`
- * with nowhere to get it back from after a switch to `minimum`.
- */
-export declare function isEmptyRow(values: DishPlaceValues): boolean;
 declare let attributes: {
     id: string;
     /** The dish this row limits. */

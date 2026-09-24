@@ -17,6 +17,9 @@ declare let attributes: {
     enable: boolean;
     worktime: WorkTime;
     isPickupPoint: boolean;
+    /**
+     * TODO: Idea for cooking poin ballancing + wortime
+     */
     isCookingPoint: boolean;
     /** The point has a room to eat in: what `dine-in` orders are taken at. */
     hasDiningArea: boolean;

@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { wholeLine } from "../../lib/user-location";
 
 const OrderModel = require("../../models/Order");
 const UserLocationModel = require("../../models/UserLocation");
@@ -148,5 +149,69 @@ describe("UserLocation from a finished order", function () {
     it("still needs one for free text without a point", async function () {
       expect(await cart({ node: null, formatted: "Ленина", city: "Город" })).to.include({ code: 6 });
     });
+  });
+});
+
+describe("UserLocation default", function () {
+  type Row = Record<string, any>;
+
+  let realUserLocation: unknown;
+  let locations: Row[] = [];
+
+  const matches = (row: Row, criteria: Row) =>
+    Object.entries(criteria).every(([key, value]) =>
+      value !== null && typeof value === "object" ? row[key] !== value["!="] : row[key] === value,
+    );
+
+  before(function () {
+    realUserLocation = (global as any).UserLocation;
+    (global as any).UserLocation = {
+      ...UserLocationModel,
+      // Awaited as is or through `fetch`, like Waterline's builder.
+      update: (criteria: Row, values: Row) => {
+        const run = async () => locations.filter((row) => matches(row, criteria)).map((row) => Object.assign(row, values));
+        return { fetch: run, then: (resolve: any, reject: any) => run().then(resolve, reject) };
+      },
+    };
+  });
+
+  after(function () {
+    (global as any).UserLocation = realUserLocation;
+  });
+
+  beforeEach(function () {
+    locations = [
+      { id: "home-1", user: "user-1", isDefault: true },
+      { id: "work-1", user: "user-1", isDefault: false },
+      { id: "home-2", user: "user-2", isDefault: true },
+    ];
+  });
+
+  const defaults = () => locations.filter((row) => row.isDefault).map((row) => row.id);
+
+  it("moves the default among the user's own locations and leaves other users alone", async function () {
+    const location = await UserLocationModel.setDefault("user-1", "work-1");
+
+    expect(location.id).to.equal("work-1");
+    expect(defaults()).to.deep.equal(["work-1", "home-2"]);
+  });
+
+  it("refuses someone else's location and changes nothing", async function () {
+    let error: unknown;
+    try {
+      await UserLocationModel.setDefault("user-1", "home-2");
+    } catch (thrown) {
+      error = thrown;
+    }
+
+    expect(error).to.equal("User location not found");
+    expect(defaults()).to.deep.equal(["home-1", "home-2"]);
+  });
+});
+
+describe("UserLocation whole line", function () {
+  it("adds the house number only when the line does not end with it", function () {
+    expect(wholeLine("Ленина", "12")).to.equal("Ленина, 12");
+    expect(wholeLine("Ленина, 12", "12")).to.equal("Ленина, 12");
   });
 });

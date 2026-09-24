@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { pickInheritedFields } from "../../lib/delivery-zone/inherited-terms";
 
 /**
  * Layers: three rules, and they are not the same rule.
@@ -261,5 +262,14 @@ describe("Delivery zone layers", function () {
         expect(await hook("beforeUpdate", { deliveryCost: 100 })).to.contain("has to carry the row id");
       });
     });
+  });
+});
+
+describe("Delivery zone inherited terms", function () {
+  it("lends the terms and nothing else", function () {
+    const layer = { id: "layer", name: "Layer", enable: false, sortOrder: 3, deliveryCost: 100, minDeliveryTime: 30 } as any;
+    const inherited = pickInheritedFields(layer);
+    expect(inherited).to.include({ deliveryCost: 100, minDeliveryTime: 30 });
+    expect(inherited).to.not.have.any.keys("id", "name", "enable", "sortOrder");
   });
 });

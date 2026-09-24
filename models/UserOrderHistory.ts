@@ -42,9 +42,6 @@ let attributes = {
 
 type attributes = typeof attributes;
 
-/**
- * @deprecated use `UserOrderHistoryRecord` instead
- */
 export interface UserOrderHistoryRecord extends OptionalAll<attributes>, ORM {}
 
 
@@ -59,7 +56,7 @@ let Model = {
       await UserOrderHistory.create({
         id: uuid(),
         order: order,
-        orderTotal: order.orderTotal,
+        orderTotal: order.basketTotal,
         uniqueItems: order.uniqueDishes,
         total: order.total,
         totalWeight: order.totalWeight,

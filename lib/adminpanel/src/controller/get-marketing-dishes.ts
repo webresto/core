@@ -1,5 +1,5 @@
-import { getDefaultCookingPlaceId } from "../../../../adapters/menu/cooking-place";
-import { getEffectiveBalances, readEffectiveBalance } from "../../../../adapters/menu/dish-place-balance";
+import { getDefaultCookingPlaceId } from "../../../menu/cooking-place";
+import { getEffectiveBalances, readEffectiveBalance } from "../../../menu/dish-place-balance";
 import { hasAccess } from "./marketing-helpers";
 import { DELIVERY_ZONES_ACCESS, hasModulePermission } from "./access-rights";
 

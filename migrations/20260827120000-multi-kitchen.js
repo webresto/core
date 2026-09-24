@@ -49,6 +49,9 @@ exports.up = function (db, callback) {
     // more; `Dish.balance` in the API is computed per request.
     (cb) => db.removeColumn('dish', 'balance', cb),
 
+    // A copy of `parentGroup` that nothing wrote.
+    (cb) => db.removeColumn('dish', 'groupId', cb),
+
     // --- dish_place: stock at one cooking point -------------------------
     //
     // A product with no row here is sold everywhere without a limit. Rows appear
@@ -181,6 +184,17 @@ exports.up = function (db, callback) {
     (cb) => db.addColumn('order', 'serviceType', { type: 'text', notNull: false, defaultValue: 'delivery' }, cb),
     (cb) => db.removeColumn('order', 'selfService', cb),
 
+    // A second copy of `basketTotal`.
+    (cb) => db.removeColumn('order', 'orderTotal', cb),
+
+    // Copies of `delivery.message`, `delivery.item` and `delivery.cost`.
+    (cb) => db.removeColumn('order', 'deliveryDescription', cb),
+    (cb) => db.removeColumn('order', 'deliveryItem', cb),
+    (cb) => db.removeColumn('order', 'deliveryCost', cb),
+
+    // --- mediafile: `variant` is the only list of files --------------------
+    (cb) => db.removeColumn('mediafile', 'images', cb),
+
     // --- orderdish: which kitchen cooks this line --------------------------
     //
     // Plain text like the `pickupPoint` that has always been there: Waterline
@@ -214,6 +228,12 @@ exports.down = function (db, callback) {
     }, cb),
     (cb) => db.dropTable('address', cb),
 
+    (cb) => db.addColumn('mediafile', 'images', { type: 'json' }, cb),
+
+    (cb) => db.addColumn('order', 'deliveryCost', { type: 'real', defaultValue: 0 }, cb),
+    (cb) => db.addColumn('order', 'deliveryItem', { type: 'text' }, cb),
+    (cb) => db.addColumn('order', 'deliveryDescription', { type: 'text', notNull: false }, cb),
+    (cb) => db.addColumn('order', 'orderTotal', { type: 'real', defaultValue: 0 }, cb),
     (cb) => db.addColumn('order', 'selfService', { type: 'boolean', notNull: false, defaultValue: false }, cb),
     (cb) => db.removeColumn('order', 'serviceType', cb),
 
@@ -227,6 +247,7 @@ exports.down = function (db, callback) {
     (cb) => db.dropTable('deliveryzone', cb),
     (cb) => db.dropTable('dish_place', cb),
 
+    (cb) => db.addColumn('dish', 'groupId', { type: 'text', notNull: false }, cb),
     (cb) => db.addColumn('dish', 'balance', { type: 'real', notNull: false }, cb),
     (cb) => db.removeColumn('dish', 'cookingTimeMax', cb),
 

@@ -5,9 +5,9 @@ import {
   isValidPolygon,
   nearestPlaceInZone,
 } from "../../adapters/delivery/default/zone-match";
-// Reading a coordinate off an address is not zone geometry and moved to core
-// with `locateAddress`; the assertions stay here, next to the geometry they feed.
-import { coordinateFromAddress } from "../../adapters/geo/delivery-location";
+// Reading a coordinate off an address is not zone geometry and lives in
+// `lib/address`; the assertions stay here, next to the geometry they feed.
+import { coordinateFromAddress } from "../../lib/address/coordinate";
 
 describe("Delivery zone geometry", function () {
   // A square around (10, 10), stored the way KML stores rings: [lon, lat].

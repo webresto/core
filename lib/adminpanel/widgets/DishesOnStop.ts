@@ -1,5 +1,5 @@
 import { InfoBase } from "adminizer";
-import { getEffectiveBalance, getDishPlaceBalanceMode, UNLIMITED_BALANCE } from "../../../adapters/menu/dish-place-balance";
+import { getEffectiveBalance, getDishPlaceBalanceMode, UNLIMITED_BALANCE } from "../../menu/dish-place-balance";
 
 export default class DishesOnStopWidget extends InfoBase {
 	readonly widgetType = "info"

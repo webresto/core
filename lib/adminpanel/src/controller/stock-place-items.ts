@@ -3,7 +3,7 @@ import {
   getDishPlaceBalanceMode,
   DishPlaceBalanceMode,
   UNLIMITED_BALANCE,
-} from "../../../../adapters/menu/dish-place-balance";
+} from "../../../menu/dish-place-balance";
 import { hasStockManagerPlaceAccess } from "./access-rights";
 
 export interface StockProduct {

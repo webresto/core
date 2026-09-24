@@ -9,31 +9,26 @@ describe("ProductModifier.fillDefault", () => {
       minAmount: 1,
       maxAmount: 3,
       rmsId: "rms-group1",
-      modifierId: "modifier-group1",
       childModifiers: [
         {
           id: "mod1",
           defaultAmount: 1,
           rmsId: "r1",
-          modifierId: "mod-1"
         },
         {
           id: "mod2",
           rmsId: "r2",
-          modifierId: "mod-2"
         }
       ]
     },
     {
       id: "group2",
       rmsId: "rms-group2",
-      modifierId: "modifier-group2",
       childModifiers: [
         {
           id: "mod3",
           defaultAmount: 2,
           rmsId: "r3",
-          modifierId: "mod-3"
         }
       ]
     }

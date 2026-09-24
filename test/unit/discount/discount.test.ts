@@ -5,10 +5,9 @@ import { expect } from 'chai';
 import { InMemoryDiscountAdapter } from '../../mocks/adapter/discount';
 import discountGenerator from '../../generators/discount.generator';
 import groupGenerator from '../../generators/group.generator';
-import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';
+import AbstractPromotionAdapter, { AbstractPromotionHandler } from '../../../adapters/promotion/PromotionAdapter';
 import findModelInstanceByAttributes from '../../../lib/findModelInstance';
 import { Adapter } from './../../../adapters/index';
-import AbstractPromotionAdapter from '../../../adapters/promotion/AbstractPromotionAdapter';
 // todo: fix types model instance to {%ModelName%}Record for Group';
 // todo: fix types model instance to {%ModelName%}Record for Dish';
 // todo: fix types model instance to {%ModelName%}Record for Order';
@@ -87,7 +86,6 @@ describe('Discount', function () {
           //   // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
             dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-            dish.oldPrice = dish.salePrice
             dish.salePrice = this.configDiscount.discountType === "flat" 
             ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
             : new Decimal(dish.price)

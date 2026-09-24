@@ -6,6 +6,8 @@ import { DishRecord } from "./Dish";
 import { CityRecord } from "./City";
 import { invalidateDeliveryZoneCache } from "../adapters/delivery/default/zone-cache";
 import { isValidPolygon } from "../adapters/delivery/default/zone-match";
+import { toId } from "../lib/association-id";
+import { pickInheritedFields } from "../lib/delivery-zone/inherited-terms";
 
 /**
  * A delivery zone: a polygon plus the commercial terms that apply inside it.
@@ -34,14 +36,6 @@ import { isValidPolygon } from "../adapters/delivery/default/zone-match";
  * Nothing enforces this — eslint does not run in this repository — so it is a
  * convention. It is also written down in CLAUDE.md.
  */
-
-function toId(value: unknown): string | null {
-  if (typeof value === "string") return value.trim() || null;
-  if (value && typeof value === "object" && typeof (value as { id?: unknown }).id === "string") {
-    return (value as { id: string }).id.trim() || null;
-  }
-  return null;
-}
 
 let attributes = {
   id: {
@@ -243,49 +237,13 @@ let attributes = {
 
 type attributes = typeof attributes;
 
-/**
- * @deprecated use `DeliveryZoneRecord` instead
- */
-interface DeliveryZone extends Partial<Omit<attributes, "createdAt" | "updatedAt">>, ORM {}
 export interface DeliveryZoneRecord extends Partial<Omit<attributes, "createdAt" | "updatedAt">>, ORM {}
-export default DeliveryZone;
 
 // Which fields a source owns and which are the operator's is decided in
-// `lib/delivery-zone-ownership.ts`. It cannot be stated here: the
+// `adapters/delivery/default/zone-ownership.ts`. It cannot be stated here: the
 // `module.exports = {...}` below replaces every named export of this file at
 // runtime, so a constant declared in a model type-checks at the import site and
 // arrives as `undefined`.
-
-/**
- * What a layer owns and a polygon inherits.
- *
- * Kept as a list rather than "everything except geometry and identity": a field
- * added later must be a deliberate choice about who prices it, and a default of
- * "inherited" would silently move somebody's tariff.
- */
-/**
- * What a layer lends its zones when `termsApplyToZones` is on.
- *
- * Terms only. `enable` and `sortOrder` used to be here and are not settings a
- * layer hands down — they are combined instead, in `findServing`.
- */
-const INHERITED_FIELDS = [
-  "worktime",
-  "minDeliveryTime",
-  "minOrderTotal",
-  "freeDeliveryFrom",
-  "deliveryCost",
-  "deliveryItem",
-  "deliveryMessage",
-] as const;
-
-function pickInheritedFields(layer: DeliveryZoneRecord): Partial<DeliveryZoneRecord> {
-  const inherited: Partial<DeliveryZoneRecord> = {};
-  for (const field of INHERITED_FIELDS) {
-    (inherited as any)[field] = (layer as any)[field];
-  }
-  return inherited;
-}
 
 /** One row by id — the only read the write hooks below make. */
 async function findZone(id: string): Promise<DeliveryZoneRecord | undefined> {

@@ -5,14 +5,7 @@ import { v4 as uuid } from "uuid";
 import { PromotionRecord } from "./Promotion";
 import { WorkTime } from "@webresto/worktime/lib/worktime.validator";
 
-function normalizePromotionCodeValue(value: unknown): string | null {
-  if (value === null || value === undefined) {
-    return null;
-  }
-
-  const normalized = String(value).trim().toUpperCase();
-  return normalized || null;
-}
+import { normalizePromotionCodeValue } from "../lib/promotion-code";
 
 let attributes = {
 
@@ -85,10 +78,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `PromotionCodeRecord` instead
- */
-interface PromotionCode extends attributes, ORM {}
 export interface PromotionCodeRecord extends attributes, ORM {}
 
 let Model = {

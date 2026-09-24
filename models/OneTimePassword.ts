@@ -3,6 +3,7 @@ import { ORMModel } from "../interfaces/ORMModel";
 
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { NotificationService } from "../lib/notifications/NotificationService";
+import { generateOtp } from "../lib/one-time-password";
 
 let attributes = {
   
@@ -25,10 +26,6 @@ let attributes = {
 
 type attributes = typeof attributes;
 
-/**
- * @deprecated use `OneTimePasswordRecord` instead
- */
-interface OneTimePassword extends RequiredField<OptionalAll<attributes>, "login" >, ORM {}
 export interface OneTimePasswordRecord extends RequiredField<OptionalAll<attributes>, "login" >, ORM {}
 
 
@@ -125,20 +122,3 @@ declare global {
   const OneTimePassword: typeof Model & ORMModel<OneTimePasswordRecord,  "login" >;
 }
 
-
-function generateOtp() {
-  if((process.env.DEMO_MODE || "").toLowerCase() === "true") {
-    return "999999";
-  }
-  
-  if (process.env.NODE_ENV !== "production" && process.env.DEFAULT_OTP) {
-    return process.env.DEFAULT_OTP;
-  }
-  
-  let digits = '1234567890';
-  let otp = ''
-  for (let i = 0; i < 6; i++) {
-      otp += digits[Math.floor(Math.random() * 10)];
-  }
-  return otp;
-}

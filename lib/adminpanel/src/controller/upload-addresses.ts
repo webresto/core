@@ -1,4 +1,4 @@
-import { importAddresses } from "../../../../adapters/geo/address-import";
+import { importAddresses } from "../../../address/import-from-file";
 import { ADDRESSES_MANAGE_TOKEN, requireToken } from "./access-rights";
 
 /**

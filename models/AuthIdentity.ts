@@ -51,10 +51,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `AuthIdentityRecord` instead
- */
-interface AuthIdentity extends RequiredField<OptionalAll<attributes>, "provider" | "externalId">, ORM {}
 export interface AuthIdentityRecord extends RequiredField<OptionalAll<attributes>, "provider" | "externalId">, ORM {}
 
 let Model = {

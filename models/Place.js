@@ -1,22 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-function assertCoordinate(value) {
-    if (!value || typeof value !== "object") {
-        throw new Error("Place coordinate must be an object with lat and lon");
-    }
-    const coordinate = value;
-    if (typeof coordinate.lat !== "number" ||
-        !Number.isFinite(coordinate.lat) ||
-        coordinate.lat < -90 ||
-        coordinate.lat > 90 ||
-        typeof coordinate.lon !== "number" ||
-        !Number.isFinite(coordinate.lon) ||
-        coordinate.lon < -180 ||
-        coordinate.lon > 180) {
-        throw new Error("Place coordinate must contain a valid latitude and longitude");
-    }
-}
+const place_1 = require("../lib/place");
 let attributes = {
     id: {
         type: "string",
@@ -27,30 +12,36 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    title: 'string',
-    address: 'string',
-    order: 'number',
-    phone: 'string',
+    title: "string",
+    address: "string",
+    order: "number",
+    phone: "string",
     enable: {
-        type: 'boolean'
+        type: "boolean",
     },
-    worktime: 'json',
-    isPickupPoint: 'boolean',
-    isCookingPoint: 'boolean',
+    worktime: "json",
+    isPickupPoint: "boolean",
+    /**
+     * TODO: Idea for cooking poin ballancing + wortime
+     */
+    // cookingPointFallback: {
+    //   model: "place",
+    // },
+    isCookingPoint: "boolean",
     /** The point has a room to eat in: what `dine-in` orders are taken at. */
     hasDiningArea: {
-        type: 'boolean',
+        type: "boolean",
         defaultsTo: false,
     },
     /** Which city's list of points this one is in. */
     city: {
-        model: 'city',
+        model: "city",
     },
     /** Geographic position of the point. Required only by geo/route kitchen modes. */
     coordinate: {
-        type: 'json',
+        type: "json",
     },
-    customData: 'json'
+    customData: "json",
 };
 let Model = {
     beforeCreate(placeInit, cb) {
@@ -59,7 +50,7 @@ let Model = {
         }
         try {
             if (placeInit.coordinate !== undefined && placeInit.coordinate !== null) {
-                assertCoordinate(placeInit.coordinate);
+                (0, place_1.assertCoordinate)(placeInit.coordinate);
             }
             cb();
         }
@@ -70,7 +61,7 @@ let Model = {
     beforeUpdate(placeUpdate, cb) {
         try {
             if (placeUpdate.coordinate !== undefined && placeUpdate.coordinate !== null) {
-                assertCoordinate(placeUpdate.coordinate);
+                (0, place_1.assertCoordinate)(placeUpdate.coordinate);
             }
             cb();
         }

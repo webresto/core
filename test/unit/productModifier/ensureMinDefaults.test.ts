@@ -9,18 +9,15 @@ describe("ProductModifier.ensureMinDefaults", () => {
       minAmount: 1,
       maxAmount: 3,
       rmsId: "rms-group1",
-      modifierId: "modifier-group1",
       childModifiers: [
         {
           id: "mod1",
           defaultAmount: 1,
           rmsId: "r1",
-          modifierId: "mod-1"
         },
         {
           id: "mod2",
           rmsId: "r2",
-          modifierId: "mod-2"
         }
       ]
     },
@@ -28,18 +25,15 @@ describe("ProductModifier.ensureMinDefaults", () => {
       id: "group2",
       minAmount: 1,
       rmsId: "rms-group2",
-      modifierId: "modifier-group2",
       childModifiers: [
         {
           id: "mod3",
           defaultAmount: 0, // no defaultAmount
           rmsId: "r3",
-          modifierId: "mod-3"
         },
         {
           id: "mod4", // this one can be picked
           rmsId: "r4",
-          modifierId: "mod-4"
         }
       ]
     },
@@ -47,26 +41,22 @@ describe("ProductModifier.ensureMinDefaults", () => {
       id: "group3", // group with minAmount = 0
       minAmount: 0,
       rmsId: "rms-group3",
-      modifierId: "modifier-group3",
       childModifiers: [
         {
           id: "mod5",
           defaultAmount: 1,
           rmsId: "r5",
-          modifierId: "mod-5"
         }
       ]
     },
     {
       id: "group4", // group without minAmount
       rmsId: "rms-group4",
-      modifierId: "modifier-group4",
       childModifiers: [
         {
           id: "mod6",
           defaultAmount: 1,
           rmsId: "r6",
-          modifierId: "mod-6"
         }
       ]
     }

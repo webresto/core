@@ -1,5 +1,5 @@
-import { getDefaultCookingPlaceId } from "../../../../adapters/menu/cooking-place";
-import { getEffectiveBalances, readEffectiveBalance } from "../../../../adapters/menu/dish-place-balance";
+import { getDefaultCookingPlaceId } from "../../../menu/cooking-place";
+import { getEffectiveBalances, readEffectiveBalance } from "../../../menu/dish-place-balance";
 
 /**
  * GET …/core/modifiers/dishes?group=<id>&q=<search>&ids=<id,id,...>&onlyModifiers=0
@@ -36,7 +36,7 @@ function pickImages(dish: any): Record<string, string> | null {
   if (!list.length) return null;
   // Most recent image first — same ordering Dish.display uses.
   if (list.length >= 2) list.sort((a, b) => String(b.uploadDate || "").localeCompare(String(a.uploadDate || "")));
-  const variant = list[0]?.variant ?? list[0]?.images;
+  const variant = list[0]?.variant;
   if (!variant || typeof variant !== "object" || !Object.keys(variant).length) return null;
   return variant;
 }

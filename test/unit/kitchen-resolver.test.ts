@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { getOrderCookingPlaceId, placeAcceptsOrdersNow } from "../../adapters/menu/cooking-place";
-import { getKitchenResolveChain, resolveCookingPlace } from "../../adapters/menu/kitchen-resolver";
+import { getOrderCookingPlaceId, placeAcceptsOrdersNow } from "../../lib/menu/cooking-place";
+import { DefaultMenuAdapter } from "../../adapters/menu/default/defaultMenu";
 import { distanceKm } from "../../adapters/delivery/geo";
 import DeliveryAdapter from "../../adapters/delivery/DeliveryAdapter";
 import { invalidateDeliveryZoneCache } from "../../adapters/delivery/default/zone-cache";
@@ -13,6 +13,9 @@ describe("kitchen-resolver", function () {
   const realSails = (global as any).sails;
 
   const warnings: string[] = [];
+
+  /** Kitchen resolution is a method of the base menu adapter; any concrete one runs it. */
+  const resolver = new DefaultMenuAdapter();
 
   /** The built-in adapter's own travel estimate, with nothing overridden. */
   class StraightLineDelivery extends DeliveryAdapter {
@@ -75,7 +78,7 @@ describe("kitchen-resolver", function () {
   it("assigns no kitchen when the chain is empty", async function () {
     bindGlobals({ KITCHEN_RESOLVE_CHAIN: [] }, [center]);
 
-    const resolution = await resolveCookingPlace({});
+    const resolution = await resolver.resolveCookingPlace({});
 
     expect(resolution.placeId).to.equal(null);
     expect(resolution.diagnostics.join(" ")).to.contain("KITCHEN_RESOLVE_CHAIN is empty");
@@ -90,7 +93,7 @@ describe("kitchen-resolver", function () {
       [{ ...center, enable: false }, { ...north, coordinate: null }],
     );
 
-    const resolution = await resolveCookingPlace({ coordinate: { lat: 56.84, lon: 60.61 } });
+    const resolution = await resolver.resolveCookingPlace({ coordinate: { lat: 56.84, lon: 60.61 } });
 
     expect(resolution.placeId).to.equal("north");
     expect(resolution.strategy).to.equal("single-point");
@@ -99,7 +102,7 @@ describe("kitchen-resolver", function () {
   it("picks the nearest open kitchen inside the radius", async function () {
     bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["nearest-geo"], DELIVERY_MAX_RADIUS_KM: 0 }, [center, north]);
 
-    const resolution = await resolveCookingPlace({ coordinate: { lat: 56.85, lon: 60.61 } });
+    const resolution = await resolver.resolveCookingPlace({ coordinate: { lat: 56.85, lon: 60.61 } });
 
     expect(resolution.placeId).to.equal("center");
   });
@@ -107,7 +110,7 @@ describe("kitchen-resolver", function () {
   it("passes when every kitchen is outside the radius", async function () {
     bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["nearest-geo"], DELIVERY_MAX_RADIUS_KM: 1 }, [center, north]);
 
-    const resolution = await resolveCookingPlace({ coordinate: { lat: 55.0, lon: 60.61 } });
+    const resolution = await resolver.resolveCookingPlace({ coordinate: { lat: 55.0, lon: 60.61 } });
 
     expect(resolution.placeId).to.equal(null);
   });
@@ -120,7 +123,7 @@ describe("kitchen-resolver", function () {
     bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["delivery-zone"] }, [center, north], undefined, [centerZone, northZone]);
 
     // Nearer to center by air, but inside the north zone.
-    const resolution = await resolveCookingPlace({ coordinate: { lat: 56.881, lon: 60.61 } });
+    const resolution = await resolver.resolveCookingPlace({ coordinate: { lat: 56.881, lon: 60.61 } });
 
     expect(resolution.placeId).to.equal("north");
     expect(resolution.strategy).to.equal("delivery-zone");
@@ -135,7 +138,7 @@ describe("kitchen-resolver", function () {
       [centerZone, northZone],
     );
 
-    const resolution = await resolveCookingPlace({ coordinate: { lat: 57.5, lon: 60.61 } });
+    const resolution = await resolver.resolveCookingPlace({ coordinate: { lat: 57.5, lon: 60.61 } });
 
     expect(resolution.strategy).to.equal("nearest-geo");
     expect(resolution.diagnostics.join(" ")).to.contain("delivery-zone: coordinate is in no zone");
@@ -149,7 +152,7 @@ describe("kitchen-resolver", function () {
       [centerZone, northZone],
     );
 
-    const resolution = await resolveCookingPlace({ coordinate: { lat: 56.9, lon: 60.61 } });
+    const resolution = await resolver.resolveCookingPlace({ coordinate: { lat: 56.9, lon: 60.61 } });
 
     expect(resolution.placeId).to.equal(null);
     expect(resolution.diagnostics.join(" ")).to.contain("delivery-zone: zone zone-north contains no open kitchen");
@@ -165,7 +168,7 @@ describe("kitchen-resolver", function () {
       new BrokenZones(),
     );
 
-    const resolution = await resolveCookingPlace({ coordinate: { lat: 56.85, lon: 60.61 } });
+    const resolution = await resolver.resolveCookingPlace({ coordinate: { lat: 56.85, lon: 60.61 } });
 
     expect(resolution.placeId).to.equal("center");
     expect(resolution.strategy).to.equal("single-point");
@@ -184,7 +187,7 @@ describe("kitchen-resolver", function () {
     }
     bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["nearest-geo"] }, [center, north], new RoutingDelivery());
 
-    const resolution = await resolveCookingPlace({ coordinate: { lat: 56.85, lon: 60.61 } });
+    const resolution = await resolver.resolveCookingPlace({ coordinate: { lat: 56.85, lon: 60.61 } });
 
     expect(resolution.placeId).to.equal("north");
     expect(resolution.diagnostics.join(" ")).to.contain("routing-api");
@@ -200,7 +203,7 @@ describe("kitchen-resolver", function () {
       new BrokenDelivery(),
     );
 
-    const resolution = await resolveCookingPlace({ coordinate: { lat: 56.85, lon: 60.61 } });
+    const resolution = await resolver.resolveCookingPlace({ coordinate: { lat: 56.85, lon: 60.61 } });
 
     expect(resolution.placeId).to.equal("north");
     expect(resolution.strategy).to.equal("single-point");
@@ -210,7 +213,7 @@ describe("kitchen-resolver", function () {
   it("serves a pickup order from the point the customer chose", async function () {
     bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["nearest-geo"] }, [center, north]);
 
-    const resolution = await resolveCookingPlace({ serviceType: "pickup", pickupPointId: "north" });
+    const resolution = await resolver.resolveCookingPlace({ serviceType: "pickup", pickupPointId: "north" });
 
     expect(resolution.placeId).to.equal("north");
     expect(resolution.strategy).to.equal("pickup-point");
@@ -219,16 +222,19 @@ describe("kitchen-resolver", function () {
   it("serves a dine-in order from the point the customer chose", async function () {
     bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["nearest-geo"] }, [center, north]);
 
-    const resolution = await resolveCookingPlace({ serviceType: "dine-in", pickupPointId: "north" });
+    const resolution = await resolver.resolveCookingPlace({ serviceType: "dine-in", pickupPointId: "north" });
 
     expect(resolution.placeId).to.equal("north");
     expect(resolution.strategy).to.equal("pickup-point");
   });
 
   it("drops unknown names and repeats from the chain", async function () {
-    bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["single-point", "moon-base", "single-point"] }, [center]);
+    bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["nearest-geo", "moon-base", "nearest-geo"] }, [center]);
 
-    expect(await getKitchenResolveChain()).to.deep.equal(["single-point"]);
+    const resolution = await resolver.resolveCookingPlace({});
+
+    expect(resolution.placeId).to.equal(null);
+    expect(resolution.diagnostics.filter((line) => line.startsWith("nearest-geo"))).to.have.length(1);
     expect(warnings.join(" ")).to.contain("moon-base");
   });
 

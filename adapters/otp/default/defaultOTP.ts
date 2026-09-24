@@ -1,8 +1,8 @@
 import { coreI18n } from "../../../hook/bindLocales";
 import { OneTimePasswordRecord } from "../../../models/OneTimePassword";
-import OneTimePasswordAdapter from "../OneTimePasswordAdapter";
+import OTPAdapter from "../OTPAdapter";
 // todo: fix types model instance to {%ModelName%}Record for OneTimePassword"
-export class DefaultOTP extends OneTimePasswordAdapter {
+export class DefaultOTP extends OTPAdapter {
   /**
    * Send and return OTP code
    * Send if delivery channel to user exit, else it delivers to manager, for calling and speech

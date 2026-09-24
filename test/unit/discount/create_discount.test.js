@@ -66,7 +66,6 @@ describe('Create_Discount', function () {
                     // 
                     dish.discountAmount = promotionAdapter.promotions[this.id].configDiscount.discountAmount;
                     dish.discountType = promotionAdapter.promotions[this.id].configDiscount.discountType;
-                    dish.oldPrice = dish.price;
                     dish.price = this.configDiscount.discountType === "flat"
                         ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
                         : new decimal_js_1.default(dish.price)

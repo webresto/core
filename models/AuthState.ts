@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import { NormalizedProfile } from "../adapters/auth/AuthProviderAdapter";
+import type { NormalizedProfile } from "../adapters";
 
 export type AuthStateStatus = "started" | "awaiting_phone" | "done" | "expired";
 
@@ -71,10 +71,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `AuthStateRecord` instead
- */
-interface AuthState extends RequiredField<OptionalAll<attributes>, "provider" | "deviceId">, ORM {}
 export interface AuthStateRecord extends RequiredField<OptionalAll<attributes>, "provider" | "deviceId">, ORM {}
 
 let Model = {

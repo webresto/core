@@ -75,11 +75,6 @@ declare let attributes: {
     } | string;
 };
 type attributes = typeof attributes;
-/**
- * @deprecated use `UserRecord` instead
- */
-interface User extends OptionalAll<attributes>, ORM {
-}
 export interface UserRecord extends OptionalAll<attributes>, ORM {
 }
 declare let Model: {
@@ -114,7 +109,7 @@ declare let Model: {
      *
      * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
      */
-    setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean, temporaryCode?: string): Promise<User>;
+    setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean, temporaryCode?: string): Promise<UserRecord>;
     login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDeviceRecord>;
     authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDeviceRecord>;
     /**

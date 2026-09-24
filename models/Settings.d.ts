@@ -6,8 +6,10 @@ import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { ControlElement, Layout } from "@jsonforms/core";
+import { isInDeclaredSettings, setDeclaredSetting } from "../lib/settings/declared";
+import { parseBoolean } from "../lib/settings/value";
 type PlainValue = string | boolean | number | string[] | number[] | SettingValue[];
-type SettingValue = PlainValue | {
+export type SettingValue = PlainValue | {
     [key: string]: SettingList[keyof SettingList];
 };
 type SettingType = "string" | "boolean" | "json" | "number";
@@ -19,9 +21,6 @@ interface UISchema {
     scope?: string;
     options?: any;
 }
-declare function setDeclaredSetting(key: string): void;
-declare function isInDeclaredSettings(key: string): boolean;
-declare function parseBoolean(value: string | undefined): boolean | undefined;
 declare let attributes: {
     id: string;
     key: string;
@@ -47,11 +46,6 @@ declare let attributes: {
     manifestChecksum: string;
 };
 type attributes = typeof attributes & ORM;
-/**
- * @deprecated use `SettingsRecord` instead
- */
-interface Settings extends RequiredField<OptionalAll<attributes>, "key" | "type"> {
-}
 export interface SettingsRecord extends RequiredField<OptionalAll<attributes>, "key" | "type"> {
 }
 declare let Model: {
@@ -62,7 +56,7 @@ declare let Model: {
     /** return setting value by unique key */
     use(key: string): Promise<SettingValue>;
     get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined>;
-    set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings>;
+    set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<SettingsRecord>;
     env<K extends keyof SettingList>(key: K): SettingList[K] | undefined;
     /**
      * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB

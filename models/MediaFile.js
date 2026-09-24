@@ -46,16 +46,7 @@ let attributes = {
         type: "string",
         isIn: ['video', 'image', 'audio']
     },
-    /**
-     * @deprecated use variant field
-     * TODO: delete in ver 3
-     * Image items */
-    images: "json",
-    /**
-     * variants is just an array containing the variant name and its local path
-     * clone from images
-     * This is automatically cloned from images and vice versa
-     * Image items */
+    /** Image items: the variant name and its local path */
     variant: "json",
     /** It means Original URL http:// or file:// */
     original: "string",
@@ -73,9 +64,7 @@ let attributes = {
         via: "mediafile_group",
         through: 'selectedmediafile'
     },
-    /** upload date
-     * @deprecated (del in v2)
-     */
+    /** upload date */
     uploadDate: "string",
 };
 let Model = {
@@ -83,44 +72,11 @@ let Model = {
         if (!imageInit.id) {
             imageInit.id = (0, uuid_1.v4)();
         }
-        /**
-         * TODO: delete in ver 3
-         */
-        if (imageInit.variant && imageInit.images) {
-            return cb('variant & image not allowed');
-        }
-        let variant = {
-            ...(imageInit.variant ? { ...imageInit.variant } : {}),
-            ...(imageInit.images ? { ...imageInit.images } : {})
-        };
-        imageInit.variant = variant;
-        imageInit.images = variant;
-        // 
-        cb();
-    },
-    beforeUpdate(imageInit, cb) {
-        /**
-         * TODO: delete in ver 3
-         */
-        if (imageInit.variant && imageInit.images) {
-            return cb('variant & image not allowed');
-        }
-        let variant = {
-            ...(imageInit.variant ? { ...imageInit.variant } : {}),
-            ...(imageInit.images ? { ...imageInit.images } : {})
-        };
-        imageInit.variant = variant;
-        imageInit.images = variant;
-        // 
         cb();
     },
     async afterDestroy(mf, cb) {
         try {
-            let variant = {
-                // TODO:delete in v3
-                ...(mf.variant ? { ...mf.variant } : {}),
-                ...(mf.images ? { ...mf.images } : {})
-            };
+            const variant = mf.variant ?? {};
             for (const key in variant) {
                 const filePath = variant[key];
                 try {

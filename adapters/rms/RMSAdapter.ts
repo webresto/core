@@ -7,8 +7,8 @@ import { DishRecord } from "../../models/Dish";
 import { GroupRecord } from "../../models/Group";
 import { OrderRecord } from "../../models/Order";
 import { SelectedMediaFileRecord } from "../../models/SelectedMediaFile";
-import { getEnabledCookingPlaceIds } from "../menu/cooking-place";
-import { UNLIMITED_BALANCE } from "../menu/dish-place-balance";
+import { getEnabledCookingPlaceIds } from "../../lib/menu/cooking-place";
+import { UNLIMITED_BALANCE } from "../../lib/menu/dish-place-balance";
 export type ConfigRMSAdapter = {
   [key: string]: ConfigRMSAdapter | number | boolean | string | null | undefined;
 };

@@ -1,6 +1,6 @@
 import { ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
-import PaymentAdapter from "../adapters/payment/PaymentAdapter";
+import type { PaymentAdapter } from "../adapters";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { PaymentMethodType } from "../lib/enums/PaymentMethodTypes";
 declare let attributes: {

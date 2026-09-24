@@ -1,6 +1,6 @@
-import { getDefaultCookingPlaceId, primaryCookingPoint, toPlaceId } from "../cooking-place";
+import { getDefaultCookingPlaceId, primaryCookingPoint, toPlaceId } from "../../../lib/menu/cooking-place";
 import MenuAdapter from "../MenuAdapter";
-import { MenuContext, MenuRequest } from "../contracts";
+import { MenuContext, MenuRequest } from "../../../interfaces/Menu";
 
 /**
  * One kitchen cooks the order, and the menu is that kitchen's menu.

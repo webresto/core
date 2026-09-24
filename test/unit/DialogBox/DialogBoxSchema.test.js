@@ -22,7 +22,6 @@ describe('DialogBoxSchema', () => {
         "options": [
             {
                 "id": "product1",
-                "label": "Product 1",
                 "product": {
                     "name": "test",
                     "id": "123",
@@ -32,7 +31,6 @@ describe('DialogBoxSchema', () => {
             },
             {
                 "id": "option1",
-                "label": "Action 1",
                 "button": {
                     "type": "primary"
                 }

@@ -12,15 +12,14 @@ const phoneValidByMask_1 = require("../lib/phoneValidByMask");
 const OrderHelper_1 = require("../lib/order/OrderHelper");
 const cancelPaymentDialog_1 = require("../lib/order/cancelPaymentDialog");
 const isValue_1 = require("../utils/isValue");
-const cooking_place_1 = require("../adapters/menu/cooking-place");
+const cooking_place_1 = require("../lib/menu/cooking-place");
 const kitchen_assignment_1 = require("../lib/order/kitchen-assignment");
 const soft_delivery_1 = require("../adapters/delivery/soft-delivery");
-const delivery_location_1 = require("../adapters/geo/delivery-location");
-const address_1 = require("../adapters/geo/address");
-const dish_place_balance_1 = require("../adapters/menu/dish-place-balance");
-const product_availability_1 = require("../adapters/menu/product-availability");
+const coordinate_1 = require("../lib/address/coordinate");
+const format_1 = require("../lib/address/format");
+const dish_place_balance_1 = require("../lib/menu/dish-place-balance");
+const product_availability_1 = require("../lib/menu/product-availability");
 const order_timing_1 = require("../lib/order/order-timing");
-const route_assignment_1 = require("../lib/order/route-assignment");
 const ProductModifier_1 = require("../lib/ProductModifier");
 const OrderStateFlow_1 = require("../lib/order/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
@@ -33,6 +32,11 @@ const NotificationService_1 = require("../lib/notifications/NotificationService"
  * room to eat it in.
  */
 exports.SERVICE_TYPES = ["delivery", "pickup", "dine-in"];
+/** Journal messages for what a route planner answered during `countCart`. */
+const ROUTE_LOG = {
+    planned: "countCart: route planned",
+    refused: "countCart: route refused",
+};
 const OrderLogHelper_1 = __importDefault(require("../lib/order/OrderLogHelper"));
 const ORDERED_STATES = ["ORDER", "COOKING", "ON_THE_WAY"];
 let attributes = {
@@ -62,9 +66,6 @@ let attributes = {
     },
     /** the basket contains mixed types of concepts */
     isMixedConcept: "boolean",
-    /**
-     * @deprecated will be rename to `Items` in **v2**
-     */
     dishes: {
         collection: "OrderDish",
         via: "order",
@@ -238,28 +239,7 @@ let attributes = {
     delivery: {
         type: "json"
     },
-    /** Notification about delivery
-     * ex: time increased due to traffic jams
-     * @deprecated should changed for order.delivery.message
-     * */
-    deliveryDescription: {
-        type: "string",
-        allowNull: true
-    },
-    message: "string", // deprecated
-    /**
-     * @deprecated use order.delivery.item
-     */
-    deliveryItem: {
-        model: "Dish",
-    },
-    /**
-     * @deprecated use order.delivery.cost
-     */
-    deliveryCost: {
-        type: "number",
-        defaultsTo: 0,
-    },
+    message: "string",
     /** order total weight */
     totalWeight: {
         type: "number",
@@ -278,7 +258,7 @@ let attributes = {
     spendBonus: {
         type: "json"
     },
-    /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
+    /** total = basketTotal + delivery.cost - discountTotal - bonusesTotal */
     total: {
         type: "number",
         defaultsTo: 0,
@@ -287,13 +267,6 @@ let attributes = {
       * Sum dishes user added
       */
     basketTotal: {
-        type: "number",
-        defaultsTo: 0,
-    },
-    /**
-    *   @deprecated orderTotal use basketTotal
-    */
-    orderTotal: {
         type: "number",
         defaultsTo: 0,
     },
@@ -886,10 +859,10 @@ let Model = {
                             amountToDeduct = order.total;
                             break;
                         case 'bonus_from_basket_delivery_discount':
-                            amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+                            amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0) - order.discountTotal;
                             break;
                         case 'bonus_from_basket_and_delivery':
-                            amountToDeduct = order.basketTotal + order.deliveryCost;
+                            amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0);
                             break;
                         case 'bonus_from_basket':
                             amountToDeduct = order.basketTotal;
@@ -1025,37 +998,6 @@ let Model = {
         // One event with the type in it, rather than one event per type: every
         // listener has to branch on the type anyway now that there are three.
         Order.emitAndLogDetached({ id: order.id }, "core:order-order-service-type", order, order.serviceType);
-        /**
-         *  I think that this function is unnecessary here, although the entire emitter was created for it.
-         *  Obviously, having an RMS adapter at your disposal, you don’t need a waiting listener at all
-         *  But since it exists, it will be revised in version 2
-         * @deprecated Event `core:order-order`
-         */
-        const results = await Order.emitAndLog({ id: order.id }, "core:order-order", order);
-        sails.log.silly("Order > order > after wait general emitter results: ", results);
-        const resultsCount = results.length;
-        const successCount = results.filter((r) => r.state === "success").length;
-        const orderConfig = await Settings.get("EMITTER_ORDER_STRATEGY");
-        if (orderConfig) {
-            if (orderConfig === "ALL_REQUIRED") {
-                if (resultsCount === successCount) {
-                    await orderIt();
-                    return;
-                }
-                else {
-                    throw "At least one listener did not complete the order.";
-                }
-            }
-            if (orderConfig === "JUST_ONE") {
-                if (successCount > 0) {
-                    await orderIt();
-                    return;
-                }
-                else {
-                    throw "No listener completed the order";
-                }
-            }
-        }
         await orderIt();
         return;
         async function orderIt() {
@@ -1317,7 +1259,6 @@ let Model = {
         try {
             fullOrder = await Order.findOne(criteria)
                 .populate("dishes")
-                .populate("deliveryItem")
                 .populate('paymentMethod').populate('user').populate('pickupPoint');
             if (!fullOrder)
                 throw `order by criteria: ${criteria},  not found`;
@@ -1440,92 +1381,40 @@ let Model = {
                 await Order.log({ id: order.id }, "info", "core", kitchen_assignment_1.KITCHEN_LOG.assigned, {
                     from: kitchen.previousPlaceId,
                     to: kitchen.placeId,
-                    strategy: kitchen.resolution?.strategy ?? null,
-                    diagnostics: kitchen.resolution?.diagnostics ?? [],
+                    strategy: kitchen.resolution.strategy,
+                    diagnostics: kitchen.resolution.diagnostics,
                 });
             }
-            const populatedLines = orderDishes.filter((orderDish) => orderDish.dish && typeof orderDish.dish !== "string");
-            // The route is planned before the basket loop, not after it.
+            // Where each line is cooked, decided before the basket loop and not after it.
             //
             // The loop is what drops a product its kitchen cannot cook, so it has to
-            // already know which kitchen that is. Planning afterwards means judging
+            // already know which kitchen that is. Deciding afterwards means judging
             // every line against the order's primary point and throwing away exactly
-            // the lines a route existed to rescue — which is what the first cut did,
-            // and the stand caught it within a minute.
+            // the lines a route existed to rescue.
             //
-            // With no planner installed this returns "no route" and everything below
-            // reads the order's single kitchen, exactly as it did before.
-            const route = await (0, route_assignment_1.planOrderRoute)(order, {
-                products: populatedLines.map((line) => {
-                    const dish = line.dish;
-                    return {
-                        orderDishId: line.id,
-                        productId: String(dish?.id),
-                        amount: Number(line.amount) || 0,
-                        type: dish?.type,
-                        cookingTimeMax: dish?.cookingTimeMax,
-                    };
-                }),
-                customer: kitchen.coordinate,
-            });
-            if (route.code) {
-                await Order.log({ id: order.id }, "warn", "core", route_assignment_1.ROUTE_LOG.refused, {
-                    code: route.code,
-                    diagnostics: route.plan?.diagnostics ?? [],
+            // The menu adapter answers. The built-in ones keep the whole basket on the
+            // order's kitchen; a routing module spreads it over the stops of a route.
+            const menuAdapter = await Menu.getAdapter();
+            const placement = await menuAdapter.placeLines(order, orderDishes
+                .filter((line) => line.dish && typeof line.dish !== "string")
+                .map((line) => ({ orderDishId: line.id, dish: line.dish, amount: Number(line.amount) || 1 })), await menuAdapter.resolveContext({ order }), kitchen.coordinate);
+            if (placement.plan?.code) {
+                await Order.log({ id: order.id }, "warn", "core", ROUTE_LOG.refused, {
+                    code: placement.plan.code,
+                    diagnostics: placement.plan.diagnostics ?? [],
                 });
             }
-            else if (route.plan) {
+            else if (placement.plan) {
                 // Logged whenever a planner answered at all, not only when it produced
                 // several stops. "It considered the basket and chose one kitchen" and
                 // "nothing ever asked it" are different states, and an operator looking
                 // at a single-kitchen order in a routing installation needs to tell them
                 // apart.
-                await Order.log({ id: order.id }, "info", "core", route_assignment_1.ROUTE_LOG.planned, {
-                    stops: route.placeIds,
-                    totalMinutes: route.plan.totalMinutes,
-                    diagnostics: route.plan.diagnostics ?? [],
+                await Order.log({ id: order.id }, "info", "core", ROUTE_LOG.planned, {
+                    stops: placement.placeIds,
+                    totalMinutes: placement.plan.totalMinutes,
+                    diagnostics: placement.plan.diagnostics ?? [],
                 });
-            }
-            // Stock belongs to the pair "product + cooking point", so each line is read
-            // at the point that will actually cook it. On an order with no route that
-            // is the same point for every line, and this stays the single query it was.
-            const orderPlaceId = await (0, cooking_place_1.getOrderCookingPlaceId)(order);
-            const placeOfLine = (lineId) => route.byOrderDish.get(lineId) ?? orderPlaceId;
-            const cartAvailability = new Map();
-            // Lines the route placed are judged at the kitchen that will cook them.
-            const routedByPlace = new Map();
-            const unrouted = [];
-            for (const line of populatedLines) {
-                const routedPlace = route.byOrderDish.get(line.id);
-                if (routedPlace) {
-                    if (!routedByPlace.has(routedPlace))
-                        routedByPlace.set(routedPlace, []);
-                    routedByPlace.get(routedPlace).push(line.dish);
-                }
-                else {
-                    unrouted.push(line);
-                }
-            }
-            for (const [place, dishes] of routedByPlace) {
-                const availability = await (0, product_availability_1.getProductsAvailability)(dishes, place);
-                for (const [productId, verdict] of availability)
-                    cartAvailability.set(productId, verdict);
-            }
-            // Everything else is judged by the menu adapter, not by the order's point.
-            //
-            // This is the difference between "this kitchen cannot cook it" and "we do
-            // not know yet which kitchen would". A basket has no route until it has an
-            // address, so in a routing mode every line spends its first recount
-            // unrouted — and judging those against the primary kitchen deletes exactly
-            // the products the customer was shown and allowed to add. The adapter
-            // answers the same question it answered when the line went in.
-            if (unrouted.length) {
-                const menuAdapter = await Menu.getAdapter();
-                const menuContext = await menuAdapter.resolveContext({ order });
-                for (const line of unrouted) {
-                    const dish = line.dish;
-                    cartAvailability.set(String(dish.id), await menuAdapter.canAddProduct(dish, Number(line.amount) || 1, menuContext));
-                }
             }
             /** Products this recalculation dropped because the new kitchen stops them. */
             const stoppedByNewKitchen = [];
@@ -1563,7 +1452,7 @@ let Model = {
                             await OrderDish.destroy({ id: orderDish.id }).fetch();
                             continue;
                         }
-                        const dishBalance = cartAvailability.get(String(dish.id))?.balance ?? dish_place_balance_1.UNLIMITED_BALANCE;
+                        const dishBalance = placement.byOrderDish.get(orderDish.id)?.availability.balance ?? dish_place_balance_1.UNLIMITED_BALANCE;
                         if (dishBalance === dish_place_balance_1.UNLIMITED_BALANCE ? false : Math.abs(dishBalance) < orderDish.amount) {
                             // Only a move to another kitchen is worth telling the customer about.
                             // The same line shrinking because the same kitchen sold out is the
@@ -1738,31 +1627,21 @@ let Model = {
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
             order.totalWeight = totalWeight.toNumber();
-            // The route: the assigned kitchen, then the stops of the lines that survived.
-            //
-            // The assigned kitchen leads whatever the planner returned. The planner
-            // puts it first only when it can sell something in the basket, and the
-            // route must never reorder it — so it is placed here, not trusted to come
-            // back. Every other line is cooked there, and a stop is added only for a
-            // line the route moved elsewhere. Nothing moves a line until a router
-            // module is installed, so on every ordinary order this is the assigned
-            // kitchen alone, or nothing.
-            const liveLines = orderDishesForPopulate.filter((line) => (Number(line.amount) || 0) > 0);
-            const primary = (0, cooking_place_1.primaryCookingPoint)(order);
-            const routePoints = primary ? [primary] : [];
-            for (const orderDish of liveLines) {
-                const routed = route.byOrderDish.get(orderDish.id);
-                if (!routed)
+            // The placement, written down for the lines that survived the loop: each
+            // line's stop, and the order's kitchens without a stop whose every line was
+            // dropped. The first kitchen is the assigned one and always stays.
+            const usedPlaces = new Set();
+            for (const orderDish of orderDishesForPopulate) {
+                if ((Number(orderDish.amount) || 0) <= 0)
                     continue;
-                if ((0, cooking_place_1.toPlaceId)(orderDish.cookingPoint) !== routed) {
-                    orderDish.cookingPoint = routed;
-                    await OrderDish.update({ id: orderDish.id }, { cookingPoint: routed }).fetch();
+                const placeId = placement.byOrderDish.get(orderDish.id)?.placeId ?? null;
+                usedPlaces.add(placeId);
+                if ((0, cooking_place_1.toPlaceId)(orderDish.cookingPoint) !== placeId) {
+                    orderDish.cookingPoint = placeId;
+                    await OrderDish.update({ id: orderDish.id }, { cookingPoint: placeId }).fetch();
                 }
-                if (!routePoints.includes(routed))
-                    routePoints.push(routed);
             }
-            order.cookingPoints = routePoints;
-            order.orderTotal = basketTotal.toNumber();
+            order.cookingPoints = placement.placeIds.filter((placeId, index) => index === 0 || usedPlaces.has(placeId));
             order.basketTotal = basketTotal.toNumber();
             /**
             * Calcualte promotion & Discount costs
@@ -1909,35 +1788,23 @@ let Model = {
                 }
             }
             order.delivery = delivery;
+            // What the total adds for delivery. An invalid delivery adds nothing.
+            //
             // `strict` is the opposite of soft: under soft calculation an allowed
             // delivery with no cost is a valid answer, and its message — "a manager
-            // will call" — is exactly what `deliveryDescription` has to carry to the
-            // basket. Passing the flag straight through was what left the basket blank.
+            // will call" — is exactly what the basket has to show. Passing the flag
+            // straight through was what left the basket blank.
+            let deliveryCost = 0;
             if (order.delivery && isValidDelivery(order.delivery, !softDeliveryCalculation)) {
-                if (!order.delivery.item) {
-                    // `null` is the soft answer — the cost is unknown, not zero — but the
-                    // total is arithmetic and needs a number; the message carries the rest.
-                    order.deliveryCost = order.delivery.cost ?? 0;
-                }
-                else {
+                if (order.delivery.item) {
+                    // A delivery charged as a product costs what the product costs; a
+                    // product that is not in the catalog charges nothing.
                     const deliveryItem = await Dish.findOne({ where: { or: [{ id: order.delivery.item }, { rmsId: order.delivery.item }] } });
-                    if (deliveryItem) {
-                        order.deliveryItem = deliveryItem.id;
-                        order.deliveryCost = deliveryItem.price;
-                        order.delivery.cost = deliveryItem.price;
-                    }
-                    else {
-                        order.deliveryCost = 0;
-                        order.deliveryItem = null;
-                        order.deliveryDescription = '';
-                    }
+                    order.delivery.cost = deliveryItem ? deliveryItem.price : 0;
                 }
-                order.deliveryDescription = typeof order.delivery.message === "string" ? order.delivery.message : JSON.stringify(order.delivery.message);
-            }
-            else {
-                order.deliveryCost = 0;
-                order.deliveryItem = null;
-                order.deliveryDescription = '';
+                // `null` is the soft answer — the cost is unknown, not zero — but the
+                // total is arithmetic and needs a number; the message carries the rest.
+                deliveryCost = order.delivery.cost ?? 0;
             }
             // The promised time, once delivery and the kitchen are both settled.
             //
@@ -1982,13 +1849,13 @@ let Model = {
             }
             Order.emitAndLogDetached({ id: order.id }, "core:count-after-delivery-cost", order);
             // END calculate delivery cost
-            order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
+            order.total = new decimal_js_1.default(basketTotal).plus(deliveryCost).minus(order.discountTotal).toNumber();
             delete (order.dishes);
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             await Order.log({ id: order.id }, "debug", "core", "countCart: completed", {
                 basketTotal: order.basketTotal,
                 discountTotal: order.discountTotal,
-                deliveryCost: order.deliveryCost,
+                deliveryCost,
                 total: order.total,
                 dishesCount: order.dishesCount
             });
@@ -2030,7 +1897,7 @@ let Model = {
             if (order.total !== paymentDocument.amount) {
                 order.problem = true;
                 order.comment = order.comment + "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount;
-                await Order.log({ id: order.id }, "warn", "core", "doPaid: amount mismatch", { orderTotal: order.total, paidAmount: paymentDocument.amount });
+                await Order.log({ id: order.id }, "warn", "core", "doPaid: amount mismatch", { total: order.total, paidAmount: paymentDocument.amount });
             }
             await Order.order({ id: order.id });
             Order.emitAndLogDetached({ id: order.id }, "core:order-after-dopaid", order);
@@ -2317,7 +2184,7 @@ async function emitOrderNotificationEvent(orderId, eventKey) {
                 state: order.state,
                 total: order.total,
                 basketTotal: order.basketTotal,
-                deliveryCost: order.deliveryCost,
+                deliveryCost: order.delivery?.cost ?? 0,
                 dishesCount: order.dishesCount,
                 comment: order.comment,
                 paymentMethod: order.paymentMethodTitle,
@@ -2420,7 +2287,7 @@ async function checkCustomerInfo(customer) {
     if (strictPhoneValidation) {
         if (Array.isArray(allowedPhoneCountries)) {
             for (let countryCode of allowedPhoneCountries) {
-                const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
+                const country = sails.dictionaries.countries[countryCode];
                 isValidPhone = (0, phoneValidByMask_1.phoneValidByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
                 if (isValidPhone)
                     break;
@@ -2456,7 +2323,7 @@ async function checkCustomerInfo(customer) {
 async function formatAddress(address) {
     if (!address.node)
         return address.formatted;
-    return (0, address_1.formatAddressLine)(await Address.path(address.node), address.home);
+    return (0, format_1.formatAddressLine)(await Address.path(address.node), address.home, (await Adapter.getGeoAdapter()).selfAddressed);
 }
 /**
  * The fields `FIELDS_FOR_ORDER_INITIALIZATION` requires before a product goes in.
@@ -2492,7 +2359,8 @@ async function checkAddress(address, softDeliveryCalculation = false) {
     // does free text, unless it carries a coordinate: that is how a saved location
     // of a house comes back, its number in the line and its door in the point.
     const node = address.node ? await Address.findOne({ id: address.node }) : undefined;
-    if (!address.home && !(node && address_1.SELF_ADDRESSED.includes(node.type)) && !(0, delivery_location_1.coordinateFromAddress)(address)) {
+    const selfAddressed = node && (await Adapter.getGeoAdapter()).selfAddressed.includes(node.type);
+    if (!address.home && !selfAddressed && !(0, coordinate_1.coordinateFromAddress)(address)) {
         error.push({
             code: 6,
             error: "address.home is required",
@@ -2502,7 +2370,7 @@ async function checkAddress(address, softDeliveryCalculation = false) {
     // qualify the address text for the geocoder, and an address that already
     // carries a coordinate never reaches one. Never substituted from a setting:
     // that substitution is what sends "Republic street" to the wrong town.
-    if (!address.city && !(0, delivery_location_1.coordinateFromAddress)(address)) {
+    if (!address.city && !(0, coordinate_1.coordinateFromAddress)(address)) {
         error.push({
             code: 7,
             error: "address.city is required",

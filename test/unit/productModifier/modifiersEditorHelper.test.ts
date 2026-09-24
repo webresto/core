@@ -55,12 +55,6 @@ describe('modifiersEditorHelper', () => {
     expect(out[0].childModifiers[0].extraChildKey).to.equal(1);
   });
 
-  it('maps deprecated freeAmount → freeOfChargeAmount on normalize', () => {
-    const out = serializeModifiers(normalizeModifiers([{ id: 'g', freeAmount: 2, childModifiers: [{ id: 'd' }] }])) as any[];
-    expect(out[0].freeOfChargeAmount).to.equal(2);
-    expect(out[0].freeAmount).to.equal(undefined);
-  });
-
   it('summarizes groups/options counts', () => {
     expect(summarizeModifiers([])).to.equal('Нет модификаторов');
     expect(summarizeModifiers(valid)).to.contain('1 гр.');

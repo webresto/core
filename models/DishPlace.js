@@ -1,48 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isEmptyRow = isEmptyRow;
 const uuid_1 = require("uuid");
-const dish_place_balance_1 = require("../adapters/menu/dish-place-balance");
-function toId(value) {
-    if (typeof value === "string")
-        return value.trim() || null;
-    if (value && typeof value === "object" && typeof value.id === "string") {
-        return value.id.trim() || null;
-    }
-    return null;
-}
-function isBalanceValue(value) {
-    return value === null || (typeof value === "number" && Number.isFinite(value) && value >= -1);
-}
-/** `-1` and `null` both mean "this source reports no limit". */
-function limitsNothing(value) {
-    return value === null || value === undefined || value === dish_place_balance_1.UNLIMITED_BALANCE;
-}
-/**
- * A row that limits nothing and is enabled says exactly what a missing row says.
- *
- * The rule deliberately ignores the balance mode: the mode is a setting an
- * operator flips on a live system, while deleting a row is irreversible. Judging
- * emptiness by the active mode would throw away a real RMS value in `local-only`
- * with nowhere to get it back from after a switch to `minimum`.
- */
-function isEmptyRow(values) {
-    return limitsNothing(values.localBalance) && limitsNothing(values.rmsBalance) && values.enable !== false;
-}
-/**
- * The state a row would end up in after the update.
- *
- * A caller writes one source and leaves the others out, so an absent key must
- * keep the stored value rather than read as "no limit" — otherwise writing
- * `rmsBalance: -1` would silently drop an operator stop stored next to it.
- */
-function mergeValues(existing, values) {
-    return {
-        localBalance: values.localBalance !== undefined ? values.localBalance : (existing.localBalance ?? null),
-        rmsBalance: values.rmsBalance !== undefined ? values.rmsBalance : (existing.rmsBalance ?? null),
-        enable: values.enable !== undefined ? values.enable : existing.enable !== false,
-    };
-}
+const association_id_1 = require("../lib/association-id");
+const row_1 = require("../lib/dish-place/row");
 let attributes = {
     id: {
         type: "string",
@@ -61,7 +21,7 @@ let attributes = {
         type: "number",
         allowNull: true,
         custom(value) {
-            return isBalanceValue(value);
+            return (0, row_1.isBalanceValue)(value);
         },
     },
     /** RMS-managed stock. Stock Manager must never write this field. */
@@ -69,7 +29,7 @@ let attributes = {
         type: "number",
         allowNull: true,
         custom(value) {
-            return isBalanceValue(value);
+            return (0, row_1.isBalanceValue)(value);
         },
     },
     /**
@@ -98,8 +58,8 @@ let Model = {
     async beforeCreate(record, cb) {
         if (!record.id)
             record.id = (0, uuid_1.v4)();
-        const dish = toId(record.dish);
-        const place = toId(record.place);
+        const dish = (0, association_id_1.toId)(record.dish);
+        const place = (0, association_id_1.toId)(record.place);
         if (!dish || !place)
             return cb("DishPlace requires both dish and place");
         try {
@@ -126,14 +86,14 @@ let Model = {
     async upsertForPlace(dish, place, values) {
         const existing = await DishPlace.findOne({ dish, place });
         if (existing) {
-            if (isEmptyRow(mergeValues(existing, values))) {
+            if ((0, row_1.isEmptyRow)((0, row_1.mergeValues)(existing, values))) {
                 await DishPlace.destroy({ id: existing.id }).fetch();
                 return null;
             }
             return await DishPlace.updateOne({ id: existing.id }, values);
         }
         // Nothing to store: a row saying "no limit, enabled" is the default state.
-        if (isEmptyRow(values))
+        if ((0, row_1.isEmptyRow)(values))
             return null;
         try {
             return await DishPlace.create({ dish, place, ...values }).fetch();
@@ -143,7 +103,7 @@ let Model = {
             const concurrent = await DishPlace.findOne({ dish, place });
             if (!concurrent)
                 throw error;
-            if (isEmptyRow(mergeValues(concurrent, values))) {
+            if ((0, row_1.isEmptyRow)((0, row_1.mergeValues)(concurrent, values))) {
                 await DishPlace.destroy({ id: concurrent.id }).fetch();
                 return null;
             }
