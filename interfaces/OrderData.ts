@@ -1,5 +1,5 @@
 import Customer from "./Customer";
-import Address from "./Address";
+import OrderAddress from "./OrderAddress";
 
 /**
  * Describes the data required for order verification and processing
@@ -11,10 +11,10 @@ export default interface OrderData {
     type: string;
   };
   paymentMethodId?: string;
-  address: Address;
+  address: OrderAddress;
   comment: string;
   date: string;
   personsCount: string;
-  selfService: boolean;
+  serviceType: "delivery" | "pickup" | "dine-in";
   customInfo: any;
 }

@@ -1,0 +1,8 @@
+{
+  "key": "DELIVERY_ZONE_SYNC_ENABLED",
+  "type": "boolean",
+  "name": "Delivery zone sync enabled",
+  "description": "Allows the scheduled zone synchronisation. It starts only for a delivery adapter that supports a zone source; zones created by hand are never touched by it.",
+  "defaultValue": false,
+  "isRequired": false
+}

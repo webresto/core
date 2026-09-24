@@ -1,5 +1,5 @@
 import Customer from "./Customer";
-import Address from "./Address";
+import OrderAddress from "./OrderAddress";
 /**
  * Describes the data necessary for order verification and placement
  */
@@ -10,7 +10,7 @@ export default interface OrderData {
         type: string;
     };
     paymentMethodId?: string;
-    address: Address;
+    address: OrderAddress;
     comment: string;
     date: string;
     personsCount: string;

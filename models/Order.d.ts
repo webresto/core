@@ -1,12 +1,12 @@
 import { OrderModifier } from "../interfaces/Modifier";
-import Address from "../interfaces/Address";
+import OrderAddress from "../interfaces/OrderAddress";
 import Customer from "../interfaces/Customer";
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
-import { Delivery } from "../adapters/delivery/DeliveryAdapter";
+import { Delivery } from "../adapters/delivery/contracts";
 import { PaymentMethodRecord } from "./PaymentMethod";
 import { OrderDishRecord } from "./OrderDish";
 import { PromotionCodeRecord } from "./PromotionCode";
@@ -19,7 +19,16 @@ export interface PromotionState {
     message: string;
     state: object | object[];
 }
-import { OrderLogLevel, OrderLogEntry } from "../libs/OrderLogHelper";
+/**
+ * How the customer gets the food.
+ *
+ * `delivery` needs an address, the other two need a point — and they need
+ * different things of it: a counter can hand an order over without having a
+ * room to eat it in.
+ */
+export declare const SERVICE_TYPES: readonly ["delivery", "pickup", "dine-in"];
+export type ServiceType = (typeof SERVICE_TYPES)[number];
+import { OrderLogLevel, OrderLogEntry } from "../lib/order/OrderLogHelper";
 export type { OrderLogLevel, OrderLogEntry };
 export type PaymentBack = {
     backLinkSuccess: string;
@@ -105,7 +114,7 @@ declare let attributes: {
     uniqueDishes: number;
     modifiers: any;
     customer: Customer;
-    address: Address;
+    address: OrderAddress;
     comment: string;
     personsCount: string;
     /** The desired date and delivery time*/
@@ -123,7 +132,39 @@ declare let attributes: {
     rmsStatusCode: string;
     rmsOrderStatus: string;
     pickupPoint: PlaceRecord | string;
-    selfService: boolean;
+    /**
+     * Every kitchen this order is cooked at, in route order.
+     *
+     * The first is the one the kitchen resolver assigned — read it through
+     * `primaryCookingPoint` — and a route only appends the kitchens it adds; one
+     * kitchen is a list of one. Empty until a resolver chain is configured: an
+     * installation that never sets `KITCHEN_RESOLVE_CHAIN` keeps working off the
+     * single default cooking point.
+     *
+     * Stored, not computed on read. A route is decided once and then acted on:
+     * couriers are told, kitchens are told, and a list that recomputed itself
+     * from current stock would answer differently tomorrow than it did when the
+     * order was placed.
+     */
+    cookingPoints: string[];
+    /**
+     * How long the customer is willing to wait, in minutes, for an ASAP order.
+     *
+     * Mutually exclusive with `date`: an order is either "as soon as you can, but
+     * no later than this" or "at this time". Both filled in is not a stricter
+     * order, it is two different orders, so it is refused rather than reconciled.
+     */
+    maxWaitMinutes: number;
+    /**
+     * How the customer gets the food: a courier brings it, they collect it, or
+     * they eat at the point.
+     *
+     * `pickup` and `dine-in` are one thing to the kitchen — the point the customer
+     * chose cooks the order — and two different things to the point: a counter in
+     * a mall hands orders over without a room to sit in. That is why this is a
+     * type and not the boolean it replaces.
+     */
+    serviceType: ServiceType;
     delivery: Delivery | null;
     /** Notification about delivery
      * ex: time increased due to traffic jams
@@ -201,7 +242,14 @@ declare let Model: {
     beforeUpdate(values: Partial<OrderRecord>, cb: (err?: string) => void): void;
     afterUpdate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
     /** Add a dish into order */
-    addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, 
+    /**
+     * user - added manually by human
+     * promotion - cleaned in each calculated promotion
+     * core - is reserved for
+     * custom - custom integration can process it
+     */
+    addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, comment: string): Promise<void>;
@@ -212,12 +260,12 @@ declare let Model: {
      */
     clone(source: CriteriaQuery<OrderRecord>): Promise<OrderRecord>;
     /**
-     * Set order selfService field. Use this method to change selfService.
+     * Set how the customer gets the food. Use this method to change `serviceType`.
      * @param criteria
-     * @param selfService
+     * @param serviceType
      */
-    setSelfService(criteria: CriteriaQuery<OrderRecord>, selfService?: boolean): Promise<OrderRecord>;
-    check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, isSelfService?: boolean, address?: Address, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus, orderedOnPlatform?: string): Promise<void>;
+    setServiceType(criteria: CriteriaQuery<OrderRecord>, serviceType: ServiceType): Promise<OrderRecord>;
+    check(criteria: CriteriaQuery<OrderRecord>, customer?: Customer, serviceType?: ServiceType, address?: OrderAddress, paymentMethodId?: string, userId?: string, spendBonus?: SpendBonus, orderedOnPlatform?: string): Promise<void>;
     /** Basket design*/
     order(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
     /**
@@ -280,7 +328,7 @@ declare let Model: {
         uniqueDishes?: number;
         modifiers?: any;
         customer?: Customer;
-        address?: Address;
+        address?: OrderAddress;
         comment?: string;
         personsCount?: string;
         date?: string;
@@ -295,7 +343,9 @@ declare let Model: {
         rmsStatusCode?: string;
         rmsOrderStatus?: string;
         pickupPoint?: PlaceRecord | string;
-        selfService?: boolean;
+        cookingPoints?: string[];
+        maxWaitMinutes?: number;
+        serviceType?: ServiceType;
         delivery?: Delivery | null;
         deliveryDescription?: string;
         message?: string;

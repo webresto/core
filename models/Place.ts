@@ -3,24 +3,73 @@ import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
 import { WorkTime } from "@webresto/worktime";
+import { CityRecord } from "./City";
+
+export interface PlaceCoordinate {
+  lat: number;
+  lon: number;
+}
+
+function assertCoordinate(value: unknown): asserts value is PlaceCoordinate {
+  if (!value || typeof value !== "object") {
+    throw new Error("Place coordinate must be an object with lat and lon");
+  }
+
+  const coordinate = value as Partial<PlaceCoordinate>;
+  if (
+    typeof coordinate.lat !== "number" ||
+    !Number.isFinite(coordinate.lat) ||
+    coordinate.lat < -90 ||
+    coordinate.lat > 90 ||
+    typeof coordinate.lon !== "number" ||
+    !Number.isFinite(coordinate.lon) ||
+    coordinate.lon < -180 ||
+    coordinate.lon > 180
+  ) {
+    throw new Error("Place coordinate must contain a valid latitude and longitude");
+  }
+}
 
 let attributes = {
   id: {
     type: "string",
     //required: true,
   } as unknown as string,
-  title: 'string',
-  address: 'string',
-  order: 'number' as unknown as number,
-  phone: 'string',
+  /** Terminal or department identifier in the RMS. Empty until an RMS maps this point. */
+  rmsId: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
+  title: "string",
+  address: "string",
+  order: "number" as unknown as number,
+  phone: "string",
   enable: {
-    type: 'boolean'
+    type: "boolean",
   } as unknown as boolean,
-  worktime: 'json' as unknown as WorkTime,
-  isPickupPoint: 'boolean'as unknown as boolean,
-  isCookingPoint: 'boolean'as unknown as boolean,
-  isSalePoint: 'boolean'as unknown as boolean,
-  customData: 'json' as unknown as any
+  worktime: "json" as unknown as WorkTime,
+  isPickupPoint: "boolean" as unknown as boolean,
+  /**
+   * TODO: Idea for cooking poin ballancing + wortime
+   */
+  // cookingPointFallback: {
+  //   model: "place",
+  // },
+  isCookingPoint: "boolean" as unknown as boolean,
+  /** The point has a room to eat in: what `dine-in` orders are taken at. */
+  hasDiningArea: {
+    type: "boolean",
+    defaultsTo: false,
+  } as unknown as boolean,
+  /** Which city's list of points this one is in. */
+  city: {
+    model: "city",
+  } as unknown as CityRecord | string,
+  /** Geographic position of the point. Required only by geo/route kitchen modes. */
+  coordinate: {
+    type: "json",
+  } as unknown as PlaceCoordinate | null,
+  customData: "json" as unknown as any,
 };
 type attributes = typeof attributes;
 
@@ -30,14 +79,31 @@ type attributes = typeof attributes;
 interface Place extends attributes, ORM {}
 export interface PlaceRecord extends attributes, ORM {}
 
-
 let Model = {
-  beforeCreate(placeInit: PlaceRecord, cb:  (err?: string) => void) {
+  beforeCreate(placeInit: PlaceRecord, cb: (err?: string) => void) {
     if (!placeInit.id) {
       placeInit.id = uuid();
     }
-    
-    cb();
+
+    try {
+      if (placeInit.coordinate !== undefined && placeInit.coordinate !== null) {
+        assertCoordinate(placeInit.coordinate);
+      }
+      cb();
+    } catch (error) {
+      cb(error instanceof Error ? error.message : String(error));
+    }
+  },
+
+  beforeUpdate(placeUpdate: Partial<PlaceRecord>, cb: (err?: string) => void) {
+    try {
+      if (placeUpdate.coordinate !== undefined && placeUpdate.coordinate !== null) {
+        assertCoordinate(placeUpdate.coordinate);
+      }
+      cb();
+    } catch (error) {
+      cb(error instanceof Error ? error.message : String(error));
+    }
   },
 };
 
@@ -48,5 +114,5 @@ module.exports = {
 };
 
 declare global {
-  const Place: typeof Model & ORMModel<PlaceRecord, null>;
+  const Place: typeof Model & ORMModel<PlaceRecord, never>;
 }

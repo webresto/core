@@ -4,9 +4,12 @@ import { useTranslation } from '../i18n/I18nContext';
 
 export function LimitedStockSection({
     items,
-    balances,
+    mode,
+    localBalances,
     onUpdateStock,
-    onBalanceChange
+    onLocalBalanceChange,
+    onToggleEnable,
+    canManage = false
 }) {
     const { t } = useTranslation();
 
@@ -36,10 +39,13 @@ export function LimitedStockSection({
         <div className="mb-8">
             <DishesGrid
                 dishes={items}
-                balances={balances}
+                mode={mode}
+                localBalances={localBalances}
                 onUpdateStock={onUpdateStock}
-                onBalanceChange={onBalanceChange}
+                onLocalBalanceChange={onLocalBalanceChange}
+                onToggleEnable={onToggleEnable}
                 title={t('Items with limited stock')}
+                canManage={canManage}
             />
         </div>
     );

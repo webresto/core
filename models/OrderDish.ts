@@ -6,6 +6,7 @@ import { OrderModifier } from "../interfaces/Modifier";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import { DishRecord } from "./Dish";
 import { OrderRecord } from "./Order";
+import { PlaceRecord } from "./Place";
 
 let attributes = {
   /** */
@@ -85,6 +86,24 @@ let attributes = {
 
   /** Full weight */
   totalWeight: "number" as unknown as number,
+
+  /**
+   * The kitchen cooking this one line.
+   *
+   * `null` on every order that is not routed across several kitchens, which is
+   * every order until a router module is installed and `MENU_PLACE_BASED_MODE`
+   * names it. A line with none is cooked at the order's first `cookingPoints`;
+   * a routed line carries the stop the route gave it.
+   *
+   * A line rather than a derived lookup because a route is a decision, not a
+   * calculation: re-deriving "which kitchen has this product" at read time would
+   * give a different answer the moment stock moves, and a kitchen that has
+   * already been told to cook something must not change its mind because a
+   * balance ticked over.
+   */
+  cookingPoint: {
+    model: "Place",
+  } as unknown as PlaceRecord | string | null,
 };
 
 type attributes = typeof attributes;

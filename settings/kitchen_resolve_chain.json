@@ -1,0 +1,16 @@
+{
+  "key": "KITCHEN_RESOLVE_CHAIN",
+  "type": "json",
+  "name": "Kitchen resolution chain",
+  "description": "Ordered kitchen resolver names. An empty chain leaves the cooking point unset. An operator's manual choice is not listed here: it locks the order and is honoured whatever the chain says.",
+  "defaultValue": [],
+  "jsonSchema": {
+    "type": "array",
+    "items": {
+      "type": "string",
+      "enum": ["delivery-zone", "rms", "nearest-geo", "single-point"]
+    },
+    "uniqueItems": true
+  },
+  "isRequired": true
+}

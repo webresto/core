@@ -2,7 +2,7 @@ import {
   getAllowedOrderTransitionsByRole,
   isOperatorUser,
   isValidOrderState,
-} from "../../../../libs/OrderStateFlow";
+} from "../../../order/OrderStateFlow";
 
 function mapOrder(order: any, operatorLimited: boolean) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
@@ -26,7 +26,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
     comment: order?.comment || "",
     tag: order?.tag || "",
     paid: Boolean(order?.paid),
-    selfService: Boolean(order?.selfService),
+    serviceType: order?.serviceType || "delivery",
     rmsOrderNumber: order?.rmsOrderNumber || "",
     createdAt: order?.createdAt || null,
     updatedAt: order?.updatedAt || null,

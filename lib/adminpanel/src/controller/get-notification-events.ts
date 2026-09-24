@@ -1,7 +1,7 @@
-import { NotificationEventRegistry } from "../../../../libs/NotificationEventRegistry";
+import { NotificationEventRegistry } from "../../../notifications/NotificationEventRegistry";
 import { hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
-import { NotificationTypeRegistry } from "../../../../libs/NotificationTypeRegistry";
-import { FlatContextPath, flattenSchema } from "../../../../libs/notificationContextSchema";
+import { NotificationTypeRegistry } from "../../../notifications/NotificationTypeRegistry";
+import { FlatContextPath, flattenSchema } from "../../../notifications/notificationContextSchema";
 
 /** recipient.* is always injected by the renderer, so surface it in autocomplete too. */
 const RECIPIENT_PATHS: FlatContextPath[] = [

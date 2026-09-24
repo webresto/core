@@ -102,7 +102,7 @@ export function registerSettingsTools() {
         schema: {
             type: 'object',
             properties: {
-                key: { type: 'string', description: 'Setting key, e.g. "DELIVERY_COST".', example: 'DELIVERY_COST' },
+                key: { type: 'string', description: 'Setting key, e.g. "WORK_TIME".', example: 'WORK_TIME' },
             },
             required: ['key'],
         },
@@ -124,18 +124,18 @@ export function registerSettingsTools() {
         description:
             'Updates a setting value. Value is validated against jsonSchema before saving.\n\n'
             + 'Call settings-get first to see the expected type and schema.\n\n'
+            + 'Delivery terms (cost, minimum order, free delivery, time) are not settings: each delivery zone carries its own.\n\n'
             + 'Common examples:\n'
-            + '  Delivery cost:      { key: "DELIVERY_COST", value: 200 }\n'
-            + '  Min order amount:   { key: "MIN_DELIVERY_AMOUNT", value: 500 }\n'
-            + '  Free delivery from: { key: "FREE_DELIVERY_FROM", value: 1500 }\n'
+            + '  Safety margin:      { key: "DELIVERY_SAFETY_MARGIN_MINUTES", value: 10 }\n'
+            + '  Order ahead limit:  { key: "POSSIBLE_TO_ORDER_IN_MINUTES", value: 1440 }\n'
             + '  Work hours:         { key: "WORK_TIME", value: [{ dayOfWeek: ["monday",...], start: "10:00", stop: "22:00", break: "00:00-00:00" }] }\n'
             + '  Currency symbol:    { key: "CURRENCY_SIGN", value: "₽" }',
         mode: 'protected',
         schema: {
             type: 'object',
             properties: {
-                key:   { type: 'string', description: 'Setting key.', example: 'DELIVERY_COST' },
-                value: { description: 'New value. Type must match the setting type (number/string/boolean/json).', example: 200 },
+                key:   { type: 'string', description: 'Setting key.', example: 'DELIVERY_SAFETY_MARGIN_MINUTES' },
+                value: { description: 'New value. Type must match the setting type (number/string/boolean/json).', example: 10 },
             },
             required: ['key', 'value'],
         },

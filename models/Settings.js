@@ -418,7 +418,7 @@ let Model = {
                     return created;
                 }
                 catch (e) {
-                    if ((e === null || e === void 0 ? void 0 : e.code) !== "E_UNIQUE") {
+                    if (e?.code !== "E_UNIQUE") {
                         throw e;
                     }
                     // Another bootstrap path created the same setting between findOne and create.
@@ -482,7 +482,7 @@ let Model = {
      *   2. seed it into the DB only when it is not already present — an existing
      *      value (operator-configured or previously seeded) is never overwritten.
      *
-     * Manifests must satisfy libs/schemas/settingsFile.json (json type requires a
+     * Manifests must satisfy lib/schemas/settingsFile.json (json type requires a
      * jsonSchema). Malformed or invalid manifests are logged and skipped.
      */
     async loadSettingsManifests() {

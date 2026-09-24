@@ -1,10 +1,9 @@
+import { requireStockManagerAccess } from "./access-rights";
+import { requireStockPlaceAccess } from "./stock-place-items";
+
 export default async function GetGroupsController(req: any, res: any) {
-    const { config } = req.adminizer || {};
-    if (config?.auth?.enable && !req.user) {
-        return res.redirect(`${config.routePrefix}/model/userap/login`);
-    } else if (req.adminizer?.accessRightsHelper && !req.adminizer.accessRightsHelper.hasPermission(`stock-manager`, req.user)) {
-        return res.sendStatus(403);
-    }
+    if (!requireStockManagerAccess(req, res)) return;
+    if (!(await requireStockPlaceAccess(req, res))) return;
     try {
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.set('Pragma', 'no-cache');

@@ -17,7 +17,8 @@
         "customer",
         "promotionCode",
         "paymentMethod",
-        "concept"
+        "concept",
+        "maxWaitMinutes"
       ]
     },
     "minItems": 0

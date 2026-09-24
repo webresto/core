@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { NotificationTypeRegistry } from "../../libs/NotificationTypeRegistry";
+import { NotificationTypeRegistry } from "../../lib/notifications/NotificationTypeRegistry";
 
 describe("NotificationTypeRegistry.normalize", function () {
   it("parses json-over-text columns that arrive as JSON strings", function () {

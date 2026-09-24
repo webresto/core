@@ -1,5 +1,5 @@
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
-import { CheckupContext } from "../../../../libs/SetupChecklistRegistry";
+import { CheckupContext } from "../../../SetupChecklistRegistry";
 
 /** Access gate shared by the setup-checklist API controllers. */
 export function hasChecklistAccess(req: any, res: any): boolean {

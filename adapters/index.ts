@@ -12,7 +12,14 @@ import { Config } from "../interfaces/Config";
 import DeliveryAdapter from "./delivery/DeliveryAdapter";
 import { DefaultDeliveryAdapter } from "./delivery/default/defaultDelivery";
 import { PromotionAdapter } from "./promotion/default/promotionAdapter";
+import MenuAdapter from "./menu/MenuAdapter";
+import { DefaultMenuAdapter } from "./menu/default/defaultMenu";
+import { SingleKitchenMenuAdapter } from "./menu/default/singleKitchenMenu";
+import { RoutePlanner } from "./menu/route-contracts";
+import { getMenuPlaceBasedMode } from "./menu/product-availability";
 import AuthProviderAdapter from "./auth/AuthProviderAdapter";
+import GeoAdapter from "./geo/GeoAdapter";
+import { NominatimGeoAdapter } from "./geo/default/nominatim";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -59,30 +66,94 @@ export class OTP {
 
 
 export class Delivery {
-  public static instanceDeliveryAdapter: DeliveryAdapter;
+  public static instanceDeliveryAdapter: DeliveryAdapter | null;
+
+  /**
+   * Adapters that registered themselves at boot, by lower-case name.
+   *
+   * There is one registry for delivery and it lives here — no separate street
+   * or zone-source registries. A module loaded as a sails hook cannot
+   * be reached by the `@webresto/<name>-delivery-adapter` require path below,
+   * so it announces itself instead, the same way auth providers do.
+   */
+  private static registered = new Map<string, DeliveryAdapter>();
+
+  /** Forgets the cached instance so the next call re-reads `DELIVERY_ADAPTER`. */
+  public static resetAdapter(): void {
+    this.instanceDeliveryAdapter = null;
+  }
+
+  /**
+   * Makes an adapter selectable by `DELIVERY_ADAPTER`.
+   *
+   * The cached instance is dropped, because a hook can finish loading after
+   * something already asked for an adapter and got the default one.
+   */
+  public static register(name: string, adapter: DeliveryAdapter): void {
+    if (!name) throw new Error("Delivery adapter name is required");
+    this.registered.set(name.toLowerCase(), adapter);
+    this.resetAdapter();
+    sails.log.info(`CORE > Delivery adapter "${name}" registered`);
+  }
+
+  /**
+   * Whether delivery is served by the built-in adapter.
+   *
+   * Asked by things that only make sense next to it — the zones module owns
+   * `DeliveryZone`, and an installation delivering through somebody else’s
+   * adapter has no use for a map of polygons nothing reads. The two ways of
+   * saying “the built-in one” are the same two `getAdapter` accepts below.
+   */
+  public static async isDefault(): Promise<boolean> {
+    const configured = await Settings.get("DELIVERY_ADAPTER");
+    const name = typeof configured === "string" ? configured.trim() : "";
+    return !name || name === "default";
+  }
+
+  /** Names currently available for `DELIVERY_ADAPTER`. */
+  public static registeredNames(): string[] {
+    return [...this.registered.keys()];
+  }
 
   /**
    * returns Delivery-adapter
+   *
+   * Without an argument the configured `DELIVERY_ADAPTER` is used, falling back
+   * to the default adapter — which is itself zone-aware, so an install with
+   * local zones and no external source needs no adapter setting at all.
    */
   public static async getAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
     // Return the singleton
-    if (this.instanceDeliveryAdapter) {
-      return this.instanceDeliveryAdapter;
+    const cached = this.instanceDeliveryAdapter;
+    if (cached) {
+      return cached;
     }
 
-    if (!adapter) {
-      this.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
-      return this.instanceDeliveryAdapter;
-    }
-
-    let adapterName: string;
+    let adapterName: string = "";
     if (adapter) {
       if (typeof adapter === "string") {
         adapterName = adapter;
       } else if (adapter instanceof DeliveryAdapter) {
         this.instanceDeliveryAdapter = adapter;
-        return this.instanceDeliveryAdapter;
+        return adapter;
       }
+    }
+
+    if (!adapterName) {
+      const configured = await Settings.get("DELIVERY_ADAPTER");
+      adapterName = typeof configured === "string" ? configured.trim() : "";
+    }
+
+    if (!adapterName || adapterName === "default") {
+      const instance = new DefaultDeliveryAdapter();
+      this.instanceDeliveryAdapter = instance;
+      return instance;
+    }
+
+    const alive = this.registered.get(adapterName.toLowerCase());
+    if (alive) {
+      this.instanceDeliveryAdapter = alive;
+      return alive;
     }
 
     let adapterLocation = fs.existsSync(WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
@@ -93,12 +164,110 @@ export class Delivery {
 
     try {
       const adapterModule = require(adapterLocation);
-      this.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
-      return this.instanceDeliveryAdapter;
+      const instance = new adapterModule.DeliveryAdapter() as DeliveryAdapter;
+      this.instanceDeliveryAdapter = instance;
+      return instance;
     } catch (e) {
       sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
+  }
+}
+
+/**
+ * Which menu adapter `MENU_PLACE_BASED_MODE` selects.
+ *
+ * The mode is the only switch: no `MENU_ADAPTER` setting sits next to it. Two
+ * ways to say the same thing is how `supportsZoneSync` went wrong, and the mode
+ * has existed since the first iteration precisely to answer this.
+ *
+ * `multi-place-route` belongs to the sixth iteration and to a module that does
+ * not exist yet. Until one registers, the mode resolves to the default adapter
+ * and says so loudly. That is the safe direction — a global menu is what every
+ * installation already has — and the alternative, refusing to serve a menu at
+ * all, would turn one wrong setting into a dark storefront.
+ */
+export class Menu {
+  private static instance: MenuAdapter | null = null;
+  private static registered = new Map<string, MenuAdapter>();
+
+  /**
+   * The route planner, when a module provides one.
+   *
+   * A single slot rather than a map: an order has one route, and two planners
+   * would have to agree about it. The registry pattern is the delivery
+   * extensions' — registering *is* the statement that routing is available, and
+   * `MENU_PLACE_BASED_MODE` still decides whether it is used.
+   */
+  private static planner: RoutePlanner | null = null;
+
+  public static useRoutePlanner(planner: RoutePlanner): void {
+    if (!planner?.name) throw new Error("A route planner must have a name");
+    if (this.planner && this.planner.name !== planner.name) {
+      sails.log.warn(
+        `CORE > Menu > route planner "${planner.name}" replaces "${this.planner.name}". ` +
+        `An order has one route, so only the last registration is in force.`,
+      );
+    }
+    this.planner = planner;
+    sails.log.info(`CORE > Menu > route planner "${planner.name}" registered`);
+  }
+
+  /** `null` when nothing routes across kitchens, which is the default. */
+  public static routePlanner(): RoutePlanner | null {
+    return this.planner;
+  }
+
+  /** Forgets the cached instance so the next call re-reads the mode. */
+  public static resetAdapter(): void {
+    this.instance = null;
+  }
+
+  /**
+   * Makes an adapter selectable by `MENU_PLACE_BASED_MODE`.
+   *
+   * A hook can finish loading after something already asked for a menu, so the
+   * cached instance is dropped — the same rule delivery adapters follow.
+   */
+  public static register(name: string, adapter: MenuAdapter): void {
+    if (!name) throw new Error("Menu adapter name is required");
+    this.registered.set(name.toLowerCase(), adapter);
+    this.resetAdapter();
+    sails.log.info(`CORE > Menu adapter "${name}" registered`);
+  }
+
+  /** Names currently available for `MENU_PLACE_BASED_MODE`. */
+  public static registeredNames(): string[] {
+    return ["default", "single-place", ...this.registered.keys()];
+  }
+
+  public static async getAdapter(): Promise<MenuAdapter> {
+    const cached = this.instance;
+    if (cached) return cached;
+
+    const mode = await getMenuPlaceBasedMode();
+
+    const alive = this.registered.get(mode);
+    if (alive) {
+      this.instance = alive;
+      return alive;
+    }
+
+    if (mode === "single-place") {
+      this.instance = new SingleKitchenMenuAdapter();
+      return this.instance;
+    }
+
+    if (mode !== "default") {
+      sails.log.error(
+        `CORE > Menu > MENU_PLACE_BASED_MODE is "${mode}" but no module registered a menu ` +
+        `adapter under that name. Falling back to the global menu. Registered: ` +
+        `[${this.registeredNames().join(", ")}]`,
+      );
+    }
+
+    this.instance = new DefaultMenuAdapter();
+    return this.instance;
   }
 }
 
@@ -109,6 +278,7 @@ export class Adapter {
   private static instancePromotionAdapter: PromotionAdapter;
   private static instanceDeliveryAdapter: DeliveryAdapter;
   private static instanceMF: MediaFileAdapter;
+  private static instanceGeo: GeoAdapter;
 
   public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -248,38 +418,46 @@ export class Adapter {
    * @deprecated use Class Delivery istead
    */
   public static async getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
-    // Return the singleton
-    if (Delivery.instanceDeliveryAdapter) {
-      return Delivery.instanceDeliveryAdapter;
-    }
+    // One resolution path, so `DELIVERY_ADAPTER` and the live registry apply no
+    // matter which of the two entry points a caller happens to use. This one is
+    // what `Order.countCart` calls on every cart recount.
+    return Delivery.getAdapter(adapter);
+  }
 
-    if (!adapter) {
-      Delivery.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
-      return Delivery.instanceDeliveryAdapter;
-    }
-
-    let adapterName: string;
+  /**
+   * returns Geo-adapter
+   *
+   * The configured `GEO_ADAPTER`; empty or `default` is Nominatim. An instance
+   * passed in becomes the one every caller gets.
+   */
+  public static async getGeoAdapter(adapter?: GeoAdapter): Promise<GeoAdapter> {
     if (adapter) {
-      if (typeof adapter === "string") {
-        adapterName = adapter;
-      } else if (adapter instanceof DeliveryAdapter) {
-        Delivery.instanceDeliveryAdapter = adapter;
-        return Delivery.instanceDeliveryAdapter;
-      }
+      this.instanceGeo = adapter;
+      return adapter;
     }
 
-    let adapterLocation = fs.existsSync(this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? "@webresto/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : adapterName;
+    // Return the singleton
+    if (this.instanceGeo) {
+      return this.instanceGeo;
+    }
+
+    const configured = await Settings.get("GEO_ADAPTER");
+    const adapterName = typeof configured === "string" ? configured.trim() : "";
+
+    if (!adapterName || adapterName === "default") {
+      this.instanceGeo = new NominatimGeoAdapter();
+      return this.instanceGeo;
+    }
+
+    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-geo-adapter";
+    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-geo-adapter";
 
     try {
       const adapterModule = require(adapterLocation);
-      Delivery.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
-      return Delivery.instanceDeliveryAdapter;
+      this.instanceGeo = new adapterModule.GeoAdapter() as GeoAdapter;
+      return this.instanceGeo;
     } catch (e) {
-      sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
+      sails.log.error("CORE > getAdapter Geo > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
   }

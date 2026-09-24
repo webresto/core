@@ -39,10 +39,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // npx mocha -r ts-node/register test/unit/backupHandler/backupHandler.test.ts
 const sinon = __importStar(require("sinon"));
 const chai_1 = require("chai");
-const BackupHandler_1 = require("../../../libs/BackupHandler");
+const BackupHandler_1 = require("../../../lib/BackupHandler");
 const group_generator_1 = __importDefault(require("../../generators/group.generator"));
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
-const fs_1 = require("../../../libs/wrapper/fs");
+const fs_1 = require("../../../lib/wrapper/fs");
 const scriptName = process.argv.find(arg => arg.endsWith('.ts') || arg.endsWith('.js'));
 if (scriptName && scriptName.includes('backupHandler.test.ts')) {
     // @ts-ignore
@@ -126,7 +126,7 @@ describe('BackupHandler', () => {
         // Spy on console.warn
         const spy = sinon.spy(console, 'warn');
         // Check that a warning appears when an image is not found
-        await backupHandler['checkAndLoadImage']('/nonexistent__1.jpg'); // await добавлен
+        await backupHandler['checkAndLoadImage']('/nonexistent__1.jpg'); // await added
         sinon.assert.calledWith(spy, 'Image not found: /nonexistent__1.jpg');
         spy.restore();
     });

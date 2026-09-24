@@ -3,13 +3,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
-const hashCode_1 = __importDefault(require("../libs/hashCode"));
+exports.PRODUCT_TYPES = void 0;
+const checkExpression_1 = __importDefault(require("../lib/checkExpression"));
+const hashCode_1 = __importDefault(require("../lib/hashCode"));
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 const CustomData_1 = require("../interfaces/CustomData");
-const slugIt_1 = require("../libs/slugIt");
-const auditLog_1 = require("../libs/auditLog");
+const slugIt_1 = require("../lib/slugIt");
+const auditLog_1 = require("../lib/auditLog");
+exports.PRODUCT_TYPES = ["dish", "product", "service"];
 let attributes = {
     /** */
     id: {
@@ -143,8 +145,27 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    /** Type */
-    type: "string", //TODO: product, dish, service
+    /** Catalog product type. An integration that omits it gets `dish`. */
+    type: {
+        type: "string",
+        isIn: [...exports.PRODUCT_TYPES],
+        defaultsTo: "dish",
+    },
+    /**
+     * How long the kitchen needs for this product, in minutes.
+     *
+     * One number, not a range. A range was two columns an operator had to fill in
+     * twice to say one thing, and it turned the promise into "40–40" whenever they
+     * did. Stays `null` until somebody fills it in — a default here would put an
+     * invented figure into a promise made to a customer.
+     *
+     * Only read for `type: "dish"`. A bottle of water is not cooked, and letting
+     * it carry a preparation time would mean a basket of drinks quotes one.
+     */
+    cookingTimeMax: {
+        type: "number",
+        allowNull: true,
+    },
     /** Weight  */
     weight: {
         type: "number",
@@ -165,11 +186,6 @@ let attributes = {
     /** Tags for filtering (vegetarian, sharp ...) */
     tags: {
         type: "json",
-    },
-    /** Stock availability quantity. Use -1 for infinite stock, 0 for out of stock. Managed by inventory synchronization. */
-    balance: {
-        type: "number",
-        defaultsTo: -1,
     },
     /** The human easy readable */
     slug: {
@@ -241,6 +257,10 @@ let Model = {
             init.enable = true;
         if (init.notForSale === undefined)
             init.notForSale = false;
+        // An empty string slips past both `isIn` and `defaultsTo`; dropping the
+        // key is what lets the default answer, whoever wrote the record.
+        if (typeof init.type === "string" && init.type.trim() === "")
+            delete init.type;
         if (!init.concept) {
             init.concept = "origin";
         }
@@ -257,6 +277,8 @@ let Model = {
     },
     beforeUpdate: async function (value, cb) {
         emitter.emit('core:product-before-update', value);
+        if (typeof value.type === "string" && value.type.trim() === "")
+            delete value.type;
         if (value.customData) {
             if (value.id !== undefined) {
                 let current = await Dish.findOne({ id: value.id });
@@ -282,7 +304,6 @@ let Model = {
                 enable: record.enable ?? null,
                 isDeleted: record.isDeleted ?? null,
                 visible: record.visible ?? null,
-                balance: record.balance ?? null,
                 parentGroup: typeof record.parentGroup === "string" ? record.parentGroup : record.parentGroup?.id ?? null,
                 price: record.price ?? null,
             },
@@ -290,22 +311,27 @@ let Model = {
         return cb();
     },
     /**
-     * Accepts Waterline Criteria and prepares it there isDeleted = false, balance! = 0. Thus, this function allows
+     * Accepts Waterline Criteria and prepares it there isDeleted = false. Thus, this function allows
      *  finding in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.
+     *
+     * Stock is no longer a column of this model, so it cannot be part of the
+     * criteria: it belongs to the pair "product + cooking point". Products that
+     * are stopped at the point are dropped after the query instead, by the menu
+     * adapter — which mode is in force decides what "stopped" narrows to.
      * @param criteria - criteria asked
+     * @param context - the menu context, resolved by the caller: `Group.getGroups`
+     *   once for a whole menu, so one menu is never built out of two
      * @return Found dishes
      */
-    async getDishes(criteria = {}) {
+    async getDishes(criteria, context) {
         criteria.isDeleted = false;
         criteria.enable = true;
-        if (!(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) {
-            criteria.balance = { "!=": 0 };
-        }
         let dishes = await Dish.find(criteria).populate("images");
+        dishes = await (await adapters_1.Menu.getAdapter()).filterProducts(dishes, context);
         for await (let dish of dishes) {
             const reason = (0, checkExpression_1.default)(dish);
             if (!reason) {
-                await Dish.getDishModifiers(dish);
+                await Dish.getDishModifiers(dish, context);
                 if (dish.images.length >= 2)
                     dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
             }
@@ -321,8 +347,11 @@ let Model = {
      * Popularizes the modifiers of the dish, that is, all the Group modifiers are preparing a group and dishes that correspond to them,
      * And ordinary modifiers are preparing their dish.
      * @param dish
+     * @param context - the menu context the dish is read in; a modifier's stock is
+     *   read at the same points as the dish's, union included
      */
-    async getDishModifiers(dish) {
+    async getDishModifiers(dish, context) {
+        const adapter = await adapters_1.Menu.getAdapter();
         if (dish.modifiers) {
             let index = 0;
             // group modofiers
@@ -361,7 +390,10 @@ let Model = {
                         throw `Dish modifierId or rmsId not found`;
                     }
                     let childModifierDish = (await Dish.find({ where: criteria, limit: 1 }).populate('images'))[0];
-                    if (!childModifierDish || (childModifierDish && childModifierDish.balance === 0)) {
+                    const childIsStopped = childModifierDish
+                        ? !(await adapter.canAddProduct(childModifierDish, 1, context)).available
+                        : false;
+                    if (!childModifierDish || childIsStopped) {
                         // delete if dish not found
                         sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.modifierId + " from dish:" + dish.name + " not found");
                     }
@@ -414,8 +446,9 @@ let Model = {
         if (!Array.isArray(ids) || ids.length === 0) {
             throw new Error('You must provide an array of IDs.');
         }
+        // Stock is per cooking point, so it cannot be a populate criterion any more;
+        // stopped products are filtered out of the collected result below.
         const baseCriteriaDish = {
-            balance: { "!=": 0 },
             modifier: false,
             isDeleted: false,
             enable: true
@@ -429,7 +462,6 @@ let Model = {
         }).populate('recommendations', {
             where: {
                 'and': [
-                    { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
                     { 'enable': true }
@@ -439,7 +471,6 @@ let Model = {
         }).populate('recommendedBy', {
             where: {
                 'and': [
-                    { 'balance': { "!=": 0 } },
                     { 'modifier': false },
                     { 'isDeleted': false },
                     { 'enable': true }
@@ -457,6 +488,8 @@ let Model = {
         }
         recommendedDishes = [...new Set(recommendedDishes.map((dish) => dish.id))].map(id => recommendedDishes.find((dish) => dish.id === id));
         recommendedDishes = recommendedDishes.filter((dish) => !ids.includes(dish.id));
+        const adapter = await adapters_1.Menu.getAdapter();
+        recommendedDishes = await adapter.filterProducts(recommendedDishes, await adapter.resolveContext({}));
         // Fisher-Yates shifle
         recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);
         if (limit && Number.isInteger(limit) && limit > 0) {
@@ -495,7 +528,6 @@ let Model = {
                     enable: values.enable ?? null,
                     isDeleted: values.isDeleted ?? null,
                     visible: values.visible ?? null,
-                    balance: values.balance ?? null,
                     parentGroup: typeof values.parentGroup === "string" ? values.parentGroup : values.parentGroup?.id ?? null,
                     price: values.price ?? null,
                 },

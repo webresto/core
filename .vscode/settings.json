@@ -14,7 +14,7 @@
         "fileMatch": [
             "settings/*.json"
         ],
-        "url": "./libs/schemas/settingsFile.json"
+        "url": "./lib/schemas/settingsFile.json"
     }
   ]
 }

@@ -1,0 +1,9 @@
+{
+  "Delivery not allowed": "Доставка невозможна",
+  "Your secret login code:": "Ваш секретный код входа:",
+  "Cancel pending payment?": "Отменить ожидающую оплату?",
+  "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "По этому заказу есть активная ссылка на оплату. Изменение корзины отменит эту оплату. Продолжить?",
+  "Cancel payment and edit basket": "Отменить оплату и изменить корзину",
+  "Keep payment": "Оставить оплату",
+  "Some products are not available at the kitchen serving this address and were removed: %s": "Некоторые товары недоступны на кухне, обслуживающей этот адрес, и были убраны: %s"
+}

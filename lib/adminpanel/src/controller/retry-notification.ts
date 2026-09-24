@@ -1,4 +1,4 @@
-import { NotificationDispatcher } from "../../../../libs/NotificationDispatcher";
+import { NotificationDispatcher } from "../../../notifications/NotificationDispatcher";
 import { hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
 
 const NotificationModel = (globalThis as any).Notification;

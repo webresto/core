@@ -1,0 +1,8 @@
+{
+  "key": "DELIVERY_ZONE_SYNC_INTERVAL_SECONDS",
+  "type": "number",
+  "name": "Delivery zone sync interval",
+  "description": "Seconds between scheduled zone synchronisations. The floor is applied when the value is read, so a smaller number stored here is raised rather than refused.",
+  "defaultValue": 3600,
+  "isRequired": false
+}

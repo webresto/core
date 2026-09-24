@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import TestPaymentSystem from "../../unit/external_payments/ExternalTestPaymentSystem";
 import Decimal from "decimal.js";
-import { customer, address } from "../../mocks/customer"
+import { customer, address, toPickup } from "../../mocks/customer"
 import { DishRecord } from "../../../models/Dish";
 import { OrderRecord } from "../../../models/Order";
 import { OrderDishRecord } from "../../../models/OrderDish";
@@ -66,7 +66,7 @@ describe("Order", function () {
       "rmsStatusCode",
       "rmsOrderStatus",
       "pickupPoint",
-      "selfService",
+      "serviceType",
       "delivery",
       "deliveryDescription",
       "message",
@@ -198,14 +198,16 @@ describe("Order", function () {
     await Order.addDish({id: order.id}, dishes[21], 3, [], "", "user");
   });
 
-  it("setSelfService", async function () {
-    let order = await Order.create({id: "setselfservice"}).fetch();
-    order = await Order.setSelfService({id: order.id}, true);
-    expect(order.selfService).to.equal(true);
-    
-    order = await Order.setSelfService({id: order.id}, false);
-    
-    expect(order.selfService).to.equal(false);
+  it("setServiceType", async function () {
+    let order = await Order.create({id: "setservicetype"}).fetch();
+    order = await Order.setServiceType({id: order.id}, "pickup");
+    expect(order.serviceType).to.equal("pickup");
+
+    order = await Order.setServiceType({id: order.id}, "dine-in");
+    expect(order.serviceType).to.equal("dine-in");
+
+    order = await Order.setServiceType({id: order.id}, "delivery");
+    expect(order.serviceType).to.equal("delivery");
   });
 
 
@@ -249,7 +251,7 @@ describe("Order", function () {
       count1++;
     });
 
-    emitter.on("core:order-order-self-service", "test", function () {
+    emitter.on("core:order-order-service-type", "test", function () {
       count2++;
     });
 
@@ -260,10 +262,11 @@ describe("Order", function () {
       count4++;
     });
 
-    await Order.setSelfService({id: order.id}, true);
+    // A pickup order goes to a point, and the point has to be open and hand
+    // orders over — `checkDate` refuses one that does not.
+    await toPickup(order.id);
+    await Order.check({id: order.id}, customer, "pickup", undefined, undefined);
 
-    await Order.check({id: order.id}, customer, true, undefined, undefined);
- 
     await Order.order({id: order.id});
     
     expect(count1).to.equal(1);
@@ -278,10 +281,6 @@ describe("Order", function () {
       error = e;
     }
     expect(error).to.not.equal(null);
-
-    emitter.on("core:order-order-delivery", "test", function () {
-      // count1++;
-    });
   });
 
   it("paymentMethodId", async function () {
@@ -302,7 +301,8 @@ describe("Order", function () {
     await Order.addDish({id: order.id}, dishes[1], 3, [], "", "user");
     await Order.addDish({id: order.id}, dishes[2], 8, [], "", "user");
 
-    await Order.check({id: order.id}, customer, true, undefined, undefined);
+    await toPickup(order.id);
+    await Order.check({id: order.id}, customer, "pickup", undefined, undefined);
 
     const paymentMethod = (await PaymentMethod.find({}))[0];
     let newPaymentDocument = {

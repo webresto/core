@@ -1,7 +1,7 @@
 import Decimal from "decimal.js";
 import { InMemoryBonusProgramAdapter } from "../../mocks/adapter/bonusProgram";
 import { expect } from "chai";
-import { customer, address } from "../../mocks/customer"
+import { customer, address, toPickup } from "../../mocks/customer"
 import { SpendBonus } from "../../../interfaces/SpendBonus";
 // todo: fix types model instance to {%ModelName%}Record for User";
 // todo: fix types model instance to {%ModelName%}Record for Order";
@@ -57,7 +57,9 @@ describe("Bonus program adapter", function () {
   });
 
   it("apply bonus in order on check", async () => {
-    const dishes = await Dish.find({});
+    // Enabled only: a disabled product is refused by `addDish`, and the RMS mock
+    // sync leaves what it imports disabled.
+    const dishes = await Dish.find({ enable: true });
     order1 = await Order.create({id: "test--apply--bonus"}).fetch();
     
     await Order.addDish({id: order1.id}, dishes[0], 5, [], "", "user");
@@ -68,7 +70,8 @@ describe("Bonus program adapter", function () {
       amount: 5.23 // BonusProgram test has 1 decimal 
     }
 
-    await Order.check({id: order1.id}, customer, true, undefined,  undefined, user.id ,spendBonus);
+    await toPickup(order1.id);
+    await Order.check({id: order1.id}, customer, "pickup", undefined,  undefined, user.id ,spendBonus);
     
     let checkedOrder = await Order.findOne({id: order1.id});
 
@@ -98,7 +101,8 @@ describe("Bonus program adapter", function () {
       bonusProgramId: bonusProgram.id,
       amount: 5.2
     }
-    await Order.check({id: order1.id}, customer, true, undefined,  undefined, user.id ,spendBonus);
+    await toPickup(order1.id);
+    await Order.check({id: order1.id}, customer, "pickup", undefined,  undefined, user.id ,spendBonus);
 
     await Order.order({id: order1.id})
 

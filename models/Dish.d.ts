@@ -7,6 +7,10 @@ import { GroupModifier } from "../interfaces/Modifier";
 import { CustomData } from "../interfaces/CustomData";
 import { UserRecord } from "./User";
 import { GroupRecord } from "./Group";
+import { MenuContext } from "../adapters/menu/contracts";
+/** Canonical business types for a catalog product. `Dish` remains the Sails model during migration. */
+export type ProductType = "dish" | "product" | "service";
+export declare const PRODUCT_TYPES: readonly ProductType[];
 declare let attributes: {
     /** */
     id: string;
@@ -71,8 +75,20 @@ declare let attributes: {
     price: number;
     /**  */
     productCategoryId: string;
-    /** Type */
-    type: string;
+    /** Catalog product type. An integration that omits it gets `dish`. */
+    type: ProductType;
+    /**
+     * How long the kitchen needs for this product, in minutes.
+     *
+     * One number, not a range. A range was two columns an operator had to fill in
+     * twice to say one thing, and it turned the promise into "40–40" whenever they
+     * did. Stays `null` until somebody fills it in — a default here would put an
+     * invented figure into a promise made to a customer.
+     *
+     * Only read for `type: "dish"`. A bottle of water is not cooked, and letting
+     * it carry a preparation time would mean a basket of drinks quotes one.
+     */
+    cookingTimeMax: number;
     /** Weight  */
     weight: number;
     /** Sorting order */
@@ -87,8 +103,6 @@ declare let attributes: {
     parentGroup: GroupRecord | any;
     /** Tags for filtering (vegetarian, sharp ...) */
     tags: any;
-    /** Stock availability quantity. Use -1 for infinite stock, 0 for out of stock. Managed by inventory synchronization. */
-    balance: number;
     /** The human easy readable */
     slug: string;
     /** The concept to which the dish belongs */
@@ -133,18 +147,27 @@ declare let Model: {
     afterUpdate: (record: DishRecord, cb: (err?: string) => void) => void;
     afterCreate: (record: DishRecord, cb: (err?: string) => void) => void;
     /**
-     * Accepts Waterline Criteria and prepares it there isDeleted = false, balance! = 0. Thus, this function allows
+     * Accepts Waterline Criteria and prepares it there isDeleted = false. Thus, this function allows
      *  finding in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.
+     *
+     * Stock is no longer a column of this model, so it cannot be part of the
+     * criteria: it belongs to the pair "product + cooking point". Products that
+     * are stopped at the point are dropped after the query instead, by the menu
+     * adapter — which mode is in force decides what "stopped" narrows to.
      * @param criteria - criteria asked
+     * @param context - the menu context, resolved by the caller: `Group.getGroups`
+     *   once for a whole menu, so one menu is never built out of two
      * @return Found dishes
      */
-    getDishes(criteria?: any): Promise<DishRecord[]>;
+    getDishes(criteria: any, context: MenuContext): Promise<DishRecord[]>;
     /**
      * Popularizes the modifiers of the dish, that is, all the Group modifiers are preparing a group and dishes that correspond to them,
      * And ordinary modifiers are preparing their dish.
      * @param dish
+     * @param context - the menu context the dish is read in; a modifier's stock is
+     *   read at the same points as the dish's, union included
      */
-    getDishModifiers(dish: DishRecord): Promise<DishRecord>;
+    getDishModifiers(dish: DishRecord, context: MenuContext): Promise<DishRecord>;
     display(criteria: CriteriaQuery<DishRecord>): Promise<DishRecord[]>;
     getRecommended: (ids: string[], limit?: number, includeReverse?: boolean) => Promise<DishRecord[]>;
     /**

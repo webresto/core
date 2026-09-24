@@ -9,9 +9,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // todo: fix types model instance to {%ModelName%}Record for Order';
 const adapters_1 = require("../../../adapters");
 const chai_1 = require("chai");
-const findModelInstance_1 = __importDefault(require("./../../../libs/findModelInstance"));
+const findModelInstance_1 = __importDefault(require("../../../lib/findModelInstance"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
-const stringsInArray_1 = require("../../../libs/stringsInArray");
+const stringsInArray_1 = require("../../../lib/stringsInArray");
 describe('Create_Discount', function () {
     let promotionAdapter;
     before(async () => {

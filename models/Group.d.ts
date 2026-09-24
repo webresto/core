@@ -4,6 +4,7 @@ import { MediaFileRecord } from "./MediaFile";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { DishRecord } from "./Dish";
+import { MenuRequest } from "../adapters/menu/contracts";
 export type GetGroupType = {
     [x: string]: GroupWithAdditionalFields;
 };
@@ -87,7 +88,7 @@ declare let Model: {
      * According to some dinich, the values of this object are the reasons why the group was not obtained.
      * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:GroupRecord}, errors: {[groupId]: error}}
      */
-    getGroups(groupsId: string[]): Promise<{
+    getGroups(groupsId: string[], order?: MenuRequest["order"]): Promise<{
         groups: GroupWithAdditionalFields[];
         errors: Record<string, string>;
     }>;

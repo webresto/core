@@ -1,6 +1,6 @@
 # AwaitEmitter Events
 
-This document summarizes all events exposed by `AwaitEmitter`. Each event name corresponds to a specific hook in the core logic. Use `emitter.on(eventName, id, handler)` to subscribe to events. All parameters in the list below follow the typings from `libs/AwaitEmitter.ts`.
+This document summarizes all events exposed by `AwaitEmitter`. Each event name corresponds to a specific hook in the core logic. Use `emitter.on(eventName, id, handler)` to subscribe to events. All parameters in the list below follow the typings from `lib/AwaitEmitter.ts`.
 
 ## Usage Example
 
@@ -25,14 +25,13 @@ emitter.on("core:order-after-create", "my-listener", async (order) => {
 | `core:payment-document-paid` | `[PaymentDocumentRecord]` |
 | `core:payment-document-checked-document` | `[PaymentDocumentRecord]` |
 | `core:order-after-order` | `[OrderRecord]` |
-| `core:order-order-delivery` | `[OrderRecord]` |
 | `core:order-before-order` | `[OrderRecord]` |
 | `core:order-order` | `[OrderRecord]` |
-| `core:order-order-self-service` | `[OrderRecord]` |
-| `core:order-is-self-service` | `[OrderRecord, Customer, boolean, Address]` |
-| `core:order-check` | `[OrderRecord, Customer, boolean, Address, string]` |
+| `core:order-order-service-type` | `[OrderRecord, ServiceType]` |
+| `core:order-service-type` | `[OrderRecord, Customer, ServiceType, Address]` |
+| `core:order-check` | `[OrderRecord, Customer, ServiceType, Address, string]` |
 | `core:order-after-check-counting` | `[OrderRecord]` |
-| `core:order-before-check` | `[OrderRecord, Customer, boolean, Address]` |
+| `core:order-before-check` | `[OrderRecord, Customer, ServiceType, Address]` |
 | `core:order-check-delivery` | `[OrderRecord]` |
 | `settings:${string}` | `[SettingsRecord]` |
 | `core:user-after-create` | `[UserRecord]` |

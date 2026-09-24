@@ -1,0 +1,11 @@
+{
+  "key": "MENU_PLACE_BASED_MODE",
+  "type": "string",
+  "name": "Menu place-based mode",
+  "description": "Controls menu resolution by cooking point. Default mode preserves the global menu.",
+  "defaultValue": "default",
+  "jsonSchema": {
+    "enum": ["default", "single-place", "multi-place-route"]
+  },
+  "isRequired": true
+}

@@ -1,4 +1,4 @@
-import { SalesChannelRegistry } from '../../libs/SalesChannelRegistry';
+import { SalesChannelRegistry } from '../../lib/SalesChannelRegistry';
 
 declare const mcp: any;
 

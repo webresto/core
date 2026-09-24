@@ -1,0 +1,8 @@
+{
+  "key": "DELIVERY_ZONE_MAP_ATTRIBUTION",
+  "type": "string",
+  "name": "Delivery zone map attribution",
+  "description": "Credit line shown in the corner of the map. Change it together with the tile URL: the default credits OpenStreetMap, which is wrong for anybody else's tiles.",
+  "defaultValue": "© OpenStreetMap contributors",
+  "isRequired": false
+}

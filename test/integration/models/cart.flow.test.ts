@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import Address from "../../../interfaces/Address";
+import OrderAddress from "../../../interfaces/OrderAddress";
 import Customer from "../../../interfaces/Customer";
-import { address, customer } from "../../mocks/customer";
+import { address, customer, toPickup } from "../../mocks/customer";
 import { OrderRecord } from "../../../models/Order";
 import { DishRecord } from "../../../models/Dish";
 
@@ -26,7 +26,7 @@ describe("Flows: Checkout", function () {
   it("Check paymentSystem", async function () {
     try {
       let paymentSystem = (await PaymentMethod.find().limit(1))[0];
-      await Order.check({id: order.id}, customer, false, address, paymentSystem.id);
+      await Order.check({id: order.id}, customer, "delivery", address, paymentSystem.id);
       await Order.check({id: order.id}, null, null, null, paymentSystem.id);
 
       try {
@@ -83,26 +83,27 @@ describe("Flows: Checkout", function () {
     expect(core_order_check).to.equal(1);
     expect(core_order_after_check).to.equal(1);
 
-    let core_order_is_self_service = 0;
+    let core_order_service_type = 0;
     let emitCustomer;
-    let emitSelfService;
+    let emitServiceType;
     let emitAddress;
 
-    emitter.on("core:order-is-self-service", "test", function (self, cust, serv, addr) {
-      core_order_is_self_service = 1;
+    emitter.on("core:order-service-type", "test", function (self, cust, serv, addr) {
+      core_order_service_type = 1;
       emitCustomer = cust;
-      emitSelfService = serv;
+      emitServiceType = serv;
       emitAddress = addr;
     });
+    await toPickup(order.id);
     try {
-      await Order.check({id: order.id}, customer, true, address);
+      await Order.check({id: order.id}, customer, "pickup", address);
     } catch (e) {
       sails.log.error(e);
     }
 
-    expect(core_order_is_self_service).to.equal(1);
+    expect(core_order_service_type).to.equal(1);
     expect(emitCustomer).to.equal(customer);
-    expect(emitSelfService).to.equal(true);
+    expect(emitServiceType).to.equal("pickup");
     expect(emitAddress).to.equal(address);
   });
 
@@ -138,15 +139,16 @@ describe("Flows: Checkout", function () {
 
     await Settings.set("CHECKOUT_STRATEGY", {key: "CHECKOUT_STRATEGY", value: {}, jsonSchema: {"type": "object"}});
 
+    await toPickup(order.id);
     try {
-      await Order.check({id: order.id}, customer, true);
+      await Order.check({id: order.id}, customer, "pickup");
     } catch (e) {
       expect(e.code).to.equal(0);
     }
 
     // just user with address
     try {
-      await Order.check({id: order.id}, customer, false, address);
+      await Order.check({id: order.id}, customer, "delivery", address);
     } catch (e) {
       sails.log.error(e)
       expect(e.code).to.equal(0);
@@ -168,16 +170,17 @@ describe("Flows: Checkout", function () {
     await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
     order = await Order.findOne({id: order.id});
 
-    // for selfServices
+    // for pickup
+    await toPickup(order.id);
     try {
-      await Order.check({id: order.id}, customer, true);
+      await Order.check({id: order.id}, customer, "pickup");
     } catch (e) {
       expect(e).be.undefined;
     }
 
     // just user with address
     try {
-      await Order.check({id: order.id}, customer, false, address);
+      await Order.check({id: order.id}, customer, "delivery", address);
     } catch (e) {
       sails.log.error(e)
       expect(e).be.undefined;
@@ -196,8 +199,9 @@ describe("Flows: Checkout", function () {
       await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
       order = await Order.findOne({id: order.id});
 
+      await toPickup(order.id);
       try {
-        await Order.check({id: order.id}, customer, true);
+        await Order.check({id: order.id}, customer, "pickup");
       } catch (e) {
         expect(e).be.undefined;
       }
@@ -260,10 +264,9 @@ describe("Flows: Checkout", function () {
       await Order.addDish({id: order.id}, dishes[0], 1, [], "", "user");
       order = await Order.findOne({id: order.id});
 
-      let address: Address = {
-        streetId: "1234abcd",
+      let address: OrderAddress = {
         city: "New York",
-        street: "Green Road",
+        formatted: "Green Road, 42",
         home: "42",
         comment: "test",
       };
@@ -278,9 +281,9 @@ describe("Flows: Checkout", function () {
     it("bad address", async function () {
 
       // @ts-ignore
-      let badAddress: Address = {
+      let badAddress: OrderAddress = {
         city: "New York",
-        // street: 'Green Road',
+        // formatted: 'Green Road, 42',
         home: "42",
         comment: "test",
       };
@@ -296,7 +299,7 @@ describe("Flows: Checkout", function () {
     it("no address throw", async function () {
       await Order.update({ id: order.id }, {address: null}).fetch();
       try {
-        await Order.check({id: order.id}, null, true);
+        await Order.check({id: order.id}, null, "pickup");
       } catch (e) {
         expect(e.code).to.equal(2);
         expect(e.error).to.be.an("string");

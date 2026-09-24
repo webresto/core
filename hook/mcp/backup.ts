@@ -43,7 +43,7 @@ export function registerBackupTools() {
             },
         },
         handler: async ({ concepts = [], isDeleted = false }: { concepts?: string[]; isDeleted?: boolean }) => {
-            const { BackupHandler } = require('../../libs/BackupHandler');
+            const { BackupHandler } = require('../../lib/BackupHandler');
             fs.mkdirSync(BACKUP_DIR, { recursive: true });
             const filePath = path.join(BACKUP_DIR, `backup-${Date.now()}.tar.gz`);
             const handler = new BackupHandler();
@@ -73,7 +73,7 @@ export function registerBackupTools() {
             required: ['filePath'],
         },
         handler: async ({ filePath, concepts = [], truncate = false }: { filePath: string; concepts?: string[]; truncate?: boolean }) => {
-            const { BackupHandler } = require('../../libs/BackupHandler');
+            const { BackupHandler } = require('../../lib/BackupHandler');
             const handler = new BackupHandler();
             await handler.importFromTar(filePath, { concepts, turncate: truncate, isDeleted: false });
             return { success: true, filePath };

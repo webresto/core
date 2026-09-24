@@ -11,14 +11,19 @@
  */
 
 import { expect } from "chai";
-import { SetupChecklistRegistry } from "../../libs/SetupChecklistRegistry";
-import { SetupChecklistService } from "../../libs/SetupChecklistService";
+import { SetupChecklistRegistry } from "../../lib/SetupChecklistRegistry";
+import { SetupChecklistService } from "../../lib/SetupChecklistService";
+import { invalidateDeliveryZoneCache } from "../../adapters/delivery/default/zone-cache";
 
 // ── global mocks ──────────────────────────────────────────────────────────────
 const store: Record<string, any> = {};
 let paymentTotal = 0, paymentEnabled = 0;
 let placeTotal = 0, placeEnabled = 0;
 let rms: any = null;
+// What `DeliveryZone.findServing` answers: zones that can take an order, with
+// their layer's terms already applied.
+let servingZones: any[] = [];
+const setServingZones = (zones: any[]) => { servingZones = zones; invalidateDeliveryZoneCache(); };
 
 // count(criteria?) — criteria { enable: true } returns the enabled subset, else the total.
 const counter = (total: () => number, enabled: () => number) =>
@@ -33,6 +38,7 @@ const counter = (total: () => number, enabled: () => number) =>
 (global as any).PaymentMethod = { count: counter(() => paymentTotal, () => paymentEnabled) };
 (global as any).Place = { count: counter(() => placeTotal, () => placeEnabled) };
 (global as any).Adapter = { async getRMSAdapter() { return rms; } };
+(global as any).DeliveryZone = { async findServing() { return servingZones; } };
 
 const ctx = { locale: "en", t: (k: string) => k, now: new Date() };
 const findItem = (st: any, key: string) =>
@@ -59,6 +65,7 @@ describe("SetupChecklist registry + service", () => {
   it("empty config → required items are 'todo' and overallReady is false", async () => {
     Object.keys(store).forEach((k) => delete store[k]);
     paymentTotal = 0; paymentEnabled = 0; placeTotal = 0; placeEnabled = 0; rms = null;
+    setServingZones([]);
 
     const st = await SetupChecklistService.getStatus(ctx);
     expect(st.overallReady).to.equal(false);
@@ -99,10 +106,45 @@ describe("SetupChecklist registry + service", () => {
     store["FRONTEND_CHECKOUT_PAGE"] = "/checkout";
     store["FRONTEND_ORDER_PAGE"] = "/order";
     paymentTotal = 1; paymentEnabled = 1;
+    setServingZones([{ id: "z1", minDeliveryTime: 40, deliveryCost: 200 }]);
 
     st = await SetupChecklistService.getStatus(ctx);
     expect(st.counts.required.done).to.equal(st.counts.required.total);
     expect(st.overallReady).to.equal(true);
+  });
+
+  it("delivery zones: required, and only a zone whose terms are set counts", async () => {
+    expect(SetupChecklistRegistry.getCheckup("has_delivery_zone")!.severity).to.equal("required");
+
+    // No zone at all: delivery is refused, so the installation is not ready.
+    setServingZones([]);
+    let st = await SetupChecklistService.getStatus(ctx);
+    let zones = findItem(st, "has_delivery_zone");
+    expect(zones.status).to.equal("todo");
+    expect(st.overallReady).to.equal(false);
+
+    // A zone that can take orders but states no time or cost — its own or its
+    // layer's — prices nothing.
+    setServingZones([{ id: "z1", minDeliveryTime: null, deliveryCost: 200 }]);
+    st = await SetupChecklistService.getStatus(ctx);
+    expect(findItem(st, "has_delivery_zone").status).to.equal("todo");
+
+    // Terms set on the zone or lent by its layer look the same here: that is
+    // resolved by `findServing` before this reads them.
+    setServingZones([
+      { id: "z1", minDeliveryTime: 40, deliveryCost: 200 },
+      { id: "z2", minDeliveryTime: 60, deliveryCost: 0 },
+    ]);
+    // A `t` that fills the placeholders, to see the count reach the hint.
+    const counted = { ...ctx, t: (k: string, p?: any) => k.replace("{count}", String(p?.count)) };
+    st = await SetupChecklistService.getStatus(counted);
+    zones = findItem(st, "has_delivery_zone");
+    expect(zones.status).to.equal("done");
+    expect(zones.detail).to.equal("Zones that deliver: 2");
+    expect(st.overallReady).to.equal(true);
+
+    const target = SetupChecklistRegistry.getCheckup("has_delivery_zone")!.target;
+    expect((typeof target === "function" ? target(ctx) : target)!.url).to.equal("/delivery-zones-manager");
   });
 
   it("created-but-not-enabled → still 'todo' with an explanatory hint", async () => {

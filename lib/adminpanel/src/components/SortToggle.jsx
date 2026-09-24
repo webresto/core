@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, ArrowUpAZ, ArrowDownZA, ListOrdered, CheckCircle2 } from 'lucide-react';
+import { ArrowUpDown, ArrowUpAZ, ArrowDownZA, ListOrdered } from 'lucide-react';
 import { useTranslation } from '../i18n/I18nContext';
 
 export function SortToggle({ sortMode, onSortModeChange }) {
@@ -12,10 +12,9 @@ export function SortToggle({ sortMode, onSortModeChange }) {
         { value: 'name-asc', label: t('Name (A-Z)'), icon: ArrowUpAZ },
         { value: 'name-desc', label: t('Name (Z-A)'), icon: ArrowDownZA },
         { value: 'sortOrder', label: t('By Order'), icon: ListOrdered },
-        { value: 'status', label: t('Active First'), icon: CheckCircle2 },
     ];
 
-    const currentOption = sortOptions.find(opt => opt.value === sortMode) || sortOptions[3];
+    const currentOption = sortOptions.find(opt => opt.value === sortMode) || sortOptions[0];
     const CurrentIcon = currentOption.icon;
 
     useEffect(() => {
@@ -37,13 +36,13 @@ export function SortToggle({ sortMode, onSortModeChange }) {
     };
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative flex gap-1 border border-border rounded-md p-1" ref={dropdownRef}>
             <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(!isOpen)}
                 title={`Sort: ${currentOption.label}`}
-                className="h-8 gap-2"
+                className="h-8 gap-2 px-2"
             >
                 <CurrentIcon className="w-4 h-4" />
                 <ArrowUpDown className="w-3 h-3 opacity-50" />

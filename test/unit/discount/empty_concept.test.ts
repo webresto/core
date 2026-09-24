@@ -6,12 +6,12 @@ import { InMemoryDiscountAdapter } from '../../mocks/adapter/discount';
 
 import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
-import findModelInstanceByAttributes from '../../../libs/findModelInstance';
+import findModelInstanceByAttributes from '../../../lib/findModelInstance';
 import { Adapter } from '../../../adapters/index';
 // todo: fix types model instance to {%ModelName%}Record for Group';
 // todo: fix types model instance to {%ModelName%}Record for Dish';
 // todo: fix types model instance to {%ModelName%}Record for Order';
-import { someInArray } from '../../../libs/stringsInArray';
+import { someInArray } from '../../../lib/stringsInArray';
 import ConfiguredPromotion from '../../../adapters/promotion/default/configuredPromotion';
 import Decimal from 'decimal.js';
 import { DishRecord } from '../../../models/Dish';

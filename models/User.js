@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const bcryptjs = __importStar(require("bcryptjs"));
-const Countries = require("../libs/dictionaries/countries.json");
+const Countries = require("../lib/dictionaries/countries.json");
 let attributes = {
     /** User model ID */
     id: {

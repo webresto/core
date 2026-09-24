@@ -3,7 +3,7 @@ import {
   filterOrderLogs,
   normalizeOrderLogs,
   summarizeOrderLogs,
-} from "../../libs/adminpanel/controls/orderLogsViewerHelper";
+} from "../../lib/adminpanel/controls/orderLogsViewerHelper";
 
 describe("adminpanel Order logs viewer helper", function () {
   it("normalizes logs and keeps expected fields", function () {

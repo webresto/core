@@ -2,7 +2,7 @@
 // Mirrors the marketing/notifications controllers: access guard + JSON parsing + record
 // mapping. The `${routePrefix}/core` middleware already sets no-store on every /core route.
 
-import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
+import { SalesChannelRegistry } from "../../../SalesChannelRegistry";
 import {
   getModulePermissions,
   requireModulePermission,

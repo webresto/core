@@ -1,7 +1,7 @@
-import { NotificationEventRegistry } from "../../../../libs/NotificationEventRegistry";
+import { NotificationEventRegistry } from "../../../notifications/NotificationEventRegistry";
 import { hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
-import { NotificationTypeRegistry } from "../../../../libs/NotificationTypeRegistry";
-import { NotificationService } from "../../../../libs/NotificationService";
+import { NotificationTypeRegistry } from "../../../notifications/NotificationTypeRegistry";
+import { NotificationService } from "../../../notifications/NotificationService";
 
 function hasAccess(req: any, res: any): boolean {
   const { config } = req.adminizer || {};

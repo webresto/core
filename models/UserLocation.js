@@ -1,15 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-let attributes = {
-    /** ID */
-    id: {
+const address_1 = require("../adapters/geo/address");
+/** One attribute per field of `OrderAddress`, so the two shapes cannot drift apart. */
+const addressAttributes = {
+    formatted: {
         type: "string",
-        //required: true,
-    },
-    name: {
-        type: "string",
-        allowNull: true,
+        required: true,
     },
     city: {
         type: "string",
@@ -23,7 +20,7 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    index: {
+    apartment: {
         type: "string",
         allowNull: true,
     },
@@ -35,18 +32,30 @@ let attributes = {
         type: "string",
         allowNull: true,
     },
-    apartment: {
-        type: "string",
-        allowNull: true,
-    },
     doorphone: {
         type: "string",
         allowNull: true,
     },
-    street: {
-        model: 'street',
-        required: true
+    comment: {
+        type: "string",
+        allowNull: true,
     },
+    coordinate: {
+        type: "json",
+    },
+};
+let attributes = {
+    /** ID */
+    id: {
+        type: "string",
+        //required: true,
+    },
+    /** What the storefront lists. `formatted` unless given. */
+    name: {
+        type: "string",
+        allowNull: true,
+    },
+    ...addressAttributes,
     /**
      * Set as default for specific user
      * */
@@ -57,12 +66,23 @@ let attributes = {
         model: 'user',
         required: true
     },
-    comment: {
-        type: "string",
-        allowNull: true,
-    },
     customData: "json",
 };
+/**
+ * The whole line, house number included.
+ *
+ * A catalog line already ends with the number — `formatAddressLine` put it
+ * there — and so does a line that came from a saved location. Free text keeps
+ * the number in `home`, and without it two houses on one street would be one
+ * location.
+ */
+function wholeLine(formatted, home) {
+    const line = formatted.trim();
+    const number = home?.trim();
+    if (!number || line.slice(line.lastIndexOf(",") + 1).trim() === number)
+        return line;
+    return (0, address_1.formatAddressPath)([line, number]);
+}
 let Model = {
     async beforeUpdate(record, cb) {
         if (record.isDefault === true) {
@@ -75,14 +95,32 @@ let Model = {
             init.id = (0, uuid_1.v4)();
         }
         if (!init.name) {
-            const street = await Street.findOne({ id: init.street });
-            init.name = `${street.name} ${init.home}`;
+            init.name = init.formatted;
         }
         if (init.isDefault === true) {
             await UserLocation.update({ user: init.user }, { isDefault: false });
         }
         cb();
-    }
+    },
+    /**
+     * Keeps the address of a delivered order, once per line.
+     *
+     * The only way a location is written: the customer's own deliveries are the
+     * list, there is no separate "save this address". A line the user already
+     * has is left as it is — with its name and whether it is the default.
+     */
+    async remember(user, address) {
+        if (!address.formatted)
+            return;
+        const formatted = wholeLine(address.formatted, address.home);
+        if (await UserLocation.findOne({ user, formatted }))
+            return;
+        const given = address;
+        const tail = Object.keys(addressAttributes)
+            .filter((key) => given[key] !== undefined && given[key] !== null)
+            .map((key) => [key, given[key]]);
+        await UserLocation.create({ ...Object.fromEntries(tail), formatted, user }).fetch();
+    },
 };
 module.exports = {
     primaryKey: "id",

@@ -1,9 +1,9 @@
 // import { WorkTime } from "@webresto/worktime";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
-import findModelInstanceByAttributes from "../../../libs/findModelInstance";
+import findModelInstanceByAttributes from "../../../lib/findModelInstance";
 import Decimal from "decimal.js";
-import { someInArray } from "../../../libs/stringsInArray";
+import { someInArray } from "../../../lib/stringsInArray";
 import { GroupRecord } from "../../../models/Group";
 import { DishRecord } from "../../../models/Dish";
 import { OrderRecord, PromotionState } from "../../../models/Order";
@@ -91,15 +91,9 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       let checkGroups = orderDishes.map(order => order.dish).some((dish: DishRecord) => configGroups.includes(dish.parentGroup)) || configGroups.includes("*")
       
       if (checkDishes || checkGroups) {
-        if(this.config.deliveryMethod && Array.isArray(this.config.deliveryMethod)) {
-          if(order.selfService) {
-            if(!this.config.deliveryMethod.includes("selfService")) {
-              return false
-            }
-          } else {
-            if(!this.config.deliveryMethod.includes("delivery")) {
-              return false
-            }
+        if(Array.isArray(this.config.serviceType) && this.config.serviceType.length) {
+          if(!this.config.serviceType.includes(order.serviceType ?? "delivery")) {
+            return false
           }
         }
         return true

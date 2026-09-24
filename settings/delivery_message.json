@@ -1,6 +1,0 @@
-{
-  "key": "DELIVERY_MESSAGE",
-  "type": "string",
-  "name": "Delivery terms",
-  "description": "Optional setting, description delivery terms for user on the checkout"
-}

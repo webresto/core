@@ -1,3 +1,4 @@
+import { adminModuleUrl } from "../../adminModules";
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
 import { getModulePermissions, NOTIFICATIONS_ACCESS, requireModulePermission } from "./access-rights";
 
@@ -10,7 +11,7 @@ export default function NotificationChannelsController(req: any, res: any) {
   return req.Inertia.render({
     component: "module",
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/NotificationsManager.js?v=20260721-1`,
+      moduleComponent: adminModuleUrl("NotificationsManager", "20260721-1"),
       message: t("Notification channels"),
       locale,
       messages,

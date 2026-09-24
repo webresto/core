@@ -5,10 +5,10 @@
 import { Adapter } from "../../../adapters";
 import { expect } from "chai";
 import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';
-import findModelInstanceByAttributes from './../../../libs/findModelInstance';
+import findModelInstanceByAttributes from '../../../lib/findModelInstance';
 import Decimal from 'decimal.js';
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
-import { someInArray } from '../../../libs/stringsInArray';
+import { someInArray } from '../../../lib/stringsInArray';
 import { DishRecord } from "../../../models/Dish";
 import { GroupRecord } from "../../../models/Group";
 import { OrderRecord } from "../../../models/Order";

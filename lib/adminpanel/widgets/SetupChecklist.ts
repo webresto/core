@@ -1,4 +1,5 @@
 import { CustomBase } from "adminizer";
+import { adminModuleUrl } from "../adminModules";
 
 export default class SetupChecklistWidget extends CustomBase {
   readonly id = "setup-checklist-status";
@@ -10,8 +11,8 @@ export default class SetupChecklistWidget extends CustomBase {
   readonly backgroundCSS = "transparent";
   readonly size = { h: 2, w: 2 };
   readonly jsPath = {
-    dev: "/restocore/assets/core-adminizer-assets/SetupChecklistWidget.js",
-    production: "/restocore/assets/core-adminizer-assets/SetupChecklistWidget.js",
+    dev: adminModuleUrl("SetupChecklistWidget"),
+    production: adminModuleUrl("SetupChecklistWidget"),
   };
 
   constructor(routePrefix: string) {

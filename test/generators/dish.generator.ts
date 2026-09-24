@@ -17,7 +17,6 @@ export default function dishGenerator(
   return {
     id: config?.id || faker.random.uuid(),
     additionalInfo: config?.additionalInfo || "null",
-    balance:  config?.balance || -1,
     modifiers: config?.modifiers || [],
     parentGroup: config?.parentGroup || null,
     weight: 100,
@@ -30,8 +29,12 @@ export default function dishGenerator(
     rmsId: config?.rmsId || faker.random.uuid(),
     code: null,
     tags: [],
-    isDeleted: config?.isDeleted || false
+    isDeleted: config?.isDeleted || false,
+    // Spelled out because a boolean attribute with no `defaultsTo` starts at
+    // `false`: without this every generated product is disabled, and a disabled
+    // product cannot go into a basket.
+    enable: config?.enable ?? true
   }
 }
 
-export let dishFields = ["id", "additionalInfo", "balance", "modifiers", "weight", "price", "order", "images", "name", "description", "rmsId", "code", "tags", "isDeleted"];
+export let dishFields = ["id", "additionalInfo", "modifiers", "weight", "price", "order", "images", "name", "description", "rmsId", "code", "tags", "isDeleted"];

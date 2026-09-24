@@ -1,3 +1,4 @@
+import { adminModuleUrl } from "../../adminModules";
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
 
 /**
@@ -22,7 +23,7 @@ export default function SetupChecklistController(req: any, res: any) {
   return req.Inertia.render({
     component: "module",
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/SetupChecklist.js?v=20260721-1`,
+      moduleComponent: adminModuleUrl("SetupChecklist", "20260721-1"),
       message: t("Setup checklist"),
       locale,
       messages,

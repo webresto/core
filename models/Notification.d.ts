@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { UserRecord } from "./User";
-import { NotificationLogLevel, NotificationLogEntry } from "../libs/NotificationLogHelper";
+import { NotificationLogLevel, NotificationLogEntry } from "../lib/notifications/NotificationLogHelper";
 export interface NotificationChannelEntry {
     /** Channel type identifier, e.g. "fcm-mobile", "test-free-unreliable" */
     type: string;

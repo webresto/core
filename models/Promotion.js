@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const hashCode_1 = __importDefault(require("../libs/hashCode"));
+const hashCode_1 = __importDefault(require("../lib/hashCode"));
 const adapters_1 = require("../adapters");
-const stringsInArray_1 = require("../libs/stringsInArray");
+const stringsInArray_1 = require("../lib/stringsInArray");
 // todo: fix types model instance to {%ModelName%}Record for PromotionCode";
 const uuid_1 = require("uuid");
 // import Decimal from "decimal.js";

@@ -1,6 +1,6 @@
 import { Payment, PaymentResponse } from "../../interfaces/Payment";
 // todo: fix types model instance to {%ModelName%}Record for PaymentDocument";
-import { PaymentMethodType } from "../../libs/enums/PaymentMethodTypes";
+import { PaymentMethodType } from "../../lib/enums/PaymentMethodTypes";
 import { Config } from "../../interfaces/Config";
 import { PaymentDocumentRecord } from "../../models/PaymentDocument";
 

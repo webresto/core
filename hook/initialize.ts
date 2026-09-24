@@ -1,39 +1,44 @@
-import  HookTools from "../libs/hookTools";
+import  HookTools from "../lib/hookTools";
 import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
 import bindAssets from "./bindAssets";
 import bindDictionaries from "./bindDictionaries";
-import { CartCleanup } from "../libs/CartCleanup";
+import { CartCleanup } from "../lib/order/CartCleanup";
 
 /**
  * Set global emitter
  */
-import getEmitter from "../libs/getEmitter";
+import getEmitter from "../lib/getEmitter";
 // @ts-ignore
 global.emitter = getEmitter();
 
 /**
  * Set global NotificationManager
  */
-import { NotificationManager } from "../libs/NotificationManager";
+import { NotificationManager } from "../lib/notifications/NotificationManager";
 // @ts-ignore
 global.NotificationManager = NotificationManager
 
 /**
  * Set global DialogBox
  */
-import { DialogBox } from "../libs/DialogBox";
+import { DialogBox } from "../lib/DialogBox";
 // @ts-ignore
 global.DialogBox = DialogBox
 
 
 
 
-import { Adapter } from "../adapters/index";
+import { Adapter, Menu } from "../adapters/index";
 import bindLocales from "./bindLocales";
 // @ts-ignore
 global.Adapter = Adapter
+// Global for the same reason `Adapter` is: `models/Order` reaches for it and does
+// not import the adapters barrel, which is what keeps that file out of a require
+// cycle with everything the barrel pulls in.
+// @ts-ignore
+global.Menu = Menu
 
 export default function ToInitialize(sails: Sails) {
   /**

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const NotificationManager_1 = require("./../../libs/NotificationManager");
+const NotificationManager_1 = require("../../lib/notifications/NotificationManager");
 class TestChannel extends NotificationManager_1.Channel {
     constructor() {
         super(...arguments);

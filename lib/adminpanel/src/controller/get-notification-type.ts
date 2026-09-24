@@ -1,4 +1,4 @@
-import { NotificationTypeRegistry } from "../../../../libs/NotificationTypeRegistry";
+import { NotificationTypeRegistry } from "../../../notifications/NotificationTypeRegistry";
 import { hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
 
 function hasAccess(req: any, res: any): boolean {

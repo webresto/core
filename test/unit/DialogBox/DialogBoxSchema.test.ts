@@ -1,7 +1,7 @@
 //import { DialogBoxProduct } from "../../../interfaces/DialogBox";
 import Ajv from 'ajv';
 const ajv = new Ajv();
-let jsonSchema = require("../../../libs/schemas/dialogBoxConfig.json")
+let jsonSchema = require("../../../lib/schemas/dialogBoxConfig.json")
 const validate = ajv.compile(jsonSchema);
 
 describe('DialogBoxSchema', () => {
@@ -39,7 +39,7 @@ describe('DialogBoxSchema', () => {
 
   it("check schema", async () => {
     if(validate(dialogConfig) === true) {
-      throw `Config has diferent types in options, please check schema libs/schemas/dialogBoxConfig.json`
+      throw `Config has diferent types in options, please check schema lib/schemas/dialogBoxConfig.json`
     }
   });
 });

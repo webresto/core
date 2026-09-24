@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-import { NotificationService } from "../libs/NotificationService";
+import { NotificationService } from "../lib/notifications/NotificationService";
 
 let attributes = {
   

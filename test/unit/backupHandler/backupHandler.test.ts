@@ -1,10 +1,10 @@
 // npx mocha -r ts-node/register test/unit/backupHandler/backupHandler.test.ts
 import * as sinon from 'sinon';
 import { expect } from 'chai';
-import { BackupHandler } from '../../../libs/BackupHandler';
+import { BackupHandler } from '../../../lib/BackupHandler';
 import groupGenerator from '../../generators/group.generator';
 import dishGenerator from '../../generators/dish.generator';
-import { fsw } from '../../../libs/wrapper/fs';
+import { fsw } from '../../../lib/wrapper/fs';
 
 const scriptName = process.argv.find(arg => arg.endsWith('.ts') || arg.endsWith('.js'));
 if (scriptName && scriptName.includes('backupHandler.test.ts')) {
@@ -108,7 +108,7 @@ describe('BackupHandler', () => {
     const spy = sinon.spy(console, 'warn');
   
     // Check that a warning appears when an image is not found
-    await backupHandler['checkAndLoadImage']('/nonexistent__1.jpg'); // await добавлен
+    await backupHandler['checkAndLoadImage']('/nonexistent__1.jpg'); // await added
   
     sinon.assert.calledWith(spy, 'Image not found: /nonexistent__1.jpg');
   

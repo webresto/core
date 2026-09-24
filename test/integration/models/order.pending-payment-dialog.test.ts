@@ -3,7 +3,7 @@ import sinon from "sinon";
 import {
   buildCancelPaymentDialog,
   CANCEL_PAYMENT_DIALOG_CONFIRM,
-} from "../../../libs/dialogs/cancelPaymentDialog";
+} from "../../../lib/order/cancelPaymentDialog";
 
 describe("Order pending payment dialog", function () {
   this.timeout(30000);

@@ -7,7 +7,7 @@ const ORDER_INVESTIGATION_PROJECTION = [
     'problem',
     'rmsDelivered', 'rmsId', 'rmsOrderNumber', 'rmsDeliveryDate',
     'rmsErrorMessage', 'rmsErrorCode', 'rmsStatusCode', 'rmsOrderStatus',
-    'selfService', 'delivery', 'deliveryDescription', 'deliveryCost',
+    'serviceType', 'delivery', 'deliveryDescription', 'deliveryCost',
     'totalWeight', 'trifleFrom',
     'bonusesTotal', 'spendBonus',
     'total', 'basketTotal', 'discountTotal',

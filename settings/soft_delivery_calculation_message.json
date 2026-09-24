@@ -1,6 +1,6 @@
 {
   "key": "SOFT_DELIVERY_CALCULATION_MESSAGE",
-  "type": "boolean",
+  "type": "string",
   "name": "Soft delivery calculation message",
   "description": "Will be shown if delivery has not been calculated",
   "isRequired": false

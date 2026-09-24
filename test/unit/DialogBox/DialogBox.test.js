@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
-const DialogBox_1 = require("../../../libs/DialogBox");
+const DialogBox_1 = require("../../../lib/DialogBox");
 describe('DialogBox', () => {
     let dialogConfig = {
         message: 'Test message',

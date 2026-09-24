@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const NotificationService_1 = require("../libs/NotificationService");
+const NotificationService_1 = require("../lib/notifications/NotificationService");
 let attributes = {
     /** ID */
     id: {

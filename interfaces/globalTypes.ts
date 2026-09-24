@@ -1,6 +1,6 @@
 import sails from "@42pub/typed-sails";
 import { Config } from "./Config";
-import AwaitEmitter from "../libs/AwaitEmitter";
+import AwaitEmitter from "../lib/AwaitEmitter";
 import { WorkTime } from "@webresto/worktime";
 import { Country, Currency, CountryISOList, CurrencyISOList } from "./Country";
 
@@ -37,9 +37,11 @@ interface SailsHooks {
 
 declare global {
   const emitter: AwaitEmitter;
-  const NotificationManager: typeof import("../libs/NotificationManager").NotificationManager
-  const DialogBox: typeof import("../libs/DialogBox").DialogBox
+  const NotificationManager: typeof import("../lib/notifications/NotificationManager").NotificationManager
+  const DialogBox: typeof import("../lib/DialogBox").DialogBox
   const Adapter: typeof import("../adapters").Adapter
+  /** Menu resolution, selected by `MENU_PLACE_BASED_MODE`. */
+  const Menu: typeof import("../adapters").Menu
   //@ts-ignore *1
   interface Sails extends sails.Sails {
     [x: string]: {};
@@ -85,12 +87,28 @@ declare global {
     DEFAULT_BONUS_ADAPTER: string
     RMS_ADAPTER: string
     DEFAULT_MEDIAFILE_ADAPTER: string
-    DELIVERY_COST: number
-    DELIVERY_ITEM: string
-    DELIVERY_MESSAGE: string
-    FREE_DELIVERY_FROM: number
-    MIN_DELIVERY_AMOUNT: number
-    MIN_DELIVERY_TIME_IN_MINUTES: number
+    /** Configured delivery adapter; empty means the built-in zone-aware default. */
+    DELIVERY_ADAPTER: string
+    /** Configured geo adapter; empty means Nominatim. */
+    GEO_ADAPTER: string
+    /** Server of the default geo adapter. */
+    NOMINATIM_URL: string
+    /** Allows the scheduled zone sync. Off unless an operator turns it on. */
+    DELIVERY_ZONE_SYNC_ENABLED: boolean
+    /** Zone sync interval; anything below 300 seconds is raised to 300. */
+    DELIVERY_ZONE_SYNC_INTERVAL_SECONDS: number
+    /** Allows one zone sync shortly after the application starts. */
+    DELIVERY_ZONE_SYNC_ON_START: boolean
+    /** Per-city map links the zone sync fetches. A city without one is drawn by hand. */
+    DELIVERY_ZONE_SYNC_CONFIG: { [key: string]: any }
+    /** XYZ tile template the zone editor draws its map from. */
+    DELIVERY_ZONE_MAP_TILE_URL: string
+    /** Credit line for those tiles. */
+    DELIVERY_ZONE_MAP_ATTRIBUTION: string
+    /** Delivery cost applied when the address falls outside every zone. */
+    OUTSIDE_DELIVERY_AREA_DEFAULT_COST: number
+    /** Delivery product charged when the address falls outside every zone. */
+    OUTSIDE_DELIVERY_AREA_DEFAULT_ITEM: string
     MEDIAFILE_PARALLEL_TO_DOWNLOAD: number
     UUID_NAMESPACE: string
     NO_SYNC_NOMENCLATURE: boolean
@@ -103,6 +121,22 @@ declare global {
     SKIP_LOAD_PRODUCT_IMAGES: boolean
     DELETE_EXISTING_IMAGES_BEFORE_SYNC: boolean
     SHOW_UNAVAILABLE_DISHES: boolean
+    /** Source of the effective stock at a cooking point: local-only | rms-only | minimum */
+    DISH_PLACE_BALANCE_MODE: string
+    /** Cooking point used for stock and availability until orders carry their own. */
+    DEFAULT_COOKING_PLACE: string
+    /** Ordered kitchen resolver names. Empty leaves every order without a cooking point. */
+    KITCHEN_RESOLVE_CHAIN: string[]
+    /** Straight-line cap when picking the nearest kitchen; 0 disables the limit. */
+    DELIVERY_MAX_RADIUS_KM: number
+    /** How the menu is resolved against a cooking point: default | single-place | multi-place-route */
+    MENU_PLACE_BASED_MODE: string
+    /** Minutes added to every quoted delivery time to absorb estimate error. */
+    DELIVERY_SAFETY_MARGIN_MINUTES: number
+    /** Average courier speed used by the built-in straight-line travel estimate. */
+    DELIVERY_CITY_SPEED_KMH: number
+    /** Version of the multi-kitchen demo stock values already written. */
+    MULTI_KITCHEN_DEMO_BALANCES_VERSION: string
     [key: `SLUG_MENU_TOP_LEVEL_CONCEPT_${string}`]: string
     SLUG_MENU_TOP_LEVEL: string
     ORDER_INIT_PRODUCT_ID: string
@@ -131,7 +165,6 @@ declare global {
     SYNC_BONUSTRANSACTION_AFTER_TIME: number
     DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean
     ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean
-    CHECK_DELIVERY_MESSAGE_TEMPLATE: string
     /**
      * Allows you to make shipping calculations optional. Shipping calculations will occur. But it won't throw an error
      */
@@ -153,7 +186,7 @@ declare global {
     DELIVERY_DESCRIPTION: string
     FIRSTNAME_REQUIRED: boolean
     WORK_TIME: WorkTime[]
-    FIELDS_FOR_ORDER_INITIALIZATION: ("address" | "selfService" | "pickupPoint" | "date" | "personsCount" | "comment" | "customer" | "promotionCode" | "paymentMethod" | "concept")[]
+    FIELDS_FOR_ORDER_INITIALIZATION: ("address" | "serviceType" | "pickupPoint" | "date" | "personsCount" | "comment" | "customer" | "promotionCode" | "paymentMethod" | "concept" | "maxWaitMinutes")[]
     /**
      * System-only notification channel runtime state.
      */

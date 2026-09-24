@@ -1,4 +1,4 @@
-let countries = require("../libs/dictionaries/countries.json")
+let countries = require("../lib/dictionaries/countries.json")
 import { Country } from "../interfaces/Country";
 export default function() {
     

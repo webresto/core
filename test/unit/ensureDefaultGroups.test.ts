@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ensureDefaultGroups } from '../../libs/adminpanel/ensureDefaultGroups';
+import { ensureDefaultGroups } from '../../lib/adminpanel/ensureDefaultGroups';
 
 describe('ensureDefaultGroups', function () {
   it('creates only groups that do not exist', async function () {

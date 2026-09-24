@@ -1,0 +1,8 @@
+{
+  "key": "DELIVERY_MAX_RADIUS_KM",
+  "type": "number",
+  "name": "Maximum kitchen-to-customer distance, km",
+  "description": "Cap on the delivery adapter's distance estimate when picking the nearest kitchen: straight-line km with the built-in adapter, road km with a routing adapter. 0 disables the limit.",
+  "defaultValue": 0,
+  "isRequired": false
+}

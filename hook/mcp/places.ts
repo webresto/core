@@ -6,7 +6,7 @@ export function registerPlacesTools() {
     mcp.registerTool({
         name: 'place-list',
         group: 'places',
-        description: 'Returns all restaurant/pickup locations with address, phone, working hours and type flags (isPickupPoint, isCookingPoint, isSalePoint).',
+        description: 'Returns all restaurant/pickup locations with address, phone, working hours and type flags (isPickupPoint, isCookingPoint, hasDiningArea).',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
         handler: async () => {
@@ -46,7 +46,8 @@ export function registerPlacesTools() {
                 enable:         { type: 'boolean', description: 'Whether the location is active.', example: true },
                 isPickupPoint:  { type: 'boolean', description: 'Can be selected as pickup point.', example: true },
                 isCookingPoint: { type: 'boolean', description: 'Has a kitchen.', example: true },
-                isSalePoint:    { type: 'boolean', description: 'Is a point of sale.', example: true },
+                hasDiningArea:  { type: 'boolean', description: 'Has a room to eat in; takes dine-in orders.', example: true },
+                city:           { type: 'string',  description: 'City ID this point is listed in.', example: 'abc123' },
                 worktime:       { type: 'object',  description: 'Operating hours (WorkTime format).', example: {} },
                 customData:     { type: 'object',  description: 'Arbitrary JSON for frontend.', example: {} },
             },
@@ -73,7 +74,8 @@ export function registerPlacesTools() {
                 enable:         { type: 'boolean', description: 'Enable/disable.', example: false },
                 isPickupPoint:  { type: 'boolean', example: true },
                 isCookingPoint: { type: 'boolean', example: false },
-                isSalePoint:    { type: 'boolean', example: true },
+                hasDiningArea:  { type: 'boolean', example: true },
+                city:           { type: 'string',  description: 'City ID this point is listed in.', example: 'abc123' },
                 worktime:       { type: 'object',  description: 'New worktime schedule.', example: {} },
                 customData:     { type: 'object',  description: 'New customData.', example: {} },
             },

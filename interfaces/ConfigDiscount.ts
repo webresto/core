@@ -22,7 +22,8 @@ export interface IconfigDiscount {
      * by default modifiers will be calculated with discount
      */
     excludeModifiers?: boolean; 
-    deliveryMethod?: ("delivery"|"selfService")[]
+    /** Which service types the promotion applies to. Empty or absent — any of them. */
+    serviceType?: ("delivery"|"pickup"|"dine-in")[]
     /**
      * Minimum basket total (user dishes only) required for this promotion to be
      * applied **via a promocode**. Checked in condition(order, viaPromocode=true).

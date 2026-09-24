@@ -1,5 +1,5 @@
 import { hasManageAccess, mapChannel, stringArray, toNumber, slugify, parseJsonObject } from "./sales-channels-helpers";
-import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
+import { SalesChannelRegistry } from "../../../SalesChannelRegistry";
 
 const VALID_STATUS = ["draft", "needs_setup", "ready", "disabled", "error"];
 

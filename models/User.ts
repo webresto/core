@@ -9,7 +9,7 @@ import * as bcryptjs from "bcryptjs";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { UserBonusProgramRecord } from "./UserBonusProgram";
 import { DishRecord } from "./Dish";
-const Countries: Country[] = require("../libs/dictionaries/countries.json")
+const Countries: Country[] = require("../lib/dictionaries/countries.json")
 export type Phone = {
   code: string
   number: string

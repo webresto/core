@@ -1,14 +1,19 @@
+import { getDefaultCookingPlaceId } from "../../../../adapters/menu/cooking-place";
+import { getEffectiveBalances, readEffectiveBalance } from "../../../../adapters/menu/dish-place-balance";
 import { hasAccess } from "./marketing-helpers";
+import { DELIVERY_ZONES_ACCESS, hasModulePermission } from "./access-rights";
 
 /**
  * GET …/core/marketing/dishes?group=<id>  |  ?q=<search>  |  ?ids=<id,id,...>
  * Dishes for the promotion form's dish picker: by group, free-text search, or exact ids.
  * An empty query returns the first page so focusing the picker opens a useful dropdown.
- * Scoped to promotions-manager (thin wrapper — see §10.4).
+ * Scoped to promotions-manager (thin wrapper — see §10.4), and open to whoever sees the
+ * delivery zones: their terms pick the delivery product from the same list.
  */
 export default async function GetMarketingDishesController(req: any, res: any) {
   try {
-    if (!hasAccess(req, res, "promotions-manager")) return;
+    const zonesViewer = Boolean(req.user) && hasModulePermission(req, DELIVERY_ZONES_ACCESS, "view");
+    if (!zonesViewer && !hasAccess(req, res, "promotions-manager")) return;
 
     const group = String(req.query.group || "").trim();
     const q = String(req.query.q || "").trim();
@@ -24,6 +29,11 @@ export default async function GetMarketingDishesController(req: any, res: any) {
     }
 
     const dishes = await Dish.find({ where, limit: 100 }).sort("name ASC");
+    // Stock lives per cooking point; the picker shows it for the default one.
+    const balances = await getEffectiveBalances(
+      dishes.map((d: any) => String(d.id)),
+      await getDefaultCookingPlaceId(),
+    );
     const results = dishes.map((d: any) => ({
       id: d.id,
       name: d.name || d.id,
@@ -33,7 +43,7 @@ export default async function GetMarketingDishesController(req: any, res: any) {
       enable: d.enable !== false,
       visible: d.visible !== false,
       notForSale: Boolean(d.notForSale),
-      balance: typeof d.balance === "number" ? d.balance : null,
+      balance: readEffectiveBalance(balances, d.id),
     }));
 
     return res.json({ results });
