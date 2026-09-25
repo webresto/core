@@ -64,6 +64,8 @@ export interface AdminPanelModule {
    * importable without Sails.
    */
   available?: () => Promise<boolean>;
+  /** The Adminizer model list (a key of `models/bind`) this module belongs to; hidden with it. */
+  model?: string;
 }
 
 /** Middleware mounted on a route prefix (`app.use`), not on an exact path. */
@@ -357,7 +359,7 @@ export const adminPanelModules: AdminPanelModule[] = [
     id: "delivery-zones-manager",
     // `DeliveryZone` is the default adapter’s model. Point delivery at another
     // adapter and these polygons are a map nothing reads, so the page goes.
-    available: () => require("../../adapters").Delivery.isDefault(),
+    available: () => require("../../adapters").Adapter.isDefault("delivery"),
     page: {
       id: "delivery-zones-manager",
       title: "Delivery zones",
@@ -385,9 +387,12 @@ export const adminPanelModules: AdminPanelModule[] = [
     // below. A route and not a `page` — a page would also put the form in the
     // sidebar, and the catalog is already reachable through its list.
     //
-    // Its own module and not the delivery adapter's: pointing delivery
-    // elsewhere must not take the addresses with it.
+    // `Address` is the default geo adapter's model. Point geo at another
+    // adapter and the catalog is data nothing reads, so the list and the form go.
+    // Delivery has no say: pointing it elsewhere keeps the addresses.
     id: "addresses",
+    model: "address",
+    available: () => require("../../adapters").Adapter.isDefault("geo"),
     routes: [
       { method: "get", route: "/addresses-upload", controller: "src/controller/addresses-upload" },
       { method: "post", route: "/core/addresses-upload", controller: "src/controller/upload-addresses" },

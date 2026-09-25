@@ -22,8 +22,8 @@ declare let attributes: {
     /** The node above. Null means a direct child of the city. */
     parent: AddressRecord | string | null;
     /**
-     * One of the geo adapter's `addressTypes`. Checked by `assertNode`, not by
-     * `isIn`: attributes are read when models load, before the adapter exists.
+     * One of `ADDRESS_TYPES` of the default geo adapter, which owns this model.
+     * Checked by `assertNode`, not by `isIn`, so the list is stated once.
      */
     type: string;
     /** "Ленина", "12", "гост. Прибалтийская". */

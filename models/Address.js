@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const adapters_1 = require("../adapters");
+const defaultGeo_1 = require("../adapters/geo/default/defaultGeo");
 const compare_1 = require("../lib/address/compare");
 const range_1 = require("../lib/address/range");
 const coordinate_1 = require("../lib/address/coordinate");
@@ -34,8 +34,8 @@ let attributes = {
         model: "address",
     },
     /**
-     * One of the geo adapter's `addressTypes`. Checked by `assertNode`, not by
-     * `isIn`: attributes are read when models load, before the adapter exists.
+     * One of `ADDRESS_TYPES` of the default geo adapter, which owns this model.
+     * Checked by `assertNode`, not by `isIn`, so the list is stated once.
      */
     type: {
         type: "string",
@@ -85,7 +85,7 @@ let attributes = {
     },
 };
 async function assertNode(values) {
-    if (values.type !== undefined && !(await adapters_1.Adapter.getGeoAdapter()).addressTypes.includes(values.type)) {
+    if (values.type !== undefined && !defaultGeo_1.ADDRESS_TYPES.includes(values.type)) {
         throw new Error(`Address type "${values.type}" is unknown`);
     }
     if (values.point !== undefined && values.point !== null && !(0, coordinate_1.isValidCoordinate)(values.point)) {
@@ -167,13 +167,12 @@ let Model = {
      * answer than the block it belongs to.
      */
     async search(params) {
-        const geo = await adapters_1.Adapter.getGeoAdapter();
         const criteria = { city: params.city };
         if (params.parent) {
             criteria.parent = params.parent;
         }
         else {
-            criteria.or = [{ type: geo.rootSearchable }, { parent: null }];
+            criteria.or = [{ type: defaultGeo_1.ROOT_SEARCHABLE }, { parent: null }];
         }
         const nodes = await Address.find(criteria);
         const needle = (params.query ?? "").trim().toLowerCase();
@@ -181,7 +180,7 @@ let Model = {
         const named = nodes.filter((node) => node.type !== "range" && (!needle || (0, name_match_1.nameMatches)(node, needle)));
         const ranges = number === null ? [] : nodes.filter((node) => node.type === "range" && (0, range_1.rangeCovers)(node, number));
         const byName = (a, b) => (0, compare_1.compareAddressNames)(a.name, b.name);
-        return [...named.sort(byName), ...ranges.sort(byName)].slice(0, geo.addressSearchLimit);
+        return [...named.sort(byName), ...ranges.sort(byName)].slice(0, defaultGeo_1.ADDRESS_SEARCH_LIMIT);
     },
     /** The nodes from the city down to `id`, in that order. What `formatted` is built from. */
     async path(id) {

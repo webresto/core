@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import MenuAdapter from "../../adapters/menu/MenuAdapter";
 import { DefaultMenuAdapter } from "../../adapters/menu/default/defaultMenu";
-import { SingleKitchenMenuAdapter } from "../../adapters/menu/default/singleKitchenMenu";
 import { KitchenResolution } from "../../interfaces/Menu";
 
 describe("menu-adapter", function () {
@@ -82,28 +81,40 @@ describe("menu-adapter", function () {
     });
   });
 
-  describe("single-kitchen adapter", function () {
+  describe("single-place mode of the default adapter", function () {
     it("requires a point in every outcome", async function () {
-      bindGlobals({ DEFAULT_COOKING_PLACE: "center" }, [center, north]);
-      const adapter = new SingleKitchenMenuAdapter();
+      bindGlobals({ DEFAULT_COOKING_PLACE: "center", MENU_PLACE_BASED_MODE: "single-place" }, [center, north]);
+      const adapter = new DefaultMenuAdapter();
       expect((await adapter.resolveContext({ cookingPointId: "north" })).placeRequired).to.equal(true);
       expect((await adapter.resolveContext({ order: { cookingPoints: ["north"] } })).placeRequired).to.equal(true);
       expect((await adapter.resolveContext({})).placeRequired).to.equal(true);
     });
 
     it("falls back to the installation default before refusing", async function () {
-      bindGlobals({ DEFAULT_COOKING_PLACE: "center" }, [center, north]);
-      const context = await new SingleKitchenMenuAdapter().resolveContext({});
+      bindGlobals({ DEFAULT_COOKING_PLACE: "center", MENU_PLACE_BASED_MODE: "single-place" }, [center, north]);
+      const context = await new DefaultMenuAdapter().resolveContext({});
       expect(context.placeIds).to.deep.equal(["center"]);
       expect(context.source).to.equal("default");
       expect(context.code).to.equal(undefined);
     });
 
     it("refuses rather than reading unlimited stock when no point can be found", async function () {
-      bindGlobals({ DEFAULT_COOKING_PLACE: "" }, [center, north]);
-      const context = await new SingleKitchenMenuAdapter().resolveContext({});
+      bindGlobals({ DEFAULT_COOKING_PLACE: "", MENU_PLACE_BASED_MODE: "single-place" }, [center, north]);
+      const context = await new DefaultMenuAdapter().resolveContext({});
       expect(context.placeIds).to.deep.equal([]);
       expect(context.code).to.equal("MENU_PLACE_REQUIRED");
+    });
+
+    it("does not resolve a kitchen from the coordinate", async function () {
+      bindGlobals({ DEFAULT_COOKING_PLACE: "center", MENU_PLACE_BASED_MODE: "single-place" }, [center, north]);
+      class NorthOnly extends DefaultMenuAdapter {
+        async resolveCookingPlace(): Promise<KitchenResolution> {
+          return { placeId: "north", strategy: null, diagnostics: ["north only"] };
+        }
+      }
+      const context = await new NorthOnly().resolveContext({ coordinate: { lat: 56.84, lon: 60.61 } });
+      expect(context.placeIds).to.deep.equal(["center"]);
+      expect(context.source).to.equal("default");
     });
   });
 
@@ -153,7 +164,8 @@ describe("menu-adapter", function () {
       const verdict = await adapter.canAddProduct(products[0], 2, context);
       expect(verdict.available).to.equal(true);
       expect(verdict.balance).to.equal(3);
-      expect((await adapter.canAddProduct(products[0], 5, context)).reason).to.equal("PRODUCT_STOPPED_AT_PLACE");
+      // Refused everywhere: the point with the most left is the one quoted.
+      expect((await adapter.canAddProduct(products[0], 5, context)).reason).to.equal("PRODUCT_NOT_ENOUGH_AT_PLACE");
     });
 
     it("reads no points as unlimited in default mode and as a refusal in single-place", async function () {
@@ -163,7 +175,8 @@ describe("menu-adapter", function () {
       );
       expect(verdict.available).to.equal(true);
       expect(verdict.balance).to.equal(-1);
-      expect((await new SingleKitchenMenuAdapter().resolveContext({})).code).to.equal("MENU_PLACE_REQUIRED");
+      bindGlobals({ DEFAULT_COOKING_PLACE: "", MENU_PLACE_BASED_MODE: "single-place" }, [center, north], []);
+      expect((await new DefaultMenuAdapter().resolveContext({})).code).to.equal("MENU_PLACE_REQUIRED");
     });
 
     it("keeps everything when there is no point", async function () {
@@ -211,6 +224,13 @@ describe("menu-adapter", function () {
     });
   });
 
+  describe("delivery", function () {
+    it("adds nothing to the delivery a single kitchen cooks for", async function () {
+      const delivery = { allowed: true, cost: 150, item: undefined, message: "", deliveryTimeMinutes: 30 };
+      expect(await new DefaultMenuAdapter().adjustDelivery({ cookingPoints: ["center", "north"] } as any, delivery)).to.equal(delivery);
+    });
+  });
+
   describe("max wait", function () {
     const slow = { id: "slow", type: "dish", enable: true, cookingTimeMax: 45 };
     const untimed = { id: "untimed", type: "dish", enable: true, cookingTimeMax: null as number | null };
@@ -234,7 +254,6 @@ describe("menu-adapter", function () {
     it("hides it for an adapter that filters by nothing of its own", async function () {
       bindGlobals({}, [center]);
       class Unfiltered extends MenuAdapter {
-        public readonly name = "unfiltered";
         protected async resolvePlaces() {
           return { placeIds: [] as string[], source: "none" as const, placeRequired: false, diagnostics: [] as string[] };
         }

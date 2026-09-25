@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import GeoAdapter from "../../adapters/geo/GeoAdapter";
+import { DefaultGeoAdapter } from "../../adapters/geo/default/defaultGeo";
 
 /**
  * The geocoder half of `GeoAdapter.locate`: free text with no catalog node. The
@@ -11,8 +11,8 @@ describe("Delivery location resolution", function () {
   /** A geo adapter that records what it was asked and answers with `answer`. */
   function geocoder(answer: (parts: Parts) => Promise<{ lat: number; lon: number } | null>) {
     const asked: Parts[] = [];
-    const geo = new (class extends GeoAdapter {
-      public async geocode(parts: Parts) {
+    const geo = new (class extends DefaultGeoAdapter {
+      protected async geocode(parts: Parts) {
         asked.push(parts);
         return answer(parts);
       }

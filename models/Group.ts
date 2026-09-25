@@ -8,7 +8,7 @@ import { MediaFileRecord } from "./MediaFile";
 import { WorkTime, WorkTimeValidator } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
-import { Adapter, Menu } from "../adapters";
+import { Adapter } from "../adapters";
 import { slugIt } from "../lib/slugIt";
 import { DishRecord } from "./Dish";
 import { buildAuditDiff, logAuditEvent } from "../lib/auditLog";
@@ -238,7 +238,7 @@ let Model = {
     // point. Asking per group would let one menu be assembled from two kitchens.
     // The order, when the caller has one, reads the menu at the order's kitchen
     // and hides what could not be cooked within its `maxWaitMinutes`.
-    const context = await (await Menu.getAdapter()).resolveContext({ order: order ?? null });
+    const context = await (await Adapter.get("menu")).resolveContext({ order: order ?? null });
     const groups = await Group.find({ where: {
       id: groupsId,
       isDeleted: false,
@@ -577,7 +577,7 @@ let Model = {
 
     let dishForRecommend = [...groupRecommendedDishes, ...recommendedDishes]
 
-    const adapter = await Menu.getAdapter();
+    const adapter = await Adapter.get("menu");
     dishForRecommend = await adapter.filterProducts(dishForRecommend, await adapter.resolveContext({}));
 
     if (limit && Number.isInteger(limit) && limit > 0) {

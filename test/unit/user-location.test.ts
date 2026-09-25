@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { wholeLine } from "../../lib/user-location";
+import { Adapter } from "../../adapters";
 
 const OrderModel = require("../../models/Order");
 const UserLocationModel = require("../../models/UserLocation");
@@ -20,7 +21,7 @@ describe("UserLocation from a finished order", function () {
   const matches = (row: Row, criteria: Row) => Object.entries(criteria).every(([key, value]) => row[key] === value);
 
   before(function () {
-    for (const name of ["Order", "UserLocation", "User", "Settings"]) realGlobals[name] = (global as any)[name];
+    for (const name of ["Order", "UserLocation", "User", "Settings", "Adapter"]) realGlobals[name] = (global as any)[name];
 
     (global as any).Order = {
       ...OrderModel,
@@ -47,6 +48,8 @@ describe("UserLocation from a finished order", function () {
 
     (global as any).User = { findOne: async () => ({ id: "user-by-phone" }) };
     (global as any).Settings = { get: async () => undefined };
+    // The built-in geo adapter describes the address `checkAddress` reads.
+    (global as any).Adapter = Adapter;
   });
 
   after(function () {

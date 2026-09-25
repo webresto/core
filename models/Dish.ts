@@ -7,7 +7,7 @@ import { WorkTime } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier, Modifier } from "../interfaces/Modifier";
-import { Adapter, Menu } from "../adapters";
+import { Adapter } from "../adapters";
 import { CustomData, isCustomData } from "../interfaces/CustomData";
 import { slugIt } from "../lib/slugIt";
 import { UserRecord } from "./User";
@@ -387,7 +387,7 @@ let Model = {
 
     let dishes = await Dish.find(criteria).populate("images");
 
-    dishes = await (await Menu.getAdapter()).filterProducts(dishes, context);
+    dishes = await (await Adapter.get("menu")).filterProducts(dishes, context);
 
     for await (let dish of dishes) {
       const reason = checkExpression(dish as Pick<typeof dish, "worktime" | "visible" | "promo" | "modifier">);
@@ -413,7 +413,7 @@ let Model = {
    *   read at the same points as the dish's, union included
    */
   async getDishModifiers(dish: DishRecord, context: MenuContext): Promise<DishRecord> {
-    const adapter = await Menu.getAdapter();
+    const adapter = await Adapter.get("menu");
 
     if (dish.modifiers) {
       let index = 0;
@@ -566,7 +566,7 @@ let Model = {
 
     recommendedDishes = recommendedDishes.filter((dish: DishRecord) => !ids.includes(dish.id));
 
-    const adapter = await Menu.getAdapter();
+    const adapter = await Adapter.get("menu");
     recommendedDishes = await adapter.filterProducts(recommendedDishes, await adapter.resolveContext({}));
 
     // Fisher-Yates shifle

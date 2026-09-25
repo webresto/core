@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SERVICE_TYPES = void 0;
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
-const contracts_1 = require("../adapters/delivery/contracts");
 const worktime_1 = require("@webresto/worktime");
 const phoneValidByMask_1 = require("../lib/phoneValidByMask");
 const OrderHelper_1 = require("../lib/order/OrderHelper");
@@ -14,9 +13,8 @@ const cancelPaymentDialog_1 = require("../lib/order/cancelPaymentDialog");
 const isValue_1 = require("../utils/isValue");
 const cooking_place_1 = require("../lib/menu/cooking-place");
 const kitchen_assignment_1 = require("../lib/order/kitchen-assignment");
-const soft_delivery_1 = require("../adapters/delivery/soft-delivery");
+const soft_delivery_1 = require("../lib/delivery/soft-delivery");
 const coordinate_1 = require("../lib/address/coordinate");
-const format_1 = require("../lib/address/format");
 const dish_place_balance_1 = require("../lib/menu/dish-place-balance");
 const product_availability_1 = require("../lib/menu/product-availability");
 const order_timing_1 = require("../lib/order/order-timing");
@@ -399,7 +397,7 @@ let Model = {
         // The basket reads stock at the point the menu was read at, and asks the same
         // adapter for it. Two answers to "which kitchen" is how a customer ends up
         // adding a product they were shown and cannot have.
-        const menuContext = await (await Menu.getAdapter()).resolveContext({
+        const menuContext = await (await Adapter.get("menu")).resolveContext({
             order: await Order.findOne(criteria),
         });
         // A mode that ties the menu to a point, with no point to tie it to, cannot
@@ -426,7 +424,7 @@ let Model = {
         // Asked of the adapter, not of one point: in a routing mode a product is
         // addable if any kitchen the courier could reach has it, and the menu that
         // showed it to the customer used exactly that rule.
-        const availability = await (await Menu.getAdapter()).canAddProduct(dishObj, amount, menuContext);
+        const availability = await (await Adapter.get("menu")).canAddProduct(dishObj, amount, menuContext);
         // Refused in the same words the menu used: the context that hid a stopped
         // product from the storefront is the one asked here, so a product the
         // customer was shown goes in and one they were not shown does not. Core used
@@ -795,8 +793,12 @@ let Model = {
             if (order.serviceType === "delivery") {
                 softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
                 if (address) {
-                    await checkAddress(address, softDeliveryCalculation);
-                    order.address = { ...address, formatted: await formatAddress(address) };
+                    // The line an operator and a courier read is rebuilt from the catalog
+                    // on every save rather than trusted from the client: the node is the
+                    // fact, the string is a rendering of it.
+                    const described = await (await Adapter.get("geo")).describe(address);
+                    await checkAddress(address, described.selfAddressed, softDeliveryCalculation);
+                    order.address = { ...address, formatted: described.formatted };
                 }
                 else {
                     if (order.address === null && !softDeliveryCalculation) {
@@ -828,7 +830,7 @@ let Model = {
             // an installation without a single zone, which cannot price any address.
             if (order.serviceType === "delivery" &&
                 order.delivery?.allowed === false &&
-                (softDeliveryCalculation === false || (0, contracts_1.isNoDeliveryZones)(order.delivery))) {
+                (softDeliveryCalculation === false || order.delivery.notConfigured)) {
                 throw {
                     code: 11,
                     error: "Delivery not allowed",
@@ -1264,7 +1266,7 @@ let Model = {
                 throw `order by criteria: ${criteria},  not found`;
             const orderDishes = await OrderDish.find({ order: fullOrder.id }).populate("dish").sort("createdAt");
             // Modifier stock is read where the menu is: resolved once for the basket.
-            const menuContext = await (await Menu.getAdapter()).resolveContext({ order: fullOrder });
+            const menuContext = await (await Adapter.get("menu")).resolveContext({ order: fullOrder });
             for (let orderDish of orderDishes) {
                 if (!orderDish.dish) {
                     sails.log.error("orderDish", orderDish.id, "has not dish");
@@ -1394,7 +1396,7 @@ let Model = {
             //
             // The menu adapter answers. The built-in ones keep the whole basket on the
             // order's kitchen; a routing module spreads it over the stops of a route.
-            const menuAdapter = await Menu.getAdapter();
+            const menuAdapter = await Adapter.get("menu");
             const placement = await menuAdapter.placeLines(order, orderDishes
                 .filter((line) => line.dish && typeof line.dish !== "string")
                 .map((line) => ({ orderDishId: line.id, dish: line.dish, amount: Number(line.amount) || 1 })), await menuAdapter.resolveContext({ order }), kitchen.coordinate);
@@ -1749,12 +1751,14 @@ let Model = {
                     delivery = order.promotionDelivery;
                 }
                 else {
-                    let deliveryAdapter = await Adapter.getDeliveryAdapter();
+                    let deliveryAdapter = await Adapter.get("delivery");
                     await deliveryAdapter.reset(order);
                     if (order.address) {
                         Order.emitAndLogDetached({ id: order.id }, "core:order-check-delivery", order);
                         try {
                             delivery = await deliveryAdapter.calculate(order);
+                            // What the kitchens a basket was spread over add to the price.
+                            delivery = await menuAdapter.adjustDelivery(order, delivery);
                         }
                         catch (error) {
                             sails.log.error("deliveryAdapter.calculate error:", error);
@@ -1828,7 +1832,7 @@ let Model = {
                         kitchen: kitchenPlace?.coordinate ?? null,
                         customer: kitchen.coordinate,
                         minDeliveryMinutes: order.delivery.deliveryTimeMinutes ?? null,
-                    }, await Adapter.getDeliveryAdapter());
+                    }, await Adapter.get("delivery"));
                     order.delivery.preparationMinutes = estimate.preparationMinutes;
                     order.delivery.totalTimeMinutes = estimate.totalMinutes;
                     order.delivery.distanceKm = estimate.distanceKm ?? undefined;
@@ -1973,7 +1977,7 @@ let Model = {
         // Whether an address is required at all is `addDish`'s question, asked
         // before this. What is left here is the shape of one that is there.
         if (order.serviceType === "delivery" && order.address) {
-            await checkAddress(order.address);
+            await checkAddress(order.address, (await (await Adapter.get("geo")).describe(order.address)).selfAddressed);
         }
         await Order.next({ id: order.id }, "CART");
         return await Order.findOne({ id: order.id });
@@ -2314,18 +2318,6 @@ async function checkCustomerInfo(customer) {
     }
 }
 /**
- * The address line an operator and a courier read.
- *
- * Rebuilt from the catalog on every save rather than trusted from the client:
- * the node is the fact, the string is a rendering of it. Free text is kept as
- * typed — there is no path to rebuild it from.
- */
-async function formatAddress(address) {
-    if (!address.node)
-        return address.formatted;
-    return (0, format_1.formatAddressLine)(await Address.path(address.node), address.home, (await Adapter.getGeoAdapter()).selfAddressed);
-}
-/**
  * The fields `FIELDS_FOR_ORDER_INITIALIZATION` requires before a product goes in.
  *
  * An address is a delivery's requirement, a point is the requirement of the two
@@ -2346,7 +2338,7 @@ async function checkInitializationFields(order) {
         }
     }
 }
-async function checkAddress(address, softDeliveryCalculation = false) {
+async function checkAddress(address, selfAddressed, softDeliveryCalculation = false) {
     let error = [];
     if (!address.node && !address.formatted) {
         error.push({
@@ -2354,12 +2346,10 @@ async function checkAddress(address, softDeliveryCalculation = false) {
             error: "one of (node, formatted) is required",
         });
     }
-    // A node that is itself the place to knock at answers the question the house
-    // number asks. Anything above one — a street, a quarter — does not. Neither
+    // A node that is itself the place to knock at — `selfAddressed`, the geo
+    // adapter's answer — answers the question the house number asks. Anything above one — a street, a quarter — does not. Neither
     // does free text, unless it carries a coordinate: that is how a saved location
     // of a house comes back, its number in the line and its door in the point.
-    const node = address.node ? await Address.findOne({ id: address.node }) : undefined;
-    const selfAddressed = node && (await Adapter.getGeoAdapter()).selfAddressed.includes(node.type);
     if (!address.home && !selfAddressed && !(0, coordinate_1.coordinateFromAddress)(address)) {
         error.push({
             code: 6,

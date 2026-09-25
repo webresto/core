@@ -22,6 +22,7 @@ import {
   OrderDishId,
 } from "../../interfaces/Menu";
 import { AddressPoint } from "../../interfaces/Geo";
+import { Delivery } from "../../interfaces/Delivery";
 import { OrderRecord } from "../../models/Order";
 import { DishRecord } from "../../models/Dish";
 
@@ -33,25 +34,21 @@ import { DishRecord } from "../../models/Dish";
  * cook" are the same decision seen from two ends, and an installation that
  * changes one always means to change the other.
  *
- * The context names points in the plural, and the defaults below read them as
- * a union: a product is in the menu if *any* of them can sell it. A module
- * that names two or three kitchens for one customer only has to override
- * `resolvePlaces`; the filter and the add-to-basket check already agree with
- * it. Both built-in adapters name at most one point, so nothing changes for
- * an installation running them.
+ * Only `resolvePlaces` is left to an implementation. Everything else here is
+ * core's rule and reads the same for any of them: the context names points in
+ * the plural and they are read as a union — a product is in the menu if *any*
+ * of them can sell it — so an adapter that names several kitchens gets a filter
+ * and an add-to-basket check that already agree with it. The default adapter
+ * names at most one point.
+ *
+ * A multi-kitchen route plugs in through `placeLines` and `adjustDelivery`;
+ * what a route is and how it is priced is the module's business, not core's.
  *
  * `resolveContext` and `filterProducts` are the entry points and are not meant
  * to be overridden: each wraps the adapter's own step in one that belongs to
  * the order, so every adapter gets it without writing it.
- *
- * Capability methods are plain methods with defaults, never `abstract`, the same
- * rule `DeliveryAdapter` follows: an adapter written before a method existed has
- * to keep compiling.
  */
 export default abstract class MenuAdapter {
-  /** Identity, and what `MENU_PLACE_BASED_MODE` resolves to. */
-  public abstract readonly name: string;
-
   /** Which points this menu is read at, given what the caller knows. */
   protected abstract resolvePlaces(request: MenuRequest): Promise<Omit<MenuContext, "order">>;
 
@@ -115,7 +112,8 @@ export default abstract class MenuAdapter {
    * happens, so they sit next to each other.
    *
    * Allowed if any point of the context allows it; the verdict returned is the
-   * first point's that did, or the first point's refusal when none did. No
+   * first point's that did. When none did, the refusal with the most left:
+   * "only two left" is worth saying, "stopped everywhere" is what is left. No
    * points reads as unlimited, the same as the filter.
    */
   public async canAddProduct(
@@ -129,7 +127,7 @@ export default abstract class MenuAdapter {
     for (const placeId of context.placeIds) {
       const verdict = await getProductAvailability(product, placeId, amount);
       if (verdict.available) return verdict;
-      refused ??= verdict;
+      if (!refused || verdict.balance > refused.balance) refused = verdict;
     }
     return refused!;
   }
@@ -168,6 +166,17 @@ export default abstract class MenuAdapter {
 
     const placeId = primaryCookingPoint(order);
     return { placeIds: placeId ? [placeId] : [], byOrderDish, plan: null };
+  }
+
+  /**
+   * What the way a basket was placed adds to its delivery.
+   *
+   * Asked by `countCart` right after the delivery adapter priced the order, so
+   * whichever delivery adapter is in use, a route charges on top of it. The base
+   * answer is the delivery as priced: one kitchen adds nothing.
+   */
+  public async adjustDelivery(_order: OrderRecord, delivery: Delivery): Promise<Delivery> {
+    return delivery;
   }
 
   /**
@@ -328,7 +337,7 @@ const deliveryZone: KitchenStrategy = async (request, diagnostics) => {
   const adapterDiagnostics: string[] = [];
   let placeId: string | null = null;
   try {
-    const adapter = await Adapter.getDeliveryAdapter();
+    const adapter = await Adapter.get("delivery");
     placeId = await adapter.resolvePlaceForCoordinate(coordinate, await openKitchensWithCoordinate(), adapterDiagnostics);
   } catch (error) {
     diagnostics.push(`delivery-zone: delivery adapter failed (${error instanceof Error ? error.message : String(error)})`);
@@ -365,7 +374,7 @@ const nearestGeo: KitchenStrategy = async (request, diagnostics) => {
   // where an order is cooked in either direction, so it passes to the next
   // strategy rather than picking from the kitchens it managed to measure.
   try {
-    const adapter = await Adapter.getDeliveryAdapter();
+    const adapter = await Adapter.get("delivery");
 
     for (const { id, coordinate: at } of await openKitchensWithCoordinate()) {
       const estimate = await adapter.estimateTravel(at, coordinate);

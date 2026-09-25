@@ -27,7 +27,6 @@ function bindGlobals(settings, places, rows) {
 bindGlobals({}, []);
 
 const { DefaultMenuAdapter } = require(path.join(BUILD, "adapters/menu/default/defaultMenu.js"));
-const { SingleKitchenMenuAdapter } = require(path.join(BUILD, "adapters/menu/default/singleKitchenMenu.js"));
 
 let passed = 0;
 
@@ -70,9 +69,9 @@ let passed = 0;
   assert.strictEqual(c.order, order);
   passed++;
 
-  // ---- single-kitchen adapter ---------------------------------------------
-  const single = new SingleKitchenMenuAdapter();
-  bindGlobals({ DEFAULT_COOKING_PLACE: "center" }, [center, north]);
+  // ---- single-place mode of the default adapter ---------------------------
+  const single = new DefaultMenuAdapter();
+  bindGlobals({ DEFAULT_COOKING_PLACE: "center", MENU_PLACE_BASED_MODE: "single-place" }, [center, north]);
   assert.strictEqual((await single.resolveContext({ cookingPointId: "north" })).placeRequired, true);
   assert.strictEqual((await single.resolveContext({ order: { cookingPoints: ["north"] } })).placeRequired, true);
   assert.strictEqual((await single.resolveContext({})).placeRequired, true);
@@ -85,7 +84,7 @@ let passed = 0;
   passed++;
 
   // Nothing anywhere: a refusal, not unlimited stock.
-  bindGlobals({ DEFAULT_COOKING_PLACE: "" }, [center, north]);
+  bindGlobals({ DEFAULT_COOKING_PLACE: "", MENU_PLACE_BASED_MODE: "single-place" }, [center, north]);
   c = await single.resolveContext({});
   assert.deepStrictEqual(c.placeIds, []);
   assert.strictEqual(c.code, "MENU_PLACE_REQUIRED");
@@ -104,7 +103,8 @@ let passed = 0;
   assert.deepStrictEqual(filtered.map((p) => p.id), ["water"]);
   passed++;
 
-  // Both adapters narrow one point the same way; only the no-point case differs.
+  // Both modes narrow one point the same way; only the no-point case differs.
+  bindGlobals({ DISH_PLACE_BALANCE_MODE: "minimum", MENU_PLACE_BASED_MODE: "single-place" }, [center], stopped);
   filtered = await single.filterProducts(products, ctx(["center"]));
   assert.deepStrictEqual(filtered.map((p) => p.id), ["water"]);
   passed++;

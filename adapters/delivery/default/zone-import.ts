@@ -4,7 +4,7 @@ import { RequiredField } from "../../../interfaces/toolsTS";
 import {
   DeliveryZoneSnapshot,
   ImportedDeliveryZone,
-} from "../contracts";
+} from "../../../interfaces/Delivery";
 import { DeliveryZoneRecord } from "../../../models/DeliveryZone";
 import { isValidPolygon } from "./zone-match";
 import { invalidateDeliveryZoneCache } from "./zone-cache";

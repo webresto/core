@@ -138,20 +138,6 @@ async function getKitchenName(order: any): Promise<string> {
   return String(point.title || point.address || "");
 }
 
-/**
- * The zone's name, read by the id the calculation reported back.
- *
- * A label only: the zone stays a transient of the delivery calculation, and a
- * copy of it on the order would be a second answer going stale the moment the
- * map is redrawn.
- */
-async function getZoneName(order: any): Promise<string> {
-  const zoneId = order?.delivery?.zoneId;
-  if (!zoneId) return "";
-  const zone = await DeliveryZone.findOne({ id: String(zoneId) });
-  return zone?.name ? String(zone.name) : "";
-}
-
 /** The product the delivery is charged as, when the calculation named one. */
 async function getDeliveryDish(order: any): Promise<any | null> {
   const item = order?.delivery?.item;
@@ -270,7 +256,7 @@ export default async function GetOrderKanbanOrderController(req: any, res: any) 
     }
 
     return res.json({
-      order: mapOrder(order, operatorLimited, await getKitchenName(order), await getZoneName(order), await getDeliveryDish(order)),
+      order: mapOrder(order, operatorLimited, await getKitchenName(order), order?.delivery?.zoneName || "", await getDeliveryDish(order)),
     });
   } catch (error) {
     sails.log.error("Get order kanban order error", error);

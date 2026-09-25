@@ -2,7 +2,7 @@ import { DeliveryZoneRecord } from "../../../../models/DeliveryZone";
 import { isValidPolygon } from "../../../../adapters/delivery/default/zone-match";
 import { ZoneOwnership, zoneIsLocked, zoneSourceIsInactive } from "../../../../adapters/delivery/default/zone-ownership";
 import { ZoneTerms } from "../../../../adapters/delivery/default/zone-import";
-import { Delivery } from "../../../../adapters";
+import { Adapter } from "../../../../adapters";
 import { DELIVERY_ZONES_ACCESS, getModulePermissions, requireModulePermission } from "./access-rights";
 
 /** Access guards and record mapping for the Delivery zones module. */
@@ -14,7 +14,7 @@ import { DELIVERY_ZONES_ACCESS, getModulePermissions, requireModulePermission } 
  * is where the URLs stop answering, so knowing one buys nothing.
  */
 async function adapterServesZones(res: any): Promise<boolean> {
-  if (await Delivery.isDefault()) return true;
+  if (await Adapter.isDefault("delivery")) return true;
   res.status(404).json({ error: "Delivery zones are managed by the delivery adapter in use" });
   return false;
 }

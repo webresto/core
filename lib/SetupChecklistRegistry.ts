@@ -20,8 +20,6 @@
  * (Settings["SETUP_CHECKLIST_DISMISSED"]), handled by SetupChecklistService — not here.
  */
 
-import { getServingZones } from "../adapters/delivery/default/zone-cache";
-
 export type CheckupSeverity = "required" | "recommended" | "optional";
 
 export type CheckupStatus =
@@ -327,26 +325,6 @@ export class SetupChecklistRegistry {
           return { status: "todo", detailKey: "{count} created, none enabled — not ready", detailParams: { count: total } };
         }
         return { status: "done", detailKey: "{count} of {total} enabled", detailParams: { count: enabled, total } };
-      },
-    });
-
-    this.registerCheckup({
-      key: "has_delivery_zone",
-      group: "project",
-      severity: "required",
-      titleKey: "Delivery zone configured",
-      sourceModule: "core",
-      sortOrder: 7,
-      target: { url: "/delivery-zones-manager" },
-      // Zones are the only delivery tariff: without one that can take an order,
-      // every delivery is refused. "Can take an order" is the adapter's own list
-      // — enabled, with a shape, its layer on — and its terms set by itself or
-      // by that layer.
-      check: async () => {
-        const zones = await getServingZones();
-        const priced = zones.filter((zone) => Number.isFinite(zone.minDeliveryTime) && Number.isFinite(zone.deliveryCost));
-        if (!priced.length) return { status: "todo", detailKey: "No enabled delivery zone with its delivery time and cost" };
-        return { status: "done", detailKey: "Zones that deliver: {count}", detailParams: { count: priced.length } };
       },
     });
 

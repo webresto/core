@@ -1,11 +1,5 @@
 /**
- * What delivery exchanges with the outside world.
- *
- * These types live apart from `DeliveryAdapter.ts` on purpose. The adapter class
- * imports the extension registry, the registry imports these contracts, and
- * everything under `lib/` needs the contracts without needing the class — put
- * them back in the class file and that becomes a runtime require cycle, not just
- * a type-level one.
+ * What delivery exchanges with the rest of the application.
  *
  * Nothing here imports anything: contracts describe shapes, they do not reach for
  * models, settings or adapters.
@@ -55,6 +49,18 @@ export interface Delivery {
   /** The zone whose terms produced this result, when one matched. */
   zoneId?: string
   /**
+   * That zone’s name, for the operator screens. A label taken when the price was,
+   * so the screens never read the adapter’s zones themselves.
+   */
+  zoneName?: string
+  /**
+   * The adapter has nothing to price any address with — the installation is not
+   * set up, the address is not at fault. `Order.check` refuses such an order even
+   * under `SOFT_DELIVERY_CALCULATION`: soft calculation is for an address whose
+   * price cannot be worked out, not for an installation that cannot price anything.
+   */
+  notConfigured?: boolean
+  /**
    * The promised time.
    *
    * Additive and optional: an adapter that only prices
@@ -78,6 +84,12 @@ export interface Delivery {
 export type DeliveryCoordinate = {
   lat: number;
   lon: number;
+}
+
+/** A kitchen as the zone picker sees it: an id and where it stands. */
+export interface PlaceCandidate {
+  id: string;
+  coordinate: DeliveryCoordinate | null;
 }
 
 /** How long the road from the kitchen to the customer takes, and how it was worked out. */
@@ -130,16 +142,4 @@ export interface DeliveryZoneSnapshot {
    * because operators routinely write delivery terms into that field.
    */
   updateDescriptions?: boolean;
-}
-/**
- * The diagnostic an adapter emits when the installation has no delivery zone
- * at all. `Order.check` refuses such an order even under
- * `SOFT_DELIVERY_CALCULATION`: soft calculation is for an address whose price
- * cannot be worked out, not for an installation that cannot price anything.
- */
-export const NO_DELIVERY_ZONES_DIAGNOSTIC = "no delivery zones configured";
-
-/** Whether a delivery result says the installation has no zone to deliver from. */
-export function isNoDeliveryZones(delivery: Pick<Delivery, "diagnostics"> | null | undefined): boolean {
-  return Boolean(delivery?.diagnostics?.includes(NO_DELIVERY_ZONES_DIAGNOSTIC));
 }

@@ -40,6 +40,25 @@ export function primaryCookingPoint(
   return toPlaceId(order?.cookingPoints?.[0]);
 }
 
+/**
+ * The point a menu request names by itself: the one the caller asked for, else
+ * the order's kitchen. `null` when it names none and the menu has to decide.
+ *
+ * The caller's point wins: a customer browsing "what can I get from the north
+ * kitchen" is asking a question the order cannot answer.
+ */
+export function namedMenuPoint(
+  request: { cookingPointId?: string | null; order?: { cookingPoints?: string[] | null } | null } | null | undefined,
+): { placeId: string; source: "requested" | "order" } | null {
+  const requested = toPlaceId(request?.cookingPointId);
+  if (requested) return { placeId: requested, source: "requested" };
+
+  const assigned = primaryCookingPoint(request?.order);
+  if (assigned) return { placeId: assigned, source: "order" };
+
+  return null;
+}
+
 /** A point that can cook right now — as a matter of configuration, not schedule. */
 export function isEnabledKitchen(place: any): boolean {
   return place?.isCookingPoint === true && place?.enable !== false;

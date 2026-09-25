@@ -1,4 +1,4 @@
-import { DeliveryCoordinate } from "../contracts";
+import { DeliveryCoordinate, PlaceCandidate } from "../../../interfaces/Delivery";
 import { distanceKm } from "../../../lib/geo/utils";
 
 /**
@@ -90,12 +90,6 @@ export function findZoneForCoordinate<T extends ZoneGeometry>(
     if (isPointInRing(coordinate, zone.polygon)) return zone;
   }
   return null;
-}
-
-/** A kitchen as the zone picker sees it: an id and where it stands. */
-export interface PlaceCandidate {
-  id: string;
-  coordinate: DeliveryCoordinate | null;
 }
 
 /**

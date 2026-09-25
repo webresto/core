@@ -1,6 +1,6 @@
 import axios from "axios";
 import { parseStringPromise } from "xml2js";
-import { DeliveryZoneSnapshot, ImportedDeliveryZone } from "../contracts";
+import { DeliveryZoneSnapshot, ImportedDeliveryZone } from "../../../interfaces/Delivery";
 
 /**
  * Where the default adapter's zone geometry comes from: a KML document, in

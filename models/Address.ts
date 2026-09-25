@@ -3,7 +3,7 @@ import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
 import { CityRecord } from "./City";
-import { Adapter } from "../adapters";
+import { ADDRESS_SEARCH_LIMIT, ADDRESS_TYPES, ROOT_SEARCHABLE } from "../adapters/geo/default/defaultGeo";
 import { AddressPoint } from "../interfaces/Geo";
 import { compareAddressNames } from "../lib/address/compare";
 import { leadingNumber, rangeCovers } from "../lib/address/range";
@@ -42,8 +42,8 @@ let attributes = {
   } as unknown as AddressRecord | string | null,
 
   /**
-   * One of the geo adapter's `addressTypes`. Checked by `assertNode`, not by
-   * `isIn`: attributes are read when models load, before the adapter exists.
+   * One of `ADDRESS_TYPES` of the default geo adapter, which owns this model.
+   * Checked by `assertNode`, not by `isIn`, so the list is stated once.
    */
   type: {
     type: "string",
@@ -104,7 +104,7 @@ type attributes = typeof attributes;
 export interface AddressRecord extends attributes, ORM {}
 
 async function assertNode(values: Partial<AddressRecord>): Promise<void> {
-  if (values.type !== undefined && !(await Adapter.getGeoAdapter()).addressTypes.includes(values.type)) {
+  if (values.type !== undefined && !ADDRESS_TYPES.includes(values.type)) {
     throw new Error(`Address type "${values.type}" is unknown`);
   }
 
@@ -191,13 +191,12 @@ let Model = {
    * answer than the block it belongs to.
    */
   async search(params: { city: string; parent?: string | null; query: string }): Promise<AddressRecord[]> {
-    const geo = await Adapter.getGeoAdapter();
     const criteria: Record<string, unknown> = { city: params.city };
 
     if (params.parent) {
       criteria.parent = params.parent;
     } else {
-      criteria.or = [{ type: geo.rootSearchable }, { parent: null }];
+      criteria.or = [{ type: ROOT_SEARCHABLE }, { parent: null }];
     }
 
     const nodes = await Address.find(criteria);
@@ -210,7 +209,7 @@ let Model = {
 
     const byName = (a: AddressRecord, b: AddressRecord) => compareAddressNames(a.name, b.name);
 
-    return [...named.sort(byName), ...ranges.sort(byName)].slice(0, geo.addressSearchLimit);
+    return [...named.sort(byName), ...ranges.sort(byName)].slice(0, ADDRESS_SEARCH_LIMIT);
   },
 
   /** The nodes from the city down to `id`, in that order. What `formatted` is built from. */

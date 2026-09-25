@@ -83,7 +83,7 @@ describe('Dish', function () {
     ];
 
     let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers, price: 100.1 }) );
-    dish = await Dish.getDishModifiers(dish, await (await Menu.getAdapter()).resolveContext({}));
+    dish = await Dish.getDishModifiers(dish, await (await Adapter.get("menu")).resolveContext({}));
 
     if(typeof dish.modifiers[0].group === "string" || typeof dish.modifiers[0].childModifiers[0].dish === "string") throw `Bad type`
     expect(dish.modifiers.length).to.equal(1);

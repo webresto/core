@@ -26,3 +26,23 @@ export interface AddressLocation {
   unrecognized: boolean;
   diagnostics: string[];
 }
+
+/** One node of a city address catalog, as the storefront reads it. */
+export interface AddressNode {
+  id: string;
+  type: string;
+  name: string;
+  /** The node above; `null` for a node the city holds directly. */
+  parent: string | null;
+  point: AddressPoint | null;
+  /** Names of the nodes above, from the root down. */
+  ancestors: string[];
+}
+
+/** What an order's address reads as, and whether it still needs a house number. */
+export interface AddressDescription {
+  /** The line an operator and a courier read. */
+  formatted: string;
+  /** The chosen node is the place to knock at by itself, so no house number is asked. */
+  selfAddressed: boolean;
+}

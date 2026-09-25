@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { pickInheritedFields } from "../../lib/delivery-zone/inherited-terms";
+import { pickInheritedFields } from "../../lib/delivery/inherited-terms";
 
 /**
  * Layers: three rules, and they are not the same rule.

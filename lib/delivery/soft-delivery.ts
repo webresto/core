@@ -1,4 +1,4 @@
-import { Delivery } from "./contracts";
+import { Delivery } from "../../interfaces/Delivery";
 
 /**
  * Soft delivery calculation — what to answer when the cost cannot be worked out.

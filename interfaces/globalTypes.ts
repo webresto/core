@@ -17,8 +17,6 @@ declare global {
   const NotificationManager: typeof import("../lib/notifications/NotificationManager").NotificationManager
   const DialogBox: typeof import("../lib/DialogBox").DialogBox
   const Adapter: typeof import("../adapters").Adapter
-  /** Menu resolution, selected by `MENU_PLACE_BASED_MODE`. */
-  const Menu: typeof import("../adapters").Menu
   //@ts-ignore *1
   interface Sails extends sails.Sails {
     [x: string]: {};

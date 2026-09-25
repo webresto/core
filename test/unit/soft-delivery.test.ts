@@ -1,11 +1,10 @@
 import { expect } from "chai";
-import { softDeliveryFallback, softDeliveryMessage } from "../../adapters/delivery/soft-delivery";
+import { softDeliveryFallback, softDeliveryMessage } from "../../lib/delivery/soft-delivery";
 import { applyZone, locationUnrecognized, outsideDeliveryArea } from "../../adapters/delivery/default/zone-calculation";
 import { invalidateDeliveryZoneCache } from "../../adapters/delivery/default/zone-cache";
 import { DefaultDeliveryAdapter } from "../../adapters/delivery/default/defaultDelivery";
 import { Adapter } from "../../adapters";
-import { isNoDeliveryZones } from "../../adapters/delivery/contracts";
-import GeoAdapter from "../../adapters/geo/GeoAdapter";
+import { DefaultGeoAdapter } from "../../adapters/geo/default/defaultGeo";
 
 /**
  * An address outside every zone is not a refusal while soft calculation is on.
@@ -48,7 +47,10 @@ describe("Soft delivery calculation", function () {
       },
     };
     // Translation is identity here; the messages are asserted as written.
-    (global as any).sails = { __: (text: string, ...args: string[]) => (args.length ? `${text}:${args.join(",")}` : text) };
+    (global as any).sails = {
+      __: (text: string, ...args: string[]) => (args.length ? `${text}:${args.join(",")}` : text),
+      log: { info: () => undefined, warn: () => undefined },
+    };
   });
 
   afterEach(function () {
@@ -212,20 +214,17 @@ describe("Soft delivery calculation", function () {
     const inside = { city: "Demo", formatted: "Near, 1", home: "1", coordinate: { lat: 10, lon: 10 } } as any;
     // The stand's geocoder has been dead since scenario 01, and that is the
     // state this has to answer for: a street the catalog does not carry.
-    const deadGeocoder = new (class extends GeoAdapter {
-      public async geocode(): Promise<never> {
+    const deadGeocoder = new (class extends DefaultGeoAdapter {
+      protected async geocode(): Promise<never> {
         throw new Error("Geocoder request failed");
       }
     })();
-    let installedGeo: GeoAdapter | undefined;
 
-    beforeEach(function () {
-      installedGeo = (Adapter as any).instanceGeo;
-    });
-
-    afterEach(function () {
-      (Adapter as any).instanceGeo = installedGeo;
-    });
+    /** Makes the dead geocoder the installation's geo adapter for one test. */
+    function useDeadGeocoder() {
+      Adapter.register("geo", "dead", deadGeocoder);
+      settings.GEO_ADAPTER = "dead";
+    }
 
     it("answers the address form the way checkout will answer", async function () {
       settings.SOFT_DELIVERY_CALCULATION = true;
@@ -271,7 +270,7 @@ describe("Soft delivery calculation", function () {
       // A street with a house number and nothing else: the catalog has no point
       // for it, so the adapter geocodes — and the geocoder is down.
       const typed = { city: "Demo", formatted: "Вайнера", home: "9" } as any;
-      await Adapter.getGeoAdapter(deadGeocoder);
+      useDeadGeocoder();
 
       const ability = await adapter.checkAbility(typed);
       expect(ability.allowed).to.equal(true);
@@ -288,7 +287,7 @@ describe("Soft delivery calculation", function () {
     it("refuses a dead geocoder on the address form when soft calculation is off", async function () {
       settings.SOFT_DELIVERY_CALCULATION = false;
       const typed = { city: "Demo", formatted: "Вайнера", home: "9" } as any;
-      await Adapter.getGeoAdapter(deadGeocoder);
+      useDeadGeocoder();
 
       const ability = await adapter.checkAbility(typed);
       expect(ability.allowed).to.equal(false);
@@ -312,11 +311,10 @@ describe("Soft delivery calculation", function () {
         expect(delivery.diagnostics).to.include("no delivery zones configured");
         expect(delivery.hasError).to.equal(undefined);
         // What `Order.check` reads to refuse even under soft calculation.
-        expect(isNoDeliveryZones(delivery)).to.equal(true);
+        expect(delivery.notConfigured).to.equal(true);
       }
       expect(asked).to.deep.equal([]);
-      expect(isNoDeliveryZones(await outsideDeliveryArea())).to.equal(false);
-      expect(isNoDeliveryZones(null)).to.equal(false);
+      expect((await outsideDeliveryArea()).notConfigured).to.equal(undefined);
     });
 
     it("places an address it has no coordinate for as unrecognised once zones exist", async function () {

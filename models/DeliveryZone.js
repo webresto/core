@@ -4,7 +4,7 @@ const uuid_1 = require("uuid");
 const zone_cache_1 = require("../adapters/delivery/default/zone-cache");
 const zone_match_1 = require("../adapters/delivery/default/zone-match");
 const association_id_1 = require("../lib/association-id");
-const inherited_terms_1 = require("../lib/delivery-zone/inherited-terms");
+const inherited_terms_1 = require("../lib/delivery/inherited-terms");
 /**
  * A delivery zone: a polygon plus the commercial terms that apply inside it.
  *

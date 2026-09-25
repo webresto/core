@@ -7,7 +7,7 @@ import { CityRecord } from "./City";
 import { invalidateDeliveryZoneCache } from "../adapters/delivery/default/zone-cache";
 import { isValidPolygon } from "../adapters/delivery/default/zone-match";
 import { toId } from "../lib/association-id";
-import { pickInheritedFields } from "../lib/delivery-zone/inherited-terms";
+import { pickInheritedFields } from "../lib/delivery/inherited-terms";
 
 /**
  * A delivery zone: a polygon plus the commercial terms that apply inside it.

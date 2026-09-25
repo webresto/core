@@ -21,7 +21,7 @@ describe("Order: addDish", function () {
     const populated = await Order.populate({ id: order.id });
     expect(dishIds(populated)).to.deep.equal([untimed.id]);
 
-    const context = await (await Menu.getAdapter()).resolveContext({ order: populated });
+    const context = await (await Adapter.get("menu")).resolveContext({ order: populated });
     const shown = await Dish.getDishes({ id: [slow.id, untimed.id] }, context);
     expect(shown.map((dish) => dish.id)).to.deep.equal([untimed.id]);
   });

@@ -1,14 +1,13 @@
 import { expect } from "chai";
 import { nameMatches } from "../../lib/address/name-match";
 import { formatAddressLine, formatAddressPath } from "../../lib/address/format";
-import { Adapter } from "../../adapters";
-import GeoAdapter from "../../adapters/geo/GeoAdapter";
+import { DefaultGeoAdapter, SELF_ADDRESSED } from "../../adapters/geo/default/defaultGeo";
 
 const AddressModel = require("../../models/Address");
 
 /** The catalog's own rules, with a geocoder that must never be reached. */
-class CatalogOnly extends GeoAdapter {
-  public async geocode(): Promise<never> {
+class CatalogOnly extends DefaultGeoAdapter {
+  protected async geocode(): Promise<never> {
     throw new Error("the geocoder was asked and should not have been");
   }
 }
@@ -24,7 +23,6 @@ class CatalogOnly extends GeoAdapter {
 describe("Address catalog", function () {
   const realAddress = (global as any).Address;
   const geo = new CatalogOnly();
-  let installedGeo: GeoAdapter | undefined;
 
   type Row = Record<string, any>;
 
@@ -86,9 +84,6 @@ describe("Address catalog", function () {
   }
 
   before(async function () {
-    installedGeo = (Adapter as any).instanceGeo;
-    await Adapter.getGeoAdapter(geo);
-
     (global as any).Address = {
       ...AddressModel,
       find(criteria: Row) {
@@ -103,7 +98,6 @@ describe("Address catalog", function () {
 
   after(function () {
     (global as any).Address = realAddress;
-    (Adapter as any).instanceGeo = installedGeo;
   });
 
   const names = (found: Row[]): string[] => found.map((node: Row) => node.name);
@@ -176,7 +170,7 @@ describe("Address catalog", function () {
         { type: "street", name: "Малышева" },
         { type: "range", name: "1–99" },
       ];
-      expect(formatAddressLine(path, "45а", geo.selfAddressed)).to.equal("Малышева, 45а");
+      expect(formatAddressLine(path, "45а", SELF_ADDRESSED)).to.equal("Малышева, 45а");
     });
   });
 
@@ -206,6 +200,38 @@ describe("Address catalog", function () {
     it("does not stop at the number of types there are", async function () {
       const path = await AddressModel.path("deep-7");
       expect(path).to.have.length(8);
+    });
+  });
+
+  describe("as the storefront reads it", function () {
+    it("names what is above each suggestion", async function () {
+      const found = await geo.search({ city: ekb, query: "лени" });
+      const byId = new Map(found.map((node) => [node.id, node]));
+      expect(byId.get("lenina")!.ancestors).to.deep.equal([]);
+      expect(byId.get("centre-lenina")!.ancestors).to.deep.equal(["Центр"]);
+      expect(byId.get("centre-lenina")!.parent).to.equal("centre");
+    });
+
+    it("gives every step of a path the names above it", async function () {
+      const path = await geo.path("lenina-12-p3");
+      expect(path.map((node) => node.ancestors)).to.deep.equal([[], ["Ленина"], ["Ленина", "12"]]);
+    });
+  });
+
+  describe("the line an order saves", function () {
+    it("rebuilds it from the chosen node and does not ask for a number a house already has", async function () {
+      expect(await geo.describe({ node: "lenina-12", formatted: "whatever the client sent" } as never))
+        .to.deep.equal({ formatted: "Ленина, 12", selfAddressed: true });
+    });
+
+    it("adds the typed number to a street and still asks for one", async function () {
+      expect(await geo.describe({ node: "lenina", home: "5", formatted: "" } as never))
+        .to.deep.equal({ formatted: "Ленина, 5", selfAddressed: false });
+    });
+
+    it("keeps free text as typed", async function () {
+      expect(await geo.describe({ node: null, formatted: "Ленина, 5" } as never))
+        .to.deep.equal({ formatted: "Ленина, 5", selfAddressed: false });
     });
   });
 
@@ -263,32 +289,10 @@ describe("Address catalog", function () {
       expect(error).to.equal(undefined);
     });
 
-    describe("types come from the geo adapter", function () {
-      class WithPiers extends CatalogOnly {
-        public get addressTypes(): readonly string[] {
-          return [...super.addressTypes, "pier"];
-        }
-      }
-
-      afterEach(async function () {
-        await Adapter.getGeoAdapter(geo);
-      });
-
-      it("refuses a type no adapter declares", async function () {
+    describe("types are the default geo adapter's", function () {
+      it("refuses a type it does not declare", async function () {
         const error = await create({ city: ekb, type: "pier", name: "Причал 1" });
         expect(error).to.match(/Address type "pier" is unknown/);
-      });
-
-      it("accepts a type the installation's adapter adds", async function () {
-        await Adapter.getGeoAdapter(new WithPiers());
-        const error = await create({ city: ekb, type: "pier", name: "Причал 1", point: { lat: 56.8, lon: 60.6 } });
-        expect(error).to.equal(undefined);
-      });
-
-      it("keeps the built-in types when it extends the list", async function () {
-        await Adapter.getGeoAdapter(new WithPiers());
-        const error = await create({ city: ekb, parent: "lenina", type: "house", name: "18" });
-        expect(error).to.equal(undefined);
       });
 
       it("checks the type an update writes, and only when it writes one", async function () {

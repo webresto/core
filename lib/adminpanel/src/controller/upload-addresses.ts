@@ -1,5 +1,6 @@
-import { importAddresses } from "../../../address/import-from-file";
+import { importAddresses } from "../../../../adapters/geo/default/address-import";
 import { ADDRESSES_MANAGE_TOKEN, requireToken } from "./access-rights";
+import { Adapter } from "../../../../adapters";
 
 /**
  * The address catalog of one city, out of a JSON file.
@@ -11,6 +12,7 @@ import { ADDRESSES_MANAGE_TOKEN, requireToken } from "./access-rights";
 export default async function UploadAddressesController(req: any, res: any) {
   try {
     if (!requireToken(req, res, ADDRESSES_MANAGE_TOKEN)) return;
+    if (!(await Adapter.isDefault("geo"))) return res.status(404).json({ error: "Addresses are kept by the geo adapter in use" });
 
     const content = typeof req.body?.content === "string" ? req.body.content : "";
     if (!content.trim()) return res.status(400).json({ error: "The file is empty" });

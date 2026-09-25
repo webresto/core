@@ -3,6 +3,7 @@ import { getOrderCookingPlaceId, placeAcceptsOrdersNow } from "../../lib/menu/co
 import { DefaultMenuAdapter } from "../../adapters/menu/default/defaultMenu";
 import { distanceKm } from "../../lib/geo/utils";
 import DeliveryAdapter from "../../adapters/delivery/DeliveryAdapter";
+import { DefaultDeliveryAdapter } from "../../adapters/delivery/default/defaultDelivery";
 import { invalidateDeliveryZoneCache } from "../../adapters/delivery/default/zone-cache";
 
 describe("kitchen-resolver", function () {
@@ -17,11 +18,8 @@ describe("kitchen-resolver", function () {
   /** Kitchen resolution is a method of the base menu adapter; any concrete one runs it. */
   const resolver = new DefaultMenuAdapter();
 
-  /** The built-in adapter's own travel estimate, with nothing overridden. */
-  class StraightLineDelivery extends DeliveryAdapter {
-    async calculate() { return {} as any; }
-    async checkAbility() { return {} as any; }
-  }
+  /** The built-in adapter: zones for `delivery-zone`, the straight line for `nearest-geo`. */
+  class StraightLineDelivery extends DefaultDeliveryAdapter {}
 
   function bindGlobals(
     settings: Record<string, any>,
@@ -51,7 +49,10 @@ describe("kitchen-resolver", function () {
     };
     (global as any).Adapter = {
       async getRMSAdapter() { return null; },
-      async getDeliveryAdapter() { return delivery; },
+      async get(kind: string) {
+        if (kind !== "delivery") throw new Error(`unexpected ${kind} adapter`);
+        return delivery;
+      },
     };
     (global as any).sails = {
       log: {

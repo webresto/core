@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { ObservablePromise } from "../../../lib/ObservablePromise";
-import { Delivery } from "../..";
+import { Adapter } from "../../index";
 import { fetchKmlZones, KML_SOURCE_NAME } from "./kml";
 import { DeliveryZoneImportService, ZoneImportResult } from "./zone-import";
 
@@ -182,7 +182,7 @@ export class DeliveryZoneSyncService {
 
     // Says why on every outcome. "My zones are not updating" is otherwise
     // answered by reading three settings and guessing which one is at fault.
-    if (!(await Delivery.isDefault())) {
+    if (!(await Adapter.isDefault("delivery"))) {
       sails.log.debug("CORE > zone sync > delivery is served by another adapter, schedule not started");
       return;
     }
@@ -250,7 +250,7 @@ export class DeliveryZoneSyncService {
       if (!enabled) return { skipped: true, reason: "sync-disabled" };
     }
 
-    if (!(await Delivery.isDefault())) {
+    if (!(await Adapter.isDefault("delivery"))) {
       return { skipped: true, reason: "not-the-default-adapter" };
     }
 

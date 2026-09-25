@@ -5,7 +5,7 @@ import {
   sourceHashOf,
   validateSnapshot,
 } from "../../adapters/delivery/default/zone-import";
-import { DeliveryZoneSnapshot, ImportedDeliveryZone } from "../../adapters/delivery/contracts";
+import { DeliveryZoneSnapshot, ImportedDeliveryZone } from "../../interfaces/Delivery";
 
 /**
  * The import service is tested against an in-memory model rather than the real

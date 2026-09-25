@@ -310,7 +310,7 @@ let Model = {
         criteria.isDeleted = false;
         criteria.enable = true;
         let dishes = await Dish.find(criteria).populate("images");
-        dishes = await (await adapters_1.Menu.getAdapter()).filterProducts(dishes, context);
+        dishes = await (await adapters_1.Adapter.get("menu")).filterProducts(dishes, context);
         for await (let dish of dishes) {
             const reason = (0, checkExpression_1.default)(dish);
             if (!reason) {
@@ -334,7 +334,7 @@ let Model = {
      *   read at the same points as the dish's, union included
      */
     async getDishModifiers(dish, context) {
-        const adapter = await adapters_1.Menu.getAdapter();
+        const adapter = await adapters_1.Adapter.get("menu");
         if (dish.modifiers) {
             let index = 0;
             // group modofiers
@@ -462,7 +462,7 @@ let Model = {
         }
         recommendedDishes = [...new Set(recommendedDishes.map((dish) => dish.id))].map(id => recommendedDishes.find((dish) => dish.id === id));
         recommendedDishes = recommendedDishes.filter((dish) => !ids.includes(dish.id));
-        const adapter = await adapters_1.Menu.getAdapter();
+        const adapter = await adapters_1.Adapter.get("menu");
         recommendedDishes = await adapter.filterProducts(recommendedDishes, await adapter.resolveContext({}));
         // Fisher-Yates shifle
         recommendedDishes = recommendedDishes.sort(() => Math.random() - 0.5);

@@ -14,8 +14,6 @@ import { PromotionAdapter } from "./promotion/default/promotionAdapter";
 import AbstractPromotionAdapter, { AbstractPromotionHandler } from "./promotion/PromotionAdapter";
 import MenuAdapter from "./menu/MenuAdapter";
 import { DefaultMenuAdapter } from "./menu/default/defaultMenu";
-import { SingleKitchenMenuAdapter } from "./menu/default/singleKitchenMenu";
-import { getMenuPlaceBasedMode } from "../lib/menu/product-availability";
 import AuthProviderAdapter from "./auth/AuthAdapter";
 import GeoAdapter from "./geo/GeoAdapter";
 import { DefaultGeoAdapter } from "./geo/default/defaultGeo";
@@ -23,11 +21,13 @@ import { DefaultGeoAdapter } from "./geo/default/defaultGeo";
 
 // Code outside `adapters/` reaches an adapter only through this file: the base
 // classes a module extends or types against, and the types they carry.
-export { MenuAdapter, RMSAdapter, PaymentAdapter, BonusProgramAdapter, AuthProviderAdapter, AbstractPromotionAdapter, AbstractPromotionHandler };
+export { GeoAdapter, DeliveryAdapter, MenuAdapter, RMSAdapter, PaymentAdapter, BonusProgramAdapter, AuthProviderAdapter, AbstractPromotionAdapter, AbstractPromotionHandler };
 export type { RMSOutOfStockEventItem } from "./rms/RMSAdapter";
 export type { BonusTransaction } from "./bonusprogram/BonusProgramAdapter";
 export type { AuthFlowKind, NormalizedProfile } from "./auth/AuthAdapter";
 export type { ResolvedCaptcha } from "./captcha/CaptchaAdapter";
+// Core's boot starts what its own delivery adapter keeps running.
+export { startDefaultDelivery } from "./delivery/default/start";
 
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -59,126 +59,16 @@ export class Captcha {
   }
 }
 
-/**
- * Where delivery adapters are registered and the chosen one is kept.
- * `Adapter.getDeliveryAdapter` is the way to get it.
- */
-export class Delivery {
-  public static instanceDeliveryAdapter: DeliveryAdapter | null;
+/** The kinds held by `Adapter.register` / `Adapter.get`, and the base class of each. */
+type AdapterKinds = { geo: GeoAdapter; delivery: DeliveryAdapter; menu: MenuAdapter };
+export type AdapterKind = keyof AdapterKinds;
 
-  /**
-   * Adapters that registered themselves at boot, by lower-case name.
-   *
-   * There is one registry for delivery and it lives here — no separate street
-   * or zone-source registries. A module loaded as a sails hook cannot
-   * be reached by the `@webresto/<name>-delivery-adapter` require path of
-   * `Adapter.getDeliveryAdapter`, so it announces itself instead, the same way
-   * auth providers do.
-   */
-  public static readonly registered = new Map<string, DeliveryAdapter>();
-
-  /** Forgets the cached instance so the next call re-reads `DELIVERY_ADAPTER`. */
-  public static resetAdapter(): void {
-    this.instanceDeliveryAdapter = null;
-  }
-
-  /**
-   * Makes an adapter selectable by `DELIVERY_ADAPTER`.
-   *
-   * The cached instance is dropped, because a hook can finish loading after
-   * something already asked for an adapter and got the default one.
-   */
-  public static register(name: string, adapter: DeliveryAdapter): void {
-    if (!name) throw new Error("Delivery adapter name is required");
-    this.registered.set(name.toLowerCase(), adapter);
-    this.resetAdapter();
-    sails.log.info(`CORE > Delivery adapter "${name}" registered`);
-  }
-
-  /**
-   * Whether delivery is served by the built-in adapter.
-   *
-   * Asked by things that only make sense next to it — the zones module owns
-   * `DeliveryZone`, and an installation delivering through somebody else’s
-   * adapter has no use for a map of polygons nothing reads. The two ways of
-   * saying “the built-in one” are the same two `Adapter.getDeliveryAdapter` accepts.
-   */
-  public static async isDefault(): Promise<boolean> {
-    const configured = await Settings.get("DELIVERY_ADAPTER");
-    const name = typeof configured === "string" ? configured.trim() : "";
-    return !name || name === "default";
-  }
-}
-
-/**
- * Which menu adapter `MENU_PLACE_BASED_MODE` selects.
- *
- * The mode is the only switch: no `MENU_ADAPTER` setting sits next to it. Two
- * ways to say the same thing is how `supportsZoneSync` went wrong, and the mode
- * has existed since the first iteration precisely to answer this.
- *
- * `multi-place-route` is registered by the `multi-place-router` module. Until a
- * module registers the named mode, it resolves to the default adapter and says
- * so loudly. That is the safe direction — a global menu is what every
- * installation already has — and the alternative, refusing to serve a menu at
- * all, would turn one wrong setting into a dark storefront.
- */
-export class Menu {
-  private static instance: MenuAdapter | null = null;
-  private static registered = new Map<string, MenuAdapter>();
-
-  /** Forgets the cached instance so the next call re-reads the mode. */
-  public static resetAdapter(): void {
-    this.instance = null;
-  }
-
-  /**
-   * Makes an adapter selectable by `MENU_PLACE_BASED_MODE`.
-   *
-   * A hook can finish loading after something already asked for a menu, so the
-   * cached instance is dropped — the same rule delivery adapters follow.
-   */
-  public static register(name: string, adapter: MenuAdapter): void {
-    if (!name) throw new Error("Menu adapter name is required");
-    this.registered.set(name.toLowerCase(), adapter);
-    this.resetAdapter();
-    sails.log.info(`CORE > Menu adapter "${name}" registered`);
-  }
-
-  /** Names currently available for `MENU_PLACE_BASED_MODE`. */
-  public static registeredNames(): string[] {
-    return ["default", "single-place", ...this.registered.keys()];
-  }
-
-  public static async getAdapter(): Promise<MenuAdapter> {
-    const cached = this.instance;
-    if (cached) return cached;
-
-    const mode = await getMenuPlaceBasedMode();
-
-    const alive = this.registered.get(mode);
-    if (alive) {
-      this.instance = alive;
-      return alive;
-    }
-
-    if (mode === "single-place") {
-      this.instance = new SingleKitchenMenuAdapter();
-      return this.instance;
-    }
-
-    if (mode !== "default") {
-      sails.log.error(
-        `CORE > Menu > MENU_PLACE_BASED_MODE is "${mode}" but no module registered a menu ` +
-        `adapter under that name. Falling back to the global menu. Registered: ` +
-        `[${this.registeredNames().join(", ")}]`,
-      );
-    }
-
-    this.instance = new DefaultMenuAdapter();
-    return this.instance;
-  }
-}
+/** The setting that names the active adapter of each kind. */
+const ADAPTER_SETTING: Record<AdapterKind, string> = {
+  geo: "GEO_ADAPTER",
+  delivery: "DELIVERY_ADAPTER",
+  menu: "MENU_PLACE_BASED_MODE",
+};
 
 /** TODO: move other Adapters to one class adapter */
 export class Adapter {
@@ -186,7 +76,57 @@ export class Adapter {
   private static instanceRMS: RMSAdapter;
   private static instancePromotionAdapter: PromotionAdapter;
   private static instanceMF: MediaFileAdapter;
-  private static instanceGeo: GeoAdapter;
+
+  /** Adapters of geo, delivery and menu, by kind and lower-case name. Built on first use. */
+  private static registry: { [K in AdapterKind]: Map<string, AdapterKinds[K]> } | null = null;
+  private static builtIn: AdapterKinds | null = null;
+
+  private static kinds() {
+    if (!this.registry) {
+      const menu = new DefaultMenuAdapter();
+      this.builtIn = { geo: new DefaultGeoAdapter(), delivery: new DefaultDeliveryAdapter(), menu };
+      this.registry = {
+        geo: new Map([["default", this.builtIn.geo]]),
+        delivery: new Map([["default", this.builtIn.delivery]]),
+        // One instance, two names: `single-place` is a mode of the default menu.
+        menu: new Map([["default", menu], ["single-place", menu]]),
+      };
+    }
+    return { registry: this.registry, builtIn: this.builtIn! };
+  }
+
+  /** The name the kind's setting holds; empty is `default`. */
+  private static async nameOf(kind: AdapterKind): Promise<string> {
+    const configured = await Settings.get(ADAPTER_SETTING[kind] as any);
+    const name = typeof configured === "string" ? configured.trim().toLowerCase() : "";
+    return name || "default";
+  }
+
+  /**
+   * Makes an adapter selectable by its kind's setting. Core registers its own as
+   * `default` on first use; a module registers its own from its hook.
+   */
+  public static register<K extends AdapterKind>(kind: K, name: string, adapter: AdapterKinds[K]): void {
+    if (!name) throw new Error(`A ${kind} adapter needs a name`);
+    this.kinds().registry[kind].set(name.toLowerCase(), adapter);
+    sails.log.info(`CORE > ${kind} adapter "${name}" registered`);
+  }
+
+  /** The one active adapter of a kind, the one its setting names. */
+  public static async get<K extends AdapterKind>(kind: K): Promise<AdapterKinds[K]> {
+    const name = await this.nameOf(kind);
+    const adapter = this.kinds().registry[kind].get(name);
+    if (!adapter) {
+      throw new Error(`${ADAPTER_SETTING[kind]} is "${name}", but no ${kind} adapter is registered under that name`);
+    }
+    return adapter;
+  }
+
+  /** Whether the active adapter of a kind is the one core ships. */
+  public static async isDefault(kind: AdapterKind): Promise<boolean> {
+    const { registry, builtIn } = this.kinds();
+    return registry[kind].get(await this.nameOf(kind)) === builtIn[kind];
+  }
 
   public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -317,102 +257,6 @@ export class Adapter {
       return this.instanceRMS;
     } catch (e) {
       sails.log.error("CORE > getAdapter RMS >  error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-
-  /**
-   * returns Delivery-adapter
-   *
-   * Without an argument the configured `DELIVERY_ADAPTER` is used, falling back
-   * to the default adapter — which is itself zone-aware, so an install with
-   * local zones and no external source needs no adapter setting at all.
-   */
-  public static async getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
-    // Return the singleton
-    const cached = Delivery.instanceDeliveryAdapter;
-    if (cached) {
-      return cached;
-    }
-
-    let adapterName: string = "";
-    if (adapter) {
-      if (typeof adapter === "string") {
-        adapterName = adapter;
-      } else if (adapter instanceof DeliveryAdapter) {
-        Delivery.instanceDeliveryAdapter = adapter;
-        return adapter;
-      }
-    }
-
-    if (!adapterName) {
-      const configured = await Settings.get("DELIVERY_ADAPTER");
-      adapterName = typeof configured === "string" ? configured.trim() : "";
-    }
-
-    if (!adapterName || adapterName === "default") {
-      const instance = new DefaultDeliveryAdapter();
-      Delivery.instanceDeliveryAdapter = instance;
-      return instance;
-    }
-
-    const alive = Delivery.registered.get(adapterName.toLowerCase());
-    if (alive) {
-      Delivery.instanceDeliveryAdapter = alive;
-      return alive;
-    }
-
-    let adapterLocation = fs.existsSync(WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? "@webresto/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : adapterName;
-
-    try {
-      const adapterModule = require(adapterLocation);
-      const instance = new adapterModule.DeliveryAdapter() as DeliveryAdapter;
-      Delivery.instanceDeliveryAdapter = instance;
-      return instance;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-
-  /**
-   * returns Geo-adapter
-   *
-   * The configured `GEO_ADAPTER`; empty or `default` is `DefaultGeoAdapter`. An instance
-   * passed in becomes the one every caller gets.
-   */
-  public static async getGeoAdapter(adapter?: GeoAdapter): Promise<GeoAdapter> {
-    if (adapter) {
-      this.instanceGeo = adapter;
-      return adapter;
-    }
-
-    // Return the singleton
-    if (this.instanceGeo) {
-      return this.instanceGeo;
-    }
-
-    const configured = await Settings.get("GEO_ADAPTER");
-    const adapterName = typeof configured === "string" ? configured.trim() : "";
-
-    if (!adapterName || adapterName === "default") {
-      this.instanceGeo = new DefaultGeoAdapter();
-      return this.instanceGeo;
-    }
-
-    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-geo-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-geo-adapter";
-
-    try {
-      const adapterModule = require(adapterLocation);
-      this.instanceGeo = new adapterModule.GeoAdapter() as GeoAdapter;
-      return this.instanceGeo;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Geo > error; ", e);
       throw new Error("Module " + adapterLocation + " not found");
     }
   }

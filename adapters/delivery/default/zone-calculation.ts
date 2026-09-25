@@ -1,10 +1,10 @@
 import { WorkTimeValidator } from "@webresto/worktime";
 import OrderAddress from "../../../interfaces/OrderAddress";
-import { Delivery, NO_DELIVERY_ZONES_DIAGNOSTIC } from "../contracts";
+import { Delivery } from "../../../interfaces/Delivery";
 import { Adapter } from "../../index";
 import { DeliveryZoneRecord } from "../../../models/DeliveryZone";
 import { getServingZones } from "./zone-cache";
-import { softDeliveryFallback } from "../soft-delivery";
+import { softDeliveryFallback } from "../../../lib/delivery/soft-delivery";
 import { findZoneForCoordinate } from "./zone-match";
 import { AddressLocation } from "../../../interfaces/Geo";
 
@@ -100,6 +100,7 @@ export async function applyZone(
       item: undefined,
       message: "At the moment, the delivery area does not work, try it later",
       zoneId,
+      zoneName: zone.name,
       diagnostics,
     };
   }
@@ -113,6 +114,7 @@ export async function applyZone(
       message: "Minimum order amount: %s",
       messageArgs: [String(zone.minOrderTotal)],
       zoneId,
+      zoneName: zone.name,
       diagnostics,
     };
   }
@@ -127,6 +129,7 @@ export async function applyZone(
       item: undefined,
       message: "Free delivery",
       zoneId,
+      zoneName: zone.name,
       diagnostics,
     };
   }
@@ -141,6 +144,7 @@ export async function applyZone(
       item: zone.deliveryItem as string,
       message: zone.deliveryMessage ?? "",
       zoneId,
+      zoneName: zone.name,
       diagnostics,
     };
   }
@@ -152,6 +156,7 @@ export async function applyZone(
     item: undefined,
     message: zone.deliveryMessage ?? "",
     zoneId,
+    zoneName: zone.name,
     diagnostics,
   };
 }
@@ -165,6 +170,7 @@ export async function describeZone(zone: DeliveryZoneRecord, diagnostics: string
     item: zone.deliveryItem ? (zone.deliveryItem as string) : undefined,
     ...zoneDescription(zone),
     zoneId: zone.id as string,
+    zoneName: zone.name,
     diagnostics,
   };
 }
@@ -206,7 +212,8 @@ export function noDeliveryZones(diagnostics: string[] = []): Delivery {
     cost: 0,
     item: undefined,
     message: "Delivery is not available",
-    diagnostics: [...diagnostics, NO_DELIVERY_ZONES_DIAGNOSTIC],
+    notConfigured: true,
+    diagnostics: [...diagnostics, "no delivery zones configured"],
   };
 }
 
@@ -226,7 +233,7 @@ export async function matchZone(address: OrderAddress | undefined | null): Promi
     };
   }
 
-  const location = await (await Adapter.getGeoAdapter()).locate(address);
+  const location = await (await Adapter.get("geo")).locate(address);
   if (!location.coordinate) {
     return { zone: null, zonesConfigured: true, location };
   }

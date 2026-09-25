@@ -1,5 +1,5 @@
-import { DeliveryCoordinate } from "../../adapters/delivery/contracts";
-import DeliveryAdapter from "../../adapters/delivery/DeliveryAdapter";
+import { DeliveryCoordinate } from "../../interfaces/Delivery";
+import type { DeliveryAdapter } from "../../adapters";
 import { AvailabilityProduct, getPreparationMinutes } from "../menu/product-availability";
 
 /**

@@ -17,7 +17,7 @@ import { AddressPoint } from "./Geo";
 export default interface OrderAddress {
   /** Deepest chosen node of the city's address catalog. Null for free text. */
   node?: string | null;
-  /** "Ленина, 12". Rebuilt from `Address.path(node)` and `home` when there is a node. */
+  /** "Ленина, 12". Rebuilt by the geo adapter's `describe` from the node and `home` when there is a node. */
   formatted?: string;
   city?: string;
   home?: string;

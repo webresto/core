@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import GeoAdapter from "../../adapters/geo/GeoAdapter";
+import { DefaultGeoAdapter } from "../../adapters/geo/default/defaultGeo";
 import { GeoAddress } from "../../interfaces/Geo";
 
 const AddressModel = require("../../models/Address");
@@ -60,12 +60,12 @@ describe("Address by coordinate", function () {
   });
 
   /** A geo adapter whose reverse lookup says `answer`. */
-  function geocoder(answer: GeoAddress | null | Error): GeoAdapter {
-    return new (class extends GeoAdapter {
-      public async geocode() {
+  function geocoder(answer: GeoAddress | null | Error): DefaultGeoAdapter {
+    return new (class extends DefaultGeoAdapter {
+      protected async geocode() {
         return null;
       }
-      public async reverse() {
+      protected async reverse() {
         if (answer instanceof Error) throw answer;
         return answer;
       }

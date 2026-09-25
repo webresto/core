@@ -1,6 +1,7 @@
 import { adminModuleUrl } from "../../adminModules";
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
 import { ADDRESSES_MANAGE_TOKEN, requireToken } from "./access-rights";
+import { Adapter } from "../../../../adapters";
 
 /**
  * The form behind the `Addresses from a file` button of the `Address` list.
@@ -17,6 +18,7 @@ export default async function AddressesUploadController(req: any, res: any) {
   const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
   const { locale, messages } = getInertiaLocaleAndMessages(req);
   if (!requireToken(req, res, ADDRESSES_MANAGE_TOKEN)) return;
+  if (!(await Adapter.isDefault("geo"))) return res.status(404).send("Addresses are kept by the geo adapter in use");
 
   const cities = await City.find({ where: { isDeleted: { "!=": true } }, sort: "name ASC" });
 

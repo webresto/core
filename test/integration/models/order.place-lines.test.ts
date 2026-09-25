@@ -9,15 +9,14 @@ describe("Order: countCart writes the menu adapter's line placement", function (
   this.timeout(10000);
 
   const kitchens = ["test.route.first", "test.route.second"];
-  let realGetAdapter: typeof Menu.getAdapter;
+  const realGet = Adapter.get;
 
   before(async function () {
-    realGetAdapter = Menu.getAdapter;
     for (const id of kitchens) await Place.create!({ id, title: id, isCookingPoint: true, enable: true }).fetch();
   });
 
   after(async function () {
-    Menu.getAdapter = realGetAdapter;
+    Adapter.get = realGet;
     await Place.destroy!({ id: kitchens }).fetch();
   });
 
@@ -41,7 +40,7 @@ describe("Order: countCart writes the menu adapter's line placement", function (
       }
     }
     const adapter = new TwoKitchens();
-    Menu.getAdapter = async () => adapter;
+    Adapter.get = (async (kind: string) => (kind === "menu" ? adapter : realGet.call(Adapter, kind as any))) as typeof Adapter.get;
 
     const order = await Order.create!({ id: "test.order.place-lines" }).fetch();
 

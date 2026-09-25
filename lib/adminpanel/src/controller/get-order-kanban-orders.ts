@@ -95,7 +95,6 @@ function mapOrder(
   order: any,
   operatorLimited: boolean,
   placeNames: Map<string, string>,
-  zoneNames: Map<string, string>,
 ) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
   const phone = customer?.phone && typeof customer.phone === "object"
@@ -120,7 +119,7 @@ function mapOrder(
     paid: Boolean(order?.paid),
     serviceType: order?.serviceType || "delivery",
     kitchenName: placeNames.get(getKitchenId(order)) || "",
-    zoneName: zoneNames.get(String(order?.delivery?.zoneId || "")) || "",
+    zoneName: order?.delivery?.zoneName || "",
     rmsOrderNumber: order?.rmsOrderNumber || "",
     orderedAt: order?.orderedAt || null,
     createdAt: order?.createdAt || null,
@@ -210,30 +209,21 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
       })
       : filteredByState;
 
-    // Kitchen and zone are card captions, collected in two queries for the whole
-    // list rather than one query per card.
+    // The kitchen is a card caption, collected in one query for the whole list
+    // rather than one per card. The zone's name came with the delivery result.
     const placeIds = new Set<string>();
-    const zoneIds = new Set<string>();
     for (const order of filteredByQuery) {
       const placeId = getKitchenId(order);
       if (placeId) placeIds.add(placeId);
-      const zoneId = String(order?.delivery?.zoneId || "");
-      if (zoneId) zoneIds.add(zoneId);
     }
 
-    const [places, zones] = await Promise.all([
-      placeIds.size ? Place.find({ id: Array.from(placeIds) }) : Promise.resolve([]),
-      zoneIds.size ? DeliveryZone.find({ id: Array.from(zoneIds) }) : Promise.resolve([]),
-    ]);
+    const places = placeIds.size ? await Place.find({ id: Array.from(placeIds) }) : [];
     const placeNames = new Map<string, string>(
       places.map((place: any) => [String(place.id), String(place.title || place.address || "")]),
     );
-    const zoneNames = new Map<string, string>(
-      zones.map((zone: any) => [String(zone.id), String(zone.name || "")]),
-    );
 
     return res.json({
-      results: filteredByQuery.map((order: any) => mapOrder(order, operatorLimited, placeNames, zoneNames)),
+      results: filteredByQuery.map((order: any) => mapOrder(order, operatorLimited, placeNames)),
       meta: {
         newWindowMinutes,
         newSince: new Date(newSinceMs).toISOString(),

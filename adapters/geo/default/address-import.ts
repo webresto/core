@@ -1,5 +1,5 @@
-import { Adapter } from "../../adapters";
-import { AddressPoint } from "../../interfaces/Geo";
+import { AddressPoint } from "../../../interfaces/Geo";
+import { ADDRESS_TYPES } from "./defaultGeo";
 
 /**
  * Loading an address catalog from a file.
@@ -37,7 +37,7 @@ export interface AddressImportResult {
  * Everything wrong with the file, before a single row is created.
  *
  * All of it, not the first one: an operator fixing an export wants the list.
- * `types` is the geo adapter's `addressTypes`.
+ * `types` is `ADDRESS_TYPES`; a parameter so the rule reads without the catalog.
  */
 export function validateAddressNodes(nodes: unknown, types: readonly string[]): string[] {
   if (!Array.isArray(nodes)) return ['File has no "nodes" list'];
@@ -102,7 +102,7 @@ export async function importAddresses(params: {
   city: string;
   nodes: AddressImportNode[];
 }): Promise<AddressImportResult> {
-  const errors = validateAddressNodes(params.nodes, (await Adapter.getGeoAdapter()).addressTypes);
+  const errors = validateAddressNodes(params.nodes, ADDRESS_TYPES);
   if (errors.length) return { created: 0, errors };
 
   const ordered = byDepth(params.nodes);

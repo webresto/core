@@ -1,32 +1,21 @@
-// todo: fix types model instance to {%ModelName%}Record for Order"
-
-import OrderAddress from "../../interfaces/OrderAddress"
-import { OrderRecord } from "../../models/Order"
-
-import { Delivery, DeliveryCoordinate, TravelEstimate } from "./contracts";
+import OrderAddress from "../../interfaces/OrderAddress";
+import { OrderRecord } from "../../models/Order";
+import { Delivery, DeliveryCoordinate, PlaceCandidate, TravelEstimate } from "../../interfaces/Delivery";
 import { distanceKm } from "../../lib/geo/utils";
-import { getServingZones } from "./default/zone-cache";
-import { findZoneForCoordinate, nearestPlaceInZone, PlaceCandidate } from "./default/zone-match";
 
 /** What a courier averages in town, kerb to kerb, when nothing says otherwise. */
 export const DEFAULT_CITY_SPEED_KMH = 20;
-
 
 /**
  * How an order gets a delivery price and a yes-or-no answer.
  *
  * One adapter serves an installation, chosen by `DELIVERY_ADAPTER`, and it owns
- * what delivery decides: where zone geometry comes from, what an address is
- * charged, how long the road takes. How an address becomes a coordinate is the
- * geo adapter's question (`GEO_ADAPTER`), asked by `GeoAdapter.locate`.
+ * what delivery decides: what an address is charged and how long the road takes.
+ * How an address becomes a coordinate is the geo adapter's question.
  *
- * An adapter that wants the built-in zone handling does not inherit it — it
- * calls the same plain functions `DefaultDeliveryAdapter` calls
- * (`matchZone`, `applyZone`, `describeZone`).
- *
- * Capability methods are plain methods with a default implementation, never
- * `abstract`: an adapter written before they existed keeps compiling and keeps
- * working, exactly as `supportsPlaceBalances` did for `RMSAdapter`.
+ * `calculate` and `checkAbility` are abstract: core cannot go on without them.
+ * The rest carry an answer core can live with, and an implementation overrides
+ * them when it knows better.
  */
 export default abstract class DeliveryAdapter {
 
@@ -68,42 +57,19 @@ export default abstract class DeliveryAdapter {
   }
 
   /**
-   * Which of the candidate kitchens serves this coordinate, by delivery zone.
+   * Which of the candidate kitchens serves this coordinate, for the
+   * `delivery-zone` strategy of `KITCHEN_RESOLVE_CHAIN`.
    *
-   * A zone is bound to a kitchen by geometry, not by a stored link: the kitchen
-   * whose coordinate lies inside the zone's polygon serves it. Zones come from
-   * the same cached list `matchZone` reads, so the zone that names the kitchen
-   * and the zone that prices the delivery are always the same one.
-   *
-   * The assumption, and its limit: a zone contains its kitchen. A satellite
-   * zone drawn far from any kitchen binds to nobody here and falls through to
-   * the next strategy in the chain. An installation for which that is wrong
-   * overrides this method — that is what the capability is for.
-   *
-   * `null` is an absence, never a failure: no coordinate, no zone, no kitchen
-   * inside it.
+   * `null` is an absence, never a failure: the chain moves on to its next
+   * strategy. An adapter whose tariff is drawn on a map knows which kitchen a
+   * point belongs to and overrides this; one that does not, answers nothing.
    */
   public async resolvePlaceForCoordinate(
-    coordinate: DeliveryCoordinate | null,
-    candidates: PlaceCandidate[],
-    diagnostics: string[] = [],
+    _coordinate: DeliveryCoordinate | null,
+    _candidates: PlaceCandidate[],
+    _diagnostics: string[] = [],
   ): Promise<string | null> {
-    if (!coordinate || !candidates.length) return null;
-
-    const zone = findZoneForCoordinate(await getServingZones(), coordinate);
-    if (!zone) {
-      diagnostics.push("coordinate is in no zone");
-      return null;
-    }
-
-    const placeId = nearestPlaceInZone(zone, coordinate, candidates);
-    if (!placeId) {
-      diagnostics.push(`zone ${zone.id} contains no open kitchen`);
-      return null;
-    }
-
-    diagnostics.push(`${placeId} via zone ${zone.id}`);
-    return placeId;
+    return null;
   }
 
   /**

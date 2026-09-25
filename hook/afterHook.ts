@@ -6,7 +6,7 @@ import { SetupChecklistRegistry } from "../lib/SetupChecklistRegistry";
 import { SalesChannelRegistry } from "../lib/SalesChannelRegistry";
 import { NotificationService } from "../lib/notifications/NotificationService";
 import { registerCoreMcpTools } from "./mcp";
-import { DeliveryZoneSyncService } from "../adapters/delivery/default/zone-sync";
+import { startDefaultDelivery } from "../adapters";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -107,28 +107,8 @@ export default async function () {
       sails.log.warn(" RestoCore > RMS adapter is not set ");
     }
 
-    // Delivery zone sync. Core owns the timer so an adapter never grows one;
-    // it starts only when the setting is on *and* the configured adapter has a
-    // zone source, which means an install with hand-made zones schedules
-    // nothing at all.
-    try {
-      await DeliveryZoneSyncService.start();
-
-      // Pointing the source somewhere else has to take effect without a
-      // restart, and the interval lives in the timer that is being replaced.
-      const restartZoneSync = async () => {
-        try {
-          await DeliveryZoneSyncService.start();
-        } catch (error) {
-          sails.log.error("RestoCore > delivery zone sync restart failed", error);
-        }
-      };
-      emitter.on("settings:DELIVERY_ZONE_SYNC_ENABLED", "restocore-zone-sync", restartZoneSync);
-      emitter.on("settings:DELIVERY_ZONE_SYNC_INTERVAL_SECONDS", "restocore-zone-sync", restartZoneSync);
-      emitter.on("settings:DELIVERY_ZONE_SYNC_CONFIG", "restocore-zone-sync", restartZoneSync);
-    } catch (error) {
-      sails.log.error("RestoCore > delivery zone sync did not start", error);
-    }
+    // The built-in delivery adapter's zone sync and its setup checkup.
+    await startDefaultDelivery();
 
     // Typed notifications: register core events (registration ≠ enabling send),
     // then seed/load the notification rules catalog (NotificationRules model) into cache.

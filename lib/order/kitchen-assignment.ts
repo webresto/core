@@ -1,5 +1,5 @@
-import { Adapter, Menu } from "../../adapters";
-import { DeliveryCoordinate } from "../../adapters/delivery/contracts";
+import { Adapter } from "../../adapters";
+import { DeliveryCoordinate } from "../../interfaces/Delivery";
 import { OrderRecord } from "../../models/Order";
 import { primaryCookingPoint, toPlaceId } from "../menu/cooking-place";
 import { KitchenResolution } from "../../interfaces/Menu";
@@ -58,7 +58,7 @@ export async function assignOrderCookingPlace(order: OrderRecord): Promise<Cooki
   let coordinate: DeliveryCoordinate | null = null;
 
   if (order.serviceType === "delivery") {
-    const location = await (await Adapter.getGeoAdapter()).locate(order.address);
+    const location = await (await Adapter.get("geo")).locate(order.address);
     coordinate = location.coordinate;
 
     if (coordinate && order.address) {
@@ -66,7 +66,7 @@ export async function assignOrderCookingPlace(order: OrderRecord): Promise<Cooki
     }
   }
 
-  const resolution = await (await Menu.getAdapter()).resolveCookingPlace({
+  const resolution = await (await Adapter.get("menu")).resolveCookingPlace({
     coordinate,
     pickupPointId: toPlaceId(order.pickupPoint),
     serviceType: order.serviceType,

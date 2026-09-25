@@ -6,7 +6,7 @@ import ORM from "../interfaces/ORM";
 import { PaymentResponse } from "../interfaces/Payment";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
-import { Delivery } from "../adapters/delivery/contracts";
+import { Delivery } from "../interfaces/Delivery";
 import { PaymentMethodRecord } from "./PaymentMethod";
 import { OrderDishRecord } from "./OrderDish";
 import { PromotionCodeRecord } from "./PromotionCode";

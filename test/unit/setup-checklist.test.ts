@@ -14,6 +14,7 @@ import { expect } from "chai";
 import { SetupChecklistRegistry } from "../../lib/SetupChecklistRegistry";
 import { SetupChecklistService } from "../../lib/SetupChecklistService";
 import { invalidateDeliveryZoneCache } from "../../adapters/delivery/default/zone-cache";
+import { startDefaultDelivery } from "../../adapters/delivery/default/start";
 
 // ── global mocks ──────────────────────────────────────────────────────────────
 const store: Record<string, any> = {};
@@ -45,8 +46,10 @@ const findItem = (st: any, key: string) =>
   st.groups.flatMap((g: any) => g.items).find((i: any) => i.key === key);
 
 describe("SetupChecklist registry + service", () => {
-  before(() => {
+  before(async () => {
     SetupChecklistRegistry.registerCoreDefaults();
+    // The zone checkup is the default delivery adapter's, registered at its start.
+    await startDefaultDelivery();
     SetupChecklistRegistry.registerCheckup({
       key: "partial_demo", group: "project", severity: "recommended", titleKey: "Partial demo",
       check: async () => ({ progress: { done: 1, total: 3 } }),
