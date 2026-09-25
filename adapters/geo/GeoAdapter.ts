@@ -4,7 +4,7 @@ import type { AddressRecord } from "../../models/Address";
 import { formatAddressLine, formatAddressPath } from "../../lib/address/format";
 import { leadingNumber, rangeCovers } from "../../lib/address/range";
 import { coordinateFromAddress, isValidCoordinate } from "../../lib/address/coordinate";
-import { distanceKm } from "../delivery/geo";
+import { distanceKm } from "../../lib/geo/utils";
 
 /**
  * Where an address is, and what address is at a point.

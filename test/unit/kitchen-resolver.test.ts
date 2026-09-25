@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { getOrderCookingPlaceId, placeAcceptsOrdersNow } from "../../lib/menu/cooking-place";
 import { DefaultMenuAdapter } from "../../adapters/menu/default/defaultMenu";
-import { distanceKm } from "../../adapters/delivery/geo";
+import { distanceKm } from "../../lib/geo/utils";
 import DeliveryAdapter from "../../adapters/delivery/DeliveryAdapter";
 import { invalidateDeliveryZoneCache } from "../../adapters/delivery/default/zone-cache";
 

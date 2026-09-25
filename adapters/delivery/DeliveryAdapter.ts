@@ -4,7 +4,7 @@ import OrderAddress from "../../interfaces/OrderAddress"
 import { OrderRecord } from "../../models/Order"
 
 import { Delivery, DeliveryCoordinate, TravelEstimate } from "./contracts";
-import { distanceKm } from "./geo";
+import { distanceKm } from "../../lib/geo/utils";
 import { getServingZones } from "./default/zone-cache";
 import { findZoneForCoordinate, nearestPlaceInZone, PlaceCandidate } from "./default/zone-match";
 

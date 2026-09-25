@@ -1,5 +1,5 @@
 import { DeliveryCoordinate } from "../contracts";
-import { distanceKm } from "../geo";
+import { distanceKm } from "../../../lib/geo/utils";
 
 /**
  * Zone geometry: validation and finding the zone a coordinate falls into.

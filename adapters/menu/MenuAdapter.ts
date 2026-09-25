@@ -152,7 +152,10 @@ export default abstract class MenuAdapter {
   public async placeLines(
     order: OrderRecord,
     lines: { orderDishId: OrderDishId; dish: DishRecord; amount: number }[],
-    context: MenuContext,
+      context: MenuContext,
+    /**
+     * The customer's address for multiple kitchens.
+     */
     customer: AddressPoint | null,
   ): Promise<LinePlacement> {
     const byOrderDish: LinePlacement["byOrderDish"] = new Map();
