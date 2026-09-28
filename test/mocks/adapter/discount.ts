@@ -1,7 +1,7 @@
-import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
+import { AbstractPromotionHandler } from "../../../adapters/promotion/PromotionAdapter";
 import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
-import findModelInstanceByAttributes from "../../../libs/findModelInstance";
-import { someInArray } from "../../../libs/stringsInArray";
+import findModelInstanceByAttributes from "../../../lib/findModelInstance";
+import { someInArray } from "../../../lib/stringsInArray";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import Decimal from "decimal.js";
 import { GroupRecord } from "../../../models/Group";
@@ -81,7 +81,6 @@ export class InMemoryDiscountAdapter extends AbstractPromotionHandler  {
             // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
             dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-            dish.oldPrice = dish.price
   
             dish.price = this.configDiscount.discountType === "flat" 
             ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()

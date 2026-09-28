@@ -34,7 +34,6 @@ describe('Dish', function () {
     'fatFullAmount',
     'fiberAmount',
     'fiberFullAmount',
-    'groupId',
     'measureUnit',
     'price',
     'productCategoryId',
@@ -46,7 +45,6 @@ describe('Dish', function () {
     'modifiers',
     'parentGroup',
     'tags',
-    'balance',
     'images',
     'slug',
     'hash',
@@ -76,17 +74,16 @@ describe('Dish', function () {
 
     let modifiers: GroupModifier[]  = [
       {
-        modifierId: group.id, 
         childModifiers: [
-          { id: dishes[0].id, modifierId: dishes[0].id, rmsId: dishes[0].rmsId }], 
+          { id: dishes[0].id, rmsId: dishes[0].rmsId }], 
           groupId: group.id,
-        id: "",
+        id: group.id!,
         rmsId: ""
       }
     ];
 
     let dish = await Dish.createOrUpdate( dishGenerator({name: "test dish modifiers", modifiers: modifiers, price: 100.1 }) );
-    dish = await Dish.getDishModifiers(dish);
+    dish = await Dish.getDishModifiers(dish, await (await Adapter.get("menu")).resolveContext({}));
 
     if(typeof dish.modifiers[0].group === "string" || typeof dish.modifiers[0].childModifiers[0].dish === "string") throw `Bad type`
     expect(dish.modifiers.length).to.equal(1);

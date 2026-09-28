@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
-const ProductModifier_1 = require("../../../libs/ProductModifier");
+const ProductModifier_1 = require("../../../lib/ProductModifier");
 describe("ProductModifier.ensureMinDefaults", () => {
     const productModifiers = [
         {
@@ -9,18 +9,15 @@ describe("ProductModifier.ensureMinDefaults", () => {
             minAmount: 1,
             maxAmount: 3,
             rmsId: "rms-group1",
-            modifierId: "modifier-group1",
             childModifiers: [
                 {
                     id: "mod1",
                     defaultAmount: 1,
                     rmsId: "r1",
-                    modifierId: "mod-1"
                 },
                 {
                     id: "mod2",
                     rmsId: "r2",
-                    modifierId: "mod-2"
                 }
             ]
         },
@@ -28,18 +25,15 @@ describe("ProductModifier.ensureMinDefaults", () => {
             id: "group2",
             minAmount: 1,
             rmsId: "rms-group2",
-            modifierId: "modifier-group2",
             childModifiers: [
                 {
                     id: "mod3",
                     defaultAmount: 0, // No defaultAmount
                     rmsId: "r3",
-                    modifierId: "mod-3"
                 },
                 {
                     id: "mod4", // This can be selected
                     rmsId: "r4",
-                    modifierId: "mod-4"
                 }
             ]
         }

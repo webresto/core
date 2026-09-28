@@ -4,7 +4,7 @@ import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
 import { PaymentResponse, Payment } from "../interfaces/Payment";
 // todo: fix types model instance to {%ModelName%}Record for PaymentMethod";
-import PaymentAdapter from "../adapters/payment/PaymentAdapter";
+import type { PaymentAdapter } from "../adapters";
 
 import { OptionalAll } from "../interfaces/toolsTS";
 import { PaymentMethodRecord } from "./PaymentMethod";
@@ -103,10 +103,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use PaymentDocumentRecord instead
- */
-interface PaymentDocument extends OptionalAll<attributes>, ORM {}
 export interface PaymentDocumentRecord extends OptionalAll<attributes>, ORM {}
 
 let Model = {
@@ -248,7 +244,7 @@ let Model = {
       };
     }
   },
-  afterUpdate: async function (values: PaymentDocument, next: () => void) {
+  afterUpdate: async function (values: PaymentDocumentRecord, next: () => void) {
     sails.log.silly("PaymentDocument > afterUpdate > ", JSON.stringify(values));
     if (values.paid && values.status === "PAID") {
       try {

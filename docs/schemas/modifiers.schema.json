@@ -49,10 +49,6 @@
           "$ref": "#/definitions/nonNegativeIntOrNull",
           "description": "How many picks in this group are free before charging."
         },
-        "freeAmount": {
-          "$ref": "#/definitions/nonNegativeIntOrNull",
-          "description": "DEPRECATED — use freeOfChargeAmount."
-        },
         "amount": {
           "$ref": "#/definitions/nonNegativeIntOrNull",
           "description": "Fixed amount (legacy)."
@@ -64,10 +60,6 @@
         "groupId": {
           "type": "string",
           "description": "Alias sometimes present alongside id."
-        },
-        "modifierId": {
-          "type": ["string", "null"],
-          "description": "DEPRECATED alias — historically the group's rmsId. Use id."
         }
       },
       "additionalProperties": true
@@ -106,16 +98,9 @@
           "$ref": "#/definitions/nonNegativeIntOrNull",
           "description": "Free quantity of this option before charging."
         },
-        "freeAmount": {
-          "$ref": "#/definitions/nonNegativeIntOrNull",
-          "description": "DEPRECATED — use freeOfChargeAmount."
-        },
         "amount": {
           "$ref": "#/definitions/nonNegativeIntOrNull",
           "description": "Fixed amount (legacy)."
-        },
-        "modifierId": {
-          "description": "DEPRECATED alias — historically the modifier's rmsId. Use id."
         }
       },
       "additionalProperties": true

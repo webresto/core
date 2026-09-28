@@ -2,7 +2,7 @@
   "key": "UUID_NAMESPACE",
   "type": "string",
   "name": "UUID Namespace",
-  "description": "Should be array-like (16 iterable integer values, 0-255)",
+  "description": "A UUID: 8-4-4-4-12 lowercase hex digits",
   "jsonSchema": {
     "type": "string",
     "pattern": "^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$",

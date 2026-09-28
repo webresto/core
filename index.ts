@@ -3,6 +3,8 @@
 process.env.UNIQUE_SLUG === undefined ? "1" : process.env.UNIQUE_SLUG
 
 export * from './models/BonusProgram';
+export * from './models/DeliveryZone';
+
 export * from './models/Dish';
 export * from './models/Group';
 export * from './models/Maintenance';
@@ -16,7 +18,7 @@ export * from './models/PaymentMethod';
 export * from './models/Place';
 export * from './models/Settings';
 export * from './models/City';
-export * from './models/Street';
+export * from './models/Address';
 export * from './models/User';
 export * from './models/UserBonusProgram';
 export * from './models/UserBonusTransaction';
@@ -26,14 +28,14 @@ export * from './models/UserOrderHistory';
 export * from './models/Promotion';
 
 // Helpers
-export * from './libs/helpers/OrderHelper'
-export * from './libs/NotificationDispatcher'
-export * from './libs/NotificationEventRegistry'
-export * from './libs/NotificationTypeRegistry'
-export * from './libs/NotificationTemplateRenderer'
-export * from './libs/NotificationService'
-export * from './libs/SetupChecklistRegistry'
-export * from './libs/SetupChecklistService'
+export * from './lib/order/OrderHelper'
+export * from './lib/notifications/NotificationDispatcher'
+export * from './lib/notifications/NotificationEventRegistry'
+export * from './lib/notifications/NotificationTypeRegistry'
+export * from './lib/notifications/NotificationTemplateRenderer'
+export * from './lib/notifications/NotificationService'
+export * from './lib/SetupChecklistRegistry'
+export * from './lib/SetupChecklistService'
 
 module.exports = function (sails: any) {
   return {
@@ -42,5 +44,5 @@ module.exports = function (sails: any) {
   };
 };
 
-module.exports.HookTools = require("./libs/hookTools");
+module.exports.HookTools = require("./lib/hookTools");
 

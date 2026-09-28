@@ -15,8 +15,8 @@ export default function bindAuthRoutes() {
     return;
   }
 
-  // Controller ships inside core (../libs/AuthCallbackController); no host-app copy needed.
-  const controller = require("../libs/AuthCallbackController").default;
+  // Controller ships inside core (../lib/AuthCallbackController); no host-app copy needed.
+  const controller = require("../lib/AuthCallbackController").default;
 
   app.get("/auth/:provider/callback", (req: any, res: any) => controller.callback(req, res));
 

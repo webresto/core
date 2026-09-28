@@ -5,14 +5,13 @@ import { expect } from 'chai';
 import { InMemoryDiscountAdapter } from '../../mocks/adapter/discount';
 import discountGenerator from '../../generators/discount.generator';
 import groupGenerator from '../../generators/group.generator';
-import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';
-import findModelInstanceByAttributes from './../../../libs/findModelInstance';
+import AbstractPromotionAdapter, { AbstractPromotionHandler } from '../../../adapters/promotion/PromotionAdapter';
+import findModelInstanceByAttributes from '../../../lib/findModelInstance';
 import { Adapter } from './../../../adapters/index';
-import AbstractPromotionAdapter from '../../../adapters/promotion/AbstractPromotionAdapter';
 // todo: fix types model instance to {%ModelName%}Record for Group';
 // todo: fix types model instance to {%ModelName%}Record for Dish';
 // todo: fix types model instance to {%ModelName%}Record for Order';
-import { someInArray, stringsInArray } from '../../../libs/stringsInArray';
+import { someInArray, stringsInArray } from '../../../lib/stringsInArray';
 import ConfiguredPromotion from '../../../adapters/promotion/default/configuredPromotion';
 import Decimal from 'decimal.js';
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
@@ -87,7 +86,6 @@ describe('Discount', function () {
           //   // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
             dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-            dish.oldPrice = dish.salePrice
             dish.salePrice = this.configDiscount.discountType === "flat" 
             ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
             : new Decimal(dish.price)

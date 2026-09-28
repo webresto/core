@@ -1,0 +1,8 @@
+{
+  "key": "DELIVERY_ZONE_MAP_TILE_URL",
+  "type": "string",
+  "name": "Delivery zone map tiles",
+  "description": "XYZ tile template for the map the zone editor draws on. The default is the public OpenStreetMap service; an installation without internet access, or one with its own tile server, points this at it.",
+  "defaultValue": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "isRequired": false
+}

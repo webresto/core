@@ -1,6 +1,6 @@
-import { NotificationDispatcher } from "../../../../libs/NotificationDispatcher";
+import { NotificationDispatcher } from "../../../notifications/NotificationDispatcher";
 import { hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
-import { NotificationManager } from "../../../../libs/NotificationManager";
+import { NotificationManager } from "../../../notifications/NotificationManager";
 
 function hasAccess(req: any, res: any): boolean {
   const { config } = req.adminizer || {};

@@ -1,0 +1,8 @@
+{
+  "key": "MENU_PLACE_BASED_MODE",
+  "type": "string",
+  "name": "Menu place-based mode",
+  "description": "Menu adapter to use: \"default\" keeps one global menu, \"single-place\" ties the menu to one kitchen, a module registers its own name.",
+  "defaultValue": "default",
+  "isRequired": true
+}

@@ -1,3 +1,4 @@
+import { adminModuleUrl } from "../../adminModules";
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
 
 export default function OrdersReportController(req: any, res: any) {
@@ -13,7 +14,7 @@ export default function OrdersReportController(req: any, res: any) {
   return req.Inertia.render({
     component: 'module',
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/OrdersReport.js`,
+      moduleComponent: adminModuleUrl("OrdersReport"),
       message: t('Orders Report'),
       locale,
       messages

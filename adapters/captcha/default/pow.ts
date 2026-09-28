@@ -30,8 +30,8 @@ export class POW extends CaptchaAdapter {
       }
     })
 
-    let difficultСoefficient = 1 + Number((attempt/7).toFixed())
-    difficulty = difficulty * difficultСoefficient;
+    let difficultyCoefficient = 1 + Number((attempt/7).toFixed())
+    difficulty = difficulty * difficultyCoefficient;
 
     let puzzle = await Puzzle.generate(difficulty)
     let task = {

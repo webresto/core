@@ -1,4 +1,4 @@
-import { NotificationTypeRegistry } from "../../../../libs/NotificationTypeRegistry";
+import { NotificationTypeRegistry } from "../../../notifications/NotificationTypeRegistry";
 import { hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
 
 function hasAccess(req: any, res: any): boolean {
@@ -17,7 +17,7 @@ function hasAccess(req: any, res: any): boolean {
 /**
  * GET /core/notifications-manager/types
  * Lists the notification types catalog (NotificationRules model). Optional filters: eventKey, enabled.
- * Thin wrapper over NotificationTypeRegistry.getAll (logic lives in libs).
+ * Thin wrapper over NotificationTypeRegistry.getAll (logic lives in lib/notifications).
  */
 export default async function GetNotificationTypesController(req: any, res: any) {
   try {

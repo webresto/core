@@ -82,7 +82,7 @@ describe("User", function () {
                 throw `Must be the error`;
         });
         it("create user in login method", async function () {
-            let OTPAdapter = await adapters_1.OTP.getAdapter();
+            let OTPAdapter = await adapters_1.Adapter.getOTPAdapter();
             let otp = await OTPAdapter.get("778899");
             let login = await User.login("778899", { code: "77", number: "8899" }, "deviceId-test", "device-name", null, otp.password, "agent", "IP");
             let _user = await User.findOne({ login: "778899" });
@@ -114,7 +114,7 @@ describe("User", function () {
         it("create user with specific password", async function () {
             await Settings.set("PASSWORD_POLICY", { key: "PASSWORD_POLICY", value: "required" });
             await Settings.set("CORE_LOGIN_FIELD", { key: "CORE_LOGIN_FIELD", value: "email" });
-            let OTPAdapter = await adapters_1.OTP.getAdapter();
+            let OTPAdapter = await adapters_1.Adapter.getOTPAdapter();
             let otp = await OTPAdapter.get("test@mail.com");
             let login = await User.login("test@mail.com", null, "deviceId-test", "device-name", "password01", otp.password, "agent", "IP");
             let _user = await User.findOne({ login: "test@mail.com" });

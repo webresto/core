@@ -1,13 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-function normalizePromotionCodeValue(value) {
-    if (value === null || value === undefined) {
-        return null;
-    }
-    const normalized = String(value).trim().toUpperCase();
-    return normalized || null;
-}
+const promotion_code_1 = require("../lib/promotion-code");
 let attributes = {
     /** ID */
     id: {
@@ -68,16 +62,16 @@ let Model = {
         if (!promotionCodeInit.id) {
             promotionCodeInit.id = (0, uuid_1.v4)();
         }
-        promotionCodeInit.code = normalizePromotionCodeValue(promotionCodeInit.code);
-        promotionCodeInit.prefix = normalizePromotionCodeValue(promotionCodeInit.prefix);
+        promotionCodeInit.code = (0, promotion_code_1.normalizePromotionCodeValue)(promotionCodeInit.code);
+        promotionCodeInit.prefix = (0, promotion_code_1.normalizePromotionCodeValue)(promotionCodeInit.prefix);
         cb();
     },
     beforeUpdate(values, cb) {
         if (Object.prototype.hasOwnProperty.call(values, "code")) {
-            values.code = normalizePromotionCodeValue(values.code);
+            values.code = (0, promotion_code_1.normalizePromotionCodeValue)(values.code);
         }
         if (Object.prototype.hasOwnProperty.call(values, "prefix")) {
-            values.prefix = normalizePromotionCodeValue(values.prefix);
+            values.prefix = (0, promotion_code_1.normalizePromotionCodeValue)(values.prefix);
         }
         cb();
     },
@@ -85,7 +79,7 @@ let Model = {
      * Check promocode is work now
      */
     async getValidPromotionCode(promotionCodeString) {
-        const normalizedCode = normalizePromotionCodeValue(promotionCodeString);
+        const normalizedCode = (0, promotion_code_1.normalizePromotionCodeValue)(promotionCodeString);
         if (!normalizedCode) {
             return null;
         }

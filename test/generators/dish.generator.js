@@ -31,7 +31,12 @@ function dishGenerator(config = {
         rmsId: config?.rmsId || faker_1.default.random.uuid(),
         code: null,
         tags: [],
-        isDeleted: config?.isDeleted || false
+        isDeleted: config?.isDeleted || false,
+        // See the `.ts` next to this file: a boolean attribute with no
+        // `defaultsTo` starts at `false`, and a disabled product cannot go into
+        // a basket. `test/fixture/config/bootstrap.js` is plain JS and loads
+        // this copy, not the source.
+        enable: config?.enable ?? true
     };
 }
 exports.dishFields = ["id", "additionalInfo", "balance", "modifiers", "weight", "price", "order", "images", "name", "description", "rmsId", "code", "tags", "isDeleted"];

@@ -1,0 +1,8 @@
+{
+  "key": "OUTSIDE_DELIVERY_AREA_DEFAULT_ITEM",
+  "type": "string",
+  "name": "Delivery product outside every zone",
+  "description": "Product charged instead of a fixed cost when the address falls outside every zone. Takes precedence over the cost above.",
+  "defaultValue": "",
+  "isRequired": false
+}

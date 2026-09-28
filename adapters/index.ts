@@ -3,17 +3,32 @@ import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
 import { DefaultOTP } from "./otp/default/defaultOTP";
 import LocalMediaFileAdapter from "./mediafile/default/local";
-import OTPAdapter from "./otp/OneTimePasswordAdapter";
+import OTPAdapter from "./otp/OTPAdapter";
 import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
 import BonusProgramAdapter from "./bonusprogram/BonusProgramAdapter";
-import { Config } from "../interfaces/Config";
 import DeliveryAdapter from "./delivery/DeliveryAdapter";
 import { DefaultDeliveryAdapter } from "./delivery/default/defaultDelivery";
 import { PromotionAdapter } from "./promotion/default/promotionAdapter";
-import AuthProviderAdapter from "./auth/AuthProviderAdapter";
+import AbstractPromotionAdapter, { AbstractPromotionHandler } from "./promotion/PromotionAdapter";
+import MenuAdapter from "./menu/MenuAdapter";
+import { DefaultMenuAdapter } from "./menu/default/defaultMenu";
+import AuthProviderAdapter from "./auth/AuthAdapter";
+import GeoAdapter from "./geo/GeoAdapter";
+import { DefaultGeoAdapter } from "./geo/default/defaultGeo";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
+
+// Code outside `adapters/` reaches an adapter only through this file: the base
+// classes a module extends or types against, and the types they carry.
+export { GeoAdapter, DeliveryAdapter, MenuAdapter, RMSAdapter, PaymentAdapter, BonusProgramAdapter, AuthProviderAdapter, AbstractPromotionAdapter, AbstractPromotionHandler };
+export type { RMSOutOfStockEventItem } from "./rms/RMSAdapter";
+export type { BonusTransaction } from "./bonusprogram/BonusProgramAdapter";
+export type { AuthFlowKind, NormalizedProfile } from "./auth/AuthAdapter";
+export type { ResolvedCaptcha } from "./captcha/CaptchaAdapter";
+// Core's boot starts what its own delivery adapter keeps running.
+export { startDefaultDelivery } from "./delivery/default/start";
+
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
 
@@ -44,71 +59,74 @@ export class Captcha {
   }
 }
 
-/**
- * returns OTP-adapter
- */
-export class OTP {
-  /**
-   * @deprecated use Adapter.getOTPAdapter instead
-   * @param adapterName
-   */
-  public static async getAdapter(adapterName?: string): Promise<OTPAdapter> {
-    return Adapter.getOTPAdapter(adapterName);
-  }
-}
+/** The kinds held by `Adapter.register` / `Adapter.get`, and the base class of each. */
+type AdapterKinds = { geo: GeoAdapter; delivery: DeliveryAdapter; menu: MenuAdapter };
+export type AdapterKind = keyof AdapterKinds;
 
-
-export class Delivery {
-  public static instanceDeliveryAdapter: DeliveryAdapter;
-
-  /**
-   * returns Delivery-adapter
-   */
-  public static async getAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
-    // Return the singleton
-    if (this.instanceDeliveryAdapter) {
-      return this.instanceDeliveryAdapter;
-    }
-
-    if (!adapter) {
-      this.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
-      return this.instanceDeliveryAdapter;
-    }
-
-    let adapterName: string;
-    if (adapter) {
-      if (typeof adapter === "string") {
-        adapterName = adapter;
-      } else if (adapter instanceof DeliveryAdapter) {
-        this.instanceDeliveryAdapter = adapter;
-        return this.instanceDeliveryAdapter;
-      }
-    }
-
-    let adapterLocation = fs.existsSync(WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? "@webresto/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : adapterName;
-
-    try {
-      const adapterModule = require(adapterLocation);
-      this.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
-      return this.instanceDeliveryAdapter;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-}
+/** The setting that names the active adapter of each kind. */
+const ADAPTER_SETTING: Record<AdapterKind, string> = {
+  geo: "GEO_ADAPTER",
+  delivery: "DELIVERY_ADAPTER",
+  menu: "MENU_PLACE_BASED_MODE",
+};
 
 /** TODO: move other Adapters to one class adapter */
 export class Adapter {
   // Singletons
   private static instanceRMS: RMSAdapter;
   private static instancePromotionAdapter: PromotionAdapter;
-  private static instanceDeliveryAdapter: DeliveryAdapter;
   private static instanceMF: MediaFileAdapter;
+
+  /** Adapters of geo, delivery and menu, by kind and lower-case name. Built on first use. */
+  private static registry: { [K in AdapterKind]: Map<string, AdapterKinds[K]> } | null = null;
+  private static builtIn: AdapterKinds | null = null;
+
+  private static kinds() {
+    if (!this.registry) {
+      const menu = new DefaultMenuAdapter();
+      this.builtIn = { geo: new DefaultGeoAdapter(), delivery: new DefaultDeliveryAdapter(), menu };
+      this.registry = {
+        geo: new Map([["default", this.builtIn.geo]]),
+        delivery: new Map([["default", this.builtIn.delivery]]),
+        // One instance, two names: `single-place` is a mode of the default menu.
+        menu: new Map([["default", menu], ["single-place", menu]]),
+      };
+    }
+    return { registry: this.registry, builtIn: this.builtIn! };
+  }
+
+  /** The name the kind's setting holds; empty is `default`. */
+  public static async nameOf(kind: AdapterKind): Promise<string> {
+    const configured = await Settings.get(ADAPTER_SETTING[kind] as any);
+    const name = typeof configured === "string" ? configured.trim().toLowerCase() : "";
+    return name || "default";
+  }
+
+  /**
+   * Makes an adapter selectable by its kind's setting. Core registers its own as
+   * `default` on first use; a module registers its own from its hook.
+   */
+  public static register<K extends AdapterKind>(kind: K, name: string, adapter: AdapterKinds[K]): void {
+    if (!name) throw new Error(`A ${kind} adapter needs a name`);
+    this.kinds().registry[kind].set(name.toLowerCase(), adapter);
+    sails.log.info(`CORE > ${kind} adapter "${name}" registered`);
+  }
+
+  /** The one active adapter of a kind, the one its setting names. */
+  public static async get<K extends AdapterKind>(kind: K): Promise<AdapterKinds[K]> {
+    const name = await this.nameOf(kind);
+    const adapter = this.kinds().registry[kind].get(name);
+    if (!adapter) {
+      throw new Error(`${ADAPTER_SETTING[kind]} is "${name}", but no ${kind} adapter is registered under that name`);
+    }
+    return adapter;
+  }
+
+  /** Whether the active adapter of a kind is the one core ships. */
+  public static async isDefault(kind: AdapterKind): Promise<boolean> {
+    const { registry, builtIn } = this.kinds();
+    return registry[kind].get(await this.nameOf(kind)) === builtIn[kind];
+  }
 
   public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -244,47 +262,6 @@ export class Adapter {
   }
 
   /**
-   * returns Delivery-adapter
-   * @deprecated use Class Delivery istead
-   */
-  public static async getDeliveryAdapter(adapter?: string | DeliveryAdapter): Promise<DeliveryAdapter> {
-    // Return the singleton
-    if (Delivery.instanceDeliveryAdapter) {
-      return Delivery.instanceDeliveryAdapter;
-    }
-
-    if (!adapter) {
-      Delivery.instanceDeliveryAdapter = new DefaultDeliveryAdapter();
-      return Delivery.instanceDeliveryAdapter;
-    }
-
-    let adapterName: string;
-    if (adapter) {
-      if (typeof adapter === "string") {
-        adapterName = adapter;
-      } else if (adapter instanceof DeliveryAdapter) {
-        Delivery.instanceDeliveryAdapter = adapter;
-        return Delivery.instanceDeliveryAdapter;
-      }
-    }
-
-    let adapterLocation = fs.existsSync(this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : fs.existsSync("@webresto/" + adapterName.toLowerCase() + "-delivery-adapter")
-      ? "@webresto/" + adapterName.toLowerCase() + "-delivery-adapter"
-      : adapterName;
-
-    try {
-      const adapterModule = require(adapterLocation);
-      Delivery.instanceDeliveryAdapter = new adapterModule.DeliveryAdapter();
-      return Delivery.instanceDeliveryAdapter;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Delivery adapter >  error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-
-  /**
    * returns MediaFile-adapter
    */
   public static async getMediaFileAdapter(adapter?: string | MediaFileAdapter, initParams?: ConfigMediaFileAdapter): Promise<MediaFileAdapter> {
@@ -331,32 +308,11 @@ export class Adapter {
   }
 
   /**
-   * returns PaymentAdapter-adapter
-   */
-  public static async getPaymentAdapter(adapterName?: string, initParams?: Config): Promise<PaymentAdapter> {
-    if (!adapterName) {
-      let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
-      if (!defaultAdapterName) throw "BonusProgramAdapter is not set ";
-    }
-
-    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-payment-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-payment-adapter";
-
-    try {
-      const adapter = require(adapterLocation);
-      return adapter.PaymentProgramAdapter[adapterName].getInstance(initParams) as PaymentAdapter;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Payment > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-
-  /**
    * returns a live Auth-provider adapter by its slug.
    * First checks providers that already self-registered into AuthProvider.alive() (modules
    * loaded as sails hooks, e.g. ru_auth_providers — AuthProvider is a sails global, same as
    * Settings above, so no import/circular-dependency concern here), then falls back to
-   * requiring an `@webresto/<slug>-auth-adapter` npm module — mirroring getPaymentAdapter.
+   * requiring an `@webresto/<slug>-auth-adapter` npm module.
    */
   public static async getAuthAdapter(adapterName: string): Promise<AuthProviderAdapter> {
     if (!adapterName) throw "AuthProviderAdapter name is required";

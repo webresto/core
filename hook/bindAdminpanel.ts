@@ -10,7 +10,7 @@
  */
 import * as fs from "fs";
 import * as path from "path";
-import { ensureDefaultGroups } from "../libs/adminpanel/ensureDefaultGroups";
+import { ensureDefaultGroups } from "../lib/adminpanel/ensureDefaultGroups";
 import {
   AdminPanelModule,
   adminPanelAccessTokens,
@@ -65,6 +65,16 @@ export default function bindAdminpanel() {
     const adminizer = sails.hooks.adminpanel.adminizer;
     const routePrefix = adminizer.config.routePrefix;
     appendTranslations(adminizer);
+
+    // Before anything is bound: the demo seed creates the catalog the screens
+    // below are about, and it is a no-op unless `MULTI_KITCHEN_DEMO_SEED` asks
+    // for it.
+    try {
+      const { seedMultiKitchenDemo } = require("../lib/adminpanel/seedMultiKitchenDemo");
+      await seedMultiKitchenDemo();
+    } catch (e) {
+      sails.log.error("Multi-kitchen demo seed failed", e);
+    }
 
     adminizer.accessRightsHelper.registerTokens(adminPanelAccessTokens);
 
@@ -177,7 +187,7 @@ function addModelConfig(newModels: Record<string, any>) {
 function processBindAdminpanel() {
   // Using local addModelConfig
   try {
-    const models = require("../libs/adminpanel/models/bind").models;
+    const models = require("../lib/adminpanel/models/bind").models;
     addModelConfig(models);
   } catch (e) {
     sails.log.warn("Adminpanel model bindings are skipped: failed to load model configs", e);
@@ -292,5 +302,31 @@ function bindModule(
       `${routePrefix}${route.route}`,
       ...bind(loadAdminPanelController(route.controller))
     );
+  }
+
+  // Asked after the links are in place rather than before: the answer needs
+  // the database and this handler is synchronous — Adminizer emits
+  // `adminizer:loaded` once and does not wait for a listener to finish. The
+  // sidebar is rebuilt from the config on every request, so an entry taken out
+  // of it a few milliseconds later is one no operator ever saw. The routes stay
+  // bound either way, and their controllers are what actually refuse.
+  if (module.available) {
+    void module.available()
+      .then((available: boolean) => {
+        if (available) return;
+        if (page) {
+          // Found by id rather than by the object pushed above: the array is
+          // the one the sidebar is built from on every request, but the entry
+          // in it is not necessarily the same object by the time this answers.
+          const links = adminizer.config.navbar.additionalLinks;
+          const at = links.findIndex((entry: any) => entry.id === page.id);
+          if (at !== -1) links.splice(at, 1);
+          const shown = corePages.findIndex((entry) => entry.name === page.id);
+          if (shown !== -1) corePages.splice(shown, 1);
+        }
+        const model = module.model ? adminizer.config.models?.[module.model] : null;
+        if (model) model.navbar = { ...(model.navbar ?? {}), visible: false };
+      })
+      .catch((e: any) => sails.log.warn("Adminpanel module availability check failed: " + module.id, e));
   }
 }

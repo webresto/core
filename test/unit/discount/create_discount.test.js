@@ -9,9 +9,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // todo: fix types model instance to {%ModelName%}Record for Order';
 const adapters_1 = require("../../../adapters");
 const chai_1 = require("chai");
-const findModelInstance_1 = __importDefault(require("./../../../libs/findModelInstance"));
+const findModelInstance_1 = __importDefault(require("../../../lib/findModelInstance"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
-const stringsInArray_1 = require("../../../libs/stringsInArray");
+const stringsInArray_1 = require("../../../lib/stringsInArray");
 describe('Create_Discount', function () {
     let promotionAdapter;
     before(async () => {
@@ -66,7 +66,6 @@ describe('Create_Discount', function () {
                     // 
                     dish.discountAmount = promotionAdapter.promotions[this.id].configDiscount.discountAmount;
                     dish.discountType = promotionAdapter.promotions[this.id].configDiscount.discountType;
-                    dish.oldPrice = dish.price;
                     dish.price = this.configDiscount.discountType === "flat"
                         ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
                         : new decimal_js_1.default(dish.price)

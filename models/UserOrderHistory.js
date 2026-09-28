@@ -39,7 +39,7 @@ let Model = {
             await UserOrderHistory.create({
                 id: (0, uuid_1.v4)(),
                 order: order,
-                orderTotal: order.orderTotal,
+                orderTotal: order.basketTotal,
                 uniqueItems: order.uniqueDishes,
                 total: order.total,
                 totalWeight: order.totalWeight,

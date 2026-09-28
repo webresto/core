@@ -23,9 +23,6 @@ declare let attributes: {
     user: UserRecord | string;
 };
 type attributes = typeof attributes;
-/**
- * @deprecated use `UserOrderHistoryRecord` instead
- */
 export interface UserOrderHistoryRecord extends OptionalAll<attributes>, ORM {
 }
 declare let Model: {

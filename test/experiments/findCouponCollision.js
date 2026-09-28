@@ -30,8 +30,8 @@ class CouponGenerator {
     
     if (this.generatedCoupons.has(coupon)) {
       if (this.collisions === 0) {
-        this.collisions++; // Увеличиваем счетчик коллизий
-        console.log(`Первая коллизия для длинны ${this.length} произошла при генерации на ${this.generatedCoupons.size + 1} - ${coupon}`);
+        this.collisions++; // bump the collision counter
+        console.log(`First collision for length ${this.length} happened on generation ${this.generatedCoupons.size + 1} - ${coupon}`);
       }
     } else {
       this.generatedCoupons.add(coupon);
@@ -45,7 +45,7 @@ class CouponGenerator {
   }
 }
 
-// Пример использования
+// Usage example
 const randomString = " В iikoCard можно настроить рассылки двух типов: ";
 
 for (let length = 2; length <= 10; length++) {

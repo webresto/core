@@ -4,7 +4,7 @@ import {
   serializeModifiers,
   validateModifiers,
   summarizeModifiers,
-} from '../../../libs/adminpanel/controls/modifiersEditorHelper';
+} from '../../../lib/adminpanel/controls/modifiersEditorHelper';
 
 describe('modifiersEditorHelper', () => {
   const valid = [
@@ -53,12 +53,6 @@ describe('modifiersEditorHelper', () => {
     const out = serializeModifiers(normalizeModifiers(input)) as any[];
     expect(out[0].legacyLeftover).to.equal('keep-me');
     expect(out[0].childModifiers[0].extraChildKey).to.equal(1);
-  });
-
-  it('maps deprecated freeAmount → freeOfChargeAmount on normalize', () => {
-    const out = serializeModifiers(normalizeModifiers([{ id: 'g', freeAmount: 2, childModifiers: [{ id: 'd' }] }])) as any[];
-    expect(out[0].freeOfChargeAmount).to.equal(2);
-    expect(out[0].freeAmount).to.equal(undefined);
   });
 
   it('summarizes groups/options counts', () => {

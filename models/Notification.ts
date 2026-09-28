@@ -3,7 +3,7 @@ import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { UserRecord } from "./User";
-import NotificationLogHelper, { NotificationLogLevel, NotificationLogEntry } from "../libs/NotificationLogHelper";
+import NotificationLogHelper, { NotificationLogLevel, NotificationLogEntry } from "../lib/notifications/NotificationLogHelper";
 
 export interface NotificationChannelEntry {
   /** Channel type identifier, e.g. "fcm-mobile", "test-free-unreliable" */

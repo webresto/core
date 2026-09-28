@@ -2,10 +2,10 @@ import { WorkTime } from "@webresto/worktime";
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import hashCode from "../libs/hashCode";
+import hashCode from "../lib/hashCode";
 import { Adapter } from "../adapters";
 import { IconfigDiscount } from "../interfaces/ConfigDiscount";
-import { someInArray } from "../libs/stringsInArray";
+import { someInArray } from "../lib/stringsInArray";
 // todo: fix types model instance to {%ModelName%}Record for PromotionCode";
 import { v4 as uuid } from "uuid";
 import { PromotionCodeRecord } from "./PromotionCode";
@@ -17,7 +17,7 @@ import { PromotionCodeRecord } from "./PromotionCode";
 //   }, CHECK_INTERVAL);
 // });
 
-let promotionRAM: Promotion[] = []
+let promotionRAM: PromotionRecord[] = []
 
 sails.on("lifted", async ()=>{
   let promotions = await Promotion.find({ enable:true, createdByUser: true })
@@ -121,25 +121,6 @@ let attributes = {
 };
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `PromotionRecord` instead
- */
-interface Promotion
-  extends RequiredField<
-      OptionalAll<attributes>,
-      | "id"
-      | "configDiscount"
-      | "isJoint"
-      | "name"
-      | "isPublic"
-      | "description"
-      | "concept"
-      | "badge"
-      | "isDeleted"
-      | "createdByUser"
-      | "externalId"
-    >,
-    ORM {}
 
 export interface PromotionRecord
   extends RequiredField<
@@ -188,11 +169,11 @@ let Model = {
   },
 
 
-  beforeUpdate(init: Promotion, cb:  (err?: string) => void) {
+  beforeUpdate(init: PromotionRecord, cb:  (err?: string) => void) {
     cb();
   },
 
-  async beforeCreate(init: Promotion, cb:  (err?: string) => void) {
+  async beforeCreate(init: PromotionRecord, cb:  (err?: string) => void) {
     if (!init.id) {
       init.id = uuid();
     }
@@ -204,7 +185,7 @@ let Model = {
     cb();
   },
 
-  async createOrUpdate(values: Promotion): Promise<PromotionRecord> {
+  async createOrUpdate(values: PromotionRecord): Promise<PromotionRecord> {
     let sortOrder = values.sortOrder
     let isDeleted = values.isDeleted
     let enable = values.enable

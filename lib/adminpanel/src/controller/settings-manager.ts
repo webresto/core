@@ -1,3 +1,4 @@
+import { adminModuleUrl } from "../../adminModules";
 import { getInertiaLocaleAndMessages } from "./i18n-messages";
 
 /**
@@ -24,7 +25,7 @@ export default function SettingsManagerController(req: any, res: any) {
   return req.Inertia.render({
     component: 'module',
     props: {
-      moduleComponent: `/restocore/assets/core-adminizer-assets/SettingsManager.js`,
+      moduleComponent: adminModuleUrl("SettingsManager"),
       locale,
       messages,
       bootId: BOOT_ID

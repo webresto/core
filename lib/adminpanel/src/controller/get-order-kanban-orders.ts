@@ -4,7 +4,8 @@ import {
   getAllowedOrderTransitionsByRole,
   isCompletedOrderState,
   isOperatorUser,
-} from "../../../../libs/OrderStateFlow";
+} from "../../../order/OrderStateFlow";
+import { primaryCookingPoint } from "../../../menu/cooking-place";
 
 // Non-completed states that the kanban board actually renders as columns
 // (mirrors VISIBLE_BOARD_STATES minus DONE/REJECT on the frontend).
@@ -73,7 +74,28 @@ function isOrderInActiveWindow(order: any, sinceMs: number): boolean {
   return orderedAtMs >= sinceMs;
 }
 
-function mapOrder(order: any, operatorLimited: boolean) {
+/** A populated association arrives as a record, an unpopulated one as its id. */
+function toId(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "object") return String((value as { id?: unknown }).id || "");
+  return String(value);
+}
+
+/**
+ * Where the order is cooked: a courier order goes to the resolved kitchen,
+ * pickup and dine-in to the point the customer picked.
+ */
+function getKitchenId(order: any): string {
+  return order?.serviceType && order.serviceType !== "delivery"
+    ? toId(order?.pickupPoint)
+    : primaryCookingPoint(order) ?? "";
+}
+
+function mapOrder(
+  order: any,
+  operatorLimited: boolean,
+  placeNames: Map<string, string>,
+) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
   const phone = customer?.phone && typeof customer.phone === "object"
     ? `${customer.phone.code || ""}${customer.phone.number || ""}`
@@ -95,7 +117,9 @@ function mapOrder(order: any, operatorLimited: boolean) {
     comment: order?.comment || "",
     tag: order?.tag || "",
     paid: Boolean(order?.paid),
-    selfService: Boolean(order?.selfService),
+    serviceType: order?.serviceType || "delivery",
+    kitchenName: placeNames.get(getKitchenId(order)) || "",
+    zoneName: order?.delivery?.zoneName || "",
     rmsOrderNumber: order?.rmsOrderNumber || "",
     orderedAt: order?.orderedAt || null,
     createdAt: order?.createdAt || null,
@@ -185,8 +209,21 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
       })
       : filteredByState;
 
+    // The kitchen is a card caption, collected in one query for the whole list
+    // rather than one per card. The zone's name came with the delivery result.
+    const placeIds = new Set<string>();
+    for (const order of filteredByQuery) {
+      const placeId = getKitchenId(order);
+      if (placeId) placeIds.add(placeId);
+    }
+
+    const places = placeIds.size ? await Place.find({ id: Array.from(placeIds) }) : [];
+    const placeNames = new Map<string, string>(
+      places.map((place: any) => [String(place.id), String(place.title || place.address || "")]),
+    );
+
     return res.json({
-      results: filteredByQuery.map((order: any) => mapOrder(order, operatorLimited)),
+      results: filteredByQuery.map((order: any) => mapOrder(order, operatorLimited, placeNames)),
       meta: {
         newWindowMinutes,
         newSince: new Date(newSinceMs).toISOString(),

@@ -30,8 +30,8 @@ class CouponGenerator {
     
     if (this.generatedCoupons.has(coupon)) {
       if (this.collisions === 0) {
-        this.collisions++; // Увеличиваем счетчик коллизий
-        console.log(`Первая коллизия для длинны ${this.length} произошла при генерации на ${this.generatedCoupons.size + 1} - ${coupon}`);
+        this.collisions++; // bump the collision counter
+        console.log(`First collision for length ${this.length} happened on generation ${this.generatedCoupons.size + 1} - ${coupon}`);
       }
     } else {
       this.generatedCoupons.add(coupon);
@@ -49,7 +49,7 @@ class CouponGenerator {
   bruteforceCouponAttempts(couponLength) {
     let attempts = 0;
     let foundCoupon = null;
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; // Все символы, которые могут быть в купоне
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; // every character a coupon can contain
   
     const generateNextCoupon = (currentCoupon) => {
       const index = characters.indexOf(currentCoupon[currentCoupon.length - 1]);
@@ -60,7 +60,7 @@ class CouponGenerator {
       }
     };
   
-    let coupon = "A".repeat(couponLength); // Начинаем с купона, состоящего из первого символа
+    let coupon = "A".repeat(couponLength); // start from a coupon made of the first character only
   
     while (!foundCoupon) {
       if (this.isValidCoupon(coupon)) {
@@ -80,7 +80,7 @@ class CouponGenerator {
   }
 }
 
-// Пример использования
+// Usage example
 const secretString = Math.random().toString(36).substring(2, this.length + 12222).toUpperCase();
 const couponGenerator = new CouponGenerator(2, secretString); 
 let attempt = couponGenerator.bruteforceCouponAttempts(5);

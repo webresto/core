@@ -1,8 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import type AuthProviderAdapter from "../adapters/auth/AuthProviderAdapter";
-import type { AuthFlowKind } from "../adapters/auth/AuthProviderAdapter";
+import type { AuthProviderAdapter, AuthFlowKind } from "../adapters";
 /** Public projection of an AuthProvider — the ONLY shape allowed to reach the frontend. */
 export interface AuthProviderPublic {
     adapter: string;
@@ -16,7 +15,7 @@ export interface AuthProviderPublic {
 declare let attributes: {
     /** ID of the auth provider config-instance */
     id: string;
-    /** Slug of the provider *type* (telegram, max, vk …). One row = one button on the login page. */
+    /** Slug of the provider *type* (telegram, zalo, fb …). One row = one button on the login page. */
     adapter: string;
     /** Button label */
     title: string;

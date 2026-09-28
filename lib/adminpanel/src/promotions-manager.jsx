@@ -2,13 +2,20 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import WorktimeEditor from './components/WorktimeEditor';
-import { styles, toast, getBaseAdminPath, notificationsApi as api, useIsMobile } from './components/notifications/shared';
+import { styles, toast, getBaseAdminPath, notificationsApi as api, useIsMobile, ModuleToaster } from './components/notifications/shared';
 
 const {
   Button, Input, Textarea, Label, Badge, Switch,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } = window.UIComponents;
 const { MultiSelect } = window.JSComponents || {};
+
+const SERVICE_TYPES = ['delivery', 'pickup', 'dine-in'];
+const SERVICE_TYPE_LABEL = {
+  delivery: 'Delivery',
+  pickup: 'Pickup',
+  'dine-in': 'Dine-in',
+};
 
 // ─────────────────────────────── formatting ───────────────────────────────
 function formatMoney(value, language) {
@@ -215,7 +222,7 @@ function emptyDraft() {
     isJoint: false, isPublic: false, worktime: null,
     scope: 'all', discountType: 'percentage', discountAmount: 0,
     groups: [], dishes: [], excludeGroups: [], excludeDishes: [],
-    deliveryMethod: [], excludeModifiers: false,
+    serviceType: [], excludeModifiers: false,
     minBasketTotal: 0,
     giftEnabled: false, giftMinBasketTotal: 0, giftDishes: [],
     badge: 'configured-promotion', externalId: '', createdByUser: true,
@@ -236,7 +243,7 @@ function fromRecord(r) {
     groups, dishes,
     excludeGroups: (cd.exclude?.groups || []).filter(Boolean),
     excludeDishes: (cd.exclude?.dishes || []).filter(Boolean),
-    deliveryMethod: cd.deliveryMethod || [],
+    serviceType: cd.serviceType || [],
     excludeModifiers: Boolean(cd.excludeModifiers),
     minBasketTotal: cd.minBasketTotal || 0,
     giftEnabled: Boolean(gift && gift.dishes.length),
@@ -265,14 +272,14 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
       const n = draft.giftDishes.filter((g) => g.dishId).length;
       parts.push(`🎁 ${t('gift')}: ${n} ${t('dishes')}${draft.giftMinBasketTotal ? ` ${t('from')} ${formatMoney(draft.giftMinBasketTotal, language)} ₽` : ''}`);
     }
-    const delivery = draft.deliveryMethod.length && draft.deliveryMethod.length < 2
-      ? (draft.deliveryMethod[0] === 'delivery' ? `, ${t('delivery only')}` : `, ${t('self-service only')}`) : '';
+    const delivery = draft.serviceType.length && draft.serviceType.length < SERVICE_TYPES.length
+      ? `, ${draft.serviceType.map((s) => t(SERVICE_TYPE_LABEL[s])).join(' / ')} ${t('only')}` : '';
     const joint = draft.isJoint ? t('stacks with others') : t('exclusive');
     if (!parts.length) parts.push(t('No discount configured'));
     return `${parts.join(' · ')}${delivery} · ${joint}`;
   }, [draft, t, language]);
 
-  const toggleDelivery = (m) => setField('deliveryMethod', draft.deliveryMethod.includes(m) ? draft.deliveryMethod.filter((x) => x !== m) : [...draft.deliveryMethod, m]);
+  const toggleServiceType = (m) => setField('serviceType', draft.serviceType.includes(m) ? draft.serviceType.filter((x) => x !== m) : [...draft.serviceType, m]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -373,12 +380,13 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
           </div>
         )}
         <div style={styles.field}>
-          <Label style={styles.fieldLabel}>{t('Delivery method')}</Label>
+          <Label style={styles.fieldLabel}>{t('Service type')}</Label>
           <div style={{ display: 'inline-flex', gap: 6 }}>
-            <button type="button" style={segBtn(draft.deliveryMethod.includes('delivery'))} onClick={() => toggleDelivery('delivery')}>{t('Delivery')}</button>
-            <button type="button" style={segBtn(draft.deliveryMethod.includes('selfService'))} onClick={() => toggleDelivery('selfService')}>{t('Self-service')}</button>
+            {SERVICE_TYPES.map((type) => (
+              <button key={type} type="button" style={segBtn(draft.serviceType.includes(type))} onClick={() => toggleServiceType(type)}>{t(SERVICE_TYPE_LABEL[type])}</button>
+            ))}
           </div>
-          <span style={styles.help}>{t('Leave both off to allow any method.')}</span>
+          <span style={styles.help}>{t('Leave all off to allow any service type.')}</span>
         </div>
         <div style={{ ...styles.field, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <div><Label style={styles.fieldLabel}>{t('Do not apply to modifiers')}</Label><div style={styles.help}>{t('Partially implemented in core.')}</div></div>
@@ -657,7 +665,7 @@ function PromotionsManagerContent() {
       discountType: d.discountType, discountAmount: Number(d.discountAmount) || 0,
       dishes: d.scope === 'selected' ? d.dishes : [],
       groups: d.scope === 'selected' ? d.groups : [],
-      deliveryMethod: d.deliveryMethod,
+      serviceType: d.serviceType,
       excludeModifiers: d.excludeModifiers,
       exclude: { dishes: d.excludeDishes, groups: d.excludeGroups },
       minBasketTotal: Number(d.minBasketTotal) || 0,
@@ -816,6 +824,7 @@ function PromotionsManagerContent() {
 export default function PromotionsManager(props) {
   return (
     <I18nProvider initialLocale={props.locale} messages={props.messages}>
+      <ModuleToaster />
       <PromotionsManagerContent />
     </I18nProvider>
   );

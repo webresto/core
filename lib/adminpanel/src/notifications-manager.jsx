@@ -3,7 +3,7 @@ import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import TypesSection from './components/notifications/TypesSection';
 import SendTestPanel from './components/notifications/SendTestPanel';
 import DashboardSection from './components/notifications/DashboardSection';
-import { useIsMobile } from './components/notifications/shared';
+import { useIsMobile, ModuleToaster } from './components/notifications/shared';
 import { requireAdminApi } from './lib/admin-api';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
@@ -1611,6 +1611,7 @@ export default function NotificationsManager(props) {
   const permissions = props.permissions || { canView: true, canManage: props.canManage === true };
   return (
     <I18nProvider initialLocale={props.locale} messages={props.messages}>
+      <ModuleToaster />
       <NotificationsManagerContent permissions={permissions} />
     </I18nProvider>
   );

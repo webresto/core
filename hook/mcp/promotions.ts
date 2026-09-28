@@ -1,4 +1,4 @@
-import hashCode, { generateUUID } from '../../libs/hashCode';
+import hashCode, { generateUUID } from '../../lib/hashCode';
 import { boundedPage, DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT } from './pagination';
 
 declare const mcp: any;

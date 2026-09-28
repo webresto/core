@@ -16,6 +16,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 process.env.UNIQUE_SLUG === undefined ? "1" : process.env.UNIQUE_SLUG;
 __exportStar(require("./models/BonusProgram"), exports);
+__exportStar(require("./models/DeliveryZone"), exports);
 __exportStar(require("./models/Dish"), exports);
 __exportStar(require("./models/Group"), exports);
 __exportStar(require("./models/Maintenance"), exports);
@@ -29,7 +30,7 @@ __exportStar(require("./models/PaymentMethod"), exports);
 __exportStar(require("./models/Place"), exports);
 __exportStar(require("./models/Settings"), exports);
 __exportStar(require("./models/City"), exports);
-__exportStar(require("./models/Street"), exports);
+__exportStar(require("./models/Address"), exports);
 __exportStar(require("./models/User"), exports);
 __exportStar(require("./models/UserBonusProgram"), exports);
 __exportStar(require("./models/UserBonusTransaction"), exports);
@@ -38,14 +39,18 @@ __exportStar(require("./models/UserLocation"), exports);
 __exportStar(require("./models/UserOrderHistory"), exports);
 __exportStar(require("./models/Promotion"), exports);
 // Helpers
-__exportStar(require("./libs/helpers/OrderHelper"), exports);
-__exportStar(require("./libs/NotificationDispatcher"), exports);
-__exportStar(require("./libs/SetupChecklistRegistry"), exports);
-__exportStar(require("./libs/SetupChecklistService"), exports);
+__exportStar(require("./lib/order/OrderHelper"), exports);
+__exportStar(require("./lib/notifications/NotificationDispatcher"), exports);
+__exportStar(require("./lib/notifications/NotificationEventRegistry"), exports);
+__exportStar(require("./lib/notifications/NotificationTypeRegistry"), exports);
+__exportStar(require("./lib/notifications/NotificationTemplateRenderer"), exports);
+__exportStar(require("./lib/notifications/NotificationService"), exports);
+__exportStar(require("./lib/SetupChecklistRegistry"), exports);
+__exportStar(require("./lib/SetupChecklistService"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),
         initialize: require('./hook/initialize').default(sails)
     };
 };
-module.exports.HookTools = require("./libs/hookTools");
+module.exports.HookTools = require("./lib/hookTools");

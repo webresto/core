@@ -2,7 +2,8 @@ import {
   getAllowedOrderTransitionsByRole,
   isCompletedOrderState,
   isOperatorUser,
-} from "../../../../libs/OrderStateFlow";
+} from "../../../order/OrderStateFlow";
+import { primaryCookingPoint } from "../../../menu/cooking-place";
 
 function parseTimestamp(value: unknown): number {
   const timestamp = new Date(value as any).getTime();
@@ -102,7 +103,6 @@ async function loadFullOrder(id: string): Promise<any | null> {
     .populate("paymentMethod")
     .populate("user")
     .populate("pickupPoint")
-    .populate("deliveryItem")
     .populate("promotionCode");
 
   if (!fullOrder) return null;
@@ -122,6 +122,27 @@ async function loadFullOrder(id: string): Promise<any | null> {
   }
 
   return fullOrder;
+}
+
+/**
+ * Where the order is cooked: a courier order goes to the resolved kitchen,
+ * pickup and dine-in to the point the customer picked — which is the same
+ * place, just chosen instead of resolved.
+ */
+async function getKitchenName(order: any): Promise<string> {
+  const kitchenId = primaryCookingPoint(order);
+  const point = order?.serviceType && order.serviceType !== "delivery"
+    ? order?.pickupPoint
+    : kitchenId ? await Place.findOne({ id: kitchenId }) : null;
+  if (!point || typeof point !== "object") return "";
+  return String(point.title || point.address || "");
+}
+
+/** The product the delivery is charged as, when the calculation named one. */
+async function getDeliveryDish(order: any): Promise<any | null> {
+  const item = order?.delivery?.item;
+  if (!item) return null;
+  return (await Dish.findOne!({ where: { or: [{ id: String(item) }, { rmsId: String(item) }] } })) ?? null;
 }
 
 function mapRelatedRef(record: any, modelName: string, labelFields: string[] = ["title", "name"]): any {
@@ -158,12 +179,11 @@ function mapPaymentDocuments(order: any): any[] {
   });
 }
 
-function mapOrder(order: any, operatorLimited: boolean) {
+function mapOrder(order: any, operatorLimited: boolean, kitchenName: string, zoneName: string, deliveryDish: any) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
   const paymentMethod = order?.paymentMethod && typeof order.paymentMethod === "object" ? order.paymentMethod : null;
   const userRecord = order?.user && typeof order.user === "object" ? order.user : null;
   const pickupPoint = order?.pickupPoint && typeof order.pickupPoint === "object" ? order.pickupPoint : null;
-  const deliveryItem = order?.deliveryItem && typeof order.deliveryItem === "object" ? order.deliveryItem : null;
   const promotionCode = order?.promotionCode && typeof order.promotionCode === "object" ? order.promotionCode : null;
 
   return {
@@ -175,14 +195,16 @@ function mapOrder(order: any, operatorLimited: boolean) {
     discountTotal: asNumber(order?.discountTotal),
     bonusesTotal: asNumber(order?.bonusesTotal),
     promotionFlatDiscount: asNumber(order?.promotionFlatDiscount),
-    deliveryCost: asNumber(order?.deliveryCost ?? order?.delivery?.cost),
+    deliveryCost: asNumber(order?.delivery?.cost),
     dishesCount: asNumber(order?.dishesCount, Array.isArray(order?.dishes) ? order.dishes.length : 0),
     customerName: customer?.name || "",
     customerPhone: getCustomerPhone(order),
     comment: order?.comment || "",
     tag: order?.tag || "",
     paid: Boolean(order?.paid),
-    selfService: Boolean(order?.selfService),
+    serviceType: order?.serviceType || "delivery",
+    kitchenName,
+    zoneName,
     rmsOrderNumber: order?.rmsOrderNumber || "",
     createdAt: order?.createdAt || null,
     updatedAt: order?.updatedAt || null,
@@ -203,7 +225,7 @@ function mapOrder(order: any, operatorLimited: boolean) {
       user: mapRelatedRef(userRecord, "user", ["login", "name", "phone"]),
       paymentMethod: mapRelatedRef(paymentMethod, "paymentmethod", ["title", "name"]),
       pickupPoint: mapRelatedRef(pickupPoint, "place", ["title", "name"]),
-      deliveryItem: mapRelatedRef(deliveryItem, "dish", ["title", "name"]),
+      deliveryItem: mapRelatedRef(deliveryDish, "dish", ["title", "name"]),
       promotionCode: mapRelatedRef(promotionCode, "promotioncode", ["title", "code", "name"]),
     },
     paymentDocuments: mapPaymentDocuments(order),
@@ -233,7 +255,9 @@ export default async function GetOrderKanbanOrderController(req: any, res: any) 
       return res.status(404).json({ error: t("Order not found") });
     }
 
-    return res.json({ order: mapOrder(order, operatorLimited) });
+    return res.json({
+      order: mapOrder(order, operatorLimited, await getKitchenName(order), order?.delivery?.zoneName || "", await getDeliveryDish(order)),
+    });
   } catch (error) {
     sails.log.error("Get order kanban order error", error);
     return res.status(500).json({ error: String(error) });

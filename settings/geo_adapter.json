@@ -1,0 +1,9 @@
+{
+  "key": "GEO_ADAPTER",
+  "type": "string",
+  "name": "Geo adapter",
+  "description": "Geocoder that turns an address into a coordinate and a coordinate into an address. Empty means the built-in one: the address catalog, with Nominatim at NOMINATIM_URL for what the catalog does not know.",
+  "defaultValue": "",
+  "isRequired": false,
+  "restartRequired": true
+}

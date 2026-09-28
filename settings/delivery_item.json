@@ -1,6 +1,0 @@
-{
-  "key": "DELIVERY_ITEM",
-  "type": "string",
-  "name": "Delivery Item",
-  "description": "Optional setting for delivery service item"
-}

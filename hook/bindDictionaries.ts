@@ -1,4 +1,4 @@
-let countries = require("../libs/dictionaries/countries.json")
+let countries = require("../lib/dictionaries/countries.json")
 import { Country } from "../interfaces/Country";
 export default function() {
     
@@ -7,10 +7,7 @@ export default function() {
         currencies: {}
     } as ISailsDictionaries
 
-    let countriesHash = {};
     countries.forEach((country: Country) => {
-        //@ts-ignore
-        countriesHash[country.iso] = country;
         sails.dictionaries['countries'][country.iso] = country;
 
         sails.dictionaries.currencies[country.currencyISO] = {
@@ -20,11 +17,6 @@ export default function() {
             currencyUnit: country.currencyUnit
         }
     });
-
-    /** @deprecated */
-    sails.hooks.restocore["dictionaries"] = { 
-        countries: countriesHash
-    }
 
 
 };

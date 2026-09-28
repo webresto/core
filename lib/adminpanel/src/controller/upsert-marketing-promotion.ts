@@ -11,7 +11,7 @@ function stringArray(value: any): string[] {
 /**
  * POST …/core/marketing/promotion   (upsert — configured promotions only)
  * Body: { id?, name, description, concept[], isJoint, isPublic, enable, sortOrder, worktime,
- *         configDiscount: { discountType, discountAmount, dishes[], groups[], deliveryMethod[],
+ *         configDiscount: { discountType, discountAmount, dishes[], groups[], serviceType[],
  *                           excludeModifiers, exclude: { dishes[], groups[] } } }
  *
  * Persists the config via Promotion.createOrUpdate (which computes `hash` and recreates the
@@ -63,8 +63,8 @@ export default async function UpsertMarketingPromotionController(req: any, res: 
       dishes,
       groups,
     };
-    const deliveryMethod = (Array.isArray(cd.deliveryMethod) ? cd.deliveryMethod : []).filter((m: any) => m === "delivery" || m === "selfService");
-    if (deliveryMethod.length) configDiscount.deliveryMethod = deliveryMethod;
+    const serviceType = (Array.isArray(cd.serviceType) ? cd.serviceType : []).filter((m: any) => ["delivery", "pickup", "dine-in"].includes(m));
+    if (serviceType.length) configDiscount.serviceType = serviceType;
     if (cd.excludeModifiers) configDiscount.excludeModifiers = true;
     const exDishes = stringArray(cd.exclude?.dishes);
     const exGroups = stringArray(cd.exclude?.groups);

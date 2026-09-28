@@ -1,4 +1,4 @@
-import RMSAdapter from "../../../adapters/rms/RMSAdapter";
+import RMSAdapter, { RMSOutOfStockItem } from "../../../adapters/rms/RMSAdapter";
 import { DishRecord } from "../../../models/Dish";
 import { GroupRecord } from "../../../models/Group";
 import { OrderRecord } from "../../../models/Order";
@@ -18,7 +18,7 @@ export class TestRMS  extends RMSAdapter {
         return
 
     }
-    protected async loadOutOfStocksDishes(concept?: string): Promise<DishRecord[]> {
+    protected async loadOutOfStocksDishes(concept?: string): Promise<RMSOutOfStockItem[]> {
         return []
     }
     protected  async nomenclatureHasUpdated(): Promise<boolean> {

@@ -4,7 +4,7 @@ import { ConfirmDialog } from './components/ConfirmDialog';
 import WorktimeEditor from './components/WorktimeEditor';
 import {
   styles, toast, getBaseAdminPath, notificationsApi as api,
-  formatDateTime, COST_NUM_STYLE, useIsMobile,
+  formatDateTime, COST_NUM_STYLE, useIsMobile, ModuleToaster,
 } from './components/notifications/shared';
 
 const {
@@ -871,6 +871,7 @@ function PromoCodesManagerContent() {
 export default function PromoCodesManager(props) {
   return (
     <I18nProvider initialLocale={props.locale} messages={props.messages}>
+      <ModuleToaster />
       <PromoCodesManagerContent />
     </I18nProvider>
   );

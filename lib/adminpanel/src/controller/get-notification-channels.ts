@@ -1,4 +1,4 @@
-import { NotificationManager } from "../../../../libs/NotificationManager";
+import { NotificationManager } from "../../../notifications/NotificationManager";
 import { getModulePermissions, hasModulePermission, NOTIFICATIONS_ACCESS } from "./access-rights";
 
 function hasAccess(req: any, res: any): boolean {

@@ -126,7 +126,7 @@ function formatMonthLabel(date, language) {
 
 // ─── root export ─────────────────────────────────────────────────────────────
 
-export default function OrdersReport({ props }) {
+export default function OrdersReport(props) {
   const locale = resolveSystemLocale(props?.locale);
   return (
     <I18nProvider initialLocale={locale} messages={props?.messages}>

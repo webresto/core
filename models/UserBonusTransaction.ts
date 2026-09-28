@@ -6,7 +6,7 @@ import { v4 as uuid } from "uuid";
 import { BonusProgramRecord } from "./BonusProgram";
 import { UserRecord } from "./User";
 import Decimal from "decimal.js";
-import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
+import type { BonusTransaction } from "../adapters";
 
 let attributes = {
   /** ID */

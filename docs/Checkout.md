@@ -50,7 +50,6 @@ restrictions = {
   deliveryAllowed: false,
   selfServiceAllowed: true,
   allowBonusSpending: false,
-  minDeliveryTimeInMinutes: 20,
   allowedPhoneCountries: ['MX', 'CA'],
   contactMethods: ['phone', 'whatsapp'],
 };

@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 // todo: fix types model instance to {%ModelName%}Record for User"
 import { BonusProgramRecord } from "./BonusProgram";
 import Decimal from "decimal.js";
-import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
+import type { BonusTransaction } from "../adapters";
 import { UserRecord } from "./User";
 import { UserBonusTransactionRecord } from "./UserBonusTransaction";
 
@@ -63,10 +63,6 @@ let attributes = {
 
 
 type attributes = typeof attributes;
-/**
- * @deprecated use `UserBonusProgramRecord` instead
- */
-interface UserBonusProgram extends attributes, ORM {}
 export interface UserBonusProgramRecord extends attributes, ORM {}
 
 let Model = {

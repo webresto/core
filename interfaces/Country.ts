@@ -1,5 +1,5 @@
 export type Country = {
-  phoneCode: String
+  phoneCode: string
   iso: CountryISOList
   name: String
   nativeCountryName: String
@@ -9,6 +9,8 @@ export type Country = {
   currencyISO: CurrencyISOList
   currencyUnit: String
   currencyDenomination: Number
+  phoneMask: string[]
+  flag: string
 }
 
 export type Currency = {

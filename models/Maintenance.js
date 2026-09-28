@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
+const maintenance_1 = require("../lib/maintenance");
 const CHECK_INTERVAL = 60000;
 /** Idea: move subscribe to worktime events in worktime library */
 sails.on("lifted", function () {
@@ -72,7 +73,7 @@ let Model = {
                 stop = new Date(maintenance.stopDate).getTime();
             }
             let now = date === undefined ? new Date().getTime() : new Date(date).getTime();
-            return between(start, stop, now);
+            return (0, maintenance_1.between)(start, stop, now);
         });
         return maintenances[0];
     },
@@ -82,9 +83,6 @@ module.exports = {
     attributes: attributes,
     ...Model,
 };
-function between(from, to, a) {
-    return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
-}
 async function checkMaintenance() {
     const maintenance = await Maintenance.getActiveMaintenance();
     if (maintenance) {

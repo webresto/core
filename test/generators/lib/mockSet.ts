@@ -19,7 +19,7 @@ export class MockSet {
   interfaces?: string[];
 
   constructor() {
-    this.declarationPaths = ["../../models/", "../../interfaces/", "../../adapters/", "../../config/", "../../libs/"];
+    this.declarationPaths = ["../../models/", "../../interfaces/", "../../adapters/", "../../config/", "../../lib/"];
     this.extension = ".d.ts";
     //this.interfaces = options.interfaces;
   }

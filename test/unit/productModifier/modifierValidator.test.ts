@@ -1,17 +1,16 @@
 import { expect } from 'chai';
-import { ProductModifier } from '../../../libs/ProductModifier';
+import { ProductModifier } from '../../../lib/ProductModifier';
 import { GroupModifier, Modifier, OrderModifier } from '../../../interfaces/Modifier';
 
 describe('ProductModifier', () => {
   const childModifiers: Modifier[] = [
-    { id: 'm1', rmsId: 'mod1', modifierId: 'mod1' },
-    { id: 'm2', rmsId: 'mod2', modifierId: 'mod2' },
+    { id: 'm1', rmsId: 'mod1' },
+    { id: 'm2', rmsId: 'mod2' },
   ];
 
   const group: GroupModifier = {
     id: 'g1',
     rmsId: 'grp1',
-    modifierId: '',
     childModifiers,
     minAmount: 1,
     maxAmount: 2,

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { CartCleanup } from "../../libs/CartCleanup";
+import { CartCleanup } from "../../lib/order/CartCleanup";
 
 describe("CartCleanup", function () {
   const realOrder = (global as any).Order;

@@ -3,18 +3,39 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SERVICE_TYPES = void 0;
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const worktime_1 = require("@webresto/worktime");
-const phoneValidByMask_1 = require("../libs/phoneValidByMask");
-const OrderHelper_1 = require("../libs/helpers/OrderHelper");
-const cancelPaymentDialog_1 = require("../libs/dialogs/cancelPaymentDialog");
+const phoneValidByMask_1 = require("../lib/phoneValidByMask");
+const OrderHelper_1 = require("../lib/order/OrderHelper");
+const cancelPaymentDialog_1 = require("../lib/order/cancelPaymentDialog");
 const isValue_1 = require("../utils/isValue");
-const ProductModifier_1 = require("../libs/ProductModifier");
-const OrderStateFlow_1 = require("../libs/OrderStateFlow");
+const cooking_place_1 = require("../lib/menu/cooking-place");
+const kitchen_assignment_1 = require("../lib/order/kitchen-assignment");
+const soft_delivery_1 = require("../lib/delivery/soft-delivery");
+const coordinate_1 = require("../lib/address/coordinate");
+const dish_place_balance_1 = require("../lib/menu/dish-place-balance");
+const product_availability_1 = require("../lib/menu/product-availability");
+const order_timing_1 = require("../lib/order/order-timing");
+const ProductModifier_1 = require("../lib/ProductModifier");
+const OrderStateFlow_1 = require("../lib/order/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
-const NotificationService_1 = require("../libs/NotificationService");
-const OrderLogHelper_1 = __importDefault(require("../libs/OrderLogHelper"));
+const NotificationService_1 = require("../lib/notifications/NotificationService");
+/**
+ * How the customer gets the food.
+ *
+ * `delivery` needs an address, the other two need a point — and they need
+ * different things of it: a counter can hand an order over without having a
+ * room to eat it in.
+ */
+exports.SERVICE_TYPES = ["delivery", "pickup", "dine-in"];
+/** Journal messages for what a route planner answered during `countCart`. */
+const ROUTE_LOG = {
+    planned: "countCart: route planned",
+    refused: "countCart: route refused",
+};
+const OrderLogHelper_1 = __importDefault(require("../lib/order/OrderLogHelper"));
 const ORDERED_STATES = ["ORDER", "COOKING", "ON_THE_WAY"];
 let attributes = {
     /** Id  */
@@ -43,9 +64,6 @@ let attributes = {
     },
     /** the basket contains mixed types of concepts */
     isMixedConcept: "boolean",
-    /**
-     * @deprecated will be rename to `Items` in **v2**
-     */
     dishes: {
         collection: "OrderDish",
         via: "order",
@@ -173,34 +191,53 @@ let attributes = {
     pickupPoint: {
         model: "Place",
     },
-    selfService: {
-        type: "boolean"
+    /**
+     * Every kitchen this order is cooked at, in route order.
+     *
+     * The first is the one the kitchen resolver assigned — read it through
+     * `primaryCookingPoint` — and a route only appends the kitchens it adds; one
+     * kitchen is a list of one. Empty until a resolver chain is configured: an
+     * installation that never sets `KITCHEN_RESOLVE_CHAIN` keeps working off the
+     * single default cooking point.
+     *
+     * Stored, not computed on read. A route is decided once and then acted on:
+     * couriers are told, kitchens are told, and a list that recomputed itself
+     * from current stock would answer differently tomorrow than it did when the
+     * order was placed.
+     */
+    cookingPoints: {
+        type: "json",
+        defaultsTo: [],
+    },
+    /**
+     * How long the customer is willing to wait, in minutes, for an ASAP order.
+     *
+     * Mutually exclusive with `date`: an order is either "as soon as you can, but
+     * no later than this" or "at this time". Both filled in is not a stricter
+     * order, it is two different orders, so it is refused rather than reconciled.
+     */
+    maxWaitMinutes: {
+        type: "number",
+        allowNull: true,
+    },
+    /**
+     * How the customer gets the food: a courier brings it, they collect it, or
+     * they eat at the point.
+     *
+     * `pickup` and `dine-in` are one thing to the kitchen — the point the customer
+     * chose cooks the order — and two different things to the point: a counter in
+     * a mall hands orders over without a room to sit in. That is why this is a
+     * type and not the boolean it replaces.
+     */
+    serviceType: {
+        type: "string",
+        isIn: exports.SERVICE_TYPES,
+        defaultsTo: "delivery",
     },
     delivery: {
         type: "json"
     },
-    /** Notification about delivery
-     * ex: time increased due to traffic jams
-     * @deprecated should changed for order.delivery.message
-     * */
-    deliveryDescription: {
-        type: "string",
-        allowNull: true
-    },
-    message: "string", // deprecated
-    /**
-     * @deprecated use order.delivery.item
-     */
-    deliveryItem: {
-        model: "Dish",
-    },
-    /**
-     * @deprecated use order.delivery.cost
-     */
-    deliveryCost: {
-        type: "number",
-        defaultsTo: 0,
-    },
+    message: "string",
     /** order total weight */
     totalWeight: {
         type: "number",
@@ -219,7 +256,7 @@ let attributes = {
     spendBonus: {
         type: "json"
     },
-    /** total = basketTotal + deliveryCost - discountTotal - bonusesTotal */
+    /** total = basketTotal + delivery.cost - discountTotal - bonusesTotal */
     total: {
         type: "number",
         defaultsTo: 0,
@@ -228,13 +265,6 @@ let attributes = {
       * Sum dishes user added
       */
     basketTotal: {
-        type: "number",
-        defaultsTo: 0,
-    },
-    /**
-    *   @deprecated orderTotal use basketTotal
-    */
-    orderTotal: {
         type: "number",
         defaultsTo: 0,
     },
@@ -308,7 +338,7 @@ let Model = {
             orderInit.orderedOnPlatform = null;
         }
         orderInit.promotionState = [];
-        orderInit.selfService = false;
+        orderInit.serviceType = "delivery";
         orderInit.state = "NEW";
         cb();
     },
@@ -364,10 +394,48 @@ let Model = {
         }
         if (amount < 0)
             throw `Amount is subzero [${amount}]`;
-        // TODO: In core you can add any amount dish, only in checkout it should show which not allowed
-        if (dishObj.balance > 0 && amount > dishObj.balance) {
+        // The basket reads stock at the point the menu was read at, and asks the same
+        // adapter for it. Two answers to "which kitchen" is how a customer ends up
+        // adding a product they were shown and cannot have.
+        const menuContext = await (await Adapter.get("menu")).resolveContext({
+            order: await Order.findOne(criteria),
+        });
+        // A mode that ties the menu to a point, with no point to tie it to, cannot
+        // say whether this product is sellable — and must not guess. The default mode
+        // never reaches here: it has no such requirement and `code` stays unset.
+        if (menuContext.code === "MENU_PLACE_REQUIRED") {
+            // Spelled out rather than `emit.apply(emitter, [...arguments])` like its
+            // neighbours: that spread is untypeable against the event map and the two
+            // calls next to it are already type errors in this file.
+            await emitter.emit("core:order-add-dish-reject-no-place", criteria, dish, amount, modifiers, comment, addedBy, replace, orderDishId);
+            throw new Error("MENU_PLACE_REQUIRED: choose a delivery address or a pickup point before adding products");
+        }
+        // The menu hides a product that alone cooks longer than the order will wait,
+        // and the basket refuses it by the same rule. Cooking only: the whole
+        // promise, road included, is judged at checkout.
+        const maxWaitMinutes = menuContext.order?.maxWaitMinutes;
+        if (!(0, order_timing_1.productFitsMaxWait)(dishObj, maxWaitMinutes)) {
+            throw {
+                code: 25,
+                error: `DISH_EXCEEDS_MAX_WAIT: ${dishObj.name} cooks up to ${dishObj.cookingTimeMax} min, ` +
+                    `the order waits at most ${maxWaitMinutes}`,
+            };
+        }
+        // Asked of the adapter, not of one point: in a routing mode a product is
+        // addable if any kitchen the courier could reach has it, and the menu that
+        // showed it to the customer used exactly that rule.
+        const availability = await (await Adapter.get("menu")).canAddProduct(dishObj, amount, menuContext);
+        // Refused in the same words the menu used: the context that hid a stopped
+        // product from the storefront is the one asked here, so a product the
+        // customer was shown goes in and one they were not shown does not. Core used
+        // to accept a stop and let the recount trim it later; that told the customer
+        // nothing and left the basket silently short. Without a point (no address
+        // yet, no installation default) stock is unknown and everything is addable.
+        if (!availability.available) {
             await emitter.emit.apply(emitter, ["core:order-add-dish-reject-amount", ...arguments]);
-            throw new Error(`Not enough dishes with id ${dishObj.id}. Available quantity: ${dishObj.balance}`);
+            throw new Error(availability.reason === "PRODUCT_NOT_ENOUGH_AT_PLACE"
+                ? `Not enough dishes with id ${dishObj.id}. Available quantity: ${availability.balance}`
+                : `Dish [${dishObj.id}] is not available at the kitchen serving this order`);
         }
         if (dishObj.modifier) {
             throw new Error(`Dish [${dishObj.id}] is modifier`);
@@ -407,6 +475,10 @@ let Model = {
             });
         }
         let order = await Order.findOne(criteria).populate("dishes");
+        // What an installation requires before a basket may start, asked on every
+        // product and not once in `doCart`: a storefront that sets the address first
+        // moves the order to CART through `orderUpdate`, and `doCart` never runs.
+        await checkInitializationFields(order);
         await Order.log({ id: order.id }, "info", "core", `addDish: ${dishObj.name}`, { dishId: dishObj.id, amount, addedBy, modifiersCount: modifiers?.length || 0 });
         if (order.state === "NEW") {
             order = await Order.doCart({ id: order.id });
@@ -540,14 +612,19 @@ let Model = {
     async setCount(criteria, dish, amount) {
         await emitter.emit.apply(emitter, ["core:order-before-set-count", ...arguments]);
         const _dish = dish.dish;
-        if (_dish.balance !== -1)
-            if (amount > _dish.balance) {
+        // Zero is a removal — the line is destroyed below — and asking for nothing is
+        // always satisfiable. Running it past availability would leave a customer
+        // unable to take a stopped product back out of the basket.
+        if (amount > 0) {
+            const _availability = await (0, product_availability_1.getProductAvailability)(_dish, await (0, cooking_place_1.getOrderCookingPlaceId)(await Order.findOne(criteria)), amount);
+            if (!_availability.available) {
                 await emitter.emit.apply(emitter, ["core:order-set-count-reject-amount", ...arguments]);
                 throw {
                     body: `There is no so mush dishes with id ${dish.id}`,
                     code: 1,
                 };
             }
+        }
         const order = await Order.findOne(criteria).populate("dishes");
         await Order.log({ id: order.id }, "info", "core", `setCount: orderDishId=${dish.id}, amount=${amount}`);
         if (Order.isOrderedState(order.state))
@@ -622,23 +699,25 @@ let Model = {
         return newOrder;
     },
     /**
-     * Set order selfService field. Use this method to change selfService.
+     * Set how the customer gets the food. Use this method to change `serviceType`.
      * @param criteria
-     * @param selfService
+     * @param serviceType
      */
-    async setSelfService(criteria, selfService = true) {
-        sails.log.silly("Order > setSelfService >", selfService);
+    async setServiceType(criteria, serviceType) {
+        sails.log.silly("Order > setServiceType >", serviceType);
+        if (!exports.SERVICE_TYPES.includes(serviceType))
+            throw `unknown serviceType ${serviceType}`;
         const order = await Order.findOne(criteria);
         if (Order.isOrderedState(order.state))
             throw `order with orderId ${order.id} in state ${order.state}`;
-        return (await Order.update(criteria, { selfService: Boolean(selfService) }).fetch())[0];
+        return (await Order.update(criteria, { serviceType }).fetch())[0];
     },
     ////////////////////////////////////////////////////////////////////////////////////
     // TODO: rewrite for OrderId instead criteria FOR ALL MODELS because is not batch check
-    async check(criteria, customer, isSelfService, address, paymentMethodId, userId, spendBonus, orderedOnPlatform) {
+    async check(criteria, customer, serviceType, address, paymentMethodId, userId, spendBonus, orderedOnPlatform) {
         try {
             let order = await Order.findOne(criteria);
-            await Order.log({ id: order.id }, "info", "core", "check: started", { isSelfService, paymentMethodId, hasCustomer: !!customer, hasAddress: !!address });
+            await Order.log({ id: order.id }, "info", "core", "check: started", { serviceType, paymentMethodId, hasCustomer: !!customer, hasAddress: !!address });
             if (typeof orderedOnPlatform !== "undefined") {
                 // Normalize the order source through the SalesChannel registry. Backward
                 // compatible: keeps the same string and only warns on an unknown channel
@@ -670,8 +749,8 @@ let Model = {
             /**
              *  // TODO:  Perhaps you need to add a lifetime for a check for a check (make a globally the concept of an audit of the Intelligence system if it is less than a check version, then you need to go through the check again)
              */
-            Order.emitAndLogDetached({ id: order.id }, "core:order-before-check", order, customer, isSelfService, address);
-            sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${isSelfService} ${JSON.stringify(address)} ${paymentMethodId}`);
+            Order.emitAndLogDetached({ id: order.id }, "core:order-before-check", order, customer, serviceType, address);
+            sails.log.silly(`Order > check > before check > ${JSON.stringify(customer)} ${serviceType} ${JSON.stringify(address)} ${paymentMethodId}`);
             // Start checking
             await Order.next(order.id, "CART");
             if (customer) {
@@ -692,7 +771,16 @@ let Model = {
             else {
                 order.user = userId;
             }
+            // Settled before the date checks, because `checkDate` asks the point
+            // whether it is open and that question only exists for pickup and dine-in.
+            if (serviceType) {
+                if (!exports.SERVICE_TYPES.includes(serviceType)) {
+                    throw `unknown serviceType ${serviceType}`;
+                }
+                order.serviceType = serviceType;
+            }
             await checkDate(order);
+            await checkMultiKitchenSupport(order);
             if (paymentMethodId) {
                 await checkPaymentMethod(paymentMethodId);
                 order.paymentMethod = paymentMethodId;
@@ -700,22 +788,20 @@ let Model = {
                 order.isPaymentPromise = await PaymentMethod.isPaymentPromise(paymentMethodId);
             }
             let softDeliveryCalculation = true;
-            /** if pickup, then you do not need to check the address*/
-            if (isSelfService) {
-                order.selfService = true;
-                Order.emitAndLogDetached({ id: order.id }, "core:order-is-self-service", order, customer, isSelfService, address);
-            }
-            else {
-                order.selfService = false;
+            Order.emitAndLogDetached({ id: order.id }, "core:order-service-type", order, customer, order.serviceType, address);
+            /** the customer comes to the point, so there is no address to check */
+            if (order.serviceType === "delivery") {
                 softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
                 if (address) {
-                    if (!address.city)
-                        address.city = await Settings.get("CITY");
-                    checkAddress(address, softDeliveryCalculation);
-                    order.address = { ...address };
+                    // The line an operator and a courier read is rebuilt from the catalog
+                    // on every save rather than trusted from the client: the node is the
+                    // fact, the string is a rendering of it.
+                    const described = await (await Adapter.get("geo")).describe(address);
+                    await checkAddress(address, described.selfAddressed, softDeliveryCalculation);
+                    order.address = { ...address, formatted: described.formatted };
                 }
                 else {
-                    if (!isSelfService && order.address === null && !softDeliveryCalculation) {
+                    if (order.address === null && !softDeliveryCalculation) {
                         throw {
                             code: 5,
                             error: "address is required",
@@ -724,7 +810,7 @@ let Model = {
                 }
             }
             // Custom emitters checks
-            const results = await Order.emitAndLog({ id: order.id }, "core:order-check", order, customer, isSelfService, address, paymentMethodId);
+            const results = await Order.emitAndLog({ id: order.id }, "core:order-check", order, customer, order.serviceType, address, paymentMethodId);
             delete (order.dishes);
             await Order.update({ id: order.id }, { ...order }).fetch();
             ////////////////////
@@ -740,7 +826,11 @@ let Model = {
                     error: "Problem with counting cart",
                 };
             }
-            if (!order.selfService && softDeliveryCalculation === false && order.delivery?.allowed === false) {
+            // Soft calculation lets a manager agree the price later; it never covers
+            // an installation without a single zone, which cannot price any address.
+            if (order.serviceType === "delivery" &&
+                order.delivery?.allowed === false &&
+                (softDeliveryCalculation === false || order.delivery.notConfigured)) {
                 throw {
                     code: 11,
                     error: "Delivery not allowed",
@@ -771,10 +861,10 @@ let Model = {
                             amountToDeduct = order.total;
                             break;
                         case 'bonus_from_basket_delivery_discount':
-                            amountToDeduct = order.basketTotal + order.deliveryCost - order.discountTotal;
+                            amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0) - order.discountTotal;
                             break;
                         case 'bonus_from_basket_and_delivery':
-                            amountToDeduct = order.basketTotal + order.deliveryCost;
+                            amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0);
                             break;
                         case 'bonus_from_basket':
                             amountToDeduct = order.basketTotal;
@@ -866,7 +956,7 @@ let Model = {
                 args: {
                     criteria,
                     customer,
-                    isSelfService,
+                    serviceType,
                     address,
                     paymentMethodId,
                     userId,
@@ -888,7 +978,7 @@ let Model = {
         sails.log.debug("CORE > Order.order() CALLED, criteria:", JSON.stringify(criteria));
         const order = await Order.findOne(criteria);
         sails.log.debug("CORE > Order.order() found order:", order?.id, "state:", order?.state);
-        await Order.log({ id: order.id }, "info", "core", "order: placing order", { state: order.state, selfService: order.selfService, total: order.total });
+        await Order.log({ id: order.id }, "info", "core", "order: placing order", { state: order.state, serviceType: order.serviceType, total: order.total });
         // Check maintenance
         if (await Maintenance.getActiveMaintenance() !== undefined)
             throw `Currently site is off`;
@@ -906,44 +996,10 @@ let Model = {
         // if(( order.isPaymentPromise && order.paid) || ( !order.isPaymentPromise && !order.paid) )
         //   return 3
         Order.emitAndLogDetached({ id: order.id }, "core:order-before-order", order);
-        sails.log.silly("Order > order > before order >", order.customer, order.selfService, order.address);
-        if (order.selfService) {
-            Order.emitAndLogDetached({ id: order.id }, "core:order-order-self-service", order);
-        }
-        else {
-            Order.emitAndLogDetached({ id: order.id }, "core:order-order-delivery", order);
-        }
-        /**
-         *  I think that this function is unnecessary here, although the entire emitter was created for it.
-         *  Obviously, having an RMS adapter at your disposal, you don’t need a waiting listener at all
-         *  But since it exists, it will be revised in version 2
-         * @deprecated Event `core:order-order`
-         */
-        const results = await Order.emitAndLog({ id: order.id }, "core:order-order", order);
-        sails.log.silly("Order > order > after wait general emitter results: ", results);
-        const resultsCount = results.length;
-        const successCount = results.filter((r) => r.state === "success").length;
-        const orderConfig = await Settings.get("EMITTER_ORDER_STRATEGY");
-        if (orderConfig) {
-            if (orderConfig === "ALL_REQUIRED") {
-                if (resultsCount === successCount) {
-                    await orderIt();
-                    return;
-                }
-                else {
-                    throw "At least one listener did not complete the order.";
-                }
-            }
-            if (orderConfig === "JUST_ONE") {
-                if (successCount > 0) {
-                    await orderIt();
-                    return;
-                }
-                else {
-                    throw "No listener completed the order";
-                }
-            }
-        }
+        sails.log.silly("Order > order > before order >", order.customer, order.serviceType, order.address);
+        // One event with the type in it, rather than one event per type: every
+        // listener has to branch on the type anyway now that there are three.
+        Order.emitAndLogDetached({ id: order.id }, "core:order-order-service-type", order, order.serviceType);
         await orderIt();
         return;
         async function orderIt() {
@@ -1038,6 +1094,14 @@ let Model = {
                 UserOrderHistory.save(order.id);
             }
         }
+        /**
+         * Takes the sold amount off the operator stock of the order's cooking point.
+         *
+         * Only `localBalance` is written. `rmsBalance` belongs to the RMS
+         * synchronization, which owns that column and rewrites it on every tick, so
+         * a limit that exists only in the RMS is left to the RMS. A product without
+         * a row is unlimited here and gets no row: nothing was ever limited.
+         */
         async function decrementLimitedStockByOrder(orderId) {
             const orderDishes = await OrderDish.find({ order: orderId });
             if (!orderDishes.length)
@@ -1052,22 +1116,27 @@ let Model = {
             const dishIds = Object.keys(amountByDishId);
             if (!dishIds.length)
                 return;
-            const dishes = await Dish.find({ id: dishIds });
-            for (const dish of dishes) {
-                const deductedAmount = amountByDishId[String(dish.id)] ?? 0;
+            const placeId = await (0, cooking_place_1.getOrderCookingPlaceId)(await Order.findOne({ id: orderId }));
+            if (!placeId)
+                return;
+            const rows = await DishPlace.find({ where: { place: placeId, dish: { in: dishIds } } });
+            for (const row of rows) {
+                const deductedAmount = amountByDishId[String(row.dish)] ?? 0;
                 if (deductedAmount <= 0)
                     continue;
-                // -1 means infinite stock; only deduct for explicit finite balances.
-                if (typeof dish.balance !== "number" || dish.balance < 0)
+                // -1 and null mean "no limit from this source"; only a finite operator
+                // stock can be spent.
+                if (typeof row.localBalance !== "number" || row.localBalance < 0)
                     continue;
-                const nextBalance = Math.max(0, dish.balance - deductedAmount);
-                if (nextBalance === dish.balance)
+                const nextBalance = Math.max(0, row.localBalance - deductedAmount);
+                if (nextBalance === row.localBalance)
                     continue;
-                await Dish.update({ id: dish.id }, { balance: nextBalance }).fetch();
+                await DishPlace.upsertForPlace(String(row.dish), placeId, { localBalance: nextBalance });
                 await Order.log({ id: orderId }, "info", "core", "order: stock deducted", {
-                    dishId: dish.id,
+                    dishId: String(row.dish),
+                    placeId,
                     deductedAmount,
-                    balanceBefore: dish.balance,
+                    balanceBefore: row.localBalance,
                     balanceAfter: nextBalance
                 });
             }
@@ -1192,11 +1261,12 @@ let Model = {
         try {
             fullOrder = await Order.findOne(criteria)
                 .populate("dishes")
-                .populate("deliveryItem")
                 .populate('paymentMethod').populate('user').populate('pickupPoint');
             if (!fullOrder)
                 throw `order by criteria: ${criteria},  not found`;
             const orderDishes = await OrderDish.find({ order: fullOrder.id }).populate("dish").sort("createdAt");
+            // Modifier stock is read where the menu is: resolved once for the basket.
+            const menuContext = await (await Adapter.get("menu")).resolveContext({ order: fullOrder });
             for (let orderDish of orderDishes) {
                 if (!orderDish.dish) {
                     sails.log.error("orderDish", orderDish.id, "has not dish");
@@ -1215,7 +1285,7 @@ let Model = {
                 })
                     .populate("images")
                     .populate("parentGroup");
-                await Dish.getDishModifiers(dish);
+                await Dish.getDishModifiers(dish, menuContext);
                 orderDish.dish = dish;
                 if (orderDish.modifiers !== undefined && Array.isArray(orderDish.modifiers)) {
                     for await (let modifier of orderDish.modifiers) {
@@ -1290,6 +1360,66 @@ let Model = {
             const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
             if (!orderDishes)
                 return order;
+            /**
+             * Which kitchen cooks this order, before anything is counted at it.
+             *
+             * Deliberately ahead of the basket loop rather than after the delivery
+             * calculation: the loop is what drops products the kitchen has stopped, and
+             * running it against the previous kitchen would leave exactly the item the
+             * acceptance criterion says must not survive an address change. Pricing
+             * still happens later, because a zone's terms depend on the basket total
+             * and the kitchen does not.
+             */
+            const kitchen = await (0, kitchen_assignment_1.assignOrderCookingPlace)(order);
+            // A new kitchen starts the list over: the stops after it were planned
+            // around the old one, and the route below plans them again.
+            if (kitchen.changed)
+                order.cookingPoints = kitchen.placeId ? [kitchen.placeId] : [];
+            // `message` describes this recalculation and nothing older: a basket that
+            // lost a product says so once, in the response that lost it, and the next
+            // recount starts silent. Left alone it would be repeated on every response.
+            order.message = "";
+            if (kitchen.changed) {
+                await Order.log({ id: order.id }, "info", "core", kitchen_assignment_1.KITCHEN_LOG.assigned, {
+                    from: kitchen.previousPlaceId,
+                    to: kitchen.placeId,
+                    strategy: kitchen.resolution.strategy,
+                    diagnostics: kitchen.resolution.diagnostics,
+                });
+            }
+            // Where each line is cooked, decided before the basket loop and not after it.
+            //
+            // The loop is what drops a product its kitchen cannot cook, so it has to
+            // already know which kitchen that is. Deciding afterwards means judging
+            // every line against the order's primary point and throwing away exactly
+            // the lines a route existed to rescue.
+            //
+            // The menu adapter answers. The built-in ones keep the whole basket on the
+            // order's kitchen; a routing module spreads it over the stops of a route.
+            const menuAdapter = await Adapter.get("menu");
+            const placement = await menuAdapter.placeLines(order, orderDishes
+                .filter((line) => line.dish && typeof line.dish !== "string")
+                .map((line) => ({ orderDishId: line.id, dish: line.dish, amount: Number(line.amount) || 1 })), await menuAdapter.resolveContext({ order }), kitchen.coordinate);
+            if (placement.plan?.code) {
+                await Order.log({ id: order.id }, "warn", "core", ROUTE_LOG.refused, {
+                    code: placement.plan.code,
+                    diagnostics: placement.plan.diagnostics ?? [],
+                });
+            }
+            else if (placement.plan) {
+                // Logged whenever a planner answered at all, not only when it produced
+                // several stops. "It considered the basket and chose one kitchen" and
+                // "nothing ever asked it" are different states, and an operator looking
+                // at a single-kitchen order in a routing installation needs to tell them
+                // apart.
+                await Order.log({ id: order.id }, "info", "core", ROUTE_LOG.planned, {
+                    stops: placement.placeIds,
+                    totalMinutes: placement.plan.totalMinutes,
+                    diagnostics: placement.plan.diagnostics ?? [],
+                });
+            }
+            /** Products this recalculation dropped because the new kitchen stops them. */
+            const stoppedByNewKitchen = [];
             Order.emitAndLogDetached({ id: order.id }, "core:order-before-count", order);
             order.isPromoting = isPromoting;
             // const orderDishesClone = {}
@@ -1324,8 +1454,14 @@ let Model = {
                             await OrderDish.destroy({ id: orderDish.id }).fetch();
                             continue;
                         }
-                        if (dish.balance === -1 ? false : Math.abs(dish.balance) < orderDish.amount) {
-                            orderDish.amount = Math.abs(dish.balance);
+                        const dishBalance = placement.byOrderDish.get(orderDish.id)?.availability.balance ?? dish_place_balance_1.UNLIMITED_BALANCE;
+                        if (dishBalance === dish_place_balance_1.UNLIMITED_BALANCE ? false : Math.abs(dishBalance) < orderDish.amount) {
+                            // Only a move to another kitchen is worth telling the customer about.
+                            // The same line shrinking because the same kitchen sold out is the
+                            // ordinary case and already has its own event.
+                            if (kitchen.changed && dishBalance === 0)
+                                stoppedByNewKitchen.push(dish.name);
+                            orderDish.amount = Math.abs(dishBalance);
                             //It is necessary to delete if the amount is 0
                             if (orderDish.amount >= 0) {
                                 await Order.removeDish({ id: order.id }, orderDish, 999999);
@@ -1474,10 +1610,40 @@ let Model = {
                 }
                 order.concept = [...new Set(concepts)];
             }
+            /**
+             * Tell the customer when the new kitchen cost them something.
+             *
+             * Written before promotions run, so a promotion that has something of its
+             * own to say still gets the last word: a basket that lost a product is
+             * worth one sentence, not a fight over one field.
+             */
+            if (kitchen.changed && stoppedByNewKitchen.length) {
+                order.message = sails.__("Some products are not available at the kitchen serving this address and were removed: %s", stoppedByNewKitchen.join(", "));
+                await Order.log({ id: order.id }, "info", "core", kitchen_assignment_1.KITCHEN_LOG.dropped, {
+                    placeId: kitchen.placeId,
+                    previousPlaceId: kitchen.previousPlaceId,
+                    products: stoppedByNewKitchen,
+                });
+                Order.emitAndLogDetached({ id: order.id }, "core:order-cooking-place-changed", order, stoppedByNewKitchen);
+            }
             order.dishesCount = dishesCount;
             order.uniqueDishes = uniqueDishes;
             order.totalWeight = totalWeight.toNumber();
-            order.orderTotal = basketTotal.toNumber();
+            // The placement, written down for the lines that survived the loop: each
+            // line's stop, and the order's kitchens without a stop whose every line was
+            // dropped. The first kitchen is the assigned one and always stays.
+            const usedPlaces = new Set();
+            for (const orderDish of orderDishesForPopulate) {
+                if ((Number(orderDish.amount) || 0) <= 0)
+                    continue;
+                const placeId = placement.byOrderDish.get(orderDish.id)?.placeId ?? null;
+                usedPlaces.add(placeId);
+                if ((0, cooking_place_1.toPlaceId)(orderDish.cookingPoint) !== placeId) {
+                    orderDish.cookingPoint = placeId;
+                    await OrderDish.update({ id: orderDish.id }, { cookingPoint: placeId }).fetch();
+                }
+            }
+            order.cookingPoints = placement.placeIds.filter((placeId, index) => index === 0 || usedPlaces.has(placeId));
             order.basketTotal = basketTotal.toNumber();
             /**
             * Calcualte promotion & Discount costs
@@ -1576,7 +1742,7 @@ let Model = {
                 message: ""
             };
             let softDeliveryCalculation = null;
-            if (order.selfService === false) {
+            if (order.serviceType === "delivery") {
                 // The SOFT_DELIVERY_CALCULATION setting disables strict checking of the delivery address.
                 softDeliveryCalculation = await Settings.get("SOFT_DELIVERY_CALCULATION");
                 Order.emitAndLogDetached({ id: order.id }, "core:count-before-delivery-cost", order);
@@ -1584,37 +1750,39 @@ let Model = {
                 if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
                     delivery = order.promotionDelivery;
                 }
-                else {
-                    let deliveryAdapter = await Adapter.getDeliveryAdapter();
-                    await deliveryAdapter.reset(order);
-                    if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
-                        Order.emitAndLogDetached({ id: order.id }, "core:order-check-delivery", order);
-                        try {
-                            delivery = await deliveryAdapter.calculate(order);
-                        }
-                        catch (error) {
-                            sails.log.error("deliveryAdapter.calculate error:", error);
-                            await Order.log({ id: order.id }, "error", "core", "countCart: delivery calculation failed", { error: error?.message || error });
-                            delivery = {
-                                allowed: false,
-                                cost: 0,
-                                item: undefined,
-                                message: String(error).replace(/[^\w\s]/gi, ''),
-                                deliveryTimeMinutes: undefined,
-                                hasError: true
-                            };
-                        }
+                else if (order.address) {
+                    const deliveryAdapter = await Adapter.get("delivery");
+                    Order.emitAndLogDetached({ id: order.id }, "core:order-check-delivery", order);
+                    try {
+                        delivery = await deliveryAdapter.calculate(order);
+                        // What the kitchens a basket was spread over add to the price.
+                        delivery = await menuAdapter.adjustDelivery(order, delivery);
+                    }
+                    catch (error) {
+                        sails.log.error("deliveryAdapter.calculate error:", error);
+                        await Order.log({ id: order.id }, "error", "core", "countCart: delivery calculation failed", { error: error?.message || error });
+                        delivery = {
+                            allowed: false,
+                            cost: 0,
+                            item: undefined,
+                            message: String(error).replace(/[^\w\s]/gi, ''),
+                            deliveryTimeMinutes: undefined,
+                            hasError: true
+                        };
                     }
                 }
-                // Case when the shipping cost cannot be calculated
-                if (softDeliveryCalculation &&
-                    (!order.delivery ||
-                        Object.keys(order.delivery).length === 0 ||
-                        delivery.deliveryLocationUnrecognized === true)) {
-                    let SOFT_DELIVERY_CALCULATION_MESSAGE = await Settings.get("SOFT_DELIVERY_CALCULATION_MESSAGE");
-                    delivery.allowed = true;
-                    delivery.cost = null;
-                    delivery.message = SOFT_DELIVERY_CALCULATION_MESSAGE ?? "Shipping cost cannot be calculated";
+                else if (softDeliveryCalculation) {
+                    // No address yet: a basket built before `FIELDS_FOR_ORDER_INITIALIZATION`
+                    // asked for one, or switched to delivery after it was built. Soft
+                    // calculation answers it the way it answers an address the adapter
+                    // cannot price — a manager will call. The adapter answers those itself.
+                    delivery = {
+                        allowed: true,
+                        cost: null,
+                        item: undefined,
+                        message: await (0, soft_delivery_1.softDeliveryMessage)(),
+                        deliveryTimeMinutes: null,
+                    };
                 }
             }
             else {
@@ -1624,39 +1792,74 @@ let Model = {
                 }
             }
             order.delivery = delivery;
-            if (order.delivery && isValidDelivery(order.delivery, softDeliveryCalculation)) {
-                if (!order.delivery.item) {
-                    order.deliveryCost = order.delivery.cost;
-                }
-                else {
+            // What the total adds for delivery. An invalid delivery adds nothing.
+            //
+            // `strict` is the opposite of soft: under soft calculation an allowed
+            // delivery with no cost is a valid answer, and its message — "a manager
+            // will call" — is exactly what the basket has to show. Passing the flag
+            // straight through was what left the basket blank.
+            let deliveryCost = 0;
+            if (order.delivery && isValidDelivery(order.delivery, !softDeliveryCalculation)) {
+                if (order.delivery.item) {
+                    // A delivery charged as a product costs what the product costs; a
+                    // product that is not in the catalog charges nothing.
                     const deliveryItem = await Dish.findOne({ where: { or: [{ id: order.delivery.item }, { rmsId: order.delivery.item }] } });
-                    if (deliveryItem) {
-                        order.deliveryItem = deliveryItem.id;
-                        order.deliveryCost = deliveryItem.price;
-                        order.delivery.cost = deliveryItem.price;
-                    }
-                    else {
-                        order.deliveryCost = 0;
-                        order.deliveryItem = null;
-                        order.deliveryDescription = '';
+                    order.delivery.cost = deliveryItem ? deliveryItem.price : 0;
+                }
+                // `null` is the soft answer — the cost is unknown, not zero — but the
+                // total is arithmetic and needs a number; the message carries the rest.
+                deliveryCost = order.delivery.cost ?? 0;
+            }
+            // The promised time, once delivery and the kitchen are both settled.
+            //
+            // After pricing rather than before: the floor on the delivery leg is the
+            // adapter's answer, and it arrives with the rest of the calculation. Core
+            // does not read the zone itself — `DeliveryZone` belongs to the adapter.
+            // Failing to estimate is never fatal: an order with no address, no
+            // coordinates or no cooking times simply quotes what it always quoted.
+            if (order.delivery) {
+                try {
+                    const kitchenPlace = kitchen.placeId ? await Place.findOne({ id: kitchen.placeId }) : null;
+                    const estimate = await (0, order_timing_1.estimateDeliveryTime)({
+                        // Only lines that survived the loop above. A line the new kitchen
+                        // stopped is trimmed to zero and removed, but it is still in this
+                        // array — quoting its cooking time would promise the customer time
+                        // for a product that is no longer in their basket.
+                        products: orderDishesForPopulate
+                            .filter((orderDish) => (Number(orderDish.amount) || 0) > 0)
+                            .map((orderDish) => orderDish.dish)
+                            .filter((dish) => dish && typeof dish !== "string"),
+                        kitchen: kitchenPlace?.coordinate ?? null,
+                        customer: kitchen.coordinate,
+                        minDeliveryMinutes: order.delivery.deliveryTimeMinutes ?? null,
+                    }, await Adapter.get("delivery"));
+                    order.delivery.preparationMinutes = estimate.preparationMinutes;
+                    order.delivery.totalTimeMinutes = estimate.totalMinutes;
+                    order.delivery.distanceKm = estimate.distanceKm ?? undefined;
+                    order.delivery.travelTimeSource = estimate.travelSource;
+                    if (!(0, order_timing_1.fitsMaxWait)(estimate, order.maxWaitMinutes)) {
+                        // Recorded, not refused. The basket is still being built and the
+                        // estimate shrinks as lines are removed; `checkDate` is where a
+                        // promise that cannot be kept stops an order being placed.
+                        await Order.log({ id: order.id }, "info", "core", "countCart: estimate exceeds the stated maximum wait", {
+                            maxWaitMinutes: order.maxWaitMinutes,
+                            totalMinutes: estimate.totalMinutes,
+                        });
                     }
                 }
-                order.deliveryDescription = typeof order.delivery.message === "string" ? order.delivery.message : JSON.stringify(order.delivery.message);
-            }
-            else {
-                order.deliveryCost = 0;
-                order.deliveryItem = null;
-                order.deliveryDescription = '';
+                catch (error) {
+                    sails.log.error("countCart: delivery time estimate failed", error);
+                }
             }
             Order.emitAndLogDetached({ id: order.id }, "core:count-after-delivery-cost", order);
             // END calculate delivery cost
-            order.total = new decimal_js_1.default(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
+            order.total = new decimal_js_1.default(basketTotal).plus(deliveryCost).minus(order.discountTotal).toNumber();
             delete (order.dishes);
             order = (await Order.update({ id: order.id }, order).fetch())[0];
             await Order.log({ id: order.id }, "debug", "core", "countCart: completed", {
                 basketTotal: order.basketTotal,
                 discountTotal: order.discountTotal,
-                deliveryCost: order.deliveryCost,
+                deliveryCost,
                 total: order.total,
                 dishesCount: order.dishesCount
             });
@@ -1698,7 +1901,7 @@ let Model = {
             if (order.total !== paymentDocument.amount) {
                 order.problem = true;
                 order.comment = order.comment + "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount;
-                await Order.log({ id: order.id }, "warn", "core", "doPaid: amount mismatch", { orderTotal: order.total, paidAmount: paymentDocument.amount });
+                await Order.log({ id: order.id }, "warn", "core", "doPaid: amount mismatch", { total: order.total, paidAmount: paymentDocument.amount });
             }
             await Order.order({ id: order.id });
             Order.emitAndLogDetached({ id: order.id }, "core:order-after-dopaid", order);
@@ -1757,6 +1960,12 @@ let Model = {
             await Order.update({ id: order.id }, { user: user.id }).fetch();
         }
         await Order.next(criteriaOne, state);
+        // A delivered address becomes one of the customer's saved ones: theirs is the
+        // user the order already had, or the one the block above found or made.
+        const owner = user?.id ?? (typeof order.user === "string" ? order.user : order.user?.id);
+        if (state === "DONE" && order.serviceType === "delivery" && order.address && owner) {
+            await UserLocation.remember(owner, order.address);
+        }
         Order.emitAndLogDetached({ id: order.id }, "core:order-after-done", order, user, { isNewUser });
     },
     async doCart(criteriaOne) {
@@ -1765,24 +1974,10 @@ let Model = {
             sails.log.debug(`Order > doCart: Check order ${order.id} state is ${order.state}`);
             throw `Do order state the 'CART' failed: state error`;
         }
-        let FIELDS_FOR_ORDER_INITIALIZATION = await Settings.get("FIELDS_FOR_ORDER_INITIALIZATION") ?? [];
-        for (let field of FIELDS_FOR_ORDER_INITIALIZATION) {
-            if (!order.hasOwnProperty(field)) {
-                throw new Error(`Missing required field: ${field}`);
-            }
-            if (field === "address" && order.selfService) {
-                continue;
-            }
-            if (field === "pickupPoint" && !order.selfService) {
-                continue;
-            }
-            if (!(0, isValue_1.isValue)(order[field])) {
-                throw new Error(`Cart required field error: ${field} is value [${order[field]}], check FIELDS_FOR_ORDER_INITIALIZATION setting`);
-            }
-            // <-- !order.selfService is continued
-            if (field === "address" && !checkAddress(order.address)) {
-                throw `do cart: Address check failed`;
-            }
+        // Whether an address is required at all is `addDish`'s question, asked
+        // before this. What is left here is the shape of one that is there.
+        if (order.serviceType === "delivery" && order.address) {
+            await checkAddress(order.address, (await (await Adapter.get("geo")).describe(order.address)).selfAddressed);
         }
         await Order.next({ id: order.id }, "CART");
         return await Order.findOne({ id: order.id });
@@ -1993,7 +2188,7 @@ async function emitOrderNotificationEvent(orderId, eventKey) {
                 state: order.state,
                 total: order.total,
                 basketTotal: order.basketTotal,
-                deliveryCost: order.deliveryCost,
+                deliveryCost: order.delivery?.cost ?? 0,
                 dishesCount: order.dishesCount,
                 comment: order.comment,
                 paymentMethod: order.paymentMethodTitle,
@@ -2001,7 +2196,7 @@ async function emitOrderNotificationEvent(orderId, eventKey) {
                 customer,
                 address: order.address
                     ? {
-                        street: order.address.street,
+                        formatted: order.address.formatted,
                         home: order.address.home,
                         city: order.address.city,
                     }
@@ -2096,7 +2291,7 @@ async function checkCustomerInfo(customer) {
     if (strictPhoneValidation) {
         if (Array.isArray(allowedPhoneCountries)) {
             for (let countryCode of allowedPhoneCountries) {
-                const country = sails.hooks.restocore["dictionaries"].countries[countryCode];
+                const country = sails.dictionaries.countries[countryCode];
                 isValidPhone = (0, phoneValidByMask_1.phoneValidByMask)(customer.phone.code + customer.phone.number, country.phoneCode, country.phoneMask);
                 if (isValidPhone)
                     break;
@@ -2122,21 +2317,50 @@ async function checkCustomerInfo(customer) {
         };
     }
 }
-function checkAddress(address, softDeliveryCalculation = false) {
+/**
+ * The fields `FIELDS_FOR_ORDER_INITIALIZATION` requires before a product goes in.
+ *
+ * An address is a delivery's requirement, a point is the requirement of the two
+ * types where the customer comes to it; each is skipped for the other.
+ */
+async function checkInitializationFields(order) {
+    const fields = await Settings.get("FIELDS_FOR_ORDER_INITIALIZATION") ?? [];
+    for (const field of fields) {
+        if (!order.hasOwnProperty(field)) {
+            throw new Error(`Missing required field: ${field}`);
+        }
+        if (field === "address" && order.serviceType !== "delivery")
+            continue;
+        if (field === "pickupPoint" && order.serviceType === "delivery")
+            continue;
+        if (!(0, isValue_1.isValue)(order[field])) {
+            throw new Error(`Cart required field error: ${field} is value [${order[field]}], check FIELDS_FOR_ORDER_INITIALIZATION setting`);
+        }
+    }
+}
+async function checkAddress(address, selfAddressed, softDeliveryCalculation = false) {
     let error = [];
-    if (!address.street && !address.streetId && !address.buildingName) {
+    if (!address.node && !address.formatted) {
         error.push({
             code: 5,
-            error: "one of (street, streetId  or buildingName) is required",
+            error: "one of (node, formatted) is required",
         });
     }
-    if (!address.home) {
+    // A node that is itself the place to knock at — `selfAddressed`, the geo
+    // adapter's answer — answers the question the house number asks. Anything above one — a street, a quarter — does not. Neither
+    // does free text, unless it carries a coordinate: that is how a saved location
+    // of a house comes back, its number in the line and its door in the point.
+    if (!address.home && !selfAddressed && !(0, coordinate_1.coordinateFromAddress)(address)) {
         error.push({
             code: 6,
             error: "address.home is required",
         });
     }
-    if (!address.city) {
+    // A city, or a coordinate that makes one unnecessary. The city exists only to
+    // qualify the address text for the geocoder, and an address that already
+    // carries a coordinate never reaches one. Never substituted from a setting:
+    // that substitution is what sends "Republic street" to the wrong town.
+    if (!address.city && !(0, coordinate_1.coordinateFromAddress)(address)) {
         error.push({
             code: 7,
             error: "address.city is required",
@@ -2149,6 +2373,80 @@ function checkAddress(address, softDeliveryCalculation = false) {
         else {
             throw error[0];
         }
+    }
+}
+/**
+ * An order cooked at several kitchens needs an RMS that can take one.
+ *
+ * Checked before the order is placed rather than when it is sent, because the
+ * only honest answers at send time are both bad: reject an order the customer
+ * believes is confirmed, or push it through as one kitchen's work and let them
+ * wait for food nobody is making. The plan names the second one as the thing
+ * this iteration must not do.
+ *
+ * Everything about it is inert until a route exists. One kitchen — the state of
+ * every order until a router module is installed — never reaches the capability
+ * question at all, so an installation with no RMS, or an RMS written before this
+ * existed, is unaffected.
+ */
+async function checkMultiKitchenSupport(order) {
+    const route = Array.isArray(order.cookingPoints) ? order.cookingPoints.filter(Boolean) : [];
+    if (route.length <= 1)
+        return;
+    let adapter = null;
+    try {
+        adapter = await Adapter.getRMSAdapter();
+    }
+    catch {
+        // No RMS configured at all. Nothing will be sent anywhere, so there is
+        // nothing to be incompatible with, and refusing here would block an
+        // installation that simply does not use an RMS.
+        return;
+    }
+    if (adapter?.supportsMultiKitchen === true)
+        return;
+    await Order.log({ id: order.id }, "warn", "core", "check: RMS cannot take a multi-kitchen order", {
+        cookingPoints: route,
+    });
+    throw {
+        code: 22,
+        error: "RMS_MULTIPLACE_UNSUPPORTED",
+    };
+}
+/**
+ * The point a `pickup` or `dine-in` order is going to has to be able to take it.
+ *
+ * Two different refusals, because the customer can do something about only one:
+ * a closed point may be open later or another one may be open now, while a point
+ * that does not serve this type will never serve it. Neither is asked of a
+ * delivery — that order's point is chosen by the kitchen resolver, not by the
+ * customer, and it is the delivery calculation that refuses when nobody can cook.
+ *
+ * `isCookingPoint` is deliberately not checked: a counter that hands over food
+ * cooked elsewhere is a valid pickup point, and which kitchen cooks is the
+ * resolver's question.
+ */
+async function checkPickupPoint(order, at) {
+    if (order.serviceType === "delivery")
+        return;
+    const pickupPointId = (0, cooking_place_1.toPlaceId)(order.pickupPoint);
+    if (!pickupPointId) {
+        throw { code: 24, error: `PLACE_NOT_SERVING: no point chosen for ${order.serviceType}` };
+    }
+    const place = await Place.findOne({ id: pickupPointId });
+    if (!place) {
+        throw { code: 24, error: `PLACE_NOT_SERVING: point ${pickupPointId} does not exist` };
+    }
+    const serves = order.serviceType === "pickup" ? place.isPickupPoint === true : place.hasDiningArea === true;
+    if (!serves) {
+        throw { code: 24, error: `PLACE_NOT_SERVING: ${place.title || place.id} does not serve ${order.serviceType}` };
+    }
+    if (!(0, cooking_place_1.placeIsOpen)(place, at)) {
+        await Order.log({ id: order.id }, "warn", "core", "check: point is closed", {
+            pickupPoint: pickupPointId,
+            serviceType: order.serviceType,
+        });
+        throw { code: 23, error: "PLACE_CLOSED" };
     }
 }
 async function checkPaymentMethod(paymentMethodId) {
@@ -2178,7 +2476,26 @@ async function getTimezone() {
     return process.env.TZ || undefined;
 }
 async function checkDate(order) {
-    const MIN_DELIVERY_TIME_MINUTES = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
+    // Exactly one timing mode. Checked before anything else here, because every
+    // check below reads `order.date` and an order that also carries a maximum wait
+    // has not said which of the two it means.
+    const timing = (0, order_timing_1.resolveOrderTiming)(order);
+    if (timing.code) {
+        throw { code: 20, error: timing.message ?? timing.code };
+    }
+    // The promise the customer was shown has to survive to checkout. It is
+    // recomputed rather than trusted from `order.delivery`, which a client can
+    // have gone stale on, and refused here rather than during the recount: a
+    // basket mid-edit is allowed to be temporarily too slow, an order is not.
+    if (timing.mode === "asap" && typeof order.maxWaitMinutes === "number" && order.delivery) {
+        const promised = order.delivery.totalTimeMinutes;
+        if (typeof promised === "number" && promised > order.maxWaitMinutes) {
+            throw {
+                code: 21,
+                error: `Order cannot be ready within ${order.maxWaitMinutes} minutes; the estimate is up to ${promised}`,
+            };
+        }
+    }
     // The timezone is mandatory to place an order: every date check below (worktime,
     // "date is past", min delivery time, maintenance) is meaningless without it.
     // If it is not configured, refuse the order and shout loudly in the log.
@@ -2211,6 +2528,7 @@ async function checkDate(order) {
             throw e;
         sails.log.error('Order > checkDate > WORK_TIME validation error:', e);
     }
+    await checkPickupPoint(order, order.date ? new Date(order.date) : undefined);
     if (order.date) {
         const date = new Date(order.date);
         function isDateInPast(date, timeZone) {
@@ -2234,8 +2552,11 @@ async function checkDate(order) {
                 error: "date is past",
             };
         }
-        // Adding minimum delivery time to order.date
-        const minDeliveryDate = Date.now() + MIN_DELIVERY_TIME_MINUTES * 60 * 1000;
+        // A delivery cannot arrive sooner than its zone's floor, which the adapter
+        // reports on the order (`delivery.deliveryTimeMinutes`). Pickup and dine-in
+        // have no road and so no floor.
+        const floorMinutes = order.serviceType === "delivery" ? order.delivery?.deliveryTimeMinutes ?? 0 : 0;
+        const minDeliveryDate = Date.now() + floorMinutes * 60 * 1000;
         if (minDeliveryDate > date.getTime()) {
             throw {
                 code: 17,
@@ -2282,8 +2603,10 @@ async function getOrderDateLimit() {
     return date;
 }
 function isValidDelivery(delivery, strict = true) {
-    // Check if the required properties exist and have the correct types
-    if (typeof delivery.deliveryTimeMinutes === 'number' &&
+    // Check if the required properties exist and have the correct types. The
+    // minutes may be `null`: a zone without a stated time and the soft fallback
+    // both answer that way, and neither is an invalid delivery.
+    if ((typeof delivery.deliveryTimeMinutes === 'number' || delivery.deliveryTimeMinutes === null) &&
         typeof delivery.allowed === 'boolean' &&
         typeof delivery.message === 'string') {
         // Soft delivery calculation

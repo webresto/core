@@ -1,9 +1,2 @@
-export type PaymentMethodType = 
-/** Payment promise */
-"promise" | 
-/** External payment */
-"external" | 
-/** Internal payment */
-"internal" | 
-/** Dummy adapter */
-"dummy"
+// `libs/` became `lib/`: this path stays for modules outside core.
+export * from "../../lib/enums/PaymentMethodTypes";

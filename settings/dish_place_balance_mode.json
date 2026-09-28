@@ -1,0 +1,11 @@
+{
+  "key": "DISH_PLACE_BALANCE_MODE",
+  "type": "string",
+  "name": "Product balance mode by place",
+  "description": "Chooses the source of the effective stock at a cooking point: the operator value, the RMS value, or the smallest known limit.",
+  "defaultValue": "minimum",
+  "jsonSchema": {
+    "enum": ["local-only", "rms-only", "minimum"]
+  },
+  "isRequired": true
+}

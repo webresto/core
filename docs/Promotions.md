@@ -129,7 +129,7 @@ Since the promotion is a copy of the class, we can realize any logic of such a p
 
 > ⚠️ We do not recommend using promotions to describe complex promotions, use the Promotions adapter for this
 
-The Promotion should be implemented as an adapter from the abstract class `@webresto/core/adapters/promotion/AbstractPromotion.ts` and added to
+The Promotion should be implemented as an adapter from the abstract class `AbstractPromotionHandler` (`import { AbstractPromotionHandler } from "@webresto/core/adapters"`) and added to
 the model via> `PromotionAdapter.addPromotionHandler()`. The adapter is responsible for recording transactions in an external source or syncing
 from an external source by implementing the abstract class `AbstractPromotionAdapter`.
 

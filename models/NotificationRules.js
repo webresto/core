@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
+const notification_rules_1 = require("../lib/notification-rules");
 let attributes = {
     /** UUID generated in beforeCreate. */
     id: {
@@ -91,41 +92,6 @@ let attributes = {
     },
     // createdAt / updatedAt — auto-managed by Waterline (typed via the ORM base interface).
 };
-const KEY_REGEX = /^[a-z0-9]+(?:_[a-z0-9]+)*$/;
-/**
- * Validate a rule payload. Returns an array of human-readable errors (empty = valid).
- * Mirrors the lifecycle checks below so callers (controllers/MCP) can validate before write.
- */
-function validateRule(rule) {
-    const errors = [];
-    const key = String(rule?.key || "").trim();
-    if (!key) {
-        errors.push("key is required");
-    }
-    else if (!KEY_REGEX.test(key)) {
-        errors.push("key must be snake_case (lowercase, digits, underscores)");
-    }
-    if (!String(rule?.eventKey || "").trim()) {
-        errors.push("eventKey is required");
-    }
-    if (rule?.sendDelaySec !== undefined && rule.sendDelaySec !== null) {
-        const d = Number(rule.sendDelaySec);
-        if (!Number.isFinite(d) || d < 0)
-            errors.push("sendDelaySec must be a non-negative number");
-    }
-    if (rule?.maxDeliveryCost !== undefined && rule.maxDeliveryCost !== null) {
-        const c = Number(rule.maxDeliveryCost);
-        if (!Number.isFinite(c) || c < 0)
-            errors.push("maxDeliveryCost must be null or a non-negative number");
-    }
-    if (rule?.channelsMode === "fixed" && (!Array.isArray(rule.fixedChannels) || rule.fixedChannels.length === 0)) {
-        errors.push("fixedChannels must list at least one channel when channelsMode is 'fixed'");
-    }
-    if (rule?.escalateBy !== undefined && rule.escalateBy !== null && !["read", "delivered"].includes(String(rule.escalateBy))) {
-        errors.push("escalateBy must be 'read' or 'delivered'");
-    }
-    return errors;
-}
 let Model = {
     beforeCreate(init, cb) {
         if (!init.id) {
@@ -139,7 +105,7 @@ let Model = {
     beforeUpdate(values, cb) {
         // Validate only submitted fields: partial updates must not require key/eventKey,
         // but if they are provided, validate them; also validate ranges and fixed channels.
-        const errors = validateRule({ ...values, key: values.key ?? "x", eventKey: values.eventKey ?? "x" })
+        const errors = (0, notification_rules_1.validateRule)({ ...values, key: values.key ?? "x", eventKey: values.eventKey ?? "x" })
             .filter((e) => {
             if (e.startsWith("key ") && values.key === undefined)
                 return false;
@@ -153,7 +119,7 @@ let Model = {
     },
     /** Validate a rule payload (see {@link validateRule}). */
     validateRule(rule) {
-        return validateRule(rule);
+        return (0, notification_rules_1.validateRule)(rule);
     },
     /**
      * Seed the example rules (mostly disabled — registration ≠ sending; e.g. `order_on_the_way_push`

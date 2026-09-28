@@ -90,7 +90,7 @@ export function registerMediaTools() {
             return {
                 mediaFileId: mediaFile.id,
                 url: mediaFile.original,
-                variant: mediaFile.variant ?? mediaFile.images ?? {},
+                variant: mediaFile.variant ?? {},
             };
         },
     });

@@ -9,9 +9,9 @@ const faker_1 = __importDefault(require("faker"));
 // todo: fix types model instance to {%ModelName%}Record for Dish';
 // todo: fix types model instance to {%ModelName%}Record for OrderDish';
 // todo: fix types model instance to {%ModelName%}Record for Order';
-const findModelInstance_1 = __importDefault(require("../../libs/findModelInstance"));
+const findModelInstance_1 = __importDefault(require("../../lib/findModelInstance"));
 const configuredPromotion_1 = __importDefault(require("../../adapters/promotion/default/configuredPromotion"));
-const stringsInArray_1 = require("../../libs/stringsInArray");
+const stringsInArray_1 = require("../../lib/stringsInArray");
 const decimal_js_1 = __importDefault(require("decimal.js"));
 var autoincrement = 0;
 function discountGenerator(config = {
@@ -95,7 +95,6 @@ function discountGenerator(config = {
             //   // 
             dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
             dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-            dish.oldPrice = dish.salePrice;
             dish.salePrice = this.configDiscount.discountType === "flat"
                 ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
                 : new decimal_js_1.default(dish.price)

@@ -11,8 +11,7 @@
 { 
   configDiscount: {
     discountType: "flat",
-    discountAmount: 0,
-    promotionFlatDiscount: 100
+    discountAmount: 100,
     dishes: [],
     groups: [],
     excludeModifiers: true

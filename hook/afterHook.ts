@@ -1,11 +1,12 @@
-import { generateUUID } from "../libs/hashCode";
-import { NotificationDispatcher } from "../libs/NotificationDispatcher";
-import { NotificationEventRegistry } from "../libs/NotificationEventRegistry";
-import { NotificationTypeRegistry } from "../libs/NotificationTypeRegistry";
-import { SetupChecklistRegistry } from "../libs/SetupChecklistRegistry";
-import { SalesChannelRegistry } from "../libs/SalesChannelRegistry";
-import { NotificationService } from "../libs/NotificationService";
+import { generateUUID } from "../lib/hashCode";
+import { NotificationDispatcher } from "../lib/notifications/NotificationDispatcher";
+import { NotificationEventRegistry } from "../lib/notifications/NotificationEventRegistry";
+import { NotificationTypeRegistry } from "../lib/notifications/NotificationTypeRegistry";
+import { SetupChecklistRegistry } from "../lib/SetupChecklistRegistry";
+import { SalesChannelRegistry } from "../lib/SalesChannelRegistry";
+import { NotificationService } from "../lib/notifications/NotificationService";
 import { registerCoreMcpTools } from "./mcp";
+import { startDefaultDelivery } from "../adapters";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -105,6 +106,9 @@ export default async function () {
     } catch (error) {
       sails.log.warn(" RestoCore > RMS adapter is not set ");
     }
+
+    // The built-in delivery adapter's zone sync and its setup checkup.
+    await startDefaultDelivery();
 
     // Typed notifications: register core events (registration ≠ enabling send),
     // then seed/load the notification rules catalog (NotificationRules model) into cache.

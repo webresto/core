@@ -85,7 +85,7 @@ describe("111 Promotion code integration test", function () {
     // After go to payment promocode should work, till ORDER state
     await TestPaymentSystem.getInstance();
     const paymentMethod = (await PaymentMethod.find({}))[0];
-    await Order.check({ id: order.id }, customer, false, address, paymentMethod.id);
+    await Order.check({ id: order.id }, customer, "delivery", address, paymentMethod.id);
     await Order.payment({ id: order.id });
     result = await Order.findOne({ id: order.id })
 

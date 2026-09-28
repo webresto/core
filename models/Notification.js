@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const NotificationLogHelper_1 = __importDefault(require("../libs/NotificationLogHelper"));
+const NotificationLogHelper_1 = __importDefault(require("../lib/notifications/NotificationLogHelper"));
 let attributes = {
     /** UUID generated in beforeCreate. Also used as the read token. */
     id: {

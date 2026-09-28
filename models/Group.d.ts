@@ -4,6 +4,7 @@ import { MediaFileRecord } from "./MediaFile";
 import { WorkTime } from "@webresto/worktime";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { DishRecord } from "./Dish";
+import { MenuRequest } from "../interfaces/Menu";
 export type GetGroupType = {
     [x: string]: GroupWithAdditionalFields;
 };
@@ -76,7 +77,6 @@ declare let Model: {
     afterCreate: (record: GroupRecord, cb: (err?: string) => void) => void;
     /**
      * Returns an object with groups and errors of obtaining these very groups.
-     * @deprecated not used
      * @param groupsId - array of ID groups that should be obtained
      * @return Object {
      *   groups: [],
@@ -87,13 +87,12 @@ declare let Model: {
      * According to some dinich, the values of this object are the reasons why the group was not obtained.
      * @fires group:core:group-get-groups - The result of execution in format {groups: {[groupId]:GroupRecord}, errors: {[groupId]: error}}
      */
-    getGroups(groupsId: string[]): Promise<{
+    getGroups(groupsId: string[], order?: MenuRequest["order"]): Promise<{
         groups: GroupWithAdditionalFields[];
         errors: Record<string, string>;
     }>;
     /**
      * Returns a group with a given ID
-     * @deprecated not used
      * @param groupId - ID groups
      * @return The requested group
      * @throws The error of obtaining a group
@@ -102,7 +101,6 @@ declare let Model: {
     getGroup(groupId: string): Promise<GroupRecord>;
     /**
      * Returns a group with a given Slug
-     * @deprecated not used
      * @param groupSlug - Slug groups
      * @return The requested group
      * @throws The error of obtaining a group

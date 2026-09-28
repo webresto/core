@@ -1,0 +1,8 @@
+{
+  "key": "DEFAULT_COOKING_PLACE",
+  "type": "string",
+  "name": "Default cooking point",
+  "description": "Cooking point used for stock and availability until orders carry their own. Empty picks the only enabled kitchen automatically.",
+  "defaultValue": "",
+  "isRequired": false
+}

@@ -4,6 +4,7 @@ import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
 
 import { WorkTime } from "@webresto/worktime";
+import { between } from "../lib/maintenance";
 
 const CHECK_INTERVAL = 60000;
 
@@ -39,12 +40,7 @@ let attributes = {
 
 type attributes = typeof attributes;
 
-/**
- * @deprecated use `MaintenanceRecord` instead
- */
-interface Maintenance extends attributes, ORM {}
 export interface MaintenanceRecord extends attributes, ORM {}
-export default Maintenance;
 
 let Model = {
   afterCreate: function (maintenance: MaintenanceRecord, cb:  (err?: string) => void) {
@@ -114,11 +110,7 @@ module.exports = {
 };
 
 declare global {
-  const Maintenance: typeof Model & ORMModel<Maintenance, null>;
-}
-
-function between(from: number, to: number, a: number): boolean {
-  return (!from && !to) || (!from && to >= a) || (!to && from < a) || (from < a && to >= a);
+  const Maintenance: typeof Model & ORMModel<MaintenanceRecord, null>;
 }
 
 async function checkMaintenance(){

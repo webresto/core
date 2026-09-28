@@ -1,5 +1,5 @@
-import { NotificationDispatcher } from "../../libs/NotificationDispatcher";
-import { Channel, NotificationManager } from "../../libs/NotificationManager";
+import { NotificationDispatcher } from "../../lib/notifications/NotificationDispatcher";
+import { Channel, NotificationManager } from "../../lib/notifications/NotificationManager";
 
 const NotificationModel = () => (globalThis as any).Notification;
 

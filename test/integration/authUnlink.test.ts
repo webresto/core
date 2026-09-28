@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import AuthService from "../../libs/AuthService";
-import { NormalizedProfile } from "../../adapters/auth/AuthProviderAdapter";
+import AuthService from "../../lib/AuthService";
+import { NormalizedProfile } from "../../adapters/auth/AuthAdapter";
 
 /**
  * Pins AuthService.unlink — the single core entry point for removing a provider link

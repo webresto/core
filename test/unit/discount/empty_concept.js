@@ -6,8 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
 const chai_1 = require("chai");
 const promotionAdapter_1 = require("./../../../adapters/promotion/default/promotionAdapter");
-const findModelInstance_1 = __importDefault(require("./../../../libs/findModelInstance"));
-const stringsInArray_1 = require("../../../libs/stringsInArray");
+const findModelInstance_1 = __importDefault(require("../../../lib/findModelInstance"));
+const stringsInArray_1 = require("../../../lib/stringsInArray");
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
 describe('Discount_Empty', function () {
@@ -52,7 +52,6 @@ describe('Discount_Empty', function () {
                 // 
                 dish.discountAmount = promotionAdapter_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
                 dish.discountType = promotionAdapter_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-                dish.oldPrice = dish.price;
                 dish.price = this.configDiscount.discountType === "flat"
                     ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
                     : new decimal_js_1.default(dish.price)

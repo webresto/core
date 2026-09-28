@@ -1,9 +1,8 @@
 import Decimal from "decimal.js";
-import AbstractPromotionHandler from "../AbstractPromotion";
-import AbstractPromotionAdapter from "../AbstractPromotionAdapter";
+import AbstractPromotionAdapter, { AbstractPromotionHandler } from "../PromotionAdapter";
 import { WorkTimeValidator } from "@webresto/worktime";
 import ConfiguredPromotion from "./configuredPromotion";
-import findModelInstanceByAttributes from "../../../libs/findModelInstance";
+import findModelInstanceByAttributes from "../../../lib/findModelInstance";
 import { OrderRecord, PromotionState } from "../../../models/Order";
 import { PromotionRecord } from "../../../models/Promotion";
 import { DishRecord } from "../../../models/Dish";

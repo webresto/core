@@ -4,11 +4,11 @@
 // todo: fix types model instance to {%ModelName%}Record for Order';
 import { Adapter } from "../../../adapters";
 import { expect } from "chai";
-import AbstractPromotionHandler from '../../../adapters/promotion/AbstractPromotion';
-import findModelInstanceByAttributes from './../../../libs/findModelInstance';
+import { AbstractPromotionHandler } from '../../../adapters/promotion/PromotionAdapter';
+import findModelInstanceByAttributes from '../../../lib/findModelInstance';
 import Decimal from 'decimal.js';
 import { PromotionAdapter } from '../../../adapters/promotion/default/promotionAdapter';
-import { someInArray } from '../../../libs/stringsInArray';
+import { someInArray } from '../../../lib/stringsInArray';
 import { DishRecord } from "../../../models/Dish";
 import { GroupRecord } from "../../../models/Group";
 import { OrderRecord } from "../../../models/Order";
@@ -76,7 +76,6 @@ describe('Create_Discount', function () {
                   // 
                   dish.discountAmount = promotionAdapter.promotions[this.id].configDiscount.discountAmount;
                   dish.discountType = promotionAdapter.promotions[this.id].configDiscount.discountType;
-                  dish.oldPrice = dish.price
         
                   dish.price = this.configDiscount.discountType === "flat" 
                   ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()

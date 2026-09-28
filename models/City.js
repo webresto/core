@@ -15,10 +15,21 @@ let attributes = {
     name: "string",
     slug: "string",
     boundingBox: "json",
+    /**
+     * Base URL of the backend serving this city, e.g. `https://api.city.example`.
+     * The storefront switches to it when the customer picks the city. Rows are
+     * mirrored across servers, so the value is always absolute; null only on a
+     * single-server installation where there is nothing to switch to.
+     */
     url: "string",
     /** City was deleted */
     isDeleted: {
         type: 'boolean'
+    },
+    /** The points that serve this city: what the storefront lists after a city is chosen. */
+    places: {
+        collection: "place",
+        via: "city",
     },
     customData: "json",
 };

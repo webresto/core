@@ -8,18 +8,7 @@ declare let attributes: {
     id: string;
     /** Type of media content */
     type: "video" | "image" | "audio";
-    /**
-     * @deprecated use variant field
-     * TODO: delete in ver 3
-     * Image items */
-    images: {
-        [key: string]: string | undefined;
-    };
-    /**
-     * variants is just an array containing the variant name and its local path
-     * clone from images
-     * This is automatically cloned from images and vice versa
-     * Image items */
+    /** Image items: the variant name and its local path */
     variant: {
         [key: string]: string | undefined;
     };
@@ -31,19 +20,14 @@ declare let attributes: {
     dish: DishRecord[] | string[];
     /** Group relation */
     group: GroupRecord[] | string[];
-    /** upload date
-     * @deprecated (del in v2)
-     */
+    /** upload date */
     uploadDate: string;
 };
 type attributes = typeof attributes;
-/** @deprecated use `MediaFileRecord` */
-export type IMediaFile = OptionalAll<attributes>;
 export interface MediaFileRecord extends OptionalAll<attributes>, ORM {
 }
 declare let Model: {
     beforeCreate(imageInit: MediaFileRecord, cb: (err?: string) => void): void;
-    beforeUpdate(imageInit: MediaFileRecord, cb: (err?: string) => void): void;
     afterDestroy(mf: MediaFileRecord, cb: (err?: string | Error) => void): Promise<void>;
 };
 declare global {

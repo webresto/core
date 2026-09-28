@@ -7,7 +7,7 @@ editor (the `modifiers-editor` control) validates against.
 
 Related code:
 - Interfaces — [`interfaces/Modifier.ts`](../interfaces/Modifier.ts)
-- Validation / defaults helper — [`libs/ProductModifier.ts`](../libs/ProductModifier.ts)
+- Validation / defaults helper — [`lib/ProductModifier.ts`](../lib/ProductModifier.ts)
 - Populate logic — `Dish.getDishModifiers()` in [`models/Dish.ts`](../models/Dish.ts)
 - JSON Schema — [`docs/schemas/modifiers.schema.json`](./schemas/modifiers.schema.json)
 
@@ -50,12 +50,10 @@ and carries the min/max/required rules for the whole group.
 | `required` | `boolean \| null` | no | Convenience flag; equivalent to `minAmount >= 1`. |
 | `defaultAmount` | `number \| null` | no | Group-level default (rarely used; per-child `defaultAmount` is preferred). |
 | `freeOfChargeAmount` | `number \| null` | no | How many picks in this group are free before charging. |
-| `freeAmount` | `number \| null` | no | **Deprecated** — use `freeOfChargeAmount`. |
 | `amount` | `number \| null` | no | Fixed amount (legacy). |
 | `isSingleModifierGroupWrapper` | `boolean` | no | `true` when the group is a synthetic wrapper around a single stand-alone modifier (no real category). |
 | `group` | `GroupRecord \| string` | no | Populated at read time by `getDishModifiers()`; **not** authored by hand. |
 | `groupId` | `string` | no | Alias sometimes present alongside `id`. |
-| `modifierId` | `string` | no | **Deprecated** alias — historically the group's `rmsId`. Use `id`. |
 
 ### 2.2 `Modifier` — a single modifier option (a child row)
 
@@ -71,10 +69,8 @@ Each entry of `childModifiers` is one selectable modifier — itself a **Dish** 
 | `defaultAmount` | `number \| null` | no | Amount pre-selected by default (used by `fillDefault` / `ensureMinDefaults`). |
 | `required` | `boolean \| null` | no | Whether this specific option must be present. |
 | `freeOfChargeAmount` | `number \| null` | no | Free quantity of this option before charging. |
-| `freeAmount` | `number \| null` | no | **Deprecated** — use `freeOfChargeAmount`. |
 | `amount` | `number \| null` | no | Fixed amount (legacy). |
 | `dish` | `DishRecord \| string` | no | Populated at read time; **not** authored by hand. |
-| `modifierId` | `any` | no | **Deprecated** alias — historically the modifier's `rmsId`. Use `id`. |
 
 ### 2.3 `OrderModifier` — runtime selection (not stored on the dish)
 
@@ -87,7 +83,6 @@ editor never produces this shape.
 | `rmsId` | `string` | yes | External id of the chosen modifier. |
 | `amount` | `number` | no | Quantity chosen (defaults to `1`). |
 | `groupId` | `string` | no | `Group.id` the selection belongs to. |
-| `modifierId` | `string` | no | **Deprecated** alias — use `id`. |
 | `dish` | `DishRecord` | no | Populated at runtime. |
 
 ---
@@ -129,7 +124,7 @@ editor never produces this shape.
 
 ## 4. Validation rules
 
-Enforced by [`ProductModifier`](../libs/ProductModifier.ts) at order time and mirrored by the
+Enforced by [`ProductModifier`](../lib/ProductModifier.ts) at order time and mirrored by the
 editor:
 
 1. **Group `id` and `rmsId` are the anchors.** A group is identified by its `id` (restocore
@@ -142,8 +137,6 @@ editor:
    children first, otherwise the first child.
 4. **`required`** is a convenience mirror of `minAmount >= 1`; the editor keeps the two in
    sync.
-5. **`freeAmount` / `modifierId`** are accepted on read for backward compatibility but the
-   editor writes the modern `freeOfChargeAmount` / `id` keys.
 
 ---
 

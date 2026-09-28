@@ -5,12 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
 const chai_1 = require("chai");
-const findModelInstance_1 = __importDefault(require("../../../libs/findModelInstance"));
+const findModelInstance_1 = __importDefault(require("../../../lib/findModelInstance"));
 const index_1 = require("../../../adapters/index");
 // todo: fix types model instance to {%ModelName%}Record for Group';
 // todo: fix types model instance to {%ModelName%}Record for Dish';
 // todo: fix types model instance to {%ModelName%}Record for Order';
-const stringsInArray_1 = require("../../../libs/stringsInArray");
+const stringsInArray_1 = require("../../../lib/stringsInArray");
 const configuredPromotion_1 = __importDefault(require("../../../adapters/promotion/default/configuredPromotion"));
 const decimal_js_1 = __importDefault(require("decimal.js"));
 describe('Discount_Empty', function () {
@@ -57,7 +57,6 @@ describe('Discount_Empty', function () {
                 //
                 dish.discountAmount = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
                 dish.discountType = index_1.Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
-                dish.oldPrice = dish.price;
                 dish.price = this.configDiscount.discountType === "flat"
                     ? new decimal_js_1.default(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
                     : new decimal_js_1.default(dish.price)
