@@ -129,7 +129,7 @@ export class DefaultGeoAdapter extends GeoAdapter {
       return { coordinate: null, diagnostics };
     }
 
-    // The customer's city, and only theirs. Qualifying "Republic street" with an
+    // The customer's city, and only theirs. Qualifying a street name with an
     // installation-wide city is what sends it to the wrong town.
     const city = trimmed(address?.city);
 
@@ -201,8 +201,8 @@ export class DefaultGeoAdapter extends GeoAdapter {
   }
 
   /**
-   * Each suggestion carries the names above it, so two streets called "Ленина"
-   * can be told apart in the list.
+   * Each suggestion carries the names above it, so two streets with the same
+   * name can be told apart in the list.
    *
    * Read per suggestion rather than stored on the row: there are at most twenty of
    * them and the graph is shallow, which is cheaper than an `ancestors` column
@@ -279,7 +279,7 @@ export class DefaultGeoAdapter extends GeoAdapter {
     const street = address.road ?? address.pedestrian ?? address.footway ?? undefined;
     const home = address.house_number ?? undefined;
     const city = address.city ?? address.town ?? address.village ?? address.municipality ?? undefined;
-    // "улица Ленина, 12" rather than the whole display name down to the
+    // "<street>, <house>" rather than the whole display name down to the
     // postcode and the country.
     const formatted = street ? formatAddressPath([street, home]) : result.display_name;
     if (!formatted) return null;
@@ -305,10 +305,10 @@ function asNode(node: AddressRecord, ancestors: string[]): AddressNode {
  * not know the street or the geocoder named no house.
  *
  * A catalog street matches when every word of its name, or of one of its
- * aliases, is in the geocoder's street: "Малышева" is "улица Малышева",
- * "Ленина" is "проспект Ленина". Under it, a house by its exact name wins, then
- * a range that covers the number; with neither, the street itself carries the
- * number, as if the customer had typed it.
+ * aliases, is in the geocoder's street, so a catalog name without the "street"
+ * or "avenue" word still matches the geocoder's full one. Under it, a house by
+ * its exact name wins, then a range that covers the number; with neither, the
+ * street itself carries the number, as if the customer had typed it.
  */
 function matchCatalog(nodes: AddressRecord[], reversed: GeoAddress): { node: AddressRecord; home?: string } | null {
   const home = reversed.home?.trim();
@@ -358,7 +358,7 @@ function trimmed(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
 }
 
-/** "улица 8 Марта" → ["улица", "8", "марта"]. */
+/** Lower-cased letter and digit runs: "Word 8 Word" → ["word", "8", "word"]. */
 function words(text: string | undefined | null): string[] {
   return (text ?? "").toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
 }

@@ -10,7 +10,7 @@ import { ADDRESS_TYPES } from "../../adapters/geo/default/defaultGeo";
  * mistake in it writes nothing at all.
  */
 describe("Address import", function () {
-  const city = "city-ekb";
+  const city = "city-a";
   const realAddress = (global as any).Address;
   let rows: any[] = [];
 
@@ -32,40 +32,40 @@ describe("Address import", function () {
     rows = [];
   });
 
-  const lenina: AddressImportNode = { key: "lenina", type: "street", name: "Ленина", names: ["ул. Ленина"] };
+  const oak: AddressImportNode = { key: "oak", type: "street", name: "Oak", names: ["Oak St."] };
   const house12: AddressImportNode = {
-    key: "lenina-12", parent: "lenina", type: "house", name: "12", point: { lat: 56.83, lon: 60.6 },
+    key: "oak-12", parent: "oak", type: "house", name: "12", point: { lat: 56.83, lon: 60.6 },
   };
 
   it("creates a parent before the child that names it, whatever the file's order", async function () {
-    const result = await importAddresses({ city, nodes: [house12, lenina] });
+    const result = await importAddresses({ city, nodes: [house12, oak] });
 
     expect(result).to.deep.equal({ created: 2, errors: [] });
-    expect(rows.map((row) => row.name)).to.deep.equal(["Ленина", "12"]);
+    expect(rows.map((row) => row.name)).to.deep.equal(["Oak", "12"]);
     expect(rows[1].parent).to.equal(rows[0].id);
     expect(rows[0].parent).to.equal(null);
   });
 
   it("carries the city, the aliases and the point onto every node", async function () {
-    await importAddresses({ city, nodes: [lenina, house12] });
+    await importAddresses({ city, nodes: [oak, house12] });
 
-    expect(rows[0]).to.include({ city, type: "street", name: "Ленина" });
-    expect(rows[0].names).to.deep.equal(["ул. Ленина"]);
+    expect(rows[0]).to.include({ city, type: "street", name: "Oak" });
+    expect(rows[0].names).to.deep.equal(["Oak St."]);
     expect(rows[1].point).to.deep.equal({ lat: 56.83, lon: 60.6 });
     expect(rows[0].point).to.equal(null);
   });
 
   it("goes three deep", async function () {
-    const entrance: AddressImportNode = { parent: "lenina-12", type: "entrance", name: "подъезд 3" };
-    await importAddresses({ city, nodes: [entrance, house12, lenina] });
+    const entrance: AddressImportNode = { parent: "oak-12", type: "entrance", name: "entrance 3" };
+    await importAddresses({ city, nodes: [entrance, house12, oak] });
 
-    expect(rows.map((row) => row.name)).to.deep.equal(["Ленина", "12", "подъезд 3"]);
+    expect(rows.map((row) => row.name)).to.deep.equal(["Oak", "12", "entrance 3"]);
     expect(rows[2].parent).to.equal(rows[1].id);
   });
 
   it("carries the bounds of a range through, and nothing but lo..hi", async function () {
-    const range = { parent: "lenina", type: "range", name: "1–99", lo: 1, hi: 99, parity: "odd" } as AddressImportNode;
-    await importAddresses({ city, nodes: [lenina, range] });
+    const range = { parent: "oak", type: "range", name: "1–99", lo: 1, hi: 99, parity: "odd" } as AddressImportNode;
+    await importAddresses({ city, nodes: [oak, range] });
 
     expect(rows[1]).to.include({ type: "range", lo: 1, hi: 99 });
     expect(rows[1]).to.not.have.property("parity");
@@ -79,21 +79,21 @@ describe("Address import", function () {
   });
 
   it("refuses two nodes with the same key", function () {
-    const errors = validateAddressNodes([lenina, { ...lenina, name: "Ленина 2" }], ADDRESS_TYPES);
+    const errors = validateAddressNodes([oak, { ...oak, name: "Oak 2" }], ADDRESS_TYPES);
 
-    expect(errors[0]).to.contain('Key "lenina"');
+    expect(errors[0]).to.contain('Key "oak"');
   });
 
   it("refuses an unknown type", function () {
-    expect(validateAddressNodes([{ type: "planet", name: "Земля" }], ADDRESS_TYPES)[0]).to.contain("unknown type");
+    expect(validateAddressNodes([{ type: "planet", name: "Earth" }], ADDRESS_TYPES)[0]).to.contain("unknown type");
   });
 
   it("refuses nodes that name each other in a circle", async function () {
     const result = await importAddresses({
       city,
       nodes: [
-        { key: "a", parent: "b", type: "street", name: "А" },
-        { key: "b", parent: "a", type: "street", name: "Б" },
+        { key: "a", parent: "b", type: "street", name: "A" },
+        { key: "b", parent: "a", type: "street", name: "B" },
       ],
     });
 

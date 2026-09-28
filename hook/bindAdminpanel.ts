@@ -66,16 +66,6 @@ export default function bindAdminpanel() {
     const routePrefix = adminizer.config.routePrefix;
     appendTranslations(adminizer);
 
-    // Before anything is bound: the demo seed creates the catalog the screens
-    // below are about, and it is a no-op unless `MULTI_KITCHEN_DEMO_SEED` asks
-    // for it.
-    try {
-      const { seedMultiKitchenDemo } = require("../lib/adminpanel/seedMultiKitchenDemo");
-      await seedMultiKitchenDemo();
-    } catch (e) {
-      sails.log.error("Multi-kitchen demo seed failed", e);
-    }
-
     adminizer.accessRightsHelper.registerTokens(adminPanelAccessTokens);
 
     // Catalog bind

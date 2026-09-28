@@ -1,5 +1,5 @@
 /**
- * House numbers in the order a person reads them: 1, 2, 2а, 10, 11.
+ * House numbers in the order a person reads them: 1, 2, 2a, 10, 11.
  *
  * Sorting them as strings puts 10 before 2, which in a list of twenty houses is
  * the difference between finding yours and scrolling for it. Names that do not

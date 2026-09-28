@@ -374,14 +374,14 @@ describe("Delivery zone import", function () {
   describe("zones out of a file", function () {
     it("creates them switched on, in the file order, owned by nobody", async function () {
       const result = await importLocalZones({
-        city: "city-ekb",
+        city: "city-a",
         zones: [{ name: "A", polygon: ring }, { name: "B", polygon: ring }],
         terms,
       });
 
       expect(result).to.deep.equal({ created: 2, skipped: [] });
       expect(rows.map((row) => [row.name, row.sortOrder])).to.deep.equal([["A", 0], ["B", 1]]);
-      expect(rows.every((row) => row.enable === true && row.city === "city-ekb")).to.equal(true);
+      expect(rows.every((row) => row.enable === true && row.city === "city-a")).to.equal(true);
       expect(rows.every((row) => row.source === undefined && row.externalId === undefined)).to.equal(true);
     });
 
@@ -403,8 +403,8 @@ describe("Delivery zone import", function () {
     });
 
     it("makes the same zones again when the same file is loaded twice", async function () {
-      await importLocalZones({ city: "city-ekb", zones: [{ name: "A", polygon: ring }], terms });
-      await importLocalZones({ city: "city-ekb", zones: [{ name: "A", polygon: ring }], terms });
+      await importLocalZones({ city: "city-a", zones: [{ name: "A", polygon: ring }], terms });
+      await importLocalZones({ city: "city-a", zones: [{ name: "A", polygon: ring }], terms });
 
       expect(rows.map((row) => row.name)).to.deep.equal(["A", "A"]);
     });

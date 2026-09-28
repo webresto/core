@@ -69,12 +69,12 @@ describe("Delivery zone ownership", function () {
     it("locks only the city that has a link", function () {
       // The defect the per-city rule fixes: one configured city used to lock the
       // polygons of every other one.
-      const perCity = ownershipOf({ ekb: "https://maps.example/ekb" });
-      const inEkb = { ...synced, city: "ekb" };
-      const inPerm = { ...synced, city: "perm" };
+      const perCity = ownershipOf({ "city-a": "https://maps.example/city-a" });
+      const inCityA = { ...synced, city: "city-a" };
+      const inCityB = { ...synced, city: "city-b" };
 
-      expect(zoneIsLocked(inEkb, perCity)).to.equal(true);
-      expect(zoneIsLocked(inPerm, perCity)).to.equal(false);
+      expect(zoneIsLocked(inCityA, perCity)).to.equal(true);
+      expect(zoneIsLocked(inCityB, perCity)).to.equal(false);
     });
   });
 

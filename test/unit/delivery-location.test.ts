@@ -36,10 +36,10 @@ describe("Delivery location resolution", function () {
   it("geocodes the street and house number together, qualified by the customer's city", async function () {
     const { geo, asked } = geocoder(async () => ({ lat: 57.15, lon: 65.53 }));
 
-    const where = await geo.locate({ formatted: "Республики", home: "1", city: "City name" });
+    const where = await geo.locate({ formatted: "Birch", home: "1", city: "City name" });
 
     expect(where.coordinate).to.deep.equal({ lat: 57.15, lon: 65.53 });
-    expect(asked).to.deep.equal([{ street: "Республики", home: "1", city: "City name" }]);
+    expect(asked).to.deep.equal([{ street: "Birch", home: "1", city: "City name" }]);
     expect(where.diagnostics).to.include("address point source: geocoder");
   });
 
@@ -48,9 +48,9 @@ describe("Delivery location resolution", function () {
     // refusal for a customer who named no city is checkout's, not the geocoder's.
     const { geo, asked } = geocoder(async () => ({ lat: 57.15, lon: 65.53 }));
 
-    await geo.locate({ formatted: "Республики", home: "1" });
+    await geo.locate({ formatted: "Birch", home: "1" });
 
-    expect(asked).to.deep.equal([{ street: "Республики", home: "1", city: undefined }]);
+    expect(asked).to.deep.equal([{ street: "Birch", home: "1", city: undefined }]);
   });
 
   it("does not ask about a street without a house number", async function () {

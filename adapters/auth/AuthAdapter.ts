@@ -60,7 +60,7 @@ export interface StartContext {
 
 export interface InitAuthAdapter {
   adapter: string;                          // slug (telegram, max, vk …) — unique
-  title: string;                            // "Telegram", "ВКонтакте"
+  title: string;                            // "Telegram", "VK"
   kind: AuthFlowKind;
   iconUrl?: string;
   buttonColor?: string;

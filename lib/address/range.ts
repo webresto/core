@@ -1,7 +1,7 @@
 import { AddressRange } from "../../interfaces/Geo";
 
 /**
- * The house number inside what was typed: "145а" → 145, "лени" → null.
+ * The house number inside what was typed: "145a" → 145, a street name → null.
  *
  * A range is matched by this number and never by its own name — nobody types
  * "1–99", they type the number of their house.

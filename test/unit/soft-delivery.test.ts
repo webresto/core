@@ -269,7 +269,7 @@ describe("Soft delivery calculation", function () {
 
       // A street with a house number and nothing else: the catalog has no point
       // for it, so the adapter geocodes — and the geocoder is down.
-      const typed = { city: "Demo", formatted: "Вайнера", home: "9" } as any;
+      const typed = { city: "Demo", formatted: "Cedar", home: "9" } as any;
       useDeadGeocoder();
 
       const ability = await adapter.checkAbility(typed);
@@ -286,7 +286,7 @@ describe("Soft delivery calculation", function () {
 
     it("refuses a dead geocoder on the address form when soft calculation is off", async function () {
       settings.SOFT_DELIVERY_CALCULATION = false;
-      const typed = { city: "Demo", formatted: "Вайнера", home: "9" } as any;
+      const typed = { city: "Demo", formatted: "Cedar", home: "9" } as any;
       useDeadGeocoder();
 
       const ability = await adapter.checkAbility(typed);

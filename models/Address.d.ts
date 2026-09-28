@@ -26,7 +26,7 @@ declare let attributes: {
      * Checked by `assertNode`, not by `isIn`, so the list is stated once.
      */
     type: string;
-    /** "Ленина", "12", "гост. Прибалтийская". */
+    /** The node's own name: a street name, a house number, the name of a building. */
     name: string;
     /** Aliases, former names, transliterations. Searched together with `name`. */
     names: string[];
@@ -56,14 +56,15 @@ declare let Model: {
      *
      * With no `parent` the search starts at the city, with one it sees that node's
      * children, whatever they are. Matching is done here rather than in the query
-     * because `names` is a json array and because "лени" has to find "Ленина".
+     * because `names` is a json array and because the first letters of a name,
+     * in any case, have to find it.
      *
      * At the root a node qualifies two ways. By type: a street under a ward is
-     * still a street, and a customer who types "Trần Phú" must not have to know
+     * still a street, and a customer who types its name must not have to know
      * which ward it is in first — depth deliberately is not a filter, that was a
      * per-city assumption about structure. Or by hanging off the city itself: a
      * camp site has no streets, its tents are direct children of the city, and
-     * "42" has to find "Шатёр 42". House numbers stay out of both: a `house`
+     * "42" has to find "Tent 42". House numbers stay out of both: a `house`
      * hangs under a street, so "10" still finds nothing in a town.
      *
      * A `range` never matches its own name — nobody types "1–99". It

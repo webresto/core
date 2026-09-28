@@ -2783,7 +2783,7 @@ async function checkAddress(address: OrderAddress, selfAddressed: boolean, softD
   // A city, or a coordinate that makes one unnecessary. The city exists only to
   // qualify the address text for the geocoder, and an address that already
   // carries a coordinate never reaches one. Never substituted from a setting:
-  // that substitution is what sends "Republic street" to the wrong town.
+  // that substitution is what sends a street name to the wrong town.
   if (!address.city && !coordinateFromAddress(address)) {
     error.push({
       code: 7,

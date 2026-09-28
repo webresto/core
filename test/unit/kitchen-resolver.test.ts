@@ -109,23 +109,23 @@ describe("kitchen-resolver", function () {
   });
 
   it("keeps each city's address at its own city's kitchen, with no radius and no zone there", async function () {
-    // The stand's geometry: a city is nothing but distance. Tyumen has no zones,
-    // so its address falls through `delivery-zone` to `nearest-geo`.
-    const tyumen = { id: "tyumen", isCookingPoint: true, enable: true, coordinate: { lat: 57.153, lon: 65.5343 } };
+    // Two cities far apart: a city is nothing but distance. The second one has
+    // no zones, so its address falls through `delivery-zone` to `nearest-geo`.
+    const far = { id: "far", isCookingPoint: true, enable: true, coordinate: { lat: 57.153, lon: 65.5343 } };
     const northSquare = [[60.5, 56.88], [60.7, 56.88], [60.7, 56.95], [60.5, 56.95], [60.5, 56.88]];
     bindGlobals(
       { KITCHEN_RESOLVE_CHAIN: ["delivery-zone", "nearest-geo"], DELIVERY_MAX_RADIUS_KM: 0 },
-      [center, north, tyumen],
+      [center, north, far],
       undefined,
       [{ id: "zone-north", polygon: northSquare }],
     );
 
-    const inTyumen = await resolver.resolveCookingPlace({ coordinate: { lat: 57.1551, lon: 65.5319 } });
-    const inEkaterinburg = await resolver.resolveCookingPlace({ coordinate: { lat: 56.83, lon: 60.6 } });
+    const inSecondCity = await resolver.resolveCookingPlace({ coordinate: { lat: 57.1551, lon: 65.5319 } });
+    const inFirstCity = await resolver.resolveCookingPlace({ coordinate: { lat: 56.83, lon: 60.6 } });
 
-    expect(inTyumen.placeId).to.equal("tyumen");
-    expect(inTyumen.strategy).to.equal("nearest-geo");
-    expect(inEkaterinburg.placeId).to.equal("center");
+    expect(inSecondCity.placeId).to.equal("far");
+    expect(inSecondCity.strategy).to.equal("nearest-geo");
+    expect(inFirstCity.placeId).to.equal("center");
   });
 
   it("passes when every kitchen is outside the radius", async function () {

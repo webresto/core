@@ -50,7 +50,7 @@ let attributes = {
     required: true,
   } as unknown as string,
 
-  /** "Ленина", "12", "гост. Прибалтийская". */
+  /** The node's own name: a street name, a house number, the name of a building. */
   name: {
     type: "string",
     required: true,
@@ -134,8 +134,8 @@ async function assertNode(values: Partial<AddressRecord>): Promise<void> {
 
   // Two identical names of one type under one parent are a data entry mistake:
   // the list would show the same word twice and the customer would take
-  // whichever came first. Two "Ленина" in one city are fine — under two
-  // different districts, which is exactly what tells them apart.
+  // whichever came first. Two streets of one name in a city are fine — under
+  // two different districts, which is exactly what tells them apart.
   const city = toId(values.city);
   if (city && values.type && values.name) {
     const twin = await Address.findOne({
@@ -175,14 +175,15 @@ let Model = {
    *
    * With no `parent` the search starts at the city, with one it sees that node's
    * children, whatever they are. Matching is done here rather than in the query
-   * because `names` is a json array and because "лени" has to find "Ленина".
+   * because `names` is a json array and because the first letters of a name,
+   * in any case, have to find it.
    *
    * At the root a node qualifies two ways. By type: a street under a ward is
-   * still a street, and a customer who types "Trần Phú" must not have to know
+   * still a street, and a customer who types its name must not have to know
    * which ward it is in first — depth deliberately is not a filter, that was a
    * per-city assumption about structure. Or by hanging off the city itself: a
    * camp site has no streets, its tents are direct children of the city, and
-   * "42" has to find "Шатёр 42". House numbers stay out of both: a `house`
+   * "42" has to find "Tent 42". House numbers stay out of both: a `house`
    * hangs under a street, so "10" still finds nothing in a town.
    *
    * A `range` never matches its own name — nobody types "1–99". It

@@ -1,4 +1,4 @@
-/** "Ленина", "12" → "Ленина, 12". Empty parts drop out. */
+/** "<street>", "<house>" → "<street>, <house>". Empty parts drop out. */
 export function formatAddressPath(names: (string | undefined | null)[]): string {
   return names
     .map((name) => (typeof name === "string" ? name.trim() : ""))

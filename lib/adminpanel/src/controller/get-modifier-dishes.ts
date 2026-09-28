@@ -19,8 +19,8 @@ import { getEffectiveBalances, readEffectiveBalance } from "../../../menu/dish-p
 
 /**
  * Waterline `contains` is case-SENSITIVE on Postgres (LIKE, not ILIKE), so an admin
- * typing "ка" would miss "Картошка…" at word start. Search several case variants —
- * portable across datastores, no native SQL.
+ * typing the first letters in lower case would miss a name that starts with a
+ * capital. Search several case variants — portable across datastores, no native SQL.
  */
 function caseVariants(q: string): string[] {
   return Array.from(new Set([
