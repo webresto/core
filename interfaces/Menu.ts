@@ -27,6 +27,10 @@ export interface MenuOrder {
   cookingPoints?: string[] | null;
   /** The customer's ceiling; a product that alone takes longer is not offered. */
   maxWaitMinutes?: number | null;
+  /** How the customer gets the food: a menu for pickup is the point's menu. */
+  serviceType?: ServiceType | null;
+  /** The city, for a basket that has one and no kitchen yet. */
+  address?: { city?: string | null } | null;
 }
 
 /** What the caller knows about who is asking for a menu. */
@@ -73,9 +77,10 @@ export interface MenuContext {
    * Which input decided it.
    *
    * `coordinate` means it was derived from where the customer is, through the
-   * same resolver an order uses.
+   * same resolver an order uses. `city` — the kitchens of the order's city, for
+   * a basket with a city and no kitchen yet.
    */
-  source: "requested" | "order" | "coordinate" | "default" | "none";
+  source: "requested" | "order" | "coordinate" | "city" | "default" | "none";
   /**
    * The customer must name a point or an address before putting anything in a
    * basket. False in the legacy mode, where the menu is global.

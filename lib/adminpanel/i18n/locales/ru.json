@@ -998,5 +998,8 @@
   "url": "Адрес сайта",
   "isDeleted": "Удалён",
   "places": "Точки",
-  "serviceType": "Способ получения"
+  "serviceType": "Способ получения",
+  "{count} kitchens": "{count} кухни",
+  "Courier route": "Маршрут курьера",
+  "collect": "забрать"
 }

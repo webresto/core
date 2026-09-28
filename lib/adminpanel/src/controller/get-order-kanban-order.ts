@@ -3,7 +3,7 @@ import {
   isCompletedOrderState,
   isOperatorUser,
 } from "../../../order/OrderStateFlow";
-import { primaryCookingPoint } from "../../../menu/cooking-place";
+import { courierRoute, primaryCookingPoint, toPlaceId } from "../../../menu/cooking-place";
 
 function parseTimestamp(value: unknown): number {
   const timestamp = new Date(value as any).getTime();
@@ -138,6 +138,32 @@ async function getKitchenName(order: any): Promise<string> {
   return String(point.title || point.address || "");
 }
 
+/**
+ * The courier's route: each kitchen in driving order and what to collect
+ * there. A line without its own kitchen (`OrderDish.cookingPoint` null) is
+ * cooked at the assigned one, the first stop. Empty for an order cooked in one
+ * place.
+ */
+async function getRoute(order: any): Promise<{ name: string; items: string[] }[]> {
+  const stops = courierRoute(order);
+  if (!stops.length) return [];
+
+  // Cast because core types this global as possibly undefined.
+  const places: any[] = await (Place as any).find({ id: stops });
+  const names = new Map(places.map((place) => [String(place.id), String(place.title || place.address || place.id)]));
+  const lines = Array.isArray(order?.dishes) ? order.dishes : [];
+
+  return stops.map((stop) => ({
+    name: names.get(stop) ?? stop,
+    items: lines
+      .filter((line: any) => (toPlaceId(line?.cookingPoint) ?? stops[0]) === stop)
+      .map((line: any) => {
+        const dish = line?.dish && typeof line.dish === "object" ? line.dish : {};
+        return `${dish.title || dish.name || "-"} × ${asNumber(line?.amount, 1)}`;
+      }),
+  }));
+}
+
 /** The product the delivery is charged as, when the calculation named one. */
 async function getDeliveryDish(order: any): Promise<any | null> {
   const item = order?.delivery?.item;
@@ -179,7 +205,14 @@ function mapPaymentDocuments(order: any): any[] {
   });
 }
 
-function mapOrder(order: any, operatorLimited: boolean, kitchenName: string, zoneName: string, deliveryDish: any) {
+function mapOrder(
+  order: any,
+  operatorLimited: boolean,
+  kitchenName: string,
+  zoneName: string,
+  deliveryDish: any,
+  route: { name: string; items: string[] }[],
+) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
   const paymentMethod = order?.paymentMethod && typeof order.paymentMethod === "object" ? order.paymentMethod : null;
   const userRecord = order?.user && typeof order.user === "object" ? order.user : null;
@@ -205,6 +238,8 @@ function mapOrder(order: any, operatorLimited: boolean, kitchenName: string, zon
     serviceType: order?.serviceType || "delivery",
     kitchenName,
     zoneName,
+    routeStops: route,
+    route: route.map((stop) => stop.name),
     rmsOrderNumber: order?.rmsOrderNumber || "",
     createdAt: order?.createdAt || null,
     updatedAt: order?.updatedAt || null,
@@ -256,7 +291,14 @@ export default async function GetOrderKanbanOrderController(req: any, res: any) 
     }
 
     return res.json({
-      order: mapOrder(order, operatorLimited, await getKitchenName(order), order?.delivery?.zoneName || "", await getDeliveryDish(order)),
+      order: mapOrder(
+        order,
+        operatorLimited,
+        await getKitchenName(order),
+        order?.delivery?.zoneName || "",
+        await getDeliveryDish(order),
+        await getRoute(order),
+      ),
     });
   } catch (error) {
     sails.log.error("Get order kanban order error", error);

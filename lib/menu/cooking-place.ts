@@ -41,6 +41,20 @@ export function primaryCookingPoint(
 }
 
 /**
+ * The kitchens a courier collects a routed order from, in driving order — the
+ * assigned kitchen first. Empty unless the order is a delivery spread over more
+ * than one kitchen: pickup and dine-in are one point, and so is an unrouted
+ * delivery.
+ */
+export function courierRoute(
+  order: { serviceType?: string | null; cookingPoints?: string[] | null } | null | undefined,
+): string[] {
+  if (order?.serviceType !== "delivery") return [];
+  const ids = (order.cookingPoints ?? []).map(toPlaceId).filter((id): id is string => Boolean(id));
+  return ids.length > 1 ? ids : [];
+}
+
+/**
  * The point a menu request names by itself: the one the caller asked for, else
  * the order's kitchen. `null` when it names none and the menu has to decide.
  *
@@ -119,6 +133,31 @@ export async function getDefaultCookingPlaceId(): Promise<string | null> {
   const kitchens = (await Place.find({})).filter(isEnabledKitchen);
   if (kitchens.length === 1) return String(kitchens[0].id);
   return null;
+}
+
+/**
+ * Enabled kitchens of the city an order's address names, when the order has no
+ * kitchen of its own — a customer who switched city and has not given an
+ * address yet. Read as a union, like any context.
+ *
+ * `OrderAddress.city` carries the city's name (the geocoder reads it as text),
+ * `Place.city` its id, so the city is looked up by either. No clock, like every
+ * stock lookup.
+ */
+export async function getOrderCityKitchenIds(
+  order: { address?: { city?: string | null } | null } | null | undefined,
+): Promise<string[]> {
+  const named = typeof order?.address?.city === "string" ? order.address.city.trim() : "";
+  if (!named) return [];
+
+  // Cast because core types these globals as possibly undefined; the ORM is up
+  // long before a menu is read.
+  const city = ((await (City as any).find({})) as any[]).find((row) => row.id === named || row.name === named);
+  if (!city) return [];
+
+  return ((await (Place as any).find({})) as any[])
+    .filter((place: any) => isEnabledKitchen(place) && toPlaceId(place.city) === String(city.id))
+    .map((place: any) => String(place.id));
 }
 
 /** Every enabled cooking point. An RMS snapshot without terminals covers all of them. */

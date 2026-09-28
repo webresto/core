@@ -15,6 +15,7 @@ const cooking_place_1 = require("../lib/menu/cooking-place");
 const kitchen_assignment_1 = require("../lib/order/kitchen-assignment");
 const soft_delivery_1 = require("../lib/delivery/soft-delivery");
 const coordinate_1 = require("../lib/address/coordinate");
+const given_1 = require("../lib/address/given");
 const dish_place_balance_1 = require("../lib/menu/dish-place-balance");
 const product_availability_1 = require("../lib/menu/product-availability");
 const order_timing_1 = require("../lib/order/order-timing");
@@ -801,7 +802,7 @@ let Model = {
                     order.address = { ...address, formatted: described.formatted };
                 }
                 else {
-                    if (order.address === null && !softDeliveryCalculation) {
+                    if (!(0, given_1.isAddressGiven)(order.address) && !softDeliveryCalculation) {
                         throw {
                             code: 5,
                             error: "address is required",
@@ -1454,12 +1455,17 @@ let Model = {
                             await OrderDish.destroy({ id: orderDish.id }).fetch();
                             continue;
                         }
-                        const dishBalance = placement.byOrderDish.get(orderDish.id)?.availability.balance ?? dish_place_balance_1.UNLIMITED_BALANCE;
+                        const placed = placement.byOrderDish.get(orderDish.id);
+                        const dishBalance = placed?.availability.balance ?? dish_place_balance_1.UNLIMITED_BALANCE;
                         if (dishBalance === dish_place_balance_1.UNLIMITED_BALANCE ? false : Math.abs(dishBalance) < orderDish.amount) {
                             // Only a move to another kitchen is worth telling the customer about.
+                            // The line's kitchen, not the order's: a route that fell apart when
+                            // the customer switched to pickup keeps the order's kitchen and still
+                            // moves the line off its stop. A `null` point is the order's kitchen.
                             // The same line shrinking because the same kitchen sold out is the
                             // ordinary case and already has its own event.
-                            if (kitchen.changed && dishBalance === 0)
+                            const lineMoved = ((0, cooking_place_1.toPlaceId)(orderDish.cookingPoint) ?? kitchen.previousPlaceId) !== (placed?.placeId ?? kitchen.placeId);
+                            if (lineMoved && dishBalance === 0)
                                 stoppedByNewKitchen.push(dish.name);
                             orderDish.amount = Math.abs(dishBalance);
                             //It is necessary to delete if the amount is 0
@@ -1617,7 +1623,7 @@ let Model = {
              * own to say still gets the last word: a basket that lost a product is
              * worth one sentence, not a fight over one field.
              */
-            if (kitchen.changed && stoppedByNewKitchen.length) {
+            if (stoppedByNewKitchen.length) {
                 order.message = sails.__("Some products are not available at the kitchen serving this address and were removed: %s", stoppedByNewKitchen.join(", "));
                 await Order.log({ id: order.id }, "info", "core", kitchen_assignment_1.KITCHEN_LOG.dropped, {
                     placeId: kitchen.placeId,
@@ -1750,7 +1756,7 @@ let Model = {
                 if (order.promotionDelivery && isValidDelivery(order.promotionDelivery)) {
                     delivery = order.promotionDelivery;
                 }
-                else if (order.address) {
+                else if ((0, given_1.isAddressGiven)(order.address)) {
                     const deliveryAdapter = await Adapter.get("delivery");
                     Order.emitAndLogDetached({ id: order.id }, "core:order-check-delivery", order);
                     try {
@@ -1976,7 +1982,7 @@ let Model = {
         }
         // Whether an address is required at all is `addDish`'s question, asked
         // before this. What is left here is the shape of one that is there.
-        if (order.serviceType === "delivery" && order.address) {
+        if (order.serviceType === "delivery" && (0, given_1.isAddressGiven)(order.address)) {
             await checkAddress(order.address, (await (await Adapter.get("geo")).describe(order.address)).selfAddressed);
         }
         await Order.next({ id: order.id }, "CART");
@@ -2333,7 +2339,8 @@ async function checkInitializationFields(order) {
             continue;
         if (field === "pickupPoint" && order.serviceType === "delivery")
             continue;
-        if (!(0, isValue_1.isValue)(order[field])) {
+        // A city alone says whose kitchens to read, not where to deliver.
+        if (field === "address" ? !(0, given_1.isAddressGiven)(order.address) : !(0, isValue_1.isValue)(order[field])) {
             throw new Error(`Cart required field error: ${field} is value [${order[field]}], check FIELDS_FOR_ORDER_INITIALIZATION setting`);
         }
     }

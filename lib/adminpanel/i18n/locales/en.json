@@ -794,5 +794,8 @@
   "places": "Places",
   "serviceType": "Service type",
   "Pickup": "Pickup",
-  "Dine-in": "Dine-in"
+  "Dine-in": "Dine-in",
+  "{count} kitchens": "{count} kitchens",
+  "Courier route": "Courier route",
+  "collect": "collect"
 }

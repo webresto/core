@@ -1,4 +1,4 @@
-import { getDefaultCookingPlaceId, namedMenuPoint } from "../../../lib/menu/cooking-place";
+import { getDefaultCookingPlaceId, getOrderCityKitchenIds, namedMenuPoint } from "../../../lib/menu/cooking-place";
 import { Adapter } from "../../index";
 import MenuAdapter from "../MenuAdapter";
 import { MenuContext, MenuRequest } from "../../../interfaces/Menu";
@@ -57,6 +57,19 @@ export class DefaultMenuAdapter extends MenuAdapter {
           diagnostics: resolution.diagnostics,
         };
       }
+    }
+
+    // A basket that knows its city and nothing more — the customer switched city
+    // and has not given an address yet: that city's kitchens. The basket is
+    // recounted against them, so what the new city cannot sell leaves it.
+    const cityKitchens = await getOrderCityKitchenIds(request?.order);
+    if (cityKitchens.length) {
+      return {
+        placeIds: cityKitchens,
+        source: "city",
+        placeRequired,
+        diagnostics: [`menu read at the kitchens of the order's city: ${cityKitchens.join(", ")}`],
+      };
     }
 
     const fallback = await getDefaultCookingPlaceId();

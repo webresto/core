@@ -5,7 +5,7 @@ import {
   isCompletedOrderState,
   isOperatorUser,
 } from "../../../order/OrderStateFlow";
-import { primaryCookingPoint } from "../../../menu/cooking-place";
+import { courierRoute, primaryCookingPoint } from "../../../menu/cooking-place";
 
 // Non-completed states that the kanban board actually renders as columns
 // (mirrors VISIBLE_BOARD_STATES minus DONE/REJECT on the frontend).
@@ -119,6 +119,9 @@ function mapOrder(
     paid: Boolean(order?.paid),
     serviceType: order?.serviceType || "delivery",
     kitchenName: placeNames.get(getKitchenId(order)) || "",
+    // Every kitchen the courier collects from, in driving order; empty for an
+    // order cooked in one place.
+    route: courierRoute(order).map((id) => placeNames.get(id) || id),
     zoneName: order?.delivery?.zoneName || "",
     rmsOrderNumber: order?.rmsOrderNumber || "",
     orderedAt: order?.orderedAt || null,
@@ -215,6 +218,7 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
     for (const order of filteredByQuery) {
       const placeId = getKitchenId(order);
       if (placeId) placeIds.add(placeId);
+      for (const stop of courierRoute(order)) placeIds.add(stop);
     }
 
     const places = placeIds.size ? await Place.find({ id: Array.from(placeIds) }) : [];

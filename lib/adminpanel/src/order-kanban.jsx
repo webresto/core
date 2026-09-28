@@ -243,13 +243,36 @@ function isCompletedState(state) {
  */
 function formatKitchenLine(order, t) {
   const parts = [];
-  if (order.kitchenName) parts.push(order.kitchenName);
+  // A routed order names every stop in driving order: "North-west → North-east".
+  if (order.route.length > 1) parts.push(order.route.join(' → '));
+  else if (order.kitchenName) parts.push(order.kitchenName);
   if (order.serviceType === 'delivery') {
     if (order.zoneName) parts.push(t('zone {name}', { name: order.zoneName }));
   } else {
     parts.push(t(SERVICE_TYPE_LABEL[order.serviceType] || order.serviceType));
   }
   return parts.join(' · ');
+}
+
+/** "2 kitchens": the courier has more than one stop to make before the customer. */
+function RouteBadge({ order, t }) {
+  if (order.route.length < 2) return null;
+  return (
+    <span
+      title={order.route.join(' → ')}
+      style={{
+        fontSize: 11,
+        fontWeight: 700,
+        color: '#b45309',
+        border: '1px solid #f59e0b',
+        borderRadius: 999,
+        padding: '0 6px',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {t('{count} kitchens', { count: order.route.length })}
+    </span>
+  );
 }
 
 function formatDateTime(value, language) {
@@ -325,6 +348,7 @@ function normalizeOrder(order) {
     paid: Boolean(order.paid),
     serviceType: order.serviceType || 'delivery',
     kitchenName: order.kitchenName || '',
+    route: Array.isArray(order.route) ? order.route : [],
     zoneName: order.zoneName || '',
     rmsOrderNumber: order.rmsOrderNumber || '',
     orderedAt: order.orderedAt || null,
@@ -384,6 +408,7 @@ function normalizeOrderDetails(order) {
     spendBonus: order?.spendBonus || null,
     date: order?.date || null,
     items: Array.isArray(order?.items) ? order.items.map(normalizeItem).filter(Boolean) : [],
+    routeStops: Array.isArray(order?.routeStops) ? order.routeStops : [],
     relatedRefs: order?.relatedRefs && typeof order.relatedRefs === 'object' ? order.relatedRefs : {},
     paymentDocuments: Array.isArray(order?.paymentDocuments) ? order.paymentDocuments : [],
     rawPayload: order?.rawPayload || order,
@@ -515,6 +540,21 @@ function OrderDetailsPopup({ order, loading, language, t, onClose }) {
           <div style={rowStyle}><strong>{t('Paid')}</strong><span>{boolText(order.paid)}</span></div>
           <div style={rowStyle}><strong>{t('Service type')}</strong><span>{t(SERVICE_TYPE_LABEL[order.serviceType] || order.serviceType)}</span></div>
           <div style={rowStyle}><strong>{t('Kitchen')}</strong><span>{formatKitchenLine(order, t) || '-'}</span></div>
+          {!loading && order.routeStops?.length > 1 ? (
+            <div style={rowStyle}>
+              <strong>{t('Courier route')}</strong>
+              <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {order.routeStops.map((stop, index) => (
+                  <li key={`${stop.name}-${index}`}>
+                    <strong>{stop.name}</strong>
+                    {stop.items?.length ? (
+                      <span style={{ color: 'var(--muted-foreground)' }}> — {t('collect')}: {stop.items.join(', ')}</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
           {hasExtendedDetails ? (
             <>
               <div style={rowStyle}><strong>Корзина</strong><span>{formatTotal(order.basketTotal, language)}</span></div>
@@ -914,6 +954,7 @@ function OrderCard({ order, language, t, isUpdating, onMove, onDragStart, onOpen
         {order.paid ? (
           <span style={{ color: '#047857', fontSize: 12, fontWeight: 600 }}>{t('Paid')}</span>
         ) : null}
+        <RouteBadge order={order} t={t} />
         </div>
       </div>
 
@@ -990,6 +1031,7 @@ function OrderStackRow({ order, language, t, isUpdating, onMove, onOpen }) {
         {kitchenLine ? (
           <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{kitchenLine}</span>
         ) : null}
+        <span><RouteBadge order={order} t={t} /></span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
