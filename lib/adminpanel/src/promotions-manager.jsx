@@ -61,7 +61,7 @@ const segBtn = (active) => ({
   background: active ? 'var(--accent)' : 'var(--card)', color: 'var(--foreground)', cursor: 'pointer', fontSize: 13, fontWeight: 700,
 });
 
-// Shows why a selected dish may not actually work as intended (deleted / disabled / hidden / no stock).
+// Shows why a selected dish may not actually work as intended (deleted / disabled / hidden).
 function dishStatusIssues(dish, t) {
   if (!dish) return [];
   const issues = [];
@@ -69,7 +69,6 @@ function dishStatusIssues(dish, t) {
   if (dish.enable === false) issues.push(t('disabled'));
   if (dish.notForSale) issues.push(t('not for sale'));
   if (dish.visible === false) issues.push(t('hidden'));
-  if (dish.balance === 0) issues.push(t('out of stock'));
   return issues;
 }
 function DishStatusBadge({ t, dish }) {

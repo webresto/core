@@ -98,13 +98,11 @@ declare global {
     SHOW_UNAVAILABLE_DISHES: boolean
     /** Source of the effective stock at a cooking point: local-only | rms-only | minimum */
     DISH_PLACE_BALANCE_MODE: string
-    /** Cooking point used for stock and availability until orders carry their own. */
-    DEFAULT_COOKING_PLACE: string
-    /** Ordered kitchen resolver names. Empty leaves every order without a cooking point. */
+    /** Ordered kitchen resolver names; the default asks all of them. Empty leaves delivery orders without a cooking point. */
     KITCHEN_RESOLVE_CHAIN: string[]
     /** Straight-line cap when picking the nearest kitchen; 0 disables the limit. */
     DELIVERY_MAX_RADIUS_KM: number
-    /** How the menu is resolved against a cooking point: default | single-place | multi-place-route */
+    /** Which menu adapter is in force: default | single-place, or a name a module registers */
     MENU_PLACE_BASED_MODE: string
     /** Minutes added to every quoted delivery time to absorb estimate error. */
     DELIVERY_SAFETY_MARGIN_MINUTES: number

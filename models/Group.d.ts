@@ -94,19 +94,21 @@ declare let Model: {
     /**
      * Returns a group with a given ID
      * @param groupId - ID groups
+     * @param order - the order the menu is read for, as in `getGroups`
      * @return The requested group
      * @throws The error of obtaining a group
      * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: GroupRecord}, Errors: {[Groupid]: error}}
      */
-    getGroup(groupId: string): Promise<GroupRecord>;
+    getGroup(groupId: string, order?: MenuRequest["order"]): Promise<GroupRecord>;
     /**
      * Returns a group with a given Slug
      * @param groupSlug - Slug groups
+     * @param order - the order the menu is read for, as in `getGroups`
      * @return The requested group
      * @throws The error of obtaining a group
      * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: GroupRecord}, Errors: {[Groupid]: error}}
      */
-    getGroupBySlug(groupSlug: string): Promise<GroupRecord>;
+    getGroupBySlug(groupSlug: string, order?: MenuRequest["order"]): Promise<GroupRecord>;
     display(criteria: CriteriaQuery<GroupRecord>): Promise<GroupRecord[]>;
     getMenuTree(menu?: GroupRecord[], option?: "only_ids" | "tree" | "flat_tree"): Promise<string[]>;
     /**

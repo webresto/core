@@ -1,5 +1,3 @@
-import { getDefaultCookingPlaceId } from "../../../menu/cooking-place";
-import { getEffectiveBalances, readEffectiveBalance } from "../../../menu/dish-place-balance";
 
 /**
  * GET …/core/modifiers/dishes?group=<id>&q=<search>&ids=<id,id,...>&onlyModifiers=0
@@ -78,12 +76,8 @@ export default async function GetModifierDishesController(req: any, res: any) {
       }
     }
 
+    // No stock here: it lives per kitchen, and a picker has no kitchen of its own.
     const dishes = await Dish.find({ where, limit: 200 }).populate("images").sort("name ASC");
-    // Stock lives per cooking point; the picker shows it for the default one.
-    const balances = await getEffectiveBalances(
-      dishes.map((d: any) => String(d.id)),
-      await getDefaultCookingPlaceId(),
-    );
     // Flagged modifier dishes first (stable within: name ASC from the query above).
     if (!ids.length) dishes.sort((a: any, b: any) => Number(Boolean(b.modifier)) - Number(Boolean(a.modifier)));
     const results = dishes.map((d: any) => ({
@@ -96,7 +90,6 @@ export default async function GetModifierDishesController(req: any, res: any) {
       isDeleted: Boolean(d.isDeleted),
       enable: d.enable !== false,
       visible: d.visible !== false,
-      balance: readEffectiveBalance(balances, d.id),
       price: typeof d.price === "number" ? d.price : 0,
       weight: typeof d.weight === "number" ? d.weight : null,
       measureUnit: d.measureUnit || null,

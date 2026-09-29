@@ -2,8 +2,8 @@
   "key": "KITCHEN_RESOLVE_CHAIN",
   "type": "json",
   "name": "Kitchen resolution chain",
-  "description": "Ordered kitchen resolver names. An empty chain leaves the cooking point unset.",
-  "defaultValue": [],
+  "description": "Ordered kitchen resolver names for delivery orders; the first that names a kitchen wins. The default asks all of them: the delivery zone, the RMS, the nearest open kitchen, and the only kitchen of an installation with one. An empty chain leaves delivery orders without a kitchen.",
+  "defaultValue": ["delivery-zone", "rms", "nearest-geo", "single-point"],
   "jsonSchema": {
     "type": "array",
     "items": {

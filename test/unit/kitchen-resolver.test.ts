@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { getOrderCookingPlaceId, placeAcceptsOrdersNow } from "../../lib/menu/cooking-place";
+import { placeAcceptsOrdersNow } from "../../lib/menu/cooking-place";
 import { DefaultMenuAdapter } from "../../adapters/menu/default/defaultMenu";
 import { distanceKm } from "../../lib/geo/utils";
 import DeliveryAdapter from "../../adapters/delivery/DeliveryAdapter";
@@ -90,7 +90,7 @@ describe("kitchen-resolver", function () {
     // coordinate leave nearest-geo nothing to pick, and the chain must continue
     // rather than leave the order without a kitchen.
     bindGlobals(
-      { KITCHEN_RESOLVE_CHAIN: ["nearest-geo", "single-point"], DEFAULT_COOKING_PLACE: "north" },
+      { KITCHEN_RESOLVE_CHAIN: ["nearest-geo", "single-point"] },
       [{ ...center, enable: false }, { ...north, coordinate: null }],
     );
 
@@ -184,8 +184,8 @@ describe("kitchen-resolver", function () {
       async resolvePlaceForCoordinate(): Promise<any> { throw new Error("zones unavailable"); }
     }
     bindGlobals(
-      { KITCHEN_RESOLVE_CHAIN: ["delivery-zone", "single-point"], DEFAULT_COOKING_PLACE: "center" },
-      [center, north],
+      { KITCHEN_RESOLVE_CHAIN: ["delivery-zone", "single-point"] },
+      [center],
       new BrokenZones(),
     );
 
@@ -219,8 +219,8 @@ describe("kitchen-resolver", function () {
       async estimateTravel(): Promise<any> { throw new Error("routing is down"); }
     }
     bindGlobals(
-      { KITCHEN_RESOLVE_CHAIN: ["nearest-geo", "single-point"], DEFAULT_COOKING_PLACE: "north" },
-      [center, north],
+      { KITCHEN_RESOLVE_CHAIN: ["nearest-geo", "single-point"] },
+      [north],
       new BrokenDelivery(),
     );
 
@@ -259,11 +259,32 @@ describe("kitchen-resolver", function () {
     expect(warnings.join(" ")).to.contain("moon-base");
   });
 
-  it("reads the order's own kitchen before the installation default", async function () {
-    bindGlobals({ DEFAULT_COOKING_PLACE: "north" }, [center, north]);
+  it("single-point names the only enabled kitchen, and nothing when there are more", async function () {
+    bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["single-point"] }, [center, { ...north, enable: false }]);
+    expect((await resolver.resolveCookingPlace({})).placeId).to.equal("center");
 
-    expect(await getOrderCookingPlaceId({ cookingPoints: ["center", "north"] })).to.equal("center");
-    expect(await getOrderCookingPlaceId({ cookingPoints: [] })).to.equal("north");
+    bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["single-point"] }, [center, north]);
+    const resolution = await resolver.resolveCookingPlace({});
+    expect(resolution.placeId).to.equal(null);
+    expect(resolution.diagnostics.join(" ")).to.contain("2 enabled kitchens");
+  });
+
+  it("serves a pickup order from its point whatever the chain, an empty one included", async function () {
+    bindGlobals({ KITCHEN_RESOLVE_CHAIN: [] }, [center, north]);
+
+    const resolution = await resolver.resolveCookingPlace({ serviceType: "pickup", pickupPointId: "north" });
+
+    expect(resolution.placeId).to.equal("north");
+    expect(resolution.strategy).to.equal("pickup-point");
+  });
+
+  it("names no kitchen for a pickup point that does not cook", async function () {
+    bindGlobals({ KITCHEN_RESOLVE_CHAIN: ["nearest-geo"] }, [center, { id: "counter", isCookingPoint: false, enable: true }]);
+
+    const resolution = await resolver.resolveCookingPlace({ serviceType: "pickup", pickupPointId: "counter" });
+
+    expect(resolution.placeId).to.equal(null);
+    expect(resolution.diagnostics.join(" ")).to.contain("not an enabled cooking point");
   });
 
   it("treats a point without a schedule as always open", function () {

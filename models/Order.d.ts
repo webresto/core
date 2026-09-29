@@ -134,9 +134,10 @@ declare let attributes: {
      *
      * The first is the one the kitchen resolver assigned — read it through
      * `primaryCookingPoint` — and a route only appends the kitchens it adds; one
-     * kitchen is a list of one. Empty until a resolver chain is configured: an
-     * installation that never sets `KITCHEN_RESOLVE_CHAIN` keeps working off the
-     * single default cooking point.
+     * kitchen is a list of one. Empty while no kitchen can be named — no address
+     * yet, no coordinate, every kitchen closed: the menu is then read at the
+     * kitchens the order could still end up at, and checkout refuses the order
+     * unless soft delivery calculation hands it to an operator.
      *
      * Stored, not computed on read. A route is decided once and then acted on:
      * couriers are told, kitchens are told, and a list that recomputed itself

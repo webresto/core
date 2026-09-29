@@ -4,8 +4,9 @@ In core, a restaurant is a set of places in one or more cities. A place is any
 location of the business: a kitchen where food is cooked, a pickup counter, a
 dining room where guests can eat. There is no separate "kitchen" entity: every
 place has flags, and the same place can cook, hand out orders and seat guests
-in any combination. A counter in a shopping mall, for example, only hands out
-orders — the food for it is cooked somewhere else.
+in any combination. A counter in a shopping mall, for example, would only hand
+out orders cooked somewhere else — a case not supported for now: pickup and
+dine-in are taken only at a place that cooks.
 
 A place has a coordinate on the map, a city, a schedule, an on/off switch and
 a terminal id in the RMS. The coordinate is how core tells which kitchen is

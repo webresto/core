@@ -1,5 +1,3 @@
-import { getDefaultCookingPlaceId } from "../../../menu/cooking-place";
-import { getEffectiveBalances, readEffectiveBalance } from "../../../menu/dish-place-balance";
 import { hasAccess } from "./marketing-helpers";
 import { DELIVERY_ZONES_ACCESS, hasModulePermission } from "./access-rights";
 
@@ -28,12 +26,8 @@ export default async function GetMarketingDishesController(req: any, res: any) {
       where.or = [{ name: { contains: q } }, { code: { contains: q } }];
     }
 
+    // No stock here: it lives per kitchen, and a picker has no kitchen of its own.
     const dishes = await Dish.find({ where, limit: 100 }).sort("name ASC");
-    // Stock lives per cooking point; the picker shows it for the default one.
-    const balances = await getEffectiveBalances(
-      dishes.map((d: any) => String(d.id)),
-      await getDefaultCookingPlaceId(),
-    );
     const results = dishes.map((d: any) => ({
       id: d.id,
       name: d.name || d.id,
@@ -43,7 +37,6 @@ export default async function GetMarketingDishesController(req: any, res: any) {
       enable: d.enable !== false,
       visible: d.visible !== false,
       notForSale: Boolean(d.notForSale),
-      balance: readEffectiveBalance(balances, d.id),
     }));
 
     return res.json({ results });

@@ -7,18 +7,23 @@ kitchens; while the basket is empty and has no address the list may be empty,
 and that is normal. The kitchen is recalculated on every basket change until
 the order is placed.
 
-For pickup and dine-in it is simple: the chosen place cooks, if it is a
-kitchen. If the place only hands out orders, the order has no kitchen.
+For pickup and dine-in it is simple: the chosen place cooks. A place that only
+hands out orders (a counter in a mall) is a particular case not supported for
+now: it is not offered for pickup, and an order for it cannot be placed.
 
 For delivery the kitchen is chosen by a chain of strategies the installation
 configures. The strategies are asked in turn, and the first to name a kitchen
 wins. "By zone" looks at the zone the customer fell into and takes the kitchen
 standing inside that zone; if there are several, the nearest one. "Nearest"
 takes the nearest open kitchen, but not beyond a set radius. "Single" takes
-the default kitchen from the settings, or the only enabled one. There is also
-an "ask the RMS" strategy, but RMS adapters do not implement it yet, and it
-always passes the turn on. With an empty chain no kitchen is assigned at all —
-that is how an installation that does not care about the kitchen works.
+the kitchen of an installation that has exactly one enabled kitchen. There is
+also an "ask the RMS" strategy, but RMS adapters do not implement it yet, and
+it always passes the turn on. By default the chain holds all four. With an
+empty chain no kitchen is assigned to a delivery at all.
+
+Checkout asks the chain once more. No kitchen means no order — except under
+soft delivery calculation, where an operator finds one. A kitchen that closes
+after the order was placed is the operator's business too.
 
 The zone's kitchen and the zone's tariff are separate questions. If a zone has
 no open kitchen, the next strategy finds one, while the delivery price still
@@ -28,9 +33,11 @@ Every strategy leaves a trace: which one answered and why the others passed.
 It goes into the order log and to the storefront as diagnostics, so the
 question "why did the order go to this kitchen" always has an answer.
 
-When the kitchen changes — the customer changed the address — items the new
-kitchen does not have leave the basket, and the customer gets a message saying
-exactly what was removed.
+When the kitchen changes — the customer changed the address, the city or how
+they get the food — items that are not there leave the basket, and the
+customer gets a message saying exactly what was removed. The same when an item
+runs out at its own kitchen. When less is left than the basket holds, the line
+is quietly cut to what is left.
 
 ## Stock per place
 
@@ -56,8 +63,10 @@ alone. The RMS changes a dish's switch only when it sends it explicitly:
 turning dishes on and off is the operator's call until the RMS says otherwise
 outright.
 
-After checkout the sold amount is taken off the operator's stock of the order's
-kitchen. The RMS stock is not touched — the next synchronisation rewrites it.
+When the order is placed, the sold amount is taken off the operator's stock of
+the kitchen that cooks each line — usually the order's kitchen — whether there
+is an RMS or not. The RMS stock is not touched — the next synchronisation
+rewrites it.
 
 The operator edits stock on the Stock Manager page: first picks a kitchen, then
 changes the numbers and switches of its dishes. Rights are granted per place —
@@ -66,19 +75,19 @@ the operator of one kitchen does not see the stock of another.
 ## Menu
 
 What the customer is shown is decided by the menu adapter. The built-in one
-has two modes. In the ordinary mode there is one menu for everyone, and a place
-only refines what to hide. In single-place mode the menu is always tied to a
-particular kitchen, and until the kitchen is known nothing can be put into the
-basket — the customer is asked to choose an address or a place.
+has two modes: the ordinary one and single-place mode, which does not choose a
+kitchen by coordinate and returns no menu at all when the installation has no
+kitchen.
 
 Before returning the menu, the adapter works out which kitchens to read stock
-at. The order is: the kitchen asked about explicitly; the order's kitchen; the
-kitchen chosen from the customer's coordinate by the same chain as for the
-order; when the basket has only a city — all kitchens of that city at once;
-and finally the default kitchen. A product is in the menu if it is available at
-least at one of these kitchens. Because choosing the kitchen for the menu and
-for the order is one and the same chain, the customer sees exactly what the
-order's kitchen will then cook.
+at. With a kitchen, that kitchen's menu: the kitchen asked about explicitly;
+the order's kitchen; the kitchen chosen from the customer's coordinate by the
+same chain as for the order. With no kitchen yet, every kitchen the order could
+still end up at: the kitchens of the chosen city, or of every city when none is
+chosen. Then a product is in the menu only if **each** of them has it:
+whichever kitchen the address later picks, what was shown before the address
+is there. The basket accepts a product by the same rule, and counts all of it
+already in the basket, not only what is being added.
 
 The "can this be sold" check is one for the menu, the basket and the
 recalculation. It answers two different questions, and they are kept apart on
@@ -104,12 +113,7 @@ After the delivery is priced, the menu adapter may add a surcharge for the
 extra stops. The built-in adapter answers both questions simply: everything on
 one kitchen, no surcharge.
 
-The route is built by the `multi-place-router` module, which plugs in as a
-separate menu adapter. A route exists only for courier delivery — pickup and
-dine-in are always one place. Stops are taken only in the city of the order's
-kitchen: nobody drives to another city on the way, however close it is. If the
-route does not work out, the order is judged by its own kitchen's stock, as
-usual.
+No route ships with core: a module would plug in as a separate menu adapter.
 
 An order across several kitchens can be placed only if the RMS declared it can
 take such orders; otherwise checkout refuses. Silently reducing the order to

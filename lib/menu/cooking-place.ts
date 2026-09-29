@@ -1,20 +1,14 @@
 import { WorkTimeValidator } from "@webresto/worktime";
+import type { MenuContext } from "../../interfaces/Menu";
 
 /**
  * Which cooking point a question is being asked about.
  *
- * There are two different questions here and they used to be one, because on an
- * installation with a single kitchen they have the same answer:
- *
- * - *which point does this installation calculate availability at* — the
- *   `DEFAULT_COOKING_PLACE` setting, or the only enabled kitchen. This is the
- *   legacy answer and it stays the fallback everywhere;
- * - *which point cooks this order* — the first of `Order.cookingPoints`, filled
- *   in by the kitchen resolver, empty until a resolver chain is configured.
- *
- * `getOrderCookingPlaceId()` is the bridge: an order that has been assigned a
- * kitchen is served from it, and one that has not falls back to the default, so
- * an installation that never configures a chain behaves exactly as before.
+ * An order is cooked at the first of `Order.cookingPoints`, filled in by the
+ * kitchen resolver. There is no installation-wide default kitchen: an order
+ * without one is read at the kitchens it could still end up at — its city's,
+ * or every city's — and a product counts only where each of them has it
+ * (`readsEveryPoint`).
  */
 
 /** An association can arrive populated or as a bare id. */
@@ -117,28 +111,10 @@ export function placeAcceptsOrdersNow(place: any, at?: Date): boolean {
   return isEnabledKitchen(place) && placeIsOpen(place, at);
 }
 
-export async function getDefaultCookingPlaceId(): Promise<string | null> {
-  const configured = await Settings.get("DEFAULT_COOKING_PLACE");
-  const configuredId = typeof configured === "string" ? configured.trim() : "";
-
-  if (configuredId) {
-    const place = await Place.findOne({ id: configuredId });
-    if (isEnabledKitchen(place)) return String(place.id);
-    sails.log.warn(
-      `DEFAULT_COOKING_PLACE "${configuredId}" is not an enabled cooking point, ` +
-      `falling back to the only enabled kitchen`,
-    );
-  }
-
-  const kitchens = (await Place.find({})).filter(isEnabledKitchen);
-  if (kitchens.length === 1) return String(kitchens[0].id);
-  return null;
-}
-
 /**
  * Enabled kitchens of the city an order's address names, when the order has no
- * kitchen of its own — a customer who switched city and has not given an
- * address yet. Read as a union, like any context.
+ * kitchen of its own — a customer who picked a city and has no kitchen yet.
+ * Read as an intersection (`readsEveryPoint`).
  *
  * `OrderAddress.city` carries the city's name (the geocoder reads it as text),
  * `Place.city` its id, so the city is looked up by either. No clock, like every
@@ -160,20 +136,23 @@ export async function getOrderCityKitchenIds(
     .map((place: any) => String(place.id));
 }
 
-/** Every enabled cooking point. An RMS snapshot without terminals covers all of them. */
+/**
+ * Every enabled cooking point: what a menu with no city and no kitchen is read
+ * at, and what an RMS snapshot without terminals covers.
+ */
 export async function getEnabledCookingPlaceIds(): Promise<string[]> {
   return (await Place.find({})).filter(isEnabledKitchen).map((place: any) => String(place.id));
 }
 
 /**
- * The point this order's stock and availability are read at.
+ * Whether a context's points are read as an intersection: a product counts
+ * only if each of them can sell it.
  *
- * Only the order's own kitchen and the installation default, in that order —
- * deliberately no worktime check. A kitchen that closed at 23:00 must not make
- * the basket of an order already assigned to it read as unlimited.
+ * True where the order has no kitchen yet — `city` and `all`. Whichever of
+ * those kitchens the address later picks, what was shown there is still on
+ * offer. Every other context names the kitchens that will cook, and reads them
+ * as a union.
  */
-export async function getOrderCookingPlaceId(
-  order: { cookingPoints?: string[] | null } | null | undefined,
-): Promise<string | null> {
-  return primaryCookingPoint(order) ?? getDefaultCookingPlaceId();
+export function readsEveryPoint(context: Pick<MenuContext, "source">): boolean {
+  return context.source === "city" || context.source === "all";
 }

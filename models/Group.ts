@@ -273,7 +273,9 @@ let Model = {
 
           for await(let cg of cgs) {
             try {
-              const data = await Group.getGroup(cg.id);
+              // The same order all the way down: a child group read without it
+              // would be filtered by another context than its parent.
+              const data = await Group.getGroup(cg.id, order);
               if (data) childGroups.push(data);
             } catch (e) {}
           }
@@ -303,12 +305,13 @@ let Model = {
   /**
    * Returns a group with a given ID
    * @param groupId - ID groups
+   * @param order - the order the menu is read for, as in `getGroups`
    * @return The requested group
    * @throws The error of obtaining a group
    * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: GroupRecord}, Errors: {[Groupid]: error}}
    */
-  async getGroup(groupId: string): Promise<GroupRecord> {
-    const result = await Group.getGroups([groupId]);
+  async getGroup(groupId: string, order?: MenuRequest["order"]): Promise<GroupRecord> {
+    const result = await Group.getGroups([groupId], order);
     // `errors` is keyed by group id, so `errors[0]` only ever matched a group
     // literally called "0" — the reason a group was withheld was swallowed and
     // the caller got `null` with nothing to say about it.
@@ -323,11 +326,12 @@ let Model = {
   /**
    * Returns a group with a given Slug
    * @param groupSlug - Slug groups
+   * @param order - the order the menu is read for, as in `getGroups`
    * @return The requested group
    * @throws The error of obtaining a group
    * @fires group:core:group-get-groups - The result of execution in the format {Groups: {[Groupid]: GroupRecord}, Errors: {[Groupid]: error}}
    */
-  async getGroupBySlug(groupSlug: string): Promise<GroupRecord> {
+  async getGroupBySlug(groupSlug: string, order?: MenuRequest["order"]): Promise<GroupRecord> {
 
     if (!groupSlug) throw "groupSlug is required"
 
@@ -341,7 +345,7 @@ let Model = {
     if (!groupObj) {
       throw "group with slug " + groupSlug + " not found";
     }
-    const result = await this.getGroups([groupObj.id]);
+    const result = await this.getGroups([groupObj.id], order);
     const reason = Object.values(result.errors)[0];
     if (reason) {
       throw reason;

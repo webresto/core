@@ -3,7 +3,7 @@ import path = require("path");
 import { TestRMS } from "../mocks/adapter/RMS";
 import { Adapter } from "../../adapters";
 import { expect } from "chai";
-import { address, customer } from "../mocks/customer";
+import { address, customer, testKitchen } from "../mocks/customer";
 import dishGenerator from "../generators/dish.generator";
 // todo: fix types model instance to {%ModelName%}Record for Dish';
 import { PromotionAdapter } from "../../adapters/promotion/default/promotionAdapter";
@@ -85,6 +85,7 @@ describe("111 Promotion code integration test", function () {
     // After go to payment promocode should work, till ORDER state
     await TestPaymentSystem.getInstance();
     const paymentMethod = (await PaymentMethod.find({}))[0];
+    await testKitchen();
     await Order.check({ id: order.id }, customer, "delivery", address, paymentMethod.id);
     await Order.payment({ id: order.id });
     result = await Order.findOne({ id: order.id })

@@ -5,12 +5,15 @@ import {
   getProductsAvailability,
 } from "../../lib/menu/product-availability";
 import {
-  getDefaultCookingPlaceId,
+  getEnabledCookingPlaceIds,
+  getOrderCityKitchenIds,
   isEnabledKitchen,
   placeAcceptsOrdersNow,
   primaryCookingPoint,
+  readsEveryPoint,
   toPlaceId,
 } from "../../lib/menu/cooking-place";
+import { UNLIMITED_BALANCE } from "../../lib/menu/dish-place-balance";
 import { productFitsMaxWait } from "../../lib/order/order-timing";
 import {
   KitchenResolution,
@@ -18,6 +21,7 @@ import {
   KitchenStrategyName,
   LinePlacement,
   MenuContext,
+  MenuOrder,
   MenuRequest,
   OrderDishId,
 } from "../../interfaces/Menu";
@@ -38,11 +42,13 @@ import { DishRecord } from "../../models/Dish";
  * core's rule and reads the same for any of them: the context names points in
  * the plural and they are read as a union — a product is in the menu if *any*
  * of them can sell it — so an adapter that names several kitchens gets a filter
- * and an add-to-basket check that already agree with it. The default adapter
- * names at most one point.
+ * and an add-to-basket check that already agree with it. The one exception is
+ * an order with no kitchen yet (`unaddressedKitchens`): the kitchens it could
+ * still end up at, read as an intersection.
  *
- * A multi-kitchen route plugs in through `placeLines` and `adjustDelivery`;
- * what a route is and how it is priced is the module's business, not core's.
+ * A multi-kitchen route plugs in through `placeLines` and `adjustDelivery`.
+ * Core ships the contract and no route: what a route is and how it is priced
+ * is a module's business.
  *
  * `resolveContext` and `filterProducts` are the entry points and are not meant
  * to be overridden: each wraps the adapter's own step in one that belongs to
@@ -55,6 +61,63 @@ export default abstract class MenuAdapter {
   /** The adapter's points, and the order they were resolved for. */
   public async resolveContext(request: MenuRequest): Promise<MenuContext> {
     return { ...(await this.resolvePlaces(request)), order: request.order ?? null };
+  }
+
+  /**
+   * The menu of an order with no kitchen yet: the kitchens it could still end
+   * up at, and a product only if each of them can sell it (`readsEveryPoint`).
+   * Whichever of them the address later picks, what was shown stays on offer.
+   *
+   * The order's city when it names one — `city` — else every city — `all`.
+   * A city with no enabled kitchen falls through to every city. No clock, like
+   * every stock lookup.
+   *
+   * Core's rule rather than an adapter's: every adapter ends its
+   * `resolvePlaces` here. No kitchen at all is `none` — unlimited, or a
+   * refusal where the adapter requires a point.
+   */
+  protected async unaddressedKitchens(
+    order: MenuOrder | null | undefined,
+    placeRequired: boolean,
+  ): Promise<Omit<MenuContext, "order">> {
+    const cityKitchens = await getOrderCityKitchenIds(order);
+    if (cityKitchens.length) {
+      return {
+        placeIds: cityKitchens,
+        source: "city",
+        placeRequired,
+        diagnostics: [`no kitchen yet, menu read at every kitchen of the order's city: ${cityKitchens.join(", ")}`],
+      };
+    }
+
+    const placeIds = await getEnabledCookingPlaceIds();
+    if (placeIds.length) {
+      return {
+        placeIds,
+        source: "all",
+        placeRequired,
+        diagnostics: [`no kitchen and no city, menu read at every kitchen: ${placeIds.join(", ")}`],
+      };
+    }
+
+    // "We do not know which kitchen" must not read as "every kitchen has
+    // everything" where the mode asks for a kitchen.
+    if (placeRequired) {
+      return {
+        placeIds: [],
+        source: "none",
+        placeRequired,
+        code: "MENU_PLACE_REQUIRED",
+        diagnostics: ["the menu needs a cooking point: none named and no enabled kitchen"],
+      };
+    }
+
+    return {
+      placeIds: [],
+      source: "none",
+      placeRequired,
+      diagnostics: ["no enabled kitchen, stock is unlimited"],
+    };
   }
 
   /**
@@ -79,7 +142,8 @@ export default abstract class MenuAdapter {
    * What the context's points can sell.
    *
    * The default is the availability service, point by point, kept if any point
-   * can sell it. No points means no stock is known, and nothing is dropped.
+   * can sell it — each of them where the context `readsEveryPoint`. No points
+   * means no stock is known, and nothing is dropped.
    * `SHOW_UNAVAILABLE_DISHES` is honoured here rather than at the call sites:
    * it is a statement about the menu, and it used to be checked in one place
    * and forgotten in three others.
@@ -92,14 +156,15 @@ export default abstract class MenuAdapter {
     if (!products.length || !context.placeIds.length) return products;
     if (await Settings.get("SHOW_UNAVAILABLE_DISHES")) return products;
 
-    const sellable = new Set<string>();
+    const sellingPoints = new Map<string, number>();
     for (const placeId of context.placeIds) {
       const availability = await getProductsAvailability(products, placeId);
       for (const [productId, verdict] of availability) {
-        if (verdict.available) sellable.add(productId);
+        if (verdict.available) sellingPoints.set(productId, (sellingPoints.get(productId) ?? 0) + 1);
       }
     }
-    return products.filter((product) => sellable.has(String(product.id)));
+    const needed = readsEveryPoint(context) ? context.placeIds.length : 1;
+    return products.filter((product) => (sellingPoints.get(String(product.id)) ?? 0) >= needed);
   }
 
   /**
@@ -115,6 +180,9 @@ export default abstract class MenuAdapter {
    * first point's that did. When none did, the refusal with the most left:
    * "only two left" is worth saying, "stopped everywhere" is what is left. No
    * points reads as unlimited, the same as the filter.
+   *
+   * Where the context `readsEveryPoint`, each point must allow it: the first
+   * refusal is the answer, else the verdict of the point with the least left.
    */
   public async canAddProduct(
     product: AvailabilityProduct,
@@ -122,6 +190,16 @@ export default abstract class MenuAdapter {
     context: MenuContext,
   ): Promise<ProductAvailability> {
     if (!context.placeIds.length) return getProductAvailability(product, null, amount);
+
+    if (readsEveryPoint(context)) {
+      let tightest: ProductAvailability | null = null;
+      for (const placeId of context.placeIds) {
+        const verdict = await getProductAvailability(product, placeId, amount);
+        if (!verdict.available) return verdict;
+        if (!tightest || stockOf(verdict.balance) < stockOf(tightest.balance)) tightest = verdict;
+      }
+      return tightest!;
+    }
 
     let refused: ProductAvailability | null = null;
     for (const placeId of context.placeIds) {
@@ -142,8 +220,8 @@ export default abstract class MenuAdapter {
    * judging it against the primary kitchen alone deletes, on the first recount,
    * a product a menu spanning several points showed and let the customer add.
    *
-   * A routing module overrides this to plan a route, put lines on its stops and
-   * read their stock there. Its `placeIds` start with the assigned kitchen, and
+   * A routing module would override this to plan a route, put lines on its stops
+   * and read their stock there. Its `placeIds` start with the assigned kitchen, and
    * `countCart` writes the answer as given: the order's kitchens, each line's
    * stop, and the plan into the journal.
    */
@@ -184,9 +262,11 @@ export default abstract class MenuAdapter {
    *
    * A chain, not a rule: an installation says in what order to ask —
    * `KITCHEN_RESOLVE_CHAIN` — and the first strategy that names a kitchen wins.
-   * An empty chain, which is the default, names no kitchen at all and leaves the
-   * order's `cookingPoints` empty; availability then keeps falling back to the
-   * single default cooking point, exactly as it did before orders could carry one.
+   * The default chain asks every strategy. One that names no kitchen — an empty
+   * chain, an address without a coordinate, every kitchen closed — leaves the
+   * order's `cookingPoints` empty: its menu is read at the kitchens it could
+   * still end up at (`unaddressedKitchens`), and checkout refuses it unless
+   * soft delivery calculation hands it to an operator.
    *
    * The chain alone decides whether any of this runs. There is deliberately no
    * second switch next to it: one question gets one answer, in one place.
@@ -198,9 +278,8 @@ export default abstract class MenuAdapter {
    * Pickup and dine-in are settled before the chain and not by it. The customer
    * already chose the point they are going to, so there is nothing left to
    * resolve, and a strategy that "decided" to cook somewhere the customer is not
-   * going would be a bug rather than a fallback. It stays gated on a configured
-   * chain, so an installation that never asked for kitchen resolution does not
-   * quietly acquire it through the pickup form.
+   * going would be a bug rather than a fallback. The chosen point is the kitchen
+   * whatever the chain says, an empty one included.
    *
    * A method so that an installation can choose kitchens its own way in its own
    * menu adapter; the menu before an order and the kitchen chosen for it then
@@ -208,12 +287,6 @@ export default abstract class MenuAdapter {
    */
   public async resolveCookingPlace(request: KitchenResolveRequest = {}): Promise<KitchenResolution> {
     const diagnostics: string[] = [];
-    const chain = await kitchenResolveChain();
-
-    if (!chain.length) {
-      diagnostics.push("KITCHEN_RESOLVE_CHAIN is empty, no cooking point is assigned");
-      return { placeId: null, strategy: null, diagnostics };
-    }
 
     if (request.serviceType && request.serviceType !== "delivery") {
       const pickupPointId = toPlaceId(request.pickupPointId);
@@ -224,14 +297,22 @@ export default abstract class MenuAdapter {
 
       const place = await Place.findOne({ id: pickupPointId });
       if (!isEnabledKitchen(place)) {
-        // A pickup point that does not cook is normal — a counter in a mall — and
-        // simply means this order has no kitchen of its own.
+        // A particular case, not supported for now: a point that hands over food
+        // cooked elsewhere — a counter in a mall — would need a kitchen of its
+        // own, and nothing says which. Such a point is not offered for pickup or
+        // dine-in, and checkout refuses it (`checkPickupPoint`).
         diagnostics.push(`pickup: ${pickupPointId} is not an enabled cooking point`);
         return { placeId: null, strategy: null, diagnostics };
       }
 
       diagnostics.push(`pickup: ${pickupPointId}`);
       return { placeId: pickupPointId, strategy: "pickup-point", diagnostics };
+    }
+
+    const chain = await kitchenResolveChain();
+    if (!chain.length) {
+      diagnostics.push("KITCHEN_RESOLVE_CHAIN is empty, no cooking point is assigned");
+      return { placeId: null, strategy: null, diagnostics };
     }
 
     for (const name of chain) {
@@ -253,6 +334,11 @@ export default abstract class MenuAdapter {
     diagnostics.push("no strategy in the chain named a cooking point");
     return { placeId: null, strategy: null, diagnostics };
   }
+}
+
+/** Stock as a number to compare: `-1` is unlimited. */
+function stockOf(balance: number): number {
+  return balance === UNLIMITED_BALANCE ? Infinity : balance;
 }
 
 /** A strategy either names a kitchen or has no opinion and lets the next try. */
@@ -408,23 +494,20 @@ const nearestGeo: KitchenStrategy = async (request, diagnostics) => {
 };
 
 /**
- * The kitchen of an installation that has exactly one.
+ * The kitchen of an installation that has exactly one enabled kitchen. Needs no
+ * coordinate: with one kitchen there is nothing to choose between.
  *
- * This is the legacy answer, and it stays the legacy answer: the same
- * `DEFAULT_COOKING_PLACE`-or-the-only-enabled-kitchen lookup the rest of the
- * application already runs, called rather than copied. Two implementations of
- * "which is the single kitchen" would only differ eventually.
- *
- * It deliberately does not check worktime. A closed kitchen answering "no
- * kitchen" here would silently turn every product unlimited, which is not what
- * closing a kitchen is supposed to mean.
+ * It deliberately does not check worktime. It describes the only kitchen there
+ * is rather than choosing between kitchens; whether the installation takes
+ * orders now is `WORK_TIME`'s question.
  */
 const singlePoint: KitchenStrategy = async (_request, diagnostics) => {
-  const placeId = await getDefaultCookingPlaceId();
-  if (!placeId) {
-    diagnostics.push("single-point: no default cooking point and not exactly one enabled kitchen");
+  const kitchens = await getEnabledCookingPlaceIds();
+  if (kitchens.length !== 1) {
+    diagnostics.push(`single-point: ${kitchens.length} enabled kitchens, not exactly one`);
     return PASS;
   }
+  const placeId = kitchens[0];
   diagnostics.push(`single-point: ${placeId}`);
   return { kind: "resolved", placeId };
 };

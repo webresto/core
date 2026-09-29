@@ -302,7 +302,7 @@ function ModifiersPreview({ groups, groupLabels, dishLabels, dishMeta, tr, onClo
   const optionPrice = (child) => dishInfo[child.id]?.price ?? 0;
   const optionUnavailable = (child) => {
     const d = dishInfo[child.id];
-    return Boolean(d && (d.isDeleted || d.enable === false || d.notForSale || d.balance === 0));
+    return Boolean(d && (d.isDeleted || d.enable === false || d.notForSale));
   };
 
   function optionMetaLine(child) {

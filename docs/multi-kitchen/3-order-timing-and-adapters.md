@@ -23,14 +23,18 @@ price or contents.
 
 At checkout core records the order type, checks that the RMS can handle
 several kitchens if there is more than one, builds the address line and
-decides whether a house number is needed. Then it checks that delivery is
-possible — with soft calculation a refusal happens only on an installation
-with no zones at all — that the timing is consistent, and that the chosen
-place serves this kind of order and is open. Every refusal has its own code,
-so the storefront can show a clear reason.
+decides whether a house number is needed. Then it checks that the timing is
+consistent and that the chosen place serves this kind of order, cooks and is
+open. The basket is recalculated one last time, and the chain names the kitchen
+once more: if it names none, the order is not placed — except a delivery under
+soft calculation, where an operator finds one. Then it checks that delivery is
+possible — with soft calculation a refusal happens only on an installation with
+no zones at all. Every refusal has its own code, so the storefront can show a
+clear reason.
 
-A placed order goes to the RMS, and the sold amount is taken off the kitchen's
-stock. When a delivery order is completed, its address is remembered for the
+When the order is placed, the sold amount is taken off the operator's stock of
+the kitchen that cooks each line, whether there is an RMS or not, and the
+order goes to the RMS. When a delivery order is completed, its address is remembered for the
 customer.
 
 Everything that matters along the way — the kitchen assignment, removed items,
@@ -88,9 +92,10 @@ simply stops taking part; the same goes for zones.
 
 To plug in its own adapter, a module extends the contract, registers an
 instance under its own name in its hook, and the name goes into the setting.
-That is how the routing module is built: it is one menu adapter that overrides
-which kitchens to read the menu at, how to split the basket and what to add to
-the delivery, and takes everything else from core as is.
+That is how a multi-kitchen route would plug in: one menu adapter that
+overrides which kitchens to read the menu at, how to split the basket and what
+to add to the delivery, and takes everything else from core as is. No such
+module ships — core holds only the contract.
 
 RMS, payment, bonus and the other adapters keep the old scheme with their own
 loaders; what they share with the rest is only the file layout.

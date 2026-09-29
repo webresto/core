@@ -9,9 +9,9 @@ import { ProductAvailability } from "../lib/menu/product-availability";
  * than merely a type-level one.
  *
  * The route shapes live here too. Core owns the contracts of a multi-kitchen
- * route and nothing else about routing: the planner, the pricing strategies and
- * the menu that spans several kitchens live in a module, which plugs in by
- * overriding `MenuAdapter.placeLines`.
+ * route and nothing else about routing: no implementation ships. A planner, its
+ * pricing and a menu that spans several kitchens belong to a module, which
+ * plugs in by overriding `MenuAdapter.placeLines` and `adjustDelivery`.
  */
 
 /**
@@ -65,8 +65,9 @@ export interface MenuContext {
   /**
    * The points stock is read at. A product is in the menu if any one of them
    * can sell it — the union, so an adapter that names several kitchens gets
-   * the right filter from the defaults without overriding them. The built-in
-   * adapters name at most one.
+   * the right filter from the defaults without overriding them. The exception
+   * is a context without a kitchen — `city` and `all` — read as an
+   * intersection (`readsEveryPoint`).
    *
    * Empty means no point is known, which reads as unlimited stock — the legacy
    * answer, and the one an installation with no cooking point configured has
@@ -77,13 +78,15 @@ export interface MenuContext {
    * Which input decided it.
    *
    * `coordinate` means it was derived from where the customer is, through the
-   * same resolver an order uses. `city` — the kitchens of the order's city, for
-   * a basket with a city and no kitchen yet.
+   * same resolver an order uses. `city` and `all` mean there is no kitchen
+   * yet: the enabled kitchens of the order's city, or of every city when the
+   * order names none, and a product is offered only if each of them can sell
+   * it — so nothing shown before the address disappears once it is given.
    */
-  source: "requested" | "order" | "coordinate" | "city" | "default" | "none";
+  source: "requested" | "order" | "coordinate" | "city" | "all" | "none";
   /**
    * The customer must name a point or an address before putting anything in a
-   * basket. False in the legacy mode, where the menu is global.
+   * basket. False in the `default` mode.
    */
   placeRequired: boolean;
   /** Set when a point was required and none could be found. */

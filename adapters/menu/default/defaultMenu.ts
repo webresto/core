@@ -1,4 +1,4 @@
-import { getDefaultCookingPlaceId, getOrderCityKitchenIds, namedMenuPoint } from "../../../lib/menu/cooking-place";
+import { namedMenuPoint } from "../../../lib/menu/cooking-place";
 import { Adapter } from "../../index";
 import MenuAdapter from "../MenuAdapter";
 import { MenuContext, MenuRequest } from "../../../interfaces/Menu";
@@ -6,22 +6,18 @@ import { MenuContext, MenuRequest } from "../../../interfaces/Menu";
 /**
  * The menu core ships, in the two modes `MENU_PLACE_BASED_MODE` names for it.
  *
- * **`default`** adds no place-based restriction: one global menu, read at the
- * kitchen the customer's coordinate resolves to or at the installation's
- * default cooking point. That last part is not a filter by kitchen — stock has
- * been read at `DEFAULT_COOKING_PLACE` since the second iteration, and dropping
- * it would put every stopped product back on the storefront. A point is never
- * required, so no address and no chosen kitchen stands before the first product
- * goes into a basket.
+ * **`default`** — the menu of the kitchen that cooks: the requested point, the
+ * order's kitchen, or the one the customer's coordinate resolves to. Until
+ * there is one, the kitchens the order could still end up at, and only what
+ * each of them has (`unaddressedKitchens`). A point is never required, so no
+ * address and no chosen kitchen stands before the first product goes into a
+ * basket.
  *
  * **`single-place`** — one kitchen cooks the order, and the menu is that
- * kitchen's menu. The difference is what happens when there is no point: a
- * refusal, `MENU_PLACE_REQUIRED`, instead of a global menu. Falling back quietly
- * would show a customer products the kitchen serving their address does not
- * have, which is the whole thing this mode exists to prevent. The installation
- * default is still the last resort, and deliberately so: it is the answer a
- * basket gets before an address has been entered, and refusing the menu then
- * would mean an empty storefront on first load.
+ * kitchen's menu. A coordinate alone does not pick it: the menu waits for the
+ * order's kitchen. Before that it is read the way `default` reads it — refusing
+ * it would mean an empty storefront on first load — and with no kitchen at all
+ * it is a refusal, `MENU_PLACE_REQUIRED`, instead of a global menu.
  */
 export class DefaultMenuAdapter extends MenuAdapter {
   protected async resolvePlaces(request: MenuRequest): Promise<Omit<MenuContext, "order">> {
@@ -59,49 +55,6 @@ export class DefaultMenuAdapter extends MenuAdapter {
       }
     }
 
-    // A basket that knows its city and nothing more — the customer switched city
-    // and has not given an address yet: that city's kitchens. The basket is
-    // recounted against them, so what the new city cannot sell leaves it.
-    const cityKitchens = await getOrderCityKitchenIds(request?.order);
-    if (cityKitchens.length) {
-      return {
-        placeIds: cityKitchens,
-        source: "city",
-        placeRequired,
-        diagnostics: [`menu read at the kitchens of the order's city: ${cityKitchens.join(", ")}`],
-      };
-    }
-
-    const fallback = await getDefaultCookingPlaceId();
-    if (fallback) {
-      return {
-        placeIds: [fallback],
-        source: "default",
-        placeRequired,
-        diagnostics: [`menu read at the installation default point ${fallback}`],
-      };
-    }
-
-    // "We do not know which kitchen" must not read as "every kitchen has
-    // everything" where the mode asks for a kitchen.
-    if (placeRequired) {
-      return {
-        placeIds: [],
-        source: "none",
-        placeRequired,
-        code: "MENU_PLACE_REQUIRED",
-        diagnostics: [
-          "single-place menu needs a cooking point: none requested, none on the order, " +
-            "and no DEFAULT_COOKING_PLACE resolved",
-        ],
-      };
-    }
-
-    return {
-      placeIds: [],
-      source: "none",
-      placeRequired,
-      diagnostics: ["no cooking point configured, stock is unlimited"],
-    };
+    return this.unaddressedKitchens(request?.order, placeRequired);
   }
 }

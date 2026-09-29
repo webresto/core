@@ -95,14 +95,16 @@ screens, `notConfigured` for checkout. Default: zones, their cache, import, KML
 sync and the `has_delivery_zone` setup checkup.
 
 **menu.** Contract: `resolvePlaces`. Core rules in the abstract class:
-`resolveContext`, `filterProducts`, `canAddProduct`, `placeLines` (one kitchen),
+`resolveContext`, `unaddressedKitchens` (an order with no kitchen reads every
+kitchen of its city, or of every city, as an intersection), `filterProducts`,
+`canAddProduct`, `placeLines` (one kitchen),
 `resolveCookingPlace` (the `KITCHEN_RESOLVE_CHAIN`), `adjustDelivery` (nothing
 added). Default: the `default` and `single-place` modes.
 
-Multi-kitchen route is not in core. The `multi-place-router` module is one menu
-adapter: `resolvePlaces` names the primary kitchen and the other open ones,
-`placeLines` spreads the basket over them, `adjustDelivery` charges the extra legs.
-Filtering, the basket check and stock come from the abstract class unchanged.
+Multi-kitchen route is not in core and none ships: a module would be one menu
+adapter whose `resolvePlaces` names the primary kitchen and the others,
+`placeLines` spreads the basket over them and `adjustDelivery` charges the extra
+legs. Filtering, the basket check and stock come from the abstract class unchanged.
 
 ## Do and don't
 

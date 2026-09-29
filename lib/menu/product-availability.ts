@@ -1,4 +1,5 @@
-import { isEnabledKitchen, placeAcceptsOrdersNow } from "./cooking-place";
+import { isEnabledKitchen, placeAcceptsOrdersNow, readsEveryPoint } from "./cooking-place";
+import type { MenuContext } from "../../interfaces/Menu";
 import {
   UNLIMITED_BALANCE,
   getEffectiveBalanceFor,
@@ -182,20 +183,29 @@ export async function getProductAvailability(
 }
 
 /**
- * Stock of one product across the points of a menu context, for the storefront.
+ * Stock of one product across the points of a menu context, for the storefront:
+ * as many as `MenuAdapter.canAddProduct` will let into a basket.
  *
- * The maximum: the customer can have as many as the best-stocked point holds.
- * Unlimited when no point is known or any point is unlimited. Lives here so
- * the GraphQL `Dish.balance` field does not implement the union a second time.
+ * A union takes the best-stocked point, unlimited if any point is. An
+ * intersection (`readsEveryPoint`) takes the worst-stocked one, unlimited only
+ * if every point is. Unlimited when no point is known. Lives here so the
+ * GraphQL `Dish.balance` field does not implement either a second time.
  */
-export async function getEffectiveBalanceAcross(productId: string, placeIds: string[]): Promise<number> {
-  let best: number | null = null;
-  for (const placeId of placeIds) {
+export async function getEffectiveBalanceAcross(
+  productId: string,
+  context: Pick<MenuContext, "placeIds" | "source">,
+): Promise<number> {
+  const every = readsEveryPoint(context);
+  let answer: number | null = null;
+  for (const placeId of context.placeIds) {
     const balance = await getEffectiveBalanceFor(productId, placeId);
-    if (balance === UNLIMITED_BALANCE) return UNLIMITED_BALANCE;
-    if (best === null || balance > best) best = balance;
+    if (balance === UNLIMITED_BALANCE) {
+      if (every) continue;
+      return UNLIMITED_BALANCE;
+    }
+    if (answer === null || (every ? balance < answer : balance > answer)) answer = balance;
   }
-  return best ?? UNLIMITED_BALANCE;
+  return answer ?? UNLIMITED_BALANCE;
 }
 
 /**

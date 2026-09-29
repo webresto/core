@@ -5,5 +5,5 @@
   "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "По этому заказу есть активная ссылка на оплату. Изменение корзины отменит эту оплату. Продолжить?",
   "Cancel payment and edit basket": "Отменить оплату и изменить корзину",
   "Keep payment": "Оставить оплату",
-  "Some products are not available at the kitchen serving this address and were removed: %s": "Некоторые товары недоступны на кухне, обслуживающей этот адрес, и были убраны: %s"
+  "Some products are not available here and were removed: %s": "Некоторые товары здесь недоступны и были убраны: %s"
 }
