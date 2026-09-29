@@ -61,7 +61,12 @@ export default function ToInitialize(sails: Sails) {
        * AFTER OTHERS HOOKS
        */
       try {
-        HookTools.waitForHooks("restocore", requiredHooks, afterHook);
+        // Lift does not wait for `afterHook`: whoever needs core fully set up
+        // (settings seeded, adapters and registries started) waits for this event.
+        HookTools.waitForHooks("restocore", requiredHooks, async () => {
+          await afterHook();
+          sails.emit("restocore:ready");
+        });
       } catch (error) {
         sails.log.error(error)
       }

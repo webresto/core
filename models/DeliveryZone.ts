@@ -32,7 +32,7 @@ import { pickInheritedFields } from "../lib/delivery/inherited-terms";
  * and storing a copy on the order only creates a second answer that goes stale
  * when the map is redrawn.
  *
- * `test/unit/adapter-imports.test.ts` holds everyone else to it.
+ * `test/places/unit/architecture/adapter-imports.test.ts` holds everyone else to it.
  */
 
 let attributes = {

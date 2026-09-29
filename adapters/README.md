@@ -128,5 +128,5 @@ Don't:
 - add a registry, a singleton or a loader next to `Adapter`;
 - add a method to a contract before core has a call for it.
 
-`test/unit/adapter-imports.test.ts` holds the layout and the imports; there is no
+`test/places/unit/architecture/adapter-imports.test.ts` holds the layout and the imports; there is no
 linter.

@@ -12,8 +12,9 @@
       "args": [
         "-r",
         "tsx/cjs",
-        "${workspaceFolder}/test/bootstrap.ts",
-        "'${workspaceFolder}/test/{,!(fixture)/**}/*.test.ts'",
+        "-r",
+        "${workspaceFolder}/test/places/support/sails.ts",
+        "${workspaceFolder}/test/places/integration/**/*.test.ts",
         "--exit",
         "--timeout=600000",
         "--grep=111"
