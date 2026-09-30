@@ -71,6 +71,17 @@ describe("Kitchen resolver", function () {
       });
     });
 
+    it("passes over a kitchen closed by its schedule the way it passes over one switched off", async function () {
+      const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      await Place.update({ id: k.kitchen2 }, { worktime: [{ dayOfWeek: days, start: "00:00", stop: "00:01" }] }).fetch();
+      await chain(["delivery-zone", "nearest-geo"], async () => {
+        const resolution = await resolve({ coordinate: { lat: 56.9, lon: 60.61 } });
+
+        expect(resolution).to.include({ placeId: k.kitchen1, strategy: "nearest-geo" });
+        expect(resolution.diagnostics.join(" ")).to.match(/delivery-zone: zone \S+ contains no open kitchen/);
+      });
+    });
+
     it("hands on when the delivery adapter's zones break", async function () {
       Adapter.register("delivery", "broken-zones", new (class extends DefaultDeliveryAdapter {
         async resolvePlaceForCoordinate(): Promise<any> {

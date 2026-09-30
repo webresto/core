@@ -1,6 +1,6 @@
 import { expect } from "chai";
+import { placeIsOpen } from "../../../../lib/menu/cooking-place";
 import {
-  evaluatePlaceAvailability,
   evaluateProductAvailability,
   getPreparationMinutes,
   isCooked,
@@ -51,29 +51,22 @@ describe("product-availability", function () {
     });
   });
 
-  describe("place", function () {
+  describe("place (placeIsOpen)", function () {
     const open = { id: "kitchen-1", isCookingPoint: true, enable: true };
 
-    it("accepts an enabled kitchen with no schedule", function () {
-      const result = evaluatePlaceAvailability(open);
-      expect(result.open).to.equal(true);
-      expect(result.reason).to.equal(null);
-      expect(result.placeId).to.equal("kitchen-1");
+    it("is open with no schedule, closed when switched off or missing", function () {
+      expect(placeIsOpen(open)).to.equal(true);
+      expect(placeIsOpen({ ...open, enable: false })).to.equal(false);
+      expect(placeIsOpen(null)).to.equal(false);
     });
 
-    it("separates no point at all from a disabled one", function () {
-      expect(evaluatePlaceAvailability(null).reason).to.equal("PLACE_NOT_SELECTED");
-      expect(evaluatePlaceAvailability({ ...open, enable: false }).reason).to.equal("PLACE_DISABLED");
-      expect(evaluatePlaceAvailability({ ...open, isCookingPoint: false }).reason).to.equal("PLACE_DISABLED");
-    });
-
-    it("calls a kitchen closed outside its schedule", function () {
+    it("is closed outside its schedule", function () {
       const monday = { ...open, worktime: [{ dayOfWeek: ["monday"], start: "10:00", stop: "20:00" }] };
       // 2026-08-24 is a Monday.
-      expect(evaluatePlaceAvailability(monday, new Date("2026-08-24T12:00:00")).open).to.equal(true);
-      expect(evaluatePlaceAvailability(monday, new Date("2026-08-24T23:00:00")).reason).to.equal("PLACE_CLOSED");
+      expect(placeIsOpen(monday, new Date("2026-08-24T12:00:00"))).to.equal(true);
+      expect(placeIsOpen(monday, new Date("2026-08-24T23:00:00"))).to.equal(false);
       // Sunday: the schedule says nothing about today, which is closed and not broken.
-      expect(evaluatePlaceAvailability(monday, new Date("2026-08-23T12:00:00")).reason).to.equal("PLACE_CLOSED");
+      expect(placeIsOpen(monday, new Date("2026-08-23T12:00:00"))).to.equal(false);
     });
   });
 

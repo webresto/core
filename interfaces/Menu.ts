@@ -31,6 +31,8 @@ export interface MenuOrder {
   serviceType?: ServiceType | null;
   /** The city, for a basket that has one and no kitchen yet. */
   address?: { city?: string | null } | null;
+  /** A pre-order's moment: the kitchens are asked whether they are open then. */
+  date?: string | null;
 }
 
 /** What the caller knows about who is asking for a menu. */
@@ -56,9 +58,20 @@ export interface MenuRequest {
    * than inputs to a decision.
    */
   coordinate?: { lat: number; lon: number } | null;
+  /**
+   * Read the points whatever the hour. For what is already in a basket — its
+   * recount, its display: a kitchen closing hides its menu, it does not empty
+   * the baskets made from it. Checkout refuses a closed kitchen by itself.
+   */
+  ignoreSchedule?: boolean;
 }
 
-export type MenuContextCode = "MENU_PLACE_REQUIRED";
+/**
+ * `MENU_PLACE_REQUIRED` — a point was required and none could be found.
+ * `PLACE_CLOSED` — every point of the menu is closed now (`Place.worktime`, or
+ * switched off): nothing is offered and nothing can be added.
+ */
+export type MenuContextCode = "MENU_PLACE_REQUIRED" | "PLACE_CLOSED";
 
 /** Which points a menu is read at, and how that was decided. */
 export interface MenuContext {
@@ -89,7 +102,7 @@ export interface MenuContext {
    * basket. False in the `default` mode.
    */
   placeRequired: boolean;
-  /** Set when a point was required and none could be found. */
+  /** Why the menu cannot be offered: no point where one is required, or every point closed. */
   code?: MenuContextCode;
   /** Why the context ended up like this; for operators, never customers. */
   diagnostics: string[];

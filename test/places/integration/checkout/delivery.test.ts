@@ -183,9 +183,16 @@ describe("checkout: delivery", function () {
       return { kitchens: order.cookingPoints, refusal: await thrown(checkout(id)) };
     }
 
-    it("every kitchen closed: nobody takes it", async function () {
+    it("every kitchen closed: nobody takes it, nothing more goes in, and the basket stays", async function () {
+      const id = await newBasket();
+      await add(id, await dishId("Dish 1"));
       await withKitchens({ [kitchen1]: { worktime: CLOSED }, [kitchen2]: { worktime: CLOSED } }, async () => {
-        expect(await delivered(IN_ZONE_1)).to.deep.equal({ kitchens: [], refusal: { code: 26, error: "NO_KITCHEN" } });
+        const order = await deliverTo(id, at(IN_ZONE_1));
+
+        expect(order.cookingPoints).to.deep.equal([]);
+        expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
+        expect(String(await thrown(add(id, await dishId("Dish 1"))))).to.contain("PLACE_CLOSED");
+        expect(await thrown(checkout(id))).to.deep.equal({ code: 26, error: "NO_KITCHEN" });
       });
     });
 

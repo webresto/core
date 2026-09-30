@@ -1,4 +1,4 @@
-import { isEnabledKitchen, placeAcceptsOrdersNow, readsEveryPoint } from "./cooking-place";
+import { readsEveryPoint } from "./cooking-place";
 import type { MenuContext } from "../../interfaces/Menu";
 import {
   UNLIMITED_BALANCE,
@@ -9,27 +9,15 @@ import {
 } from "./dish-place-balance";
 
 /**
- * One answer to "may this be sold, here, now" — and why not, when the answer is no.
+ * One answer to "may this product be sold at this point" — and why not, when the
+ * answer is no. The menu, the add-to-basket path and the recount all ask it here,
+ * so they cannot disagree; they differ only in what they do with a refusal.
  *
- * Availability had been three separate comparisons scattered across the menu, the
- * add-to-cart path and the recount, and each of them knew about stock only. The
- * fifth iteration adds two more inputs — the point's schedule and the product's
- * type — and adding those in three places is how three copies start disagreeing.
- * So there is one evaluation here, and callers differ only in what they do with a
- * refusal.
- *
- * The two questions this file answers are deliberately kept apart:
- *
- * - **is the product sellable at this point** — stock and the product's own
- *   flags. A refusal is about one product and removes one basket line;
- * - **can this point take an order at all** — enabled, and open at the moment
- *   asked about. A refusal is about the whole order.
- *
- * Merging them would mean a closed kitchen deletes every line of every basket at
- * closing time, which is not what closing a kitchen means. The installation-wide
- * `WORK_TIME` already shows the right shape: it blocks checkout in
- * `Order.checkDate` and leaves baskets alone. A point's schedule does the same,
- * one point down.
+ * Stock and the product's own flags only: a refusal is about one product and
+ * removes one basket line. Whether the point is open is another question with
+ * another answer — the menu leaves a closed point out (`MenuAdapter.resolveContext`)
+ * and checkout refuses it — and it must not come in here: the recount would then
+ * empty every basket of a kitchen at its closing time.
  */
 
 /**
@@ -46,9 +34,9 @@ import {
 export type ProductUnavailableReason =
   | "PRODUCT_DISABLED"
   | "PRODUCT_STOPPED_AT_PLACE"
-  | "PRODUCT_NOT_ENOUGH_AT_PLACE";
-
-export type PlaceUnavailableReason = "PLACE_NOT_SELECTED" | "PLACE_DISABLED" | "PLACE_CLOSED";
+  | "PRODUCT_NOT_ENOUGH_AT_PLACE"
+  /** Every point of the menu is closed now: `MenuAdapter.canAddProduct` only. */
+  | "PLACE_CLOSED";
 
 /**
  * What availability needs to know about a product.
@@ -73,13 +61,6 @@ export interface ProductAvailability {
   reason: ProductUnavailableReason | null;
   /** Effective stock at the point; `-1` is unlimited, `0` is a stop. */
   balance: number;
-}
-
-export interface PlaceAvailability {
-  placeId: string | null;
-  /** The point may take an order at the moment asked about. */
-  open: boolean;
-  reason: PlaceUnavailableReason | null;
 }
 
 /**
@@ -118,35 +99,6 @@ export function evaluateProductAvailability(
   if (balance !== UNLIMITED_BALANCE && amount > balance) return answer("PRODUCT_NOT_ENOUGH_AT_PLACE");
 
   return answer(null);
-}
-
-/**
- * Whether a point can take an order, at a moment.
- *
- * Pure, for the same reason as above: the caller already has the `Place` record.
- * `at` defaults to now; a pre-order asks about the moment it will be cooked, and
- * that is a different answer from the one the clock gives right now.
- */
-export function evaluatePlaceAvailability(place: any, at?: Date): PlaceAvailability {
-  const placeId = place?.id ? String(place.id) : null;
-
-  if (!place) return { placeId: null, open: false, reason: "PLACE_NOT_SELECTED" };
-  if (!isEnabledKitchen(place)) return { placeId, open: false, reason: "PLACE_DISABLED" };
-  if (!placeAcceptsOrdersNow(place, at)) return { placeId, open: false, reason: "PLACE_CLOSED" };
-
-  return { placeId, open: true, reason: null };
-}
-
-/** Reads the point and answers whether it can take an order at `at`. */
-export async function getPlaceAvailability(
-  placeId: string | null | undefined,
-  at?: Date,
-): Promise<PlaceAvailability> {
-  if (!placeId) return { placeId: null, open: false, reason: "PLACE_NOT_SELECTED" };
-  const place = await Place.findOne({ id: String(placeId) });
-  // A point that is gone is not a closed point: it cannot be reopened by waiting.
-  if (!place) return { placeId: String(placeId), open: false, reason: "PLACE_DISABLED" };
-  return evaluatePlaceAvailability(place, at);
 }
 
 /**
