@@ -6,9 +6,9 @@ import { add, checkout, CUSTOMER, deliverTo, lines, newBasket, pickUpAt, thrown 
 /**
  * Switching the service type past the plain moves `service-type` covers: a
  * point that does not serve the type asked for, a point in another city than
- * the address, an RMS stop at the new kitchen, a zone minimum the basket falls
- * under on the way back, a switch after checkout, and what placing the order
- * spends after a switch.
+ * the address, an RMS stop at the new kitchen, a modifier the new kitchen
+ * lacks, a zone minimum the basket falls under on the way back, a switch after
+ * checkout, and what placing the order spends after a switch.
  *
  *   City 1: Kitchen 1 in Zone 1 (delivery 100, minimum 150), Kitchen 2;
  *           Point 2 cooks and takes pickup only, Point 3 cooks and seats only,
@@ -20,6 +20,9 @@ import { add, checkout, CUSTOMER, deliverTo, lines, newBasket, pickUpAt, thrown 
  *   Dish 2     ∞          0          0
  *   Dish 3     5          3          ∞
  *   Dish 4     ∞          RMS: 0     ∞
+ *   Dish 5     ∞          ∞          ∞          offers Modifier 1 and Modifier 2
+ *   Modifier 1 ∞          0          ∞
+ *   Modifier 2 ∞          3          ∞
  */
 describe("Checkout: switching the service type", function () {
   const ZONE_1 = [[9.9, 9.9], [10.05, 9.9], [10.05, 10.1], [9.9, 10.1], [9.9, 9.9]];
@@ -55,9 +58,13 @@ describe("Checkout: switching the service type", function () {
     await DeliveryZone.create({ name: "Zone 1", polygon: ZONE_1, deliveryCost: 100, minDeliveryTime: 30, minOrderTotal: 150 }).fetch();
 
     group1 = (await Group.create({ name: "Group 1", enable: true }).fetch()).id;
-    for (const n of [1, 2, 3, 4]) {
-      d[`dish${n}`] = (await Dish.create({ name: `Dish ${n}`, price: 100, enable: true, parentGroup: group1 }).fetch()).id;
-    }
+    const dish = async (name: string, values: Record<string, unknown> = {}) =>
+      (await Dish.create({ name, price: 100, enable: true, parentGroup: group1, ...values }).fetch()).id;
+    for (const n of [1, 2, 3, 4]) d[`dish${n}`] = await dish(`Dish ${n}`);
+    const group2 = (await Group.create({ name: "Group 2", enable: true }).fetch()).id;
+    d.modifier1 = await dish("Modifier 1", { price: 10, modifier: true, parentGroup: group2 });
+    d.modifier2 = await dish("Modifier 2", { price: 10, modifier: true, parentGroup: group2 });
+    d.dish5 = await dish("Dish 5", { modifiers: [{ id: group2, childModifiers: [{ id: d.modifier1 }, { id: d.modifier2 }] }] });
 
     const rows: Array<[string, string, Record<string, number>]> = [
       [d.dish2, k.kitchen2, { localBalance: 0 }],
@@ -65,6 +72,8 @@ describe("Checkout: switching the service type", function () {
       [d.dish3, k.kitchen1, { localBalance: 5 }],
       [d.dish3, k.kitchen2, { localBalance: 3 }],
       [d.dish4, k.kitchen2, { rmsBalance: 0 }],
+      [d.modifier1, k.kitchen2, { localBalance: 0 }],
+      [d.modifier2, k.kitchen2, { localBalance: 3 }],
     ];
     for (const [dish, place, balance] of rows) await DishPlace.create({ dish, place, ...balance }).fetch();
   });
@@ -77,6 +86,10 @@ describe("Checkout: switching the service type", function () {
     for (const [dish, amount] of extra) await add(id, dish, amount ?? 1);
     return id;
   }
+
+  /** `amount` of Dish 5, each unit with `perUnit` of the modifier. */
+  const addDish5 = (id: string, modifier: string, perUnit: number, amount = 1) =>
+    Order.addDish({ id }, d.dish5, amount, [{ id: modifier, amount: perUnit }] as any, "", "user");
 
   const check = (id: string) => thrown(checkout(id));
 
@@ -147,6 +160,57 @@ describe("Checkout: switching the service type", function () {
     });
   });
 
+  describe("a modifier the new kitchen lacks", function () {
+    /** Dish 1 and `amount` of Dish 5 with `perUnit` of the modifier, delivered: at Kitchen 1. */
+    async function withModifier(modifier: string, perUnit: number, amount = 1): Promise<string> {
+      const id = await atKitchen1();
+      await addDish5(id, modifier, perUnit, amount);
+      return id;
+    }
+
+    it("none of it: the line goes whole, and the customer is told", async function () {
+      const id = await withModifier(d.modifier1, 1);
+
+      const order = await pickUpAt(id, k.kitchen2);
+
+      expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
+      expect(order.message).to.equal("Some products are not available here and were removed: Dish 5");
+    });
+
+    it("less of it: the line is cut to the units it has enough for, the modifier kept", async function () {
+      // Two units, two of Modifier 2 each; Kitchen 2 has three — enough for one.
+      const id = await withModifier(d.modifier2, 2, 2);
+
+      await pickUpAt(id, k.kitchen2);
+
+      const [line] = await OrderDish.find({ order: id, dish: d.dish5 });
+      expect(line.amount).to.equal(1);
+      expect(line.modifiers).to.deep.equal([{ id: d.modifier2, amount: 2 }]);
+    });
+
+    it("cannot be added there, counted over the whole basket", async function () {
+      const id = await atKitchen1();
+      await pickUpAt(id, k.kitchen2);
+
+      expect(await thrown(addDish5(id, d.modifier1, 1))).to.be.instanceOf(Error);
+      await addDish5(id, d.modifier2, 2);
+      // One more unit would take four of the three.
+      expect(await thrown(addDish5(id, d.modifier2, 2))).to.be.instanceOf(Error);
+      expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 5": 1 });
+    });
+
+    it("placing the order spends the modifier's stock at the kitchen", async function () {
+      const id = await atKitchen1();
+      await pickUpAt(id, k.kitchen2);
+      await addDish5(id, d.modifier2, 2);
+      await checkout(id);
+
+      await Order.order({ id });
+
+      expect((await DishPlace.findOne({ dish: d.modifier2, place: k.kitchen2 })).localBalance).to.equal(1);
+    });
+  });
+
   it("back to delivery under the zone minimum: delivery is not allowed and not charged, strict checkout refuses", async function () {
     const id = await atKitchen1([d.dish2]);
     await pickUpAt(id, k.kitchen2);
@@ -170,7 +234,8 @@ describe("Checkout: switching the service type", function () {
     await spend(id);
     expect(await Order.findOne({ id })).to.deep.include({ state: "CHECKOUT", basketTotal: 200, bonusesTotal: 150, total: 150 });
 
-    expect((await pickUpAt(id, k.kitchen2)).state).to.equal("CART");
+    // The recount of the switch already fits the bonuses to the new total.
+    expect(await pickUpAt(id, k.kitchen2)).to.deep.include({ state: "CART", basketTotal: 100, bonusesTotal: 50, total: 50 });
 
     await spend(id);
     expect(await Order.findOne({ id })).to.deep.include({ state: "CHECKOUT", cookingPoints: [k.kitchen2], basketTotal: 100, bonusesTotal: 50, total: 50 });

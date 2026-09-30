@@ -29,7 +29,6 @@ declare let Model: {
     delete(user: UserRecord | string, adapterOrId: string): Promise<void>;
     syncAll(user: UserRecord | string): Promise<void>;
     sync(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<void>;
-    checkEnoughToSpend(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, amount: number): Promise<boolean>;
     sumCurrentBalance(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<number>;
 };
 declare global {
