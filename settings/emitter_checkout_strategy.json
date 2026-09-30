@@ -6,6 +6,6 @@
   "defaultValue": "NOT_REQUIRED",
   "jsonSchema": {
     "type": "string",
-    "enum": ["JUST_ONE", "NOT_REQUIRED", "ALL_REQUIRED"]
+    "enum": ["NOT_REQUIRED", "ALL_REQUIRED"]
   }
 }

@@ -99,7 +99,7 @@ declare global {
     /** Source of the effective stock at a cooking point: local-only | rms-only | minimum */
     DISH_PLACE_BALANCE_MODE: string
     /** Ordered kitchen resolver names; the default asks all of them. Empty leaves delivery orders without a cooking point. */
-    KITCHEN_RESOLVE_CHAIN: string[]
+    KITCHEN_RESOLVE_CHAIN: import("./Menu").KitchenStrategyName[]
     /** Straight-line cap when picking the nearest kitchen; 0 disables the limit. */
     DELIVERY_MAX_RADIUS_KM: number
     /** Which menu adapter is in force: default | single-place, or a name a module registers */
@@ -175,7 +175,7 @@ declare global {
     test_123Test: boolean
     PasswordRegex: string
     PasswordMinLength: string
-    EMITTER_CHECKOUT_STRATEGY: "JUST_ONE" | "NOT_REQUIRED" | "ALL_REQUIRED"
+    EMITTER_CHECKOUT_STRATEGY: "NOT_REQUIRED" | "ALL_REQUIRED"
     /**
      * Strict phone check by mask
      */

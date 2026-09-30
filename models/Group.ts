@@ -49,8 +49,11 @@ let attributes = {
   /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
   isDeleted: "boolean" as unknown as boolean,
 
-  /** System status flag. When false, the group is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
-  enable: "boolean" as unknown as boolean,
+  /** System status flag. When false, the group is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. Off until someone turns it on. */
+  enable: {
+    type: "boolean",
+    defaultsTo: false,
+  } as unknown as boolean,
 
   /** Dishes group name*/
   name: {
@@ -181,7 +184,6 @@ let Model = {
     }
 
     init.visible = init.visible ?? true
-    init.enable = init.enable ?? true
 
     const slugOpts = [];
     if(init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {

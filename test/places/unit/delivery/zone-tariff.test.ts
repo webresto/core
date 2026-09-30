@@ -16,10 +16,11 @@ describe("Delivery zone tariff", function () {
     });
   });
 
-  it("refuses a basket below the zone's minimum order", async function () {
+  it("refuses a basket below the zone's minimum order; the minimum itself is enough", async function () {
     const delivery = await priced({ minOrderTotal: 500 }, 400);
     expect(delivery).to.include({ allowed: false, cost: 0, message: "Minimum order amount: %s" });
     expect(delivery.messageArgs).to.deep.equal(["500"]);
+    expect((await priced({ minOrderTotal: 500 }, 500)).allowed).to.equal(true);
     expect((await priced({ minOrderTotal: 500 }, 600)).allowed).to.equal(true);
   });
 

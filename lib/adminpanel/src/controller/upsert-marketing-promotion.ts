@@ -44,24 +44,13 @@ export default async function UpsertMarketingPromotionController(req: any, res: 
     if (discountAmount < 0) return res.status(400).json({ error: t("Discount amount must be positive") });
     if (discountType === "percentage" && discountAmount > 100) return res.status(400).json({ error: t("Percentage discount cannot exceed 100") });
 
-    // Core's ConfiguredPromotion.applyPromotion discounts an item only when BOTH the dish
-    // and the group check pass (`if (!checkDishes || !checkGroups) continue`), while a flat
-    // whole-cart discount requires both arrays empty. So: empty selection → whole cart; a
-    // single-axis selection gets the other axis filled with "*" ("any") so it actually applies.
-    const dishesSel = stringArray(cd.dishes);
-    const groupsSel = stringArray(cd.groups);
-    let dishes = dishesSel;
-    let groups = groupsSel;
-    if (dishesSel.length || groupsSel.length) {
-      if (dishesSel.length && !groupsSel.length) groups = ["*"];
-      else if (groupsSel.length && !dishesSel.length) dishes = ["*"];
-    }
-
+    // An empty selection is the whole receipt; an axis left empty passes every
+    // product (ConfiguredPromotion.discounts).
     const configDiscount: any = {
       discountType,
       discountAmount,
-      dishes,
-      groups,
+      dishes: stringArray(cd.dishes),
+      groups: stringArray(cd.groups),
     };
     const serviceType = (Array.isArray(cd.serviceType) ? cd.serviceType : []).filter((m: any) => ["delivery", "pickup", "dine-in"].includes(m));
     if (serviceType.length) configDiscount.serviceType = serviceType;

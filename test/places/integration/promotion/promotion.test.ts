@@ -9,8 +9,9 @@ import { add, newBasket } from "../../support/storefront";
  * basket alone, and of several such the one with the lowest `sortOrder` wins.
  * Switching one off takes its discount off at the next recount.
  *
- * A line is discounted when both its product and its group are chosen; `*`
- * chooses all of either.
+ * A line is discounted when it passes both axes, products and groups; an axis
+ * nothing is chosen on, or `*`, passes every product. The same rule lets the
+ * promotion in and picks its lines.
  *
  *   Group 1: Dish 1 at 10.1, Dish 2 at 15.2. Group 2: Dish 3 at 10.
  *   The basket: five Dish 1 and four Dish 2 — 111.3.
@@ -60,6 +61,22 @@ describe("Promotions", function () {
   it("a percentage off every product of the chosen group", async function () {
     await promotion("promotion-1", { discountType: "percentage", discountAmount: 10, dishes: ["*"], groups: [g.group1.id] });
     expect(await discountOf(await basket())).to.equal(11.13);
+  });
+
+  it("products chosen and no group: the chosen products, wherever they are", async function () {
+    await promotion("promotion-1", { discountType: "flat", discountAmount: 1.33, dishes: [d.dish1.id, d.dish2.id] });
+    expect(await discountOf(await basket())).to.equal(11.97);
+  });
+
+  it("a group chosen and no product: every product of the group", async function () {
+    await promotion("promotion-1", { discountType: "percentage", discountAmount: 10, groups: [g.group1.id] });
+    expect(await discountOf(await basket())).to.equal(11.13);
+  });
+
+  it("both chosen: only what passes both", async function () {
+    await promotion("promotion-1", { discountType: "flat", discountAmount: 1, dishes: [d.dish1.id, d.dish3.id], groups: [g.group1.id] });
+    // Dish 1 is in Group 1; Dish 2 is not chosen, Dish 3 not in the group.
+    expect(await discountOf(await basket())).to.equal(5);
   });
 
   it("does nothing for a basket without the chosen products", async function () {

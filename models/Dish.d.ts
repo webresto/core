@@ -81,7 +81,7 @@ declare let attributes: {
     sortOrder: number;
     /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
     isDeleted: boolean;
-    /** System status flag. When false, the item is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
+    /** System status flag. When false, the item is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. Off until someone turns it on. */
     enable: boolean;
     /** The dish can be modified*/
     isModificable: boolean;

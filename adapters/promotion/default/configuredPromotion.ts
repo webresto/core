@@ -82,15 +82,11 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       // TODO:  if order.dishes type number[]
       let orderDishes: OrderDishRecord[] = order.dishes as OrderDishRecord[]
 
-      // Gift-only promotions may have no dishes/groups — guard against null so
-      // condition() returns false cleanly instead of throwing (which would
-      // silently abort the whole promotion batch in processOrder).
-      const configDishes = this.config.dishes ?? []
-      const configGroups = this.config.groups ?? []
-      let checkDishes = orderDishes.map(order => order.dish).some((dish: DishRecord) => configDishes.includes(dish.id)) || configDishes.includes("*")
-      let checkGroups = orderDishes.map(order => order.dish).some((dish: DishRecord) => configGroups.includes(dish.parentGroup)) || configGroups.includes("*")
-      
-      if (checkDishes || checkGroups) {
+      // A promotion that chooses no product and no group is the whole receipt's,
+      // and that is a promotion code's to apply: were it selected here, a code's
+      // promotion would reach every basket. So only a targeted one can be.
+      const targeted = (this.config.dishes ?? []).length > 0 || (this.config.groups ?? []).length > 0;
+      if (targeted && orderDishes.some((orderDish) => this.discounts(orderDish.dish as DishRecord))) {
         if(Array.isArray(this.config.serviceType) && this.config.serviceType.length) {
           if(!this.config.serviceType.includes(order.serviceType ?? "delivery")) {
             return false
@@ -115,6 +111,28 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
 
 
     return false
+  }
+
+  /**
+   * Whether this promotion discounts a line of this product. The one rule for
+   * both questions — may the promotion apply to a basket (`condition`), and
+   * which lines it discounts (`applyPromotion`) — so a promotion is never let
+   * in to discount nothing.
+   *
+   * Products and groups are two axes, and a line has to pass both; an axis
+   * nothing is chosen on, or `*`, passes every product. Concept and exclusions
+   * are asked first.
+   */
+  private discounts(dish: DishRecord): boolean {
+    if (!dish || typeof dish !== "object") return false;
+    if (this.concept[0] !== undefined && this.concept[0] !== "" && !someInArray(dish.concept ?? "", this.concept)) return false;
+
+    const has = (list: string[] | null | undefined, value: unknown) => !!list?.includes(value as string);
+    if (has(this.config.exclude?.dishes, dish.id) || has(this.config.exclude?.groups, dish.parentGroup)) return false;
+
+    const passes = (chosen: string[] | null | undefined, value: unknown) =>
+      !chosen?.length || has(chosen, "*") || has(chosen, value);
+    return passes(this.config.dishes, dish.id) && passes(this.config.groups, dish.parentGroup);
   }
 
   public async action(order: OrderRecord): Promise<PromotionState> {
@@ -229,23 +247,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
           continue;
         }
 
-        if ((this.concept[0] === undefined || this.concept[0] === "") ?
-          false : !someInArray(orderDish.dish.concept, this.concept)) {
-          continue;
-        }
-
-        let excludeDishes = this.config.exclude?.dishes || []
-        let excludeGroups = this.config.exclude?.groups || []
-
-        if(excludeDishes.includes(orderDish.dish.id)) continue
-        if(excludeGroups.includes(orderDish.dish.parentGroup)) continue
-
-        let checkDishes = someInArray(orderDish.dish.id, this.config.dishes) || this.config.dishes.includes("*")
-        let checkGroups = someInArray(orderDish.dish.parentGroup, this.config.groups) || this.config.groups.includes("*")
-
-
-
-        if (!checkDishes || !checkGroups) continue
+        if (!this.discounts(orderDish.dish)) continue
 
         let itemTotalBeforeDiscount = orderDish.itemTotal;
         

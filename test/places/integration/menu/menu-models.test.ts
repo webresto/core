@@ -79,6 +79,13 @@ describe("Menu models", function () {
       expect(await Group.getGroupBySlug("slug-9").catch((error: unknown) => String(error))).to.contain("not found");
     });
 
+    it("a product and a group created without `enable` are off", async function () {
+      const group = await Group.create({ name: "Group 4" }).fetch();
+      const dish = await Dish.create({ name: "Dish 6", price: 100, parentGroup: group.id }).fetch();
+
+      expect([group.enable, dish.enable]).to.deep.equal([false, false]);
+    });
+
     it("Group.createOrUpdate updates the group with the same id", async function () {
       const updated = await Group.createOrUpdate({ ...(await Group.findOne({ id: g.group2.id })), name: "Group 2 renamed" });
       expect(updated).to.include({ id: g.group2.id, name: "Group 2 renamed" });

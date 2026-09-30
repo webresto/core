@@ -104,7 +104,7 @@ export async function applyZone(
     };
   }
 
-  if (basketTotal <= (zone.minOrderTotal ?? 0)) {
+  if (basketTotal < (zone.minOrderTotal ?? 0)) {
     return {
       allowed: false,
       deliveryTimeMinutes: zone.minDeliveryTime ?? null,

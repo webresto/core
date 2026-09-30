@@ -69,6 +69,17 @@ describe("Checkout: check and order", function () {
       expect(await check(id, null)).to.deep.include({ code: 2, error: "customer is required" });
     });
 
+    it("NAME_REGEX: a name that matches passes, one that does not is refused", async function () {
+      // Not `withSettings`: it would put back `undefined`, which `set` does not write.
+      await Settings.set("NAME_REGEX", { value: "^[A-Za-z ]+$" });
+      try {
+        expect(await check(await pickupBasket(), { ...CUSTOMER, name: "Customer" }, "pickup")).to.equal(null);
+        expect(await check(await pickupBasket(), { ...CUSTOMER, name: "Customer 1" }, "pickup")).to.deep.equal({ code: 3, error: "customer.name is invalid" });
+      } finally {
+        await Settings.set("NAME_REGEX", { value: "" });
+      }
+    });
+
     it("given once, is kept for the next check", async function () {
       const id = await pickupBasket();
       await check(id, CUSTOMER, "pickup");
@@ -218,6 +229,11 @@ describe("Checkout: check and order", function () {
 
       expect(await check(id, CUSTOMER, "pickup")).to.equal(null);
       expect(await state(id)).to.equal("CHECKOUT");
+    });
+
+    it("there is no JUST_ONE: the setting keeps what it had", async function () {
+      await Settings.set("EMITTER_CHECKOUT_STRATEGY", { value: "JUST_ONE" } as any);
+      expect(await Settings.get("EMITTER_CHECKOUT_STRATEGY")).to.equal("NOT_REQUIRED");
     });
 
     it("ALL_REQUIRED: a subscriber that fails the check stops it", async function () {

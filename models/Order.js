@@ -962,25 +962,20 @@ let Model = {
                 }
                 return;
             }
-            else if (checkConfig === "ALL_REQUIRED") {
-                let error;
-                // Find error reason
-                results.forEach(result => {
-                    if (result.state === 'error' && result.error) {
-                        sails.log.error(`Order > core:order-check error: ${result.error}`);
-                        sails.log.error(result);
-                        error = result.error;
-                    }
-                });
-                throw {
-                    code: 0,
-                    error: `one or more results from core:order-check was not succeed\n last error: ${error}`,
-                };
-            }
-            else {
-                // Todo: implement logic for "JUST_ONE"
-            }
-            await Order.log({ id: order.id }, "info", "core", "check: completed");
+            // ALL_REQUIRED, and a subscriber did not succeed.
+            let error;
+            // Find error reason
+            results.forEach(result => {
+                if (result.state === 'error' && result.error) {
+                    sails.log.error(`Order > core:order-check error: ${result.error}`);
+                    sails.log.error(result);
+                    error = result.error;
+                }
+            });
+            throw {
+                code: 0,
+                error: `one or more results from core:order-check was not succeed\n last error: ${error}`,
+            };
         }
         catch (error) {
             try {
@@ -1001,12 +996,6 @@ let Model = {
             });
             throw error;
         }
-        /**
-         * Here, there should be the logic of the success of at least one listener, but
-         * At the moment, no practical application was found.
-         *
-         * if (checkconfig.justone) ...
-         */
     },
     ////////////////////////////////////////////////////////////////////////////////////
     /** Basket design*/
@@ -2361,7 +2350,7 @@ async function checkCustomerInfo(customer) {
     }
     const nameRegex = await Settings.get("NAME_REGEX");
     if (nameRegex) {
-        if (!nameRegex.match(customer.name)) {
+        if (!new RegExp(nameRegex).test(customer.name)) {
             throw {
                 code: 3,
                 error: "customer.name is invalid",

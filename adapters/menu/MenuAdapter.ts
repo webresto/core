@@ -309,7 +309,9 @@ export default abstract class MenuAdapter {
       return { placeId: pickupPointId, strategy: "pickup-point", diagnostics };
     }
 
-    const chain = await kitchenResolveChain();
+    // The manifest's schema admits only known names, each once. `undefined` is
+    // an environment value the schema refused.
+    const chain = (await Settings.get("KITCHEN_RESOLVE_CHAIN")) ?? [];
     if (!chain.length) {
       diagnostics.push("KITCHEN_RESOLVE_CHAIN is empty, no cooking point is assigned");
       return { placeId: null, strategy: null, diagnostics };
@@ -518,23 +520,3 @@ const strategies: Record<KitchenStrategyName, KitchenStrategy> = {
   "nearest-geo": nearestGeo,
   "single-point": singlePoint,
 };
-
-/** The configured chain, tolerant of a setting that holds something else. */
-async function kitchenResolveChain(): Promise<KitchenStrategyName[]> {
-  const configured = await Settings.get("KITCHEN_RESOLVE_CHAIN");
-  if (!Array.isArray(configured)) return [];
-
-  const chain: KitchenStrategyName[] = [];
-  for (const entry of configured) {
-    const name = typeof entry === "string" ? entry.trim() : "";
-    if (!name) continue;
-    if (!Object.prototype.hasOwnProperty.call(strategies, name)) {
-      sails.log.warn(`KITCHEN_RESOLVE_CHAIN contains unknown strategy "${name}", ignoring it`);
-      continue;
-    }
-    // A repeated strategy would ask the same question twice and get the same
-    // answer, so the first mention is the only one that matters.
-    if (!chain.includes(name as KitchenStrategyName)) chain.push(name as KitchenStrategyName);
-  }
-  return chain;
-}

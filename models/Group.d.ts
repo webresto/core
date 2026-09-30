@@ -20,7 +20,7 @@ declare let attributes: {
     description: string;
     /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
     isDeleted: boolean;
-    /** System status flag. When false, the group is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
+    /** System status flag. When false, the group is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. Off until someone turns it on. */
     enable: boolean;
     /** Dishes group name*/
     name: string;

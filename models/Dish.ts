@@ -196,8 +196,11 @@ let attributes = {
   /** Soft deletion flag. Indicates the item has been removed from the external RMS system. */
   isDeleted: "boolean" as unknown as boolean,
 
-  /** System status flag. When false, the item is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
-  enable: "boolean" as unknown as boolean,
+  /** System status flag. When false, the item is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. Off until someone turns it on. */
+  enable: {
+    type: "boolean",
+    defaultsTo: false,
+  } as unknown as boolean,
 
   /** The dish can be modified*/
   isModificable: "boolean" as unknown as boolean,
@@ -304,7 +307,6 @@ let Model = {
 
     if (!init.modifiers) init.modifiers = []
     if (init.visible === undefined) init.visible = true;
-    if (init.enable === undefined) init.enable = true;
 
     if(init.notForSale === undefined) init.notForSale = false;
 
