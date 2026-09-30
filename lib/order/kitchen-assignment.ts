@@ -70,6 +70,7 @@ export async function assignOrderCookingPlace(order: OrderRecord): Promise<Cooki
     coordinate,
     pickupPointId: toPlaceId(order.pickupPoint),
     serviceType: order.serviceType,
+    city: order.address?.city ?? null,
   });
 
   return {

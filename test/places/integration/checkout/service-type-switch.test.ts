@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { resetDatabase, withSettings } from "../../support/reset";
 import { startBonusSystem, TestBonusSystem } from "../../support/bonus";
-import { add, checkout, CUSTOMER, deliverTo, lines, newBasket, pickUpAt, thrown } from "../../support/storefront";
+import { add, checkout, CUSTOMER, deliverTo, lines, newBasket, pickUpAt, thrown, dropped } from "../../support/storefront";
 
 /**
  * Switching the service type past the plain moves `service-type` covers: a
@@ -138,7 +138,7 @@ describe("Checkout: switching the service type", function () {
 
     expect(order.cookingPoints).to.deep.equal([k.kitchen3]);
     expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-    expect(order.message).to.equal("Some products are not available here and were removed: Dish 2");
+    expect(order).to.deep.include(dropped("Dish 2"));
     expect(order.delivery).to.equal(null);
     expect(await menuOf(id)).to.not.include("Dish 2");
     expect(await check(id)).to.equal(null);
@@ -149,7 +149,7 @@ describe("Checkout: switching the service type", function () {
     const order = await pickUpAt(id, k.kitchen2);
 
     expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-    expect(order.message).to.equal("Some products are not available here and were removed: Dish 4");
+    expect(order).to.deep.include(dropped("Dish 4"));
     expect(await menuOf(id)).to.not.include("Dish 4");
 
     await withSettings({ DISH_PLACE_BALANCE_MODE: "local-only" }, async () => {
@@ -174,7 +174,7 @@ describe("Checkout: switching the service type", function () {
       const order = await pickUpAt(id, k.kitchen2);
 
       expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-      expect(order.message).to.equal("Some products are not available here and were removed: Dish 5");
+      expect(order).to.deep.include(dropped("Dish 5"));
     });
 
     it("less of it: the line is cut to the units it has enough for, the modifier kept", async function () {

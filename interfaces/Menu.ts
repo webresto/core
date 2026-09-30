@@ -125,6 +125,13 @@ export interface KitchenResolveRequest {
   pickupPointId?: string | null;
   /** Defaults to delivery: a bare coordinate has no order and no service type. */
   serviceType?: ServiceType;
+  /**
+   * The address's city, by name or id. A delivery is cooked in it and nowhere
+   * else: every strategy chooses among its kitchens only, and a city with none
+   * open gives no kitchen. Without one — a bare coordinate — kitchens of every
+   * city are candidates.
+   */
+  city?: string | null;
 }
 
 export interface KitchenResolution {

@@ -310,7 +310,16 @@ let attributes = {
     type: "json"
   } as unknown as Delivery | null,
 
+  /**
+   * What the last recount has to tell the customer: a translation key, with
+   * `%s` filled from `messageArgs`. Core does not know the reader's language;
+   * GraphQL translates on the way out, as it does `Delivery.message`.
+   */
   message: "string",
+
+  messageArgs: {
+    type: "json",
+  } as unknown as string[] | null,
 
   /** order total weight */
   totalWeight: {
@@ -1684,6 +1693,7 @@ let Model = {
       // lost a product says so once, in the response that lost it, and the next
       // recount starts silent. Left alone it would be repeated on every response.
       order.message = "";
+      order.messageArgs = [];
 
 
 
@@ -1985,10 +1995,8 @@ let Model = {
        * worth one sentence, not a fight over one field.
        */
       if (droppedProducts.length) {
-        order.message = sails.__(
-          "Some products are not available here and were removed: %s",
-          droppedProducts.join(", "),
-        );
+        order.message = "Some products are not available here and were removed: %s";
+        order.messageArgs = [droppedProducts.join(", ")];
         await Order.log({id: order.id}, "info", "core", KITCHEN_LOG.dropped, {
           placeId: kitchen.placeId,
           previousPlaceId: kitchen.previousPlaceId,

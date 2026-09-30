@@ -192,6 +192,37 @@ describe("Kitchen resolver", function () {
     });
   });
 
+  describe("the address's city", function () {
+    const ALL = ["delivery-zone", "nearest-geo", "single-point"];
+
+    it("keeps a delivery in its city: the nearest kitchen of another city is never chosen", async function () {
+      await chain(ALL, async () => {
+        // Next to Kitchen 3, but the address is in City 1.
+        const resolution = await resolve({ coordinate: { lat: 57.1551, lon: 65.5319 }, city: "City 1" });
+        expect([k.kitchen1, k.kitchen2]).to.include(resolution.placeId);
+      }, { DELIVERY_MAX_RADIUS_KM: 0 });
+    });
+
+    it("a city with no enabled kitchen gives no kitchen, whatever the other cities have", async function () {
+      await only(k.kitchen3);
+      await chain(ALL, async () => {
+        const resolution = await resolve({ coordinate: { lat: 56.9, lon: 60.61 }, city: "City 1" });
+        expect(resolution.placeId).to.equal(null);
+        expect(resolution.diagnostics.join(" ")).to.contain("single-point: 0 enabled kitchens");
+      }, { DELIVERY_MAX_RADIUS_KM: 0 });
+    });
+
+    it("single-point names the only kitchen of the city, by name or id; an unknown city — none", async function () {
+      const city2 = String((await Place.findOne({ id: k.kitchen3 })).city);
+      await chain(["single-point"], async () => {
+        expect((await resolve({ city: "City 2" })).placeId).to.equal(k.kitchen3);
+        expect((await resolve({ city: city2 })).placeId).to.equal(k.kitchen3);
+        expect((await resolve({ city: "City 1" })).placeId).to.equal(null);
+        expect((await resolve({ city: "City 9" })).placeId).to.equal(null);
+      });
+    });
+  });
+
   describe("pickup and dine-in", function () {
     it("are cooked at the point the customer chose, whatever the chain, an empty one included", async function () {
       await chain([], async () => {

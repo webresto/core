@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { KITCHEN_LOG } from "../../../../lib/order/kitchen-assignment";
 import { resetDatabase, withSettings } from "../../support/reset";
-import { add, deliverTo, lines, newBasket, thrown, updateOrder } from "../../support/storefront";
+import { add, deliverTo, lines, newBasket, thrown, updateOrder, dropped } from "../../support/storefront";
 
 /**
  * A basket that has no kitchen yet takes only what every kitchen it could end
@@ -80,18 +80,21 @@ describe("Basket before a kitchen", function () {
     expect((await Order.findOne({ id })).cookingPoints).to.deep.equal([]);
   });
 
-  it("switching the city without an address drops what the new city lacks, and says so; no kitchen changed", async function () {
+  it("switching the city without an address drops what the new city lacks, and says so", async function () {
     const id = await newBasket();
     await add(id, d.dish1);
     await inCity(id, "City 1");
+    // Two kitchens and no coordinate: nothing to choose by.
+    expect((await Order.findOne({ id })).cookingPoints).to.deep.equal([]);
     await add(id, d.dish3);
 
     const order = await inCity(id, "City 2");
 
     expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-    expect(order.message).to.equal("Some products are not available here and were removed: Dish 3");
+    expect(order).to.deep.include(dropped("Dish 3"));
     expect((await Order.getLogs({ id })).filter((entry) => entry.message === KITCHEN_LOG.dropped)).to.have.length(1);
-    expect(moved).to.deep.equal([]);
+    // City 2 has one kitchen, and `single-point` names it without a coordinate.
+    expect(order.cookingPoints).to.deep.equal([k.kitchen3]);
   });
 
   it("an address with no coordinate still reads the basket at every kitchen of its city", async function () {

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { getEffectiveBalanceAcross } from "../../../../lib/menu/product-availability";
 import { resetDatabase } from "../../support/reset";
-import { add, checkout, deliverTo, lines, newBasket, pickUpAt, thrown } from "../../support/storefront";
+import { add, checkout, deliverTo, lines, newBasket, pickUpAt, thrown, dropped } from "../../support/storefront";
 
 /**
  * Pickup and dine-in: the point the customer chose is the kitchen, whatever the
@@ -21,7 +21,6 @@ import { add, checkout, deliverTo, lines, newBasket, pickUpAt, thrown } from "..
 describe("Checkout: service type", function () {
   const ZONE_1 = [[9.9, 9.9], [10.05, 9.9], [10.05, 10.1], [9.9, 10.1], [9.9, 9.9]];
   const IN_ZONE_1 = { city: "City 1", formatted: "Street 1", home: "1", coordinate: { lat: 10.0, lon: 10.01 } };
-  const DROPPED = "Some products are not available here and were removed: Dish 2";
   /** Unlimited, as the menu reports it. */
   const ANY = -1;
 
@@ -108,7 +107,7 @@ describe("Checkout: service type", function () {
 
     expect(order.cookingPoints).to.deep.equal([kitchen2]);
     expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-    expect(order.message).to.equal(DROPPED);
+    expect(order).to.deep.include(dropped("Dish 2"));
     expect(order.delivery).to.equal(null);
     expect(await check(id)).to.equal(null);
   });
@@ -144,7 +143,7 @@ describe("Checkout: service type", function () {
 
     expect(order.cookingPoints).to.deep.equal([kitchen2]);
     expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-    expect(order.message).to.equal(DROPPED);
+    expect(order).to.deep.include(dropped("Dish 2"));
   });
 
   it("a pickup point that does not cook gives no kitchen, keeps what every kitchen of the city has, and is refused", async function () {
@@ -200,7 +199,7 @@ describe("Checkout: service type", function () {
     const order = await pickUpAt(fromDelivery, kitchen2, "dine-in");
     expect(order.cookingPoints).to.deep.equal([kitchen2]);
     expect(await lines(fromDelivery)).to.deep.equal({ "Dish 1": 1 });
-    expect(order.message).to.equal(DROPPED);
+    expect(order).to.deep.include(dropped("Dish 2"));
     expect(order.delivery).to.equal(null);
     expect(await check(fromDelivery)).to.equal(null);
 

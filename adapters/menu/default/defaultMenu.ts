@@ -44,7 +44,10 @@ export class DefaultMenuAdapter extends MenuAdapter {
     // through `resolveCookingPlace` and its `KITCHEN_RESOLVE_CHAIN`, because the
     // menu shown before an order and the kitchen chosen for it have to agree.
     if (!placeRequired && request?.coordinate) {
-      const resolution = await this.resolveCookingPlace({ coordinate: request.coordinate });
+      const resolution = await this.resolveCookingPlace({
+        coordinate: request.coordinate,
+        city: request.order?.address?.city ?? null,
+      });
       if (resolution.placeId) {
         return {
           placeIds: [resolution.placeId],

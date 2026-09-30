@@ -5,6 +5,7 @@ import {
   getProductsAvailability,
 } from "../../lib/menu/product-availability";
 import {
+  findCityId,
   getEnabledCookingPlaceIds,
   getOrderCityKitchenIds,
   isEnabledKitchen,
@@ -329,9 +330,17 @@ export default abstract class MenuAdapter {
       return { placeId: null, strategy: null, diagnostics };
     }
 
+    // A delivery is cooked in the address's city and nowhere else.
+    let inCity: InCity = () => true;
+    if (request.city) {
+      const cityId = await findCityId(request.city);
+      inCity = (place) => cityId !== null && toPlaceId(place?.city) === cityId;
+      diagnostics.push(cityId ? `kitchens of city ${cityId} only` : `city "${request.city}" is unknown: no kitchen`);
+    }
+
     for (const name of chain) {
       try {
-        const outcome = await strategies[name](request, diagnostics);
+        const outcome = await strategies[name](request, diagnostics, inCity);
         if (outcome.kind === "resolved") {
           return { placeId: outcome.placeId, strategy: name, diagnostics };
         }
@@ -385,9 +394,13 @@ type StrategyOutcome =
 
 const PASS: StrategyOutcome = { kind: "pass" };
 
+/** Whether a place is in the city the delivery is for (`KitchenResolveRequest.city`). */
+type InCity = (place: any) => boolean;
+
 type KitchenStrategy = (
   request: KitchenResolveRequest,
   diagnostics: string[],
+  inCity: InCity,
 ) => Promise<StrategyOutcome>;
 
 /**
@@ -399,7 +412,7 @@ type KitchenStrategy = (
  * is merely down must not decide where an order is cooked in either direction,
  * so a failure is a pass and never a refusal.
  */
-const rms: KitchenStrategy = async (request, diagnostics) => {
+const rms: KitchenStrategy = async (request, diagnostics, inCity) => {
   let rmsId: string | null = null;
 
   try {
@@ -416,8 +429,8 @@ const rms: KitchenStrategy = async (request, diagnostics) => {
   }
 
   const place = (await Place.find({})).find((candidate: any) => candidate?.rmsId === rmsId);
-  if (!place || !isEnabledKitchen(place)) {
-    diagnostics.push(`rms: terminal "${rmsId}" maps to no enabled kitchen`);
+  if (!place || !isEnabledKitchen(place) || !inCity(place)) {
+    diagnostics.push(`rms: terminal "${rmsId}" maps to no enabled kitchen of the city`);
     return PASS;
   }
 
@@ -425,11 +438,11 @@ const rms: KitchenStrategy = async (request, diagnostics) => {
   return { kind: "resolved", placeId: String(place.id) };
 };
 
-/** Open kitchens with a usable coordinate: what the geographic strategies choose between. */
-async function openKitchensWithCoordinate(): Promise<Array<{ id: string; coordinate: { lat: number; lon: number } }>> {
+/** Open kitchens of the city with a usable coordinate: what the geographic strategies choose between. */
+async function openKitchensWithCoordinate(inCity: InCity): Promise<Array<{ id: string; coordinate: { lat: number; lon: number } }>> {
   const kitchens: Array<{ id: string; coordinate: { lat: number; lon: number } }> = [];
   for (const place of await Place.find({})) {
-    if (!placeAcceptsOrdersNow(place)) continue;
+    if (!placeAcceptsOrdersNow(place) || !inCity(place)) continue;
     const at = (place as any).coordinate;
     if (!at || typeof at.lat !== "number" || typeof at.lon !== "number") continue;
     kitchens.push({ id: String(place.id), coordinate: at });
@@ -445,7 +458,7 @@ async function openKitchensWithCoordinate(): Promise<Array<{ id: string; coordin
  * cap here — the polygon is the boundary. Worktime is checked, as in
  * `nearest-geo`: this is choosing between kitchens.
  */
-const deliveryZone: KitchenStrategy = async (request, diagnostics) => {
+const deliveryZone: KitchenStrategy = async (request, diagnostics, inCity) => {
   const coordinate = request.coordinate;
   if (!coordinate) {
     diagnostics.push("delivery-zone: the address has no coordinate");
@@ -456,7 +469,7 @@ const deliveryZone: KitchenStrategy = async (request, diagnostics) => {
   let placeId: string | null = null;
   try {
     const adapter = await Adapter.get("delivery");
-    placeId = await adapter.resolvePlaceForCoordinate(coordinate, await openKitchensWithCoordinate(), adapterDiagnostics);
+    placeId = await adapter.resolvePlaceForCoordinate(coordinate, await openKitchensWithCoordinate(inCity), adapterDiagnostics);
   } catch (error) {
     diagnostics.push(`delivery-zone: delivery adapter failed (${error instanceof Error ? error.message : String(error)})`);
     return PASS;
@@ -478,7 +491,7 @@ const deliveryZone: KitchenStrategy = async (request, diagnostics) => {
  * Unlike `single-point` this one does check worktime, because it is choosing
  * between kitchens rather than describing the only one there is.
  */
-const nearestGeo: KitchenStrategy = async (request, diagnostics) => {
+const nearestGeo: KitchenStrategy = async (request, diagnostics, inCity) => {
   const coordinate = request.coordinate;
   if (!coordinate) {
     diagnostics.push("nearest-geo: the address has no coordinate");
@@ -494,7 +507,7 @@ const nearestGeo: KitchenStrategy = async (request, diagnostics) => {
   try {
     const adapter = await Adapter.get("delivery");
 
-    for (const { id, coordinate: at } of await openKitchensWithCoordinate()) {
+    for (const { id, coordinate: at } of await openKitchensWithCoordinate(inCity)) {
       const estimate = await adapter.estimateTravel(at, coordinate);
       if (!estimate) {
         diagnostics.push(`nearest-geo: ${id} not estimated`);
@@ -531,15 +544,19 @@ const nearestGeo: KitchenStrategy = async (request, diagnostics) => {
 };
 
 /**
- * The kitchen of an installation that has exactly one enabled kitchen. Needs no
- * coordinate: with one kitchen there is nothing to choose between.
+ * The kitchen of a city — or, without one, of an installation — that has exactly
+ * one enabled kitchen. Needs no coordinate: with one kitchen there is nothing to
+ * choose between.
  *
  * It deliberately does not check worktime. It describes the only kitchen there
  * is rather than choosing between kitchens; whether the installation takes
  * orders now is `WORK_TIME`'s question.
  */
-const singlePoint: KitchenStrategy = async (_request, diagnostics) => {
-  const kitchens = await getEnabledCookingPlaceIds();
+const singlePoint: KitchenStrategy = async (_request, diagnostics, inCity) => {
+  // Cast because core types these globals as possibly undefined.
+  const kitchens = ((await (Place as any).find({})) as any[])
+    .filter((place: any) => isEnabledKitchen(place) && inCity(place))
+    .map((place: any) => String(place.id));
   if (kitchens.length !== 1) {
     diagnostics.push(`single-point: ${kitchens.length} enabled kitchens, not exactly one`);
     return PASS;

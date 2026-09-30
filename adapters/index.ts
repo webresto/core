@@ -28,6 +28,11 @@ export type { AuthFlowKind, NormalizedProfile } from "./auth/AuthAdapter";
 export type { ResolvedCaptcha } from "./captcha/CaptchaAdapter";
 // Core's boot starts what its own delivery adapter keeps running.
 export { startDefaultDelivery } from "./delivery/default/start";
+// The default adapters' "from a file" imports — the admin panel's buttons, and
+// a stand seed that builds the same catalog without an operator.
+export { parseGeoJson } from "./delivery/default/geojson";
+export { importLocalZones } from "./delivery/default/zone-import";
+export { importAddresses } from "./geo/default/address-import";
 
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 

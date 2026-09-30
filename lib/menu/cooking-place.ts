@@ -123,17 +123,25 @@ export function placeAcceptsOrdersNow(place: any, at?: Date): boolean {
 export async function getOrderCityKitchenIds(
   order: { address?: { city?: string | null } | null } | null | undefined,
 ): Promise<string[]> {
-  const named = typeof order?.address?.city === "string" ? order.address.city.trim() : "";
-  if (!named) return [];
+  const cityId = await findCityId(order?.address?.city);
+  if (!cityId) return [];
 
   // Cast because core types these globals as possibly undefined; the ORM is up
   // long before a menu is read.
-  const city = ((await (City as any).find({})) as any[]).find((row) => row.id === named || row.name === named);
-  if (!city) return [];
-
   return ((await (Place as any).find({})) as any[])
-    .filter((place: any) => isEnabledKitchen(place) && toPlaceId(place.city) === String(city.id))
+    .filter((place: any) => isEnabledKitchen(place) && toPlaceId(place.city) === cityId)
     .map((place: any) => String(place.id));
+}
+
+/**
+ * The id of the city an address names — by name (the geocoder reads it as
+ * text) or by id. `null` when it names none or one nobody has.
+ */
+export async function findCityId(named: string | null | undefined): Promise<string | null> {
+  const value = typeof named === "string" ? named.trim() : "";
+  if (!value) return null;
+  const city = ((await (City as any).find({})) as any[]).find((row) => row.id === value || row.name === value);
+  return city ? String(city.id) : null;
 }
 
 /**
