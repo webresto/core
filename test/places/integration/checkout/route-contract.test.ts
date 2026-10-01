@@ -3,7 +3,7 @@ import { DefaultMenuAdapter } from "../../../../adapters/menu/default/defaultMen
 import { getProductAvailability } from "../../../../lib/menu/product-availability";
 import { primaryCookingPoint } from "../../../../lib/menu/cooking-place";
 import { resetDatabase, withSettings } from "../../support/reset";
-import { add, checkout, deliverTo, lines, newBasket, pickUpAt, thrown, updateOrder, dropped } from "../../support/storefront";
+import { add, checkout, deliverTo, lines, newBasket, pickUpAt, thrown, updateOrder } from "../../support/storefront";
 
 /**
  * The route contract: core ships no router, but a menu adapter may split an
@@ -126,7 +126,7 @@ describe("Checkout: route contract", function () {
 
       expect(order.cookingPoints).to.deep.equal([kitchen2]);
       expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-      expect(order).to.deep.include(dropped("Dish 2"));
+      expect(order.message).to.equal("Some products are not available here and were removed: Dish 2");
     });
   });
 

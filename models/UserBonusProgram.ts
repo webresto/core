@@ -165,6 +165,75 @@ let Model = {
     }
   },
 
+
+  async checkEnoughToSpend(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, amount: number): Promise<boolean> {
+    // If Bonus program not active, should stop
+    try {
+
+      if(typeof user === "string") {
+        user = await User.findOne({id: user})
+      }
+
+      if(typeof bonusProgram === "string") {
+        bonusProgram = await BonusProgram.findOne({id: bonusProgram})
+      }
+
+      if(!user || !bonusProgram){
+        throw `User or BonusProgram not found: user: ${user.login} bonusProgram: ${bonusProgram}`
+      }
+
+      const bonusProgramAdapterExist = await BonusProgram.isAlive(bonusProgram.adapter);
+      if (!bonusProgramAdapterExist) throw `No BonusProgram ${bonusProgram.adapter} exist`
+
+      // Sync force before spend
+      await UserBonusProgram.sync(user, bonusProgram);
+
+      const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
+      if(!userBonusProgram) {
+        throw `UserBonusProgram not found: user: ${user.login} bonusProgram: ${bonusProgram}`
+      }
+
+
+
+      let adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
+      if (!adapter) throw `No adapter ${bonusProgram.adapter}`
+      const externalBalance = new Decimal((await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
+
+      const userBalance = new Decimal(userBonusProgram.balance);
+
+      /**
+       * ok if all is ok
+       */
+
+      if(userBalance.equals(externalBalance) && userBalance.greaterThanOrEqualTo(externalBalance)) {
+        return true
+
+        /**
+         * Stop bonus program when balance not matched
+         */
+      } else if(!userBalance.equals(externalBalance) && (await Settings.get("DISABLE_USER_BONUS_PROGRAM_ON_FAIL")) === true) {
+        sails.log.error(`User [${user.login}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] `)
+        await UserBonusProgram.update({id: userBonusProgram.id }, {isActive: false}).fetch();
+        return false
+
+        /**
+         * Only external system check balance
+         */
+      } else if(externalBalance.greaterThanOrEqualTo(amount) && (await Settings.get("ONLY_EXTERNAL_BONUS_SPEND_CHECK")) === true){
+        return true
+      } else if(externalBalance.greaterThanOrEqualTo(amount) && userBalance.greaterThanOrEqualTo(amount) ) {
+        sails.log.error(`User [${user.login}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] but greater than ${amount} politic: "ONLY_EXTERNAL_BONUS_SPEND_CHECK"`)
+        return true
+      }
+      return false
+    } catch (error) {
+      sails.log.error(error);
+      throw error
+    }
+    // check here and outside
+    // issue a warning if it doesn't match and disable the bonus program
+
+  },
   // Define the recalculateBalance method
   async sumCurrentBalance(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<number> {
 

@@ -311,15 +311,11 @@ let attributes = {
   } as unknown as Delivery | null,
 
   /**
-   * What the last recount has to tell the customer: a translation key, with
-   * `%s` filled from `messageArgs`. Core does not know the reader's language;
-   * GraphQL translates on the way out, as it does `Delivery.message`.
+   * @deprecated What the last recount has to tell the customer, translated by
+   * core into the site's language.
+   * TODO: move to DialogBox.
    */
   message: "string",
-
-  messageArgs: {
-    type: "json",
-  } as unknown as string[] | null,
 
   /** order total weight */
   totalWeight: {
@@ -1066,20 +1062,6 @@ let Model = {
       }
 
 
-      // The bonuses the form asks to spend. Only the request is written here:
-      // what they cover is the recount's to say, every time the basket changes.
-      // A form without them takes back what an earlier checkout asked.
-      if (order.user && spendBonus?.bonusProgramId && spendBonus.amount > 0) {
-        const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
-        order.spendBonus = {
-          ...spendBonus,
-          adapter: bonusProgram.adapter,
-          amount: parseFloat(new Decimal(spendBonus.amount).toFixed(bonusProgram.decimals)),
-        };
-      } else {
-        order.spendBonus = null;
-      }
-
       // Custom emitters checks
       const results = await Order.emitAndLog({id: order.id}, "core:order-check", order, customer, order.serviceType, address, paymentMethodId);
 
@@ -1128,19 +1110,66 @@ let Model = {
         };
       }
 
-      // The recount has said what the bonuses cover; the customer has to have
-      // that many. Asked of the external system, which keeps the balance.
-      const { bonusesTotal, spendBonus: spent } = order;
-      if (bonusesTotal && spent?.adapter) {
-        const user = await User.findOne({ id: order.user as string });
-        const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: spent.bonusProgramId });
-        const adapter = await BonusProgram.getAdapter(spent.adapter);
-        const balance = userBonusProgram ? await adapter.getBalance(user, userBonusProgram) : 0;
-        if (new Decimal(balance).lessThan(bonusesTotal)) {
+      /**
+       *  Bonus spending
+       * */
+      if (order.user && typeof order.user === "string" && spendBonus && spendBonus.bonusProgramId) {
+        if (spendBonus.amount < 0) {
+          spendBonus.amount = 0;
+        }
+
+        if (spendBonus.amount === 0) {
+          order.spendBonus = null;
+          order.bonusesTotal = 0;
+        } else {
+
+        // load bonus strategy
+        let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
+        // Fetch the bonus program for this bonus spend
+        const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+        spendBonus.adapter = bonusProgram.adapter;
+        spendBonus.amount = parseFloat(new Decimal(spendBonus.amount).toFixed(bonusProgram.decimals))
+
+        // TODO: rewrite for Decimal.js
+        let amountToDeduct = 0;
+        switch (bonusSpendingStrategy) {
+          case 'bonus_from_order_total':
+            amountToDeduct = order.total;
+            break;
+          case 'bonus_from_basket_delivery_discount':
+            amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0) - order.discountTotal;
+            break;
+          case 'bonus_from_basket_and_delivery':
+            amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0);
+            break;
+          case 'bonus_from_basket':
+            amountToDeduct = order.basketTotal;
+            break;
+          default:
+            throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
+        }
+
+        // Calculate maximum allowed bonus coverage
+        const maxBonusCoverage = new Decimal(amountToDeduct).mul(normalizePercent(bonusProgram.coveragePercentage));
+        // Ensure maxBonusCoverage is not greater than amountToDeduct
+        if (maxBonusCoverage.gt(amountToDeduct)) {
           throw {
-            code: 27,
-            error: "BONUS_BALANCE_INSUFFICIENT",
+            code: 19,
+            error: "Max bonus coverage exceeds allowable amount to deduct",
           };
+        }
+        // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
+        let bonusCoverage: Decimal;
+        if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
+          bonusCoverage = new Decimal(spendBonus.amount);
+        } else {
+          bonusCoverage = maxBonusCoverage;
+        }
+
+        // Deduct the bonus from the order total
+        order.spendBonus = spendBonus;
+        order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
+        order.bonusesTotal = bonusCoverage.toNumber();
         }
       }
 
@@ -1275,10 +1304,9 @@ let Model = {
 
         const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: order.spendBonus.bonusProgramId });
 
-        // What the bonuses covered, not what was asked: the ask may exceed the cap.
         const transaction: BonusTransaction = {
           isNegative: true,
-          amount: order.bonusesTotal
+          amount: order.spendBonus.amount
         }
 
         await bonusProgramAdapter.writeTransaction(user, userBonusProgram, transaction)
@@ -1693,7 +1721,6 @@ let Model = {
       // lost a product says so once, in the response that lost it, and the next
       // recount starts silent. Left alone it would be repeated on every response.
       order.message = "";
-      order.messageArgs = [];
 
 
 
@@ -1995,8 +2022,10 @@ let Model = {
        * worth one sentence, not a fight over one field.
        */
       if (droppedProducts.length) {
-        order.message = "Some products are not available here and were removed: %s";
-        order.messageArgs = [droppedProducts.join(", ")];
+        order.message = sails.__(
+          "Some products are not available here and were removed: %s",
+          droppedProducts.join(", "),
+        );
         await Order.log({id: order.id}, "info", "core", KITCHEN_LOG.dropped, {
           placeId: kitchen.placeId,
           previousPlaceId: kitchen.previousPlaceId,
@@ -2253,9 +2282,6 @@ let Model = {
       // END calculate delivery cost
 
       order.total = new Decimal(basketTotal).plus(deliveryCost).minus(order.discountTotal).toNumber();
-      // Bonuses last: a strategy may take its share of the total above.
-      order.bonusesTotal = await bonusCoverage(order);
-      order.total = new Decimal(order.total).minus(order.bonusesTotal).toNumber();
       delete (order.dishes)
       order = (await Order.update({ id: order.id }, order).fetch())[0];
 
@@ -3144,43 +3170,6 @@ async function unitsModifiersAllow(
     units = Math.min(units, Math.max(0, Math.floor(left / perUnit)));
   }
   return units;
-}
-
-/**
- * What the bonuses the customer asked to spend cover of the order as counted so
- * far: the ask, capped at the program's share of the amount the strategy names.
- * Counted on every recount, so bonuses always fit the basket they are on —
- * after another kitchen, after the recount a payment makes.
- */
-async function bonusCoverage(order: OrderRecord): Promise<number> {
-  const spendBonus = order.spendBonus;
-  if (!order.user || !spendBonus?.bonusProgramId || !(spendBonus.amount > 0)) return 0;
-
-  const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
-  const strategy = await Settings.get("BONUS_SPENDING_STRATEGY");
-  // The model defaults each of these to 0.
-  const { total = 0, basketTotal = 0, discountTotal = 0 } = order;
-  const deliveryCost = order.delivery?.cost ?? 0;
-  let amountToDeduct: Decimal;
-  switch (strategy) {
-    case "bonus_from_order_total":
-      amountToDeduct = new Decimal(total);
-      break;
-    case "bonus_from_basket_delivery_discount":
-      amountToDeduct = new Decimal(basketTotal).plus(deliveryCost).minus(discountTotal);
-      break;
-    case "bonus_from_basket_and_delivery":
-      amountToDeduct = new Decimal(basketTotal).plus(deliveryCost);
-      break;
-    case "bonus_from_basket":
-      amountToDeduct = new Decimal(basketTotal);
-      break;
-    default:
-      throw `Invalid bonus spending strategy: ${strategy}`;
-  }
-
-  const maxCoverage = amountToDeduct.mul(normalizePercent(bonusProgram.coveragePercentage));
-  return Decimal.min(spendBonus.amount, maxCoverage).toNumber();
 }
 
 function isValidDelivery(delivery: Delivery, strict: boolean = true): boolean {

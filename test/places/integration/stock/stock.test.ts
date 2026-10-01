@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { resetDatabase } from "../../support/reset";
-import { add, checkout, deliverTo, lines, newBasket, thrown, updateOrder, dropped } from "../../support/storefront";
+import { add, checkout, deliverTo, lines, newBasket, thrown, updateOrder } from "../../support/storefront";
 
 /**
  * Stock at the basket's kitchen: a line is cut quietly to what is left, a
@@ -76,7 +76,7 @@ describe("Stock", function () {
     const order = await updateOrder(id, {});
 
     expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-    expect(order).to.deep.include(dropped("Dish 2"));
+    expect(order.message).to.equal("Some products are not available here and were removed: Dish 2");
     expect(order.cookingPoints).to.deep.equal([kitchen1]);
     expect(moved).to.deep.equal([]);
   });

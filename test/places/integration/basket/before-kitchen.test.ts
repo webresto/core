@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { KITCHEN_LOG } from "../../../../lib/order/kitchen-assignment";
 import { resetDatabase, withSettings } from "../../support/reset";
-import { add, deliverTo, lines, newBasket, thrown, updateOrder, dropped } from "../../support/storefront";
+import { add, deliverTo, lines, newBasket, thrown, updateOrder } from "../../support/storefront";
 
 /**
  * A basket that has no kitchen yet takes only what every kitchen it could end
@@ -91,7 +91,7 @@ describe("Basket before a kitchen", function () {
     const order = await inCity(id, "City 2");
 
     expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-    expect(order).to.deep.include(dropped("Dish 3"));
+    expect(order.message).to.equal("Some products are not available here and were removed: Dish 3");
     expect((await Order.getLogs({ id })).filter((entry) => entry.message === KITCHEN_LOG.dropped)).to.have.length(1);
     // City 2 has one kitchen, and `single-point` names it without a coordinate.
     expect(order.cookingPoints).to.deep.equal([k.kitchen3]);

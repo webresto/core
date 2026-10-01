@@ -136,6 +136,8 @@ declare global {
     CREATE_USER_IF_NOT_EXIST: boolean
     TIME_TO_SYNC_BONUSES_IN_MINUTES: number
     SYNC_BONUSTRANSACTION_AFTER_TIME: number
+    DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean
+    ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean
     /**
      * Allows you to make shipping calculations optional. Shipping calculations will occur. But it won't throw an error
      */

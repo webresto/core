@@ -66,9 +66,3 @@ export async function thrown(promise: Promise<unknown>): Promise<any> {
     return error ?? "undefined was thrown";
   }
 }
-
-/** What a recount that dropped `products` writes: the key and its `%s`, translated by GraphQL. */
-export const dropped = (products: string) => ({
-  message: "Some products are not available here and were removed: %s",
-  messageArgs: [products],
-});

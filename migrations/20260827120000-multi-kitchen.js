@@ -186,9 +186,6 @@ exports.up = function (db, callback) {
 
     (cb) => db.addColumn('order', 'maxWaitMinutes', { type: 'int', notNull: false }, cb),
 
-    // The `%s` of `message`, a translation key GraphQL translates for the reader.
-    (cb) => db.addColumn('order', 'messageArgs', { type: 'json', notNull: false }, cb),
-
     // Delivery, pickup or dine-in — the boolean could only say two of the three.
     (cb) => db.addColumn('order', 'serviceType', { type: 'text', notNull: false, defaultValue: 'delivery' }, cb),
     (cb) => db.removeColumn('order', 'selfService', cb),
@@ -245,8 +242,6 @@ exports.down = function (db, callback) {
     (cb) => db.addColumn('order', 'orderTotal', { type: 'real', defaultValue: 0 }, cb),
     (cb) => db.addColumn('order', 'selfService', { type: 'boolean', notNull: false, defaultValue: false }, cb),
     (cb) => db.removeColumn('order', 'serviceType', cb),
-
-    (cb) => db.removeColumn('order', 'messageArgs', cb),
 
     (cb) => db.removeColumn('order', 'maxWaitMinutes', cb),
 

@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { KITCHEN_LOG } from "../../../../lib/order/kitchen-assignment";
 import { nominatim } from "../../support/nominatim";
 import { resetDatabase, withSettings } from "../../support/reset";
-import { add, checkout, deliverTo, lines, newBasket, thrown, updateOrder, dropped } from "../../support/storefront";
+import { add, checkout, deliverTo, lines, newBasket, thrown, updateOrder } from "../../support/storefront";
 
 /**
  * Delivery: the address picks the zone, the zone picks the kitchen that stands
@@ -104,7 +104,7 @@ describe("checkout: delivery", function () {
 
     expect(order.cookingPoints).to.deep.equal([kitchen2]);
     expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-    expect(order).to.deep.include(dropped("Dish 2"));
+    expect(order.message).to.equal("Some products are not available here and were removed: Dish 2");
     expect(order.delivery).to.include({ cost: 150, zoneName: "Zone 2" });
   });
 
@@ -120,7 +120,7 @@ describe("checkout: delivery", function () {
       // Zone 1 has no open kitchen left: the nearest one takes it.
       expect(order.cookingPoints).to.deep.equal([kitchen2]);
       expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-      expect(order).to.deep.include(dropped("Dish 2"));
+      expect(order.message).to.equal("Some products are not available here and were removed: Dish 2");
     });
   });
 

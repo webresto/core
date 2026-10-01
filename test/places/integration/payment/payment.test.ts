@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { resetDatabase } from "../../support/reset";
 import { startPaymentSystem, TestPaymentSystem } from "../../support/payment";
-import { startBonusSystem } from "../../support/bonus";
 import { add, CUSTOMER, newBasket, pickUpAt, thrown } from "../../support/storefront";
 
 /**
@@ -164,26 +163,6 @@ describe("Payment", function () {
       const order = await Order.findOne({ id });
       expect(order).to.deep.include({ paid: true, state: "ORDER", problem: true });
       expect(order.comment).to.contain("the bank account received:50");
-    });
-
-    it("paid partly with bonuses: the recount of the payment keeps them off the total, no problem", async function () {
-      const { system: bonuses, bonusProgram } = await startBonusSystem();
-      const user = await User.create({ login: "15550000001", firstName: "Customer", lastName: "1", phone: { code: "1", number: "5550000001" } }).fetch();
-      await UserBonusProgram.registration(user, "bonus-1");
-      bonuses.balances.set(user.id, 1000);
-
-      const id = await newBasket();
-      await add(id, dish1);
-      await pickUpAt(id, kitchen1);
-      await Order.check({ id }, CUSTOMER, "pickup", undefined, external, user.id, { bonusProgramId: bonusProgram, amount: 20 } as any);
-      const response = await Order.payment({ id });
-      expect((await Order.findOne({ id })).total).to.equal(80);
-
-      system.pay(response.id);
-      await PaymentDocument.doCheck({ id: response.id });
-
-      expect(await Order.findOne({ id })).to.deep.include({ state: "ORDER", total: 80, bonusesTotal: 20, problem: false });
-      expect(bonuses.balances.get(user.id)).to.equal(980);
     });
 
     it("whose payment cannot be registered stays at checkout, and the caller hears why", async function () {

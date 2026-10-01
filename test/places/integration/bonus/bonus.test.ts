@@ -70,39 +70,6 @@ describe("Bonuses", function () {
     expect(await Order.findOne({ id })).to.deep.include({ bonusesTotal: 0, spendBonus: null });
   });
 
-  it("is refused when the customer has fewer bonuses than they cover", async function () {
-    system.balances.set(user.id, 40);
-    try {
-      const id = await basket();
-      expect(await thrown(spend(id, 50))).to.deep.equal({ code: 27, error: "BONUS_BALANCE_INSUFFICIENT" });
-      expect(await thrown(spend(id, 40))).to.equal(null);
-    } finally {
-      system.balances.set(user.id, 1000);
-    }
-  });
-
-  it("are counted again on every recount, and a check without them takes them back", async function () {
-    const id = await basket();
-    await spend(id, 900);
-
-    // A recount outside checkout, as a payment makes one: the bonuses stay off the total.
-    const recounted = await Order.countCart({ id });
-    expect([recounted.bonusesTotal, recounted.total]).to.deep.equal([325, 650 - 325]);
-
-    await Order.check({ id }, CUSTOMER, "pickup", undefined, undefined, user.id);
-    expect(await Order.findOne({ id })).to.deep.include({ bonusesTotal: 0, spendBonus: null, total: 650 });
-  });
-
-  it("placing the order writes what the bonuses covered, not what was asked", async function () {
-    system.balances.set(user.id, 1000);
-    const id = await basket();
-    await spend(id, 900);
-
-    await Order.order({ id });
-
-    expect(system.balances.get(user.id)).to.equal(1000 - 325);
-  });
-
   it("placing the order writes the spending to the system, and the copy follows", async function () {
     system.balances.set(user.id, 1000);
     const id = await basket();

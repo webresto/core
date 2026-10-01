@@ -77,7 +77,6 @@ let Model = {
     // defaults
     if (init.coveragePercentage !== undefined) {
       init.coveragePercentage = normalizePercent(init.coveragePercentage).toNumber();
-      if (init.coveragePercentage > 1) return cb("coveragePercentage cannot exceed 100%");
     } else {
       init.coveragePercentage = 1;
     }
@@ -101,7 +100,6 @@ let Model = {
   beforeUpdate(valuesToUpdate: Partial<BonusProgramRecord>, cb: (err?: string) => void) {
     if (valuesToUpdate.coveragePercentage !== undefined) {
       valuesToUpdate.coveragePercentage = normalizePercent(valuesToUpdate.coveragePercentage).toNumber();
-      if (valuesToUpdate.coveragePercentage > 1) return cb("coveragePercentage cannot exceed 100%");
     }
     cb();
   },

@@ -53,8 +53,6 @@ let Model = {
         // defaults
         if (init.coveragePercentage !== undefined) {
             init.coveragePercentage = (0, normalize_1.normalizePercent)(init.coveragePercentage).toNumber();
-            if (init.coveragePercentage > 1)
-                return cb("coveragePercentage cannot exceed 100%");
         }
         else {
             init.coveragePercentage = 1;
@@ -74,8 +72,6 @@ let Model = {
     beforeUpdate(valuesToUpdate, cb) {
         if (valuesToUpdate.coveragePercentage !== undefined) {
             valuesToUpdate.coveragePercentage = (0, normalize_1.normalizePercent)(valuesToUpdate.coveragePercentage).toNumber();
-            if (valuesToUpdate.coveragePercentage > 1)
-                return cb("coveragePercentage cannot exceed 100%");
         }
         cb();
     },

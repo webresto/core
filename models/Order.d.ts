@@ -165,12 +165,11 @@ declare let attributes: {
     serviceType: ServiceType;
     delivery: Delivery | null;
     /**
-     * What the last recount has to tell the customer: a translation key, with
-     * `%s` filled from `messageArgs`. Core does not know the reader's language;
-     * GraphQL translates on the way out, as it does `Delivery.message`.
+     * @deprecated What the last recount has to tell the customer, translated by
+     * core into the site's language.
+     * TODO: move to DialogBox.
      */
     message: string;
-    messageArgs: string[] | null;
     /** order total weight */
     totalWeight: number;
     /** Change */
@@ -335,7 +334,6 @@ declare let Model: {
         serviceType?: ServiceType;
         delivery?: Delivery | null;
         message?: string;
-        messageArgs?: string[] | null;
         totalWeight?: number;
         trifleFrom?: number;
         bonusesTotal?: number;
